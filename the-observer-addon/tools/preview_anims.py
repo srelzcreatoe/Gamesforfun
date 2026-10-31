@@ -5,10 +5,12 @@ For each clip, renders frames from three cameras (front, three-quarter, side) si
 writes an animated GIF, plus one still contact sheet of all clips. Used to review new clips before
 they are seen in a client.
 
-Usage: preview_anims.py OUT_DIR CLIP [CLIP ...] [--frames N] [--stoop] [--video NAME.mp4 [--seconds S]]
+Usage: preview_anims.py OUT_DIR CLIP [CLIP ...] [--frames N] [--stoop] [--raise BLOCKS] [--video NAME.mp4 [--seconds S]]
   CLIP = an animation short name from the supplemental file (e.g. float_drift) or supplied:NAME; layers are
          joined with "+" and play together as the client layers them (e.g. supplied:attack+float_hang: the
          strike in mid-air); the first layer sets the length
+  --raise draws the figure that many blocks higher (the hang: its origin is in mid-air under a cave ceiling, its
+          arms dangle below it)
   --video also writes one MP4 (30 fps, H.264) with every clip looped for S seconds, back to back (needs ffmpeg)
 """
 import argparse
@@ -45,9 +47,12 @@ def layers(name):
     return [(a, float(a.get("animation_length", 1.0))) for a in (load(n) for n in name.split("+"))]
 
 
+RAISE = {"bones": {"root": {"position": [0, 0, 0]}}}
+
+
 def at(lay, t):
     """Each layer at time t: looping layers wrap, the others hold their last frame."""
-    return [(a, t % ln if a.get("loop") is True else min(t, ln)) for a, ln in lay]
+    return [(a, t % ln if a.get("loop") is True else min(t, ln)) for a, ln in lay] + [(RAISE, 0.0)]
 
 
 def fname(name):
@@ -71,7 +76,9 @@ def main():
     ap.add_argument("--stoop", action="store_true")
     ap.add_argument("--video")
     ap.add_argument("--seconds", type=float, default=4.0)
+    ap.add_argument("--raise", dest="raise_", type=float, default=0.0)
     a = ap.parse_args()
+    RAISE["bones"]["root"]["position"] = [0, 16 * a.raise_, 0]
     os.makedirs(a.out, exist_ok=True)
     rm.MOLANG_VARS["q.property('observer:stoop')"] = 1.0 if a.stoop else 0.0
     model = rm.Model(GEO, TEX)

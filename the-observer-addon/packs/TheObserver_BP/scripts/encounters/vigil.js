@@ -139,7 +139,7 @@ async function vigil(enc, practice) {
       await enc.until(() => visibility(p, last.loc, { fov: 40 }).points > 0, 200, 4);
       body.setState("tilt");
       await enc.wait(70);
-      await body.withdraw([p], 100);
+      await body.vanish();
     }
     if (practice) {
       safe(() => p.sendMessage({ rawtext: [{ translate: "observer.msg.vigil_practice_done" }] }));

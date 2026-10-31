@@ -2,7 +2,7 @@
 // Every check prints "[OTEST] PASS <name> ..." or "[OTEST] FAIL <name> ...".
 import { world, system, GameMode, ItemStack, Direction, BlockVolume, BlockPermutation } from "@minecraft/server";
 import * as gt from "@minecraft/server-gametest";
-import { build, resetHouse, Y, FIELD, HOUSE, TUNNEL, NETHER, POOL, PILLAR } from "./arenas.js";
+import { build, resetHouse, buildCages, Y, FIELD, HOUSE, TUNNEL, NETHER, POOL, PILLAR, CAVE, CAGES, RIDGE } from "./arenas.js";
 
 const OBS = "observer:the_observer";
 const ow = () => world.getDimension("overworld");
@@ -192,6 +192,8 @@ TESTS.setup = async () => {
   obs("preset", "standard");
   obs("set", "graceMinutes", "0");
   obs("lunge", "never"); // the lunge is random in play; its own test switches it on
+  obs("standoff", "off"); // seen, it stares a moment and is gone; the standoff tests switch it on
+  obs("stalk", "ground"); // no random ledges or ceilings; their own tests ask for them
   obs("set", "illusions", "false"); // the arena happens to be taiga: no shadows except in their own tests
   obs("preset", "standard");
   await wait(20);
@@ -1472,13 +1474,13 @@ TESTS.illusion_taiga = async () => {
   await wait(20);
 };
 
-TESTS.withdraw_walks = async () => {
-  // noticed and still watched: it walks away (scripted steps) and unravels only after a while
+TESTS.vanish_in_place = async () => {
+  // when it is done it does not walk off: it is simply gone, torn apart where it stood
   const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 });
   const m = mark();
   obs("trigger", "distant_watch", "Tester");
   const e = await waitObserver(60);
-  if (!check("withdraw_body", !!e, (since(m, "end")[0] || {}).outcome)) return;
+  if (!check("vanish_body", !!e, (since(m, "end")[0] || {}).outcome)) return;
   const l0 = { ...e.location };
   let maxD = 0;
   for (let t = 0; t < 20 * 25 && e.isValid; t += 2) {
@@ -1488,8 +1490,231 @@ TESTS.withdraw_walks = async () => {
   }
   await wait(4);
   const gone = since(m, "body").find((d) => d.what === "remove");
-  check("withdraw_walks_away", maxD > 4, `moved ${maxD.toFixed(1)} blocks while watched`);
-  check("withdraw_removed", !e.isValid, gone ? gone.why : "still there");
+  check("vanish_did_not_walk_off", maxD < 0.5, `moved ${maxD.toFixed(2)} blocks`);
+  check("vanish_removed_in_place", !e.isValid && gone && gone.why === "vanished", gone ? gone.why : "still there");
+  check("vanish_tears_apart", since(m, "fx").some((d) => d.what === "vanish" && d.why === "vanished"), JSON.stringify(since(m, "fx")));
+};
+
+/** Shoot an arrow from a player at a point (the projectile's owner is the player). */
+function shoot(p, at) {
+  const eye = p.getHeadLocation();
+  const v = { x: at.x - eye.x, y: at.y - eye.y, z: at.z - eye.z };
+  const len = Math.hypot(v.x, v.y, v.z);
+  const dir = { x: v.x / len, y: v.y / len, z: v.z / len };
+  const a = ow().spawnEntity("minecraft:arrow", { x: eye.x + dir.x * 1.2, y: eye.y + dir.y * 1.2, z: eye.z + dir.z * 1.2 });
+  const pr = a.getComponent("minecraft:projectile");
+  pr.owner = p;
+  pr.shoot({ x: dir.x * 3, y: dir.y * 3 + 0.08, z: dir.z * 3 });
+}
+
+TESTS.standoff = async () => {
+  // seen, it does not just leave: the standoff
+  obs("standoff", "auto");
+  // A. look away and it is closer each time you look back; leave it be and in the end it is simply gone
+  let p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 2);
+  isolate(p);
+  let m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  let e = await waitObserver(60);
+  if (!check("standoff_body", !!e, (since(m, "end")[0] || {}).outcome)) return obs("standoff", "off");
+  await lookAtObserverFor(p, 30);
+  const st = await waitEvent("standoff", (d) => d.what === "start", 80, m);
+  check("standoff_starts_when_seen", !!st);
+  const d0 = hdist(e.location, p.location);
+  const away = { x: p.location.x - (e.location.x - p.location.x), y: Y + 1.6, z: p.location.z - (e.location.z - p.location.z) };
+  p.lookAtLocation(away);
+  await waitEvent("standoff", (d) => d.what === "creep", 20 * 8, m);
+  const d1 = e.isValid ? hdist(e.location, p.location) : -1;
+  check("standoff_creeps_while_unwatched", d1 > 0 && d1 < d0 - 1.5, `${d0.toFixed(1)} -> ${d1.toFixed(1)} blocks`);
+  const g = await waitEvent("standoff", (d) => d.what === "gone", 20 * 40, m);
+  check("standoff_gone_when_left_alone", g && (g.why === "looked_away" || g.why === "enough"), g ? g.why : "still there");
+  check("standoff_gone_vanishes", await observerGone(100));
+  // B. stare at it too long: it snaps, and from stage 2 it comes for you in a rage, faster than a sprint
+  p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 4);
+  isolate(p);
+  p.setItem(new ItemStack("observer:witness_lens", 1), 1, true);
+  const dmg = trackDamage(p);
+  m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  e = await waitObserver(60);
+  if (!check("standoff_rage_body", !!e)) return obs("standoff", "off");
+  const t0 = system.currentTick;
+  let prov;
+  for (let t = 0; t < 20 * 25 && e.isValid && !prov; t += 2) {
+    p.lookAtLocation({ x: e.location.x, y: e.location.y + 2.2, z: e.location.z });
+    prov = since(m, "standoff").find((d) => d.what === "provoked");
+    await wait(2);
+  }
+  check("standoff_stare_provokes", prov && prov.why === "stare", prov ? `${prov.why} after ${((system.currentTick - t0) / 20).toFixed(1)} s` : "never");
+  const rage = await waitEvent("rage", () => true, 40, m);
+  check("standoff_rage", !!rage);
+  // its speed in the rage: from 10 ticks in until it is 5 blocks off
+  let speed = 0;
+  if (rage && e.isValid) {
+    await wait(10);
+    const a = { ...e.location }, ta = system.currentTick;
+    while (e.isValid && hdist(e.location, p.location) > 5 && system.currentTick - ta < 100) {
+      heal(p);
+      await wait(2);
+    }
+    if (e.isValid) speed = (hdist(a, e.location) * 20) / Math.max(1, system.currentTick - ta);
+  }
+  check("standoff_rage_faster_than_a_sprint", speed > 6.5, `${speed.toFixed(2)} b/s`);
+  let hits = 0;
+  for (let t = 0; t < 20 * 10 && hits < 1; t += 4) {
+    heal(p);
+    hits = since(m, "strike").length;
+    await wait(4);
+  }
+  check("standoff_rage_strikes", hits >= 1, `strikes=${hits} damage=${dmg.total}`);
+  for (let t = 0; t < 40 && e.isValid; t += 4) {
+    heal(p);
+    p.lookAtLocation({ x: e.location.x, y: e.location.y + 2.2, z: e.location.z });
+    await wait(2);
+    p.useItemInSlot(1);
+    await wait(2);
+    if (since(m, "end").some((d) => d.type === "distant_watch")) break;
+  }
+  dmg.stop();
+  obs("abort");
+  await observerGone(100);
+  // C. shoot it, and it answers
+  p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 4);
+  isolate(p);
+  m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  e = await waitObserver(60);
+  if (!check("standoff_shot_body", !!e)) return obs("standoff", "off");
+  await lookAtObserverFor(p, 26);
+  await waitEvent("standoff", (d) => d.what === "start", 60, m);
+  // closer (but not too close), looking away so the stare does not count, then an arrow
+  const dir = { x: e.location.x - p.location.x, z: e.location.z - p.location.z };
+  const len = Math.hypot(dir.x, dir.z);
+  const near = { x: e.location.x - (dir.x / len) * 13, y: Y, z: e.location.z - (dir.z / len) * 13 };
+  p.teleport(near, { facingLocation: { x: near.x - dir.x, y: Y + 1.6, z: near.z - dir.z } });
+  await wait(6);
+  let shot;
+  for (let i = 0; i < 4 && !shot && e.isValid; i++) {
+    shoot(p, { x: e.location.x, y: e.location.y + 1.8, z: e.location.z });
+    shot = await waitEvent("standoff", (d) => d.what === "provoked", 30, m);
+  }
+  check("standoff_shot_provokes", shot && shot.why === "shot", shot ? shot.why : "never");
+  obs("abort");
+  await observerGone(100);
+  for (const a of ow().getEntities({ type: "minecraft:arrow" })) a.remove();
+  obs("standoff", "off");
+};
+
+TESTS.stalk_hang = async () => {
+  // underground it may hang from the ceiling, upside down, perfectly still; look away and it lets go
+  obs("stalk", "hang");
+  obs("standoff", "short");
+  const p = await freshTarget("Tester", CAVE.stand, { x: CAVE.x1, y: CAVE.floor + 1.6, z: CAVE.stand.z }, 2);
+  isolate(p);
+  const m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  const e = await waitObserver(80);
+  const sk = since(m, "stalk")[0];
+  if (!check("stalk_hang_body", !!e && sk && sk.mode === "hang", JSON.stringify(sk ?? since(m, "end")[0] ?? {}))) {
+    obs("stalk", "ground");
+    return obs("standoff", "off");
+  }
+  const want = CAVE.ceiling - 4.05;
+  check("stalk_hangs_from_the_ceiling", e.getProperty("observer:state") === "hang" && Math.abs(e.location.y - want) < 0.3, `state=${e.getProperty("observer:state")} y=${e.location.y.toFixed(2)} want ${want}`);
+  const y0 = e.location.y;
+  await wait(40);
+  check("stalk_hang_stays_put", e.isValid && Math.abs(e.location.y - y0) < 0.1, e.isValid ? `y=${e.location.y.toFixed(2)}` : "gone");
+  await lookAtObserverFor(p, 30);
+  p.lookAtLocation({ x: CAVE.x0, y: CAVE.floor + 1.6, z: CAVE.stand.z });
+  const cr = await waitEvent("standoff", (d) => d.what === "creep", 20 * 6, m);
+  check("stalk_hang_lets_go_when_unwatched", cr && cr.from === "ceiling" && e.isValid && e.location.y < y0 - 2 && e.getProperty("observer:state") === "stare",
+    cr ? `y=${e.isValid ? e.location.y.toFixed(2) : "gone"}` : "no creep");
+  obs("abort");
+  await observerGone(100);
+  obs("stalk", "ground");
+  obs("standoff", "off");
+};
+
+TESTS.stalk_ledge = async () => {
+  // or it stands on something high above you: a ridge, a tree top, a pillar
+  obs("stalk", "ledge");
+  const p = await freshTarget("Tester", RIDGE.stand, { x: RIDGE.stand.x - 30, y: Y + 1.6, z: RIDGE.stand.z }, 2);
+  isolate(p);
+  const m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  const e = await waitObserver(80);
+  const sk = since(m, "stalk")[0];
+  if (check("stalk_ledge_body", !!e && sk && sk.mode === "ledge", JSON.stringify(sk ?? since(m, "end")[0] ?? {}))) {
+    check("stalk_ledge_high_above", e.location.y - p.location.y >= 4 && standValid(e), `rise ${(e.location.y - p.location.y).toFixed(1)}`);
+  }
+  obs("abort");
+  await observerGone(100);
+  obs("stalk", "ground");
+};
+
+/** Sealed in a cage with one way in (a gap, glass, a door): it finds it. */
+async function cageTest(name) {
+  buildCages();
+  const c = CAGES[name];
+  obs("set", "aggression", "1"); // one strike, then it is gone
+  const outside = { x: c.x0 - 2.5, y: Y, z: c.z0 + 2.5 };
+  const p = await freshTarget("Tester", outside, { x: c.x0 - 30, y: Y + 1.6, z: c.z0 + 2.5 }, 4);
+  isolate(p);
+  const glass0 = countBlocks(ow(), { x: c.x0, y: Y, z: c.z0 }, { x: c.x0 + 4, y: Y + 2, z: c.z0 + 4 }, "minecraft:glass");
+  const dmg = trackDamage(p);
+  const m = mark();
+  obs("trigger", "test_strike", "Tester");
+  const e = await waitObserver(60);
+  // into the cage before it comes
+  p.teleport({ x: c.x0 + 2.5, y: Y, z: c.z0 + 2.5 }, { facingLocation: { x: c.x0 - 10, y: Y + 1.6, z: c.z0 + 2.5 } });
+  const pose = poseLog();
+  for (let t = 0; t < 20 * 30 && !since(m, "strike").length; t += 2) {
+    if (t % 4 === 0) heal(p);
+    pose.sample(e);
+    await wait(2);
+  }
+  dmg.stop();
+  const plan = since(m, "squeeze").find((d) => d.what === "plan");
+  const through = since(m, "squeeze").find((d) => d.what === "through");
+  const strike = since(m, "strike")[0];
+  const r = { e: !!e, plan, through, strike, pose, glass0, dmg: dmg.total };
+  obs("abort");
+  await observerGone(100);
+  obs("preset", "standard");
+  return r;
+}
+
+TESTS.squeeze_gap = async () => {
+  // a gap a block high: it gets down flat and crawls through
+  const r = await cageTest("gap");
+  check("squeeze_gap_planned", r.plan && r.plan.tight > 0, JSON.stringify(r.plan ?? {}));
+  check("squeeze_gap_crawls", r.through && r.through.crawled && r.pose.states.has("crawl"), `${JSON.stringify(r.through ?? {})} ${r.pose.str()}`);
+  check("squeeze_gap_reaches_you", !!r.strike, r.strike ? r.strike.result : "never struck");
+};
+
+TESTS.squeeze_glass = async () => {
+  // glass walls: it breaks its way in (and the glass is put back)
+  const r = await cageTest("glass");
+  check("squeeze_glass_breaks_in", r.through && r.through.broke >= 1, JSON.stringify(r.through ?? r.plan ?? {}));
+  check("squeeze_glass_reaches_you", !!r.strike, r.strike ? r.strike.result : "never struck");
+  obs("restore");
+  await wait(10);
+  const c = CAGES.glass;
+  const glass = countBlocks(ow(), { x: c.x0, y: Y, z: c.z0 }, { x: c.x0 + 4, y: Y + 2, z: c.z0 + 4 }, "minecraft:glass");
+  check("squeeze_glass_put_back", glass === r.glass0, `${glass} of ${r.glass0}`);
+  check("squeeze_glass_no_drops", itemsNear(ow(), { x: c.x0, y: Y, z: c.z0 + 2 }, 8) === 0);
+};
+
+TESTS.squeeze_door = async () => {
+  // a closed door: it opens it, and crawls through the doorway
+  const r = await cageTest("door");
+  check("squeeze_door_opens_it", r.through && r.through.doors >= 1, JSON.stringify(r.through ?? r.plan ?? {}));
+  check("squeeze_door_reaches_you", !!r.strike, r.strike ? r.strike.result : "never struck");
+  obs("restore");
+  await wait(10);
+  const c = CAGES.door;
+  const door = ow().getBlock({ x: c.x0, y: Y, z: c.z0 + 2 });
+  check("squeeze_door_closed_again", door?.typeId === "minecraft:wooden_door" && door.permutation.getState("open_bit") === false, door ? `${door.typeId} open=${door.permutation.getState("open_bit")}` : "none");
 };
 
 TESTS.seal_occupied = async () => {

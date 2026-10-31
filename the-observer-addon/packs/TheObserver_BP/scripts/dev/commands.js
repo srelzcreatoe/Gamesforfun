@@ -15,7 +15,8 @@
 //   /observer:journal                          open the Field Notes without the item
 //   /observer:tools [player]                   give the tool set (testing)
 // Script events only: mirepage <0-7|all|clear> [player] (a Weeping Mire torn page, read without the form),
-// weights [player] (what the director would choose from here), like the other test switches in run().
+// weights [player] (what the director would choose from here), standoff off|short|auto, stalk hang|ledge|ground|auto,
+// like the other test switches in run().
 // Each also works as /scriptevent observer:<name> <args...> (console, command blocks, tests).
 import { world, system, CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, ItemStack } from "@minecraft/server";
 import { ps, W, now, resetPlayer, markPlayerDirty, markWorldDirty, warp } from "../core/state.js";
@@ -181,6 +182,14 @@ export function run(name, args, caller) {
     case "lunge":
       DEBUG.lunge = args[0] === "always" || args[0] === "never" ? args[0] : "auto";
       return `lunge ${DEBUG.lunge}`;
+    case "standoff":
+      // standoff off|short|auto: off = a moment's stare and the encounter ends (tests of other things)
+      DEBUG.standoff = args[0] === "off" || args[0] === "short" ? args[0] : "auto";
+      return `standoff ${DEBUG.standoff}`;
+    case "stalk":
+      // stalk hang|ledge|ground|auto: where The Figure at the Edge stands
+      DEBUG.stalk = ["hang", "ledge", "ground"].includes(args[0]) ? args[0] : "auto";
+      return `stalk ${DEBUG.stalk}`;
     case "trace":
       DEBUG.trace = args[0] !== "off";
       return `trace ${DEBUG.trace ? "on" : "off"}`;

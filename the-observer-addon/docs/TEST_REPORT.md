@@ -19,7 +19,8 @@ packs in `packs/` and `dist/` are not modified and do not depend on GameTest.
 
 Test arena (`tests/bds/testkit_BP/scripts/arenas.js`): a 220 × 80 platform at y = 140 with an open field, trees, a
 furnished house (door, torches, pumpkin, stonecutter), a 64 × 72 pool, a 20-block pillar, a 57-block 2 × 3 tunnel
-inside solid stone at y = 125, and a Nether platform.
+inside solid stone at y = 125, a Nether platform, and (1.0.9) a dark cave room nine blocks high and a yard with three
+sealed cages (a 1-block gap, glass walls, a closed door) and a six-block stone ridge.
 
 ### 1.1 First load in a game client (reported by the user)
 
@@ -94,7 +95,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 73 test groups (including setup and a status check) with 319 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 79 test groups (including setup and a status check) with 348 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -130,6 +131,8 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | targeted (1.0.7) | 26 | 0 | all passed |
 | targeted (1.0.8: every attack floats; the Mire near spawn, never where you start) | 94 + 99 + 93 + 98 | 4 + 1 + 2 + 1 | run 1: the first biome tuning also took the taigas, and the test arena (a taiga) became Mire, which the new setup check caught (the field then counted as its home, so two Mire checks that compare "there" with "elsewhere" failed too) — the taigas were left out; the test could not write back a fresh world's unset spawn (test-side). Runs 2–4: the taiga-shadow test ran before any other shadow test, so the "first minute in the woods is quiet" clock had not started when it skipped time (test-side: it now waits for it); and the first-spawn guard's "no spawn point of their own" condition was wrong — every player has one — so it was dropped. Every float assertion (approach, lunge, strike and recoil in mid-air) passed in every run |
 | **final (1.0.7)** | **306** | **0** | all passed on the first full run: the 1.0.6 suite (re-run because placement now checks the line of sight both ways) plus the Weeping Mire as its home (context, stage bonus, early grace, its watcher, too close at 9 blocks, the torn pages) |
+| targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
+| **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
 
 Run 7 (1.0.1): 1080 s, minimum TPS 19.8, 0 errors; after the version bump to 1.0.1, `setup wheel_welcome showcase
@@ -152,6 +155,9 @@ Final run (1.0.6): 69 test groups, 1274 s, minimum TPS between tests 19.9, **0 c
 Final run (1.0.7): 72 test groups, 1547 s, minimum TPS between tests 19.8, **0 content-log or script errors**.
 
 Final run (1.0.8): 73 test groups, 1572 s, minimum TPS between tests 19.6, **0 content-log or script errors**.
+
+Final run (1.0.9): 79 test groups, 1526 s, minimum TPS between tests 19.5, **0 content-log or script errors**.
+`noexp.txt` and `mire_locate.txt` re-run on 1.0.9: `level.dat` experiments none, 0 errors.
 `noexp.txt` and `mire_locate.txt` re-run on 1.0.8: `level.dat` experiments none, 0 errors; the nearest Weeping Mire
 to 0,0 on seed 424242 is now at 32, 95, -32 ("45 blocks", the first square `locate` samples).
 
@@ -209,7 +215,7 @@ which is why only test worlds get it.
 | `carve` | 3 | — |
 | `animals` | 1 | — |
 | `vigil` | 3 | — |
-| `withdraw_walks` | 3 | — |
+| `vanish_in_place` | 4 | — |
 | `seal_occupied` | 2 | — |
 | `mp_fairness` | 1 | — |
 | `pursuit_water_escape` | 4 | — |
@@ -241,6 +247,12 @@ which is why only test worlds get it.
 | `climb_attack` | 3 | — |
 | `climb_over` | 2 | — |
 | `float_test_entry` | 2 | — |
+| `standoff` | 12 | — |
+| `stalk_hang` | 4 | — |
+| `stalk_ledge` | 2 | — |
+| `squeeze_gap` | 3 | — |
+| `squeeze_glass` | 4 | — |
+| `squeeze_door` | 3 | — |
 | `mire_home` | 6 | — |
 | `mire_watcher` | 10 | — |
 | `mire_pages` | 7 | — |
@@ -333,6 +345,15 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
    air), and the wind-up and the strike happen in mid-air with its legs hanging, never touching down; drive it off with
    the lens: the recoil is in mid-air too. **See it now** shows the same. On a few new worlds, check you never start
    inside the Mire and that it is in sight or a short walk away.
+13. **1.0.9** — `/scriptevent observer:standoff auto` (it is on by default in play), `/observer:stage 3`, then
+   `/observer:trigger distant_watch`: look at it for a second, then away; each time you look back it is closer. Stare
+   at it and keep staring: its neck cracks, it rattles, and after a few seconds it shrieks and comes at you, fast,
+   floating. Shoot an arrow at it in another standoff: the same. In a cave with a high ceiling,
+   `/scriptevent observer:stalk hang` then trigger it again: it hangs upside down from the ceiling (check the feet
+   meet the ceiling and the arms dangle); look away and it is standing below. Build a stone box around yourself
+   with one 1-block hole, `Test an encounter → The Strike`: it crawls in flat and stands up inside; with glass walls
+   it breaks in (the glass comes back); with a door it opens it. When any encounter ends it simply vanishes where it
+   stood.
 
 ## 7. Bugs found and fixed
 
@@ -376,6 +397,13 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
 * The new too-close reaction cut *Borrowed Work* short (walking up to the source is that encounter's answer) — it now
   handles the approach itself; spots far below the player's level are penalised (an *Echo Ahead* spot landed 64
   blocks below the test platform).
+
+**Found by the 1.0.9 tests**
+* Through a gap or a doorway it struck from the opening, still lying flat, and missed: it now comes all the way in
+  and stands up before it strikes (`squeeze_gap_reaches_you`, `squeeze_door_reaches_you`).
+* The first rage speed (melee speed ×1.75) measured 11 b/s, twice a sprint: it is ×1.5 now, ~8 b/s.
+* Test-side: the new cages sat on the open stretch the "peek needs cover" test relies on, and the flat field has no
+  real ledges; the cages and a stone ridge now stand in a yard of their own.
 
 **Found by the 1.0.8 tests**
 * The first biome tuning made the Mire take taigas too, and the test arena — a taiga — became Mire; the new

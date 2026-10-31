@@ -17,6 +17,10 @@ stalking behaviour also needs:
   animation.observer.float_hang      1.0.8: overlay for any other state while it is afloat (its strike, its
                                      recoil, a stare in mid-air): lifted a block, legs hanging limp, a slow bob.
                                      Legs and root only, so the supplied attack clip plays unchanged above it
+  animation.observer.hang            1.0.9: stalking from a cave ceiling: hanging upside down by its feet, arms
+                                     dangling toward the floor, a slow sway and now and then a crack of the neck
+  animation.observer.crawl           1.0.9: through a 1-block gap: flat on its front, head raised, dragging itself
+                                     forward hand over hand, legs pushing behind
 
 The floating clips lift the whole figure 1 block (root position); under a low ceiling
 (q.property('observer:stoop')) the lift drops to nothing so its head stays inside 3-block spaces.
@@ -304,6 +308,66 @@ def float_hang():
     return {"loop": True, "animation_length": 2.4, "bones": _loop(2.4, 0.1, pose)}
 
 
+def hang():
+    """Hanging from a cave ceiling by its feet, upside down (the root turned over and raised 4 blocks, so the feet
+    are at the ceiling and the head just above the floor below it), arms dangling past its head toward the floor,
+    swaying slowly; every few seconds the neck cracks round and holds."""
+    length = 4.0
+
+    def pose(ph):
+        s, c = math.sin(ph), math.cos(ph)
+        t = ph / (2 * math.pi) * length
+        neck = 0.0
+        if 1.6 <= t < 2.4:
+            neck = 1.0 if t >= 1.65 else (t - 1.6) / 0.05
+        elif 2.4 <= t < 2.45:
+            neck = 1.0 - (t - 2.4) / 0.05
+        pose = {
+            "pelvis": [0, 0, 1.5 * s],
+            "torso": [-4 + 1.5 * c, 0, 2 * s],
+            "head": [-18 + 3 * c, 24 * neck, -16 * neck],
+            "right_upper_arm": [172 + 4 * math.sin(ph + 0.5), 0, -12], "left_upper_arm": [172 + 4 * math.sin(ph + 1.4), 0, 12],
+            "right_forearm": [-8, 0, 0], "left_forearm": [-8, 0, 0],
+            "right_hand": [-10, 0, 0], "left_hand": [-10, 0, 0],
+            "right_thigh": [0, 0, 1], "left_thigh": [0, 0, -1],
+            "right_shin": [2, 0, 0], "left_shin": [2, 0, 0],
+            "right_foot": [-30, 0, 0], "left_foot": [-30, 0, 0],
+        }
+        return pose, [0, 64, 0]
+
+    bones = _loop(length, 0.05, pose)
+    # turned over: the root's rotation, with a slow pendulum sway
+    bones.setdefault("root", {})["rotation"] = {key(i * length / 8): r([0, 0, 180 + 3 * math.sin(2 * math.pi * i / 8)]) for i in range(9)}
+    for b, v in FINGERS.items():
+        bones[b] = {"rotation": {"0.0": [v[0] * 0.4, v[1], v[2]]}}
+    return {"loop": True, "animation_length": length, "bones": bones, "sound_effects": {"1.6": {"effect": "crack"}}}
+
+
+def crawl():
+    """Flat on its front through a gap a block high: the root tipped forward onto its chest and pulled back so the
+    body lies over where it stands, head raised to look ahead, arms reaching forward in turn and dragging it on,
+    legs pushing behind."""
+    def pose(ph):
+        s, c = math.sin(ph), math.cos(ph)
+        return {
+            "pelvis": [0, 4 * s, 0],
+            "torso": [0, -5 * s, 3 * c],
+            "head": [-48 + 4 * c, 6 * s, 0],
+            "right_upper_arm": [-168 + 20 * s, 0, -22], "left_upper_arm": [-168 - 20 * s, 0, 22],
+            "right_forearm": [-12 - 14 * c, 0, 0], "left_forearm": [-12 + 14 * c, 0, 0],
+            "right_hand": [10, 0, 0], "left_hand": [10, 0, 0],
+            "right_thigh": [-8 - 10 * s, 0, 14], "left_thigh": [-8 + 10 * s, 0, -14],
+            "right_shin": [20 + 10 * c, 0, 0], "left_shin": [20 - 10 * c, 0, 0],
+            "right_foot": [20, 0, 0], "left_foot": [20, 0, 0],
+        }, [0, 8, round(32 + 2 * s, 3)]
+
+    bones = _loop(0.9, 0.05, pose)
+    bones["root"]["rotation"] = {"0.0": [90, 0, 0]}
+    for b, v in FINGERS.items():
+        bones[b] = {"rotation": {"0.0": [v[0] * 1.2, v[1], v[2]]}}
+    return {"loop": True, "animation_length": 0.9, "bones": bones}
+
+
 def look_at_target():
     return {"loop": True, "bones": {"head": {"rotation": ["query.target_x_rotation", "query.target_y_rotation", 0]}}}
 
@@ -320,6 +384,8 @@ def main():
         "animation.observer.float_surge": float_surge(),
         "animation.observer.climb": climb(),
         "animation.observer.float_hang": float_hang(),
+        "animation.observer.hang": hang(),
+        "animation.observer.crawl": crawl(),
     }}
     bones = set(model.bones)
     for name, a in data["animations"].items():

@@ -20,6 +20,7 @@ import { context } from "../director/context.js";
 import { sighting, relentless } from "./common.js";
 import * as learn from "../observer/learn.js";
 import * as climb from "../observer/climb.js";
+import * as squeeze from "../observer/squeeze.js";
 
 /**
  * It floats to the last dry ground between it and the player in the water, and hovers there.
@@ -92,6 +93,7 @@ register({
     let escapedTicks = 0;
     const lightBonus = learn.lightBonus(enc);
     const escapeAt = 48 + learn.outrunBonus(enc);
+    const track = { best: Infinity, since: 0 };
     for (let t = 0; t < 20 * 35; t += 4) {
       await enc.wait(4);
       const bl = body.loc();
@@ -138,6 +140,8 @@ register({
           continue;
         }
       }
+      // a wall, a door, glass, a gap too low for it: it finds its own way through (observer/squeeze.js)
+      if (await squeeze.unstick(enc, track, t, dist)) continue;
       if (t % 40 === 0) enc.worldSound(SOUNDS.drift, { x: bl.x, y: bl.y + 2, z: bl.z }, 0.8);
       const watched = enc.updateGaze() || body.watchedBy(enc.watchers(), 30);
       const step = V.add(bl, V.scale(V.flat(V.sub(p.location, bl)), 1.5));

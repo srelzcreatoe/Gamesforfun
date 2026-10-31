@@ -1,0 +1,6 @@
+# 1.0.9: it vanishes in place; stalking from ceilings and ledges; the standoff (creeps unwatched, stare or a
+# shot provokes a rage); through tight spaces (a 1-block gap, glass, a door); with regressions
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup vanish_in_place standoff stalk_hang stalk_ledge squeeze_gap squeeze_glass squeeze_door distant_watch relentless lunge pursuit climb_pillar test_entries mire_watcher status
+expect \[OTEST\] SUITE DONE 3000

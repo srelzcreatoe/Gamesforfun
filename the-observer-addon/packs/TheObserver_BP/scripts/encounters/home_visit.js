@@ -134,8 +134,8 @@ register({
           sighting(enc, enc.gaze.lastWatcher ?? p);
           enc.discover("someone_was_home");
           await acknowledge(enc, 10, 20);
-          await body.withdraw(enc.watchers(), 120);
-        } else if (V.dist(p.location, body.loc() ?? p.location) < 12) await body.withdraw(enc.watchers(), 120);
+          await body.vanish();
+        } else if (V.dist(p.location, body.loc() ?? p.location) < 12) await body.vanish();
       }
       if (acknowledged && t > 600) break;
     }

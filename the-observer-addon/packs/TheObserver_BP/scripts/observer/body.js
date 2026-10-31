@@ -6,15 +6,17 @@
 //   approach slow pursuit of the tagged target (~1.5 b/s)
 //   pursue   chase the tagged target (~4.8 b/s: faster than walking, slower than sprinting)
 //   retreat  walk away from players
+//   rage     provoked: it rushes the tagged target (~8 b/s, faster than a sprint)
 // States (client animation, entity property observer:state):
-//   watch stare tilt walk run attack peek recoil hidden float surge climb   ("run" is unused since 1.0.8:
-//   every run, chase and attack floats)
+//   watch stare tilt walk run attack peek recoil hidden float surge climb hang crawl   ("run" is unused since
+//   1.0.8: every run, chase and attack floats)
+// It never walks off: when it is done it is simply gone, torn apart where it stood (vanish()).
 import { world, system, EntityDamageCause } from "@minecraft/server";
-import { OBSERVER_ID, TARGET_TAG, ENTITY_ENC_PROP, PARTICLES, SOUNDS, DANGER } from "../core/constants.js";
+import { OBSERVER_ID, TARGET_TAG, ENTITY_ENC_PROP, PARTICLES, SOUNDS } from "../core/constants.js";
 import { V, safe, DEBUG, trace, emit, allPlayers } from "../core/util.js";
 import { S, strikeDamage, aggression } from "../core/settings.js";
 import { visibility, lineOfSight, seenByAny } from "../world/sight.js";
-import { standNear, isReplaceable, coverSide } from "../world/space.js";
+import { standNear, coverSide } from "../world/space.js";
 
 /** @typedef {import("@minecraft/server").Entity} Entity */
 /** @typedef {import("@minecraft/server").Player} Player */
@@ -37,6 +39,7 @@ import { standNear, isReplaceable, coverSide } from "../world/space.js";
  * @property {boolean} [clinging]  on a wall, climbing after a player above it (observer/climb.js)
  * @property {boolean} [hung]      reached the top of its climb and hangs there beside them
  * @property {boolean} [silent]    floating: no footstep sounds
+ * @property {boolean} [crawling]  flat on its front with a collision box a block high (observer/squeeze.js)
  */
 
 /** @type {Body|null} */
@@ -123,19 +126,27 @@ export function setSilent(v) {
   safe(() => b.e.setProperty("observer:afloat", v));
 }
 
+/** Flat on its front, a block high, to get through a low gap (or back up again). @param {boolean} v */
+export function setCrawl(v) {
+  const b = get();
+  if (!b || !!b.crawling === v) return;
+  b.crawling = v;
+  safe(() => b.e.triggerEvent(v ? "observer:crawl_on" : "observer:crawl_off"));
+}
+
 /** Rise and come at someone through the air: afloat, silent, the surge clip. */
 export function surge() {
   setSilent(true);
   setState("surge");
 }
 
-/** @param {"still"|"approach"|"pursue"|"retreat"} m */
+/** @param {"still"|"approach"|"pursue"|"retreat"|"rage"} m */
 export function setMode(m) {
   const b = get();
   if (!b || b.mode === m) return;
   if (m !== "still") b.clinging = b.hung = false;
   b.mode = m;
-  if (b.target && (m === "approach" || m === "pursue")) {
+  if (b.target && (m === "approach" || m === "pursue" || m === "rage")) {
     for (const p of world.getPlayers({ tags: [TARGET_TAG] })) if (p.id !== b.target.id) p.removeTag(TARGET_TAG);
     safe(() => b.target?.addTag(TARGET_TAG));
   }
@@ -199,65 +210,17 @@ export function despawn(why = "") {
   body = null;
 }
 
-const TURNS = [0, 30, -30, 60, -60, 100, -100, 140, -140];
-
 /**
- * One walking step of at most 1 block up or down, with 3 open blocks above the feet.
- * @param {import("@minecraft/server").Dimension} dim @param {Vec} pos @param {Vec} dir @param {number} len
+ * Leave the scene. It does not walk off: it holds where it is for a breath, then it is simply gone, torn apart
+ * where it stood.
  */
-function step(dim, pos, dir, len) {
-  for (const a of TURNS) {
-    const r = (a * Math.PI) / 180;
-    const d = { x: dir.x * Math.cos(r) - dir.z * Math.sin(r), y: 0, z: dir.x * Math.sin(r) + dir.z * Math.cos(r) };
-    const nx = pos.x + d.x * len, nz = pos.z + d.z * len;
-    const ground = safe(() => dim.getBlockBelow({ x: nx, y: pos.y + 1.2, z: nz }, { includePassableBlocks: false, includeLiquidBlocks: true, maxDistance: 3.5 }));
-    if (!ground || DANGER.has(ground.typeId)) continue;
-    const fy = ground.location.y + 1;
-    if (Math.abs(fy - pos.y) > 1.05) continue;
-    let open = true;
-    for (let h = 0; h < 3 && open; h++) open = isReplaceable(safe(() => dim.getBlock({ x: nx, y: fy + h, z: nz })));
-    if (open) return { loc: { x: nx, y: fy, z: nz }, dir: d };
-  }
-  return undefined;
-}
-
-/**
- * Leave the scene: walk away from the watchers (script-driven steps; the retreat AI goal proved
- * unreliable in testing) and remove the body once no player sees it, or after maxTicks (then it
- * "unravels" in place, a rare visible exit).
- * @param {Player[]} watchers @param {number} maxTicks
- */
-export async function withdraw(watchers, maxTicks = 160) {
+export async function vanish() {
   const b = get();
   if (!b) return;
-  const dim = b.e.dimension;
   setMode("still");
-  b.faceTarget = false;
-  b.clinging = b.hung = false;
-  // a floating body drifts away; otherwise it walks
-  setState(b.silent ? "float" : "walk");
-  safe(() => dim.playSound(SOUNDS.fabric, b.e.location, { volume: 0.5 }));
-  let pos = b.e.location;
-  const near = watchers.filter((p) => p.isValid && p.dimension.id === dim.id);
-  let dir = near.length
-    ? V.flat(V.sub(pos, near.reduce((a, p) => V.add(a, V.scale(p.location, 1 / near.length)), { x: 0, y: 0, z: 0 })))
-    : V.fromYaw((safe(() => b.e.getRotation().y, 0) ?? 0) + 180);
-  for (let t = 0; t < maxTicks; t += 2) {
-    await system.waitTicks(2);
-    // stop if the body was removed or replaced by another encounter's body meanwhile
-    if (get() !== b) return;
-    const st = step(dim, pos, dir, 0.18);
-    if (st) {
-      pos = st.loc;
-      dir = st.dir;
-      safe(() => b.e.teleport(pos, { facingLocation: { x: pos.x + dir.x * 4, y: pos.y + 3, z: pos.z + dir.z * 4 } }));
-    } else setState(b.silent ? "float" : "watch"); // cornered: it waits to be unobserved
-    if (t >= 16 && t % 4 === 0 && !visibleTo(watchers)) {
-      despawn("withdrew");
-      return;
-    }
-  }
-  despawn("unravel");
+  await system.waitTicks(4);
+  if (get() !== b) return;
+  despawn("vanished");
 }
 
 /**
@@ -321,7 +284,8 @@ export function maintain(run) {
   if (b.mode === "still" && b.faceTarget && b.target?.isValid && b.target.dimension.id === e.dimension.id) faceTo(b.target.getHeadLocation());
   // headroom: stoop when fewer than 5 open blocks above
   const ceil = safe(() => e.dimension.getBlockAbove({ x: l.x, y: l.y + 0.1, z: l.z }, { includePassableBlocks: false, includeLiquidBlocks: true, maxDistance: 5 }));
-  setStoop(!!ceil && ceil.location.y - Math.floor(l.y) < 5);
+  // (hanging upside down or crawling it has its own shape)
+  setStoop(b.state !== "hang" && b.state !== "crawl" && !!ceil && ceil.location.y - Math.floor(l.y) < 5);
   if (run % 4 !== 0) return;
   // eyes glow (client layer + glow at the eye locators) at night or in darkness
   const head = { x: l.x, y: l.y + (b.stoop ? 2.45 : 3.62), z: l.z };

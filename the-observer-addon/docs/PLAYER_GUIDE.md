@@ -19,8 +19,8 @@ Minecraft imports both packs. Then:
    Weeping Mire, its home). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from an earlier version:** import the new `.mcaddon` (version 1.0.8). If a world still uses the old copy, open the world's
-settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.0.8 packs again. Your
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.0.9). If a world still uses the old copy, open the world's
+settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.0.9 packs again. Your
 progress is kept; the new options below start switched on.
 
 **The Weeping Mire is part of The Observer now (1.0.7).** If a world also has the stand-alone *Weeping Mire* packs
@@ -45,6 +45,26 @@ When you do see it: a four-block figure wrapped in drifting, faintly glowing wis
 dark. It groans to itself when it is near. When it knows you have seen it there is a rattle of clicks and a crack —
 and from the second stage on it may shriek and come straight at you. When it leaves, it tears apart into crimson shreds.
 
+**When you spot it.** It arrives without a sound and stands perfectly still — out in the open, on a ledge high above
+you, or, in caves, hanging upside down from the ceiling. It will not come for you while it is only watching. But once
+you have seen it, or walk toward it, it is a **standoff**:
+* It watches you. Now and then it tests you: its neck cracks, its head tilts, it takes one slow step toward you
+  while you look.
+* **Every time you look away, it is a little closer** when you look back. (It never comes right up to you this way;
+  walk right up to it and it is gone before you reach it, or it strikes.)
+* **Look at it, but do not stare.** The longer and the closer you hold its gaze, the angrier it gets — a few
+  seconds up close, a dozen far off. You will hear it: its neck cracking, a rattle of clicks. **Shooting it or
+  hitting it** sets it off at once.
+* It ends one of two ways. Usually it is **simply gone** — when you have looked away for a while, or it has watched
+  long enough. Or it **snaps**: from the second stage it comes for you in a rage, faster than you can sprint,
+  screeching as it comes (before that, or on "Never attacks", it rushes you and is gone).
+
+When it is done it does not walk away. It is just gone, torn apart where it stood.
+
+**Nothing keeps it out.** When it is coming for you and cannot get any closer, it finds a way: it opens doors,
+breaks glass and leaves out of its way, and gets down flat and crawls through gaps only a block high. (Broken blocks
+come back afterwards and drop nothing; a Ward Lantern still protects everything within 12 blocks.)
+
 **It never runs.** Whenever it comes for you — the chase, a lunge when you spot it, the attack once it reaches you,
 the strike when you walk up to it — it floats a block off the ground, with no footsteps, only a rush of air, and
 strikes from the air with its legs hanging limp. **When it hunts you** (the chase, from the fourth stage) it surges
@@ -55,7 +75,9 @@ from there. **Water still does:** it will not cross it; it floats to the water's
 **It is dangerous.** On Standard and High aggression, once it reaches you it keeps attacking until you are dead or
 you drive it off with the Witness Lens or a blow. Every strike is wound up for about half a second first: step back
 and it misses. It is faster than you can sprint and it climbs, so do not try to outrun or out-climb it — light, water, the lens, a
-flare, a held gaze before it reaches you, or a friend watching it are your outs. Walk right up to it and it usually tears apart before
+flare, a held gaze before it reaches you, or a friend watching it are your outs. (Holding its gaze is a defence once
+it is already coming for you — in the chase or the sealed tunnel; while it is only watching, a long stare is what
+sets it off.) Walk right up to it and it usually tears apart before
 you can touch it — but now and then it strikes first. On Low aggression it strikes once (never more than 70 % of
 your health while you are above half); on "Never attacks" and on Peaceful it never hurts you.
 

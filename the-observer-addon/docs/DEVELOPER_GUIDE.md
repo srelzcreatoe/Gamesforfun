@@ -45,6 +45,7 @@ the-observer-addon/
 | `observer/learn.js` | escape learning: counts ways out, adapts to one, `shrug` / `lightBonus` / `holdFactor` / `outrunBonus` |
 | `observer/hush.js` | the silence before dangerous encounters (per-player music) |
 | `observer/climb.js` | climbing after a player who is above it: `needed`, `plan` (cling at an edge / over the top), `after`, `letGo` |
+| `observer/squeeze.js` | through tight spaces: `plan` (A* over blocks: gaps a block high, doors, breakable glass/leaves), `traverse` (opens, breaks, crawls), `unstick` (call from any approach loop) |
 | `observer/pages.js` | pages in another hand, built from tracked numbers |
 | `observer/returns.js` | items thrown away, returned to the doorstep |
 | `mire/mire.js` | the Weeping Mire (ported from its own script): `inMire`, time spent there, wind and leaves, the torn pages (`afterRead` calls the Observer), and a first spawn inside it moved just outside (`firstSpawn`) |
@@ -74,6 +75,7 @@ python3 tools/preview_anims.py docs/media/1.0.6 float_drift float_surge climb
                                  # animated GIF previews (front / three-quarter / side) of any clips
 python3 tools/preview_anims.py docs/media/1.0.8 float_surge "supplied:attack+float_hang" --video floating_attack.mp4
                                  # "+" layers clips as the client does (the strike in mid-air); --video writes an MP4
+python3 tools/preview_anims.py OUT hang --raise 1.3   # --raise: draw it higher (the hang's arms dangle below its origin)
 python3 tools/integrate_supplied_assets.py    # re-derive the namespaced supplied assets (asserts identity)
 python3 tools/make_supplemental_anims.py      # regenerate supplemental clips (FK-grounded)
 python3 tools/make_client_entity.py           # client entity, render & animation controllers
@@ -103,7 +105,8 @@ Scenarios: `load.txt` (packs load cleanly), `proto.txt` (capability probes), `sp
 `suite_smoke.txt`, `suite_full.txt` (all test groups), `suite_extra.txt` (a short subset), `suite_105.txt` (the
 1.0.5 additions), `suite_106.txt` (the floating chase and climbing, with the chase/attack regressions), `suite_107.txt` (the
 Weeping Mire: its context, the stage bonus, early grace, its watcher, the torn pages), `suite_108.txt` (every attack
-floats; the Mire never where you start; with the chase/attack/climb and Mire regressions), `mire_locate.txt` (the Mire
+floats; the Mire never where you start; with the chase/attack/climb and Mire regressions), `suite_109.txt` (it
+vanishes in place; stalking from ledges and ceilings; the standoff; through gaps, glass and doors; with regressions), `mire_locate.txt` (the Mire
 generates and its old watcher is gone; run without `--testkit`, with `--require-no-experiments`),
 `tunnel_repeat.txt` (the Closed Path tests ten times over), `illusion_repeat.txt` (the shadow tests eight times over), `flare_seq.txt` (the flare tests twice back to back), `house_seq.txt` (every test that uses the arena house, in suite order — they share it), `noexp.txt` (no experiments; run **without** `--testkit` and with `--require-no-experiments`, which
 fails the run if the world's `level.dat` has any experiment on), `restart_a.txt` +
@@ -115,14 +118,16 @@ The harness patches the **installed test copy** of the BP to import
 untouched.
 
 With tracing on, the add-on publishes structured events as script events
-`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned|grace|mire|weights|mire_spawn`
+`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned|grace|mire|weights|mire_spawn|standoff|stalk|squeeze|rage`
 that the test kit asserts on. In normal play nothing is emitted.
 
 Test-only dev commands (`/scriptevent observer:<name>`): `flare [dist] [player]` (light a flare ahead),
 `learn <method> [times] [player]`, `unlearn [player]`, `page [key|any] [player]`, `tally <key> <n> [player]`,
 `hush [seconds] [player]` (a false-alarm silence), `hushmode real|false|auto`, `returnnow [player]`,
 `mirepage <0-7|all|clear> [player]` (read a Weeping Mire torn page without the form; a new one always brings it),
-`weights [player]` (what the director would choose from here: context, effective stage, mood, weights), plus the earlier
+`weights [player]` (what the director would choose from here: context, effective stage, mood, weights),
+`standoff off|short|auto` (off: a moment's stare and it is gone — the suite's default for tests of other things),
+`stalk hang|ledge|ground|auto` (where *The Figure at the Edge* stands), plus the earlier
 `lunge`, `nearstrike`, `illusion`, `timewarp`, `sethaunt`, `set <key> <value>` and `set off a,b,c`.
 
 ## 4. Adding an encounter

@@ -5,10 +5,12 @@ import { ps, markPlayerDirty, now } from "../core/state.js";
 import { S, aggression } from "../core/settings.js";
 import { SOUNDS } from "../core/constants.js";
 import * as body from "../observer/body.js";
-import { standNear, findSpot } from "../world/space.js";
-import { visibility } from "../world/sight.js";
+import { standNear, findSpot, standAt } from "../world/space.js";
+import { visibility, lineOfSight } from "../world/sight.js";
+import { effectiveStage } from "../director/context.js";
 import { outrunBonus } from "../observer/learn.js";
 import * as climb from "../observer/climb.js";
+import * as squeeze from "../observer/squeeze.js";
 
 /** @typedef {import("../director/encounter.js").Encounter} Encounter */
 /** @typedef {{x:number,y:number,z:number}} Vec */
@@ -137,8 +139,9 @@ export function wantsLunge(enc) {
  * capped); aggression "never" only stops in front of them and everything goes dark.
  * Going up does not help: on a pillar, a ledge or a ladder it climbs after them (observer/climb.js).
  * It does not run: it floats at them a block off the ground (surging, silent but for a rush of air) and
- * strikes from the air.
- * @param {Encounter} enc @param {{maxTicks?:number}} [o]
+ * strikes from the air. A wall with a gap, a door, glass in the way: it finds its own way through
+ * (observer/squeeze.js). Provoked (rage), it comes faster than a sprint, screeching and groaning.
+ * @param {Encounter} enc @param {{maxTicks?:number, rage?:boolean}} [o]
  * @returns {Promise<string>} outcome
  */
 export async function relentless(enc, o = {}) {
@@ -160,6 +163,15 @@ export async function relentless(enc, o = {}) {
   let hits = 0;
   const end = o.maxTicks ?? 20 * 40;
   const loseAt = 64 + outrunBonus(enc);
+  const mode = o.rage ? "rage" : "pursue";
+  const track = { best: Infinity, since: 0 };
+  if (o.rage) {
+    const l0 = body.loc();
+    if (l0) enc.worldSound(SOUNDS.shriek, { x: l0.x, y: l0.y + 3, z: l0.z }, 1);
+    enc.caption("caption.shriek");
+    enc.shake(0.3, 0.8);
+    enc.emit("rage", {});
+  }
   for (let t = 0; t < end; t += 2) {
     // strikes back to back never pass through enc.wait(): check for an abort (flare, player left) here
     enc.check();
@@ -190,16 +202,21 @@ export async function relentless(enc, o = {}) {
         body.despawn("struck");
         return enc.outcome;
       }
+      track.best = d;
+      track.since = t;
       continue;
     }
     // up a pillar, a ledge, a ladder: it climbs after them and strikes from the wall
     if (climb.needed(enc) || body.get()?.clinging) {
       if (await climb.after(enc, { state: "surge" })) continue;
     }
-    body.setMode("pursue");
+    // a wall with a gap, a door, glass: it finds its own way through
+    if (await squeeze.unstick(enc, track, t, d)) continue;
+    body.setMode(mode);
     body.surge();
-    // no footsteps: only the rush of air as it comes
+    // no footsteps: only the rush of air as it comes — and, enraged, screeches and groans
     if (t % 40 === 0) enc.worldSound(SOUNDS.drift, { x: l.x, y: l.y + 2, z: l.z }, 0.8);
+    if (o.rage && t > 0 && t % 60 === 0) enc.worldSound(t % 120 === 0 ? SOUNDS.shriek : SOUNDS.voice, { x: l.x, y: l.y + 3, z: l.z }, 0.85);
     await enc.wait(2);
   }
   body.despawn("gave_up");
@@ -284,3 +301,202 @@ export function travelDir(p) {
   if (Math.hypot(v.x, v.z) > 0.05) return V.flat(v);
   return V.flat(p.getViewDirection());
 }
+
+// ------------------------------------------------------------------ the standoff (1.0.9)
+
+/**
+ * The standoff, once it has been seen. It stands and watches: idles, and now and then tests you — the neck
+ * cracks, the head tilts, a single slow step toward you while you look. Every time you look away it is a
+ * little closer (never inside the too-close distance). Looking at it is one thing; staring at it is another:
+ * the longer and the closer you hold it in view, the angrier it gets (from a few seconds at 10 blocks to
+ * a dozen at 45), and shooting it or hitting it is worse. It ends one of two ways: it is simply gone (most
+ * often once you have looked away for a while, or when it has watched long enough), or it snaps (see
+ * provoke). While it is angry its neck cracks and it rattles.
+ * @param {Encounter} enc
+ * @param {{maxTicks?:number, creep?:boolean, gone?:(why:string)=>void}} [o] gone: how it leaves (default: torn apart)
+ * @returns {Promise<"gone"|"provoked">}
+ */
+export async function standoff(enc, o = {}) {
+  const p = enc.p;
+  const gone = (why) => {
+    enc.emit("standoff", { what: "gone", why, anger: Math.round(enc.data.anger ?? 0) });
+    if (o.gone) o.gone(why);
+    else body.despawn("standoff");
+    return /** @type {"gone"} */ ("gone");
+  };
+  if (DEBUG.standoff === "off") {
+    // tests of other things: the old ending, a moment's stare
+    body.setState("stare");
+    await enc.wait(Math.round(rand(10, 26)));
+    if (o.gone) o.gone("off");
+    return "gone";
+  }
+  const short = DEBUG.standoff === "short";
+  enc.data.standoff = true;
+  enc.data.anger = 0;
+  enc.emit("standoff", { what: "start" });
+  const limit = short ? 120 : (o.maxTicks ?? Math.floor(rand(20, 35) * 20));
+  const keep = Math.max(enc.data.nearDist ?? 8, 8) + 2.5;
+  const stageF = 0.7 + 0.15 * effectiveStage(enc.s, enc.ctx);
+  let away = 0, held = 0, creeps = 0;
+  try {
+    for (let t = 0; t < limit; t += 4) {
+      await enc.wait(4);
+      const l = body.loc();
+      if (!l || !p.isValid) return "gone";
+      if (enc.data.reacting) {
+        // walked right up to it: the too-close reaction has it now
+        await enc.until(() => !body.loc(), 200, 4);
+        return "gone";
+      }
+      if (enc.data.provoked) break;
+      const watched = enc.updateGaze();
+      const d = V.dist(l, p.location);
+      if (d > 72) return gone("lost");
+      if (watched) {
+        away = 0;
+        held += 4;
+        // the longer and the closer the stare, the angrier it gets
+        enc.data.anger += (380 / Math.max(8, d)) * 0.2 * stageF;
+        if (held % 60 === 0 && Math.random() < 0.6) await test(enc, d > keep + 3);
+        else if (enc.data.anger > 55 && held % 20 === 0) {
+          enc.worldSound("observer.crack", { x: l.x, y: l.y + 3, z: l.z }, 0.7);
+          if (Math.random() < 0.4) enc.worldSound(SOUNDS.notice, { x: l.x, y: l.y + 3, z: l.z }, 0.5);
+        }
+      } else {
+        away += 4;
+        held = 0;
+        enc.data.anger = Math.max(0, enc.data.anger - 0.6);
+        // looked away long enough: it is gone
+        if (short ? away >= 40 : t >= 120 && away >= 60 && Math.random() < 0.08) return gone("looked_away");
+        // every time you look away, it is a little closer
+        if (o.creep !== false && away % 20 === 0 && d > keep + 1.5 && !body.visibleTo(enc.watchers())) {
+          if (await creep(enc, l, d - keep)) creeps++;
+        }
+      }
+      if (enc.data.anger >= 100) {
+        enc.data.provoked = "stare";
+        break;
+      }
+    }
+    if (!enc.data.provoked) return gone("enough");
+    return await provoke(enc);
+  } finally {
+    enc.data.standoff = false;
+    enc.emit("standoff", { what: "end", creeps, anger: Math.round(enc.data.anger ?? 0), provoked: enc.data.provoked ?? "" });
+  }
+}
+
+/** Testing you while you look: a crack of the neck, the head tilting, or one slow step toward you. */
+async function test(enc, mayStep) {
+  const l = body.loc();
+  if (!l) return;
+  const r = Math.random();
+  if (r < 0.35) {
+    enc.worldSound("observer.crack", { x: l.x, y: l.y + 3, z: l.z }, 0.8);
+    enc.emit("standoff", { what: "test", how: "crack" });
+  } else if (r < 0.7 || !mayStep || body.get()?.state === "hang") {
+    body.setState("tilt");
+    enc.emit("standoff", { what: "test", how: "tilt" });
+    await enc.wait(20);
+    body.setState("stare");
+  } else {
+    // a single slow step toward you, while you watch
+    const to = V.add(l, V.scale(V.flat(V.sub(enc.p.location, l)), 0.9));
+    const st = standNear(enc.dim, to.x, to.z, l.y);
+    if (!st) return;
+    body.setState("walk");
+    enc.emit("standoff", { what: "test", how: "step" });
+    for (let i = 1; i <= 6; i++) {
+      body.moveTo(V.lerp(l, st.loc, i / 6), enc.p.getHeadLocation());
+      await enc.wait(2);
+    }
+    body.setState("stare");
+  }
+}
+
+/** While unwatched: a little closer, 2-3.5 blocks (and down off a ceiling first). @returns {Promise<boolean>} */
+async function creep(enc, l, room) {
+  const p = enc.p;
+  const b = body.get();
+  if (!b) return false;
+  if (b.state === "hang") {
+    // it lets go of the ceiling: when you look back it is standing below where it hung
+    const g = body.groundNear(enc.dim, { x: l.x, y: l.y + 1, z: l.z });
+    if (!g) return false;
+    body.moveTo(g, p.getHeadLocation());
+    body.setState("stare");
+    enc.emit("standoff", { what: "creep", from: "ceiling" });
+    return true;
+  }
+  const stepLen = Math.min(room, rand(2, 3.5));
+  if (stepLen < 1) return false;
+  const to = V.add(l, V.scale(V.flat(V.sub(p.location, l)), stepLen));
+  const st = standNear(enc.dim, to.x, to.z, l.y);
+  if (!st || V.dist(st.loc, l) < 1) return false;
+  body.moveTo(st.loc, p.getHeadLocation());
+  body.setStoop(st.stoop);
+  body.setState("stare");
+  enc.emit("standoff", { what: "creep", d: V.dist(st.loc, p.location) });
+  return true;
+}
+
+/**
+ * It snaps. From stage 2 (one stage earlier in the Weeping Mire), and with aggression above "never", it is a
+ * rage: its head snaps round, it shrieks and comes at you faster than a sprint, through whatever is in the way
+ * (relentless, rage). Before that, or with aggression "never", it shrieks and comes at you, and is gone.
+ * @param {Encounter} enc @returns {Promise<"provoked">}
+ */
+export async function provoke(enc) {
+  const why = enc.data.provoked || "stare";
+  enc.data.provoked = why;
+  enc.emit("standoff", { what: "provoked", why });
+  enc.result("provoked", true);
+  const l = body.loc();
+  if (body.get()?.state === "hang" && l) {
+    const g = body.groundNear(enc.dim, { x: l.x, y: l.y + 1, z: l.z });
+    if (g) body.moveTo(g, enc.p.getHeadLocation());
+  }
+  body.setState("stare");
+  if (l) enc.worldSound("observer.crack", { x: l.x, y: l.y + 3, z: l.z }, 1);
+  await enc.wait(6);
+  const rage = aggression() >= 1 && !enc.s.witnessed && effectiveStage(enc.s, enc.ctx) >= 2;
+  if (rage) await relentless(enc, { rage: true });
+  else await lunge(enc, { harmless: true });
+  return "provoked";
+}
+
+/**
+ * Stalking from a cave ceiling: a spot 12-28 blocks off where the open space under the ceiling is at least six
+ * blocks high, in sight of the player (both ways). It hangs by its feet from the ceiling, upside down.
+ * @param {import("@minecraft/server").Player} p
+ * @returns {{loc:Vec, stoop:boolean, vis:number, side:number, hang:true, ceiling:number, score:number}|undefined}
+ */
+export function hangSpot(p) {
+  const dim = p.dimension;
+  const eye = p.getHeadLocation();
+  let best;
+  for (let i = 0; i < 48; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const r = rand(12, 28);
+    const x = Math.floor(p.location.x + Math.cos(a) * r) + 0.5, z = Math.floor(p.location.z + Math.sin(a) * r) + 0.5;
+    let st;
+    for (const dy of [1.5, 4.5, -2.5]) {
+      st = standAt(dim, x, z, p.location.y + dy, 10);
+      if (st) break;
+    }
+    if (!st || st.liquid) continue;
+    const ceil = safe(() => dim.getBlockAbove({ x, y: st.loc.y + 0.2, z }, { includePassableBlocks: false, includeLiquidBlocks: true, maxDistance: 16 }));
+    if (!ceil || ceil.isLiquid) continue;
+    const top = ceil.location.y;
+    if (top - st.loc.y < 6) continue;
+    const origin = { x, y: top - 4.05, z };
+    const mid = { x, y: origin.y + 2, z };
+    if (!lineOfSight(dim, eye, mid).clear || !lineOfSight(dim, mid, eye).clear) continue;
+    const light = safe(() => dim.getLightLevel(mid), 8) ?? 8;
+    const score = (15 - light) * 0.3 + Math.random();
+    if (!best || score > best.score) best = { loc: origin, stoop: false, vis: 3, side: 1, hang: /** @type {true} */ (true), ceiling: top, score };
+  }
+  return best;
+}
+

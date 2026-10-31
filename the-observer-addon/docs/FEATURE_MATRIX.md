@@ -183,8 +183,21 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | The Mire near the player | `tools/merge_weeping_mire.py` `tune_biome` (amount 0.4, noise 2.0, more target biomes) | new terrain | nearest Mire to 0,0: 45–595 blocks over 8 seeds (was 290–2270) | `locate` sweep (TEST_REPORT §5.2), `mire_biome_generated` | ✅ Runtime |
 | Never where you start | `mire/mire.js` `firstSpawn` | a new player's first spawn, at the world spawn, inside the Mire | moved to dry ground ≥ 6 blocks outside its edge, facing it; world spawn moved too; anyone arriving elsewhere is left alone | `mire_spawn_moved_out`, `mire_spawn_outside_now`, `mire_spawn_near_it`, `mire_spawn_faces_it`, `mire_spawn_world_spawn_moved`, `mire_spawn_elsewhere_left_alone` | ✅ Runtime |
 
+## 1.0.9: stalking, the standoff, the attack; it vanishes
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| Vanishes in place | `body.vanish()` (replaces the walk away) in `director.cleanup`, `home_visit`, `vigil` | any encounter ends | holds a breath, then torn apart where it stood | `vanish_did_not_walk_off`, `vanish_removed_in_place`, `vanish_tears_apart` | ✅ Runtime |
+| Silent, still stalking; high ledges | `distant_watch` (silent spawn, `ledgeSpot`, `findSpot` `minRise`) | The Figure at the Edge | stands 4+ blocks above you, in sight | `stalk_ledge_body`, `stalk_ledge_high_above` | ✅ Runtime |
+| Hangs from cave ceilings | `common.hangSpot`, state `hang` (new clip), no gravity in `still` | underground (35 %) | upside down, feet at the ceiling, perfectly still; drops when you look away | `stalk_hangs_from_the_ceiling`, `stalk_hang_stays_put`, `stalk_hang_lets_go_when_unwatched` | ✅ Runtime (look ❔) |
+| The standoff | `common.standoff` in `distant_watch`, `mirror_bearing`, `mire_watcher` | seen or approached | tests you; creeps closer while unwatched; gone when left alone | `standoff_starts_when_seen`, `standoff_creeps_while_unwatched`, `standoff_gone_when_left_alone`, `standoff_gone_vanishes` | ✅ Runtime |
+| Provoked by a stare or a shot | anger in `standoff`; `items.js` `projectileHitEntity`, `main.js` `onBodyShot` / `onBodyHit` | staring too long; an arrow; a blow | provoked → rage from stage 2 | `standoff_stare_provokes`, `standoff_shot_provokes` | ✅ Runtime |
+| Rage | `common.provoke`, `relentless({rage})`, `observer:rage` (melee speed ×1.5) | provoked | ~8 b/s (a sprint is ~5.6), screeches and groans, strikes | `standoff_rage`, `standoff_rage_faster_than_a_sprint`, `standoff_rage_strikes` | ✅ Runtime (sound ❔) |
+| Crawls through 1-block gaps | `observer/squeeze.js` (A* plan, `traverse`), state `crawl`, `observer:crawl` collision 0.6 × 0.9 | stuck short of you | crawls through, stands up inside, strikes | `squeeze_gap_planned`, `squeeze_gap_crawls`, `squeeze_gap_reaches_you` | ✅ Runtime (look ❔) |
+| Breaks glass and leaves | `squeeze.traverse` → `ledger.change` (NODROP) | glass in the way, manipulation ≥ 2 | breaks in; restored afterwards, no drops | `squeeze_glass_breaks_in`, `squeeze_glass_reaches_you`, `squeeze_glass_put_back`, `squeeze_glass_no_drops` | ✅ Runtime |
+| Opens doors | `squeeze.traverse` → `enc.toggle` | a closed door, manipulation ≥ 1 | opens it, crawls through the doorway; closed again afterwards | `squeeze_door_opens_it`, `squeeze_door_reaches_you`, `squeeze_door_closed_again` | ✅ Runtime |
+
 ## Performance
 | Measure | Result | Test |
 |---|---|---|
 | Server tick rate, 180 s walking player, director active (2 encounters ran) | 20.00 mean / 19.99 min TPS — identical to the add-on-free baseline (20.00 / 19.99) | `tps.txt` with and without `--no-addon` |
-| No content-log or script errors during full suite | 0 errors (final 1.0.8 run: 319/319 assertions, 73 test groups, min 19.6 TPS between tests) | `run_bds.py` summary |
+| No content-log or script errors during full suite | 0 errors (final 1.0.9 run: 348/348 assertions, 79 test groups, min 19.5 TPS between tests) | `run_bds.py` summary |

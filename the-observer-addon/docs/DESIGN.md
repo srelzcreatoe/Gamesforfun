@@ -123,6 +123,8 @@ resource pack (only identifiers change; it asserts every bone, cube, UV and keyf
 | `peek` | `idle` + `peek` | supplied + **new** | leaning out from cover; side from `observer:side` |
 | `recoil` | `recoil` | **new** | witnessed through the lens, struck, driven back by light |
 | `hidden` | — (no parts) | — | momentary vanish |
+| `hang` | `hang` | **new (1.0.9)** | stalking from a cave ceiling: hanging upside down by its feet (the root turned over and raised 4 blocks), arms dangling toward the floor, a slow sway, a neck crack |
+| `crawl` | `crawl` | **new (1.0.9)** | flat on its front through a gap a block high (collision box 0.6 × 0.9 while it lasts), head raised, dragging itself hand over hand |
 | `observer:stoop` = true (overlay) | `stoop` | **new** | automatically when headroom < 5 blocks |
 | `observer:afloat` = true (overlay, 1.0.8) | `float_hang` | **new** | while it floats, on any state that is not itself a floating clip: the strike, the recoil, a stare between strikes stay a block up with the legs hanging limp (legs and root only, so the supplied attack clip plays unchanged above it) |
 
@@ -363,11 +365,11 @@ body-free encounters (turned object, door, night visit, follow-ups) can run for 
    until it backs off (*Held Gaze*), use the Witness Lens, strike it. If it reaches you: a 0.6 s wind-up you can step
    out of; at aggression 0 it only touches you and the screen goes dark.
 
-All 18 implemented encounters and 17 further concepts are catalogued in [ENCOUNTERS.md](ENCOUNTERS.md).
+All 23 implemented encounters and 17 further concepts are catalogued in [ENCOUNTERS.md](ENCOUNTERS.md).
 
 ## 11. Progression, tools and the ending
 
-* **Discoveries** (22, `progression/discoveries.js`): earned only by noticing or answering — never by exposure. Each
+* **Discoveries** (24, `progression/discoveries.js`): earned only by noticing or answering — never by exposure. Each
   writes a page in the Field Notes (entry text + the rule it teaches) and gives a **Vestige**.
 * **Tools** (`progression/items.js`): *Field Notes* (journal; first discovery gives one, or craft book + charcoal);
   *Tally Chalk* (mark up to 8 spots; a mark smudges and tells you when it changes anything within 4 blocks);
@@ -473,4 +475,31 @@ worlds that had the stand-alone Mire keep their blocks). It is the Observer's ho
 * **Unchanged from the Mire:** wind gusts every 25–55 s with leaves and streaks for players in the Mire, leaves drifting
   off weeping leaves, its fog, lighting, colour grading and water, and its music volume set to 0 (silence is the Mire's
   sound).
+
+## 17. Stalking, the standoff, and the attack (1.0.9)
+
+Three phases, in the user's design, built into the encounters that show it from afar.
+
+* **Stalking.** *The Figure at the Edge* arrives silently and stands perfectly still. Besides the ground, it may
+  stand on a high ledge (4+ blocks above the player, in sight: `findSpot` `minRise`), or underground hang upside
+  down from a ceiling with 6+ blocks of open space under it (`common.hangSpot`: its feet at the ceiling, its origin
+  4.05 blocks below; the `still` mode has no gravity, so it stays there). It does nothing until it is seen or
+  approached.
+* **The standoff** (`common.standoff`, also in *Always the Same Place* and *In the Mire*). It watches, tests the
+  player while looked at (neck crack, head tilt, one slow step), and creeps 2–3.5 blocks closer each second it is
+  unwatched (off a ceiling it first drops to the floor). Its anger rises only while it is stared at — faster the
+  closer and the higher the stage (about 4 s at 10 blocks to 12 s at 45 at stage 2) — and cools while it is not. A
+  projectile or a blow provokes it at once (`projectileHitEntity` / `entityHitEntity` while `enc.data.standoff`).
+  Unprovoked it ends after 20–35 s, or once it has been looked away from for a while: it is simply gone. This sits
+  beside the older rule that a held gaze holds it off: once it is already coming (the chase, the sealed tunnel,
+  *Closer Each Time*), a stare is still a defence; while it is only watching, a long stare is a provocation.
+* **The attack** (`common.provoke` → `relentless(enc, {rage:true})`). From stage 2 (effective) and aggression ≥ 1:
+  its head snaps (a crack), it shrieks (camera shake, caption) and comes in `rage` mode (the `observer:rage` group,
+  ~8 b/s measured, against ~5.6 for a sprint), floating, a shriek or a groan every 3 s. Otherwise a harmless lunge.
+  Nothing keeps it out (`observer/squeeze.js`, also in the ordinary attack and the chase): stuck for 1.5 s within
+  28 blocks, it plans a way through gaps a block high, closed doors (opened) and glass/panes/leaves/webs/vines/
+  bamboo (broken), all as ledger changes (restored, no drops, never in a ward), crawling where the way is lower than
+  three blocks and standing up again before it strikes. It still climbs walls (§4.1.1) and floats (it never runs).
+* **Exits.** It never walks away any more (`body.vanish`): when an encounter is over it holds a breath and is gone,
+  torn apart where it stood.
 

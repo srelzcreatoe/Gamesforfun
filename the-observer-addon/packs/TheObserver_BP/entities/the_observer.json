@@ -20,7 +20,9 @@
             "hidden",
             "float",
             "surge",
-            "climb"
+            "climb",
+            "hang",
+            "crawl"
           ],
           "default": "watch",
           "client_sync": true
@@ -191,6 +193,50 @@
         "minecraft:movement_sound_distance_offset": {
           "value": 1000
         }
+      },
+      "observer:rage": {
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 64,
+          "entity_types": [
+            {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "player"
+                  },
+                  {
+                    "test": "has_tag",
+                    "subject": "other",
+                    "value": "observer_target"
+                  }
+                ]
+              },
+              "max_dist": 64
+            }
+          ]
+        },
+        "minecraft:attack": {
+          "damage": 0
+        },
+        "minecraft:behavior.melee_box_attack": {
+          "priority": 2,
+          "speed_multiplier": 1.5,
+          "track_target": true,
+          "require_complete_path": false,
+          "cooldown_time": 30,
+          "horizontal_reach": 0
+        }
+      },
+      "observer:crawl": {
+        "minecraft:collision_box": {
+          "width": 0.6,
+          "height": 0.9
+        }
       }
     },
     "components": {
@@ -285,7 +331,8 @@
             "observer:mobile",
             "observer:approach",
             "observer:pursue",
-            "observer:retreat"
+            "observer:retreat",
+            "observer:rage"
           ]
         },
         "add": {
@@ -299,7 +346,8 @@
           "component_groups": [
             "observer:still",
             "observer:pursue",
-            "observer:retreat"
+            "observer:retreat",
+            "observer:rage"
           ]
         },
         "add": {
@@ -314,7 +362,8 @@
           "component_groups": [
             "observer:still",
             "observer:approach",
-            "observer:retreat"
+            "observer:retreat",
+            "observer:rage"
           ]
         },
         "add": {
@@ -329,7 +378,8 @@
           "component_groups": [
             "observer:still",
             "observer:approach",
-            "observer:pursue"
+            "observer:pursue",
+            "observer:rage"
           ]
         },
         "add": {
@@ -357,6 +407,36 @@
         "remove": {
           "component_groups": [
             "observer:no_steps"
+          ]
+        }
+      },
+      "observer:to_rage": {
+        "remove": {
+          "component_groups": [
+            "observer:still",
+            "observer:approach",
+            "observer:pursue",
+            "observer:retreat"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "observer:mobile",
+            "observer:rage"
+          ]
+        }
+      },
+      "observer:crawl_on": {
+        "add": {
+          "component_groups": [
+            "observer:crawl"
+          ]
+        }
+      },
+      "observer:crawl_off": {
+        "remove": {
+          "component_groups": [
+            "observer:crawl"
           ]
         }
       }

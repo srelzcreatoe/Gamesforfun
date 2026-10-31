@@ -18,6 +18,7 @@ import * as returns from "../observer/returns.js";
 import { primaryHaunt } from "../observer/memory.js";
 import { now } from "../core/state.js";
 import { give } from "../progression/discoveries.js";
+import * as squeeze from "../observer/squeeze.js";
 import * as climb from "../observer/climb.js";
 
 /** @typedef {{x:number,y:number,z:number}} Vec */
@@ -51,13 +52,20 @@ register({
     enc.worldSound(SOUNDS.shriek, { x: spot.loc.x, y: spot.loc.y + 3, z: spot.loc.z }, 0.9);
     body.setMode("pursue");
     body.surge();
+    const track = { best: Infinity, since: 0 };
     for (let t = 0; t < 20 * 15; t += 2) {
       await enc.wait(2);
       const l = body.loc();
       if (!l) return enc.result("vanished");
       const d = V.dist(l, p.location);
-      // if it cannot find a path, it simply closes the distance
-      if (t === 20 * 8 && d > 4) {
+      // a wall with a gap, a door, glass: it finds its own way through
+      if (await squeeze.unstick(enc, track, t, d)) {
+        body.setMode("pursue");
+        body.surge();
+        continue;
+      }
+      // if it cannot find a path at all, it simply closes the distance
+      if (t === 20 * 8 && d > 4 && !enc.data.squeezed) {
         const near = V.add(p.location, V.scale(V.flat(V.sub(l, p.location)), 3));
         const st = standNear(enc.dim, near.x, near.z, near.y);
         if (st) body.moveTo(st.loc, p.getHeadLocation());

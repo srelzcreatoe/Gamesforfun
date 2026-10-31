@@ -247,8 +247,9 @@ async function cleanup(enc) {
       if (body.get() === b) body.despawn("flare");
     } else if (enc.aborted) body.despawn(enc.aborted === "struck" ? "unravel" : "abort");
     else {
+      // it does not walk off: it is simply gone
       try {
-        await body.withdraw(enc.p.isValid ? enc.watchers() : [], 120);
+        await body.vanish();
       } catch {
         body.despawn("cleanup");
       }

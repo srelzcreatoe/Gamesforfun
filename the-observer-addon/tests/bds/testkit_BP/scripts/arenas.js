@@ -9,6 +9,13 @@ export const TUNNEL = { x0: 902, x1: 958, y: 125, z0: 1085, z1: 1086 };
 export const NETHER = { x: 40, y: 70, z: 40 };
 export const POOL = { x0: 996, x1: 1060, z0: 964, z1: 1036, center: { x: 1028.5, y: Y - 1, z: 1000.5 } };
 export const PILLAR = { x: 960, z: 990, top: Y + 20 };
+// 1.0.9: a dark cave room nine blocks high (it hangs from the ceiling), and a separate yard (away from every
+// older test) with three sealed 3x3 cages, each with one way in (a gap a block high, glass walls, a closed door),
+// and a stone ridge six blocks high for the stalking-from-a-ledge test (stand at RIDGE.stand)
+export const CAVE = { x0: 1000, x1: 1030, z0: 1080, z1: 1100, floor: 112, ceiling: 121, stand: { x: 1006.5, y: 112, z: 1090.5 } };
+export const YARD = { x0: 1000, x1: 1040, z0: 1108, z1: 1144 };
+export const CAGES = { gap: { x0: 1030, z0: 1112 }, glass: { x0: 1030, z0: 1120 }, door: { x0: 1030, z0: 1128 } };
+export const RIDGE = { x0: 1003, z0: 1128, x1: 1014, z1: 1139, top: Y + 6, stand: { x: 1022.5, y: Y, z: 1114.5 } };
 
 const ow = () => world.getDimension("overworld");
 
@@ -81,6 +88,20 @@ export async function build() {
   const b = run(dim, `fill ${T.x0} ${T.y} ${T.z0} ${T.x1} ${T.y + 2} ${T.z1} air`);
   console.warn(`[OTEST] tunnel fill stone=${a} air=${b} block=${dim.getBlock({ x: 930, y: T.y, z: 1085 })?.typeId}`);
   for (let x = T.x0 + 4; x <= T.x1; x += 8) setBlock(dim, { x, y: T.y, z: T.z0 }, "minecraft:torch", { torch_facing_direction: "top" });
+  // the cave room
+  run(dim, `tickingarea add ${CAVE.x0 - 4} 0 ${CAVE.z0 - 4} ${CAVE.x1 + 4} 0 ${CAVE.z1 + 4} arena_cave true`);
+  if (await waitLoaded(dim, [{ x: CAVE.x0, y: CAVE.floor, z: CAVE.z0 }, { x: CAVE.x1, y: CAVE.floor, z: CAVE.z1 }])) {
+    run(dim, `fill ${CAVE.x0} ${CAVE.floor - 2} ${CAVE.z0} ${CAVE.x1} ${CAVE.ceiling + 7} ${CAVE.z1} stone`);
+    run(dim, `fill ${CAVE.x0 + 3} ${CAVE.floor} ${CAVE.z0 + 3} ${CAVE.x1 - 3} ${CAVE.ceiling - 1} ${CAVE.z1 - 3} air`);
+  }
+  // the yard: cages and a ridge
+  run(dim, `tickingarea add ${YARD.x0 - 4} 0 ${YARD.z0 - 4} ${YARD.x1 + 4} 0 ${YARD.z1 + 4} arena_yard true`);
+  if (await waitLoaded(dim, [{ x: YARD.x0, y: Y, z: YARD.z0 }, { x: YARD.x1, y: Y, z: YARD.z1 }])) {
+    run(dim, `fill ${YARD.x0} ${Y} ${YARD.z0} ${YARD.x1} ${Y + 12} ${YARD.z1} air`);
+    run(dim, `fill ${YARD.x0} ${Y - 3} ${YARD.z0} ${YARD.x1} ${Y - 1} ${YARD.z1} stone`);
+    buildCages();
+    run(dim, `fill ${RIDGE.x0} ${Y} ${RIDGE.z0} ${RIDGE.x1} ${RIDGE.top - 1} ${RIDGE.z1} stone`);
+  }
   // nether platform
   const nether = world.getDimension("nether");
   run(nether, `tickingarea add ${NETHER.x - 16} 0 ${NETHER.z - 16} ${NETHER.x + 16} 0 ${NETHER.z + 16} arena_nether true`);
@@ -93,6 +114,21 @@ export async function build() {
   run(dim, "gamerule doweathercycle false");
   run(dim, "time set noon");
   run(dim, "kill @e[type=item]");
+}
+
+/** (Re)build the three cages: walls three high, a stone roof, a 3x3 room inside. */
+export function buildCages() {
+  const dim = ow();
+  for (const [name, c] of Object.entries(CAGES)) {
+    run(dim, `fill ${c.x0} ${Y} ${c.z0} ${c.x0 + 4} ${Y + 2} ${c.z0 + 4} ${name === "glass" ? "glass" : "stone"}`);
+    run(dim, `fill ${c.x0} ${Y + 3} ${c.z0} ${c.x0 + 4} ${Y + 3} ${c.z0 + 4} stone`);
+    run(dim, `fill ${c.x0 + 1} ${Y} ${c.z0 + 1} ${c.x0 + 3} ${Y + 2} ${c.z0 + 3} air`);
+  }
+  // the only ways in, all in the west wall
+  const g = CAGES.gap, d = CAGES.door;
+  run(dim, `setblock ${g.x0} ${Y} ${g.z0 + 2} air`);
+  setBlock(dim, { x: d.x0, y: Y, z: d.z0 + 2 }, "minecraft:wooden_door", { upper_block_bit: false, open_bit: false, "minecraft:cardinal_direction": "east" });
+  setBlock(dim, { x: d.x0, y: Y + 1, z: d.z0 + 2 }, "minecraft:wooden_door", { upper_block_bit: true, open_bit: false, "minecraft:cardinal_direction": "east" });
 }
 
 /** Reset the house fixtures between tests. */

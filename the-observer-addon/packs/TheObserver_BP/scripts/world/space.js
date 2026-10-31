@@ -120,6 +120,7 @@ export function coverSide(dim, feet, eye) {
  * @property {boolean} [watchLOSIgnoringView] if true, LOS required but view cone ignored (visible once the player turns)
  * @property {Vec} [losTarget]      require line of sight from its head to this point instead of the player's eye
  * @property {"near"|"surface"|"below"} [yMode]
+ * @property {number} [minRise]     stand at least this many blocks above the origin (a high ledge)
  * @property {boolean} [liquidSurface]
  * @property {boolean} [preferLiquid]   strongly prefer standing on a liquid surface (water encounters)
  * @property {boolean} [preferCover]    strongly prefer spots with cover on one side (it peeks from behind it)
@@ -173,6 +174,7 @@ export function findSpot(p, spec) {
       }
     }
     if (!st) continue;
+    if (spec.minRise !== undefined && st.loc.y - origin.y < spec.minRise) continue;
     const head = bodyPoints(st.loc, st.stoop)[2];
     let score = 0;
     const vis = visibility(p, st.loc, { stooped: st.stoop });

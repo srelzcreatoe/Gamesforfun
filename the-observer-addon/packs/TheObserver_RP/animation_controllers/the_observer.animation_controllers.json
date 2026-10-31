@@ -41,6 +41,12 @@
             },
             {
               "climb": "q.property('observer:state') == 'climb'"
+            },
+            {
+              "hang": "q.property('observer:state') == 'hang'"
+            },
+            {
+              "crawl": "q.property('observer:state') == 'crawl'"
             }
           ]
         },
@@ -82,6 +88,12 @@
             },
             {
               "climb": "q.property('observer:state') == 'climb'"
+            },
+            {
+              "hang": "q.property('observer:state') == 'hang'"
+            },
+            {
+              "crawl": "q.property('observer:state') == 'crawl'"
             }
           ],
           "blend_transition": 0.25
@@ -124,6 +136,12 @@
             },
             {
               "climb": "q.property('observer:state') == 'climb'"
+            },
+            {
+              "hang": "q.property('observer:state') == 'hang'"
+            },
+            {
+              "crawl": "q.property('observer:state') == 'crawl'"
             }
           ],
           "blend_transition": 0.25
@@ -165,6 +183,12 @@
             },
             {
               "climb": "q.property('observer:state') == 'climb'"
+            },
+            {
+              "hang": "q.property('observer:state') == 'hang'"
+            },
+            {
+              "crawl": "q.property('observer:state') == 'crawl'"
             }
           ],
           "blend_transition": 0.25
@@ -207,6 +231,12 @@
             },
             {
               "climb": "q.property('observer:state') == 'climb'"
+            },
+            {
+              "hang": "q.property('observer:state') == 'hang'"
+            },
+            {
+              "crawl": "q.property('observer:state') == 'crawl'"
             }
           ],
           "blend_transition": 0.25
@@ -248,6 +278,12 @@
             },
             {
               "climb": "q.property('observer:state') == 'climb'"
+            },
+            {
+              "hang": "q.property('observer:state') == 'hang'"
+            },
+            {
+              "crawl": "q.property('observer:state') == 'crawl'"
             }
           ],
           "blend_transition": 0.2
@@ -289,6 +325,12 @@
             },
             {
               "climb": "q.property('observer:state') == 'climb'"
+            },
+            {
+              "hang": "q.property('observer:state') == 'hang'"
+            },
+            {
+              "crawl": "q.property('observer:state') == 'crawl'"
             }
           ],
           "blend_transition": 0.1,
@@ -336,6 +378,12 @@
             },
             {
               "climb": "q.property('observer:state') == 'climb'"
+            },
+            {
+              "hang": "q.property('observer:state') == 'hang'"
+            },
+            {
+              "crawl": "q.property('observer:state') == 'crawl'"
             }
           ],
           "blend_transition": 0.25
@@ -377,6 +425,12 @@
             },
             {
               "climb": "q.property('observer:state') == 'climb'"
+            },
+            {
+              "hang": "q.property('observer:state') == 'hang'"
+            },
+            {
+              "crawl": "q.property('observer:state') == 'crawl'"
             }
           ],
           "blend_transition": 0.05,
@@ -420,6 +474,12 @@
             },
             {
               "climb": "q.property('observer:state') == 'climb'"
+            },
+            {
+              "hang": "q.property('observer:state') == 'hang'"
+            },
+            {
+              "crawl": "q.property('observer:state') == 'crawl'"
             }
           ],
           "blend_transition": 0.0
@@ -462,6 +522,12 @@
             },
             {
               "climb": "q.property('observer:state') == 'climb'"
+            },
+            {
+              "hang": "q.property('observer:state') == 'hang'"
+            },
+            {
+              "crawl": "q.property('observer:state') == 'crawl'"
             }
           ],
           "blend_transition": 0.35
@@ -503,6 +569,12 @@
             },
             {
               "climb": "q.property('observer:state') == 'climb'"
+            },
+            {
+              "hang": "q.property('observer:state') == 'hang'"
+            },
+            {
+              "crawl": "q.property('observer:state') == 'crawl'"
             }
           ],
           "blend_transition": 0.3
@@ -544,6 +616,106 @@
             },
             {
               "surge": "q.property('observer:state') == 'surge'"
+            },
+            {
+              "hang": "q.property('observer:state') == 'hang'"
+            },
+            {
+              "crawl": "q.property('observer:state') == 'crawl'"
+            }
+          ],
+          "blend_transition": 0.15
+        },
+        "hang": {
+          "animations": [
+            "hang"
+          ],
+          "transitions": [
+            {
+              "watch": "q.property('observer:state') == 'watch'"
+            },
+            {
+              "stare": "q.property('observer:state') == 'stare'"
+            },
+            {
+              "tilt": "q.property('observer:state') == 'tilt'"
+            },
+            {
+              "walk": "q.property('observer:state') == 'walk'"
+            },
+            {
+              "run": "q.property('observer:state') == 'run'"
+            },
+            {
+              "attack": "q.property('observer:state') == 'attack'"
+            },
+            {
+              "peek": "q.property('observer:state') == 'peek'"
+            },
+            {
+              "recoil": "q.property('observer:state') == 'recoil'"
+            },
+            {
+              "hidden": "q.property('observer:state') == 'hidden'"
+            },
+            {
+              "float": "q.property('observer:state') == 'float'"
+            },
+            {
+              "surge": "q.property('observer:state') == 'surge'"
+            },
+            {
+              "climb": "q.property('observer:state') == 'climb'"
+            },
+            {
+              "crawl": "q.property('observer:state') == 'crawl'"
+            }
+          ],
+          "blend_transition": 0.0
+        },
+        "crawl": {
+          "animations": [
+            "crawl"
+          ],
+          "transitions": [
+            {
+              "watch": "q.property('observer:state') == 'watch'"
+            },
+            {
+              "stare": "q.property('observer:state') == 'stare'"
+            },
+            {
+              "tilt": "q.property('observer:state') == 'tilt'"
+            },
+            {
+              "walk": "q.property('observer:state') == 'walk'"
+            },
+            {
+              "run": "q.property('observer:state') == 'run'"
+            },
+            {
+              "attack": "q.property('observer:state') == 'attack'"
+            },
+            {
+              "peek": "q.property('observer:state') == 'peek'"
+            },
+            {
+              "recoil": "q.property('observer:state') == 'recoil'"
+            },
+            {
+              "hidden": "q.property('observer:state') == 'hidden'"
+            },
+            {
+              "float": "q.property('observer:state') == 'float'"
+            },
+            {
+              "surge": "q.property('observer:state') == 'surge'"
+            },
+            {
+              "climb": "q.property('observer:state') == 'climb'"
+            },
+            {
+              "hang": "q.property('observer:state') == 'hang'"
             }
           ],
           "blend_transition": 0.15
@@ -580,7 +752,7 @@
         "default": {
           "transitions": [
             {
-              "hanging": "q.property('observer:afloat') && q.property('observer:state') != 'float' && q.property('observer:state') != 'surge' && q.property('observer:state') != 'climb' && q.property('observer:state') != 'hidden'"
+              "hanging": "q.property('observer:afloat') && q.property('observer:state') != 'float' && q.property('observer:state') != 'surge' && q.property('observer:state') != 'climb' && q.property('observer:state') != 'hidden' && q.property('observer:state') != 'hang' && q.property('observer:state') != 'crawl'"
             }
           ],
           "blend_transition": 0.25
@@ -591,7 +763,7 @@
           ],
           "transitions": [
             {
-              "default": "!(q.property('observer:afloat') && q.property('observer:state') != 'float' && q.property('observer:state') != 'surge' && q.property('observer:state') != 'climb' && q.property('observer:state') != 'hidden')"
+              "default": "!(q.property('observer:afloat') && q.property('observer:state') != 'float' && q.property('observer:state') != 'surge' && q.property('observer:state') != 'climb' && q.property('observer:state') != 'hidden' && q.property('observer:state') != 'hang' && q.property('observer:state') != 'crawl')"
             }
           ],
           "blend_transition": 0.25

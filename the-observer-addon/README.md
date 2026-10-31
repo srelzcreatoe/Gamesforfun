@@ -19,8 +19,8 @@ your light — always deliberately, always reversibly — and watches what you d
 4. Play. Nothing happens for the first 12 minutes on the Standard preset. Details: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md).
 
 ## Status
-Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.0.8 integration run passed 319 of
-319 checks (73 test groups) with no content-log or script errors, restart recovery passed, and the server held 20 TPS
+Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.0.9 integration run passed 348 of
+348 checks (79 test groups) with no content-log or script errors, restart recovery passed, and the server held 20 TPS
 with and without the add-on. A separate run on a fresh world with every experiment switched off (and no test kit)
 loaded everything with zero errors — no experiments are needed; the same holds for the merged Weeping Mire, which
 generates on a fresh world with every experiment off. The first load in a game client reported three resource-pack errors, which are fixed in this build and now
@@ -28,9 +28,10 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
 [docs/TEST_REPORT.md](docs/TEST_REPORT.md) §6 and [docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md).
 
 ## What's inside
-* **One physical Observer** built on the supplied model: 5 supplied clips + 9 supplemental clips (stalking walk, peek,
+* **One physical Observer** built on the supplied model: 5 supplied clips + 11 supplemental clips (stalking walk, peek,
   recoil, stoop crouch for low ceilings, head tracking, and in 1.0.6 two floating clips — the drift twitching and
-  cracking in jerks — and a climb; in 1.0.8 a hanging overlay so it strikes and recoils in mid-air), state-driven
+  cracking in jerks — and a climb; in 1.0.8 a hanging overlay so it strikes and recoils in mid-air; in 1.0.9
+  hanging from a ceiling and crawling), state-driven
   animation controllers, eyes that glow in the
   dark, a glowing wisp aura, a crimson vanish burst, and its own voice, arrival, notice, shriek and vanish sounds.
 * **A horror director**: grace period, five escalating stages, per-player and global cooldowns, quiet periods,
@@ -48,6 +49,14 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   (by your bed or door), *Borrowed Eyes* (a creature that turns its head to follow you) and *In the Mire*; a lunge when it is spotted,
   a fast, relentless attack once it reaches you, a too-close reaction, and harmless shadows in taiga forests that
   vanish when looked at, plus 17 further designed concepts — see [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md).
+* **Stalking, the standoff, and the attack** (1.0.9): it arrives silently and stays perfectly still — on the
+  ground, on a high ledge above you, or hanging upside down from a cave ceiling. Spot it, or walk toward it, and the
+  standoff begins: it watches, tests you (a crack of the neck, a tilt of the head, one slow step while you look),
+  and every time you look away it is a little closer. Look at it, but do not stare: the longer and closer you hold
+  its gaze, the angrier it gets, and shooting it or hitting it is worse. In the end it is simply gone — or it snaps,
+  and comes for you faster than a sprint, screeching. Nothing stops it getting to you: it opens doors, breaks glass
+  and leaves out of its way (put back afterwards), and crawls flat through gaps a single block high. When it is done
+  it does not walk off: it is just gone. Previews: [docs/media/1.0.9/](docs/media/1.0.9/).
 * **It never runs** (1.0.6–1.0.8): the chase, the lunge, the attack once it reaches you and the strike when you walk
   up to it all float — a block off the ground, no footsteps, only a rush of air — and it strikes from the air with its
   legs hanging. In *Breathing Room* it surges at you when you look away, drifts while you watch, and stops at the

@@ -12,7 +12,7 @@ features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stag
 
 | # | Encounter (file) | Tier / Stage | Context | Location | Cue | Intention | Manipulation | Player response | Consequence |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | **The Figure at the Edge** (`distant_watch`) | 1 / 1 | anywhere; adapts to water, height, caves | 26–44 blocks at the edge of attention; on water; on the ground below a high player; at the favoured bearing | a still silhouette, partly behind cover; animals facing it (stage 2+); eye glints in darkness | to be noticed — or not | M8 animals turn (30% at stage 2+) | look at it ~1 s / approach / ignore | noticed → it steps away (*The Figure*); water → it sinks; ignored → footprints remain where it stood |
+| 1 | **The Figure at the Edge** (`distant_watch`) | 1 / 1 | anywhere; adapts to water, height, caves | 26–44 blocks at the edge of attention (14–28 in caves); since 1.0.9 also on a high ledge 4+ blocks above you, or (underground) hanging upside down from a ceiling 6+ blocks high; on water; on the ground below a high player; at the favoured bearing | arrives silently; a still silhouette, partly behind cover; animals facing it (stage 2+); eye glints in darkness | to be noticed — or not | M8 animals turn (30% at stage 2+) | look at it ~1 s / walk toward it / ignore | noticed or approached: the standoff (below); on water it sinks; ignored, footprints where it stood |
 | 2 | **Out of Step** ★ (`extra_step`) | 2 / 2 | walking on land | behind, 7 → 3.4 blocks (sound); 15–24 blocks (body) | footsteps in your rhythm and ground material; one extra heavier step | to see whether you notice an imitation | — | turn around / sneak / ignore | glimpse and it steps away (*Out of Step*); falters (*Quiet Feet*); closes in → right behind you (*Close*) |
 | 3 | **Someone Was Home** ★ (`home_visit`) | 2 / 2 | returning (40–96 blocks) to your main haunt after 4+ min away | your most-visited 16×16 area / bed | door creak from inside; arranged objects | to show it knows where you live | M1 door, M2 entrance lights, M3 object turned toward your approach, M6 effigy | put something back / break the effigy / study the changes / ignore | it restores the rest (*Put Back*); Vestige (*Small Likeness*); *Someone Was Home*; ignored → changes stay 8 min, tension rises |
 | 4 | **The Closed Path** ★ (`closed_path`) | 3 / 4 | moving through a tunnel or dark enclosed corridor | seal 3–7 blocks behind; body 12–20 ahead | hum, lights dying, fog, seal sound | to corner you and see what you do | M2 lights, M4 Veil seal | break through and leave / stand in light / hold its gaze / lens / strike | escape (*Wrong Way*); repelled (*Light It Does Not Make*); backs off (*Held Gaze*); telegraphed strike or (aggression 0) a blackout |
@@ -34,7 +34,7 @@ features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stag
 | 20 | **It's Inside** (`inside`) | 3 / 4 | at home (within 14 blocks of your main haunt) at night, indoors under a roof | the darkest spot (light ≤ 7) of the same room, 3–10 blocks away, out of your current view | nothing: it arrives silently; its eyes glow | to be found where you feel safe | — | light the room (light 10+ where it stands: a torch, a flare) / stare at it 2 s / walk right up to it (2–4 blocks) | it recoils and tears apart / tilts its head and leaves / tears apart (*It Was Inside*). At most every 60 min (3 in-game nights); never inside a Ward Lantern's radius |
 | 21 | **Signs** (`sign`) | 2 / 3, manipulation ≥ 1 | within 48 blocks of your home | an empty floor cell beside your bed (spawn point) or a door of the home, out of everyone's sight | a standing sign, waxed, its text facing the bed or door: your name, "I was here", "Don't turn around", "Again tomorrow", the time you last slept, "You left the door open", how often you saw it | to show it was there | M9 sign (ledger, drops nothing) | read it / break it | read → noticed; it disappears after 20 minutes. At most every 60 min (3 in-game days) |
 | 22 | **Borrowed Eyes** (`borrowed_eyes`) | 1 / 2 | an animal, villager, trader or zombie/skeleton 6–24 blocks ahead, in view | the creature | it stops what it is doing and its head follows you, wherever you go, for 7–11 s | to watch through something else | none (heavy slowness, rotation only) | look back at it | held 2 s: it holds a moment longer, then walks on as if nothing happened. At most every 10 min |
-| 23 | **In the Mire** (`mire_watcher`) | 1 / 1 | in the Weeping Mire, its home (weight 16 there, 0 anywhere else); also after a torn page | among the weeping trees 20–48 blocks away, peeking from behind a trunk when there is one: where you can see it first, 12–24 blocks if the trees allow nothing further, deep among them as a last resort; after a torn page 16–24 blocks behind you, after the last of the eight 12–14 (closer, from 8, if the trees allow nothing further) | a still figure between the trunks | the Mire's old watcher, now the Observer itself: to be seen at home | — | look at it ~1 s / walk up to it / ignore it | it holds your gaze 1.5–2.5 s, then is gone in black mist with a cave sound (*Its Home*); from stage 2 it may lunge instead; within 9 blocks it does not wait (too close, or a strike); ignored, it fades after 90–180 s |
+| 23 | **In the Mire** (`mire_watcher`) | 1 / 1 | in the Weeping Mire, its home (weight 16 there, 0 anywhere else); also after a torn page | among the weeping trees 20–48 blocks away, peeking from behind a trunk when there is one: where you can see it first, 12–24 blocks if the trees allow nothing further, deep among them as a last resort; after a torn page 16–24 blocks behind you, after the last of the eight 12–14 (closer, from 8, if the trees allow nothing further) | a still figure between the trunks | the Mire's old watcher, now the Observer itself: to be seen at home | — | look at it ~1 s / walk up to it / ignore it | seen: *Its Home*, then the standoff (since 1.0.9) — look away and it is gone in black mist with a cave sound; stare too long or shoot it and it snaps; from stage 2 it may lunge at once instead; within 9 blocks it does not wait (too close, or a strike); ignored, it fades after 90–180 s |
 
 **Lunge (shared reaction, stage 2+).** When it is noticed in *The Figure at the Edge*, *Always the Same Place* or *Echo
 Ahead*, it may shriek and come at the player through the air in jerks (~14 blocks/s, floating a block up), then tear
@@ -42,6 +42,27 @@ apart right in front of them. Chance per
 sighting: 25 % at stage 2; 50 % from stage 3 on Standard scares, 30 % on Rare; never with scares off or aggression
 "never". Its own cooldown: 5 min (Standard scares) / 10 min (Rare). On High aggression it does not stop at a scare: it
 keeps attacking.
+
+**The standoff (1.0.9, shared).** In *The Figure at the Edge*, *Always the Same Place* and *In the Mire*, being seen
+(or walked toward) starts a standoff instead of an exit. It watches; every ~3 s while stared at it may test the player
+(a neck crack, a head tilt, one slow step closer); every second it is unwatched it creeps 2–3.5 blocks closer (never
+inside the too-close distance + 2.5 blocks; from a ceiling it first drops to the floor). Anger rises only while it is
+stared at: `380 / max(8, distance) × 0.2 × (0.7 + 0.15 × stage)` per 4 ticks, so about 4 s at 10 blocks, 9 s at 30 and
+12 s at 45 (stage 2); it cools while unwatched. At 100 — or at once when shot (any projectile) or hit — it is provoked.
+Otherwise it ends after 20–35 s, or sooner once it has been looked away from for 3 s (8 % a check): it is simply
+gone. Provoked: from stage 2 (effective, so stage 1 in the Mire) and aggression ≥ 1 it is a rage — the relentless
+attack in rage mode (~8 b/s, a shriek and a camera shake at the start, a shriek or a groan every 3 s); otherwise a
+harmless lunge.
+
+**Through tight spaces (1.0.9, shared).** In the relentless attack, the chase and the test strike: when it has gained
+nothing for 1.5 s and the target is within 28 blocks, `observer/squeeze.js` searches a way block by block (A*, up to
+5000 cells) through gaps a block high, closed doors (opened, manipulation ≥ 1) and glass, panes, leaves, webs, vines
+and bamboo (broken, manipulation ≥ 2, never inside a Ward Lantern's radius). Doors and broken blocks are ledger
+changes: put back afterwards, nothing dropped. Where the way is lower than three blocks it crawls (`crawl`, a
+collision box a block high); it stands up again inside before it strikes.
+
+**It vanishes (1.0.9, shared).** When an encounter is over it no longer walks away: it holds where it is for a
+breath and is gone, torn apart where it stood.
 
 **Too close (shared reaction).** Walk up to it (4–8 blocks, varying; 9 in the Weeping Mire; room-sized in *It's
 Inside*) and it tears apart after a short random moment — or, now and then (stage 2+, ~30 %, at most every 75 s),

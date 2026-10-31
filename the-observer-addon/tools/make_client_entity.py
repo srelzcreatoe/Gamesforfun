@@ -15,6 +15,8 @@ State -> animation mapping (q.property('observer:state') is set by the behaviour
   float   float_drift (new)    + look_at_target      1.0.6 chase: hovering a block up, limp, while watched
   surge   float_surge (new)                          1.0.6 chase: rushing at you through the air
   climb   climb (new)                                1.0.6: up a wall or pillar after you, head turned back
+  hang    hang (new)                                 1.0.9: stalking from a cave ceiling, upside down
+  crawl   crawl (new)                                1.0.9: flat on its front through a gap a block high
 
 observer:stoop (bool) layers the additive stoop crouch on top of any state so the
 4-block figure fits 3-block spaces.
@@ -47,9 +49,11 @@ STATES = {
     "float": ["float_drift", "look_at_target"],
     "surge": ["float_surge"],
     "climb": ["climb"],
+    "hang": ["hang"],
+    "crawl": ["crawl"],
 }
 STATE_SOUNDS = {"attack": [{"effect": "windup"}], "recoil": [{"effect": "recoil"}]}
-BLEND = {"attack": 0.1, "recoil": 0.05, "hidden": 0.0, "run": 0.2, "float": 0.35, "surge": 0.3, "climb": 0.15}
+BLEND = {"attack": 0.1, "recoil": 0.05, "hidden": 0.0, "run": 0.2, "float": 0.35, "surge": 0.3, "climb": 0.15, "hang": 0.0, "crawl": 0.15}
 
 
 def prop(s):
@@ -68,7 +72,7 @@ def state_controller():
     return {"initial_state": "default", "states": states}
 
 
-FLOATING = ("float", "surge", "climb", "hidden")
+FLOATING = ("float", "surge", "climb", "hidden", "hang", "crawl")
 AFLOAT = "q.property('observer:afloat') && " + " && ".join(f"q.property('observer:state') != '{s}'" for s in FLOATING)
 
 
@@ -134,6 +138,8 @@ def main():
             "float_surge": "animation.observer.float_surge",
             "climb": "animation.observer.climb",
             "float_hang": "animation.observer.float_hang",
+            "hang": "animation.observer.hang",
+            "crawl": "animation.observer.crawl",
             "ctrl_state": "controller.animation.observer.state",
             "ctrl_stoop": "controller.animation.observer.stoop",
             "ctrl_afloat": "controller.animation.observer.afloat",

@@ -3,15 +3,16 @@
 // (20-48 blocks, peeking from behind a trunk when there is one); after you read a torn page it may be
 // behind you instead (always, after the last of the eight). This is the Mire's old "watcher", now the
 // Observer itself:
-//   * looked at for a second, it holds your gaze, then is gone in black mist with a cave sound
-//     (from stage 2 it may lunge instead — see common.wantsLunge)
+//   * looked at for a second, it holds your gaze: the standoff (common.standoff) — look away and it is gone
+//     in black mist with a cave sound; stare too long, or shoot it, and it snaps (from stage 2 it may lunge
+//     at once instead — see common.wantsLunge)
 //   * come within 9 blocks and it does not wait for you
 //   * ignored, it fades after 90-180 seconds
 import { register } from "../director/director.js";
 import * as body from "../observer/body.js";
 import { V, safe, rand, allPlayers } from "../core/util.js";
 import { visibility } from "../world/sight.js";
-import { findSpotLoose, sighting, wantsLunge, lunge } from "./common.js";
+import { findSpotLoose, sighting, wantsLunge, lunge, standoff } from "./common.js";
 
 /** Placement asked for by a torn page (player id -> options), read once by prepare. */
 export const pending = new Map();
@@ -88,11 +89,11 @@ register({
           await lunge(enc);
           return;
         }
-        // it holds your gaze a moment, then it is gone
+        // the standoff: it holds your gaze — stare too long and it snaps; look away and it is gone in mist
         body.setState("stare");
-        await enc.wait(Math.floor(rand(30, 50)));
-        vanishInMist(enc);
-        return enc.result("seen_in_the_mire", true);
+        enc.result("seen_in_the_mire", true);
+        await standoff(enc, { gone: () => vanishInMist(enc) });
+        return;
       }
     }
     vanishInMist(enc);

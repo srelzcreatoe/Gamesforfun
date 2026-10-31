@@ -139,6 +139,11 @@ items.registerEvents({
   onBodyHit: (p, encId) => {
     const enc = director.running().find((x) => x.id === encId);
     if (!enc) return;
+    // in a standoff a blow is an attack, and it answers it
+    if (enc.data.standoff) {
+      enc.data.provoked = "hit";
+      return;
+    }
     enc.data.lastRepel = "hit";
     if (learn.shrug(enc, "hit")) return; // it has learned to take a blow: the first one does nothing
     if (enc.def.id === "closed_path" || enc.def.id === "pursuit") enc.data.hit = true;
@@ -147,6 +152,11 @@ items.registerEvents({
       enc.result(enc.outcome || "struck_away", true);
       enc.abort("struck");
     }
+  },
+  // shot at (an arrow, a trident, a snowball): it does not hurt it, but in a standoff it is a provocation
+  onBodyShot: (p, encId) => {
+    const enc = director.running().find((x) => x.id === encId);
+    if (enc && enc.data.standoff) enc.data.provoked = "shot";
   },
 });
 

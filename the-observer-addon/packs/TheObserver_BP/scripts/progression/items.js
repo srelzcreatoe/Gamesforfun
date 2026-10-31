@@ -177,7 +177,7 @@ export function validateWards() {
 // ---------------------------------------------------------------- registration
 
 /**
- * @param {{startVigil:(p:Player)=>void, onLensed:(enc:number)=>void, onBodyHit:(p:Player, enc:number)=>void, openWheel:(p:Player)=>Promise<void>}} hooks
+ * @param {{startVigil:(p:Player)=>void, onLensed:(enc:number)=>void, onBodyHit:(p:Player, enc:number)=>void, onBodyShot:(p:Player, enc:number)=>void, openWheel:(p:Player)=>Promise<void>}} hooks
  */
 export function registerEvents(hooks) {
   world.afterEvents.itemUse.subscribe((ev) => {
@@ -235,5 +235,17 @@ export function registerEvents(hooks) {
     safe(() => e.dimension.playSound(SOUNDS.fabric, e.location, { volume: 0.9 }));
     pressure(p);
     hooks.onBodyHit(p, /** @type {number} */ (safe(() => e.getDynamicProperty(ENTITY_ENC_PROP))));
+  });
+
+  // shots: they pass through it doing nothing — except to its temper
+  world.afterEvents.projectileHitEntity.subscribe((ev) => {
+    const e = safe(() => ev.getEntityHit()?.entity);
+    if (!e || e.typeId !== OBSERVER_ID) return;
+    const src = ev.source;
+    if (!src || src.typeId !== "minecraft:player") return;
+    const encId = safe(() => e.getDynamicProperty(ENTITY_ENC_PROP));
+    if (encId === undefined) return;
+    safe(() => e.dimension.playSound(SOUNDS.fabric, e.location, { volume: 0.9 }));
+    hooks.onBodyShot(/** @type {Player} */ (src), /** @type {number} */ (encId));
   });
 }
