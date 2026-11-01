@@ -2655,8 +2655,9 @@ TESTS.dominion = async () => {
   check("dominion_they_go_still", [...still.values()].every((x) => x < 0.4), [...still.entries()].map(([id, x]) => `${mobs.find((c) => c.id === id)?.typeId}:${x.toFixed(2)}`).join(" "));
   await wait(20 * 5);
   const later = since(m, "dominion");
-  const holds = later.filter((d) => d.what === "hold");
-  const backed = holds.map((h) => h.d - (knew.find((k) => k.id === h.id)?.d ?? h.d));
+  // where each stopped backing away: held (still in sight), or gone while backing away (out of it)
+  const stops = later.filter((d) => d.what === "hold" || (d.what === "sent" && d.d !== undefined && !later.some((x) => x.what === "hold" && x.id === d.id)));
+  const backed = stops.map((h) => h.d - (knew.find((k) => k.id === h.id)?.d ?? h.d));
   check("dominion_they_back_away", later.filter((d) => d.what === "leave").length >= 3 && backed.some((b) => b >= 1.5), backed.map((b) => b.toFixed(1)).join(","));
   // nobody looking: they are gone
   p.lookAtLocation({ x: stand.x, y: Y + 1.6, z: stand.z + 40 });
@@ -3236,7 +3237,7 @@ TESTS.servants = async () => {
   isolate(p);
   const hurt = [];
   const sub = world.afterEvents.entityHurt.subscribe((ev) => {
-    if (ev.hurtEntity.id === p.id && ev.damageSource.damagingEntity?.typeId !== OBS) hurt.push(`${ev.damageSource.damagingEntity?.typeId ?? ev.damageSource.cause}:${ev.damage}`);
+    if (ev.hurtEntity.id === p.id && ev.damageSource.damagingEntity?.typeId !== OBS) hurt.push(`${ev.damageSource.damagingEntity?.typeId ?? ev.damageSource.cause}:${ev.damage}@${system.currentTick}`);
   });
   let m = mark();
   obs("trigger", "test_near", "Tester");
@@ -3254,7 +3255,8 @@ TESTS.servants = async () => {
   })();
   const takes = since(m, "dominion").filter((d) => d.what === "take");
   check("servants_three_kept", takes.length === 3, `${takes.length} kept`);
-  check("servants_stand_around_you", watched.length === 3 && watched.every((d) => d.d >= 5 && d.d <= 15), watched.map((d) => `${d.type}@${d.d}`).join(" "));
+  // (about ten blocks out; one whose way to its place is blocked watches from where it got to)
+  check("servants_stand_around_you", watched.length === 3 && watched.every((d) => d.d >= 5 && d.d <= 16.5), watched.map((d) => `${d.type}@${d.d}`).join(" "));
   await wait(20);
   const ws = mobs.filter((c) => c.isValid && takes.some((d) => d.id === c.id));
   const errs = ws.map((c) => facingErr(c, p.location));
@@ -3291,7 +3293,7 @@ TESTS.servants = async () => {
     const creeps = since(m, "dominion").filter((d) => d.what === "creep");
     const ds = mobs.filter((c) => c.isValid).map((c) => hdist(c.location, p.location));
     check("servants_creep_unwatched", creeps.length >= 1 && ds.some((d) => d < 8), `${creeps.length} creeps; now at ${ds.map((d) => d.toFixed(1)).join(",")}`);
-    check("servants_never_nearer_than_4", ds.every((d) => d >= 3.4), ds.map((d) => d.toFixed(1)).join(","));
+    check("servants_never_nearer_than_4", ds.every((d) => d >= 3.4), `${ds.map((d) => d.toFixed(1)).join(",")}; ${mobs.map((c) => c.isValid ? `${c.typeId}@${hdist(c.location, p.location).toFixed(1)}` : `${c.typeId}:gone`).join(" ")}; ${JSON.stringify(since(m, "dominion").filter((d) => !["creep", "freeze", "notice"].includes(d.what)).map((d) => [d.what, d.type, d.d]))}`);
     // look straight at one: it stops dead
     const one = mobs.find((c) => c.isValid && takes.length >= 0 && hdist(c.location, p.location) > 4.6) ?? mobs.find((c) => c.isValid);
     if (one) {

@@ -257,13 +257,19 @@ function goTo(h, t) {
     eyes(m);
   }
   const d = V.hdist(m.location, to);
-  const want = V.yawTo(m.location, to);
+  let want = V.yawTo(m.location, to);
+  // it goes round them, never past them within reach
+  const p = h.p;
+  if (p?.isValid && V.hdist(m.location, p.location) < 4) {
+    const toSlot = V.flat(V.sub(to, m.location));
+    const away = V.flat(V.sub(m.location, p.location));
+    want = V.yawTo({ x: 0, y: 0, z: 0 }, V.add(toSlot, V.scale(away, 1.6)));
+  }
   turn(h, want);
   const dir = V.fromYaw(h.yaw);
   if (d < 1.2 || t >= h.next || (t % 5 === 0 && !clearAhead(m, dir))) {
     h.phase = "watch";
     still(h);
-    const p = h.p;
     emit("dominion", { what: "watching", type: m.typeId, id: m.id, d: p?.isValid ? Math.round(V.dist(m.location, p.location) * 10) / 10 : -1 });
     return;
   }
@@ -366,7 +372,10 @@ function gone(h, t) {
   h.unseen = seenByAny(players, l, false, pts) ? 0 : h.unseen + 2;
   if (h.unseen < 10) return false;
   drop(h);
-  emit("dominion", { what: "sent", type: m.typeId, id: m.id, role: h.role });
+  // how far from it, when it went (it may go while still backing away, out of sight)
+  const b = body.get();
+  const d = b && b.e.dimension.id === m.dimension.id ? Math.round(V.dist(l, b.e.location) * 10) / 10 : undefined;
+  emit("dominion", { what: "sent", type: m.typeId, id: m.id, role: h.role, d });
   safe(() => hooks.sent?.({ ...l }, m.dimension.id));
   safe(() => m.remove());
   return true;

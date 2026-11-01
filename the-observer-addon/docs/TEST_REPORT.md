@@ -482,6 +482,9 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
   made that weak), so it could have torn apart one of its own; blows of no damage and blows from its own are ignored.
 * Test-side: see the targeted 1.3.0 row (reach for the second take, the surfaced creature on a structure, the Mire
   creatures spawned at the platform's height, a cow trailing a fast test player, music still ending from the group before).
+* A watcher walking to its place behind the player could pass right by them, within reach — too weak to hurt, but it
+  swung at them; it now goes round them. Test-side: creatures may back away out of sight and be gone before they stop
+  (the "sent" event now says how far they had got), and a watcher whose way is blocked watches from where it got to.
 
 **Found by the 1.2.1 tests**
 * *In the Mire* could stand behind a tree just outside the Mire, at its edge (a pale garden): the trunk search
