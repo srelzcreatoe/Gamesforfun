@@ -95,7 +95,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 87 test groups (including setup and a status check) with 414 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 91 test groups (including setup and a status check) with 454 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -144,6 +144,7 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | full (1.2.0) | 430 | 2 | a real bug: *In the Mire* stood behind a tree just outside the Mire (in a pale garden at its edge) — the tree search added in 1.1.0 never checked the biome; it now only takes a trunk inside the Mire. Test-side: another simulated player left standing elsewhere in the world could see two of the creatures it was sending away, so they rightly stayed; test players set aside now face away from everything. (The harness also reported a timeout: the scenario file was edited while that run read it.) |
 | targeted (1.2.1: its watchers, closer while unwatched, its eyes, its rage; then twice over with the 1.2.0 groups) | 5 + 32 + 35 + 10 + 58 | 8 + 5 + 2 + 1 + 0 | run 1: the whole script failed to load on the server ("REGISTRY is not initialized"): the encounters' shared code now loads the creature module, which loaded the animals module, which loaded *Borrowed Eyes* — an encounter registering itself before the director existed (the Mire's leaf blocks failed with it, their custom component unregistered). Fixed by a dependency-free `world/walk.js`, and the validator now fails on any such chain. Run 2: a watcher's hold (one Slowness, 1.5 s) ran out and it walked on — to two blocks from the player at stage 4, and hit them; it is renewed every half second now, and closer than four blocks it steps back. Runs 3–4: test-side (the player turned to face two of the watchers it was meant not to see; a trigger read before the player looked away) |
 | full (1.2.1, first) | 453 | 1 | test-side: `charge_ambush_sprung` — the director served another simulated player first (the one who had waited longest), and the global gap after it outlasted the test's wait; the other test players are kept in Creative while the director runs there |
+| **final (1.2.1)** | **454** | **0** | all passed: the 1.1.2 suite plus it rules them (they know it, turn to it, go still, back away harmless, gone unseen; rivals torn apart; the great, the named and the marked left alone; the off switch), Not Yours, its watchers (kept, standing around you, staring, still; staying when it goes, then gone), closer only while unwatched (never nearer than 4, frozen when looked at, never hurting you), its rage (let go fully), and Its Eyes (it stares; look and it is it; unnoticed it lets it go; none, never chosen) |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -177,6 +178,9 @@ Final run (1.1.1): 86 test groups, 1484 s, minimum TPS between tests 19.7, **0 c
 
 Final run (1.1.2): 87 test groups, 1666 s, minimum TPS between tests 19.8, **0 content-log or script errors**.
 
+Final run (1.2.1): 91 test groups, 1771 s, minimum TPS between tests 19.7, **0 content-log or script errors**.
+
+`noexp.txt` re-run on 1.2.0 and 1.2.1: `level.dat` experiments none, 0 errors.
 `noexp.txt` re-run on 1.1.2: `level.dat` experiments none, 0 errors.
 `noexp.txt` and `mire_locate.txt` re-run on 1.1.1: `level.dat` experiments none, 0 errors.
 `noexp.txt` and `mire_locate.txt` re-run on 1.1.0: `level.dat` experiments none, 0 errors.
@@ -288,6 +292,10 @@ which is why only test worlds get it.
 | `mire_fuel` | 3 | — |
 | `paralysis` | 22 | — |
 | `sounds` | 3 | — |
+| `dominion` | 12 | — |
+| `not_yours` | 6 | — |
+| `servants` | 14 | — |
+| `its_eyes` | 8 | — |
 | `natural` | 1 | — |
 | `status` | 0 | — |
 
