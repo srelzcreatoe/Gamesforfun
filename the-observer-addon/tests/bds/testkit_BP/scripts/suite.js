@@ -2452,10 +2452,15 @@ TESTS.charge = async () => {
   ow().runCommand("time set midnight");
   obs("timewarp", "40");
   obs("set", "frequency", "2");
+  // the director serves whoever has waited longest: while it runs here, the other test players are in Creative,
+  // where it leaves them alone (otherwise one of them can take its turn, and the global gap after it)
+  const others = world.getAllPlayers().filter((o) => o.id !== p.id && o.getGameMode() !== GameMode.Creative);
+  for (const o of others) o.setGameMode(GameMode.Creative);
   obs("pause", "off");
   const armed = await waitEvent("ambush", (d) => d.what === "armed", 20 * 20, m);
   const sprung = await waitEvent("ambush", (d) => d.what === "sprung", 20 * 60, m);
   obs("pause", "on");
+  for (const o of others) if (o.isValid) o.setGameMode(GameMode.Survival);
   check("charge_ambush_armed_at_night", !!armed);
   check("charge_ambush_sprung", !!sprung, sprung ? sprung.type : "never");
   obs("abort");
