@@ -15,9 +15,7 @@
     "default": "geometry.fnar.mirehop"
    },
    "scripts": {
-    "scaleX": "1.35",
-    "scaleY": "1.45",
-    "scaleZ": "1.35",
+    "scale": "1.97",
     "pre_animation": [
      "variable.fnar_anim = query.property('fnar:anim');",
      "variable.fnar_eyes = query.property('fnar:eyes');",
@@ -43,6 +41,10 @@
     "jumpscare": "animation.fnar.mirehop.jumpscare",
     "slump": "animation.fnar.mirehop.pose_2",
     "pose": "animation.fnar.mirehop.pose_1",
+    "stoop": "animation.fnar.mirehop.stoop",
+    "lean": "animation.fnar.mirehop.lean",
+    "wave": "animation.fnar.mirehop.wave",
+    "bow": "animation.fnar.mirehop.bow",
     "look": "animation.fnar.mirehop.look",
     "ctrl": "controller.animation.fnar.mirehop"
    },

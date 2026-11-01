@@ -22,7 +22,11 @@
       "peek",
       "jumpscare",
       "slump",
-      "pose"
+      "pose",
+      "stoop",
+      "lean",
+      "wave",
+      "bow"
      ],
      "default": "idle",
      "client_sync": true
@@ -74,8 +78,8 @@
     ]
    },
    "minecraft:collision_box": {
-    "width": 0.95,
-    "height": 3.8
+    "width": 1.3,
+    "height": 5.0
    },
    "minecraft:physics": {
     "has_gravity": false,

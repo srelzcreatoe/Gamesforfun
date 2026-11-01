@@ -22,6 +22,8 @@ BP = os.path.join(ROOT, 'packs', 'BP')
 sys.path.insert(0, HERE)
 from extra_anims import crawl_anim, peek_anim, look_anim  # noqa: E402
 import pose_fixes  # noqa: E402
+import new_anims  # noqa: E402
+from rig import eye_point  # noqa: E402
 from fk import Skeleton  # noqa: E402
 
 PACK_OF = {'rustgrin': 'FNAF_Animatronics_RP', 'mirehop': 'FNAF_Animatronics_RP', 'noxbriar': 'FNAF_Animatronics_RP',
@@ -32,18 +34,20 @@ NAMES = {'rustgrin': 'Rustgrin', 'mirehop': 'Mirehop', 'noxbriar': 'Noxbriar', '
 ANIMS = {
     'idle': 'idle', 'perform': 'perform_1', 'perform2': 'perform_2', 'stand': 'idle', 'walk': 'walk', 'run': 'run',
     'scurry': 'run', 'crawl': 'crawl', 'peek': 'peek', 'jumpscare': 'jumpscare', 'slump': 'pose_2', 'pose': 'pose_1',
+    # generated for every model (tools/entities/new_anims.py)
+    'stoop': 'stoop', 'lean': 'lean', 'wave': 'wave', 'bow': 'bow',
 }
 ANIM_VALUES = list(ANIMS.keys())
 
-# Render size: taller and bulkier than the supplied models without touching the geometry. Bedrock scales
-# the model about the entity's feet, per axis, in the entity's own frame (client entity scripts.scaleX/Y/Z).
-RENDER_SCALE = {'x': 1.35, 'y': 1.45, 'z': 1.35}
-# Collision box to match (supplied models: about 0.7 x 2.55 blocks at scale 1 -> ~0.95 x 3.7).
-COLLISION = {'width': 0.95, 'height': 3.8}
-# Culling box of the geometry (generous: the scaled body is ~3.7 blocks tall and ~3.6 blocks long crawling).
-VISIBLE_BOUNDS = {'width': 6, 'height': 6, 'offset': [0, 2.5, 0]}
-# The crawl (ducts are 2 blocks tall inside) stays under this height in game, at the render scale.
-CRAWL_MAX_BLOCKS = 1.65
+# Render size: one uniform client entity scripts.scale (the models keep their exact proportions). The stage
+# poses top out at 39.8-40.9 model px, so 1.97 makes every animatronic stand 4.9-5.0 blocks tall.
+SCALE = 1.97
+# Collision box to match.
+COLLISION = {'width': 1.3, 'height': 5.0}
+# Culling box of the geometry (model units are scaled with the entity: room for the ~5-block body).
+VISIBLE_BOUNDS = {'width': 8, 'height': 8, 'offset': [0, 3.5, 0]}
+# The crawl shrinks the model (root bone scale) to fit the 2 x 2 ducts: at most this tall and wide in game.
+CRAWL_MAX = {'height': 1.85, 'width': 1.75}
 
 
 def write_json(path, obj):
@@ -139,17 +143,19 @@ def make_rusted(img):
     return Image.fromarray(res, 'RGBA')
 
 
-def rename_anims(anims, cid, geo):
+def rename_anims(anims, cid, geo, eye):
     out = {}
     for k, v in anims['animations'].items():
         name = k.split('.')[-1]
         out[f'animation.fnar.{cid}.{name}'] = v
     skel = Skeleton(geo)
-    out[f'animation.fnar.{cid}.crawl'] = crawl_anim(cid, skel, max_height=CRAWL_MAX_BLOCKS * 16 / RENDER_SCALE['y'])
+    out[f'animation.fnar.{cid}.crawl'] = crawl_anim(cid, skel, scale=SCALE, fit=CRAWL_MAX)
     out[f'animation.fnar.{cid}.peek'] = peek_anim(cid, skel)
     out[f'animation.fnar.{cid}.look'] = look_anim()
     # pose / hand corrections (tools/entities/pose_fixes.py)
     pose_fixes.apply(cid, out)
+    # stoop, lean, wave, bow (tools/entities/new_anims.py)
+    new_anims.apply(cid, out, skel, geo, eye, SCALE, lambda side: pose_fixes.relaxed_fingers(side, roll=False))
     return out
 
 
@@ -162,6 +168,13 @@ def controller(cid):
             'blend_transition': 0.05 if v == 'jumpscare' else 0.25,
             'transitions': trans,
         }
+    # the wave plays once (loop false); when it is over, settle into the idle stance until the value changes
+    states['wave']['transitions'].append({'wave_done': 'query.all_animations_finished'})
+    states['wave_done'] = {
+        'animations': ['idle'],
+        'blend_transition': 0.2,
+        'transitions': [{o: f"variable.fnar_anim == '{o}'"} for o in ANIM_VALUES if o != 'wave'],
+    }
     return {'format_version': '1.10.0', 'animation_controllers': {f'controller.animation.fnar.{cid}': {'initial_state': 'idle', 'states': states}}}
 
 
@@ -178,7 +191,7 @@ def client_entity(eid, geo_id, tex, eyes_tex):
                 'textures': {'default': f'textures/entity/fnar/{tex}', 'eyes': f'textures/entity/fnar/{eyes_tex}'},
                 'geometry': {'default': f'geometry.fnar.{geo_id}'},
                 'scripts': {
-                    'scaleX': f"{RENDER_SCALE['x']}", 'scaleY': f"{RENDER_SCALE['y']}", 'scaleZ': f"{RENDER_SCALE['z']}",
+                    'scale': f'{SCALE}',
                     'pre_animation': [
                         "variable.fnar_anim = query.property('fnar:anim');",
                         "variable.fnar_eyes = query.property('fnar:eyes');",
@@ -273,11 +286,12 @@ def main():
         img = Image.open(os.path.join(src, 'textures', 'entity', f'{cid}.png')).convert('RGBA')
         img.save(os.path.join(tex_dir, f'{cid}.png'))
         mask = eye_mask(g, img)
+        eye = eye_point(g, mask)
         make_eyes(img, mask).save(os.path.join(tex_dir, f'{cid}_eyes.png'))
         make_mer(img, mask).save(os.path.join(tex_dir, f'{cid}_mer.png'))
         write_json(os.path.join(tex_dir, f'{cid}.texture_set.json'), texture_set(cid))
         anims = json.load(open(os.path.join(src, 'animations', f'{cid}.animation.json')))
-        write_json(os.path.join(RP, 'animations', f'fnar_{cid}.animation.json'), {'format_version': anims.get('format_version', '1.8.0'), 'animations': rename_anims(anims, cid, geo)})
+        write_json(os.path.join(RP, 'animations', f'fnar_{cid}.animation.json'), {'format_version': anims.get('format_version', '1.8.0'), 'animations': rename_anims(anims, cid, geo, eye)})
         write_json(os.path.join(RP, 'animation_controllers', f'fnar_{cid}.animation_controllers.json'), controller(cid))
         write_json(os.path.join(RP, 'entity', f'fnar_{cid}.entity.json'), client_entity(cid, cid, cid, f'{cid}_eyes'))
         write_json(os.path.join(BP, 'entities', f'{cid}.json'), behavior_entity(cid))

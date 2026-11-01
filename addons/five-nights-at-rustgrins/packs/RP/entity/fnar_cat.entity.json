@@ -15,9 +15,7 @@
     "default": "geometry.fnar.cat"
    },
    "scripts": {
-    "scaleX": "1.35",
-    "scaleY": "1.45",
-    "scaleZ": "1.35",
+    "scale": "1.97",
     "pre_animation": [
      "variable.fnar_anim = query.property('fnar:anim');",
      "variable.fnar_eyes = query.property('fnar:eyes');",
@@ -43,6 +41,10 @@
     "jumpscare": "animation.fnar.cat.jumpscare",
     "slump": "animation.fnar.cat.pose_2",
     "pose": "animation.fnar.cat.pose_1",
+    "stoop": "animation.fnar.cat.stoop",
+    "lean": "animation.fnar.cat.lean",
+    "wave": "animation.fnar.cat.wave",
+    "bow": "animation.fnar.cat.bow",
     "look": "animation.fnar.cat.look",
     "ctrl": "controller.animation.fnar.cat"
    },

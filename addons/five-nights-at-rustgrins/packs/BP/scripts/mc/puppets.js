@@ -4,7 +4,8 @@
 // resource pack's animation controller).
 //
 // Entity properties (BP entities/*.json):
-//   fnar:anim    enum  idle perform perform2 stand walk run scurry crawl peek stare jumpscare slump pose
+//   fnar:anim    enum  idle perform perform2 stand walk run scurry crawl peek jumpscare slump pose stoop lean wave bow
+//                      (Bedrock's 16-value limit: a new animation needs a second property)
 //   fnar:eyes    bool  glowing eyes layer
 //   fnar:hidden  bool  render nothing (kept alive so its chunk/tag stay valid)
 //   fnar:look_yaw / fnar:look_pitch  int  head turn towards a camera (degrees, smoothed client side)

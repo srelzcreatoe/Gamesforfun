@@ -32,13 +32,17 @@ import { VERSION } from '../data/version.js';
 
 const wait = (ticks) => new Promise((res) => system.runTimeout(() => res(undefined), ticks));
 
-/** Standing eye height of each animatronic as rendered (blocks, render scale 1.45): the camera stare aims the head with it. */
-const HEAD_Y = Object.freeze({ rustgrin: 2.97, mirehop: 2.79, noxbriar: 2.97, purple_rat: 3.01, cat: 3.04, top_hat_rat: 2.97, rusted: 2.97 });
+/** Standing eye height of each animatronic as rendered (blocks above the feet, uniform scale 1.97, about 5 blocks
+ *  tall): the camera stare and the talk aim the head with it. */
+const HEAD_Y = Object.freeze({ rustgrin: 4.06, mirehop: 3.65, noxbriar: 4.01, purple_rat: 4.05, cat: 4.08, top_hat_rat: 3.97, rusted: 4.06 });
 /** Eye height on the held frame of each jumpscare (the face lunges down): the jumpscare is framed on it. */
-const JUMPSCARE_EYE_Y = Object.freeze({ rustgrin: 2.64, mirehop: 2.44, noxbriar: 2.63, purple_rat: 2.64, cat: 2.65, top_hat_rat: 2.56, rusted: 2.64 });
-/** How far in front of the guard's eye the jumpscare starts: the lunge carries the face 1.33-1.42 blocks forward, so it
- *  ends about half a block from the lens, filling the screen without cutting through it. */
-const JUMPSCARE_DIST = 1.85;
+const JUMPSCARE_EYE_Y = Object.freeze({ rustgrin: 3.59, mirehop: 3.28, noxbriar: 3.55, purple_rat: 3.64, cat: 3.55, top_hat_rat: 3.48, rusted: 3.59 });
+/** How far in front of the guard's eye each jumpscare starts: the lunge ends with the nearest point of the head 0.4-0.5
+ *  blocks from the lens, filling the screen without cutting through it (the Cat and the Ringmaster reach further). */
+const JUMPSCARE_DIST = Object.freeze({ rustgrin: 2.4, mirehop: 2.4, noxbriar: 2.4, purple_rat: 2.4, cat: 2.5, top_hat_rat: 2.5, rusted: 2.4 });
+/** Leaning in at an office door or window, each animatronic plants its feet this far behind the opening's outer face
+ *  (blocks): bent forward, its face stops about half a block outside, so a closed shutter never cuts through it. */
+const LEAN_BACK = Object.freeze({ rustgrin: 2.55, mirehop: 2.35, noxbriar: 2.5, purple_rat: 2.65, cat: 2.9, top_hat_rat: 2.9 });
 const NIGHT_HUD = [HudElement.Health, HudElement.Hunger, HudElement.Armor, HudElement.StatusEffects, HudElement.PaperDoll, HudElement.AirBubbles, HudElement.HorseHealth];
 /** The hand slot during a shift: it holds the Camera Tablet, and hotbar scrolls on the cameras return here. */
 const NEUTRAL_SLOT = 4;
@@ -68,6 +72,14 @@ const SOUND_TEST = Object.freeze([
 ]);
 /** Standing at the office doors and the window, they bend down so their face fills the opening. */
 const LEAN_NODES = new Set(['DOOR_L', 'DOOR_R', 'WIN_R']);
+/** Where a character stands to lean in at a lean node: straight out from the opening, LEAN_BACK behind its outer face. */
+function leanSpot(id, node) {
+  const n = NODES[node];
+  const d = OFFICE.doors[n.door === 'L' ? 'L' : 'R'];
+  const back = LEAN_BACK[id] ?? 2.6;
+  // the left opening's outer face is the west side of its wall cell, the right one's the east side
+  return { x: n.door === 'L' ? d.x - back : d.x + 1 + back, y: n.y, z: n.z };
+}
 /** Each character's "voice" when it talks to a guest in Free Roam. */
 const VOICE = Object.freeze({
   rustgrin: 'fnar.rustgrin.laugh', mirehop: 'fnar.mirehop.strum', noxbriar: 'fnar.noxbriar.hum',
@@ -611,7 +623,9 @@ export class Game {
         await ui.galleryInfo(p, id);
         const pose = await ui.pickForm(p, `§l${CAST_NAMES[id].toUpperCase()}`, 'Make them...', [['pose', 'Stand on stage'], ['perform', 'Perform'], ['perform2', 'Perform (2)'], ['wave', 'Wave'], ['bow', 'Take a bow'], ['walk', 'Walk'], ['crawl', 'Crawl'], ['peek', 'Peek']]);
         if (pose) {
-          this.puppets.anim(id, pose);
+          // wave and bow play once: reset to the stage pose first so picking one again replays it
+          this.puppets.anim(id, 'pose');
+          system.runTimeout(() => this.state === 'EXTRAS' && this.puppets.anim(id, pose), 3);
           const g = GALLERY[id];
           try {
             p.teleport(W(g.x, 0, g.z + (g.yaw === 0 ? 6 : -6)), { facingLocation: W(g.x, 2.5, g.z) });
@@ -701,7 +715,8 @@ export class Game {
       const rot = p.getRotation();
       const yawRad = (rot.y * Math.PI) / 180;
       const fwd = { x: -Math.sin(yawRad), z: Math.cos(yawRad) };
-      const pos = { x: eye.x + fwd.x * JUMPSCARE_DIST, y: eye.y - (JUMPSCARE_EYE_Y[pid] ?? 2.6), z: eye.z + fwd.z * JUMPSCARE_DIST };
+      const dist = JUMPSCARE_DIST[pid] ?? 2.45;
+      const pos = { x: eye.x + fwd.x * dist, y: eye.y - (JUMPSCARE_EYE_Y[pid] ?? 3.55), z: eye.z + fwd.z * dist };
       this.puppets.jumpscareAt(pid, L(pos), (rot.y + 180) % 360);
       p.camera.setCamera('minecraft:free', { location: eye, facingLocation: { x: pos.x, y: eye.y - 0.1, z: pos.z } });
       p.playSound(`fnar.js.${pid}`, { volume: 1.0 });
@@ -1320,17 +1335,31 @@ export class Game {
       case 'place':
         // the session picks the pose: the band posed on its stage, the troupe dancing while its
         // music plays, the Ringmaster in his booth (conducting on his own night)
-        this.puppets.spawn(e.who, e.node, LEAN_NODES.has(e.node) ? 'lean' : POSE_ANIM[e.pose] ?? 'idle');
+        if (LEAN_NODES.has(e.node)) this.puppets.spawnAt(e.who, leanSpot(e.who, e.node), NODES[e.node].yaw, 'lean');
+        else this.puppets.spawn(e.who, e.node, POSE_ANIM[e.pose] ?? 'idle');
         this.puppets.eyes(e.who, true);
         delete this.stare[e.who];
         if (e.who === 'top_hat_rat' && this.booth) Object.assign(this.booth, { at: e.node, anim: POSE_ANIM[e.pose] ?? 'pose' });
         return;
       case 'move':
-        this.puppets.walk(e.who, e.path, e.dur, POSE_ANIM[e.anim] ?? 'walk', e.yaw);
+        {
+          // a walk to or from a lean node starts or ends where this character leans, not on the node itself
+          const at = (node) => {
+            const v = leanSpot(e.who, node);
+            return [v.x, v.y, v.z];
+          };
+          const path = e.path.slice();
+          if (LEAN_NODES.has(e.fromNode) && path.length) path[0] = at(e.fromNode);
+          if (LEAN_NODES.has(e.toNode) && path.length > 1) path[path.length - 1] = at(e.toNode);
+          this.puppets.walk(e.who, path, e.dur, POSE_ANIM[e.anim] ?? 'walk', e.yaw);
+        }
         delete this.stare[e.who];
         return;
       case 'pose':
-        this.puppets.anim(e.who, LEAN_NODES.has(e.node) && (e.pose === 'stand' || e.pose === 'idle') ? 'lean' : POSE_ANIM[e.pose] ?? 'stand');
+        if (LEAN_NODES.has(e.node) && (e.pose === 'stand' || e.pose === 'idle')) {
+          if (!this.puppets.isWalking(e.who)) this.puppets.teleport(e.who, leanSpot(e.who, e.node), NODES[e.node].yaw);
+          this.puppets.anim(e.who, 'lean');
+        } else this.puppets.anim(e.who, POSE_ANIM[e.pose] ?? 'stand');
         return;
       case 'hide':
         this.puppets.hide(e.who, true);
@@ -1952,7 +1981,8 @@ export class Game {
     } else if (stage === 'song') {
       // Rustgrin plays his song in the left doorway, eyes flashing
       const id = 'rustgrin';
-      this.puppets.spawn(id, 'DOOR_L', 'perform');
+      // a 5-block animatronic's face would sit above the 3-block door: he leans in, eyes level with the guard's
+      this.puppets.spawnAt(id, leanSpot(id, 'DOOR_L'), NODES.DOOR_L.yaw, 'lean');
       this.puppets.eyes(id, true);
       this.audio.loop('song', 'fnar.rustgrin.song', 'door_l', null, 1.0);
       this.flashEyes = system.runInterval(() => this.puppets.eyes(id, this.rng.chance(0.55)), 6);
@@ -1990,8 +2020,8 @@ export class Game {
       const rot = g.getRotation();
       const yawRad = (rot.y * Math.PI) / 180;
       const fwd = { x: -Math.sin(yawRad), z: Math.cos(yawRad) };
-      const dist = JUMPSCARE_DIST;
-      const head = JUMPSCARE_EYE_Y[look] ?? 2.6;
+      const dist = JUMPSCARE_DIST[look] ?? 2.45;
+      const head = JUMPSCARE_EYE_Y[look] ?? 3.55;
       const pos = { x: eye.x + fwd.x * dist, y: eye.y - head, z: eye.z + fwd.z * dist };
       const facing = (rot.y + 180) % 360;
       this.puppets.jumpscareAt(id, L(pos), facing);

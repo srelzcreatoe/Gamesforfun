@@ -147,6 +147,24 @@ export function analyse({ ids = IDS, anims = null, step = 0.05, rp = path.join(R
         if (worstHere > floor.v) floor = { v: worstHere, t: Math.round(t * 100) / 100, where: whereHere, frames: floor.frames };
       }
       results.push({ id, anim: name, pair: 'arms|below_floor', depth: Math.round(floor.v * 100) / 100, t: floor.t, where: floor.where, frames: floor.frames });
+      // the rest of the body (feet, legs, tail, head) below the floor
+      let bfloor = { v: 0, t: 0, where: null, frames: 0 };
+      for (let t = 0; t <= len + 1e-6; t += step) {
+        applyAnimation(model, anim, t);
+        const B = boxes(model);
+        let worstHere = 0, whereHere = null;
+        for (const [part, list] of B) {
+          if (/upper|fore|hand|prop|guitar/.test(part)) continue;
+          for (const b of list) {
+            let lo = b.c.y;
+            for (let i = 0; i < 3; i++) lo -= b.half[i] * Math.abs(b.axes[i].y);
+            if (-lo > worstHere) { worstHere = -lo; whereHere = b.bone; }
+          }
+        }
+        if (worstHere > 1) bfloor.frames++;
+        if (worstHere > bfloor.v) bfloor = { v: worstHere, t: Math.round(t * 100) / 100, where: whereHere, frames: bfloor.frames };
+      }
+      results.push({ id, anim: name, pair: 'body|below_floor', depth: Math.round(bfloor.v * 100) / 100, t: bfloor.t, where: bfloor.where, frames: bfloor.frames });
     }
   }
   return results;

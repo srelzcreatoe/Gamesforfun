@@ -1,7 +1,8 @@
 # Authors the extra animations the night needs on top of the supplied set:
 #   crawl   (Purple Rat in the ducts: on knees and forearms, a slow diagonal crawl; fitted to each
-#            skeleton so knees, forearms and hands rest on the floor and nothing sinks through it, and
-#            low enough for the 2-block ducts at the render scale: build_entities passes the height limit)
+#            skeleton so knees, forearms and hands rest on the floor and nothing sinks through it; the
+#            whole model is then shrunk with a root bone scale so it fits the 2 x 2 ducts at the
+#            entity's render scale: build_entities passes the size limits)
 #   peek    (the Cat leaning out between the Cabaret curtains)
 #   look    (additive head turn driven by variables, for "staring at the camera")
 #   slump   alias handled by pose_2 in the controller
@@ -108,7 +109,9 @@ def solve_crawl(skel, max_height=CRAWL_MAX_HEIGHT):
     return P
 
 
-def crawl_anim(cid=None, skel=None, max_height=CRAWL_MAX_HEIGHT):
+def crawl_anim(cid=None, skel=None, max_height=CRAWL_MAX_HEIGHT, scale=1.0, fit=None):
+    """fit = {'height': h, 'width': w} (blocks, in game at the entity's render `scale`): the whole model is
+    shrunk with a root bone scale (about the feet) so the crawl fits a duct of that size."""
     T = [round(k * 0.1, 2) for k in range(int(round(CRAWL_LENGTH / 0.1)) + 1)]
     bones = {}
     P = solve_crawl(skel, max_height)
@@ -119,6 +122,16 @@ def crawl_anim(cid=None, skel=None, max_height=CRAWL_MAX_HEIGHT):
     for b in PROPS:
         if b in skel.bones:
             bones[b] = {'scale': 0}
+    if fit:
+        body = [b for b in skel.bones if b not in PROPS and len(skel._local_corners(b))]
+        hi, wx = 0.0, 0.0
+        for t in T:
+            Wd = skel.world(_crawl_pose(skel, t, P))
+            hi = max(hi, skel.highest(Wd, body))
+            xs = [abs(x) for b in body for x in skel.cube_corners(Wd, b)[:, 0]]
+            wx = max(wx, max(xs))
+        r = min(1.0, fit['height'] * 16 / (scale * hi), fit['width'] * 16 / (scale * 2 * wx))
+        bones.setdefault('root', {})['scale'] = round(r, 3)
     return {'loop': True, 'animation_length': CRAWL_LENGTH, 'bones': bones}
 
 
@@ -140,6 +153,13 @@ def peek_anim(cid=None, skel=None):
         for b in PROPS:
             if b in skel.bones:
                 bones[b] = {"scale": 0}
+        # keep the feet on the floor while the hips roll (the lower foot used to dip ~1 px under it)
+        legs = [b for b in skel.bones if any(b.startswith(f"{s}_{k}") for s in ("right", "left") for k in ("leg", "shin", "foot"))]
+        ys = []
+        for k in range(len(T)):
+            pose = {b: {"rotation": list(ch["rotation"].values())[k]} for b, ch in bones.items() if "rotation" in ch}
+            ys.append(-skel.lowest(skel.world(pose), legs))
+        bones["waist"]["position"] = cyc(T, [[0, round(y, 3), 0] for y in ys])
     return {"loop": True, "animation_length": 4.0, "bones": bones}
 
 

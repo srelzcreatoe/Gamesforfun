@@ -42,6 +42,18 @@
       },
       {
        "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
       }
      ]
     },
@@ -83,6 +95,18 @@
       },
       {
        "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
       }
      ]
     },
@@ -124,6 +148,18 @@
       },
       {
        "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
       }
      ]
     },
@@ -165,6 +201,18 @@
       },
       {
        "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
       }
      ]
     },
@@ -206,6 +254,18 @@
       },
       {
        "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
       }
      ]
     },
@@ -247,6 +307,18 @@
       },
       {
        "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
       }
      ]
     },
@@ -288,6 +360,18 @@
       },
       {
        "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
       }
      ]
     },
@@ -329,6 +413,18 @@
       },
       {
        "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
       }
      ]
     },
@@ -370,6 +466,18 @@
       },
       {
        "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
       }
      ]
     },
@@ -411,6 +519,18 @@
       },
       {
        "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
       }
      ]
     },
@@ -452,6 +572,18 @@
       },
       {
        "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
       }
      ]
     },
@@ -493,6 +625,286 @@
       },
       {
        "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
+      }
+     ]
+    },
+    "stoop": {
+     "animations": [
+      "stoop"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
+      }
+     ]
+    },
+    "lean": {
+     "animations": [
+      "lean"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
+      }
+     ]
+    },
+    "wave": {
+     "animations": [
+      "wave"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
+      },
+      {
+       "wave_done": "query.all_animations_finished"
+      }
+     ]
+    },
+    "bow": {
+     "animations": [
+      "bow"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      }
+     ]
+    },
+    "wave_done": {
+     "animations": [
+      "idle"
+     ],
+     "blend_transition": 0.2,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      },
+      {
+       "stoop": "variable.fnar_anim == 'stoop'"
+      },
+      {
+       "lean": "variable.fnar_anim == 'lean'"
+      },
+      {
+       "bow": "variable.fnar_anim == 'bow'"
       }
      ]
     }

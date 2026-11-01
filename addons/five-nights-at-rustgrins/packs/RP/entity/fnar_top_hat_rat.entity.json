@@ -15,9 +15,7 @@
     "default": "geometry.fnar.top_hat_rat"
    },
    "scripts": {
-    "scaleX": "1.35",
-    "scaleY": "1.45",
-    "scaleZ": "1.35",
+    "scale": "1.97",
     "pre_animation": [
      "variable.fnar_anim = query.property('fnar:anim');",
      "variable.fnar_eyes = query.property('fnar:eyes');",
@@ -43,6 +41,10 @@
     "jumpscare": "animation.fnar.top_hat_rat.jumpscare",
     "slump": "animation.fnar.top_hat_rat.pose_2",
     "pose": "animation.fnar.top_hat_rat.pose_1",
+    "stoop": "animation.fnar.top_hat_rat.stoop",
+    "lean": "animation.fnar.top_hat_rat.lean",
+    "wave": "animation.fnar.top_hat_rat.wave",
+    "bow": "animation.fnar.top_hat_rat.bow",
     "look": "animation.fnar.top_hat_rat.look",
     "ctrl": "controller.animation.fnar.top_hat_rat"
    },

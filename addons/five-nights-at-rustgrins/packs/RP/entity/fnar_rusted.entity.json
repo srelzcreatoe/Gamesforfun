@@ -15,9 +15,7 @@
     "default": "geometry.fnar.rustgrin"
    },
    "scripts": {
-    "scaleX": "1.35",
-    "scaleY": "1.45",
-    "scaleZ": "1.35",
+    "scale": "1.97",
     "pre_animation": [
      "variable.fnar_anim = query.property('fnar:anim');",
      "variable.fnar_eyes = query.property('fnar:eyes');",
@@ -43,6 +41,10 @@
     "jumpscare": "animation.fnar.rustgrin.jumpscare",
     "slump": "animation.fnar.rustgrin.pose_2",
     "pose": "animation.fnar.rustgrin.pose_1",
+    "stoop": "animation.fnar.rustgrin.stoop",
+    "lean": "animation.fnar.rustgrin.lean",
+    "wave": "animation.fnar.rustgrin.wave",
+    "bow": "animation.fnar.rustgrin.bow",
     "look": "animation.fnar.rustgrin.look",
     "ctrl": "controller.animation.fnar.rustgrin"
    },
