@@ -92,7 +92,7 @@ export const SCENES = [
     name: '03_office_left_door', voxels: 'hall_l', caption: 'The office: left hall light on - Mirehop is at the door',
     scene: {
       camera: { pos: [39.7, 1.62, 68.7], target: [31.2, 1.3, 64.6], fov: 68 }, exposure: 1.05, lights: { intensity: 9 },
-      entities: [at('mirehop', 'DOOR_L', 'lean', { eyes: true, t: 1.1, pos: [31 - 2.19, 0, NODES.DOOR_L.z] })],
+      entities: [at('mirehop', 'DOOR_L', 'lean', { eyes: true, t: 1.1, pos: [31 - 2.0, 0, NODES.DOOR_L.z] })],
       extra_lights: [
         spot([29.2, 5.6, 64.2], [29.7, 0.6, 66.2], { color: '#e4ecff', intensity: 22, angle: 34, distance: 14 }),
         point([36.5, 3.8, 64.5], '#ffd9a0', 2.2, 12),
@@ -103,7 +103,7 @@ export const SCENES = [
     name: '04_office_right_window', voxels: 'hall_r', caption: 'Right hall light: Noxbriar hums at the window',
     scene: {
       camera: { pos: [36.9, 1.62, 61.9], target: [42.7, 1.95, 62.7], fov: 52 }, exposure: 1.05, lights: { intensity: 4 }, lighting: { block: 0.55 },
-      entities: [at('noxbriar', 'WIN_R', 'lean', { eyes: true, t: 0.7, eyeIntensity: 16, pos: [42 + 2.41, 0, NODES.WIN_R.z] })],
+      entities: [at('noxbriar', 'WIN_R', 'lean', { eyes: true, t: 0.7, eyeIntensity: 16, pos: [42 + 2.16, 0, NODES.WIN_R.z] })],
       extra_lights: [
         spot([43.6, 5.4, 61.2], [42.7, 1.2, 62.6], { color: '#e4ecff', intensity: 16, angle: 30, distance: 10 }),
         point([41.8, 2.4, 61.4], '#dfe8ff', 1.6, 4),
@@ -204,7 +204,7 @@ export const SCENES = [
     name: '13_jumpscare', voxels: 'night', caption: 'Jumpscare',
     scene: {
       camera: { pos: [36.5, 1.62, 63.5], target: [36.5, 1.52, 62.35], fov: 70 }, exposure: 1.1,
-      entities: [{ id: 'fnar:rustgrin', pos: [36.5, 1.62 - 3.22, 63.5 - 2.2], yaw: 0, anim: 'jumpscare', t: 0.35, eyes: true }],
+      entities: [{ id: 'fnar:rustgrin', pos: [36.5, 1.62 - 2.86, 63.5 - 2.0], yaw: 0, anim: 'jumpscare', t: 0.35, eyes: true }],
       extra_lights: [point([36.5, 3.6, 63.2], '#ffd9a0', 4, 8), point([35.6, 1.0, 63.4], '#ff7a5c', 1.2, 4)],
       bloom: { strength: 0.6, radius: 0.5, threshold: 0.85 },
     },
@@ -213,7 +213,7 @@ export const SCENES = [
     name: '14_power_out', voxels: 'power_out', caption: 'Power out. Rustgrin sings in the left doorway',
     scene: {
       camera: { pos: [36.6, 1.62, 63.6], target: [29.9, 1.6, 66.0], fov: 62 }, exposure: 1.5,
-      entities: [at('rustgrin', 'DOOR_L', 'lean', { eyes: true, t: 0.5, eyeIntensity: 20, pos: [31 - 2.36, 0, NODES.DOOR_L.z] })],
+      entities: [at('rustgrin', 'DOOR_L', 'lean', { eyes: true, t: 0.5, eyeIntensity: 20, pos: [31 - 2.14, 0, NODES.DOOR_L.z] })],
       extra_lights: [{ type: 'ambient', color: '#1a2238', intensity: 2.6 }, point([31.4, 2.6, 66.0], '#ffb08a', 2.2, 4)],
     },
   },

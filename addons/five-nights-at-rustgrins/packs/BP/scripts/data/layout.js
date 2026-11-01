@@ -3,7 +3,7 @@
 // Everything is in LOCAL block coordinates: world = local + origin, where the
 // origin is chosen when the map is built (stored in the world, see
 // mc/persistence.js). +X east, +Z south, -Z north. Players stand at y = 0
-// (floor blocks at y = -1). The animatronics stand about 4.5 blocks tall, so every room
+// (floor blocks at y = -1). The animatronics stand about 4 blocks tall, so every room
 // they walk is 6 tall (ceiling at y = 6) and the rooms where they perform on a
 // 1-high ring or stage (Midway, Grand Marquee, dining, gallery) are 7 tall; the
 // office and the front-of-house rooms they never enter stay 5. Doorways are
