@@ -12,9 +12,9 @@ import { register } from "../director/director.js";
 import * as body from "../observer/body.js";
 import { V, safe, rand, allPlayers } from "../core/util.js";
 import { visibility } from "../world/sight.js";
-import { hideSpot } from "../world/space.js";
+import { hideSpot, findSpot } from "../world/space.js";
 import { MIRE_BIOME } from "../mire/mire.js";
-import { findSpotLoose, sighting, wantsLunge, lunge, standoff } from "./common.js";
+import { sighting, wantsLunge, lunge, standoff } from "./common.js";
 
 /** Placement asked for by a torn page (player id -> options), read once by prepare. */
 export const pending = new Map();
@@ -25,6 +25,30 @@ export const pending = new Map();
  */
 function inMire(enc, spot) {
   return spot && safe(() => enc.dim.getBiome(spot.loc)?.id) === MIRE_BIOME ? spot : undefined;
+}
+
+/**
+ * The first spot the specs give that lies in the Mire (each spec sampled a few times: at the Mire's edge many of its
+ * spots fall just outside). @param {any} enc @param {import("@minecraft/server").Player} p
+ * @param {import("../world/space.js").SpotSpec[]} specs
+ */
+function mireSpot(enc, p, specs) {
+  for (const spec of specs) {
+    for (let i = 0; i < 3; i++) {
+      const s = inMire(enc, findSpot(p, spec));
+      if (s) return s;
+    }
+  }
+  return undefined;
+}
+
+/** The first spot the specs give, wherever it is. @param {import("@minecraft/server").Player} p @param {import("../world/space.js").SpotSpec[]} specs */
+function firstSpot(p, specs) {
+  for (const spec of specs) {
+    const s = findSpot(p, spec);
+    if (s) return s;
+  }
+  return undefined;
 }
 
 /** Black mist where it stood and a cave noise for everyone near, then it tears apart. @param {any} enc */
@@ -58,14 +82,18 @@ register({
     // in plain sight once you turn round / between the trunks; the Mire is thick with trees, so closer if it
     // must, and as a last resort deep among them, like the Mire's old watcher, whether or not you can see it yet
     const surface = /** @type {"surface"} */ ("surface");
-    const spot = o?.behind
-      ? findSpotLoose(p, [
-        { minDist: o.minDist, maxDist: o.maxDist, bearings: [180], spread: 25, concealment: "hidden", watchLOSIgnoringView: true, yMode, samples: 48 },
-        { minDist: o.minDist, maxDist: o.maxDist + 6, bearings: [180, 140, -140], spread: 30, concealment: "hidden", watchLOSIgnoringView: true, yMode, samples: 48 },
-        { minDist: 8, maxDist: o.minDist, bearings: [180, 140, -140], spread: 35, concealment: "hidden", watchLOSIgnoringView: true, yMode, samples: 48 },
-        { minDist: o.minDist, maxDist: o.maxDist + 6, bearings: [180, 140, -140], spread: 30, concealment: "hidden", yMode, samples: 40 },
-      ])
-      : inMire(enc, hideSpot(p, { minDist: 16, maxDist: 40 })) ?? findSpotLoose(p, [
+    // always in its home: a spot at the Mire's edge that falls in the next biome is passed over (an ordinary appearance
+    // waits for another time; a torn page's, which must come, takes the nearest it can find there)
+    /** @type {import("../world/space.js").SpotSpec[]|undefined} */
+    const behind = o?.behind ? [
+      { minDist: o.minDist, maxDist: o.maxDist, bearings: [180], spread: 25, concealment: "hidden", watchLOSIgnoringView: true, yMode, samples: 48 },
+      { minDist: o.minDist, maxDist: o.maxDist + 6, bearings: [180, 140, -140], spread: 30, concealment: "hidden", watchLOSIgnoringView: true, yMode, samples: 48 },
+      { minDist: 8, maxDist: o.minDist, bearings: [180, 140, -140], spread: 35, concealment: "hidden", watchLOSIgnoringView: true, yMode, samples: 48 },
+      { minDist: o.minDist, maxDist: o.maxDist + 6, bearings: [180, 140, -140], spread: 30, concealment: "hidden", yMode, samples: 40 },
+    ] : undefined;
+    const spot = behind
+      ? mireSpot(enc, p, behind) ?? firstSpot(p, behind)
+      : inMire(enc, hideSpot(p, { minDist: 16, maxDist: 40 })) ?? mireSpot(enc, p, [
         { minDist: 20, maxDist: 48, concealment: "partial", needLOS: true, preferCover: true, yMode, samples: 48 },
         { minDist: 20, maxDist: 48, concealment: "any", needLOS: true, yMode: surface, samples: 48 },
         { minDist: 12, maxDist: 24, concealment: "partial", needLOS: true, preferCover: true, yMode, samples: 48 },
