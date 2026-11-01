@@ -147,7 +147,8 @@ async function observerGone(ticks = 200) {
 }
 /** Move every other player far out of sight (any player's gaze counts for encounters like Closer Each Time). */
 function isolate(p) {
-  for (const o of world.getAllPlayers()) if (o && o.id !== p.id) o.teleport({ x: 1112.5, y: Y, z: 966.5 });
+  // far off, facing away from everything (what nobody sees, it may remove: no stray witness may see it)
+  for (const o of world.getAllPlayers()) if (o && o.id !== p.id) o.teleport({ x: 1112.5, y: Y, z: 966.5 }, { facingLocation: { x: 1300, y: Y + 1.6, z: 966.5 } });
 }
 /** For tests at the house: every other player to the far west end of the field, facing away (nobody may see it happen). */
 function isolateFromHouse(p) {

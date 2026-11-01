@@ -13,10 +13,19 @@ import * as body from "../observer/body.js";
 import { V, safe, rand, allPlayers } from "../core/util.js";
 import { visibility } from "../world/sight.js";
 import { hideSpot } from "../world/space.js";
+import { MIRE_BIOME } from "../mire/mire.js";
 import { findSpotLoose, sighting, wantsLunge, lunge, standoff } from "./common.js";
 
 /** Placement asked for by a torn page (player id -> options), read once by prepare. */
 export const pending = new Map();
+
+/**
+ * A tree to hide behind — but only in its home: at the Mire's edge the nearest trunk can stand in the next biome.
+ * @template {{loc:{x:number,y:number,z:number}}} T @param {any} enc @param {T|undefined} spot @returns {T|undefined}
+ */
+function inMire(enc, spot) {
+  return spot && safe(() => enc.dim.getBiome(spot.loc)?.id) === MIRE_BIOME ? spot : undefined;
+}
 
 /** Black mist where it stood and a cave noise for everyone near, then it tears apart. @param {any} enc */
 function vanishInMist(enc) {
@@ -56,7 +65,7 @@ register({
         { minDist: 8, maxDist: o.minDist, bearings: [180, 140, -140], spread: 35, concealment: "hidden", watchLOSIgnoringView: true, yMode, samples: 48 },
         { minDist: o.minDist, maxDist: o.maxDist + 6, bearings: [180, 140, -140], spread: 30, concealment: "hidden", yMode, samples: 40 },
       ])
-      : hideSpot(p, { minDist: 16, maxDist: 40 }) ?? findSpotLoose(p, [
+      : inMire(enc, hideSpot(p, { minDist: 16, maxDist: 40 })) ?? findSpotLoose(p, [
         { minDist: 20, maxDist: 48, concealment: "partial", needLOS: true, preferCover: true, yMode, samples: 48 },
         { minDist: 20, maxDist: 48, concealment: "any", needLOS: true, yMode: surface, samples: 48 },
         { minDist: 12, maxDist: 24, concealment: "partial", needLOS: true, preferCover: true, yMode, samples: 48 },
