@@ -11,12 +11,32 @@
 //   fnar:variant int   0 normal, 1 alternate skin (Rustgrin: rusted)
 
 import { NODES } from '../data/nodes.js';
+import { OPENINGS, OFFICE } from '../data/layout.js';
 import { CAST } from '../core/config.js';
 import { dim, W, Wv } from './world_io.js';
 import { log } from './log.js';
 
 export const ENTITY_ID = Object.freeze({ ...Object.fromEntries(CAST.map((id) => [id, `fnar:${id}`])), rusted: 'fnar:rusted' });
 const TAG = 'fnar_puppet';
+
+/** The animatronics stand about 5 blocks tall: every opening lower than that makes them stoop. */
+const BODY_HEIGHT = 5;
+const STOOP_MARGIN = 0.8; // start ducking this far before the doorway
+/** Low openings as boxes [x1, y1, z1, x2, y2, z2] (local, inclusive cells), office doors included. */
+const LOW_OPENINGS = Object.freeze([
+  ...OPENINGS.filter((o) => o.box[4] - o.box[1] + 1 < BODY_HEIGHT).map((o) => o.box),
+  ...Object.values(OFFICE.doors).map((d) => [d.x, d.y1, d.z1, d.x, d.y2, d.z2]),
+]);
+/** Walking animations that turn into the stoop under a low doorway. */
+const WALKS = new Set(['walk', 'run', 'scurry']);
+
+/** Is a local position within a low doorway (or just about to pass through one)? */
+export function inLowDoorway(p) {
+  for (const [x1, y1, z1, x2, y2, z2] of LOW_OPENINGS) {
+    if (p.x >= x1 - STOOP_MARGIN && p.x <= x2 + 1 + STOOP_MARGIN && p.z >= z1 - STOOP_MARGIN && p.z <= z2 + 1 + STOOP_MARGIN && p.y >= y1 - 1 && p.y <= y2 + 1) return true;
+  }
+  return false;
+}
 
 function yawToward(dx, dz) {
   // Minecraft yaw: 0 = +Z (south), 90 = -X (west)
@@ -27,7 +47,7 @@ export class Puppets {
   constructor() {
     /** @type {Record<string, any>} */
     this.ents = {};
-    /** @type {Record<string, { path: number[][], cum: number[], len: number, dur: number, t: number, yaw: number }>} */
+    /** @type {Record<string, { path: number[][], cum: number[], len: number, dur: number, t: number, yaw: number, anim: string }>} */
     this.walks = {};
     this.props = {}; // last set property values (avoid redundant network traffic)
     /** id -> the model it wears tonight (the Encore: Rustgrin's part is played by the Rusted one) */
@@ -179,7 +199,7 @@ export class Puppets {
       const b = path[i];
       cum.push(cum[i - 1] + Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]));
     }
-    this.walks[id] = { path, cum, len: cum[cum.length - 1] || 1, dur: Math.max(1, dur), t: 0, yaw: finalYaw };
+    this.walks[id] = { path, cum, len: cum[cum.length - 1] || 1, dur: Math.max(1, dur), t: 0, yaw: finalYaw, anim };
     this.hide(id, false);
     this.anim(id, anim);
     this.look(id, 0, 0);
@@ -216,6 +236,8 @@ export class Puppets {
       const dz = b[2] - a[2];
       const yaw = Math.abs(dx) + Math.abs(dz) > 0.01 ? yawToward(dx, dz) : w.yaw;
       this.teleport(id, pos, w.t >= w.dur ? w.yaw : yaw);
+      // a 5-block animatronic ducks under a 3-block doorway
+      if (WALKS.has(w.anim)) this.anim(id, inLowDoorway(pos) ? 'stoop' : w.anim);
       if (w.t >= w.dur) delete this.walks[id];
     }
   }

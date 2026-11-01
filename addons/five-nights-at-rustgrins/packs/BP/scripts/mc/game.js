@@ -66,6 +66,8 @@ const SOUND_TEST = Object.freeze([
   { label: "Rustgrin's music box", id: 'fnar.rustgrin.song' }, { label: 'Ending', id: 'fnar.music.ending' }, { label: 'Background music', id: 'fnar.music.bgm', music: true },
   { label: 'The PA chime', id: 'fnar.final.chime' }, { label: 'A jumpscare', id: 'fnar.js.mirehop' }, { label: "The Rusted one's scream", id: 'fnar.js.rusted' }, { label: 'Thunder', id: 'fnar.storm.thunder' },
 ]);
+/** Standing at the office doors and the window, they bend down so their face fills the opening. */
+const LEAN_NODES = new Set(['DOOR_L', 'DOOR_R', 'WIN_R']);
 /** Each character's "voice" when it talks to a guest in Free Roam. */
 const VOICE = Object.freeze({
   rustgrin: 'fnar.rustgrin.laugh', mirehop: 'fnar.mirehop.strum', noxbriar: 'fnar.noxbriar.hum',
@@ -1318,7 +1320,7 @@ export class Game {
       case 'place':
         // the session picks the pose: the band posed on its stage, the troupe dancing while its
         // music plays, the Ringmaster in his booth (conducting on his own night)
-        this.puppets.spawn(e.who, e.node, POSE_ANIM[e.pose] ?? 'idle');
+        this.puppets.spawn(e.who, e.node, LEAN_NODES.has(e.node) ? 'lean' : POSE_ANIM[e.pose] ?? 'idle');
         this.puppets.eyes(e.who, true);
         delete this.stare[e.who];
         if (e.who === 'top_hat_rat' && this.booth) Object.assign(this.booth, { at: e.node, anim: POSE_ANIM[e.pose] ?? 'pose' });
@@ -1328,7 +1330,7 @@ export class Game {
         delete this.stare[e.who];
         return;
       case 'pose':
-        this.puppets.anim(e.who, POSE_ANIM[e.pose] ?? 'stand');
+        this.puppets.anim(e.who, LEAN_NODES.has(e.node) && (e.pose === 'stand' || e.pose === 'idle') ? 'lean' : POSE_ANIM[e.pose] ?? 'stand');
         return;
       case 'hide':
         this.puppets.hide(e.who, true);
