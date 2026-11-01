@@ -8,7 +8,7 @@ Implemented encounters live in `packs/TheObserver_BP/scripts/encounters/` (one f
 the director. Concepts marked *planned* are design-ready but not implemented in 1.0.0 — they are not advertised as
 features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stage at which the director may choose it.
 
-## Implemented (26 mechanically distinct types)
+## Implemented (30 mechanically distinct types)
 
 | # | Encounter (file) | Tier / Stage | Context | Location | Cue | Intention | Manipulation | Player response | Consequence |
 |---|---|---|---|---|---|---|---|---|---|
@@ -38,6 +38,10 @@ features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stag
 | 24 | **At the Foot of the Bed** (`paralysis`, 1.1.1) | 3 / 3, camera effects ≥ reduced | the player falls asleep (event-triggered: decided once per sleep after 1.5 s in bed, ~30 % at stage 3, +5 % per stage; at most every 90 min of play); from the Config Wheel, a bed within 8 blocks | beyond the foot of the bed, 2.6–3.8 blocks from the pillow, in full view (in a room too small for that, beside the bed by the knees) | the dark comes down as sleep takes them; their own heart, loud; its breath | sleep paralysis: to be seen while they cannot move | — (camera, input and HUD only; nothing in the world changes) | none possible: they try to turn their head and cannot | it tilts its head, leans two-thirds of a block closer; a blink and it is gone; they stand beside the bed looking at where it stood (*At the Foot of the Bed*). No damage; the night is not skipped |
 | 25 | **Not Yours** (`not_yours`, 1.2.0) | 2 / 3 | a hostile creature hurts the player (event-triggered: always for a kind marked its rival, else one time in two; at most every 8 min); from the Config Wheel, the nearest hostile creature within 16 blocks | right behind the creature, as seen from the player, its head in their sight | it is suddenly there; the creature stops and turns round to it | it does not share: the player is its prey | — | none needed | the creature is torn apart (crimson shreds, a crack); it looks at the player a moment and is gone (*Not Yours*). It never touches the player |
 | 26 | **Its Eyes** (`its_eyes`, 1.2.1) | 2 / 2 | a creature that answers to it 8–28 blocks ahead, in sight (weight 6 at night or in the dark, else 3; 0 with none, so it never defers for lack of one) | the creature | it stops and stares at the player, perfectly still, its eyes in it | it watches through them | — | look straight at it (12°, 0.5 s) / don't | looked at: it comes apart and it is standing where it stood — a sighting (*Its Eyes*); not looked at within 14 s: the creature is let go, and nothing else happens. It never hurts the player |
+| 27 | **Knocking** (`knocking`, 1.3.0) | 2 / 3 | night, at home (within 16 of your main haunt), indoors; a door of the home within 12 blocks; a creature that answers to it within 48 | outside the door (the side away from you), put there unseen | three knocks, twice more (`observer.knock`, a caption) | its creatures at your threshold | — | open the door / leave it | opened: one of its creatures is standing there, looking at you, and comes apart (*Who Knocks*); left shut: the knocking stops and there is nothing outside (the creature is removed). It never comes in |
+| 28 | **Bait** (`bait`, 1.3.0) | 2 / 3 | night or dark; a villager within 48 blocks (not name-tagged) | a dark place (light ≤ 7) 14–26 blocks off, to the side or behind, unseen | the villager crying out (`mob.villager.hit` / `no`, every 3 s) | to lure you into the dark | — | go to it / don't | close (7 blocks): it turns to you with its eyes and it is standing right behind it in the dark — a sighting (*The Voice in the Dark*); the villager is put back where it was, unharmed. Not gone to within 45 s: the calling stops |
+| 29 | **One of Them** (`among_them`, 1.3.0) | 2 / 3 | two or more creatures that answer to it within 6 blocks of each other, 12–32 blocks off, in sight | one of the group | none but its eyes (no wisps, no shreds, no voice: it is not to stand out) | it wears them | — | come within 6 blocks of it, or look straight at it for 1.5 s | it comes apart and it is standing among them — a sighting (*One of Them*); unnoticed in 45 s, it lets the creature go |
+| 30 | **What Was Left** (`rival_hunt`, 1.3.0) | 1 / 2 | a creature of a kind marked as its rival within 64 blocks, 16+ away, that nobody can see | behind the rival, unseen | far off, a crack and a scream (for that player, from there; a caption) | it hunts its rivals | — | go and look | the rival is torn apart; its footprints lead there and crimson shreds show to whoever finds the place within 5 min (*What Was Left*) |
 
 **Lunge (shared reaction, stage 2+).** When it is noticed in *The Figure at the Edge*, *Always the Same Place* or *Echo
 Ahead*, it may shriek and come at the player through the air in jerks (~14 blocks/s, floating a block up), then tear
@@ -76,6 +80,39 @@ Left alone: players, its own kind, tamed and name-tagged creatures, Minecraft's 
 elder guardian) and anything with 300+ health, and kinds marked "leave it alone". Marks are per kind (type id), set
 on the Config Wheel → *Other creatures* by looking at one. It never reads or changes another add-on's files or
 scripts — only the creatures in the shared world. Setting: *Other creatures answer to it*.
+
+**Its puppets (1.3.0, shared).** `observer/puppets.js` takes a creature for its own (any creature but players and
+its own kind; `possession.js` and the encounters choose which) and drives it: *stand* (held still and harmless, facing
+the player or a point), *walk* (in its twitches — bursts and stops — to a place), *lurk* (closer only while the player
+is not looking at it, never nearer than it keeps), *follow* (keeping a distance), *hunt* (Strength II, Speed II,
+Resistance I, Fire Resistance, steered at the player so it cannot turn back), *free* (its own AI, harmless). Its tells:
+`observer:servant_eyes` every 0.5 s, `observer:puppet_wisp` every second, `observer:puppet_shred` as it moves, its voice
+out of it every 8–16 s (`observer.voice`, `observer.crack`, or a whisper to the player), the heartbeat (dread up to 0.7
+within 24 blocks) and its theme (within 32) near it, the animals reacting to it, other creatures nudged away from it
+(4 blocks), and through the Witness Lens a burst and blazing eyes (discovery *Its Puppets*). It notes `observer:puppet`
+on the creature; released, every effect it gave is taken off and the note cleared (and, where asked, the creature is
+put back where it was taken); a creature still noted when the game stopped is given back as it loads
+(`entityLoad`) or when the scripts start. *Shared senses*: a puppet with the player in front of it and in sight within
+24 blocks pulls their next encounter to within 15–30 s (at most every 5 min). Up to 32 at once; setting *It takes
+creatures for its own*.
+
+**Its puppets outside its encounters (1.3.0, `observer/possession.js`, every second).** *Marked puppets*: a kind marked
+"Its puppet" (Config Wheel → Other creatures) within 64 blocks, stage 3+, one at a time, 35 % per opportunity, 10–15 min
+apart: taken (3 s), brought up unseen 16–28 blocks from a player on the surface if it is underground or 32+ away, lurks
+(keep 10) for 30–60 s or until the player is within 9, then (stage 4+, aggression Standard/High) hunts for up to 30 s,
+then is put back where it was taken. A kind marked "Its puppet" is not sent away or torn apart by the 1.2.0 logic.
+*The one cow*: at home (within 24 of the main haunt), stage 2+, 10 % per 10 s at most every 25–40 min: one cow,
+mooshroom, sheep, pig, goat or chicken within 20 follows at 7 blocks (2.4 b/s), always facing the player, for up to 5
+min; hit by the player, the possession is torn out (a burst; the animal is unharmed; *Its Puppets*). *Guards*: in the
+Weeping Mire, stage 2+, up to two creatures that answer to it are posted behind weeping trunks (or hidden spots) inside
+the Mire, unseen, facing the player; stage 4+ a guard within 6 blocks hunts; leaving the Mire releases them. *The night
+they turn*: stage 5, once per player, at midnight (17600–18800) within 64 of home: every creature that answers to it
+within 64 of home (up to 24, newcomers too) stands facing the home until dawn (or 7 min); discovery *The Night They
+Turned*. *Tribute*: when a creature is sent away unseen (1.2.0), 30 % (at most every 10 min per player), the newest thing
+a player within 64 blocks threw away (20+ blocks from them) is moved to where it was. *Its herald* (`observer/herald.js`,
+with the director): before a tier 2+ encounter from stage 3, 40 %, a creature that answers to it 10–40 blocks off walks to
+~16 blocks from the player and stares; the director waits 12 s (as for a silence), starts the encounter if it still fits,
+and lets the herald go.
 
 **They are its (1.2.1, shared).** From stage 3 the first three creatures that answer to it (four at stage 5), at least
 5 blocks from the player, are kept as its *watchers*: after turning to it they walk (held 2.4 b/s) to places around

@@ -136,6 +136,11 @@ export const DEBUG = {
   whisper: "auto",
   /** tests: "always" / "never" decide whether it comes for a creature that hurt you ("auto" = one time in two) */
   notYours: "auto",
+  /** tests: "always" / "never" for its puppets' chances (marked puppets, the one cow, guards, tribute, the night they
+   *  turn); "always" also shortens their waits */
+  possess: "auto",
+  /** tests: "always" / "never" decide whether a herald is sent before a heavier encounter ("auto" = two in five) */
+  herald: "auto",
   /** low-volume lifecycle lines (encounter start/end); enabled in dev mode and by the test kit */
   trace: false,
   /** @param {string} msg */

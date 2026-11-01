@@ -26,6 +26,10 @@ import * as dread from "./observer/dread.js";
 import * as animals from "./observer/animals.js";
 import * as dominion from "./observer/dominion.js";
 import * as notYours from "./encounters/not_yours.js";
+import * as puppets from "./observer/puppets.js";
+import * as possession from "./observer/possession.js";
+import * as herald from "./observer/herald.js";
+import * as rivalHunt from "./encounters/rival_hunt.js";
 import * as paralysis from "./encounters/paralysis.js";
 import * as mire from "./mire/mire.js";
 import { pending as mirePending } from "./encounters/mire_watcher.js";
@@ -56,6 +60,9 @@ import "./encounters/sign.js";
 import "./encounters/borrowed_eyes.js";
 import "./encounters/mire_watcher.js";
 import "./encounters/its_eyes.js";
+import "./encounters/knocking.js";
+import "./encounters/bait.js";
+import "./encounters/among_them.js";
 import "./encounters/tests.js";
 
 let ready = false;
@@ -75,6 +82,9 @@ function init() {
   body.sweepStrays(director.activeEncId());
   // a sleep paralysis cut short by a reload: give them back their movement and view
   for (const p of allPlayers()) safe(() => paralysis.recover(p));
+  // and any creature still its own from before: give it back
+  const freed = safe(() => puppets.recoverLoaded(), 0);
+  if (freed) trace(`gave back ${freed} creature(s) it still held`);
   trace(`ready: world state ${existed ? "loaded" : "new"}, ${n} ledger entries, ${director.REGISTRY.length} encounter types`);
 }
 
@@ -85,6 +95,9 @@ illusions.registerEvents();
 memory.registerEvents();
 returns.registerEvents();
 profile.registerEvents();
+puppets.registerEvents();
+// tribute: a creature it sends away may leave behind something you threw away (1.3.0)
+dominion.hooks.sent = (at, dimId) => possession.tribute(at, dimId, (p, minAway) => returns.takeAway(p, minAway));
 // the Weeping Mire, its home: wind, falling leaves and the torn pages. The Mire's old watcher is the
 // Observer now: a torn page may bring it up behind you, and the last of the eight always does.
 mire.register({
@@ -250,8 +263,14 @@ world.beforeEvents.playerLeave.subscribe((ev) => {
     returns.forget(id);
     mire.forget(id);
     dread.forget(id);
+    herald.forget(id);
     dropPlayer(id);
   });
+});
+
+// the one cow, hit: the possession is torn out of it (1.3.0)
+world.afterEvents.entityHurt.subscribe((ev) => {
+  if (ready && puppets.get(ev.hurtEntity.id)) safe(() => possession.onHurt(ev.hurtEntity, ev.damageSource.damagingEntity));
 });
 
 // it does not share: a creature that hurts a player may find it standing behind it (1.2.0)
@@ -260,7 +279,7 @@ world.afterEvents.entityHurt.subscribe(
     if (!ready) return;
     const p = /** @type {import("@minecraft/server").Player} */ (ev.hurtEntity);
     const by = ev.damageSource.damagingEntity;
-    if (by && by.typeId !== "minecraft:player") safe(() => notYours.onHurt(p, by));
+    if (by && by.typeId !== "minecraft:player") safe(() => notYours.onHurt(p, by, ev.damage));
   },
   { entityTypes: ["minecraft:player"] },
 );
@@ -297,7 +316,9 @@ system.beforeEvents.shutdown.subscribe(() => {
 function isAround(p) {
   if (director.encounterFor(p.id)) return true;
   const b = body.get();
-  return !!b && b.e.dimension.id === p.dimension.id && V.dist(b.e.location, p.location) <= 64;
+  if (b && b.e.dimension.id === p.dimension.id && V.dist(b.e.location, p.location) <= 64) return true;
+  // one of its puppets near them is it, near them (1.3.0)
+  return !!puppets.nearest(p.dimension.id, p.location, 32);
 }
 
 // Loops count their own runs: `system.currentTick % n` inside an interval only works if the
@@ -337,6 +358,9 @@ system.runInterval(() => {
   // while it is around you, your music is cut; when it is gone, it fades back
   safe(() => hush.presence(now(), isAround, (p) => mire.inMire(p)));
   if (slowRuns % 5 === 0) safe(() => returns.tick());
+  // its puppets: the marked ones, the one cow, its guards, the night they turn; and what was left of its rivals (1.3.0)
+  safe(() => possession.tick());
+  safe(() => rivalHunt.tick());
   if (slowRuns % 20 === 0) safe(() => pages.tick(new Set(director.running().map((e) => e.pid))));
   safe(() => ledger.processDue(12));
   if (slowRuns % 2 === 0) {
@@ -377,8 +401,9 @@ system.runInterval(() => {
 system.runInterval(() => {
   if (!ready) return;
   safe(() => animals.tick());
-  // the other creatures of the dark answer to it (1.2.0)
+  // the other creatures of the dark answer to it (1.2.0), and those it has taken for its own do its bidding (1.3.0)
   safe(() => dominion.tick());
+  safe(() => puppets.tick());
 }, 1);
 
 // taiga illusions vanish the instant they are looked at; flares fly, burn and glare

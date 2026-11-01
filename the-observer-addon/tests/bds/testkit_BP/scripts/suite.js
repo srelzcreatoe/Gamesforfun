@@ -2,7 +2,7 @@
 // Every check prints "[OTEST] PASS <name> ..." or "[OTEST] FAIL <name> ...".
 import { world, system, GameMode, ItemStack, Direction, BlockVolume, BlockPermutation, InputPermissionCategory } from "@minecraft/server";
 import * as gt from "@minecraft/server-gametest";
-import { build, resetHouse, buildCages, Y, FIELD, HOUSE, TUNNEL, NETHER, POOL, PILLAR, CAVE, CAGES, RIDGE } from "./arenas.js";
+import { build, resetHouse, buildCages, Y, FIELD, HOUSE, TUNNEL, NETHER, POOL, PILLAR, CAVE, CAGES, RIDGE, YARD } from "./arenas.js";
 
 const OBS = "observer:the_observer";
 const ow = () => world.getDimension("overworld");
@@ -1072,7 +1072,7 @@ TESTS.toggles = async () => {
   const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
   const all = ["creeping", "distant_watch", "extra_step", "home_visit", "closed_path", "borrowed_sound", "turned_object", "door_ajar", "snuffed_lights",
     "mirror_bearing", "echo_ahead", "unfamiliar_route", "close_breath", "pursuit", "window_watch", "second_witness", "night_visit", "portal_follow",
-    "inside", "sign", "borrowed_eyes"];
+    "inside", "sign", "borrowed_eyes", "its_eyes", "knocking", "bait", "among_them", "rival_hunt"];
   obs("set", "off", all.filter((x) => x !== "distant_watch").join(","));
   const m = mark();
   obs("pause", "off");
@@ -2761,9 +2761,465 @@ TESTS.not_yours = async () => {
     await wait(4);
   }
   check("not_yours_not_before_stage_3", !since(m, "start").some((x) => x.type === "not_yours"));
+  // a blow that does no harm is not a blow (a creature too weak to hurt you, as its own creatures are)
+  if (d2.isValid) d2.remove();
+  p = await freshTarget("Tester", stand, face, 3);
+  m = mark();
+  const [d3] = around(stand, [["otest:dweller", 0, -3]]);
+  d3.addEffect("weakness", 20 * 10, { amplifier: 9, showParticles: false });
+  for (let t = 0; t < 100; t += 4) {
+    heal(p);
+    await wait(4);
+  }
+  check("not_yours_not_for_a_harmless_blow", !since(m, "start").some((x) => x.type === "not_yours"), JSON.stringify(since(m, "dominion").filter((x) => x.what === "hurt")));
+  if (d3.isValid) d3.remove();
   if (d2.isValid) d2.remove();
   obs("notyours", "auto");
   clearHostiles(stand);
+};
+
+// ------------------------------------------------------------------ 1.3.0: its puppets
+
+const PUPPET_TYPES = /^(minecraft:(husk|cow|villager_v2|spider)|otest:(great_)?dweller)$/;
+function clearPuppetArena(at, r = 64) {
+  for (const e of ow().getEntities({ location: at, maxDistance: r })) if (PUPPET_TYPES.test(e.typeId)) e.remove();
+}
+const hasFx = (e, ...fx) => fx.some((f) => !!e.getEffect(f));
+
+TESTS.puppets_core = async () => {
+  // it takes a creature for its own: its eyes, its voice; it lurks, it hunts, and it is given back as it was
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  const face = { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 };
+  clearPuppetArena(stand);
+  let p = await freshTarget("Tester", stand, face, 3);
+  isolate(p);
+  // (anything of its from the group before has been gone long enough for the music to have come back)
+  await wait(90);
+  let m = mark();
+  const [h] = around(stand, [["minecraft:husk", 0, -7]]);
+  h.addEffect("slowness", 40, { amplifier: 7, showParticles: false });
+  await wait(4);
+  obs("puppet", "take", "Tester");
+  const tk = await waitEvent("puppet", (d) => d.what === "take" && d.id === h.id, 40, m);
+  check("puppet_taken", !!tk && tk.why === "dev", JSON.stringify(tk ?? since(m, "puppet")));
+  const origin = { ...h.location };
+  // it faces you, still and harmless
+  for (let t = 0; t < 40; t += 2) {
+    heal(p);
+    await wait(2);
+  }
+  check("puppet_faces_you", h.isValid && facingErr(h, p.location) < 20, h.isValid ? facingErr(h, p.location).toFixed(0) : "gone");
+  check("puppet_harmless_while_it_stands", hasFx(h, "weakness") && hasFx(h, "slowness"));
+  // you feel it: your heart, its music — with it nowhere, only its puppet near you
+  const beats = since(m, "heartbeat").filter((d) => d.player === "Tester");
+  check("puppet_heartbeat_near_it", beats.length >= 1 && !observerEntity(), `${beats.length} beats`);
+  const pres = since(m, "hush").find((d) => d.what === "presence" && d.player === "Tester");
+  check("puppet_its_music_near_it", !!pres && pres.theme === "around", JSON.stringify(pres ?? {}));
+  // its voice out of it, and what it sees, it knows
+  const vo = await waitEvent("puppet", (d) => d.what === "voice" && d.id === h.id, 20 * 18, m);
+  check("puppet_speaks_with_its_voice", !!vo);
+  const sn = since(m, "puppet").find((d) => d.what === "senses" && d.player === "Tester");
+  check("puppet_shared_senses", !!sn, sn ? `seen at ${sn.d}` : "never");
+  // the animals know it, and the others keep away from it
+  const [cw] = around(h.location, [["minecraft:cow", 5, 0]]);
+  const [h2] = around(h.location, [["minecraft:husk", 1.5, 1]]);
+  h2.addEffect("weakness", 200, { amplifier: 4, showParticles: false });
+  h2.addEffect("slowness", 200, { amplifier: 7, showParticles: false });
+  await wait(60);
+  check("puppet_animals_know_it", since(m, "animals").some((d) => d.what === "notice" && d.id === cw.id));
+  check("puppet_others_keep_away", since(m, "puppet").some((d) => d.what === "kept_away" && d.id === h2.id));
+  h2.remove();
+  cw.remove();
+  // the Witness Lens, held on it: it flares
+  p.setItem(new ItemStack("observer:witness_lens", 1), 1, true);
+  for (let t = 0; t < 10; t += 2) {
+    p.lookAtLocation({ x: h.location.x, y: h.location.y + 1.6, z: h.location.z });
+    await wait(2);
+  }
+  p.useItemInSlot(1);
+  const lens = await waitEvent("puppet", (d) => d.what === "seen_through_the_lens", 20, m);
+  check("puppet_flares_through_the_lens", !!lens && discovered(m, "its_puppets"));
+  // lurking: it moves only while you are not looking, never nearer than it keeps
+  p.teleport({ x: stand.x, y: Y, z: stand.z + 10 }, { facingLocation: { x: stand.x, y: Y + 1.6, z: stand.z + 40 } });
+  obs("puppet", "lurk");
+  const d0 = hdist(h.location, p.location);
+  for (let t = 0; t < 120; t += 4) {
+    p.lookAtLocation({ x: stand.x, y: Y + 1.6, z: stand.z + 40 });
+    await wait(4);
+  }
+  const d1 = hdist(h.location, p.location);
+  check("puppet_lurks_closer_unwatched", d1 < d0 - 3 && d1 >= 7.3, `${d0.toFixed(1)} -> ${d1.toFixed(1)}`);
+  p.lookAtLocation({ x: h.location.x, y: h.location.y + 1.6, z: h.location.z });
+  await wait(6);
+  const q0 = { ...h.location };
+  for (let t = 0; t < 30; t += 2) {
+    p.lookAtLocation({ x: h.location.x, y: h.location.y + 1.6, z: h.location.z });
+    await wait(2);
+  }
+  check("puppet_still_when_watched", hdist(q0, h.location) < 0.3, hdist(q0, h.location).toFixed(2));
+  // turned loose
+  obs("puppet", "hunt");
+  await wait(25);
+  check("puppet_hunts_stronger_and_faster", hasFx(h, "strength") && hasFx(h, "speed") && !hasFx(h, "slowness"));
+  // given back: every effect it put on it taken off, and put back where it was taken
+  obs("puppet", "release");
+  const rel = await waitEvent("puppet", (d) => d.what === "release" && d.id === h.id, 20, m);
+  await wait(2);
+  check("puppet_given_back_as_it_was", !!rel && h.isValid && !hasFx(h, "strength", "speed", "weakness", "slowness", "resistance", "fire_resistance") && hdist(h.location, origin) < 2.5,
+    `${rel?.how}; ${hdist(h.location, origin).toFixed(1)} from where it was taken`);
+  // the game stops with one held, and starts again: it is given back as it loads
+  p.teleport({ x: h.location.x, y: Y, z: h.location.z + 6 }, { facingLocation: { x: h.location.x, y: Y + 1.6, z: h.location.z } });
+  await wait(4);
+  const m1 = mark();
+  obs("puppet", "take", "Tester");
+  const tk2 = await waitEvent("puppet", (d) => d.what === "take", 40, m1);
+  await wait(15);
+  const m2 = mark();
+  obs("puppet", "orphan");
+  obs("puppet", "recover");
+  const rec = await waitEvent("puppet", (d) => d.what === "recovered", 20, m2);
+  check("puppet_given_back_after_a_restart", !!tk2 && !!rec && rec.id === tk2.id && !hasFx(h, "weakness", "slowness"), JSON.stringify(rec ?? tk2 ?? {}));
+  clearPuppetArena(stand);
+};
+
+TESTS.puppets_marked = async () => {
+  // a kind marked "its puppet" — here a stand-in for another add-on's cave creature — is taken in its cave, brought
+  // up after you to the surface, lurks at the edge of your sight, is turned loose on you, and put back where it was
+  const stand = { x: 1020.5, y: Y, z: 1126.5 };
+  const face = { x: 1020.5, y: Y + 1.6, z: 1160 };
+  clearPuppetArena(stand, 80);
+  obs("creature", "otest:dweller", "puppet");
+  obs("possess", "always");
+  obs("set", "aggression", "2");
+  let p = await freshTarget("Tester", stand, face, 4);
+  isolate(p);
+  const den = { x: CAVE.stand.x + 4, y: CAVE.floor, z: CAVE.stand.z };
+  const d = ow().spawnEntity("otest:dweller", den);
+  d.addEffect("slowness", 60, { amplifier: 7, showParticles: false });
+  const m = mark();
+  const tk = await waitEvent("puppet", (x) => x.what === "take" && x.why === "marked", 20 * 6, m);
+  check("marked_taken_in_its_cave", !!tk && tk.id === d.id && tk.y < Y - 10, JSON.stringify(tk ?? {}));
+  const up = await waitEvent("puppet", (x) => x.what === "surfaced", 20 * 6, m);
+  // up on the surface, near your level (on the ground or on something standing there), under the open sky
+  const sky = d.isValid && (ow().getTopmostBlock({ x: d.location.x, z: d.location.z })?.location.y ?? 999) < d.location.y + 1;
+  check("marked_brought_up_after_you", !!up && d.isValid && Math.abs(d.location.y - Y) <= 6 && sky && up.d >= 13 && up.d <= 33, up ? `${up.d} blocks off, y ${d.location.y.toFixed(0)}, open sky ${sky}` : "never");
+  const lk = await waitEvent("puppet", (x) => x.what === "mode" && x.mode === "lurk" && x.id === d.id, 40, m);
+  check("marked_lurks", !!lk);
+  await wait(20);
+  check("marked_faces_you_lurking", d.isValid && facingErr(d, p.location) < 25, d.isValid ? facingErr(d, p.location).toFixed(0) : "gone");
+  const hu = await waitEvent("puppet", (x) => x.what === "hunt", 20 * 20, m);
+  await wait(30);
+  check("marked_turned_loose", !!hu && d.isValid && hasFx(d, "strength", "speed"), hu ? "hunting" : "never");
+  const rel = await waitEvent("puppet", (x) => x.what === "release" && x.id === d.id, 20 * 20, m);
+  await wait(4);
+  check("marked_put_back_in_its_cave", !!rel && d.isValid && hdist(d.location, den) < 3 && Math.abs(d.location.y - den.y) < 2 && !hasFx(d, "strength", "speed", "weakness"),
+    d.isValid ? `${hdist(d.location, den).toFixed(1)} from its den, y ${d.location.y.toFixed(0)}` : "gone");
+  // not before the third stage
+  obs("puppet", "release");
+  p = await freshTarget("Tester", stand, face, 2);
+  const m2 = mark();
+  await wait(20 * 4);
+  check("marked_not_before_stage_3", !since(m2, "puppet").some((x) => x.what === "take"));
+  obs("creature", "otest:dweller", "default");
+  obs("possess", "auto");
+  obs("preset", "standard");
+  if (d.isValid) d.remove();
+  clearPuppetArena(stand, 80);
+};
+
+TESTS.puppets_cow = async () => {
+  // at home, one of your animals is its: it faces you and follows you at a distance; hit it, and it is itself again
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  clearPuppetArena(stand);
+  obs("possess", "always");
+  const p = await freshTarget("Tester", stand, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 2);
+  isolate(p);
+  obs("sethaunt", String(FIELD.x), String(Y), String(FIELD.z), "Tester");
+  const cows = around(stand, [["minecraft:cow", 4, -4], ["minecraft:cow", -4, -5], ["minecraft:cow", 0, -7]]);
+  const m = mark();
+  const tk = await waitEvent("puppet", (x) => x.what === "take" && x.why === "cow", 20 * 8, m);
+  check("cow_one_is_its", !!tk, JSON.stringify(since(m, "puppet")));
+  const c = cows.find((x) => x.id === tk?.id);
+  if (!c) return obs("possess", "auto");
+  // walk off: it follows, and keeps its distance
+  for (let i = 0; i < 12; i++) {
+    p.teleport({ x: stand.x + i, y: Y, z: stand.z + i * 0.5 });
+    await wait(8);
+  }
+  // (you stopped: it comes up to its distance)
+  await wait(60);
+  const dd = hdist(c.location, p.location);
+  check("cow_follows_at_a_distance", dd >= 4.5 && dd <= 12, `${dd.toFixed(1)} blocks`);
+  check("cow_always_faces_you", facingErr(c, p.location) < 25, facingErr(c, p.location).toFixed(0));
+  const m2 = mark();
+  for (let t = 0; t < 10 && !since(m2, "puppet").some((x) => x.what === "release"); t++) {
+    p.teleport({ x: c.location.x - 1.5, y: Y, z: c.location.z }, { facingLocation: { x: c.location.x, y: Y + 1, z: c.location.z } });
+    p.attackEntity(c);
+    await wait(6);
+  }
+  const rel = since(m2, "puppet").find((x) => x.what === "release" && x.id === c.id);
+  check("cow_hit_and_torn_out", !!rel && rel.how === "torn_out" && c.isValid && discovered(m2, "its_puppets"), JSON.stringify(rel ?? {}));
+  obs("possess", "auto");
+  clearPuppetArena(stand);
+};
+
+TESTS.knocking = async () => {
+  // at night, at home: knocks at the door; open it and one of its is standing there — and comes apart
+  obs("restore");
+  resetHouse();
+  ow().runCommand("time set midnight");
+  const inside = { x: HOUSE.center.x, y: Y, z: HOUSE.center.z };
+  const doorOut = { x: HOUSE.door.x - 1, y: Y, z: HOUSE.door.z };
+  clearPuppetArena(inside, 70);
+  let p = await freshTarget("Tester", inside, { x: HOUSE.x1, y: Y + 1.6, z: HOUSE.center.z }, 3);
+  isolateFromHouse(p);
+  obs("sethaunt", String(Math.floor(inside.x)), String(Y), String(Math.floor(inside.z)), "Tester");
+  let [h] = around(inside, [["minecraft:husk", -16, 0]]);
+  h.addEffect("slowness", 40, { amplifier: 7, showParticles: false });
+  await wait(4);
+  let m = mark();
+  obs("trigger", "knocking", "Tester");
+  const out = await waitEvent("knock", (d) => d.what === "outside", 40, m);
+  check("knocking_it_is_outside", !!out && h.isValid && hdist(h.location, doorOut) < 1.5, out ? `${hdist(h.location, doorOut).toFixed(1)} from the doorstep` : JSON.stringify(since(m, "end")));
+  const kn = await waitEvent("knock", (d) => d.what === "knocks", 60, m);
+  check("knocking_knocks", !!kn);
+  p.interactWithBlock(HOUSE.door, Direction.West);
+  const op = await waitEvent("knock", (d) => d.what === "opened", 40, m);
+  check("knocking_opened_it_is_there", !!op);
+  const end = await endOf("knocking", m, 100);
+  check("knocking_comes_apart", end && end.outcome === "opened" && !h.isValid && since(m, "dominion").some((d) => d.what === "torn"), end ? end.outcome : "none");
+  check("knocking_discovery", discovered(m, "who_knocks"));
+  // left shut: the knocking stops, and there is nothing outside
+  resetHouse();
+  [h] = around(inside, [["minecraft:husk", -16, 0]]);
+  h.addEffect("slowness", 40, { amplifier: 7, showParticles: false });
+  p = await freshTarget("Tester", inside, { x: HOUSE.x1, y: Y + 1.6, z: HOUSE.center.z }, 3);
+  obs("sethaunt", String(Math.floor(inside.x)), String(Y), String(Math.floor(inside.z)), "Tester");
+  m = mark();
+  obs("trigger", "knocking", "Tester");
+  const end2 = await endOf("knocking", m, 20 * 30);
+  check("knocking_left_shut_nothing_there", end2 && end2.outcome === "ignored" && !h.isValid, end2 ? end2.outcome : "none");
+  resetHouse();
+  clearPuppetArena(inside, 70);
+};
+
+TESTS.bait = async () => {
+  // a villager cries out from the dark; go to it and it is standing right behind it; the villager goes home unharmed
+  ow().runCommand("time set midnight");
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  clearPuppetArena(stand);
+  const p = await freshTarget("Tester", stand, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
+  isolate(p);
+  const [v] = around(stand, [["minecraft:villager_v2", 6, 8]]);
+  await wait(4);
+  const home = { ...v.location };
+  const m = mark();
+  obs("trigger", "bait", "Tester");
+  const pl = await waitEvent("bait", (d) => d.what === "placed", 40, m);
+  check("bait_put_in_the_dark", !!pl && v.isValid && hdist(v.location, p.location) >= 12, pl ? `${hdist(v.location, p.location).toFixed(1)} blocks off` : JSON.stringify(since(m, "end")));
+  const call = await waitEvent("bait", (d) => d.what === "call", 80, m);
+  check("bait_it_cries_out", !!call);
+  // go to it
+  for (let t = 0; t < 80 && !since(m, "bait").some((d) => d.what === "behind_it"); t++) {
+    const to = v.location, at = p.location;
+    const dd = hdist(at, to);
+    if (dd < 1.5) break;
+    p.teleport({ x: at.x + ((to.x - at.x) / dd) * 0.8, y: Y, z: at.z + ((to.z - at.z) / dd) * 0.8 }, { facingLocation: { x: to.x, y: to.y + 1.6, z: to.z } });
+    await wait(3);
+  }
+  const bh = await waitEvent("bait", (d) => d.what === "behind_it", 20, m);
+  check("bait_it_is_standing_behind_it", !!bh && !!observerEntity());
+  const end = await endOf("bait", m, 120);
+  await wait(4);
+  check("bait_outcome", end && end.outcome === "lured" && end.noticed, end ? end.outcome : "none");
+  check("bait_villager_home_unharmed", v.isValid && hdist(v.location, home) < 2.5, v.isValid ? `${hdist(v.location, home).toFixed(1)} from home` : "gone");
+  check("bait_discovery", discovered(m, "the_voice_in_the_dark"));
+  await observerGone(100);
+  if (v.isValid) v.remove();
+};
+
+TESTS.among_them = async () => {
+  // among a few of them, one is it: come close to that one and it comes apart — and it is standing there among them
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  clearPuppetArena(stand);
+  const p = await freshTarget("Tester", stand, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
+  isolate(p);
+  const grp = around(stand, [["minecraft:husk", -1, -18], ["minecraft:husk", 1, -19], ["minecraft:husk", 0, -21]]);
+  for (const g of grp) g.addEffect("slowness", 20 * 30, { amplifier: 7, showParticles: false });
+  for (const g of grp) g.addEffect("weakness", 20 * 30, { amplifier: 4, showParticles: false });
+  await wait(4);
+  const m = mark();
+  obs("trigger", "among_them", "Tester");
+  const worn = await waitEvent("among", (d) => d.what === "worn", 40, m);
+  const tk = since(m, "puppet").find((d) => d.what === "take" && d.why === "among");
+  check("among_one_of_them_is_it", !!worn && !!tk, JSON.stringify(since(m, "end")));
+  const one = grp.find((g) => g.id === tk?.id);
+  check("among_it_does_not_stand_out", !since(m, "puppet").some((d) => d.what === "voice"));
+  if (one) {
+    for (let t = 0; t < 40 && one.isValid; t++) {
+      const at = p.location, to = one.location, dd = hdist(at, to);
+      if (dd < 4) break;
+      p.teleport({ x: at.x + ((to.x - at.x) / dd) * 1, y: Y, z: at.z + ((to.z - at.z) / dd) * 1 }, { facingLocation: { x: stand.x + 30, y: Y + 1.6, z: stand.z } });
+      await wait(3);
+    }
+  }
+  const it = await waitEvent("among", (d) => d.what === "it_was_it", 40, m);
+  check("among_found_out_it_is_there", !!it && !!observerEntity() && !!one && !one.isValid);
+  const end = await endOf("among_them", m, 100);
+  check("among_outcome", end && end.outcome === "found_out", end ? end.outcome : "none");
+  check("among_discovery", discovered(m, "one_of_them"));
+  await observerGone(100);
+  clearPuppetArena(stand);
+};
+
+TESTS.rival_hunt = async () => {
+  // a rival out of sight is hunted: far off, a crack and a scream; go and look — footprints, and what was left
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  clearPuppetArena(stand);
+  obs("creature", "otest:dweller", "rival");
+  const p = await freshTarget("Tester", stand, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 2);
+  isolate(p);
+  const [r] = around(stand, [["otest:dweller", 3, 26]]);
+  r.addEffect("slowness", 20 * 30, { amplifier: 7, showParticles: false });
+  await wait(4);
+  const m = mark();
+  obs("trigger", "rival_hunt", "Tester");
+  const hu = await waitEvent("rival", (d) => d.what === "hunted", 80, m);
+  check("rival_hunted_out_of_sight", !!hu && !r.isValid, JSON.stringify(since(m, "end")));
+  const end = await endOf("rival_hunt", m, 100);
+  check("rival_outcome", end && end.outcome === "hunted", end ? end.outcome : "none");
+  await observerGone(100);
+  if (hu) {
+    p.teleport({ x: hu.x, y: Y, z: hu.z - 5 }, { facingLocation: { x: hu.x, y: Y + 1, z: hu.z } });
+    const fd = await waitEvent("rival", (d) => d.what === "found", 60, m);
+    check("rival_what_was_left_found", !!fd && discovered(m, "what_was_left"));
+  } else check("rival_what_was_left_found", false, "never hunted");
+  obs("creature", "otest:dweller", "default");
+  clearPuppetArena(stand);
+};
+
+TESTS.herald = async () => {
+  // before a heavier encounter it sends one of them ahead to stand and stare; then the encounter comes
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  clearPuppetArena(stand);
+  const p = await freshTarget("Tester", stand, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
+  isolate(p);
+  const [h] = around(stand, [["minecraft:husk", 14, -22]]);
+  await wait(4);
+  const m = mark();
+  obs("herald", "distant_watch", "Tester");
+  const sent = await waitEvent("herald", (d) => d.what === "sent", 40, m);
+  check("herald_sent_ahead", !!sent && sent.id === h.id, JSON.stringify(sent ?? {}));
+  const arr = await waitEvent("puppet", (d) => d.what === "arrived" && d.id === h.id, 20 * 12, m);
+  await wait(10);
+  const dd = h.isValid ? hdist(h.location, p.location) : -1;
+  check("herald_stands_and_stares", !!arr && dd >= 12 && dd <= 20 && facingErr(h, p.location) < 25, `${dd.toFixed(1)} blocks, ${h.isValid ? facingErr(h, p.location).toFixed(0) : "-"} deg`);
+  // the director, running, waits for it — and then the encounter comes, and the herald is let go
+  const others = world.getAllPlayers().filter((o) => o.id !== p.id && o.getGameMode() !== GameMode.Creative);
+  for (const o of others) o.setGameMode(GameMode.Creative);
+  obs("pause", "off");
+  const end = await waitEvent("herald", (d) => d.what === "end", 20 * 20, m);
+  const st = since(m, "start").find((d) => d.target === "Tester");
+  obs("pause", "on");
+  for (const o of others) if (o.isValid) o.setGameMode(GameMode.Survival);
+  check("herald_then_it_comes", !!end && end.why === "came" && !!st && st.type === "distant_watch", `${end?.why}; first start ${st?.type}`);
+  check("herald_let_go", since(m, "puppet").some((d) => d.what === "release" && d.id === h.id));
+  obs("abort");
+  await observerGone(100);
+  clearPuppetArena(stand);
+};
+
+TESTS.night_turn = async () => {
+  // once, at the fifth stage: at midnight everything around your home turns to face it, still, until dawn
+  obs("restore");
+  resetHouse();
+  ow().runCommand("time set midnight");
+  const inside = { x: HOUSE.center.x, y: Y, z: HOUSE.center.z };
+  clearPuppetArena(inside, 70);
+  const p = await freshTarget("Tester", inside, { x: HOUSE.x1, y: Y + 1.6, z: HOUSE.center.z }, 5);
+  isolateFromHouse(p);
+  obs("sethaunt", String(Math.floor(inside.x)), String(Y), String(Math.floor(inside.z)), "Tester");
+  const out = around(inside, [["minecraft:husk", -14, 0], ["minecraft:husk", 0, -14], ["minecraft:spider", 14, 6], ["otest:dweller", -10, 12]]);
+  const m = mark();
+  obs("night", "Tester");
+  const nt = await waitEvent("puppet", (d) => d.what === "night", 40, m);
+  await wait(50);
+  const taken = since(m, "puppet").filter((d) => d.what === "take" && d.why === "night");
+  check("night_they_turn", !!nt && taken.length >= 3, `${taken.length} turned`);
+  const home = { x: Math.floor(inside.x) + 0.5, y: Y, z: Math.floor(inside.z) + 0.5 };
+  const errs = out.filter((c) => c.isValid && taken.some((d) => d.id === c.id)).map((c) => facingErr(c, home));
+  check("night_all_face_your_home", errs.length >= 3 && errs.every((x) => x < 25), errs.map((x) => x.toFixed(0)).join(","));
+  check("night_discovery", discovered(m, "the_night_they_turned"));
+  ow().runCommand("time set 23500");
+  const dawn = await waitEvent("puppet", (d) => d.what === "dawn", 60, m);
+  await wait(4);
+  check("night_let_go_at_dawn", !!dawn && out.filter((c) => c.isValid).every((c) => !hasFx(c, "slowness", "weakness")));
+  ow().runCommand("time set midnight");
+  clearPuppetArena(inside, 70);
+};
+
+TESTS.mire_guards = async () => {
+  // in the Mire, two of them stand among the weeping trees, facing you — guards of its home; leave, and they go
+  obs("possess", "always");
+  const p = await mireTarget(2);
+  if (!check("mire_guards_ground", !!p)) return obs("possess", "auto");
+  const at = { ...p.location };
+  // (on the Mire's own ground, not at the test platform's height)
+  for (const [dx, dz] of [[10, 4], [-10, 4], [6, -10]]) {
+    const top = ow().getTopmostBlock({ x: at.x + dx, z: at.z + dz });
+    if (!top) continue;
+    const h = ow().spawnEntity("minecraft:husk", { x: Math.floor(at.x + dx) + 0.5, y: top.location.y + 1, z: Math.floor(at.z + dz) + 0.5 });
+    h.addEffect("slowness", 20 * 20, { amplifier: 7, showParticles: false });
+    h.addEffect("weakness", 20 * 20, { amplifier: 4, showParticles: false });
+  }
+  const m = mark();
+  for (let t = 0; t < 20 * 15 && since(m, "puppet").filter((d) => d.what === "guard").length < 2; t += 10) await wait(10);
+  const g = since(m, "puppet").filter((d) => d.what === "guard");
+  const placed = since(m, "puppet").filter((d) => d.what === "placed" && g.some((x) => x.id === d.id));
+  const inMire = placed.every((d) => ow().getBiome({ x: d.x, y: d.y, z: d.z })?.id === MIRE_BIOME);
+  check("mire_guards_posted", g.length >= 1 && placed.length === g.length && inMire, `${g.length} guards, in the Mire ${inMire}; ${JSON.stringify(since(m, "puppet").filter((d) => d.what === "guard_none").slice(0, 4))}`);
+  // leave the Mire: they go
+  p.teleport({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
+  const m2 = mark();
+  await wait(60);
+  check("mire_guards_go_when_you_leave", since(m2, "puppet").filter((d) => d.what === "release" && d.why === "guard").length === g.length, `${since(m2, "puppet").filter((d) => d.what === "release").length} released`);
+  obs("possess", "auto");
+};
+
+TESTS.tribute = async () => {
+  // a creature it sends away, unseen, leaves behind something you threw away
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  clearPuppetArena(stand);
+  obs("possess", "always");
+  let p = await freshTarget("Tester", { x: stand.x + 30, y: Y, z: stand.z + 20 }, { x: stand.x + 30, y: Y + 1.6, z: stand.z + 60 }, 2);
+  isolate(p);
+  p.setItem(new ItemStack("minecraft:stick", 1), 0, true);
+  await wait(4);
+  p.dropSelectedItem();
+  await wait(20);
+  const sticks = () => ow().getEntities({ type: "minecraft:item", location: { x: stand.x + 30, y: Y, z: stand.z + 20 }, maxDistance: 6 });
+  const stick = sticks()[0];
+  p = await freshTarget("Tester", stand, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 2);
+  isolate(p);
+  const m = mark();
+  obs("trigger", "test_near", "Tester");
+  const e = await waitObserver(60);
+  if (e) {
+    const at = { ...e.location };
+    around(at, [["minecraft:husk", -5, 0]]);
+    await wait(20 * 5);
+    for (let t = 0; t < 60 && !since(m, "puppet").some((d) => d.what === "tribute"); t += 4) {
+      p.lookAtLocation({ x: stand.x, y: Y + 60, z: stand.z });
+      await wait(4);
+    }
+  }
+  const tb = since(m, "puppet").find((d) => d.what === "tribute");
+  check("tribute_left_where_it_went", !!tb && !!stick && stick.isValid && dist(stick.location, { x: tb.x, y: tb.y, z: tb.z }) < 2, tb ? `${tb.item} at ${tb.x.toFixed(1)},${tb.z.toFixed(1)}` : `none (${stick ? "stick tracked" : "no stick"})`);
+  obs("abort");
+  obs("possess", "auto");
+  await observerGone(100);
+  clearPuppetArena(stand);
+  for (const it of ow().getEntities({ type: "minecraft:item", location: stand, maxDistance: 60 })) it.remove();
 };
 
 // ------------------------------------------------------------------ 1.2.1: they are its

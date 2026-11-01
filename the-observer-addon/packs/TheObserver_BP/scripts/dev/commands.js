@@ -17,7 +17,8 @@
 // Script events only: mirepage <0-7|all|clear> [player] (a Weeping Mire torn page, read without the form),
 // weights [player] (what the director would choose from here), standoff off|short|auto, stalk hang|ledge|tree|ground|auto,
 // charge attack|vanish|auto, profile <habit> <count> [player], paralysis always|never|auto, whisper always|never|auto, animals (what is reacting),
-// notyours always|never|auto, creature [<type id> kin|rival|ignore|default],
+// notyours always|never|auto, creature [<type id> kin|rival|puppet|ignore|default], possess always|never|auto,
+// herald always|never|auto|<encounter>, puppet take|release|lurk|follow|hunt|orphan|recover|status, night,
 // like the other test switches in run().
 // Each also works as /scriptevent observer:<name> <args...> (console, command blocks, tests).
 import { world, system, CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, ItemStack } from "@minecraft/server";
@@ -35,6 +36,9 @@ import { openSettings, openJournal, showLater } from "../ui/forms.js";
 import { validateWards } from "../progression/items.js";
 import * as animals from "../observer/animals.js";
 import * as dominion from "../observer/dominion.js";
+import * as puppets from "../observer/puppets.js";
+import * as possession from "../observer/possession.js";
+import * as herald from "../observer/herald.js";
 import * as flare from "../progression/flare.js";
 import * as learn from "../observer/learn.js";
 import * as hush from "../observer/hush.js";
@@ -280,10 +284,52 @@ export function run(name, args, caller) {
       // creature <type id> kin|rival|ignore|default: what a kind of creature is to it (Config Wheel → Other creatures)
       const marks = { ...(S().marks ?? {}) };
       if (!args[0]) return `marks: ${JSON.stringify(marks)}; answering now: ${dominion.status()}`;
-      if (["kin", "rival", "ignore"].includes(args[1])) marks[args[0]] = /** @type {any} */ (args[1]);
+      if (["kin", "rival", "ignore", "puppet"].includes(args[1])) marks[args[0]] = /** @type {any} */ (args[1]);
       else delete marks[args[0]];
       updateSettings({ marks });
       return `${args[0]}: ${marks[args[0]] ?? "default"}`;
+    }
+    case "possess":
+      // possess always|never|auto: its puppets' chances (and, "always", shorter waits) (tests)
+      DEBUG.possess = args[0] === "always" || args[0] === "never" ? args[0] : "auto";
+      return `possess ${DEBUG.possess}`;
+    case "herald": {
+      // herald always|never|auto — or herald <encounter id> [player]: send a herald ahead of that encounter now
+      if (["always", "never", "auto"].includes(args[0])) {
+        DEBUG.herald = /** @type {any} */ (args[0]);
+        return `herald ${DEBUG.herald}`;
+      }
+      const p = pick(1);
+      if (!p || !director.byId(args[0])) return "usage: herald always|never|auto | herald <encounter> [player]";
+      return herald.begin(p, args[0], now()) ? `herald sent for ${args[0]}` : "no creature to send";
+    }
+    case "puppet": {
+      // puppet take [player] (the nearest creature within 16 blocks, standing), release, lurk, hunt, status
+      const p = pick(1);
+      if (args[0] === "status" || !args[0]) return `puppets: ${puppets.status()}`;
+      if (args[0] === "release") {
+        puppets.releaseAll("home");
+        return "released";
+      }
+      // tests: as if the game stopped with them held (orphan), then started again (recover)
+      if (args[0] === "orphan") return `forgot ${puppets.forgetAll()}`;
+      if (args[0] === "recover") return `recovered ${puppets.recoverLoaded()}`;
+      if (!p) return "no player";
+      if (args[0] === "take") {
+        const e = (safe(() => p.dimension.getEntities({ location: p.location, maxDistance: 16, excludeTypes: ["minecraft:player", "minecraft:item"] }), []) ?? [])
+          .filter((x) => !x.typeId.startsWith("observer:") && !puppets.isPuppet(x))
+          .sort((a, b) => V.dist(a.location, p.location) - V.dist(b.location, p.location))[0];
+        const pp = e && puppets.take(e, "dev", { p, mode: "stand", seconds: 120 });
+        return pp ? `took ${e.typeId}` : "nothing to take";
+      }
+      for (const pp of puppets.all()) if (args[0] === "lurk" || args[0] === "hunt" || args[0] === "follow") puppets.setMode(pp, /** @type {any} */ (args[0]), { keep: 8 });
+      return `puppets: ${puppets.status()}`;
+    }
+    case "night": {
+      // night [player]: the night they all turn, now (stage 5, at home)
+      const p = pick(0);
+      if (!p) return "no player";
+      return possession.nightNow(p) ? "they turn" : "not here (stage 5, home needed)";
     }
     case "whisper":
       // whisper always|never|auto: whether it whispers when it is close and unseen (tests)

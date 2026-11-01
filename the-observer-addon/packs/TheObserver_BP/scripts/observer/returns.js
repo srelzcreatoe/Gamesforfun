@@ -131,6 +131,23 @@ export function returnNow(p, o = {}) {
 
 export const tracked = (pid) => (dropped.get(pid) ?? []).filter((x) => x.e.isValid).length;
 
+/**
+ * Tribute (1.3.0): the newest thing this player threw away that is still lying somewhere, at least minAway blocks from
+ * them — taken off the list (it is the caller's to move). @param {Player} p @param {number} minAway
+ * @returns {Entity|undefined}
+ */
+export function takeAway(p, minAway) {
+  const list = dropped.get(p.id);
+  if (!list) return undefined;
+  for (let i = list.length - 1; i >= 0; i--) {
+    const it = list[i];
+    if (!it.e.isValid || it.dimId !== p.dimension.id || V.dist(it.e.location, p.location) < minAway) continue;
+    list.splice(i, 1);
+    return it.e;
+  }
+  return undefined;
+}
+
 export function registerEvents() {
   world.afterEvents.entitySpawn.subscribe((ev) => {
     const e = ev.entity;

@@ -253,6 +253,25 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Its Eyes | `encounters/its_eyes.js` | a creature ahead, in sight; stage 2+ | it stares; looked at, it is it (sighting, discovery); not looked at, let go; none, never chosen | `its_eyes_a_creature_stares`, `its_eyes_it_faces_you`, `its_eyes_look_and_it_is_it`, `its_eyes_outcome`, `its_eyes_discovery`, `its_eyes_stares_again`, `its_eyes_unnoticed_lets_it_go`, `its_eyes_needs_a_creature` | ✅ Runtime |
 | Load order guarded | `tools/validate.mjs` | — | no module the director loads registers an encounter | validator | ✅ Static |
 
+## 1.3.0: its puppets
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| Possession core | `observer/puppets.js` | taken by its behaviours | faces you, still and harmless; its eyes, wisps, shreds, voice; lurk / hunt / given back as it was | `puppet_taken`, `puppet_faces_you`, `puppet_harmless_while_it_stands`, `puppet_speaks_with_its_voice`, `puppet_lurks_closer_unwatched`, `puppet_still_when_watched`, `puppet_hunts_stronger_and_faster`, `puppet_given_back_as_it_was` | ✅ Runtime (look ❔) |
+| How you know | heartbeat, music, animals, keep-away, lens | a puppet near you | your heart, its theme, animals react, others step aside, it flares through the lens | `puppet_heartbeat_near_it`, `puppet_its_music_near_it`, `puppet_animals_know_it`, `puppet_others_keep_away`, `puppet_flares_through_the_lens` | ✅ Runtime |
+| Shared senses | `puppets.senses` | a puppet sees you | its next encounter sooner | `puppet_shared_senses` | ✅ Runtime |
+| Given back after a stop | `puppets.recover` (`entityLoad`, start-up scan) | the game stopped mid-possession | effects off, note cleared | `puppet_given_back_after_a_restart` | ✅ Runtime |
+| Marked puppets (the cave creature) | `possession.marked` | a kind marked "Its puppet", stage 3+ | taken in its cave, brought up after you, lurks, turned loose, put back | `marked_taken_in_its_cave`, `marked_brought_up_after_you`, `marked_lurks`, `marked_faces_you_lurking`, `marked_turned_loose`, `marked_put_back_in_its_cave`, `marked_not_before_stage_3` | ✅ Runtime (with a stand-in; a real add-on's creature ❔) |
+| The one cow | `possession.cow`, `onHurt` | at home, stage 2+ | follows at a distance facing you; hit, torn out, unharmed | `cow_one_is_its`, `cow_follows_at_a_distance`, `cow_always_faces_you`, `cow_hit_and_torn_out` | ✅ Runtime |
+| Knocking | `encounters/knocking.js` | night, home, door, stage 3+ | knocks; opened: it is there and comes apart; shut: nothing | `knocking_it_is_outside`, `knocking_knocks`, `knocking_opened_it_is_there`, `knocking_comes_apart`, `knocking_discovery`, `knocking_left_shut_nothing_there` | ✅ Runtime |
+| Bait | `encounters/bait.js` | night/dark, a villager | it cries out from the dark; it is behind it; villager home unharmed | `bait_put_in_the_dark`, `bait_it_cries_out`, `bait_it_is_standing_behind_it`, `bait_outcome`, `bait_villager_home_unharmed`, `bait_discovery` | ✅ Runtime |
+| One of them | `encounters/among_them.js` | a group ahead | one is it; found out, it is there | `among_one_of_them_is_it`, `among_it_does_not_stand_out`, `among_found_out_it_is_there`, `among_outcome`, `among_discovery` | ✅ Runtime |
+| What was left | `encounters/rival_hunt.js` | a rival out of sight | torn apart out of sight; footprints and shreds found | `rival_hunted_out_of_sight`, `rival_outcome`, `rival_what_was_left_found` | ✅ Runtime |
+| Its herald | `observer/herald.js`, director | before a heavier encounter | one walks out and stares; then it comes | `herald_sent_ahead`, `herald_stands_and_stares`, `herald_then_it_comes`, `herald_let_go` | ✅ Runtime |
+| The night they turn | `possession.nightTurn` | stage 5, midnight, home, once | all face your home until dawn | `night_they_turn`, `night_all_face_your_home`, `night_discovery`, `night_let_go_at_dawn` | ✅ Runtime |
+| Guards in the Mire | `possession.guards` | in the Mire | posted among the trees inside the Mire; gone when you leave | `mire_guards_posted`, `mire_guards_go_when_you_leave` | ✅ Runtime |
+| Tribute | `possession.tribute`, `returns.takeAway`, `dominion.hooks.sent` | a creature sent away | something you threw away left where it was | `tribute_left_where_it_went` | ✅ Runtime |
+| Not Yours ignores harmless blows | `not_yours.onHurt` | a blow of 0 damage, or from its own | nothing | `not_yours_not_for_a_harmless_blow` | ✅ Runtime |
+
 ## Performance
 | Measure | Result | Test |
 |---|---|---|

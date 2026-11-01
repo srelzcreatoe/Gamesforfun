@@ -49,6 +49,10 @@ the-observer-addon/
 | `observer/charge.js` | running at it: `decide` (attack or not, with reasons), `setAmbush`, `favours` |
 | `observer/dread.js` | its presence, felt: per-player dread, the heartbeat and the tremor |
 | `observer/dominion.js` | it rules them (1.2.0): `standing` (kin / rival / left alone), the yield → leave → sent-away phases, `tearApart`, `status` |
+| `observer/puppets.js` | its puppets (1.3.0): `take` / `release` / `setMode` / `place`, the tick (modes, tells, voice, shared senses), `lensOn`, `nearest`, `recover` / `recoverLoaded` / `registerEvents` |
+| `observer/possession.js` | what it does with them outside encounters (1.3.0): marked puppets, the one cow, guards in the Mire, the night they turn, tribute, keep-away; `tick`, `onHurt`, `nightNow` |
+| `observer/herald.js` | its herald (1.3.0): `wanted`, `begin`, `due`, `end` (the director waits for it as for a silence) |
+| `encounters/knocking.js`, `bait.js`, `among_them.js`, `rival_hunt.js` | Knocking, Bait, One of Them, What Was Left (1.3.0) |
 | `encounters/its_eyes.js` | its eyes (1.2.1): `eyesFor` (a creature that answers to it, ahead and in sight), the encounter |
 | `world/walk.js` | is the way ahead walkable (shared by the animals and the creatures that answer to it; loads nothing else) |
 | `encounters/not_yours.js` | it does not share (1.2.0): `onHurt` (from `entityHurt`), the encounter |
@@ -118,7 +122,8 @@ Weeping Mire: its context, the stage bonus, early grace, its watcher, the torn p
 floats; the Mire never where you start; with the chase/attack/climb and Mire regressions), `suite_110.txt` (the music, the heartbeat, charging at it, the profile, hiding behind trees, Mire fuel; with
 regressions), `suite_111.txt` (sleep paralysis; the animals; with the house, sleep and presence regressions), `suite_112.txt`
 (the user's recordings in play: its themes, the spotted sting, the whisper, the scream when it kills), `suite_120.txt`
-(it rules them; Not Yours — and `suite_121.txt`: its watchers, closer while unwatched, its eyes, its rage — with stand-in creatures `otest:dweller` / `otest:great_dweller` defined only in the test kit), `suite_109.txt` (it
+(it rules them; Not Yours — and `suite_121.txt`: its watchers, closer while unwatched, its eyes, its rage; `suite_130.txt`:
+its puppets and everything done with them, with the creature, animal and music regressions — with stand-in creatures `otest:dweller` / `otest:great_dweller` defined only in the test kit), `suite_109.txt` (it
 vanishes in place; stalking from ledges and ceilings; the standoff; through gaps, glass and doors; with regressions), `mire_locate.txt` (the Mire
 generates and its old watcher is gone; run without `--testkit`, with `--require-no-experiments`),
 `tunnel_repeat.txt` (the Closed Path tests ten times over), `illusion_repeat.txt` (the shadow tests eight times over), `flare_seq.txt` (the flare tests twice back to back), `house_seq.txt` (every test that uses the arena house, in suite order — they share it), `noexp.txt` (no experiments; run **without** `--testkit` and with `--require-no-experiments`, which
@@ -131,7 +136,7 @@ The harness patches the **installed test copy** of the BP to import
 untouched.
 
 With tracing on, the add-on publishes structured events as script events
-`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned|grace|mire|weights|mire_spawn|standoff|stalk|squeeze|rage|hide|peek|charge|ambush|heartbeat|profile|paralysis|animals|whisper|dominion|eyes`
+`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned|grace|mire|weights|mire_spawn|standoff|stalk|squeeze|rage|hide|peek|charge|ambush|heartbeat|profile|paralysis|animals|whisper|dominion|eyes|puppet|herald|knock|bait|among|rival`
 that the test kit asserts on. In normal play nothing is emitted.
 
 Test-only dev commands (`/scriptevent observer:<name>`): `flare [dist] [player]` (light a flare ahead),
@@ -143,7 +148,8 @@ Test-only dev commands (`/scriptevent observer:<name>`): `flare [dist] [player]`
 `stalk hang|ledge|tree|ground|auto` (where *The Figure at the Edge* stands), `charge attack|vanish|auto` (what it does
 when charged), `profile <habit> <count>|clear [player]` (what it has seen a player do), `paralysis always|never|auto` (whether a
 sleeping player wakes unable to move), `whisper always|never|auto` (whether it whispers when close and unseen), `notyours always|never|auto` (whether it
-comes for a creature that hurt you), `creature [<type id> kin|rival|ignore|default]` (what a kind of creature is to it), `animals` (which animals are reacting now; it no longer turns them itself), plus the earlier
+comes for a creature that hurt you), `possess always|never|auto` (its puppets' chances; "always" also shortens their waits),
+`herald always|never|auto|<encounter> [player]`, `puppet take|release|lurk|follow|hunt|orphan|recover|status`, `night [player]`, `creature [<type id> kin|rival|ignore|default]` (what a kind of creature is to it), `animals` (which animals are reacting now; it no longer turns them itself), plus the earlier
 `lunge`, `nearstrike`, `illusion`, `timewarp`, `sethaunt`, `set <key> <value>` and `set off a,b,c`.
 
 ## 4. Adding an encounter

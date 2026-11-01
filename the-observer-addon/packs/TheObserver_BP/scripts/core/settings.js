@@ -28,13 +28,15 @@ import { DEBUG } from "./util.js";
  * @property {boolean} animals        animals sense it: they turn to it and go still, edge away, growl or hiss
  * @property {boolean} creatures      other creatures answer to it (1.2.0): they yield and are sent away, rivals torn apart, and
  *                                    it defends its prey ("Not Yours")
- * @property {Record<string, "kin"|"rival"|"ignore">} marks  what a kind of creature is to it, by type id (Config Wheel)
+ * @property {Record<string, "kin"|"rival"|"ignore"|"puppet">} marks  what a kind of creature is to it, by type id (Config Wheel)
+ * @property {boolean} puppets        it takes creatures for its own (1.3.0): its puppets, the herald, knocking, bait, the one cow,
+ *                                    its guards in the Mire, the night they all turn, tribute
  */
 
 /** On/off settings added after 1.0.0, all on by default (older worlds get them switched on). */
-export const FEATURE_TOGGLES = ["illusions", "learning", "quiet", "pages", "returns", "heartbeat", "animals", "creatures"];
+export const FEATURE_TOGGLES = ["illusions", "learning", "quiet", "pages", "returns", "heartbeat", "animals", "creatures", "puppets"];
 
-/** @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects"|"off"|"illusions"|"learning"|"quiet"|"pages"|"returns"|"heartbeat"|"animals"|"creatures"|"marks">>} */
+/** @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects"|"off"|"illusions"|"learning"|"quiet"|"pages"|"returns"|"heartbeat"|"animals"|"creatures"|"marks"|"puppets">>} */
 export const PRESETS = {
   atmosphere: { frequency: 0.6, aggression: 0, manipulation: 1, scares: 0, camera: 1, graceMinutes: 15 },
   standard: { frequency: 1.0, aggression: 2, manipulation: 2, scares: 2, camera: 2, graceMinutes: 12 },
@@ -44,7 +46,7 @@ export const PRESETS = {
 /** @returns {Settings} */
 export function defaults() {
   return { enabled: true, preset: "standard", ...PRESETS.standard, captions: false, worldEffects: true, dev: false, off: [],
-    illusions: true, learning: true, quiet: true, pages: true, returns: true, heartbeat: true, animals: true, creatures: true, marks: {} };
+    illusions: true, learning: true, quiet: true, pages: true, returns: true, heartbeat: true, animals: true, creatures: true, marks: {}, puppets: true };
 }
 
 /** @returns {Settings} */

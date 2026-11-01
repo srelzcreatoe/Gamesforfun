@@ -365,7 +365,7 @@ body-free encounters (turned object, door, night visit, follow-ups) can run for 
    until it backs off (*Held Gaze*), use the Witness Lens, strike it. If it reaches you: a 0.6 s wind-up you can step
    out of; at aggression 0 it only touches you and the screen goes dark.
 
-All 26 implemented encounters and 16 further concepts are catalogued in [ENCOUNTERS.md](ENCOUNTERS.md).
+All 30 implemented encounters and 16 further concepts are catalogued in [ENCOUNTERS.md](ENCOUNTERS.md).
 
 ## 11. Progression, tools and the ending
 
@@ -601,3 +601,26 @@ Three phases, in the user's design, built into the encounters that show it from 
   the director reaches must not register an encounter at load (the registry does not exist yet): the first build did
   (through `animals.js` → `borrowed_eyes.js`) and the whole script stopped on the server. The shared walking check
   moved to `world/walk.js`, and `tools/validate.mjs` now fails on any such chain.
+
+## 22. Its puppets (1.3.0)
+
+* **Possession without touching anyone's code** (`observer/puppets.js`): a puppet is a record (the creature, why it was
+  taken, whom it is used on, where it was taken, a deadline, a mode) and a note on the creature (`observer:puppet`, a
+  dynamic property of this pack's own — another pack cannot see it, and this one never reads theirs). Everything it does
+  to a creature is through the shared world: `teleport`, `setRotation`, `applyImpulse` (velocity held, not pushed),
+  effects (only the ones it gave are taken off again: `fx`), `remove` (only for the hostile creatures it sends away or
+  tears apart — never a villager or an animal), and one event every creeper has (`minecraft:stop_exploding`). It never
+  triggers another add-on's events or reads its files, and it does not name any other add-on: a kind becomes its puppet
+  only when a player marks it on the Config Wheel.
+* **Its tells** are deliberately consistent with its own body: the same eyes as its watchers (1.2.1), one-shot versions
+  of its wisps and its crimson shreds (`observer:puppet_wisp`, `observer:puppet_shred`, `observer:puppet_burst` — new
+  one-shot particles from its existing textures, so nothing loops on another add-on's creature), its voice and whisper,
+  and the same heartbeat, music and animal reactions as its body (`dread.target`, `main.isAround`, `animals.presence`).
+* **Robustness**: one tick routine for all puppets (`puppets.tick`), behaviours as small timed routines that re-check
+  their puppet at every step (`possession.js`); a hard deadline on every puppet; all of it released when switched off;
+  recovery from a stop mid-possession (`entityLoad` and a scan on script start). Simulated in the tests by forgetting
+  the records without releasing (`puppet orphan`) and recovering.
+* **Load order**: the director now loads `observer/herald.js` (and through it `puppets.js` and `dominion.js`); none of
+  them, nor anything they load, registers an encounter — `tools/validate.mjs` checks this on every build.
+* **Not Yours, fixed**: a blow that does no damage (a creature too weak to hurt you — as every creature it holds is) no
+  longer counts, and nothing it holds or has taken for its own can set it off.

@@ -12,6 +12,7 @@ import { safe, allPlayers } from "../core/util.js";
 import * as ledger from "../world/ledger.js";
 import * as director from "../director/director.js";
 import { standing } from "../observer/dominion.js";
+import * as puppets from "../observer/puppets.js";
 import { isOperator, openSettings } from "./forms.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
@@ -198,8 +199,12 @@ async function creatures(p) {
   const lines = [tr("observer.creatures.body"), "\n\n"];
   if (hit) {
     const now = standing(hit);
-    lines.push(tr("observer.creatures.looking", creatureName(hit.typeId), hit.typeId, tr(`observer.creatures.is_${now ?? "none"}`)));
-    for (const [key, v] of [["kin", "kin"], ["rival", "rival"], ["ignore", "ignore"], ["default", undefined]]) {
+    const what = marks[hit.typeId] === "puppet" ? "puppet" : now ?? "none";
+    lines.push(tr("observer.creatures.looking", creatureName(hit.typeId), hit.typeId, tr(`observer.creatures.is_${what}`)));
+    // and whether it has that one right now (1.3.0)
+    const pp = puppets.get(hit.id);
+    if (pp) lines.push("\n", tr("observer.creatures.possessed_now", tr(`observer.puppet.why.${pp.why}`)));
+    for (const [key, v] of [["kin", "kin"], ["rival", "rival"], ["puppet", "puppet"], ["ignore", "ignore"], ["default", undefined]]) {
       f.button(tr(`observer.creatures.mark_${key}`));
       actions.push(() => {
         if (v) marks[hit.typeId] = /** @type {any} */ (v);

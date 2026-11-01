@@ -34,6 +34,10 @@ export const PARTICLES = {
   dust: "observer:dust",
   flare: "observer:flare",
   servantEyes: "observer:servant_eyes",
+  // 1.3.0: a creature that is its own — wisps drifting off it, shreds as it moves, and a burst when it is torn out
+  puppetWisp: "observer:puppet_wisp",
+  puppetShred: "observer:puppet_shred",
+  puppetBurst: "observer:puppet_burst",
 };
 
 export const SOUNDS = {

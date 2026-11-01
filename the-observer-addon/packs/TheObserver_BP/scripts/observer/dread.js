@@ -9,6 +9,7 @@
 import { system } from "@minecraft/server";
 import * as body from "./body.js";
 import * as hush from "./hush.js";
+import * as puppets from "./puppets.js";
 import { S, captionsOn } from "../core/settings.js";
 import { V, safe, emit, allPlayers, DEBUG } from "../core/util.js";
 import { SOUNDS } from "../core/constants.js";
@@ -34,6 +35,9 @@ function target(p, enc) {
       d = near * (body.watchedBy([p], 60) ? 0.75 : 0.9);
     }
   }
+  // one of its puppets near them is felt like it (1.3.0)
+  const pp = puppets.nearest(p.dimension.id, p.location, 24);
+  if (pp) d = Math.max(d, (1 - V.dist(pp.e.location, p.location) / 24) * 0.7);
   if (enc && enc.pid === p.id) {
     d = Math.max(d, 0.3);
     if (enc.data.standoff) d = Math.max(d, 0.35 + (enc.data.anger ?? 0) / 160);

@@ -78,7 +78,8 @@ export function standing(e) {
   const id = safe(() => e.typeId, "") ?? "";
   if (!id || id === "minecraft:player" || id.startsWith("observer:") || id === "minecraft:item") return undefined;
   const mark = S().marks?.[id];
-  if (mark === "ignore") return undefined;
+  // left alone — or kept for its puppets (observer/possession.js), which it does not send away
+  if (mark === "ignore" || mark === "puppet") return undefined;
   // someone named it, or it is someone's: not its to take
   if (safe(() => e.nameTag, "")) return undefined;
   if (safe(() => e.hasComponent("minecraft:is_tamed"), false)) return undefined;
@@ -91,6 +92,12 @@ export function standing(e) {
 
 /** Is this creature held by it right now (watching, being sent away, ...)? @param {string} id */
 export const isHeld = (id) => held.has(id);
+
+/** Hooks main.js fills in: sent(where, dimension) when a creature is sent away unseen (tribute, 1.3.0). */
+export const hooks = { /** @type {((at:Vec, dimId:string)=>void)|undefined} */ sent: undefined };
+
+/** One of its puppets (observer/puppets.js notes that on the creature itself): those have their own orders. @param {Entity} e */
+const puppet = (e) => safe(() => e.getDynamicProperty("observer:puppet"), undefined) !== undefined;
 
 /** Every tick. */
 export function tick() {
@@ -135,7 +142,7 @@ function scan(b, at, t) {
   const stage = ps(target).stage;
   const keep = stage >= 5 ? 4 : stage >= 3 ? 3 : 0;
   const near = (safe(() => dim.getEntities({ location: at, maxDistance: RADIUS }), []) ?? [])
-    .filter((m) => !counted.has(m.id) && !held.has(m.id) && !unleashed.has(m.id))
+    .filter((m) => !counted.has(m.id) && !held.has(m.id) && !unleashed.has(m.id) && !puppet(m))
     .sort((a, c) => V.dist(a.location, at) - V.dist(c.location, at));
   for (const m of near) {
     const as = standing(m);
@@ -360,6 +367,7 @@ function gone(h, t) {
   if (h.unseen < 10) return false;
   drop(h);
   emit("dominion", { what: "sent", type: m.typeId, id: m.id, role: h.role });
+  safe(() => hooks.sent?.({ ...l }, m.dimension.id));
   safe(() => m.remove());
   return true;
 }

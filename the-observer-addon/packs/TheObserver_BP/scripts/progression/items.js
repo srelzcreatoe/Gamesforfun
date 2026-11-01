@@ -4,6 +4,7 @@
 //   Tally Chalk     mark up to 8 spots; a mark smudges (sound + message) when the Observer changes
 //                   anything within 4 blocks of it — attention made into a tool
 //   Witness Lens    look at it through the lens: it recoils and withdraws (20 s cooldown);
+//                   held on one of its puppets (1.3.0), the creature flares and its eyes blaze;
 //                   with nothing to hold, the lens shows where it has walked (its trails, its effigies)
 //   Ward Lantern    it will not stand or change blocks within 12 blocks (protects a build)
 //   Vestige         fragments from effigies and discoveries; crafting material
@@ -19,6 +20,7 @@ import { visibility } from "../world/sight.js";
 import { discover, give } from "./discoveries.js";
 import { openJournal, openAfter, showLater } from "../ui/forms.js";
 import { throwFlare } from "./flare.js";
+import * as puppets from "../observer/puppets.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
 
@@ -133,6 +135,12 @@ function useLens(p, onLensed) {
       pressure(p);
       return;
     }
+  }
+  // one of its puppets, through the lens: it flares — its eyes blaze and its shreds burst off it (1.3.0)
+  if (puppets.lensOn(p)) {
+    safe(() => p.onScreenDisplay.setActionBar({ rawtext: [{ translate: "observer.ui.lens_puppet" }] }));
+    discover(p, "its_puppets");
+    return;
   }
   // nothing to hold: the lens shows where it has walked
   const d = dimIndex(p.dimension.id);

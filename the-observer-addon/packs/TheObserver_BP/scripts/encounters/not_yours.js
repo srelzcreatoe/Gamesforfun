@@ -6,7 +6,7 @@
 // else's — and is gone. It never touches the player. Needs a stand spot behind the creature, in the player's sight.
 import { register, tryManual } from "../director/director.js";
 import * as body from "../observer/body.js";
-import { standing, tearApart } from "../observer/dominion.js";
+import { standing, tearApart, isHeld } from "../observer/dominion.js";
 import { S } from "../core/settings.js";
 import { V, safe, emit, DEBUG } from "../core/util.js";
 import { standNear } from "../world/space.js";
@@ -18,9 +18,11 @@ import { lineOfSight } from "../world/sight.js";
 /** player id -> the creature that last hurt them (for the encounter to pick up) @type {Map<string, Entity>} */
 const attackers = new Map();
 
-/** A creature hurt a player. @param {Player} p @param {Entity|undefined} by */
-export function onHurt(p, by) {
-  if (!by || !S().enabled || S().creatures === false) return;
+/** A creature hurt a player. @param {Player} p @param {Entity|undefined} by @param {number} damage */
+export function onHurt(p, by, damage) {
+  // only a blow that hurts; and never one of the creatures it holds or has taken for its own (those are its)
+  if (!by || damage <= 0 || !S().enabled || S().creatures === false) return;
+  if (isHeld(by.id) || safe(() => by.getDynamicProperty("observer:puppet"), undefined) !== undefined) return;
   const as = standing(by);
   if (!as) return;
   // it is already here: what touches its own, it tears apart on the spot

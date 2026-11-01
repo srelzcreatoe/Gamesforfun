@@ -11,7 +11,7 @@ The first load in a Windows client (by the user) showed three resource-pack erro
 client-only error is caught before release. The creature's look, animations, sounds and menus still have to be
 confirmed in a client.
 
-Everything that runs on the server — the director, all 26 encounters (including *In the Mire*, *At the Foot of the Bed*, *Not Yours* and *Its Eyes*), the merged Weeping
+Everything that runs on the server — the director, all 30 encounters (including *In the Mire*, *At the Foot of the Bed*, *Not Yours*, *Its Eyes* and the four of its puppets), the merged Weeping
 Mire biome and its torn pages, the Flare, escape learning, the silence before
 attacks, its pages, signs, returned items, the restoration ledger, persistence across a restart, multiplayer targeting,
 dimension travel, items, wards, settings — was exercised on a real Bedrock Dedicated
@@ -81,6 +81,11 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   list and are not verifiable on a server.
 * Forms (Field Notes — including "Pages I didn't write" and what it has learned — settings), action-bar captions, title
   cards, camera fades and shakes (the fade API and the `camerashake` command were accepted by the server).
+* 1.3.0, its puppets: every tell (its eyes, wisps and shreds on creatures of every shape; the twitch walking; its voice
+  out of them; the lens flare), the knock and the villager's cries, and above all a real creature from another add-on
+  marked "Its puppet" — the tests use stand-ins that live in the test kit. Another add-on's own scripts keep running on its
+  creature: if they move it themselves (back underground, or away in daylight) the puppet may stutter between the two,
+  and if they despawn it, the puppet simply ends.
 * 1.2.1, they are its: the eyes it puts in them (`observer:servant_eyes`, two glints at an estimated eye height for
   any creature shape — a spider's or another add-on's creature's may sit off), how the watchers read standing around
   you, and the rage with them let go.
@@ -154,6 +159,8 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 | Animals being moved annoys players with farms | low | at most 8 at a time and 12 per appearance, a few blocks only, never off a ledge or into water; sitting, leashed and ridden animals are not moved; "Animals sense it" off switch |
 | It removes another add-on's creature that that add-on needs (a quest creature, a boss under 300 health) | low–medium | only hostile creatures, never tamed or name-tagged ones, never bosses or anything with 300+ health; per-kind "Leave it alone" on the Config Wheel; one setting switches it all off |
 | Its rage with the creatures it holds let go is too much | low–medium | only from stage 4, only on Standard or High aggression, at most four, only ones it was already holding within 24 blocks; Peaceful has no hostile creatures |
+| Possessing another add-on's creature upsets that add-on | low–medium | only kinds a player marks "Its puppet"; only position, facing, speed and effects are changed, and every effect it added is removed and the creature put back where it was taken; nothing of the other add-on is read or triggered; one setting switches it all off |
+| A villager or a farm animal is lost | low | villagers used as bait are put back where they were, unharmed; animals are never removed — the possession is torn out of them, they are unhurt |
 | A new player is moved on arrival | low | only on their first spawn, only at the world spawn, only if it is inside the Mire; they land facing it, a few blocks outside its edge |
 | The Mire's look depends on `pbr` | low–medium | the RP declares the `pbr` capability the Mire's texture sets and lighting use; to be confirmed in a client (§1) |
 | Players dislike base intrusion | — | Ward Lantern, manipulation levels, `/observer:restore`, Atmosphere preset |
@@ -184,13 +191,14 @@ the sounds of your own work and plays them from where you are not. It gets home 
 you to find. It closes the tunnel behind you. It can be understood — and if you pay attention long enough, you can
 finally meet its gaze.
 
-* 26 encounter types, three signature encounters, five escalating stages
+* 30 encounter types, three signature encounters, five escalating stages
 * A home of its own: the Weeping Mire, a swamp of weeping trees where it watches from between the trunks, and eight
   torn pages that bring it closer
 * It learns how you escape, goes quiet before it attacks, and writes pages in your notes from what you did
 * Some nights you wake unable to move, and it is standing at the foot of your bed; the animals always know where it is
 * The other creatures of the dark answer to it — and what hurts you, it may take apart
+* It takes creatures for its own: you will know them by their eyes
 * Real, reversible world changes — your builds are protected and your own changes always win
-* 27 discoveries, a Witness Lens, Tally Chalk, Ward Lanterns, Flares, and an ending you can reach
+* 33 discoveries, a Witness Lens, Tally Chalk, Ward Lanterns, Flares, and an ending you can reach
 * Works across the Overworld, caves, water, the Nether and the End; multiplayer-aware; no experiments needed
 * Atmosphere, Standard and Relentless presets; captions and full control over scares and camera effects

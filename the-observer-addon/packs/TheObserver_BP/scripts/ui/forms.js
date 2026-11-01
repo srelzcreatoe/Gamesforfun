@@ -129,6 +129,13 @@ async function openIts(p) {
   const s = ps(p);
   /** @type {(string|import("@minecraft/server").RawMessage)[]} */
   const parts = [tr("observer.ui.its_intro")];
+  // what it has taken for its own (1.3.0), in its hand
+  const pu = s.puppets;
+  if (pu && pu.taken > 0) {
+    parts.push("\n\n§8", tr("observer.ui.its_puppets_title"), "§r\n", tr("observer.ui.its_puppets", String(pu.taken)));
+    if (pu.seen > 0) parts.push("\n", tr("observer.ui.its_puppets_seen", String(pu.seen)));
+    if (pu.torn > 0) parts.push("\n", tr("observer.ui.its_puppets_torn", String(pu.torn)));
+  }
   for (const pg of [...(s.its ?? [])].reverse()) {
     const [key, args, , day, variant] = pg;
     parts.push("\n\n§8", tr("observer.ui.its_day", String(day)), "§r\n", tr(`observer.its.${key}.${variant ?? 1}`, ...(args ?? [])));
@@ -180,7 +187,8 @@ export async function openSettings(p) {
     .toggle(tr("observer.set.returns"), { defaultValue: c.returns !== false })
     .toggle(tr("observer.set.heartbeat"), { defaultValue: c.heartbeat !== false })
     .toggle(tr("observer.set.animals"), { defaultValue: c.animals !== false })
-    .toggle(tr("observer.set.creatures"), { defaultValue: c.creatures !== false });
+    .toggle(tr("observer.set.creatures"), { defaultValue: c.creatures !== false })
+    .toggle(tr("observer.set.puppets"), { defaultValue: c.puppets !== false });
   const r = await f.show(p);
   if (r.canceled || !r.formValues) return;
   const v = r.formValues;
@@ -189,7 +197,7 @@ export async function openSettings(p) {
   const patch = {
     enabled: !!v[0], frequency: Number(v[2]) / 100, aggression: Number(v[3]), manipulation: Number(v[4]),
     scares: Number(v[5]), camera: Number(v[6]), captions: !!v[7], graceMinutes: Number(v[8]), worldEffects: !!v[9], dev: !!v[10],
-    illusions: !!v[11], learning: !!v[12], quiet: !!v[13], pages: !!v[14], returns: !!v[15], heartbeat: !!v[16], animals: !!v[17], creatures: !!v[18],
+    illusions: !!v[11], learning: !!v[12], quiet: !!v[13], pages: !!v[14], returns: !!v[15], heartbeat: !!v[16], animals: !!v[17], creatures: !!v[18], puppets: !!v[19],
   };
   // choosing a named preset applies it; otherwise individual values make it "custom"
   if (chosenPreset !== c.preset && chosenPreset !== "custom") {

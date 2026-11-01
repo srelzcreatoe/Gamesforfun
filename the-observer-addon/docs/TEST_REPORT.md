@@ -145,6 +145,7 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | targeted (1.2.1: its watchers, closer while unwatched, its eyes, its rage; then twice over with the 1.2.0 groups) | 5 + 32 + 35 + 10 + 58 | 8 + 5 + 2 + 1 + 0 | run 1: the whole script failed to load on the server ("REGISTRY is not initialized"): the encounters' shared code now loads the creature module, which loaded the animals module, which loaded *Borrowed Eyes* — an encounter registering itself before the director existed (the Mire's leaf blocks failed with it, their custom component unregistered). Fixed by a dependency-free `world/walk.js`, and the validator now fails on any such chain. Run 2: a watcher's hold (one Slowness, 1.5 s) ran out and it walked on — to two blocks from the player at stage 4, and hit them; it is renewed every half second now, and closer than four blocks it steps back. Runs 3–4: test-side (the player turned to face two of the watchers it was meant not to see; a trigger read before the player looked away) |
 | full (1.2.1, first) | 453 | 1 | test-side: `charge_ambush_sprung` — the director served another simulated player first (the one who had waited longest), and the global gap after it outlasted the test's wait; the other test players are kept in Creative while the director runs there |
 | **final (1.2.1)** | **454** | **0** | all passed: the 1.1.2 suite plus it rules them (they know it, turn to it, go still, back away harmless, gone unseen; rivals torn apart; the great, the named and the marked left alone; the off switch), Not Yours, its watchers (kept, standing around you, staring, still; staying when it goes, then gone), closer only while unwatched (never nearer than 4, frozen when looked at, never hurting you), its rage (let go fully), and Its Eyes (it stares; look and it is it; unnoticed it lets it go; none, never chosen) |
+| targeted (1.3.0: its puppets — the core, a marked kind from its cave, the one cow, knocking, bait, one of them, what was left, its herald, the night they turn, guards in the Mire, tribute; then with the 1.2.x regressions) | 28 + 57 + 6 + 7 + 134 + 26 + 21 + 45 | 2 + 1 + 1 + 0 + 1 + 1 + 2 + 0 | a real bug: a blow that did no damage (a creature too weak to hurt, as its own held creatures are) counted for *Not Yours* — and one of its own creatures could have set it off; both are ignored now (`not_yours_not_for_a_harmless_blow`). The rest test-side: the player was out of reach for the second take; the cave creature was brought up onto a structure 4 blocks up (fine; the check now asks for open sky near your level); the Mire guards' creatures were spawned at the platform's height above the Mire and fell; the cow trailed a fast-moving test player (it follows a little faster now, 2.4 b/s); the music from the group before had not yet ended |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -425,6 +426,13 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
    closer only while you are not looking, and stop dead when you do. Stage 2+: stand facing a zombie 15 blocks off,
    Test an encounter → Its Eyes: it stops and stares; look at it. Provoke a rage (stage 4, stare it down) with
    creatures around: they are let go and come with it.
+19. **1.3.0** — Config Wheel → Other creatures, looking at a creature from another add-on (or a zombie): mark it *Its
+   puppet*. Stage 3+ (`/scriptevent observer:possess always` for no waiting): it is taken (its eyes), brought up to the
+   surface if you are up there, lurks at the edge of your sight, is turned loose (stage 4+), and is put back where it
+   was. Look at the tells: eyes, wisps, shreds, the twitch, its voice; the Witness Lens on it. At home at night with a
+   zombie nearby: Test an encounter → Knocking (open the door). Near a villager at night: Bait. Near a few zombies:
+   One of Them. Mark a kind its rival and stand away from one: What Was Left. Stage 5, midnight, at home:
+   `/scriptevent observer:night`.
 
 ## 7. Bugs found and fixed
 
@@ -468,6 +476,12 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
 * The new too-close reaction cut *Borrowed Work* short (walking up to the source is that encounter's answer) — it now
   handles the approach itself; spots far below the player's level are penalised (an *Echo Ahead* spot landed 64
   blocks below the test platform).
+
+**Found by the 1.3.0 tests**
+* *Not Yours* came for a creature whose blow did no damage (a creature too weak to hurt — and every creature it holds is
+  made that weak), so it could have torn apart one of its own; blows of no damage and blows from its own are ignored.
+* Test-side: see the targeted 1.3.0 row (reach for the second take, the surfaced creature on a structure, the Mire
+  creatures spawned at the platform's height, a cow trailing a fast test player, music still ending from the group before).
 
 **Found by the 1.2.1 tests**
 * *In the Mire* could stand behind a tree just outside the Mire, at its edge (a pale garden): the trunk search

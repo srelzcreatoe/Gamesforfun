@@ -1,0 +1,7 @@
+# 1.3.0: its puppets — the core (eyes, voice, senses, lurk, hunt, given back, after a restart), a marked kind brought
+# up from its cave and turned loose, the one cow, knocking, bait, one of them, what was left, its herald, the night they
+# turn, its guards in the Mire, tribute; with the 1.2.x creature groups, the animals and the music as regressions
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup puppets_core puppets_marked puppets_cow knocking bait among_them rival_hunt herald night_turn mire_guards tribute dominion not_yours servants its_eyes animals presence_music heartbeat mire_watcher toggles status
+expect \[OTEST\] SUITE DONE 3600

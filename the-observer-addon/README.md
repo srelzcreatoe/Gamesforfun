@@ -46,7 +46,7 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   blocks; a torn page may bring it up behind you, and the last of the eight always does. In the Mire it comes sooner
   and more often: the grace period ends after 30 seconds there, the gaps between encounters are shorter, and it acts as
   if you were one stage further along.
-* **26 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*)
+* **30 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*)
   and *Closer Each Time* (it only moves while unwatched), *It's Inside* (the dark corner of your own room), *Signs*
   (by your bed or door), *Borrowed Eyes* (a creature that turns its head to follow you) and *In the Mire*; a lunge when it is spotted,
   a fast, relentless attack once it reaches you, a too-close reaction, and harmless shadows in taiga forests that
@@ -69,6 +69,19 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   come closer only while you are not looking at them (never nearer than four blocks, never able to hurt you). A
   creature may be *its eyes*: it stops and stares at you, and when you look back it comes apart and it is standing
   there. And when it snaps into its rage, the creatures it holds near you are let go and come for you with it.
+* **Its puppets** (1.3.0): it takes creatures for its own — any creature, Minecraft's own or any other add-on's —
+  and uses them, then gives them back as they were. Mark a kind "Its puppet" on the Config Wheel (another add-on's
+  cave creature, say) and it takes one in its cave, brings it up after you to the surface, sets it lurking at the
+  edge of your sight (moving only while you are not looking), turns it loose on you — stronger, faster, unable to
+  turn back — and puts it back where it was. You can tell: its eyes in them, its wisps off them, crimson shreds as they
+  move, its twitches, its voice out of them, your heart and its music near them, the animals and the other creatures
+  keeping away — and the Witness Lens, through which one flares (Field Notes keeps count, in its hand). With them it
+  knocks at your door at night, makes a villager cry out from the dark to lure you, hides as one of a group, hunts its
+  rivals out of sight (you find what was left), sends a herald ahead of its heavier encounters, posts guards in the
+  Mire, makes one of your farm animals its own (hit it to tear it out), learns where you are from anything of its that
+  sees you, leaves behind things you threw away — and once, at the very end, makes every creature around your home turn
+  to face it all night. Nothing of any other add-on is read, copied or changed: it acts on their creatures only in the
+  world they share, and a creature still held when the game stops is given back when it loads.
 * **Its voice and its music** (1.1.2, your recordings): while it is around, its own theme replaces the game's music
   — *lurking* in the Weeping Mire, its home — and the game's music fades back once it has gone. A sting when you spot
   it, a scream when it snaps or comes for you (and over the blow that kills), a grunt as it arrives out of nowhere, its
@@ -111,7 +124,7 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   effigies, temporary openings, animals turning) through a **restoration ledger**: recorded, locked, reload-safe,
   dupe-proof, and the player's own changes always win.
 * **Bounded memory** of each player: breadcrumbs, home, familiar routes, habits, a favoured bearing.
-* **Progression**: 27 discoveries written in the Field Notes; Tally Chalk, Witness Lens, Ward Lantern, Vestiges, and
+* **Progression**: 33 discoveries written in the Field Notes; Tally Chalk, Witness Lens, Ward Lantern, Vestiges, and
   the **Flare** (thrown; its glare drives it off within 16 blocks, even mid-attack); the Vigil as the long-term goal;
   three post-ending modes.
 * **Config Wheel**: one item for status, a harmless *See it now* preview of the creature and all its animations,

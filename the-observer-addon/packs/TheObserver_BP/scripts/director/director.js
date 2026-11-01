@@ -29,6 +29,7 @@ import * as hush from "../observer/hush.js";
 import * as learn from "../observer/learn.js";
 import * as profile from "../observer/profile.js";
 import * as charge from "../observer/charge.js";
+import * as herald from "../observer/herald.js";
 import { relentless } from "../encounters/common.js";
 
 /** @typedef {import("./encounter.js").EncounterDef} EncounterDef */
@@ -84,7 +85,7 @@ function ready(p, t) {
     return false;
   }
   if (s.witnessed && s.endMode === "rest") return false;
-  if (hush.get(p.id)) return false;
+  if (hush.get(p.id) || herald.get(p.id)) return false;
   // it vanished rather than be reached: when the moment favours it, it comes back at once
   if (s.ambush) {
     if (t > s.ambush.until) delete s.ambush;
@@ -138,6 +139,7 @@ export function tick() {
     if (s.tension > 0) s.tension = Math.max(0, s.tension - 0.05);
   }
   releaseHushes(t);
+  releaseHeralds(t);
   if (!S().enabled || control.paused) return;
   if (t < W.globalCooldownUntil) return;
   const candidates = allPlayers().filter((p) => ready(p, t));
@@ -157,6 +159,12 @@ export function tick() {
     if (!def) {
       s.nextAt = t + 20;
       continue;
+    }
+    // a herald first: one of the creatures that answer to it walks out to stand and stare (1.3.0)
+    if (!hush.wanted(def, s, c) && herald.wanted(def, s) && herald.begin(p, def.id, t)) {
+      W.globalCooldownUntil = t + 10;
+      markWorldDirty();
+      return;
     }
     if (hush.wanted(def, s, c) && !hush.isSilenced(p.id)) {
       // the world goes quiet first; the encounter (or nothing) follows in 20-30 s
@@ -195,6 +203,23 @@ function releaseHushes(t) {
     else {
       hush.end(p, p.id, "nothing");
       s.nextAt = Math.max(s.nextAt, t + rand(60, 120));
+      markPlayerDirty(p);
+    }
+  }
+}
+
+/** Heralds whose wait is over: the encounter they announced comes, if it still fits; the herald is let go. @param {number} t */
+function releaseHeralds(t) {
+  for (const [pid, h] of herald.due(t)) {
+    const p = allPlayers().find((o) => o.id === pid);
+    const def = byId(h.def);
+    const s = p ? ps(p) : undefined;
+    const c = p ? context(p) : undefined;
+    const fits = !!p && !!def && !!s && !!c && S().enabled && !control.paused && c.eligible && !encounterFor(pid) && !(def.needsBody && active) && eligibleWeight(def, s, c) > 0;
+    const enc = fits ? start(/** @type {EncounterDef} */ (def), /** @type {Player} */ (p), c) : null;
+    herald.end(pid, enc ? "came" : "nothing");
+    if (!enc && p && s) {
+      s.nextAt = Math.max(s.nextAt, t + rand(30, 60));
       markPlayerDirty(p);
     }
   }

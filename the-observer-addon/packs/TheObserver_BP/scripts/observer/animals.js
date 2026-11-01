@@ -12,6 +12,7 @@ import { S } from "../core/settings.js";
 import { V, safe, emit, allPlayers } from "../core/util.js";
 import { borrowed } from "../encounters/borrowed_eyes.js";
 import { clearAhead } from "../world/walk.js";
+import * as puppets from "./puppets.js";
 
 /** @typedef {import("@minecraft/server").Entity} Entity */
 /** @typedef {{x:number,y:number,z:number}} Vec */
@@ -49,8 +50,8 @@ const SPEED = { "minecraft:chicken": 0.1, "minecraft:rabbit": 0.11, "minecraft:f
 
 /** @type {Map<string, Reaction>} */
 const active = new Map();
-/** the appearance (encounter id) the reactions belong to */
-let appearance = -1;
+/** the appearance (its body's encounter, or one of its puppets) the reactions belong to */
+let appearance = "";
 /** animals that have already reacted to this appearance */
 const reacted = new Set();
 let calls = 0;
@@ -61,23 +62,37 @@ const kindOf = (/** @type {string} */ id) => (HERD.has(id) ? "herd" : DOGS.has(i
 const rand = (a, b) => a + Math.random() * (b - a);
 const wrap = (d) => ((((d + 180) % 360) + 360) % 360) - 180;
 
+/**
+ * What they sense: its body — or, with it nowhere, one of its puppets near someone (1.3.0: they know those too).
+ * @returns {{key:string, e:Entity}|undefined}
+ */
+function presence() {
+  const b = body.get();
+  if (b) return { key: `body:${b.enc}`, e: b.e };
+  for (const p of allPlayers()) {
+    const pp = puppets.nearest(p.dimension.id, p.location, 48);
+    if (pp) return { key: `puppet:${pp.id}`, e: pp.e };
+  }
+  return undefined;
+}
+
 /** Every tick. */
 export function tick() {
   const t = system.currentTick;
-  const b = body.get();
-  if (!b || !(S().enabled && S().animals !== false)) {
-    if (active.size) settle(b ? "off" : "gone", t);
+  const src = presence();
+  if (!src || !(S().enabled && S().animals !== false)) {
+    if (active.size) settle(src ? "off" : "gone", t);
     if (whines.length) whine(t);
     return;
   }
-  if (b.enc !== appearance) {
+  if (src.key !== appearance) {
     if (active.size) settle("new", t);
-    appearance = b.enc;
+    appearance = src.key;
     reacted.clear();
     calls = 0;
   }
-  const at = b.e.location;
-  if (t % 10 === 0) scan(b.e, at, t);
+  const at = src.e.location;
+  if (t % 10 === 0) scan(src.e, at, t);
   for (const r of active.values()) step(r, at, t);
 }
 
@@ -88,7 +103,7 @@ function scan(e, at, t) {
   // only where someone is near enough to see it
   if (!allPlayers().some((p) => p.dimension.id === dim.id && V.dist(p.location, at) < 64)) return;
   const near = (safe(() => dim.getEntities({ location: at, maxDistance: RADIUS }), []) ?? [])
-    .filter((m) => kindOf(m.typeId) && !reacted.has(m.id) && !borrowed.has(m.id) && !ridden(m))
+    .filter((m) => kindOf(m.typeId) && !reacted.has(m.id) && !borrowed.has(m.id) && !ridden(m) && safe(() => m.getDynamicProperty("observer:puppet"), undefined) === undefined)
     .sort((a, b) => V.dist(a.location, at) - V.dist(b.location, at))
     .slice(0, Math.min(MAX - active.size, TOTAL - reacted.size));
   for (const m of near) {

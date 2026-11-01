@@ -159,6 +159,13 @@ export function now() {
  * @property {Record<string, number>} [profile]   what it has seen this player do, decaying counts (observer/profile.js)
  * @property {Record<string, number>} [effect]    per encounter type: how often it got a reaction (0..1)
  * @property {{at:number, until:number, armed?:boolean}} [ambush]  it vanished rather than be reached, and waits
+ * @property {{taken:number, seen:number, torn:number}} [puppets]  its puppets used on this player, seen through the lens, torn out (1.3.0)
+ * @property {number} [puppetAt]     clock before which it takes no marked puppet for this player
+ * @property {number} [cowAt]        clock before which no animal of theirs is taken
+ * @property {number} [guardAt]      clock before which no guard is posted in the Mire
+ * @property {boolean} [nightTurned] the night they all turned has happened for this player
+ * @property {number} [tributeAt]    clock before which no tribute is left for them
+ * @property {number} [sensedAt]     clock a puppet last saw them
  * @property {number} lungeAt      clock of its last lunge at this player
  * @property {number} nearStrikeAt clock of its last strike because the player came too close
  * @property {Record<string,number>} [escapes] how often each way out was used (observer/learn.js)

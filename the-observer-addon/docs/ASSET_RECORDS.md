@@ -71,7 +71,9 @@ prepared by `tools/prepare_supplied_sounds.py` (the raw WAVs are not kept in the
 the synthesized sounds (the arrival pressure, the shriek and the vanish) and add its sting when spotted, its whisper
 and its two themes. Their rights rest with the user who supplied them.
 
-1.2.1 adds one original particle definition, `particles/servant_eyes.json` (two glints of its existing `glint` texture
+1.3.0 adds three original one-shot particle definitions, `particles/puppet_wisp.json`, `puppet_shred.json` and
+`puppet_burst.json`, made from its existing wisp and vanish definitions and textures (one-shot, so nothing keeps emitting
+from another creature). 1.2.1 adds one original particle definition, `particles/servant_eyes.json` (two glints of its existing `glint` texture
 for the eyes it puts in the creatures that are its). 1.2.0 adds no asset files (its rule over other creatures reuses its own vanish particle and sounds).
 
 ## Shipped resource files
