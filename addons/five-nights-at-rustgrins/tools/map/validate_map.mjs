@@ -3,7 +3,7 @@
 //      inside the feed's view: within VIEW.h / VIEW.v degrees of the aim, which fits
 //      Bedrock's default 60 degree FOV on a 4:3 screen);
 //   2. every route edge (node -> waypoints -> node) keeps the animatronic's body
-//      clear of walls, tables and shelves. The cast stands 5 blocks tall: 5.1 of
+//      clear of walls, tables and shelves. The cast stands 4.4-4.5 blocks tall: 5.1 of
 //      head room, except within 0.8 blocks of an opening (a doorway, an arch, the
 //      office doors and windows), where they stoop through or lean in (2.9);
 //      in the ducts they crawl (1.9);

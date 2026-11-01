@@ -15,7 +15,7 @@
     "default": "geometry.fnar.noxbriar"
    },
    "scripts": {
-    "scale": "1.97",
+    "scale": "1.77",
     "pre_animation": [
      "variable.fnar_anim = query.property('fnar:anim');",
      "variable.fnar_eyes = query.property('fnar:eyes');",
