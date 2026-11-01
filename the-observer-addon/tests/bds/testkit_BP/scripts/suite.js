@@ -66,6 +66,12 @@ function heal(p) {
 }
 async function freshTarget(name, loc, face, stage = 5) {
   const p = spawn(name, loc);
+  // a test player who died in an earlier group is brought back first (a dead player takes no damage, sees nothing)
+  if ((p.getComponent("minecraft:health")?.currentValue ?? 1) <= 0 && typeof p.respawn === "function") {
+    p.respawn();
+    await wait(10);
+    p.teleport(loc);
+  }
   p.stopMoving();
   p.isSneaking = false;
   p.teleport(loc, { facingLocation: face });
@@ -886,7 +892,9 @@ TESTS.vigil = async () => {
           const pt = { x: e.location.x + Math.cos(r) * 6, y: e.location.y, z: e.location.z + Math.sin(r) * 6 };
           const eye = { x: pt.x, y: pt.y + 1.62, z: pt.z };
           const feet = ow().getBlock(pt), above = ow().getBlock({ x: pt.x, y: pt.y + 1, z: pt.z });
-          if (!feet || !above || !feet.isAir || !above.isAir) continue;
+          // and ground to stand on (beside the platform's edge there is only a long drop)
+          const below = ow().getBlock({ x: pt.x, y: pt.y - 1, z: pt.z });
+          if (!feet || !above || !below || !feet.isAir || !above.isAir || below.isAir || below.isLiquid) continue;
           const dir = { x: head.x - eye.x, y: head.y - eye.y, z: head.z - eye.z };
           const dl = Math.hypot(dir.x, dir.y, dir.z);
           const hit = ow().getBlockFromRay(eye, { x: dir.x / dl, y: dir.y / dl, z: dir.z / dl }, { maxDistance: dl, includePassableBlocks: false });
