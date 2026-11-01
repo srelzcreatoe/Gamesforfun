@@ -1,0 +1,6 @@
+# 1.2.1: they are its — its watchers (stage 3), closer only while unwatched (stage 4), its eyes, its rage; with
+# the 1.2.0 groups (it rules them, Not Yours) as regressions
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup servants its_eyes dominion not_yours charge standoff status
+expect \[OTEST\] SUITE DONE 3600

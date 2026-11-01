@@ -2757,6 +2757,179 @@ TESTS.not_yours = async () => {
   clearHostiles(stand);
 };
 
+// ------------------------------------------------------------------ 1.2.1: they are its
+
+/** Yaw error between a creature's facing and a point (degrees). */
+const facingErr = (c, pt) => Math.abs(wrapDeg(c.getRotation().y - yawTo(c.location, pt)));
+
+TESTS.servants = async () => {
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  const face = { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 };
+  clearHostiles(stand);
+  // A. its watchers (stage 3): three of them go to stand around you and stare at you; when it goes, they go too
+  let p = await freshTarget("Tester", stand, face, 3);
+  isolate(p);
+  const hurt = [];
+  const sub = world.afterEvents.entityHurt.subscribe((ev) => {
+    if (ev.hurtEntity.id === p.id && ev.damageSource.damagingEntity?.typeId !== OBS) hurt.push(`${ev.damageSource.damagingEntity?.typeId ?? ev.damageSource.cause}:${ev.damage}`);
+  });
+  let m = mark();
+  obs("trigger", "test_near", "Tester");
+  let e = await waitObserver(60);
+  if (!check("servants_body", !!e)) return world.afterEvents.entityHurt.unsubscribe(sub);
+  let at = { ...e.location };
+  let mobs = around(at, [["minecraft:husk", -5, 1], ["minecraft:spider", 5, 1], ["otest:dweller", 4, -4], ["minecraft:husk", -4, -4]]);
+  const watched = await (async () => {
+    for (let t = 0; t < 20 * 14; t += 4) {
+      p.lookAtLocation({ x: at.x, y: at.y + 2.2, z: at.z });
+      if (since(m, "dominion").filter((d) => d.what === "watching").length >= 3) break;
+      await wait(4);
+    }
+    return since(m, "dominion").filter((d) => d.what === "watching");
+  })();
+  const takes = since(m, "dominion").filter((d) => d.what === "take");
+  check("servants_three_kept", takes.length === 3, `${takes.length} kept`);
+  check("servants_stand_around_you", watched.length === 3 && watched.every((d) => d.d >= 5 && d.d <= 15), watched.map((d) => `${d.type}@${d.d}`).join(" "));
+  await wait(20);
+  const ws = mobs.filter((c) => c.isValid && takes.some((d) => d.id === c.id));
+  const errs = ws.map((c) => facingErr(c, p.location));
+  check("servants_stare_at_you", ws.length === 3 && errs.every((x) => x < 25), errs.map((x) => x.toFixed(0)).join(","));
+  const pos = ws.map((c) => ({ ...c.location }));
+  await wait(30);
+  check("servants_quite_still_at_stage_3", ws.every((c, i) => !c.isValid || hdist(pos[i], c.location) < 0.4), ws.map((c, i) => hdist(pos[i], c.location).toFixed(2)).join(","));
+  obs("abort");
+  const dis = await waitEvent("dominion", (d) => d.what === "dismiss", 40, m);
+  check("servants_stay_when_it_goes", !!dis && dis.n === 3 && ws.every((c) => c.isValid), JSON.stringify(dis ?? {}));
+  // nobody looking at them (eyes to the sky): they are gone
+  for (let t = 0; t < 60 && ws.some((c) => c.isValid); t += 4) {
+    p.lookAtLocation({ x: stand.x, y: Y + 60, z: stand.z + 0.5 });
+    await wait(4);
+  }
+  check("servants_gone_unseen", ws.every((c) => !c.isValid) && since(m, "dominion").filter((d) => d.what === "sent" && d.role === "watch").length === 3);
+  check("servants_never_hurt_you", hurt.length === 0, hurt.join(","));
+  await observerGone(100);
+  clearHostiles(stand);
+  // B. from stage 4 they come closer only while you are not looking at them — never nearer than four blocks
+  p = await freshTarget("Tester", stand, face, 4);
+  isolate(p);
+  m = mark();
+  obs("trigger", "test_near", "Tester");
+  e = await waitObserver(60);
+  if (e) {
+    at = { ...e.location };
+    mobs = around(at, [["minecraft:husk", -5, 1], ["minecraft:husk", 5, 1], ["otest:dweller", 4, -4]]);
+    for (let t = 0; t < 20 * 16; t += 4) {
+      // keep looking at it: the watchers to your sides are not looked at
+      if (e.isValid) p.lookAtLocation({ x: at.x, y: at.y + 2.2, z: at.z });
+      await wait(4);
+    }
+    const creeps = since(m, "dominion").filter((d) => d.what === "creep");
+    const ds = mobs.filter((c) => c.isValid).map((c) => hdist(c.location, p.location));
+    check("servants_creep_unwatched", creeps.length >= 1 && ds.some((d) => d < 8), `${creeps.length} creeps; now at ${ds.map((d) => d.toFixed(1)).join(",")}`);
+    check("servants_never_nearer_than_4", ds.every((d) => d >= 3.4), ds.map((d) => d.toFixed(1)).join(","));
+    // look straight at one: it stops dead
+    const one = mobs.find((c) => c.isValid && takes.length >= 0 && hdist(c.location, p.location) > 4.6) ?? mobs.find((c) => c.isValid);
+    if (one) {
+      for (let t = 0; t < 10; t += 2) {
+        p.lookAtLocation({ x: one.location.x, y: one.location.y + 1.2, z: one.location.z });
+        await wait(2);
+      }
+      const p0 = { ...one.location };
+      for (let t = 0; t < 30; t += 2) {
+        p.lookAtLocation({ x: one.location.x, y: one.location.y + 1.2, z: one.location.z });
+        await wait(2);
+      }
+      check("servants_freeze_when_looked_at", hdist(p0, one.location) < 0.35, `${hdist(p0, one.location).toFixed(2)} blocks while watched`);
+    } else check("servants_freeze_when_looked_at", false, "no watcher left");
+  } else check("servants_creep_unwatched", false, "no body");
+  check("servants_never_hurt_you_creeping", hurt.length === 0, hurt.join(","));
+  world.afterEvents.entityHurt.unsubscribe(sub);
+  obs("abort");
+  await observerGone(100);
+  clearHostiles(stand);
+  // C. its rage: the creatures it holds near you are let go, its eyes still in them, and come for you with it
+  obs("charge", "attack");
+  obs("set", "aggression", "2");
+  p = await freshTarget("Tester", stand, face, 4);
+  isolate(p);
+  m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  e = await waitObserver(60);
+  if (e) {
+    at = { ...e.location };
+    const dir = { x: p.location.x - at.x, z: p.location.z - at.z };
+    const len = Math.hypot(dir.x, dir.z) || 1;
+    const mid = { x: at.x + (dir.x / len) * 9, y: Y, z: at.z + (dir.z / len) * 9 };
+    mobs = around(mid, [["minecraft:husk", -2, 0], ["minecraft:husk", 2, 0], ["otest:dweller", 0, 2]]);
+    await wait(40);
+    const ch = await runAt(p, e, m);
+    const rage = await waitEvent("rage", () => true, 40, m);
+    await wait(4);
+    const un = since(m, "dominion").filter((d) => d.what === "unleash");
+    check("servants_rage_with_it", !!ch && !!rage && un.length >= 1, `${ch ? "charged" : "no charge"}, ${rage ? "rage" : "no rage"}, ${un.length} let go`);
+    const freed = mobs.filter((c) => c.isValid && un.some((d) => d.id === c.id));
+    check("servants_let_go_fully", freed.length >= 1 && freed.every((c) => !c.getEffect("slowness") && !c.getEffect("weakness")));
+  } else check("servants_rage_with_it", false, "no body");
+  obs("abort");
+  obs("charge", "auto");
+  obs("preset", "standard");
+  await observerGone(100);
+  clearHostiles(stand);
+};
+
+TESTS.its_eyes = async () => {
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  const face = { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 };
+  clearHostiles(stand);
+  // a creature ahead stops and stares at you, its eyes in it; look at it and it is it
+  let p = await freshTarget("Tester", stand, face, 2);
+  isolate(p);
+  let [h] = around(stand, [["minecraft:husk", 0, -15]]);
+  h.addEffect("slowness", 60, { amplifier: 7, showParticles: false });
+  await wait(4);
+  p.lookAtLocation({ x: stand.x + 12, y: Y + 1.6, z: stand.z - 12 });
+  let m = mark();
+  obs("trigger", "its_eyes", "Tester");
+  const st = await waitEvent("eyes", (d) => d.what === "stare", 40, m);
+  check("its_eyes_a_creature_stares", !!st && st.type === "minecraft:husk", JSON.stringify(since(m, "end")));
+  await wait(16);
+  check("its_eyes_it_faces_you", h.isValid && facingErr(h, p.location) < 20, h.isValid ? facingErr(h, p.location).toFixed(0) : "gone");
+  for (let t = 0; t < 40 && h.isValid; t += 2) {
+    p.lookAtLocation({ x: h.location.x, y: h.location.y + 1.6, z: h.location.z });
+    await wait(2);
+  }
+  const was = await waitEvent("eyes", (d) => d.what === "it_was_it", 20, m);
+  check("its_eyes_look_and_it_is_it", !h.isValid && !!was && !!observerEntity() && since(m, "dominion").some((d) => d.what === "torn" && d.why === "its_eyes"));
+  const end = await endOf("its_eyes", m, 200);
+  check("its_eyes_outcome", end && end.outcome === "seen_through" && end.noticed, end ? end.outcome : "none");
+  check("its_eyes_discovery", discovered(m, "its_eyes"));
+  await observerGone(100);
+  // do not look: it lets the creature go, and you never knew
+  p = await freshTarget("Tester", stand, face, 2);
+  [h] = around(stand, [["minecraft:husk", 0, -15]]);
+  h.addEffect("slowness", 60, { amplifier: 7, showParticles: false });
+  await wait(4);
+  p.lookAtLocation({ x: stand.x + 12, y: Y + 1.6, z: stand.z - 12 });
+  m = mark();
+  obs("trigger", "its_eyes", "Tester");
+  // (the trigger arrives a tick later: only look away once the creature has begun to stare)
+  const st2 = await waitEvent("eyes", (d) => d.what === "stare", 40, m);
+  check("its_eyes_stares_again", !!st2, JSON.stringify(since(m, "eyes")));
+  for (let t = 0; t < 20 * 16 && !since(m, "end").some((d) => d.type === "its_eyes"); t += 4) {
+    p.lookAtLocation({ x: stand.x - 20, y: Y + 1.6, z: stand.z + 20 });
+    await wait(4);
+  }
+  const end2 = await endOf("its_eyes", m, 40);
+  check("its_eyes_unnoticed_lets_it_go", end2 && end2.outcome === "unnoticed" && h.isValid && !h.getEffect("weakness"), end2 ? `${end2.outcome} ${JSON.stringify(since(m, "eyes"))}` : "none");
+  // and with nothing that answers to it in sight, it has nothing to look through
+  if (h.isValid) h.remove();
+  m = mark();
+  obs("trigger", "its_eyes", "Tester");
+  const end3 = await endOf("its_eyes", m, 40);
+  check("its_eyes_needs_a_creature", end3 && end3.outcome === "deferred", end3 ? end3.outcome : "none");
+  clearHostiles(stand);
+};
+
 // ------------------------------------------------------------------ 1.1.2: the user's recordings in play
 
 TESTS.sounds = async () => {

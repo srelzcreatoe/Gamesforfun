@@ -365,7 +365,7 @@ body-free encounters (turned object, door, night visit, follow-ups) can run for 
    until it backs off (*Held Gaze*), use the Witness Lens, strike it. If it reaches you: a 0.6 s wind-up you can step
    out of; at aggression 0 it only touches you and the screen goes dark.
 
-All 25 implemented encounters and 16 further concepts are catalogued in [ENCOUNTERS.md](ENCOUNTERS.md).
+All 26 implemented encounters and 16 further concepts are catalogued in [ENCOUNTERS.md](ENCOUNTERS.md).
 
 ## 11. Progression, tools and the ending
 
@@ -584,3 +584,20 @@ Three phases, in the user's design, built into the encounters that show it from 
 * **Nothing taken from other add-ons**: no other add-on's files, scripts or assets are read, copied or required. It
   acts on their creatures only through the shared world (queries, rotation, effects, impulses, an event every creeper
   has, removal). Tests use stand-in creatures that live only in the test kit (`otest:dweller`, `otest:great_dweller`).
+
+## 21. They are its (1.2.1)
+
+* **Roles** (`observer/dominion.js`): each creature that answers to it is *sent* (1.2.0), a *watcher*, or a *rival*.
+  Watchers are chosen at the scan (stage of the player it came for: 3 → three, 5 → four), walk to a slot around that
+  player (`take`, `goTo`) and then `watch`: turned to the player's eyes every tick, held (Slowness VIII refreshed
+  every 10 ticks — a single application expired after 1.5 s in the first test run and let them walk on), harmless,
+  its eyes as particles. At stage 4 the hold is lifted only while the player is not looking at it (`visibility` with a
+  40° cone at its head and middle, every 2 ticks), and closer than 3.6 blocks it is pushed back. *Dismiss* when its
+  body is gone; *unleash* on its rage.
+* **Its Eyes** (`encounters/its_eyes.js`): the weight function itself looks for a creature in sight (so the director
+  never chooses it without one), `prepare` takes the nearest; the creature is held, turned to the player and given its
+  eyes each tick; 0.5 s of being looked at → `tearApart`, the body spawned on its spot (silent), a normal sighting.
+* **Load order**: `encounters/common.js` now loads the creature module, which the director loads in turn. A module
+  the director reaches must not register an encounter at load (the registry does not exist yet): the first build did
+  (through `animals.js` → `borrowed_eyes.js`) and the whole script stopped on the server. The shared walking check
+  moved to `world/walk.js`, and `tools/validate.mjs` now fails on any such chain.

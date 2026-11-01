@@ -11,7 +11,7 @@ The first load in a Windows client (by the user) showed three resource-pack erro
 client-only error is caught before release. The creature's look, animations, sounds and menus still have to be
 confirmed in a client.
 
-Everything that runs on the server — the director, all 25 encounters (including *In the Mire*, *At the Foot of the Bed* and *Not Yours*), the merged Weeping
+Everything that runs on the server — the director, all 26 encounters (including *In the Mire*, *At the Foot of the Bed*, *Not Yours* and *Its Eyes*), the merged Weeping
 Mire biome and its torn pages, the Flare, escape learning, the silence before
 attacks, its pages, signs, returned items, the restoration ledger, persistence across a restart, multiplayer targeting,
 dimension travel, items, wards, settings — was exercised on a real Bedrock Dedicated
@@ -81,6 +81,9 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   list and are not verifiable on a server.
 * Forms (Field Notes — including "Pages I didn't write" and what it has learned — settings), action-bar captions, title
   cards, camera fades and shakes (the fade API and the `camerashake` command were accepted by the server).
+* 1.2.1, they are its: the eyes it puts in them (`observer:servant_eyes`, two glints at an estimated eye height for
+  any creature shape — a spider's or another add-on's creature's may sit off), how the watchers read standing around
+  you, and the rage with them let go.
 * 1.2.0, it rules them: how the turning, standing still, backing away and vanishing read on real creatures, the
   Config Wheel's *Other creatures* form, and — above all — real creatures from other add-ons: the tests use stand-ins
   that live in the test kit (a hostile creature of another namespace, and one with 400 health); a creature whose own
@@ -150,6 +153,7 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 | Sleep paralysis comes too often or feels like a cheap scare | low–medium | stage 3+, about one sleep in three, never within 90 minutes of play; quiet and recovery periods apply; no damage, no sting, the night is not skipped; its own encounter toggle; never with camera effects off |
 | Animals being moved annoys players with farms | low | at most 8 at a time and 12 per appearance, a few blocks only, never off a ledge or into water; sitting, leashed and ridden animals are not moved; "Animals sense it" off switch |
 | It removes another add-on's creature that that add-on needs (a quest creature, a boss under 300 health) | low–medium | only hostile creatures, never tamed or name-tagged ones, never bosses or anything with 300+ health; per-kind "Leave it alone" on the Config Wheel; one setting switches it all off |
+| Its rage with the creatures it holds let go is too much | low–medium | only from stage 4, only on Standard or High aggression, at most four, only ones it was already holding within 24 blocks; Peaceful has no hostile creatures |
 | A new player is moved on arrival | low | only on their first spawn, only at the world spawn, only if it is inside the Mire; they land facing it, a few blocks outside its edge |
 | The Mire's look depends on `pbr` | low–medium | the RP declares the `pbr` capability the Mire's texture sets and lighting use; to be confirmed in a client (§1) |
 | Players dislike base intrusion | — | Ward Lantern, manipulation levels, `/observer:restore`, Atmosphere preset |
@@ -180,13 +184,13 @@ the sounds of your own work and plays them from where you are not. It gets home 
 you to find. It closes the tunnel behind you. It can be understood — and if you pay attention long enough, you can
 finally meet its gaze.
 
-* 25 encounter types, three signature encounters, five escalating stages
+* 26 encounter types, three signature encounters, five escalating stages
 * A home of its own: the Weeping Mire, a swamp of weeping trees where it watches from between the trunks, and eight
   torn pages that bring it closer
 * It learns how you escape, goes quiet before it attacks, and writes pages in your notes from what you did
 * Some nights you wake unable to move, and it is standing at the foot of your bed; the animals always know where it is
 * The other creatures of the dark answer to it — and what hurts you, it may take apart
 * Real, reversible world changes — your builds are protected and your own changes always win
-* 26 discoveries, a Witness Lens, Tally Chalk, Ward Lanterns, Flares, and an ending you can reach
+* 27 discoveries, a Witness Lens, Tally Chalk, Ward Lanterns, Flares, and an ending you can reach
 * Works across the Overworld, caves, water, the Nether and the End; multiplayer-aware; no experiments needed
 * Atmosphere, Standard and Relentless presets; captions and full control over scares and camera effects

@@ -19,8 +19,8 @@ Minecraft imports both packs. Then:
    Weeping Mire, its home). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from an earlier version:** import the new `.mcaddon` (version 1.2.0). If a world still uses the old copy, open the world's
-settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.2.0 packs again. Your
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.2.1). If a world still uses the old copy, open the world's
+settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.2.1 packs again. Your
 progress is kept; the new options below start switched on.
 
 **The Weeping Mire is part of The Observer now (1.0.7).** If a world also has the stand-alone *Weeping Mire* packs
@@ -62,6 +62,15 @@ standing right behind it — the creature turns round to it and is torn apart, a
 is gone. You are its, not theirs. On the Config Wheel → **Other creatures**, look at any creature and mark its kind
 "Answers to it", "Its rival" (it tears those apart whenever it comes) or "Leave it alone". Tamed and name-tagged
 creatures, bosses and anything with 300 or more health are always left alone, and it all switches off in the settings.
+
+**They are its.** From the third stage it keeps a few of them: three (four at the fifth stage) walk out to stand
+around you, spread out about ten blocks away, and stare at you, quite still, with small cold eyes that are its eyes.
+They cannot hurt you while they are its. When it goes, they stay a moment — and once you are not looking, they are
+gone too. From the fourth stage they come closer only while you are not looking at them, the way it does; look at one
+and it stops dead. They never come nearer than four blocks. Sometimes a single creature ahead of you stops and just
+stares: that is **its eyes**. Look straight back at it and it comes apart — and it is standing there. And if you
+make it snap (from the fourth stage, on Standard or High aggression), the creatures it is holding near you are let go
+with its eyes still in them, and come for you with it.
 
 **The animals know.** When it comes — whether you have seen it or not — the animals near it stop what they are
 doing and turn to face it, quite still: the nearest first, the rest a moment later. After a while cows, sheep, pigs,

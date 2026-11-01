@@ -12,6 +12,7 @@ import { outrunBonus } from "../observer/learn.js";
 import * as climb from "../observer/climb.js";
 import * as squeeze from "../observer/squeeze.js";
 import * as profile from "../observer/profile.js";
+import * as dominion from "../observer/dominion.js";
 
 /** @typedef {import("../director/encounter.js").Encounter} Encounter */
 /** @typedef {{x:number,y:number,z:number}} Vec */
@@ -175,6 +176,8 @@ export async function relentless(enc, o = {}) {
     enc.caption("caption.shriek");
     enc.shake(0.3, 0.8);
     enc.emit("rage", {});
+    // and the creatures it holds near them come too, its eyes still in them (1.2.1)
+    dominion.unleash(p);
   }
   for (let t = 0; t < end; t += 2) {
     // strikes back to back never pass through enc.wait(): check for an abort (flare, player left) here

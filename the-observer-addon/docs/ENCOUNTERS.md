@@ -8,7 +8,7 @@ Implemented encounters live in `packs/TheObserver_BP/scripts/encounters/` (one f
 the director. Concepts marked *planned* are design-ready but not implemented in 1.0.0 — they are not advertised as
 features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stage at which the director may choose it.
 
-## Implemented (25 mechanically distinct types)
+## Implemented (26 mechanically distinct types)
 
 | # | Encounter (file) | Tier / Stage | Context | Location | Cue | Intention | Manipulation | Player response | Consequence |
 |---|---|---|---|---|---|---|---|---|---|
@@ -37,6 +37,7 @@ features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stag
 | 23 | **In the Mire** (`mire_watcher`) | 1 / 1 | in the Weeping Mire, its home (weight 16 there, 0 anywhere else); also after a torn page | among the weeping trees 20–48 blocks away, peeking from behind a trunk when there is one: where you can see it first, 12–24 blocks if the trees allow nothing further, deep among them as a last resort; after a torn page 16–24 blocks behind you, after the last of the eight 12–14 (closer, from 8, if the trees allow nothing further) | a still figure between the trunks | the Mire's old watcher, now the Observer itself: to be seen at home | — | look at it ~1 s / walk up to it / ignore it | seen: *Its Home*, then the standoff (since 1.0.9) — look away and it is gone in black mist with a cave sound; stare too long or shoot it and it snaps; from stage 2 it may lunge at once instead; within 9 blocks it does not wait (too close, or a strike); ignored, it fades after 90–180 s |
 | 24 | **At the Foot of the Bed** (`paralysis`, 1.1.1) | 3 / 3, camera effects ≥ reduced | the player falls asleep (event-triggered: decided once per sleep after 1.5 s in bed, ~30 % at stage 3, +5 % per stage; at most every 90 min of play); from the Config Wheel, a bed within 8 blocks | beyond the foot of the bed, 2.6–3.8 blocks from the pillow, in full view (in a room too small for that, beside the bed by the knees) | the dark comes down as sleep takes them; their own heart, loud; its breath | sleep paralysis: to be seen while they cannot move | — (camera, input and HUD only; nothing in the world changes) | none possible: they try to turn their head and cannot | it tilts its head, leans two-thirds of a block closer; a blink and it is gone; they stand beside the bed looking at where it stood (*At the Foot of the Bed*). No damage; the night is not skipped |
 | 25 | **Not Yours** (`not_yours`, 1.2.0) | 2 / 3 | a hostile creature hurts the player (event-triggered: always for a kind marked its rival, else one time in two; at most every 8 min); from the Config Wheel, the nearest hostile creature within 16 blocks | right behind the creature, as seen from the player, its head in their sight | it is suddenly there; the creature stops and turns round to it | it does not share: the player is its prey | — | none needed | the creature is torn apart (crimson shreds, a crack); it looks at the player a moment and is gone (*Not Yours*). It never touches the player |
+| 26 | **Its Eyes** (`its_eyes`, 1.2.1) | 2 / 2 | a creature that answers to it 8–28 blocks ahead, in sight (weight 6 at night or in the dark, else 3; 0 with none, so it never defers for lack of one) | the creature | it stops and stares at the player, perfectly still, its eyes in it | it watches through them | — | look straight at it (12°, 0.5 s) / don't | looked at: it comes apart and it is standing where it stood — a sighting (*Its Eyes*); not looked at within 14 s: the creature is let go, and nothing else happens. It never hurts the player |
 
 **Lunge (shared reaction, stage 2+).** When it is noticed in *The Figure at the Edge*, *Always the Same Place* or *Echo
 Ahead*, it may shriek and come at the player through the air in jerks (~14 blocks/s, floating a block up), then tear
@@ -75,6 +76,16 @@ Left alone: players, its own kind, tamed and name-tagged creatures, Minecraft's 
 elder guardian) and anything with 300+ health, and kinds marked "leave it alone". Marks are per kind (type id), set
 on the Config Wheel → *Other creatures* by looking at one. It never reads or changes another add-on's files or
 scripts — only the creatures in the shared world. Setting: *Other creatures answer to it*.
+
+**They are its (1.2.1, shared).** From stage 3 the first three creatures that answer to it (four at stage 5), at least
+5 blocks from the player, are kept as its *watchers*: after turning to it they walk (held 2.4 b/s) to places around
+the player — ±70° and ±140° from the line to it, ~10 blocks out, the nearest standing spot — and stand there staring
+at the player, held still and harmless, with its eyes (`observer:servant_eyes`, two glints refreshed every 0.5 s).
+From stage 4 a watcher moves toward the player at 2.8 b/s only while that player is not looking at it (40° cone, line
+of sight), stops dead when looked at, and never comes nearer than 4 blocks (it steps back if it is). When its body
+goes, its watchers stay where they are, still, until nobody can see them for half a second (then they are removed),
+for at most 30 s. **Its rage**: when it snaps (`relentless` with `rage`, stage 4+, aggression Standard or High), up to
+four creatures it holds within 24 blocks of the player are let go — every effect removed — and keep its eyes for 10 s.
 
 **The animals know (1.1.1, shared — every appearance of its body).** `observer/animals.js`, every tick while its body
 exists: animals within 20 blocks of it (when a player is within 64) react once per appearance, at most eight at a time

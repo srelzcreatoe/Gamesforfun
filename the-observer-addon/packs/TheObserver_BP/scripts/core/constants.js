@@ -33,6 +33,7 @@ export const PARTICLES = {
   chalkSmudged: "observer:chalk_smudged",
   dust: "observer:dust",
   flare: "observer:flare",
+  servantEyes: "observer:servant_eyes",
 };
 
 export const SOUNDS = {

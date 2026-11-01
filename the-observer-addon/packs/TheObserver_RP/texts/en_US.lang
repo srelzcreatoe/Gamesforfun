@@ -439,6 +439,8 @@ observer.enc.paralysis=At the Foot of the Bed
 observer.enc.paralysis.where=a bed within 8 blocks with room at its foot (camera effects reduced or full); in play it comes as you fall asleep, now and then
 observer.enc.not_yours=Not Yours
 observer.enc.not_yours.where=a hostile creature within 16 blocks of you, with room behind it (in play: one that hurts you, from the third stage)
+observer.enc.its_eyes=Its Eyes
+observer.enc.its_eyes.where=a hostile creature 8-28 blocks ahead of you, in sight (zombie, spider, another add-on's creature); look straight at it when it stares
 observer.disc.its_home.title=Its Home
 observer.disc.its_home.text=The trees out there weep. Black bark, roots like bones. It was standing among them as if it had always stood there, not following me, not waiting for me. Living there. When I looked back there was only black mist where it stood, and the ground was cold.
 observer.disc.its_home.lesson=The Weeping Mire is its home. There it comes sooner and more often, and it does not wait for you to settle in. The torn pages are about it.
@@ -448,6 +450,9 @@ observer.disc.foot_of_the_bed.lesson=Sometimes it comes while you sleep, and you
 observer.disc.not_yours.title=Not Yours
 observer.disc.not_yours.text=Something was going for me. Then it was standing behind it — I don't know how long it had been there. The thing stopped, turned round to it, and came apart. It looked at me after. Not at what was left. At me.
 observer.disc.not_yours.lesson=The other creatures of the dark answer to it. What hurts you, it may take apart: you are its, not theirs.
+observer.disc.its_eyes.title=Its Eyes
+observer.disc.its_eyes.text=A zombie had stopped in the field and was looking at me. Not coming. Just looking, with eyes that were wrong — small and white and cold. When I looked back it came apart, and it was standing where the zombie had been.
+observer.disc.its_eyes.lesson=The creatures that answer to it can be its eyes. If one stops and stares at you, it is not the one looking.
 
 ## ---------------------------------------------------------------- 1.1.0: it knows you; its presence, felt
 observer.set.heartbeat=Heartbeat (and a light tremor) when it is near

@@ -55,6 +55,7 @@ import "./encounters/inside.js";
 import "./encounters/sign.js";
 import "./encounters/borrowed_eyes.js";
 import "./encounters/mire_watcher.js";
+import "./encounters/its_eyes.js";
 import "./encounters/tests.js";
 
 let ready = false;

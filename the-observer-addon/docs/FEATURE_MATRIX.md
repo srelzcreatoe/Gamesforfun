@@ -243,6 +243,16 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Not Yours | `encounters/not_yours.js` (`onHurt`, `tryManual`) | a creature hurts you; stage 3+ | it stands behind it, tears it apart, looks at you; discovery | `not_yours_comes_when_hurt`, `not_yours_behind_it`, `not_yours_torn_apart`, `not_yours_outcome`, `not_yours_discovery`, `not_yours_not_before_stage_3` | ✅ Runtime |
 | Other creatures (Config Wheel) | `wheel.creatures`, settings `marks` | look at a creature | mark its kind; forget all | dev `creature` command in the tests (the form itself ❔) | ✅ Runtime (form ❔) |
 
+## 1.2.1: they are its
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| Its watchers | `dominion.take` / `goTo` / `watch` | stage 3+ (3; 4 at stage 5) | they stand around you at ~10 blocks and stare at you, still, with its eyes; harmless | `servants_three_kept`, `servants_stand_around_you`, `servants_stare_at_you`, `servants_quite_still_at_stage_3`, `servants_never_hurt_you` | ✅ Runtime (eyes ❔) |
+| …leave with it | `dominion.dismiss` | its body is gone | they stay, then are gone unseen | `servants_stay_when_it_goes`, `servants_gone_unseen` | ✅ Runtime |
+| Closer only unwatched | `dominion.watch` (stage 4) | not looked at | they creep, stop dead when looked at, never nearer than 4 | `servants_creep_unwatched`, `servants_never_nearer_than_4`, `servants_freeze_when_looked_at`, `servants_never_hurt_you_creeping` | ✅ Runtime |
+| Its rage | `dominion.unleash` from `relentless` | it snaps; stage 4+, aggression ≥ Standard | up to four let go, fully, its eyes in them | `servants_rage_with_it`, `servants_let_go_fully` | ✅ Runtime |
+| Its Eyes | `encounters/its_eyes.js` | a creature ahead, in sight; stage 2+ | it stares; looked at, it is it (sighting, discovery); not looked at, let go; none, never chosen | `its_eyes_a_creature_stares`, `its_eyes_it_faces_you`, `its_eyes_look_and_it_is_it`, `its_eyes_outcome`, `its_eyes_discovery`, `its_eyes_stares_again`, `its_eyes_unnoticed_lets_it_go`, `its_eyes_needs_a_creature` | ✅ Runtime |
+| Load order guarded | `tools/validate.mjs` | — | no module the director loads registers an encounter | validator | ✅ Static |
+
 ## Performance
 | Measure | Result | Test |
 |---|---|---|

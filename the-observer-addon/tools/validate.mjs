@@ -310,6 +310,34 @@ try {
   notes.push(`vanilla id check error ${e.message}`);
 }
 
+// Load order: an encounter registers itself when its module loads (register() at the top level), which needs the
+// director's registry to exist already. If anything the director imports (directly or not) leads to such a module,
+// the script fails at load with "REGISTRY is not initialized" — on a server, not here. So: walk the director's imports.
+{
+  const SCRIPTS = path.join(BP, "scripts");
+  const files = walk(SCRIPTS).filter((f) => f.endsWith(".js"));
+  /** @type {Map<string, string[]>} */
+  const imports = new Map();
+  for (const f of files) {
+    const text = fs.readFileSync(f, "utf8");
+    const deps = [...text.matchAll(/^import\s[^;]*?from\s+"(\.[^"]+)"|^import\s+"(\.[^"]+)"/gm)].map((m) => path.resolve(path.dirname(f), m[1] ?? m[2]));
+    imports.set(path.resolve(f), deps);
+  }
+  const director = path.resolve(SCRIPTS, "director/director.js");
+  const seen = new Set();
+  const stack = [...(imports.get(director) ?? [])];
+  while (stack.length) {
+    const f = stack.pop();
+    if (!f || seen.has(f) || f === director) continue;
+    seen.add(f);
+    stack.push(...(imports.get(f) ?? []));
+  }
+  for (const f of seen) {
+    if (/^register\(/m.test(fs.readFileSync(f, "utf8"))) fail(`load order: ${path.relative(SCRIPTS, f)} registers an encounter but is loaded by director.js (through its imports): move what director needs out of it`);
+  }
+  notes.push(`load order checked: director.js reaches ${seen.size} modules, none registers an encounter`);
+}
+
 for (const n of notes) console.log("note:", n);
 if (problems.length) {
   console.log(`\n${problems.length} problem(s):`);
