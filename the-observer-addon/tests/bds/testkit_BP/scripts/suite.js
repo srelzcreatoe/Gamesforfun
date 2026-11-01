@@ -2593,6 +2593,12 @@ TESTS.mire_fuel = async () => {
 // ------------------------------------------------------------------ 1.2.0: it rules them
 
 const HOSTILE_TEST = /^(minecraft:(husk|spider|creeper)|otest:(great_)?dweller)$/;
+/** Daylight, and none of the night's own creatures about (left from a test that ran at night): the creature tests
+ *  must only meet the creatures they set out themselves. @param {{x:number,y:number,z:number}} at */
+function daylight(at, r = 80) {
+  ow().runCommand("time set noon");
+  for (const e of ow().getEntities({ location: at, maxDistance: r, families: ["monster"] })) if (e.typeId !== OBS) e.remove();
+}
 function clearHostiles(at, r = 48) {
   for (const e of ow().getEntities({ location: at, maxDistance: r })) if (HOSTILE_TEST.test(e.typeId)) e.remove();
 }
@@ -2607,6 +2613,7 @@ function around(at, list) {
 
 TESTS.dominion = async () => {
   // the other creatures of the dark answer to it: they know it, stop, turn to it, back away — and, unseen, are gone
+  daylight({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
   const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
   const face = { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 };
   clearHostiles(stand);
@@ -2726,6 +2733,7 @@ TESTS.dominion = async () => {
 
 TESTS.not_yours = async () => {
   // it does not share: a creature that hurts you finds it standing behind it, and is torn apart
+  daylight({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
   const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
   const face = { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 };
   clearHostiles(stand);
@@ -2752,6 +2760,7 @@ TESTS.not_yours = async () => {
   const end = await endOf("not_yours", m, 200);
   check("not_yours_outcome", end && end.outcome === "defended", end ? end.outcome : "none");
   check("not_yours_discovery", discovered(m, "not_yours"));
+  if (d.isValid) d.remove();
   await observerGone(100);
   // not before the third stage
   p = await freshTarget("Tester", stand, face, 2);
@@ -2789,6 +2798,7 @@ const hasFx = (e, ...fx) => fx.some((f) => !!e.getEffect(f));
 
 TESTS.puppets_core = async () => {
   // it takes a creature for its own: its eyes, its voice; it lurks, it hunts, and it is given back as it was
+  daylight({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
   const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
   const face = { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 };
   clearPuppetArena(stand);
@@ -2886,6 +2896,7 @@ TESTS.puppets_core = async () => {
 TESTS.puppets_marked = async () => {
   // a kind marked "its puppet" — here a stand-in for another add-on's cave creature — is taken in its cave, brought
   // up after you to the surface, lurks at the edge of your sight, is turned loose on you, and put back where it was
+  daylight({ x: 1020.5, y: Y, z: 1126.5 }, 96);
   const stand = { x: 1020.5, y: Y, z: 1126.5 };
   const face = { x: 1020.5, y: Y + 1.6, z: 1160 };
   clearPuppetArena(stand, 80);
@@ -2930,6 +2941,7 @@ TESTS.puppets_marked = async () => {
 
 TESTS.puppets_cow = async () => {
   // at home, one of your animals is its: it faces you and follows you at a distance; hit it, and it is itself again
+  daylight({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
   const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
   clearPuppetArena(stand);
   obs("possess", "always");
@@ -3002,6 +3014,7 @@ TESTS.knocking = async () => {
   check("knocking_left_shut_nothing_there", end2 && end2.outcome === "ignored" && !h.isValid, end2 ? end2.outcome : "none");
   resetHouse();
   clearPuppetArena(inside, 70);
+  ow().runCommand("time set noon");
 };
 
 TESTS.bait = async () => {
@@ -3037,10 +3050,12 @@ TESTS.bait = async () => {
   check("bait_discovery", discovered(m, "the_voice_in_the_dark"));
   await observerGone(100);
   if (v.isValid) v.remove();
+  ow().runCommand("time set noon");
 };
 
 TESTS.among_them = async () => {
   // among a few of them, one is it: come close to that one and it comes apart — and it is standing there among them
+  daylight({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
   const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
   clearPuppetArena(stand);
   const p = await freshTarget("Tester", stand, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
@@ -3075,6 +3090,7 @@ TESTS.among_them = async () => {
 
 TESTS.rival_hunt = async () => {
   // a rival out of sight is hunted: far off, a crack and a scream; go and look — footprints, and what was left
+  daylight({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
   const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
   clearPuppetArena(stand);
   obs("creature", "otest:dweller", "rival");
@@ -3101,6 +3117,7 @@ TESTS.rival_hunt = async () => {
 
 TESTS.herald = async () => {
   // before a heavier encounter it sends one of them ahead to stand and stare; then the encounter comes
+  daylight({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
   const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
   clearPuppetArena(stand);
   const p = await freshTarget("Tester", stand, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
@@ -3155,7 +3172,7 @@ TESTS.night_turn = async () => {
   const dawn = await waitEvent("puppet", (d) => d.what === "dawn", 60, m);
   await wait(4);
   check("night_let_go_at_dawn", !!dawn && out.filter((c) => c.isValid).every((c) => !hasFx(c, "slowness", "weakness")));
-  ow().runCommand("time set midnight");
+  ow().runCommand("time set noon");
   clearPuppetArena(inside, 70);
 };
 
@@ -3189,6 +3206,7 @@ TESTS.mire_guards = async () => {
 
 TESTS.tribute = async () => {
   // a creature it sends away, unseen, leaves behind something you threw away
+  daylight({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
   const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
   clearPuppetArena(stand);
   obs("possess", "always");
@@ -3230,6 +3248,7 @@ const facingErr = (c, pt) => Math.abs(wrapDeg(c.getRotation().y - yawTo(c.locati
 
 TESTS.servants = async () => {
   const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  daylight({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
   const face = { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 };
   clearHostiles(stand);
   // A. its watchers (stage 3): three of them go to stand around you and stare at you; when it goes, they go too
@@ -3346,6 +3365,7 @@ TESTS.servants = async () => {
 
 TESTS.its_eyes = async () => {
   const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  daylight({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
   const face = { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 };
   clearHostiles(stand);
   // a creature ahead stops and stares at you, its eyes in it; look at it and it is it
