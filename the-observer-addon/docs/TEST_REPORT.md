@@ -477,6 +477,9 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
   (Weakness V, a creeper's fuse put out) for as long as it answers to it (`dominion_no_harm_from_those_that_answer`).
 * Test-side: the named husk (left alone on purpose) hunted the test player as any husk would; only hits from
   creatures that answer to it count against it.
+* Test-side: on its way to the player the named husk brushed past a creature being held and nudged it 0.43 blocks;
+  the two creatures it leaves alone are now kept in place by the test itself (all held creatures: 0.00 blocks, three
+  runs).
 
 **Found by the 1.1.1 tests**
 * After the paralysis the player was left standing on the bed: the floor cell beside it was searched from 1.5 blocks

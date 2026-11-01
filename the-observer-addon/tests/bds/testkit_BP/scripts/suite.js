@@ -2621,6 +2621,9 @@ TESTS.dominion = async () => {
   const mobs = around(at, [["minecraft:husk", -5, 1], ["minecraft:spider", 5, 1], ["minecraft:creeper", -4, -4], ["otest:dweller", 4, -4],
     ["otest:great_dweller", 0, -6], ["minecraft:husk", 6, -2, "Bob"]]);
   const [husk, spider, creeper, dweller, great, bob] = mobs;
+  // (the two it leaves alone are kept where they are by the test itself, so they do not jostle the others on their way
+  // to the player — whether it leaves them alone is checked below)
+  for (const c of [great, bob]) c.addEffect("slowness", 20 * 30, { amplifier: 7, showParticles: false });
   const best = new Map(), still = new Map(), first = new Map();
   for (let t = 0; t < 70; t += 2) {
     const ev = events.slice(m).filter((x) => x.kind === "dominion");
@@ -2644,7 +2647,7 @@ TESTS.dominion = async () => {
   check("dominion_another_addons_creature_too", ids.has(dweller.id));
   check("dominion_great_and_named_left_alone", !ids.has(great.id) && !ids.has(bob.id) && great.isValid && bob.isValid);
   check("dominion_they_turn_to_it", [...best.values()].length >= 3 && [...best.values()].every((x) => x < 25), [...best.values()].map((x) => x.toFixed(0)).join(","));
-  check("dominion_they_go_still", [...still.values()].every((x) => x < 0.4), [...still.values()].map((x) => x.toFixed(2)).join(","));
+  check("dominion_they_go_still", [...still.values()].every((x) => x < 0.4), [...still.entries()].map(([id, x]) => `${mobs.find((c) => c.id === id)?.typeId}:${x.toFixed(2)}`).join(" "));
   await wait(20 * 5);
   const later = since(m, "dominion");
   const holds = later.filter((d) => d.what === "hold");
