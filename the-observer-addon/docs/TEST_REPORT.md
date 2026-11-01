@@ -95,7 +95,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 85 test groups (including setup and a status check) with 375 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 86 test groups (including setup and a status check) with 409 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -137,6 +137,7 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | **final (1.1.0)** | **375** | **0** | all passed: the 1.0.9 suite plus the music cut while it is around and back after it has gone, the heartbeat and its tremor (none with camera effects off), charging at it (it attacks; it vanishes and sets an ambush that springs when the moment favours it; the decision weighs the light, health, company, what is held and what it has learned), the profile (habits learned with each repetition, where and when you play, light placed, encounters that get a reaction), hiding behind a real tree (body behind the trunk, looks round, ducks when seen, switches sides) and Mire wood burning in a furnace |
 | targeted (1.1.1: sleep paralysis, the animals; then `suite_111.txt` with the house, sleep and presence regressions) | 36 + 37 + 38 + 39 + 66 | 2 + 1 + 0 + 0 + 0 | run 1: after the paralysis the player was left standing on the bed (the search for a floor cell beside it never reached the floor), and two animals drifted 0.2–0.5 blocks while meant to stand still; run 2: the drift fixed; then all passed, with the small-room fallback added (39) and the regressions (66) |
 | full (1.1.1, first) | 405 | 4 | test-side: in the vigil it stood at the very edge of the test platform (x 1120), and the test, choosing a viewpoint 6 blocks from it as a searching player would, stood the simulated player in the air beyond the edge — it fell to its death; dead, it took no damage in two later groups (`relentless_full_strength`, `climb_attack_strikes_from_the_wall`: damage 0). The viewpoint now needs ground under it, and a test player who died is respawned before the next group (those groups re-run: 28 / 28) |
+| **final (1.1.1)** | **409** | **0** | all passed: the 1.1.0 suite plus sleep paralysis (woken in the night under a fade, the night not skipped, held still, at the foot of the bed in view and stooped under the ceiling, looking at you, the head-turn that fails, gone in a blink, beside the bed, no harm, its discovery; cut short it gives everything back; never with camera effects off; from the Config Wheel; a small room, beside the bed) and the animals (the nearest first, each once, facing it, perfectly still, edging away and looking back, on their feet, the dog's growl and whine, the cat's hiss, let go, the off switch) |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -166,6 +167,9 @@ Final run (1.0.9): 79 test groups, 1526 s, minimum TPS between tests 19.5, **0 c
 
 Final run (1.1.0): 85 test groups, 1496 s, minimum TPS between tests 19.8, **0 content-log or script errors**.
 
+Final run (1.1.1): 86 test groups, 1484 s, minimum TPS between tests 19.7, **0 content-log or script errors**.
+
+`noexp.txt` and `mire_locate.txt` re-run on 1.1.1: `level.dat` experiments none, 0 errors.
 `noexp.txt` and `mire_locate.txt` re-run on 1.1.0: `level.dat` experiments none, 0 errors.
 `noexp.txt` and `mire_locate.txt` re-run on 1.0.9: `level.dat` experiments none, 0 errors.
 `noexp.txt` and `mire_locate.txt` re-run on 1.0.8: `level.dat` experiments none, 0 errors; the nearest Weeping Mire
@@ -223,7 +227,7 @@ which is why only test worlds get it.
 | `chalk` | 1 | — |
 | `manip_off` | 2 | — |
 | `carve` | 3 | — |
-| `animals` | 1 | — |
+| `animals` | 13 | — |
 | `vigil` | 3 | — |
 | `vanish_in_place` | 4 | — |
 | `seal_occupied` | 2 | — |
@@ -273,6 +277,7 @@ which is why only test worlds get it.
 | `profile` | 2 | — |
 | `peek_tree` | 6 | — |
 | `mire_fuel` | 3 | — |
+| `paralysis` | 22 | — |
 | `natural` | 1 | — |
 | `status` | 0 | — |
 
