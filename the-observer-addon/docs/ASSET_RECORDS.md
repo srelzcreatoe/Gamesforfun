@@ -64,12 +64,24 @@ atlas (`textures/particle/particles`) by reference.
 1.1.1 adds no asset files. The animals that sense it use vanilla sound events by name only (`mob.wolf.growl`,
 `mob.wolf.whine`, `mob.cat.hiss`, `mob.cow.say`, `mob.sheep.say`, `mob.pig.say`, `mob.goat.ambient`,
 `mob.horse.angry`, `mob.horse.donkey.angry`, `mob.llama.angry` — names checked against Mojang's vanilla
-`sound_definitions.json`), and sleep paralysis plays its existing breath sound.
+`sound_definitions.json`), and sleep paralysis played its existing breath sound (its whisper since 1.1.2).
+
+1.1.2: the user's own Observer recordings (seven WAVs, 48 kHz stereo, supplied as `observer.zip`) are in the pack,
+prepared by `tools/prepare_supplied_sounds.py` (the raw WAVs are not kept in the repository). They replace three of
+the synthesized sounds (the arrival pressure, the shriek and the vanish) and add its sting when spotted, its whisper
+and its two themes. Their rights rest with the user who supplied them.
 
 ## Shipped resource files
 
 | File | Provenance | SHA-256 (first 16) |
 |---|---|---|
+| `TheObserver_RP/sounds/observer/presence.ogg` | made by the user (supplied 2026-11-01 in observer.zip); trimmed, faded, loudness-normalised and encoded by tools/prepare_supplied_sounds.py — from "observer grunt or teleporting" (mono, −17 LUFS): it arrives | `22b926016a997045` |
+| `TheObserver_RP/sounds/observer/shriek.ogg` | made by the user (supplied 2026-11-01 in observer.zip); trimmed, faded, loudness-normalised and encoded by tools/prepare_supplied_sounds.py — from "observer scream" (mono, −12 LUFS): it snaps, lunges, rages, or kills | `df84e200421b1a1f` |
+| `TheObserver_RP/sounds/observer/spotted.ogg` | made by the user (supplied 2026-11-01 in observer.zip); trimmed, faded, loudness-normalised and encoded by tools/prepare_supplied_sounds.py — from "observer spotted" (stereo, −17 LUFS; a click at 6.0 s cut): the sting when you spot it | `f6611984d6e02840` |
+| `TheObserver_RP/sounds/observer/vanish.ogg` | made by the user (supplied 2026-11-01 in observer.zip); trimmed, faded, loudness-normalised and encoded by tools/prepare_supplied_sounds.py — from "observer vanishes" (mono, −19 LUFS): it is gone | `c75f781fb7589d56` |
+| `TheObserver_RP/sounds/observer/whisper.ogg` | made by the user (supplied 2026-11-01 in observer.zip); trimmed, faded, loudness-normalised and encoded by tools/prepare_supplied_sounds.py — from "observer nearby or whisper" (mono, −19 LUFS): close and unseen; sleep paralysis | `328729b82b271edd` |
+| `TheObserver_RP/sounds/observer/theme_around.ogg` | made by the user (supplied 2026-11-01 in observer.zip); trimmed, faded, loudness-normalised and encoded by tools/prepare_supplied_sounds.py — from "dweller thr observer is around" (stereo, −21 LUFS, trailing silence trimmed): its music while it is around | `cdd54e30193ac0d8` |
+| `TheObserver_RP/sounds/observer/theme_lurking.ogg` | made by the user (supplied 2026-11-01 in observer.zip); trimmed, faded, loudness-normalised and encoded by tools/prepare_supplied_sounds.py — from "observer lurking" (stereo, −23 LUFS, made a seamless loop with a 3 s crossfade): its music in the Weeping Mire | `b8aed4977559d94d` |
 | `TheObserver_RP/sounds/observer/arrival.ogg` | original — synthesized by tools/synth_sounds.py | `65d1a04c09e62914` |
 | `TheObserver_RP/sounds/observer/breath1.ogg` | original — synthesized by tools/synth_sounds.py | `f22da6308d1f31e5` |
 | `TheObserver_RP/sounds/observer/breath2.ogg` | original — synthesized by tools/synth_sounds.py | `7161ec51f8e7539d` |
@@ -92,14 +104,10 @@ atlas (`textures/particle/particles`) by reference.
 | `TheObserver_RP/sounds/observer/lens.ogg` | original — synthesized by tools/synth_sounds.py | `2074db49d4bd8e16` |
 | `TheObserver_RP/sounds/observer/notice1.ogg` | original — synthesized by tools/synth_sounds.py | `0f3f23cb4c7c7816` |
 | `TheObserver_RP/sounds/observer/notice2.ogg` | original — synthesized by tools/synth_sounds.py | `c1b327df423e8298` |
-| `TheObserver_RP/sounds/observer/presence1.ogg` | original — synthesized by tools/synth_sounds.py | `dd69ad05946ca09f` |
-| `TheObserver_RP/sounds/observer/presence2.ogg` | original — synthesized by tools/synth_sounds.py | `03b64de34ad46373` |
 | `TheObserver_RP/sounds/observer/ring.ogg` | original — synthesized by tools/synth_sounds.py | `ff2eeaac0253cdaa` |
 | `TheObserver_RP/sounds/observer/scrawl1.ogg` | original — synthesized by tools/synth_sounds.py | `8bdb8613f7b7d5a8` |
 | `TheObserver_RP/sounds/observer/scrawl2.ogg` | original — synthesized by tools/synth_sounds.py | `72cef7508d25c4de` |
 | `TheObserver_RP/sounds/observer/seal.ogg` | original — synthesized by tools/synth_sounds.py | `ccb32fcda6aecd81` |
-| `TheObserver_RP/sounds/observer/shriek1.ogg` | original — synthesized by tools/synth_sounds.py | `3ecbff34de5f20e8` |
-| `TheObserver_RP/sounds/observer/shriek2.ogg` | original — synthesized by tools/synth_sounds.py | `504717baa781dde9` |
 | `TheObserver_RP/sounds/observer/silence.ogg` | original — synthesized by tools/synth_sounds.py (a near-silent looping music track) | `592cf63dbcb8d32c` |
 | `TheObserver_RP/sounds/observer/sink.ogg` | original — synthesized by tools/synth_sounds.py | `6c6e7fea42343da7` |
 | `TheObserver_RP/sounds/observer/snuff.ogg` | original — synthesized by tools/synth_sounds.py | `e83b2133ae9b3786` |
@@ -108,11 +116,9 @@ atlas (`textures/particle/particles`) by reference.
 | `TheObserver_RP/sounds/observer/step3.ogg` | original — synthesized by tools/synth_sounds.py | `882dc077f0e8465a` |
 | `TheObserver_RP/sounds/observer/step4.ogg` | original — synthesized by tools/synth_sounds.py | `912e833ffa8f6784` |
 | `TheObserver_RP/sounds/observer/sting.ogg` | original — synthesized by tools/synth_sounds.py | `e2eb0dc8a1403e8a` |
-| `TheObserver_RP/sounds/observer/strike.ogg` | original — synthesized by tools/synth_sounds.py | `34e6d22a5b06a2a3` |
+| `TheObserver_RP/sounds/observer/strike.ogg` | original — synthesized by tools/synth_sounds.py (1.1.2: saturated a little, ~5 dB louder, to sit in the mix) | `b62bfa0228f8f1a7` |
 | `TheObserver_RP/sounds/observer/tell.ogg` | original — synthesized by tools/synth_sounds.py | `79aaa953fd4eaef8` |
 | `TheObserver_RP/sounds/observer/turn.ogg` | original — synthesized by tools/synth_sounds.py | `4b37c2faffef1d53` |
-| `TheObserver_RP/sounds/observer/vanish1.ogg` | original — synthesized by tools/synth_sounds.py | `e89456d0c30b68dc` |
-| `TheObserver_RP/sounds/observer/vanish2.ogg` | original — synthesized by tools/synth_sounds.py | `702acf48d0d2f3fd` |
 | `TheObserver_RP/sounds/observer/vigil.ogg` | original — synthesized by tools/synth_sounds.py | `e758ff7a2004fa2a` |
 | `TheObserver_RP/sounds/observer/voice1.ogg` | original — synthesized by tools/synth_sounds.py | `774634ca8641f449` |
 | `TheObserver_RP/sounds/observer/voice2.ogg` | original — synthesized by tools/synth_sounds.py | `c8408c3b3bc99d04` |

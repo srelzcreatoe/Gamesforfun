@@ -1,0 +1,6 @@
+# 1.1.2: the user's recordings in play (its themes, the spotted sting, the whisper, the scream when it kills), with
+# the regressions that use the replaced sounds and the music
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup sounds presence_music mire_watcher paralysis relentless lunge vanish_in_place distant_watch hush status
+expect \[OTEST\] SUITE DONE 3600

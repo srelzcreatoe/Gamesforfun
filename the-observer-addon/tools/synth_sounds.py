@@ -7,7 +7,9 @@ Design notes per sound are in docs/AUDIO.md.
 
 Output: packs/TheObserver_RP/sounds/observer/<name>.ogg  (mono, 44.1 kHz)
 Requires numpy and ffmpeg with libvorbis.
-`--only voice,presence,notice,shriek,vanish` regenerates just those (OGG files differ byte-wise between runs).
+`--only voice,notice,strike` regenerates just those (OGG files differ byte-wise between runs).
+Since 1.1.2 the arrival pressure (presence), the shriek and the vanish are the user's own recordings, prepared by
+tools/prepare_supplied_sounds.py; their generators below are kept for reference but no longer written.
 """
 import os
 import subprocess
@@ -228,7 +230,9 @@ def strike():
     n = int(round(SR * sec))
     thump = sine(lambda tt: 58 * (1 - 0.4 * np.minimum(tt / 0.2, 1)), sec) * expdecay(n, 0.12)
     crack = bp(noise(n), 400, 4000) * expdecay(n, 0.025)
-    return reverb(thump * 1.2 + crack * 0.8, 0.35, 0.2)
+    x = reverb(thump * 1.2 + crack * 0.8, 0.35, 0.2)
+    # 1.1.2: saturated a little so the hit is as loud as what surrounds it (it read ~5 dB under the mix)
+    return np.tanh(2.4 * x / np.max(np.abs(x)))
 
 
 def whiff():
@@ -557,6 +561,9 @@ def main():
             if name == "silence":
                 made.append(write("silence", silence(), 0.12))
                 continue
+            if name == "strike":
+                made.append(write("strike", strike()))
+                continue
             fn, variants, peak = gens[name]
             for v in range(variants):
                 made.append(write(f"{name}{v + 1}", fn(v), peak))
@@ -589,8 +596,7 @@ def main():
     made.append(write("turn", turn(), 0.7))
     made.append(write("sink", sink(), 0.8))
     made.append(write("ring", ring(), 0.35))
-    for name, fn, variants, peak in (("voice", voice, 3, 0.8), ("presence", presence, 2, 0.8), ("notice", notice, 2, 0.8),
-                                     ("shriek", shriek, 2, 0.7), ("vanish", vanish, 2, 0.8)):
+    for name, fn, variants, peak in (("voice", voice, 3, 0.8), ("notice", notice, 2, 0.8)):
         for v in range(variants):
             made.append(write(f"{name}{v + 1}", fn(v), peak))
     made.append(write("silence", silence(), 0.12))

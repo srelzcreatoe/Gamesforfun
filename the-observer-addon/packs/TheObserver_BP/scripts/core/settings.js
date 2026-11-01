@@ -20,7 +20,8 @@ import { DEBUG } from "./util.js";
  * @property {boolean} illusions      shadows in taiga forests that vanish when looked at
  * @property {boolean} learning       it learns the way a player escapes and adapts to it (one way at a time), and
  *                                    everything else it sees them do (observer/profile.js)
- * @property {boolean} quiet          the music stops while it is around, and (stage 4+) before its dangerous encounters
+ * @property {boolean} quiet          its own music (theme) replaces the game's while it is around, and (stage 4+) the world goes
+ *                                    quiet before its dangerous encounters
  * @property {boolean} pages          pages in another hand turn up in the Field Notes
  * @property {boolean} returns        items a player threw away turn up on their doorstep
  * @property {boolean} heartbeat      a heartbeat (and a light tremor) when its presence is near

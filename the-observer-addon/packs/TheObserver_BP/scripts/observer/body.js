@@ -272,6 +272,11 @@ export async function strike(target, opts = {}) {
     safe(() => target.applyKnockback({ x: to.x * 0.9, z: to.z * 0.9 }, 0.35));
     safe(() => b.e.dimension.playSound(SOUNDS.strike, tl, { volume: 1 }));
     result = "hit";
+    // the blow that kills: it screams over you
+    if ((safe(() => hp?.currentValue, 1) ?? 1) <= 0) {
+      safe(() => b.e.dimension.playSound(SOUNDS.shriek, { x: o.x, y: o.y + 3, z: o.z }, { volume: 1 }));
+      emit("fx", { what: "kill_scream" });
+    }
   } else {
     safe(() => b.e.dimension.playSound(SOUNDS.whiff, o, { volume: 0.8 }));
     if (inFront && reach && clear && dmg === 0) result = "hit"; // Atmosphere preset: contact without damage

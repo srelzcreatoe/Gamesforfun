@@ -132,6 +132,8 @@ export const DEBUG = {
   charge: "auto",
   /** tests: "always" / "never" decide whether a sleeping player wakes unable to move ("auto" = the stage's chance) */
   paralysis: "auto",
+  /** tests: "always" / "never" decide whether it whispers when close and unseen ("auto" = two appearances in five) */
+  whisper: "auto",
   /** low-volume lifecycle lines (encounter start/end); enabled in dev mode and by the test kit */
   trace: false,
   /** @param {string} msg */

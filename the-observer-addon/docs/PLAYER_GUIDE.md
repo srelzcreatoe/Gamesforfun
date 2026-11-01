@@ -19,8 +19,8 @@ Minecraft imports both packs. Then:
    Weeping Mire, its home). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from an earlier version:** import the new `.mcaddon` (version 1.1.1). If a world still uses the old copy, open the world's
-settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.1.1 packs again. Your
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.1.2). If a world still uses the old copy, open the world's
+settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.1.2 packs again. Your
 progress is kept; the new options below start switched on.
 
 **The Weeping Mire is part of The Observer now (1.0.7).** If a world also has the stand-alone *Weeping Mire* packs
@@ -45,7 +45,10 @@ When you do see it: a four-block figure wrapped in drifting, faintly glowing wis
 dark. It groans to itself when it is near. When it knows you have seen it there is a rattle of clicks and a crack —
 and from the second stage on it may shriek and come straight at you. When it leaves, it tears apart into crimson shreds.
 
-**When it is near.** Your music stops while it is around, and comes back, fading in, once it has gone. And you will
+**When it is near.** Your music stops while it is around and its own theme plays instead (in the Weeping Mire, a
+low, lurking one); the game's music comes back, fading in, once it has gone. (Both follow your music volume.) When
+you spot it you will know it — a sting just for you — and when it is close and you have not seen it, now and then, it
+whispers. And you will
 hear your own heart: slow when it is barely there, racing when it is on you — even when you cannot see it. When it is
 close and means you harm, your view trembles with each beat (gently; "Camera effects" set to reduced halves it and
 "none" turns it off; the heartbeat itself can be switched off in the settings).

@@ -81,6 +81,10 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   list and are not verifiable on a server.
 * Forms (Field Notes — including "Pages I didn't write" and what it has learned — settings), action-bar captions, title
   cards, camera fades and shakes (the fade API and the `camerashake` command were accepted by the server).
+* 1.1.2, the user's recordings: how its two themes sound as music (they play on the music channel, so a player with
+  music volume at zero hears neither them nor the game's music), the crossfades in and out, whether the lurking loop's
+  seam is audible, the whisper's direction and distance, and the new mix as a whole. Levels were measured (LUFS), not
+  auditioned.
 * 1.1.1, sleep paralysis: the view from the pillow (a `minecraft:free` camera; framing, whether anything of the
   player's own body shows, the eased "trying to turn" movement), the hidden HUD, the two fades, and that a real
   client's movement and camera are locked (simulated players ignore input permissions, so the tests read the
@@ -128,7 +132,7 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 ## 2. Risk register
 | Risk | Likelihood | Mitigation in build |
 |---|---|---|
-| A sound feels too loud/quiet | medium | all levels in `sound_definitions.json`; regenerate with `tools/synth_sounds.py` |
+| A sound feels too loud/quiet | medium | measured and balanced by integrated loudness (1.1.2); all levels in `sound_definitions.json`; the user's recordings re-prepared with `tools/prepare_supplied_sounds.py` (target LUFS per sound), the rest with `tools/synth_sounds.py` |
 | Peek leans into cover instead of out | low–medium | single sign in `make_supplemental_anims.py` |
 | Walking away looks like gliding in a client | low–medium | step length/rate are two constants in `body.withdraw`; the walk clip plays from the state property |
 | Observer clips into foliage on hills | low | spot search rejects leaves as ground, needs ≥ 3 blocks headroom |

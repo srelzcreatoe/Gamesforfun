@@ -16,7 +16,7 @@
 //   /observer:tools [player]                   give the tool set (testing)
 // Script events only: mirepage <0-7|all|clear> [player] (a Weeping Mire torn page, read without the form),
 // weights [player] (what the director would choose from here), standoff off|short|auto, stalk hang|ledge|tree|ground|auto,
-// charge attack|vanish|auto, profile <habit> <count> [player], paralysis always|never|auto, animals (what is reacting),
+// charge attack|vanish|auto, profile <habit> <count> [player], paralysis always|never|auto, whisper always|never|auto, animals (what is reacting),
 // like the other test switches in run().
 // Each also works as /scriptevent observer:<name> <args...> (console, command blocks, tests).
 import { world, system, CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, ItemStack } from "@minecraft/server";
@@ -270,6 +270,10 @@ export function run(name, args, caller) {
     case "animals":
       // animals: which animals are reacting to it right now, and how (observer/animals.js)
       return `animals: ${animals.status()}`;
+    case "whisper":
+      // whisper always|never|auto: whether it whispers when it is close and unseen (tests)
+      DEBUG.whisper = args[0] === "always" || args[0] === "never" ? args[0] : "auto";
+      return `whisper ${DEBUG.whisper}`;
     case "paralysis":
       // paralysis always|never|auto: whether a sleeping player wakes unable to move (tests)
       DEBUG.paralysis = args[0] === "always" || args[0] === "never" ? args[0] : "auto";

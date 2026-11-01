@@ -87,7 +87,8 @@ python3 tools/make_client_entity.py           # client entity, render & animatio
 python3 tools/synth_sounds.py                 # regenerate all .ogg (needs ffmpeg + libvorbis)
 python3 tools/make_textures.py                # textures, block models, pack icons
 python3 tools/integrate_particle_sheets.py     # user-supplied vanish/wisp sheets -> particle atlases (pixels unchanged)
-python3 tools/synth_sounds.py --only voice,presence,notice,shriek,vanish   # regenerate selected sounds
+python3 tools/synth_sounds.py --only voice,notice,strike   # regenerate selected sounds
+python3 -I tools/prepare_supplied_sounds.py <wav dir> packs/TheObserver_RP/sounds/observer   # the user's recordings (1.1.2)
 python3 tools/merge_weeping_mire.py           # merge the archived Weeping Mire into the packs (re-runnable)
 python3 tools/merge_weeping_mire.py --check   # every merged Mire file matches the archive (byte for byte; the
                                               # biome as tuned by tune_biome, so it generates near the player)
@@ -111,7 +112,8 @@ Scenarios: `load.txt` (packs load cleanly), `proto.txt` (capability probes), `sp
 1.0.5 additions), `suite_106.txt` (the floating chase and climbing, with the chase/attack regressions), `suite_107.txt` (the
 Weeping Mire: its context, the stage bonus, early grace, its watcher, the torn pages), `suite_108.txt` (every attack
 floats; the Mire never where you start; with the chase/attack/climb and Mire regressions), `suite_110.txt` (the music, the heartbeat, charging at it, the profile, hiding behind trees, Mire fuel; with
-regressions), `suite_111.txt` (sleep paralysis; the animals; with the house, sleep and presence regressions), `suite_109.txt` (it
+regressions), `suite_111.txt` (sleep paralysis; the animals; with the house, sleep and presence regressions), `suite_112.txt`
+(the user's recordings in play: its themes, the spotted sting, the whisper, the scream when it kills), `suite_109.txt` (it
 vanishes in place; stalking from ledges and ceilings; the standoff; through gaps, glass and doors; with regressions), `mire_locate.txt` (the Mire
 generates and its old watcher is gone; run without `--testkit`, with `--require-no-experiments`),
 `tunnel_repeat.txt` (the Closed Path tests ten times over), `illusion_repeat.txt` (the shadow tests eight times over), `flare_seq.txt` (the flare tests twice back to back), `house_seq.txt` (every test that uses the arena house, in suite order — they share it), `noexp.txt` (no experiments; run **without** `--testkit` and with `--require-no-experiments`, which
@@ -124,7 +126,7 @@ The harness patches the **installed test copy** of the BP to import
 untouched.
 
 With tracing on, the add-on publishes structured events as script events
-`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned|grace|mire|weights|mire_spawn|standoff|stalk|squeeze|rage|hide|peek|charge|ambush|heartbeat|profile|paralysis|animals`
+`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned|grace|mire|weights|mire_spawn|standoff|stalk|squeeze|rage|hide|peek|charge|ambush|heartbeat|profile|paralysis|animals|whisper`
 that the test kit asserts on. In normal play nothing is emitted.
 
 Test-only dev commands (`/scriptevent observer:<name>`): `flare [dist] [player]` (light a flare ahead),
@@ -135,7 +137,7 @@ Test-only dev commands (`/scriptevent observer:<name>`): `flare [dist] [player]`
 `standoff off|short|auto` (off: a moment's stare and it is gone — the suite's default for tests of other things),
 `stalk hang|ledge|tree|ground|auto` (where *The Figure at the Edge* stands), `charge attack|vanish|auto` (what it does
 when charged), `profile <habit> <count>|clear [player]` (what it has seen a player do), `paralysis always|never|auto` (whether a
-sleeping player wakes unable to move), `animals` (which animals are reacting now; it no longer turns them itself), plus the earlier
+sleeping player wakes unable to move), `whisper always|never|auto` (whether it whispers when close and unseen), `animals` (which animals are reacting now; it no longer turns them itself), plus the earlier
 `lunge`, `nearstrike`, `illusion`, `timewarp`, `sethaunt`, `set <key> <value>` and `set off a,b,c`.
 
 ## 4. Adding an encounter

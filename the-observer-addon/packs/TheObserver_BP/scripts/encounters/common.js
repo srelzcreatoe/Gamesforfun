@@ -38,11 +38,14 @@ export async function observe(enc, o) {
 
 /** Record a sighting (and its discoveries) for whoever saw it. */
 export function sighting(enc, by = enc.p) {
-  // the moment it knows it has been seen: a rattle of clicks and a crack of the neck
+  // the moment it knows it has been seen: a rattle of clicks and a crack of the neck — and, for whoever saw it, a
+  // sting of their own (1.1.2)
   const l = body.loc();
   if (l && !enc.data.noticeSounded) {
     enc.data.noticeSounded = true;
-    enc.worldSound(SOUNDS.notice, { x: l.x, y: l.y + 3, z: l.z }, 0.9);
+    enc.worldSound(SOUNDS.notice, { x: l.x, y: l.y + 3, z: l.z }, 0.7);
+    safe(() => by.playSound(SOUNDS.spotted, { location: by.getHeadLocation(), volume: 0.8 }));
+    enc.emit("fx", { what: "spotted", by: by.name });
   }
   enc.result("noticed", true);
   const s = ps(by);
@@ -217,7 +220,8 @@ export async function relentless(enc, o = {}) {
     body.surge();
     // no footsteps: only the rush of air as it comes — and, enraged, screeches and groans
     if (t % 40 === 0) enc.worldSound(SOUNDS.drift, { x: l.x, y: l.y + 2, z: l.z }, 0.8);
-    if (o.rage && t > 0 && t % 60 === 0) enc.worldSound(t % 120 === 0 ? SOUNDS.shriek : SOUNDS.voice, { x: l.x, y: l.y + 3, z: l.z }, 0.85);
+    // (its scream is long: one every 12 s, groans between)
+    if (o.rage && t > 0 && t % 60 === 0) enc.worldSound(t % 240 === 0 ? SOUNDS.shriek : SOUNDS.voice, { x: l.x, y: l.y + 3, z: l.z }, 0.85);
     await enc.wait(2);
   }
   body.despawn("gave_up");

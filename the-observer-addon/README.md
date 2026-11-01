@@ -33,7 +33,8 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   cracking in jerks — and a climb; in 1.0.8 a hanging overlay so it strikes and recoils in mid-air; in 1.0.9
   hanging from a ceiling and crawling), state-driven
   animation controllers, eyes that glow in the
-  dark, a glowing wisp aura, a crimson vanish burst, and its own voice, arrival, notice, shriek and vanish sounds.
+  dark, a glowing wisp aura, a crimson vanish burst, and its own sounds — since 1.1.2 your recordings for its arrival, scream, the sting
+  when you spot it, its whisper and its vanish, and two themes of its own.
 * **A horror director**: grace period, five escalating stages, per-player and global cooldowns, quiet periods,
   recovery after deaths, anti-repetition, context-weighted selection, fair multiplayer targeting.
 * **Its home, the Weeping Mire** (1.0.7; in 1.1.0 its wood burns as fuel and smelts into charcoal like any log,
@@ -57,6 +58,11 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   light you put down, and which of its tricks get a reaction out of you — and chooses accordingly. Your Field Notes
   say what it knows. **Run at it** and it decides on the spot: attack, or be gone before you arrive and wait for a
   better moment — night, a cave, you hurt — and come back at once, and worse.
+* **Its voice and its music** (1.1.2, your recordings): while it is around, its own theme replaces the game's music
+  — *lurking* in the Weeping Mire, its home — and the game's music fades back once it has gone. A sting when you spot
+  it, a scream when it snaps or comes for you (and over the blow that kills), a grunt as it arrives out of nowhere, its
+  own sound as it vanishes, and, now and then when it is close and you have not seen it, a whisper. The rest of the
+  sounds were rebalanced around them.
 * **Its presence, felt** (1.1.0): while it is around, your music stops completely, and fades back in once it is gone.
   When it is near — seen or not — you hear your own heartbeat, faster the closer and angrier it is, and when it is
   close and meaning harm the view trembles on the beat (lightly; it follows the camera-effects setting).

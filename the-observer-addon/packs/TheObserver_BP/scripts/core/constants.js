@@ -66,6 +66,11 @@ export const SOUNDS = {
   drift: "observer.drift",
   heartbeat: "observer.heartbeat",
   crack: "observer.crack",
+  // 1.1.2: the user's own recordings (presence, shriek and vanish above are theirs too)
+  spotted: "observer.spotted",
+  whisper: "observer.whisper",
+  themeAround: "observer.theme.around",
+  themeMire: "observer.theme.lurking",
 };
 
 export const FOGS = { dread: "observer:dread", soft: "observer:dread_soft", vigil: "observer:vigil" };

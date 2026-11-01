@@ -114,6 +114,7 @@ observer.set.dev=Developer tracing
 ## ---------------------------------------------------------------- captions (accessibility)
 caption.steps_behind=[Footsteps behind you, in step with yours]
 caption.breath=[A slow exhale, very close]
+caption.whisper=[A whisper, close by]
 caption.cloth=[Cloth shifting behind you]
 caption.door_inside=[A door creaks inside your home]
 caption.door_nearby=[A door moves nearby]
@@ -406,7 +407,7 @@ observer.enc.test_returns=§cIt returns what you threw away§r
 observer.enc.test_returns.where=needs a home it knows; drop an item and walk 10 blocks away: it is moved to your doorstep with a knock
 
 observer.set.learning=It learns how you escape (adapts to one way at a time)
-observer.set.quiet=The music stops while it is around (and before its attacks)
+observer.set.quiet=Its own music plays while it is around (and the world goes quiet before its attacks)
 observer.set.pages=Pages you didn't write appear in your Field Notes
 observer.set.returns=It returns what you threw away
 

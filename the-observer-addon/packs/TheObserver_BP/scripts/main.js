@@ -321,7 +321,7 @@ system.runInterval(() => {
   safe(() => director.tick());
   safe(() => illusions.tick());
   // while it is around you, your music is cut; when it is gone, it fades back
-  safe(() => hush.presence(now(), isAround));
+  safe(() => hush.presence(now(), isAround, (p) => mire.inMire(p)));
   if (slowRuns % 5 === 0) safe(() => returns.tick());
   if (slowRuns % 20 === 0) safe(() => pages.tick(new Set(director.running().map((e) => e.pid))));
   safe(() => ledger.processDue(12));

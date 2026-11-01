@@ -2344,6 +2344,7 @@ TESTS.presence_music = async () => {
   obs("trigger", "distant_watch", "Tester");
   const pres = await waitEvent("hush", (d) => d.what === "presence" && d.player === "Tester", 80, m);
   check("music_cut_while_around", pres && pres.music === true, JSON.stringify(pres ?? {}));
+  check("music_its_theme_while_around", pres && pres.theme === "around", JSON.stringify(pres ?? {}));
   await waitObserver(60);
   obs("abort");
   const t0 = system.currentTick;
@@ -2581,6 +2582,53 @@ TESTS.mire_fuel = async () => {
   check("mire_wood_burns", await furnace("minecraft:raw_iron", "wmire:weeping_wood", "minecraft:iron_ingot"));
   check("mire_log_burns_into_charcoal", await furnace("wmire:weeping_log", "wmire:weeping_log", "minecraft:charcoal"));
   ow().getBlock(at).setType("minecraft:air");
+};
+
+// ------------------------------------------------------------------ 1.1.2: the user's recordings in play
+
+TESTS.sounds = async () => {
+  // spotted: a sting of its own for whoever sees it
+  let p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
+  isolate(p);
+  let m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  const e = await waitObserver(80);
+  if (e) await lookAtObserverFor(p, 50);
+  check("sound_spotted_sting", since(m, "fx").some((d) => d.what === "spotted" && d.by === "Tester"), JSON.stringify(since(m, "fx")));
+  obs("abort");
+  await observerGone(100);
+  // close and out of view: it whispers, from where it stands
+  obs("whisper", "always");
+  p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
+  m = mark();
+  obs("trigger", "test_near", "Tester");
+  const n = await waitObserver(60);
+  if (n) {
+    const at = n.location;
+    const dir = { x: p.location.x - at.x, z: p.location.z - at.z };
+    const len = Math.hypot(dir.x, dir.z) || 1;
+    const to = { x: at.x + (dir.x / len) * 9, y: Y, z: at.z + (dir.z / len) * 9 };
+    p.teleport(to, { facingLocation: { x: to.x + dir.x, y: Y + 1.6, z: to.z + dir.z } });
+  }
+  const wh = await waitEvent("whisper", (d) => d.player === "Tester", 100, m);
+  check("sound_whisper_when_close_and_unseen", !!wh && wh.d <= 12, JSON.stringify(wh ?? {}));
+  obs("abort");
+  obs("whisper", "auto");
+  await observerGone(100);
+  // the blow that kills: it screams over you
+  obs("set", "aggression", "3");
+  p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 4);
+  isolate(p);
+  p.getComponent("minecraft:health").setCurrentValue(2);
+  m = mark();
+  obs("trigger", "test_strike", "Tester");
+  const ks = await waitEvent("fx", (d) => d.what === "kill_scream", 20 * 15, m);
+  check("sound_scream_when_it_kills", !!ks, `hp ${p.getComponent("minecraft:health").currentValue}`);
+  obs("abort");
+  obs("preset", "standard");
+  await observerGone(100);
+  if (typeof p.respawn === "function" && p.getComponent("minecraft:health").currentValue <= 0) p.respawn();
+  await wait(20);
 };
 
 // ------------------------------------------------------------------ 1.1.1: sleep paralysis; animals sense it
@@ -2921,6 +2969,9 @@ TESTS.mire_watcher = async () => {
   check("mire_watcher_distance", d >= 11 && d <= 49, `d=${d.toFixed(1)} why=${ev ? ev.why : "?"} los=${ev ? ev.los : "?"} tries=${tries}`);
   check("mire_watcher_in_the_mire", ow().getBiome(e.location)?.id === MIRE_BIOME, ow().getBiome(e.location)?.id);
   check("mire_watcher_state", ["watch", "peek"].includes(e.getProperty("observer:state")), e.getProperty("observer:state"));
+  // in its home its theme is the lurking one (1.1.2)
+  const th = await waitEvent("hush", (d) => d.what === "presence" && d.player === "Tester", 60, m);
+  check("mire_theme_lurking", th && th.theme === "lurking" && th.music === true, JSON.stringify(th ?? {}));
   await lookAtObserverFor(p, 50);
   // it holds your gaze a moment, then it is gone
   const end = await endOf("mire_watcher", m, 200);

@@ -5,7 +5,8 @@
 // silence alone never tells you for certain. The silence lasts until the encounter is over.
 // Music is per player (Player.playMusic / stopMusic), so nobody else on a server is affected.
 // And whenever it is around (1.1.0) — one of its encounters running for you, or its body within 64 blocks —
-// your music is cut completely; once it has been gone a few seconds, the game's music fades back in.
+// your music is cut completely and (1.1.2) its own theme plays in its place, looping: "lurking" in the Weeping Mire,
+// its home, the other one everywhere else. Once it has been gone a few seconds, the game's music fades back in.
 import { ps } from "../core/state.js";
 import { S } from "../core/settings.js";
 import { safe, rand, emit, trace, DEBUG, allPlayers } from "../core/util.js";
@@ -29,8 +30,10 @@ export const FALSE_ALARM = 0.25;
 
 /** @type {Map<string, Hush>} player id -> pending silence */
 const pending = new Map();
-/** @type {Set<string>} players whose music is currently replaced by the silence */
+/** @type {Set<string>} players whose music is currently replaced by the silence (or its theme) */
 const silenced = new Set();
+/** @type {Map<string, string>} player id -> its theme playing for them */
+const themed = new Map();
 
 /** Should this encounter be announced by the silence for this player? @param {{id:string}} def @param {any} s @param {{mire?:boolean}} [c] */
 export function wanted(def, s, c) {
@@ -49,6 +52,16 @@ function silence(p) {
   silenced.add(p.id);
   return !!safe(() => {
     p.playMusic(SOUNDS.silence, { loop: true, volume: 1, fade: 2 });
+    return true;
+  }, false);
+}
+
+/** Its theme in place of their music, looping (switching themes crossfades). @param {Player} p @param {string} track */
+function theme(p, track) {
+  silenced.add(p.id);
+  themed.set(p.id, track);
+  return !!safe(() => {
+    p.playMusic(track, { loop: true, volume: 1, fade: 2.5 });
     return true;
   }, false);
 }
@@ -80,6 +93,7 @@ const MUSIC = { "minecraft:overworld": "music.game", "minecraft:nether": "music.
 export function end(p, pid, why) {
   pending.delete(pid);
   around.delete(pid);
+  themed.delete(pid);
   if (!silenced.has(pid)) return;
   silenced.delete(pid);
   const music = p && p.isValid ? !!safe(() => {
@@ -95,14 +109,16 @@ export function end(p, pid, why) {
 const around = new Map();
 
 /**
- * Every second: while it is around a player their music is cut; when it has been gone 3 s, the music fades back.
- * A silence before an attack (begin) keeps its own timing. @param {number} t clock @param {(p:Player)=>boolean} isAround
+ * Every second: while it is around a player their music is replaced by its theme (once it arrives, even a silence
+ * before an attack gives way to it); when it has been gone 3 s, the game's music fades back.
+ * @param {number} t clock @param {(p:Player)=>boolean} isAround @param {(p:Player)=>boolean} inMire
  */
-export function presence(t, isAround) {
+export function presence(t, isAround, inMire) {
   const on = S().quiet !== false && S().enabled;
   for (const p of allPlayers()) {
     if (on && isAround(p)) {
-      if (!around.has(p.id) && !silenced.has(p.id)) emit("hush", { what: "presence", player: p.name, music: silence(p) });
+      const track = inMire(p) ? SOUNDS.themeMire : SOUNDS.themeAround;
+      if (themed.get(p.id) !== track) emit("hush", { what: "presence", player: p.name, theme: track === SOUNDS.themeMire ? "lurking" : "around", music: theme(p, track) });
       around.set(p.id, t);
       continue;
     }
@@ -120,4 +136,5 @@ export function forget(pid) {
   pending.delete(pid);
   silenced.delete(pid);
   around.delete(pid);
+  themed.delete(pid);
 }

@@ -4,11 +4,13 @@
 // it is close but out of sight (you feel it before you see it), in a standoff as its temper rises, and highest
 // when it is coming for you. When it is close and meaning harm the view trembles on the beat — lightly, and only
 // as much as the camera-effects setting allows (none / reduced: half / full). Settings: "Heartbeat" (on).
+// And now and then (1.1.2: two appearances in five, at most every 3 minutes) when it is close — within 12 blocks —
+// and you have not got it in view for a moment, it whispers, from where it stands. Never while it is coming for you.
 import { system } from "@minecraft/server";
 import * as body from "./body.js";
 import * as hush from "./hush.js";
-import { S } from "../core/settings.js";
-import { V, safe, emit, allPlayers } from "../core/util.js";
+import { S, captionsOn } from "../core/settings.js";
+import { V, safe, emit, allPlayers, DEBUG } from "../core/util.js";
 import { SOUNDS } from "../core/constants.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
@@ -17,6 +19,8 @@ import { SOUNDS } from "../core/constants.js";
 const DANGEROUS = new Set(["pursuit", "closed_path", "creeping"]);
 /** @type {Map<string, {cur:number, next:number}>} player id -> current dread (0..1) and the tick of the next beat */
 const state = new Map();
+/** @type {Map<string, {key:string, will:boolean, near:number, last:number}>} player id -> its whisper for this appearance */
+const whispers = new Map();
 
 /** How much of it this player feels right now (0..1). @param {Player} p @param {Enc|undefined} enc */
 function target(p, enc) {
@@ -46,6 +50,7 @@ export function tick(encFor) {
   const on = S().enabled && S().heartbeat !== false;
   const now = system.currentTick;
   for (const p of allPlayers()) {
+    if (S().enabled) safe(() => whisper(p, encFor(p.id), now));
     let st = state.get(p.id);
     const want = on ? target(p, encFor(p.id)) : 0;
     if (!st) {
@@ -73,7 +78,40 @@ export function tick(encFor) {
   }
 }
 
+/**
+ * Close (2.5-12 blocks), out of their view for 1.5 s, not coming for them: it whispers, from where it stands. Decided
+ * once per appearance. @param {Player} p @param {Enc|undefined} enc @param {number} t
+ */
+function whisper(p, enc, t) {
+  const b = body.get();
+  if (!b || b.e.dimension.id !== p.dimension.id) return;
+  const key = `${b.enc}:${b.spawnedTick}`;
+  let w = whispers.get(p.id);
+  if (!w || w.key !== key) {
+    w = { key, will: DEBUG.whisper === "always" || (DEBUG.whisper !== "never" && Math.random() < 0.4), near: 0, last: w?.last ?? -1e9 };
+    whispers.set(p.id, w);
+  }
+  if (!w.will) return;
+  const d = V.dist(b.e.location, p.location);
+  const busy = !!enc && (enc.data.reacting || DANGEROUS.has(enc.def.id) || enc.def.id === "paralysis");
+  if (d > 12 || d < 2.5 || busy || t - b.spawnedTick < 40 || body.visibleTo([p])) {
+    w.near = 0;
+    return;
+  }
+  w.near += 2;
+  if (w.near < 30 || (t - w.last < 20 * 180 && DEBUG.whisper !== "always")) return;
+  w.will = false;
+  w.last = t;
+  const head = { x: b.e.location.x, y: b.e.location.y + (b.stoop ? 2.4 : 3.4), z: b.e.location.z };
+  safe(() => p.playSound(SOUNDS.whisper, { location: head, volume: 0.9 }));
+  if (captionsOn(p)) safe(() => p.onScreenDisplay.setActionBar({ rawtext: [{ translate: "caption.whisper" }] }));
+  emit("whisper", { player: p.name, d: Math.round(d * 10) / 10 });
+}
+
 /** @param {string} pid */
 export const level = (pid) => state.get(pid)?.cur ?? 0;
 /** @param {string} pid */
-export const forget = (pid) => state.delete(pid);
+export const forget = (pid) => {
+  state.delete(pid);
+  whispers.delete(pid);
+};

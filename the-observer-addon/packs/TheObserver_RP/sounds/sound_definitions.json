@@ -186,7 +186,7 @@
       "sounds": [
         {
           "name": "sounds/observer/lens",
-          "volume": 0.8
+          "volume": 0.5
         }
       ]
     },
@@ -206,7 +206,7 @@
       "sounds": [
         {
           "name": "sounds/observer/vigil",
-          "volume": 1.0,
+          "volume": 0.85,
           "stream": true
         }
       ]
@@ -264,11 +264,7 @@
       "max_distance": 40,
       "sounds": [
         {
-          "name": "sounds/observer/presence1",
-          "volume": 1.0
-        },
-        {
-          "name": "sounds/observer/presence2",
+          "name": "sounds/observer/presence",
           "volume": 1.0
         }
       ]
@@ -292,11 +288,7 @@
       "max_distance": 56,
       "sounds": [
         {
-          "name": "sounds/observer/shriek1",
-          "volume": 1.0
-        },
-        {
-          "name": "sounds/observer/shriek2",
+          "name": "sounds/observer/shriek",
           "volume": 1.0
         }
       ]
@@ -306,11 +298,7 @@
       "max_distance": 28,
       "sounds": [
         {
-          "name": "sounds/observer/vanish1",
-          "volume": 1.0
-        },
-        {
-          "name": "sounds/observer/vanish2",
+          "name": "sounds/observer/vanish",
           "volume": 1.0
         }
       ]
@@ -381,6 +369,46 @@
         {
           "name": "sounds/observer/heartbeat2",
           "volume": 1.0
+        }
+      ]
+    },
+    "observer.spotted": {
+      "category": "hostile",
+      "max_distance": 16,
+      "sounds": [
+        {
+          "name": "sounds/observer/spotted",
+          "volume": 1.0
+        }
+      ]
+    },
+    "observer.whisper": {
+      "category": "hostile",
+      "max_distance": 24,
+      "sounds": [
+        {
+          "name": "sounds/observer/whisper",
+          "volume": 1.0
+        }
+      ]
+    },
+    "observer.theme.around": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/observer/theme_around",
+          "volume": 1.0,
+          "stream": true
+        }
+      ]
+    },
+    "observer.theme.lurking": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/observer/theme_lurking",
+          "volume": 1.0,
+          "stream": true
         }
       ]
     }

@@ -5,7 +5,7 @@
 // own heart loud — and it is standing at the foot of the bed, bent under the ceiling, looking at them. They try to
 // turn their head and cannot. It tilts its head. It leans a little closer. They blink, and it is gone: they can move
 // again, standing beside the bed, looking at where it stood. That is all it does — no damage, no sting, no sound
-// but its breath. They woke, so the night is not skipped; they can lie down again.
+// but its whisper. They woke, so the night is not skipped; they can lie down again.
 // How: the sleeper is woken (a teleport wakes a sleeping player) behind a fade to black, their movement and camera
 // are locked, the HUD is hidden and the view is a fixed camera at the pillow; a second, short fade hands it all back.
 // If the game stops in the middle, everything is handed back when they next join. Never with camera effects off.
@@ -191,8 +191,8 @@ register({
       enc.emit("paralysis", { what: "woke", asleep, awake: !safe(() => p.isSleeping, false), cam: sc.cam, feet: sc.feet, stoop: sc.stoop,
         yaw: Math.round(sc.yaw), pitch: Math.round(sc.pitch), dist: Math.round(V.hdist(sc.cam, sc.feet) * 10) / 10, tod: safe(() => world.getTimeOfDay(), -1) });
       await enc.wait(44);
-      // the room comes up slowly out of the dark; it breathes
-      enc.sound(SOUNDS.breath, sc.top, 0.55, 0.8);
+      // the room comes up slowly out of the dark; it whispers
+      enc.sound(SOUNDS.whisper, sc.top, 0.6, 1);
       await enc.wait(60);
       // they try to turn their head, and cannot
       const dir = Math.random() < 0.5 ? 1 : -1;

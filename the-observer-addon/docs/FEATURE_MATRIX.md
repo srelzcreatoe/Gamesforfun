@@ -220,6 +220,17 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | …dogs growl, cats hiss, a tamed dog whines | vanilla sounds | dogs, cats | growl (up to 3), hiss; whine once it is gone | `animals_dog_growls`, `animals_cat_hisses`, `animals_dog_whines_when_it_is_gone` | ✅ Runtime (sounds ❔) |
 | …and let go | `settle` | it is gone / switched off | slowness removed; off switch | `animals_let_go`, `animals_switch_off` | ✅ Runtime |
 
+## 1.1.2: its voice and its music (the user's recordings)
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| Its theme while it is around | `hush.presence` → `observer.theme.around` (music, loop) | an encounter for you or its body within 64 blocks | its theme in place of the game's music; back to the game's when it has gone | `music_cut_while_around`, `music_its_theme_while_around`, `music_back_when_gone` | ✅ Runtime (what the client plays ❔) |
+| Lurking in the Mire | `observer.theme.lurking` (seamless loop) | around while you are in the Weeping Mire | the lurking theme instead | `mire_theme_lurking` | ✅ Runtime (sound ❔) |
+| A sting when you spot it | `common.sighting` → `observer.spotted` | it is noticed | the sting for whoever saw it, over its clicks | `sound_spotted_sting` | ✅ Runtime |
+| A whisper when close and unseen | `dread.whisper` → `observer.whisper` | within 12 blocks, out of view 1.5 s; 2 appearances in 5; 3 min apart; not while it comes for you | a whisper from where it stands | `sound_whisper_when_close_and_unseen` | ✅ Runtime (sound ❔) |
+| Its scream | `observer.shriek` (replaced) | it snaps, lunges, rages (every 12 s), and the blow that kills | the scream | `sound_scream_when_it_kills` (+ the lunge and rage groups) | ✅ Runtime |
+| Arrival, vanish | `observer.presence`, `observer.vanish` (replaced) | it appears / is gone | the user's grunt / vanish | (every appearance and vanish in the suite) | ✅ Runtime |
+| Balanced mix | `tools/prepare_supplied_sounds.py`, `sound_definitions.json`, `synth_sounds.strike` | — | creature sounds −17 to −21 LUFS, scream −12, themes −21/−23; strike +5 dB; lens, vigil down | measured with `ebur128` | ✅ Measured (audition ❔) |
+
 ## Performance
 | Measure | Result | Test |
 |---|---|---|

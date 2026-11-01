@@ -413,14 +413,22 @@ strikes once; on Standard and High it keeps attacking (§3.4).
 
 ## 14. Audio
 
-All 42 sound files are original, synthesized by `tools/synth_sounds.py` (no samples) — including its own voice,
-arrival, notice, shriek and vanish sounds: heavy cloth-and-weight footsteps
+The synthesized sounds (`tools/synth_sounds.py`, no samples) include its voice and notice clicks (until 1.1.2 also
+its arrival, shriek and vanish): heavy cloth-and-weight footsteps
 (4 variants), the hum (detuned 46/47.3/69.5 Hz drone with a swell), the tell (an inharmonic, tuning-fork-like chime),
 breath (band-passed exhale), cloth rustles, knocks, snuff, wind-up/strike/whiff, the sting (a dissonant swell, cut
 short — not a scream), the seal, the arrival, chalk, the discovery scribble-and-bell, the lens shimmer, effigy crumble,
 the vigil drone with bells, stone scrape, sinking bubbles, a quiet tinnitus ring, and (1.0.5) *silence* — a 30 s
 looping music track that is almost nothing, a faint 7.35 kHz ringing that rises out of silence — and *scrawl*, hard
-pencil strokes for a page written in another hand. The Flare uses vanilla sounds (`random.bow` to throw,
+pencil strokes for a page written in another hand. **1.1.2: the user's own recordings.** Its arrival (a grunt, as if
+it stepped out of nowhere), its scream (when it snaps, lunges or rages — once every 12 s in a rage, groans between —
+and over the blow that kills), the sting for whoever spots it (over its clicks), its vanish, its whisper (now and then
+when it is within 12 blocks and out of view: two appearances in five, at most every 3 minutes, never while it is
+coming for you; and in sleep paralysis), and two themes played in place of the game's music while it is around
+(`hush.presence`; *lurking* in the Weeping Mire, the other everywhere else; looping, crossfading between them, the
+game's music fading back 3 s after it has gone). The mix was rebalanced around them by integrated loudness: creature
+sounds −17 to −21 LUFS, its scream −12, themes −21 / −23 (music channel: they follow the player's music volume); the
+synthesized strike was raised ~5 dB, the lens and the vigil drone brought down. The Flare uses vanilla sounds (`random.bow` to throw,
 `firework.blast` and `random.fuse` as it lights and hisses, `random.fizz` as it dies). Borrowed sounds and matched
 footsteps intentionally use vanilla sound events (`dig.*`, `step.*`, `random.door_*`, `random.chest*`…), because the
 point is that they are *your* familiar sounds.
