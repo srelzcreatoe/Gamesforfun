@@ -43,14 +43,26 @@ export const CAM_FORM_MARK = '§k§r§k§r§m';
  * | { kind: 'dismissed', reason } | undefined.
  */
 /** @param {import('@minecraft/server').Player} player */
-export async function cameraMapForm(player, snap, body = '', { operator = false } = {}) {
+/** The camera map's title: the live camera and which action plate it shows (the resource pack reads it). */
+function camFormTitle(snap, operator = false) {
   const live = snap.devices.cam;
   const action = operator ? 'ping' : live === '8' && snap.tape ? 'wind' : spotlightReady(snap) ? 'spotlight' : 'wind';
-  // The resource pack reads only the title (live camera + which action label to show) and the body
-  // (the status lines); the buttons are invisible hit areas over the printed map.
   const idx = String(Math.max(0, CAMERAS.findIndex((c) => c.id === live))).padStart(2, '0');
   const code = action === 'ping' ? 'p' : action === 'spotlight' ? 's' : live === '8' && snap.tape ? 'w' : 'x';
-  const f = new ActionFormData().title(`${CAM_FORM_MARK}§${idx[0]}§${idx[1]}§${code}`).body(body || (CAMERA_BY_ID[live]?.label ?? ''));
+  return { action, title: `${CAM_FORM_MARK}§${idx[0]}§${idx[1]}§${code}` };
+}
+
+/** What an open camera map shows besides its status lines: when this changes, it has to be shown again. */
+export function camFormKey(snap, operator = false) {
+  return camFormTitle(snap, operator).title;
+}
+
+export async function cameraMapForm(player, snap, body = '', { operator = false } = {}) {
+  const live = snap.devices.cam;
+  // The resource pack reads only the title (live camera + which action label to show) and the body
+  // (the status lines); the buttons are invisible hit areas over the printed map.
+  const { action, title } = camFormTitle(snap, operator);
+  const f = new ActionFormData().title(title).body(body || (CAMERA_BY_ID[live]?.label ?? ''));
   for (const c of CAMERAS) f.button(c.id);
   f.button('LOWER');
   f.button(action === 'ping' ? 'WARN GUARD' : action === 'spotlight' ? 'SPOTLIGHT' : 'PLAY SHOW');

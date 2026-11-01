@@ -139,6 +139,14 @@ held = null;
 await steps(6);
 check(cams().cam === '2A' && P.cameraLoc.z !== camLoc.z, `clicking CAM 2A on the map switches the feed (got ${cams().cam})`);
 check(!!held, 'the camera map comes back after a switch');
+{
+  // the power, the usage and the status lines change underneath: the open map must stay put, or the
+  // guard sees it blink and loses the click being made
+  const closed0 = mock.closed ?? 0;
+  const held0 = held;
+  await steps(300);
+  check((mock.closed ?? 0) === closed0 && held === held0, `the open camera map is not closed and re-shown for status changes (closed ${(mock.closed ?? 0) - closed0}x)`);
+}
 held?.({ canceled: false, selection: CAMERAS.length }); // LOWER
 held = null;
 if (cams().open) world.afterEvents.playerButtonInput.fire({ player: P, button: 'Sneak', newButtonState: 'Pressed' }); // (only when LOWER was not reachable)

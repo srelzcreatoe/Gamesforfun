@@ -245,6 +245,10 @@ hud = {
     'hud_actionbar_text': {
         'bindings': title_visible(f"((#hud_title_text_string - '{JS_ON}') = #hud_title_text_string)"),
     },
+    # the held item's name ("Camera Tablet" and its lock notes) stays hidden while the monitor is up:
+    # it popped up over the feed every time the camera map closed and opened again on a click
+    'item_name_text_root': {'bindings': title_visible(f"(not {fx_expr})")},
+    'item_name_text': {'bindings': [{'binding_name': '#item_name_text_offset', 'binding_name_override': '#offset'}, *title_visible(f"(not {fx_expr})")]},
 }
 
 # ---------------------------------------------------------------- the clickable camera map (a server form)
@@ -297,6 +301,9 @@ form_controls.append(top_button('fnar_cam_button_action', len(cams) + 1, [80, 13
 not_mark = f"((#title_text - '{FORM_MARK}') = #title_text)"
 form = {
     'namespace': 'server_form',
+    # No fade in or out: the camera map closes on every click and opens again a tick later, and the
+    # vanilla fade turned that into a blink (the HUD and the held item's name showed through).
+    'third_party_server_screen': {'$screen_animations': [], '$background_animations': []},
     'main_screen_content': {'size': ['100%', '100%']},
     'long_form': {
         'type': 'panel', 'size': ['100%', '100%'],

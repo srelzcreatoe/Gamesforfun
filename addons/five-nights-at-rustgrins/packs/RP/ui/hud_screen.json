@@ -608,5 +608,35 @@
     "target_property_name": "#visible"
    }
   ]
+ },
+ "item_name_text_root": {
+  "bindings": [
+   {
+    "binding_name": "#hud_title_text_string",
+    "binding_type": "global"
+   },
+   {
+    "binding_type": "view",
+    "source_property_name": "(not ((not ((#hud_title_text_string - '§k§r§k§r§l') = #hud_title_text_string)) or (not ((#hud_title_text_string - '§k§r§k§r§n') = #hud_title_text_string))))",
+    "target_property_name": "#visible"
+   }
+  ]
+ },
+ "item_name_text": {
+  "bindings": [
+   {
+    "binding_name": "#item_name_text_offset",
+    "binding_name_override": "#offset"
+   },
+   {
+    "binding_name": "#hud_title_text_string",
+    "binding_type": "global"
+   },
+   {
+    "binding_type": "view",
+    "source_property_name": "(not ((not ((#hud_title_text_string - '§k§r§k§r§l') = #hud_title_text_string)) or (not ((#hud_title_text_string - '§k§r§k§r§n') = #hud_title_text_string))))",
+    "target_property_name": "#visible"
+   }
+  ]
  }
 }

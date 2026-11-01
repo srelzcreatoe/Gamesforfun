@@ -1,5 +1,9 @@
 {
  "namespace": "server_form",
+ "third_party_server_screen": {
+  "$screen_animations": [],
+  "$background_animations": []
+ },
  "main_screen_content": {
   "size": [
    "100%",

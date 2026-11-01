@@ -1268,23 +1268,32 @@ export class Game {
     if (now % 10 === 0) this.keepInOffice(g);
     if (now % 4 === 0) {
       const snap = s.snapshot();
-      const overlay = this.save.settings.debugOverlay ? `§8${s.debugLine()}` : this.save.cheats.radar ? this.radarLine() : null;
-      let hint = null;
-      if (this.cams.active) {
-        if (spotlightReady(snap)) hint = this.camForm ? 'Find the Ringmaster on a camera, then press SPOTLIGHT' : 'Find the Ringmaster, then use the Office Remote: SPOTLIGHT';
-        else hint = this.camForm ? 'Click a camera on the map - LOWER or Esc puts the monitor down' : 'Scroll the hotbar: next camera - Sneak or use the tablet: lower';
-      }
-      const bar = this.hud.nightBar(snap, now, { captions: this.save.settings.captions, overlay, cover: this.cams.active ? this.camCover() : null, hint });
-      this.lastBar = bar;
-      g.onScreenDisplay.setActionBar(bar);
-      // the clickable map hides the HUD, so it shows the same lines itself: re-show it when they change
+      g.onScreenDisplay.setActionBar(this.nightBar(snap, now));
+      // The clickable map hides the HUD and shows the status lines itself, as of when it opened: they
+      // refresh with every click. It is only re-shown on its own when its buttons change (the SPOTLIGHT
+      // or PLAY SHOW plate, or a camera switched by the game), never for a power or clock tick, which
+      // would make it blink and swallow the click the guard was making.
       const form = this.camForm;
-      if (form && form.shownAt && !form.refresh && bar !== form.shownBody && now - form.shownAt >= 30) {
+      if (form && form.shownAt && !form.refresh && ui.camFormKey(snap) !== form.shownKey && now - form.shownAt >= 10) {
         form.refresh = true;
         ui.closeForms(g);
       }
     }
     if (this.cams.active && now % 60 === 0) this.showCamMap(g, s.devices.cams.cam);
+  }
+
+  /** The night's status lines (actionbar, and the camera map's own copy of them). */
+  nightBar(snap, now) {
+    const s = this.session;
+    const overlay = this.save.settings.debugOverlay ? `§8${s.debugLine()}` : this.save.cheats.radar ? this.radarLine() : null;
+    let hint = null;
+    if (this.cams.active) {
+      if (spotlightReady(snap)) hint = this.camForm ? 'Find the Ringmaster on a camera, then press SPOTLIGHT' : 'Find the Ringmaster, then use the Office Remote: SPOTLIGHT';
+      else hint = this.camForm ? 'Click a camera on the map - LOWER or Esc puts the monitor down' : 'Scroll the hotbar: next camera - Sneak or use the tablet: lower';
+    }
+    const bar = this.hud.nightBar(snap, now, { captions: this.save.settings.captions, overlay, cover: this.cams.active ? this.camCover() : null, hint });
+    this.lastBar = bar;
+    return bar;
   }
 
   camCover() {
@@ -1539,9 +1548,12 @@ export class Game {
     const loop = async () => {
       await wait(4); // let the view land on the camera first
       while (live()) {
-        form.shownBody = this.lastBar ?? '';
+        // fresh status lines and buttons every time it opens (after each click)
+        const snap = this.session.snapshot();
+        form.shownBody = this.nightBar(snap, system.currentTick);
+        form.shownKey = ui.camFormKey(snap);
         form.shownAt = system.currentTick;
-        const r = await ui.cameraMapForm(g, this.session.snapshot(), form.shownBody);
+        const r = await ui.cameraMapForm(g, snap, form.shownBody);
         if (!live()) break;
         if (form.refresh) {
           // closed by us to show fresh status lines, not by the player
@@ -1558,7 +1570,7 @@ export class Game {
         form.busy = 0;
         if (r.kind === 'cam') {
           this.session.input('cam_select', r.id);
-          await wait(2);
+          await wait(1);
           continue;
         }
         if (r.kind === 'wind') {
