@@ -95,7 +95,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 91 test groups (including setup and a status check) with 454 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 102 test groups (including setup and a status check) with 513 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -148,6 +148,7 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | targeted (1.3.0: its puppets — the core, a marked kind from its cave, the one cow, knocking, bait, one of them, what was left, its herald, the night they turn, guards in the Mire, tribute; then with the 1.2.x regressions) | 28 + 57 + 6 + 7 + 134 + 26 + 21 + 45 | 2 + 1 + 1 + 0 + 1 + 1 + 2 + 0 | a real bug: a blow that did no damage (a creature too weak to hurt, as its own held creatures are) counted for *Not Yours* — and one of its own creatures could have set it off; both are ignored now (`not_yours_not_for_a_harmless_blow`). The rest test-side: the player was out of reach for the second take; the cave creature was brought up onto a structure 4 blocks up (fine; the check now asks for open sky near your level); the Mire guards' creatures were spawned at the platform's height above the Mire and fell; the cow trailed a fast-moving test player (it follows a little faster now, 2.4 b/s); the music from the group before had not yet ended |
 | targeted (1.3.0, then with the watchers going round you and the creature groups in daylight) | 134 + 136 | 2 + 0 | first: the night's own skeleton hit the test player and *Not Yours* went for it, which left the test's own creature alive to hit later (test-side); then all passed |
 | full (1.3.0, first) | 512 | 1 | `mire_watcher_in_the_mire`: it stood just outside the Mire, at its edge — fixed (above) |
+| **final (1.3.0)** | **513** | **0** | all passed: the 1.2.1 suite plus its puppets — taken, facing you, still and harmless; your heart and its music near one; its voice out of it; what it sees, it knows; the animals and the other creatures; the lens flare; lurking unwatched; the hunt; given back as it was, and after a restart — a marked kind taken in its cave, brought up after you, turned loose and put back; the one cow; Knocking (opened and left shut); Bait (the villager home unharmed); One of Them; What Was Left; its herald; the night they turn; guards in the Mire; tribute; and *In the Mire* always in its home |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -183,6 +184,9 @@ Final run (1.1.2): 87 test groups, 1666 s, minimum TPS between tests 19.8, **0 c
 
 Final run (1.2.1): 91 test groups, 1771 s, minimum TPS between tests 19.7, **0 content-log or script errors**.
 
+Final run (1.3.0): 102 test groups, 1844 s, minimum TPS between tests 19.9, **0 content-log or script errors**.
+
+`noexp.txt` and `mire_locate.txt` re-run on 1.3.0: `level.dat` experiments none, 0 errors.
 `noexp.txt` re-run on 1.2.0 and 1.2.1: `level.dat` experiments none, 0 errors.
 `noexp.txt` re-run on 1.1.2: `level.dat` experiments none, 0 errors.
 `noexp.txt` and `mire_locate.txt` re-run on 1.1.1: `level.dat` experiments none, 0 errors.
@@ -296,9 +300,20 @@ which is why only test worlds get it.
 | `paralysis` | 22 | — |
 | `sounds` | 3 | — |
 | `dominion` | 12 | — |
-| `not_yours` | 6 | — |
+| `not_yours` | 7 | — |
 | `servants` | 14 | — |
 | `its_eyes` | 8 | — |
+| `puppets_core` | 15 | — |
+| `puppets_marked` | 7 | — |
+| `puppets_cow` | 4 | — |
+| `knocking` | 6 | — |
+| `bait` | 6 | — |
+| `among_them` | 5 | — |
+| `rival_hunt` | 3 | — |
+| `herald` | 4 | — |
+| `night_turn` | 4 | — |
+| `mire_guards` | 3 | — |
+| `tribute` | 1 | — |
 | `natural` | 1 | — |
 | `status` | 0 | — |
 

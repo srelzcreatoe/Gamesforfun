@@ -276,4 +276,4 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Measure | Result | Test |
 |---|---|---|
 | Server tick rate, 180 s walking player, director active (2 encounters ran) | 20.00 mean / 19.99 min TPS — identical to the add-on-free baseline (20.00 / 19.99) | `tps.txt` with and without `--no-addon` |
-| No content-log or script errors during full suite | 0 errors (final 1.2.1 run: 454/454 assertions, 91 test groups, min 19.7 TPS between tests) | `run_bds.py` summary |
+| No content-log or script errors during full suite | 0 errors (final 1.3.0 run: 513/513 assertions, 102 test groups, min 19.9 TPS between tests) | `run_bds.py` summary |
