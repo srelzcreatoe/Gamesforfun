@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "ball_pit",
+    "metalness_emissive_roughness": "ball_pit_mer",
+    "heightmap": "ball_pit_height"
+  }
+}

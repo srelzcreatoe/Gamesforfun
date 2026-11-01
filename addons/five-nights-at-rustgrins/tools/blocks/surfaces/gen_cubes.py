@@ -500,6 +500,55 @@ def ceiling_tile_missing():
     return t
 
 
+def tinsel_curtain():
+    """Gold tinsel strands for the show stage backdrop: thin vertical streamers, light catching them."""
+    t = Tex(rough=60, metal=200, height=150)
+    r = rng(1401)
+    gold = ramp('#5a3e10', '#7a5618', '#9c7224', '#c09434', '#e0b84c', '#f4d878')
+    for x in range(W):
+        base = 2 + (x % 3 == 1) - (x % 5 == 0)
+        phase = r.integers(0, 16)
+        for y in range(H):
+            k = base + (1 if (y + phase) % 7 == 0 else 0) - (1 if (y + phase) % 11 == 0 else 0)
+            t.rgb[y, x] = gold[int(np.clip(k, 0, 5))]
+            t.height[y, x] = 140 + 12 * ((x + 1) % 2)
+        for _ in range(2):  # sparkles
+            y = r.integers(0, 16)
+            t.rgb[y, x] = gold[5]
+            t.rough[y, x] = 25
+    # dust settled on the strands, a few gone dull and dark
+    wn = white(W, H, 1402)
+    t.rgb[wn > 0.9] = shade(t.rgb[wn > 0.9], 0.7)
+    t.metal[wn > 0.93] = 60
+    return t
+
+
+def wallpaper_party():
+    """80s party wallpaper: deep teal with confetti triangles, squiggles and stars, faded and scuffed."""
+    t = Tex(rough=230, height=140)
+    n = fbm(W, H, 1501, cells=(8, 4), weights=(0.6, 0.4))
+    base = ramp('#123c44', '#164650', '#1a505a')
+    t.rgb = quant(np.clip(0.5 + 0.4 * (n - 0.5), 0, 0.999), base)
+    pink, yel, pur, wht = hexc('#c4508a'), hexc('#d8b444'), hexc('#7a4aa8'), hexc('#cfc8b4')
+    # a repeating motif (tiles cleanly): triangles, a squiggle, a star, dots
+    for (x, y) in ((2, 2), (3, 2), (2, 3)):
+        t.rgb[y, x] = pink
+    for (x, y) in ((10, 3), (11, 4), (12, 3), (13, 4), (14, 3)):
+        t.rgb[y, x] = yel
+    for (x, y) in ((6, 9), (5, 10), (6, 10), (7, 10), (6, 11)):
+        t.rgb[y, x] = wht
+    for (x, y) in ((12, 11), (13, 11), (12, 12)):
+        t.rgb[y, x] = pur
+    for (x, y) in ((1, 13), (9, 14), (14, 8), (4, 6)):
+        t.rgb[y, x] = mix(pink, wht, 0.5)
+    # faded towards the bottom (sun, cleaning), scuffs
+    for y in range(H):
+        t.rgb[y] = mix(t.rgb[y], hexc('#3a4a48'), 0.15 * (y / 15))
+    wn = white(W, H, 1502)
+    t.rgb[wn > 0.94] = shade(t.rgb[wn > 0.94], 0.75)
+    return t
+
+
 def carpet_party():
     seed = 1303
     t = Tex(rough=250, height=150)
@@ -758,6 +807,8 @@ ALL = {
     'ceiling_tile': lambda: ceiling_tile(False),
     'ceiling_tile_stained': lambda: ceiling_tile(True),
     'ceiling_tile_missing': ceiling_tile_missing,
+    'tinsel_curtain': tinsel_curtain,
+    'wallpaper_party': wallpaper_party,
     'carpet_party': carpet_party,
     'curtain_purple': curtain_purple,
     'curtain_red': curtain_red,

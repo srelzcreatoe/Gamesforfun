@@ -8,7 +8,7 @@
 
 import { PlanBuilder } from './plan.js';
 import { BUILDING, LOT, ROOMS, ROOM_BY_ID, OPENINGS, OFFICE, DUCTS, STAGE, MIDWAY_RING, SHOW_TAPE, CABARET } from './layout.js';
-import { WRITING } from './palette.js';
+import { WRITING, NEON } from './palette.js';
 import { CAMERAS } from './cameras.js';
 import { LOBBY_BUTTONS } from './lobby.js';
 
@@ -27,8 +27,9 @@ const STYLES = {
   gallery: { floor: ['dark_oak'], ceiling: ['black_c'], bands: [[0, 0, 'blackstone'], [1, 9, 'black_c']] },
   staff: { floor: ['tile_office'], ceiling: ['ceiling', 'ceiling_stained'], bands: [[0, 1, 'cinder'], [2, 2, 'trim'], [3, 9, 'plaster']] },
   supply: { floor: ['smooth_stone'], ceiling: ['ceiling_stained'], bands: [[0, 9, 'cinder']] },
-  prize: { floor: ['carpet'], ceiling: ['ceiling'], bands: [[0, 1, 'wall_checker'], [2, 2, 'trim'], [3, 9, 'wallpaper']] },
+  prize: { floor: ['carpet'], ceiling: ['ceiling'], bands: [[0, 1, 'wall_checker'], [2, 2, 'trim'], [3, 9, 'wallpaper_party']] },
   parts: { floor: ['smooth_stone', 'smooth_stone', 'polished_andesite'], ceiling: ['blackstone'], bands: [[0, 9, ['cinder', 'cinder', 'cinder', 'cracked_bricks']]] },
+  funzone: { floor: ['carpet'], ceiling: ['ceiling', 'ceiling', 'ceiling', 'ceiling_stained'], bands: [[0, 1, 'wall_checker'], [2, 2, 'trim'], [3, 9, 'wallpaper_party']] },
 };
 
 const inBox = (b, x, z) => x >= b[0] && x <= b[2] && z >= b[1] && z <= b[3];
@@ -128,7 +129,7 @@ function openings(p) {
     for (let x = x1; x <= x2; x++) for (let z = z1; z <= z2; z++) p.set(x, -1, z, o.kind === 'curtain' ? 'blackstone' : 'tile_worn');
   }
   // Nook partition in the E. Hall Corner (Rustgrin hides behind it, seen only by CAM 4B).
-  p.fill(43, 0, 68, 43, 4, 70, 'cinder');
+  p.fill(43, 0, 68, 43, ROOM_BY_ID.E_CORNER.h - 1, 70, 'cinder');
   p.fill(43, 2, 68, 43, 2, 70, 'trim');
 }
 
@@ -137,6 +138,8 @@ function ducts(p) {
   for (const d of Object.values(DUCTS)) {
     for (const [x1, y1, z1, x2, y2, z2] of d.boxes) p.fill(x1 - 1, y1 - 1, z1 - 1, x2 + 1, y2 + 1, z2 + 1, 'duct');
   }
+  // the shafts down to the grates and vents: lined with duct metal
+  for (const d of Object.values(DUCTS)) for (const [x, y, z] of d.risers) p.fill(x - 1, y, z - 1, x + 1, y, z + 1, 'duct');
   for (const d of Object.values(DUCTS)) {
     for (const [x1, y1, z1, x2, y2, z2] of d.boxes) p.fill(x1, y1, z1, x2, y2, z2, 'air');
     for (const [x, y, z] of d.risers) p.set(x, y, z, 'air');
@@ -272,12 +275,13 @@ function decor(p) {
   office(p, rng);
   staff(p, rng);
   gallery(p, rng);
+  funzone(p);
   parts(p, rng);
   lastWeek(p);
   for (const c of CAMERAS) {
     if (!c.mount) continue;
-    const [x, y, z, dir] = c.mount;
-    p.set(x, y, z, `cctv_${dir}`);
+    const [x, y, z, dir, kind] = c.mount;
+    p.set(x, y, z, kind === 'ceiling' ? `cctv_ceil_${dir}` : `cctv_${dir}`);
     p.meta.cctv.push({ cam: c.id, x, y, z });
   }
 }
@@ -289,8 +293,15 @@ function dining(p, rng) {
   p.fill(sx1, 0, sz2, sx2, 0, sz2, 'dark_oak_stairs_n');
   p.fill(sx1 - 1, 0, 4, sx1 - 1, 0, sz2, 'dark_oak_stairs_e');
   p.fill(sx2 + 1, 0, 4, sx2 + 1, 0, sz2, 'dark_oak_stairs_w');
-  // backdrop curtain with stars and the band's equipment
+  // backdrop: red velvet wings framing a gold tinsel curtain, stars, the band's equipment
   p.fill(sx1, 1, 1, sx2, 6, 1, 'curtain_red');
+  p.fill(sx1 + 6, 1, 1, sx2 - 6, 6, 1, 'tinsel');
+  // the light rig: a box truss hung across the front of the stage (the spotlights hang in it) and down both sides
+  for (let x = sx1; x <= sx2; x++) if (![30, 38, 46].includes(x)) p.set(x, 6, 11, 'truss_e');
+  for (let z = 3; z <= 10; z++) {
+    p.set(sx1, 6, z, 'truss_n');
+    p.set(sx2, 6, z, 'truss_n');
+  }
   for (const x of [27, 31, 45, 49]) p.set(x, 5, 2, 'star_s');
   for (const x of [35, 41]) p.set(x, 4, 2, 'star_s');
   p.set(38, 6, 2, 'star_s');
@@ -329,7 +340,7 @@ function dining(p, rng) {
   for (let z = 2; z <= 36; z += 1) if ((z < 8 || z > 12) && (z < 18 || z > 22) && (z < 30 || z > 36)) p.set(61, 6, z, 'bunting_w');
   for (const [x, z] of [[23, 9], [53, 9], [16, 36], [60, 2]]) p.set(x, 0, z, `balloons_${rng.int(0, 2)}`);
   // exits over the hall entrances and the foyer arch
-  for (const [x, y, z, dir] of [[27, 4, 37, 'n'], [45, 4, 37, 'n'], [61, 5, 33, 'w']]) {
+  for (const [x, y, z, dir] of [[27, 5, 37, 'n'], [45, 5, 37, 'n'], [61, 5, 33, 'w']]) { // high above the hall doors: no glow spills into the halls
     p.set(x, y, z, `exit_true_${dir}`);
     p.meta.exits.push({ x, y, z, dir });
   }
@@ -350,14 +361,14 @@ function midway(p, rng) {
     }
   }
   p.picture('poster_midway', 3, 4, 15, 's', 2, 3);
-  for (let x = 1; x <= 13; x++) if (x < 3 || x > 4) p.set(x, 4, 15, 'bunting_s');
+  for (let x = 1; x <= 13; x++) if (x < 3 || x > 4) p.set(x, 6, 15, 'bunting_s');
   p.set(SHOW_TAPE.x, SHOW_TAPE.y, SHOW_TAPE.z, `tape_4_${SHOW_TAPE.dir}`);
   p.set(12, 0, 16, `balloons_${rng.int(0, 2)}`);
   p.set(1, 0, 27, `balloons_${rng.int(0, 2)}`);
   p.set(2, 0, 16, 'speaker_e');
   p.set(1, 0, 23, 'trash_e');
-  p.set(6, 4, 21, 'hanging_off');
-  p.meta.hanging.push({ x: 6, y: 4, z: 21, group: 'midway' });
+  p.set(6, 6, 21, 'hanging_off');
+  p.meta.hanging.push({ x: 6, y: 6, z: 21, group: 'midway' });
 }
 
 function cabaret(p, rng) {
@@ -365,8 +376,9 @@ function cabaret(p, rng) {
   p.fill(x1, 0, z1, x2, 0, z2, 'stage_floor');
   for (const z of [30, 33, 36]) p.set(5, 3, z, 'star_e');
   p.set(5, 0, 29, `balloons_${rng.int(0, 2)}`);
-  p.set(11, 4, 33, 'spot_false_w');
-  p.meta.spots.push({ x: 11, y: 4, z: 33, dir: 'w', group: 'cabaret' });
+  // his spotlight hangs at the stage's far front corner, out of CAM 1C's view (the camera is high in the other corner)
+  p.set(11, 6, 36, 'spot_false_w');
+  p.meta.spots.push({ x: 11, y: 6, z: 36, dir: 'w', group: 'cabaret' });
 }
 
 function backstage(p, rng) {
@@ -381,8 +393,8 @@ function backstage(p, rng) {
   p.set(4, 1, 12, 'barrel_n');
   p.set(13, 0, 1, 'mop_n');
   p.picture('poster_rules', 13, 3, 4, 'w', 2, 2);
-  p.set(6, 4, 6, 'hanging_off');
-  p.meta.hanging.push({ x: 6, y: 4, z: 6, group: 'backstage' });
+  p.set(6, 5, 6, 'hanging_off');
+  p.meta.hanging.push({ x: 6, y: 5, z: 6, group: 'backstage' });
   if (rng.chance(1)) p.set(2, 0, 12, 'trash_e');
 }
 
@@ -400,9 +412,9 @@ function kitchen(p, rng) {
   for (let z = 4; z <= 12; z += 2) p.set(79, 0, z, 'cauldron');
   for (let z = 5; z <= 11; z += 3) p.set(63, 0, z, 'barrel_e');
   p.set(78, 0, 13, 'trash_w');
-  p.set(70, 4, 4, 'hanging_off');
-  p.set(74, 4, 11, 'hanging_off');
-  p.meta.hanging.push({ x: 70, y: 4, z: 4, group: 'kitchen' }, { x: 74, y: 4, z: 11, group: 'kitchen' });
+  p.set(70, 5, 4, 'hanging_off');
+  p.set(74, 5, 11, 'hanging_off');
+  p.meta.hanging.push({ x: 70, y: 5, z: 4, group: 'kitchen' }, { x: 74, y: 5, z: 11, group: 'kitchen' });
 }
 
 function restrooms(p, _rng) {
@@ -413,7 +425,7 @@ function restrooms(p, _rng) {
     p.set(69, 0, zA === 15 ? 15 : 25, zA === 15 ? 'sink_s' : 'sink_n');
     void wall;
   }
-  p.fill(68, 0, 20, 79, 4, 20, 'smooth_quartz');
+  p.fill(68, 0, 20, 79, ROOM_BY_ID.MENS.h - 1, 20, 'smooth_quartz');
   p.picture('sign_staff', 66, 2, 16, 'w', 1, 1, 1);
   p.picture('sign_staff', 66, 2, 22, 'w', 1, 1, 2);
   p.set(63, 0, 25, 'mop_e');
@@ -465,19 +477,129 @@ function supply(p, _rng) {
 }
 
 function prize(p, rng) {
+  // the Prize Corner: arcade rows, the prize counter in glass cases and a whole wall of plush prizes behind it
   for (const z of [41, 43, 45, 47]) {
-    p.set(30, 0, z, 'arcade_0_e');
-    p.set(30, 1, z, 'arcade_1_e');
-    p.set(42, 0, z, 'arcade_0_w');
-    p.set(42, 1, z, 'arcade_1_w');
+    p.set(31, 0, z, 'arcade_0_e');
+    p.set(31, 1, z, 'arcade_1_e');
+    p.set(41, 0, z, 'arcade_0_w');
+    p.set(41, 1, z, 'arcade_1_w');
   }
-  // prize counter
-  p.fill(32, 0, 52, 40, 0, 52, 'dark_oak');
-  p.fill(32, 1, 52, 40, 1, 52, 'window');
-  for (let x = 32; x <= 40; x += 2) p.set(x, 0, 55, rng.chance(0.5) ? 'plush_n' : 'shelf_n');
-  for (let x = 33; x <= 39; x += 2) p.set(x, 0, 56, 'plush_n');
-  p.set(31, 0, 39, `balloons_${rng.int(0, 2)}`);
-  p.set(41, 0, 39, `balloons_${rng.int(0, 2)}`);
+  for (let x = 33; x <= 39; x++) p.set(x, 0, 52, 'prizecase_n');
+  for (const x of [32, 40]) p.set(x, 0, 52, 'dark_oak');
+  for (let x = 31; x <= 41; x++) for (const y of [1, 2, 3]) p.set(x, y, 56, 'plushwall_n');
+  for (const x of [32, 35, 38, 40]) p.set(x, 0, 55, rng.chance(0.5) ? 'pizza_3_n' : 'barrel_n'); // stock behind the counter
+  neon(p, 'prizes', 37, 4, 56, 'n');
+  neon(p, 'star', 40, 4, 56, 'n');
+  neon(p, 'star', 32, 4, 56, 'n');
+  neon(p, 'games', 36, 4, 39, 's');
+  p.set(32, 0, 39, `balloons_${rng.int(0, 2)}`);
+  p.set(40, 0, 39, `balloons_${rng.int(0, 2)}`);
+}
+
+/** One sign out of the neon_sign block (see NEON in palette.js). */
+function neon(p, which, x, y, z, dir) {
+  const [first, w, h] = NEON[which];
+  p.picture('neon_sign', x, y, z, dir, w, h, null, first);
+}
+
+function funzone(p) {
+  // The Fun Zone (x 48-79, z 43-61, 7 tall): a play structure over a ball pit, skee-ball, arcades, kiddie rides and a
+  // party room. Bright and loud by day; at night only the neon, the game lights and the coin slots are still on.
+  const VINYL = ['vinyl_red', 'vinyl_blue', 'vinyl_yellow', 'vinyl_green'];
+  // ---- the ball pit (x 50-59, z 50-60): padded walls two high (blue, a yellow top rail), balls a block and a half deep
+  for (let x = 50; x <= 59; x++) {
+    for (let z = 50; z <= 60; z++) {
+      const wall = x === 50 || x === 59 || z === 50 || z === 60;
+      if (wall) {
+        p.set(x, 0, z, 'vinyl_blue');
+        p.set(x, 1, z, 'vinyl_yellow');
+      } else {
+        p.set(x, 0, z, 'balls');
+        p.set(x, 1, z, 'balls_top');
+      }
+    }
+  }
+  neon(p, 'funzone', 56, 5, 61, 'n'); // over the ball pit
+  // ---- the play structure (x 49-55, z 43-47): a padded deck two blocks up on red posts, net railings, a slide
+  for (const [x, z] of [[49, 43], [55, 43], [49, 47], [55, 47]]) p.fill(x, 0, z, x, 1, z, 'vinyl_red');
+  p.fill(55, 0, 44, 55, 1, 46, 'vinyl_yellow'); // the east side is closed in; the ladder goes up it
+  p.set(55, 1, 45, 'air'); // a crawl hole into the dark under the deck
+  p.fill(49, 2, 43, 55, 2, 47, 'vinyl_blue');
+  for (let x = 50; x <= 54; x++) if (x !== 52) p.set(x, 0, 47, 'balls_top'); // balls spilled under the deck
+  for (const y of [0, 1]) p.set(56, y, 45, 'ladder_e');
+  for (const [x, z] of [[49, 43], [55, 43], [49, 47], [55, 47]]) p.fill(x, 3, z, x, 4, z, 'vinyl_red'); // railing posts
+  for (let x = 50; x <= 54; x++) {
+    p.picture('play_net', x, 3, 43, 's', 1, 1, x % 2);
+    if (x !== 52) p.picture('play_net', x, 3, 47, 'n', 1, 1, (x + 1) % 2);
+  }
+  for (const z of [44, 45, 46]) p.picture('play_net', 49, 3, z, 'e', 1, 1, z === 45 ? 1 : 0);
+  // a crawl tube out of the deck to a second, lower platform (x 60-62)
+  for (let x = 56; x <= 59; x++) p.set(x, 3, 45, x === 58 ? 'tube_win_green_e' : `tube_${x % 2 ? 'red' : 'yellow'}_e`);
+  for (const [x, z] of [[60, 44], [62, 44], [60, 46], [62, 46]]) p.fill(x, 0, z, x, 1, z, 'vinyl_green');
+  p.fill(60, 2, 44, 62, 2, 46, 'vinyl_blue');
+  for (const x of [61, 62]) p.picture('play_net', x, 3, 44, 's', 1, 1, 0);
+  for (const [x, z] of [[60, 44], [62, 44], [62, 46]]) p.fill(x, 3, z, x, 4, z, 'vinyl_green');
+  // the slide: off the deck's south edge, two chutes down into the pit
+  p.set(52, 2, 48, 'slide_chute_s');
+  p.set(52, 1, 49, 'slide_chute_s');
+  p.set(52, 1, 50, 'slide_lip_s');
+  // ---- skee-ball: five lanes against the north wall, the players' end towards the room
+  for (let x = 63; x <= 67; x++) {
+    p.set(x, 0, 43, 'skee_back_s');
+    p.set(x, 0, 44, 'skee_front_s');
+  }
+  neon(p, 'games', 64, 5, 43, 's');
+  // ---- the entrance (the arch at x 69-72): kiddie rocket rides either side, the FUN ZONE sign outside
+  p.set(68, 0, 47, 'kiddie_e');
+  p.set(74, 0, 46, 'kiddie_w');
+  neon(p, 'funzone', 72, 4, 41, 'n');
+  neon(p, 'star', 70, 5, 43, 's');
+  neon(p, 'star', 71, 5, 43, 's');
+  // ---- arcades along the east wall, and a back-to-back row in the middle
+  for (const z of [44, 46, 48]) {
+    p.set(79, 0, z, 'arcade_0_w');
+    p.set(79, 1, z, 'arcade_1_w');
+  }
+  for (let x = 63; x <= 67; x += 2) {
+    p.set(x, 0, 55, 'arcade_0_n');
+    p.set(x, 1, 55, 'arcade_1_n');
+    p.set(x, 0, 56, 'arcade_0_s');
+    p.set(x, 1, 56, 'arcade_1_s');
+  }
+  // ---- tables for the parents between the pit and the arcades
+  for (const [x, z] of [[62, 50], [66, 51], [69, 49]]) {
+    p.set(x, 0, z, 'table_0_n');
+    p.set(x - 1, 0, z, 'chair_e');
+    p.set(x + 1, 0, z, (x + z) % 3 === 0 ? 'fallen_w' : 'chair_w');
+    p.set(x, 1, z, (x + z) % 2 ? 'plates' : 'pizza_1_n');
+  }
+  // ---- the party room (x 72-79, z 52-61): its own wallpaper, a table set for a party nobody came back to
+  p.fill(71, 0, 51, 79, 6, 51, 'wallpaper_party');
+  p.fill(71, 0, 52, 71, 6, 61, 'wallpaper_party');
+  p.fill(71, 0, 51, 79, 0, 51, 'wall_checker');
+  p.fill(71, 0, 52, 71, 0, 61, 'wall_checker');
+  p.fill(74, 0, 51, 75, 2, 51, 'air'); // the doorway
+  p.fill(74, 3, 51, 75, 3, 51, 'blackstone');
+  neon(p, 'party', 75, 4, 50, 'n');
+  for (let z = 54; z <= 59; z++) p.set(76, 0, z, z === 54 ? 'table_1_n' : z === 59 ? 'table_1_s' : 'table_2_n');
+  for (let z = 55; z <= 58; z++) {
+    p.set(75, 0, z, 'chair_e');
+    p.set(77, 0, z, z === 57 ? 'fallen_w' : 'chair_w');
+  }
+  for (const [z, k] of [[54, 'hat_1'], [55, 'plates'], [56, 'bday_false_n'], [57, 'plates'], [58, 'hat_3'], [59, 'pizza_2_n']]) p.set(76, 1, z, k);
+  p.picture('poster_party', 79, 4, 54, 'w', 2, 2);
+  for (const [x, z] of [[72, 52], [79, 61], [72, 61]]) p.set(x, 0, z, `balloons_${(x + z) % 3}`);
+  for (let z = 52; z <= 61; z++) p.set(79, 6, z, 'bunting_w');
+  for (let x = 72; x <= 79; x++) p.set(x, 6, 52, 'bunting_s');
+  // ---- the dust of the last week: tickets everywhere, a puddle under a leak, a lost shoe-sized party hat
+  /** @type {[number, number, string][]} */
+  const litter = [[66, 47, 'tickets'], [70, 49, 'tickets_b'], [61, 52, 'confetti'], [68, 59, 'tickets'], [64, 50, 'tickets_b'], [73, 47, 'confetti']];
+  for (const [x, z, k] of litter) p.set(x, 0, z, `decal_${k}_${['n', 'e', 's', 'w'][(x + z) % 4]}`);
+  p.set(66, 0, 61, 'decal_puddle_n');
+  p.set(66, 7, 61, 'ceiling_missing');
+  p.set(66, 6, 61, 'wires_bundle_n');
+  p.set(60, 0, 49, 'hat_2');
+  for (const [x, z] of [[49, 61], [79, 43], [79, 61]]) p.set(x, 6, z, 'cobweb');
 }
 
 function office(p, rng) {
@@ -529,44 +651,22 @@ function gallery(p, _rng) {
   // six pedestals with a spotlight each (the extras gallery)
   for (const [i, [x, z]] of [[3, 42], [8, 42], [13, 42], [3, 48], [8, 48], [13, 48]].entries()) {
     p.set(x, 0, z, 'quartz_pillar');
-    p.set(x, 4, z + (z < 45 ? 1 : -1), z < 45 ? 'spot_true_n' : 'spot_true_s');
-    p.meta.spots.push({ x, y: 4, z: z + (z < 45 ? 1 : -1), dir: z < 45 ? 'n' : 's', group: 'gallery', slot: i });
+    p.set(x, 6, z + (z < 45 ? 1 : -1), z < 45 ? 'spot_true_n' : 'spot_true_s');
+    p.meta.spots.push({ x, y: 6, z: z + (z < 45 ? 1 : -1), dir: z < 45 ? 'n' : 's', group: 'gallery', slot: i });
   }
 }
 
 function parts(p, _rng) {
-  // Parts & Service: the workshop where the band was kept running, and six crates waiting for the auction.
-  // shelves of spares along the north wall (the door to the foyer is at x 70-71)
-  const north = [[49, 'head_rustgrin_s'], [51, 'endo_skull_s'], [53, 'head_cat_s'], [55, null], [57, 'head_noxbriar_s'], [59, 'endo_skull_s'],
-    [61, 'head_mirehop_s'], [63, null], [65, 'head_rat_s'], [67, 'head_rustgrin_s']];
-  for (const [x, top] of north) {
-    p.set(x, 0, 43, 'shelf_s');
-    if (top) p.set(x, 1, 43, top);
+  // Parts & Service (x 48-79, z 63-70, behind the Fun Zone's STAFF ONLY door): the workshop that kept the band
+  // running, and six crates waiting for the auction.
+  const top = ROOM_BY_ID.PARTS.h - 1;
+  // shelves of spares along the north wall (the door from the Fun Zone is at x 60-61)
+  const north = [[49, 'head_rustgrin_s'], [51, 'endo_skull_s'], [53, 'head_cat_s'], [55, null], [57, 'head_noxbriar_s'],
+    [63, 'head_mirehop_s'], [65, null], [67, 'head_rat_s'], [69, 'head_rustgrin_s'], [71, 'endo_skull_s'], [73, 'head_mirehop_s'], [75, null], [77, 'head_cat_s']];
+  for (const [x, head] of north) {
+    p.set(x, 0, 64, 'shelf_s');
+    if (head) p.set(x, 1, 64, head);
   }
-  for (const z of [46, 49, 52, 55, 58, 61]) p.set(79, 0, z, 'shelf_w');
-  p.set(79, 1, 49, 'head_mirehop_w');
-  p.set(79, 1, 55, 'endo_skull_w');
-  p.set(79, 1, 61, 'head_cat_w');
-  // two workbenches under hanging lamps: parts laid out mid-repair
-  for (const [x1, x2, z] of [[53, 59, 52], [65, 71, 52]]) {
-    p.fill(x1, 0, z, x2, 0, z, 'dark_oak_slab_top');
-    p.fill(x1, 0, z + 1, x2, 0, z + 1, 'dark_oak_slab_top');
-  }
-  p.set(54, 1, 52, 'endo_arm_s');
-  p.set(56, 1, 53, 'head_rustgrin_e');
-  p.set(58, 1, 52, 'endo_skull_w');
-  p.set(59, 1, 53, 'pizza_2_n');
-  p.set(66, 1, 53, 'endo_arm_e');
-  p.set(68, 1, 52, 'head_rat_s');
-  p.set(70, 1, 53, 'endo_skull_s');
-  p.set(71, 1, 52, 'plates');
-  p.set(56, 0, 55, 'endo_stand_n');
-  p.set(68, 0, 50, 'endo_stand_s');
-  p.set(56, 4, 52, 'hanging_off');
-  p.set(68, 4, 52, 'hanging_off');
-  p.meta.hanging.push({ x: 56, y: 4, z: 52, group: 'parts' }, { x: 68, y: 4, z: 52, group: 'parts' });
-  p.set(64, 4, 56, 'hanging_off');
-  p.meta.hanging.push({ x: 64, y: 4, z: 56, group: 'parts' });
   // six upright shipping crates against the south wall, LOT 1 to LOT 6: open, empty, chains hanging inside.
   // LOT 4 is nailed shut.
   for (let i = 0; i < 6; i++) {
@@ -582,47 +682,34 @@ function parts(p, _rng) {
     p.picture('lot_tag', a, 2, 67, 'n', 1, 1, i);
     if (i === 3) for (const y of [0, 1, 2]) p.set(a + 1, y, 67, `boards_${y === 1 ? 'x' : 'across'}_n`);
   }
-  // two free-standing shelf rows, back to back, between the benches and the crates
-  for (const x0 of [53, 65]) {
-    for (let x = x0; x <= x0 + 6; x += 2) {
-      p.set(x, 0, 58, 'shelf_n');
-      p.set(x, 0, 59, 'shelf_s');
-    }
+  // endoskeletons on their stands down the middle, a head on the floor, two empty costumes
+  p.set(57, 0, 66, 'endo_stand_s');
+  p.set(70, 0, 66, 'endo_stand_w');
+  p.set(64, 0, 65, 'head_rustgrin_n');
+  p.set(49, 0, 66, 'suit_rustgrin_e');
+  p.set(79, 0, 65, 'suit_mirehop_w');
+  // the crates' lids against the west wall, a tarp over something in the east corner
+  p.fill(49, 0, 69, 49, 2, 70, 'spruce');
+  p.set(50, 0, 70, 'barrel_n');
+  p.set(50, 1, 70, 'barrel_n');
+  p.fill(76, 0, 68, 78, 0, 70, 'black_wool');
+  p.fill(77, 1, 69, 77, 1, 69, 'black_carpet');
+  // light: two red emergency lights, one flickering troffer, the work lamps (off at night)
+  fixture(p, 49, 3, 65, 'emerg_true_e', 'PARTS');
+  fixture(p, 79, 3, 67, 'emerg_true_w', 'PARTS');
+  fixture(p, 64, top + 1, 66, 'lamp_broken', 'PARTS');
+  for (const x of [56, 70]) {
+    p.set(x, top, 66, 'hanging_off');
+    p.meta.hanging.push({ x, y: top, z: 66, group: 'parts' });
   }
-  for (const [x, z, k] of [[53, 58, 'head_cat_n'], [57, 58, 'endo_skull_n'], [59, 59, 'head_rustgrin_s'], [67, 58, 'head_noxbriar_n'],
-    [69, 59, 'endo_skull_s'], [71, 58, 'head_mirehop_n'], [55, 59, 'pizza_3_n']]) p.set(x, 1, z, k);
-  p.set(62, 0, 48, 'endo_stand_e');
-  p.set(73, 0, 45, 'endo_stand_w'); // waiting by the door, facing whoever comes in
-  p.set(76, 0, 47, 'head_rustgrin_n');
-  p.set(66, 0, 46, 'decal_puddle_e');
-  p.set(57, 0, 47, 'decal_debris_n');
-  p.set(75, 0, 55, 'endo_stand_w');
-  p.set(79, 0, 67, 'suit_mirehop_w');
-  for (const [x, z] of [[77, 69], [78, 69], [77, 70]]) p.set(x, 0, z, 'barrel_n');
-  p.set(78, 0, 70, 'pizza_3_w');
-  // the crates' lids, leaned against the west wall; a tarp over something by the corner
-  p.fill(48, 0, 46, 48, 2, 47, 'spruce');
-  p.fill(49, 0, 66, 51, 0, 68, 'black_wool');
-  p.fill(50, 1, 67, 50, 1, 67, 'black_carpet');
-  // an empty costume against the west wall, a red emergency light over each end of the room
-  p.set(48, 0, 60, 'suit_rustgrin_e');
-  p.set(48, 0, 56, 'barrel_n');
-  p.set(48, 1, 56, 'barrel_n');
-  fixture(p, 48, 3, 51, 'emerg_true_e', 'parts');
-  fixture(p, 79, 3, 64, 'emerg_true_w', 'parts');
-  fixture(p, 62, 5, 58, 'lamp_broken', 'parts');
-  // chain hoists, dust and drag marks, faint footprints from the crates to the door
-  for (const [x, z] of [[61, 50], [73, 58]]) p.fill(x, 3, z, x, 4, z, 'chain_y');
-  p.set(60, 0, 64, 'decal_drag_n');
-  p.set(60, 0, 62, 'decal_drag_n');
-  for (const [x, z] of [[65, 66], [66, 62], [67, 58], [68, 54], [69, 49], [70, 45]]) p.set(x, 0, z, 'decal_prints_faint_n');
-  p.set(62, 0, 58, 'decal_debris_n');
-  p.set(75, 0, 47, 'decal_puddle_n');
-  p.set(77, 0, 66, 'mop_w');
-  p.set(78, 0, 44, 'trash_w');
-  for (const [x, z] of [[48, 43], [79, 43], [48, 70]]) p.set(x, 4, z, 'cobweb');
-  p.set(64, 4, 61, 'wires_bundle_n');
-  p.set(72, 4, 50, 'wires_box_e');
+  for (const [x, z] of [[61, 65], [73, 66]]) p.fill(x, top - 1, z, x, top, z, 'chain_y');
+  // faint footprints from the crates to the door; drag marks; dust
+  for (const [x, z] of [[65, 66], [63, 66], [61, 65]]) p.set(x, 0, z, 'decal_prints_faint_n');
+  p.set(59, 0, 66, 'decal_drag_e');
+  p.set(67, 0, 65, 'decal_debris_n');
+  for (const [x, z] of [[49, 70], [79, 64]]) p.set(x, top, z, 'cobweb');
+  p.set(52, top, 66, 'wires_bundle_n');
+  p.picture('sign_staff', 59, 2, 61, 'n', 1, 1, 0); // STAFF ONLY, on the Fun Zone side of the door
 }
 
 /** A light that is built lit and never switched by the game (the last fixtures still working). */
@@ -703,14 +790,14 @@ function decayMarquee(p) {
     p.set(x, y, z, `decal_${k}`);
   }
   p.picture('lot_tag', 4, 2, 31, 'e', 1, 1, 5);
-  for (const z of [29, 37]) p.set(4, 4, z, 'cobweb');
+  for (const z of [29, 37]) p.set(4, 6, z, 'cobweb');
 }
 
 function decayMidway(p) {
   // the ring floor stays clear: LOT 4 and LOT 5 hang on the wall behind it, over the show tape
   p.picture('lot_tag', 5, 2, 27, 'n', 1, 1, 3); // the Cat
   p.picture('lot_tag', 7, 2, 27, 'n', 1, 1, 4); // the Purple Rat
-  for (const [x, z] of [[1, 15], [1, 27]]) p.set(x, 4, z, 'cobweb');
+  for (const [x, z] of [[1, 15], [1, 27]]) p.set(x, 6, z, 'cobweb');
   p.set(2, 0, 25, 'decal_confetti_n');
   p.set(12, 0, 19, 'decal_tickets_b_e');
 }
@@ -740,32 +827,32 @@ function decayBackstage(p) {
   p.set(2, 0, 12, 'air');
   p.set(3, 0, 12, 'trash_n');
   fixture(p, 13, 3, 8, 'emerg_true_w', 'BACKSTAGE');
-  p.set(4, 4, 4, 'wires_bundle_n');
-  p.set(3, 4, 10, 'wires_box_s');
-  for (const [x, z] of [[1, 1], [13, 13]]) p.set(x, 4, z, 'cobweb');
+  p.set(4, 5, 4, 'wires_bundle_n');
+  p.set(3, 5, 10, 'wires_box_s');
+  for (const [x, z] of [[1, 1], [13, 13]]) p.set(x, 5, z, 'cobweb');
   // something heavy was dragged in from the stage door
   for (const [x, z] of [[12, 11], [10, 10]]) p.set(x, 0, z, 'decal_drag_w');
 }
 
 function decayKitchen(p) {
-  fixture(p, 68, 5, 10, 'lamp_broken', 'KITCHEN');
+  fixture(p, 68, 6, 10, 'lamp_broken', 'KITCHEN');
   fixture(p, 63, 3, 3, 'emerg_true_e', 'KITCHEN');
-  p.set(75, 5, 5, 'ceiling_missing');
-  p.set(75, 4, 5, 'wires_bundle_e');
+  p.set(75, 6, 5, 'ceiling_missing');
+  p.set(75, 5, 5, 'wires_bundle_e');
   p.set(75, 0, 5, 'decal_debris_n');
   p.set(73, 1, 8, 'pizza_3_e');
   p.set(77, 1, 7, 'pizza_2_n');
   p.set(75, 0, 12, 'decal_puddle_n');
   p.set(67, 0, 12, 'decal_puddle_e');
-  for (const [x, z] of [[64, 13], [79, 1]]) p.set(x, 4, z, 'cobweb');
+  for (const [x, z] of [[64, 13], [79, 1]]) p.set(x, 5, z, 'cobweb');
 }
 
 function decayRestrooms(p) {
-  fixture(p, 64, 5, 20, 'lamp_broken', 'RESTROOMS');
+  fixture(p, 64, 6, 20, 'lamp_broken', 'RESTROOMS');
   p.picture('sign_out_of_order', 66, 3, 24, 'w', 2, 1);
   p.set(64, 0, 19, 'decal_puddle_n');
   p.set(65, 0, 24, 'decal_puddle_e');
-  p.set(66, 4, 15, 'cobweb');
+  p.set(66, 5, 15, 'cobweb');
 }
 
 function decayFoyer(p) {
@@ -782,37 +869,37 @@ function decayHalls(p) {
   for (const [z, k] of [[43, 'prints'], [46, 'prints'], [49, 'prints_faint'], [52, 'prints_faint'], [55, 'prints_faint']]) p.set(27, 0, z, `decal_${k}_s`);
   writing(p, 'show', 26, 4, 52, 'e');
   p.picture('poster_torn', 26, 4, 42, 'e', 2, 2); // over the old rules poster, right in CAM 2A's face
-  p.set(26, 5, 47, 'ceiling_missing');
-  p.set(26, 4, 47, 'wires_bundle_e');
+  p.set(26, 6, 47, 'ceiling_missing');
+  p.set(26, 5, 47, 'wires_bundle_e');
   p.set(26, 0, 47, 'decal_debris_n');
-  p.set(28, 4, 56, 'cobweb');
+  p.set(28, 5, 56, 'cobweb');
   // W. Hall Corner (CAM 2B, and through the left door when its light is on)
   writing(p, 'name', 26, 4, 67, 'e');
-  p.set(30, 4, 70, 'cobweb');
+  p.set(30, 5, 70, 'cobweb');
   // East Hall (CAM 4A): somebody counted, then stopped counting
   writing(p, 'scratches', 46, 3, 50, 'w');
-  p.set(46, 5, 45, 'ceiling_missing');
-  p.set(46, 4, 45, 'wires_box_w');
+  p.set(46, 6, 45, 'ceiling_missing');
+  p.set(46, 5, 45, 'wires_box_w');
   p.set(46, 0, 45, 'decal_debris_n');
   p.set(44, 0, 52, 'decal_puddle_n');
-  p.set(44, 4, 56, 'cobweb');
+  p.set(44, 5, 56, 'cobweb');
   // the nook where Rustgrin waits (CAM 4B)
   writing(p, 'scratches', 45, 2, 70, 'n');
-  p.set(46, 4, 70, 'cobweb');
+  p.set(46, 5, 70, 'cobweb');
 }
 
 function decaySupply(p) {
   p.set(22, 0, 50, 'suit_rustgrin_n');
-  fixture(p, 19, 3, 47, 'emerg_true_e', 'SUPPLY');
   p.set(23, 0, 48, 'decal_puddle_n');
-  p.set(24, 4, 50, 'cobweb');
+  p.set(24, 5, 50, 'cobweb');
 }
 
 function decayPrize(p) {
-  for (const [x, z] of [[30, 41], [42, 47]]) p.set(x, 2, z, 'cobweb');
+  for (const [x, z] of [[31, 41], [41, 47]]) p.set(x, 2, z, 'cobweb');
   p.set(36, 0, 45, 'decal_tickets_b_n');
   p.set(33, 0, 49, 'decal_tickets_e');
-  p.set(37, 0, 50, 'plush_s');
+  p.set(39, 0, 48, 'decal_tickets_n');
+  p.set(37, 0, 50, 'plush_s'); // dropped by a child on the way out, years ago
 }
 
 function decayOffice(p) {
@@ -862,7 +949,7 @@ function lights(p) {
   }
   // the office lamp (on at night)
   const L = OFFICE.lamp;
-  p.set(L.x, L.y, L.z, 'lamp_on');
+  p.set(L.x, L.y, L.z, 'lamp_office');
   p.meta.lamps.push({ x: L.x, y: L.y, z: L.z, room: 'OFFICE', group: 'office' });
   // the two hall-light lamps outside the doors
   for (const side of ['L', 'R']) {
@@ -889,7 +976,7 @@ function signs(p) {
   p.sign(27, 3, 39, 's', ['WEST HALL', '', 'OFFICE', 'v']);
   p.sign(45, 3, 39, 's', ['EAST HALL', '', 'OFFICE', 'v']);
   p.sign(25, 2, 47, 'e', ['SUPPLY', 'CLOSET']);
-  p.sign(63, 2, 11, 'e', ['KITCHEN', 'Staff only']);
+  p.sign(63, 3, 11, 'e', ['KITCHEN', 'Staff only']);
   p.sign(32, 2, 69, 'e', ['NIGHT GUARD', 'Doors: red', 'Lights: white', 'Power is finite']);
   p.sign(15, 3, 31, 'e', ['THE GRAND', 'MARQUEE', 'private stage', 'do not disturb']);
   p.sign(33, 1, 60, 's', ['', 'LEFT VENT', '^']);

@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "plush_wall",
+    "metalness_emissive_roughness": "plush_wall_mer",
+    "heightmap": "plush_wall_height"
+  }
+}

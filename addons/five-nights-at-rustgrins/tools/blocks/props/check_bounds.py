@@ -50,6 +50,10 @@ def bounds(geo):
 bad = 0
 for name in sorted(PROPS):
     f = GEO / f'{name}.geo.json'
+    if not f.exists():  # full-block props (vinyl_pad) or props whose geometry has another name (ball_pit_top)
+        f = GEO / f'{name}_top.geo.json'
+        if not f.exists():
+            continue
     for geo in json.loads(f.read_text())['minecraft:geometry']:
         lo, hi = bounds(geo)
         out = (lo < [-8.001, -0.001, -8.001]).any() or (hi > [8.001, 16.001, 8.001]).any()

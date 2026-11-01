@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "vinyl_pad_green",
+    "metalness_emissive_roughness": "vinyl_pad_green_mer",
+    "heightmap": "vinyl_pad_green_height"
+  }
+}

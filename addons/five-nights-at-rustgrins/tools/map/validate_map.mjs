@@ -3,8 +3,12 @@
 //      inside the feed's view: within VIEW.h / VIEW.v degrees of the aim, which fits
 //      Bedrock's default 60 degree FOV on a 4:3 screen);
 //   2. every route edge (node -> waypoints -> node) keeps the animatronic's body
-//      clear of walls, tables and shelves (ducts: crawl height only);
-//   3. every node stands on a floor with head room;
+//      clear of walls, tables and shelves. The cast stands 5 blocks tall: 5.1 of
+//      head room, except within 0.8 blocks of an opening (a doorway, an arch, the
+//      office doors and windows), where they stoop through or lean in (2.9);
+//      in the ducts they crawl (1.9);
+//   3. every node stands on a floor with head room (5.1; 2.9 for the nodes that lean
+//      at a door or window or stand within 0.8 blocks of an opening; 1.9 crawling);
 //   4. camera lenses and the office spawn are not inside blocks;
 //   5. every office control is within reach of the guard's seat, in plain sight.
 // Usage: node tools/map/validate_map.mjs   (exit 1 on problems)
@@ -16,7 +20,29 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const { buildVoxels } = await import('./export_voxels.mjs');
 const { CAMERAS } = await import(path.join(ROOT, 'packs/BP/scripts/data/cameras.js'));
 const { NODES, EDGES, pathBetween } = await import(path.join(ROOT, 'packs/BP/scripts/data/nodes.js'));
-const { OFFICE, REACH } = await import(path.join(ROOT, 'packs/BP/scripts/data/layout.js'));
+const { OFFICE, REACH, OPENINGS } = await import(path.join(ROOT, 'packs/BP/scripts/data/layout.js'));
+
+// Head room by pose (blocks above the feet).
+const STAND = 5.1, STOOP = 2.9, CRAWL = 1.9, NEAR_OPENING = 0.8;
+const STAND_SAMPLES = [0.3, 1.2, 2.2, 3.1, 4.1, 5.0];
+const STOOP_SAMPLES = [0.3, 1.2, 2.2, 2.85];
+const CRAWL_SAMPLES = [0.3, 0.9, 1.5, 1.85];
+// Openings as boxes in the floor plan: the layout's openings plus the office doors and windows.
+const OPENING_BOXES = [
+  ...OPENINGS.map((o) => o.box),
+  ...['L', 'R'].flatMap((s) => [OFFICE.doors[s], OFFICE.windows[s]]).map((d) => [d.x, d.y1, d.z1, d.x, d.y2, d.z2]),
+];
+/** Horizontal distance from (x, z) to the nearest opening box (0 inside one). */
+function openingDist(x, z) {
+  let best = Infinity;
+  for (const [x1, , z1, x2, , z2] of OPENING_BOXES) {
+    const dx = Math.max(x1 - x, 0, x - (x2 + 1));
+    const dz = Math.max(z1 - z, 0, z - (z2 + 1));
+    best = Math.min(best, Math.hypot(dx, dz));
+  }
+  return best;
+}
+const nearOpening = (x, z) => openingDist(x, z) <= NEAR_OPENING;
 
 const { grid } = buildVoxels();
 const { data, x0, y0, z0, sx, sy, sz, palette } = grid;
@@ -95,7 +121,9 @@ for (const c of CAMERAS) {
 
 console.log('nodes:');
 for (const n of Object.values(NODES)) {
-  const h = n.crawl ? 1.7 : 3.75; // the animatronics stand about 3.7 blocks tall and crawl 1.7 high (render scale 1.45)
+  // they lean at the office doors and the right window, and anywhere right at an opening
+  const lean = !!(n.door || n.window) || nearOpening(n.x, n.z);
+  const h = n.crawl ? CRAWL : lean ? STOOP : STAND;
   const floor = nameAt(n.x, n.y - 0.5, n.z);
   if (!blocksBody(floor) && !n.crawl) report(`${n.id}: no floor under it (${floor})`);
   for (let dy = 0.1; dy < h; dy += 0.5) {
@@ -118,7 +146,7 @@ for (const e of EDGES) {
     for (let k = 0; k <= n && !bad; k++) {
       const t = k / n;
       const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
-      for (const dy of crawl ? [0.3, 0.9, 1.6] : [0.3, 1.2, 2.2, 3.1, 3.6]) {
+      for (const dy of crawl ? CRAWL_SAMPLES : nearOpening(p[0], p[2]) ? STOOP_SAMPLES : STAND_SAMPLES) {
         const nm = inGap([p[0], p[1] + dy, p[2]]) ? 'minecraft:air' : nameAt(p[0], p[1] + dy, p[2]);
         const levelChange = Math.abs(b[1] - a[1]) > 0.5;
         if (dy < 0.5 && levelChange && isStep(nm)) continue;

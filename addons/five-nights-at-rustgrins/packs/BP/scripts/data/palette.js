@@ -100,6 +100,7 @@ export const PALETTE = Object.freeze({
   duct: F('duct_metal'), stage_floor: F('stage_floor'),
   shutter: F('door_shutter', { 'fnar:part': 0 }), shutter_bottom: F('door_shutter', { 'fnar:part': 1 }),
   lamp_on: F('ceiling_lamp', { 'fnar:lit': true }), lamp_off: F('ceiling_lamp', { 'fnar:lit': false }),
+  lamp_office: F('ceiling_lamp', { 'fnar:lit': true, 'fnar:dim': true }), // light 11: stops at the office door frames
   ...cardStates('exit', 'exit_sign', 'fnar:lit', [true]),
   ...cardStates('sconce', 'wall_sconce', 'fnar:lit', [true, false]),
   ...cardStates('spot', 'stage_spotlight', 'fnar:lit', [true, false]),
@@ -124,6 +125,7 @@ export const PALETTE = Object.freeze({
   ...cardStates('arcade', 'arcade_cabinet', 'fnar:half', [0, 1]),
   ...cardStates('tape', 'show_tape', 'fnar:level', [0, 1, 2, 3, 4]),
   ...card('cctv', 'security_camera'),
+  ...card('cctv_ceil', 'security_camera', { 'fnar:ceiling': true }),
   ...card('pa', 'pa_speaker'),
   ...card('speaker', 'stage_speaker'),
   ...card('amp', 'guitar_amp'),
@@ -150,6 +152,21 @@ export const PALETTE = Object.freeze({
   ...named('walter', 'walter_things', 'fnar:kind', ['desk', 'flashlight']),
   ...named('boards', 'boarded_planks', 'fnar:kind', ['across', 'x']),
   ...cardStates('emerg', 'emergency_light', 'fnar:lit', [true, false]),
+  // ---------------------------------------------------------------- the Fun Zone (docs/BLOCKS.md D)
+  ...Object.fromEntries(['red', 'blue', 'yellow', 'green'].map((c, i) => [`vinyl_${c}`, F('vinyl_pad', { 'fnar:color': i })])),
+  ...Object.fromEntries(['red', 'blue', 'yellow', 'green'].flatMap((c, i) => Object.entries(CARD).flatMap(([k, v]) => [
+    [`tube_${c}_${k}`, F('play_tube', { 'minecraft:cardinal_direction': v, 'fnar:color': i, 'fnar:window': false })],
+    [`tube_win_${c}_${k}`, F('play_tube', { 'minecraft:cardinal_direction': v, 'fnar:color': i, 'fnar:window': true })],
+  ]))),
+  ...named('slide', 'play_slide', 'fnar:part', ['chute', 'lip']),
+  balls: F('ball_pit', { 'fnar:layer': 0 }), balls_top: F('ball_pit', { 'fnar:layer': 1 }),
+  ...named('skee', 'skeeball_lane', 'fnar:part', ['front', 'back']),
+  ...card('kiddie', 'kiddie_ride'),
+  ...card('prizecase', 'prize_case'),
+  ...card('plushwall', 'plush_wall'),
+  ...card('truss', 'stage_truss'),
+  tinsel: F('tinsel_curtain'), wallpaper_party: F('wallpaper_party'),
+  ...faced('ladder', 'ladder'),
   cobweb: M('web'), stripped_spruce: M('stripped_spruce_log', { pillar_axis: 'y' }),
   // Walter's car: a faded green 80s sedan in weathered copper
   headlight: M('ochre_froglight', { pillar_axis: 'y' }), car_body: M('weathered_cut_copper'),
@@ -163,9 +180,12 @@ export const PICTURES = Object.freeze({
   poster_missing: [1, 2], drawing: [1, 1], sign_cabaret: [3, 1], sign_out_of_order: [2, 1], sign_midway: [4, 1],
   sign_revue: [6, 2], sign_staff: [1, 1],
   poster_auction: [2, 3], poster_torn: [2, 2], lot_tag: [1, 1], wall_writing: [4, 2],
+  neon_sign: [3, 1], play_net: [1, 1],
 });
 /** Variant counts for 1x1 pictures that use fnar:tile as a variant index (wall_writing: several pictures in one block). */
-export const PICTURE_VARIANTS = Object.freeze({ drawing: 6, sign_staff: 4, lot_tag: 6, wall_writing: 16 });
+export const PICTURE_VARIANTS = Object.freeze({ drawing: 6, sign_staff: 4, lot_tag: 6, wall_writing: 16, neon_sign: 14, play_net: 2 });
+/** neon_sign tiles: the first tile of each sign and its size. */
+export const NEON = Object.freeze({ funzone: [0, 3, 1], prizes: [3, 3, 1], party: [6, 2, 1], pizza: [8, 2, 1], games: [10, 2, 1], star: [12, 1, 1], slice: [13, 1, 1] });
 /** wall_writing tiles: the first tile of each picture and its size (tiles run row-major from the top-left). */
 export const WRITING = Object.freeze({ show: [0, 4, 2], name: [8, 3, 2], tally: [14, 1, 1], scratches: [15, 1, 1] });
 

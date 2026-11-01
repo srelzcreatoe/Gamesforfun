@@ -10,6 +10,10 @@
         "fnar:lit": [
           true,
           false
+        ],
+        "fnar:dim": [
+          false,
+          true
         ]
       }
     },
@@ -66,6 +70,12 @@
             }
           },
           "minecraft:light_emission": 0
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:lit') == true && q.block_state('fnar:dim') == true",
+        "components": {
+          "minecraft:light_emission": 11
         }
       }
     ]

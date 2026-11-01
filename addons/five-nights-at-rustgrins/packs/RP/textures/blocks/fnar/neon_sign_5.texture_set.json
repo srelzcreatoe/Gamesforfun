@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "neon_sign_5",
+    "metalness_emissive_roughness": "neon_sign_5_mer",
+    "heightmap": "neon_sign_5_height"
+  }
+}

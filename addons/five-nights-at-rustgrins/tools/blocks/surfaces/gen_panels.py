@@ -403,7 +403,7 @@ def sign_midway():
     return c
 
 
-def _neon(c, text, y, core, glow, dead=(), spacing=3, emit=255):
+def _neon(c, text, y, core, glow, dead=(), spacing=3, emit=255, dead_color='#4a4a52'):
     from font import render
     m = render(text, font='neon', spacing=spacing)
     h, w = m.shape
@@ -432,7 +432,7 @@ def _neon(c, text, y, core, glow, dead=(), spacing=3, emit=255):
             c.emit[Y, X] = max(c.emit[Y, X], 70)
     for yy, xx in zip(*np.nonzero(m)):
         if dead_cols[xx]:
-            c.px(x0 + xx, y + yy, '#4a4a52', rough=60, height=200)  # dead glass tube
+            c.px(x0 + xx, y + yy, dead_color, rough=60, height=200)  # dead glass tube
         else:
             c.px(x0 + xx, y + yy, core, emit=emit, rough=50, height=200)
 
@@ -764,6 +764,78 @@ def wall_writing():
     return [(writing_show(), 4, 2), (writing_name(), 3, 2), (writing_tally_chalk(), 1, 1), (writing_tally_scratch(), 1, 1)]
 
 
+# ------------------------------------------------------------------ the Fun Zone (docs/BLOCKS.md D)
+def _neon_panel(w, text, core, glow, dead=(), spacing=1, icon=None):
+    """Neon tubes on the bare wall: a thin dark mounting rail, the tubes, a dead letter or two."""
+    c = _transparent(w, 16, rough=60, height=170)
+    for x in range(2, w - 2):  # mounting rail behind the tubes
+        c.px(x, 14, '#2a2a30', metal=180, rough=110, height=150)
+    for x in (3, w - 4):
+        c.px(x, 13, '#55555c', metal=200, rough=90)  # standoffs
+        c.px(x, 15, '#55555c', metal=200, rough=90)
+    if text:
+        # pale burnt-out glass so the dead letter still reads on the dark wallpaper
+        _neon(c, text, 3, core, glow, dead=dead, spacing=spacing, dead_color='#8e8e9c')
+    if icon:
+        icon(c, core, glow)
+    # the transformer cable running down out of sight
+    c.px(w - 3, 15, '#141416')
+    return c
+
+
+def _neon_star(c, core, glow):
+    pts = [(7, 1), (8, 1), (7, 2), (8, 2), (6, 3), (9, 3), (1, 5), (2, 5), (3, 5), (4, 5), (11, 5), (12, 5), (13, 5), (14, 5),
+           (5, 4), (10, 4), (3, 6), (12, 6), (4, 7), (11, 7), (5, 8), (10, 8), (4, 9), (11, 9), (3, 10), (12, 10), (3, 11), (12, 11),
+           (4, 11), (11, 11), (5, 10), (10, 10), (6, 9), (9, 9), (7, 9), (8, 9)]
+    for (x, y) in pts:
+        c.px(x, y, core, emit=255, rough=50, height=200)
+        for (dx, dy) in ((0, 1), (1, 0)):
+            X, Y = x + dx, y + dy
+            if 0 <= X < c.w and 0 <= Y < c.h and not c.a[Y, X]:
+                c.px(X, Y, mix(hexc(glow), hexc('#000000'), 0.4), emit=70)
+
+
+def _neon_slice(c, core, glow):
+    """A pizza slice in neon: crust along the top, the point at the bottom, two pepperoni."""
+    for x in range(2, 14):
+        c.px(x, 2, '#ffb050', emit=255, rough=50, height=200)
+    for y in range(3, 13):
+        c.px(2 + (y - 2) * 6 // 11, y, core, emit=255, rough=50, height=200)
+        c.px(13 - (y - 2) * 6 // 11, y, core, emit=255, rough=50, height=200)
+    for (x, y) in ((6, 5), (9, 7), (7, 9)):
+        c.px(x, y, '#ff3a2a', emit=255, rough=50)
+    c.px(13, 2, '#4a4a52', rough=60)  # a dead bend
+
+
+def neon_sign():
+    """One block, 14 tiles: FUN ZONE (3x1), PRIZES (3x1), PARTY (2x1), PIZZA (2x1), GAMES (2x1), a star, a slice."""
+    return [(_neon_panel(48, 'FUN ZONE', '#7ff6e8', '#1fd0c0', dead=(5,)), 3, 1),
+            (_neon_panel(48, 'PRIZES', '#ffe27a', '#e0a020', dead=(4,), spacing=3), 3, 1),
+            (_neon_panel(32, 'PARTY', '#ff6fb5', '#ff2f8e', dead=()), 2, 1),
+            (_neon_panel(32, 'PIZZA', '#ff8a3a', '#ff4a1a', dead=(3,)), 2, 1),
+            (_neon_panel(32, 'GAMES', '#8aff7a', '#30d040', dead=(1,)), 2, 1),
+            (_neon_panel(16, '', '#ffe27a', '#e0a020', icon=_neon_star), 1, 1),
+            (_neon_panel(16, '', '#ffd27a', '#ff8a3a', icon=_neon_slice), 1, 1)]
+
+
+def play_net(i):
+    """Rope cargo net for the play structure; variant 1 has a torn hole."""
+    c = _transparent(16, 16, rough=245, height=150)
+    rope = ['#6c5d44', '#867556', '#9c8a68']
+    for y in range(16):
+        for x in range(16):
+            if (x % 4 == 1) or (y % 4 == 1):
+                k = 2 if (x % 4 == 1 and y % 4 == 1) else (x * 3 + y) % 2
+                c.px(x, y, rope[k], height=160 if k == 2 else 150)
+    if i == 1:
+        for (x, y) in ((8, 8), (9, 8), (8, 9), (9, 9), (9, 10), (10, 9), (5, 9), (8, 10)):
+            c.a[y, x] = 0
+        for (x, y) in ((7, 11), (7, 12), (11, 8), (12, 8)):
+            c.px(x, y, rope[0])  # frayed ends
+    c.age(5800 + i, paper='#867556', fade=0.02, yellow=0.02, stains=0, dirt=0.15)
+    return c
+
+
 # ------------------------------------------------------------------ registry
 PANELS = {
     # name: (builder, cols, rows)
@@ -785,10 +857,12 @@ VARIANTS = {
     'drawing': (drawing, 6),
     'sign_staff': (sign_staff, 4),
     'lot_tag': (lot_tag, 6),
+    'play_net': (play_net, 2),
 }
 # several pictures sharing one block: their tiles are numbered one after the other
 COMPOSITE = {
     'wall_writing': wall_writing,
+    'neon_sign': neon_sign,
 }
 
 

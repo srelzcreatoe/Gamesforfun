@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "kiddie_ride",
+    "metalness_emissive_roughness": "kiddie_ride_mer",
+    "heightmap": "kiddie_ride_height"
+  }
+}

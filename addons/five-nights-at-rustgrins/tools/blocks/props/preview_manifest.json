@@ -106,6 +106,44 @@
       "dist": 4.0
     }
   ],
+  "ball_pit": [
+    {
+      "label": "top layer on a full layer",
+      "parts": [
+        {
+          "states": {
+            "fnar:layer": 0
+          },
+          "pos": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:layer": 1
+          },
+          "pos": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        1.0,
+        0
+      ],
+      "dist": 2.4,
+      "dir": [
+        0.7,
+        0.8,
+        -1
+      ]
+    }
+  ],
   "balloons": [
     {
       "label": "color 0",
@@ -1169,6 +1207,39 @@
       ]
     }
   ],
+  "kiddie_ride": [
+    {
+      "label": "north",
+      "focus": [
+        0,
+        0.45,
+        0
+      ],
+      "dist": 1.9,
+      "dir": [
+        0.8,
+        0.5,
+        -1
+      ]
+    },
+    {
+      "label": "facing east",
+      "states": {
+        "minecraft:cardinal_direction": "east"
+      },
+      "focus": [
+        0,
+        0.45,
+        0
+      ],
+      "dist": 1.9,
+      "dir": [
+        0.8,
+        0.5,
+        -1
+      ]
+    }
+  ],
   "light_button": [
     {
       "label": "off",
@@ -1923,6 +1994,116 @@
       ]
     }
   ],
+  "play_slide": [
+    {
+      "label": "chute",
+      "states": {
+        "fnar:part": 0
+      },
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.4,
+      "dir": [
+        1,
+        0.5,
+        -0.4
+      ]
+    },
+    {
+      "label": "lip",
+      "states": {
+        "fnar:part": 1
+      },
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.4,
+      "dir": [
+        1,
+        0.5,
+        -0.4
+      ]
+    }
+  ],
+  "play_tube": [
+    {
+      "label": "red",
+      "states": {
+        "fnar:color": 0,
+        "fnar:window": false
+      },
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.2,
+      "dir": [
+        0.8,
+        0.4,
+        -1
+      ]
+    },
+    {
+      "label": "blue",
+      "states": {
+        "fnar:color": 1,
+        "fnar:window": true
+      },
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.2,
+      "dir": [
+        0.8,
+        0.4,
+        -1
+      ]
+    },
+    {
+      "label": "yellow",
+      "states": {
+        "fnar:color": 2,
+        "fnar:window": false
+      },
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.2,
+      "dir": [
+        0.8,
+        0.4,
+        -1
+      ]
+    },
+    {
+      "label": "green",
+      "states": {
+        "fnar:color": 3,
+        "fnar:window": true
+      },
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.2,
+      "dir": [
+        0.8,
+        0.4,
+        -1
+      ]
+    }
+  ],
   "plush_rat": [
     {
       "label": "north",
@@ -1944,6 +2125,39 @@
         0
       ],
       "dist": 1.0
+    }
+  ],
+  "plush_wall": [
+    {
+      "label": "north",
+      "env": "wall",
+      "focus": [
+        0,
+        0.5,
+        0.3
+      ],
+      "dist": 1.9,
+      "dir": [
+        0.3,
+        0.1,
+        -1
+      ]
+    }
+  ],
+  "prize_case": [
+    {
+      "label": "north",
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 2.0,
+      "dir": [
+        0.5,
+        0.6,
+        -1
+      ]
     }
   ],
   "security_camera": [
@@ -1992,6 +2206,24 @@
       "dir": [
         -0.6,
         0.2,
+        -1
+      ]
+    },
+    {
+      "label": "ceiling mount",
+      "env": "floor",
+      "states": {
+        "fnar:ceiling": true
+      },
+      "focus": [
+        0,
+        0.66,
+        0.0
+      ],
+      "dist": 1.3,
+      "dir": [
+        0.7,
+        -0.2,
         -1
       ]
     },
@@ -2325,6 +2557,84 @@
       ]
     }
   ],
+  "skeeball_lane": [
+    {
+      "label": "lane",
+      "parts": [
+        {
+          "states": {
+            "fnar:part": 0,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:part": 1,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.5,
+        -0.5
+      ],
+      "dist": 3.0,
+      "dir": [
+        0.6,
+        0.6,
+        -1
+      ]
+    },
+    {
+      "label": "from the player",
+      "parts": [
+        {
+          "states": {
+            "fnar:part": 0,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:part": 1,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.5,
+        -0.5
+      ],
+      "dist": 2.6,
+      "dir": [
+        0.1,
+        0.5,
+        -1
+      ]
+    }
+  ],
   "slumped_suit": [
     {
       "label": "char 0 rustgrin",
@@ -2638,6 +2948,54 @@
       ]
     }
   ],
+  "stage_truss": [
+    {
+      "label": "run of three",
+      "parts": [
+        {
+          "states": {
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.7,
+        0
+      ],
+      "dist": 3.0,
+      "dir": [
+        1,
+        -0.3,
+        -0.6
+      ]
+    }
+  ],
   "time_clock": [
     {
       "label": "north",
@@ -2912,6 +3270,56 @@
           0
         ]
       }
+    }
+  ],
+  "vinyl_pad": [
+    {
+      "label": "color 0 red",
+      "states": {
+        "fnar:color": 0
+      },
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.4
+    },
+    {
+      "label": "color 1 blue",
+      "states": {
+        "fnar:color": 1
+      },
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.4
+    },
+    {
+      "label": "color 2 yellow",
+      "states": {
+        "fnar:color": 2
+      },
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.4
+    },
+    {
+      "label": "color 3 green",
+      "states": {
+        "fnar:color": 3
+      },
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.4
     }
   ],
   "walter_things": [

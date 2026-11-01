@@ -122,7 +122,11 @@ export class Actuators {
     setStateLocal(L.x, L.y, L.z, 'fnar:lit', !!on);
   }
 
-  /** A random hall lamp flickers on briefly (night ambience). */
+  /**
+   * A random lamp flickers on briefly (night ambience): only in rooms away from the halls, which stay
+   * dark at night so the hall lights matter (the halls, the corners and the doors are lit only by the
+   * hall-light switch).
+   */
   tickFlicker(rng) {
     const now = system.currentTick;
     for (const [k, until] of this.flicker) {
@@ -133,7 +137,7 @@ export class Actuators {
       }
     }
     if (rng.next() < 0.004) {
-      const pool = this.meta.lamps.filter((l) => l.group === 'hall_w' || l.group === 'hall_e' || l.group === 'restrooms');
+      const pool = this.meta.lamps.filter((l) => l.group === 'restrooms' || l.group === 'kitchen' || l.group === 'funzone');
       const l = pool[Math.floor(rng.next() * pool.length)];
       if (l) {
         setStateLocal(l.x, l.y, l.z, 'fnar:lit', true);

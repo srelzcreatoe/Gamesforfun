@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "play_net_1",
+    "metalness_emissive_roughness": "play_net_1_mer",
+    "heightmap": "play_net_1_height"
+  }
+}

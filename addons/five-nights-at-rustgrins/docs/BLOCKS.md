@@ -188,3 +188,30 @@ switched by the game are listed in `meta.fixtures`.
 | `poster_auction` | 2 x 3 picture | PUBLIC AUCTION, NOV 9, LOTS 1-6, every lot struck through with a marker |
 | `poster_torn` | 2 x 2 picture | the LET'S PARTY! poster, half torn away, Rustgrin's eyes scratched out |
 | `lot_tag` | 1 x 1 x 6 variants (LOT 1 - LOT 6) | manila auction tag on a string |
+
+## D — the Fun Zone (family fun-centre restyle)
+
+The bright family fun-centre side of the pizzeria (original designs; no names,
+logos or mascots from any real chain), abandoned and dusty at night. Props in
+`tools/blocks/props/props_funzone.py`, cubes and panels in the section A
+generators. Placed by `funzone()`, `prize()` and the stage in `dining()`.
+
+| name | states | look |
+|---|---|---|
+| `vinyl_pad` | `fnar:color` 0-3 (red, blue, yellow, green); full cube | quilted padded vinyl for the play structure and the ball-pit walls, scuffed, one split seam |
+| `play_tube` | `fnar:color` 0-3, `fnar:window` bool, facing = the tube's axis | ribbed plastic crawl tube, octagonal, open ends; the window variant has a round porthole |
+| `play_slide` | `fnar:part` 0 chute (drops one block towards the front over one block), 1 run-out lip; facing | yellow slide bed between red side rails |
+| `ball_pit` | `fnar:layer` 0 full cube of balls, 1 a lumpy top layer (no collision); no facing | packed plastic balls in six colours under a film of dust |
+| `skeeball_lane` | `fnar:part` 0 player end (coin door, ball tray), 1 far end (hump, ring board, lit score backboard, light 3); facing = where the player stands | two blocks per lane |
+| `kiddie_ride` | facing; light 3 | coin-op rocket ride on a hazard-striped base, its coin light still blinking |
+| `prize_case` | facing | glass-topped prize counter: bouncy ball, bear, slinky, toy car, ring, rocket, each with a ticket price tag |
+| `plush_wall` | facing (wall mounted) | pegboard hung with three rows of plush prizes in the cast's and pastel colours |
+| `stage_truss` | facing = the truss axis | aluminium box truss hung under the ceiling; the stage spotlights hang in it |
+| `neon_sign` | `fnar:tile` 0-13: FUN ZONE (3x1), PRIZES (3x1), PARTY (2x1), PIZZA (2x1), GAMES (2x1), a star, a pizza slice; light 5 | neon tubes on a bare mounting rail, one letter dead in most signs; place with `neon(p, 'funzone' \| 'prizes' \| ...)` (`NEON` in `palette.js`) |
+| `play_net` | `fnar:tile` 0-1 (whole, torn) | rope cargo net panel for the play structure railings |
+| `tinsel_curtain` | full cube | gold tinsel strands for the show stage backdrop |
+| `wallpaper_party` | full cube | 80s party wallpaper: teal with confetti, squiggles and stars, faded at the bottom |
+
+Also: `security_camera` has a `fnar:ceiling` state (a ceiling mount with a drop
+rod) for CAM 1A, and `ceiling_lamp` a `fnar:dim` state (light 11) for the
+office lamp, so its light stops at the office door frames.

@@ -23,12 +23,20 @@
     "light_color": "#ff2a1a",
     "light_type": "point_light"
   },
+  "fnar:kiddie_ride": {
+    "light_color": "#ffd860",
+    "light_type": "static_light"
+  },
   "fnar:light_button": {
     "light_color": "#e8eeff",
     "light_type": "static_light"
   },
   "fnar:show_tape": {
     "light_color": "#c8ff6a",
+    "light_type": "static_light"
+  },
+  "fnar:skeeball_lane": {
+    "light_color": "#ff5a3a",
     "light_type": "static_light"
   },
   "fnar:stage_star": {

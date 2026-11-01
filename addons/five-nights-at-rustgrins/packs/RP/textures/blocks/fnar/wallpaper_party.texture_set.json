@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "wallpaper_party",
+    "metalness_emissive_roughness": "wallpaper_party_mer",
+    "heightmap": "wallpaper_party_height"
+  }
+}

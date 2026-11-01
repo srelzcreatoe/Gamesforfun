@@ -133,9 +133,19 @@ Rooms: Show Stage + Dining Area (north/center), Backstage (NW), Midway (W, the
 Cat + Purple Rat on the ring), the Grand Marquee (W, the Ringmaster's stage,
 once Kitty's Cabaret, curtains parted), Supply Closet (SW),
 West Hall + W. Hall Corner, Office (south center), East Hall + E. Hall Corner,
-Kitchen (NE), Restrooms (E), Arcade / Prize Corner (E), Staff Room (time clock
-lobby), entrance foyer, crawl ducts West/East (y 5–6) ending in two ceiling
-vents in the office.
+Kitchen (NE), Restrooms (E), Prize Corner (between the halls: arcades, the prize
+counter and a wall of plush prizes), the Fun Zone (SE: a play structure over a
+ball pit, skee-ball, kiddie rides, arcades, a party room) with Parts & Service
+behind it (the auction crates), Staff Room (time clock lobby), entrance foyer,
+crawl ducts West/East (y 9–10) ending in two ceiling vents in the office.
+
+Heights: the cast stands 5 blocks tall, so every room they walk is 6 tall and
+the rooms where they perform on a 1-high ring or stage (dining, Midway, Grand
+Marquee, gallery) are 7; the office and the front-of-house rooms stay 5.
+Doorways are deliberately short (3 blocks): the animatronics stoop through them
+and lean in at the office doors and the right window. At night the halls, the
+hall corners and the door areas are dark (block light 0–1); only the hall-light
+switch lights them.
 
 Cameras: 1A Show Stage · 1B Dining Area · 1C Grand Marquee · 2A West Hall ·
 2B W. Hall Corner · 3 Supply Closet · 4A East Hall · 4B E. Hall Corner ·

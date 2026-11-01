@@ -53,21 +53,21 @@ export const NODES = Object.freeze(Object.fromEntries([
   N('CAB_PEEK', 13.4, 0, 33.0, -90),
   N('CAB_OUT', 16.2, 0, 33.5, -90),
   // west duct (crawl) - the riser from the Midway grate, then towards the office's left vent
-  N('WD_0', 7.5, 7, 25.5, 0, { crawl: true }),
-  N('WD_1', 7.5, 7, 37.5, 0, { crawl: true }),
-  N('WD_2', 7.6, 7, 48.6, -90, { crawl: true }),
-  N('WD_3', 20.5, 7, 48.6, -90, { crawl: true }),
-  N('WD_4', 33.6, 7, 51.0, 0, { crawl: true }),
-  N('WD_5', 33.6, 7, 55.5, 0, { crawl: true }),
-  N('WD_END', 33.6, 7, 61.4, 0, { crawl: true, vent: 'L' }),
+  N('WD_0', 7.5, 9, 25.5, 0, { crawl: true }),
+  N('WD_1', 7.5, 9, 37.5, 0, { crawl: true }),
+  N('WD_2', 7.6, 9, 48.6, -90, { crawl: true }),
+  N('WD_3', 20.5, 9, 48.6, -90, { crawl: true }),
+  N('WD_4', 33.6, 9, 51.0, 0, { crawl: true }),
+  N('WD_5', 33.6, 9, 55.5, 0, { crawl: true }),
+  N('WD_END', 33.6, 9, 61.4, 0, { crawl: true, vent: 'L' }),
   // east duct - from the kitchen grate
-  N('ED_0', 71.5, 7, 7.5, 0, { crawl: true }),
-  N('ED_1', 71.5, 7, 28.5, 0, { crawl: true }),
-  N('ED_2', 71.4, 7, 48.6, 90, { crawl: true }),
-  N('ED_3', 55.5, 7, 48.6, 90, { crawl: true }),
-  N('ED_4', 39.4, 7, 51.0, 0, { crawl: true }),
-  N('ED_5', 39.4, 7, 55.5, 0, { crawl: true }),
-  N('ED_END', 39.4, 7, 61.4, 0, { crawl: true, vent: 'R' }),
+  N('ED_0', 71.5, 9, 7.5, 0, { crawl: true }),
+  N('ED_1', 71.5, 9, 28.5, 0, { crawl: true }),
+  N('ED_2', 71.4, 9, 48.6, 90, { crawl: true }),
+  N('ED_3', 55.5, 9, 48.6, 90, { crawl: true }),
+  N('ED_4', 39.4, 9, 51.0, 0, { crawl: true }),
+  N('ED_5', 39.4, 9, 55.5, 0, { crawl: true }),
+  N('ED_END', 39.4, 9, 61.4, 0, { crawl: true, vent: 'R' }),
 ].map((n) => [n.id, n])));
 
 // Edges: [a, b, waypoints between a and b (excluding the endpoints)]. Bidirectional.
@@ -127,11 +127,11 @@ export const EDGES = Object.freeze([
   E('MW_P', 'MW_GRATE', [[7.8, 1, 20.9], [8.6, 1, 22.3], [8.2, 1, 23.5]]),
   E('CAB', 'CAB_PEEK', [[12.9, 1, 33.5], [13.3, 0, 33.3]]),
   E('CAB_PEEK', 'CAB_OUT'),
-  // ducts (crawl). The grate riser is a climb: MW_GRATE -> WD_0 straight up through (7, 5..6, 24).
-  E('MW_GRATE', 'WD_0', [[7.5, 3.0, 24.4], [7.5, 6.0, 24.6]]), // climb through the ceiling grate
-  E('WD_0', 'WD_1'), E('WD_1', 'WD_2'), E('WD_2', 'WD_3'), E('WD_3', 'WD_4', [[33.6, 7, 48.6]]), E('WD_4', 'WD_5'), E('WD_5', 'WD_END'),
-  E('KIT', 'ED_0', [[71.5, 0, 7.0], [71.5, 3.0, 6.6], [71.5, 6.0, 6.6]]),
-  E('ED_0', 'ED_1'), E('ED_1', 'ED_2'), E('ED_2', 'ED_3'), E('ED_3', 'ED_4', [[39.4, 7, 48.6]]), E('ED_4', 'ED_5'), E('ED_5', 'ED_END'),
+  // ducts (crawl). The grate riser is a climb: MW_GRATE -> WD_0 straight up through (7, 7..8, 24).
+  E('MW_GRATE', 'WD_0', [[7.5, 4.0, 24.4], [7.5, 8.0, 24.6]]), // climb through the ceiling grate and up the shaft
+  E('WD_0', 'WD_1'), E('WD_1', 'WD_2'), E('WD_2', 'WD_3'), E('WD_3', 'WD_4', [[33.6, 9, 48.6]]), E('WD_4', 'WD_5'), E('WD_5', 'WD_END'),
+  E('KIT', 'ED_0', [[71.5, 0, 7.0], [71.5, 4.0, 6.6], [71.5, 8.0, 6.6]]),
+  E('ED_0', 'ED_1'), E('ED_1', 'ED_2'), E('ED_2', 'ED_3'), E('ED_3', 'ED_4', [[39.4, 9, 48.6]]), E('ED_4', 'ED_5'), E('ED_5', 'ED_END'),
 ]);
 
 /** Adjacency: node -> { neighbour: waypoints[] (from node to neighbour, excluding endpoints) } */

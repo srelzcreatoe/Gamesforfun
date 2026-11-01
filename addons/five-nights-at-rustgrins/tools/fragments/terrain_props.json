@@ -5,6 +5,12 @@
   "fnar_arcade_screen": {
     "textures": "textures/blocks/fnar/arcade_screen"
   },
+  "fnar_ball_pit": {
+    "textures": "textures/blocks/fnar/ball_pit"
+  },
+  "fnar_ball_pit_top": {
+    "textures": "textures/blocks/fnar/ball_pit_top"
+  },
   "fnar_balloons_0": {
     "textures": "textures/blocks/fnar/balloons_0"
   },
@@ -95,6 +101,9 @@
   "fnar_hanging_wires": {
     "textures": "textures/blocks/fnar/hanging_wires"
   },
+  "fnar_kiddie_ride": {
+    "textures": "textures/blocks/fnar/kiddie_ride"
+  },
   "fnar_light_button": {
     "textures": "textures/blocks/fnar/light_button"
   },
@@ -137,8 +146,29 @@
   "fnar_plate_set": {
     "textures": "textures/blocks/fnar/plate_set"
   },
+  "fnar_play_slide": {
+    "textures": "textures/blocks/fnar/play_slide"
+  },
+  "fnar_play_tube_blue": {
+    "textures": "textures/blocks/fnar/play_tube_blue"
+  },
+  "fnar_play_tube_green": {
+    "textures": "textures/blocks/fnar/play_tube_green"
+  },
+  "fnar_play_tube_red": {
+    "textures": "textures/blocks/fnar/play_tube_red"
+  },
+  "fnar_play_tube_yellow": {
+    "textures": "textures/blocks/fnar/play_tube_yellow"
+  },
   "fnar_plush_rat": {
     "textures": "textures/blocks/fnar/plush_rat"
+  },
+  "fnar_plush_wall": {
+    "textures": "textures/blocks/fnar/plush_wall"
+  },
+  "fnar_prize_case": {
+    "textures": "textures/blocks/fnar/prize_case"
   },
   "fnar_security_camera": {
     "textures": "textures/blocks/fnar/security_camera"
@@ -160,6 +190,9 @@
   },
   "fnar_sink": {
     "textures": "textures/blocks/fnar/sink"
+  },
+  "fnar_skeeball_lane": {
+    "textures": "textures/blocks/fnar/skeeball_lane"
   },
   "fnar_slumped_suit_mirehop": {
     "textures": "textures/blocks/fnar/slumped_suit_mirehop"
@@ -188,6 +221,9 @@
   "fnar_stage_star": {
     "textures": "textures/blocks/fnar/stage_star"
   },
+  "fnar_stage_truss": {
+    "textures": "textures/blocks/fnar/stage_truss"
+  },
   "fnar_time_clock": {
     "textures": "textures/blocks/fnar/time_clock"
   },
@@ -199,6 +235,18 @@
   },
   "fnar_vent_cover": {
     "textures": "textures/blocks/fnar/vent_cover"
+  },
+  "fnar_vinyl_pad_blue": {
+    "textures": "textures/blocks/fnar/vinyl_pad_blue"
+  },
+  "fnar_vinyl_pad_green": {
+    "textures": "textures/blocks/fnar/vinyl_pad_green"
+  },
+  "fnar_vinyl_pad_red": {
+    "textures": "textures/blocks/fnar/vinyl_pad_red"
+  },
+  "fnar_vinyl_pad_yellow": {
+    "textures": "textures/blocks/fnar/vinyl_pad_yellow"
   },
   "fnar_walter_things": {
     "textures": "textures/blocks/fnar/walter_things"

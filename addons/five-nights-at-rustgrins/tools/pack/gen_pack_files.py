@@ -12,7 +12,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 BP = os.path.join(ROOT, 'packs', 'BP')
 RP = os.path.join(ROOT, 'packs', 'RP')
-VERSION = [1, 0, 5]
+VERSION = [1, 0, 6]
 ENGINE = [1, 26, 50]
 UUID = {
     'bp_header': '02b67251-1ef0-43ba-8b73-411d54a1b730',
@@ -174,6 +174,11 @@ BLOCK_NAMES = {
     'hanging_wires': 'Hanging Wires', 'walter_things': "Walter's Things", 'boarded_planks': 'Boarded Planks',
     'emergency_light': 'Emergency Light', 'ceiling_tile_missing': 'Broken Ceiling Tile', 'ceiling_lamp_broken': 'Flickering Ceiling Lamp',
     'wall_writing': 'Wall Writing', 'poster_auction': 'Auction Notice', 'poster_torn': 'Torn Party Poster', 'lot_tag': 'Auction Lot Tag',
+    # the Fun Zone (docs/BLOCKS.md D)
+    'vinyl_pad': 'Padded Vinyl', 'play_tube': 'Crawl Tube', 'play_slide': 'Play Slide', 'ball_pit': 'Ball Pit Balls',
+    'skeeball_lane': 'Skee-Ball Lane', 'kiddie_ride': 'Kiddie Rocket Ride', 'prize_case': 'Prize Case', 'plush_wall': 'Plush Prize Wall',
+    'stage_truss': 'Stage Truss', 'neon_sign': 'Neon Sign', 'play_net': 'Cargo Net', 'tinsel_curtain': 'Tinsel Curtain',
+    'wallpaper_party': 'Party Wallpaper',
 }
 
 
@@ -205,12 +210,14 @@ def lang():
 
 SOUND_RULES = [
     ('cloth', ('carpet_party', 'curtain_', 'tent_stripe', 'plush_rat', 'party_hat', 'bunting', 'balloons', 'poster_', 'drawing', 'desk_clutter', 'plate_set', 'sign_out_of_order',
-               'spare_head', 'slumped_suit', 'birthday_cake', 'floor_decal', 'lot_tag', 'wall_writing')),
+               'spare_head', 'slumped_suit', 'birthday_cake', 'floor_decal', 'lot_tag', 'wall_writing', 'vinyl_pad', 'play_net', 'plush_wall',
+               'tinsel_curtain', 'wallpaper_party', 'ball_pit')),
     ('wood', ('stage_floor', 'party_table', 'pizza_box', 'sign_staff', 'stage_star', 'boarded_planks')),
     ('metal', ('duct_metal', 'door_shutter', 'vent_cover', 'locker', 'trash_can', 'security_camera', 'pa_speaker', 'time_clock', 'crt_monitor', 'desk_fan', 'desk_phone',
                'show_tape', 'arcade_cabinet', 'stage_speaker', 'guitar_amp', 'door_button', 'light_button', 'ceiling_lamp', 'exit_sign', 'stage_spotlight', 'hanging_lamp',
                'wall_sconce', 'mop_bucket', 'wet_floor_sign', 'parts_shelf', 'party_chair', 'sign_revue', 'sign_cabaret', 'sign_midway',
-               'endo_parts', 'fallen_chair', 'hanging_wires', 'walter_things', 'emergency_light')),
+               'endo_parts', 'fallen_chair', 'hanging_wires', 'walter_things', 'emergency_light', 'play_tube', 'play_slide', 'skeeball_lane',
+               'kiddie_ride', 'prize_case', 'stage_truss', 'neon_sign')),
 ]
 
 

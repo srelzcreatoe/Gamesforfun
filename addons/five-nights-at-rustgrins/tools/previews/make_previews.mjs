@@ -94,7 +94,7 @@ export const SCENES = [
       camera: { pos: [39.7, 1.62, 68.7], target: [31.2, 1.3, 64.6], fov: 68 }, exposure: 1.05, lights: { intensity: 9 },
       entities: [at('mirehop', 'DOOR_L', 'idle', { eyes: true, t: 1.1 })],
       extra_lights: [
-        spot([29.2, 4.6, 64.2], [29.7, 0.6, 66.2], { color: '#e4ecff', intensity: 22, angle: 34, distance: 14 }),
+        spot([29.2, 5.6, 64.2], [29.7, 0.6, 66.2], { color: '#e4ecff', intensity: 22, angle: 34, distance: 14 }),
         point([36.5, 3.8, 64.5], '#ffd9a0', 2.2, 12),
       ],
     },
@@ -105,7 +105,7 @@ export const SCENES = [
       camera: { pos: [36.9, 1.62, 61.9], target: [42.7, 1.95, 62.7], fov: 52 }, exposure: 1.05, lights: { intensity: 4 }, lighting: { block: 0.55 },
       entities: [at('noxbriar', 'WIN_R', 'idle', { eyes: true, t: 0.7, eyeIntensity: 16 })],
       extra_lights: [
-        spot([43.6, 4.4, 61.2], [42.7, 1.2, 62.6], { color: '#e4ecff', intensity: 16, angle: 30, distance: 10 }),
+        spot([43.6, 5.4, 61.2], [42.7, 1.2, 62.6], { color: '#e4ecff', intensity: 16, angle: 30, distance: 10 }),
         point([41.8, 2.4, 61.4], '#dfe8ff', 1.6, 4),
         point([40.6, 2.3, 62.9], '#ffd9a0', 1.4, 3),
         point([36.5, 3.8, 64.5], '#ffd9a0', 2.2, 12),
@@ -145,7 +145,7 @@ export const SCENES = [
     scene: {
       camera: camShot('8'), exposure: 1.55,
       entities: [at('cat', 'MW_T', 'perform_1', { t: 0.9, eyes: true }), at('purple_rat', 'MW_P', 'perform_1', { t: 0.9, eyes: true })],
-      extra_lights: [irLight('8', 7), spot([9.5, 4.6, 18.5], [6.2, 1.0, 21.0], { intensity: 110, angle: 34 }), point([6.0, 3.2, 18.0], '#e8ffe8', 6, 7)],
+      extra_lights: [irLight('8', 7), spot([9.5, 6.4, 18.5], [6.2, 1.0, 21.0], { intensity: 110, angle: 34 }), point([6.0, 3.2, 18.0], '#e8ffe8', 6, 7)],
     },
   },
   {
@@ -154,7 +154,7 @@ export const SCENES = [
     scene: {
       camera: camShot('10', 66), exposure: 1.65,
       entities: [at('purple_rat', 'ED_5', 'crawl', { yaw: 180, eyes: true, t: 0.4 })],
-      extra_lights: [irLight('10', 5), point([39.2, 8.6, 53.2], '#e8ffe8', 3.5, 6)],
+      extra_lights: [irLight('10', 5), point([39.2, 10.6, 53.2], '#e8ffe8', 3.5, 6)],
     },
   },
   {
@@ -172,7 +172,7 @@ export const SCENES = [
       camera: { pos: [13.2, 2.3, 21.5], target: [6.5, 2.2, 21.5], fov: 62 }, exposure: 1.2,
       entities: [at('cat', 'MW_T', 'perform_1', { t: 0.9 }), at('purple_rat', 'MW_P', 'perform_1', { t: 0.9 })],
       extra_lights: [
-        spot([9.5, 4.6, 18.0], [6.0, 1.2, 20.6], { color: '#ffd7a8', intensity: 140, angle: 32 }),
+        spot([9.5, 6.4, 18.0], [6.0, 1.2, 20.6], { color: '#ffd7a8', intensity: 140, angle: 32 }),
         point([6.5, 3.3, 18.2], '#ffe4c4', 7, 8),
         point([2.5, 3.5, 17.5], '#c46bff', 8, 9),
         point([11.5, 3.2, 16.5], '#ff6fa8', 6, 8),
@@ -276,9 +276,21 @@ export const SCENES = [
   {
     name: '22_parts_service', voxels: 'day', caption: 'Parts & Service: six crates for the auction, LOT 1 to LOT 6. All of them empty',
     scene: {
-      camera: { pos: [69.5, 2.2, 61.0], target: [61, 1.2, 69], fov: 70 }, exposure: 1.1,
-      extra_lights: [{ type: 'ambient', color: '#fff4e0', intensity: 0.8 }, point([64, 3.6, 63], '#ffe7c0', 9, 16), point([56, 3.6, 52], '#ffe7c0', 6, 12)],
+      camera: { pos: [62.5, 2.2, 64.6], target: [59.5, 1.0, 69], fov: 76 }, exposure: 1.0,
+      extra_lights: [{ type: 'ambient', color: '#fff4e0', intensity: 1.0 }, point([63, 4, 66], '#ffe7c0', 9, 14)],
     },
+  },
+  {
+    name: '23_fun_zone', voxels: 'day', caption: 'Free Roam: the Fun Zone - the ball pit, the play structure, skee-ball and the arcades',
+    scene: { camera: { pos: [69.5, 5.4, 58.5], target: [54, 0.8, 47], fov: 74 }, exposure: 1.0 },
+  },
+  {
+    name: '24_fun_zone_night', voxels: 'night', caption: 'The Fun Zone at night: only the neon and the coin slots are still on',
+    scene: { camera: { pos: [70.5, 2.2, 43.5], target: [52, 1.5, 54], fov: 72 }, exposure: 1.6 },
+  },
+  {
+    name: '25_prize_corner', voxels: 'day', caption: 'The Prize Corner: a wall of plush prizes behind the glass counter',
+    scene: { camera: { pos: [36.5, 2.4, 40.5], target: [36.5, 1.5, 56], fov: 70 }, exposure: 1.0 },
   },
 ];
 

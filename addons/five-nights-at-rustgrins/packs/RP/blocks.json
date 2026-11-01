@@ -7,6 +7,9 @@
   "fnar:arcade_cabinet": {
     "sound": "metal"
   },
+  "fnar:ball_pit": {
+    "sound": "cloth"
+  },
   "fnar:balloons": {
     "sound": "cloth"
   },
@@ -94,6 +97,9 @@
   "fnar:hanging_wires": {
     "sound": "metal"
   },
+  "fnar:kiddie_ride": {
+    "sound": "metal"
+  },
   "fnar:light_button": {
     "sound": "metal"
   },
@@ -104,6 +110,9 @@
     "sound": "cloth"
   },
   "fnar:mop_bucket": {
+    "sound": "metal"
+  },
+  "fnar:neon_sign": {
     "sound": "metal"
   },
   "fnar:pa_speaker": {
@@ -127,7 +136,19 @@
   "fnar:plate_set": {
     "sound": "cloth"
   },
+  "fnar:play_net": {
+    "sound": "cloth"
+  },
+  "fnar:play_slide": {
+    "sound": "metal"
+  },
+  "fnar:play_tube": {
+    "sound": "metal"
+  },
   "fnar:plush_rat": {
+    "sound": "cloth"
+  },
+  "fnar:plush_wall": {
     "sound": "cloth"
   },
   "fnar:poster_auction": {
@@ -154,6 +175,9 @@
   "fnar:poster_torn": {
     "sound": "cloth"
   },
+  "fnar:prize_case": {
+    "sound": "metal"
+  },
   "fnar:security_camera": {
     "sound": "metal"
   },
@@ -178,6 +202,9 @@
   "fnar:sink": {
     "sound": "stone"
   },
+  "fnar:skeeball_lane": {
+    "sound": "metal"
+  },
   "fnar:slumped_suit": {
     "sound": "cloth"
   },
@@ -195,6 +222,9 @@
   },
   "fnar:stage_star": {
     "sound": "wood"
+  },
+  "fnar:stage_truss": {
+    "sound": "metal"
   },
   "fnar:tent_stripe": {
     "sound": "cloth"
@@ -214,6 +244,9 @@
   "fnar:time_clock": {
     "sound": "metal"
   },
+  "fnar:tinsel_curtain": {
+    "sound": "cloth"
+  },
   "fnar:toilet": {
     "sound": "stone"
   },
@@ -222,6 +255,9 @@
   },
   "fnar:vent_cover": {
     "sound": "metal"
+  },
+  "fnar:vinyl_pad": {
+    "sound": "cloth"
   },
   "fnar:wall_checker": {
     "sound": "stone"
@@ -243,6 +279,9 @@
   },
   "fnar:wallpaper_maroon": {
     "sound": "stone"
+  },
+  "fnar:wallpaper_party": {
+    "sound": "cloth"
   },
   "fnar:walter_things": {
     "sound": "metal"

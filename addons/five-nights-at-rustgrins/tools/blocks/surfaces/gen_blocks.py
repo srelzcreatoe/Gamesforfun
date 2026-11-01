@@ -38,6 +38,8 @@ CUBES = {
     'ceiling_tile': ('ceiling_tile', 1.0),
     'ceiling_tile_stained': ('ceiling_tile_stained', 1.0),
     'ceiling_tile_missing': ('ceiling_tile_missing', 1.0),
+    'tinsel_curtain': ('tinsel_curtain', 0.8),
+    'wallpaper_party': ('wallpaper_party', 1.5),
     'carpet_party': ('carpet_party', 1.0),
     'curtain_purple': ('curtain_purple', 1.0),
     'curtain_red': ('curtain_red', 1.0),
@@ -52,8 +54,9 @@ PANELS = {
     'poster_missing': 2, 'drawing': 6, 'sign_cabaret': 3, 'sign_out_of_order': 2, 'sign_midway': 4,
     'sign_revue': 12, 'sign_staff': 4,
     'poster_auction': 6, 'poster_torn': 4, 'lot_tag': 6, 'wall_writing': 16,
+    'neon_sign': 14, 'play_net': 2,
 }
-PANEL_LIGHT = {'sign_revue': 7, 'sign_cabaret': 4, 'sign_midway': 4}
+PANEL_LIGHT = {'sign_revue': 7, 'sign_cabaret': 4, 'sign_midway': 4, 'neon_sign': 5}
 
 # lights: name -> (geometry, light level, local light colour, light type, selection box (origin, size))
 LIGHTS = {
@@ -64,10 +67,11 @@ LIGHTS = {
     'hanging_lamp': ('hanging_lamp', 11, '#ffc98a', 'point_light', ([-5, 4, -5], [10, 12, 10])),
 }
 FACING_LIGHTS = {'exit_sign', 'wall_sconce', 'stage_spotlight'}
+OFFICE_LAMP_LEVEL = 11  # ceiling_lamp with fnar:dim
 # the broken troffer: a ceiling lamp nobody fixed; one tube flickers (flipbook), it is never switched by the game
 BROKEN_LAMP = ('ceiling_lamp_broken', 9, '#dfe8ff', 'point_light')
 BROKEN_TICKS = 2
-SIGN_LIGHT_COLORS = {'sign_revue': ('#ff6fb5', 'static_light'), 'sign_cabaret': ('#ffd27a', 'static_light'),
+SIGN_LIGHT_COLORS = {'neon_sign': ('#ff7ad0', 'static_light'), 'sign_revue': ('#ff6fb5', 'static_light'), 'sign_cabaret': ('#ffd27a', 'static_light'),
                      'sign_midway': ('#ffd27a', 'static_light')}
 
 
@@ -176,6 +180,11 @@ def light_blocks():
         perms = lit_perm
         traits = None
         states = {'fnar:lit': [True, False]}
+        if name == 'ceiling_lamp':
+            # the office's own lamp: dimmer, so its light stops at the door frames (the halls stay dark)
+            states['fnar:dim'] = [False, True]
+            perms = lit_perm + [{'condition': "q.block_state('fnar:lit') == true && q.block_state('fnar:dim') == true",
+                                 'components': {'minecraft:light_emission': OFFICE_LAMP_LEVEL}}]
         if name in FACING_LIGHTS:
             traits = facing_traits()
             perms = facing_perms() + lit_perm

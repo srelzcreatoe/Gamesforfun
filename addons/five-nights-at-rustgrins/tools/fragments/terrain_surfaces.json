@@ -38,6 +38,12 @@
   "fnar_ceiling_tile_missing": {
     "textures": "textures/blocks/fnar/ceiling_tile_missing"
   },
+  "fnar_tinsel_curtain": {
+    "textures": "textures/blocks/fnar/tinsel_curtain"
+  },
+  "fnar_wallpaper_party": {
+    "textures": "textures/blocks/fnar/wallpaper_party"
+  },
   "fnar_carpet_party": {
     "textures": "textures/blocks/fnar/carpet_party"
   },
@@ -367,5 +373,53 @@
   },
   "fnar_wall_writing_15": {
     "textures": "textures/blocks/fnar/wall_writing_15"
+  },
+  "fnar_neon_sign_0": {
+    "textures": "textures/blocks/fnar/neon_sign_0"
+  },
+  "fnar_neon_sign_1": {
+    "textures": "textures/blocks/fnar/neon_sign_1"
+  },
+  "fnar_neon_sign_2": {
+    "textures": "textures/blocks/fnar/neon_sign_2"
+  },
+  "fnar_neon_sign_3": {
+    "textures": "textures/blocks/fnar/neon_sign_3"
+  },
+  "fnar_neon_sign_4": {
+    "textures": "textures/blocks/fnar/neon_sign_4"
+  },
+  "fnar_neon_sign_5": {
+    "textures": "textures/blocks/fnar/neon_sign_5"
+  },
+  "fnar_neon_sign_6": {
+    "textures": "textures/blocks/fnar/neon_sign_6"
+  },
+  "fnar_neon_sign_7": {
+    "textures": "textures/blocks/fnar/neon_sign_7"
+  },
+  "fnar_neon_sign_8": {
+    "textures": "textures/blocks/fnar/neon_sign_8"
+  },
+  "fnar_neon_sign_9": {
+    "textures": "textures/blocks/fnar/neon_sign_9"
+  },
+  "fnar_neon_sign_10": {
+    "textures": "textures/blocks/fnar/neon_sign_10"
+  },
+  "fnar_neon_sign_11": {
+    "textures": "textures/blocks/fnar/neon_sign_11"
+  },
+  "fnar_neon_sign_12": {
+    "textures": "textures/blocks/fnar/neon_sign_12"
+  },
+  "fnar_neon_sign_13": {
+    "textures": "textures/blocks/fnar/neon_sign_13"
+  },
+  "fnar_play_net_0": {
+    "textures": "textures/blocks/fnar/play_net_0"
+  },
+  "fnar_play_net_1": {
+    "textures": "textures/blocks/fnar/play_net_1"
   }
 }

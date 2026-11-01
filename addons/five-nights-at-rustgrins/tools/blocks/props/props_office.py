@@ -593,23 +593,41 @@ def security_camera(out):
             r.vline(c, 1, r.h - 2, BEIGE, 1)  # vent fins near the back
         r.hline(1, r.h - 2, 2, PAPER, 4)  # model sticker
 
+    def head(bone, dz):
+        """The camera body (shared texture regions), dz along the view axis."""
+        g.box(bone, (-2, 8.5, -5 + dz), (2, 12.5, 3 + dz), {'north': Face(front, 'hn'), 'south': Face(housing(3), 'hb'), 'east': Face(side, 's'),
+                                                            'west': Face(side, 's'), 'up': Face(housing(5, 0.6), 'hu'), 'down': Face(housing(2), 'hd')})
+        g.box(bone, (-2.5, 12.5, -6 + dz), (2.5, 13, 2 + dz), {'up': Face(panel(BEIGE, 4, grime=0.6, grime_bottom=0), 'hoodu'),
+                                                               'down': Face(panel(BEIGE, 1), 'hoodd'), 'sides': Face(panel(BEIGE, 3, bevel=None), 'hood')})
+        g.box(bone, (-1, 9.5, -5.5 + dz), (1, 11.5, -5 + dz), {'north': Face(lens, 'ln'), 'sides': Face(lens, 'ls'), 'ends': Face(lens, 'le')})
+
+    # wall mount: a plate on the wall behind (z = 8), an arm out to the swivel
     g.bone('head', pivot=(0, 12.5, 3), rotation=(-22.5, 0, 0))
     g.box('mount', (-1.5, 10, 7), (1.5, 15, 8), {'north': panel(STEEL, 3, grime=0.3), 'sides': Face(panel(STEEL, 2), 'ms'), 'ends': Face(panel(STEEL, 2), 'me')})
     g.box('mount', (-0.5, 12, 3), (0.5, 13, 7), {'sides': Face(panel(STEEL, 3, bevel=None), 'arm'), 'ends': Face(panel(STEEL, 3, bevel=None), 'arme')})
     g.box('mount', (-1, 11.5, 2), (1, 13.5, 4), {'sides': Face(panel(IRON, 3), 'j'), 'ends': Face(panel(IRON, 3), 'je')})
-    g.box('head', (-2, 8.5, -5), (2, 12.5, 3), {'north': front, 'south': housing(3), 'east': Face(side, 's'), 'west': Face(side, 's'),
-                                                'up': housing(5, 0.6), 'down': housing(2)})
-    g.box('head', (-2.5, 12.5, -6), (2.5, 13, 2), {'up': panel(BEIGE, 4, grime=0.6, grime_bottom=0), 'down': panel(BEIGE, 1),
-                                                   'sides': Face(panel(BEIGE, 3, bevel=None), 'hood')})
-    g.box('head', (-1, 9.5, -5.5), (1, 11.5, -5), {'north': lens, 'sides': Face(lens, 'ls'), 'ends': Face(lens, 'le')})
-    out.geo(g)
+    head('head', 0)
+    # ceiling mount (fnar:ceiling): a plate on the ceiling, a drop rod, the same body hanging under it
+    g.bone('chead', pivot=(0, 12.5, 1), rotation=(-22.5, 0, 0))
+    g.box('cmount', (-1.5, 15, -0.5), (1.5, 16, 2.5), {'down': Face(panel(STEEL, 3, grime=0.3), 'cmd'), 'sides': Face(panel(STEEL, 2), 'cms'),
+                                                       'up': Face(panel(STEEL, 2), 'cmu')})
+    g.box('cmount', (-0.5, 13.5, 0.5), (0.5, 15, 1.5), {'sides': Face(panel(STEEL, 3, bevel=None), 'crod')})
+    g.box('cmount', (-1, 11.5, 0), (1, 13.5, 2), {'sides': Face(panel(IRON, 3), 'j'), 'ends': Face(panel(IRON, 3), 'je')})
+    head('chead', -2)
+    out.geo(g, {'geometry.fnar.security_camera': (['mount', 'head'], (0, 0, 0)),
+                'geometry.fnar.security_camera_ceiling': (['cmount', 'chead'], (0, 0, 0))})
     out.tex('security_camera', g.paint())
+    perms = [(bs('fnar:ceiling', True), {'minecraft:geometry': 'geometry.fnar.security_camera_ceiling',
+                                         'minecraft:selection_box': box(-2.5, 7, -8, 2.5, 16, 2.5)})]
     blk = block_json('security_camera', geometry='geometry.fnar.security_camera', materials=mi_set('security_camera'),
-                     collision=False, selection=box(-2.5, 7, -6.5, 2.5, 16, 8), map_color='#5b5d61', destroy=1.0)
+                     states={'fnar:ceiling': [False, True]},
+                     collision=False, selection=box(-2.5, 7, -6.5, 2.5, 16, 8), map_color='#5b5d61', destroy=1.0, perms=perms)
     out.block('security_camera', blk)
     f = {'env': 'wall', 'focus': [0, 0.66, 0.0], 'dist': 1.3, 'dir': [0.7, 0.1, -1]}
     out.views('security_camera', [{'label': 'north', **f}, {'label': 'side', **f, 'dir': [1, 0.3, -0.2]},
-                                  {'label': 'facing west', 'states': {'minecraft:cardinal_direction': 'west'}, **f, 'dir': [-0.6, 0.2, -1]}]
+                                  {'label': 'facing west', 'states': {'minecraft:cardinal_direction': 'west'}, **f, 'dir': [-0.6, 0.2, -1]},
+                                  {'label': 'ceiling mount', 'env': 'floor', 'states': {'fnar:ceiling': True}, 'focus': [0, 0.66, 0.0], 'dist': 1.3,
+                                   'dir': [0.7, -0.2, -1]}]
               + pillar_views(dist=3.6))
 
 

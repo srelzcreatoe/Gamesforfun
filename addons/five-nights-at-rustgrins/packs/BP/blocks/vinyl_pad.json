@@ -1,0 +1,84 @@
+{
+  "format_version": "1.26.50",
+  "minecraft:block": {
+    "description": {
+      "identifier": "fnar:vinyl_pad",
+      "menu_category": {
+        "category": "construction"
+      },
+      "states": {
+        "fnar:color": {
+          "values": {
+            "min": 0,
+            "max": 3
+          }
+        }
+      }
+    },
+    "components": {
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "fnar_vinyl_pad_red",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:collision_box": true,
+      "minecraft:selection_box": true,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 3
+      },
+      "minecraft:map_color": "#9a2722",
+      "minecraft:light_dampening": 15
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('fnar:color') == 0",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_vinyl_pad_red",
+              "render_method": "opaque"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:color') == 1",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_vinyl_pad_blue",
+              "render_method": "opaque"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:color') == 2",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_vinyl_pad_yellow",
+              "render_method": "opaque"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:color') == 3",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_vinyl_pad_green",
+              "render_method": "opaque"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
