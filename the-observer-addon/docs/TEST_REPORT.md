@@ -140,6 +140,7 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | **final (1.1.1)** | **409** | **0** | all passed: the 1.1.0 suite plus sleep paralysis (woken in the night under a fade, the night not skipped, held still, at the foot of the bed in view and stooped under the ceiling, looking at you, the head-turn that fails, gone in a blink, beside the bed, no harm, its discovery; cut short it gives everything back; never with camera effects off; from the Config Wheel; a small room, beside the bed) and the animals (the nearest first, each once, facing it, perfectly still, edging away and looking back, on their feet, the dog's growl and whine, the cat's hiss, let go, the off switch) |
 | targeted (1.1.2: the user's recordings — its themes, the spotted sting, the whisper, the scream when it kills; with the music, Mire, paralysis, rage, lunge and vanish regressions) | 72 | 0 | all passed on the first run |
 | **final (1.1.2)** | **414** | **0** | all passed on the first full run: the 1.1.1 suite plus its theme while it is around, the lurking theme in the Mire, the sting when it is spotted, the whisper when it is close and unseen, and the scream over the blow that kills |
+| targeted (1.2.0: it rules them, Not Yours — three times over in runs 3–4) | 20 + 16 + 44 + 46 | 2 + 0 + 2 + 0 | run 1: one of the creatures was not sent away and the player was hurt; run 3: a creature standing between the player and it backed away from it — straight toward the player — and its weakness lapsed while it walked; it now backs away from both and stays harmless throughout. The remaining hits came from the named husk, which is left alone on purpose (test-side: only hits from those that answer to it count) |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -403,6 +404,11 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
    the loop's seam after ~50 s). Spot it (The Figure at the Edge): a sting. Stand with your back to it within a dozen
    blocks (`/scriptevent observer:whisper always`): a whisper from where it stands. The lunge and the rage: the scream.
    Judge the mix as a whole: nothing should jump out except the scream.
+17. **1.2.0** — Night, Survival, stage 3 (`/observer:stage 3`): stand among zombies, skeletons, spiders and creepers and
+   Test an encounter → Getting too close: they stop and turn to it, back away, and are gone when you look away. Let a
+   zombie hit you (`/scriptevent observer:notyours always`): it stands behind the zombie, which turns and is torn
+   apart. Config Wheel → Other creatures while looking at a zombie: mark it "Its rival", test again — torn apart. Name
+   one with a name tag: it is left alone. With another add-on's hostile creature in the world, check the same.
 
 ## 7. Bugs found and fixed
 
@@ -446,6 +452,13 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
 * The new too-close reaction cut *Borrowed Work* short (walking up to the source is that encounter's answer) — it now
   handles the approach itself; spots far below the player's level are penalised (an *Echo Ahead* spot landed 64
   blocks below the test platform).
+
+**Found by the 1.2.0 tests**
+* A creature between the player and it backed away from it — toward the player — and could hit them once its
+  weakness had run out on the way; it now walks away from it and from the nearest player both, and stays harmless
+  (Weakness V, a creeper's fuse put out) for as long as it answers to it (`dominion_no_harm_from_those_that_answer`).
+* Test-side: the named husk (left alone on purpose) hunted the test player as any husk would; only hits from
+  creatures that answer to it count against it.
 
 **Found by the 1.1.1 tests**
 * After the paralysis the player was left standing on the bed: the floor cell beside it was searched from 1.5 blocks

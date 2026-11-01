@@ -17,6 +17,7 @@
 // Script events only: mirepage <0-7|all|clear> [player] (a Weeping Mire torn page, read without the form),
 // weights [player] (what the director would choose from here), standoff off|short|auto, stalk hang|ledge|tree|ground|auto,
 // charge attack|vanish|auto, profile <habit> <count> [player], paralysis always|never|auto, whisper always|never|auto, animals (what is reacting),
+// notyours always|never|auto, creature [<type id> kin|rival|ignore|default],
 // like the other test switches in run().
 // Each also works as /scriptevent observer:<name> <args...> (console, command blocks, tests).
 import { world, system, CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, ItemStack } from "@minecraft/server";
@@ -33,6 +34,7 @@ import { primaryHaunt, dominantHabit, routeFamiliarity } from "../observer/memor
 import { openSettings, openJournal, showLater } from "../ui/forms.js";
 import { validateWards } from "../progression/items.js";
 import * as animals from "../observer/animals.js";
+import * as dominion from "../observer/dominion.js";
 import * as flare from "../progression/flare.js";
 import * as learn from "../observer/learn.js";
 import * as hush from "../observer/hush.js";
@@ -270,6 +272,19 @@ export function run(name, args, caller) {
     case "animals":
       // animals: which animals are reacting to it right now, and how (observer/animals.js)
       return `animals: ${animals.status()}`;
+    case "notyours":
+      // notyours always|never|auto: whether it comes for a creature that hurt you (tests)
+      DEBUG.notYours = args[0] === "always" || args[0] === "never" ? args[0] : "auto";
+      return `notyours ${DEBUG.notYours}`;
+    case "creature": {
+      // creature <type id> kin|rival|ignore|default: what a kind of creature is to it (Config Wheel → Other creatures)
+      const marks = { ...(S().marks ?? {}) };
+      if (!args[0]) return `marks: ${JSON.stringify(marks)}; answering now: ${dominion.status()}`;
+      if (["kin", "rival", "ignore"].includes(args[1])) marks[args[0]] = /** @type {any} */ (args[1]);
+      else delete marks[args[0]];
+      updateSettings({ marks });
+      return `${args[0]}: ${marks[args[0]] ?? "default"}`;
+    }
     case "whisper":
       // whisper always|never|auto: whether it whispers when it is close and unseen (tests)
       DEBUG.whisper = args[0] === "always" || args[0] === "never" ? args[0] : "auto";

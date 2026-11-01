@@ -231,6 +231,18 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Arrival, vanish | `observer.presence`, `observer.vanish` (replaced) | it appears / is gone | the user's grunt / vanish | (every appearance and vanish in the suite) | ✅ Runtime |
 | Balanced mix | `tools/prepare_supplied_sounds.py`, `sound_definitions.json`, `synth_sounds.strike` | — | creature sounds −17 to −21 LUFS, scream −12, themes −21/−23; strike +5 dB; lens, vigil down | measured with `ebur128` | ✅ Measured (audition ❔) |
 
+## 1.2.0: it rules them
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| They know it | `observer/dominion.js` (`standing`, `scan`) | its body appears; hostile creatures within 24 | the nearest first, once each; Minecraft's own and another add-on's (stand-in) | `dominion_they_know_it`, `dominion_another_addons_creature_too` | ✅ Runtime |
+| …turn to it and go still | `turn`, `still` | — | facing it, 0 movement | `dominion_they_turn_to_it`, `dominion_they_go_still` | ✅ Runtime (look ❔) |
+| …back away, harmless | `leaveYaw`, held velocity, `harmless` | — | away from it and from you; no hits | `dominion_they_back_away`, `dominion_no_harm_from_those_that_answer` | ✅ Runtime |
+| …gone once unseen | `gone` | out of everyone's sight 0.5 s | removed, no drops | `dominion_sent_away_unseen` | ✅ Runtime |
+| Its rivals | marks → `tearApart` | a kind marked its rival | torn apart in its crimson shreds | `dominion_rivals_torn_apart` | ✅ Runtime |
+| Left alone | `standing` | tamed, name tag, bosses, 300+ health, "leave it alone", setting off | untouched | `dominion_great_and_named_left_alone`, `dominion_left_alone_when_marked`, `dominion_switch_off` | ✅ Runtime |
+| Not Yours | `encounters/not_yours.js` (`onHurt`, `tryManual`) | a creature hurts you; stage 3+ | it stands behind it, tears it apart, looks at you; discovery | `not_yours_comes_when_hurt`, `not_yours_behind_it`, `not_yours_torn_apart`, `not_yours_outcome`, `not_yours_discovery`, `not_yours_not_before_stage_3` | ✅ Runtime |
+| Other creatures (Config Wheel) | `wheel.creatures`, settings `marks` | look at a creature | mark its kind; forget all | dev `creature` command in the tests (the form itself ❔) | ✅ Runtime (form ❔) |
+
 ## Performance
 | Measure | Result | Test |
 |---|---|---|

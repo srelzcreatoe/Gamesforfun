@@ -19,8 +19,8 @@ Minecraft imports both packs. Then:
    Weeping Mire, its home). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from an earlier version:** import the new `.mcaddon` (version 1.1.2). If a world still uses the old copy, open the world's
-settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.1.2 packs again. Your
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.2.0). If a world still uses the old copy, open the world's
+settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.2.0 packs again. Your
 progress is kept; the new options below start switched on.
 
 **The Weeping Mire is part of The Observer now (1.0.7).** If a world also has the stand-alone *Weeping Mire* packs
@@ -52,6 +52,16 @@ whispers. And you will
 hear your own heart: slow when it is barely there, racing when it is on you — even when you cannot see it. When it is
 close and means you harm, your view trembles with each beat (gently; "Camera effects" set to reduced halves it and
 "none" turns it off; the heartbeat itself can be switched off in the settings).
+
+**The other creatures answer to it.** Every hostile creature — Minecraft's own or any other add-on's — knows what
+it is. When it comes, the creatures near it stop, the nearest first, turn to it and go quite still; then they back
+away from it (and from you — never toward you, and never able to hurt you while they do), and once nobody is looking
+they are gone: it sends them away. If you notice the zombies and spiders around you falling silent and turning all one
+way, look where they look. From the third stage it does not share: a creature that hurts you may suddenly find it
+standing right behind it — the creature turns round to it and is torn apart, and it looks at you a moment longer, and
+is gone. You are its, not theirs. On the Config Wheel → **Other creatures**, look at any creature and mark its kind
+"Answers to it", "Its rival" (it tears those apart whenever it comes) or "Leave it alone". Tamed and name-tagged
+creatures, bosses and anything with 300 or more health are always left alone, and it all switches off in the settings.
 
 **The animals know.** When it comes — whether you have seen it or not — the animals near it stop what they are
 doing and turn to face it, quite still: the nearest first, the rest a moment later. After a while cows, sheep, pigs,
@@ -170,9 +180,10 @@ Players who are not operators only see the status and their own caption setting.
 | **Start it for me now** / **Make something happen soon** | skips the grace period (or the current wait) for you; the first encounter follows within about a minute (Survival or Adventure only) |
 | **Switch The Observer on/off** | master switch; switching off puts back everything it changed |
 | **Presets** | Atmosphere, Standard, Relentless |
-| **All settings** | frequency, aggression, environmental manipulation, sudden scares, camera effects, captions, grace period, world weather, developer tracing, taiga shadows, escape learning, the silence before attacks, pages you didn't write, returned items |
+| **All settings** | frequency, aggression, environmental manipulation, sudden scares, camera effects, captions, grace period, world weather, developer tracing, taiga shadows, escape learning, the silence before attacks, pages you didn't write, returned items, the heartbeat, the animals, other creatures |
 | **Encounter toggles** | one switch per encounter type (with the stage it unlocks at); switched-off types are never chosen |
 | **Test an encounter** | starts something on you right now. First the single behaviours (red): **The Vigil (practice)** (three rounds, no reward, nothing recorded), **The Strike** (it floats at you and keeps attacking from the air until you die or drive it off — Low aggression: one strike), **The Lunge** (look at it and it comes at you), **Peeking from cover** (behind a tree within 20 blocks, or beside a wall corner ahead; with neither it says so), **Taiga shadow** (the illusion, here anywhere), **Getting too close** (walk up to it), **The Flare** (it stares; throw a flare near it — you get one if you have none), **The world goes quiet** (20 s of silence, then nothing), **A page you didn't write** (one appears in your Field Notes now), **It returns what you threw away** (needs a home it knows: drop something and walk 10 blocks away), **The floating chase** (it floats at you and tears apart 3 blocks short), **Climbing after you** (stand on something 3+ blocks high: it climbs up to you, then lets go). Then every encounter. If the place is unsuitable it tells you what that one needs (for example, *The Closed Path* needs a tunnel at least 3 blocks high). Tests never count toward your story |
+| **Other creatures** | look at a creature first: mark its kind *Answers to it*, *Its rival* or *Leave it alone* (or back to the default), or forget every mark |
 | **Undo its changes** | puts back every block it changed and ends whatever it is doing |
 | **Sound captions** | your own caption setting |
 
@@ -208,7 +219,7 @@ Individual controls: encounter frequency, aggression (never attacks / low / stan
 manipulation (off / subtle / standard / unsettling), sudden scares (off / rare / standard), camera effects
 (none / fades only / full), default captions, grace period, world-wide weather during the vigil, developer tracing,
 and on/off switches for the taiga shadows, escape learning, the silence before attacks, pages you didn't write,
-returned items, the heartbeat, and the animals sensing it. The encounter toggles switch off *It's Inside*, *Signs*,
+returned items, the heartbeat, the animals sensing it, and other creatures answering to it. The encounter toggles switch off *It's Inside*, *Signs*,
 *Borrowed Eyes* and *At the Foot of the Bed* (sleep paralysis) like any other encounter.
 On **Peaceful** difficulty it never attacks.
 

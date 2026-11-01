@@ -365,7 +365,7 @@ body-free encounters (turned object, door, night visit, follow-ups) can run for 
    until it backs off (*Held Gaze*), use the Witness Lens, strike it. If it reaches you: a 0.6 s wind-up you can step
    out of; at aggression 0 it only touches you and the screen goes dark.
 
-All 24 implemented encounters and 16 further concepts are catalogued in [ENCOUNTERS.md](ENCOUNTERS.md).
+All 25 implemented encounters and 16 further concepts are catalogued in [ENCOUNTERS.md](ENCOUNTERS.md).
 
 ## 11. Progression, tools and the ending
 
@@ -563,3 +563,24 @@ Three phases, in the user's design, built into the encounters that show it from 
   some animals (up to 10 b/s in a probe) while barely moving others. A wall, a drop of two, water or lava ahead ends
   the walk. Vanilla sounds: `mob.wolf.growl`, `mob.wolf.whine`, `mob.cat.hiss`, `mob.cow.say`, `mob.sheep.say`,
   `mob.pig.say`, `mob.goat.ambient`, `mob.horse.angry`, `mob.horse.donkey.angry`, `mob.llama.angry`.
+
+## 20. It rules them (1.2.0)
+
+* **Other creatures** (`observer/dominion.js`): who answers to it is decided per creature by `standing(e)` — a mark
+  for its kind first ("ignore" → left alone; then name tags and tamed creatures are always left alone; "rival";
+  "kin"), then Minecraft's bosses and anything with 300+ maximum health are left alone, then anything of family
+  `monster` answers to it. Phases per creature: *wait* (the ripple), *face* (turned to it, held: Slowness VIII,
+  Weakness V, `minecraft:stop_exploding` for creepers, horizontal velocity cancelled each tick), *leave* (a held
+  velocity of 0.1 b/tick away from it and the nearest player, Weakness refreshed), *hold* (still and harmless again),
+  then *sent* once out of every player's sight for 10 ticks (`seenByAny` with three points up its height) —
+  `remove()`, no drops. Rivals skip to `tearApart` (its vanish particle, the crack and its vanish sound, `remove()`).
+  When its body is gone everything still held is let go (effects removed). The same velocity-held walking and
+  `clearAhead` as the animals (§19).
+* **Not Yours** (`encounters/not_yours.js`): `world.afterEvents.entityHurt` (players only) → `onHurt`: within 24 blocks
+  of its body the attacker is torn apart at once; otherwise, for a kind that answers to it or a rival, the encounter
+  is tried (`tryManual`, so stage 3, quiet and recovery periods and its 8-minute cooldown apply). It stands 1.2–2.8
+  blocks behind the attacker on the player's line (head in sight both ways), holds it, turns it round, tears it
+  apart, and looks at the player for 2 s. Discovery *Not Yours*.
+* **Nothing taken from other add-ons**: no other add-on's files, scripts or assets are read, copied or required. It
+  acts on their creatures only through the shared world (queries, rotation, effects, impulses, an event every creeper
+  has, removal). Tests use stand-in creatures that live only in the test kit (`otest:dweller`, `otest:great_dweller`).

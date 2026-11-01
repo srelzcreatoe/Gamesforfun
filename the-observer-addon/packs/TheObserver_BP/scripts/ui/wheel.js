@@ -2,7 +2,8 @@
 // The Config Wheel: one item that opens every setting and test tool for The Observer.
 //   * everyone: status, their own sound captions
 //   * operators (or the only player in the world): See it now, Start it for me now, presets, all
-//     settings, a toggle for each encounter type, Test an encounter, Undo its changes
+//     settings, a toggle for each encounter type, Test an encounter, Undo its changes, and (1.2.0) Other creatures:
+//     what each kind of creature is to it — answers to it, its rival, or left alone
 import { system, GameMode } from "@minecraft/server";
 import { ActionFormData, ModalFormData, MessageFormData } from "@minecraft/server-ui";
 import { ps, now, markPlayerDirty } from "../core/state.js";
@@ -10,6 +11,7 @@ import { S, updateSettings, PRESETS, captionsOn } from "../core/settings.js";
 import { safe, allPlayers } from "../core/util.js";
 import * as ledger from "../world/ledger.js";
 import * as director from "../director/director.js";
+import { standing } from "../observer/dominion.js";
 import { isOperator, openSettings } from "./forms.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
@@ -81,6 +83,7 @@ export async function openWheel(p) {
     add("observer.wheel.btn_settings", () => openSettings(p));
     add("observer.wheel.btn_toggles", () => toggles(p));
     add("observer.wheel.btn_test", () => testEncounter(p));
+    add("observer.wheel.btn_creatures", () => creatures(p));
     add("observer.wheel.btn_undo", () => undoChanges(p));
   }
   add(captionsOn(p) ? "observer.ui.btn_captions_on" : "observer.ui.btn_captions_off", () => {
@@ -179,6 +182,47 @@ async function testEncounter(p) {
   system.runTimeout(() => {
     if (enc.outcome === "deferred") say(p, raw(tr("observer.wheel.test_deferred", tr(`observer.enc.${def.id}.where`))));
   }, 10);
+}
+
+/** A creature's own name (vanilla keys drop the namespace; add-ons use the full id). @param {string} id */
+const creatureName = (id) => tr(id.startsWith("minecraft:") ? `entity.${id.slice(10)}.name` : `entity.${id}.name`);
+
+/** What the creature you are looking at is to it: answers to it, its rival, or left alone. @param {Player} p */
+async function creatures(p) {
+  const hit = (safe(() => p.getEntitiesFromViewDirection({ maxDistance: 48 }), []) ?? [])
+    .map((h) => h.entity).find((e) => e.typeId !== "minecraft:player" && !e.typeId.startsWith("observer:") && e.typeId !== "minecraft:item");
+  const marks = { ...(S().marks ?? {}) };
+  const f = new ActionFormData().title(tr("observer.wheel.btn_creatures"));
+  /** @type {(() => void)[]} */
+  const actions = [];
+  const lines = [tr("observer.creatures.body"), "\n\n"];
+  if (hit) {
+    const now = standing(hit);
+    lines.push(tr("observer.creatures.looking", creatureName(hit.typeId), hit.typeId, tr(`observer.creatures.is_${now ?? "none"}`)));
+    for (const [key, v] of [["kin", "kin"], ["rival", "rival"], ["ignore", "ignore"], ["default", undefined]]) {
+      f.button(tr(`observer.creatures.mark_${key}`));
+      actions.push(() => {
+        if (v) marks[hit.typeId] = /** @type {any} */ (v);
+        else delete marks[hit.typeId];
+        updateSettings({ marks });
+        say(p, raw(tr("observer.creatures.saved", creatureName(hit.typeId), tr(`observer.creatures.mark_${key}`))));
+      });
+    }
+  } else lines.push(tr("observer.creatures.look_first"));
+  const n = Object.keys(marks).length;
+  if (n) {
+    lines.push("\n\n", tr("observer.creatures.marked", n));
+    f.button(tr("observer.creatures.forget"));
+    actions.push(() => {
+      updateSettings({ marks: {} });
+      say(p, raw(tr("observer.creatures.forgotten")));
+    });
+  }
+  f.body(raw(...lines));
+  if (!actions.length) f.button(tr("observer.wheel.cancel"));
+  const r = await f.show(p);
+  if (r.canceled || r.selection === undefined) return;
+  actions[r.selection]?.();
 }
 
 /** @param {Player} p */

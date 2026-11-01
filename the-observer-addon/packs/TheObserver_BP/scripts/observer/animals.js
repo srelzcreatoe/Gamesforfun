@@ -200,7 +200,7 @@ const sitting = (m) => !!safe(() => m.hasComponent("minecraft:is_sitting"), fals
 const leashed = (m) => !!safe(() => m.getComponent("minecraft:leashable")?.isLeashed, false);
 
 /** Is the way ahead walkable: no wall it cannot step up, no drop of two or more, no water or lava? @param {Entity} m @param {Vec} dir */
-function clearAhead(m, dir) {
+export function clearAhead(m, dir) {
   const dim = m.dimension;
   const l = m.location;
   const x = Math.floor(l.x + dir.x * 0.9), z = Math.floor(l.z + dir.z * 0.9), y = Math.floor(l.y);

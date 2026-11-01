@@ -8,7 +8,7 @@ Implemented encounters live in `packs/TheObserver_BP/scripts/encounters/` (one f
 the director. Concepts marked *planned* are design-ready but not implemented in 1.0.0 — they are not advertised as
 features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stage at which the director may choose it.
 
-## Implemented (24 mechanically distinct types)
+## Implemented (25 mechanically distinct types)
 
 | # | Encounter (file) | Tier / Stage | Context | Location | Cue | Intention | Manipulation | Player response | Consequence |
 |---|---|---|---|---|---|---|---|---|---|
@@ -36,6 +36,7 @@ features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stag
 | 22 | **Borrowed Eyes** (`borrowed_eyes`) | 1 / 2 | an animal, villager, trader or zombie/skeleton 6–24 blocks ahead, in view | the creature | it stops what it is doing and its head follows you, wherever you go, for 7–11 s | to watch through something else | none (heavy slowness, rotation only) | look back at it | held 2 s: it holds a moment longer, then walks on as if nothing happened. At most every 10 min |
 | 23 | **In the Mire** (`mire_watcher`) | 1 / 1 | in the Weeping Mire, its home (weight 16 there, 0 anywhere else); also after a torn page | among the weeping trees 20–48 blocks away, peeking from behind a trunk when there is one: where you can see it first, 12–24 blocks if the trees allow nothing further, deep among them as a last resort; after a torn page 16–24 blocks behind you, after the last of the eight 12–14 (closer, from 8, if the trees allow nothing further) | a still figure between the trunks | the Mire's old watcher, now the Observer itself: to be seen at home | — | look at it ~1 s / walk up to it / ignore it | seen: *Its Home*, then the standoff (since 1.0.9) — look away and it is gone in black mist with a cave sound; stare too long or shoot it and it snaps; from stage 2 it may lunge at once instead; within 9 blocks it does not wait (too close, or a strike); ignored, it fades after 90–180 s |
 | 24 | **At the Foot of the Bed** (`paralysis`, 1.1.1) | 3 / 3, camera effects ≥ reduced | the player falls asleep (event-triggered: decided once per sleep after 1.5 s in bed, ~30 % at stage 3, +5 % per stage; at most every 90 min of play); from the Config Wheel, a bed within 8 blocks | beyond the foot of the bed, 2.6–3.8 blocks from the pillow, in full view (in a room too small for that, beside the bed by the knees) | the dark comes down as sleep takes them; their own heart, loud; its breath | sleep paralysis: to be seen while they cannot move | — (camera, input and HUD only; nothing in the world changes) | none possible: they try to turn their head and cannot | it tilts its head, leans two-thirds of a block closer; a blink and it is gone; they stand beside the bed looking at where it stood (*At the Foot of the Bed*). No damage; the night is not skipped |
+| 25 | **Not Yours** (`not_yours`, 1.2.0) | 2 / 3 | a hostile creature hurts the player (event-triggered: always for a kind marked its rival, else one time in two; at most every 8 min); from the Config Wheel, the nearest hostile creature within 16 blocks | right behind the creature, as seen from the player, its head in their sight | it is suddenly there; the creature stops and turns round to it | it does not share: the player is its prey | — | none needed | the creature is torn apart (crimson shreds, a crack); it looks at the player a moment and is gone (*Not Yours*). It never touches the player |
 
 **Lunge (shared reaction, stage 2+).** When it is noticed in *The Figure at the Edge*, *Always the Same Place* or *Echo
 Ahead*, it may shriek and come at the player through the air in jerks (~14 blocks/s, floating a block up), then tear
@@ -61,6 +62,19 @@ nothing for 1.5 s and the target is within 28 blocks, `observer/squeeze.js` sear
 and bamboo (broken, manipulation ≥ 2, never inside a Ward Lantern's radius). Doors and broken blocks are ledger
 changes: put back afterwards, nothing dropped. Where the way is lower than three blocks it crawls (`crawl`, a
 collision box a block high); it stands up again inside before it strikes.
+
+**It rules them (1.2.0, shared — every appearance of its body).** `observer/dominion.js`, every tick while its body
+exists: hostile creatures (family `monster`: Minecraft's own and any other add-on's) within 24 blocks of it, with a
+player within 48, answer to it — at most 12 per appearance, once each, the nearest first (0.3 s + 1.2 ticks per block
++ up to 0.5 s after it arrives). Each turns to it (14°/tick at most) and is held still and harmless (Slowness VIII,
+Weakness V, a creeper's fuse put out) for 1–2 s, then walks away — away from it and from the nearest player both —
+at a held 2 b/s for 2.5–5.5 s, stopping at walls, drops, water or lava, then stands, still and harmless, until nobody
+can see it for half a second, and is removed (no drops). Kinds marked its rival (up to 4 per appearance) are torn apart
+instead, in its crimson shreds. A creature that hurts a player within 24 blocks of its body is torn apart at once.
+Left alone: players, its own kind, tamed and name-tagged creatures, Minecraft's bosses (ender dragon, wither, warden,
+elder guardian) and anything with 300+ health, and kinds marked "leave it alone". Marks are per kind (type id), set
+on the Config Wheel → *Other creatures* by looking at one. It never reads or changes another add-on's files or
+scripts — only the creatures in the shared world. Setting: *Other creatures answer to it*.
 
 **The animals know (1.1.1, shared — every appearance of its body).** `observer/animals.js`, every tick while its body
 exists: animals within 20 blocks of it (when a player is within 64) react once per appearance, at most eight at a time

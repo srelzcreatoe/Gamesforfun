@@ -1,0 +1,6 @@
+# 1.2.0: it rules them — the other creatures of the dark answer to it (a stand-in for another add-on's creature
+# lives in the test kit), its rivals torn apart, and it does not share; with the animal and encounter regressions
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup dominion not_yours animals test_entries distant_watch sounds status
+expect \[OTEST\] SUITE DONE 3600

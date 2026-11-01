@@ -134,6 +134,8 @@ export const DEBUG = {
   paralysis: "auto",
   /** tests: "always" / "never" decide whether it whispers when close and unseen ("auto" = two appearances in five) */
   whisper: "auto",
+  /** tests: "always" / "never" decide whether it comes for a creature that hurt you ("auto" = one time in two) */
+  notYours: "auto",
   /** low-volume lifecycle lines (encounter start/end); enabled in dev mode and by the test kit */
   trace: false,
   /** @param {string} msg */

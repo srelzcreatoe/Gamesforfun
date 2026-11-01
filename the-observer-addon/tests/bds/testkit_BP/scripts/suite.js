@@ -2584,6 +2584,179 @@ TESTS.mire_fuel = async () => {
   ow().getBlock(at).setType("minecraft:air");
 };
 
+// ------------------------------------------------------------------ 1.2.0: it rules them
+
+const HOSTILE_TEST = /^(minecraft:(husk|spider|creeper)|otest:(great_)?dweller)$/;
+function clearHostiles(at, r = 48) {
+  for (const e of ow().getEntities({ location: at, maxDistance: r })) if (HOSTILE_TEST.test(e.typeId)) e.remove();
+}
+/** Spawn creatures around a point: [type, dx, dz, name?] */
+function around(at, list) {
+  return list.map(([t, dx, dz, name]) => {
+    const e = ow().spawnEntity(t, { x: Math.floor(at.x + dx) + 0.5, y: Y, z: Math.floor(at.z + dz) + 0.5 });
+    if (name) e.nameTag = name;
+    return e;
+  });
+}
+
+TESTS.dominion = async () => {
+  // the other creatures of the dark answer to it: they know it, stop, turn to it, back away — and, unseen, are gone
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  const face = { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 };
+  clearHostiles(stand);
+  let p = await freshTarget("Tester", stand, face, 1);
+  isolate(p);
+  const hp0 = p.getComponent("minecraft:health").currentValue;
+  const hurtBy = [];
+  const sub = world.afterEvents.entityHurt.subscribe((ev) => {
+    if (ev.hurtEntity.id === p.id) hurtBy.push({ id: ev.damageSource.damagingEntity?.id, what: `${ev.damageSource.damagingEntity?.typeId ?? ev.damageSource.cause}:${ev.damage}@t${system.currentTick}` });
+  });
+  let m = mark();
+  obs("trigger", "test_near", "Tester");
+  let e = await waitObserver(60);
+  if (!check("dominion_body", !!e)) return;
+  let at = { ...e.location };
+  // Minecraft's own, a stand-in for another add-on's creature, one of the great ones, and one somebody named
+  const mobs = around(at, [["minecraft:husk", -5, 1], ["minecraft:spider", 5, 1], ["minecraft:creeper", -4, -4], ["otest:dweller", 4, -4],
+    ["otest:great_dweller", 0, -6], ["minecraft:husk", 6, -2, "Bob"]]);
+  const [husk, spider, creeper, dweller, great, bob] = mobs;
+  const best = new Map(), still = new Map(), first = new Map();
+  for (let t = 0; t < 70; t += 2) {
+    const ev = events.slice(m).filter((x) => x.kind === "dominion");
+    for (const c of mobs) {
+      if (!c.isValid) continue;
+      const mine = ev.filter((x) => x.data.id === c.id);
+      const last = mine[mine.length - 1];
+      if (!last || last.data.what !== "notice" || system.currentTick - last.tick < 12) continue;
+      best.set(c.id, Math.min(best.get(c.id) ?? 999, Math.abs(wrapDeg(c.getRotation().y - yawTo(c.location, at)))));
+      if (!first.has(c.id)) first.set(c.id, { ...c.location });
+      else still.set(c.id, Math.max(still.get(c.id) ?? 0, hdist(first.get(c.id), c.location)));
+    }
+    heal(p);
+    await wait(2);
+  }
+  const ev = since(m, "dominion");
+  const knew = ev.filter((d) => d.what === "notice");
+  const ids = new Set(knew.map((d) => d.id));
+  check("dominion_they_know_it", [husk, spider, creeper, dweller].every((c) => ids.has(c.id)) && knew.every((d) => d.as === "kin"),
+    knew.map((d) => `${d.type}@${d.d}`).join(" "));
+  check("dominion_another_addons_creature_too", ids.has(dweller.id));
+  check("dominion_great_and_named_left_alone", !ids.has(great.id) && !ids.has(bob.id) && great.isValid && bob.isValid);
+  check("dominion_they_turn_to_it", [...best.values()].length >= 3 && [...best.values()].every((x) => x < 25), [...best.values()].map((x) => x.toFixed(0)).join(","));
+  check("dominion_they_go_still", [...still.values()].every((x) => x < 0.4), [...still.values()].map((x) => x.toFixed(2)).join(","));
+  await wait(20 * 5);
+  const later = since(m, "dominion");
+  const holds = later.filter((d) => d.what === "hold");
+  const backed = holds.map((h) => h.d - (knew.find((k) => k.id === h.id)?.d ?? h.d));
+  check("dominion_they_back_away", later.filter((d) => d.what === "leave").length >= 3 && backed.some((b) => b >= 1.5), backed.map((b) => b.toFixed(1)).join(","));
+  // nobody looking: they are gone
+  p.lookAtLocation({ x: stand.x, y: Y + 1.6, z: stand.z + 40 });
+  const t0 = system.currentTick;
+  for (let t = 0; t < 80 && [husk, spider, creeper, dweller].some((c) => c.isValid); t += 4) {
+    p.lookAtLocation({ x: stand.x, y: Y + 1.6, z: stand.z + 40 });
+    await wait(4);
+  }
+  const sent = since(m, "dominion").filter((d) => d.what === "sent");
+  check("dominion_sent_away_unseen", [husk, spider, creeper, dweller].every((c) => !c.isValid) && sent.length >= 4, `${sent.length} gone in ${((system.currentTick - t0) / 20).toFixed(1)} s; left: ${[husk, spider, creeper, dweller].filter((c) => c.isValid).map((c) => `${c.typeId}@${hdist(c.location, p.location).toFixed(1)}`).join(",")}; ${JSON.stringify(since(m, "dominion").filter((d) => d.what !== "notice").map((d) => [d.what, d.type, d.d]))}`);
+  // (only those that answer to it: the named one and the great one are left alone, and may well come for you)
+  const byKin = hurtBy.filter((h) => h.id !== bob.id && h.id !== great.id);
+  check("dominion_no_harm_from_those_that_answer", byKin.length === 0, byKin.map((h) => h.what).join(",") || `(${hurtBy.length} hits from those it leaves alone)`);
+  world.afterEvents.entityHurt.unsubscribe(sub);
+  obs("abort");
+  await observerGone(100);
+  clearHostiles(stand);
+  // its rivals: torn apart
+  obs("creature", "otest:dweller", "rival");
+  p = await freshTarget("Tester", stand, face, 1);
+  m = mark();
+  obs("trigger", "test_near", "Tester");
+  e = await waitObserver(60);
+  if (e) {
+    at = { ...e.location };
+    const rv = around(at, [["otest:dweller", -4, 0], ["otest:dweller", 4, 0]]);
+    await wait(60);
+    const torn = since(m, "dominion").filter((d) => d.what === "torn" && d.why === "rival");
+    check("dominion_rivals_torn_apart", torn.length === 2 && rv.every((c) => !c.isValid), `${torn.length} torn`);
+  } else check("dominion_rivals_torn_apart", false, "no body");
+  obs("creature", "otest:dweller", "default");
+  obs("abort");
+  await observerGone(100);
+  // a kind marked "leave it alone" is never touched; and switched off, none are
+  obs("creature", "minecraft:husk", "ignore");
+  p = await freshTarget("Tester", stand, face, 1);
+  m = mark();
+  obs("trigger", "test_near", "Tester");
+  e = await waitObserver(60);
+  if (e) {
+    at = { ...e.location };
+    const [h2] = around(at, [["minecraft:husk", -4, 0]]);
+    await wait(50);
+    check("dominion_left_alone_when_marked", !since(m, "dominion").some((d) => d.what === "notice" && d.id === h2.id) && h2.isValid);
+  }
+  obs("creature", "minecraft:husk", "default");
+  obs("abort");
+  await observerGone(100);
+  clearHostiles(stand);
+  obs("set", "creatures", "false");
+  p = await freshTarget("Tester", stand, face, 1);
+  m = mark();
+  obs("trigger", "test_near", "Tester");
+  e = await waitObserver(60);
+  if (e) {
+    at = { ...e.location };
+    around(at, [["minecraft:spider", -4, 0]]);
+    await wait(50);
+    check("dominion_switch_off", !since(m, "dominion").some((d) => d.what === "notice"));
+  }
+  obs("set", "creatures", "true");
+  obs("abort");
+  await observerGone(100);
+  clearHostiles(stand);
+};
+
+TESTS.not_yours = async () => {
+  // it does not share: a creature that hurts you finds it standing behind it, and is torn apart
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  const face = { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 };
+  clearHostiles(stand);
+  obs("notyours", "always");
+  let p = await freshTarget("Tester", stand, face, 3);
+  isolate(p);
+  let m = mark();
+  const [d] = around(stand, [["otest:dweller", 0, -3]]);
+  let st;
+  for (let t = 0; t < 200 && !st; t += 4) {
+    st = since(m, "start").find((x) => x.type === "not_yours");
+    heal(p);
+    await wait(4);
+  }
+  check("not_yours_comes_when_hurt", !!st, JSON.stringify(since(m, "dominion")));
+  const behind = await waitEvent("dominion", (x) => x.what === "behind", 60, m);
+  const e = observerEntity();
+  if (e && d.isValid) {
+    const toD = { x: d.location.x - p.location.x, z: d.location.z - p.location.z }, toE = { x: e.location.x - p.location.x, z: e.location.z - p.location.z };
+    check("not_yours_behind_it", (toD.x * toE.x + toD.z * toE.z) > 0 && Math.hypot(toE.x, toE.z) > Math.hypot(toD.x, toD.z), `creature ${Math.hypot(toD.x, toD.z).toFixed(1)}, it ${Math.hypot(toE.x, toE.z).toFixed(1)} blocks away`);
+  } else check("not_yours_behind_it", !!behind, "body or creature gone early");
+  const torn = await waitEvent("dominion", (x) => x.what === "torn" && x.why === "not_yours", 80, m);
+  check("not_yours_torn_apart", !!torn && !d.isValid);
+  const end = await endOf("not_yours", m, 200);
+  check("not_yours_outcome", end && end.outcome === "defended", end ? end.outcome : "none");
+  check("not_yours_discovery", discovered(m, "not_yours"));
+  await observerGone(100);
+  // not before the third stage
+  p = await freshTarget("Tester", stand, face, 2);
+  m = mark();
+  const [d2] = around(stand, [["otest:dweller", 0, -3]]);
+  for (let t = 0; t < 120; t += 4) {
+    heal(p);
+    await wait(4);
+  }
+  check("not_yours_not_before_stage_3", !since(m, "start").some((x) => x.type === "not_yours"));
+  if (d2.isValid) d2.remove();
+  obs("notyours", "auto");
+  clearHostiles(stand);
+};
+
 // ------------------------------------------------------------------ 1.1.2: the user's recordings in play
 
 TESTS.sounds = async () => {

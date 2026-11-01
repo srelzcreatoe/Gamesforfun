@@ -24,6 +24,8 @@ import * as returns from "./observer/returns.js";
 import * as profile from "./observer/profile.js";
 import * as dread from "./observer/dread.js";
 import * as animals from "./observer/animals.js";
+import * as dominion from "./observer/dominion.js";
+import * as notYours from "./encounters/not_yours.js";
 import * as paralysis from "./encounters/paralysis.js";
 import * as mire from "./mire/mire.js";
 import { pending as mirePending } from "./encounters/mire_watcher.js";
@@ -251,6 +253,17 @@ world.beforeEvents.playerLeave.subscribe((ev) => {
   });
 });
 
+// it does not share: a creature that hurts a player may find it standing behind it (1.2.0)
+world.afterEvents.entityHurt.subscribe(
+  (ev) => {
+    if (!ready) return;
+    const p = /** @type {import("@minecraft/server").Player} */ (ev.hurtEntity);
+    const by = ev.damageSource.damagingEntity;
+    if (by && by.typeId !== "minecraft:player") safe(() => notYours.onHurt(p, by));
+  },
+  { entityTypes: ["minecraft:player"] },
+);
+
 world.afterEvents.entityDie.subscribe((ev) => {
   if (ev.deadEntity.typeId === "minecraft:player") director.onDeath(/** @type {any} */ (ev.deadEntity));
 });
@@ -361,7 +374,10 @@ system.runInterval(() => {
 
 // animals sense it: they turn to it and freeze, edge away, growl or hiss (every tick, for smooth turning and walking)
 system.runInterval(() => {
-  if (ready) safe(() => animals.tick());
+  if (!ready) return;
+  safe(() => animals.tick());
+  // the other creatures of the dark answer to it (1.2.0)
+  safe(() => dominion.tick());
 }, 1);
 
 // taiga illusions vanish the instant they are looked at; flares fly, burn and glare

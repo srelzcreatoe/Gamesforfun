@@ -48,6 +48,8 @@ the-observer-addon/
 | `observer/profile.js` | what it knows about each player: habits (1 − e^(−n/3)), places, nights, lights, per-encounter effectiveness; `weightFactor`, `known` |
 | `observer/charge.js` | running at it: `decide` (attack or not, with reasons), `setAmbush`, `favours` |
 | `observer/dread.js` | its presence, felt: per-player dread, the heartbeat and the tremor |
+| `observer/dominion.js` | it rules them (1.2.0): `standing` (kin / rival / left alone), the yield → leave → sent-away phases, `tearApart`, `status` |
+| `encounters/not_yours.js` | it does not share (1.2.0): `onHurt` (from `entityHurt`), the encounter |
 | `observer/animals.js` | the animals know (1.1.1): near its body they turn to it and go still, edge away and look back, growl, hiss, whine; `tick` (every tick), `status` |
 | `encounters/paralysis.js` | at the foot of the bed (1.1.1): `watchSleep` (decides once per sleep), the encounter (`findBed`, `stage`, lock / `release`), `recover` (on join and reload) |
 | `observer/squeeze.js` | through tight spaces: `plan` (A* over blocks: gaps a block high, doors, breakable glass/leaves), `traverse` (opens, breaks, crawls), `unstick` (call from any approach loop) |
@@ -113,7 +115,8 @@ Scenarios: `load.txt` (packs load cleanly), `proto.txt` (capability probes), `sp
 Weeping Mire: its context, the stage bonus, early grace, its watcher, the torn pages), `suite_108.txt` (every attack
 floats; the Mire never where you start; with the chase/attack/climb and Mire regressions), `suite_110.txt` (the music, the heartbeat, charging at it, the profile, hiding behind trees, Mire fuel; with
 regressions), `suite_111.txt` (sleep paralysis; the animals; with the house, sleep and presence regressions), `suite_112.txt`
-(the user's recordings in play: its themes, the spotted sting, the whisper, the scream when it kills), `suite_109.txt` (it
+(the user's recordings in play: its themes, the spotted sting, the whisper, the scream when it kills), `suite_120.txt`
+(it rules them; Not Yours — with stand-in creatures `otest:dweller` / `otest:great_dweller` defined only in the test kit), `suite_109.txt` (it
 vanishes in place; stalking from ledges and ceilings; the standoff; through gaps, glass and doors; with regressions), `mire_locate.txt` (the Mire
 generates and its old watcher is gone; run without `--testkit`, with `--require-no-experiments`),
 `tunnel_repeat.txt` (the Closed Path tests ten times over), `illusion_repeat.txt` (the shadow tests eight times over), `flare_seq.txt` (the flare tests twice back to back), `house_seq.txt` (every test that uses the arena house, in suite order — they share it), `noexp.txt` (no experiments; run **without** `--testkit` and with `--require-no-experiments`, which
@@ -126,7 +129,7 @@ The harness patches the **installed test copy** of the BP to import
 untouched.
 
 With tracing on, the add-on publishes structured events as script events
-`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned|grace|mire|weights|mire_spawn|standoff|stalk|squeeze|rage|hide|peek|charge|ambush|heartbeat|profile|paralysis|animals|whisper`
+`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned|grace|mire|weights|mire_spawn|standoff|stalk|squeeze|rage|hide|peek|charge|ambush|heartbeat|profile|paralysis|animals|whisper|dominion`
 that the test kit asserts on. In normal play nothing is emitted.
 
 Test-only dev commands (`/scriptevent observer:<name>`): `flare [dist] [player]` (light a flare ahead),
@@ -137,7 +140,8 @@ Test-only dev commands (`/scriptevent observer:<name>`): `flare [dist] [player]`
 `standoff off|short|auto` (off: a moment's stare and it is gone — the suite's default for tests of other things),
 `stalk hang|ledge|tree|ground|auto` (where *The Figure at the Edge* stands), `charge attack|vanish|auto` (what it does
 when charged), `profile <habit> <count>|clear [player]` (what it has seen a player do), `paralysis always|never|auto` (whether a
-sleeping player wakes unable to move), `whisper always|never|auto` (whether it whispers when close and unseen), `animals` (which animals are reacting now; it no longer turns them itself), plus the earlier
+sleeping player wakes unable to move), `whisper always|never|auto` (whether it whispers when close and unseen), `notyours always|never|auto` (whether it
+comes for a creature that hurt you), `creature [<type id> kin|rival|ignore|default]` (what a kind of creature is to it), `animals` (which animals are reacting now; it no longer turns them itself), plus the earlier
 `lunge`, `nearstrike`, `illusion`, `timewarp`, `sethaunt`, `set <key> <value>` and `set off a,b,c`.
 
 ## 4. Adding an encounter

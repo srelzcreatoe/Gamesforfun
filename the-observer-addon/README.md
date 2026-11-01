@@ -46,7 +46,7 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   blocks; a torn page may bring it up behind you, and the last of the eight always does. In the Mire it comes sooner
   and more often: the grace period ends after 30 seconds there, the gaps between encounters are shorter, and it acts as
   if you were one stage further along.
-* **24 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*)
+* **25 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*)
   and *Closer Each Time* (it only moves while unwatched), *It's Inside* (the dark corner of your own room), *Signs*
   (by your bed or door), *Borrowed Eyes* (a creature that turns its head to follow you) and *In the Mire*; a lunge when it is spotted,
   a fast, relentless attack once it reaches you, a too-close reaction, and harmless shadows in taiga forests that
@@ -58,6 +58,12 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   light you put down, and which of its tricks get a reaction out of you — and chooses accordingly. Your Field Notes
   say what it knows. **Run at it** and it decides on the spot: attack, or be gone before you arrive and wait for a
   better moment — night, a cave, you hurt — and come back at once, and worse.
+* **It rules them** (1.2.0): every hostile creature — Minecraft's own or any other add-on's — answers to it. When it
+  comes they stop, the nearest first, turn to it and go still, back away (never toward you, and harmless while they
+  do), and once nobody is looking they are gone. Kinds you mark as its rivals it tears apart; from the third stage, a
+  creature that hurts you may find it standing behind it (*Not Yours*). It takes nothing from other add-ons — it acts
+  on their creatures only through the world they share. Tamed, name-tagged, boss and 300+-health creatures, and kinds
+  marked "leave it alone" (Config Wheel → Other creatures), are never touched; one setting switches it all off.
 * **Its voice and its music** (1.1.2, your recordings): while it is around, its own theme replaces the game's music
   — *lurking* in the Weeping Mire, its home — and the game's music fades back once it has gone. A sting when you spot
   it, a scream when it snaps or comes for you (and over the blow that kills), a grunt as it arrives out of nowhere, its
@@ -100,7 +106,7 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   effigies, temporary openings, animals turning) through a **restoration ledger**: recorded, locked, reload-safe,
   dupe-proof, and the player's own changes always win.
 * **Bounded memory** of each player: breadcrumbs, home, familiar routes, habits, a favoured bearing.
-* **Progression**: 25 discoveries written in the Field Notes; Tally Chalk, Witness Lens, Ward Lantern, Vestiges, and
+* **Progression**: 26 discoveries written in the Field Notes; Tally Chalk, Witness Lens, Ward Lantern, Vestiges, and
   the **Flare** (thrown; its glare drives it off within 16 blocks, even mid-attack); the Vigil as the long-term goal;
   three post-ending modes.
 * **Config Wheel**: one item for status, a harmless *See it now* preview of the creature and all its animations,
