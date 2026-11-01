@@ -419,12 +419,18 @@ observer.enc.test_climb.where=stand on something 3+ blocks high (pillar up, a ro
 ## ---------------------------------------------------------------- 1.0.7: the Weeping Mire, its home
 observer.enc.mire_watcher=In the Mire
 observer.enc.mire_watcher.where=the Weeping Mire, its home: it stands among the weeping trees 20-48 blocks away. Look at it and it is gone in black mist; come within 9 blocks and it does not wait. A torn page may bring it up behind you (the last page always does)
+observer.enc.paralysis=At the Foot of the Bed
+observer.enc.paralysis.where=a bed within 8 blocks with room at its foot (camera effects reduced or full); in play it comes as you fall asleep, now and then
 observer.disc.its_home.title=Its Home
 observer.disc.its_home.text=The trees out there weep. Black bark, roots like bones. It was standing among them as if it had always stood there, not following me, not waiting for me. Living there. When I looked back there was only black mist where it stood, and the ground was cold.
 observer.disc.its_home.lesson=The Weeping Mire is its home. There it comes sooner and more often, and it does not wait for you to settle in. The torn pages are about it.
+observer.disc.foot_of_the_bed.title=At the Foot of the Bed
+observer.disc.foot_of_the_bed.text=I woke in the night and could not move. Not my arms, not my head. It was standing at the foot of the bed, bent under the ceiling, looking down at me. My heart was so loud. I tried to turn away and could not. It tilted its head, and leaned closer. Then I blinked, and the room was empty, and I could move.
+observer.disc.foot_of_the_bed.lesson=Sometimes it comes while you sleep, and you wake unable to move. It only looks. It is gone when you blink, and the night is not over: you can lie down again.
 
 ## ---------------------------------------------------------------- 1.1.0: it knows you; its presence, felt
 observer.set.heartbeat=Heartbeat (and a light tremor) when it is near
+observer.set.animals=Animals sense it (they turn to it, edge away, growl or hiss)
 observer.ui.profile_known=It knows me:
 observer.profile.stare=I stare it down. It does not wait as long for me any more before it snaps.
 observer.profile.look_away=I look away. Each time I look back it has come further.

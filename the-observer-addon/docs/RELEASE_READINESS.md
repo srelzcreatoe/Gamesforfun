@@ -11,7 +11,7 @@ The first load in a Windows client (by the user) showed three resource-pack erro
 client-only error is caught before release. The creature's look, animations, sounds and menus still have to be
 confirmed in a client.
 
-Everything that runs on the server — the director, all 23 encounters (including *In the Mire*), the merged Weeping
+Everything that runs on the server — the director, all 24 encounters (including *In the Mire* and *At the Foot of the Bed*), the merged Weeping
 Mire biome and its torn pages, the Flare, escape learning, the silence before
 attacks, its pages, signs, returned items, the restoration ledger, persistence across a restart, multiplayer targeting,
 dimension travel, items, wards, settings — was exercised on a real Bedrock Dedicated
@@ -81,6 +81,13 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   list and are not verifiable on a server.
 * Forms (Field Notes — including "Pages I didn't write" and what it has learned — settings), action-bar captions, title
   cards, camera fades and shakes (the fade API and the `camerashake` command were accepted by the server).
+* 1.1.1, sleep paralysis: the view from the pillow (a `minecraft:free` camera; framing, whether anything of the
+  player's own body shows, the eased "trying to turn" movement), the hidden HUD, the two fades, and that a real
+  client's movement and camera are locked (simulated players ignore input permissions, so the tests read the
+  permission state instead). Also how a player who quits in the middle comes back (they are handed everything back on
+  joining; not exercised with a real client).
+* 1.1.1, the animals: how the turning, standing still and edging away read on real animals (the server measured
+  0 movement while they stand and 1.5–2.2 b/s while they walk), and the vanilla growl, hiss, whine and call sounds.
 * 1.1.0: the heartbeat's sound and mix, the tremor's feel, the game's music fading back in (`music.game*` event
   names; the server accepted every `playMusic` call), the rebuilt peek round a trunk (offline previews only), the Mire
   wood items drawn as their blocks (`block_placer` instead of an icon) and Bone Root's recipe in the crafting UI.
@@ -131,6 +138,9 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 | The rage is too hard to survive | medium | only when provoked (a long stare, a shot, a blow) and from stage 2; ~8 b/s; light, water, the lens, a flare and a blow still work; aggression settings and Peaceful apply |
 | The heartbeat or tremor is too much | low–medium | tremor at most 0.05 (half on reduced camera effects, none on "none"), only when it is close and meaning harm; the heartbeat has its own off switch |
 | It feels unfair once it has learned a player | medium | every adaptation is bounded (weights ×0.5–2.2, distances ±10 blocks, chances +0.35 at most), fades with time, and "It learns how you escape" off turns all of it off |
+| A player is left unable to move after a sleep paralysis | low | the previous input permissions are written to the player before anything is locked; a `finally` hands everything back however it ends (abort, Undo, death, switched off), and joining or a script reload hands back anything left over |
+| Sleep paralysis comes too often or feels like a cheap scare | low–medium | stage 3+, about one sleep in three, never within 90 minutes of play; quiet and recovery periods apply; no damage, no sting, the night is not skipped; its own encounter toggle; never with camera effects off |
+| Animals being moved annoys players with farms | low | at most 8 at a time and 12 per appearance, a few blocks only, never off a ledge or into water; sitting, leashed and ridden animals are not moved; "Animals sense it" off switch |
 | A new player is moved on arrival | low | only on their first spawn, only at the world spawn, only if it is inside the Mire; they land facing it, a few blocks outside its edge |
 | The Mire's look depends on `pbr` | low–medium | the RP declares the `pbr` capability the Mire's texture sets and lighting use; to be confirmed in a client (§1) |
 | Players dislike base intrusion | — | Ward Lantern, manipulation levels, `/observer:restore`, Atmosphere preset |
@@ -161,11 +171,12 @@ the sounds of your own work and plays them from where you are not. It gets home 
 you to find. It closes the tunnel behind you. It can be understood — and if you pay attention long enough, you can
 finally meet its gaze.
 
-* 23 encounter types, three signature encounters, five escalating stages
+* 24 encounter types, three signature encounters, five escalating stages
 * A home of its own: the Weeping Mire, a swamp of weeping trees where it watches from between the trunks, and eight
   torn pages that bring it closer
 * It learns how you escape, goes quiet before it attacks, and writes pages in your notes from what you did
+* Some nights you wake unable to move, and it is standing at the foot of your bed; the animals always know where it is
 * Real, reversible world changes — your builds are protected and your own changes always win
-* 24 discoveries, a Witness Lens, Tally Chalk, Ward Lanterns, Flares, and an ending you can reach
+* 25 discoveries, a Witness Lens, Tally Chalk, Ward Lanterns, Flares, and an ending you can reach
 * Works across the Overworld, caves, water, the Nether and the End; multiplayer-aware; no experiments needed
 * Atmosphere, Standard and Relentless presets; captions and full control over scares and camera effects

@@ -8,11 +8,11 @@ Implemented encounters live in `packs/TheObserver_BP/scripts/encounters/` (one f
 the director. Concepts marked *planned* are design-ready but not implemented in 1.0.0 — they are not advertised as
 features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stage at which the director may choose it.
 
-## Implemented (23 mechanically distinct types)
+## Implemented (24 mechanically distinct types)
 
 | # | Encounter (file) | Tier / Stage | Context | Location | Cue | Intention | Manipulation | Player response | Consequence |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | **The Figure at the Edge** (`distant_watch`) | 1 / 1 | anywhere; adapts to water, height, caves | 26–44 blocks at the edge of attention (14–28 in caves); since 1.0.9 also on a high ledge 4+ blocks above you, or (underground) hanging upside down from a ceiling 6+ blocks high; on water; on the ground below a high player; at the favoured bearing | arrives silently; a still silhouette, partly behind cover; animals facing it (stage 2+); eye glints in darkness | to be noticed — or not | M8 animals turn (30% at stage 2+) | look at it ~1 s / walk toward it / ignore | noticed or approached: the standoff (below); on water it sinks; ignored, footprints where it stood |
+| 1 | **The Figure at the Edge** (`distant_watch`) | 1 / 1 | anywhere; adapts to water, height, caves | 26–44 blocks at the edge of attention (14–28 in caves); since 1.0.9 also on a high ledge 4+ blocks above you, or (underground) hanging upside down from a ceiling 6+ blocks high; on water; on the ground below a high player; at the favoured bearing | arrives silently; a still silhouette, partly behind cover; the animals near it turn to it (1.1.1: any appearance); eye glints in darkness | to be noticed — or not | — | look at it ~1 s / walk toward it / ignore | noticed or approached: the standoff (below); on water it sinks; ignored, footprints where it stood |
 | 2 | **Out of Step** ★ (`extra_step`) | 2 / 2 | walking on land | behind, 7 → 3.4 blocks (sound); 15–24 blocks (body) | footsteps in your rhythm and ground material; one extra heavier step | to see whether you notice an imitation | — | turn around / sneak / ignore | glimpse and it steps away (*Out of Step*); falters (*Quiet Feet*); closes in → right behind you (*Close*) |
 | 3 | **Someone Was Home** ★ (`home_visit`) | 2 / 2 | returning (40–96 blocks) to your main haunt after 4+ min away | your most-visited 16×16 area / bed | door creak from inside; arranged objects | to show it knows where you live | M1 door, M2 entrance lights, M3 object turned toward your approach, M6 effigy | put something back / break the effigy / study the changes / ignore | it restores the rest (*Put Back*); Vestige (*Small Likeness*); *Someone Was Home*; ignored → changes stay 8 min, tension rises |
 | 4 | **The Closed Path** ★ (`closed_path`) | 3 / 4 | moving through a tunnel or dark enclosed corridor | seal 3–7 blocks behind; body 12–20 ahead | hum, lights dying, fog, seal sound | to corner you and see what you do | M2 lights, M4 Veil seal | break through and leave / stand in light / hold its gaze / lens / strike | escape (*Wrong Way*); repelled (*Light It Does Not Make*); backs off (*Held Gaze*); telegraphed strike or (aggression 0) a blackout |
@@ -35,6 +35,7 @@ features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stag
 | 21 | **Signs** (`sign`) | 2 / 3, manipulation ≥ 1 | within 48 blocks of your home | an empty floor cell beside your bed (spawn point) or a door of the home, out of everyone's sight | a standing sign, waxed, its text facing the bed or door: your name, "I was here", "Don't turn around", "Again tomorrow", the time you last slept, "You left the door open", how often you saw it | to show it was there | M9 sign (ledger, drops nothing) | read it / break it | read → noticed; it disappears after 20 minutes. At most every 60 min (3 in-game days) |
 | 22 | **Borrowed Eyes** (`borrowed_eyes`) | 1 / 2 | an animal, villager, trader or zombie/skeleton 6–24 blocks ahead, in view | the creature | it stops what it is doing and its head follows you, wherever you go, for 7–11 s | to watch through something else | none (heavy slowness, rotation only) | look back at it | held 2 s: it holds a moment longer, then walks on as if nothing happened. At most every 10 min |
 | 23 | **In the Mire** (`mire_watcher`) | 1 / 1 | in the Weeping Mire, its home (weight 16 there, 0 anywhere else); also after a torn page | among the weeping trees 20–48 blocks away, peeking from behind a trunk when there is one: where you can see it first, 12–24 blocks if the trees allow nothing further, deep among them as a last resort; after a torn page 16–24 blocks behind you, after the last of the eight 12–14 (closer, from 8, if the trees allow nothing further) | a still figure between the trunks | the Mire's old watcher, now the Observer itself: to be seen at home | — | look at it ~1 s / walk up to it / ignore it | seen: *Its Home*, then the standoff (since 1.0.9) — look away and it is gone in black mist with a cave sound; stare too long or shoot it and it snaps; from stage 2 it may lunge at once instead; within 9 blocks it does not wait (too close, or a strike); ignored, it fades after 90–180 s |
+| 24 | **At the Foot of the Bed** (`paralysis`, 1.1.1) | 3 / 3, camera effects ≥ reduced | the player falls asleep (event-triggered: decided once per sleep after 1.5 s in bed, ~30 % at stage 3, +5 % per stage; at most every 90 min of play); from the Config Wheel, a bed within 8 blocks | beyond the foot of the bed, 2.6–3.8 blocks from the pillow, in full view (in a room too small for that, beside the bed by the knees) | the dark comes down as sleep takes them; their own heart, loud; its breath | sleep paralysis: to be seen while they cannot move | — (camera, input and HUD only; nothing in the world changes) | none possible: they try to turn their head and cannot | it tilts its head, leans two-thirds of a block closer; a blink and it is gone; they stand beside the bed looking at where it stood (*At the Foot of the Bed*). No damage; the night is not skipped |
 
 **Lunge (shared reaction, stage 2+).** When it is noticed in *The Figure at the Edge*, *Always the Same Place* or *Echo
 Ahead*, it may shriek and come at the player through the air in jerks (~14 blocks/s, floating a block up), then tear
@@ -60,6 +61,18 @@ nothing for 1.5 s and the target is within 28 blocks, `observer/squeeze.js` sear
 and bamboo (broken, manipulation ≥ 2, never inside a Ward Lantern's radius). Doors and broken blocks are ledger
 changes: put back afterwards, nothing dropped. Where the way is lower than three blocks it crawls (`crawl`, a
 collision box a block high); it stands up again inside before it strikes.
+
+**The animals know (1.1.1, shared — every appearance of its body).** `observer/animals.js`, every tick while its body
+exists: animals within 20 blocks of it (when a player is within 64) react once per appearance, at most eight at a time
+and twelve in all, the nearest first — each 0.3 s + 1.5 ticks per block + up to 0.8 s after it arrives, so it ripples
+through a herd. Each turns to it (14°/tick at most, looking up at its head when close) and is held still (Slowness VIII,
+no particles, horizontal velocity cancelled). Grazing animals (cow, mooshroom, sheep, pig, goat, llama, horse, donkey,
+mule, camel, chicken, rabbit, fox, armadillo), after 1–4 s, edge away (70 %) at a calm, held speed (1.5–2.2 b/s) for
+2–3.5 s, stopping at a wall, a drop of two or more, water or lava, then stand and look back at it for 2–3 s. Dogs
+(wolves) face it for up to 20 s and growl up to three times; cats hiss and back off; a villager only turns and looks;
+one of a herd may call out (at most once). A tamed dog that growled at it whines once 1–2.5 s after it has gone.
+Sitting pets stay sitting, leashed and ridden animals are left alone. Replaces M8 (1.0.x: a 30 % chance in *The
+Figure at the Edge* that animals turn). Setting: *Animals sense it*.
 
 **Hiding behind trees (1.1.0, shared).** *The Figure at the Edge* (45 % above ground when a trunk is in reach),
 *In the Mire* (weeping trees first) and the test *Peeking from cover* use `space.hideSpot`: every log, wood and stem
@@ -153,7 +166,7 @@ leans out from behind it; without cover it stands normally.
 choice). Context-adaptive placement (water surface, ground below elevated players, caves, Nether/End) is part of
 encounter 1 rather than counted as separate types.
 
-## Planned concepts (17)
+## Planned concepts (16)
 
 | # | Concept | Context → cue → intention → manipulation → response → consequence |
 |---|---|---|
@@ -161,7 +174,6 @@ encounter 1 rather than counted as separate types.
 | 24 | **Held Door** | you open a door it is behind → the door will not open for two seconds (state reset each tick) → it is on the other side → M1 → step back / use the lens → it lets go; knock |
 | 25 | **Lantern Trail** | night travel → a line of lanterns (temporary, no drops) leading into darkness → to lead you somewhere → place lights → follow / ignore → at the end: an effigy or it, waiting |
 | 26 | **Imprint** | returning to bed → footprints lead to your bed and stop → it lay where you sleep → none → move your bed / ward the room → *Imprint* page |
-| 27 | **Herd Watch** | farm or pasture → every animal stops and faces one spot → that is where it stands → M8 extended → look where they look → it steps out of sight |
 | 28 | **Swap** | two identical decorative blocks nearby → they exchange places → is it the same room? → two linked ledger changes → notice / put back → *Put Back* |
 | 29 | **Borrowed Voice** | near villagers → villager sounds carry your habit sounds → imitation through others → positional sounds at mobs → investigate → footprints between them |
 | 30 | **The Waypoint** | open terrain → a locator-bar waypoint (script Waypoint API) flickers once, pointing at it → being findable → none → follow it → it is gone when you arrive; effigy |

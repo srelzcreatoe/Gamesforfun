@@ -34,6 +34,8 @@ function target(p, enc) {
     d = Math.max(d, 0.3);
     if (enc.data.standoff) d = Math.max(d, 0.35 + (enc.data.anger ?? 0) / 160);
     if (enc.data.reacting || DANGEROUS.has(enc.def.id)) d = Math.max(d, 0.85);
+    // unable to move, it at the foot of the bed: loud, fast, a faint tremor
+    if (enc.def.id === "paralysis") d = Math.max(d, 0.7);
   }
   if (hush.get(p.id)) d = Math.max(d, 0.4);
   return Math.min(1, d);

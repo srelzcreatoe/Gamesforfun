@@ -208,8 +208,9 @@ export function despawn(why = "") {
   const e = body.e;
   if (e.isValid) {
     const l = e.location;
-    // it tears apart into crimson shreds (supplied vanish sprites), unless it is only being replaced
-    if (why !== "replace") {
+    // it tears apart into crimson shreds (supplied vanish sprites), unless it is only being replaced, or is gone
+    // in a blink (behind a fade to black: sleep paralysis)
+    if (why !== "replace" && why !== "blink") {
       const seen = safe(() => seenByAny(allPlayers().filter((p) => p.dimension.id === e.dimension.id), l, body.stoop), false);
       safe(() => e.dimension.spawnParticle(PARTICLES.vanish, l));
       safe(() => e.dimension.playSound(SOUNDS.vanish, l, { volume: seen ? 0.9 : 0.45 }));

@@ -1,6 +1,6 @@
 // Integration tests for The Observer, driven by GameTest simulated players on a dedicated server.
 // Every check prints "[OTEST] PASS <name> ..." or "[OTEST] FAIL <name> ...".
-import { world, system, GameMode, ItemStack, Direction, BlockVolume, BlockPermutation } from "@minecraft/server";
+import { world, system, GameMode, ItemStack, Direction, BlockVolume, BlockPermutation, InputPermissionCategory } from "@minecraft/server";
 import * as gt from "@minecraft/server-gametest";
 import { build, resetHouse, buildCages, Y, FIELD, HOUSE, TUNNEL, NETHER, POOL, PILLAR, CAVE, CAGES, RIDGE } from "./arenas.js";
 
@@ -1763,24 +1763,6 @@ TESTS.mp_fairness = async () => {
   await wait(200);
 };
 
-TESTS.animals = async () => {
-  const p = await freshTarget("Tester", { x: 950.5, y: Y, z: 1000.5 }, { x: 950.5, y: Y + 1.6, z: 980 });
-  const cows = [];
-  for (let i = 0; i < 4; i++) cows.push(ow().spawnEntity("minecraft:cow", { x: 945.5 + i * 3, y: Y, z: 1006.5 }));
-  await wait(20);
-  obs("animals", "Tester");
-  await wait(30);
-  const target = { x: 950.5, y: Y, z: 980.5 };
-  const facing = cows.filter((c) => {
-    const yaw = c.getRotation().y;
-    const want = (Math.atan2(-(target.x - c.location.x), target.z - c.location.z) * 180) / Math.PI;
-    let d = Math.abs(((yaw - want) % 360 + 540) % 360 - 180);
-    return d < 25;
-  }).length;
-  check("animals_face_it", facing >= 3, `${facing}/4 cows facing the point`);
-  for (const c of cows) c.remove();
-};
-
 TESTS.pursuit_water_escape = async () => {
   ow().runCommand("time set midnight");
   // stand at the field's edge facing west; the pool lies 6 blocks behind
@@ -2591,6 +2573,216 @@ TESTS.mire_fuel = async () => {
   check("mire_wood_burns", await furnace("minecraft:raw_iron", "wmire:weeping_wood", "minecraft:iron_ingot"));
   check("mire_log_burns_into_charcoal", await furnace("wmire:weeping_log", "wmire:weeping_log", "minecraft:charcoal"));
   ow().getBlock(at).setType("minecraft:air");
+};
+
+// ------------------------------------------------------------------ 1.1.1: sleep paralysis; animals sense it
+
+const LOCKS = [InputPermissionCategory.Camera, InputPermissionCategory.Movement, InputPermissionCategory.Jump, InputPermissionCategory.Sneak];
+const free = (p) => LOCKS.every((c) => p.inputPermissions.isPermissionCategoryEnabled(c));
+const wrapDeg = (d) => ((((d + 180) % 360) + 360) % 360) - 180;
+const yawTo = (a, b) => (Math.atan2(-(b.x - a.x), b.z - a.z) * 180) / Math.PI;
+
+TESTS.paralysis = async () => {
+  // falling asleep, they wake in the night unable to move, and it stands at the foot of the bed looking at them;
+  // they blink and it is gone, and everything is given back
+  obs("restore");
+  resetHouse();
+  const tod0 = world.getTimeOfDay();
+  const head = { x: 1083, y: Y, z: 1000 }, foot = { x: 1082, y: Y, z: 1000 };
+  ow().runCommand(`setblock ${head.x} ${Y} ${head.z} bed ["direction"=3]`);
+  if (!check("paralysis_bed_placed", ow().getBlock(head)?.typeId === "minecraft:bed" && ow().getBlock(foot)?.typeId === "minecraft:bed")) return;
+  const pillow = { x: head.x + 0.5, y: Y + 0.6, z: head.z + 0.5 };
+  const lieDown = async () => {
+    ow().runCommand("time set 18000");
+    const p = await freshTarget("Tester", { x: 1081.5, y: Y, z: 1001.5 }, pillow, 3);
+    isolateFromHouse(p);
+    p.interactWithBlock(head, Direction.Up);
+    for (let t = 0; t < 20 && !p.isSleeping; t += 2) await wait(2);
+    return p;
+  };
+  obs("paralysis", "always");
+  let m = mark();
+  let p = await lieDown();
+  const hp0 = p.getComponent("minecraft:health").currentValue;
+  check("paralysis_lay_down", p.isSleeping);
+  const woke = await waitEvent("paralysis", (d) => d.what === "woke", 140, m);
+  if (!check("paralysis_wakes_you", !!woke && woke.asleep && woke.awake && !p.isSleeping, JSON.stringify(woke ?? since(m, "paralysis")))) {
+    obs("abort");
+    ow().runCommand(`setblock ${head.x} ${Y} ${head.z} air`);
+    return;
+  }
+  const tod = world.getTimeOfDay();
+  check("paralysis_night_not_skipped", tod > 13000 && tod < 23000, `time ${tod}`);
+  check("paralysis_holds_you_still", !p.inputPermissions.isPermissionCategoryEnabled(InputPermissionCategory.Movement) && !p.inputPermissions.isPermissionCategoryEnabled(InputPermissionCategory.Camera));
+  const e = observerEntity();
+  const cam = woke.cam;
+  const feet = e ? e.location : woke.feet;
+  const along = (feet.x - (head.x + 0.5)) * (foot.x - head.x) + (feet.z - (head.z + 0.5)) * (foot.z - head.z);
+  const stooped = e?.getProperty("observer:stoop") === true;
+  const top = { x: feet.x, y: feet.y + (stooped ? 2.45 : 3.62), z: feet.z };
+  const v = { x: top.x - cam.x, y: top.y - cam.y, z: top.z - cam.z };
+  const len = Math.hypot(v.x, v.y, v.z);
+  const hit = ow().getBlockFromRay(cam, { x: v.x / len, y: v.y / len, z: v.z / len }, { maxDistance: len, includePassableBlocks: false });
+  check("paralysis_at_the_foot_of_the_bed", !!e && along >= 2 && !hit && hdist(cam, feet) >= 2.4 && hdist(cam, feet) <= 4.2,
+    `${along.toFixed(1)} beyond the pillow, ${hdist(cam, feet).toFixed(1)} from the eyes; view of its head ${hit ? "blocked by " + hit.block.typeId : "clear"}; pitch ${woke.pitch}`);
+  check("paralysis_bent_under_the_ceiling", stooped, "the house is 4 blocks high");
+  const yawErr = e ? Math.abs(wrapDeg(e.getRotation().y - yawTo(feet, cam))) : 999;
+  check("paralysis_looks_at_you", yawErr < 20, `${yawErr.toFixed(0)} deg off`);
+  const over = await waitEvent("paralysis", (d) => d.what === "over", 400, m);
+  await wait(4);
+  check("paralysis_lets_go", !!over && free(p), over ? LOCKS.map((c) => p.inputPermissions.isPermissionCategoryEnabled(c)).join(",") : "never over");
+  check("paralysis_gone_in_a_blink", !observerEntity() && since(m, "body").some((d) => d.what === "remove" && d.why === "blink") && !since(m, "fx").some((d) => d.what === "vanish"));
+  const under = ow().getBlock({ x: Math.floor(p.location.x), y: Math.floor(p.location.y), z: Math.floor(p.location.z) });
+  check("paralysis_beside_the_bed", !!over?.beside && under?.typeId !== "minecraft:bed" && hdist(p.location, pillow) < 2.5, `${under?.typeId} at ${p.location.x.toFixed(1)},${p.location.y.toFixed(2)},${p.location.z.toFixed(1)} ${JSON.stringify(over)}`);
+  check("paralysis_tries_to_turn", since(m, "paralysis").some((d) => d.what === "strain"));
+  const beats = since(m, "heartbeat").filter((d) => d.player === "Tester");
+  check("paralysis_heart_loud", beats.some((d) => d.bpm >= 110), `up to ${Math.max(0, ...beats.map((d) => d.bpm))} bpm`);
+  check("paralysis_no_harm", p.getComponent("minecraft:health").currentValue >= hp0);
+  check("paralysis_discovery", discovered(m, "foot_of_the_bed"));
+  const end = await endOf("paralysis", m, 100);
+  check("paralysis_outcome", end && end.outcome === "woke", end ? end.outcome : "none");
+  await observerGone(60);
+  // cut short (an Undo, a quit): nothing is kept from them
+  m = mark();
+  p = await lieDown();
+  const w2 = await waitEvent("paralysis", (d) => d.what === "woke", 140, m);
+  await wait(20);
+  const heldMid = !free(p);
+  obs("abort");
+  await wait(10);
+  check("paralysis_cut_short_gives_it_back", !!w2 && heldMid && free(p) && !observerEntity() && since(m, "paralysis").some((d) => d.what === "released"));
+  await observerGone(60);
+  // never with camera effects off (not even the roll)
+  obs("paralysis", "auto");
+  obs("set", "camera", "0");
+  m = mark();
+  p = await lieDown();
+  await wait(50);
+  check("paralysis_never_with_camera_off", p.isSleeping && !since(m, "paralysis").length && !since(m, "start").some((d) => d.type === "paralysis"));
+  p.teleport(p.location);
+  obs("abort");
+  obs("preset", "standard");
+  await observerGone(60);
+  // from the Config Wheel (Test an encounter): beside a bed it plays out the same; with no bed near, it says what it needs
+  ow().runCommand("time set 18000");
+  p = await freshTarget("Tester", { x: 1081.5, y: Y, z: 1001.5 }, pillow, 3);
+  m = mark();
+  obs("trigger", "paralysis", "Tester");
+  const w3 = await waitEvent("paralysis", (d) => d.what === "woke", 60, m);
+  check("paralysis_test_beside_a_bed", !!w3 && !w3.asleep && !!observerEntity(), JSON.stringify(w3 ?? {}));
+  obs("abort");
+  await wait(10);
+  check("paralysis_test_gives_it_back", free(p));
+  await observerGone(60);
+  // a room with no space at the foot of the bed: it stands beside the bed instead, looking down at them
+  ow().runCommand(`fill 1080 ${Y} 997 1080 ${Y + 3} 1003 stone`);
+  p = await freshTarget("Tester", { x: 1081.5, y: Y, z: 1001.5 }, pillow, 3);
+  m = mark();
+  obs("trigger", "paralysis", "Tester");
+  const w5 = await waitEvent("paralysis", (d) => d.what === "woke", 60, m);
+  check("paralysis_small_room_beside_the_bed", !!w5 && Math.abs(w5.feet.z - (head.z + 0.5)) >= 1.2 && w5.feet.x > 1080, JSON.stringify(w5 ?? since(m, "end")));
+  obs("abort");
+  await wait(10);
+  ow().runCommand(`fill 1080 ${Y} 997 1080 ${Y + 3} 1003 air`);
+  await observerGone(60);
+  p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
+  m = mark();
+  obs("trigger", "paralysis", "Tester");
+  const e4 = await endOf("paralysis", m, 60);
+  check("paralysis_needs_a_bed", e4 && e4.outcome === "deferred" && free(p), e4 ? e4.outcome : "none");
+  ow().runCommand(`setblock ${head.x} ${Y} ${head.z} air`);
+  ow().runCommand(`time set ${tod0}`);
+  obs("restore");
+  resetHouse();
+};
+
+/** Animals of the given types near a point (the test's own animals). */
+const ANIMALS = /^minecraft:(cow|sheep|pig|horse|chicken|wolf|cat)$/;
+function clearAnimals(at, r = 40) {
+  for (const e of ow().getEntities({ location: at, maxDistance: r })) if (ANIMALS.test(e.typeId)) e.remove();
+}
+
+TESTS.animals = async () => {
+  // they sense it: they turn to it and go still, the nearest first; grazing animals edge away and look back; a dog
+  // growls, a cat hisses; a tamed dog whines once when it has gone; and each reacts once per appearance
+  const stand = { x: 935.5, y: Y, z: 1016.5 };
+  const mid = { x: 935.5, y: Y, z: 1029.5 };
+  clearAnimals(mid);
+  obs("set", "animals", "true");
+  let p = await freshTarget("Tester", stand, { x: 935.5, y: Y + 1.6, z: 1040 }, 1);
+  isolate(p);
+  const wolf = ow().spawnEntity("minecraft:wolf", { x: 923.5, y: Y, z: 1025.5 });
+  wolf.triggerEvent("minecraft:on_tame");
+  await wait(2);
+  const tame = wolf.hasComponent("minecraft:is_tamed");
+  const herd = [["minecraft:cow", 929.5, 1028.5], ["minecraft:sheep", 927.5, 1031.5], ["minecraft:sheep", 928.5, 1033.5], ["minecraft:pig", 941.5, 1029.5],
+    ["minecraft:horse", 944.5, 1032.5], ["minecraft:chicken", 942.5, 1026.5], ["minecraft:cat", 947.5, 1025.5]];
+  const mobs = [wolf, ...herd.map(([t, x, z]) => ow().spawnEntity(t, { x, y: Y, z }))];
+  await wait(10);
+  const m = mark();
+  obs("trigger", "test_near", "Tester");
+  const e = await waitObserver(60);
+  if (!check("animals_body", !!e)) {
+    obs("abort");
+    clearAnimals(mid);
+    return;
+  }
+  const at = e.location;
+  // watch them for 7 s: how close they come to facing it while they stand still, and whether they move meanwhile
+  const best = new Map(), still = new Map(), seen = new Map();
+  for (let t = 0; t < 140; t += 2) {
+    const ev = events.slice(m).filter((x) => x.kind === "animals");
+    for (const a of mobs) {
+      if (!a.isValid) continue;
+      const mine = ev.filter((x) => x.data.id === a.id && x.data.what !== "growl");
+      const last = mine[mine.length - 1];
+      if (!last || last.data.what !== "notice" || system.currentTick - last.tick < 12) continue;
+      const err = Math.abs(wrapDeg(a.getRotation().y - yawTo(a.location, at)));
+      best.set(a.id, Math.min(best.get(a.id) ?? 999, err));
+      if (!seen.has(a.id)) seen.set(a.id, { ...a.location });
+      else still.set(a.id, Math.max(still.get(a.id) ?? 0, hdist(seen.get(a.id), a.location)));
+    }
+    await wait(2);
+  }
+  const all = events.slice(m).filter((x) => x.kind === "animals");
+  const notices = all.filter((x) => x.data.what === "notice");
+  check("animals_notice_it", notices.length >= 6, `${notices.length}: ${notices.map((x) => `${x.data.type.slice(10)}@${x.data.d}`).join(" ")}`);
+  const ticks = new Set(notices.map((x) => x.tick));
+  const ds = notices.map((x) => x.data.d).sort((a, b) => a - b);
+  check("animals_ripple_nearest_first", ticks.size >= 3 && notices.length > 0 && notices[0].data.d <= ds[Math.floor(ds.length / 2)], `${ticks.size} different moments; first at ${notices[0]?.data.d}`);
+  check("animals_once_each", new Set(notices.map((x) => x.data.id)).size === notices.length);
+  const faced = [...best.values()];
+  check("animals_face_it", faced.length >= 5 && faced.filter((x) => x < 25).length >= faced.length - 1, faced.map((x) => x.toFixed(0)).join(","));
+  const moved = [...still.values()];
+  check("animals_go_still", moved.length >= 4 && moved.every((x) => x < 0.4), [...still.entries()].map(([id, x]) => `${mobs.find((a) => a.id === id)?.typeId.slice(10)}:${x.toFixed(2)}`).join(" "));
+  check("animals_dog_growls", all.some((x) => x.data.what === "growl" && x.data.type === "minecraft:wolf"));
+  check("animals_cat_hisses", notices.some((x) => x.data.type === "minecraft:cat" && x.data.call === "mob.cat.hiss"));
+  await wait(20 * 4);
+  const later = events.slice(m).filter((x) => x.kind === "animals");
+  const looks = later.filter((x) => x.data.what === "look");
+  const backed = looks.map((x) => x.data.moved - (notices.find((n) => n.data.id === x.data.id)?.data.d ?? x.data.moved));
+  check("animals_edge_away_and_look_back", later.some((x) => x.data.what === "away") && backed.some((b) => b >= 1.5) && backed.every((b) => b < 10),
+    `${looks.length} looked back after ${backed.map((b) => b.toFixed(1)).join(",")} blocks`);
+  check("animals_stay_on_their_feet", mobs.filter((a) => a.isValid).every((a) => Math.abs(a.location.y - Y) < 1.1));
+  // it goes: everything lets go, and the tamed dog whines
+  const m2 = mark();
+  obs("abort");
+  await waitEvent("animals", (d) => d.what === "whine", 80, m2);
+  check("animals_dog_whines_when_it_is_gone", !tame || since(m2, "animals").some((d) => d.what === "whine"), tame ? "" : "(the test wolf could not be tamed)");
+  check("animals_let_go", mobs.filter((a) => a.isValid).every((a) => !a.getEffect("slowness")));
+  await observerGone(60);
+  // switched off: not one of them looks
+  obs("set", "animals", "false");
+  p = await freshTarget("Tester", stand, { x: 935.5, y: Y + 1.6, z: 1040 }, 1);
+  const m3 = mark();
+  obs("trigger", "test_near", "Tester");
+  await waitObserver(60);
+  await wait(60);
+  check("animals_switch_off", !since(m3, "animals").some((d) => d.what === "notice"));
+  obs("abort");
+  obs("set", "animals", "true");
+  await observerGone(60);
+  clearAnimals(mid);
 };
 
 TESTS.status = async () => {

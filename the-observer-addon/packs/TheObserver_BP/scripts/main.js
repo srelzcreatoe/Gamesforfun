@@ -23,6 +23,8 @@ import * as pages from "./observer/pages.js";
 import * as returns from "./observer/returns.js";
 import * as profile from "./observer/profile.js";
 import * as dread from "./observer/dread.js";
+import * as animals from "./observer/animals.js";
+import * as paralysis from "./encounters/paralysis.js";
 import * as mire from "./mire/mire.js";
 import { pending as mirePending } from "./encounters/mire_watcher.js";
 
@@ -68,6 +70,8 @@ function init() {
   const n = ledger.load();
   director.recoverInterrupted();
   body.sweepStrays(director.activeEncId());
+  // a sleep paralysis cut short by a reload: give them back their movement and view
+  for (const p of allPlayers()) safe(() => paralysis.recover(p));
   trace(`ready: world state ${existed ? "loaded" : "new"}, ${n} ledger entries, ${director.REGISTRY.length} encounter types`);
 }
 
@@ -223,6 +227,8 @@ world.afterEvents.playerSpawn.subscribe((ev) => {
   if (!director.running().some((e) => e.pid === p.id)) {
     safe(() => p.removeTag(TARGET_TAG));
     for (const d of director.REGISTRY) safe(() => p.runCommand(`fog @s remove observer_${d.id}`));
+    // and a sleep paralysis they quit (or crashed) out of leaves them unable to move: give it all back
+    safe(() => paralysis.recover(p));
   }
 });
 
@@ -287,6 +293,8 @@ system.runInterval(() => {
   if (!ready) return;
   fastRuns++;
   body.maintain(fastRuns);
+  // asleep long enough to wake in the night? (decided once per sleep, before the night is skipped)
+  for (const p of allPlayers()) safe(() => paralysis.watchSleep(p));
   if (fastRuns % 2 === 0) safe(() => ledger.scan(new Set(director.running().map((e) => e.id))));
   safe(() => director.nearCheck());
 }, 5);
@@ -350,6 +358,11 @@ system.runInterval(() => {
 system.runInterval(() => {
   if (ready) safe(() => dread.tick((pid) => director.encounterFor(pid)));
 }, 2);
+
+// animals sense it: they turn to it and freeze, edge away, growl or hiss (every tick, for smooth turning and walking)
+system.runInterval(() => {
+  if (ready) safe(() => animals.tick());
+}, 1);
 
 // taiga illusions vanish the instant they are looked at; flares fly, burn and glare
 system.runInterval(() => {

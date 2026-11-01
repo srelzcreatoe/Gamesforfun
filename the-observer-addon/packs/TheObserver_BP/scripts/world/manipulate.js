@@ -9,7 +9,7 @@
 //  M6 effigy       staged evidence figure; breaking it yields a Vestige       (manipulation >= 1)
 //  M7 carve        temporarily open a natural wall (restored later)           (manipulation >= 3)
 //  M8 animals      nearby animals turn to face where it stands                (no block change)
-import { BlockPermutation, BlockVolume, system } from "@minecraft/server";
+import { BlockPermutation, BlockVolume } from "@minecraft/server";
 import { BLOCKS, DOORS, TRAPDOORS, GATES, REMOVABLE_LIGHTS, CANDLES, CAMPFIRES, TURNABLE, NATURAL, MIMIC_AS, PARTICLES } from "../core/constants.js";
 import { V, safe, dimIndex } from "../core/util.js";
 import { S } from "../core/settings.js";
@@ -220,35 +220,4 @@ export function carve(dim, cells, enc, restoreIn) {
     if (e) n++;
   }
   return n;
-}
-
-// ---------------------------------------------------------------- M8 animals
-
-const WATCHERS = ["minecraft:cow", "minecraft:sheep", "minecraft:pig", "minecraft:chicken", "minecraft:horse",
-  "minecraft:donkey", "minecraft:goat", "minecraft:llama", "minecraft:villager_v2", "minecraft:cat", "minecraft:wolf",
-  "minecraft:fox", "minecraft:rabbit", "minecraft:mooshroom", "minecraft:camel", "minecraft:armadillo"];
-
-/**
- * Nearby animals stop and turn toward where the Observer stands, for durationTicks.
- * Purely rotational and temporary; returns the number of animals affected.
- */
-export function animalsFace(dim, around, observerLoc, radius = 20, durationTicks = 120) {
-  const mobs = safe(() => dim.getEntities({ location: around, maxDistance: radius }), []) ?? [];
-  const chosen = mobs.filter((m) => WATCHERS.includes(m.typeId)).slice(0, 12);
-  if (chosen.length === 0) return 0;
-  // they stop where they are (heavy slowness, no particles) and keep turning to it
-  for (const m of chosen) safe(() => m.addEffect("slowness", durationTicks, { amplifier: 6, showParticles: false }));
-  let t = 0;
-  const id = system.runInterval(() => {
-    t += 2;
-    for (const m of chosen) {
-      if (!m.isValid) continue;
-      const yaw = V.yawTo(m.location, observerLoc);
-      const pitch = V.pitchTo(m.getHeadLocation(), { x: observerLoc.x, y: observerLoc.y + 3.2, z: observerLoc.z });
-      safe(() => m.setRotation({ x: pitch, y: yaw }));
-      safe(() => m.clearVelocity());
-    }
-    if (t >= durationTicks) system.clearRun(id);
-  }, 2);
-  return chosen.length;
 }

@@ -8,7 +8,6 @@
 // simply gone or snaps and comes for you.
 import { register } from "../director/director.js";
 import * as body from "../observer/body.js";
-import { animalsFace } from "../world/manipulate.js";
 import { hideSpot } from "../world/space.js";
 import { observe, sighting, favouredBearing, bearingHit, trailAway, findSpotLoose, sink, wantsLunge, lunge, standoff, hangSpot } from "./common.js";
 import { V, chance, rand, DEBUG } from "../core/util.js";
@@ -91,7 +90,6 @@ register({
     if (!enc.spawnBody(spot.loc, { state, stoop: spot.stoop, side: spot.side, silent: !heard, autoPeek: mode !== "hang", hide: spot.hide })) return enc.result("deferred");
     enc.emit("stalk", { mode, x: spot.loc.x, y: spot.loc.y, z: spot.loc.z, rise: spot.loc.y - enc.p.location.y, ceiling: spot.ceiling });
     enc.log(`mode=${mode} dist=${V.dist(spot.loc, enc.p.location).toFixed(1)} vis=${spot.vis}`);
-    if (enc.s.stage >= 2 && chance(0.3)) animalsFace(enc.dim, enc.p.location, spot.loc, 24, 160);
     // walked toward it: closer than 14 blocks (20 on water) — and closer than it first stood, less 4
     const startD = V.dist(spot.loc, enc.p.location);
     const r = await observe(enc, { maxTicks: 45 * 20, noticeTicks: 18, approachDist: Math.min(mode === "water" ? 20 : 14, startD - 4) });

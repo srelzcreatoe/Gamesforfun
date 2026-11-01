@@ -24,12 +24,13 @@ import { DEBUG } from "./util.js";
  * @property {boolean} pages          pages in another hand turn up in the Field Notes
  * @property {boolean} returns        items a player threw away turn up on their doorstep
  * @property {boolean} heartbeat      a heartbeat (and a light tremor) when its presence is near
+ * @property {boolean} animals        animals sense it: they turn to it and go still, edge away, growl or hiss
  */
 
 /** On/off settings added after 1.0.0, all on by default (older worlds get them switched on). */
-export const FEATURE_TOGGLES = ["illusions", "learning", "quiet", "pages", "returns", "heartbeat"];
+export const FEATURE_TOGGLES = ["illusions", "learning", "quiet", "pages", "returns", "heartbeat", "animals"];
 
-/** @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects"|"off"|"illusions"|"learning"|"quiet"|"pages"|"returns"|"heartbeat">>} */
+/** @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects"|"off"|"illusions"|"learning"|"quiet"|"pages"|"returns"|"heartbeat"|"animals">>} */
 export const PRESETS = {
   atmosphere: { frequency: 0.6, aggression: 0, manipulation: 1, scares: 0, camera: 1, graceMinutes: 15 },
   standard: { frequency: 1.0, aggression: 2, manipulation: 2, scares: 2, camera: 2, graceMinutes: 12 },
@@ -39,7 +40,7 @@ export const PRESETS = {
 /** @returns {Settings} */
 export function defaults() {
   return { enabled: true, preset: "standard", ...PRESETS.standard, captions: false, worldEffects: true, dev: false, off: [],
-    illusions: true, learning: true, quiet: true, pages: true, returns: true, heartbeat: true };
+    illusions: true, learning: true, quiet: true, pages: true, returns: true, heartbeat: true, animals: true };
 }
 
 /** @returns {Settings} */

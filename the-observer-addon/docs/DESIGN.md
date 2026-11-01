@@ -285,7 +285,7 @@ All block changes go through the **ledger** (§8). Intensity is set by the *Envi
 | M6 | **Effigy** (`placeEffigy`) | staged evidence, a calling card | home_visit, close_breath, borrowed_sound, night_visit; level ≥ 1 | 1 per encounter, floor cell near the scene | custom `observer:effigy` block facing the player | — | crumbles after 45 min if unbroken | find it → break it for a Vestige | shared (any player can claim it) | removed on expiry; loot-free, Vestige granted once by script | `home_visit` test |
 | M7 | **Carve** (`carve`) | "is that opening different?" | unfamiliar_route; level 3 only | a 1-wide, 2-high, up to 2-deep opening in a natural wall face beside the path, 4–10 blocks away, out of view (never the floor) | natural blocks → air | — | reverts ~2.5 min after the encounter | a new opening → notice it | shared | restored only if the space is still empty (a player's later block wins) and nobody stands in it | `carve_opening_made`, `carve_restored` |
 | M9 | **Signs** (`encounters/sign.js`, 1.0.5) | "it was here" | sign encounter, stage 3+, level ≥ 1 | 1 sign, an empty floor cell beside the bed or a door of the home, out of everyone's sight | a waxed oak standing sign (`ground_sign_direction` toward the bed/door) with a short text: the player's name, the time they last slept, "I was here"… | — | removed after 20 min; at most every 60 min | find it → read it / break it | shared | breaking it is cancelled and the cell emptied (no drop); Undo removes it | `sign_*` tests |
-| M8 | **Animals turn** (`animalsFace`) | entity interaction tell | distant_watch at stage ≥ 2 (30%) | ≤ 12 passive mobs within 24 blocks | rotation only, for 8 s | — | per encounter | look where they look | shared | nothing to clean | code review (not separately asserted) |
+| M8 | **Animals sense it** (`observer/animals.js`, 1.1.1; was `animalsFace`) | entity interaction tell: the animals show where it is | every appearance of its body (setting *Animals sense it*) | ≤ 8 at a time, 12 per appearance, within 20 blocks of it | rotation, heavy slowness, and a few blocks of held-speed walking away; vanilla growl/hiss/call sounds | — (no block changes; effects removed when it is over) | once per animal per appearance | look where they look |
 
 Additional non-block manipulation: personal fog (`observer:dread`, `dread_soft`, `vigil`), camera fades/shakes
 (camera setting), the vigil's optional world-wide rain (global, announced), per-player music silence (1.0.5),
@@ -365,7 +365,7 @@ body-free encounters (turned object, door, night visit, follow-ups) can run for 
    until it backs off (*Held Gaze*), use the Witness Lens, strike it. If it reaches you: a 0.6 s wind-up you can step
    out of; at aggression 0 it only touches you and the screen goes dark.
 
-All 23 implemented encounters and 17 further concepts are catalogued in [ENCOUNTERS.md](ENCOUNTERS.md).
+All 24 implemented encounters and 16 further concepts are catalogued in [ENCOUNTERS.md](ENCOUNTERS.md).
 
 ## 11. Progression, tools and the ending
 
@@ -529,3 +529,29 @@ Three phases, in the user's design, built into the encounters that show it from 
   `replace_block_item` (the block is still drawn as the icon) carry `minecraft:fuel` (15 s, like a log) and the vanilla
   `minecraft:logs` / `minecraft:logs_that_burn` / `minecraft:planks` tags; Bone Root → 3 bone meal (shapeless).
 
+## 19. At the foot of the bed; the animals know (1.1.1)
+
+* **Sleep paralysis** (`encounters/paralysis.js`, encounter *At the Foot of the Bed*, tier 3, stage 3+, manual): the
+  fast loop checks every 5 ticks who is asleep; after 30 ticks in bed (the night is skipped at 100) it is decided once
+  for that sleep — 30 % at stage 3, +5 % per stage — and started through `director.tryManual` (so stage, quiet and
+  recovery periods, its 90-minute cooldown, the per-type toggle and a free body all apply). Never with camera effects
+  off. The bed is found with one block query (the head cell and its partner); it stands where a stand spot beyond the
+  foot (2.6–3.8 blocks from the pillow, up to 1.3 to the side) or, failing that, beside the bed has its head and chest
+  in sight of the pillow both ways. Sequence (ticks): fade to black (0.8 s in, 2.2 s hold, 2.8 s out); at 16, under
+  the black, the sleeper is woken by a teleport onto the bed's head cell (a teleport wakes a sleeper and does not skip
+  the night), movement, camera, jump and sneak are disabled (`inputPermissions`, previous values kept in the player
+  property `observer:paralysis`), the HUD is hidden, and a `minecraft:free` camera is set 0.45 down the bed from the
+  pillow, 0.85 above the bed's floor (their body is behind it, out of view), framed so its head is near the top of the
+  view and the foot of the bed at the bottom; the body is spawned silently (`stare`, stooped under a ceiling below
+  five blocks) facing the camera. At 60 its breath; ~104 the view is up; then the camera eases 5° to one side and back
+  (they try to turn their head), it tilts its head (`tilt`, 2.2 s), and glides two-thirds of a block closer (1.5 s).
+  At ~260 a blink (0.15 s in, 0.7 s hold): under it the body is removed without its vanish burst (`despawn("blink")`),
+  everything is handed back, and the player is stood on the floor beside the bed facing where it stood. Discovery
+  *At the Foot of the Bed*. A `finally` hands everything back however it ends; on joining or a script reload any
+  `observer:paralysis` left on a player is handed back too. The heartbeat's dread is held at 0.7 throughout.
+* **The animals know** (`observer/animals.js`, every tick): see ENCOUNTERS.md. Turning is limited to 14° a tick so
+  nothing snaps round; standing still is Slowness VIII (refreshed, no particles) with horizontal velocity cancelled
+  each tick; walking away holds a set velocity (impulse = wanted − current), because a plain impulse ran away with
+  some animals (up to 10 b/s in a probe) while barely moving others. A wall, a drop of two, water or lava ahead ends
+  the walk. Vanilla sounds: `mob.wolf.growl`, `mob.wolf.whine`, `mob.cat.hiss`, `mob.cow.say`, `mob.sheep.say`,
+  `mob.pig.say`, `mob.goat.ambient`, `mob.horse.angry`, `mob.horse.donkey.angry`, `mob.llama.angry`.

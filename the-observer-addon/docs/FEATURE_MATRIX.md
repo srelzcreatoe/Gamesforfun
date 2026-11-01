@@ -100,7 +100,7 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | M5 mimic route | `placeMimic` | path changed | natural-looking blocks behind | `unfamiliar_route_*` | ✅ Runtime |
 | M6 effigy | `placeEffigy` | home/close/borrowed/night | effigy placed facing player | `home_visit_effigy_placed` | ✅ Runtime (model visual ❔) |
 | M7 carve | `carve` | path changed at level 3 | opening in a wall face beside the path (not the floor), restored | `carve_opening_made`, `carve_restored` | ✅ Runtime |
-| M8 animals turn | `animalsFace` | distant watch / dev hook | animals face the spot | `animals_face_it` | ✅ Runtime |
+| M8 animals sense it (1.1.1; replaces `animalsFace`) | `observer/animals.js` | any appearance of its body | animals near it face it and go still (see 1.1.1 below) | `animals_face_it`, `animals_go_still` | ✅ Runtime |
 | Ledger: player change wins | `ledger.restore/scan` | player alters block | no later overwrite | `door_ajar_player_change_kept` | ✅ Runtime |
 | Ledger: no drops / no duplication | `ledger` break handler | mining Observer blocks | cancelled, removed, no items | `break_cancel_no_drop`, `*_no_drops`, `unfamiliar_route_no_dupes`, `home_visit_no_item_drop` | ✅ Runtime |
 | Ledger persists across restart | `ledger.save/load` | restart | restoration continues | `recovery_veil_restored` | ✅ Runtime |
@@ -206,6 +206,19 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | It knows you | `observer/profile.js` (+ standoff, placements, charge, pursuit, director weights, Field Notes) | everything the player does | adapts more with each repetition | `charge_learned_stands_its_ground`, `profile_home_brings_it_home`, `profile_shot_at_keeps_its_distance` | ✅ Runtime (Field Notes text ❔) |
 | Hides behind trees, looks round | `space.hideSpot`, `body.peekaboo`, rebuilt `peek` clip + `look_at_target`, gaze on the peek point | trees in reach | body hidden behind the trunk; ducks when looked at; looks round again; switches sides | `peek_tree_found`, `peek_tree_body_behind_the_trunk`, `peek_tree_looks_round`, `peek_tree_ducks_when_seen`, `peek_tree_looks_round_again`, `peek_tree_switches_sides` | ✅ Runtime (look ❔) |
 | Mire wood as fuel; bone meal | `items/wmire_weeping_{log,wood,planks}.json`, `recipes/wmire_bone_meal_from_bone_root.json` | a furnace; a crafting table | burns like wood; logs → charcoal; bone root → 3 bone meal | `mire_planks_burn`, `mire_wood_burns`, `mire_log_burns_into_charcoal` (recipe: loads, 0 errors) | ✅ Runtime (icons, crafting UI ❔) |
+
+## 1.1.1: at the foot of the bed; the animals know
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| Sleep paralysis: it wakes you | `encounters/paralysis.js` (`watchSleep`, `tryManual`) | asleep 1.5 s; stage 3+, ~30 %, 90 min apart, camera effects on | woken by a teleport under a fade; the night is not skipped | `paralysis_lay_down`, `paralysis_wakes_you`, `paralysis_night_not_skipped`, `paralysis_never_with_camera_off` | ✅ Runtime (the fade ❔) |
+| …unable to move | `inputPermissions` (camera, movement, jump, sneak), HUD hidden, `minecraft:free` camera at the pillow | while it lasts | locked; given back exactly as it was | `paralysis_holds_you_still`, `paralysis_lets_go`, `paralysis_cut_short_gives_it_back`, `paralysis_test_gives_it_back` | ✅ Runtime (simulated players ignore the locks; the view from the pillow ❔) |
+| …and it stands at the foot of the bed | `paralysis.stage` | room at the foot (else beside the bed) | 2.6–3.8 blocks from the pillow, head in view, stooped under a low ceiling, looking at you | `paralysis_at_the_foot_of_the_bed`, `paralysis_bent_under_the_ceiling`, `paralysis_looks_at_you`, `paralysis_small_room_beside_the_bed` | ✅ Runtime (framing ❔) |
+| …then gone in a blink | `despawn("blink")`, `besideBed` | ~13 s in | no vanish burst; standing beside the bed facing where it stood; no harm; discovery | `paralysis_gone_in_a_blink`, `paralysis_beside_the_bed`, `paralysis_no_harm`, `paralysis_discovery`, `paralysis_tries_to_turn`, `paralysis_heart_loud`, `paralysis_outcome` | ✅ Runtime |
+| …from the Config Wheel | encounter *At the Foot of the Bed* | a bed within 8 blocks | plays out; with no bed near, it says what it needs | `paralysis_test_beside_a_bed`, `paralysis_needs_a_bed` | ✅ Runtime |
+| Animals sense it | `observer/animals.js` | any appearance of its body, animals within 20 | the nearest first, each once; turn to it and go still | `animals_notice_it`, `animals_ripple_nearest_first`, `animals_once_each`, `animals_face_it`, `animals_go_still` | ✅ Runtime (how it reads ❔) |
+| …edge away and look back | held-speed walking, `clearAhead` | grazing animals and cats | a few blocks, never off a ledge, then look back | `animals_edge_away_and_look_back`, `animals_stay_on_their_feet` | ✅ Runtime |
+| …dogs growl, cats hiss, a tamed dog whines | vanilla sounds | dogs, cats | growl (up to 3), hiss; whine once it is gone | `animals_dog_growls`, `animals_cat_hisses`, `animals_dog_whines_when_it_is_gone` | ✅ Runtime (sounds ❔) |
+| …and let go | `settle` | it is gone / switched off | slowness removed; off switch | `animals_let_go`, `animals_switch_off` | ✅ Runtime |
 
 ## Performance
 | Measure | Result | Test |

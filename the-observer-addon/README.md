@@ -45,11 +45,11 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   blocks; a torn page may bring it up behind you, and the last of the eight always does. In the Mire it comes sooner
   and more often: the grace period ends after 30 seconds there, the gaps between encounters are shorter, and it acts as
   if you were one stage further along.
-* **23 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*)
+* **24 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*)
   and *Closer Each Time* (it only moves while unwatched), *It's Inside* (the dark corner of your own room), *Signs*
   (by your bed or door), *Borrowed Eyes* (a creature that turns its head to follow you) and *In the Mire*; a lunge when it is spotted,
   a fast, relentless attack once it reaches you, a too-close reaction, and harmless shadows in taiga forests that
-  vanish when looked at, plus 17 further designed concepts — see [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md).
+  vanish when looked at, plus 16 further designed concepts — see [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md).
 * **It knows you** (1.1.0): everything you do that it sees is remembered, and every repetition teaches it more —
   stare it down and it snaps sooner; look away and it closes in further each time; run at it and it stands its
   ground; shoot it and it keeps its distance behind cover; outrun it and the chase starts closer; never notice it and
@@ -60,6 +60,16 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
 * **Its presence, felt** (1.1.0): while it is around, your music stops completely, and fades back in once it is gone.
   When it is near — seen or not — you hear your own heartbeat, faster the closer and angrier it is, and when it is
   close and meaning harm the view trembles on the beat (lightly; it follows the camera-effects setting).
+* **At the foot of the bed** (1.1.1): now and then you lie down and do not sleep through. You wake in the night
+  unable to move — the view from your pillow, your heart loud — and it is standing at the foot of the bed, bent
+  under the ceiling, looking at you. You try to turn your head and cannot; it tilts its head and leans a little
+  closer; you blink and it is gone, and you are standing beside the bed looking at where it stood. No damage, and the
+  night is not skipped. Stage 3+, about one sleep in three when it is free to come, never twice within 90 minutes of
+  play; needs camera effects on.
+* **The animals know** (1.1.1): when it comes, seen or not, the animals near it turn to face it and go still — the
+  nearest first, so it ripples through a herd. Grazing animals then edge a few blocks away and look back; dogs growl
+  at it, cats hiss, one of a herd may call out; a tamed dog whines once it has gone. Watch the animals and they show
+  you where it is hiding. At most eight at a time and twelve per appearance; never off a ledge or into water.
 * **It hides behind trees** (1.1.0): it finds real trunks and stands behind them, its body hidden, looking round the
   edge at you with a hand on the bark and its head following you. Look straight at it and it ducks back; look away
   and it looks round again — from the other side, once it learns where you look.
@@ -84,7 +94,7 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   effigies, temporary openings, animals turning) through a **restoration ledger**: recorded, locked, reload-safe,
   dupe-proof, and the player's own changes always win.
 * **Bounded memory** of each player: breadcrumbs, home, familiar routes, habits, a favoured bearing.
-* **Progression**: 24 discoveries written in the Field Notes; Tally Chalk, Witness Lens, Ward Lantern, Vestiges, and
+* **Progression**: 25 discoveries written in the Field Notes; Tally Chalk, Witness Lens, Ward Lantern, Vestiges, and
   the **Flare** (thrown; its glare drives it off within 16 blocks, even mid-attack); the Vigil as the long-term goal;
   three post-ending modes.
 * **Config Wheel**: one item for status, a harmless *See it now* preview of the creature and all its animations,

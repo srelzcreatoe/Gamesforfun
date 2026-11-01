@@ -130,6 +130,8 @@ export const DEBUG = {
   stalk: "auto",
   /** tests: "attack" / "vanish" decide what it does when it is charged ("auto" = it weighs the moment) */
   charge: "auto",
+  /** tests: "always" / "never" decide whether a sleeping player wakes unable to move ("auto" = the stage's chance) */
+  paralysis: "auto",
   /** low-volume lifecycle lines (encounter start/end); enabled in dev mode and by the test kit */
   trace: false,
   /** @param {string} msg */

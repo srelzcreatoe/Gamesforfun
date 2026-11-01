@@ -19,8 +19,8 @@ Minecraft imports both packs. Then:
    Weeping Mire, its home). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from an earlier version:** import the new `.mcaddon` (version 1.1.0). If a world still uses the old copy, open the world's
-settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.1.0 packs again. Your
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.1.1). If a world still uses the old copy, open the world's
+settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.1.1 packs again. Your
 progress is kept; the new options below start switched on.
 
 **The Weeping Mire is part of The Observer now (1.0.7).** If a world also has the stand-alone *Weeping Mire* packs
@@ -49,6 +49,22 @@ and from the second stage on it may shriek and come straight at you. When it lea
 hear your own heart: slow when it is barely there, racing when it is on you — even when you cannot see it. When it is
 close and means you harm, your view trembles with each beat (gently; "Camera effects" set to reduced halves it and
 "none" turns it off; the heartbeat itself can be switched off in the settings).
+
+**The animals know.** When it comes — whether you have seen it or not — the animals near it stop what they are
+doing and turn to face it, quite still: the nearest first, the rest a moment later. After a while cows, sheep, pigs,
+horses and chickens edge a few blocks away from it, unhurried, and stop and look back at it. Dogs stand their ground and
+growl at it, low; cats hiss and back off; one of a herd may call out. A tamed dog whines once when it has gone. Watch
+the animals and they will show you where it is. (A pet told to sit stays sitting; nothing is led off a ledge or into
+water; the settings can switch this off.)
+
+**At the foot of the bed.** Now and then (from the third stage, and never two nights close together), you lie down
+to sleep and do not sleep through. The dark comes down, and you wake in the night unable to move — not your arms, not
+your head — with your heart loud in your ears, and it is standing at the foot of your bed, bent under the ceiling,
+looking at you. You try to turn away; you cannot. It tilts its head. It leans a little closer. Then you blink, and it is
+gone, and you can move again, standing beside your bed and looking at where it stood. It does nothing else, and it
+never hurts you. You woke, so the night is not over: you can lie down again. (It needs camera effects on — reduced or
+full; with "Camera effects: none" it never happens — and *At the Foot of the Bed* can be switched off like any
+encounter.)
 
 **It hides behind trees.** Look along a line of trees and you may find it behind a trunk, only its head and a hand on
 the bark showing, its face turned to follow you. Look straight at it and it ducks back out of sight; it waits while
@@ -188,8 +204,9 @@ Open with the **Config Wheel**, *Field Notes → Settings*, or `/observer:settin
 Individual controls: encounter frequency, aggression (never attacks / low / standard / high), environmental
 manipulation (off / subtle / standard / unsettling), sudden scares (off / rare / standard), camera effects
 (none / fades only / full), default captions, grace period, world-wide weather during the vigil, developer tracing,
-and on/off switches for the taiga shadows, escape learning, the silence before attacks, pages you didn't write, and
-returned items. The encounter toggles switch off *It's Inside*, *Signs* and *Borrowed Eyes* like any other encounter.
+and on/off switches for the taiga shadows, escape learning, the silence before attacks, pages you didn't write,
+returned items, the heartbeat, and the animals sensing it. The encounter toggles switch off *It's Inside*, *Signs*,
+*Borrowed Eyes* and *At the Foot of the Bed* (sleep paralysis) like any other encounter.
 On **Peaceful** difficulty it never attacks.
 
 ## Accessibility

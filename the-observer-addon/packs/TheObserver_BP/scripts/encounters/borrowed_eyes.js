@@ -7,6 +7,9 @@ import { register } from "../director/director.js";
 import { V, safe, rand } from "../core/util.js";
 import { lineOfSight, viewAngle } from "../world/sight.js";
 
+/** Creatures whose eyes it has borrowed right now (the animals module leaves them alone). @type {Set<string>} */
+export const borrowed = new Set();
+
 const HOSTS = new Set([
   "minecraft:villager_v2", "minecraft:wandering_trader", "minecraft:cow", "minecraft:sheep", "minecraft:pig", "minecraft:chicken",
   "minecraft:goat", "minecraft:horse", "minecraft:donkey", "minecraft:llama", "minecraft:mooshroom", "minecraft:rabbit",
@@ -62,6 +65,7 @@ register({
     // it stands still and follows the player with its head; heavy slowness keeps it planted
     safe(() => m.addEffect("slowness", total + 10, { amplifier: 10, showParticles: false }));
     enc.emit("borrowed", { what: "start", host: m.typeId });
+    borrowed.add(m.id);
     try {
       for (let t = 0; t < total; t += 2) {
         await enc.wait(2);
@@ -75,6 +79,7 @@ register({
         if (watched >= 40 && t < total - 30) t = total - 30;
       }
     } finally {
+      borrowed.delete(m.id);
       safe(() => m.isValid && m.removeEffect("slowness"));
     }
     enc.emit("borrowed", { what: "end", watched });

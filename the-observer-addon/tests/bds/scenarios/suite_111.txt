@@ -1,0 +1,5 @@
+# 1.1.1: sleep paralysis (at the foot of the bed); animals sense it; with the house and sleep regressions
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup paralysis animals night_visit test_entries distant_watch heartbeat presence_music status
+expect \[OTEST\] SUITE DONE 3600

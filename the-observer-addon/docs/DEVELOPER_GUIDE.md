@@ -38,7 +38,7 @@ the-observer-addon/
 | `world/sight.js` | gaze, line of sight (sees through glass/bars/fences), visibility of body points, `GazeTracker` |
 | `world/space.js` | valid standing positions, cover, wards, `findSpot`, corridor detection |
 | `world/ledger.js` | recorded, reversible block changes; break/interact/scan handling; persistence |
-| `world/manipulate.js` | the manipulation mechanics M1–M8 |
+| `world/manipulate.js` | the block manipulation mechanics M1–M7 (M8, the animals, is `observer/animals.js` since 1.1.1) |
 | `observer/body.js` | the single physical Observer: spawn, state/mode, facing, stoop, eye-glow flag, auto-peek, strike, withdraw, vanish, strays |
 | `observer/memory.js` | breadcrumbs, haunts, route familiarity, habits, attentiveness, lifetime tallies |
 | `observer/illusions.js` | taiga shadows (`observer:shadow`), vanish on look |
@@ -48,6 +48,8 @@ the-observer-addon/
 | `observer/profile.js` | what it knows about each player: habits (1 − e^(−n/3)), places, nights, lights, per-encounter effectiveness; `weightFactor`, `known` |
 | `observer/charge.js` | running at it: `decide` (attack or not, with reasons), `setAmbush`, `favours` |
 | `observer/dread.js` | its presence, felt: per-player dread, the heartbeat and the tremor |
+| `observer/animals.js` | the animals know (1.1.1): near its body they turn to it and go still, edge away and look back, growl, hiss, whine; `tick` (every tick), `status` |
+| `encounters/paralysis.js` | at the foot of the bed (1.1.1): `watchSleep` (decides once per sleep), the encounter (`findBed`, `stage`, lock / `release`), `recover` (on join and reload) |
 | `observer/squeeze.js` | through tight spaces: `plan` (A* over blocks: gaps a block high, doors, breakable glass/leaves), `traverse` (opens, breaks, crawls), `unstick` (call from any approach loop) |
 | `observer/pages.js` | pages in another hand, built from tracked numbers |
 | `observer/returns.js` | items thrown away, returned to the doorstep |
@@ -109,7 +111,7 @@ Scenarios: `load.txt` (packs load cleanly), `proto.txt` (capability probes), `sp
 1.0.5 additions), `suite_106.txt` (the floating chase and climbing, with the chase/attack regressions), `suite_107.txt` (the
 Weeping Mire: its context, the stage bonus, early grace, its watcher, the torn pages), `suite_108.txt` (every attack
 floats; the Mire never where you start; with the chase/attack/climb and Mire regressions), `suite_110.txt` (the music, the heartbeat, charging at it, the profile, hiding behind trees, Mire fuel; with
-regressions), `suite_109.txt` (it
+regressions), `suite_111.txt` (sleep paralysis; the animals; with the house, sleep and presence regressions), `suite_109.txt` (it
 vanishes in place; stalking from ledges and ceilings; the standoff; through gaps, glass and doors; with regressions), `mire_locate.txt` (the Mire
 generates and its old watcher is gone; run without `--testkit`, with `--require-no-experiments`),
 `tunnel_repeat.txt` (the Closed Path tests ten times over), `illusion_repeat.txt` (the shadow tests eight times over), `flare_seq.txt` (the flare tests twice back to back), `house_seq.txt` (every test that uses the arena house, in suite order — they share it), `noexp.txt` (no experiments; run **without** `--testkit` and with `--require-no-experiments`, which
@@ -122,7 +124,7 @@ The harness patches the **installed test copy** of the BP to import
 untouched.
 
 With tracing on, the add-on publishes structured events as script events
-`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned|grace|mire|weights|mire_spawn|standoff|stalk|squeeze|rage|hide|peek|charge|ambush|heartbeat|profile`
+`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned|grace|mire|weights|mire_spawn|standoff|stalk|squeeze|rage|hide|peek|charge|ambush|heartbeat|profile|paralysis|animals`
 that the test kit asserts on. In normal play nothing is emitted.
 
 Test-only dev commands (`/scriptevent observer:<name>`): `flare [dist] [player]` (light a flare ahead),
@@ -132,7 +134,8 @@ Test-only dev commands (`/scriptevent observer:<name>`): `flare [dist] [player]`
 `weights [player]` (what the director would choose from here: context, effective stage, mood, weights),
 `standoff off|short|auto` (off: a moment's stare and it is gone — the suite's default for tests of other things),
 `stalk hang|ledge|tree|ground|auto` (where *The Figure at the Edge* stands), `charge attack|vanish|auto` (what it does
-when charged), `profile <habit> <count>|clear [player]` (what it has seen a player do), plus the earlier
+when charged), `profile <habit> <count>|clear [player]` (what it has seen a player do), `paralysis always|never|auto` (whether a
+sleeping player wakes unable to move), `animals` (which animals are reacting now; it no longer turns them itself), plus the earlier
 `lunge`, `nearstrike`, `illusion`, `timewarp`, `sethaunt`, `set <key> <value>` and `set off a,b,c`.
 
 ## 4. Adding an encounter

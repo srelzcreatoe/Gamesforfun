@@ -16,7 +16,7 @@
 //   /observer:tools [player]                   give the tool set (testing)
 // Script events only: mirepage <0-7|all|clear> [player] (a Weeping Mire torn page, read without the form),
 // weights [player] (what the director would choose from here), standoff off|short|auto, stalk hang|ledge|tree|ground|auto,
-// charge attack|vanish|auto, profile <habit> <count> [player],
+// charge attack|vanish|auto, profile <habit> <count> [player], paralysis always|never|auto, animals (what is reacting),
 // like the other test switches in run().
 // Each also works as /scriptevent observer:<name> <args...> (console, command blocks, tests).
 import { world, system, CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, ItemStack } from "@minecraft/server";
@@ -32,7 +32,7 @@ import * as body from "../observer/body.js";
 import { primaryHaunt, dominantHabit, routeFamiliarity } from "../observer/memory.js";
 import { openSettings, openJournal, showLater } from "../ui/forms.js";
 import { validateWards } from "../progression/items.js";
-import { animalsFace } from "../world/manipulate.js";
+import * as animals from "../observer/animals.js";
 import * as flare from "../progression/flare.js";
 import * as learn from "../observer/learn.js";
 import * as hush from "../observer/hush.js";
@@ -267,14 +267,13 @@ export function run(name, args, caller) {
       warp(sec);
       return `clock advanced ${sec}s`;
     }
-    case "animals": {
-      // animals [player]: make nearby animals face a point 20 blocks ahead of the player (tests M8)
-      const p = pick(0);
-      if (!p) return "no player";
-      const ahead = V.add(p.location, V.scale(V.flat(p.getViewDirection()), 20));
-      const n = animalsFace(p.dimension, p.location, ahead, 24, 100);
-      return `animals turned: ${n} toward ${V.str(ahead)}`;
-    }
+    case "animals":
+      // animals: which animals are reacting to it right now, and how (observer/animals.js)
+      return `animals: ${animals.status()}`;
+    case "paralysis":
+      // paralysis always|never|auto: whether a sleeping player wakes unable to move (tests)
+      DEBUG.paralysis = args[0] === "always" || args[0] === "never" ? args[0] : "auto";
+      return `paralysis ${DEBUG.paralysis}`;
     case "wards": {
       validateWards();
       return `wards ${W.wards.length}: ` + W.wards.map((w) => w.join(",")).join(" ");
