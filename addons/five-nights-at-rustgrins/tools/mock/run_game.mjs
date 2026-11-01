@@ -432,6 +432,20 @@ say('night 5 takeover -> the Final Act');
   debug('win');
   await waitFor(() => game().state === 'LOBBY', 600, 'the lobby after the challenge');
   check(game().save.trophies.includes('lights_out'), 'beating a challenge earns its trophy');
+  // Extras: a jumpscare replay hides the player and keeps the lens clear of their own model
+  {
+    game().save.seenJs = [...new Set([...(game().save.seenJs ?? []), 'mirehop'])];
+    const head = P.getHeadLocation();
+    const replay = game().previewJumpscare(P, 'mirehop');
+    await steps(2);
+    const ahead = P.cameraLoc ? Math.hypot(P.cameraLoc.x - head.x, P.cameraLoc.z - head.z) : 0;
+    check(P.effects.has('invisibility') && P.cameraState === 'free' && ahead > 0.3, `the Extras jumpscare hides the player and puts the lens ahead of them (invisible ${P.effects.has('invisibility')}, ${ahead.toFixed(2)} ahead)`);
+    let done = false;
+    replay.then(() => { done = true; });
+    await waitFor(() => done, 120, 'the end of the jumpscare replay');
+    await steps(2);
+    check(!P.effects.has('invisibility') && P.cameraState === 'default' && game().state === 'LOBBY', 'after the replay the player is visible again, back in the lobby');
+  }
   // the Encore: after the Final Act the Rusted one waits in the Gallery
   game().save.beaten = [1, 2, 3, 4, 5, 6];
   game().enterLobby();

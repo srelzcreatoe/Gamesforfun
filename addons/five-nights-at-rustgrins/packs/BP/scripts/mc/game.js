@@ -70,6 +70,20 @@ const SOUND_TEST = Object.freeze([
   { label: "Rustgrin's music box", id: 'fnar.rustgrin.song' }, { label: 'Ending', id: 'fnar.music.ending' }, { label: 'Background music', id: 'fnar.music.bgm', music: true },
   { label: 'The PA chime', id: 'fnar.final.chime' }, { label: 'A jumpscare', id: 'fnar.js.mirehop' }, { label: "The Rusted one's scream", id: 'fnar.js.rusted' }, { label: 'Thunder', id: 'fnar.storm.thunder' },
 ]);
+/** The jumpscare lens sits this far in front of the player's eyes: their own (hidden) model, armour and held
+ *  item stay behind it instead of showing at the edge of the shot. */
+const JS_CAM_AHEAD = 0.5;
+/** Camera and animatronic placement for a jumpscare in front of a player (world coordinates). */
+function jumpscareShot(p, id) {
+  const eye = p.getHeadLocation();
+  const rot = p.getRotation();
+  const yawRad = (rot.y * Math.PI) / 180;
+  const fwd = { x: -Math.sin(yawRad), z: Math.cos(yawRad) };
+  const cam = { x: eye.x + fwd.x * JS_CAM_AHEAD, y: eye.y, z: eye.z + fwd.z * JS_CAM_AHEAD };
+  const dist = JUMPSCARE_DIST[id] ?? 2.25;
+  const pos = { x: cam.x + fwd.x * dist, y: cam.y - (JUMPSCARE_EYE_Y[id] ?? 3.2), z: cam.z + fwd.z * dist };
+  return { cam, pos, facing: (rot.y + 180) % 360 };
+}
 /** Standing at the office doors and the window, they bend down so their face fills the opening. */
 const LEAN_NODES = new Set(['DOOR_L', 'DOOR_R', 'WIN_R']);
 /** Where a character stands to lean in at a lean node: straight out from the opening, LEAN_BACK behind its outer face. */
@@ -711,14 +725,11 @@ export class Game {
     this.focusOn(p, true);
     const pid = id === 'rusted' ? 'rusted' : id;
     try {
-      const eye = p.getHeadLocation();
-      const rot = p.getRotation();
-      const yawRad = (rot.y * Math.PI) / 180;
-      const fwd = { x: -Math.sin(yawRad), z: Math.cos(yawRad) };
-      const dist = JUMPSCARE_DIST[pid] ?? 2.25;
-      const pos = { x: eye.x + fwd.x * dist, y: eye.y - (JUMPSCARE_EYE_Y[pid] ?? 3.2), z: eye.z + fwd.z * dist };
-      this.puppets.jumpscareAt(pid, L(pos), (rot.y + 180) % 360);
-      p.camera.setCamera('minecraft:free', { location: eye, facingLocation: { x: pos.x, y: eye.y - 0.1, z: pos.z } });
+      // the same shot as a real jumpscare: the player hidden, the lens clear of their own model
+      const { cam, pos, facing } = jumpscareShot(p, pid);
+      p.addEffect('invisibility', 80, { amplifier: 0, showParticles: false });
+      this.puppets.jumpscareAt(pid, L(pos), facing);
+      p.camera.setCamera('minecraft:free', { location: cam, facingLocation: { x: pos.x, y: cam.y - 0.1, z: pos.z } });
       p.playSound(`fnar.js.${pid}`, { volume: 1.0 });
     } catch (e) {
       log.warn(`jumpscare preview: ${e?.message ?? e}`);
@@ -2028,17 +2039,10 @@ export class Game {
       storeSave(this.save);
     }
     try {
-      const eye = g.getHeadLocation();
-      const rot = g.getRotation();
-      const yawRad = (rot.y * Math.PI) / 180;
-      const fwd = { x: -Math.sin(yawRad), z: Math.cos(yawRad) };
-      const dist = JUMPSCARE_DIST[look] ?? 2.25;
-      const head = JUMPSCARE_EYE_Y[look] ?? 3.2;
-      const pos = { x: eye.x + fwd.x * dist, y: eye.y - head, z: eye.z + fwd.z * dist };
-      const facing = (rot.y + 180) % 360;
-      this.puppets.jumpscareAt(id, L(pos), facing);
+      const { cam, pos, facing } = jumpscareShot(g, look);
       g.addEffect('invisibility', 200, { amplifier: 0, showParticles: false });
-      g.camera.setCamera('minecraft:free', { location: eye, facingLocation: { x: pos.x, y: eye.y - 0.1, z: pos.z } });
+      this.puppets.jumpscareAt(id, L(pos), facing);
+      g.camera.setCamera('minecraft:free', { location: cam, facingLocation: { x: pos.x, y: cam.y - 0.1, z: pos.z } });
       g.playSound(`fnar.js.${look}`, { volume: 1.0 });
       runCmd(`camerashake add @a[name="${g.name}"] 0.7 1.4 rotational`);
     } catch (e) {
