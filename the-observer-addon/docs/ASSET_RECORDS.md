@@ -61,6 +61,11 @@ Observer now plays, and its manifests, pack icons and pack names. Added for the 
 `recipes/wmire_bone_meal_from_bone_root.json`. Its black-mist particle uses the vanilla particle
 atlas (`textures/particle/particles`) by reference.
 
+1.1.1 adds no asset files. The animals that sense it use vanilla sound events by name only (`mob.wolf.growl`,
+`mob.wolf.whine`, `mob.cat.hiss`, `mob.cow.say`, `mob.sheep.say`, `mob.pig.say`, `mob.goat.ambient`,
+`mob.horse.angry`, `mob.horse.donkey.angry`, `mob.llama.angry` — names checked against Mojang's vanilla
+`sound_definitions.json`), and sleep paralysis plays its existing breath sound.
+
 ## Shipped resource files
 
 | File | Provenance | SHA-256 (first 16) |

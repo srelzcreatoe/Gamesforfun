@@ -135,6 +135,7 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | full (1.1.0, first) | 370 | 5 | a real bug: hanging from a ceiling under 14 blocks away counted as "walked up to" at once, so it went straight into the standoff and was gone (now it has to be approached: closer than it first stood, less 4); and three test sensitivities in the busier full-suite state (a Witness Lens left in hand lowered the charge score to its floor — the "armed" rule working; a weight compared against an encounter not eligible while standing still; the open-ground placement at stage 3 sometimes the favoured bearing instead) — all re-run: 79 / 79 |
 | full (1.1.0, second) | 374 | 1 | test-side: the "Peeking from cover" wheel test waited 15 s for its end, but behind a tree the peekaboo now runs up to 20 s; it waits 23 s now (re-run on its own: 18 / 18) |
 | **final (1.1.0)** | **375** | **0** | all passed: the 1.0.9 suite plus the music cut while it is around and back after it has gone, the heartbeat and its tremor (none with camera effects off), charging at it (it attacks; it vanishes and sets an ambush that springs when the moment favours it; the decision weighs the light, health, company, what is held and what it has learned), the profile (habits learned with each repetition, where and when you play, light placed, encounters that get a reaction), hiding behind a real tree (body behind the trunk, looks round, ducks when seen, switches sides) and Mire wood burning in a furnace |
+| targeted (1.1.1: sleep paralysis, the animals; then `suite_111.txt` with the house, sleep and presence regressions) | 36 + 37 + 38 + 39 + 66 | 2 + 1 + 0 + 0 + 0 | run 1: after the paralysis the player was left standing on the bed (the search for a floor cell beside it never reached the floor), and two animals drifted 0.2–0.5 blocks while meant to stand still; run 2: the drift fixed; then all passed, with the small-room fallback added (39) and the regressions (66) |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -376,6 +377,15 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
    (`/scriptevent observer:charge auto`, stage 3): it either comes for you or is gone; if gone, at night it comes back
    soon. Put Mire planks in a furnace as fuel, and craft Bone Root into bone meal. Field Notes → Lessons → "It knows me"
    after staring it down a few times.
+15. **1.1.1** — At night, stand by a bed in a room with space at its foot, Config Wheel → Test an encounter → At the
+   Foot of the Bed (or `/scriptevent observer:paralysis always`, `/observer:stage 3`, then sleep): the screen goes
+   black, then the room comes up from the pillow — check that nothing of your own body is in view, that the HUD is
+   gone, that you cannot move or turn, that its head is in frame (near the top) with the foot of the bed at the bottom,
+   that the "trying to turn" drift is subtle, and that the blink hands everything back with you standing beside the
+   bed. Quit in the middle and rejoin: you can move and look around. Then put a few cows, sheep, a tamed dog and a cat
+   in a pen and Test an encounter → Getting too close beside it: they turn to it one after another and go still, some
+   edge away and look back, the dog growls and whines when it has gone, the cat hisses. Settings → "Animals sense it"
+   off: they ignore it.
 
 ## 7. Bugs found and fixed
 
@@ -419,6 +429,19 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
 * The new too-close reaction cut *Borrowed Work* short (walking up to the source is that encounter's answer) — it now
   handles the approach itself; spots far below the player's level are penalised (an *Echo Ahead* spot landed 64
   blocks below the test platform).
+
+**Found by the 1.1.1 tests**
+* After the paralysis the player was left standing on the bed: the floor cell beside it was searched from 1.5 blocks
+  up with a search depth of 2, which does not reach the floor; it searches 3 deep now, as the spot at the foot of the
+  bed already did (`paralysis_beside_the_bed`).
+* Animals held still with heavy slowness still drifted up to half a block (a dog, a horse); their horizontal velocity
+  is now cancelled each tick while they stand (`animals_go_still`: 0.00 for all eight).
+* Capability probes before the build: a sleeping player is woken by a teleport without the night being skipped (the
+  skip comes at 100 ticks asleep, so it decides at 30); the camera, fade and input-permission calls are accepted for a
+  simulated player but its movement is not locked (simulated players ignore input permissions — the tests read the
+  permission state instead); walking animals by plain impulses ran away (one cow at 10 b/s) while others barely moved,
+  so the walk holds a set velocity instead (1.1–2.3 b/s, straight).
+* Test-side: the old `animals` group (M8, through the removed dev hook) is replaced by the new group of that name.
 
 **Found by the 1.1.0 tests**
 * Hanging from a ceiling closer than 14 blocks, it was "approached" the instant it appeared and went straight into
