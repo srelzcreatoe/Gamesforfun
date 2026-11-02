@@ -18,7 +18,8 @@
 // weights [player] (what the director would choose from here), standoff off|short|auto, stalk hang|ledge|tree|ground|auto,
 // charge attack|vanish|auto, profile <habit> <count> [player], paralysis always|never|auto, whisper always|never|auto, animals (what is reacting),
 // notyours always|never|auto, creature [<type id> kin|rival|puppet|ignore|default], possess always|never|auto,
-// herald always|never|auto|<encounter>, puppet take|release|lurk|follow|hunt|orphan|recover|status, night,
+// herald always|never|auto|<encounter>, puppet take|release|lurk|follow|hunt|mirror|stand|orphan|recover|status|kinds|forgetkinds|pack,
+// night, mine always|never|auto, procession [player], mireat <x> <z>|clear,
 // like the other test switches in run().
 // Each also works as /scriptevent observer:<name> <args...> (console, command blocks, tests).
 import { world, system, CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, ItemStack } from "@minecraft/server";
@@ -306,7 +307,10 @@ export function run(name, args, caller) {
     case "puppet": {
       // puppet take [player] (the nearest creature within 16 blocks, standing), release, lurk, hunt, status
       const p = pick(1);
-      if (args[0] === "status" || !args[0]) return `puppets: ${puppets.status()}`;
+      if (args[0] === "status" || !args[0]) {
+        emit("puppet", { what: "status", ids: puppets.all().map((pp) => pp.id), modes: puppets.all().map((pp) => pp.mode) });
+        return `puppets: ${puppets.status()}`;
+      }
       if (args[0] === "release") {
         puppets.releaseAll("home");
         return "released";
@@ -314,7 +318,24 @@ export function run(name, args, caller) {
       // tests: as if the game stopped with them held (orphan), then started again (recover)
       if (args[0] === "orphan") return `forgot ${puppets.forgetAll()}`;
       if (args[0] === "recover") return `recovered ${puppets.recoverLoaded()}`;
+      // what it has learned of each kind (1.4.0), and forgetting it (tests)
+      if (args[0] === "kinds") {
+        const k = puppets.kinds();
+        const out = Object.fromEntries(Object.entries(k).map(([t, v]) => [t, { ...v, strict: puppets.strict(t), below: puppets.keepBelow(t) }]));
+        emit("puppet", { what: "kinds", kinds: out });
+        return `kinds: ${JSON.stringify(out)}`;
+      }
+      if (args[0] === "forgetkinds") {
+        puppets.forgetKinds();
+        return "forgot the kinds";
+      }
       if (!p) return "no player";
+      if (args[0] === "pack") {
+        // its pack, now: the creatures that answer to it within 24 blocks hunt them as one (tests)
+        const ents = (safe(() => p.dimension.getEntities({ location: p.location, maxDistance: 24, families: ["monster"] }), []) ?? [])
+          .filter((x) => !x.typeId.startsWith("observer:") && !puppets.isPuppet(x));
+        return `pack of ${possession.packHunt(p, ents)}`;
+      }
       if (args[0] === "take") {
         const e = (safe(() => p.dimension.getEntities({ location: p.location, maxDistance: 16, excludeTypes: ["minecraft:player", "minecraft:item"] }), []) ?? [])
           .filter((x) => !x.typeId.startsWith("observer:") && !puppets.isPuppet(x))
@@ -322,7 +343,7 @@ export function run(name, args, caller) {
         const pp = e && puppets.take(e, "dev", { p, mode: "stand", seconds: 120 });
         return pp ? `took ${e.typeId}` : "nothing to take";
       }
-      for (const pp of puppets.all()) if (args[0] === "lurk" || args[0] === "hunt" || args[0] === "follow") puppets.setMode(pp, /** @type {any} */ (args[0]), { keep: 8 });
+      for (const pp of puppets.all()) if (["lurk", "hunt", "follow", "mirror", "stand"].includes(args[0])) puppets.setMode(pp, /** @type {any} */ (args[0]), { keep: 8 });
       return `puppets: ${puppets.status()}`;
     }
     case "night": {
@@ -330,6 +351,27 @@ export function run(name, args, caller) {
       const p = pick(0);
       if (!p) return "no player";
       return possession.nightNow(p) ? "they turn" : "not here (stage 5, home needed)";
+    }
+    case "bringback":
+      // bringback on|off: whether it brings back a puppet something else removed (tests clear creatures away)
+      DEBUG.bringBack = args[0] === "off" ? "off" : "on";
+      return `bringback ${DEBUG.bringBack}`;
+    case "mine":
+      // mine always|never|auto: whether it stops another creature coming for you (1.4.0, tests)
+      DEBUG.mine = args[0] === "always" || args[0] === "never" ? args[0] : "auto";
+      return `mine ${DEBUG.mine}`;
+    case "procession": {
+      // procession [player]: the villagers near them walk out and stand in a line, now (1.4.0)
+      const p = pick(0);
+      if (!p) return "no player";
+      return possession.processionNow(p) ? "they walk out" : "not here (three villagers within 64 blocks needed)";
+    }
+    case "mireat": {
+      // mireat <x> <z> | clear: where it thinks its home is (the procession faces it) (tests)
+      if (args[0] === "clear") delete W.mireAt;
+      else if (args.length >= 2) W.mireAt = [Number(args[0]), Number(args[1])];
+      markWorldDirty();
+      return `mire at ${JSON.stringify(W.mireAt ?? null)}`;
     }
     case "whisper":
       // whisper always|never|auto: whether it whispers when it is close and unseen (tests)

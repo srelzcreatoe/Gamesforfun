@@ -11,7 +11,7 @@ The first load in a Windows client (by the user) showed three resource-pack erro
 client-only error is caught before release. The creature's look, animations, sounds and menus still have to be
 confirmed in a client.
 
-Everything that runs on the server — the director, all 30 encounters (including *In the Mire*, *At the Foot of the Bed*, *Not Yours*, *Its Eyes* and the four of its puppets), the merged Weeping
+Everything that runs on the server — the director, all 32 encounters (including *In the Mire*, *At the Foot of the Bed*, *Not Yours*, *Its Eyes*, the four of its puppets, *The Mirror* and *The Guide*), its hold on its puppets against another add-on's scripts (with a stand-in), the chase, its pack, the procession, *Mine first*, cold eyes and the charm, the merged Weeping
 Mire biome and its torn pages, the Flare, escape learning, the silence before
 attacks, its pages, signs, returned items, the restoration ledger, persistence across a restart, multiplayer targeting,
 dimension travel, items, wards, settings — was exercised on a real Bedrock Dedicated
@@ -81,6 +81,14 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   list and are not verifiable on a server.
 * Forms (Field Notes — including "Pages I didn't write" and what it has learned — settings), action-bar captions, title
   cards, camera fades and shakes (the fade API and the `camerashake` command were accepted by the server).
+* 1.4.0, its hold and the chase: a real creature from another add-on marked "Its puppet" in survival — that its own
+  scripts no longer get it away (the stand-in in the tests teleports it, hides it, clears its effects, deletes it, kills
+  it, and hurts players in its name; all of that is undone), how the pull back reads when it happens (a crack and a puff
+  of shreds), and whether that add-on misbehaves when its creature is brought back after it deleted it (it is a fresh
+  creature of the same kind, which its scripts see as new). The chase's look: creatures driven with their own movement
+  switched off still animate their legs from their motion, but how each creature reads at sprint speed, climbing a wall
+  and twitching forward has not been seen. Villagers asleep in beds when the procession starts. The charm's hum and the
+  two new icons.
 * 1.3.0, its puppets: every tell (its eyes, wisps and shreds on creatures of every shape; the twitch walking; its voice
   out of them; the lens flare), the knock and the villager's cries, and above all a real creature from another add-on
   marked "Its puppet" — the tests use stand-ins that live in the test kit. Another add-on's own scripts keep running on its

@@ -272,6 +272,25 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Tribute | `possession.tribute`, `returns.takeAway`, `dominion.hooks.sent` | a creature sent away | something you threw away left where it was | `tribute_left_where_it_went` | ✅ Runtime |
 | Not Yours ignores harmless blows | `not_yours.onHurt` | a blow of 0 damage, or from its own | nothing | `not_yours_not_for_a_harmless_blow` | ✅ Runtime |
 
+## 1.4.0: its hold; the chase; its pack, the mirror, the guide, the procession, mine first, cold eyes
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| Held means harmless | `world.beforeEvents.entityHurt` in `puppets.registerEvents` | harm from a held puppet: its blow (12), brought to you by its own scripts; harm in its name; harm from no one beside it | cancelled before it lands | `hold_held_means_harmless` | ✅ Runtime |
+| Pulled back | `puppets.hold`, the late look | teleported to you, far off (25 blocks), into the Nether, every tick | back where it stands | `hold_pulled_back_from_you`, `hold_pulled_back_from_far`, `hold_pulled_back_from_another_dimension`, `hold_tug_of_war_won` | ✅ Runtime |
+| Its legs are its | Slowness VIII renewed (`refresh`) | its effects cleared every 2 ticks | still where it stands | `hold_effects_cleared_still_held`, `chase_its_own_legs_off` | ✅ Runtime |
+| It cannot be hidden | `world.beforeEvents.effectAdd`, step | invisibility put on it | taken off | `hold_cannot_be_hidden` | ✅ Runtime |
+| Untouchable but by you | `beforeEvents.entityHurt` | harm from its own add-on (30) | none | `hold_nothing_harms_its_own` | ✅ Runtime |
+| Brought back | `beforeEvents.entityRemove`, `entityDie`, `bringBack` | deleted, killed by its own add-on | the same kind, where it was, its | `hold_brings_back_the_deleted`, `hold_brings_back_the_killed`, `hold_discovered_it_brings_them_back` | ✅ Runtime |
+| It learns each kind | `W.kinds`, `strict`, `keepBelow`, Field Notes | it is fought, taken back, used to try to hurt you | held tighter; kept below; written down | `hold_learns_it_fights`, `hold_learned_the_kind` | ✅ Runtime (the Field Notes page ❔) |
+| The hunt can hurt | chase strike, its own blow | turned loose | you are hurt | `hold_hunting_it_can_hurt`, `chase_reaches_and_hurts` | ✅ Runtime |
+| Cold eyes, the charm | `puppets.killed`, `progression/charm.js` | one killed by you; the charm carried | an eye left, it stays dead; the charm hums, louder nearer, silent without it | `cold_eye_left_by_one_you_killed`, `cold_eyes_discovered`, `charm_hums_near_its_puppet`, `charm_silent_without_it` | ✅ Runtime (the hum, the icons ❔) |
+| The chase | `observer/chase.js`, `world/path.js` | hunting | about a sprint, straight when open; round a wall eight high; up a pillar four high; through a closed door | `chase_about_a_sprint`, `chase_straight_at_you`, `chase_round_a_wall`, `chase_climbs_up_to_you`, `chase_opens_the_door` | ✅ Runtime |
+| Its pack | `possession.packHunt`, `chase.packGoal`, `path.chokepoint` | its rage / three creatures | driver, cutter, blocker; the doorway ahead found and held; seen hunting as one | `pack_hunts_as_one`, `pack_finds_the_doorway_ahead`, `pack_one_waits_in_the_doorway`, `pack_seen_hunting_as_one`, `servants_rage_they_hunt_as_one` | ✅ Runtime |
+| The Mirror | `encounters/mirrored.js`, mode `mirror` | a creature ahead | sideways with you, still with you, a jump for a jump, looks back, comes as you come, lets go when you meet | `mirror_begins`, `mirror_steps_aside_with_you`, `mirror_stops_when_you_stop`, `mirror_jumps_when_you_jump`, `mirror_looks_back`, `mirror_comes_toward_you`, `mirror_lets_go_when_you_meet` | ✅ Runtime |
+| The Guide | `encounters/guide.js`, mode `lead` | a creature near you | leads; waits for you; gets there; something there | `guide_leads`, `guide_waits_for_you`, `guide_gets_there`, `guide_leads_you_to_something` | ✅ Runtime |
+| The Procession | `possession.procession` | stage 4+, a night, villagers | out in a line at the edge, facing the Mire; seen; back by dawn | `procession_walks_out`, `procession_in_a_line_at_the_edge`, `procession_faces_the_mire`, `procession_seen`, `procession_back_by_dawn` | ✅ Runtime (villagers asleep in beds ❔) |
+| Mine first | `possession.mineFirst` | another add-on's creature about to reach you | stopped, walked off; never reached you | `mine_first_stops_it`, `mine_first_walks_it_off`, `mine_first_it_never_reached_you`, `mine_first_discovered` | ✅ Runtime |
+
 ## Performance
 | Measure | Result | Test |
 |---|---|---|

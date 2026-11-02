@@ -8,7 +8,7 @@ Implemented encounters live in `packs/TheObserver_BP/scripts/encounters/` (one f
 the director. Concepts marked *planned* are design-ready but not implemented in 1.0.0 — they are not advertised as
 features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stage at which the director may choose it.
 
-## Implemented (30 mechanically distinct types)
+## Implemented (32 mechanically distinct types)
 
 | # | Encounter (file) | Tier / Stage | Context | Location | Cue | Intention | Manipulation | Player response | Consequence |
 |---|---|---|---|---|---|---|---|---|---|
@@ -42,6 +42,8 @@ features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stag
 | 28 | **Bait** (`bait`, 1.3.0) | 2 / 3 | night or dark; a villager within 48 blocks (not name-tagged) | a dark place (light ≤ 7) 14–26 blocks off, to the side or behind, unseen | the villager crying out (`mob.villager.hit` / `no`, every 3 s) | to lure you into the dark | — | go to it / don't | close (7 blocks): it turns to you with its eyes and it is standing right behind it in the dark — a sighting (*The Voice in the Dark*); the villager is put back where it was, unharmed. Not gone to within 45 s: the calling stops |
 | 29 | **One of Them** (`among_them`, 1.3.0) | 2 / 3 | two or more creatures that answer to it within 6 blocks of each other, 12–32 blocks off, in sight | one of the group | none but its eyes (no wisps, no shreds, no voice: it is not to stand out) | it wears them | — | come within 6 blocks of it, or look straight at it for 1.5 s | it comes apart and it is standing among them — a sighting (*One of Them*); unnoticed in 45 s, it lets the creature go |
 | 30 | **What Was Left** (`rival_hunt`, 1.3.0) | 1 / 2 | a creature of a kind marked as its rival within 64 blocks, 16+ away, that nobody can see | behind the rival, unseen | far off, a crack and a scream (for that player, from there; a caption) | it hunts its rivals | — | go and look | the rival is torn apart; its footprints lead there and crimson shreds show to whoever finds the place within 5 min (*What Was Left*) |
+| 31 | **The Mirror** (`mirrored`, 1.4.0) | 1 / 2 | a creature (one that answers to it, a farm animal, a villager) 10–22 blocks ahead, in sight; not underground or in water | where it stands | it moves like your reflection: sideways with you, toward you as you come, still when you stop, a jump for your jump; it faces you as your reflection would | to make you doubt what you see moving | — | walk up to it / keep your distance | met within 6.5 blocks: it stares and is torn out (*The Mirror*); watched and copied for a while: noticed; otherwise it simply stops |
+| 32 | **The Guide** (`guide`, 1.4.0) | 2 / 2 | a creature 8–20 blocks off, in sight; a hidden place 26–42 blocks away | ahead of you, leading | it looks straight at you, walks off, and stops to look back whenever you fall behind | to take you where it wants you | — | follow / don't | followed there: something you threw away lying there, one of its pages written in your notes, or it standing behind its guide — then the guide is torn out (*The Guide*); not followed for 20 s, it gives up and goes back |
 
 **Lunge (shared reaction, stage 2+).** When it is noticed in *The Figure at the Edge*, *Always the Same Place* or *Echo
 Ahead*, it may shriek and come at the player through the air in jerks (~14 blocks/s, floating a block up), then tear

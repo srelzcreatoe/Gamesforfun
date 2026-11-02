@@ -624,3 +624,78 @@ Three phases, in the user's design, built into the encounters that show it from 
   them, nor anything they load, registers an encounter — `tools/validate.mjs` checks this on every build.
 * **Not Yours, fixed**: a blow that does no damage (a creature too weak to hurt you — as every creature it holds is) no
   longer counts, and nothing it holds or has taken for its own can set it off.
+
+## 23. Its hold; the chase; its pack, the mirror, the guide, the procession, mine first, cold eyes (1.4.0)
+
+The player's report on 1.3.0 was that possession held when started by hand but slipped in survival: another add-on's
+scripts teleported their creature away, did their own things to it, and it sometimes hurt them while held. 1.4.0 makes
+the hold total — still without reading, copying or changing anything of the other add-on.
+
+* **Its legs are its** (`puppets.refresh`): Slowness VIII (movement 0) stays on every puppet that is not hiding among
+  its kind — standing, walking, lurking, hunting — renewed every 4 ticks (every 2 for a kind that fights it). The
+  creature's own AI can still choose targets, but it can no longer move the body; the Observer moves it with
+  `applyImpulse` (velocity held). Lurk, follow, mirror and lead keep their own steering; walking and hunting go through
+  `observer/chase.js`.
+* **Pulled back** (`puppets.hold`): each puppet remembers where it was left at the end of its own step (`at`, `atDim`).
+  Moved further than any step it takes (2 blocks, 1.2 for a kind that fights it; up 2.5, down 5) or into another
+  dimension, it is teleported straight back, with its shreds where it went and a neck-crack. Standing puppets also keep
+  an anchor and are put back if pushed 0.7 blocks off it. A creature carried into another dimension keeps its id:
+  `world.getEntity` finds it again before anything is brought back, so nothing is duplicated.
+* **The second look** (`LATE`): script packs are ticked one after another, so an add-on whose scripts move its creature
+  every tick after ours would win every frame. While a puppet is being fought over, it sends itself a script event each
+  tick (`observer_hold:late`, its own namespace — nothing else listens to it); after-events are delivered once every
+  pack's scripts have run, so the second look lands last, and the creature is where it should be when the tick ends.
+* **Held means harmless** (`world.beforeEvents.entityHurt`, stable in @minecraft/server 2.10): harm to a player from a
+  puppet that is not hunting, or from a creature dominion holds (watchers, those it sends away), is cancelled before it
+  lands — melee, projectiles (the shooter is the damaging entity) and script `applyDamage` naming the creature. Harm with
+  no damaging entity, of the causes scripts use (`entityAttack`, `none`, `override`, `magic`, `projectile`, …), within
+  4.5 blocks of a held puppet and with no hunting one near, is cancelled too. Weakness V stays as a second line.
+* **Its own are untouchable**: harm to a puppet is cancelled unless it comes from a player (or the Observer), or is the
+  void or `selfDestruct`. Fire is put out. `world.beforeEvents.effectAdd` cancels invisibility on a puppet, and any that
+  slips past is removed within two ticks.
+* **Brought back** (`puppets.bringBack`): `world.beforeEvents.entityRemove` notes a puppet that is being removed (where it
+  was, which way it faced, its health and name); `entityDie` does the same for a death that was not a player's (and
+  removes the body). On its next tick, if a player is within 56 blocks (otherwise the world is only unloading the place,
+  and the existing recover-on-load path applies), it spawns the same type there with `spawnEntity`, puts its note, name,
+  health and effects back, and re-keys the record (the old id stays an alias, so encounters holding it carry on). Taken
+  five times in ten seconds it waits three seconds between; it never gives up, except for a type that cannot be spawned.
+  Killed by a player, it stays dead and drops `observer:cold_eye`.
+* **It learns each kind** (`W.kinds`: fights, removed, removedUp, removedDown, blocked, back): a kind with 3+ fights or
+  2+ removals is held tighter from the moment it is taken (`strict`); a kind removed on the surface twice more than
+  below is kept below (`keepBelow`: marked puppets of that kind are only taken while the player is underground). The
+  Field Notes write it out per kind, by the creature's own name.
+* **The chase** (`observer/chase.js`, `world/path.js`): every half second (sooner when the goal moves) it checks whether
+  the straight way is walkable (steps up of one, drops of up to three, no corner-cutting, no water); if so it drives
+  straight at the goal. Otherwise a route is searched (A* over feet cells, 8 directions, steps, drops, wooden doors and
+  gates as passable at a cost, wall faces of 2-5 blocks as a climb, 2,500 nodes, 40 blocks) as a `system.runJob`
+  generator, 120 nodes a slice, so a long search never stalls a tick; the route's closest cell is used if the goal is not
+  reached. Doors on the route are opened through the ledger (restored 15 s later); climbs set an upward velocity along
+  the face; a step up is a hop; 16 ticks without progress twitch it up to three blocks along the route. Hunt speed is
+  0.42 blocks/tick set (≈ 5.8 b/s after ground friction, measured; 0.48 on High), ramping in over 8 s; a lunge from
+  3.4 blocks; and if its own blow has not landed for 1.5 s while within 2.1 blocks, it strikes through it (4, or 6 on
+  High) — so a creature with no attack of its own still hunts.
+* **Its pack** (`possession.packHunt`, `dominion.hooks.pack`): `dominion.unleash` hands the creatures it lets go to the
+  pack instead of only letting them go; with any of its own already hunting that player, they are sorted by distance:
+  driver (straight at them), cutter (to where they will be: their velocity times the time it takes to get there, at
+  most 10 blocks ahead, then straight at them), blockers (`path.chokepoint`: a door, or a cell walled on both sides with
+  a gap of one or two, 5-14 blocks ahead along their run — or away from the driver — re-chosen every 3 s; they wait in it,
+  and become drivers once within 4.5 blocks).
+* **The mirror** (puppet mode `mirror`): the player's horizontal velocity reflected in the plane between them (the
+  component toward it negated, the sideways component kept), capped at walking pace; jumps copied; facing reflected the
+  same way (so looking at it, it looks back). The encounter (`encounters/mirrored.js`) ends torn out when the player gets
+  within 6.5 blocks.
+* **The guide** (puppet mode `lead`, `encounters/guide.js`): drives toward a hidden spot 26-42 blocks away while the
+  player is within 12 blocks, otherwise stands looking back; arriving, it waits. The payoff: the newest thing the player
+  threw away (`returns.takeAway`, moved there as it arrives), one of its pages (`pages.write`), or its body behind the
+  guide.
+* **The procession** (`possession.procession`): stage 4+, once in a few nights (a 30% roll, then three nights' rest),
+  between 17600 and 18800: up to 8 villagers within 64 blocks walk to slots 1.7 blocks apart across the way, 5 blocks
+  past the furthest of them, facing the Mire (`W.mireAt`, the last place a player stood in it) or away from the player;
+  released home at dawn.
+* **Mine first** (`possession.fast`, every 4 ticks): a hostile creature (answers to it, marked, or a monster) 2-7 blocks
+  from a stage-2+ player, closing (velocity toward them or distance falling), in line of sight: 35% (else re-rolled after
+  20 s), then 3-6 minutes' rest. Taken, held 1.5 s facing them, walked 16-24 blocks away (darkest of a few spots), let
+  go there (Minecraft's own, unseen, removed).
+* **Cold eyes** (`progression/charm.js`): the charm is found anywhere in the inventory or the off hand (looked for once
+  a second); the nearest puppet within 32 blocks — hidden ones included — sets the hum's volume (by distance, and by how
+  directly the player faces it) and pitch, every 0.5-2 s.

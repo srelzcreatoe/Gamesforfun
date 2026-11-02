@@ -49,9 +49,13 @@ the-observer-addon/
 | `observer/charge.js` | running at it: `decide` (attack or not, with reasons), `setAmbush`, `favours` |
 | `observer/dread.js` | its presence, felt: per-player dread, the heartbeat and the tremor |
 | `observer/dominion.js` | it rules them (1.2.0): `standing` (kin / rival / left alone), the yield → leave → sent-away phases, `tearApart`, `status` |
-| `observer/puppets.js` | its puppets (1.3.0): `take` / `release` / `setMode` / `place`, the tick (modes, tells, voice, shared senses), `lensOn`, `nearest`, `recover` / `recoverLoaded` / `registerEvents` |
-| `observer/possession.js` | what it does with them outside encounters (1.3.0): marked puppets, the one cow, guards in the Mire, the night they turn, tribute, keep-away; `tick`, `onHurt`, `nightNow` |
+| `observer/puppets.js` | its puppets (1.3.0): `take` / `release` / `setMode` / `place`, the tick (modes, tells, voice, shared senses), `lensOn`, `nearest`, `recover` / `recoverLoaded` / `registerEvents`; its hold (1.4.0): `hold` and the late look, the damage / effect / removal before-events, `bringBack`, what it learns of each kind (`note`, `strict`, `keepBelow`, `kinds`), the `mirror` and `lead` modes |
+| `observer/possession.js` | what it does with them outside encounters (1.3.0): marked puppets, the one cow, guards in the Mire, the night they turn, tribute, keep-away; `tick`, `onHurt`, `nightNow`; 1.4.0: its pack (`packHunt`), the procession (`processionNow`), mine first (`fast`), kept below |
 | `observer/herald.js` | its herald (1.3.0): `wanted`, `begin`, `due`, `end` (the director waits for it as for a silence) |
+| `observer/chase.js` | driving its puppets (1.4.0): `drive` (straight, or along a route; doors, climbs, hops, the twitch when stuck), `hunt` (speed, lunge, the strike through it), `packGoal` (driver / cutter / blocker), `face` |
+| `world/path.js` | finding the way for a driven creature (1.4.0): `straight`, `search` / `plan` (A* as a `system.runJob`), `chokepoint`, `bodyCells` — it depends only on the world |
+| `progression/charm.js` | the charm of cold eyes (1.4.0): the hum near its puppets |
+| `encounters/mirrored.js`, `encounters/guide.js` | The Mirror and The Guide (1.4.0) |
 | `encounters/knocking.js`, `bait.js`, `among_them.js`, `rival_hunt.js` | Knocking, Bait, One of Them, What Was Left (1.3.0) |
 | `encounters/its_eyes.js` | its eyes (1.2.1): `eyesFor` (a creature that answers to it, ahead and in sight), the encounter |
 | `world/walk.js` | is the way ahead walkable (shared by the animals and the creatures that answer to it; loads nothing else) |

@@ -14,16 +14,27 @@
 //                        your home, quite still, until dawn.
 //   tribute              a creature it sends away, unseen, may leave behind something you threw away.
 //   they keep away       the other creatures step away from its puppets.
+// 1.4.0:
+//   its pack             in its rage, the creatures it holds near you are not just let go: they hunt you as one. The
+//                        nearest comes straight at you, the next cuts you off where you are running to, and the rest
+//                        wait in the doorways and gaps ahead of you (observer/chase.js).
+//   the procession       from the fourth stage, one night: the villagers of a village near you walk out of their houses
+//                        and stand in a line at the village's edge, facing the Mire, still, until dawn — then they are
+//                        back where they were, as if nothing happened.
+//   mine first           another creature is about to reach you: it stops it dead, turns it to look at you a moment,
+//                        and walks it off into the dark. It is not saving you; you are its, and it does not share.
+//   kept below           a kind whatever made it takes back whenever it is up on the surface is kept below: its marked
+//                        puppets of that kind are taken only while you are down there too.
 // Settings: "It takes creatures for its own" (on). Nothing of another add-on is touched or read (observer/puppets.js).
 import { system, world } from "@minecraft/server";
 import * as puppets from "./puppets.js";
 import { standing, isHeld } from "./dominion.js";
 import { primaryHaunt } from "./memory.js";
 import { S } from "../core/settings.js";
-import { ps, now, markPlayerDirty } from "../core/state.js";
+import { W, ps, now, markPlayerDirty } from "../core/state.js";
 import { V, safe, emit, rand, allPlayers, DEBUG } from "../core/util.js";
-import { findSpot, hideSpot } from "../world/space.js";
-import { seenByAny } from "../world/sight.js";
+import { findSpot, hideSpot, standNear } from "../world/space.js";
+import { seenByAny, visibility, lineOfSight } from "../world/sight.js";
 import { discover } from "../progression/discoveries.js";
 
 /** @typedef {import("@minecraft/server").Entity} Entity */
@@ -62,8 +73,10 @@ function marked(p, t) {
   const marks = S().marks ?? {};
   const kinds = Object.keys(marks).filter((k) => marks[k] === "puppet");
   if (!kinds.length) return;
+  // a kind taken back from it whenever it is up on the surface is kept below: only while they are down there too
+  const up = !underground(p);
   const near = (safe(() => p.dimension.getEntities({ location: p.location, maxDistance: 64 }), []) ?? [])
-    .filter((e) => kinds.includes(e.typeId) && free(e))
+    .filter((e) => kinds.includes(e.typeId) && free(e) && !(up && puppets.keepBelow(e.typeId)))
     .sort((a, b) => V.dist(a.location, p.location) - V.dist(b.location, p.location));
   if (!near.length) return;
   s.puppetAt = t + (DEBUG.possess === "always" ? 20 : rand(600, 900) / Math.max(0.5, S().frequency));
@@ -230,6 +243,231 @@ export function tribute(loc, dimId, pickItem) {
   }
 }
 
+
+// ---------------------------------------------------------------- its pack (1.4.0)
+
+/**
+ * Its rage: the creatures it let go near them (and its own already hunting them) hunt them as one — the nearest comes
+ * straight at them, the next cuts them off, the rest wait in the doorways and gaps ahead. @param {Player} p
+ * @param {Entity[]} ents @returns {number} how many hunt them
+ */
+export function packHunt(p, ents) {
+  if (!on() || !puppets.mayHunt(p)) return 0;
+  const pack = `pack_${system.currentTick}_${p.id}`;
+  /** @type {import("./puppets.js").Puppet[]} */
+  const members = [];
+  for (const pp of puppets.all()) if (pp.p?.id === p.id && pp.mode === "hunt" && !pp.pack) members.push(pp);
+  for (const e of ents) {
+    if (members.length >= 5) break;
+    const pp = puppets.take(e, "pack", { p, mode: "stand", seconds: 30 });
+    if (pp) members.push(pp);
+  }
+  if (!members.length) return 0;
+  members.sort((a, b) => V.dist(a.e.location, p.location) - V.dist(b.e.location, p.location));
+  members.forEach((pp, i) => {
+    pp.pack = pack;
+    pp.role = i === 0 ? "driver" : i === 1 ? "cutter" : "blocker";
+    puppets.setMode(pp, "hunt");
+  });
+  packs.set(pack, { pid: p.id, seen: false });
+  emit("puppet", { what: "pack", pack, player: p.name, n: members.length, roles: members.map((m) => m.role), ids: members.map((m) => m.id) });
+  return members.length;
+}
+/** pack -> who it hunts, and whether they have seen two of it at once @type {Map<string, {pid:string, seen:boolean}>} */
+const packs = new Map();
+
+/** They see two of its pack at once: they know. @param {Player} p */
+function packSeen(p) {
+  for (const [pack, k] of packs) {
+    const members = puppets.packOf(pack);
+    if (!members.length) {
+      packs.delete(pack);
+      continue;
+    }
+    if (k.pid !== p.id || k.seen) continue;
+    const seen = members.filter((m) => visibility(p, m.e.location, { fov: 70 }).points > 0).length;
+    if (seen < 2) continue;
+    k.seen = true;
+    emit("puppet", { what: "pack_seen", pack, player: p.name, seen });
+    discover(p, "they_hunt_as_one");
+  }
+}
+
+// ---------------------------------------------------------------- the procession (1.4.0)
+
+/** player id -> the procession walked out for them tonight @type {Map<string, {until:number, ids:string[], seen:boolean}>} */
+const processions = new Map();
+
+/** @param {Player} p @param {number} t */
+function procession(p, t) {
+  const s = ps(p);
+  const tod = safe(() => world.getTimeOfDay(), 6000) ?? 6000;
+  const cur = processions.get(p.id);
+  if (cur) {
+    const mine = puppets.all().filter((pp) => pp.why === "procession" && pp.p?.id === p.id);
+    // until dawn (or seven minutes): then they are back where they were, as if nothing happened
+    if (tod >= 23000 || tod < 12000 || system.currentTick > cur.until || !mine.length) {
+      processions.delete(p.id);
+      for (const pp of mine) puppets.release(pp.id, "home");
+      emit("puppet", { what: "procession_dawn", player: p.name });
+      return;
+    }
+    if (!cur.seen) {
+      const inLine = mine.filter((pp) => pp.mode === "stand" && visibility(p, pp.e.location, { fov: 70 }).points > 0).length;
+      if (inLine >= 3) {
+        cur.seen = true;
+        emit("puppet", { what: "procession_seen", player: p.name, n: inLine });
+        discover(p, "the_procession");
+      }
+    }
+    return;
+  }
+  if (s.stage < 4 || DEBUG.possess === "never" || t < (s.processionAt ?? 0)) return;
+  if (!(tod >= 17600 && tod <= 18800) && DEBUG.possess !== "always") return;
+  const vs = (safe(() => p.dimension.getEntities({ location: p.location, maxDistance: 64, type: "minecraft:villager_v2" }), []) ?? []).filter(free);
+  if (vs.length < 3) return;
+  // one night in a few
+  s.processionAt = t + 600;
+  markPlayerDirty(p);
+  if (!chance(0.3)) return;
+  s.processionAt = t + (DEBUG.possess === "always" ? 30 : 3600);
+  walkOut(p, vs.slice(0, 8));
+}
+
+/** The villagers walk out and stand in a line at the village's edge, facing the Mire. @param {Player} p @param {Entity[]} vs */
+function walkOut(p, vs) {
+  const c = vs.reduce((a, e) => V.add(a, e.location), { x: 0, y: 0, z: 0 });
+  const center = V.scale(c, 1 / vs.length);
+  const r = Math.max(...vs.map((e) => V.hdist(e.location, center)));
+  // toward the Mire, if anyone has stood in it; else out into the dark, away from them
+  const mire = W.mireAt ? { x: W.mireAt[0], y: center.y, z: W.mireAt[1] } : undefined;
+  const dir = mire && V.hdist(mire, center) > 4 ? V.flat(V.sub(mire, center)) : V.flat(V.sub(center, p.location));
+  const base = V.add(center, V.scale(dir, r + 5));
+  const across = V.rotY(dir, 90);
+  const n = vs.length;
+  const ids = [];
+  let i = 0;
+  for (const v of vs) {
+    const slot = V.add(base, V.scale(across, (i - (n - 1) / 2) * 1.7));
+    i++;
+    const st = standNear(p.dimension, slot.x, slot.z, base.y);
+    if (!st) continue;
+    const pp = puppets.take(v, "procession", { p, mode: "stand", seconds: 420, home: true });
+    if (!pp) continue;
+    const face = V.add(st.loc, V.scale(dir, 16));
+    puppets.setMode(pp, "walk", { to: st.loc, after: "stand", face: { x: face.x, y: st.loc.y + 1.6, z: face.z } });
+    ids.push(pp.id);
+  }
+  if (!ids.length) return;
+  processions.set(p.id, { until: system.currentTick + 20 * 420, ids, seen: false });
+  emit("puppet", { what: "procession", player: p.name, n: ids.length, dir: { x: Math.round(dir.x * 100) / 100, z: Math.round(dir.z * 100) / 100 }, mire: !!mire });
+}
+
+/** Tests: walk the procession out for them now. @param {Player} p */
+export function processionNow(p) {
+  ps(p).processionAt = 0;
+  const was = DEBUG.possess;
+  DEBUG.possess = "always";
+  const vs = (safe(() => p.dimension.getEntities({ location: p.location, maxDistance: 64, type: "minecraft:villager_v2" }), []) ?? []).filter(free);
+  if (vs.length >= 3) walkOut(p, vs.slice(0, 8));
+  DEBUG.possess = was;
+  return processions.has(p.id);
+}
+
+// ---------------------------------------------------------------- mine first (1.4.0)
+
+/** Distance from each creature to each player at the last look: is it coming? @type {Map<string, number>} */
+const lastD = new Map();
+
+/** Hostile to them: answers to it, or a kind marked as its puppet or rival, or a monster. @param {Entity} e */
+function hostile(e) {
+  const m = S().marks?.[e.typeId];
+  if (m === "ignore") return false;
+  if (m === "puppet" || m === "rival" || m === "kin") return true;
+  return standing(e) === "kin" || !!safe(() => e.matches({ families: ["monster"] }), false);
+}
+
+/** Every few ticks, per player: something about to reach them? @param {Player} p */
+function mineFirst(p) {
+  const s = ps(p);
+  if (s.stage < 2 || DEBUG.mine === "never" || now() < (s.mineAt ?? 0) || puppets.count("mine") > 0) return;
+  const near = safe(() => p.dimension.getEntities({ location: p.location, maxDistance: 8, excludeTypes: ["minecraft:player", "minecraft:item"] }), []) ?? [];
+  /** @type {Entity|undefined} */
+  let coming;
+  for (const e of near) {
+    if (e.typeId.startsWith("observer:") || !free(e) || !hostile(e)) continue;
+    const d = V.hdist(e.location, p.location);
+    const k = `${e.id}|${p.id}`;
+    const was = lastD.get(k);
+    lastD.set(k, d);
+    if (d < 2 || d > 7) continue;
+    const v = safe(() => e.getVelocity(), { x: 0, y: 0, z: 0 }) ?? { x: 0, y: 0, z: 0 };
+    const toward = V.flat(V.sub(p.location, e.location));
+    const closing = v.x * toward.x + v.z * toward.z > 0.04 || (was !== undefined && was - d > 0.15);
+    if (!closing) continue;
+    const head = safe(() => e.getHeadLocation(), e.location) ?? e.location;
+    if (!lineOfSight(p.dimension, head, p.getHeadLocation()).clear) continue;
+    coming = e;
+    break;
+  }
+  if (lastD.size > 400) lastD.clear();
+  if (!coming) return;
+  if (DEBUG.mine !== "always" && Math.random() > 0.35) {
+    s.mineAt = now() + 20;
+    return;
+  }
+  s.mineAt = now() + (DEBUG.mine === "always" ? 4 : rand(180, 360) / Math.max(0.5, S().frequency));
+  markPlayerDirty(p);
+  stopIt(coming, p).catch((err) => console.warn(`[Observer] mine first error: ${err}`));
+}
+
+/** It stops it dead, turns it to look at them, and walks it off into the dark. @param {Entity} e @param {Player} p */
+async function stopIt(e, p) {
+  const pp = puppets.take(e, "mine", { p, mode: "stand", seconds: 40 });
+  if (!pp) return;
+  const seen = visibility(p, e.location, { fov: 80 }).points > 0;
+  emit("puppet", { what: "mine_first", id: pp.id, type: pp.type, player: p.name, seen, d: Math.round(V.hdist(e.location, p.location) * 10) / 10 });
+  safe(() => p.onScreenDisplay.setActionBar({ rawtext: [{ translate: "observer.ui.mine_first" }] }));
+  if (seen) discover(p, "mine_first");
+  await sleep(30);
+  if (puppets.get(pp.id) !== pp) return;
+  // off into the dark: away from them, the way it came
+  const away = V.flat(V.sub(pp.e.location, p.location));
+  /** @type {Vec|undefined} */
+  let to;
+  for (const off of [0, 30, -30, 60, -60]) {
+    const dir = V.rotY(away, off);
+    for (const dist of [20, 16, 24]) {
+      const at = V.add(p.location, V.scale(dir, dist));
+      const st = standNear(p.dimension, at.x, at.z, pp.e.location.y);
+      if (!st) continue;
+      if (!to) to = st.loc;
+      if ((safe(() => p.dimension.getLightLevel({ x: st.loc.x, y: st.loc.y + 1, z: st.loc.z }), 15) ?? 15) <= 7) {
+        to = st.loc;
+        break;
+      }
+    }
+    if (to) break;
+  }
+  if (!to) return puppets.release(pp.id, "quiet");
+  puppets.setMode(pp, "walk", { to, after: "stand" });
+  emit("puppet", { what: "mine_walks_off", id: pp.id, x: to.x, y: to.y, z: to.z });
+  for (let i = 0; i < 20 * 20 && puppets.get(pp.id) === pp; i += 10) {
+    if (pp.mode === "stand" && V.hdist(pp.e.location, p.location) > 12) break;
+    await sleep(10);
+  }
+  if (puppets.get(pp.id) !== pp) return;
+  // let go there; one of Minecraft's own, unseen, is simply gone
+  const l = pp.e.location;
+  puppets.release(pp.id, pp.type.startsWith("minecraft:") && unseen(pp.dimId, l) ? "gone" : "quiet");
+}
+
+/** Every 4 ticks. */
+export function fast() {
+  if (!on()) return;
+  for (const p of allPlayers()) safe(() => mineFirst(p));
+}
+
 // ---------------------------------------------------------------- the rest
 
 /** The other creatures step away from its puppets. */
@@ -254,6 +492,8 @@ export function tick() {
     safe(() => cow(p, t));
     safe(() => guards(p, t));
     safe(() => nightTurn(p, t));
+    safe(() => procession(p, t));
+    safe(() => packSeen(p));
   }
   safe(() => keepAway());
 }

@@ -31,6 +31,7 @@ import * as possession from "./observer/possession.js";
 import * as herald from "./observer/herald.js";
 import * as rivalHunt from "./encounters/rival_hunt.js";
 import * as paralysis from "./encounters/paralysis.js";
+import * as charm from "./progression/charm.js";
 import * as mire from "./mire/mire.js";
 import { pending as mirePending } from "./encounters/mire_watcher.js";
 
@@ -63,6 +64,8 @@ import "./encounters/its_eyes.js";
 import "./encounters/knocking.js";
 import "./encounters/bait.js";
 import "./encounters/among_them.js";
+import "./encounters/mirrored.js";
+import "./encounters/guide.js";
 import "./encounters/tests.js";
 
 let ready = false;
@@ -98,6 +101,8 @@ profile.registerEvents();
 puppets.registerEvents();
 // tribute: a creature it sends away may leave behind something you threw away (1.3.0)
 dominion.hooks.sent = (at, dimId) => possession.tribute(at, dimId, (p, minAway) => returns.takeAway(p, minAway));
+// its rage: the creatures it lets go near you hunt you as one (1.4.0)
+dominion.hooks.pack = (p, ents) => possession.packHunt(p, ents);
 // the Weeping Mire, its home: wind, falling leaves and the torn pages. The Mire's old watcher is the
 // Observer now: a torn page may bring it up behind you, and the last of the eight always does.
 mire.register({
@@ -264,6 +269,7 @@ world.beforeEvents.playerLeave.subscribe((ev) => {
     mire.forget(id);
     dread.forget(id);
     herald.forget(id);
+    charm.forget(id);
     dropPlayer(id);
   });
 });
@@ -280,6 +286,8 @@ world.afterEvents.entityHurt.subscribe(
     const p = /** @type {import("@minecraft/server").Player} */ (ev.hurtEntity);
     const by = ev.damageSource.damagingEntity;
     if (by && by.typeId !== "minecraft:player") safe(() => notYours.onHurt(p, by, ev.damage));
+    // one of its puppets' own blows landed: the hunt need not strike through it for a while (1.4.0)
+    if (by) safe(() => puppets.landed(by));
   },
   { entityTypes: ["minecraft:player"] },
 );
@@ -347,6 +355,11 @@ system.runInterval(() => {
       s.followAt = 0;
       if (p.dimension.id !== "minecraft:overworld" || Math.random() < 0.5) director.tryManual("portal_follow", p);
     }
+    // where its home is: somewhere in the Mire someone has stood (the procession faces it, 1.4.0)
+    if (slowRuns % 10 === 0 && safe(() => mire.inMire(p), false)) {
+      W.mireAt = [Math.round(p.location.x), Math.round(p.location.z)];
+      markWorldDirty();
+    }
     const m = memory.motion(p);
     if (m.sleeping && m.sleptAt > 0 && tick - m.sleptAt > 40) {
       m.sleptAt = -1;
@@ -398,8 +411,14 @@ system.runInterval(() => {
 }, 2);
 
 // animals sense it: they turn to it and freeze, edge away, growl or hiss (every tick, for smooth turning and walking)
+let tickRuns = 0;
 system.runInterval(() => {
   if (!ready) return;
+  tickRuns++;
+  // another creature about to reach someone: it stops it first (1.4.0)
+  if (tickRuns % 4 === 0) safe(() => possession.fast());
+  // the charm of cold eyes hums near its puppets (1.4.0)
+  if (tickRuns % 5 === 0) safe(() => charm.tick());
   safe(() => animals.tick());
   // the other creatures of the dark answer to it (1.2.0), and those it has taken for its own do its bidding (1.3.0)
   safe(() => dominion.tick());

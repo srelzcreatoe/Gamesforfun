@@ -19,8 +19,8 @@ Minecraft imports both packs. Then:
    Weeping Mire, its home). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from an earlier version:** import the new `.mcaddon` (version 1.3.0). If a world still uses the old copy, open the world's
-settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.3.0 packs again. Your
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.4.0). If a world still uses the old copy, open the world's
+settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.4.0 packs again. Your
 progress is kept; the new options below start switched on.
 
 **The Weeping Mire is part of The Observer now (1.0.7).** If a world also has the stand-alone *Weeping Mire* packs
@@ -103,6 +103,44 @@ in its hand.
 * **Tribute.** Something you threw away may turn up where one of the creatures it sent away was last standing.
 * **The night they turn.** Once, at the very end, at midnight: everything around your home stops, and turns to face
   it, and stands there, still, until dawn.
+
+**Its hold (1.4.0).** Nothing takes one of its puppets from it — not even the add-on the creature comes from.
+* While it has a creature, the creature's own legs do nothing: it moves it itself. Whatever that creature is scripted
+  to do, it cannot walk it off or turn it away.
+* Teleported away by anything else — to you, far off, into the Nether — it is pulled straight back to where it stood,
+  with a crack of the neck and its shreds left where it went. A creature that keeps fighting it is held tighter.
+* **Held means harmless.** While it only holds a creature (standing, lurking, following, leading, copying you), nothing
+  that creature does can hurt you: its blows, its arrows, harm its own add-on deals in its name, harm from nowhere right
+  beside it. Only a puppet it has turned loose on you can hurt you.
+* Nothing but you can harm one of its puppets: not fire, not other creatures, not the add-on it came from. Nothing can
+  make one invisible.
+* If the add-on it came from deletes it or kills it, it brings it back: the same kind, where it was, its eyes already in
+  it (even `/kill` will not keep one away). Killed by **you**, it stays dead — and leaves a **cold eye**. To end them
+  all at once, switch off *It takes creatures for its own* in the settings: every creature it holds is let go. On
+  Peaceful nothing is brought back (the game itself takes hostile creatures away there).
+* It learns each kind. Your Field Notes (*Pages I didn't write*) say what it knows of them: which fight its hold, which
+  are taken back from it (it brings them back), which it keeps below ground (a kind taken from it on the surface again
+  and again is only used while you are underground too), and which tried to hurt you while it held them.
+
+**The chase (1.4.0).** A puppet turned loose on you comes about as fast as you can sprint (a little faster on High
+aggression), quicker as it goes. Where the way is open it comes straight at you; where it is not, it finds its own way —
+round walls, up steps, down drops, through wooden doors it opens (they close again later) and up walls of up to five
+blocks, which it climbs as it does. Stuck for a moment, it twitches forward through the gap. In the last few blocks it
+lunges. Sprinting alone will not lose it; breaking its line of sight and getting somewhere it cannot reach can.
+* **Its pack.** When it snaps into its rage, the creatures it holds near you do not just come: they hunt you as one.
+  The nearest comes straight at you, the next goes where you are running to, and the rest wait in the doorways and gaps
+  ahead of you. Watch the way ahead, not only what is behind.
+* **The Mirror.** A creature out ahead of you moves like your reflection: step sideways and it steps the same way, walk
+  toward it and it walks toward you, stop and it stops, jump and it jumps; turn to it and it turns to you. Walk all the
+  way up to it and it lets go.
+* **The Guide.** A creature looks straight at you, and walks off. When you fall behind it stops and looks back, and
+  waits. Follow it and it leads you somewhere out of the way — to something of yours you threw away, to one of its pages
+  (written in your Field Notes as you get there), or to it. Don't follow, and in a while it gives up.
+* **The Procession** (from the fourth stage). One night the villagers of a village near you walk out of their houses and
+  stand in a line at its edge, facing the Weeping Mire, quite still. By dawn they are back where they were.
+* **Mine first.** Another creature — any creature, from any add-on — is about to reach you, and it stops dead. It turns
+  its head and looks at you with small cold eyes, and walks off into the dark. It is not protecting you. It does not
+  share you.
 
 **The animals know.** When it comes — whether you have seen it or not — the animals near it stop what they are
 doing and turn to face it, quite still: the nearest first, the rest a moment later. After a while cows, sheep, pigs,
@@ -239,6 +277,8 @@ Encounters only come for players in **Survival or Adventure**; in Creative it le
 | **Vestige** | each discovery; breaking an Effigy | Crafting material |
 | **Witness Lens** | craft *spyglass + 2 Vestiges + amethyst shard* | Use while looking at it: it recoils and withdraws. With nothing to hold, the lens shows where it has walked and where its effigies are. 20 s cooldown |
 | **Ward Lantern** | craft *lantern + 2 Vestiges* | Place it: within 12 blocks it will not stand or change any block (and puts back anything it already changed there) |
+| **Cold Eye** | left by one of its puppets when **you** kill it | Crafting material |
+| **Charm of Cold Eyes** | craft *4 Cold Eyes + string* | Carry it anywhere (or in your off hand): it hums when one of its puppets is within 32 blocks — even one hiding among its kind — louder and higher the nearer it is, and louder when you face it. Turn about with it to find the one that is its |
 | **Flare** | craft *glowstone dust + gunpowder + paper* (×8) | Use to throw it. Where it lands it burns for 8 seconds with real, bright light and a hissing glare. While it burns, the Observer within 16 blocks of it recoils and tears apart — even in the middle of an attack (a strike already winding up does no damage). Each flare is used up; once it has learned flares, the first one in an encounter only makes it flinch |
 
 ## Discoveries and the long-term goal

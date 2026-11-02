@@ -58,6 +58,7 @@ function freshWorld() {
     traces: [],
     nextEnc: 1,
     stats: { encounters: 0, byType: {} },
+    kinds: {},
   };
 }
 
@@ -72,6 +73,15 @@ function freshWorld() {
  * @property {any[]} traces  evidence points (footprint trails)
  * @property {number} nextEnc
  * @property {{encounters:number, byType:Record<string,number>}} stats
+ * @property {Record<string, KindNote>} [kinds]  what it has learned of each kind of creature it takes (1.4.0)
+ * @property {number[]} [mireAt]  [x, z] a place in the Weeping Mire a player has stood (1.4.0: the procession faces it)
+ */
+
+/**
+ * What it has learned of a kind of creature (1.4.0): how often whatever made it fought its hold (moved it away,
+ * hid it, cleared its effects), took it back (deleted or killed it — up on the surface or down below), tried to hurt
+ * someone through it; and how often it brought one back.
+ * @typedef {{fights:number, removed:number, removedUp:number, removedDown:number, blocked:number, back:number}} KindNote
  */
 
 /** @type {WorldState} */
@@ -159,13 +169,16 @@ export function now() {
  * @property {Record<string, number>} [profile]   what it has seen this player do, decaying counts (observer/profile.js)
  * @property {Record<string, number>} [effect]    per encounter type: how often it got a reaction (0..1)
  * @property {{at:number, until:number, armed?:boolean}} [ambush]  it vanished rather than be reached, and waits
- * @property {{taken:number, seen:number, torn:number}} [puppets]  its puppets used on this player, seen through the lens, torn out (1.3.0)
+ * @property {{taken:number, seen:number, torn:number, killed?:number}} [puppets]  its puppets used on this player, seen through the lens, torn out (1.3.0), killed by them (1.4.0)
  * @property {number} [puppetAt]     clock before which it takes no marked puppet for this player
  * @property {number} [cowAt]        clock before which no animal of theirs is taken
  * @property {number} [guardAt]      clock before which no guard is posted in the Mire
  * @property {boolean} [nightTurned] the night they all turned has happened for this player
  * @property {number} [tributeAt]    clock before which no tribute is left for them
  * @property {number} [sensedAt]     clock a puppet last saw them
+ * @property {number} [mineAt]       clock before which it does not stop another creature coming for them (1.4.0)
+ * @property {number} [processionAt] clock before which no procession is walked out for them (1.4.0)
+ * @property {boolean} [charmHeard]  their charm of cold eyes has hummed for them (1.4.0)
  * @property {number} lungeAt      clock of its last lunge at this player
  * @property {number} nearStrikeAt clock of its last strike because the player came too close
  * @property {Record<string,number>} [escapes] how often each way out was used (observer/learn.js)

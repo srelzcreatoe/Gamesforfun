@@ -2,6 +2,7 @@ import { system } from "@minecraft/server";
 import { runProto } from "./proto.js";
 import { runSpeed } from "./speed.js";
 import { runSuite, checkRecovery, interruptSetup, measureTps } from "./suite.js";
+import "./rival.js";
 
 const fail = (tag) => (e) => console.warn(`[OTEST] FAIL ${tag}_crash ${e} ${e && e.stack}`);
 system.afterEvents.scriptEventReceive.subscribe((ev) => {

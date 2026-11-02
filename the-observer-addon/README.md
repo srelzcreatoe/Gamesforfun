@@ -19,8 +19,9 @@ your light — always deliberately, always reversibly — and watches what you d
 4. Play. Nothing happens for the first 12 minutes on the Standard preset. Details: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md).
 
 ## Status
-Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.3.0 integration run passed 513 of
-513 checks (102 test groups) with no content-log or script errors, restart recovery passed, and the server held 20 TPS
+Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.4.0 integration run passed 563 of
+564 checks (110 test groups; the one, a timing race in an old test, then passed on its own twice) with no content-log or
+script errors, restart recovery passed, and the server held 20 TPS
 with and without the add-on. A separate run on a fresh world with every experiment switched off (and no test kit)
 loaded everything with zero errors — no experiments are needed; the same holds for the merged Weeping Mire, which
 generates on a fresh world with every experiment off. The first load in a game client reported three resource-pack errors, which are fixed in this build and now
@@ -82,6 +83,26 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   sees you, leaves behind things you threw away — and once, at the very end, makes every creature around your home turn
   to face it all night. Nothing of any other add-on is read, copied or changed: it acts on their creatures only in the
   world they share, and a creature still held when the game stops is given back when it loads.
+* **Its hold** (1.4.0): nothing takes one of its puppets from it. While it has a creature, the creature's own legs
+  do nothing — it moves it itself — so the creature's own mind cannot walk it off or turn it away. Teleported away by
+  anything else (to you, far off, into another dimension) it is pulled straight back, with a neck-crack and its shreds
+  where it went. Held means harmless: any harm to you from a creature it holds is undone before it lands — its blows,
+  its arrows, harm another add-on's scripts deal in its name, and harm from nowhere right beside it; only a puppet it has
+  turned loose can hurt you. Nothing but you can harm one of its own; nothing can make one invisible; and one deleted or
+  killed by whatever made it is brought back — the same kind, where it was, its eyes already in it. Killed by you, it
+  stays dead and leaves a **cold eye**; four on a string make a **Charm of Cold Eyes**, which hums when one of its
+  puppets is near (louder the nearer, and when you face it — even one hiding among its kind). It learns each kind: those
+  that fight its hold are held tighter from the first moment, a kind taken back from it on the surface is kept below,
+  and your Field Notes say so in its hand. **The chase**: a hunting puppet comes about as fast as you can sprint
+  (faster on High), quicker as it goes — straight at you when the way is open, otherwise along a route it finds round
+  walls, up steps and down drops, through doors it opens and up walls it climbs, twitching forward when stuck, and
+  lunging the last few blocks. **Its pack**: in its rage, the creatures it holds near you hunt you as one — the nearest
+  straight at you, the next cutting you off where you run, the rest waiting in the doorways ahead. **The Mirror**: a
+  creature ahead of you moves like your reflection until you walk up to it. **The Guide**: a creature looks at you, walks
+  off, and waits for you whenever you fall behind — leading you to something of yours, one of its pages, or it.
+  **The Procession** (stage 4+): one night a village's villagers walk out and stand in a line at its edge, facing the
+  Mire, until dawn. **Mine first**: when another creature is about to reach you, it stops it dead, turns it to look at
+  you, and walks it off into the dark — it does not share you.
 * **Its voice and its music** (1.1.2, your recordings): while it is around, its own theme replaces the game's music
   — *lurking* in the Weeping Mire, its home — and the game's music fades back once it has gone. A sting when you spot
   it, a scream when it snaps or comes for you (and over the blow that kills), a grunt as it arrives out of nowhere, its

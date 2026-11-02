@@ -37,6 +37,11 @@ export const V = {
     const d = V.dot(V.norm(a), V.norm(b));
     return (Math.acos(Math.max(-1, Math.min(1, d))) * 180) / Math.PI;
   },
+  /** Rotate a horizontal vector about the vertical by deg degrees. @param {Vec} a @param {number} deg */
+  rotY: (a, deg) => {
+    const r = (deg * Math.PI) / 180, c = Math.cos(r), s = Math.sin(r);
+    return { x: a.x * c - a.z * s, y: a.y, z: a.x * s + a.z * c };
+  },
   /** @param {Vec} a */ str: (a) => `${a.x.toFixed(1)},${a.y.toFixed(1)},${a.z.toFixed(1)}`,
 };
 
@@ -141,6 +146,11 @@ export const DEBUG = {
   possess: "auto",
   /** tests: "always" / "never" decide whether a herald is sent before a heavier encounter ("auto" = two in five) */
   herald: "auto",
+  /** tests: "always" / "never" decide whether it stops another creature coming for you ("auto" = its chance) (1.4.0) */
+  mine: "auto",
+  /** tests: "off" stops it bringing back puppets something else removed (test clean-up removes creatures between groups,
+   *  as another add-on would); "on" (normal play) (1.4.0) */
+  bringBack: "on",
   /** low-volume lifecycle lines (encounter start/end); enabled in dev mode and by the test kit */
   trace: false,
   /** @param {string} msg */

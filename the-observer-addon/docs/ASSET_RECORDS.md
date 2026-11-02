@@ -71,6 +71,11 @@ prepared by `tools/prepare_supplied_sounds.py` (the raw WAVs are not kept in the
 the synthesized sounds (the arrival pressure, the shriek and the vanish) and add its sting when spotted, its whisper
 and its two themes. Their rights rest with the user who supplied them.
 
+1.4.0 adds two original item icons drawn by `tools/make_textures.py` (`cold_eye.png`, `cold_charm.png`) and one original
+sound synthesized by `tools/synth_sounds.py` (`charm_hum1.ogg`: two detuned partials a fifth apart, a faint shimmer, a
+breath of noise), for the Cold Eye and the Charm of Cold Eyes. The test kit's stand-in for another add-on's scripted
+creature (`otest:rival_dweller`, `scripts/rival.js`) is development-only and never shipped.
+
 1.3.0 adds three original one-shot particle definitions, `particles/puppet_wisp.json`, `puppet_shred.json` and
 `puppet_burst.json`, made from its existing wisp and vanish definitions and textures (one-shot, so nothing keeps emitting
 from another creature). 1.2.1 adds one original particle definition, `particles/servant_eyes.json` (two glints of its existing `glint` texture
@@ -115,6 +120,7 @@ for the eyes it puts in the creatures that are its). 1.2.0 adds no asset files (
 | `TheObserver_RP/sounds/observer/seal.ogg` | original — synthesized by tools/synth_sounds.py | `ccb32fcda6aecd81` |
 | `TheObserver_RP/sounds/observer/silence.ogg` | original — synthesized by tools/synth_sounds.py (a near-silent looping music track) | `592cf63dbcb8d32c` |
 | `TheObserver_RP/sounds/observer/sink.ogg` | original — synthesized by tools/synth_sounds.py | `6c6e7fea42343da7` |
+| `TheObserver_RP/sounds/observer/charm_hum1.ogg` | original — synthesized by tools/synth_sounds.py (1.4.0: the charm of cold eyes) | `412693d3da3e2d2b` |
 | `TheObserver_RP/sounds/observer/snuff.ogg` | original — synthesized by tools/synth_sounds.py | `e83b2133ae9b3786` |
 | `TheObserver_RP/sounds/observer/step1.ogg` | original — synthesized by tools/synth_sounds.py | `63a56e276d623455` |
 | `TheObserver_RP/sounds/observer/step2.ogg` | original — synthesized by tools/synth_sounds.py | `d2890f748438f346` |
@@ -137,6 +143,8 @@ for the eyes it puts in the creatures that are its). 1.2.0 adds no asset files (
 | `TheObserver_RP/textures/entity/observer/the_observer_eyes.png` | derived — only the two eye cubes' pixels of the supplied texture (tools/integrate_supplied_assets.py) | `f0d4128927c35473` |
 | `TheObserver_RP/textures/entity/observer/the_observer_shadow.png` | derived — near-black silhouette of the user's texture with the white eyes kept (tools/integrate_supplied_assets.py), for the taiga shadows | `b7aa1c618cd306c9` |
 | `TheObserver_RP/textures/items/observer/chalk.png` | original — drawn by tools/make_textures.py | `61c5f11bc4336204` |
+| `TheObserver_RP/textures/items/observer/cold_charm.png` | original — drawn by tools/make_textures.py (1.4.0) | `3d232aef08402a79` |
+| `TheObserver_RP/textures/items/observer/cold_eye.png` | original — drawn by tools/make_textures.py (1.4.0) | `6920f73195005e2e` |
 | `TheObserver_RP/textures/items/observer/config_wheel.png` | original — drawn by tools/make_textures.py | `f37c7dd0b7558917` |
 | `TheObserver_RP/textures/items/observer/field_notes.png` | original — drawn by tools/make_textures.py | `870cc046d4176aee` |
 | `TheObserver_RP/textures/items/observer/flare.png` | original — drawn by tools/make_textures.py (also the thrown flare's sprite) | `9e35e36dc571b6c8` |

@@ -15,6 +15,7 @@ export const DISCOVERIES = [
   "borrowed_work", "echo_ahead", "wrong_way", "breathing_room", "second_witness", "while_you_slept",
   "elsewhere_too", "the_window", "close", "through_the_lens", "it_was_inside", "its_home", "foot_of_the_bed", "not_yours", "its_eyes",
   "its_puppets", "who_knocks", "the_voice_in_the_dark", "one_of_them", "what_was_left", "the_night_they_turned",
+  "it_brings_them_back", "they_hunt_as_one", "the_mirror", "the_guide", "the_procession", "mine_first", "cold_eyes",
 ];
 export const VIGIL_REQUIREMENT = 12;
 

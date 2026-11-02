@@ -94,7 +94,10 @@ export function standing(e) {
 export const isHeld = (id) => held.has(id);
 
 /** Hooks main.js fills in: sent(where, dimension) when a creature is sent away unseen (tribute, 1.3.0). */
-export const hooks = { /** @type {((at:Vec, dimId:string)=>void)|undefined} */ sent: undefined };
+export const hooks = {
+  /** @type {((at:Vec, dimId:string)=>void)|undefined} */ sent: undefined,
+  /** its rage: those it let go hunt them as one (1.4.0) @type {((p:Player, ents:Entity[])=>number)|undefined} */ pack: undefined,
+};
 
 /** One of its puppets (observer/puppets.js notes that on the creature itself): those have their own orders. @param {Entity} e */
 const puppet = (e) => safe(() => e.getDynamicProperty("observer:puppet"), undefined) !== undefined;
@@ -348,6 +351,8 @@ export function unleash(p) {
   if (!S().enabled || S().creatures === false || aggression() < 2 || ps(p).stage < 4) return 0;
   const t = system.currentTick;
   let n = 0;
+  /** @type {Entity[]} */
+  const freed = [];
   for (const h of [...held.values()]) {
     if (n >= 4) break;
     if (h.role === "rival" || !h.e.isValid || h.e.dimension.id !== p.dimension.id || V.dist(h.e.location, p.location) > RADIUS) continue;
@@ -355,7 +360,13 @@ export function unleash(p) {
     drop(h);
     unleashed.set(h.e.id, { e: h.e, until: t + 200 });
     emit("dominion", { what: "unleash", type: h.e.typeId, id: h.e.id });
+    freed.push(h.e);
     n++;
+  }
+  // and they do not just come: they hunt as one (1.4.0) — those it took for its pack wear its eyes as its puppets do
+  if (freed.length && hooks.pack) {
+    safe(() => hooks.pack?.(p, freed));
+    for (const e of freed) if (puppet(e)) unleashed.delete(e.id);
   }
   return n;
 }

@@ -550,13 +550,27 @@ def heartbeat(v):
     return trim(x)
 
 
+def charm_hum(v):
+    """1.4.0: the charm of cold eyes humming near one of its puppets — a cold, glassy tone: two partials a fifth apart,
+    slightly detuned so they beat slowly, a faint high shimmer and a breath of air; soft in, soft out (played louder,
+    higher and more often the nearer the puppet is)."""
+    sec = 0.8
+    n = int(round(SR * sec))
+    tt = t(sec)
+    shape = np.clip(tt / 0.12, 0, 1) ** 1.5 * np.clip((sec - tt) / 0.35, 0, 1)
+    x = sine(392, sec) + 0.9 * sine(394.6, sec) + 0.55 * sine(588, sec) + 0.4 * sine(590.8, sec)
+    x += 0.18 * sine(1568, sec) * np.exp(-tt / 0.12)
+    x += 0.12 * bp(noise(n), 2500, 6000) * np.exp(-tt / 0.3)
+    return reverb(x * shape, 0.3, 0.18)
+
+
 def main():
     only = set(sys.argv[2].split(",")) if len(sys.argv) > 2 and sys.argv[1] == "--only" else None
     if only:
         made = []
         gens = {"voice": (voice, 3, 0.8), "presence": (presence, 2, 0.8), "notice": (notice, 2, 0.8),
                 "shriek": (shriek, 2, 0.7), "vanish": (vanish, 2, 0.8), "scrawl": (scrawl, 2, 0.6), "drift": (drift, 2, 0.7), "crack": (crack, 3, 0.8),
-                "heartbeat": (heartbeat, 2, 0.9)}
+                "heartbeat": (heartbeat, 2, 0.9), "charm_hum": (charm_hum, 1, 0.6)}
         for name in only:
             if name == "silence":
                 made.append(write("silence", silence(), 0.12))
@@ -608,6 +622,7 @@ def main():
         made.append(write(f"crack{v + 1}", crack(v), 0.8))
     for v in range(2):
         made.append(write(f"heartbeat{v + 1}", heartbeat(v), 0.9))
+    made.append(write("charm_hum1", charm_hum(0), 0.6))
     for path, dur in made:
         print(f"{os.path.relpath(path, ROOT)}  {dur:.2f}s  {os.path.getsize(path)} bytes")
 

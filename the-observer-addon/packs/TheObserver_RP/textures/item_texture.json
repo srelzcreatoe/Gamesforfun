@@ -41,6 +41,16 @@
       "textures": [
         "textures/items/observer/flare"
       ]
+    },
+    "observer_cold_eye": {
+      "textures": [
+        "textures/items/observer/cold_eye"
+      ]
+    },
+    "observer_cold_charm": {
+      "textures": [
+        "textures/items/observer/cold_charm"
+      ]
     }
   }
 }

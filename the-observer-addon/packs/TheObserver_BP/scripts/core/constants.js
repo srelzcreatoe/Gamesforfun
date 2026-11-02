@@ -16,6 +16,8 @@ export const ITEMS = {
   ward: "observer:ward_lantern",
   wheel: "observer:config_wheel",
   flare: "observer:flare",
+  coldEye: "observer:cold_eye",
+  charm: "observer:cold_charm",
 };
 
 export const BLOCKS = {
@@ -76,6 +78,8 @@ export const SOUNDS = {
   whisper: "observer.whisper",
   themeAround: "observer.theme.around",
   themeMire: "observer.theme.lurking",
+  // 1.4.0: the charm of cold eyes, humming near one of its puppets
+  charmHum: "observer.charm_hum",
 };
 
 export const FOGS = { dread: "observer:dread", soft: "observer:dread_soft", vigil: "observer:vigil" };

@@ -11,10 +11,15 @@ import * as ledger from "../world/ledger.js";
 import { primaryHaunt } from "../observer/memory.js";
 import * as profile from "../observer/profile.js";
 import { adapted } from "../observer/learn.js";
+import * as puppets from "../observer/puppets.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
 /** @param {string} key @param {...(string|number)} withArgs @returns {import("@minecraft/server").RawMessage} */
 const tr = (key, ...withArgs) => (withArgs.length ? { translate: key, with: withArgs.map(String) } : { translate: key });
+/** A translated line whose arguments are themselves translated. @param {string} key @param {...import("@minecraft/server").RawMessage} withArgs @returns {import("@minecraft/server").RawMessage} */
+const trw = (key, ...withArgs) => ({ translate: key, with: { rawtext: withArgs } });
+/** A creature's own name, as the game has it. @param {string} id */
+const creatureName = (id) => tr(id.startsWith("minecraft:") ? `entity.${id.slice(10)}.name` : `entity.${id}.name`);
 /** @param {...(string|import("@minecraft/server").RawMessage)} parts @returns {import("@minecraft/server").RawMessage} */
 const raw = (...parts) => ({ rawtext: parts.map((p) => (typeof p === "string" ? { text: p } : p)) });
 
@@ -135,6 +140,20 @@ async function openIts(p) {
     parts.push("\n\n§8", tr("observer.ui.its_puppets_title"), "§r\n", tr("observer.ui.its_puppets", String(pu.taken)));
     if (pu.seen > 0) parts.push("\n", tr("observer.ui.its_puppets_seen", String(pu.seen)));
     if (pu.torn > 0) parts.push("\n", tr("observer.ui.its_puppets_torn", String(pu.torn)));
+    if ((pu.killed ?? 0) > 0) parts.push("\n", tr("observer.ui.its_puppets_killed", String(pu.killed)));
+  }
+  // what it has learned of each kind it has taken (1.4.0), in its hand
+  const lines = [];
+  for (const [type, k] of Object.entries(puppets.kinds())) {
+    const name = creatureName(type);
+    if (k.fights >= 3) lines.push(trw("observer.ui.its_kind_fights", name));
+    if (k.removed >= 1) lines.push(trw("observer.ui.its_kind_back", name));
+    if (puppets.keepBelow(type)) lines.push(trw("observer.ui.its_kind_below", name));
+    if (k.blocked >= 1) lines.push(trw("observer.ui.its_kind_blocked", name));
+  }
+  if (lines.length && pu && pu.taken > 0) {
+    parts.push("\n\n§8", tr("observer.ui.its_kinds_title"), "§r");
+    for (const l of lines.slice(0, 12)) parts.push("\n", l);
   }
   for (const pg of [...(s.its ?? [])].reverse()) {
     const [key, args, , day, variant] = pg;

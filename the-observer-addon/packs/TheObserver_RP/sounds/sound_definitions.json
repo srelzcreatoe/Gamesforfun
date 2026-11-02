@@ -411,6 +411,15 @@
           "stream": true
         }
       ]
+    },
+    "observer.charm_hum": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/observer/charm_hum1",
+          "volume": 0.8
+        }
+      ]
     }
   }
 }

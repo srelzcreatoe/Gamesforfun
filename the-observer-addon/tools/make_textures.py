@@ -259,6 +259,37 @@ def flare():
     return save(outline(img), "textures", "items", "observer", "flare.png")
 
 
+def cold_eye():
+    """1.4.0: a cold eye, left by one of its puppets killed: a pale, frosted eyeball, a small dark pupil, a cold glint."""
+    img = canvas()
+    d = ImageDraw.Draw(img)
+    d.ellipse([3, 3, 12, 12], fill=(206, 218, 228, 255), outline=(96, 112, 128, 255))
+    d.ellipse([5, 5, 10, 10], fill=(150, 176, 198, 255))
+    d.ellipse([6, 6, 9, 9], fill=(232, 240, 246, 255))
+    d.rectangle([7, 7, 8, 8], fill=(18, 20, 26, 255))
+    img.putpixel((6, 6), (255, 255, 255, 255))
+    for x, y in ((4, 9), (11, 6), (9, 12)):
+        img.putpixel((x, y), (168, 40, 40, 255))
+    return save(outline(img, (20, 24, 30, 255)), "textures", "items", "observer", "cold_eye.png")
+
+
+def cold_charm():
+    """1.4.0: the charm of cold eyes: four small pale eyes hung on a loop of string."""
+    img = canvas()
+    d = ImageDraw.Draw(img)
+    string = (200, 186, 156, 255)
+    d.line([7, 1, 2, 9], fill=string)
+    d.line([8, 1, 13, 9], fill=string)
+    d.point((7, 1), fill=string)
+    d.point((8, 1), fill=string)
+    for cx, cy in ((2, 10), (5, 12), (10, 12), (13, 10)):
+        d.rectangle([cx - 1, cy - 1, cx + 1, cy + 1], fill=(214, 226, 236, 255))
+        img.putpixel((cx, cy), (16, 18, 24, 255))
+    d.line([3, 11, 4, 12], fill=string)
+    d.line([6, 13, 9, 13], fill=string)
+    d.line([11, 12, 12, 11], fill=string)
+    return save(outline(img, (20, 24, 30, 255)), "textures", "items", "observer", "cold_charm.png")
+
 def soft_dot(size, color, falloff=1.6):
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     px = img.load()
@@ -332,6 +363,7 @@ def main():
     made = [veil(), effigy(), ward_lantern(), field_notes(), chalk(), witness_lens(), vestige(), observers_eye(), ward_item(), config_wheel()]
     made += particles()
     made.append(flare())  # drawn last: earlier textures use the seeded random generator
+    made += [cold_eye(), cold_charm()]  # 1.4.0 (no randomness)
     icon = pack_icon()
     icon.save(os.path.join(RP, "pack_icon.png"))
     icon.save(os.path.join(BP, "pack_icon.png"))
@@ -343,7 +375,8 @@ def main():
     json.dump(terrain, open(os.path.join(RP, "textures", "terrain_texture.json"), "w"), indent=2)
     items = {"resource_pack_name": "the_observer", "texture_name": "atlas.items",
              "texture_data": {f"observer_{n}": {"textures": [f"textures/items/observer/{n}"]}
-                              for n in ("field_notes", "chalk", "witness_lens", "vestige", "observers_eye", "ward_lantern", "config_wheel", "flare")}}
+                              for n in ("field_notes", "chalk", "witness_lens", "vestige", "observers_eye", "ward_lantern", "config_wheel", "flare",
+                                        "cold_eye", "cold_charm")}}
     json.dump(items, open(os.path.join(RP, "textures", "item_texture.json"), "w"), indent=2)
     for m in made:
         print(os.path.relpath(m, ROOT))

@@ -1,0 +1,7 @@
+# 1.4.0: its hold — another add-on's creature (a stand-in driven by its own scripts in the test kit) stays its and
+# harmless whatever its scripts do; the cold eye and its charm; the new chase (a sprint, straight, round, up, through a
+# door); its pack; the mirror; the guide; the procession; mine first. Regressions: its puppets, its servants, its herald.
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup hold cold_eyes chase pack mirror guide procession mine_first puppets_core puppets_marked herald servants
+expect \[OTEST\] SUITE DONE 3600

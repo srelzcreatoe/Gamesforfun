@@ -95,7 +95,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 102 test groups (including setup and a status check) with 513 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 110 test groups (including setup and a status check) with 564 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -149,6 +149,9 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | targeted (1.3.0, then with the watchers going round you and the creature groups in daylight) | 134 + 136 | 2 + 0 | first: the night's own skeleton hit the test player and *Not Yours* went for it, which left the test's own creature alive to hit later (test-side); then all passed |
 | full (1.3.0, first) | 512 | 1 | `mire_watcher_in_the_mire`: it stood just outside the Mire, at its edge — fixed (above) |
 | **final (1.3.0)** | **513** | **0** | all passed: the 1.2.1 suite plus its puppets — taken, facing you, still and harmless; your heart and its music near one; its voice out of it; what it sees, it knows; the animals and the other creatures; the lens flare; lurking unwatched; the hunt; given back as it was, and after a restart — a marked kind taken in its cave, brought up after you, turned loose and put back; the one cow; Knocking (opened and left shut); Bait (the villager home unharmed); One of Them; What Was Left; its herald; the night they turn; guards in the Mire; tribute; and *In the Mire* always in its home |
+| targeted (1.4.0: its hold against a stand-in for another add-on's scripted creature, the cold eye and its charm, the chase, its pack, the mirror, the guide, the procession, mine first; with its puppets, its herald and its servants) | 95 + 95 + 95 | 12 + 4 + 1 | first run: 8 failures were test-side (the test kit read the Observer's own note on a creature — a pack's dynamic properties are its alone — and the herald ran straight after a group that used the encounter it announces); real: another pack's every-tick teleport won every frame (fixed with the end-of-tick look: 0 → 60 of 60), invisibility got through (the effect event names effects by display name: fixed), the hunt ran at 3.99 b/s (ground friction: fixed, 5.78), and a pack's blocker gave up its doorway for good (fixed). Third run: the blocker rightly turned on the player its partner's blows had knocked into its doorway (the test now holds the player in place) |
+| full (1.4.0, first) | 547 (cut short) | 16 | the groups clear creatures away between them, as another add-on would — and its own were now brought back, and wandered into later groups; and *Mine first* stopped creatures the older groups need to reach the player. Both are switched off in the test set-up and on in their own groups (`bringback`, `mine`); a run of the suite in the background was also stopped by its time limit |
+| **final (1.4.0)** | **563** | **1** | the 1.3.0 suite plus its hold — harmless while held (its blow, harm in its name and in no one's: 17 undone, 0 taken), pulled back from you, from far off, from the Nether, from a teleport every single tick (60 of 60), unhidden, untouchable but by you, brought back when deleted or killed, learning the kind, and dangerous when turned loose; cold eyes and the charm; the chase at 5.8 b/s, straight, round a wall, up a pillar, through a door; its pack and the doorway; the Mirror; the Guide; the Procession; Mine first; the rage hunting as one. The one failure, `standoff_shot_provokes`, is a timing race in a 1.0.9 test (the standoff ended — looked away from — a moment before the arrow could land; nothing of 1.4.0 is involved): the standoff group then passed twice in a row on its own, 28 of 28 |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -185,6 +188,10 @@ Final run (1.1.2): 87 test groups, 1666 s, minimum TPS between tests 19.8, **0 c
 Final run (1.2.1): 91 test groups, 1771 s, minimum TPS between tests 19.7, **0 content-log or script errors**.
 
 Final run (1.3.0): 102 test groups, 1844 s, minimum TPS between tests 19.9, **0 content-log or script errors**.
+
+Final run (1.4.0): 110 test groups, 2068 s, minimum TPS between tests 19.6, **0 content-log or script errors**; 563 of
+564 (the one, above, then passed on its own twice). On fresh worlds with every experiment off (no test kit), the add-on
+loaded with 0 errors (`noexp.txt`) and the Weeping Mire generated (`mire_locate.txt`).
 
 `noexp.txt` and `mire_locate.txt` re-run on 1.3.0: `level.dat` experiments none, 0 errors.
 `noexp.txt` re-run on 1.2.0 and 1.2.1: `level.dat` experiments none, 0 errors.
@@ -314,6 +321,14 @@ which is why only test worlds get it.
 | `night_turn` | 4 | — |
 | `mire_guards` | 3 | — |
 | `tribute` | 1 | — |
+| `hold` | 15 | — |
+| `cold_eyes` | 4 | — |
+| `chase` | 8 | — |
+| `pack` | 4 | — |
+| `mirror` | 7 | — |
+| `guide` | 4 | — |
+| `procession` | 5 | — |
+| `mine_first` | 4 | — |
 | `natural` | 1 | — |
 | `status` | 0 | — |
 
@@ -450,6 +465,17 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
    zombie nearby: Test an encounter → Knocking (open the door). Near a villager at night: Bait. Near a few zombies:
    One of Them. Mark a kind its rival and stand away from one: What Was Left. Stage 5, midnight, at home:
    `/scriptevent observer:night`.
+20. **1.4.0** — With another add-on whose creature its own scripts move about (a cave dweller, say), mark it *Its
+   puppet* and play it in Survival at stage 3+ (`/scriptevent observer:possess always`): whatever that add-on does to
+   it — teleporting it, hiding it, despawning it — it stays where the Observer puts it, it cannot hurt you while it is
+   only held, and if that add-on removes it, it is back in the same place a moment later. Watch for the pull back (a
+   crack, a puff of shreds) and for anything odd that add-on does with a creature brought back. Stage 4, Standard
+   aggression: let it be turned loose and run — it should keep up with a sprint, come round walls, climb a low wall,
+   open a wooden door. Kill one (`/scriptevent observer:puppet take` near a zombie, then hit it): a Cold Eye; craft four
+   with string into the Charm and walk near a puppet holding it — the hum, louder facing it. Test an encounter → The
+   Mirror (a cow 15 blocks ahead) and The Guide (a cow 10 blocks off); `/scriptevent observer:procession` at night near
+   three or more villagers (and in bed); `/scriptevent observer:mine always` with a zombie walking at you. Provoke a rage
+   with creatures around (stage 4) from inside a house: one should wait in the doorway.
 
 ## 7. Bugs found and fixed
 
@@ -493,6 +519,29 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
 * The new too-close reaction cut *Borrowed Work* short (walking up to the source is that encounter's answer) — it now
   handles the approach itself; spots far below the player's level are penalised (an *Echo Ahead* spot landed 64
   blocks below the test platform).
+
+**Found by the 1.4.0 tests** (the hold was tested against a stand-in for another add-on's creature, driven by its own
+scripts in the test kit's separate script context: teleporting it to the player, 25 blocks away, into the Nether and
+every single tick; making it invisible; clearing its effects; deleting it; killing it; harming itself; and harming
+players in its own name and in no one's)
+* **Another pack's every-tick teleport won every frame**: script packs are ticked one after another, so a pack running
+  after the Observer moved the creature after it had been pulled back — 0 of 60 ticks ended with the creature where it
+  should be. Fixed with a second look at the end of the tick (its own script event, delivered after every pack's
+  scripts have run): 60 of 60 (`hold_tug_of_war_won`).
+* **Invisibility got through**: the effect-add before-event names the effect by its display name ("Invisibility",
+  "Weakness V"), not its id, and the match was case-sensitive. Fixed (case-insensitive), and invisibility is also
+  stripped every tick and at the end of the tick: visible on 40 of 40 looks (`hold_cannot_be_hidden`).
+* **The hunt was slower than intended**: ground friction takes about a third of the speed set each tick — 3.99 blocks a
+  second measured against 5.8 meant. The speed set now allows for it: 5.78 measured (`chase_about_a_sprint`).
+* **A pack's blocker gave up its doorway for good** once the creature driving at the player reached them (the guess at
+  which way the player is running flipped, no doorway was found, and it became a cutter for the rest of the hunt). It
+  now keeps its doorway until it finds a better one or the player is well past it (`pack_one_waits_in_the_doorway`).
+* Test-side: a pack's own dynamic properties are its alone, so the test kit could never read the Observer's note on a
+  creature — the checks now ask the Observer which creatures are its. The stand-in stood exactly 5 blocks from the
+  player, where its scripts' harm (within 5) never fired — moved to 4, so 9 blows in its name and 8 in no one's were
+  actually undone. The herald group ran straight after the servants group in a targeted run, so the encounter it
+  announces was still on cooldown (not so in the full suite). The pack's player is held in place, as the blows of the
+  one rushing them knocked them toward the doorway — where the waiting one rightly turned on them.
 
 **Found by the 1.3.0 tests**
 * *In the Mire* could still stand just outside the Mire at its edge (a pale garden): 1.2.1 kept only the tree spot inside,
