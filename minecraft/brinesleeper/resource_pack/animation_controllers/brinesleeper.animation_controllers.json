@@ -1,0 +1,162 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.brinesleeper.move": {
+      "initial_state": "land_idle",
+      "states": {
+        "land_idle": {
+          "animations": [
+            "watch"
+          ],
+          "blend_transition": 0.3,
+          "transitions": [
+            {
+              "water_idle": "query.is_in_water"
+            },
+            {
+              "run": "query.modified_move_speed > 0.55"
+            },
+            {
+              "stalk": "query.modified_move_speed > 0.02 && query.has_target"
+            },
+            {
+              "walk": "query.modified_move_speed > 0.02"
+            }
+          ]
+        },
+        "walk": {
+          "animations": [
+            "walk"
+          ],
+          "blend_transition": 0.25,
+          "transitions": [
+            {
+              "water_idle": "query.is_in_water"
+            },
+            {
+              "run": "query.modified_move_speed > 0.55"
+            },
+            {
+              "stalk": "query.has_target"
+            },
+            {
+              "land_idle": "!(query.modified_move_speed > 0.02)"
+            }
+          ]
+        },
+        "stalk": {
+          "animations": [
+            "stalk"
+          ],
+          "blend_transition": 0.3,
+          "transitions": [
+            {
+              "water_idle": "query.is_in_water"
+            },
+            {
+              "run": "query.modified_move_speed > 0.55"
+            },
+            {
+              "walk": "!query.has_target && query.modified_move_speed > 0.02"
+            },
+            {
+              "land_idle": "!(query.modified_move_speed > 0.02)"
+            }
+          ]
+        },
+        "run": {
+          "animations": [
+            "run"
+          ],
+          "blend_transition": 0.2,
+          "transitions": [
+            {
+              "water_idle": "query.is_in_water"
+            },
+            {
+              "stalk": "query.modified_move_speed <= 0.5 && query.has_target"
+            },
+            {
+              "walk": "query.modified_move_speed <= 0.5"
+            }
+          ]
+        },
+        "water_idle": {
+          "animations": [
+            "idle_water"
+          ],
+          "blend_transition": 0.4,
+          "transitions": [
+            {
+              "land_idle": "!query.is_in_water"
+            },
+            {
+              "swim": "query.modified_move_speed > 0.05"
+            }
+          ]
+        },
+        "swim": {
+          "animations": [
+            "swim"
+          ],
+          "blend_transition": 0.4,
+          "transitions": [
+            {
+              "land_idle": "!query.is_in_water"
+            },
+            {
+              "water_idle": "query.modified_move_speed <= 0.05"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.brinesleeper.attack": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "transitions": [
+            {
+              "grasp": "query.is_in_water && variable.attack_time > 0"
+            },
+            {
+              "lunge": "variable.attack_time > 0"
+            }
+          ]
+        },
+        "lunge": {
+          "animations": [
+            "lunge"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "default": "query.all_animations_finished"
+            }
+          ]
+        },
+        "grasp": {
+          "animations": [
+            "grasp"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "default": "query.all_animations_finished"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.brinesleeper.look": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "animations": [
+            "look_at_target"
+          ]
+        }
+      }
+    }
+  }
+}

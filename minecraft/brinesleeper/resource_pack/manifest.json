@@ -1,0 +1,29 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Brinesleeper Resources",
+    "description": "The Brinesleeper - aquatic cave dweller (model, texture, animations)",
+    "uuid": "7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e01",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      20,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e02",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

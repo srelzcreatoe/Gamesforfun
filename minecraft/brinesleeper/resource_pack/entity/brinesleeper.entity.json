@@ -1,0 +1,47 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "brine:brinesleeper",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/brinesleeper"
+      },
+      "geometry": {
+        "default": "geometry.brinesleeper"
+      },
+      "animations": {
+        "watch": "animation.brinesleeper.watch",
+        "idle_water": "animation.brinesleeper.idle_water",
+        "walk": "animation.brinesleeper.walk",
+        "stalk": "animation.brinesleeper.crouch_stalk",
+        "run": "animation.brinesleeper.run",
+        "swim": "animation.brinesleeper.swim",
+        "lunge": "animation.brinesleeper.lunge",
+        "grasp": "animation.brinesleeper.grasp",
+        "emerge": "animation.brinesleeper.emerge",
+        "submerge": "animation.brinesleeper.submerge",
+        "look_at_target": "animation.brinesleeper.look_at_target",
+        "move": "controller.animation.brinesleeper.move",
+        "attack": "controller.animation.brinesleeper.attack",
+        "look": "controller.animation.brinesleeper.look"
+      },
+      "scripts": {
+        "animate": [
+          "move",
+          "attack",
+          "look"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.brinesleeper"
+      ],
+      "spawn_egg": {
+        "base_color": "#2b2427",
+        "overlay_color": "#c9bcc1"
+      }
+    }
+  }
+}

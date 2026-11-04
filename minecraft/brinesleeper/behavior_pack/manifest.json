@@ -1,0 +1,39 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Brinesleeper Behaviors",
+    "description": "The Brinesleeper - amphibious cave hunter (starter AI)",
+    "uuid": "7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e03",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      20,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e04",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e01",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

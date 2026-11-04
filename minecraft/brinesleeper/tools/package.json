@@ -1,0 +1,16 @@
+{
+  "name": "brinesleeper-preview-tools",
+  "private": true,
+  "description": "Generators and headless renderer for the Brinesleeper Bedrock model",
+  "dependencies": {
+    "three": "0.170.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  },
+  "scripts": {
+    "build": "python3 build.py out && python3 anim.py out/brinesleeper.animation.json out/preview_meta.json",
+    "stills": "node shoot.js viewer/cinema.html jobs_sheet.json shots/sheet 690 1120 && python3 make_sheet.py shots/sheet shots/brinesleeper_preview_sheet.png",
+    "video": "node render_video.js frames 1920 1080 30 2 && ffmpeg -y -framerate 30 -i frames/f_%05d.png -c:v libx264 -preset slow -crf 19 -pix_fmt yuv420p -movflags +faststart brinesleeper_preview.mp4"
+  }
+}

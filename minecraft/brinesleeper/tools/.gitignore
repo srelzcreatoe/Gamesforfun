@@ -1,0 +1,6 @@
+out/
+node_modules/
+shots/
+frames/
+package-lock.json
+__pycache__/
