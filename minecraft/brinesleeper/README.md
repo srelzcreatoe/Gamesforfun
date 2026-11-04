@@ -9,10 +9,11 @@ on the ground.
 
 ![Turnaround](preview/turnaround.png)
 
-The MP4 preview (`preview/brinesleeper_preview.mp4`, 1080p) shows a turntable and every
-animation, rendered in a voxel cave with reflective water. Every frame and still was rendered
-straight from the exported `.geo.json`, `.animation.json` and texture, using the same
-conventions Blockbench uses, so what you see is what the files contain.
+The MP4 preview (`preview/brinesleeper_preview.mp4`, 1080p, 68 s) shows a turntable and every
+animation, rendered in a voxel cave with reflective water. `preview/viewer.html` is an
+interactive viewer where you can orbit the model and play each animation in a browser. Every
+frame and still was rendered straight from the exported `.geo.json`, `.animation.json` and
+texture, using the same conventions Blockbench uses, so what you see is what the files contain.
 
 ## What's included
 
@@ -22,7 +23,7 @@ conventions Blockbench uses, so what you see is what the files contain.
 | `Brinesleeper.mcaddon` | One-tap import for Minecraft Bedrock: resource pack and behavior pack together. |
 | `resource_pack/` | Geometry, texture, animations, animation controllers, render controller, client entity, and the en_US name. |
 | `behavior_pack/` | Starter AI: amphibious hunter with a spawn rule and a spawn egg. |
-| `preview/` | Preview sheet, turnaround strip, and the MP4. |
+| `preview/` | Preview sheet, turnaround strip, the MP4, and `viewer.html` (interactive 3D viewer). |
 | `tools/` | The scripts that generate everything: model, texture, animations, packs, renders. |
 
 ## Model specs
@@ -57,6 +58,10 @@ conventions Blockbench uses, so what you see is what the files contain.
 
 The keyframes are linear, sampled from procedural motion at 60 fps, and simplified to within
 0.35° and 0.03 px, so Blockbench and the game play them identically.
+
+The gaits are authored for these ground speeds: walk 0.68 blocks/s, crouch_stalk 0.25,
+run 5.4 and swim 2.1. If you change the entity's movement speed a lot, add an
+`anim_time_update` to the locomotion animations so the feet stay planted.
 
 The client entity wires these up with three animation controllers:
 * **Movement:** watch, walk, stalk (when it has a target), run, idle_water and swim.
@@ -104,6 +109,9 @@ python3 export_bbmodel.py out/brinesleeper.geo.json out/brinesleeper.png out/bri
 npm run stills                   # preview sheet
 npm run video                    # MP4 (software WebGL, ~1 h at 1080p)
 ```
+
+The video's soundtrack is mixed by `make_soundtrack.py` from this repository's own synthesized
+audio in `assets/audio`.
 
 Every texture pixel, cube, keyframe and preview was generated for this project; no Mojang assets
 are included. Not affiliated with Mojang or Microsoft.
