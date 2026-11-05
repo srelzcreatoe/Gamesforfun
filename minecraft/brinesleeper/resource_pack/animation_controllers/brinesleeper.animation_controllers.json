@@ -21,6 +21,29 @@
             },
             {
               "walk": "query.modified_move_speed > 0.02"
+            },
+            {
+              "hunt": "query.has_target"
+            }
+          ]
+        },
+        "hunt": {
+          "animations": [
+            "hunting_stance"
+          ],
+          "blend_transition": 0.25,
+          "transitions": [
+            {
+              "water_idle": "query.is_in_water"
+            },
+            {
+              "run": "query.modified_move_speed > 0.55"
+            },
+            {
+              "stalk": "query.modified_move_speed > 0.02"
+            },
+            {
+              "land_idle": "!query.has_target"
             }
           ]
         },

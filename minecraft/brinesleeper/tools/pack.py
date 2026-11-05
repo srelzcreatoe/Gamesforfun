@@ -59,6 +59,10 @@ write(f'{RP}/entity/brinesleeper.entity.json', {
                 'emerge': 'animation.brinesleeper.emerge',
                 'submerge': 'animation.brinesleeper.submerge',
                 'look_at_target': 'animation.brinesleeper.look_at_target',
+                **{n: f'animation.brinesleeper.{n}' for n in (
+                    'submerged_watch', 'shoreline_stalk', 'corner_watch', 'ceiling_lurk', 'distant_observer', 'veil_stalk',
+                    'reflection_lurk', 'tunnel_crawl', 'patient_strike', 'shadow_hide', 'full_stand', 'head_tilt', 'slow_approach',
+                    'emerge_roar', 'water_rise', 'hunting_stance', 'behind_cover', 'ledge_watch', 'retreat')},
                 'move': 'controller.animation.brinesleeper.move',
                 'attack': 'controller.animation.brinesleeper.attack',
                 'look': 'controller.animation.brinesleeper.look',
@@ -83,7 +87,10 @@ write(f'{RP}/animation_controllers/brinesleeper.animation_controllers.json', {
             'states': {
                 'land_idle': {'animations': ['watch'], 'blend_transition': 0.3, 'transitions': [
                     {'water_idle': 'query.is_in_water'}, {'run': 'query.modified_move_speed > 0.55'},
-                    {'stalk': f'{moving} && query.has_target'}, {'walk': moving}]},
+                    {'stalk': f'{moving} && query.has_target'}, {'walk': moving}, {'hunt': 'query.has_target'}]},
+                'hunt': {'animations': ['hunting_stance'], 'blend_transition': 0.25, 'transitions': [
+                    {'water_idle': 'query.is_in_water'}, {'run': 'query.modified_move_speed > 0.55'},
+                    {'stalk': moving}, {'land_idle': '!query.has_target'}]},
                 'walk': {'animations': ['walk'], 'blend_transition': 0.25, 'transitions': [
                     {'water_idle': 'query.is_in_water'}, {'run': 'query.modified_move_speed > 0.55'},
                     {'stalk': 'query.has_target'}, {'land_idle': f'!({moving})'}]},

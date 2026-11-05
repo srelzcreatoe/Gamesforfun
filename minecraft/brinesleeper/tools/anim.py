@@ -244,9 +244,250 @@ def anim(name, length, loop=True, **meta):
     return deco
 
 
-# ------------------------------------------------------------------ watching (shoreline)
+# ------------------------------------------------------------------ shared building blocks
+def drips(p, t, amp=1.0, speed=1.0, kick=(0.0, 0.0)):
+    """liquid strands: two-segment strands lag behind their roots like heavy goo"""
+    for i, name in enumerate(('drip_right', 'drip_left', 'drip_mouth', 'drip_cheek_right', 'drip_cheek_left')):
+        ph = i * 1.37
+        ax = amp * 7 * math.sin(TAU * t * speed / 1.5 + ph) + kick[0]
+        az = amp * 5 * math.sin(TAU * t * speed / 2.0 + ph * 0.7) + kick[1]
+        p.rot(name, ax, 0, az)
+        if name in ('drip_right', 'drip_left'):
+            p.rot(name + '_end', 0.8 * amp * 7 * math.sin(TAU * t * speed / 1.5 + ph - 1.1) + 0.6 * kick[0], 0,
+                  0.8 * amp * 5 * math.sin(TAU * t * speed / 2.0 + ph * 0.7 - 1.1) + 0.6 * kick[1])
+
+
+def gait(ph, start, swing, stride):
+    """(dz, lift, swing-progress) for one limb. Bedrock +z is BACKWARD:
+    swing carries the limb forward (+S/2 -> -S/2), stance slides it back under the body (-S/2 -> +S/2)."""
+    k = (ph - start) % 1.0
+    if k < swing:
+        e = smoother(k / swing)
+        return stride / 2 - stride * e, math.sin(math.pi * k / swing), k / swing
+    k2 = (k - swing) / (1 - swing)
+    return -stride / 2 + stride * k2, 0.0, None
+
+
+def gait_speed(stride, swing, period):
+    """root speed (px/s) that keeps planted limbs fixed on the ground"""
+    return stride / ((1 - swing) * period)
+
+
+def orient_hand(p, side, target_dir):
+    """Aim the fingers along target_dir by bending the wrist only (local X/Z): no twisting of the hand."""
+    W = fk(p)
+    Rf = W[f'{side}_forearm'][0]
+    rest = REST[f'{side}_hand']
+    tgt = nrm(np.asarray(target_dir, dtype=float))
+
+    def search(xs, zs):
+        X, Z = np.meshgrid(xs, zs, indexing='ij')
+        a = -np.radians(rest[0] + X)
+        b = np.radians(rest[1])
+        c = -np.radians(rest[2] + Z)
+        x1 = -np.sin(a) * np.sin(b)
+        y1 = -np.cos(a)
+        z1 = -np.sin(a) * np.cos(b)
+        x2 = x1 * np.cos(c) - y1 * np.sin(c)
+        y2 = x1 * np.sin(c) + y1 * np.cos(c)
+        d = np.stack([x2, y2, z1], -1) @ Rf.T
+        score = d @ tgt
+        i = np.unravel_index(np.argmax(score), score.shape)
+        return X[i], Z[i]
+
+    x, z = search(np.arange(-100, 101, 5.0), np.arange(-70, 71, 5.0))
+    x, z = search(np.arange(x - 5, x + 5.01, 0.5), np.arange(z - 5, z + 5.01, 0.5))
+    p.set_rot(f'{side}_hand', [x, 0, z])
+
+
+def plant_arm(p, side, target, pole, down=0.35, curl_amt=22.0, lift=0.0):
+    """IK the arm so the wrist reaches target, then lay the hand along the forearm's heading (no twist)."""
+    E, T = two_bone(p, f'{side}_arm', f'{side}_forearm', f'{side}_hand', target, pole, 'arm')
+    fwd = T - E
+    head = np.array([fwd[0], 0.0, fwd[2]])
+    if np.linalg.norm(head) < 1e-3:
+        head = np.array([0.0, 0.0, -1.0])
+    head = nrm(head)
+    orient_hand(p, side, head + np.array([0.0, -down + 0.6 * lift, 0.0]))
+    curl(p, side, curl_amt + 18 * lift, curl_amt * 1.25 + 22 * lift)
+
+
+def plant_leg(p, side, target, pole=None, pitch=0.0, s=None):
+    s = -1 if side == 'right' else 1
+    two_bone(p, f'{side}_leg', f'{side}_shin', f'{side}_foot', target, pole if pole is not None else (0.12 * s, 0.3, -1), 'leg')
+    flat_foot(p, side, pitch)
+
+
+def root_point(p, v):
+    """model-frame point -> world, through whatever the root bone is doing (flips, turns, slides)"""
+    W = fk(p)
+    R, tr = W['root']
+    return R @ np.asarray(v, dtype=float) + tr
+
+
+def plant_feet(p, spread=0.0, back=0.0):
+    for side, s in SIDES:
+        a = REST_ANKLE[side]
+        plant_leg(p, side, (a[0] + spread * s, a[1], a[2] + back))
+
+
+def stand(p, k, lean=0.0):
+    """Unfold the hunch toward the creature's full upright height (k: 0 rest -> 1 full stand)."""
+    p.pos('body', 0, 4.2 * k, 1.0 * k)
+    p.rot('pelvis', -9 * k + lean * 0.4)
+    p.rot('waist', -6 * k + lean * 0.3)
+    p.rot('chest', -8 * k + lean * 0.3)
+    p.rot('neck_lower', -16 * k)
+    p.rot('neck_mid', -12 * k)
+    p.rot('neck_upper', -8 * k)
+    for side, s in SIDES:
+        p.rot(f'{side}_arm', 22 * k - lean * 0.9, 0, -3 * s * k)
+        p.rot(f'{side}_forearm', 14 * k)
+
+
+def crouch_base(p, depth=1.0, head_up=0.0):
+    p.pos('body', 0, -11.0 * depth, 2.0 * depth)
+    p.rot('pelvis', 30 * depth)
+    p.rot('waist', 10 * depth)
+    p.rot('chest', 8 * depth)
+    p.rot('neck_lower', -8 * depth - 10 * head_up)
+    p.rot('neck_mid', -14 * depth - 6 * head_up)
+    p.rot('neck_upper', -6 * depth)
+
+
+# ------------------------------------------------------------------ the twitch / crackle layer
+GROUPS = {
+    'head': [('head', 1.0), ('neck_upper', 0.4)],
+    'neck': [('neck_mid', 1.0), ('neck_lower', 0.5)],
+    'jaw': [('jaw', 1.0)],
+    'spine': [('chest', 1.0), ('waist', 0.4)],
+    'r_arm': [('right_arm', 1.0), ('right_forearm', 0.6)],
+    'l_arm': [('left_arm', 1.0), ('left_forearm', 0.6)],
+    'r_hand': [('right_hand', 1.0)],
+    'l_hand': [('left_hand', 1.0)],
+}
+SCALE = {
+    'head': (15, 20, 18), 'neck': (7, 8, 9), 'jaw': (12, 0, 0), 'spine': (4, 5, 3),
+    'r_arm': (12, 6, 10), 'l_arm': (12, 6, 10), 'r_hand': (18, 0, 14), 'l_hand': (18, 0, 14),
+}
+
+
+class Spasms:
+    """Deterministic, loop-safe jerks: snap-and-hold head cracks, flicks, finger spasms and tremor bursts."""
+
+    def __init__(self, length, loop, seed, rate=1.0, groups=('head', 'neck', 'jaw', 'fingers', 'spine'),
+                 amp=1.0, tremor=None, tremor_amp=1.6):
+        rng = np.random.default_rng(seed)
+        self.L, self.loop = length, loop
+        n = max(1, int(round(length * rate)))
+        self.events = []
+        for i in range(n):
+            t0 = (i + rng.uniform(0.15, 0.85)) * length / n
+            g = groups[int(rng.integers(len(groups)))]
+            if g == 'fingers':
+                side = 'right' if rng.random() < 0.5 else 'left'
+                self.events.append(dict(kind='curl', t0=t0, side=side, a=amp * rng.uniform(20, 42),
+                                        hold=rng.uniform(0.05, 0.25)))
+                continue
+            kind = 'snap' if rng.random() < 0.55 else 'flick'
+            sx, sy, sz = SCALE[g]
+            v = rng.normal(0, 1, 3) * np.array([sx, sy, sz]) * amp * 0.75
+            if g == 'jaw':
+                v = np.array([abs(v[0]) + 4 * amp, 0, 0])
+            self.events.append(dict(kind=kind, t0=t0, g=g, v=v, hold=rng.uniform(0.1, 0.45)))
+        self.tremor = tremor or []
+        self.tremor_amp = tremor_amp
+        # keep the tremor periodic over a loop
+        self.f1 = max(1, round(19.0 * length)) / length
+        self.f2 = max(1, round(31.0 * length)) / length
+
+    def _dt(self, t, t0):
+        dt = t - t0
+        if self.loop:
+            dt = (dt + self.L / 2) % self.L - self.L / 2
+        return dt
+
+    @staticmethod
+    def env(kind, dt, hold):
+        if dt < 0:
+            return 0.0
+        if kind == 'flick':
+            if dt < 0.04:
+                return dt / 0.04
+            return math.exp(-(dt - 0.04) / 0.07) if dt < 0.45 else 0.0
+        # snap: crack into a new angle, hold it (shivering), crack back
+        if dt < 0.035:
+            return dt / 0.035
+        if dt < 0.035 + hold:
+            return 1.0 + 0.06 * math.sin(dt * 95)
+        r = dt - 0.035 - hold
+        return max(0.0, 1.0 - r / 0.07)
+
+    def apply(self, p, t, skip=()):
+        for e in self.events:
+            dt = self._dt(t, e['t0'])
+            if e['kind'] == 'curl':
+                if 'fingers' in skip or (e['side'][0] + '_fingers') in skip:
+                    continue
+                for i, f in enumerate(FINGERS):
+                    d = dt - 0.022 * i
+                    k = self.env('snap', d, e['hold'])
+                    if k:
+                        p.rot(f"{e['side']}_{f}", e['a'] * k)
+                        p.rot(f"{e['side']}_{f}_tip", e['a'] * 1.2 * k)
+                continue
+            if e['g'] in skip:
+                continue
+            k = self.env(e['kind'], dt, e['hold'])
+            if k:
+                for bone, w in GROUPS[e['g']]:
+                    p.rot(bone, *(e['v'] * w * k))
+        for (a, b) in self.tremor:
+            if self.loop:
+                inside = (t - a) % self.L < (b - a) % self.L
+                d0 = (t - a) % self.L
+                d1 = (b - t) % self.L
+            else:
+                inside = a <= t <= b
+                d0, d1 = t - a, b - t
+            if not inside:
+                continue
+            w = min(1.0, d0 / 0.12, d1 / 0.12) * self.tremor_amp
+            s1 = math.sin(TAU * self.f1 * t)
+            s2 = math.sin(TAU * self.f2 * t + 1.3)
+            p.rot('head', w * (1.2 * s1 + 0.6 * s2), w * 0.8 * s2, w * (0.9 * s2 - 0.5 * s1))
+            p.rot('neck_upper', w * 0.5 * s2, 0, w * 0.4 * s1)
+            p.rot('jaw', abs(w * 1.4 * s1))
+            for side, _ in SIDES:
+                if 'fingers' in skip or (side[0] + '_fingers') in skip:
+                    continue
+                for i, f in enumerate(FINGERS):
+                    p.rot(f'{side}_{f}', w * 2.2 * math.sin(TAU * self.f2 * t + i * 1.1))
+
+
+def stutter(t, length, n, amp):
+    """jerky time: the motion lurches and stalls n times per loop (monotonic for amp < 1)."""
+    return t - (length / (TAU * n)) * amp * math.sin(TAU * n * t / length)
+
+
+def hang_arms(p, t, k=1.0, period=3.0, sway=1.0, splay=0.0, sides=('right', 'left')):
+    for side, s in SIDES:
+        if side not in sides:
+            continue
+        ph = 0 if s < 0 else 1.7
+        p.rot(f'{side}_arm', sway * 2.0 * math.sin(TAU * t / period + ph), 0, -s * (splay + sway * 1.2 * math.sin(TAU * t / period * 0.5 + ph)))
+        p.rot(f'{side}_forearm', sway * -2.0 * math.sin(TAU * t / period + ph - 0.7))
+
+
+W0 = fk(Pose())
+REST_ANKLE = {s: wp(W0, f'{s}_foot') for s, _ in SIDES}
+REST_WRIST = {s: wp(W0, f'{s}_hand') for s, _ in SIDES}
+WATER_IDLE = 33.0
+
+
+# =================================================================== original set (fixed)
 @anim('watch', 6.0, scene='shore')
-def a_watch(t):
+def a_watch(t, sp=Spasms(6.0, True, 11, rate=1.0, groups=('head', 'head', 'neck', 'fingers', 'jaw', 'r_arm'), tremor=[(2.35, 2.95)])):
     p = Pose()
     breathe(p, t, 3.0)
     p.pos('body', 0.35 * math.sin(TAU * t / 6.0), 0, 0)
@@ -257,24 +498,15 @@ def a_watch(t):
     p.rot('neck_upper', float(peek))
     p.rot('neck_mid', 0.5 * float(peek), 0, 0.25 * float(tilt))
     p.rot('head', float(nod) - 1.5 * float(peek), 0, float(tilt))
-    p.rot('jaw', 1.5 + 1.5 * math.sin(TAU * t / 3.0))
     for side, s in SIDES:
-        t0 = 1.1 if side == 'right' else 4.1
-        for i, f in enumerate(FINGERS):
-            k = bump(t - t0 - 0.09 * i, 0.75)
-            p.rot(f'{side}_{f}', 22 * k)
-            p.rot(f'{side}_{f}_tip', 30 * k)
         p.rot(f'{side}_hand', 3 * math.sin(TAU * t / 3.0 + (0 if s < 0 else 1.5)))
+    sp.apply(p, t)
     drips(p, t, 0.8)
     return p
 
 
-# ------------------------------------------------------------------ idle in water
-WATER_IDLE = 33.0
-
-
 @anim('idle_water', 4.0, scene='water', water_level=WATER_IDLE)
-def a_idle_water(t):
+def a_idle_water(t, sp=Spasms(4.0, True, 12, rate=1.25, groups=('head', 'head', 'neck', 'jaw'), tremor=[(1.1, 1.6)])):
     p = Pose()
     bob = math.sin(TAU * t / 4.0)
     p.pos('body', 0, -7 + 0.7 * bob, 0)
@@ -285,136 +517,97 @@ def a_idle_water(t):
     p.rot('neck_mid', 2)
     p.rot('neck_upper', -4 - 2 * bob)
     aim_head(p, 4 + 3 * math.sin(TAU * t / 4.0 + 1.0), 6 * math.sin(TAU * t / 4.0), 8 * math.sin(TAU * t / 4.0 + 0.6))
-    p.rot('jaw', 2)
-    # legs tread slowly below the surface
     for side, s in SIDES:
         ph = 0 if s < 0 else math.pi
         p.rot(f'{side}_leg', -10 + 14 * math.sin(TAU * t / 4.0 + ph))
         p.rot(f'{side}_shin', 10 + 12 * math.sin(TAU * t / 4.0 + ph - 0.9))
         p.rot(f'{side}_foot', 10 * math.sin(TAU * t / 4.0 + ph - 1.6))
-    # arms splayed out on the surface like a spider, elbows up
-    W = fk(p)
     for side, s in SIDES:
         sweep = math.sin(TAU * t / 4.0 + (0 if s < 0 else 2.2))
-        if s < 0:
-            tgt = np.array([-20.0 + 1.2 * sweep, WATER_IDLE + 1.0, -12.0 + 1.6 * sweep])
-        else:
-            tgt = np.array([19.0 - 1.0 * sweep, WATER_IDLE + 1.0, -5.0 + 1.4 * sweep])
-        two_bone(p, f'{side}_arm', f'{side}_forearm', f'{side}_hand', tgt, (0.9 * s, 2.6, 0.2), 'arm')
-        plant_hand(p, side, (0.35 * s, -0.12, -1.0), (0, -1, 0))
+        tgt = np.array([21.0 * s + 1.0 * sweep * s, WATER_IDLE + 1.0, (-12.0 if s < 0 else -5.0) + 1.5 * sweep])
+        plant_arm(p, side, tgt, (0.9 * s, 2.6, 0.2), down=0.15, curl_amt=12)
         for i, f in enumerate(FINGERS):
-            tap = bump((t * 1.0 + 0.11 * i + (0 if s < 0 else 0.5)) % 1.0, 0.35)
-            p.rot(f'{side}_{f}', 10 + 18 * tap * (1 if s < 0 else 0.5))
-            p.rot(f'{side}_{f}_tip', 14 + 10 * tap)
+            tap = bump((t + 0.11 * i + (0 if s < 0 else 0.5)) % 1.0, 0.35)
+            p.rot(f'{side}_{f}', 16 * tap * (1 if s < 0 else 0.5))
+            p.rot(f'{side}_{f}_tip', 10 * tap)
+    sp.apply(p, t)
     drips(p, t, 0.6, 1.0)
     return p
 
 
-# ------------------------------------------------------------------ hunched walk
-WALK_T, WALK_STRIDE = 2.4, 26.0
+WALK_T, WALK_STRIDE, WALK_DUTY = 2.4, 26.0, 0.62
 
 
-@anim('walk', WALK_T, scene='shore', speed=WALK_STRIDE / WALK_T)
-def a_walk(t):
+@anim('walk', WALK_T, scene='shore', speed=WALK_STRIDE / (WALK_DUTY * WALK_T))
+def a_walk(t, sp=Spasms(WALK_T, True, 13, rate=1.25, groups=('head', 'head', 'neck', 'fingers', 'jaw'))):
     p = Pose()
     ph = t / WALK_T
     w = TAU * ph
+    tu = stutter(t, WALK_T, 2, 0.45)          # the upper body lurches
+    wu = TAU * tu / WALK_T
     p.pos('body', 0.7 * math.sin(w), -1.1 + 0.9 * math.cos(2 * w - 0.6), 0)
     p.rot('pelvis', 4 + 1.5 * math.cos(2 * w), -5 * math.sin(w), 3 * math.sin(w))
     p.rot('waist', 0, 3 * math.sin(w), -1.5 * math.sin(w))
-    p.rot('chest', 2 + 1.5 * math.cos(2 * w - 0.4), 4 * math.sin(w), -1.5 * math.sin(w))
-    # long neck lags and stabilises the head
-    p.rot('neck_lower', 2.5 * math.cos(2 * w - 1.0), 0, 2.5 * math.sin(w - 0.6))
-    p.rot('neck_mid', 1.5 * math.cos(2 * w - 1.5), 0, 1.5 * math.sin(w - 1.0))
-    p.rot('head', -4.5 * math.cos(2 * w - 1.6) - 2, -3 * math.sin(w - 1.2), -5.5 * math.sin(w - 1.0))
-    p.rot('jaw', 2)
-    duty = 0.62
+    p.rot('chest', 2 + 1.5 * math.cos(2 * wu - 0.4), 4 * math.sin(wu), -1.5 * math.sin(wu))
+    p.rot('neck_lower', 2.5 * math.cos(2 * wu - 1.0), 0, 2.5 * math.sin(wu - 0.6))
+    p.rot('neck_mid', 1.5 * math.cos(2 * wu - 1.5), 0, 1.5 * math.sin(wu - 1.0))
+    p.rot('head', -4.5 * math.cos(2 * wu - 1.6) - 2, -3 * math.sin(wu - 1.2), -5.5 * math.sin(wu - 1.0))
     for side, s in SIDES:
         fph = (ph + (0.0 if s > 0 else 0.5)) % 1.0
         base = REST_ANKLE[side]
-        if fph < duty:
-            k = fph / duty
+        if fph < WALK_DUTY:
+            k = fph / WALK_DUTY
             z = base[2] - WALK_STRIDE / 2 + WALK_STRIDE * k
             y = base[1]
             pitch = 0
         else:
-            k = (fph - duty) / (1 - duty)
+            k = (fph - WALK_DUTY) / (1 - WALK_DUTY)
             e = smooth(k)
             z = base[2] + WALK_STRIDE / 2 - WALK_STRIDE * e
             y = base[1] + 5.0 * math.sin(math.pi * k) ** 1.2
             pitch = 22 * math.sin(math.pi * k) - 8 * bump(k - 0.6, 0.4)
-        two_bone(p, f'{side}_leg', f'{side}_shin', f'{side}_foot', (base[0] + 0.4 * s, y, z), (0.1 * s, 0.3, -1), 'leg')
-        flat_foot(p, side, pitch)
-        # arms swing opposite their leg, forearm and hand trail behind
-        aw = w + (0 if s < 0 else math.pi)
+        plant_leg(p, side, (base[0] + 0.4 * s, y, z), (0.1 * s, 0.3, -1), pitch)
+        aw = wu + (0 if s < 0 else math.pi)
         p.rot(f'{side}_arm', -15 * math.sin(aw), 0, 2 * s * math.cos(aw))
         p.rot(f'{side}_forearm', -10 * math.sin(aw - 0.7) - 4)
         p.rot(f'{side}_hand', 9 * math.sin(aw - 1.4))
         curl(p, side, 14 + 6 * math.sin(aw - 2.0))
+    sp.apply(p, t)
     drips(p, t, 1.0, 1.0, (6 * math.sin(2 * w - 1.8), 0))
     return p
 
 
-# ------------------------------------------------------------------ crouch / stalk (low quadruped creep)
-STALK_T, STALK_STRIDE = 3.2, 13.0
-STALK_LIMBS = {  # phase offsets of each limb's swing (lateral sequence)
-    'right_hand': 0.00, 'left_foot': 0.25, 'left_hand': 0.50, 'right_foot': 0.75,
-}
+STALK_T, STALK_STRIDE, STALK_SWING = 3.2, 13.0, 0.22
+STALK_ORDER = {'right_hand': 0.00, 'left_foot': 0.25, 'left_hand': 0.50, 'right_foot': 0.75}
 
 
-def crouch_base(p, t, depth=1.0):
-    p.pos('body', 0, -11.0 * depth, 2.0 * depth)
-    p.rot('pelvis', 30 * depth)
-    p.rot('waist', 10 * depth)
-    p.rot('chest', 8 * depth)
-    p.rot('neck_lower', -8 * depth)
-    p.rot('neck_mid', -14 * depth)
-    p.rot('neck_upper', -6 * depth)
-
-
-def gait_offset(ph, start, swing, stride):
-    """foot/hand z offset (relative) & lift for a limb whose swing starts at 'start' and lasts 'swing' (cycle fraction)."""
-    k = (ph - start) % 1.0
-    if k < swing:
-        e = smoother(k / swing)
-        return stride / 2 - stride * e, math.sin(math.pi * k / swing), k / swing
-    k2 = (k - swing) / (1 - swing)
-    return -stride / 2 + stride * k2, 0.0, None
-
-
-@anim('crouch_stalk', STALK_T, scene='shore', speed=STALK_STRIDE / STALK_T)
-def a_stalk(t):
+@anim('crouch_stalk', STALK_T, scene='shore', speed=gait_speed(STALK_STRIDE, STALK_SWING, STALK_T))
+def a_stalk(t, sp=Spasms(STALK_T, True, 14, rate=1.6, groups=('head', 'head', 'neck', 'jaw', 'spine'), tremor=[(1.7, 2.1)])):
     p = Pose()
     ph = t / STALK_T
     w = TAU * ph
-    crouch_base(p, t)
+    crouch_base(p)
     p.pos('body', 0.8 * math.sin(w), 0.6 * math.sin(2 * w), 0)
     p.rot('pelvis', 0, 4 * math.sin(w), 2 * math.sin(w))
     p.rot('chest', 0, -5 * math.sin(w + 0.5), -2 * math.sin(w))
-    aim_head(p, 14 + 2 * math.sin(2 * w), 5 * math.sin(w + 0.4), 7 * math.sin(w + 1.0))
+    sp.apply(p, t, skip=('head', 'jaw'))       # spine jerks before IK so the limbs stay planted
     for side, s in SIDES:
-        # feet
-        dz, lift, _ = gait_offset(ph, STALK_LIMBS[f'{side}_foot'], 0.2, STALK_STRIDE)
+        dz, lift, _ = gait(ph, STALK_ORDER[f'{side}_foot'], STALK_SWING, STALK_STRIDE)
         base = REST_ANKLE[side] + np.array([0.8 * s, 0, 1.5])
-        two_bone(p, f'{side}_leg', f'{side}_shin', f'{side}_foot', (base[0], 2.0 + 3.5 * lift, base[2] - dz),
-                 (0.5 * s, 0.35, -1), 'leg')
-        flat_foot(p, side, 15 * lift)
-        # hands planted far forward and wide, elbows hiked up like a spider
-        dz, lift, _ = gait_offset(ph, STALK_LIMBS[f'{side}_hand'], 0.2, STALK_STRIDE)
-        tgt = np.array([15.0 * s, 1.6 + 6.0 * lift, -13.0 - dz])
-        two_bone(p, f'{side}_arm', f'{side}_forearm', f'{side}_hand', tgt, (0.8 * s, 2.6, 0.35), 'arm')
-        plant_hand(p, side, (0.25 * s, -0.25 * lift, -1.0), (0, -1, 0.4 * lift))
-        curl(p, side, 18 + 25 * lift, 26 + 30 * lift)
+        plant_leg(p, side, (base[0], 2.0 + 3.5 * lift, base[2] + dz), (0.5 * s, 0.35, -1), 15 * lift)
+        dz, lift, _ = gait(ph, STALK_ORDER[f'{side}_hand'], STALK_SWING, STALK_STRIDE)
+        plant_arm(p, side, (15.0 * s, 1.6 + 6.0 * lift, -13.0 + dz), (0.8 * s, 2.6, 0.35), lift=lift)
+    aim_head(p, 14 + 2 * math.sin(2 * w), 5 * math.sin(w + 0.4), 7 * math.sin(w + 1.0))
+    sp.apply(p, t, skip=('neck', 'spine', 'fingers', 'r_arm', 'l_arm'))
     drips(p, t, 0.9, 1.0)
     return p
 
 
-# ------------------------------------------------------------------ run (hunt state): fast scramble on all fours
-RUN_T, RUN_STRIDE = 0.72, 62.0
+RUN_T, RUN_STRIDE, RUN_SWING = 0.72, 26.0, 0.6
 
 
-@anim('run', RUN_T, scene='shallows', speed=RUN_STRIDE / RUN_T)
-def a_run(t):
+@anim('run', RUN_T, scene='shallows', speed=gait_speed(RUN_STRIDE, RUN_SWING, RUN_T))
+def a_run(t, sp=Spasms(RUN_T, True, 15, rate=2.8, groups=('head', 'jaw'))):
     p = Pose()
     ph = t / RUN_T
     w = TAU * ph
@@ -425,83 +618,26 @@ def a_run(t):
     p.rot('neck_lower', -14 - 6 * math.sin(w - 1.2))
     p.rot('neck_mid', -22 + 4 * math.sin(w - 1.6))
     p.rot('neck_upper', -12)
-    aim_head(p, 2 + 6 * math.sin(w - 1.4), 0, 3 * math.sin(w))
-    p.rot('jaw', 6 + 4 * math.sin(2 * w))
-    # transverse gallop: hind pair then fore pair
     phases = {'left_foot': 0.0, 'right_foot': 0.09, 'left_hand': 0.46, 'right_hand': 0.56}
     for side, s in SIDES:
-        dz, lift, _ = gait_offset(ph, phases[f'{side}_foot'], 0.62, RUN_STRIDE * 0.42)
-        base = REST_ANKLE[side] + np.array([0.6 * s, 0, 5.5])
-        two_bone(p, f'{side}_leg', f'{side}_shin', f'{side}_foot', (base[0], 2.0 + 9.0 * lift, base[2] - dz - 4),
-                 (0.3 * s, 0.5, -1), 'leg')
-        flat_foot(p, side, 35 * lift - 10)
-        dz, lift, _ = gait_offset(ph, phases[f'{side}_hand'], 0.6, RUN_STRIDE * 0.42)
-        tgt = np.array([12.5 * s, 2.0 + 10.0 * lift, -19.0 - dz])
-        two_bone(p, f'{side}_arm', f'{side}_forearm', f'{side}_hand', tgt, (0.9 * s, 1.6, 0.7), 'arm')
-        plant_hand(p, side, (0.2 * s, -0.4 * lift, -1.0), (0, -1, 0.8 * lift))
-        curl(p, side, 14 + 30 * lift, 20 + 30 * lift)
+        dz, lift, _ = gait(ph, phases[f'{side}_foot'], RUN_SWING, RUN_STRIDE)
+        base = REST_ANKLE[side] + np.array([0.6 * s, 0, 1.5])
+        plant_leg(p, side, (base[0], 2.0 + 9.0 * lift, base[2] + dz), (0.3 * s, 0.5, -1), 35 * lift - 10)
+        dz, lift, _ = gait(ph, phases[f'{side}_hand'], RUN_SWING, RUN_STRIDE)
+        plant_arm(p, side, (13.0 * s, 2.0 + 10.0 * lift, -21.0 + dz), (0.9 * s, 1.6, 0.7), lift=lift)
+    aim_head(p, 2 + 6 * math.sin(w - 1.4), 0, 3 * math.sin(w))
+    p.rot('jaw', 6 + 4 * math.sin(2 * w))
+    sp.apply(p, t)
     drips(p, t, 0.6, 2.0, (30 + 8 * math.sin(2 * w), 0))
     return p
 
 
-# ------------------------------------------------------------------ lunge attack (one shot)
-@anim('lunge', 1.3, loop=False, scene='shore')
-def a_lunge(t):
-    p = Pose()
-    K = [(0, 0), (0.38, 1, smooth), (0.52, 2, ease_out), (0.7, 2.15, smooth), (1.3, 3, smooth)]
-    # phase value: 0 rest, 1 coil, 2 strike, 3 recovered
-    ph = float(track(t, K))
-
-    def blend(coil, strike):
-        coil, strike = np.array(coil, dtype=float), np.array(strike, dtype=float)
-        if ph <= 1:
-            return coil * ph
-        if ph <= 2:
-            return coil + (strike - coil) * (ph - 1)
-        if ph <= 2.15:
-            return strike * (1 + 0.06 * (ph - 2) / 0.15)
-        return strike * 1.06 * (3 - ph) / 0.85
-
-    p.pos('body', *blend([0, -6, 4], [0, 2, -15]))
-    p.rot('pelvis', *blend([12, 0, 0], [26, 0, 0]))
-    p.rot('waist', *blend([6, 0, 0], [8, 0, 0]))
-    p.rot('chest', *blend([6, 0, 0], [4, 0, 0]))
-    p.rot('neck_lower', *blend([14, 0, 0], [6, 0, 0]))
-    p.rot('neck_mid', *blend([14, 0, 0], [-16, 0, 0]))
-    p.rot('neck_upper', *blend([8, 0, 0], [-24, 0, 0]))
-    p.rot('head', *blend([-30, 0, 8], [-2, 0, -4]))
-    p.rot('jaw', *blend([0, 0, 0], [30, 0, 0]))
-    p.rot('right_arm', *blend([30, 0, 6], [-128, 8, 14]))
-    p.rot('right_forearm', *blend([-35, 0, 0], [12, 0, 0]))
-    p.rot('right_hand', *blend([12, 0, 0], [-40, 20, 0]))
-    p.rot('left_arm', *blend([22, 0, -4], [-100, -6, -18]))
-    p.rot('left_forearm', *blend([-30, 0, 0], [-8, 0, 0]))
-    p.rot('left_hand', *blend([10, 0, 0], [-28, -15, 0]))
-    for side, s in SIDES:
-        c = blend([30, 0, 0], [-22, 0, 0])[0]
-        for i, f in enumerate(FINGERS):
-            sp = blend([0, 0, 0], [0, 0, (i - 1.5) * 9 * (1 if s < 0 else -1)])[2] if f != 'thumb' else 0
-            p.rot(f'{side}_{f}', c, 0, sp)
-            p.rot(f'{side}_{f}_tip', c * 0.9)
-    # feet stay planted while the body coils and thrusts
-    for side, s in SIDES:
-        base = REST_ANKLE[side]
-        two_bone(p, f'{side}_leg', f'{side}_shin', f'{side}_foot', (base[0], base[1], base[2] + (2 if s > 0 else -3)),
-                 (0.15 * s, 0.3, -1), 'leg')
-        flat_foot(p, side, 0)
-    kick = blend([-10, 0], [38, 0])
-    drips(p, t, 0.5, 1.0, (kick[0], kick[1]))
-    return p
-
-
-# ------------------------------------------------------------------ drowning grasp (one shot)
 @anim('grasp', 2.2, loop=False, scene='water', water_level=WATER_IDLE)
-def a_grasp(t):
+def a_grasp(t, sp=Spasms(2.2, False, 16, rate=1.4, groups=('head', 'jaw', 'neck'), tremor=[(0.7, 1.6)], tremor_amp=2.2)):
     p = Pose()
-    reach = track(t, [(0, 0), (0.45, 1, ease_out), (0.62, 1), (1.0, 0.35), (1.6, 0.0), (2.2, 0)])
-    grab = track(t, [(0, 0), (0.45, -0.4), (0.55, 1, ease_out), (1.7, 1), (2.2, 0)])
-    pull = track(t, [(0, 0), (0.6, 0), (1.15, 1, smooth), (1.65, 1), (2.2, 0)])
-    reach, grab, pull = float(reach), float(grab), float(pull)
+    reach = float(track(t, [(0, 0), (0.45, 1, ease_out), (0.62, 1), (1.0, 0.35), (1.6, 0.0), (2.2, 0)]))
+    grab = float(track(t, [(0, 0), (0.45, -0.4), (0.55, 1, ease_out), (1.7, 1), (2.2, 0)]))
+    pull = float(track(t, [(0, 0), (0.6, 0), (1.15, 1, smooth), (1.65, 1), (2.2, 0)]))
     p.pos('body', 0, -7 - 9 * pull, -9 * reach + 6 * pull)
     p.rot('pelvis', -14 + 22 * reach - 4 * pull)
     p.rot('waist', -5 + 8 * reach)
@@ -510,9 +646,9 @@ def a_grasp(t):
     p.rot('neck_mid', -6 - 10 * reach + 6 * pull)
     p.rot('neck_upper', -2 - 8 * reach)
     p.rot('head', 37 - 26 * reach + 4 * pull, 0, 6 * pull)
-    p.rot('jaw', 2 + 18 * reach * (1 - pull) + 6 * pull)
+    p.rot('jaw', 2 + 22 * reach * (1 - pull) + 8 * pull)
     for side, s in SIDES:
-        p.rot(f'{side}_arm', -95 * reach + 22 * pull, 0, s * (-6 + 14 * reach - 10 * pull))
+        p.rot(f'{side}_arm', -95 * reach + 22 * pull, 0, s * (-10 + 10 * reach - 12 * pull))
         p.rot(f'{side}_forearm', 30 * reach - 45 * pull, 0, 0)
         p.rot(f'{side}_hand', -25 * reach + 25 * pull, 0, 0)
         for i, f in enumerate(FINGERS):
@@ -522,24 +658,27 @@ def a_grasp(t):
         ph = 0 if s < 0 else math.pi
         p.rot(f'{side}_leg', -10 + 10 * math.sin(TAU * t / 2.2 + ph) + 20 * pull)
         p.rot(f'{side}_shin', 10 + 25 * pull)
+    sp.apply(p, t)
     drips(p, t, 0.8, 1.0, (20 * reach - 30 * pull, 0))
     return p
 
 
-# ------------------------------------------------------------------ emerging (one shot)
 def lerp_pose(a, b, w):
     out = Pose()
     for name in set(a) | set(b):
         for ch in ('rotation', 'position'):
-            va = np.asarray(a.get(name, {}).get(ch, (0, 0, 0)), dtype=float)
-            vb = np.asarray(b.get(name, {}).get(ch, (0, 0, 0)), dtype=float)
             if ch in a.get(name, {}) or ch in b.get(name, {}):
+                va = np.asarray(a.get(name, {}).get(ch, (0, 0, 0)), dtype=float)
+                vb = np.asarray(b.get(name, {}).get(ch, (0, 0, 0)), dtype=float)
                 out.setdefault(name, {})[ch] = va + (vb - va) * w
     return out
 
 
-def emerge_reach(t):
-    """arms up, torso upright, head tipped back: rising out of the depths"""
+# emerge: rises with arms flung wide, slams both hands down on the bank far out to the sides, hauls itself up
+EMERGE_SP = Spasms(2.8, False, 17, rate=1.8, groups=('head', 'head', 'jaw', 'neck'), tremor=[(0.35, 1.0)], tremor_amp=2.0)
+
+
+def emerge_rise(t):
     p = Pose()
     p.rot('pelvis', -16)
     p.rot('waist', -6)
@@ -547,21 +686,21 @@ def emerge_reach(t):
     p.rot('neck_lower', -14)
     p.rot('neck_mid', -10)
     p.rot('neck_upper', -6)
-    aim_head(p, -18, 0, 9 * math.sin(TAU * t / 1.4))
-    p.rot('jaw', 10)
+    aim_head(p, -14, 0, 9 * math.sin(TAU * t / 1.4))
+    p.rot('jaw', 9)
     for side, s in SIDES:
         wob = math.sin(TAU * t / 1.1 + (0 if s < 0 else 1.3))
-        p.rot(f'{side}_arm', -150 + 8 * wob, 6 * s, s * (-26 - 5 * wob))
-        p.rot(f'{side}_forearm', -24 + 10 * wob)
-        p.rot(f'{side}_hand', -20)
-        curl(p, side, 12 + 10 * wob, 20)
+        # arms out wide to the sides and raised, elbows bent up like wings
+        p.rot(f'{side}_arm', -38 + 6 * wob, 0, -s * (72 + 6 * wob))
+        p.rot(f'{side}_forearm', -40 + 8 * wob)
+        p.rot(f'{side}_hand', 10)
+        curl(p, side, 18 + 10 * wob, 26)
         p.rot(f'{side}_leg', -18)
         p.rot(f'{side}_shin', 24)
     return p
 
 
 def emerge_grab(t, rise):
-    """hands slam onto the bank in front and haul the body up"""
     p = Pose()
     p.pos('body', 0, rise, 0)
     p.rot('pelvis', 8)
@@ -570,38 +709,35 @@ def emerge_grab(t, rise):
     p.rot('neck_lower', -6)
     p.rot('neck_mid', -6)
     p.rot('neck_upper', -4)
-    aim_head(p, 6, 0, -4)
-    p.rot('jaw', 6)
     for side, s in SIDES:
-        tgt = np.array([13.5 * s, 4.6, -19.0 + (1.5 if s > 0 else 0)])
-        two_bone(p, f'{side}_arm', f'{side}_forearm', f'{side}_hand', tgt, (0.8 * s, 1.8, 0.4), 'arm')
-        plant_hand(p, side, (0.25 * s, -0.05, -1.0), (0, -1, 0))
-        curl(p, side, 34, 46)
+        tgt = np.array([25.0 * s, 4.6, -12.0 + (1.5 if s > 0 else 0)])
+        plant_arm(p, side, tgt, (1.0 * s, 1.2, 0.1), down=0.25, curl_amt=32)
         p.rot(f'{side}_leg', -12)
         p.rot(f'{side}_shin', 14)
+    aim_head(p, 6, 0, -4)
+    p.rot('jaw', 6)
     return p
 
 
 @anim('emerge', 2.8, loop=False, scene='water', water_level=4.0)
 def a_emerge(t):
     rise = float(track(t, [(0, -64), (1.0, -30, smooth), (1.5, -17, smooth), (2.2, -3, smooth), (2.8, 0, smooth)]))
-    w_grab = float(track(t, [(0, 0), (1.15, 0), (1.5, 1, ease_out), (2.15, 1), (2.8, 0, smooth)]))
+    w_grab = float(track(t, [(0, 0), (1.05, 0), (1.45, 1, ease_out), (2.15, 1), (2.8, 0, smooth)]))
     w_rest = float(track(t, [(0, 0), (2.15, 0), (2.8, 1, smooth)]))
-    up = emerge_reach(t)
+    up = emerge_rise(t)
     up.pos('body', 0, rise, 0)
     g = emerge_grab(t, rise)
     p = lerp_pose(up, g, w_grab) if w_grab < 1 else g
     if w_rest > 0:
         p = lerp_pose(p, Pose(), w_rest)
     p = Pose(p)
-    upk = 1 - w_grab
-    drips(p, t, 1.2, 1.0, (-40 * upk * (1 - w_rest), 0))
+    EMERGE_SP.apply(p, t)
+    drips(p, t, 1.2, 1.0, (-40 * (1 - w_grab) * (1 - w_rest), 0))
     return p
 
 
-# ------------------------------------------------------------------ retreat / submerge (one shot)
 @anim('submerge', 2.6, loop=False, scene='water', water_level=4.0)
-def a_submerge(t):
+def a_submerge(t, sp=Spasms(2.6, False, 18, rate=1.6, groups=('head', 'head', 'jaw'))):
     p = Pose()
     sink = float(track(t, [(0, 0), (0.45, 2.5, smooth), (2.6, -66, smoother)]))
     k = clamp(t / 2.6, 0, 1)
@@ -616,28 +752,27 @@ def a_submerge(t):
     p.rot('head', 54 * upright, 0, -8 * upright + 4 * math.sin(TAU * t / 2.6))
     for side, s in SIDES:
         drift = smooth((t - 0.6) / 2.0)
-        p.rot(f'{side}_arm', -20 * upright - 55 * drift, 0, s * (-12 * upright - 30 * drift))
+        p.rot(f'{side}_arm', -20 * upright - 55 * drift, 0, s * (-16 * upright - 34 * drift))
         p.rot(f'{side}_forearm', -10 * upright - 25 * drift)
         p.rot(f'{side}_hand', -10 * drift)
         curl(p, side, 14 * drift, 20 * drift)
         p.rot(f'{side}_leg', -15 * drift)
         p.rot(f'{side}_shin', 20 * drift)
+    sp.apply(p, t)
     drips(p, t, 0.7, 1.0, (-70 * smooth((t - 0.8) / 1.4), 0))
     return p
 
 
-# ------------------------------------------------------------------ swim (underwater)
 SWIM_T = 1.8
 
 
 @anim('swim', SWIM_T, scene='underwater', speed=34.0)
-def a_swim(t):
+def a_swim(t, sp=Spasms(SWIM_T, True, 19, rate=1.6, groups=('head', 'jaw', 'neck'))):
     p = Pose()
     ph = t / SWIM_T
     w = TAU * ph
     p.pos('body', 0, 14 + 1.5 * math.sin(w - 0.8), -10)
     p.rot('body', 60, 0, 2 * math.sin(w))
-    # travelling wave down the spine
     p.rot('pelvis', 2 + 7 * math.sin(w - 1.6))
     p.rot('waist', -6 + 7 * math.sin(w - 0.8))
     p.rot('chest', -10 + 6 * math.sin(w))
@@ -646,7 +781,6 @@ def a_swim(t):
     p.rot('neck_upper', -8)
     aim_head(p, 22 + 4 * math.sin(w + 1.2), 0, 4 * math.sin(w))
     p.rot('jaw', 6 + 4 * math.sin(w))
-    # breaststroke: reach (0-.3), sweep out (.55), pull back along the body (.75), tuck (.88)
     keys = [(0.0, [-128, -12, -12]), (0.30, [-138, -16, -2]), (0.55, [-84, -72, -14]),
             (0.75, [42, -20, -12]), (0.88, [-48, -12, -100]), (1.0, [-128, -12, -12])]
     arm = track(ph, keys, smooth)
@@ -660,7 +794,524 @@ def a_swim(t):
         p.rot(f'{side}_leg', 58 + 12 * kick, 0, -3 * s)
         p.rot(f'{side}_shin', -58 + 20 * math.sin(w - 2.8 + (0 if s < 0 else 0.6)))
         p.rot(f'{side}_foot', 40 + 12 * kick)
+    sp.apply(p, t)
     drips(p, t, 0.6, 1.0, (-55, 0))
+    return p
+
+
+# =================================================================== stalking & bipedal poses (from the poses sheet)
+@anim('submerged_watch', 6.0, scene='water', water_level=WATER_IDLE, label='1. Submerged Watch')
+def a_submerged_watch(t, sp=Spasms(6.0, True, 21, rate=0.9, groups=('head', 'head', 'jaw'), tremor=[(3.6, 4.3)])):
+    """only the head above the surface, silently observing"""
+    p = Pose()
+    bob = math.sin(TAU * t / 3.0)
+    p.pos('body', 0, -12.5 + 0.5 * bob, 2)
+    p.rot('pelvis', -14)
+    p.rot('waist', -6)
+    p.rot('chest', -6)
+    p.rot('neck_lower', -16)
+    p.rot('neck_mid', -10)
+    p.rot('neck_upper', -4)
+    yaw = float(track(t, [(0, 0), (1.6, 10), (2.0, 10), (2.08, -6, ease_out), (4.6, -6), (6.0, 0)]))
+    aim_head(p, 3 + 1.5 * bob, yaw, 4 * math.sin(TAU * t / 6.0))
+    for side, s in SIDES:
+        p.rot(f'{side}_arm', 6 * math.sin(TAU * t / 3.0 + (0 if s < 0 else 1.2)), 0, -s * (26 + 6 * math.sin(TAU * t / 6.0)))
+        p.rot(f'{side}_forearm', -18)
+        p.rot(f'{side}_leg', -12 + 8 * math.sin(TAU * t / 3.0 + (0 if s < 0 else math.pi)))
+        p.rot(f'{side}_shin', 18)
+    sp.apply(p, t)
+    drips(p, t, 0.5, 0.7)
+    return p
+
+
+SHORE_T, SHORE_STRIDE, SHORE_SWING = 4.0, 16.0, 0.25
+SHORE_ORDER = {'right_hand': 0.0, 'left_foot': 0.3, 'left_hand': 0.5, 'right_foot': 0.8}
+
+
+@anim('shoreline_stalk', SHORE_T, scene='shore', speed=gait_speed(SHORE_STRIDE, SHORE_SWING, SHORE_T), label='2. Shoreline Stalk')
+def a_shoreline_stalk(t, sp=Spasms(SHORE_T, True, 22, rate=1.5, groups=('head', 'head', 'jaw', 'neck'), tremor=[(2.4, 2.8)])):
+    """slowly crawling out of the water, head carried high on the arched neck"""
+    p = Pose()
+    ph = t / SHORE_T
+    w = TAU * ph
+    crouch_base(p, 1.05, head_up=1.0)
+    p.rot('neck_lower', -12)
+    p.rot('neck_mid', 6)
+    p.pos('body', 0.9 * math.sin(w), 0.5 * math.sin(2 * w), 0)
+    p.rot('pelvis', 0, 3 * math.sin(w), 2 * math.sin(w))
+    for side, s in SIDES:
+        dz, lift, _ = gait(ph, SHORE_ORDER[f'{side}_foot'], SHORE_SWING, SHORE_STRIDE)
+        base = REST_ANKLE[side] + np.array([1.0 * s, 0, 2.0])
+        plant_leg(p, side, (base[0], 2.0 + 4.0 * lift, base[2] + dz), (0.6 * s, 0.4, -1), 14 * lift)
+        dz, lift, _ = gait(ph, SHORE_ORDER[f'{side}_hand'], SHORE_SWING, SHORE_STRIDE)
+        plant_arm(p, side, (17.0 * s, 1.6 + 7.0 * lift, -19.0 + dz), (0.9 * s, 2.0, 0.3), lift=lift, curl_amt=18)
+    aim_head(p, 22 + 3 * math.sin(2 * w), 4 * math.sin(w + 0.4), 5 * math.sin(w + 1.0))
+    sp.apply(p, t, skip=('fingers', 'spine'))
+    drips(p, t, 1.0)
+    return p
+
+
+@anim('corner_watch', 6.0, scene='shore', label='3. Corner Watch', prop='pillar_left')
+def a_corner_watch(t, sp=Spasms(6.0, True, 23, rate=1.1, groups=('head', 'head', 'jaw', 'neck'), tremor=[(2.0, 2.7)])):
+    """peeking around a corner with one hand hooked on the edge"""
+    p = Pose()
+    lean = float(track(t, [(0, 0.85), (1.8, 1.0), (3.4, 1.0), (3.5, 0.8, ease_out), (6.0, 0.85)]))
+    breathe(p, t, 3.0, 0.7)
+    p.pos('body', 0, -2.5, 0)
+    p.rot('pelvis', 4, -8 * lean, 6 * lean)
+    p.rot('waist', 2, -6 * lean, 8 * lean)
+    p.rot('chest', 0, -10 * lean, 12 * lean)
+    p.rot('neck_lower', -4, -12 * lean, 16 * lean)
+    p.rot('neck_mid', 6, -10 * lean, 14 * lean)
+    p.rot('neck_upper', 4, 0, 8 * lean)
+    tilt = float(track(t, [(0, 26), (2.0, 30), (2.7, 32), (2.78, 8, ease_out), (3.4, 10), (6.0, 26)]))
+    aim_head(p, 6, -14 * lean, tilt * lean)
+    plant_feet(p, spread=1.0)
+    # the left hand hooks the corner at head height, fingers curled round the edge
+    edge = np.array([13.0, 40.0 + 0.6 * math.sin(TAU * t / 3.0), -12.0])
+    plant_arm(p, 'left', edge, (1.0, -0.6, 0.3), down=-0.3, curl_amt=48)
+    for i, f in enumerate(FINGERS):
+        p.rot(f'left_{f}', 10 * bump((t + 0.13 * i) % 2.0, 0.4))
+    hang_arms(p, t, splay=4, sides=('right',))
+    sp.apply(p, t, skip=('l_fingers', 'l_arm', 'l_hand'))
+    drips(p, t, 0.8, 1.0, (0, 10 * lean))
+    return p
+
+
+@anim('ceiling_lurk', 6.0, scene='shore', label='4. Ceiling Lurk', prop='ceiling', ceiling=66.0)
+def a_ceiling_lurk(t, sp=Spasms(6.0, True, 24, rate=1.2, groups=('head', 'head', 'jaw', 'neck'), tremor=[(1.0, 1.6), (4.2, 4.6)])):
+    """clinging upside-down beneath a low ceiling, its head hanging down unnaturally"""
+    p = Pose()
+    C = 66.0
+    p.rot('root', 0, 0, 180)
+    p.pos('root', 0, C, 0)
+    crouch_base(p, 0.95)
+    sway = math.sin(TAU * t / 6.0)
+    p.pos('body', 0.8 * sway, 0.6 * math.sin(TAU * t / 3.0), 0)
+    Rr = fk(p)['root'][0]
+    for side, s in SIDES:
+        a = REST_ANKLE[side]
+        plant_leg(p, side, root_point(p, (a[0] + 2.5 * s, 2.0, a[2] + 2.5)), Rr @ np.array([0.7 * s, 0.4, -1]))
+        plant_arm(p, side, root_point(p, (15.0 * s, 1.6, -11.0 + 1.0 * math.sin(TAU * t / 3.0 + s))), Rr @ np.array([0.9 * s, 2.4, 0.3]), curl_amt=30)
+        R2 = fk(p)[f'{side}_shin'][0]
+        p.set_world_rot(f'{side}_foot', Rr @ np.eye(3))
+    # the neck folds down toward the floor and the face stays upright, staring at you
+    p.rot('neck_lower', -14)
+    p.rot('neck_mid', -18)
+    p.rot('neck_upper', -12)
+    aim_head(p, 14 + 4 * math.sin(TAU * t / 3.0), 6 * sway, 22 + 8 * math.sin(TAU * t / 6.0 + 1.0))
+    sp.apply(p, t, skip=('fingers', 'spine', 'r_arm', 'l_arm'))
+    drips(p, t, 0.6, 0.8, (180, 0))
+    return p
+
+
+@anim('distant_observer', 6.0, scene='shore', label='5. Distant Observer')
+def a_distant_observer(t, sp=Spasms(6.0, True, 25, rate=0.8, groups=('head', 'head', 'jaw'))):
+    """crouched on all fours across the lake, watching from afar"""
+    p = Pose()
+    crouch_base(p, 0.85, head_up=0.6)
+    b = math.sin(TAU * t / 3.0)
+    p.pos('body', 0, 0.5 * b, 0)
+    p.rot('chest', -1.2 * b)
+    for side, s in SIDES:
+        a = REST_ANKLE[side]
+        plant_leg(p, side, (a[0] + 1.5 * s, 2.0, a[2] + 1.0), (0.5 * s, 0.35, -1))
+        plant_arm(p, side, (13.0 * s, 1.6, -15.0), (0.8 * s, 2.4, 0.3), curl_amt=26)
+    yaw = float(track(t, [(0, -8), (2.5, 8), (3.0, 8), (5.5, -8), (6.0, -8)]))
+    aim_head(p, 6, yaw, 3 * b)
+    sp.apply(p, t, skip=('fingers', 'spine', 'r_arm', 'l_arm', 'neck'))
+    drips(p, t, 0.5)
+    return p
+
+
+@anim('veil_stalk', 5.0, scene='shore', label='6. Veil Stalk', prop='vines')
+def a_veil_stalk(t, sp=Spasms(5.0, True, 26, rate=1.0, groups=('head', 'head', 'jaw'), tremor=[(3.3, 3.8)])):
+    """hidden within hanging vines, swaying with them, peering through"""
+    p = Pose()
+    sw = math.sin(TAU * t / 5.0)
+    crouch_base(p, 0.7, head_up=0.4)
+    p.pos('body', 2.0 * sw, 0.4 * math.sin(TAU * t / 2.5), 0)
+    p.rot('pelvis', -4, 4 * sw, 3 * sw)
+    p.rot('chest', -4, 4 * sw, 2 * sw)
+    for side, s in SIDES:
+        a = REST_ANKLE[side]
+        plant_leg(p, side, (a[0] + 1.0 * s, 2.0, a[2] + 0.5), (0.4 * s, 0.35, -1))
+        plant_arm(p, side, (11.0 * s, 1.6, -11.0), (0.7 * s, 2.0, 0.3), curl_amt=28)
+    aim_head(p, 10, -8 * sw, -6 * sw)
+    sp.apply(p, t, skip=('fingers', 'spine', 'r_arm', 'l_arm', 'neck'))
+    drips(p, t, 0.7)
+    return p
+
+
+@anim('reflection_lurk', 6.0, scene='shore_water', label='7. Reflection Lurk')
+def a_reflection_lurk(t, sp=Spasms(6.0, True, 27, rate=1.0, groups=('head', 'jaw'), tremor=[(2.2, 3.0)])):
+    """bent over the water, face inches from the surface, mirroring its reflection"""
+    p = Pose()
+    b = math.sin(TAU * t / 3.0)
+    p.pos('body', 0, -9 + 0.4 * b, 2)
+    p.rot('pelvis', 26)
+    p.rot('waist', 10)
+    p.rot('chest', 12 - 1.2 * b)
+    p.rot('neck_lower', 12)
+    p.rot('neck_mid', 18)
+    p.rot('neck_upper', 10)
+    plant_feet(p, spread=1.5, back=1.0)
+    for side, s in SIDES:
+        plant_arm(p, side, (14.0 * s, 1.0, -15.0), (0.9 * s, 2.2, 0.2), curl_amt=20)
+    roll = float(track(t, [(0, 0), (1.5, 18), (2.2, 18), (2.3, -10, ease_out), (4.5, -14), (6.0, 0)]))
+    aim_head(p, 78, 0, roll)
+    sp.apply(p, t, skip=('fingers', 'r_arm', 'l_arm'))
+    drips(p, t, 0.4, 0.6)
+    return p
+
+
+TUNNEL_T, TUNNEL_STRIDE, TUNNEL_SWING = 2.8, 14.0, 0.3
+TUNNEL_ORDER = {'right_hand': 0.0, 'left_foot': 0.15, 'left_hand': 0.5, 'right_foot': 0.65}
+
+
+@anim('tunnel_crawl', TUNNEL_T, scene='shore', speed=gait_speed(TUNNEL_STRIDE, TUNNEL_SWING, TUNNEL_T), label='8. Tunnel Crawl')
+def a_tunnel_crawl(t, sp=Spasms(TUNNEL_T, True, 28, rate=1.8, groups=('head', 'head', 'jaw'))):
+    """flattened, limbs splayed like a lizard, slithering through a tight passage"""
+    p = Pose()
+    ph = t / TUNNEL_T
+    w = TAU * ph
+    p.pos('body', 0, -17.5 + 0.6 * math.sin(2 * w), 3)
+    p.rot('pelvis', 48, 6 * math.sin(w), 0)
+    p.rot('waist', 14, -5 * math.sin(w - 0.6), 0)
+    p.rot('chest', 14, -6 * math.sin(w - 1.2), 0)
+    p.rot('neck_lower', -24)
+    p.rot('neck_mid', -18)
+    p.rot('neck_upper', -14)
+    for side, s in SIDES:
+        dz, lift, _ = gait(ph, TUNNEL_ORDER[f'{side}_foot'], TUNNEL_SWING, TUNNEL_STRIDE)
+        base = REST_ANKLE[side] + np.array([6.0 * s, 0, 4.0])
+        plant_leg(p, side, (base[0], 1.8 + 2.5 * lift, base[2] + dz), (1.6 * s, 0.6, -0.3), 10 * lift)
+        dz, lift, _ = gait(ph, TUNNEL_ORDER[f'{side}_hand'], TUNNEL_SWING, TUNNEL_STRIDE)
+        plant_arm(p, side, (19.0 * s, 1.6 + 3.0 * lift, -14.0 + dz), (1.4 * s, 1.2, 0.2), lift=lift, curl_amt=20)
+    aim_head(p, 4, -6 * math.sin(w - 1.6), 4 * math.sin(w))
+    sp.apply(p, t)
+    drips(p, t, 0.8, 1.0, (35, 0))
+    return p
+
+
+@anim('patient_strike', 6.0, scene='shore_water', label='9. Patient Strike')
+def a_patient_strike(t, sp=Spasms(6.0, True, 29, rate=1.4, groups=('head', 'jaw', 'fingers'), tremor=[(4.0, 4.6)])):
+    """motionless, one hand outstretched on the water, waiting for movement"""
+    p = Pose()
+    b = math.sin(TAU * t / 4.0 * 2)
+    crouch_base(p, 0.95, head_up=0.3)
+    p.pos('body', 0, 0.3 * b, 0)
+    p.rot('pelvis', 0, -6, 0)
+    p.rot('chest', 0, -8, 0)
+    for side, s in SIDES:
+        a = REST_ANKLE[side]
+        plant_leg(p, side, (a[0] + 1.5 * s, 2.0, a[2] + 1.5), (0.5 * s, 0.35, -1))
+    plant_arm(p, 'right', (-7.0, 0.6, -31.0), (-0.8, 1.6, -0.2), down=0.05, curl_amt=8)
+    plant_arm(p, 'left', (13.0, 1.6, -9.0), (0.8, 2.4, 0.3), curl_amt=26)
+    for i, f in enumerate(FINGERS):
+        tw = bump((t * 1.0 + 0.09 * i) % 3.0, 0.3)
+        p.rot(f'right_{f}', 10 * tw)
+    aim_head(p, 16, 6, 4 * math.sin(TAU * t / 6.0))
+    sp.apply(p, t, skip=('r_fingers',))
+    drips(p, t, 0.3, 0.5)
+    return p
+
+
+@anim('shadow_hide', 6.0, scene='shore', label='10. Shadow Hide')
+def a_shadow_hide(t, sp=Spasms(6.0, True, 30, rate=0.5, groups=('head', 'fingers'))):
+    """a thin, motionless silhouette melting into the dark"""
+    p = Pose()
+    stand(p, 0.85)
+    sway = math.sin(TAU * t / 6.0)
+    p.pos('body', 0.3 * sway, 0, 0)
+    p.rot('pelvis', 0, 0, 0.6 * sway)
+    plant_feet(p, spread=-0.5)
+    for side, s in SIDES:
+        p.rot(f'{side}_arm', 0, 0, s * 3.0)
+    breathe(p, t, 3.0, 0.4)
+    aim_head(p, 10, 0, 2 * sway)
+    sp.apply(p, t)
+    drips(p, t, 0.3, 0.5)
+    return p
+
+
+@anim('full_stand', 6.0, scene='shore', label='11. Full Stand')
+def a_full_stand(t, sp=Spasms(6.0, True, 31, rate=1.4, groups=('head', 'head', 'neck', 'r_arm', 'l_arm', 'jaw', 'fingers', 'spine'),
+                              tremor=[(4.4, 5.0)])):
+    """its true height revealed: unfolded, upright and still"""
+    p = Pose()
+    stand(p, 1.0)
+    plant_feet(p, spread=0.5)
+    breathe(p, t, 3.0, 0.9)
+    hang_arms(p, t, sway=0.8, splay=5)
+    aim_head(p, 2, 0, 0)
+    sp.apply(p, t)
+    drips(p, t, 0.5, 0.6)
+    return p
+
+
+@anim('head_tilt', 5.0, scene='shore', label='12. Head Tilt')
+def a_head_tilt(t, sp=Spasms(5.0, True, 32, rate=1.0, groups=('jaw', 'fingers', 'r_arm'), tremor=[(1.35, 2.05), (3.9, 4.4)], tremor_amp=1.9)):
+    """slowly tilting its head as if studying you, then cracking it the other way"""
+    p = Pose()
+    stand(p, 0.75)
+    plant_feet(p)
+    breathe(p, t, 2.5, 0.6)
+    hang_arms(p, t, sway=0.5, splay=3)
+    tilt = float(track(t, [(0, -6), (1.3, 38, smoother), (2.05, 40), (2.12, -14, ease_out), (2.5, -12), (3.8, -30, smoother), (4.4, -31), (4.47, 4, ease_out), (5.0, -6)]))
+    p.rot('neck_upper', 0, 0, 0.35 * tilt)
+    p.rot('neck_mid', 0, 0, 0.2 * tilt)
+    aim_head(p, 6, 4 * math.sin(TAU * t / 5.0), tilt)
+    sp.apply(p, t)
+    drips(p, t, 0.6, 0.8, (0, -0.4 * tilt))
+    return p
+
+
+APPROACH_T, APPROACH_STRIDE, APPROACH_DUTY = 3.2, 30.0, 0.66
+
+
+@anim('slow_approach', APPROACH_T, scene='shore', speed=APPROACH_STRIDE / (APPROACH_DUTY * APPROACH_T), label='13. Slow Approach')
+def a_slow_approach(t, sp=Spasms(APPROACH_T, True, 33, rate=1.6, groups=('head', 'head', 'jaw', 'fingers', 'r_arm'), tremor=[(0.6, 0.9)])):
+    """upright, deliberate, wrong: high slow steps, head locked on you"""
+    p = Pose()
+    ph = t / APPROACH_T
+    w = TAU * ph
+    tu = stutter(t, APPROACH_T, 2, 0.55)
+    wu = TAU * tu / APPROACH_T
+    stand(p, 0.75)
+    p.pos('body', 0.9 * math.sin(w), 1.0 * math.cos(2 * w - 0.4) - 1.0, 0)
+    p.rot('pelvis', 0, -6 * math.sin(w), 4 * math.sin(w))
+    p.rot('chest', 0, 5 * math.sin(wu), -3 * math.sin(wu))
+    for side, s in SIDES:
+        fph = (ph + (0.0 if s > 0 else 0.5)) % 1.0
+        base = REST_ANKLE[side]
+        if fph < APPROACH_DUTY:
+            k = fph / APPROACH_DUTY
+            z = base[2] - APPROACH_STRIDE / 2 + APPROACH_STRIDE * k
+            y, pitch = base[1], 0
+        else:
+            k = (fph - APPROACH_DUTY) / (1 - APPROACH_DUTY)
+            e = smoother(k)
+            z = base[2] + APPROACH_STRIDE / 2 - APPROACH_STRIDE * e
+            y = base[1] + 9.0 * math.sin(math.pi * k) ** 0.8
+            pitch = 30 * math.sin(math.pi * k)
+        plant_leg(p, side, (base[0] + 0.5 * s, y, z), (0.1 * s, 0.4, -1), pitch)
+        aw = wu + (0 if s < 0 else math.pi)
+        p.rot(f'{side}_arm', -7 * math.sin(aw), 0, -s * (4 + 1.5 * math.cos(aw)))
+        p.rot(f'{side}_forearm', -6 * math.sin(aw - 0.8))
+        curl(p, side, 12 + 8 * math.sin(aw - 1.6))
+    aim_head(p, 6, 0, 3 * math.sin(wu))
+    sp.apply(p, t)
+    drips(p, t, 0.9, 1.0, (4 * math.sin(2 * w - 1.8), 0))
+    return p
+
+
+@anim('emerge_roar', 3.4, loop=False, scene='water_shallow', water_level=6.0, label='14. Emerge Roar')
+def a_emerge_roar(t, sp=Spasms(3.4, False, 34, rate=1.2, groups=('head', 'fingers'), tremor=[(1.15, 2.45)], tremor_amp=2.6)):
+    """rises to full height, head thrown back, maw stretched open in a silent threat"""
+    p = Pose()
+    coil = float(track(t, [(0, 0), (0.55, 1, smooth), (0.85, 0, ease_out), (3.4, 0)]))
+    up = float(track(t, [(0, 0), (0.55, 0), (1.15, 1.15, back_out), (2.45, 1.1), (3.4, 0, smooth)]))
+    maw = float(track(t, [(0, 0), (0.75, 0), (1.15, 1, ease_out), (2.45, 1), (2.8, 0, smooth), (3.4, 0)]))
+    p.pos('body', 0, -6 * coil, 0)
+    p.rot('pelvis', 10 * coil)
+    p.rot('chest', 6 * coil)
+    p.rot('neck_lower', 12 * coil)
+    stand(p, min(1.0, up))
+    p.rot('chest', -6 * up)
+    p.rot('neck_lower', -10 * up)
+    p.rot('neck_mid', -16 * up)
+    p.rot('neck_upper', -10 * up)
+    plant_feet(p, spread=1.5 * up)
+    for side, s in SIDES:
+        p.rot(f'{side}_arm', -12 * up, 0, -s * 34 * up)
+        p.rot(f'{side}_forearm', -18 * up)
+        p.rot(f'{side}_hand', -12 * up)
+        curl(p, side, 10 * coil - 18 * up, -10 * up, spread=8 * up)
+    aim_head(p, 12 * coil - 34 * up, 0, 0, w=max(coil, min(1.0, up)))
+    p.rot('jaw', 46 * maw)
+    sp.apply(p, t)
+    drips(p, t, 1.0, 1.4, (-30 * up, 0))
+    return p
+
+
+@anim('water_rise', 3.2, loop=False, scene='water_shallow', water_level=8.0, label='15. Water Rise')
+def a_water_rise(t, sp=Spasms(3.2, False, 35, rate=1.6, groups=('head', 'head', 'jaw', 'fingers', 'neck'))):
+    """standing up out of the water, fully emerged, water pouring off it"""
+    p = Pose()
+    k = float(track(t, [(0, 0), (0.3, 0), (2.4, 1, smoother), (3.2, 1)]))
+    low = 1 - k
+    stand(p, k)
+    p.pos('body', 0, -26 * low, 3 * low)
+    p.rot('pelvis', 32 * low)
+    p.rot('waist', 12 * low)
+    p.rot('chest', 10 * low)
+    p.rot('neck_lower', 6 * low)
+    p.rot('neck_mid', -10 * low)
+    for side, s in SIDES:
+        a = REST_ANKLE[side]
+        plant_leg(p, side, (a[0] + 1.0 * s, a[1], a[2] + 1.0 * low))
+        p.rot(f'{side}_arm', -40 * low, 0, -s * (16 * low + 4))
+        p.rot(f'{side}_forearm', -30 * low)
+        curl(p, side, 14 + 10 * low)
+    aim_head(p, 14 * low + 4, 0, 6 * math.sin(TAU * t / 3.2))
+    sp.apply(p, t)
+    drips(p, t, 1.1, 1.2, (-25 * (1 - k), 0))
+    return p
+
+
+@anim('hunting_stance', 3.0, scene='shore', label='16. Hunting Stance')
+def a_hunting_stance(t, sp=Spasms(3.0, True, 36, rate=2.2, groups=('head', 'head', 'jaw', 'fingers', 'neck'), tremor=[(0.4, 0.8), (2.0, 2.3)])):
+    """coiled forward lean, one claw raised, weight rocking before it breaks into a chase"""
+    p = Pose()
+    w = TAU * t / 3.0
+    rock = math.sin(w)
+    p.pos('body', 1.6 * rock, -6 + 0.8 * math.sin(2 * w), -2)
+    p.rot('pelvis', 20, 6 * rock, 3 * rock)
+    p.rot('waist', 8)
+    p.rot('chest', 6, -6 * rock, -2 * rock)
+    p.rot('neck_lower', -6)
+    p.rot('neck_mid', -8)
+    for side, s in SIDES:
+        a = REST_ANKLE[side]
+        plant_leg(p, side, (a[0] + 2.0 * s, a[1], a[2] + (4 if s < 0 else -3)))
+    p.rot('right_arm', -62 + 6 * math.sin(2 * w), 0, 16)
+    p.rot('right_forearm', -38 + 6 * math.sin(2 * w + 1.0))
+    p.rot('right_hand', -20)
+    curl(p, 'right', 26 + 10 * math.sin(2 * w + 0.5), 30, spread=6)
+    p.rot('left_arm', 18, 0, -10)
+    p.rot('left_forearm', -10)
+    curl(p, 'left', 20)
+    aim_head(p, 6, 6 * rock, 4 * rock)
+    sp.apply(p, t, skip=('r_fingers',))
+    drips(p, t, 0.9, 1.3)
+    return p
+
+
+@anim('behind_cover', 6.0, scene='shore', label='17. Behind Cover', prop='pillar_right')
+def a_behind_cover(t, sp=Spasms(6.0, True, 37, rate=1.0, groups=('head', 'head', 'jaw'), tremor=[(3.0, 3.6)])):
+    """standing tall behind a pillar, only one side of it showing"""
+    p = Pose()
+    lean = float(track(t, [(0, 0.8), (2.0, 1.0), (4.0, 1.0), (4.1, 0.75, ease_out), (6.0, 0.8)]))
+    stand(p, 0.9)
+    breathe(p, t, 3.0, 0.6)
+    p.rot('pelvis', 0, 5 * lean, -5 * lean)
+    p.rot('chest', 0, 8 * lean, -10 * lean)
+    p.rot('neck_lower', 0, 8 * lean, -10 * lean)
+    p.rot('neck_mid', 0, 6 * lean, -8 * lean)
+    plant_feet(p)
+    edge = np.array([-12.0, 46.0, -9.0])
+    plant_arm(p, 'right', edge, (-1.0, -0.6, 0.3), down=-0.4, curl_amt=46)
+    hang_arms(p, t, sway=0.6, splay=3, sides=('left',))
+    aim_head(p, 6, 10 * lean, -18 * lean - 4 * math.sin(TAU * t / 6.0))
+    sp.apply(p, t, skip=('r_fingers', 'r_arm', 'r_hand'))
+    drips(p, t, 0.6, 0.8, (0, -8 * lean))
+    return p
+
+
+@anim('ledge_watch', 6.0, scene='ledge', label='18. Ledge Watch', prop='ledge')
+def a_ledge_watch(t, sp=Spasms(6.0, True, 38, rate=1.0, groups=('head', 'head', 'jaw', 'neck'), tremor=[(1.6, 2.2)])):
+    """hands spread on the edge of a ledge, leaning over to look down at you"""
+    p = Pose()
+    b = math.sin(TAU * t / 3.0)
+    stand(p, 0.55)
+    p.rot('pelvis', 10)
+    p.rot('chest', 8 - b)
+    p.rot('neck_lower', 6)
+    p.rot('neck_mid', 12)
+    p.rot('neck_upper', 8)
+    plant_feet(p, spread=1.0, back=2.0)
+    for side, s in SIDES:
+        plant_arm(p, side, (13.0 * s, 33.5, -21.0 + (1.0 if s > 0 else 0)), (1.0 * s, 1.0, 0.4), down=0.15, curl_amt=40)
+    yaw = float(track(t, [(0, 0), (2.4, 10), (2.5, -6, ease_out), (5.0, -6), (6.0, 0)]))
+    aim_head(p, 38 + 2 * b, yaw, 6 * math.sin(TAU * t / 6.0))
+    sp.apply(p, t, skip=('fingers', 'spine'))
+    drips(p, t, 0.5, 0.7)
+    return p
+
+
+@anim('lunge', 1.6, loop=False, scene='shore', label='19. Lunge')
+def a_lunge(t, sp=Spasms(1.6, False, 39, rate=2.0, groups=('head', 'jaw'), tremor=[(0.1, 0.42)], tremor_amp=2.0)):
+    """a sudden long-reaching strike on two legs: one arm flung at your face, claws splayed"""
+    p = Pose()
+    ph = float(track(t, [(0, 0), (0.42, 1, smooth), (0.58, 2, ease_out), (0.8, 2.08, smooth), (1.6, 3, smooth)]))
+
+    def blend(coil, strike):
+        coil, strike = np.array(coil, dtype=float), np.array(strike, dtype=float)
+        if ph <= 1:
+            return coil * ph
+        if ph <= 2:
+            return coil + (strike - coil) * (ph - 1)
+        if ph <= 2.08:
+            return strike * (1 + 0.05 * (ph - 2) / 0.08)
+        return strike * 1.05 * (3 - ph) / 0.92
+
+    k_up = float(blend([0], [1])[0])
+    stand(p, clamp(0.35 * k_up, 0, 1))
+    p.pos('body', *blend([0, -5, 5], [0, 1, -17]))
+    p.rot('pelvis', *blend([14, 8, 0], [20, -10, 0]))
+    p.rot('waist', *blend([6, 0, 0], [6, -6, 0]))
+    p.rot('chest', *blend([6, 10, 0], [2, -14, 0]))
+    p.rot('neck_lower', *blend([16, 0, 0], [0, 0, 0]))
+    p.rot('neck_mid', *blend([14, 0, 0], [-14, 0, 0]))
+    p.rot('neck_upper', *blend([8, 0, 0], [-18, 0, 0]))
+    p.rot('jaw', *blend([0, 0, 0], [32, 0, 0]))
+    # right arm: pulled back and cocked, then flung straight at the camera with the hand splayed open
+    p.rot('right_arm', *blend([38, -10, 14], [-112, 18, 6]))
+    p.rot('right_forearm', *blend([-55, 0, 0], [6, 0, 0]))
+    p.rot('right_hand', *blend([20, 0, 0], [-32, 0, 0]))
+    p.rot('left_arm', *blend([10, 0, -18], [24, 0, -26]))
+    p.rot('left_forearm', *blend([-20, 0, 0], [-30, 0, 0]))
+    for i, f in enumerate(FINGERS):
+        sp_z = (i - 1.5) * 11 if f != 'thumb' else 0
+        c = blend([34, 0, 0], [-26, 0, sp_z])
+        p.rot(f'right_{f}', c[0], 0, c[2])
+        p.rot(f'right_{f}_tip', c[0] * 0.9)
+        p.rot(f'left_{f}', *blend([20, 0, 0], [30, 0, 0]))
+        p.rot(f'left_{f}_tip', *blend([22, 0, 0], [34, 0, 0]))
+    for side, s in SIDES:
+        a = REST_ANKLE[side]
+        plant_leg(p, side, (a[0], a[1], a[2] + (3.0 if s > 0 else -7.0)), (0.15 * s, 0.3, -1))
+    aim_head(p, float(blend([30], [-4])[0]), float(blend([0], [-8])[0]), float(blend([10], [-6])[0]), w=min(1.0, ph))
+    sp.apply(p, t)
+    drips(p, t, 0.5, 1.0, tuple(blend([-10, 0], [40, 0])))
+    return p
+
+
+@anim('retreat', 4.4, loop=False, scene='water_shallow', water_level=6.0, label='20. Retreat')
+def a_retreat(t, sp=Spasms(4.4, False, 40, rate=1.2, groups=('head', 'jaw', 'fingers'))):
+    """turns its back and slowly wades away, sinking out of sight"""
+    p = Pose()
+    turn = float(track(t, [(0, 0), (0.9, 180, smoother), (4.4, 180)]))
+    walk = clamp((t - 0.8) / 3.6, 0, 1)
+    p.rot('root', 0, turn, 0)
+    p.pos('root', 0, -58 * smooth((t - 1.3) / 3.1), 58 * walk)
+    stand(p, 0.6)
+    ph = ((t - 0.8) / 1.6) % 1.0 if t > 0.8 else 0.0
+    Rr = fk(p)['root'][0]
+    for side, s in SIDES:
+        base = REST_ANKLE[side]
+        if t <= 0.8:
+            plant_leg(p, side, root_point(p, base), Rr @ np.array([0.1 * s, 0.3, -1]))
+            p.set_world_rot(f'{side}_foot', Rr)
+            continue
+        fph = (ph + (0.0 if s > 0 else 0.5)) % 1.0
+        if fph < 0.62:
+            k = fph / 0.62
+            z = base[2] - 8 + 16 * k
+            y = base[1]
+        else:
+            k = (fph - 0.62) / 0.38
+            z = base[2] + 8 - 16 * smoother(k)
+            y = base[1] + 4 * math.sin(math.pi * k)
+        plant_leg(p, side, root_point(p, (base[0] + 0.5 * s, y, z)), Rr @ np.array([0.1 * s, 0.3, -1]))
+        p.set_world_rot(f'{side}_foot', Rr)
+        aw = TAU * ph + (0 if s < 0 else math.pi)
+        p.rot(f'{side}_arm', -8 * math.sin(aw), 0, -s * 5)
+        curl(p, side, 14)
+    aim_head(p, 10, 0, 0)
+    sp.apply(p, t)
+    drips(p, t, 0.7)
     return p
 
 

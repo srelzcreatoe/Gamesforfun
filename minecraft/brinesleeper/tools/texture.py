@@ -23,6 +23,9 @@ HAND = [(56, 48, 54), (74, 65, 71), (93, 83, 90), (113, 103, 109), (133, 123, 12
 DRIP = [(10, 7, 9), (19, 14, 17), (29, 22, 26), (42, 33, 38), (60, 49, 55)]
 MOUTH = [(22, 8, 11), (38, 14, 19), (58, 24, 31), (84, 40, 48)]
 EYE = (6, 4, 5)
+BEAD = (112, 122, 134)     # water droplet catching light
+GLINT = (70, 72, 84)
+TEAR = [(58, 40, 46), (84, 60, 68), (112, 86, 94), (140, 114, 120)]   # reddish wet smears
 
 
 def ramp(pal, v):
@@ -205,62 +208,68 @@ class Painter:
                 return ramp(HEADSKIN, 0.4 + 0.5 * rnd)
         return ramp(HEADSKIN, 2)
 
+    # wet, streaky mask: grey brow, palest around the snout, dead black pinhole eyes,
+    # grey tear tracks running from each eye down the narrow jaw into the drip strands
     FACE_MAP = [
-        "22333322",
-        "23344332",
-        "33444433",
-        "34455443",
-        "34556543",
-        "45566554",
-        "4E5665E4",
-        "4T6666T4",
-        "3T5665T3",
+        "23232332",
+        "33343343",
+        "34344343",
+        "34454454",
+        "44555544",
+        "4s5665s4",
+        "4E5666E4",
+        "4u6776u4",
+        "4t6776t3",
     ]
     JAW_MAP = [
+        "t6776t",
+        "T5775T",
         "T5665T",
-        "T4554T",
-        "T3mm3T",
+        "TT4m4T",
     ]
 
     def face_front(self, i, j, rnd):
         ch = self.FACE_MAP[j][i]
         if ch == 'E':
             return EYE
-        if ch == 'T':
-            return DRIP[3] if j == 7 else DRIP[2]
+        if ch == 's':              # shadowed socket above each eye
+            return ramp(FACE, 3)
+        if ch == 'u':              # tear welling right under the eye
+            return TEAR[2]
+        if ch == 't':
+            return TEAR[2] if rnd > 0 else TEAR[1]
         v = int(ch)
-        # subtle pixel variation, never touching the eye row
-        if j not in (6,) and abs(rnd) > 0.55:
+        if j not in (5, 6) and abs(rnd) > 0.6:
             v += 1 if rnd > 0 else -1
-        # faint tear tracks one column inside the streaks
-        if j >= 7 and i in (2, 5) and rnd < 0.1:
-            v -= 1
         return ramp(FACE, v)
 
     def jaw_front(self, i, j, rnd):
         ch = self.JAW_MAP[j][i]
+        if ch == 't':
+            return TEAR[2]
         if ch == 'T':
-            return DRIP[2] if j < 2 else DRIP[1]
+            return TEAR[1] if j < 3 else TEAR[0]
         if ch == 'm':
-            return FACE[2]
+            return TEAR[1]
         v = int(ch)
-        if abs(rnd) > 0.6:
+        if abs(rnd) > 0.65:
             v += 1 if rnd > 0 else -1
         return ramp(FACE, v)
 
     # ---------------------------------------------------------------- drips
     def shade_drip(self, c, part, face, i, j, fw, fh, p, wp, wn):
+        end = c.tags.get('seg', 1) == 1
         if face == 'down':
-            return DRIP[3]
+            return BEAD if end else DRIP[2]
         if face == 'up':
             return DRIP[1]
-        v = 1.6 if face == 'north' else 1.0
-        if j == fh - 1:
-            v += 1.4      # bead of fluid at the tip
-        elif j == 0 and face == 'north':
-            v += 0.6
-        if face == 'north' and j == 1 and fh >= 4:
-            v += 1.0      # wet glint
+        if end and j == fh - 1:
+            return BEAD if face in ('north', 'east', 'west') else GLINT     # glassy droplet at the tip
+        v = 1.8 if face == 'north' else 1.1
+        if face in ('east', 'west') and (j + (0 if face == 'east' else 1)) % 3 == 0:
+            return GLINT                                                    # wet highlight streak
+        if face == 'north' and j % 4 == 1:
+            v += 1.6
         return ramp(DRIP, v)
 
     # ---------------------------------------------------------------- neck
@@ -294,11 +303,11 @@ class Painter:
                     else:
                         # ribs dip toward the sternum: offset row by distance from centre
                         r2 = (int(math.floor(yrel + (0.5 if abs(x) < 3 else 0))) % 2 == 0)
-                        v += 0.9 if r2 else -0.55
+                        v += 1.5 if r2 else -1.2
                     if part == 'ribs_top' and j == 0:
                         v += 0.8   # collarbone ridge
                 else:
-                    v += 0.7 if rib else -0.5
+                    v += 1.1 if rib else -0.9
                     if part == 'ribs_low' and j >= fh - 1:
                         v -= 0.4
             elif face == 'south':
@@ -350,6 +359,16 @@ class Painter:
     # ---------------------------------------------------------------- bony knobs
     def shade_bone(self, c, part, face, i, j, fw, fh, p, wp, wn):
         rnd = self.mottle(wp, 0.7, 31)
+        if part == 'rib':
+            v = 5.0 + 0.5 * rnd + (0.7 if face == 'up' else 0) - (2.6 if face == 'down' else 0)
+            if face in ('east', 'west'):
+                v -= 0.8
+            return ramp(TORSO, v)
+        if part == 'spike':
+            tip = (face == 'south') or (face in ('up', 'down', 'east', 'west') and (
+                (face in ('up', 'down') and j == 0) or (face == 'east' and i == 0) or (face == 'west' and i == fw - 1)))
+            v = 3.4 + 0.6 * rnd + (1.6 if tip else 0) + (0.5 if face == 'up' else 0)
+            return ramp(HAND, v)
         if part == 'vertebra':
             return ramp(TORSO, 4.0 + 0.6 * rnd + (0.8 if face == 'up' else 0) - (1.2 if face == 'down' else 0))
         v = 3.9 + rnd + 0.8 * self.light(wn)

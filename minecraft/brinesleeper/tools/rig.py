@@ -146,12 +146,22 @@ def build():
         C(chest, 'shoulder_right' if s < 0 else 'shoulder_left', 9 * s - 2, H + 15, -2, 4, 4, 5, 'bone', part='shoulder', side=s)
     for i, y in enumerate((H + 9, H + 11.5, H + 13.5)):
         C(chest, f'vertebra_c{i}', -1, y, 3.5 if y < H + 11 else 4, 2, 1, 1, 'bone', part='vertebra')
+    C(chest, 'rib_bar_0', -3, H + 9, -3.5, 6, 1, 1, 'bone', part='rib')
+    C(chest, 'rib_bar_1', -4, H + 11.5, -4, 8, 1, 1, 'bone', part='rib')
+    C(chest, 'rib_bar_2', -4, H + 13.5, -4, 8, 1, 1, 'bone', part='rib')
+    # dorsal spines along the upper back
+    C(chest, 'spine_spike_c0', -0.5, H + 16, 4.5, 1, 1, 2, 'bone', part='spike')
+    C(chest, 'spine_spike_c1', -0.5, H + 18, 4.5, 1, 1, 1, 'bone', part='spike')
 
     # long arched neck: thick base rising off the shoulders, three segments
     nl = B('neck_lower', 'chest', (0, H + 18.5, 1.0), (0, 0, 0))
     C(nl, 'neck_lower', -2.5, H + 17.5, -1.5, 5, 8, 5, 'neck', part='neck')
+    for i, (y, d) in enumerate(((H + 19, 2), (H + 21.5, 2), (H + 24, 1))):
+        C(nl, f'neck_spike_l{i}', -0.5, y, 3.5, 1, 1, d, 'bone', part='spike')
     nm = B('neck_mid', 'neck_lower', (0, H + 25, 1.0), (22, 0, 0))
     C(nm, 'neck_mid', -2, H + 24.5, -1, 4, 8, 4, 'neck', part='neck')
+    for i, (y, d) in enumerate(((H + 26.5, 1), (H + 29, 1))):
+        C(nm, f'neck_spike_m{i}', -0.5, y, 3, 1, 1, d, 'bone', part='spike')
     nu = B('neck_upper', 'neck_mid', (0, H + 31.5, 1.0), (22, 0, 0))
     C(nu, 'neck_upper', -2, H + 31, -1, 4, 7, 4, 'neck', part='neck')
 
@@ -159,19 +169,23 @@ def build():
     head = B('head', 'neck_upper', (0, H + 37.5, 1.0), (-74, 0, 0))
     C(head, 'cranium', -4, H + 30.5, -6, 8, 9, 8, 'face', part='cranium')
     jaw = B('jaw', 'head', (0, H + 30.5, 0))
-    C(jaw, 'jaw', -3, H + 27.5, -6, 6, 3, 6, 'face', part='jaw')
+    C(jaw, 'jaw', -3, H + 26.5, -6, 6, 4, 6, 'face', part='jaw')
 
     # black "tears": streaks under each eye that drip off the chin as strands
-    dr = B('drip_right', 'jaw', (-2.5, H + 27.5, -5.5))
-    C(dr, 'drip_right', -3, H + 22.5, -6, 1, 5, 1, 'drip', part='drip')
-    dl = B('drip_left', 'jaw', (2.5, H + 27.5, -5.5))
-    C(dl, 'drip_left', 2, H + 21.5, -6, 1, 6, 1, 'drip', part='drip')
-    dm = B('drip_mouth', 'jaw', (-0.5, H + 27.5, -5))
-    C(dm, 'drip_mouth', -1, H + 25.5, -5.5, 1, 2, 1, 'drip', part='drip')
+    dr = B('drip_right', 'jaw', (-2.5, H + 26.5, -5.5))
+    C(dr, 'drip_right', -3, H + 22.5, -6, 1, 4, 1, 'drip', part='drip', seg=0)
+    dre = B('drip_right_end', 'drip_right', (-2.5, H + 22.5, -5.5))
+    C(dre, 'drip_right_end', -3, H + 18.5, -6, 1, 4, 1, 'drip', part='drip', seg=1)
+    dl = B('drip_left', 'jaw', (2.5, H + 26.5, -5.5))
+    C(dl, 'drip_left', 2, H + 22.5, -6, 1, 4, 1, 'drip', part='drip', seg=0)
+    dle = B('drip_left_end', 'drip_left', (2.5, H + 22.5, -5.5))
+    C(dle, 'drip_left_end', 2, H + 17.5, -6, 1, 5, 1, 'drip', part='drip', seg=1)
+    dm = B('drip_mouth', 'jaw', (-0.5, H + 26.5, -5))
+    C(dm, 'drip_mouth', -1, H + 23.5, -5.5, 1, 3, 1, 'drip', part='drip', seg=1)
     dcr = B('drip_cheek_right', 'head', (-3.5, H + 30.5, -3.5))
-    C(dcr, 'drip_cheek_right', -4, H + 27.5, -4, 1, 3, 1, 'drip', part='drip')
+    C(dcr, 'drip_cheek_right', -4, H + 26.5, -4, 1, 4, 1, 'drip', part='drip', seg=1)
     dcl = B('drip_cheek_left', 'head', (3.5, H + 30.5, -2.5))
-    C(dcl, 'drip_cheek_left', 3, H + 28.5, -3, 1, 2, 1, 'drip', part='drip')
+    C(dcl, 'drip_cheek_left', 3, H + 27.5, -3, 1, 3, 1, 'drip', part='drip', seg=1)
 
     # ---------------- arms (s = -1 right, +1 left) ----------------
     for side, s in (('right', -1), ('left', 1)):
@@ -233,7 +247,7 @@ if __name__ == '__main__':
         ('sole R', 'right_foot', (-4, H - 31, 0 + ZO)),
         ('head pivot', 'head', rig.by_name['head'].pivot),
         ('head top front', 'head', (0, H + 39.5, -6 + ZO)),
-        ('jaw bottom front', 'jaw', (0, H + 27.5, -6 + ZO)),
+        ('jaw bottom front', 'jaw', (0, H + 26.5, -6 + ZO)),
         ('neck base', 'neck_lower', rig.by_name['neck_lower'].pivot),
     ]:
         w = at(bone, p)

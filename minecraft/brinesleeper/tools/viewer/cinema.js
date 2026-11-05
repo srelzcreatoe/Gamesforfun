@@ -145,7 +145,7 @@ scene.add(camFill); scene.add(camFill.target);
 // ---------------------------------------------------------------- assets
 let model = null, anims = {}, meta = {}, tex = null;
 const envCache = {};
-let env = null, water = null, torch = null, parts = null, motes = null, lichen = null, surfaceBelow = null, shafts = null;
+let env = null, water = null, torch = null, parts = null, motes = null, lichen = null, surfaceBelow = null, shafts = null, props = null;
 let current = null;
 
 async function loadJSON(u) { const r = await fetch(u); if (!r.ok) throw new Error(u); return r.json(); }
@@ -345,8 +345,61 @@ function poseAt(shot, t) {
   return pose;
 }
 
+function vineTexture() {
+  const c = document.createElement('canvas'); c.width = 16; c.height = 64;
+  const g = c.getContext('2d');
+  const r = rng(77);
+  for (let y = 0; y < 64; y++) {
+    const cx = 7 + Math.round(Math.sin(y * 0.4) * 2);
+    for (let x = 0; x < 16; x++) {
+      const d = Math.abs(x - cx);
+      if (d <= 1 || (d <= 3 && r() < 0.55) || (y % 7 === 3 && d <= 5 && r() < 0.6)) {
+        const v = r();
+        g.fillStyle = v < 0.3 ? '#1f3214' : v < 0.7 ? '#304a1d' : '#4a6a2a';
+        g.fillRect(x, y, 1, 1);
+      }
+    }
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+let VINE_TEX = null;
+function buildProps(list) {
+  const g = new THREE.Group();
+  const geo = new THREE.BoxGeometry(16, 16, 16);
+  const m = new THREE.Matrix4();
+  for (const pr of list || []) {
+    if (pr.type === 'blocks') {
+      const [x0, y0, z0, nx, ny, nz] = pr.box;
+      const mat = new THREE.MeshStandardMaterial({ map: tex[pr.tex || 'deepslate'], roughness: 0.92 });
+      const im = new THREE.InstancedMesh(geo, mat, nx * ny * nz);
+      let i = 0;
+      for (let a = 0; a < nx; a++) for (let b = 0; b < ny; b++) for (let c = 0; c < nz; c++) {
+        m.makeTranslation(x0 + a * 16 + 8, y0 + b * 16 + 8, z0 + c * 16 + 8); im.setMatrixAt(i++, m);
+      }
+      im.receiveShadow = true; im.castShadow = true;
+      g.add(im);
+    } else if (pr.type === 'vines') {
+      VINE_TEX = VINE_TEX || vineTexture();
+      const mat = new THREE.MeshStandardMaterial({ map: VINE_TEX, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.8 });
+      const r = rng(pr.seed || 5);
+      for (const x of pr.xs) {
+        const len = pr.len || 96;
+        const q = new THREE.Mesh(new THREE.PlaneGeometry(10, len), mat);
+        q.position.set(x, pr.top - len / 2 + r() * 10, pr.z + r() * 6);
+        q.castShadow = true;
+        g.add(q);
+      }
+    }
+  }
+  return g;
+}
+
 function setShot(shot) {
   current = shot;
+  if (props) { scene.remove(props); props = null; }
+  if (shot.props) { props = buildProps(shot.props); scene.add(props); }
   if (shot.env !== (setShot.lastEnv || null) || shot.waterLevel !== setShot.lastLevel) {
     setEnv(shot.env, { waterLevel: shot.waterLevel, waterOpacity: shot.waterOpacity });
     setShot.lastEnv = shot.env; setShot.lastLevel = shot.waterLevel;
@@ -375,6 +428,7 @@ function renderFrame(shot, t, opts = {}) {
   applyPose(model, poseAt(shot, t));
   // camera
   const c = shot.camera(t, model.root.position.clone());
+  if (opts.dolly && opts.dolly !== 1) c.pos = c.pos.map((v, i) => c.target[i] + (v - c.target[i]) * opts.dolly);
   camera.position.set(...c.pos);
   camera.fov = c.fov || 35;
   camera.aspect = RW / RH;
@@ -444,11 +498,11 @@ window.api = {
     renderFrame(shot, Math.min(t - shot.start, shot.dur - 1e-4));
     return renderer.domElement.toDataURL(fmt === 'jpg' ? 'image/jpeg' : 'image/png', 0.95);
   },
-  still(name, t) {
+  still(name, t, dolly) {
     const s = STILLS[name];
     const shot = { ...s, index: 99, name };
     current = null;
-    renderFrame(shot, t ?? s.t ?? 0, { noFade: true, noHud: s.hud !== true, noGrain: true });
+    renderFrame(shot, t ?? s.t ?? 0, { noFade: true, noHud: s.hud !== true, noGrain: true, dolly });
     return renderer.domElement.toDataURL('image/png');
   },
   render(job) {
@@ -464,7 +518,7 @@ window.api = {
       model.root.traverse(o => { if (o.isMesh) o.material = m; });
       return renderer.domElement.toDataURL('image/png');
     }
-    return this.still(job.still, job.t);
+    return this.still(job.still, job.t, job.dolly);
   },
   resize(w, h) {
     renderer.setSize(w, h); composer.setSize(w, h); bloom.setSize(w, h);
