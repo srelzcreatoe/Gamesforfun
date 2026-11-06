@@ -395,7 +395,16 @@ export class Game {
   onSpawn(player, initial) {
     if (initial) {
       try {
-        player.sendMessage(`§8[FNaR] §7Five Nights at Rustgrin's §f${VERSION}§7 is running.`);
+        // the art version comes from the resource pack's own language file: if a world still uses an
+        // older copy of the resource pack it shows a different number (or the bare key), so an update
+        // that did not reach the models and textures is easy to spot
+        player.sendMessage({
+          rawtext: [
+            { text: `§8[FNaR] §7Five Nights at Rustgrin's §f${VERSION}§7 is running (models and textures: §f` },
+            { translate: 'fnar.version.rp' },
+            { text: '§7).' },
+          ],
+        });
       } catch {
         // ignore
       }

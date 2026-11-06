@@ -202,6 +202,8 @@ def lang():
             continue
         lines.append(f'tile.{ident}.name={title(ident.split(":")[1])}')
     lines.append(f'pack.name={TITLE}')
+    # read back by the scripts' welcome message: shows which resource pack version a world really loads
+    lines.append(f'fnar.version.rp={".".join(map(str, VERSION))}')
     os.makedirs(os.path.join(RP, 'texts'), exist_ok=True)
     with open(os.path.join(RP, 'texts', 'en_US.lang'), 'w') as fh:
         fh.write('\n'.join(lines) + '\n')

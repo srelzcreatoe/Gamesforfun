@@ -493,7 +493,9 @@ say(`power out sequence ok (${mock.sounds.filter((s) => s === 'fnar.rustgrin.son
 const errs = mock.errors.filter((e) => !/^\[FNaR\] (FIVE|ready)/.test(e));
 say(`\nforms shown: ${mock.forms.length}, sounds: ${mock.sounds.length}, commands: ${mock.commands.length}, entities alive: ${mock.entities.size}`);
 say(`missing sound events: ${missingSounds.size ? [...missingSounds].sort().join(', ') : 'none'}`);
-say(`chat: ${mock.chat.length} lines${mock.chat.length ? ` (first: ${mock.chat[0]})` : ''}`);
+const chatText = (m) => (typeof m === 'string' ? m : (m?.rawtext ?? []).map((r) => r.text ?? `{${r.translate}}`).join(''));
+check(mock.chat.some((m) => typeof m === 'object' && m.rawtext?.some((r) => r.translate === 'fnar.version.rp')), 'the welcome message shows the resource pack version');
+say(`chat: ${mock.chat.length} lines${mock.chat.length ? ` (first: ${chatText(mock.chat[0])})` : ''}`);
 const warnCounts = {};
 for (const w of mock.warnings) { const k = w.replace(/[-\d.,@ ]+/g, ' ').slice(0, 90); warnCounts[k] = (warnCounts[k] ?? 0) + 1; }
 say(`warnings: ${mock.warnings.length}`);
