@@ -22,8 +22,14 @@
   "fnar:bunting": {
     "sound": "cloth"
   },
+  "fnar:carpet_confetti": {
+    "sound": "stone"
+  },
   "fnar:carpet_party": {
     "sound": "cloth"
+  },
+  "fnar:ceiling_dark": {
+    "sound": "stone"
   },
   "fnar:ceiling_lamp": {
     "sound": "metal"
@@ -50,6 +56,9 @@
     "sound": "cloth"
   },
   "fnar:curtain_red": {
+    "sound": "cloth"
+  },
+  "fnar:curtain_star": {
     "sound": "cloth"
   },
   "fnar:desk_clutter": {
@@ -88,6 +97,9 @@
   "fnar:floor_decal": {
     "sound": "cloth"
   },
+  "fnar:footlight": {
+    "sound": "stone"
+  },
   "fnar:guitar_amp": {
     "sound": "metal"
   },
@@ -108,6 +120,9 @@
   },
   "fnar:lot_tag": {
     "sound": "cloth"
+  },
+  "fnar:menu_board": {
+    "sound": "stone"
   },
   "fnar:mop_bucket": {
     "sound": "metal"
@@ -187,6 +202,9 @@
   "fnar:sign_cabaret": {
     "sound": "metal"
   },
+  "fnar:sign_facade": {
+    "sound": "stone"
+  },
   "fnar:sign_midway": {
     "sound": "metal"
   },
@@ -198,6 +216,9 @@
   },
   "fnar:sign_staff": {
     "sound": "wood"
+  },
+  "fnar:sign_stage": {
+    "sound": "stone"
   },
   "fnar:sink": {
     "sound": "stone"
@@ -270,6 +291,9 @@
   },
   "fnar:wall_sconce": {
     "sound": "metal"
+  },
+  "fnar:wall_stripe": {
+    "sound": "stone"
   },
   "fnar:wall_trim": {
     "sound": "stone"

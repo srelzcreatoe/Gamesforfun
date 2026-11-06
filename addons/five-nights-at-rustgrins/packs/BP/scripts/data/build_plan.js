@@ -848,7 +848,9 @@ function gameroom(p, rng) {
   p.fill(59, 4, 43, 61, 5, 43, 'vinyl_green');
   for (const [x, z] of [[49, 43], [79, 61], [49, 61]]) p.set(x, 6, z, 'cobweb');
   // the floor of a busy game room: ticket strips everywhere
-  for (const [x, z, k] of [[61, 47, 'tickets'], [67, 52, 'tickets_b'], [58, 53, 'tickets'], [72, 46, 'confetti'], [63, 58, 'tickets_b'], [76, 57, 'tickets']]) {
+  /** @type {[number, number, string][]} */
+  const strips = [[61, 47, 'tickets'], [67, 52, 'tickets_b'], [58, 53, 'tickets'], [72, 46, 'confetti'], [63, 58, 'tickets_b'], [76, 57, 'tickets']];
+  for (const [x, z, k] of strips) {
     p.set(x, 0, z, `decal_${k}_${['n', 'e', 's', 'w'][(x + z) % 4]}`);
   }
 }
@@ -909,7 +911,9 @@ function funzone(p) {
   p.set(91, 1, 53, 'slide_chute_s');
   p.set(91, 1, 54, 'slide_lip_s');
   // ---- the crawl tubes overhead: down from both tower tops, across the room over the ball pit
-  for (const [x, post] of [[83, 'vinyl_green'], [96, 'vinyl_red']]) {
+  /** @type {[number, string][]} */
+  const risers = [[83, 'vinyl_green'], [96, 'vinyl_red']];
+  for (const [x, post] of risers) {
     for (let z = 49; z <= 56; z++) p.set(x, 7, z, z === 52 ? `tube_win_yellow_n` : `tube_${z % 2 ? 'blue' : 'red'}_n`);
     p.fill(x - 1, 6, 57, x + 1, 8, 59, 'vinyl_yellow');
     p.set(x, 7, 58, 'vinyl_blue');
@@ -1246,7 +1250,9 @@ function decayPrize(p) {
 
 function decayParty(p) {
   for (const [x, z, k] of [[35, 47, 'fallen_e'], [37, 51, 'fallen_w']]) p.set(x, 0, z, k);
-  for (const [x, z, k] of [[33, 44, 'confetti'], [39, 50, 'confetti'], [34, 53, 'tickets']]) p.set(x, 0, z, `decal_${k}_n`);
+  /** @type {[number, number, string][]} */
+  const litter = [[33, 44, 'confetti'], [39, 50, 'confetti'], [34, 53, 'tickets']];
+  for (const [x, z, k] of litter) p.set(x, 0, z, `decal_${k}_n`);
   p.set(38, 0, 42, 'hat_1');
   for (const [x, z] of [[31, 39], [41, 56]]) p.set(x, 4, z, 'cobweb');
   p.set(33, 5, 49, 'ceiling_missing');
