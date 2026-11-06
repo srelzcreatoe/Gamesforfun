@@ -214,26 +214,43 @@ def broken_lamp_block():
     })}
 
 
+# Bedrock caps an enumerated block state at 16 values ("too many input elements, expected no more
+# than 16"), so a picture with more tiles spans several blocks: name (tiles 0-15), name_p1 (16-31)...
+# The textures keep their picture-wide tile numbers; data/palette.js pictureBlock() maps a tile back.
+TILES_PER_BLOCK = 16
+
+
+def panel_part_name(name, part):
+    return name if part == 0 else f'{name}_p{part}'
+
+
+def panel_parts(name):
+    return [panel_part_name(name, p) for p in range(-(-PANELS[name] // TILES_PER_BLOCK))]
+
+
 def panel_blocks():
     out = {}
     for name, n in PANELS.items():
-        perms = facing_perms()
-        for i in range(n):
-            perms.append({'condition': f"q.block_state('fnar:tile') == {i}",
-                          'components': {'minecraft:material_instances': mats(f'{name}_{i}', 'alpha_test')}})
-        comps = {
-            'minecraft:geometry': 'geometry.fnar.wall_panel',
-            'minecraft:material_instances': mats(f'{name}_0', 'alpha_test'),
-            'minecraft:collision_box': False,
-            'minecraft:selection_box': {'origin': [-8, 0, 7], 'size': [16, 16, 1]},
-            'minecraft:light_dampening': 0,
-            'minecraft:destructible_by_mining': {'seconds_to_destroy': 1},
-            'minecraft:map_color': map_color(f'{name}_0'),
-        }
-        if name in PANEL_LIGHT:
-            comps['minecraft:light_emission'] = PANEL_LIGHT[name]
-        out[name] = block(name, comps, states={'fnar:tile': list(range(n))}, traits=facing_traits(),
-                          permutations=perms)
+        for part, bname in enumerate(panel_parts(name)):
+            first = part * TILES_PER_BLOCK
+            count = min(TILES_PER_BLOCK, n - first)
+            perms = facing_perms()
+            for j in range(count):
+                perms.append({'condition': f"q.block_state('fnar:tile') == {j}",
+                              'components': {'minecraft:material_instances': mats(f'{name}_{first + j}', 'alpha_test')}})
+            comps = {
+                'minecraft:geometry': 'geometry.fnar.wall_panel',
+                'minecraft:material_instances': mats(f'{name}_{first}', 'alpha_test'),
+                'minecraft:collision_box': False,
+                'minecraft:selection_box': {'origin': [-8, 0, 7], 'size': [16, 16, 1]},
+                'minecraft:light_dampening': 0,
+                'minecraft:destructible_by_mining': {'seconds_to_destroy': 1},
+                'minecraft:map_color': map_color(f'{name}_{first}'),
+            }
+            if name in PANEL_LIGHT:
+                comps['minecraft:light_emission'] = PANEL_LIGHT[name]
+            out[bname] = block(bname, comps, states={'fnar:tile': list(range(count))}, traits=facing_traits(),
+                               permutations=perms)
     return out
 
 
@@ -305,7 +322,8 @@ def build():
         'flipbook_texture': f'textures/blocks/fnar/{BROKEN_LAMP[0]}', 'atlas_tile': tex_ref(BROKEN_LAMP[0]),
         'ticks_per_frame': BROKEN_TICKS, 'frames': BROKEN_SEQUENCE}])
     for n, (c, ty) in SIGN_LIGHT_COLORS.items():
-        lights[f'fnar:{n}'] = {'light_color': c, 'light_type': ty}
+        for part in panel_parts(n):
+            lights[f'fnar:{part}'] = {'light_color': c, 'light_type': ty}
     write_json(os.path.join(FRAG, 'local_lighting_surfaces.json'), lights)
     return blocks, texs
 

@@ -208,7 +208,12 @@ export const NEON = Object.freeze({
 /** wall_writing tiles: the first tile of each picture and its size (tiles run row-major from the top-left). */
 export const WRITING = Object.freeze({ show: [0, 4, 2], name: [8, 3, 2], tally: [14, 1, 1], scratches: [15, 1, 1] });
 
+/** Bedrock caps an enumerated block state at 16 values, so a picture with more tiles spans several
+ *  blocks: name (tiles 0-15), name_p1 (16-31), name_p2 (32-47)... (tools/blocks/surfaces/gen_blocks.py). */
+export const TILES_PER_BLOCK = 16;
+
 /** Palette entry for one picture tile (built on demand, not stored in PALETTE). */
 export function pictureBlock(name, tile, dir) {
-  return F(name, { 'minecraft:cardinal_direction': CARD[dir], 'fnar:tile': tile });
+  const part = Math.floor(tile / TILES_PER_BLOCK);
+  return F(part ? `${name}_p${part}` : name, { 'minecraft:cardinal_direction': CARD[dir], 'fnar:tile': tile % TILES_PER_BLOCK });
 }

@@ -14,6 +14,8 @@
 //   5. no experimental features: the packs must load with every experiment toggle off, so no
 //      beta script module, no manifest capability but "pbr" (Vibrant Visuals), and no component
 //      or component field whose schema description says it needs an experiment
+//   6. blocks: a state listed as values holds at most 16 of them (2 for booleans): "too many input
+//      elements, expected no more than 16" drops the whole block (1.0.9's big signs)
 //
 // Usage: node tools/lint_game_rules.mjs   (exit 1 on problems)
 import fs from 'node:fs';
@@ -127,6 +129,13 @@ for (const [kind, dir] of [['block', 'blocks'], ['item', 'items'], ['entity', 'e
     const fv = ver(d.format_version);
     const root = d[`minecraft:${kind === 'entity' ? 'entity' : kind}`];
     if (!root) continue;
+    if (kind === 'block') {
+      for (const [state, values] of Object.entries(root.description?.states ?? {})) {
+        if (!Array.isArray(values)) continue; // the {"values": {"min", "max"}} range form
+        const max = values.every((v) => typeof v === 'boolean') ? 2 : 16;
+        if (values.length > max) report(f, `state ${state} lists ${values.length} values; the game allows at most ${max} and drops the block`);
+      }
+    }
     const groups = [root.components ?? {}, ...(root.permutations ?? []).map((p) => p.components ?? {}), ...Object.values(root.component_groups ?? {})];
     for (const comps of groups) {
       for (const [id, val] of Object.entries(comps)) {

@@ -130,6 +130,9 @@
   "fnar:neon_sign": {
     "sound": "metal"
   },
+  "fnar:neon_sign_p1": {
+    "sound": "metal"
+  },
   "fnar:pa_speaker": {
     "sound": "metal"
   },
@@ -205,6 +208,12 @@
   "fnar:sign_facade": {
     "sound": "metal"
   },
+  "fnar:sign_facade_p1": {
+    "sound": "metal"
+  },
+  "fnar:sign_facade_p2": {
+    "sound": "metal"
+  },
   "fnar:sign_midway": {
     "sound": "metal"
   },
@@ -218,6 +227,9 @@
     "sound": "wood"
   },
   "fnar:sign_stage": {
+    "sound": "metal"
+  },
+  "fnar:sign_stage_p1": {
     "sound": "metal"
   },
   "fnar:sink": {

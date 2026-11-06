@@ -81,6 +81,10 @@
       "light_color": "#ff7ad0",
       "light_type": "static_light"
     },
+    "fnar:neon_sign_p1": {
+      "light_color": "#ff7ad0",
+      "light_type": "static_light"
+    },
     "fnar:sign_revue": {
       "light_color": "#ff6fb5",
       "light_type": "static_light"
@@ -97,7 +101,19 @@
       "light_color": "#ffd27a",
       "light_type": "static_light"
     },
+    "fnar:sign_stage_p1": {
+      "light_color": "#ffd27a",
+      "light_type": "static_light"
+    },
     "fnar:sign_facade": {
+      "light_color": "#ff6fb5",
+      "light_type": "static_light"
+    },
+    "fnar:sign_facade_p1": {
+      "light_color": "#ff6fb5",
+      "light_type": "static_light"
+    },
+    "fnar:sign_facade_p2": {
       "light_color": "#ff6fb5",
       "light_type": "static_light"
     }
