@@ -1,0 +1,17 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:structure_template_feature": {
+    "description": {
+      "identifier": "brine:stalagmite_4"
+    },
+    "structure_name": "brine:stalagmite_4",
+    "facing_direction": "south",
+    "constraints": {
+      "block_intersection": {
+        "block_allowlist": [
+          "minecraft:air"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "format_version": "1.20.20",
+  "sound_definitions": {
+    "ambient.brine.stillwater.additions": {
+      "category": "ambient",
+      "sounds": [
+        {
+          "name": "sounds/ambient/brine/stillwater_splash1",
+          "volume": 0.55,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/ambient/brine/stillwater_splash2",
+          "volume": 0.55,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/ambient/brine/stillwater_drip1",
+          "volume": 0.4,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/ambient/brine/stillwater_drip2",
+          "volume": 0.4,
+          "load_on_low_memory": true
+        }
+      ]
+    }
+  }
+}

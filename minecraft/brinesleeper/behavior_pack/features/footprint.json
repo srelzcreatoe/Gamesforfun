@@ -1,0 +1,17 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:snap_to_surface_feature": {
+    "description": {
+      "identifier": "brine:footprint"
+    },
+    "feature_to_snap": "brine:tracked_mud_block",
+    "vertical_search_range": 4,
+    "surface": "floor",
+    "allowed_surface_blocks": [
+      "minecraft:mud",
+      "minecraft:gravel",
+      "minecraft:clay"
+    ],
+    "embed_in_surface": true
+  }
+}

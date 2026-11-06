@@ -1,2 +1,7 @@
 entity.brine:brinesleeper.name=Brinesleeper
 item.spawn_egg.entity.brine:brinesleeper.name=Spawn Brinesleeper
+tile.brine:bloodstained_deepslate.name=Bloodstained Deepslate
+tile.brine:clawed_deepslate.name=Clawed Deepslate
+tile.brine:tracked_mud.name=Tracked Mud
+tile.brine:bone_coral.name=Bone Coral
+tile.brine:bloodroot.name=Bloodroot

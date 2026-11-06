@@ -1,0 +1,78 @@
+{
+  "format_version": "1.26.30",
+  "minecraft:block": {
+    "description": {
+      "identifier": "brine:bloodroot",
+      "menu_category": {
+        "category": "nature",
+        "group": "minecraft:itemGroup.name.grass"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "minecraft:geometry.cross",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "brine_bloodroot",
+          "render_method": "alpha_test_single_sided",
+          "ambient_occlusion": 0.0,
+          "face_dimming": false
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -6,
+          0,
+          -6
+        ],
+        "size": [
+          12,
+          14,
+          12
+        ]
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0.0
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:replaceable": {},
+      "minecraft:placement_filter": {
+        "conditions": [
+          {
+            "allowed_faces": [
+              "up"
+            ],
+            "block_filter": [
+              "minecraft:mud",
+              "minecraft:gravel",
+              "minecraft:clay",
+              "minecraft:dirt",
+              "minecraft:coarse_dirt",
+              "minecraft:stone",
+              "minecraft:deepslate",
+              "minecraft:tuff",
+              "minecraft:smooth_basalt",
+              "minecraft:cobbled_deepslate",
+              "minecraft:dripstone_block",
+              "brine:tracked_mud",
+              "brine:bloodstained_deepslate",
+              "brine:clawed_deepslate"
+            ]
+          }
+        ]
+      },
+      "minecraft:liquid_detection": {
+        "detection_rules": [
+          {
+            "liquid_type": "water",
+            "on_liquid_touches": "popped"
+          }
+        ]
+      },
+      "minecraft:map_color": "#7b0000"
+    }
+  }
+}

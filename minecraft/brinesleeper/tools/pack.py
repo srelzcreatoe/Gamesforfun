@@ -2,6 +2,8 @@
 import json, os, shutil, sys, uuid, zipfile
 from PIL import Image
 
+import biome
+
 SRC = 'out'
 DST = sys.argv[1]
 RP = os.path.join(DST, 'resource_pack')
@@ -11,7 +13,7 @@ ID = 'brine:brinesleeper'
 # fixed UUIDs so re-running the script produces the same packs
 RP_H, RP_M = '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e01', '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e02'
 BP_H, BP_M = '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e03', '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e04'
-VER = [1, 2, 0]   # bump on every release so Minecraft imports the update over an older copy
+VER = [1, 3, 0]   # bump on every release so Minecraft imports the update over an older copy
 
 
 def write(path, obj):
@@ -28,8 +30,9 @@ for d in (RP, BP):
 # ------------------------------------------------------------------ resource pack
 write(f'{RP}/manifest.json', {
     'format_version': 2,
-    'header': {'name': 'Brinesleeper Resources', 'description': 'The Brinesleeper - aquatic cave dweller (model, texture, animations)',
-               'uuid': RP_H, 'version': VER, 'min_engine_version': [1, 20, 0]},
+    'header': {'name': 'Brinesleeper Resources',
+               'description': 'The Brinesleeper - aquatic cave dweller, and its home biome, the Stillwater Caves',
+               'uuid': RP_H, 'version': VER, 'min_engine_version': [1, 26, 30]},
     'modules': [{'type': 'resources', 'uuid': RP_M, 'version': VER}],
 })
 os.makedirs(f'{RP}/models/entity', exist_ok=True)
@@ -124,13 +127,14 @@ write(f'{RP}/animation_controllers/brinesleeper.animation_controllers.json', {
 write(f'{RP}/texts/languages.json', ['en_US'])
 os.makedirs(f'{RP}/texts', exist_ok=True)
 with open(f'{RP}/texts/en_US.lang', 'w') as f:
-    f.write(f'entity.{ID}.name=Brinesleeper\nitem.spawn_egg.entity.{ID}.name=Spawn Brinesleeper\n')
+    f.write(f'entity.{ID}.name=Brinesleeper\nitem.spawn_egg.entity.{ID}.name=Spawn Brinesleeper\n' + biome.lang_lines())
 
 # ------------------------------------------------------------------ behavior pack
 write(f'{BP}/manifest.json', {
     'format_version': 2,
-    'header': {'name': 'Brinesleeper Behaviors', 'description': 'The Brinesleeper - amphibious cave hunter (starter AI)',
-               'uuid': BP_H, 'version': VER, 'min_engine_version': [1, 20, 0]},
+    'header': {'name': 'Brinesleeper Behaviors',
+               'description': 'The Brinesleeper - amphibious cave hunter - and the Stillwater Caves biome it haunts',
+               'uuid': BP_H, 'version': VER, 'min_engine_version': [1, 26, 30]},
     'modules': [{'type': 'data', 'uuid': BP_M, 'version': VER}],
     'dependencies': [{'uuid': RP_H, 'version': VER}],
 })
@@ -197,17 +201,13 @@ write(f'{BP}/spawn_rules/brinesleeper.json', {
     'format_version': '1.8.0',
     'minecraft:spawn_rules': {
         'description': {'identifier': ID, 'population_control': 'monster'},
-        'conditions': [{
-            'minecraft:spawns_underwater': {},
-            'minecraft:brightness_filter': {'min': 0, 'max': 4, 'adjust_for_weather': False},
-            'minecraft:height_filter': {'min': -60, 'max': 40},
-            'minecraft:weight': {'default': 3},
-            'minecraft:density_limit': {'surface': 1, 'underground': 2},
-            'minecraft:herd': {'min_size': 1, 'max_size': 1},
-            'minecraft:biome_filter': {'test': 'has_biome_tag', 'operator': '==', 'value': 'overworld'},
-        }],
+        # only in its home biome, the Stillwater Caves (see biome.py)
+        'conditions': biome.SPAWN_CONDITIONS,
     },
 })
+
+# the Stillwater Caves biome: definition, blocks, decorations, fog, sounds
+biome.build(RP, BP, audio=os.path.join(DST, '..', '..', 'assets', 'audio'))
 
 # pack icons from the face close-up
 face = Image.open(sys.argv[2]).convert('RGB')

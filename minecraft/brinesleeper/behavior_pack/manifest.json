@@ -2,17 +2,17 @@
   "format_version": 2,
   "header": {
     "name": "Brinesleeper Behaviors",
-    "description": "The Brinesleeper - amphibious cave hunter (starter AI)",
+    "description": "The Brinesleeper - amphibious cave hunter - and the Stillwater Caves biome it haunts",
     "uuid": "7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e03",
     "version": [
       1,
-      2,
+      3,
       0
     ],
     "min_engine_version": [
       1,
-      20,
-      0
+      26,
+      30
     ]
   },
   "modules": [
@@ -21,7 +21,7 @@
       "uuid": "7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e04",
       "version": [
         1,
-        2,
+        3,
         0
       ]
     }
@@ -31,7 +31,7 @@
       "uuid": "7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e01",
       "version": [
         1,
-        2,
+        3,
         0
       ]
     }

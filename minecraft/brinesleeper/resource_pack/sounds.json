@@ -1,0 +1,14 @@
+{
+  "individual_named_sounds": {
+    "sounds": {
+      "ambient.brine.stillwater.additions": {
+        "sound": "ambient.brine.stillwater.additions",
+        "volume": 0.8,
+        "pitch": [
+          0.85,
+          1.05
+        ]
+      }
+    }
+  }
+}

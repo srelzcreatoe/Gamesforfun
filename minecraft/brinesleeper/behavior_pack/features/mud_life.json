@@ -1,0 +1,18 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:weighted_random_feature": {
+    "description": {
+      "identifier": "brine:mud_life"
+    },
+    "features": [
+      [
+        "brine:shore_plant",
+        2
+      ],
+      [
+        "brine:footprint",
+        3
+      ]
+    ]
+  }
+}

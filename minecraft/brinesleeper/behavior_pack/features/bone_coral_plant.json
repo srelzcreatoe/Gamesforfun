@@ -1,0 +1,14 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:single_block_feature": {
+    "description": {
+      "identifier": "brine:bone_coral_plant"
+    },
+    "places_block": "brine:bone_coral",
+    "enforce_placement_rules": true,
+    "enforce_survivability_rules": true,
+    "may_replace": [
+      "minecraft:air"
+    ]
+  }
+}

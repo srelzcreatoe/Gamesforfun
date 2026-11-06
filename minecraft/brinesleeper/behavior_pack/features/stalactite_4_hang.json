@@ -1,0 +1,15 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:scatter_feature": {
+    "description": {
+      "identifier": "brine:stalactite_4_hang"
+    },
+    "places_feature": "brine:stalactite_4",
+    "distribution": {
+      "iterations": 1,
+      "x": 0,
+      "y": -3,
+      "z": 0
+    }
+  }
+}

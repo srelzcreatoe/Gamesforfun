@@ -1,0 +1,12 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:snap_to_surface_feature": {
+    "description": {
+      "identifier": "brine:claw_mark"
+    },
+    "feature_to_snap": "brine:clawed_block",
+    "vertical_search_range": 10,
+    "surface": "random_horizontal",
+    "embed_in_surface": true
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:single_block_feature": {
+    "description": {
+      "identifier": "brine:clawed_block"
+    },
+    "places_block": "brine:clawed_deepslate",
+    "enforce_placement_rules": false,
+    "enforce_survivability_rules": false,
+    "may_replace": [
+      "minecraft:deepslate",
+      "minecraft:stone",
+      "minecraft:tuff",
+      "minecraft:smooth_basalt",
+      "minecraft:cobbled_deepslate"
+    ]
+  }
+}

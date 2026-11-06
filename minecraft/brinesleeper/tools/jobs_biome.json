@@ -1,0 +1,3 @@
+[{"name": "biome_lake", "view": "lake", "w": 1600, "h": 900},
+ {"name": "biome_shore", "view": "shore", "w": 1000, "h": 640},
+ {"name": "biome_ceiling", "view": "ceiling", "w": 1000, "h": 640}]

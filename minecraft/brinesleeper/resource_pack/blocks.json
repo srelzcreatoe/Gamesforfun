@@ -1,0 +1,18 @@
+{
+  "format_version": "1.19.30",
+  "brine:bloodstained_deepslate": {
+    "sound": "deepslate"
+  },
+  "brine:clawed_deepslate": {
+    "sound": "deepslate"
+  },
+  "brine:tracked_mud": {
+    "sound": "mud"
+  },
+  "brine:bone_coral": {
+    "sound": "coral"
+  },
+  "brine:bloodroot": {
+    "sound": "roots"
+  }
+}

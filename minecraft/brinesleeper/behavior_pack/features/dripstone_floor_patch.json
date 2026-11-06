@@ -1,0 +1,38 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:vegetation_patch_feature": {
+    "description": {
+      "identifier": "brine:dripstone_floor_patch"
+    },
+    "replaceable_blocks": [
+      "minecraft:stone",
+      "minecraft:deepslate",
+      "minecraft:tuff",
+      "minecraft:smooth_basalt",
+      "minecraft:granite",
+      "minecraft:diorite",
+      "minecraft:andesite",
+      "minecraft:cobbled_deepslate",
+      "minecraft:calcite",
+      "minecraft:dripstone_block",
+      "minecraft:gravel",
+      "minecraft:dirt",
+      "minecraft:mud",
+      "minecraft:clay",
+      "minecraft:coarse_dirt"
+    ],
+    "ground_block": "minecraft:dripstone_block",
+    "surface": "floor",
+    "depth": 2,
+    "extra_deep_block_chance": 0.6,
+    "vertical_range": 8,
+    "vegetation_feature": "brine:stalagmite_any",
+    "vegetation_chance": 0.16,
+    "horizontal_radius": {
+      "range_min": 2,
+      "range_max": 4
+    },
+    "extra_edge_column_chance": 0.4,
+    "waterlogged": false
+  }
+}

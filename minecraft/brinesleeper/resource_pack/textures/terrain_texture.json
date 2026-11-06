@@ -1,0 +1,35 @@
+{
+  "resource_pack_name": "brinesleeper",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "brine_bloodstained_deepslate": {
+      "textures": "textures/blocks/brine/bloodstained_deepslate"
+    },
+    "brine_bloodstained_deepslate_top": {
+      "textures": "textures/blocks/brine/bloodstained_deepslate_top"
+    },
+    "brine_bloodstained_deepslate_bottom": {
+      "textures": "textures/blocks/brine/bloodstained_deepslate_bottom"
+    },
+    "brine_clawed_deepslate": {
+      "textures": "textures/blocks/brine/clawed_deepslate"
+    },
+    "brine_deepslate_top_plain": {
+      "textures": "textures/blocks/brine/deepslate_top_plain"
+    },
+    "brine_mud_plain": {
+      "textures": "textures/blocks/brine/mud_plain"
+    },
+    "brine_tracked_mud_top": {
+      "textures": "textures/blocks/brine/tracked_mud_top"
+    },
+    "brine_bone_coral": {
+      "textures": "textures/blocks/brine/bone_coral"
+    },
+    "brine_bloodroot": {
+      "textures": "textures/blocks/brine/bloodroot"
+    }
+  }
+}
