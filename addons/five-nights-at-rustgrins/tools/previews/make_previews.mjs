@@ -288,7 +288,7 @@ export const SCENES = [
     scene: { camera: { pos: [96.5, 6.6, 69.5], target: [87, 1.8, 47], fov: 76 }, exposure: 1.0 },
   },
   {
-    name: '24_fun_zone_night', voxels: 'night', caption: 'The Game Room at night: only the screens, the neon and the coin slots are still on',
+    name: '24_game_room_night', voxels: 'night', caption: 'The Game Room at night: only the screens, the neon and the coin slots are still on',
     scene: { camera: { pos: [77.5, 2.2, 59.5], target: [55, 1.8, 46], fov: 72 }, exposure: 1.6 },
   },
   {
@@ -307,9 +307,9 @@ export const SCENES = [
   {
     name: '28_dining_hall_night', voxels: 'night', caption: 'The Dining Hall at night: the band waits in the dark, one candle burns',
     scene: {
-      camera: { pos: [58.5, 3.0, 35.5], target: [38.5, 2.6, 7], fov: 68 }, exposure: 1.8,
+      camera: { pos: [56.5, 2.6, 33.5], target: [40.5, 2.8, 8], fov: 66 }, exposure: 2.4,
       entities: [at('rustgrin', 'ST_R', 'idle', { eyes: true, t: 0.2 }), at('mirehop', 'ST_M', 'idle', { eyes: true, t: 0.2 }), at('noxbriar', 'ST_N', 'idle', { eyes: true, t: 0.2 })],
-      extra_lights: [{ type: 'ambient', color: '#141a2c', intensity: 1.2 }, point([50.2, 1.9, 24.5], '#ffb867', 2.5, 6)],
+      extra_lights: [{ type: 'ambient', color: '#1a2238', intensity: 2.4 }, point([50.2, 1.9, 24.5], '#ffb867', 4, 8), spot([38.5, 6.4, 12], [38.5, 1.0, 5], { color: '#9fb3ff', intensity: 40, angle: 30 })],
     },
   },
   {
