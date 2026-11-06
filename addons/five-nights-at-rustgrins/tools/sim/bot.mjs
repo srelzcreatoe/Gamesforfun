@@ -42,7 +42,7 @@ export class Bot {
     // the whirr of a servo in a doorway: somebody is stepping in - slam that door
     if (e.fx === 'sound' && e.id === 'fnar.servo.move' && (e.at === 'mirehop' || e.at === 'noxbriar')) { this.at(this.react(4, 20), e.at === 'mirehop' ? 'want_door_l' : 'want_door_r'); return; }
     // a soft twang / hum just outside after a door held: they are lingering, keep it shut a while
-    if (e.fx === 'cue' && e.kind === 'linger') { this.lingerUntil[e.side] = this.s.t + 360; return; }
+    if (e.fx === 'cue' && e.kind === 'linger') { this.lingerUntil[e.side] = this.s.t + 150; return; }
     if (e.fx === 'at_nook') { this.rustAtNook = true; this.at(this.react(8, 30), 'want_door_r'); }
     if (e.fx === 'sound' && e.id === 'fnar.cat.run') { const side = e.at === 'door_l' ? 'L' : 'R'; this.need[side] = true; this.at(this.react(10, 30), side === 'L' ? 'want_door_l' : 'want_door_r'); }
     if (e.fx === 'cat_bang') { this.need[e.side] = false; }
@@ -96,10 +96,12 @@ export class Bot {
       if (cam === '8') {
         if (s.tape.level < 85000) { s.input('wind'); this.busyUntil = s.t + 9; return; }
       }
-      if (cam === '4B') {
+      if (cam === '4B' && s.camWorking('4B')) {
         const r = this.occupant('NOOK');
         this.rustAtNook = !!(r && r.id === 'rustgrin');
         if (this.rustAtNook && !d.doorR) s.input('door_r');
+        // CAM 4B also shows the window and the right doorway
+        if ((this.occupant('WIN_R') || this.occupant('DOOR_R')) && !d.doorR) s.input('door_r');
       }
       this.sweepIdx++; this.busyUntil = s.t + (this.sloppy ? 6 : 10);
     } else if (this.phase === 2) { // lower and check lights

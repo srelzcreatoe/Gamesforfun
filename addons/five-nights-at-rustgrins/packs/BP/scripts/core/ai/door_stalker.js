@@ -46,6 +46,7 @@ export class DoorStalker extends Animatronic {
     this.mode = 'roam';
     this.stalkSince = 0;
     this.lingerUntil = 0;
+    this.returnAt = 0;
     this.eagerUntil = 0;
     this.turnedAway = 0;
     /** @type {string | null | undefined} */
@@ -254,7 +255,7 @@ export class DoorStalker extends Animatronic {
       if (--this.holdLeft <= 0) this.giveUp();
       return;
     }
-    if (!this.opportunity(g.busy() ? this.cfg.busyBonus : 0)) return;
+    if (!this.opportunity(g.busy() ? this.cfg.busyBonus(this.ai) : 0)) return;
     // the guard looked down this hall a moment ago: wait it out, they will look away again
     if (!g.busy() && !g.lit(this.side) && g.justChecked(this.side, this.cfg.wary)) return;
     this.state = 'entering';
@@ -270,15 +271,19 @@ export class DoorStalker extends Animatronic {
     if (this.id === 'noxbriar') s.emit({ fx: 'sound', id: 'fnar.noxbriar.hum', at: this.id, vol: 0.9 });
   }
 
-  /** Patience ran out at a shut door: a fake-out in the corner, or a real retreat. */
+  /**
+   * Patience ran out at a shut door: a fake-out in the corner, or a real retreat. While the
+   * director eases off (the guard is short of power) there are no fake-outs and no hurry back.
+   */
   giveUp() {
     const s = this.s;
+    const easy = s.director.pressure < 0;
     this.turnedAway++;
-    this.eagerUntil = s.t + this.cfg.eagerFor;
+    this.eagerUntil = easy ? 0 : s.t + this.cfg.eagerFor;
     this.mode = 'roam';
     s.director.release(this.side, this.id);
     const corner = this.corner;
-    if (corner && s.rng.chance(this.cfg.linger)) {
+    if (corner && !easy && s.rng.chance(this.cfg.linger(this.ai))) {
       this.state = 'linger';
       this.lingerUntil = s.t + this.cfg.lingerMax;
       s.emit({ fx: 'left_door', who: this.id, side: this.side, linger: true });
@@ -290,15 +295,23 @@ export class DoorStalker extends Animatronic {
     this.retreat();
   }
 
-  /** Waiting in the corner after a fake-out: back the moment the door opens, else away for real. */
+  /** Waiting in the corner after a fake-out: back soon after the door opens, else away for real. */
   tickLinger() {
     const s = this.s;
     const d = s.director;
     if (s.t >= this.lingerUntil) return this.retreat();
-    if (s.doorClosed(this.side) || s.habits.lit(this.side) || s.t < this.nextMo) return;
+    if (s.doorClosed(this.side) || s.habits.lit(this.side)) {
+      this.returnAt = 0;
+      return;
+    }
+    // the door opened: a beat to notice, then heavy steps back (the tell)
+    if (!this.returnAt) this.returnAt = s.t + s.rng.int(20, 45);
+    if (s.t < this.returnAt || s.t < this.nextMo) return;
     if (!d.free(this.side, this.id) || !d.mayStrike(this.id)) return;
     d.struck(this.id, this.side);
     this.state = 'roam';
+    this.returnAt = 0;
+    this.stepCue(this.node);
     this.goTo(this.door);
   }
 

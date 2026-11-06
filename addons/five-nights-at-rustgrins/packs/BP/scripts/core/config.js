@@ -75,11 +75,11 @@ export const CONFIG = Object.freeze({
       erratic: 0.3, // chance a hunting step is a random hop instead of the planned one
       dash: 0.3, // while the guard is on the cameras, chance a hunting step is a quick double hop
       slip: true, // stared at too long on a camera, he slips out of the frame behind the static
-      linger: 0.5, // chance giving up at a shut door is a fake-out: he waits just out of the light
+      linger: (a) => Math.min(0.55, 0.15 + a * 0.025), // chance giving up at a shut door is a fake-out: he waits just out of the light
       lingerMax: 260, // ticks he lingers in the corner before leaving for real
       stalkMax: 240, // ticks he waits at the corner for a good moment before stepping in anyway
       eagerFor: 700, // ticks after being turned away that he hunts again sooner
-      busyBonus: 4, // entry-roll bonus while the guard is on the cameras
+      busyBonus: (a) => Math.round(a * 0.35), // entry-roll bonus while the guard is on the cameras
       wary: 100, // ticks after a light check on his side that he waits it out instead of coming in
       entryGrace: 70, // ticks from his arrival in the doorway (and its tell) to his first try at an open door
     }),
@@ -105,7 +105,8 @@ export const CONFIG = Object.freeze({
       kitchenHum: 0.6, // chance her humming plays from the kitchen when she arrives there
       // Noxbriar is patient and quiet: few odd hops, a long wait for the right moment, a soft hum.
       erratic: 0.06, dash: 0, slip: false,
-      linger: 0.3, lingerMax: 320, stalkMax: 360, eagerFor: 900, busyBonus: 3, wary: 140, entryGrace: 70,
+      linger: (a) => Math.min(0.45, 0.05 + a * 0.025), lingerMax: 320, stalkMax: 360, eagerFor: 900,
+      busyBonus: (a) => Math.round(a * 0.35), wary: 140, entryGrace: 70,
       hallHum: 0.55, // chance she hums softly as she comes down the East Hall
     }),
     rustgrin: Object.freeze({
@@ -120,7 +121,7 @@ export const CONFIG = Object.freeze({
       blinkChance: (a) => Math.min(0.75, a / 24), // ...and the moment the guard looks away he may move at once
       blinkCooldown: 500,
       hotStop: 0.55, // a route stop the guard watches this much is skipped when a darker way exists
-      patience: 360, // after the door turns him away he waits this long before coming again
+      patience: (a) => Math.max(100, 400 - 25 * a), // after the door turns him away he waits this long before coming again
     }),
     cat: Object.freeze({
       // Dances on the Midway ring with the Purple Rat while the show tape plays. Stage 0 dancing,
@@ -147,7 +148,7 @@ export const CONFIG = Object.freeze({
       grace: (a) => Math.max(70, 170 - 4 * a), // ticks at the vent before he drops in
       retreatIndex: 2, // after banging on a shut vent he crawls back to this index of his route
       nervousAfter: 50, // stared at this long in a duct, he squeaks and backs off a section
-      switchAfter: 2, // turned away this many times on one side, he tries the other duct
+      turnedAway: 0.6, // each time a vent turned him away, that duct weighs this much less
     }),
     top_hat_rat: Object.freeze({
       // The Ringmaster. Nights 1-5: stands on his stage, the Grand Marquee (CAM 1C), and never moves.
@@ -207,8 +208,8 @@ export const CONFIG = Object.freeze({
   nights: Object.freeze({
     0: Object.freeze({ title: 'Training', ai: { mirehop: 6, noxbriar: 0, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 200 }, ticksPerHour: 300, ramp: false, phone: 0, tape: false, hallucinations: 0 }),
     1: Object.freeze({ title: 'Night 1', ai: { mirehop: 3, noxbriar: 2, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 1000, noxbriar: 2400 }, ramp: true, phone: 1, tape: false, hallucinations: 0 }),
-    2: Object.freeze({ title: 'Night 2', ai: { mirehop: 5, noxbriar: 4, rustgrin: 0, cat: 2, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 400, noxbriar: 800, cat: 600 }, ramp: true, phone: 2, tape: true, hallucinations: 0 }),
-    3: Object.freeze({ title: 'Night 3', ai: { mirehop: 7, noxbriar: 6, rustgrin: 1, cat: 5, purple_rat: 4, top_hat_rat: 0 }, activation: { purple_rat: 800, rustgrin: 1600 }, ramp: true, phone: 3, tape: true, hallucinations: 0.002 }),
+    2: Object.freeze({ title: 'Night 2', ai: { mirehop: 4, noxbriar: 3, rustgrin: 0, cat: 2, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 400, noxbriar: 800, cat: 600 }, ramp: true, phone: 2, tape: true, hallucinations: 0 }),
+    3: Object.freeze({ title: 'Night 3', ai: { mirehop: 6, noxbriar: 5, rustgrin: 1, cat: 5, purple_rat: 4, top_hat_rat: 0 }, activation: { purple_rat: 800, rustgrin: 1600 }, ramp: true, phone: 3, tape: true, hallucinations: 0.002 }),
     4: Object.freeze({ title: 'Night 4', ai: { mirehop: 8, noxbriar: 8, rustgrin: 3, cat: 7, purple_rat: 7, top_hat_rat: 0 }, activation: {}, ramp: true, phone: 4, tape: true, hallucinations: 0.004 }),
     5: Object.freeze({ title: 'Night 5', ai: { mirehop: 15, noxbriar: 15, rustgrin: 7, cat: 13, purple_rat: 13, top_hat_rat: 0 }, activation: {}, ramp: true, phone: 5, tape: true, hallucinations: 0.006 }),
     // The Final Act: the Ringmaster runs the night; the others are his marionettes (they only move on his cue).
@@ -256,7 +257,7 @@ export const CONFIG = Object.freeze({
     evalEvery: 100,
     judgeAfter: 0.12, // fraction of the night before the guard's power is judged
     cruise: Object.freeze([Object.freeze([0.45, 2]), Object.freeze([0.28, 1])]), // projected power at 6 AM -> bonus
-    struggle: Object.freeze([Object.freeze([-0.12, -3]), Object.freeze([0.0, -2]), Object.freeze([0.06, -1])]),
+    struggle: Object.freeze([Object.freeze([-0.1, -3]), Object.freeze([0.0, -2]), Object.freeze([0.1, -1])]),
     maxBonus: Object.freeze({ 1: 1, 2: 1, default: 2 }),
     minBonus: -3,
     closeCallWindow: 600, // close calls within this many ticks...

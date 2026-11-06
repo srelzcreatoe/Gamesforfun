@@ -9,10 +9,12 @@
 //   - he picks his duct by the guard's habits: away from a vent the guard keeps sealed, and
 //     away from the side the guard is busy with (a stalker at that door, or a camped door) -
 //     a pincer from the other side. Maracas tell which duct he took.
-//   - nervous on camera: stared at in a duct (CAM 9 / 10) he squeaks and backs off a section,
-//     once per stare - watching the duct cameras buys time;
-//   - turned away twice on one side he gives that duct up and tries the other (his maracas
-//     fade back towards the Midway);
+//   - nervous on camera: in a duct he only moves while the guard looks elsewhere, and stared at
+//     (CAM 9 / 10) he squeaks and backs off a section, once per stare - watching the duct
+//     cameras buys time (but not the tape on CAM 8);
+//   - after every bang on a sealed cover he weighs the two ducts again (each time a side
+//     turned him away counts against it) and may give this one up for the other: his
+//     maracas fade back towards the Midway;
 //   - he waits a section back rather than reach a vent right after another strike.
 
 import { Animatronic } from './base.js';
@@ -28,8 +30,7 @@ export class PurpleRat extends Animatronic {
     this.side = null;
     this.idx = 0;
     this.graceUntil = 0;
-    this.turned = { L: 0, R: 0 };
-    this.lastTurned = null;
+    this.turned = { L: 0, R: 0 }; // times each vent turned him away (since he last switched to it)
     this.nervousDone = false;
     // where the two duct routes part (the grate): switching ducts starts again from here
     const { L, R } = this.cfg.routes;
@@ -50,9 +51,8 @@ export class PurpleRat extends Animatronic {
     const d = s.director;
     const w = { L: 1, R: 1 };
     for (const side of ['L', 'R']) {
-      let x = 1.15 - g.vent[side].ratio;
-      if (g.camped(side) || d.holder(side)) x *= 0.55;
-      if (this.lastTurned === side) x *= 0.6;
+      let x = (1.15 - g.vent[side].ratio) * this.cfg.turnedAway ** this.turned[side];
+      if (g.camped(side) || d.holder(side)) x *= 0.45;
       w[side] = Math.max(0.05, x);
     }
     return s.rng.weighted([['L', w.L], ['R', w.R]]);
@@ -106,11 +106,11 @@ export class PurpleRat extends Animatronic {
         s.director.release('V' + this.side, this.id);
         s.director.closeCall(this.id);
         this.state = 'duct';
-        this.lastTurned = this.side;
-        if (++this.turned[this.side] >= this.cfg.switchAfter) {
+        this.turned[this.side]++;
+        if (this.chooseSide() !== this.side) {
           // he gives this duct up: back to the grate, and over to the other one
-          this.turned[this.side] = 0;
           this.side = OTHER[this.side];
+          this.turned[this.side] = 0;
           this.idx = this.fork;
           const at = this.route()[this.idx];
           this.placeAt(at, NODES[at]?.crawl ? 'crawl' : 'stand');
@@ -129,7 +129,8 @@ export class PurpleRat extends Animatronic {
       return;
     }
     if (this.nervous()) return;
-    if (!this.opportunity()) return;
+    // in the ducts he is skittish: an opportunity won on camera waits for the guard to look away
+    if (NODES[this.node]?.crawl ? this.opportunityUnseen() !== 'move' : !this.opportunity()) return;
     if (this.idx === 0) {
       this.side = this.chooseSide();
       this.state = 'out';

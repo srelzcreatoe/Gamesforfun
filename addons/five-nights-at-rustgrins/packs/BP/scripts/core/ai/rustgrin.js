@@ -165,7 +165,7 @@ export class Rustgrin extends Animatronic {
       this.placeAt(NODES[this.cfg.repelTo] ? this.cfg.repelTo : this.route[Math.max(0, this.route.length - 4)], 'stand');
       s.emit({ fx: 'sound', id: 'fnar.step.heavy', at: 'door_r', vol: 0.9 });
       s.emit({ fx: 'sound', id: 'fnar.rustgrin.laugh', at: 'near_office', vol: 0.5 });
-      this.patientUntil = s.t + this.cfg.patience;
+      this.patientUntil = s.t + this.cfg.patience(this.ai);
     }
   }
 

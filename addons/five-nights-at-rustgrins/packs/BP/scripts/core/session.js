@@ -81,11 +81,6 @@ export class NightSession {
     return side === 'L' ? this.devices.ventL : this.devices.ventR;
   }
 
-  /** Is another animatronic already standing at that side's door? */
-  occupiedDoor(side, except) {
-    return Object.values(this.chars).some((c) => c.id !== except && (c.node === (side === 'L' ? 'DOOR_L' : 'WIN_R') || (c.walk && c.walk.to === (side === 'L' ? 'DOOR_L' : 'WIN_R'))));
-  }
-
   camWorking(camId) {
     const cam = CAMERA_BY_ID[camId];
     if (!cam || cam.audioOnly) return false;

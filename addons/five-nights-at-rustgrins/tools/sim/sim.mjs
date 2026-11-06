@@ -1,6 +1,6 @@
 // Headless night simulator with a bot guard, for balance and crash testing.
 //
-//   node tools/sim/sim.mjs [nights=1-6] [runs=200] [--bot=good|idle|sloppy] [--ai=m,n,r,c,p,t] [--verbose]
+//   node tools/sim/sim.mjs [nights=1-6] [runs=200] [--bot=good|medium|idle|sloppy] [--ai=m,n,r,c,p,t] [--mods=lightsOut,tapeRot,doorJam]
 //
 // The bot (tools/sim/bot.mjs) only acts on what a player could perceive.
 import path from 'node:path';
@@ -18,9 +18,10 @@ const [n1, n2] = (pos[0] ?? '1-6').split('-').map(Number);
 const runs = Number(pos[1] ?? 200);
 const botKind = opt.bot ?? 'good';
 const customAi = opt.ai ? Object.fromEntries(String(opt.ai).split(',').map((v, i) => [CAST[i], Number(v)])) : null;
+const mods = opt.mods ? Object.fromEntries(String(opt.mods).split(',').map((m) => [m, true])) : undefined;
 
 function runNight(night, seed) {
-  const s = new NightSession(night, { seed, ai: customAi ?? undefined });
+  const s = new NightSession(night, { seed, ai: customAi ?? undefined, mods });
   const bot = new Bot(s, botKind, seed * 31 + 7);
   let ticks = 0;
   const trace = opt.trace && seed === 1000 + night ? [] : null;
