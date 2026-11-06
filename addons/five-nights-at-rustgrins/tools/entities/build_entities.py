@@ -40,11 +40,11 @@ ANIMS = {
 ANIM_VALUES = list(ANIMS.keys())
 
 # Render size: one uniform client entity scripts.scale (the models keep their exact proportions). The stage
-# poses top out at 39.8-40.9 model px, so 1.57 makes every animatronic stand 3.9-4.0 blocks tall.
-SCALE = 1.57
+# poses top out at 39.8-40.9 model px, so 1.18 makes every animatronic stand 2.9-3.0 blocks tall.
+SCALE = 1.18
 # Collision box to match.
-COLLISION = {'width': 1.1, 'height': 4.0}
-# Culling box of the geometry (model units are scaled with the entity: room for the ~4-block body).
+COLLISION = {'width': 0.9, 'height': 3.0}
+# Culling box of the geometry (model units are scaled with the entity: room for the ~3-block body).
 VISIBLE_BOUNDS = {'width': 8, 'height': 8, 'offset': [0, 3.5, 0]}
 # The crawl shrinks the model (root bone scale) to fit the 2 x 2 ducts: at most this tall and wide in game.
 CRAWL_MAX = {'height': 1.85, 'width': 1.75}

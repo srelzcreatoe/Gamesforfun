@@ -32,17 +32,17 @@ import { VERSION } from '../data/version.js';
 
 const wait = (ticks) => new Promise((res) => system.runTimeout(() => res(undefined), ticks));
 
-/** Standing eye height of each animatronic as rendered (blocks above the feet, uniform scale 1.57, about 4 blocks
+/** Standing eye height of each animatronic as rendered (blocks above the feet, uniform scale 1.18, about 3 blocks
  *  tall): the camera stare and the talk aim the head with it. */
-const HEAD_Y = Object.freeze({ rustgrin: 3.23, mirehop: 2.91, noxbriar: 3.19, purple_rat: 3.23, cat: 3.25, top_hat_rat: 3.16, rusted: 3.23 });
+const HEAD_Y = Object.freeze({ rustgrin: 2.43, mirehop: 2.19, noxbriar: 2.4, purple_rat: 2.43, cat: 2.44, top_hat_rat: 2.38, rusted: 2.43 });
 /** Eye height on the held frame of each jumpscare (the face lunges down): the jumpscare is framed on it. */
-const JUMPSCARE_EYE_Y = Object.freeze({ rustgrin: 2.86, mirehop: 2.62, noxbriar: 2.83, purple_rat: 2.9, cat: 2.83, top_hat_rat: 2.77, rusted: 2.86 });
-/** How far in front of the lens each jumpscare starts: the lunge ends with the nearest point of the head 0.42-0.45
+const JUMPSCARE_EYE_Y = Object.freeze({ rustgrin: 2.15, mirehop: 1.97, noxbriar: 2.12, purple_rat: 2.18, cat: 2.13, top_hat_rat: 2.08, rusted: 2.15 });
+/** How far in front of the lens each jumpscare starts: the lunge ends with the nearest point of the head 0.43-0.47
  *  blocks from it, filling the screen without cutting through it (the Cat and the Ringmaster reach further). */
-const JUMPSCARE_DIST = Object.freeze({ rustgrin: 2.0, mirehop: 2.0, noxbriar: 2.0, purple_rat: 2.0, cat: 2.05, top_hat_rat: 2.1, rusted: 2.0 });
+const JUMPSCARE_DIST = Object.freeze({ rustgrin: 1.6, mirehop: 1.6, noxbriar: 1.6, purple_rat: 1.65, cat: 1.65, top_hat_rat: 1.7, rusted: 1.6 });
 /** Leaning in at an office door or window, each animatronic plants its feet this far behind the opening's outer face
  *  (blocks): bent forward, its face stops about half a block outside, so a closed shutter never cuts through it. */
-const LEAN_BACK = Object.freeze({ rustgrin: 2.14, mirehop: 2.0, noxbriar: 2.16, purple_rat: 2.18, cat: 2.36, top_hat_rat: 2.37 });
+const LEAN_BACK = Object.freeze({ rustgrin: 1.61, mirehop: 1.49, noxbriar: 1.61, purple_rat: 1.65, cat: 1.76, top_hat_rat: 1.7 });
 const NIGHT_HUD = [HudElement.Health, HudElement.Hunger, HudElement.Armor, HudElement.StatusEffects, HudElement.PaperDoll, HudElement.AirBubbles, HudElement.HorseHealth];
 /** The hand slot during a shift: it holds the Camera Tablet, and hotbar scrolls on the cameras return here. */
 const NEUTRAL_SLOT = 4;
@@ -80,8 +80,8 @@ function jumpscareShot(p, id) {
   const yawRad = (rot.y * Math.PI) / 180;
   const fwd = { x: -Math.sin(yawRad), z: Math.cos(yawRad) };
   const cam = { x: eye.x + fwd.x * JS_CAM_AHEAD, y: eye.y, z: eye.z + fwd.z * JS_CAM_AHEAD };
-  const dist = JUMPSCARE_DIST[id] ?? 2.05;
-  const pos = { x: cam.x + fwd.x * dist, y: cam.y - (JUMPSCARE_EYE_Y[id] ?? 2.85), z: cam.z + fwd.z * dist };
+  const dist = JUMPSCARE_DIST[id] ?? 1.65;
+  const pos = { x: cam.x + fwd.x * dist, y: cam.y - (JUMPSCARE_EYE_Y[id] ?? 2.1), z: cam.z + fwd.z * dist };
   return { cam, pos, facing: (rot.y + 180) % 360 };
 }
 /** Standing at the office doors and the window, they bend down so their face fills the opening. */
@@ -90,7 +90,7 @@ const LEAN_NODES = new Set(['DOOR_L', 'DOOR_R', 'WIN_R']);
 function leanSpot(id, node) {
   const n = NODES[node];
   const d = OFFICE.doors[n.door === 'L' ? 'L' : 'R'];
-  const back = LEAN_BACK[id] ?? 2.2;
+  const back = LEAN_BACK[id] ?? 1.65;
   // the left opening's outer face is the west side of its wall cell, the right one's the east side
   return { x: n.door === 'L' ? d.x - back : d.x + 1 + back, y: n.y, z: n.z };
 }
@@ -2061,7 +2061,7 @@ export class Game {
     } else if (stage === 'song') {
       // Rustgrin plays his song in the left doorway, eyes flashing
       const id = 'rustgrin';
-      // a 4-block animatronic's face would sit above the 3-block door: he leans in, eyes level with the guard's
+      // even a 3-block animatronic's face would sit at the top of the 3-block door: he leans in, eyes level with the guard's
       this.puppets.spawnAt(id, leanSpot(id, 'DOOR_L'), NODES.DOOR_L.yaw, 'lean');
       this.puppets.eyes(id, true);
       this.audio.loop('song', 'fnar.rustgrin.song', 'door_l', null, 1.0);
