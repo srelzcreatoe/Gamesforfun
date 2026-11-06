@@ -20,8 +20,8 @@ import { log } from './log.js';
 export const ENTITY_ID = Object.freeze({ ...Object.fromEntries(CAST.map((id) => [id, `fnar:${id}`])), rusted: 'fnar:rusted' });
 const TAG = 'fnar_puppet';
 
-/** The animatronics stand about 4 blocks tall: every opening lower than that (with a little margin) makes them stoop. */
-const BODY_HEIGHT = 4.1;
+/** The animatronics stand about 3 blocks tall: every opening lower than that (with a little margin, so the 3-block doors too) makes them stoop. */
+const BODY_HEIGHT = 3.1;
 const STOOP_MARGIN = 0.8; // start ducking this far before the doorway
 /** Low openings as boxes [x1, y1, z1, x2, y2, z2] (local, inclusive cells), office doors included. */
 const LOW_OPENINGS = Object.freeze([
@@ -237,7 +237,7 @@ export class Puppets {
       const dz = b[2] - a[2];
       const yaw = Math.abs(dx) + Math.abs(dz) > 0.01 ? yawToward(dx, dz) : w.yaw;
       this.teleport(id, pos, w.t >= w.dur ? w.yaw : yaw);
-      // a 4-block animatronic ducks under a 3-block doorway
+      // a 3-block animatronic ducks under a 3-block doorway
       if (WALKS.has(w.anim)) this.anim(id, inLowDoorway(pos) ? 'stoop' : w.anim);
       if (w.t >= w.dur) delete this.walks[id];
     }

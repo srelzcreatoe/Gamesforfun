@@ -290,9 +290,11 @@ check(P.music === 'fnar.music.bgm' && game().save.settings.bgm === true, 'and ba
   const ent = (id) => [...mock.entities.values()].find((e) => e.typeId === `fnar:${id}`);
   check(ent('cat')?.props['fnar:anim'] === 'perform' && ent('purple_rat')?.props['fnar:anim'] === 'perform', 'night 2: the troupe dances on the Midway ring');
   check(ent('top_hat_rat')?.props['fnar:anim'] === 'pose', 'the Ringmaster stands posed in his booth');
-  // 5-block animatronics: they stoop through doorways and lean in at the office door
+  // 3-block animatronics: they stoop through the 3-tall doorways (not the 4-tall hall-to-corner link) and
+  // lean in at the office door
   const { inLowDoorway } = await import(path.join(ROOT, 'packs/BP/scripts/mc/puppets.js'));
-  check(inLowDoorway({ x: 27.5, y: 0, z: 57.6 }) && !inLowDoorway({ x: 27.5, y: 0, z: 50 }), 'the hall-to-corner link counts as a low doorway, the middle of the hall does not');
+  check(inLowDoorway({ x: 27.5, y: 0, z: 38.4 }) && !inLowDoorway({ x: 27.5, y: 0, z: 50 }) && !inLowDoorway({ x: 27.5, y: 0, z: 57.6 }),
+    'the 3-tall dining-to-hall doorway counts as low; the middle of the hall and the 4-tall corner link do not');
   game().session.chars.mirehop.placeAt('DOOR_L', 'stand');
   await steps(2);
   check(ent('mirehop')?.props['fnar:anim'] === 'lean', `at the left door Mirehop leans in (${ent('mirehop')?.props['fnar:anim']})`);
