@@ -64,27 +64,30 @@ export const SCENES = [
   {
     name: '01_exterior', voxels: 'lit', caption: "Rustgrin's Pizza Revue, Route 6 - November 1991",
     scene: {
-      camera: { pos: [101, 2.6, 45.5], target: [81, 4.6, 32], fov: 54 }, exposure: 1.4,
+      camera: { pos: [127, 3.2, 52.5], target: [100, 8.5, 34], fov: 60 }, exposure: 1.4,
       extra_lights: [
-        { type: 'dir', pos: [150, 70, 110], target: [80, 0, 30], color: '#8193c8', intensity: 1.1, shadow: true, shadowExtent: 70 },
+        { type: 'dir', pos: [170, 70, 110], target: [100, 0, 30], color: '#8193c8', intensity: 1.1, shadow: true, shadowExtent: 80 },
         { type: 'ambient', color: '#1b2236', intensity: 0.9 },
+        point([104, 15.5, 34.5], '#ff6fb5', 10, 18),
+        point([104, 10, 34.5], '#7ff6e8', 6, 14),
       ],
     },
   },
   {
     name: '02_show_stage', voxels: 'lit', caption: 'The Show Stage: Mirehop, Rustgrin and Noxbriar',
     scene: {
-      camera: { pos: [38.5, 2.8, 17.0], target: [38.5, 2.55, 4.5], fov: 56 }, exposure: 1.15,
+      camera: { pos: [38.5, 3.0, 22.5], target: [38.5, 4.2, 4.5], fov: 62 }, exposure: 1.15,
       entities: [
         at('rustgrin', 'ST_R', 'pose_1', { t: 0.3 }),
         at('mirehop', 'ST_M', 'pose_1', { yaw: -14, t: 0.3 }),
         at('noxbriar', 'ST_N', 'pose_1', { yaw: 14, t: 0.3 }),
       ],
       extra_lights: [
-        spot([38.5, 6.6, 13], [38.5, 1.6, 4.5], { intensity: 260 }),
-        spot([32.5, 6.6, 13], [32.5, 1.6, 5.5], { color: '#ffc2d6', intensity: 210 }),
-        spot([44.5, 6.6, 13], [44.5, 1.6, 5.5], { color: '#c6d6ff', intensity: 210 }),
-        point([38.5, 3.0, 10.5], '#ffe2b8', 14, 20),
+        spot([38.5, 6.4, 12.5], [38.5, 1.6, 4.5], { intensity: 280 }),
+        spot([32.5, 6.4, 12.5], [32.5, 1.6, 5.5], { color: '#ffc2d6', intensity: 220 }),
+        spot([44.5, 6.4, 12.5], [44.5, 1.6, 5.5], { color: '#c6d6ff', intensity: 220 }),
+        point([38.5, 1.6, 8.2], '#ffd9a0', 10, 9),
+        point([38.5, 6.0, 12.0], '#ffe2b8', 10, 16),
       ],
     },
   },
@@ -118,7 +121,7 @@ export const SCENES = [
     scene: {
       camera: camShot('1A'), exposure: 1.55,
       entities: [at('rustgrin', 'ST_R', 'pose_1', { t: 0.3, eyes: true }), at('noxbriar', 'ST_N', 'pose_1', { t: 0.3 })],
-      extra_lights: [irLight('1A', 10), spot([38.5, 6.6, 12], [38.5, 1.6, 4.5], { intensity: 520 }), spot([44.5, 6.6, 12], [44.5, 1.6, 5.5], { intensity: 420 }), point([41.5, 3.2, 9.0], '#e8ffe8', 22, 12)],
+      extra_lights: [irLight('1A', 12), spot([38.5, 6.4, 12], [38.5, 1.6, 4.5], { intensity: 520 }), spot([44.5, 6.4, 12], [44.5, 1.6, 5.5], { intensity: 420 }), point([41.5, 3.2, 8.5], '#e8ffe8', 22, 12)],
     },
   },
   {
@@ -220,7 +223,7 @@ export const SCENES = [
   {
     name: '15_free_roam_day', voxels: 'day', caption: 'Free Roam: the pizzeria by day, the band performing',
     scene: {
-      camera: { pos: [49.5, 3.4, 24.5], target: [38.5, 2.0, 5.0], fov: 62 }, exposure: 1.0,
+      camera: { pos: [53.5, 5.2, 34.5], target: [38.5, 3.4, 6.0], fov: 70 }, exposure: 1.0,
       entities: [
         at('rustgrin', 'ST_R', 'perform_1', { t: 0.8 }),
         at('mirehop', 'ST_M', 'perform_1', { t: 0.4 }),
@@ -239,7 +242,7 @@ export const SCENES = [
   {
     name: '17_floor_plan', voxels: 'cutaway', caption: 'Cutaway of the whole pizzeria (roof removed)',
     scene: {
-      time: 'day', camera: { pos: [41, 64, 100], target: [40, 0, 36], fov: 44 }, exposure: 1.0,
+      time: 'day', camera: { pos: [56, 84, 118], target: [56, 0, 37], fov: 48 }, exposure: 1.0,
       sun: { dir: [-0.35, -0.85, -0.4], color: '#fff1dc', intensity: 2.2 },
       entities: [
         at('rustgrin', 'ST_R', 'pose_1'), at('mirehop', 'ST_M', 'pose_1'), at('noxbriar', 'ST_N', 'pose_1'),
@@ -259,16 +262,16 @@ export const SCENES = [
   {
     name: '20_birthday_table', voxels: 'lit', caption: 'Nobody cleared the last birthday party. One candle is still burning',
     scene: {
-      camera: { pos: [51.9, 1.95, 26.6], target: [49, 1.05, 23.6], fov: 56 }, exposure: 1.4,
-      extra_lights: [point([49.2, 1.9, 24.5], '#ffb867', 2.5, 5)],
+      camera: { pos: [52.9, 1.95, 26.6], target: [50, 1.05, 23.6], fov: 56 }, exposure: 1.4,
+      extra_lights: [point([50.2, 1.9, 24.5], '#ffb867', 2.5, 5)],
     },
   },
   {
     name: '21_walters_car', voxels: 'night', caption: 'Walter\'s car, still in the lot: the door open, the headlights on',
     scene: {
-      camera: { pos: [100.5, 1.7, 35.5], target: [88, 0.8, 44], fov: 56 }, exposure: 1.4,
+      camera: { pos: [121.5, 1.7, 35.5], target: [109, 0.8, 44], fov: 56 }, exposure: 1.4,
       extra_lights: [
-        { type: 'dir', pos: [150, 70, 110], target: [80, 0, 30], color: '#8193c8', intensity: 0.9, shadow: true, shadowExtent: 70 },
+        { type: 'dir', pos: [170, 70, 110], target: [100, 0, 30], color: '#8193c8', intensity: 0.9, shadow: true, shadowExtent: 80 },
         { type: 'ambient', color: '#1b2236', intensity: 0.8 },
       ],
     },
@@ -281,16 +284,37 @@ export const SCENES = [
     },
   },
   {
-    name: '23_fun_zone', voxels: 'day', caption: 'Free Roam: the Fun Zone - the ball pit, the play structure, skee-ball and the arcades',
-    scene: { camera: { pos: [69.5, 5.4, 58.5], target: [54, 0.8, 47], fov: 74 }, exposure: 1.0 },
+    name: '23_fun_zone', voxels: 'day', caption: 'Free Roam: the Fun Zone - two play towers, crawl tubes and a slide into the ball pit',
+    scene: { camera: { pos: [96.5, 6.6, 69.5], target: [87, 1.8, 47], fov: 76 }, exposure: 1.0 },
   },
   {
-    name: '24_fun_zone_night', voxels: 'night', caption: 'The Fun Zone at night: only the neon and the coin slots are still on',
-    scene: { camera: { pos: [70.5, 2.2, 43.5], target: [52, 1.5, 54], fov: 72 }, exposure: 1.6 },
+    name: '24_fun_zone_night', voxels: 'night', caption: 'The Game Room at night: only the screens, the neon and the coin slots are still on',
+    scene: { camera: { pos: [77.5, 2.2, 59.5], target: [55, 1.8, 46], fov: 72 }, exposure: 1.6 },
   },
   {
     name: '25_prize_corner', voxels: 'day', caption: 'The Prize Corner: a wall of plush prizes behind the glass counter',
-    scene: { camera: { pos: [36.5, 2.4, 40.5], target: [36.5, 1.5, 56], fov: 70 }, exposure: 1.0 },
+    scene: { camera: { pos: [90.5, 2.4, 24.5], target: [90.5, 1.6, 3], fov: 72 }, exposure: 1.0 },
+  },
+  // ---- the remake: the rooms of a big 80s family pizzeria
+  {
+    name: '26_game_room', voxels: 'day', caption: 'The Game Room: skee-ball, rows of arcade cabinets, token machines and a crawl tube overhead',
+    scene: { camera: { pos: [76.5, 4.4, 59.5], target: [57, 1.2, 46], fov: 74 }, exposure: 1.0 },
+  },
+  {
+    name: '27_entrance_hall', voxels: 'day', caption: 'The Entrance Hall: the ticket booth, the hand-stamp podium, the arches to the games',
+    scene: { camera: { pos: [97.5, 2.6, 39.5], target: [70, 1.8, 31], fov: 72 }, exposure: 1.0 },
+  },
+  {
+    name: '28_dining_hall_night', voxels: 'night', caption: 'The Dining Hall at night: the band waits in the dark, one candle burns',
+    scene: {
+      camera: { pos: [58.5, 3.0, 35.5], target: [38.5, 2.6, 7], fov: 68 }, exposure: 1.8,
+      entities: [at('rustgrin', 'ST_R', 'idle', { eyes: true, t: 0.2 }), at('mirehop', 'ST_M', 'idle', { eyes: true, t: 0.2 }), at('noxbriar', 'ST_N', 'idle', { eyes: true, t: 0.2 })],
+      extra_lights: [{ type: 'ambient', color: '#141a2c', intensity: 1.2 }, point([50.2, 1.9, 24.5], '#ffb867', 2.5, 6)],
+    },
+  },
+  {
+    name: '29_party_room', voxels: 'day', caption: 'The Party Room between the halls: a birthday table set for children who never came',
+    scene: { camera: { pos: [36.5, 2.4, 39.6], target: [36.5, 0.8, 54], fov: 70 }, exposure: 1.0 },
   },
 ];
 

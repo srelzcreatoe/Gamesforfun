@@ -38,6 +38,7 @@ CUBES = {
     'ceiling_tile': ('ceiling_tile', 1.0),
     'ceiling_tile_stained': ('ceiling_tile_stained', 1.0),
     'ceiling_tile_missing': ('ceiling_tile_missing', 1.0),
+    'ceiling_dark': ('ceiling_dark', 1.0),
     'tinsel_curtain': ('tinsel_curtain', 0.8),
     'wallpaper_party': ('wallpaper_party', 1.5),
     'carpet_party': ('carpet_party', 1.0),
@@ -46,6 +47,9 @@ CUBES = {
     'tent_stripe': ('tent_stripe', 1.0),
     'duct_metal': ('duct_metal', 2.5),
     'stage_floor': ('stage_floor', 1.5),
+    'curtain_star': ('curtain_star', 1.0),
+    'carpet_confetti': ('carpet_confetti', 1.0),
+    'wall_stripe': ('wall_stripe', 1.5),
 }
 
 # picture panels: name -> number of tiles (or variants)
@@ -54,9 +58,10 @@ PANELS = {
     'poster_missing': 2, 'drawing': 6, 'sign_cabaret': 3, 'sign_out_of_order': 2, 'sign_midway': 4,
     'sign_revue': 12, 'sign_staff': 4,
     'poster_auction': 6, 'poster_torn': 4, 'lot_tag': 6, 'wall_writing': 16,
-    'neon_sign': 14, 'play_net': 2,
+    'neon_sign': 24, 'play_net': 2,
+    'sign_stage': 30, 'sign_facade': 48, 'menu_board': 8,
 }
-PANEL_LIGHT = {'sign_revue': 7, 'sign_cabaret': 4, 'sign_midway': 4, 'neon_sign': 5}
+PANEL_LIGHT = {'sign_revue': 7, 'sign_cabaret': 4, 'sign_midway': 4, 'neon_sign': 5, 'sign_stage': 4, 'sign_facade': 9}
 
 # lights: name -> (geometry, light level, local light colour, light type, selection box (origin, size))
 LIGHTS = {
@@ -65,14 +70,16 @@ LIGHTS = {
     'wall_sconce': ('wall_sconce', 10, '#ffc98a', 'point_light', ([-4, 4, 3], [8, 9, 5])),
     'stage_spotlight': ('stage_spotlight', 12, '#ffe2b0', 'point_light', ([-5, 2, -8], [10, 14, 13])),
     'hanging_lamp': ('hanging_lamp', 11, '#ffc98a', 'point_light', ([-5, 4, -5], [10, 12, 10])),
+    'footlight': ('footlight', 7, '#ffd9a0', 'point_light', ([-7, 0, -3], [14, 7, 9])),
 }
-FACING_LIGHTS = {'exit_sign', 'wall_sconce', 'stage_spotlight'}
+FACING_LIGHTS = {'exit_sign', 'wall_sconce', 'stage_spotlight', 'footlight'}
 OFFICE_LAMP_LEVEL = 11  # ceiling_lamp with fnar:dim
 # the broken troffer: a ceiling lamp nobody fixed; one tube flickers (flipbook), it is never switched by the game
 BROKEN_LAMP = ('ceiling_lamp_broken', 9, '#dfe8ff', 'point_light')
 BROKEN_TICKS = 2
 SIGN_LIGHT_COLORS = {'neon_sign': ('#ff7ad0', 'static_light'), 'sign_revue': ('#ff6fb5', 'static_light'), 'sign_cabaret': ('#ffd27a', 'static_light'),
-                     'sign_midway': ('#ffd27a', 'static_light')}
+                     'sign_midway': ('#ffd27a', 'static_light'), 'sign_stage': ('#ffd27a', 'static_light'),
+                     'sign_facade': ('#ff6fb5', 'static_light')}
 
 
 def tex_ref(t):

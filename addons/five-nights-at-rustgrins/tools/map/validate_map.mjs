@@ -177,5 +177,63 @@ for (const [id, b] of Object.entries(controls)) {
     if (blocksSight(nm)) { report(`${id}: blocked from the seat by ${nm} at ${p.map(Math.floor)}`); break; }
   }
 }
+// 6. at night (as built: every lamp off but the office's, the fixtures that never switch off still lit) the halls by
+//    the office are dark - block light 0-1 at standing height - so the guard needs the hall lights to see anything.
+console.log('darkness:');
+{
+  const DARK_MAX = 1;
+  const VANILLA_LIGHT = { 'minecraft:sea_lantern': 15, 'minecraft:ochre_froglight': 15, 'minecraft:verdant_froglight': 15, 'minecraft:pearlescent_froglight': 15,
+    'minecraft:glowstone': 15, 'minecraft:shroomlight': 15, 'minecraft:lantern': 15, 'minecraft:end_rod': 14, 'minecraft:torch': 14 };
+  const VANILLA_CLEAR = /^minecraft:(air|light_block_\d+|.*glass.*|.*_bars|.*chain|.*carpet|.*_slab|.*_stairs|.*fence.*|.*_wall|.*door|.*trapdoor|.*sign|.*button|lever|.*torch|.*lantern|web|short_grass|deadbush|flower_pot|ladder|.*_rod|lectern|.*anvil|cauldron|hopper|cake|.*shulker_box)$/;
+  const defs = new Map();
+  for (const f of fs.readdirSync(BDIR).filter((x) => x.endsWith('.json'))) {
+    const b = JSON.parse(fs.readFileSync(path.join(BDIR, f), 'utf8'))['minecraft:block'];
+    const c = b.components ?? {};
+    const parse = (cond) => (cond ?? '').split('&&').map((t) => t.match(/q\.block_state\('([^']+)'\)\s*==\s*'?([^')\s]+)'?/)).filter(Boolean).map((m) => [m[1], m[2]]);
+    const perms = (b.permutations ?? []).filter((p) => p.components?.['minecraft:light_emission'] !== undefined).map((p) => ({ cond: parse(p.condition), level: p.components['minecraft:light_emission'] }));
+    defs.set(b.description.identifier, { base: c['minecraft:light_emission'] ?? 0, perms, clear: c['minecraft:light_dampening'] === 0 || !fullCustom.has(b.description.identifier) });
+  }
+  const emitOf = palette.map((e) => {
+    if (/^minecraft:light_block_(\d+)$/.test(e.name)) return Number(e.name.split('_').pop());
+    if (VANILLA_LIGHT[e.name]) return VANILLA_LIGHT[e.name];
+    const d = defs.get(e.name);
+    if (!d) return 0;
+    let lv = d.base;
+    for (const p of d.perms) if (p.cond.every(([k, v]) => String(e.states?.[k]) === v)) lv = p.level;
+    return lv;
+  });
+  const clearOf = palette.map((e) => (e.name.startsWith('fnar:') ? defs.get(e.name)?.clear ?? false : VANILLA_CLEAR.test(e.name)));
+  const level = new Uint8Array(data.length);
+  const buckets = Array.from({ length: 16 }, () => []);
+  for (let i = 0; i < data.length; i++) {
+    const lv = emitOf[data[i]];
+    if (lv > 0) { level[i] = lv; buckets[lv].push(i); }
+  }
+  const strideZ = sx, strideY = sx * sz;
+  for (let lv = 15; lv > 1; lv--) {
+    for (const i of buckets[lv]) {
+      if (level[i] !== lv) continue;
+      const x = i % sx, z = Math.floor(i / sx) % sz, y = Math.floor(i / strideY);
+      for (const [ok, j] of [[x > 0, i - 1], [x < sx - 1, i + 1], [z > 0, i - strideZ], [z < sz - 1, i + strideZ], [y > 0, i - strideY], [y < sy - 1, i + strideY]]) {
+        if (!ok || !clearOf[data[j]] || level[j] >= lv - 1) continue;
+        level[j] = lv - 1;
+        buckets[lv - 1].push(j);
+      }
+    }
+  }
+  const { ROOM_BY_ID } = await import(path.join(ROOT, 'packs/BP/scripts/data/layout.js'));
+  const zones = [['W_CORNER', 0], ['E_CORNER', 0], ['WEST_HALL', 48], ['EAST_HALL', 48]];
+  for (const [id, zMin] of zones) {
+    const [x1, z1, x2, z2] = ROOM_BY_ID[id].box;
+    let worst = 0, at = null;
+    for (let x = x1; x <= x2; x++) for (let z = Math.max(z1, zMin); z <= z2; z++) for (let y = 0; y <= 3; y++) {
+      const i = (x - x0) + sx * ((z - z0) + sz * (y - y0));
+      if (clearOf[data[i]] && level[i] > worst) { worst = level[i]; at = [x, y, z]; }
+    }
+    console.log(`  ${id}${zMin ? ` (z >= ${zMin})` : ''}: brightest block light ${worst}${at ? ` at ${at}` : ''}`);
+    if (worst > DARK_MAX) report(`${id} is lit at night (block light ${worst} at ${at}); the halls by the office must stay at ${DARK_MAX} or darker`);
+  }
+}
+
 console.log(problems ? `validate_map: ${problems} problem(s)` : 'validate_map: ok');
 process.exit(problems ? 1 : 0);

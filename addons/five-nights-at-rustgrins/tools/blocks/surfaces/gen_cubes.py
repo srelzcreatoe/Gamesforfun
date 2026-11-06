@@ -430,6 +430,33 @@ def ceiling_tile(stained=False):
     return t
 
 
+def ceiling_dark():
+    """The Dining Hall's ceiling: acoustic tiles painted near-black (a theatre ceiling) in a dark T-bar grid,
+    smoke-stained, a few tiles gone brown with damp."""
+    seed = 2404
+    t = Tex(rough=245, height=150)
+    pal = ramp('#1c1a19', '#211f1d', '#262321', '#2b2825', '#302c29')
+    bar = ramp('#0e0e0f', '#141415', '#1a1a1c', '#202022')
+    n = fbm(W, H, seed, cells=(8, 4), weights=(0.6, 0.4))
+    wn = white(W, H, seed + 1)
+    v = 0.6 + 0.3 * (n - 0.5) + 0.2 * (wn - 0.5)
+    grid = (XX % 8 == 0) | (YY % 8 == 0)
+    lx, ly = XX % 8, YY % 8
+    v[(lx == 1) | (ly == 1)] -= 0.15
+    v[(lx == 7) | (ly == 7)] += 0.06
+    t.rgb = quant(np.clip(v, 0, 0.999), pal)
+    holes = (wn > 0.84) & ~grid
+    t.rgb[holes] = shade(t.rgb[holes], 0.75)
+    t.height[holes] = 120
+    t.rgb[grid] = quant(np.clip(0.5 + 0.3 * (wn[grid] - 0.5), 0, 0.999), bar)
+    t.height[grid] = 190
+    t.metal[grid] = 80
+    t.rough[grid] = 160
+    damp = (norm01(blur_wrap(white(W, H, seed + 2), 2)) > 0.8) & ~grid
+    t.rgb[damp] = mix(t.rgb[damp], hexc('#3a2e22'), 0.5)
+    return t
+
+
 def _stain_ceiling(t, wn):
     # big brown water stain spanning the top-left tile and the bar
     cx, cy = 5.5, 6.0
@@ -649,6 +676,80 @@ def tent_stripe():
     return t
 
 
+# ------------------------------------------------------------------ the 1980s family-pizzeria remake
+def curtain_star():
+    """The band's backdrop: midnight-blue velvet in deep folds, sewn with small silver stars (the biggest catch
+    the light, a few sequins glint faintly in the dark)."""
+    pal = ramp('#090b1c', '#0d1128', '#111734', '#151d40', '#1a244c', '#202c58', '#273464')
+    t = curtain(2101, pal)
+    silver, dim, glint = hexc('#c9d2ea'), hexc('#8a93b4'), hexc('#ffffff')
+    for (sx, sy, size) in [(3, 2, 2), (11, 6, 1), (6, 11, 2), (14, 13, 1), (9, 1, 0), (1, 8, 0), (13, 9, 0), (4, 15, 0), (8, 6, 0)]:
+        t.rgb[sy, sx] = glint if size == 2 else silver if size == 1 else dim
+        t.metal[sy, sx] = 200
+        t.rough[sy, sx] = 60
+        t.height[sy, sx] += 14
+        if size == 2:
+            t.emit[sy, sx] = 90
+        arms = [(-1, 0), (1, 0), (0, -1), (0, 1)] if size else []
+        if size == 2:
+            arms += [(-2, 0), (2, 0), (0, -2), (0, 2)]
+        for (dx, dy) in arms:
+            x, y = (sx + dx) % W, (sy + dy) % H
+            t.rgb[y, x] = mix(t.rgb[y, x], silver if abs(dx) + abs(dy) == 1 else dim, 0.85)
+            t.metal[y, x] = 170
+            t.rough[y, x] = 90
+    return t
+
+
+def carpet_confetti():
+    """Family-fun-centre carpet: near-black with a scatter of bright confetti (dashes, dots, squiggles in red,
+    yellow, blue, green, purple and teal), trodden flat and dusty."""
+    seed = 2202
+    t = Tex(rough=250, height=150)
+    pal = ramp('#111115', '#15151a', '#19191f', '#1d1d24')
+    wn = white(W, H, seed)
+    n = tile_noise(W, H, 4, seed + 1)
+    t.rgb = quant(np.clip(0.5 + 0.35 * (wn - 0.5) + 0.25 * (n - 0.5), 0, 0.999), pal)
+    t.height = 140 + 30 * wn
+    cols = [hexc(c) for c in ('#c23a3a', '#d8b43a', '#3a6ad0', '#3aa856', '#9a4ac8', '#2ab0b8', '#e0782a')]
+    bits = [
+        (0, [(1, 1), (2, 1)]), (1, [(5, 3)]), (2, [(9, 1), (10, 2)]), (3, [(13, 3), (13, 4)]),
+        (4, [(3, 6), (4, 7), (5, 6)]), (5, [(8, 5)]), (6, [(11, 7), (12, 7)]), (0, [(15, 9), (0, 10)]),
+        (2, [(2, 11), (2, 12)]), (3, [(6, 10)]), (1, [(9, 11), (10, 11)]), (5, [(13, 13), (14, 12)]),
+        (4, [(5, 14)]), (6, [(0, 15), (1, 14)]), (1, [(11, 15)]), (2, [(7, 8)]), (0, [(14, 6)]), (3, [(3, 0)]),
+    ]
+    for ci, pts in bits:
+        for (x, y) in pts:
+            c = cols[ci] if wn[y, x] > 0.25 else shade(cols[ci], 0.7)
+            t.rgb[y, x] = mix(c, hexc('#3a3846'), 0.22)  # faded under years of sneakers
+            t.height[y, x] = 165
+    m = norm01(blur_wrap(white(W, H, seed + 4), 2)) > 0.78
+    t.rgb[m] = mix(t.rgb[m], hexc('#34323d'), 0.25)
+    return t
+
+
+def wall_stripe():
+    """The 80s racing-stripe band: red, orange and yellow stripes with a cream pinstripe on navy gloss paint,
+    a dark rule top and bottom; scuffed by chairs and faded."""
+    seed = 2303
+    t = Tex(rough=140, height=140)
+    rows = ['#141420', '#1b2852', '#1b2852', '#a8302a', '#a8302a', '#a8302a', '#cfc6a8', '#c8642a', '#c8642a',
+            '#c8642a', '#cfc6a8', '#d6a838', '#d6a838', '#d6a838', '#1b2852', '#141420']
+    n = fbm(W, H, seed, cells=(8, 4), weights=(0.6, 0.4))
+    wn = white(W, H, seed + 1)
+    for y in range(H):
+        for x in range(W):
+            t.rgb[y, x] = shade(hexc(rows[y]), 0.9 + 0.16 * n[y, x] + 0.05 * (wn[y, x] - 0.5))
+    t.rgb[0] = shade(t.rgb[0], 0.85)
+    t.height[0] = t.height[15] = 165
+    t.rough[0] = t.rough[15] = 180
+    t.rgb = mix(t.rgb, hexc('#6a6058'), 0.12)  # faded paint
+    for (x, y) in ((2, 8), (3, 8), (11, 4), (12, 4), (7, 12), (14, 9)):  # chair scuffs
+        t.rgb[y, x] = mix(t.rgb[y, x], hexc('#2a2622'), 0.5)
+        t.rough[y, x] = 220
+    return t
+
+
 # ------------------------------------------------------------------ metal
 def duct_metal():
     seed = 1707
@@ -807,6 +908,7 @@ ALL = {
     'ceiling_tile': lambda: ceiling_tile(False),
     'ceiling_tile_stained': lambda: ceiling_tile(True),
     'ceiling_tile_missing': ceiling_tile_missing,
+    'ceiling_dark': ceiling_dark,
     'tinsel_curtain': tinsel_curtain,
     'wallpaper_party': wallpaper_party,
     'carpet_party': carpet_party,
@@ -815,6 +917,9 @@ ALL = {
     'tent_stripe': tent_stripe,
     'duct_metal': duct_metal,
     'stage_floor': stage_floor,
+    'curtain_star': curtain_star,
+    'carpet_confetti': carpet_confetti,
+    'wall_stripe': wall_stripe,
     'door_shutter': lambda: door_shutter(False),
     'door_shutter_bottom': lambda: door_shutter(True),
 }

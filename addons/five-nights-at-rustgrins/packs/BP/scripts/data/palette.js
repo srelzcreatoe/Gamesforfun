@@ -55,6 +55,18 @@ export const PALETTE = Object.freeze({
   // ---------------------------------------------------------------- vanilla interior
   black_c: M('black_concrete'), white_c: M('white_concrete'), gray_c: M('gray_concrete'), lgray_c: M('light_gray_concrete'),
   red_c: M('red_concrete'), purple_c: M('purple_concrete'), yellow_c: M('yellow_concrete'), blue_c: M('blue_concrete'),
+  green_c: M('green_concrete'), orange_c: M('orange_concrete'), cyan_c: M('cyan_concrete'), lime_c: M('lime_concrete'),
+  pink_c: M('pink_concrete'), lblue_c: M('light_blue_concrete'), magenta_c: M('magenta_concrete'),
+  yellow_t: M('yellow_terracotta'), orange_t: M('orange_terracotta'), cyan_t: M('cyan_terracotta'), blue_t: M('blue_terracotta'),
+  yellow_wool: M('yellow_wool'), blue_wool: M('blue_wool'), lime_wool: M('lime_wool'), orange_wool: M('orange_wool'),
+  moss_carpet: M('moss_carpet'), yellow_carpet: M('yellow_carpet'), lime_carpet: M('lime_carpet'), orange_carpet: M('orange_carpet'),
+  pink_carpet: M('pink_carpet'), blue_carpet: M('blue_carpet'), cyan_carpet: M('cyan_carpet'),
+  gift_red: M('red_shulker_box'), gift_blue: M('blue_shulker_box'), gift_yellow: M('yellow_shulker_box'), gift_lime: M('lime_shulker_box'),
+  gift_purple: M('purple_shulker_box'), gift_pink: M('pink_shulker_box'),
+  dead_bush: M('deadbush'), jukebox: M('jukebox'), chiseled_quartz: M('chiseled_quartz_block', { pillar_axis: 'y' }),
+  pink_glass: M('pink_stained_glass'), mic_stand: M('lightning_rod', { facing_direction: 1, powered_bit: false }),
+  ...Object.fromEntries(['n', 's', 'w', 'e'].map((f) => [`dropper_${f}`, M('dropper', { facing_direction: { n: 2, s: 3, w: 4, e: 5 }[f], triggered_bit: false })])),
+  ...Object.fromEntries(Object.entries({ n: 'north', s: 'south', w: 'west', e: 'east' }).map(([k, d]) => [`lectern_${k}`, M('lectern', { 'minecraft:cardinal_direction': d, powered_bit: false })])),
   red_t: M('red_terracotta'), black_t: M('black_terracotta'), gray_t: M('gray_terracotta'), white_t: M('white_terracotta'),
   brown_t: M('brown_terracotta'), purple_t: M('purple_terracotta'),
   red_wool: M('red_wool'), white_wool: M('white_wool'), purple_wool: M('purple_wool'), black_wool: M('black_wool'), gray_wool: M('gray_wool'),
@@ -95,8 +107,9 @@ export const PALETTE = Object.freeze({
   tile: F('tile_checker'), tile_worn: F('tile_checker_worn'), tile_office: F('tile_office'), tile_kitchen: F('tile_kitchen'),
   wall_checker: F('wall_checker'), plaster: F('wall_plaster'), plaster_stained: F('wall_plaster_stained'),
   wallpaper: F('wallpaper_maroon'), trim: F('wall_trim'), cinder: F('cinderblock_painted'),
-  ceiling: F('ceiling_tile'), ceiling_stained: F('ceiling_tile_stained'),
+  ceiling: F('ceiling_tile'), ceiling_stained: F('ceiling_tile_stained'), ceiling_dark: F('ceiling_dark'),
   carpet: F('carpet_party'), curtain_purple: F('curtain_purple'), curtain_red: F('curtain_red'), tent: F('tent_stripe'),
+  curtain_star: F('curtain_star'), carpet_confetti: F('carpet_confetti'), wall_stripe: F('wall_stripe'),
   duct: F('duct_metal'), stage_floor: F('stage_floor'),
   shutter: F('door_shutter', { 'fnar:part': 0 }), shutter_bottom: F('door_shutter', { 'fnar:part': 1 }),
   lamp_on: F('ceiling_lamp', { 'fnar:lit': true }), lamp_off: F('ceiling_lamp', { 'fnar:lit': false }),
@@ -104,6 +117,7 @@ export const PALETTE = Object.freeze({
   ...cardStates('exit', 'exit_sign', 'fnar:lit', [true]),
   ...cardStates('sconce', 'wall_sconce', 'fnar:lit', [true, false]),
   ...cardStates('spot', 'stage_spotlight', 'fnar:lit', [true, false]),
+  ...cardStates('foot', 'footlight', 'fnar:lit', [true, false]), // the stage's footlights: switched with the spotlights
   hanging_on: F('hanging_lamp', { 'fnar:lit': true }), hanging_off: F('hanging_lamp', { 'fnar:lit': false }),
 
   // ---------------------------------------------------------------- fnar props (docs/BLOCKS.md B)
@@ -181,11 +195,15 @@ export const PICTURES = Object.freeze({
   sign_revue: [6, 2], sign_staff: [1, 1],
   poster_auction: [2, 3], poster_torn: [2, 2], lot_tag: [1, 1], wall_writing: [4, 2],
   neon_sign: [3, 1], play_net: [1, 1],
+  sign_stage: [10, 3], sign_facade: [12, 4], menu_board: [4, 2],
 });
 /** Variant counts for 1x1 pictures that use fnar:tile as a variant index (wall_writing: several pictures in one block). */
-export const PICTURE_VARIANTS = Object.freeze({ drawing: 6, sign_staff: 4, lot_tag: 6, wall_writing: 16, neon_sign: 14, play_net: 2 });
+export const PICTURE_VARIANTS = Object.freeze({ drawing: 6, sign_staff: 4, lot_tag: 6, wall_writing: 16, neon_sign: 24, play_net: 2 });
 /** neon_sign tiles: the first tile of each sign and its size. */
-export const NEON = Object.freeze({ funzone: [0, 3, 1], prizes: [3, 3, 1], party: [6, 2, 1], pizza: [8, 2, 1], games: [10, 2, 1], star: [12, 1, 1], slice: [13, 1, 1] });
+export const NEON = Object.freeze({
+  funzone: [0, 3, 1], prizes: [3, 3, 1], party: [6, 2, 1], pizza: [8, 2, 1], games: [10, 2, 1], star: [12, 1, 1], slice: [13, 1, 1],
+  skeeball: [14, 4, 1], tokens: [18, 3, 1], tickets: [21, 3, 1],
+});
 /** wall_writing tiles: the first tile of each picture and its size (tiles run row-major from the top-left). */
 export const WRITING = Object.freeze({ show: [0, 4, 2], name: [8, 3, 2], tally: [14, 1, 1], scratches: [15, 1, 1] });
 

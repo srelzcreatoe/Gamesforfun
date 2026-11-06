@@ -137,8 +137,8 @@
     "fnar_cam_map": {
      "type": "panel",
      "size": [
-      112,
-      100.35
+      128,
+      94.03
      ],
      "anchor_from": "bottom_right",
      "anchor_to": "bottom_right",

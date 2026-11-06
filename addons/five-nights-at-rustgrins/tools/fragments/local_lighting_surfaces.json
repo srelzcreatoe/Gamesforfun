@@ -19,6 +19,10 @@
     "light_color": "#ffc98a",
     "light_type": "point_light"
   },
+  "fnar:footlight": {
+    "light_color": "#ffd9a0",
+    "light_type": "point_light"
+  },
   "fnar:ceiling_lamp_broken": {
     "light_color": "#dfe8ff",
     "light_type": "point_light"
@@ -37,6 +41,14 @@
   },
   "fnar:sign_midway": {
     "light_color": "#ffd27a",
+    "light_type": "static_light"
+  },
+  "fnar:sign_stage": {
+    "light_color": "#ffd27a",
+    "light_type": "static_light"
+  },
+  "fnar:sign_facade": {
+    "light_color": "#ff6fb5",
     "light_type": "static_light"
   }
 }

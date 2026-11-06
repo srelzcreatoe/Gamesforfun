@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "footlight_on",
+    "metalness_emissive_roughness": "footlight_on_mer",
+    "heightmap": "footlight_on_height"
+  }
+}

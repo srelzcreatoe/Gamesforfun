@@ -3,22 +3,33 @@
 // Everything is in LOCAL block coordinates: world = local + origin, where the
 // origin is chosen when the map is built (stored in the world, see
 // mc/persistence.js). +X east, +Z south, -Z north. Players stand at y = 0
-// (floor blocks at y = -1). The animatronics stand about 4 blocks tall, so every room
-// they walk is 6 tall (ceiling at y = 6) and the rooms where they perform on a
-// 1-high ring or stage (Midway, Grand Marquee, dining, gallery) are 7 tall; the
-// office and the front-of-house rooms they never enter stay 5. Doorways are
-// short on purpose: they stoop through them. The crawl ducts run in the attic
-// at y 9..10 above every ceiling (duct floor y = 8, duct top y = 11), shafts
-// (risers) drop from them to the ceiling grates and the office vents, and the
-// roof is y = 12. An exterior brick skin wraps the building one block outside
-// the BUILDING box (x -1 / 81, z -1 / 72).
+// (floor blocks at y = -1).
+//
+// Rustgrin's Pizza Revue is a big 80s family pizzeria: the grand Dining Hall
+// (10 tall, the band's stage under a proscenium at its north end), the
+// Midnight Midway showroom and the Grand Marquee (a curtained side stage) on its
+// west side, the kitchen, the restrooms, the Prize Corner and the long Entrance
+// Hall (ticket booth, front doors) on the east, the Game Room and the Fun Zone
+// (ball pit, crawl tubes) behind it, and the two dark halls, the Party Room
+// between them and the security office at the south end.
+//
+// The animatronics stand about 4 blocks tall, so every room they walk is 6+
+// tall (ceiling at y = 6) and the rooms where they perform on a 1-high ring or
+// stage are 7+; the office and the front-of-house rooms they never enter can be
+// lower. Doorways are 3 blocks tall on purpose: they stoop through them. The
+// crawl ducts run in the attic at y 9..10 above the ceilings (duct floor y = 8,
+// duct top y = 11) - never over the 10-tall Dining Hall or the Fun Zone -,
+// shafts (risers) drop from them to the ceiling grates and the office vents,
+// and the roof is y = 12. An exterior brick skin wraps the building one block
+// outside the BUILDING box (x -1 / 100, z -1 / 72); the street facade (east)
+// rises higher around the big sign.
 //
 // Room boxes are INTERIOR cells [x1, z1, x2, z2] inclusive; walls sit on the
 // ring around them (shared between neighbours).
 
-export const BUILDING = Object.freeze({ x1: 0, z1: 0, x2: 80, z2: 71, floorY: -1, roofY: 12 });
+export const BUILDING = Object.freeze({ x1: 0, z1: 0, x2: 99, z2: 71, floorY: -1, roofY: 12 });
 /** The whole lot (cleared and rebuilt by /fnar:setup). */
-export const LOT = Object.freeze({ x1: -12, z1: -16, x2: 127, z2: 87, groundY: -1, clearTop: 24, baseY: -6 });
+export const LOT = Object.freeze({ x1: -12, z1: -16, x2: 146, z2: 87, groundY: -1, clearTop: 26, baseY: -6 });
 
 /** Chunk-aligned ticking area covering the lot (relative to the origin, rounded outward at build time). */
 export const TICK_PAD = 2;
@@ -29,50 +40,56 @@ const R = (id, name, box, h, style) => Object.freeze({ id, name, box: Object.fre
 export const ROOMS = Object.freeze([
   R('BACKSTAGE', 'Backstage', [1, 1, 13, 13], 6, 'backstage'),
   R('MIDWAY', 'Midnight Midway', [1, 15, 13, 27], 7, 'midway'),
-  R('CABARET', 'The Grand Marquee', [4, 29, 13, 37], 7, 'cabaret'), // the Ringmaster's stage (once Kitty's Cabaret)
-  R('DINING', 'Dining Area', [15, 1, 61, 37], 7, 'dining'),
-  R('KITCHEN', 'Kitchen', [63, 1, 79, 13], 6, 'kitchen'),
-  R('RESTROOMS', 'Restrooms', [63, 15, 66, 25], 6, 'restroom'),
-  R('MENS', "Men's Room", [68, 15, 79, 19], 6, 'restroom'),
-  R('WOMENS', "Women's Room", [68, 21, 79, 25], 6, 'restroom'),
-  R('FOYER', 'Entrance', [63, 27, 79, 41], 5, 'foyer'),
+  R('CABARET', 'The Grand Marquee', [4, 29, 13, 37], 7, 'cabaret'), // the Ringmaster's curtained side stage (once Kitty's Cabaret)
+  R('DINING', 'Dining Hall', [15, 1, 62, 37], 10, 'dining'), // the grand hall: the band's stage under a proscenium
+  // the kitchen, the restrooms and the entrance hall keep their own wall layer (x 64): the hall's east wall stays its own
+  R('KITCHEN', 'Kitchen', [65, 1, 80, 13], 6, 'kitchen'),
+  R('RESTROOMS', 'Restrooms', [65, 15, 68, 25], 6, 'restroom'),
+  R('MENS', "Men's Room", [70, 15, 80, 19], 6, 'restroom'),
+  R('WOMENS', "Women's Room", [70, 21, 80, 25], 6, 'restroom'),
+  R('PRIZE', 'Prize Corner', [82, 1, 98, 25], 6, 'prize'), // the ticket counter, the plush wall, claw machines
+  R('FOYER', 'Entrance Hall', [65, 27, 98, 41], 7, 'foyer'), // the front doors, the ticket booth
   R('GALLERY', 'Gallery', [1, 39, 16, 50], 7, 'gallery'), // the cast stands on 1-high pedestals here
   R('STAFF', 'Staff Room', [1, 52, 16, 70], 5, 'staff'),
   R('SUPPLY', 'Supply Closet', [19, 41, 24, 50], 6, 'supply'),
   R('WEST_HALL', 'West Hall', [26, 39, 28, 57], 6, 'hall'),
   R('W_CORNER', 'W. Hall Corner', [26, 58, 30, 70], 6, 'hall'),
-  R('PRIZE', 'Prize Corner', [31, 39, 41, 56], 5, 'prize'), // its own wall layer: the halls keep their walls
+  R('PARTY', 'Party Room', [31, 39, 41, 56], 5, 'party'), // its own wall layer: the halls keep their walls
   R('OFFICE', 'Office', [32, 60, 40, 70], 5, 'office'),
   R('EAST_HALL', 'East Hall', [44, 39, 46, 57], 6, 'hall'),
   R('E_CORNER', 'E. Hall Corner', [42, 58, 46, 70], 6, 'hall'),
-  R('FUNZONE', 'Fun Zone', [49, 43, 79, 61], 7, 'funzone'), // play structure, ball pit, skee-ball, party room
-  R('PARTS', 'Parts & Service', [49, 64, 79, 70], 6, 'parts'), // behind the Fun Zone: the crates for the auction
+  R('GAMEROOM', 'Game Room', [49, 43, 79, 61], 7, 'gameroom'), // arcades, skee-ball, the token machines
+  R('FUNZONE', 'Fun Zone', [81, 43, 98, 70], 9, 'funzone'), // the ball pit under a play structure of crawl tubes
+  R('PARTS', 'Parts & Service', [49, 64, 78, 70], 6, 'parts'), // behind the Game Room: the crates for the auction
 ]);
 export const ROOM_BY_ID = Object.freeze(Object.fromEntries(ROOMS.map((r) => [r.id, r])));
 
 // Openings cut through walls: [x1, y1, z1, x2, y2, z2] inclusive (y in local block rows).
 const O = (id, a, b, box, kind = 'arch') => Object.freeze({ id, a, b, box: Object.freeze(box), kind });
-// Doors are a block shorter than they look like they should be: the 5-block cast stoops through them
-// (walks under 2.85 tall within 0.8 blocks of an opening; tools/map/validate_map.mjs checks it).
+// Doorways are 3 blocks tall, a block shorter than they look like they should be: the 4-block cast stoops
+// through them (walks under 2.85 tall within 0.8 blocks of an opening; tools/map/validate_map.mjs checks it).
 export const OPENINGS = Object.freeze([
   O('backstage_door', 'DINING', 'BACKSTAGE', [14, 0, 10, 14, 2, 12], 'door'),
   O('midway_arch', 'DINING', 'MIDWAY', [14, 0, 17, 14, 4, 25]),
   O('cabaret_mouth', 'DINING', 'CABARET', [14, 0, 30, 14, 4, 36], 'curtain'),
   O('west_hall', 'DINING', 'WEST_HALL', [26, 0, 38, 28, 2, 38]),
-  O('prize_door', 'DINING', 'PRIZE', [35, 0, 38, 37, 2, 38]),
+  O('party_door', 'DINING', 'PARTY', [35, 0, 38, 37, 2, 38]),
   O('east_hall', 'DINING', 'EAST_HALL', [44, 0, 38, 46, 2, 38]),
-  O('kitchen_door', 'DINING', 'KITCHEN', [62, 0, 9, 62, 2, 11], 'door'),
-  O('restroom_door', 'DINING', 'RESTROOMS', [62, 0, 19, 62, 2, 21], 'door'),
-  O('mens_door', 'RESTROOMS', 'MENS', [67, 0, 17, 67, 1, 17], 'door'),
-  O('womens_door', 'RESTROOMS', 'WOMENS', [67, 0, 23, 67, 1, 23], 'door'),
-  O('foyer_arch', 'DINING', 'FOYER', [62, 0, 31, 62, 4, 35]),
-  O('front_doors', 'FOYER', 'OUTSIDE', [80, 0, 32, 80, 2, 34], 'glass_door'),
+  O('kitchen_door', 'DINING', 'KITCHEN', [63, 0, 9, 64, 2, 11], 'door'),
+  O('restroom_door', 'DINING', 'RESTROOMS', [63, 0, 19, 64, 2, 21], 'door'),
+  O('mens_door', 'RESTROOMS', 'MENS', [69, 0, 17, 69, 2, 17], 'door'),
+  O('womens_door', 'RESTROOMS', 'WOMENS', [69, 0, 23, 69, 2, 23], 'door'),
+  O('foyer_arch', 'DINING', 'FOYER', [63, 0, 30, 64, 4, 36]),
+  O('front_doors', 'FOYER', 'OUTSIDE', [99, 0, 32, 99, 2, 36], 'glass_door'),
+  O('prize_door', 'FOYER', 'PRIZE', [87, 0, 26, 93, 2, 26]),
+  O('gameroom_arch', 'FOYER', 'GAMEROOM', [67, 0, 42, 76, 3, 42]),
+  O('funzone_arch', 'FOYER', 'FUNZONE', [86, 0, 42, 92, 3, 42]),
+  O('play_arch', 'GAMEROOM', 'FUNZONE', [80, 0, 47, 80, 3, 52]),
   O('supply_door', 'WEST_HALL', 'SUPPLY', [25, 0, 45, 25, 2, 46], 'door'),
   O('w_corner_link', 'WEST_HALL', 'W_CORNER', [26, 0, 57, 28, 3, 58]),
   O('e_corner_link', 'EAST_HALL', 'E_CORNER', [44, 0, 57, 46, 3, 58]),
-  O('funzone_arch', 'FOYER', 'FUNZONE', [69, 0, 42, 72, 3, 42], 'arch'), // the Fun Zone's entrance (was the parts door)
-  O('parts_door', 'FUNZONE', 'PARTS', [60, 0, 62, 61, 2, 63], 'door'), // STAFF ONLY (through a double wall)
-  O('gallery_door', 'STAFF', 'GALLERY', [14, 0, 51, 15, 1, 51], 'door'),
+  O('parts_door', 'GAMEROOM', 'PARTS', [60, 0, 62, 61, 2, 63], 'door'), // STAFF ONLY (through a double wall)
+  O('gallery_door', 'STAFF', 'GALLERY', [14, 0, 51, 15, 2, 51], 'door'),
   O('staff_exit', 'STAFF', 'OUTSIDE', [0, 0, 60, 0, 1, 61], 'iron_door'),
 ]);
 
@@ -140,7 +157,9 @@ export const DUCTS = Object.freeze({
 });
 
 // ---------------------------------------------------------------- stages and props the game animates
-export const STAGE = Object.freeze({ box: Object.freeze([24, 1, 52, 8]), topY: 0 }); // stage blocks at y = 0, performers stand at y = 1
+// The band's stage: boards at y = 0 over x 23..54, z 1..8, a step along the front (z 9); performers stand at y = 1.
+// A proscenium frames it (pillars at x 21..22 / 55..56, the header with the big sign at y 7..9, z 10).
+export const STAGE = Object.freeze({ box: Object.freeze([23, 1, 54, 9]), topY: 0, proscenium: Object.freeze({ x1: 21, x2: 56, z: 10, y1: 7, y2: 9 }) });
 export const MIDWAY_RING = Object.freeze({ cx: 6, cz: 21, r: 4, topY: 0 });
 export const SHOW_TAPE = Object.freeze({ x: 10, y: 0, z: 26, dir: 'n' }); // on the floor by the Midway's south wall, facing the room
 // Kitty's Cabaret is the Ringmaster's stage now, the Grand Marquee: its curtains are parted for good, so
@@ -159,13 +178,19 @@ export const LOBBY = Object.freeze({
 
 /**
  * Daytime fill lights (invisible light blocks) for free roam: the tall dining hall,
- * the stage, the Midway, the Cabaret and the halls. [x, y, z, level]; removed at night.
+ * the stage, the Midway, the Marquee, the halls, the entrance hall, the game room
+ * and the Fun Zone. [x, y, z, level]; placed only into air, removed at night.
  */
+const DL = (x, y, z, level) => Object.freeze([x, y, z, level]);
 export const DAY_LIGHTS = Object.freeze([
-  ...[18, 26, 34, 42, 50, 58].flatMap((x) => [12, 20, 28, 35].map((z) => Object.freeze([x, 4, z, 13]))),
-  ...[27, 33, 38, 43, 49].map((x) => Object.freeze([x, 5, 6, 14])),
-  Object.freeze([3, 3, 24, 13]), Object.freeze([10, 3, 18, 13]), Object.freeze([9, 3, 31, 12]),
-  Object.freeze([27, 3, 45, 12]), Object.freeze([27, 3, 53, 12]), Object.freeze([45, 3, 45, 12]), Object.freeze([45, 3, 53, 12]),
+  ...[18, 25, 32, 39, 46, 53, 60].flatMap((x) => [13, 20, 27, 34].map((z) => DL(x, 5, z, 14))),
+  ...[27, 33, 38, 44, 50].map((x) => DL(x, 6, 5, 14)),
+  DL(3, 3, 24, 13), DL(10, 3, 18, 13), DL(9, 3, 31, 12),
+  DL(27, 3, 45, 12), DL(27, 3, 53, 12), DL(45, 3, 45, 12), DL(45, 3, 53, 12),
+  ...[69, 77, 85, 92].flatMap((x) => [30, 38].map((z) => DL(x, 4, z, 12))),
+  ...[53, 60, 67, 74].flatMap((x) => [47, 57].map((z) => DL(x, 4, z, 13))),
+  ...[85, 94].flatMap((x) => [47, 57, 66].map((z) => DL(x, 7, z, 13))),
+  ...[86, 94].flatMap((x) => [8, 20].map((z) => DL(x, 4, z, 12))),
 ]);
 
-export const SPAWN_OUTSIDE = Object.freeze({ x: 96.5, y: 0, z: 33.5, yaw: 90 }); // parking lot, facing the entrance (west)
+export const SPAWN_OUTSIDE = Object.freeze({ x: 116.5, y: 0, z: 34.5, yaw: 90 }); // the parking lot, facing the front doors (west)

@@ -27,17 +27,17 @@ console.log(JSON.stringify({ rooms: L.ROOMS, ducts: L.DUCTS, office: L.OFFICE, c
 
 # ---------------------------------------------------------------- map geometry
 S = 8                     # pixels per block (the map is drawn large, then shown at ~150 UI units)
-X0, Z0, X1, Z1 = -2, -2, 82, 73
+X0, Z0, X1, Z1 = -2, -2, 101, 73
 MARGIN = 10
 W = (X1 - X0) * S + 2 * MARGIN
 H = (Z1 - Z0) * S + 2 * MARGIN
 def px(x, z):
     return (MARGIN + (x - X0) * S, MARGIN + (z - Z0) * S)
 
-BOX = (8.5, 5.0)          # camera box size in blocks
+BOX = (9.5, 5.6)          # camera box size in blocks
 CAM_POS = {               # camera box centres (blocks) on the map
-    '1A': (38, 5.5), '1B': (50, 25), '1C': (9, 33), '2A': (30, 44), '2B': (28, 64), '3': (20, 49),
-    '4A': (44, 44), '4B': (45, 64), '5': (7, 7), '6': (71, 7.5), '7': (71, 20), '8': (7, 21),
+    '1A': (38.5, 5.5), '1B': (50, 25), '1C': (9, 33), '2A': (30, 44), '2B': (28, 64), '3': (20, 49),
+    '4A': (44, 44), '4B': (45, 64), '5': (7, 7), '6': (72, 7.5), '7': (73, 20), '8': (7, 21),
     '9': (31, 54), '10': (41, 54),
 }
 cams = data['cams']
@@ -180,9 +180,9 @@ FX_ON = '§k§r§k§r§n'      # the camera-feed look without the map (Settings:
 JS_ON = '§k§r§k§r§o'      # a jumpscare is playing: nothing on screen but the animatronic
 FORM_MARK = '§k§r§k§r§m'
 ACTIONS = {'w': 'PLAY SHOW', 's': 'SPOTLIGHT', 'x': 'PLAY SHOW', 'p': 'WARN GUARD'}  # form action codes (x = nothing to do here, p = co-op operator)
-HUD_W, HUD_H = 112, round(112 * H / W, 2)
+HUD_W, HUD_H = 128, round(128 * H / W, 2)
 # The clickable map is a little larger so every camera stays a comfortable button (about 15 x 9 units).
-FORM_W, FORM_H = 150, round(150 * H / W, 2)
+FORM_W, FORM_H = 172, round(172 * H / W, 2)
 
 def cam_code(i):
     s2 = f'{i:02d}'

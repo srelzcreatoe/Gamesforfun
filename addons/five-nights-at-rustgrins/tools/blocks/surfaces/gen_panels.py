@@ -457,6 +457,134 @@ def sign_revue():
     return c
 
 
+def _big_text(c, text, x, y, color, font='tall', scale=2, spacing=1, shadow=None, emit=None, cond_chars=None, center=True):
+    """Text from the bitmap fonts at an integer scale (big signage); returns (x, w)."""
+    from font import render
+    m = render(text, font=font, spacing=spacing, cond_chars=cond_chars)
+    m = np.kron(m, np.ones((scale, scale), bool))
+    h, w = m.shape
+    if center:
+        x = (c.w - w) // 2
+    if shadow:
+        for yy, xx in zip(*np.nonzero(m)):
+            c.px(x + xx + scale // 2 + 1, y + yy + scale // 2 + 1, shadow)
+    for yy, xx in zip(*np.nonzero(m)):
+        hi = yy % scale == 0
+        c.px(x + xx, y + yy, mix(hexc(color), hexc('#ffffff'), 0.25) if hi else color, emit=emit, height=190 if hi else 175)
+    return x, w
+
+
+def sign_stage():
+    """The big sign over the band's stage: a red marquee board in a gold frame, RUSTGRIN'S in gold letters over
+    PIZZA REVUE, ringed with bulbs (a few dead), a star either side."""
+    c = Canvas(160, 48, rough=150)
+    c.noise_fill(['#3a0c10', '#420e13', '#4a1016'], 4101, amt=0.8)
+    c.frame(0, 0, 160, 48, '#6a4a18', metal=170, rough=110)
+    c.frame(1, 1, 159, 47, '#b08a2e', metal=190, rough=90)
+    c.frame(2, 2, 158, 46, '#d8b04a', metal=200, rough=80)
+    c.frame(3, 3, 157, 45, '#1a0608')
+    for x in range(5, 156, 4):
+        _bulb(c, x, 5, lit=x not in (41, 105))
+        _bulb(c, x, 42, lit=x not in (69, 137))
+    for y in range(9, 40, 4):
+        _bulb(c, 5, y, lit=y != 25)
+        _bulb(c, 154, y)
+    c.rect(12, 23, 148, 25, '#7a5418', metal=180, rough=100)  # gold rule between the rows
+    _big_text(c, "RUSTGRIN'S", 0, 8, GOLD, font='tall', scale=2, shadow='#120406', cond_chars={'I', "'"})
+    _big_text(c, 'PIZZA REVUE', 0, 27, '#f0dcc0', font='tall', scale=2, shadow='#120406', cond_chars={'I'})
+    for cx in (20, 139):
+        for (dx, dy) in ((0, -3), (-1, -2), (0, -2), (1, -2), (-3, -1), (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1), (3, -1),
+                         (-2, 0), (-1, 0), (0, 0), (1, 0), (2, 0), (-1, 1), (0, 1), (1, 1), (-2, 2), (-1, 2), (1, 2), (2, 2), (-2, 3), (2, 3)):
+            c.px(cx + dx, 24 + dy, GOLD if dy < 1 else GOLD_D, metal=190, rough=90, height=190)
+    c.age(4102, paper='#3a2a2a', fade=0.04, yellow=0.02, stains=1, dirt=0.1)
+    return c
+
+
+def _neon_big(c, text, y, core, glow, scale=2, dead=(), spacing=2, dead_color='#4a4a52'):
+    """Neon tube letters at an integer scale (thick tubes for the street sign); a letter in `dead` is burnt out."""
+    from font import render
+    m = render(text, font='neon', spacing=spacing)
+    spans, x = [], 0
+    for i, ch in enumerate(text):
+        gw = render(ch, font='neon').shape[1]
+        spans.append((x, x + gw, i))
+        x += gw + spacing
+    dead_cols = np.zeros(m.shape[1], bool)
+    for a, b, i in spans:
+        if i in dead:
+            dead_cols[a:b] = True
+    m = np.kron(m, np.ones((scale, scale), bool))
+    dead_cols = np.repeat(dead_cols, scale)
+    h, w = m.shape
+    x0 = (c.w - w) // 2
+    lit = m & ~dead_cols[None, :]
+    halo = np.zeros((h + 4, w + 4), bool)
+    big = np.zeros((h + 4, w + 4), bool)
+    big[2:-2, 2:-2] = lit
+    for dx in (-2, -1, 0, 1, 2):
+        for dy in (-2, -1, 0, 1, 2):
+            if abs(dx) + abs(dy) <= 2:
+                halo |= np.roll(np.roll(big, dy, 0), dx, 1)
+    halo &= ~big
+    for yy, xx in zip(*np.nonzero(halo)):
+        X, Y = x0 + xx - 2, y + yy - 2
+        if 0 <= X < c.w and 0 <= Y < c.h:
+            c.rgb[Y, X] = mix(c.rgb[Y, X], hexc(glow), 0.5)
+            c.emit[Y, X] = max(c.emit[Y, X], 80)
+    for yy, xx in zip(*np.nonzero(m)):
+        if dead_cols[xx]:
+            c.px(x0 + xx, y + yy, dead_color, rough=60, height=200)
+        else:
+            centre = (yy % scale == scale // 2) or (xx % scale == scale // 2)
+            c.px(x0 + xx, y + yy, mix(hexc(core), hexc('#ffffff'), 0.35) if centre else core, emit=255, rough=50, height=200)
+
+
+def sign_facade():
+    """The street sign on the tall false front: big neon RUSTGRIN'S over PIZZA REVUE on a black steel board,
+    a band of chaser bulbs between the rows, rust running from the bolts. One letter of REVUE is dead."""
+    c = Canvas(192, 64, rough=170, height=140)
+    c.noise_fill(['#111015', '#141319', '#17161d'], 4201, amt=0.8)
+    c.frame(0, 0, 192, 64, '#3a3a40', metal=180, rough=110)
+    c.frame(1, 1, 191, 63, '#26262b', metal=150, rough=120)
+    for (x, y) in [(3, 3), (188, 3), (3, 60), (188, 60), (96, 3), (96, 60), (48, 31), (144, 31)]:
+        c.px(x, y, '#6d6d74', metal=200, rough=90, height=190)
+        for k in (1, 2, 3):
+            if y + k < 63 and k < 3:
+                c.px(x, y + k, '#5a3a26', rough=220)  # rust streaks
+    _neon_big(c, "RUSTGRIN'S", 5, '#ff6fb5', '#ff2f8e', scale=2, spacing=3)
+    for x in range(6, 187, 4):
+        _bulb(c, x, 31, lit=x % 24 != 2)
+        c.px(x + 2, 31, '#2a2a30', metal=170, rough=120)
+    _neon_big(c, 'PIZZA REVUE', 37, '#7ff6e8', '#1fd0c0', scale=2, dead=(8,), spacing=2)
+    c.age(4202, paper='#2a2a2e', fade=0.02, yellow=0.0, stains=0, dirt=0.08)
+    return c
+
+
+def menu_board():
+    """The menu over the order counter: white plastic letters pushed into a grooved black felt board."""
+    c = Canvas(64, 32, rough=235)
+    c.noise_fill(['#141416', '#17171a', '#1a1a1d'], 4301, amt=0.7)
+    for y in range(3, 31, 2):
+        for x in range(2, 62):
+            c.px(x, y, mix(c.rgb[y, x], hexc('#060607'), 0.5))  # felt grooves
+    c.frame(0, 0, 64, 32, '#8c8f94', metal=200, rough=90)
+    c.frame(1, 1, 63, 31, '#5d6065', metal=180, rough=110)
+    c.rect(2, 2, 62, 8, '#9a1c1c')
+    c.text('PIZZA REVUE MENU', 0, 2, GOLD, condensed=True, center='c')
+    lines = [('LG PIZZA', '8.99'), ('SALAD BAR', '2.99'), ('SODA', '.75')]
+    for i, (item, price) in enumerate(lines):
+        y = 10 + i * 7
+        c.text(item, 3, y, '#e6e2d6', condensed=True)
+        from font import render
+        pw = render(price).shape[1]
+        c.text(price, 61 - pw, y, '#e6c25a')
+        for x in range(3 + render(item, condensed=True).shape[1] + 2, 61 - pw - 1, 2):
+            c.px(x, y + 4, '#6a6a6a')  # dot leaders
+    c.px(5, 17, '#141416')  # a letter fell off
+    c.age(4302, paper='#2a2a2a', fade=0.03, yellow=0.02, stains=0, dirt=0.1)
+    return c
+
+
 def sign_out_of_order():
     c = Canvas(32, 16, rough=245)
     c.a[:] = 0
@@ -808,14 +936,18 @@ def _neon_slice(c, core, glow):
 
 
 def neon_sign():
-    """One block, 14 tiles: FUN ZONE (3x1), PRIZES (3x1), PARTY (2x1), PIZZA (2x1), GAMES (2x1), a star, a slice."""
+    """One block, 24 tiles: FUN ZONE (3x1), PRIZES (3x1), PARTY (2x1), PIZZA (2x1), GAMES (2x1), a star, a slice,
+    SKEE-BALL (4x1), TOKENS (3x1), TICKETS (3x1)."""
     return [(_neon_panel(48, 'FUN ZONE', '#7ff6e8', '#1fd0c0', dead=(5,)), 3, 1),
             (_neon_panel(48, 'PRIZES', '#ffe27a', '#e0a020', dead=(4,), spacing=3), 3, 1),
             (_neon_panel(32, 'PARTY', '#ff6fb5', '#ff2f8e', dead=()), 2, 1),
             (_neon_panel(32, 'PIZZA', '#ff8a3a', '#ff4a1a', dead=(3,)), 2, 1),
             (_neon_panel(32, 'GAMES', '#8aff7a', '#30d040', dead=(1,)), 2, 1),
             (_neon_panel(16, '', '#ffe27a', '#e0a020', icon=_neon_star), 1, 1),
-            (_neon_panel(16, '', '#ffd27a', '#ff8a3a', icon=_neon_slice), 1, 1)]
+            (_neon_panel(16, '', '#ffd27a', '#ff8a3a', icon=_neon_slice), 1, 1),
+            (_neon_panel(64, 'SKEE-BALL', '#7ab8ff', '#2f6fe0', dead=(7,)), 4, 1),
+            (_neon_panel(48, 'TOKENS', '#ffe27a', '#e0a020', dead=()), 3, 1),
+            (_neon_panel(48, 'TICKETS', '#ff8a3a', '#ff4a1a', dead=(2,)), 3, 1)]
 
 
 def play_net(i):
@@ -850,6 +982,9 @@ PANELS = {
     'sign_out_of_order': (sign_out_of_order, 2, 1),
     'sign_midway': (sign_midway, 4, 1),
     'sign_revue': (sign_revue, 6, 2),
+    'sign_stage': (sign_stage, 10, 3),
+    'sign_facade': (sign_facade, 12, 4),
+    'menu_board': (menu_board, 4, 2),
     'poster_auction': (poster_auction, 2, 3),
     'poster_torn': (poster_torn, 2, 2),
 }

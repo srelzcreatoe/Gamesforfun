@@ -1,5 +1,5 @@
 """Light blocks (section A): ceiling troffer, EXIT sign, wall sconce, stage
-spotlight, hanging lamp. Writes the custom geometries (RP models/blocks) and
+spotlight, hanging lamp, footlight. Writes the custom geometries (RP models/blocks) and
 the lit/unlit texture sets (<name>_on / <name>_off).
 
 Models face north (front towards -Z); wall-mounted ones have their back on the
@@ -83,7 +83,25 @@ def model_hanging_lamp():
     return m
 
 
+def model_footlight():
+    """A footlight on the front edge of the stage: a low black trough, three bulbs, a curved hood towards the
+    audience (south) with a polished reflector inside, so the light throws up and back onto the band."""
+    m = Model('footlight', 32, 32)
+    b = m.bone('foot')
+    m.cube(b, [-7, 0, -3], [14, 2, 9], {'north': 'can', 'south': 'can', 'east': 'can', 'west': 'can', 'up': 'can_top',
+                                         'down': 'can'})
+    m.cube(b, [-7, 2, 4], [14, 4, 2], {'north': ('reflector', 'glow'), 'south': 'can_back', 'east': 'can', 'west': 'can',
+                                        'up': 'can_rim'})
+    m.cube(b, [-7, 6, 2], [14, 1, 3], {'north': 'can_rim', 'south': 'can_rim', 'east': 'can_rim', 'west': 'can_rim',
+                                        'up': 'can_top', 'down': ('reflector', 'glow')})
+    for x in (-6, -1.5, 3):
+        m.cube(b, [x, 2, 0], [3, 3, 3], {'north': ('bulb', 'glow'), 'east': ('bulb', 'glow'), 'west': ('bulb', 'glow'),
+                                          'up': ('bulb_tip', 'glow'), 'south': ('bulb', 'glow')})
+    return m
+
+
 MODELS = {
+    'footlight': model_footlight,
     'exit_sign': model_exit_sign,
     'wall_sconce': model_wall_sconce,
     'stage_spotlight': model_stage_spotlight,
@@ -256,6 +274,22 @@ def paint(t, key, r, lit, seed):
                 t.emit[v + yy, u + xx] = em
                 t.rough[v + yy, u + xx] = 30
                 t.height[v + yy, u + xx] = 200
+    elif style == 'reflector':
+        u, v = r[0], r[1]
+        for yy in range(h):
+            for xx in range(w):
+                ridge = (xx + yy) % 3 == 0
+                if lit:
+                    col, em = (('#fff0cc', 200) if ridge else ('#f2d79c', 150))
+                else:
+                    col, em = (('#9a9488', 0) if ridge else ('#7c776d', 0))
+                    if wn[yy, xx] > 0.85:
+                        col = '#5a5348'  # dust and scorch on the polished metal
+                t.rgb[v + yy, u + xx] = hexc(col)
+                t.emit[v + yy, u + xx] = em
+                t.metal[v + yy, u + xx] = 230
+                t.rough[v + yy, u + xx] = 40
+                t.height[v + yy, u + xx] = 160
     elif style == 'housing':
         _metal(t, r, '#33373a', '#4a4f53', '#25282a', seed, metal=150, rough=125)
     elif style == 'exit_face':
