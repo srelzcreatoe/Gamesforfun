@@ -31,6 +31,10 @@ import { CONFIG } from '../config.js';
 import { neighbors, adjacent, planPath, sideOf, distToDoor } from './graph.js';
 
 const OTHER = Object.freeze({ L: 'R', R: 'L' });
+/** Rustgrin's hideout (the last stop of his route): never a door stalker's way. */
+const NOOK = CONFIG.characters.rustgrin.route[CONFIG.characters.rustgrin.route.length - 1];
+/** Nobody walks through the ducts or the vents. */
+const walkable = (n) => !!NODES[n] && !NODES[n].crawl && !NODES[n].vent;
 
 export class DoorStalker extends Animatronic {
   constructor(s, id) {
@@ -69,7 +73,12 @@ export class DoorStalker extends Animatronic {
   offLimits(n) {
     if (n === this.door) return false;
     const N = NODES[n];
-    return !N || !!N.crawl || !!N.vent || !!N.door || !!N.dark || (N.pose === 'stage' && n !== this.cfg.start);
+    return !walkable(n) || !!N.door || n === NOOK || (N.pose === 'stage' && n !== this.cfg.start);
+  }
+
+  /** The planned way to the door (or, if the map leaves no other, any walkable way). */
+  plan(from) {
+    return planPath(from, this.door, { cost: this.costFn, blocked: this.blockFn }) ?? planPath(from, this.door, { blocked: (n) => !walkable(n) });
   }
 
   /** Extra cost of stepping onto a node: the live camera, watched rooms, a lit hall, company. */
@@ -153,7 +162,7 @@ export class DoorStalker extends Animatronic {
       if (pick && adjacent(this.node, pick) && !this.offLimits(pick)) return pick;
       // a spot the table does not know (or an edge the map no longer has): plan from here
     }
-    const path = planPath(this.node, this.door, { cost: this.costFn, blocked: this.blockFn });
+    const path = this.plan(this.node);
     if (!path || path.length < 2) return null;
     let next = path[1];
     if (next !== this.door && this.cfg.erratic && s.rng.chance(this.cfg.erratic)) {
@@ -175,7 +184,7 @@ export class DoorStalker extends Animatronic {
     }
     // erratic: a quick double hop while the guard is busy on the cameras (never into the doorway)
     if (this.mode === 'hunt' && this.cfg.dash && s.habits.busy() && s.rng.chance(this.cfg.dash)) {
-      const after = planPath(next, this.door, { cost: this.costFn, blocked: this.blockFn })?.[1];
+      const after = this.plan(next)?.[1];
       if (after && after !== this.door && after !== this.node && !s.isWatchingNode(next) && !s.isWatchingNode(after)) {
         if (this.goTo(after, { via: [this.node, next, after], speed: (this.cfg.walkSpeed ?? 0.12) * 1.7, anim: 'run' })) {
           this.stepCue(after, { fast: true });
