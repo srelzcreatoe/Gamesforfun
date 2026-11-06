@@ -438,6 +438,28 @@ function botNight(n, seed, kind, hooks = {}) {
 
 check(['linger', 'slip', 'blink', 'nervous', 'switch'].every((k) => CUES.has(k)), 'every new habit has its own tell (a cue the game renders as a sound and a caption)', [...CUES].join(', '));
 
+// ------------------------------------------------------------------------ 12b. the Ringmaster remembers the spotlight
+{
+  // spotlight him on the west route: hits are remembered by side, and his next walks lean east
+  const s = night(7, 3100, { ai: ONLY({ top_hat_rat: 20 }), ticksPerHour: 2000, mods: { infinitePower: true } });
+  const rm = s.chars.top_hat_rat;
+  run(s, { ticks: 1300 });
+  const westRoute = CONFIG.characters.top_hat_rat.routes.L;
+  rm.side = 'L';
+  rm.state = 'walk';
+  rm.idx = westRoute.findIndex((n, k) => k >= 3 && CAMS_FOR_NODE[n]?.length);
+  rm.placeAt(westRoute[rm.idx], 'stand');
+  rm.pauseUntil = s.t + 2000;
+  const cam = CAMS_FOR_NODE[rm.node][0];
+  s.input('cams_open', cam);
+  s.input('cam_select', cam);
+  run(s, { ticks: s.t + 40 }); // the placement's static clears
+  const hit = s.input('spotlight');
+  let east = 0;
+  for (let i = 0; i < 400; i++) if (rm.pickSide() === 'R') east++;
+  check(hit.hit && rm.spotHits.L === 1 && east > 400 * 0.6, 'the Ringmaster remembers where the spotlight caught him and walks the other way more often', `west hits ${rm.spotHits.L}, then ${pct(east, 400)} of walks east`);
+}
+
 // ------------------------------------------------------------------------ 13. the director
 {
   const s = night(4, 5);

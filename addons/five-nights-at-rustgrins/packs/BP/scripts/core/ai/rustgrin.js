@@ -140,7 +140,8 @@ export class Rustgrin extends Animatronic {
     }
     if (!via && !adjacent(this.node, target)) via = planPath(this.node, target, { cost: this.darkFn, blocked: this.blockFn });
     if (!this.goTo(target, { via: via && via.length > 2 ? via : null })) return false;
-    if (blink || s.rng.chance(this.cfg.laughChance)) s.emit({ fx: 'sound', id: 'fnar.rustgrin.laugh', at: 'near_office', vol: blink ? 0.55 : 0.7 });
+    // (a blink has its own, lower laugh: the 'blink' cue)
+    if (!blink && s.rng.chance(this.cfg.laughChance)) s.emit({ fx: 'sound', id: 'fnar.rustgrin.laugh', at: 'near_office', vol: 0.7 });
     s.emit({ fx: 'sound', id: 'fnar.rustgrin.feedback', at: this.id, vol: 0.7 });
     return true;
   }

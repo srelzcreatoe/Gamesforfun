@@ -393,9 +393,11 @@ export class TopHatRat extends Animatronic {
     s.emit({ fx: 'spotlight', hit: true, cam: cam.id });
     s.emit({ fx: 'pa', key: 'spotlight' });
     // he bows and steps back: one spot in the Final Act, all the way to his booth in the Custom Night
-    const route = this.cfg.routes[this.side];
     this.idx = this.mode === 'final' ? Math.max(0, this.idx - 1) : 0;
     this.state = this.idx === 0 ? (this.mode === 'final' ? 'walk' : 'home') : 'walk';
+    // driven back to his booth in the Final Act, he picks his way again (remembering the spotlight)
+    if (this.idx === 0 && this.mode === 'final') this.side = this.pickSide();
+    const route = this.cfg.routes[this.side];
     this.placeAt(route[this.idx], 'stand');
     // back in his booth he sulks a while longer before trying again
     this.pauseUntil = s.t + this.pace() * (this.idx === 0 ? 3 : 1);

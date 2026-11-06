@@ -65,6 +65,7 @@ def main():
     run('map: cameras + routes', ['node', 'tools/map/validate_map.mjs'])
     run('script typecheck', ['node', 'node_modules/typescript/bin/tsc', '-p', 'tsconfig.scripts.json'], cwd=os.path.join(ROOT, 'tools'))
     run('night balance smoke', ['node', 'tools/sim/sim.mjs', '1-7', '40', '--bot=good'])
+    run('animatronic AI checks', ['node', 'tools/sim/ai_checks.mjs'])
     run('play session (API mock)', ['node', '--import', './tools/mock/register.mjs', 'tools/mock/run_game.mjs'])
     if '--no-zip' not in sys.argv:
         zip_packs()
