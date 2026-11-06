@@ -236,9 +236,133 @@ ANIMS = {}
 META = {}
 
 
+LIMITS = {
+    'forearm': (None, 2.0),       # elbows only flex (local X <= 0)
+    'shin': (2.0, None),          # knees only flex (local X >= 0)
+    'finger': (-14.0, 105.0), 'finger_tip': (-8.0, 112.0),
+    'thumb': (-12.0, 80.0), 'thumb_tip': (-8.0, 95.0),
+}
+
+
+GROUND = ((0.0, 1.0, 0.0), 0.0)
+CUBE_PTS = {}
+for _c in RIG.all_cubes():
+    _pts = np.array([[x, y, z] for x in (_c.lo[0], _c.hi[0]) for y in (_c.lo[1], _c.hi[1]) for z in (_c.lo[2], _c.hi[2])], dtype=float)
+    CUBE_PTS[_c.bone.name] = np.vstack([CUBE_PTS[_c.bone.name], _pts]) if _c.bone.name in CUBE_PTS else _pts
+
+
+def _child(PR, Pt, bone, rot):
+    piv = PIV[bone]
+    Rl = rot3(*rot)
+    return PR @ Rl, PR @ (piv - Rl @ piv) + Pt
+
+
+def _lowest(n, R, t, pts):
+    return float(np.min((pts @ R.T + t) @ n))
+
+
+def _settle_fingers(p, side, Rh, th, n, d, apply=True):
+    """curl each finger only as far as the surface allows; returns the lowest point reached"""
+    lowest = 1e9
+    for f in FINGERS:
+        b1, b2 = f'{side}_{f}', f'{side}_{f}_tip'
+        r1 = REST[b1] + np.asarray(p.get(b1, {}).get('rotation', (0, 0, 0)), dtype=float)
+        r2 = REST[b2] + np.asarray(p.get(b2, {}).get('rotation', (0, 0, 0)), dtype=float)
+        k1, k2 = ('thumb', 'thumb_tip') if f == 'thumb' else ('finger', 'finger_tip')
+        lo1, lo2 = LIMITS[k1][0], LIMITS[k2][0]
+        best_ok, best_any = None, None
+        for a1 in np.linspace(r1[0], min(r1[0], lo1), 8):
+            R1, t1 = _child(Rh, th, b1, (a1, r1[1], r1[2]))
+            m1 = _lowest(n, R1, t1, CUBE_PTS[b1])
+            for a2 in np.linspace(r2[0], min(r2[0], lo2), 6):
+                R2, t2 = _child(R1, t1, b2, (a2, r2[1], r2[2]))
+                m = min(m1, _lowest(n, R2, t2, CUBE_PTS[b2]))
+                cost = (r1[0] - a1) + 0.7 * (r2[0] - a2)
+                if m >= d - 0.1 and (best_ok is None or cost < best_ok[0]):
+                    best_ok = (cost, a1, a2, m)
+                if best_any is None or m > best_any[3]:
+                    best_any = (None, a1, a2, m)
+        _, a1, a2, m = best_ok if best_ok is not None else best_any
+        lowest = min(lowest, m)
+        if apply:
+            if a1 != r1[0]:
+                p.set_rot(b1, [a1 - REST[b1][0], r1[1] - REST[b1][1], r1[2] - REST[b1][2]])
+            if a2 != r2[0]:
+                p.set_rot(b2, [a2 - REST[b2][0], r2[1] - REST[b2][1], r2[2] - REST[b2][2]])
+    return lowest
+
+
+def settle_hand(p, side, n, d):
+    """Keep a hand out of a surface (points x with n.x >= d are free space): with the smallest wrist
+    tilt that works, lift the palm clear and curl each finger only until its tip meets the surface."""
+    n = np.asarray(n, dtype=float)
+    W = fk(p)
+    hb = f'{side}_hand'
+    PRf, Ptf = W[f'{side}_forearm']
+    base = REST[hb] + np.asarray(p.get(hb, {}).get('rotation', (0, 0, 0)), dtype=float)
+    best = None
+    for xo in [0.0] + [v for k in range(1, 11) for v in (4.0 * k, -4.0 * k)]:
+        r = base.copy()
+        r[0] = clamp(r[0] + xo, -70.0, 70.0)
+        Rh, th = _child(PRf, Ptf, hb, r)
+        mp = _lowest(n, Rh, th, CUBE_PTS[hb])
+        if mp < d - 0.05 and best is not None:
+            continue
+        mf = _settle_fingers(p, side, Rh, th, n, d, apply=False)
+        m = min(mp, mf)
+        if best is None or m > best[0] + 1e-6:
+            best = (m, r, Rh, th)
+        if m >= d - 0.1:
+            break
+    _, r, Rh, th = best
+    if not np.allclose(r, base):
+        p.set_rot(hb, r - REST[hb])
+    _settle_fingers(p, side, Rh, th, n, d)
+
+
+def sanitize(p, floor=None):
+    """Clamp every hinge to a range a real joint can reach (applied after all layers), then settle
+    planted hands on whatever they are touching."""
+    for side, s in SIDES:
+        for bone, key in ([(f'{side}_forearm', 'forearm'), (f'{side}_shin', 'shin')] +
+                          [(f'{side}_finger{i}', 'finger') for i in range(1, 5)] +
+                          [(f'{side}_finger{i}_tip', 'finger_tip') for i in range(1, 5)] +
+                          [(f'{side}_thumb', 'thumb'), (f'{side}_thumb_tip', 'thumb_tip')]):
+            lo, hi = LIMITS[key]
+            off = np.asarray(p.get(bone, {}).get('rotation', (0, 0, 0)), dtype=float)
+            tot = REST[bone] + off
+            x = tot[0]
+            if lo is not None:
+                x = max(lo, x)
+            if hi is not None:
+                x = min(hi, x)
+            if x != tot[0]:
+                off = off.copy()
+                off[0] = x - REST[bone][0]
+                p.set_rot(bone, off)
+        hb = f'{side}_hand'
+        off = np.asarray(p.get(hb, {}).get('rotation', (0, 0, 0)), dtype=float)
+        tot = REST[hb] + off
+        cx, cz = clamp(tot[0], -70.0, 70.0), clamp(tot[2], -30.0, 30.0)
+        if cx != tot[0] or cz != tot[2]:
+            p.set_rot(hb, [cx - REST[hb][0], off[1], cz - REST[hb][2]])
+    contacts = getattr(p, 'contacts', {})
+    for side, _ in SIDES:
+        if side in contacts:
+            settle_hand(p, side, *contacts[side])
+        elif floor is not None:                     # free hands still never go through the floor
+            settle_hand(p, side, (0.0, 1.0, 0.0), floor)
+    return p
+
+
+SCENE_FLOOR = {'shore': 0.0, 'ledge': 0.0, 'shallows': 0.0}
+
+
 def anim(name, length, loop=True, **meta):
     def deco(fn):
-        ANIMS[name] = (fn, length, loop)
+        floor = SCENE_FLOOR.get(meta.get('scene'))
+        wrapped = lambda t, _fn=fn: sanitize(_fn(t), floor)
+        ANIMS[name] = (wrapped, length, loop)
         META[name] = dict(length=length, loop=loop, **meta)
         return fn
     return deco
@@ -273,43 +397,88 @@ def gait_speed(stride, swing, period):
     return stride / ((1 - swing) * period)
 
 
-def orient_hand(p, side, target_dir):
-    """Aim the fingers along target_dir by bending the wrist only (local X/Z): no twisting of the hand."""
+WRIST_X = (-65.0, 65.0)     # total flexion / extension
+WRIST_Z = (-26.0, 26.0)     # total side-to-side deviation
+TWIST_Y = 45.0              # forearm rotation allowed around the rest twist
+
+
+def orient_hand(p, side, target_dir, palm=(0.0, -1.0, 0.0), palm_w=0.45, twist=TWIST_Y):
+    """Point the fingers along target_dir with the palm facing `palm`, using only anatomically
+    possible wrist moves: flexion/extension, a little side deviation, and forearm twist."""
     W = fk(p)
     Rf = W[f'{side}_forearm'][0]
     rest = REST[f'{side}_hand']
     tgt = nrm(np.asarray(target_dir, dtype=float))
+    pal = nrm(np.asarray(palm, dtype=float))
 
-    def search(xs, zs):
-        X, Z = np.meshgrid(xs, zs, indexing='ij')
-        a = -np.radians(rest[0] + X)
-        b = np.radians(rest[1])
-        c = -np.radians(rest[2] + Z)
-        x1 = -np.sin(a) * np.sin(b)
-        y1 = -np.cos(a)
-        z1 = -np.sin(a) * np.cos(b)
-        x2 = x1 * np.cos(c) - y1 * np.sin(c)
-        y2 = x1 * np.sin(c) + y1 * np.cos(c)
-        d = np.stack([x2, y2, z1], -1) @ Rf.T
-        score = d @ tgt
+    def search(xs, ys, zs):
+        X, Y, Z = np.meshgrid(xs, ys, zs, indexing='ij')
+        a = -np.radians(X)
+        b = np.radians(rest[1] + Y)
+        c = -np.radians(Z)
+        ca, sa, cb, sb, cc, sc = np.cos(a), np.sin(a), np.cos(b), np.sin(b), np.cos(c), np.sin(c)
+        # finger axis (0,-1,0) and palm normal (0,0,1) through Rz(c) Ry(b) Rx(a)
+        fx1, fy1, fz1 = -sa * sb, -ca, -sa * cb
+        px1, py1, pz1 = ca * sb, -sa, ca * cb
+        f = np.stack([fx1 * cc - fy1 * sc, fx1 * sc + fy1 * cc, fz1], -1) @ Rf.T
+        pm = np.stack([px1 * cc - py1 * sc, px1 * sc + py1 * cc, pz1], -1) @ Rf.T
+        score = f @ tgt + palm_w * (pm @ pal) - 0.0015 * np.abs(Y) - 0.004 * np.abs(Z)
         i = np.unravel_index(np.argmax(score), score.shape)
-        return X[i], Z[i]
+        return X[i], Y[i], Z[i]
 
-    x, z = search(np.arange(-100, 101, 5.0), np.arange(-70, 71, 5.0))
-    x, z = search(np.arange(x - 5, x + 5.01, 0.5), np.arange(z - 5, z + 5.01, 0.5))
-    p.set_rot(f'{side}_hand', [x, 0, z])
+    clip = lambda v, lo, hi: np.clip(v, lo, hi)
+    x, y, z = search(np.arange(WRIST_X[0], WRIST_X[1] + 0.1, 5.0), np.arange(-twist, twist + 0.1, 7.5),
+                     np.arange(WRIST_Z[0], WRIST_Z[1] + 0.1, 4.0))
+    x, y, z = search(clip(np.arange(x - 4, x + 4.1, 1.0), *WRIST_X), clip(np.arange(y - 6, y + 6.1, 1.5), -twist, twist),
+                     clip(np.arange(z - 3, z + 3.1, 1.0), *WRIST_Z))
+    p.set_rot(f'{side}_hand', [x - rest[0], y, z - rest[2]])
 
 
-def plant_arm(p, side, target, pole, down=0.35, curl_amt=22.0, lift=0.0):
-    """IK the arm so the wrist reaches target, then lay the hand along the forearm's heading (no twist)."""
-    E, T = two_bone(p, f'{side}_arm', f'{side}_forearm', f'{side}_hand', target, pole, 'arm')
-    fwd = T - E
-    head = np.array([fwd[0], 0.0, fwd[2]])
-    if np.linalg.norm(head) < 1e-3:
-        head = np.array([0.0, 0.0, -1.0])
-    head = nrm(head)
-    orient_hand(p, side, head + np.array([0.0, -down + 0.6 * lift, 0.0]))
+def plant_arm(p, side, target, pole, down=0.35, curl_amt=22.0, lift=0.0, palm=(0.0, -1.0, 0.0), finger_dir=None, twist=TWIST_Y,
+              surface='auto'):
+    """IK the arm so the wrist reaches target, then lay the hand along the forearm's heading, palm on the surface.
+    surface: (normal, offset) the hand rests on; 'auto' = the floor when the wrist target is near it; None = free."""
+    if surface == 'auto':
+        surface = GROUND if target[1] < 12.0 else None
+    if surface is not None:
+        if not hasattr(p, 'contacts'):
+            p.contacts = {}
+        p.contacts[side] = surface
+        if twist == TWIST_Y:
+            twist = 80.0        # a palm pressed flat on a surface uses the forearm's full pronation range
+    target = np.asarray(target, dtype=float)
+    for _ in range(3):
+        E, T = two_bone(p, f'{side}_arm', f'{side}_forearm', f'{side}_hand', target, pole, 'arm')
+        if finger_dir is None:
+            fwd = T - E
+            head = np.array([fwd[0], 0.0, fwd[2]])
+            if np.linalg.norm(head) < 1e-3:
+                head = np.array([0.0, 0.0, -1.0])
+            finger_dir = nrm(head) + np.array([0.0, -down + 0.6 * lift, 0.0])
+        orient_hand(p, side, finger_dir, palm=palm, palm_w=0.45 * (1 - 0.6 * lift), twist=twist)
+        if surface is None:
+            break
+        n = np.asarray(surface[0], dtype=float)
+        R, tr = fk(p)[f'{side}_hand']
+        sink = surface[1] - _lowest(n, R, tr, CUBE_PTS[f'{side}_hand'])
+        if sink <= 0.05:
+            break
+        target = target + n * (sink + 0.1)          # the palm would sink in: lift the wrist onto the surface
     curl(p, side, curl_amt + 18 * lift, curl_amt * 1.25 + 22 * lift)
+
+
+def grip_edge(p, side, t, curl_base=72, tip=38, thumb=(0, 82), thumb_spread=-20, drum=8.0):
+    """long fingers wrapped round a pillar's front edge, drumming one after another;
+    the thumb lies alongside them and hooks its tip round the corner too"""
+    s = -1 if side == 'right' else 1
+    for i, f in enumerate(FINGERS):
+        tap = drum * bump((t + 0.37 * i) % 3.0, 0.35)
+        if f == 'thumb':
+            p.set_rot(f'{side}_thumb', [thumb[0] - REST[f'{side}_thumb'][0], 0, thumb_spread * s])
+            p.set_rot(f'{side}_thumb_tip', [thumb[1] - REST[f'{side}_thumb_tip'][0], 0, 0])
+        else:
+            p.set_rot(f'{side}_{f}', [curl_base - tap - REST[f'{side}_{f}'][0], 0, 0])
+            p.set_rot(f'{side}_{f}_tip', [tip - REST[f'{side}_{f}_tip'][0], 0, 0])
 
 
 def plant_leg(p, side, target, pole=None, pitch=0.0, s=None):
@@ -568,7 +737,7 @@ def a_walk(t, sp=Spasms(WALK_T, True, 13, rate=1.25, groups=('head', 'head', 'ne
             pitch = 22 * math.sin(math.pi * k) - 8 * bump(k - 0.6, 0.4)
         plant_leg(p, side, (base[0] + 0.4 * s, y, z), (0.1 * s, 0.3, -1), pitch)
         aw = wu + (0 if s < 0 else math.pi)
-        p.rot(f'{side}_arm', -15 * math.sin(aw), 0, 2 * s * math.cos(aw))
+        p.rot(f'{side}_arm', -15 * math.sin(aw), 0, 2 * s * math.cos(aw) - 4 * s)     # hands swing just outside the feet
         p.rot(f'{side}_forearm', -10 * math.sin(aw - 0.7) - 4)
         p.rot(f'{side}_hand', 9 * math.sin(aw - 1.4))
         curl(p, side, 14 + 6 * math.sin(aw - 2.0))
@@ -621,10 +790,10 @@ def a_run(t, sp=Spasms(RUN_T, True, 15, rate=2.8, groups=('head', 'jaw'))):
     phases = {'left_foot': 0.0, 'right_foot': 0.09, 'left_hand': 0.46, 'right_hand': 0.56}
     for side, s in SIDES:
         dz, lift, _ = gait(ph, phases[f'{side}_foot'], RUN_SWING, RUN_STRIDE)
-        base = REST_ANKLE[side] + np.array([0.6 * s, 0, 1.5])
-        plant_leg(p, side, (base[0], 2.0 + 9.0 * lift, base[2] + dz), (0.3 * s, 0.5, -1), 35 * lift - 10)
+        base = REST_ANKLE[side] + np.array([2.2 * s, 0, 3.5])
+        plant_leg(p, side, (base[0], 2.0 + 6.0 * lift, base[2] + dz), (0.55 * s, 0.4, -1), 30 * lift - 8)
         dz, lift, _ = gait(ph, phases[f'{side}_hand'], RUN_SWING, RUN_STRIDE)
-        plant_arm(p, side, (13.0 * s, 2.0 + 10.0 * lift, -21.0 + dz), (0.9 * s, 1.6, 0.7), lift=lift)
+        plant_arm(p, side, (13.0 * s, 2.0 + 8.0 * lift, -21.0 + dz), (0.7 * s, 0.3, 1.0), lift=lift)
     aim_head(p, 2 + 6 * math.sin(w - 1.4), 0, 3 * math.sin(w))
     p.rot('jaw', 6 + 4 * math.sin(2 * w))
     sp.apply(p, t)
@@ -690,10 +859,10 @@ def emerge_rise(t):
     p.rot('jaw', 9)
     for side, s in SIDES:
         wob = math.sin(TAU * t / 1.1 + (0 if s < 0 else 1.3))
-        # arms out wide to the sides and raised, elbows bent up like wings
-        p.rot(f'{side}_arm', -38 + 6 * wob, 0, -s * (72 + 6 * wob))
-        p.rot(f'{side}_forearm', -40 + 8 * wob)
-        p.rot(f'{side}_hand', 10)
+        # arms flung out to the sides, pushing down on the water, hands far apart
+        p.rot(f'{side}_arm', -22 + 5 * wob, 0, -s * (70 + 5 * wob))
+        p.rot(f'{side}_forearm', -24 + 6 * wob)
+        p.rot(f'{side}_hand', 6)
         curl(p, side, 18 + 10 * wob, 26)
         p.rot(f'{side}_leg', -18)
         p.rot(f'{side}_shin', 24)
@@ -711,7 +880,7 @@ def emerge_grab(t, rise):
     p.rot('neck_upper', -4)
     for side, s in SIDES:
         tgt = np.array([25.0 * s, 4.6, -12.0 + (1.5 if s > 0 else 0)])
-        plant_arm(p, side, tgt, (1.0 * s, 1.2, 0.1), down=0.25, curl_amt=32)
+        plant_arm(p, side, tgt, (1.0 * s, 1.2, 0.1), down=0.25, curl_amt=32, surface=((0.0, 1.0, 0.0), tgt[1] - 1.6))
         p.rot(f'{side}_leg', -12)
         p.rot(f'{side}_shin', 14)
     aim_head(p, 6, 0, -4)
@@ -731,6 +900,8 @@ def a_emerge(t):
     if w_rest > 0:
         p = lerp_pose(p, Pose(), w_rest)
     p = Pose(p)
+    if w_grab >= 0.98 and w_rest <= 0.02:
+        p.contacts = dict(getattr(g, 'contacts', {}))
     EMERGE_SP.apply(p, t)
     drips(p, t, 1.2, 1.0, (-40 * (1 - w_grab) * (1 - w_rest), 0))
     return p
@@ -752,8 +923,8 @@ def a_submerge(t, sp=Spasms(2.6, False, 18, rate=1.6, groups=('head', 'head', 'j
     p.rot('head', 54 * upright, 0, -8 * upright + 4 * math.sin(TAU * t / 2.6))
     for side, s in SIDES:
         drift = smooth((t - 0.6) / 2.0)
-        p.rot(f'{side}_arm', -20 * upright - 55 * drift, 0, s * (-16 * upright - 34 * drift))
-        p.rot(f'{side}_forearm', -10 * upright - 25 * drift)
+        p.rot(f'{side}_arm', 6 * upright - 4 * drift, 0, s * (-16 * upright - 58 * drift))
+        p.rot(f'{side}_forearm', -6 * upright - 12 * drift)
         p.rot(f'{side}_hand', -10 * drift)
         curl(p, side, 14 * drift, 20 * drift)
         p.rot(f'{side}_leg', -15 * drift)
@@ -781,20 +952,29 @@ def a_swim(t, sp=Spasms(SWIM_T, True, 19, rate=1.6, groups=('head', 'jaw', 'neck
     p.rot('neck_upper', -8)
     aim_head(p, 22 + 4 * math.sin(w + 1.2), 0, 4 * math.sin(w))
     p.rot('jaw', 6 + 4 * math.sin(w))
-    keys = [(0.0, [-128, -12, -12]), (0.30, [-138, -16, -2]), (0.55, [-84, -72, -14]),
-            (0.75, [42, -20, -12]), (0.88, [-48, -12, -100]), (1.0, [-128, -12, -12])]
-    arm = track(ph, keys, smooth)
+    # wrist path relative to the shoulder in the chest frame: (outward, along the spine, -front), in arm lengths
+    glide, sweep, pull, tuck, shoot = (0.30, 0.90, -0.22), (0.74, 0.52, -0.30), (0.62, 0.02, -0.50), (0.30, 0.20, -0.58), (0.30, 0.62, -0.50)
+    keys = [(0.0, glide), (0.28, (0.32, 0.90, -0.20)), (0.50, sweep), (0.66, pull), (0.80, tuck), (0.90, shoot), (1.0, glide)]
+    path = track(ph, keys, smooth)
+    palms = [(0.0, (0.0, 0.2, -1.0)), (0.30, (0.4, 0.0, -1.0)), (0.50, (0.6, -0.6, -0.4)), (0.66, (0.2, -1.0, -0.2)),
+             (0.80, (-0.3, -0.2, -1.0)), (0.92, (0.0, 0.2, -1.0)), (1.0, (0.0, 0.2, -1.0))]
+    palm_l = track(ph, palms, smooth)
+    W = fk(p)
+    Rc = W['chest'][0]
     for side, s in SIDES:
-        p.rot(f'{side}_arm', arm[0], 0, arm[1] * s)
-        p.rot(f'{side}_forearm', arm[2])
-        p.rot(f'{side}_hand', 8 + 14 * math.sin(w - 1.0))
+        S = wp(W, f'{side}_arm')
+        o = np.array([path[0] * s, path[1], path[2]]) * 31.0
+        pole = Rc @ np.array([0.9 * s, 0.25, 0.55])
+        E, T = two_bone(p, f'{side}_arm', f'{side}_forearm', f'{side}_hand', S + Rc @ o, pole, 'arm')
+        orient_hand(p, side, nrm(T - E) + Rc @ np.array([0.0, 0.0, -0.25]), palm=Rc @ np.array([palm_l[0] * s, palm_l[1], palm_l[2]]), palm_w=0.6)
         spread = bump(ph - 0.25, 0.5)
-        curl(p, side, 4 + 8 * math.sin(w - 1.5), 8, spread=7 * spread)
+        curl(p, side, 6 + 6 * math.sin(w - 1.5), 8, spread=7 * spread)
+    for side, s in SIDES:
         kick = math.sin(w - 2.2 + (0 if s < 0 else 0.6))
         p.rot(f'{side}_leg', 58 + 12 * kick, 0, -3 * s)
-        p.rot(f'{side}_shin', -58 + 20 * math.sin(w - 2.8 + (0 if s < 0 else 0.6)))
+        p.rot(f'{side}_shin', -50 + 14 * math.sin(w - 2.8 + (0 if s < 0 else 0.6)))
         p.rot(f'{side}_foot', 40 + 12 * kick)
-    sp.apply(p, t)
+    sp.apply(p, t, skip=('r_arm', 'l_arm', 'r_hand', 'l_hand'))
     drips(p, t, 0.6, 1.0, (-55, 0))
     return p
 
@@ -867,22 +1047,22 @@ def a_corner_watch(t, sp=Spasms(6.0, True, 23, rate=1.1, groups=('head', 'head',
     tilt = float(track(t, [(0, 26), (2.0, 30), (2.7, 32), (2.78, 8, ease_out), (3.4, 10), (6.0, 26)]))
     aim_head(p, 6, -14 * lean, tilt * lean)
     plant_feet(p, spread=1.0)
-    # the left hand hooks the corner at head height, fingers curled round the edge
-    edge = np.array([13.0, 40.0 + 0.6 * math.sin(TAU * t / 3.0), -12.0])
-    plant_arm(p, 'left', edge, (1.0, -0.6, 0.3), down=-0.3, curl_amt=48)
-    for i, f in enumerate(FINGERS):
-        p.rot(f'left_{f}', 10 * bump((t + 0.13 * i) % 2.0, 0.4))
+    # the left hand lies flat on the pillar's side face, long fingers wrapped round its front edge,
+    # elbow hanging relaxed below: the pillar's side face is x = 14, its front face z = -26 (CORNER_PILLAR)
+    edge = np.array([15.8, 33.0 + 0.5 * math.sin(TAU * t / 3.0), -23.6])
+    plant_arm(p, 'left', edge, (0.55, -1.0, 0.35), palm=(-1.0, 0.0, 0.0), finger_dir=(0.0, 0.0, -1.0), twist=85)
+    grip_edge(p, 'left', t)
     hang_arms(p, t, splay=4, sides=('right',))
     sp.apply(p, t, skip=('l_fingers', 'l_arm', 'l_hand'))
     drips(p, t, 0.8, 1.0, (0, 10 * lean))
     return p
 
 
-@anim('ceiling_lurk', 6.0, scene='shore', label='4. Ceiling Lurk', prop='ceiling', ceiling=66.0)
+@anim('ceiling_lurk', 6.0, scene='shore', label='4. Ceiling Lurk', prop='ceiling', ceiling=64.0)
 def a_ceiling_lurk(t, sp=Spasms(6.0, True, 24, rate=1.2, groups=('head', 'head', 'jaw', 'neck'), tremor=[(1.0, 1.6), (4.2, 4.6)])):
     """clinging upside-down beneath a low ceiling, its head hanging down unnaturally"""
     p = Pose()
-    C = 66.0
+    C = 64.0
     p.rot('root', 0, 0, 180)
     p.pos('root', 0, C, 0)
     crouch_base(p, 0.95)
@@ -892,7 +1072,8 @@ def a_ceiling_lurk(t, sp=Spasms(6.0, True, 24, rate=1.2, groups=('head', 'head',
     for side, s in SIDES:
         a = REST_ANKLE[side]
         plant_leg(p, side, root_point(p, (a[0] + 2.5 * s, 2.0, a[2] + 2.5)), Rr @ np.array([0.7 * s, 0.4, -1]))
-        plant_arm(p, side, root_point(p, (15.0 * s, 1.6, -11.0 + 1.0 * math.sin(TAU * t / 3.0 + s))), Rr @ np.array([0.9 * s, 2.4, 0.3]), curl_amt=30)
+        plant_arm(p, side, root_point(p, (15.0 * s, 1.6, -11.0 + 1.0 * math.sin(TAU * t / 3.0 + s))), Rr @ np.array([0.9 * s, 2.4, 0.3]), curl_amt=26,
+                  palm=Rr @ np.array([0.0, -1.0, 0.0]), surface=((0.0, -1.0, 0.0), -C))
         R2 = fk(p)[f'{side}_shin'][0]
         p.set_world_rot(f'{side}_foot', Rr @ np.eye(3))
     # the neck folds down toward the floor and the face stays upright, staring at you
@@ -975,7 +1156,7 @@ def a_tunnel_crawl(t, sp=Spasms(TUNNEL_T, True, 28, rate=1.8, groups=('head', 'h
     p = Pose()
     ph = t / TUNNEL_T
     w = TAU * ph
-    p.pos('body', 0, -17.5 + 0.6 * math.sin(2 * w), 3)
+    p.pos('body', 0, -16.0 + 0.6 * math.sin(2 * w), 3)
     p.rot('pelvis', 48, 6 * math.sin(w), 0)
     p.rot('waist', 14, -5 * math.sin(w - 0.6), 0)
     p.rot('chest', 14, -6 * math.sin(w - 1.2), 0)
@@ -984,10 +1165,10 @@ def a_tunnel_crawl(t, sp=Spasms(TUNNEL_T, True, 28, rate=1.8, groups=('head', 'h
     p.rot('neck_upper', -14)
     for side, s in SIDES:
         dz, lift, _ = gait(ph, TUNNEL_ORDER[f'{side}_foot'], TUNNEL_SWING, TUNNEL_STRIDE)
-        base = REST_ANKLE[side] + np.array([6.0 * s, 0, 4.0])
-        plant_leg(p, side, (base[0], 1.8 + 2.5 * lift, base[2] + dz), (1.6 * s, 0.6, -0.3), 10 * lift)
+        base = REST_ANKLE[side] + np.array([15.0 * s, 0, 10.0])
+        plant_leg(p, side, (base[0], 1.8 + 2.5 * lift, base[2] + dz), (1.6 * s, -0.2, -0.5), 10 * lift)
         dz, lift, _ = gait(ph, TUNNEL_ORDER[f'{side}_hand'], TUNNEL_SWING, TUNNEL_STRIDE)
-        plant_arm(p, side, (19.0 * s, 1.6 + 3.0 * lift, -14.0 + dz), (1.4 * s, 1.2, 0.2), lift=lift, curl_amt=20)
+        plant_arm(p, side, (25.0 * s, 1.6 + 3.0 * lift, -14.0 + dz), (1.6 * s, 0.0, 0.45), lift=lift, curl_amt=20)
     aim_head(p, 4, -6 * math.sin(w - 1.6), 4 * math.sin(w))
     sp.apply(p, t)
     drips(p, t, 0.8, 1.0, (35, 0))
@@ -1006,7 +1187,7 @@ def a_patient_strike(t, sp=Spasms(6.0, True, 29, rate=1.4, groups=('head', 'jaw'
     for side, s in SIDES:
         a = REST_ANKLE[side]
         plant_leg(p, side, (a[0] + 1.5 * s, 2.0, a[2] + 1.5), (0.5 * s, 0.35, -1))
-    plant_arm(p, 'right', (-7.0, 0.6, -31.0), (-0.8, 1.6, -0.2), down=0.05, curl_amt=8)
+    plant_arm(p, 'right', (-7.0, 0.6, -31.0), (-0.8, 1.6, -0.2), down=0.05, curl_amt=8, surface=((0.0, 1.0, 0.0), -2.0))   # resting on the water
     plant_arm(p, 'left', (13.0, 1.6, -9.0), (0.8, 2.4, 0.3), curl_amt=26)
     for i, f in enumerate(FINGERS):
         tw = bump((t * 1.0 + 0.09 * i) % 3.0, 0.3)
@@ -1057,7 +1238,7 @@ def a_head_tilt(t, sp=Spasms(5.0, True, 32, rate=1.0, groups=('jaw', 'fingers', 
     stand(p, 0.75)
     plant_feet(p)
     breathe(p, t, 2.5, 0.6)
-    hang_arms(p, t, sway=0.5, splay=3)
+    hang_arms(p, t, sway=0.5, splay=7)
     tilt = float(track(t, [(0, -6), (1.3, 38, smoother), (2.05, 40), (2.12, -14, ease_out), (2.5, -12), (3.8, -30, smoother), (4.4, -31), (4.47, 4, ease_out), (5.0, -6)]))
     p.rot('neck_upper', 0, 0, 0.35 * tilt)
     p.rot('neck_mid', 0, 0, 0.2 * tilt)
@@ -1142,7 +1323,7 @@ def a_water_rise(t, sp=Spasms(3.2, False, 35, rate=1.6, groups=('head', 'head', 
     k = float(track(t, [(0, 0), (0.3, 0), (2.4, 1, smoother), (3.2, 1)]))
     low = 1 - k
     stand(p, k)
-    p.pos('body', 0, -26 * low, 3 * low)
+    p.pos('body', 0, -20 * low, 3 * low)
     p.rot('pelvis', 32 * low)
     p.rot('waist', 12 * low)
     p.rot('chest', 10 * low)
@@ -1150,8 +1331,8 @@ def a_water_rise(t, sp=Spasms(3.2, False, 35, rate=1.6, groups=('head', 'head', 
     p.rot('neck_mid', -10 * low)
     for side, s in SIDES:
         a = REST_ANKLE[side]
-        plant_leg(p, side, (a[0] + 1.0 * s, a[1], a[2] + 1.0 * low))
-        p.rot(f'{side}_arm', -40 * low, 0, -s * (16 * low + 4))
+        plant_leg(p, side, (a[0] + 4.5 * s * low + 1.0 * s, a[1], a[2] + 1.0 * low), (0.8 * s * low + 0.12 * s, 0.35, -1))
+        p.rot(f'{side}_arm', -28 * low, 0, -s * (48 * low + 5))     # arms spread wide, balancing as it unfolds
         p.rot(f'{side}_forearm', -30 * low)
         curl(p, side, 14 + 10 * low)
     aim_head(p, 14 * low + 4, 0, 6 * math.sin(TAU * t / 3.2))
@@ -1200,8 +1381,10 @@ def a_behind_cover(t, sp=Spasms(6.0, True, 37, rate=1.0, groups=('head', 'head',
     p.rot('neck_lower', 0, 8 * lean, -10 * lean)
     p.rot('neck_mid', 0, 6 * lean, -8 * lean)
     plant_feet(p)
-    edge = np.array([-12.0, 46.0, -9.0])
-    plant_arm(p, 'right', edge, (-1.0, -0.6, 0.3), down=-0.4, curl_amt=46)
+    # right hand flat on the pillar's side face (x = -10), fingers hooked round its front edge (z = -23)
+    edge = np.array([-11.8, 51.0 + 0.5 * math.sin(TAU * t / 3.0 + 1.0), -20.6])
+    plant_arm(p, 'right', edge, (-0.55, -1.0, 0.35), palm=(1.0, 0.0, 0.0), finger_dir=(0.0, 0.0, -1.0), twist=85)
+    grip_edge(p, 'right', t + 1.3)
     hang_arms(p, t, sway=0.6, splay=3, sides=('left',))
     aim_head(p, 6, 10 * lean, -18 * lean - 4 * math.sin(TAU * t / 6.0))
     sp.apply(p, t, skip=('r_fingers', 'r_arm', 'r_hand'))
@@ -1222,7 +1405,8 @@ def a_ledge_watch(t, sp=Spasms(6.0, True, 38, rate=1.0, groups=('head', 'head', 
     p.rot('neck_upper', 8)
     plant_feet(p, spread=1.0, back=2.0)
     for side, s in SIDES:
-        plant_arm(p, side, (13.0 * s, 33.5, -21.0 + (1.0 if s > 0 else 0)), (1.0 * s, 1.0, 0.4), down=0.15, curl_amt=40)
+        plant_arm(p, side, (13.0 * s, 33.5, -21.0 + (1.0 if s > 0 else 0)), (1.0 * s, 1.0, 0.4), down=0.15, curl_amt=40,
+                  surface=((0.0, 1.0, 0.0), 32.0))
     yaw = float(track(t, [(0, 0), (2.4, 10), (2.5, -6, ease_out), (5.0, -6), (6.0, 0)]))
     aim_head(p, 38 + 2 * b, yaw, 6 * math.sin(TAU * t / 6.0))
     sp.apply(p, t, skip=('fingers', 'spine'))
@@ -1260,8 +1444,8 @@ def a_lunge(t, sp=Spasms(1.6, False, 39, rate=2.0, groups=('head', 'jaw'), tremo
     p.rot('right_arm', *blend([38, -10, 14], [-112, 18, 6]))
     p.rot('right_forearm', *blend([-55, 0, 0], [6, 0, 0]))
     p.rot('right_hand', *blend([20, 0, 0], [-32, 0, 0]))
-    p.rot('left_arm', *blend([10, 0, -18], [24, 0, -26]))
-    p.rot('left_forearm', *blend([-20, 0, 0], [-30, 0, 0]))
+    p.rot('left_arm', *blend([24, 0, -20], [24, 0, -26]))       # off arm tucks back as it coils, claws clear of the ground
+    p.rot('left_forearm', *blend([-46, 0, 0], [-30, 0, 0]))
     for i, f in enumerate(FINGERS):
         sp_z = (i - 1.5) * 11 if f != 'thumb' else 0
         c = blend([34, 0, 0], [-26, 0, sp_z])

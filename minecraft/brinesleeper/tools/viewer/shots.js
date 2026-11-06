@@ -37,8 +37,8 @@ function gaitSplashes(z0, speed, T, dur, limbs, y = 3.6, n = 18) {
 }
 
 // ---------------------------------------------------------------- set pieces
-const PILLAR_L = [{ type: 'blocks', tex: 'deepslate', box: [-10, 0, -30, 2, 5, 1] }];
-const PILLAR_R = [{ type: 'blocks', tex: 'deepslate', box: [-22, 0, -28, 2, 5, 1] }];
+const PILLAR_L = [{ type: 'blocks', tex: 'deepslate', box: [-14, 0, -26, 2, 5, 1] }];
+const PILLAR_R = [{ type: 'blocks', tex: 'deepslate', box: [-22, 0, -23, 2, 5, 1] }];
 const CEILING = [{ type: 'blocks', tex: 'deepslate', box: [-64, 64, -72, 8, 1, 8] }];
 const LEDGE = [{ type: 'blocks', tex: 'stone', box: [-48, 0, -36, 6, 2, 1] }];
 const VINES = [{ type: 'vines', xs: [-46, -33, -21, -9, 2, 13, 26, 39, 51], top: 104, z: -36, len: 92 }];
@@ -52,7 +52,7 @@ export const POSES = [
     env: 'shallows', at: [0, 0, 40], camera: track([-62, 14, -112], [0, 16, -18], 32), still: 0.4,
     particles: (m) => gaitSplashes(40, m.shoreline_stalk.speed, 4.0, 4.2, [[0.25, 17, -27], [0.75, -17, -27], [0.55, 5.8, 8], [0.05, -5.8, 8]]), exposure: 1.55 },
   { id: 'corner_watch', label: '3. Corner Watch', desc: 'Peeking from around cave corners, waiting for you to pass.', len: 6.0, loop: true,
-    env: 'shore', at: [0, 0, 0], props: PILLAR_L, camera: fixed([-92, 40, -150], [-18, 37, -18], 30, [-6, 0, 10]), still: 2.4, exposure: 1.55 },
+    env: 'shore', at: [0, 0, 0], props: PILLAR_L, camera: fixed([-66, 42, -156], [-15, 37, -18], 30, [-6, 0, 8]), still: 2.4, exposure: 1.55 },
   { id: 'ceiling_lurk', label: '4. Ceiling Lurk', desc: 'Clinging beneath a low ceiling, its head hanging down unnaturally.', len: 6.0, loop: true,
     env: 'shore', at: [0, 0, 0], props: CEILING, camera: fixed([-44, 10, -150], [0, 40, -10], 34, [10, 2, 8]), still: 1.3, exposure: 1.6 },
   { id: 'distant_observer', label: '5. Distant Observer', desc: 'Standing or crouched across a cave lake, watching from afar.', len: 6.0, loop: true,

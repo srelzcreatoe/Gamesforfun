@@ -1,0 +1,362 @@
+<title>Brinesleeper Model Viewer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Zilla+Slab:wght@600;700&display=swap">
+<style>
+  /* Layout: one-screen tool — 3D stage on the left, a typewritten spec panel on the right; stacks on phones. */
+  :root {
+    --bg: #0d0c0e;          /* cave dark, faint mauve bias */
+    --panel: #151316;
+    --line: #2c282d;
+    --fg: #e2d9d4;          /* pale face tone */
+    --muted: #9f9692;
+    --accent: #b33a32;      /* the sheet's underline red */
+    --chip: #1d1a1e;
+    --chip-on: #2a2226;
+    --display: "Zilla Slab", "DejaVu Serif", Georgia, serif;
+    --mono: "Courier Prime", "Courier New", ui-monospace, monospace;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #ece7e3; --panel: #f6f2ef; --line: #d5ccc7; --fg: #231d20; --muted: #6c6265;
+      --accent: #9c2a24; --chip: #e7e0dc; --chip-on: #dccfcf; color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #ece7e3; --panel: #f6f2ef; --line: #d5ccc7; --fg: #231d20; --muted: #6c6265;
+    --accent: #9c2a24; --chip: #e7e0dc; --chip-on: #dccfcf; color-scheme: light;
+  }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--fg); font-family: var(--mono); font-size: 15px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 16px; box-sizing: border-box; overflow-x: hidden;
+  }
+  .app { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; height: 100%; min-height: 560px; }
+  .stage { position: relative; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: #070708; min-height: 420px; }
+  .stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  .hud { position: absolute; left: 14px; bottom: 12px; display: flex; flex-direction: column; gap: 2px; pointer-events: none; }
+  .hud .now { font-size: 18px; color: #ece3de; text-shadow: 0 1px 2px #000; }
+  .hud .sub { font-size: 12px; color: #a99f9b; letter-spacing: 0.02em; }
+  .hint { position: absolute; right: 12px; top: 10px; font-size: 12px; color: #8f8783; pointer-events: none; }
+  aside { display: flex; flex-direction: column; gap: 18px; min-width: 0; overflow-y: auto; padding-right: 2px; }
+  h1 { font-family: var(--display); font-weight: 700; margin: 0; line-height: 0.92; text-wrap: balance; }
+  h1 small { display: block; font-size: 30px; letter-spacing: 0.02em; }
+  h1 span { display: block; font-size: 46px; letter-spacing: 0.01em; }
+  .rule { height: 4px; background: var(--accent); margin-top: 8px; box-shadow: 0 7px 0 -2px color-mix(in srgb, var(--accent) 70%, transparent); width: 92%; }
+  .facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; font-size: 14px; }
+  .facts dt { color: var(--muted); }
+  .facts dd { margin: 0; font-variant-numeric: tabular-nums; }
+  .label { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+  .anims { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .anims button, .ctl button {
+    font: inherit; font-size: 13.5px; text-align: left; color: var(--fg); background: var(--chip);
+    border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 1px;
+  }
+  .anims button em { font-style: normal; font-size: 11.5px; color: var(--muted); }
+  .anims button[aria-pressed="true"] { background: var(--chip-on); border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+  .anims button:hover, .ctl button:hover { border-color: var(--muted); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .ctl { display: flex; flex-direction: column; gap: 10px; }
+  .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .row label { font-size: 13px; color: var(--muted); min-width: 64px; }
+  .row input[type="range"] { flex: 1; min-width: 120px; accent-color: var(--accent); }
+  .row output { font-variant-numeric: tabular-nums; font-size: 13px; min-width: 52px; text-align: right; }
+  .ctl .btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .ctl .btns button { flex-direction: row; align-items: center; justify-content: center; flex: 1; min-width: 92px; text-align: center; }
+  .ctl .btns button[aria-pressed="true"] { border-color: var(--accent); }
+  .note { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 0; max-width: 60ch; }
+  @media (max-width: 860px) {
+    html, body { height: auto; }
+    .app { grid-template-columns: minmax(0, 1fr); height: auto; }
+    .stage { height: 62vh; min-height: 360px; }
+    aside { overflow: visible; }
+    h1 span { font-size: 40px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .anims button { transition: none; } }
+</style>
+
+<div class="app">
+  <div class="stage" id="stage">
+    <div class="hint">drag to orbit · scroll / pinch to zoom</div>
+    <div class="hud"><div class="now" id="now">Watching (Shoreline)</div><div class="sub" id="nowsub">animation.brinesleeper.watch</div></div>
+  </div>
+  <aside>
+    <header>
+      <h1><small>THE</small><span>BRINESLEEPER</span></h1>
+      <div class="rule" aria-hidden="true"></div>
+    </header>
+    <dl class="facts">
+      <dt>Type</dt><dd>Aquatic Cave Dweller</dd>
+      <dt>Height</dt><dd>3.5 blocks (56 px)</dd>
+      <dt>Format</dt><dd>Bedrock entity, box UV</dd>
+      <dt>Rig</dt><dd>55 bones · 77 cubes</dd>
+      <dt>Animations</dt><dd>29 (+ head tracking)</dd>
+      <dt>Texture</dt><dd>128 × 64</dd>
+    </dl>
+    <section>
+      <p class="label">Core animations</p>
+      <div class="anims" id="anims"></div>
+    </section>
+    <section>
+      <p class="label">Stalking &amp; bipedal poses</p>
+      <div class="anims" id="poses"></div>
+    </section>
+    <section class="ctl">
+      <p class="label">Playback</p>
+      <div class="row"><label for="speed">Speed</label><input id="speed" type="range" min="0.1" max="2" step="0.05" value="1"><output id="speedv">1.00×</output></div>
+      <div class="row"><label for="scrub">Time</label><input id="scrub" type="range" min="0" max="1" step="0.001" value="0"><output id="timev">0.00 s</output></div>
+      <div class="btns">
+        <button id="play" type="button" aria-pressed="true">Pause</button>
+        <button id="spin" type="button" aria-pressed="false">Turntable</button>
+        <button id="rest" type="button">Rest pose</button>
+      </div>
+    </section>
+    <p class="note">v2: forward-crawling stalk and run, wider emerge with untwisted hands, longer reddish tear-streaked face, rib bars, neck spines, glossy two-part drips, and a twitch-and-crack layer on every animation. The viewer plays the same <code>.geo.json</code>, <code>.animation.json</code> and texture that ship in the resource pack, using Blockbench's axis conventions. Walking animations play in place while the floor scrolls under the feet. Water animations show a waterline at the depth they were posed for.</p>
+  </aside>
+</div>
+
+<script type="application/json" id="geo-data">__GEO__</script>
+<script type="application/json" id="anim-data">__ANIM__</script>
+<script type="application/json" id="meta-data">__META__</script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const TEX = '__TEX__';
+const GEO = JSON.parse(document.getElementById('geo-data').textContent);
+const ANIM = JSON.parse(document.getElementById('anim-data').textContent).animations;
+const META = JSON.parse(document.getElementById('meta-data').textContent);
+const D2R = Math.PI / 180;
+
+const CORE = [
+  ['watch', 'Watching (Shoreline)'], ['idle_water', 'Idle (In Water)'], ['walk', 'Walk'], ['crouch_stalk', 'Crouch / Stalk'],
+  ['run', 'Run (Hunt State)'], ['grasp', 'Drowning Grasp'], ['emerge', 'Emerging'], ['submerge', 'Submerge'], ['swim', 'Swim (Underwater)'],
+];
+const POSES = [
+  ['submerged_watch', '1. Submerged Watch'], ['shoreline_stalk', '2. Shoreline Stalk'], ['corner_watch', '3. Corner Watch'],
+  ['ceiling_lurk', '4. Ceiling Lurk'], ['distant_observer', '5. Distant Observer'], ['veil_stalk', '6. Veil Stalk'],
+  ['reflection_lurk', '7. Reflection Lurk'], ['tunnel_crawl', '8. Tunnel Crawl'], ['patient_strike', '9. Patient Strike'],
+  ['shadow_hide', '10. Shadow Hide'], ['full_stand', '11. Full Stand'], ['head_tilt', '12. Head Tilt'], ['slow_approach', '13. Slow Approach'],
+  ['emerge_roar', '14. Emerge Roar'], ['water_rise', '15. Water Rise'], ['hunting_stance', '16. Hunting Stance'],
+  ['behind_cover', '17. Behind Cover'], ['ledge_watch', '18. Ledge Watch'], ['lunge', '19. Lunge'], ['retreat', '20. Retreat'],
+];
+const LIST = [...CORE, ...POSES];
+const WATER = { idle_water: 33, grasp: 33, emerge: 4, submerge: 4, submerged_watch: 33, emerge_roar: 6, water_rise: 8, retreat: 6, reflection_lurk: -2, patient_strike: -2 };
+
+// ---------------------------------------------------------------- bedrock geometry -> three.js (Blockbench conventions)
+const toThree = v => new THREE.Vector3(-v[0], v[1], v[2]);
+function quads(c) {
+  const [x0, y0, z0] = c.origin, [w, h, d] = c.size, x1 = x0 + w, y1 = y0 + h, z1 = z0 + d, [U, V] = c.uv;
+  return [
+    { n: [0, 0, -1], p: [[x0, y1, z0, U + d, V + d], [x1, y1, z0, U + d + w, V + d], [x1, y0, z0, U + d + w, V + d + h], [x0, y0, z0, U + d, V + d + h]] },
+    { n: [0, 0, 1], p: [[x1, y1, z1, U + 2 * d + w, V + d], [x0, y1, z1, U + 2 * d + 2 * w, V + d], [x0, y0, z1, U + 2 * d + 2 * w, V + d + h], [x1, y0, z1, U + 2 * d + w, V + d + h]] },
+    { n: [-1, 0, 0], p: [[x0, y1, z1, U, V + d], [x0, y1, z0, U + d, V + d], [x0, y0, z0, U + d, V + d + h], [x0, y0, z1, U, V + d + h]] },
+    { n: [1, 0, 0], p: [[x1, y1, z0, U + d + w, V + d], [x1, y1, z1, U + 2 * d + w, V + d], [x1, y0, z1, U + 2 * d + w, V + d + h], [x1, y0, z0, U + d + w, V + d + h]] },
+    { n: [0, 1, 0], p: [[x0, y1, z1, U + d, V], [x1, y1, z1, U + d + w, V], [x1, y1, z0, U + d + w, V + d], [x0, y1, z0, U + d, V + d]] },
+    { n: [0, -1, 0], p: [[x0, y0, z1, U + d + w, V], [x1, y0, z1, U + d + 2 * w, V], [x1, y0, z0, U + d + 2 * w, V + d], [x0, y0, z0, U + d + w, V + d]] },
+  ];
+}
+function buildModel(geoJson, texture) {
+  const geo = geoJson['minecraft:geometry'][0];
+  const TW = geo.description.texture_width, TH = geo.description.texture_height;
+  const mat = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.6, metalness: 0, alphaTest: 0.5 });
+  const bones = new Map(), root = new THREE.Group();
+  for (const b of geo.bones) {
+    const g = new THREE.Group(); g.rotation.order = 'ZYX';
+    const pivot = toThree(b.pivot), parent = b.parent ? bones.get(b.parent) : null;
+    const pp = parent ? parent.pivot : new THREE.Vector3();
+    bones.set(b.name, { group: g, pivot, rest: b.rotation || [0, 0, 0], base: pivot.clone().sub(pp) });
+    (parent ? parent.group : root).add(g);
+    if (b.cubes) {
+      const pos = [], uv = [], nor = [], idx = [];
+      for (const c of b.cubes) for (const q of quads(c)) {
+        const base = pos.length / 3;
+        const pts = q.p.map(([x, y, z, u, v]) => ({ p: toThree([x, y, z]).sub(pivot), u: u / TW, v: 1 - v / TH }));
+        pts.forEach(t => { pos.push(t.p.x, t.p.y, t.p.z); uv.push(t.u, t.v); });
+        const n = toThree(q.n); for (let k = 0; k < 4; k++) nor.push(n.x, n.y, n.z);
+        const fn = pts[1].p.clone().sub(pts[0].p).cross(pts[2].p.clone().sub(pts[0].p));
+        if (fn.dot(n) >= 0) idx.push(base, base + 1, base + 2, base, base + 2, base + 3); else idx.push(base, base + 2, base + 1, base, base + 3, base + 2);
+      }
+      const bg = new THREE.BufferGeometry();
+      bg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      bg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+      bg.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+      bg.setIndex(idx);
+      const m = new THREE.Mesh(bg, mat); m.castShadow = true; m.receiveShadow = true; g.add(m);
+    }
+  }
+  return { root, bones };
+}
+function applyPose(model, poses) {
+  for (const [name, b] of model.bones) {
+    const a = poses[name] || {}, r = a.rotation || [0, 0, 0], p = a.position || [0, 0, 0];
+    b.group.rotation.set(-(b.rest[0] + r[0]) * D2R, -(b.rest[1] + r[1]) * D2R, (b.rest[2] + r[2]) * D2R, 'ZYX');
+    b.group.position.set(b.base.x - p[0], b.base.y + p[1], b.base.z + p[2]);
+  }
+}
+function compile(ch) {
+  if (!ch) return null;
+  if (Array.isArray(ch)) return [{ t: 0, v: ch.map(Number) }];
+  return Object.entries(ch).map(([t, v]) => ({ t: parseFloat(t), v: (Array.isArray(v) ? v : (v.post || v.pre)).map(Number) })).sort((a, b) => a.t - b.t);
+}
+const COMPILED = {};
+for (const [k, a] of Object.entries(ANIM)) {
+  const bones = {};
+  for (const [bn, c] of Object.entries(a.bones || {})) bones[bn] = { rotation: compile(c.rotation), position: compile(c.position) };
+  COMPILED[k] = { loop: a.loop === true, len: a.animation_length || 0, bones };
+}
+function sample(keys, t) {
+  if (!keys) return null;
+  if (t <= keys[0].t) return keys[0].v;
+  const last = keys[keys.length - 1]; if (t >= last.t) return last.v;
+  let i = 0; while (keys[i + 1].t <= t) i++;
+  const a = keys[i], b = keys[i + 1], f = (t - a.t) / (b.t - a.t);
+  return [0, 1, 2].map(k => a.v[k] + (b.v[k] - a.v[k]) * f);
+}
+function poseAt(name, t) {
+  const a = COMPILED['animation.brinesleeper.' + name]; if (!a) return {};
+  const out = {};
+  for (const [bn, c] of Object.entries(a.bones)) {
+    const r = sample(c.rotation, t), p = sample(c.position, t), o = {};
+    if (r && r.every(Number.isFinite)) o.rotation = r;
+    if (p && p.every(Number.isFinite)) o.position = p;
+    out[bn] = o;
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------- scene
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.65;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x09090b);
+scene.fog = new THREE.FogExp2(0x09090b, 0.0032);
+const camera = new THREE.PerspectiveCamera(30, 1, 2, 3000);
+camera.position.set(-110, 52, -150);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 26, -6); controls.enableDamping = true; controls.minDistance = 40; controls.maxDistance = 520;
+controls.maxPolarAngle = Math.PI * 0.58;
+scene.add(new THREE.HemisphereLight(0x6a7896, 0x141114, 1.1));
+const key = new THREE.DirectionalLight(0xf0ebf2, 2.4); key.position.set(-120, 220, -200); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048); Object.assign(key.shadow.camera, { left: -120, right: 120, top: 120, bottom: -60, near: 10, far: 700 });
+key.shadow.bias = -0.0004; key.shadow.normalBias = 0.5; scene.add(key);
+const rim = new THREE.DirectionalLight(0x8aa6dc, 1.4); rim.position.set(80, 140, 260); scene.add(rim);
+const under = new THREE.DirectionalLight(0x3aa0b0, 0.4); under.position.set(0, -100, -140); scene.add(under);
+
+// block-grid floor (16 px = 1 block) that scrolls for locomotion
+const gc = document.createElement('canvas'); gc.width = gc.height = 64;
+const g2 = gc.getContext('2d');
+g2.fillStyle = '#1b191c'; g2.fillRect(0, 0, 64, 64);
+for (let i = 0; i < 160; i++) { const v = 22 + Math.random() * 16 | 0; g2.fillStyle = `rgb(${v},${v - 2},${v + 1})`; g2.fillRect(Math.random() * 64 | 0, Math.random() * 64 | 0, 4, 4); }
+g2.strokeStyle = '#2b282c'; g2.lineWidth = 2; g2.strokeRect(1, 1, 62, 62);
+const gridTex = new THREE.CanvasTexture(gc); gridTex.colorSpace = THREE.SRGBColorSpace;
+gridTex.wrapS = gridTex.wrapT = THREE.RepeatWrapping; gridTex.magFilter = THREE.NearestFilter; gridTex.repeat.set(60, 60);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(960, 960), new THREE.MeshStandardMaterial({ map: gridTex, roughness: 0.95 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+const water = new THREE.Mesh(new THREE.PlaneGeometry(960, 960), new THREE.MeshStandardMaterial({ color: 0x0c2028, roughness: 0.15, metalness: 0.2, transparent: true, opacity: 0.78, depthWrite: false }));
+water.rotation.x = -Math.PI / 2; water.renderOrder = 2; water.visible = false; scene.add(water);
+const ceiling = new THREE.Mesh(new THREE.BoxGeometry(160, 8, 160), new THREE.MeshStandardMaterial({ map: gridTex, roughness: 0.95 }));
+ceiling.position.set(0, 68, 0); ceiling.visible = false; ceiling.receiveShadow = true; scene.add(ceiling);
+// the stone the pose holds on to (pillar / ledge), drawn see-through so the body behind it stays visible
+const blockTex = new THREE.CanvasTexture(gc); blockTex.colorSpace = THREE.SRGBColorSpace; blockTex.magFilter = THREE.NearestFilter;
+function blocks(box) {
+  const [x0, y0, z0, nx, ny, nz] = box;
+  const mat = new THREE.MeshStandardMaterial({ map: blockTex, color: 0xd8d4e0, emissive: 0x15141a, roughness: 0.95, transparent: true, opacity: 0.4, depthWrite: false });
+  const im = new THREE.InstancedMesh(new THREE.BoxGeometry(16, 16, 16), mat, nx * ny * nz);
+  const m = new THREE.Matrix4(); let i = 0;
+  for (let a = 0; a < nx; a++) for (let b = 0; b < ny; b++) for (let c = 0; c < nz; c++) { m.makeTranslation(x0 + a * 16 + 8, y0 + b * 16 + 8, z0 + c * 16 + 8); im.setMatrixAt(i++, m); }
+  im.renderOrder = 3;
+  const g = new THREE.Group(); g.add(im);
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(nx * 16, ny * 16, nz * 16)),
+    new THREE.LineBasicMaterial({ color: 0xb9b4c4, transparent: true, opacity: 0.85 }));
+  edges.position.set(x0 + nx * 8, y0 + ny * 8, z0 + nz * 8); edges.renderOrder = 4; g.add(edges);
+  g.visible = false; scene.add(g);
+  return g;
+}
+const PROPS = { corner_watch: blocks([-14, 0, -26, 2, 5, 1]), behind_cover: blocks([-22, 0, -23, 2, 5, 1]), ledge_watch: blocks([-48, 0, -36, 6, 2, 1]) };
+
+const img = new Image(); img.src = TEX;
+const texture = new THREE.Texture(img);
+texture.magFilter = THREE.NearestFilter; texture.minFilter = THREE.NearestFilter; texture.generateMipmaps = false; texture.colorSpace = THREE.SRGBColorSpace;
+img.onload = () => { texture.needsUpdate = true; };
+const model = buildModel(GEO, texture);
+scene.add(model.root);
+
+// ---------------------------------------------------------------- UI
+let current = 'watch', t = 0, playing = true, spin = false, restPose = false, speed = 1, scrubbing = false;
+const animsEl = document.getElementById('anims');
+const posesEl = document.getElementById('poses');
+for (const [list, el] of [[CORE, animsEl], [POSES, posesEl]]) for (const [id, label] of list) {
+  const a = COMPILED['animation.brinesleeper.' + id];
+  const b = document.createElement('button'); b.type = 'button'; b.id = 'anim-' + id;
+  b.innerHTML = `${label}<em>${a.loop ? 'loop' : 'once'} · ${a.len.toFixed(2).replace(/0$/, '')} s</em>`;
+  b.setAttribute('aria-pressed', id === current ? 'true' : 'false');
+  b.addEventListener('click', () => select(id));
+  el.appendChild(b);
+}
+const $ = id => document.getElementById(id);
+function select(id) {
+  current = id; t = 0; restPose = false;
+  for (const b of [...animsEl.children, ...posesEl.children]) b.setAttribute('aria-pressed', b.id === 'anim-' + id ? 'true' : 'false');
+  ceiling.visible = id === 'ceiling_lurk';
+  for (const [k, m] of Object.entries(PROPS)) m.visible = k === id;
+  $('now').textContent = LIST.find(x => x[0] === id)[1];
+  $('nowsub').textContent = 'animation.brinesleeper.' + id;
+  water.visible = id in WATER; water.position.y = (WATER[id] ?? 0) + 0.05;
+  if (!playing) togglePlay();
+}
+function togglePlay() { playing = !playing; $('play').textContent = playing ? 'Pause' : 'Play'; $('play').setAttribute('aria-pressed', String(playing)); }
+$('play').addEventListener('click', togglePlay);
+$('spin').addEventListener('click', () => { spin = !spin; controls.autoRotate = spin; controls.autoRotateSpeed = 2.2; $('spin').setAttribute('aria-pressed', String(spin)); });
+$('rest').addEventListener('click', () => {
+  restPose = !restPose; $('now').textContent = restPose ? 'Rest pose' : LIST.find(x => x[0] === current)[1];
+  $('nowsub').textContent = restPose ? 'geometry.brinesleeper (no animation)' : 'animation.brinesleeper.' + current;
+});
+$('speed').addEventListener('input', e => { speed = parseFloat(e.target.value); $('speedv').textContent = speed.toFixed(2) + '×'; });
+$('scrub').addEventListener('input', e => { scrubbing = true; const a = COMPILED['animation.brinesleeper.' + current]; t = parseFloat(e.target.value) * a.len; });
+$('scrub').addEventListener('change', () => { scrubbing = false; });
+window.addEventListener('keydown', e => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); togglePlay(); } });
+
+function resize() {
+  const r = stage.getBoundingClientRect();
+  renderer.setSize(r.width, r.height, false);
+  camera.aspect = r.width / Math.max(1, r.height); camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(stage); resize();
+
+const clock = new THREE.Clock();
+let floorShift = 0;
+function frame() {
+  const dt = Math.min(0.05, clock.getDelta());
+  const a = COMPILED['animation.brinesleeper.' + current];
+  if (playing && !scrubbing && !restPose) {
+    t += dt * speed;
+    if (a.loop) t %= a.len; else if (t > a.len + 0.8) t = 0;
+  }
+  const tt = Math.min(t, a.len);
+  applyPose(model, restPose ? {} : poseAt(current, tt));
+  const sp = (!restPose && META[current] && META[current].speed) || 0;
+  if (playing && !restPose) floorShift = (floorShift + sp * dt * speed) % 960;
+  gridTex.offset.y = (floorShift / 16) % 1;
+  if (!scrubbing) $('scrub').value = a.len ? (tt / a.len).toFixed(3) : 0;
+  $('timev').textContent = tt.toFixed(2) + ' s';
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+select('watch');
+frame();
+</script>

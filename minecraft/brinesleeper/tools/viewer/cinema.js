@@ -518,6 +518,10 @@ window.api = {
       model.root.traverse(o => { if (o.isMesh) o.material = m; });
       return renderer.domElement.toDataURL('image/png');
     }
+    if (job.camera) {   // debug views: same shot, explicit camera {pos, target, fov}
+      STILLS.__dbg = { ...STILLS[job.still], camera: () => job.camera, ...(job.env ? { env: job.env } : {}), ...(job.exposure ? { exposure: job.exposure } : {}) };
+      return this.still('__dbg', job.t, job.dolly);
+    }
     return this.still(job.still, job.t, job.dolly);
   },
   resize(w, h) {

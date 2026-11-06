@@ -60,7 +60,20 @@ The layer adds:
 * a lurching, stop-start upper body on the gaits.
 
 The layer is deterministic and loops seamlessly. Hands and feet that touch something are solved
-with IK, so they stay planted. Twitches never pull a planted limb off its contact point.
+with IK, so they stay planted.
+
+Every frame also passes through a set of joint limits:
+* Elbows and knees only bend the natural way.
+* Wrists stay within a realistic flex, tilt and forearm-twist range.
+* Fingers settle onto whatever they touch (floor, ledge, ceiling, pillar or water) instead of
+  passing through it.
+
+`tools/audit.py` checks every animation frame by frame for these problems:
+* limbs passing through the body or each other,
+* joints bending backwards,
+* wrists or fingers out of range.
+
+All 29 animations pass.
 
 ### Core
 
@@ -83,7 +96,7 @@ with IK, so they stay planted. Twitches never pull a planted limb off its contac
 |---|---|---|---|---|
 | 1 | `submerged_watch` | ✔ | 6.0 s | Only its head above the water, silently observing. |
 | 2 | `shoreline_stalk` | ✔ | 4.0 s | Crawling out of the water, head carried high. |
-| 3 | `corner_watch` | ✔ | 6.0 s | Peeking around a corner, one hand hooked on the edge. |
+| 3 | `corner_watch` | ✔ | 6.0 s | Peeking around a pillar, its long fingers wrapped round the edge. |
 | 4 | `ceiling_lurk` | ✔ | 6.0 s | Clinging upside-down to a ceiling 4 blocks up, its head hanging down. |
 | 5 | `distant_observer` | ✔ | 6.0 s | Crouched on all fours across the lake, watching. |
 | 6 | `veil_stalk` | ✔ | 5.0 s | Swaying low behind vines. |
@@ -97,7 +110,7 @@ with IK, so they stay planted. Twitches never pull a planted limb off its contac
 | 14 | `emerge_roar` | ✕ | 3.4 s | Rises to full height, head thrown back, maw stretched open. |
 | 15 | `water_rise` | ✕ | 3.2 s | Stands up out of the water. |
 | 16 | `hunting_stance` | ✔ | 3.0 s | Coiled forward lean with one claw raised, rocking before a chase. |
-| 17 | `behind_cover` | ✔ | 6.0 s | Standing behind a pillar, one side showing. |
+| 17 | `behind_cover` | ✔ | 6.0 s | Standing behind a pillar, one arm reaching round to grip its edge. |
 | 18 | `ledge_watch` | ✔ | 6.0 s | Hands on a ledge 2 blocks high, leaning over to look down. |
 | 19 | `lunge` | ✕ | 1.6 s | Long two-legged strike: one arm flung at your face, claws splayed. |
 | 20 | `retreat` | ✕ | 4.4 s | Turns its back and wades away, sinking out of sight. |
@@ -144,6 +157,8 @@ You can also import `resource_pack/models/entity/brinesleeper.geo.json` and the
 2. Activate **Brinesleeper Resources** and **Brinesleeper Behaviors** on a world.
 3. Use the *Spawn Brinesleeper* egg, or run `/summon brine:brinesleeper`.
 
+The packs are version 1.2.0, so they import over an earlier copy.
+
 The behavior pack is a starting point and has not been play-tested. It includes:
 * An amphibious hunter that targets players.
 * **Dryland Hunt:** a 15–20 s timer starts when it leaves the water, then it heads back to water.
@@ -162,12 +177,14 @@ cd tools
 npm install                      # three.js and playwright for the headless renderer
 python3 build.py out             # geometry + texture  -> out/
 python3 anim.py out/brinesleeper.animation.json out/preview_meta.json
+python3 audit.py                 # anatomy check of every animation
 node shoot.js viewer/cinema.html jobs_sheet.json shots/v2sheet 690 1120
 node shoot.js viewer/cinema.html jobs_poses.json shots/v2sheet 300 690
 python3 make_sheet.py shots/v2sheet ../preview/brinesleeper_preview_sheet.png
 python3 make_poses_sheet.py shots/v2sheet ../preview/brinesleeper_poses_sheet.png
 python3 pack.py .. shots/v2sheet/face.png
 python3 export_bbmodel.py out/brinesleeper.geo.json out/brinesleeper.png out/brinesleeper.animation.json ../brinesleeper.bbmodel
+python3 build_viewer.py          # preview/viewer.html
 npm run video                    # MP4 (software WebGL, ~1.5 h at 1080p)
 ```
 
