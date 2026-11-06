@@ -65,6 +65,7 @@ export const PALETTE = Object.freeze({
   gift_purple: M('purple_shulker_box'), gift_pink: M('pink_shulker_box'),
   dead_bush: M('deadbush'), jukebox: M('jukebox'), chiseled_quartz: M('chiseled_quartz_block', { pillar_axis: 'y' }),
   pink_glass: M('pink_stained_glass'), mic_stand: M('lightning_rod', { facing_direction: 1, powered_bit: false }),
+  neon_rod_z: M('end_rod', { facing_direction: 3 }), // a white neon tube along z (the facade's outline)
   ...Object.fromEntries(['n', 's', 'w', 'e'].map((f) => [`dropper_${f}`, M('dropper', { facing_direction: { n: 2, s: 3, w: 4, e: 5 }[f], triggered_bit: false })])),
   ...Object.fromEntries(Object.entries({ n: 'north', s: 'south', w: 'west', e: 'east' }).map(([k, d]) => [`lectern_${k}`, M('lectern', { 'minecraft:cardinal_direction': d, powered_bit: false })])),
   red_t: M('red_terracotta'), black_t: M('black_terracotta'), gray_t: M('gray_terracotta'), white_t: M('white_terracotta'),

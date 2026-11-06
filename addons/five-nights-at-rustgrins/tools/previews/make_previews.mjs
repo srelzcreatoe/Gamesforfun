@@ -64,7 +64,7 @@ export const SCENES = [
   {
     name: '01_exterior', voxels: 'lit', caption: "Rustgrin's Pizza Revue, Route 6 - November 1991",
     scene: {
-      camera: { pos: [127, 3.2, 52.5], target: [100, 8.5, 34], fov: 60 }, exposure: 1.4,
+      camera: { pos: [121, 1.9, 50.5], target: [100, 10.5, 34], fov: 66 }, exposure: 1.4,
       extra_lights: [
         { type: 'dir', pos: [170, 70, 110], target: [100, 0, 30], color: '#8193c8', intensity: 1.1, shadow: true, shadowExtent: 80 },
         { type: 'ambient', color: '#1b2236', intensity: 0.9 },
@@ -242,7 +242,7 @@ export const SCENES = [
   {
     name: '17_floor_plan', voxels: 'cutaway', caption: 'Cutaway of the whole pizzeria (roof removed)',
     scene: {
-      time: 'day', camera: { pos: [56, 84, 118], target: [56, 0, 37], fov: 48 }, exposure: 1.0,
+      time: 'day', camera: { pos: [54, 66, 102], target: [54, 0, 36], fov: 54 }, exposure: 1.0,
       sun: { dir: [-0.35, -0.85, -0.4], color: '#fff1dc', intensity: 2.2 },
       entities: [
         at('rustgrin', 'ST_R', 'pose_1'), at('mirehop', 'ST_M', 'pose_1'), at('noxbriar', 'ST_N', 'pose_1'),
@@ -269,7 +269,7 @@ export const SCENES = [
   {
     name: '21_walters_car', voxels: 'night', caption: 'Walter\'s car, still in the lot: the door open, the headlights on',
     scene: {
-      camera: { pos: [121.5, 1.7, 35.5], target: [109, 0.8, 44], fov: 56 }, exposure: 1.4,
+      camera: { pos: [117.5, 1.8, 38.5], target: [108.5, 0.9, 44.5], fov: 60 }, exposure: 1.4,
       extra_lights: [
         { type: 'dir', pos: [170, 70, 110], target: [100, 0, 30], color: '#8193c8', intensity: 0.9, shadow: true, shadowExtent: 80 },
         { type: 'ambient', color: '#1b2236', intensity: 0.8 },

@@ -266,6 +266,8 @@ function facade(p) {
   p.fill(X, 24, 31, X, 24, 37, 'roof_edge');
   p.fill(X, 8, 22, X, 12, 22, 'ext_trim');
   p.fill(X, 8, 46, X, 12, 46, 'ext_trim');
+  // white neon tubes along the stepped crown
+  for (const [y, z1, z2] of [[19, 22, 26], [19, 42, 46], [22, 27, 30], [22, 38, 41], [24, 31, 37]]) p.fill(X + 1, y, z1, X + 1, y, z2, 'neon_rod_z');
   // the sign board and the big neon sign (12 x 4), a star on the crown
   p.fill(X, 13, 28, X, 18, 41, 'blackstone_bricks');
   p.picture('sign_facade', X + 1, 17, 40, 'e', 12, 4);
@@ -449,6 +451,12 @@ function dining(p, rng) {
       p.meta.hanging.push({ x: tx, y: 7, z, group: 'dining' });
     }
   }
+  // warm brass sconces along the walls: pools of amber light by day (switched with the hall's lamps), dead at night
+  for (const [x, y, z, d] of [[15, 4, 3, 'e'], [15, 4, 8, 'e'], [15, 4, 27, 'e'], [62, 4, 25, 'w'], [62, 4, 29, 'w'],
+    [19, 4, 37, 'n'], [24, 6, 37, 'n'], [33, 4, 37, 'n'], [41, 4, 37, 'n'], [50, 4, 37, 'n'], [53, 6, 37, 'n'], [59, 4, 37, 'n']]) {
+    p.set(x, y, z, `sconce_false_${d}`);
+    p.meta.hanging.push({ x, y, z, group: 'dining' });
+  }
   // paper garlands strung across the hall behind CAM 1A
   for (let x = 16; x <= 61; x++) if (![21, 27, 33, 44, 50, 56].includes(x)) { p.set(x, 8, 27, 'bunting_s'); p.set(x, 8, 35, 'bunting_s'); }
   // ---- walls: posters, kids' drawings, garlands, the marquees over the Midway and the Grand Marquee
@@ -535,8 +543,8 @@ function cabaret(p, rng) {
   p.meta.spots.push({ x: 11, y: 6, z: 36, dir: 'w', group: 'cabaret' });
   // dining side: SORRY! OUT OF ORDER on the closed half of the curtain, a rope across the front, stars on the frame
   p.picture('sign_out_of_order', 15, 3, 31, 'e', 2, 1);
-  for (const z of [29, 37]) p.fill(15, 0, z, 15, 1, z, 'lamp_post');
-  for (const z of [30, 31, 35, 36]) p.set(15, 1, z, 'chain_z');
+  for (const z of [29, 37]) p.set(15, 0, z, 'mic_stand');
+  for (const z of [30, 31, 35, 36]) p.set(15, 0, z, 'chain_z');
 }
 
 function backstage(p, rng) {
@@ -634,9 +642,14 @@ function foyer(p, rng) {
   // the hand-stamp podium and a queue rope from the doors
   p.set(90, 0, 34, 'lectern_e');
   for (const z of [31, 37]) {
-    for (const x of [86, 91, 96]) p.fill(x, 0, z, x, 1, z, 'lamp_post');
-    for (const x of [87, 88, 89, 90, 92, 93, 94, 95]) p.set(x, 1, z, 'chain_x');
+    for (const x of [86, 91, 96]) p.set(x, 0, z, 'mic_stand');
+    for (const x of [87, 88, 89, 90, 92, 93, 94, 95]) p.set(x, 0, z, 'chain_x');
   }
+  // a welcome standee in the middle of the hall: the Revue on one face, the party poster on the other
+  p.fill(78, 0, 33, 78, 2, 34, 'dark_oak');
+  p.picture('poster_revue', 79, 2, 34, 'e', 2, 3);
+  p.picture('poster_revue', 77, 2, 33, 'w', 2, 3);
+  p.set(78, 3, 33, 'star_e');
   // a coin-op photo booth (a curtain on the front), dead plants in planters by the arches
   p.fill(82, 0, 27, 83, 2, 27, 'red_c');
   p.fill(82, 0, 28, 82, 2, 28, 'curtain_red');
@@ -698,13 +711,14 @@ function prize(p, rng) {
   clawMachine(p, 98, 18, 'w', 'blue_c');
   clawMachine(p, 98, 24, 'w', 'magenta_c');
   p.fill(82, 0, 22, 82, 0, 24, 'dark_oak_stairs_w');
-  for (const x of [85, 89, 93]) p.fill(x, 0, 15, x, 1, 15, 'lamp_post');
-  for (const x of [86, 87, 88, 90, 91, 92]) p.set(x, 1, 15, 'chain_x');
-  for (const z of [13, 15]) {
-    p.set(97, 0, z, 'red_c');
-    p.set(97, 1, z, 'pink_glass');
-  }
+  for (const x of [85, 89, 93]) p.set(x, 0, 15, 'mic_stand');
+  for (const x of [86, 87, 88, 90, 91, 92]) p.set(x, 0, 15, 'chain_x');
   p.set(90, 0, 20, 'kiddie_s');
+  // the big prizes hang from the ceiling over the counter
+  for (const [x, z] of [[85, 8], [88, 9], [91, 8], [94, 9]]) {
+    p.set(x, 5, z, 'chain_y');
+    p.set(x, 4, z, 'plush_s');
+  }
   for (const [x, z] of [[83, 25], [97, 13], [83, 12]]) p.set(x, 0, z, `balloons_${rng.int(0, 2)}`);
   p.picture('poster_party', 84, 4, 25, 'n', 2, 2);
   p.picture('poster_revue', 96, 5, 25, 'n', 2, 3);
