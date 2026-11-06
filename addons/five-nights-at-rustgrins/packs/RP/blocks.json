@@ -19,13 +19,25 @@
   "fnar:boarded_planks": {
     "sound": "wood"
   },
+  "fnar:booth_seat": {
+    "sound": "cloth"
+  },
+  "fnar:bulb_frame": {
+    "sound": "metal"
+  },
   "fnar:bunting": {
     "sound": "cloth"
+  },
+  "fnar:cafe_table": {
+    "sound": "metal"
   },
   "fnar:carpet_confetti": {
     "sound": "cloth"
   },
   "fnar:carpet_party": {
+    "sound": "cloth"
+  },
+  "fnar:carpet_purple": {
     "sound": "cloth"
   },
   "fnar:ceiling_dark": {
@@ -49,6 +61,9 @@
   "fnar:cinderblock_painted": {
     "sound": "stone"
   },
+  "fnar:cladding_teal": {
+    "sound": "metal"
+  },
   "fnar:crt_monitor": {
     "sound": "metal"
   },
@@ -68,6 +83,9 @@
     "sound": "metal"
   },
   "fnar:desk_phone": {
+    "sound": "metal"
+  },
+  "fnar:disco_ball": {
     "sound": "metal"
   },
   "fnar:door_button": {
@@ -103,11 +121,17 @@
   "fnar:guitar_amp": {
     "sound": "metal"
   },
+  "fnar:gumball_machine": {
+    "sound": "metal"
+  },
   "fnar:hanging_lamp": {
     "sound": "metal"
   },
   "fnar:hanging_wires": {
     "sound": "metal"
+  },
+  "fnar:height_chart": {
+    "sound": "cloth"
   },
   "fnar:kiddie_ride": {
     "sound": "metal"
@@ -133,7 +157,13 @@
   "fnar:neon_sign_p1": {
     "sound": "metal"
   },
+  "fnar:neon_sign_p2": {
+    "sound": "metal"
+  },
   "fnar:pa_speaker": {
+    "sound": "metal"
+  },
+  "fnar:par_can": {
     "sound": "metal"
   },
   "fnar:parts_shelf": {
@@ -168,6 +198,9 @@
   },
   "fnar:plush_wall": {
     "sound": "cloth"
+  },
+  "fnar:popcorn_machine": {
+    "sound": "metal"
   },
   "fnar:poster_auction": {
     "sound": "cloth"
@@ -214,6 +247,15 @@
   "fnar:sign_facade_p2": {
     "sound": "metal"
   },
+  "fnar:sign_mascot": {
+    "sound": "metal"
+  },
+  "fnar:sign_mascot_p1": {
+    "sound": "metal"
+  },
+  "fnar:sign_mascot_p2": {
+    "sound": "metal"
+  },
   "fnar:sign_midway": {
     "sound": "metal"
   },
@@ -232,6 +274,12 @@
   "fnar:sign_stage_p1": {
     "sound": "metal"
   },
+  "fnar:sign_welcome": {
+    "sound": "cloth"
+  },
+  "fnar:sign_welcome_p1": {
+    "sound": "cloth"
+  },
   "fnar:sink": {
     "sound": "stone"
   },
@@ -241,11 +289,20 @@
   "fnar:slumped_suit": {
     "sound": "cloth"
   },
+  "fnar:soffit_cream": {
+    "sound": "stone"
+  },
+  "fnar:soffit_star": {
+    "sound": "stone"
+  },
   "fnar:spare_head": {
     "sound": "cloth"
   },
   "fnar:stage_floor": {
     "sound": "wood"
+  },
+  "fnar:stage_lip": {
+    "sound": "metal"
   },
   "fnar:stage_speaker": {
     "sound": "metal"
@@ -258,6 +315,12 @@
   },
   "fnar:stage_truss": {
     "sound": "metal"
+  },
+  "fnar:stanchion": {
+    "sound": "metal"
+  },
+  "fnar:star_chair": {
+    "sound": "cloth"
   },
   "fnar:tent_stripe": {
     "sound": "cloth"
@@ -283,8 +346,14 @@
   "fnar:toilet": {
     "sound": "stone"
   },
+  "fnar:token_prices": {
+    "sound": "cloth"
+  },
   "fnar:trash_can": {
     "sound": "metal"
+  },
+  "fnar:velvet_rope": {
+    "sound": "cloth"
   },
   "fnar:vent_cover": {
     "sound": "metal"
@@ -312,6 +381,9 @@
   },
   "fnar:wall_writing": {
     "sound": "cloth"
+  },
+  "fnar:wall_yellow": {
+    "sound": "stone"
   },
   "fnar:wallpaper_maroon": {
     "sound": "stone"
