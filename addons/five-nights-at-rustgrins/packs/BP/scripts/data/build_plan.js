@@ -15,7 +15,7 @@
 // Prize Corner, a Party Room, and the dark halls to the office.
 
 import { PlanBuilder } from './plan.js';
-import { BUILDING, LOT, ROOMS, ROOM_BY_ID, OPENINGS, OFFICE, DUCTS, STAGE, MIDWAY_RING, SHOW_TAPE, CABARET } from './layout.js';
+import { BUILDING, LOT, ROOMS, ROOM_BY_ID, OPENINGS, OFFICE, DUCTS, STAGE, DRUM, MIDWAY_RING, SHOW_TAPE, CABARET } from './layout.js';
 import { WRITING, NEON } from './palette.js';
 import { CAMERAS } from './cameras.js';
 import { LOBBY_BUTTONS } from './lobby.js';
@@ -24,8 +24,8 @@ import { LOBBY_BUTTONS } from './lobby.js';
 // bands: list of [fromY, toY, key | key[] (random pick)] for the walls (relative to the floor).
 const STYLES = {
   dining: {
-    floor: ['tile', 'tile', 'tile', 'tile_worn'], ceiling: ['ceiling_dark'],
-    bands: [[0, 1, 'wall_checker'], [2, 2, 'trim'], [3, 7, 'wallpaper'], [8, 8, 'trim'], [9, 9, 'wallpaper']],
+    floor: ['carpet_confetti'], ceiling: ['ceiling_dark'],
+    bands: [[0, 0, 'trim'], [1, 1, 'wallpaper'], [2, 2, 'wall_checker'], [3, 7, 'wallpaper'], [8, 9, 'trim']],
   },
   hall: { floor: ['tile', 'tile', 'tile_worn'], ceiling: ['ceiling', 'ceiling', 'ceiling_stained'], bands: [[0, 1, 'wall_checker'], [2, 2, 'trim'], [3, 9, ['plaster', 'plaster', 'plaster', 'plaster_stained']]] },
   office: { floor: ['tile_office'], ceiling: ['ceiling', 'ceiling', 'ceiling_stained'], bands: [[0, 1, 'wall_checker'], [2, 2, 'trim'], [3, 9, ['plaster', 'plaster_stained']]] },
@@ -34,7 +34,7 @@ const STYLES = {
   cabaret: { floor: ['carpet'], ceiling: ['black_c'], bands: [[0, 9, 'curtain_purple']] },
   kitchen: { floor: ['tile_kitchen'], ceiling: ['ceiling_stained', 'ceiling'], bands: [[0, 2, 'white_t'], [3, 9, 'cinder']] },
   restroom: { floor: ['tile_worn'], ceiling: ['ceiling_stained', 'ceiling'], bands: [[0, 2, 'smooth_quartz'], [3, 9, ['plaster', 'plaster_stained']]] },
-  foyer: { floor: ['tile', 'tile', 'tile', 'tile_worn'], ceiling: ['ceiling', 'ceiling', 'ceiling_stained'], bands: [[0, 1, 'wall_checker'], [2, 2, 'trim'], [3, 3, 'wall_stripe'], [4, 9, 'wallpaper']] },
+  foyer: { floor: ['carpet_purple'], ceiling: ['ceiling', 'ceiling', 'ceiling_stained'], bands: [[0, 0, 'trim'], [1, 9, 'wall_yellow']] },
   gallery: { floor: ['dark_oak'], ceiling: ['black_c'], bands: [[0, 0, 'blackstone'], [1, 9, 'black_c']] },
   staff: { floor: ['tile_office'], ceiling: ['ceiling', 'ceiling_stained'], bands: [[0, 1, 'cinder'], [2, 2, 'trim'], [3, 9, 'plaster']] },
   supply: { floor: ['smooth_stone'], ceiling: ['ceiling_stained'], bands: [[0, 9, 'cinder']] },
@@ -134,12 +134,15 @@ function openings(p) {
       p.fill(x1, y2 + 1, z1, x2, y2 + 1, z2, 'blackstone');
     }
     if (o.kind === 'glass_door') {
-      // the front entrance: dark frame, glass sidelights and a transom over the (propped open) doors
-      p.fill(x1, y2 + 1, z1 - 1, x2, y2 + 2, z2 + 1, 'window');
-      p.fill(x1, y1, z1 - 1, x2, y2, z1 - 1, 'window');
-      p.fill(x1, y1, z2 + 1, x2, y2, z2 + 1, 'window');
-      p.fill(x2, y2 + 3, z1 - 2, x2, y2 + 3, z2 + 2, 'blackstone');
-      for (const z of [z1 - 2, z2 + 2]) p.fill(x2, y1, z, x2, y2 + 2, z, 'blackstone');
+      // the front entrance: glass double doors in a dark frame, the middle pair standing open, a glass transom
+      for (const z of [z1, z2]) p.fill(x2, y1, z, x2, y2, z, 'window');
+      p.fill(x2, y2 + 1, z1, x2, y2 + 1, z2, 'window');
+      for (const z of [z1 - 1, z2 + 1]) p.fill(x2, y1, z, x2, y2 + 2, z, 'blackstone');
+      p.fill(x2, y2 + 2, z1, x2, y2 + 2, z2, 'blackstone');
+    }
+    if (o.kind === 'welcome') {
+      // the WELCOME arch: round the top of the doorway off
+      p.fill(x1, y2 + 1, z1 + 1, x2, y2 + 1, z2 - 1, 'air');
     }
   }
   // Floor continuity under openings (doorways take the floor of the room they lead into).
@@ -155,6 +158,13 @@ function openings(p) {
   p.fill(63, 0, 3, 64, 0, 6, 'stripped_dark_oak_z');
   // The overhead crawl tube leaves the Fun Zone through the wall above the play arch.
   p.fill(80, 5, 50, 80, 5, 50, 'air');
+  // The short passage under the ARCADE sign, from the showroom into the Game Room: striped walls, a black ceiling.
+  for (const x of [54, 59]) {
+    p.fill(x, 0, 39, x, 1, 41, 'wall_checker');
+    p.fill(x, 2, 39, x, 2, 41, 'wall_stripe');
+  }
+  p.fill(55, 3, 39, 58, 3, 41, 'black_c');
+  p.fill(55, -1, 38, 58, -1, 42, 'tile');
 }
 
 function ducts(p) {
@@ -395,105 +405,163 @@ function tableRun(p, rng, axis, fixed, a, b, { chairs = 0.85, every = 2 } = {}) 
   }
 }
 
-/** Dining-hall table columns (x) and their z range. */
-const DINING_TABLES = Object.freeze({ xs: Object.freeze([21, 27, 33, 44, 50, 56]), z1: 14, z2: 30 });
+/** Dining-hall long party-table columns (x) and their z range. */
+const DINING_TABLES = Object.freeze({ xs: Object.freeze([27, 33, 44, 50]), z1: 16, z2: 30 });
+/** Where the band steps off the stage (the lip has steps there instead of footlights). */
+const STAGE_STEPS = Object.freeze([30, 32, 38, 39, 44, 46]);
+const PAR = ['red', 'pink', 'blue', 'green'];
+
+/** A PAR can (coloured, switched with the stage lights). */
+function parCan(p, x, y, z, i, dir) {
+  p.set(x, y, z, `par_${PAR[i % 4]}_false_${dir}`);
+  p.meta.spots.push({ x, y, z, dir, group: 'stage' });
+}
+
+/** A square cafe table with a star-back chair on each side. */
+function cafeSet(p, rng, x, z) {
+  p.set(x, 0, z, 'cafe_table');
+  p.set(x - 1, 0, z, 'starchair_e');
+  p.set(x + 1, 0, z, 'starchair_w');
+  p.set(x, 0, z - 1, 'starchair_s');
+  p.set(x, 0, z + 1, rng.chance(0.25) ? 'fallen_n' : 'starchair_n');
+  if (rng.chance(0.5)) p.set(x, 1, z, rng.pick(['plates', 'pizza_1_n', 'hat_0']));
+}
+
+/** A diner booth: two padded benches facing each other across a table. axis 'z': benches at a and a + 2 along z
+ *  over the columns xs; axis 'x': benches at a and a + 2 along x over the rows zs. */
+function booth(p, rng, axis, a, cross) {
+  for (const c of cross) {
+    const [b1, t, b2] = axis === 'z' ? [[c, a], [c, a + 1], [c, a + 2]] : [[a, c], [a + 1, c], [a + 2, c]];
+    p.set(b1[0], 0, b1[1], axis === 'z' ? 'booth_s' : 'booth_e');
+    p.set(b2[0], 0, b2[1], axis === 'z' ? 'booth_n' : 'booth_w');
+    p.set(t[0], 0, t[1], 'cafe_table');
+    if (rng.chance(0.5)) p.set(t[0], 1, t[1], rng.pick(['plates', 'pizza_2_n', 'hat_0']));
+  }
+}
 
 function dining(p, rng) {
-  const [sx1, sz1, sx2, sz2] = STAGE.box;
-  const P = STAGE.proscenium;
-  const top = ROOM_BY_ID.DINING.h - 1;
-  // ---- the stage: boards, a step along the whole front
-  p.fill(sx1, 0, sz1, sx2, 0, sz2 - 1, 'stage_floor');
-  p.fill(sx1, 0, sz2, sx2, 0, sz2, 'dark_oak_stairs_n');
-  // ---- the proscenium: wing walls either side (red drapes on the stage side), the header with the big sign
-  for (const [a, b, inner] of [[P.x1, P.x1 + 1, P.x1 + 1], [P.x2 - 1, P.x2, P.x2 - 1]]) {
-    p.fill(a, 0, sz1, b, top, P.z, 'wallpaper');
-    p.fill(a, 0, sz1, b, 1, P.z, 'wall_checker');
-    p.fill(inner, 1, sz1, inner, top, sz2, 'curtain_red');
-    p.fill(a, 0, P.z, b, 0, P.z, 'blackstone_bricks');
-    p.fill(a, 1, P.z, b, top - 1, P.z, 'stripped_dark_oak');
-    p.fill(a, top, P.z, b, top, P.z, 'gold_block');
-  }
-  p.fill(P.x1 + 2, P.y1, P.z, P.x2 - 2, P.y2, P.z, 'dark_oak');
-  p.fill(P.x1 + 2, P.y1, P.z, P.x2 - 2, P.y1, P.z, 'gold_block');
-  // the valance just behind the header: a red velvet swag over the whole opening
-  p.fill(sx1, P.y1 + 1, P.z - 1, sx2, P.y2, P.z - 1, 'curtain_red');
-  p.picture('sign_stage', 34, P.y2, P.z + 1, 's', 10, 3); // RUSTGRIN'S PIZZA REVUE in bulbs, over the stage
-  for (const x of [25, 29, 48, 52]) p.set(x, 8, P.z + 1, 'star_s');
-  // ---- the backdrop: a starry midnight curtain between gathered red wings, stars hung on it
-  p.fill(sx1, 1, sz1, sx2, top, sz1, 'curtain_star');
-  for (const x of [sx1, sx1 + 1, sx2 - 1, sx2]) p.fill(x, 1, sz1, x, top, sz1 + 1, 'curtain_red');
-  for (const [x, y] of [[27, 6], [31, 8], [35, 5], [42, 5], [46, 8], [50, 6], [38, 8], [33, 3], [44, 3]]) p.set(x, y, sz1 + 1, 'star_s');
-  // the band's equipment: speaker stacks at the corners, an amp, a mic stand
-  for (const x of [sx1 + 1, sx2 - 1]) for (const y of [1, 2]) p.set(x, y, sz2 - 2, 'speaker_s');
-  p.set(29, 1, 3, 'amp_s');
-  p.set(47, 1, 3, 'amp_s');
-  p.set(36, 1, 6, 'mic_stand');
-  // footlights along the front edge of the stage (switched with the spotlights), gaps where the band steps down
-  for (const x of [24, 26, 28, 35, 36, 42, 43, 49, 51, 53]) {
-    p.set(x, 1, sz2 - 1, 'foot_false_n');
-    p.meta.spots.push({ x, y: 1, z: sz2 - 1, dir: 'n', group: 'stage' });
-  }
-  // the spotlights hang under the header, out of CAM 1A's line to the band
-  for (const x of [28, 34, 43, 49]) {
-    p.set(x, P.y1 - 1, P.z + 1, 'spot_false_n');
-    p.meta.spots.push({ x, y: P.y1 - 1, z: P.z + 1, dir: 'n', group: 'stage' });
-  }
-  // ---- the hall: long party tables either side of a red carpet aisle that runs up to the stage
-  for (const tx of DINING_TABLES.xs) tableRun(p, rng, 'z', tx, DINING_TABLES.z1, DINING_TABLES.z2);
-  p.fill(37, -1, sz2 + 1, 40, -1, 37, 'tile_worn');
-  p.fill(37, 0, sz2 + 2, 40, 0, 36, 'red_carpet');
-  // pendant lamps on chains over the tables (lit by day)
-  for (const tx of DINING_TABLES.xs) {
-    for (const z of [16, 22, 28]) {
-      p.fill(tx, 8, z, tx, top, z, 'chain_y');
-      p.set(tx, 7, z, 'hanging_off');
-      p.meta.hanging.push({ x: tx, y: 7, z, group: 'dining' });
+  // The showroom (refs: a family pizza showroom and its curved stage, a haunted pizzeria's long tables, a diner's
+  // booths and neon): a curved stage under a cream soffit with red stars, red side drapes, a starry backdrop,
+  // footlights in the stage lip and PAR cans; long party tables on a checker aisle, cafe tables with star-back
+  // chairs, booths along the walls, a truss of lights, the round drum with the mirror ball, posters over a checker band.
+  const [sx1, sz1, sx2] = STAGE.box;
+  const top = ROOM_BY_ID.DINING.h - 1; // 8
+  const S = STAGE.soffit;
+  // ---- the floor: confetti carpet (style), a checker dance floor in front of the stage and a checker aisle down the middle
+  p.fill(15, -1, 12, 62, -1, 15, 'tile');
+  p.fill(36, -1, 12, 41, -1, 37, 'tile');
+  // ---- the stage: boards from the backdrop to the curved lip; footlights in the lip, steps where the band comes down
+  for (let x = sx1; x <= sx2; x++) {
+    const f = STAGE.front[x];
+    p.fill(x, 0, sz1, x, 0, f - 1, 'stage_floor');
+    p.fill(x, -1, f + 1, x, -1, 15, 'tile');
+    if (STAGE_STEPS.includes(x)) p.set(x, 0, f, 'dark_oak_stairs_n');
+    else {
+      p.set(x, 0, f, 'lip_false_s');
+      p.meta.spots.push({ x, y: 0, z: f, dir: 's', group: 'stage' });
     }
   }
+  // the backdrop: a starry midnight curtain, stars hung on it; red drapes either side, floor to ceiling
+  p.fill(sx1, 1, sz1, sx2, top, sz1, 'curtain_star');
+  for (const [x, y] of [[27, 6], [31, 7], [35, 5], [42, 5], [46, 7], [50, 6], [38, 7], [33, 3], [44, 3]]) p.set(x, y, sz1 + 1, 'star_s');
+  for (const x of STAGE.drapes) p.fill(x, 0, sz1, x, top, STAGE.front[x === 22 ? 23 : 54], 'curtain_red');
+  for (const x of [sx1, sx2]) p.fill(x, 1, sz1, x, top, sz1 + 2, 'curtain_red');
+  // the soffit: cream plaster following the lip, a red star every third block along its edge
+  for (let x = STAGE.drapes[0]; x <= STAGE.drapes[1]; x++) {
+    const f = STAGE.front[Math.max(sx1, Math.min(sx2, x))];
+    p.set(x, S.y2, f, 'soffit_cream');
+    p.set(x, S.y1, f, x % 3 === 1 ? 'soffit_star' : 'soffit_cream');
+    p.fill(x, S.y2, sz1 + 2, x, S.y2, f - 1, 'soffit_cream'); // its top closes over the stage
+  }
+  p.picture('sign_stage', 34, top, STAGE.front[38] + 1, 's', 10, 3); // RUSTGRIN'S PIZZA REVUE in bulbs, on the soffit
+  // a row of coloured PAR cans under the soffit's back edge, aimed at the band
+  for (const [i, x] of [25, 28, 31, 34, 43, 46, 49, 52].entries()) parCan(p, x, S.y1 - 1, STAGE.front[x] - 1, i, 'n');
+  // the band's equipment: speaker stacks at the corners, two amps, a mic stand
+  for (const x of [sx1 + 2, sx2 - 2]) for (const y of [1, 2]) p.set(x, y, 7, 'speaker_s');
+  p.set(29, 1, 3, 'amp_s');
+  p.set(47, 1, 3, 'amp_s');
+  p.set(37, 1, 8, 'mic_stand');
+  // ---- the hall: long party tables on the checker aisle's sides, red-and-white hats, balloons tied to the tables
+  for (const tx of DINING_TABLES.xs) tableRun(p, rng, 'z', tx, DINING_TABLES.z1, DINING_TABLES.z2);
+  for (const [x, z] of [[27, 19], [33, 26], [44, 18], [50, 25]]) p.set(x, 1, z, `balloons_${(x + z) % 3}`);
+  // cafe tables with star-back chairs at the sides, booths along the east and south walls
+  for (const z of [18, 23, 28]) {
+    cafeSet(p, rng, 21, z);
+    cafeSet(p, rng, 56, z);
+  }
+  booth(p, rng, 'z', 22, [61, 62]);
+  booth(p, rng, 'z', 26, [61, 62]);
+  for (const x of [18, 22, 48, 52]) booth(p, rng, 'x', x, [36, 37]);
+  // pendant lamps on chains over the long tables (lit by day)
+  for (const tx of DINING_TABLES.xs) {
+    for (const z of [17, 23, 29]) {
+      p.fill(tx, 7, z, tx, top, z, 'chain_y');
+      p.set(tx, 6, z, 'hanging_off');
+      p.meta.hanging.push({ x: tx, y: 6, z, group: 'dining' });
+    }
+  }
+  // the truss across the room in front of the stage, moving lights hung under it
+  for (let x = 16; x <= 61; x++) p.set(x, top, 15, 'truss_e');
+  for (const [i, x] of [20, 26, 31, 46, 51, 57].entries()) parCan(p, x, top - 1, 15, i + 1, 'n');
+  // the round drum in the ceiling over the middle of the room (refs: a ring of coloured spots), the mirror ball in it
+  for (let x = Math.floor(DRUM.cx - DRUM.r - 1); x <= Math.ceil(DRUM.cx + DRUM.r + 1); x++) {
+    for (let z = Math.floor(DRUM.cz - DRUM.r - 1); z <= Math.ceil(DRUM.cz + DRUM.r + 1); z++) {
+      const d = Math.hypot(x + 0.5 - DRUM.cx, z + 0.5 - DRUM.cz);
+      if (d < DRUM.r - 1) {
+        p.set(x, top + 1, z, 'air');
+        p.set(x, top + 2, z, 'ceiling_dark');
+      } else if (d < DRUM.r) {
+        p.set(x, top, z, 'soffit_cream');
+        p.set(x, top - 1, z, 'wall_checker');
+      }
+    }
+  }
+  const cx = Math.floor(DRUM.cx), cz = Math.floor(DRUM.cz);
+  for (const [i, [x, z, d]] of [[cx, cz - 4, 's'], [cx + 4, cz, 'w'], [cx, cz + 4, 'n'], [cx - 4, cz, 'e']].entries()) parCan(p, x, top - 2, z, i, d);
+  p.fill(cx, top - 1, cz, cx, top + 1, cz, 'chain_y');
+  p.set(cx, top - 2, cz, 'disco_ball');
   // warm brass sconces along the walls: pools of amber light by day (switched with the hall's lamps), dead at night
   for (const [x, y, z, d] of [[15, 4, 3, 'e'], [15, 4, 8, 'e'], [15, 4, 27, 'e'], [62, 4, 25, 'w'], [62, 4, 29, 'w'],
-    [19, 4, 37, 'n'], [24, 6, 37, 'n'], [33, 4, 37, 'n'], [41, 4, 37, 'n'], [50, 4, 37, 'n'], [53, 6, 37, 'n'], [59, 4, 37, 'n']]) {
+    [16, 4, 37, 'n'], [25, 5, 37, 'n'], [34, 4, 37, 'n'], [43, 4, 37, 'n'], [47, 4, 37, 'n'], [60, 4, 37, 'n']]) {
     p.set(x, y, z, `sconce_false_${d}`);
     p.meta.hanging.push({ x, y, z, group: 'dining' });
   }
   // paper garlands strung across the hall behind CAM 1A
-  for (let x = 16; x <= 61; x++) if (![21, 27, 33, 44, 50, 56].includes(x)) { p.set(x, 8, 27, 'bunting_s'); p.set(x, 8, 35, 'bunting_s'); }
-  // ---- walls: posters, kids' drawings, garlands, the marquees over the Midway and the Grand Marquee
-  p.picture('poster_rules', 15, 4, 6, 'e', 2, 2);
+  for (let x = 16; x <= 61; x++) if (!DINING_TABLES.xs.includes(x)) p.set(x, 7, 34, 'bunting_s');
+  // ---- walls: framed posters over the checker band, kids' drawings, the marquees, the neon
+  p.picture('poster_rules', 15, 5, 6, 'e', 2, 2);
   p.picture('poster_auction', 15, 5, 15, 'e', 2, 3);
   p.picture('poster_cabaret', 15, 5, 29, 'e', 2, 3);
   p.picture('sign_midway', 15, 5, 23, 'e', 4, 1);
   p.picture('sign_cabaret', 15, 5, 35, 'e', 3, 1);
   p.picture('poster_revue', 62, 5, 23, 'w', 2, 3);
   p.picture('poster_party', 23, 5, 37, 'n', 2, 2);
-  p.picture('poster_midway', 56, 5, 37, 'n', 2, 3);
-  p.picture('poster_party', 18, 6, 1, 's', 2, 2);
-  for (let i = 0; i < 4; i++) p.picture('drawing', 30 + i, 3, 37, 'n', 1, 1, rng.int(0, 5));
-  for (let i = 0; i < 4; i++) p.picture('drawing', 39 + i, 3, 37, 'n', 1, 1, rng.int(0, 5));
-  for (let i = 0; i < 5; i++) p.picture('drawing', 49 + i, 3, 37, 'n', 1, 1, rng.int(0, 5));
-  for (let i = 0; i < 4; i++) p.picture('drawing', 17 + i, 3, 37, 'n', 1, 1, rng.int(0, 5));
+  p.picture('poster_midway', 62, 5, 37, 'n', 2, 3);
+  p.picture('poster_party', 20, 5, 1, 's', 2, 2);
+  for (const [x0, n] of [[30, 4], [39, 4], [49, 5], [17, 4]]) for (let i = 0; i < n; i++) p.picture('drawing', x0 + i, 3, 37, 'n', 1, 1, rng.int(0, 5));
+  neon(p, 'showtime', 16, 6, 1, 's'); // red neon by the stage
   neon(p, 'party', 37, 4, 37, 'n'); // over the Party Room door
-  neon(p, 'pizza', 62, 7, 32, 'w'); // over the arch to the entrance hall
-  for (let x = 16; x <= 61; x++) if (x < P.x1 - 1 || x > P.x2 + 1) p.set(x, top, 1, 'bunting_s');
+  neon(p, 'arcade', 58, 4, 37, 'n'); // over the passage to the Game Room
+  neon(p, 'pizza', 62, 7, 32, 'w'); // over the WELCOME arch
+  neon(p, 'restrooms', 62, 4, 18, 'w'); // over the restroom door
   for (let z = 2; z <= 36; z++) {
     p.set(15, top, z, 'bunting_e');
     p.set(62, top, z, 'bunting_w');
   }
-  for (const [x, z] of [[17, 9], [60, 12], [16, 36], [61, 36], [20, 2]]) p.set(x, 0, z, `balloons_${rng.int(0, 2)}`);
-  // a row of old arcade cabinets in the north-west corner
+  for (const [x, z] of [[17, 9], [60, 12], [16, 34], [20, 2]]) p.set(x, 0, z, `balloons_${rng.int(0, 2)}`);
+  // old arcade cabinets in the north-west corner, gumball machines by the arcade passage
   for (const z of [2, 4, 6]) {
     p.set(15, 0, z, 'arcade_0_e');
     p.set(15, 1, z, 'arcade_1_e');
   }
-  p.set(20, 0, 1, 'speaker_s');
   p.set(19, 0, 1, 'speaker_s');
+  for (const x of [59, 60]) p.set(x, 0, 36, 'gumball');
   // exits over the hall doors and the entrance arch (high up: no glow spills into the halls)
   for (const [x, y, z, dir] of [[27, 5, 37, 'n'], [45, 5, 37, 'n'], [62, 5, 33, 'w']]) {
     p.set(x, y, z, `exit_true_${dir}`);
     p.meta.exits.push({ x, y, z, dir });
   }
-  p.set(61, 0, 27, 'wetsign_w');
+  p.set(61, 0, 21, 'wetsign_w');
   p.set(16, 0, 37, 'trash_e');
   p.set(61, 0, 37, 'trash_w');
   // ---- the order counter in the north-east corner: the kitchen's window, the menu board, the register
@@ -1311,7 +1379,8 @@ function lights(p) {
         const z = Math.round(z1 + ((j + 0.5) * (z2 - z1 + 1)) / nz - 0.5);
         const k = `${x},${r.h},${z}`;
         if (used.has(k)) continue;
-        if (r.id === 'DINING' && z <= STAGE.box[3] + 1) continue; // stage area: spotlights instead
+        if (r.id === 'DINING' && z <= STAGE.box[3] + 1) continue; // stage area: PAR cans instead
+        if (r.id === 'DINING' && Math.hypot(x + 0.5 - DRUM.cx, z + 0.5 - DRUM.cz) < DRUM.r + 1) continue; // the drum's recess
         used.add(k);
         p.set(x, r.h, z, 'lamp_off');
         p.meta.lamps.push({ x, y: r.h, z, room: r.id, group: groupOf[r.id] ?? r.id.toLowerCase() });

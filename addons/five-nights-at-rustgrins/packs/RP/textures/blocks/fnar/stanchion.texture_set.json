@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "stanchion",
+    "metalness_emissive_roughness": "stanchion_mer",
+    "heightmap": "stanchion_height"
+  }
+}

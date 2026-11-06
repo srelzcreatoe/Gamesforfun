@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "stage_lip_off",
+    "metalness_emissive_roughness": "stage_lip_off_mer",
+    "heightmap": "stage_lip_off_height"
+  }
+}

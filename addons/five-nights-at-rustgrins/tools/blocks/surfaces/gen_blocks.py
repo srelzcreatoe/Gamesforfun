@@ -50,6 +50,11 @@ CUBES = {
     'curtain_star': ('curtain_star', 1.0),
     'carpet_confetti': ('carpet_confetti', 1.0),
     'wall_stripe': ('wall_stripe', 1.5),
+    'soffit_cream': ('soffit_cream', 1.5),
+    'soffit_star': ('soffit_star', 1.5),
+    'wall_yellow': ('wall_yellow', 1.5),
+    'carpet_purple': ('carpet_purple', 1.0),
+    'cladding_teal': ('cladding_teal', 2.0),
 }
 
 # picture panels: name -> number of tiles (or variants)
@@ -58,10 +63,11 @@ PANELS = {
     'poster_missing': 2, 'drawing': 6, 'sign_cabaret': 3, 'sign_out_of_order': 2, 'sign_midway': 4,
     'sign_revue': 12, 'sign_staff': 4,
     'poster_auction': 6, 'poster_torn': 4, 'lot_tag': 6, 'wall_writing': 16,
-    'neon_sign': 24, 'play_net': 2,
+    'neon_sign': 35, 'play_net': 2,
     'sign_stage': 30, 'sign_facade': 48, 'menu_board': 8,
+    'sign_welcome': 18, 'sign_mascot': 36, 'height_chart': 3, 'token_prices': 4,
 }
-PANEL_LIGHT = {'sign_revue': 7, 'sign_cabaret': 4, 'sign_midway': 4, 'neon_sign': 5, 'sign_stage': 4, 'sign_facade': 9}
+PANEL_LIGHT = {'sign_revue': 7, 'sign_cabaret': 4, 'sign_midway': 4, 'neon_sign': 5, 'sign_stage': 4, 'sign_facade': 9, 'sign_mascot': 8}
 
 # lights: name -> (geometry, light level, local light colour, light type, selection box (origin, size))
 LIGHTS = {
@@ -79,7 +85,7 @@ BROKEN_LAMP = ('ceiling_lamp_broken', 9, '#dfe8ff', 'point_light')
 BROKEN_TICKS = 2
 SIGN_LIGHT_COLORS = {'neon_sign': ('#ff7ad0', 'static_light'), 'sign_revue': ('#ff6fb5', 'static_light'), 'sign_cabaret': ('#ffd27a', 'static_light'),
                      'sign_midway': ('#ffd27a', 'static_light'), 'sign_stage': ('#ffd27a', 'static_light'),
-                     'sign_facade': ('#ff6fb5', 'static_light')}
+                     'sign_facade': ('#ff6fb5', 'static_light'), 'sign_mascot': ('#ffe2b0', 'static_light')}
 
 
 def tex_ref(t):
@@ -89,6 +95,8 @@ def tex_ref(t):
 def map_color(tex):
     im = np.array(Image.open(os.path.join(TEX_DIR, f'{tex}.png')).convert('RGBA')).astype(float)
     m = im[..., 3] > 0
+    if not m.any():
+        return '#808080'  # a fully transparent tile (the empty corner of a cut-out sign)
     c = im[..., :3][m].mean(0)
     return '#%02x%02x%02x' % tuple(int(round(v)) for v in c)
 
@@ -228,6 +236,53 @@ def panel_parts(name):
     return [panel_part_name(name, p) for p in range(-(-PANELS[name] // TILES_PER_BLOCK))]
 
 
+# full-cube lights: the WELCOME arch's bulb frame (lit with the hall's lamps) and the stage's lip footlights
+BULB_FRAME = ('bulb_frame', 7, '#ffe2b0', 'static_light')
+STAGE_LIP = ('stage_lip', 6, '#ffd9a0', 'static_light')
+
+
+def cube_lights():
+    out = {}
+    name, level, _, _ = BULB_FRAME
+    perms = []
+    for lit in (True, False):
+        tex = f'{name}_{"on" if lit else "off"}'
+        mi = {'*': {'texture': tex_ref(tex), 'render_method': 'opaque'}}
+        if lit:
+            mi['*']['face_dimming'] = False
+        perms.append({'condition': f"q.block_state('fnar:lit') == {'true' if lit else 'false'}",
+                      'components': {'minecraft:material_instances': mi, 'minecraft:light_emission': level if lit else 0}})
+    out[name] = block(name, {
+        'minecraft:geometry': 'minecraft:geometry.full_block',
+        'minecraft:material_instances': perms[0]['components']['minecraft:material_instances'],
+        'minecraft:collision_box': True, 'minecraft:selection_box': True,
+        'minecraft:light_emission': level,
+        'minecraft:destructible_by_mining': {'seconds_to_destroy': 1.5},
+        'minecraft:map_color': map_color(f'{name}_off'),
+    }, states={'fnar:lit': [True, False]}, permutations=perms)
+    # the stage lip: the lamp on the front (north in model space, turned by the facing), boards on top
+    name, level, _, _ = STAGE_LIP
+    perms = facing_perms()
+    for lit in (True, False):
+        tex = f'{name}_{"on" if lit else "off"}'
+        mi = {'*': {'texture': tex_ref('stage_lip_side'), 'render_method': 'opaque'},
+              'up': {'texture': tex_ref('stage_floor'), 'render_method': 'opaque'},
+              'north': {'texture': tex_ref(tex), 'render_method': 'opaque'}}
+        if lit:
+            mi['north']['face_dimming'] = False
+        perms.append({'condition': f"q.block_state('fnar:lit') == {'true' if lit else 'false'}",
+                      'components': {'minecraft:material_instances': mi, 'minecraft:light_emission': level if lit else 0}})
+    out[name] = block(name, {
+        'minecraft:geometry': 'minecraft:geometry.full_block',
+        'minecraft:material_instances': perms[-1]['components']['minecraft:material_instances'],
+        'minecraft:collision_box': True, 'minecraft:selection_box': True,
+        'minecraft:light_emission': level,
+        'minecraft:destructible_by_mining': {'seconds_to_destroy': 1.5},
+        'minecraft:map_color': map_color('stage_lip_side'),
+    }, states={'fnar:lit': [True, False]}, traits=facing_traits(), permutations=perms)
+    return out
+
+
 def panel_blocks():
     out = {}
     for name, n in PANELS.items():
@@ -286,6 +341,7 @@ def section_textures():
     t = []
     t += [tex for tex, _ in CUBES.values()]
     t += ['door_shutter', 'door_shutter_bottom', BROKEN_LAMP[0]]
+    t += ['bulb_frame_on', 'bulb_frame_off', 'stage_lip_on', 'stage_lip_off', 'stage_lip_side']
     for name in LIGHTS:
         t += [f'{name}_on', f'{name}_off']
     for name, n in PANELS.items():
@@ -306,6 +362,7 @@ def build():
     blocks.update(light_blocks())
     blocks.update(panel_blocks())
     blocks.update(broken_lamp_block())
+    blocks.update(cube_lights())
     for name, b in blocks.items():
         write_json(os.path.join(BP_BLOCKS, f'{name}.json'), b)
     write_json(os.path.join(MODELS_DIR, 'wall_panel.geo.json'), wall_panel_geo())
@@ -317,6 +374,8 @@ def build():
                {tex_ref(t): {'textures': f'textures/blocks/fnar/{t}'} for t in texs})
     lights = {f'fnar:{n}': {'light_color': c, 'light_type': ty} for n, (_, _, c, ty, _) in LIGHTS.items()}
     lights[f'fnar:{BROKEN_LAMP[0]}'] = {'light_color': BROKEN_LAMP[2], 'light_type': BROKEN_LAMP[3]}
+    for n, _, c, ty in (BULB_FRAME, STAGE_LIP):
+        lights[f'fnar:{n}'] = {'light_color': c, 'light_type': ty}
     from gen_lights import BROKEN_SEQUENCE
     write_json(os.path.join(FRAG, 'flipbook_surfaces.json'), [{
         'flipbook_texture': f'textures/blocks/fnar/{BROKEN_LAMP[0]}', 'atlas_tile': tex_ref(BROKEN_LAMP[0]),

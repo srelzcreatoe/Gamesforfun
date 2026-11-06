@@ -27,11 +27,23 @@
     "light_color": "#dfe8ff",
     "light_type": "point_light"
   },
+  "fnar:bulb_frame": {
+    "light_color": "#ffe2b0",
+    "light_type": "static_light"
+  },
+  "fnar:stage_lip": {
+    "light_color": "#ffd9a0",
+    "light_type": "static_light"
+  },
   "fnar:neon_sign": {
     "light_color": "#ff7ad0",
     "light_type": "static_light"
   },
   "fnar:neon_sign_p1": {
+    "light_color": "#ff7ad0",
+    "light_type": "static_light"
+  },
+  "fnar:neon_sign_p2": {
     "light_color": "#ff7ad0",
     "light_type": "static_light"
   },
@@ -65,6 +77,18 @@
   },
   "fnar:sign_facade_p2": {
     "light_color": "#ff6fb5",
+    "light_type": "static_light"
+  },
+  "fnar:sign_mascot": {
+    "light_color": "#ffe2b0",
+    "light_type": "static_light"
+  },
+  "fnar:sign_mascot_p1": {
+    "light_color": "#ffe2b0",
+    "light_type": "static_light"
+  },
+  "fnar:sign_mascot_p2": {
+    "light_color": "#ffe2b0",
     "light_type": "static_light"
   }
 }

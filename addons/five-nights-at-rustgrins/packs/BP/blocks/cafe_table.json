@@ -1,0 +1,52 @@
+{
+  "format_version": "1.26.50",
+  "minecraft:block": {
+    "description": {
+      "identifier": "fnar:cafe_table",
+      "menu_category": {
+        "category": "construction"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "geometry.fnar.cafe_table",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "fnar_cafe_table",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:collision_box": {
+        "origin": [
+          -7.5,
+          0,
+          -7.5
+        ],
+        "size": [
+          15,
+          14.5,
+          15
+        ]
+      },
+      "minecraft:selection_box": {
+        "origin": [
+          -7.5,
+          0,
+          -7.5
+        ],
+        "size": [
+          15,
+          16,
+          15
+        ]
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.5
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 3
+      },
+      "minecraft:map_color": "#7c6a50",
+      "minecraft:light_dampening": 0
+    }
+  }
+}

@@ -702,7 +702,7 @@ def curtain_star():
 
 
 def carpet_confetti():
-    """Family-fun-centre carpet: near-black with a scatter of bright confetti (dashes, dots, squiggles in red,
+    """Family-fun-centre carpet: near-black with curly streamers and confetti (squiggles, dashes, dots in red,
     yellow, blue, green, purple and teal), trodden flat and dusty."""
     seed = 2202
     t = Tex(rough=250, height=150)
@@ -713,20 +713,24 @@ def carpet_confetti():
     t.height = 140 + 30 * wn
     cols = [hexc(c) for c in ('#c23a3a', '#d8b43a', '#3a6ad0', '#3aa856', '#9a4ac8', '#2ab0b8', '#e0782a')]
     bits = [
-        (0, [(1, 1), (2, 1)]), (1, [(5, 3)]), (2, [(9, 1), (10, 2)]), (3, [(13, 3), (13, 4)]),
-        (4, [(3, 6), (4, 7), (5, 6)]), (5, [(8, 5)]), (6, [(11, 7), (12, 7)]), (0, [(15, 9), (0, 10)]),
-        (2, [(2, 11), (2, 12)]), (3, [(6, 10)]), (1, [(9, 11), (10, 11)]), (5, [(13, 13), (14, 12)]),
-        (4, [(5, 14)]), (6, [(0, 15), (1, 14)]), (1, [(11, 15)]), (2, [(7, 8)]), (0, [(14, 6)]), (3, [(3, 0)]),
+        # curly streamers (wrap around the tile edges so they run on)
+        (0, [(0, 2), (1, 1), (2, 1), (3, 2), (4, 3), (5, 3), (6, 2)]),
+        (2, [(9, 6), (10, 5), (11, 5), (12, 6), (12, 7), (11, 8), (10, 8)]),
+        (1, [(2, 9), (3, 10), (4, 10), (5, 9), (6, 9), (7, 10)]),
+        (5, [(12, 12), (13, 13), (14, 13), (15, 12), (0, 12), (1, 13)]),
+        (4, [(7, 14), (8, 15), (9, 15), (10, 14)]),
+        # confetti
+        (3, [(8, 1)]), (6, [(14, 3), (14, 4)]), (1, [(0, 6)]), (0, [(5, 6), (6, 6)]), (3, [(13, 9)]),
+        (6, [(3, 14)]), (2, [(10, 11)]), (4, [(15, 7)]), (5, [(4, 0)]),
     ]
     for ci, pts in bits:
         for (x, y) in pts:
-            c = cols[ci] if wn[y, x] > 0.25 else shade(cols[ci], 0.7)
-            t.rgb[y, x] = mix(c, hexc('#3a3846'), 0.22)  # faded under years of sneakers
+            c = cols[ci] if wn[y, x] > 0.2 else shade(cols[ci], 0.7)
+            t.rgb[y, x] = mix(c, hexc('#3a3846'), 0.2)  # faded under years of sneakers
             t.height[y, x] = 165
     m = norm01(blur_wrap(white(W, H, seed + 4), 2)) > 0.78
     t.rgb[m] = mix(t.rgb[m], hexc('#34323d'), 0.25)
     return t
-
 
 def wall_stripe():
     """The 80s racing-stripe band: red, orange and yellow stripes with a cream pinstripe on navy gloss paint,
@@ -747,6 +751,97 @@ def wall_stripe():
     for (x, y) in ((2, 8), (3, 8), (11, 4), (12, 4), (7, 12), (14, 9)):  # chair scuffs
         t.rgb[y, x] = mix(t.rgb[y, x], hexc('#2a2622'), 0.5)
         t.rough[y, x] = 220
+    return t
+
+
+# ------------------------------------------------------------------ the second remake (the reference pictures)
+def soffit(star=False):
+    """Cream-painted plaster for the curved soffits over the stage and the token counter; the star variant
+    carries one deep-red star (they alternate along the soffit's edge)."""
+    seed = 2505 if not star else 2606
+    t = Tex(rough=210, height=150)
+    pal = ramp('#a39776', '#ada281', '#b8ad8c', '#c1b796', '#cac0a0')
+    n = fbm(W, H, seed, cells=(8, 4), weights=(0.6, 0.4))
+    wn = white(W, H, seed + 1)
+    t.rgb = quant(np.clip(0.55 + 0.3 * (n - 0.5) + 0.2 * (wn - 0.5), 0, 0.999), pal)
+    t.height = 140 + 20 * n
+    # nicotine yellowing towards the bottom edge, a hairline crack
+    for y in range(H):
+        t.rgb[y] = mix(t.rgb[y], hexc('#7a6a44'), 0.12 * max(0, y - 9) / 6)
+    for (x, y) in ((2, 3), (3, 4), (3, 5), (4, 6)):
+        t.rgb[y, x] = shade(t.rgb[y, x], 0.8)
+    if star:
+        pts = {(7, 2), (8, 2), (7, 3), (8, 3), (6, 4), (7, 4), (8, 4), (9, 4), (2, 5), (3, 5), (4, 5), (5, 5), (6, 5), (7, 5),
+               (8, 5), (9, 5), (10, 5), (11, 5), (12, 5), (13, 5), (4, 6), (5, 6), (6, 6), (7, 6), (8, 6), (9, 6), (10, 6),
+               (11, 6), (5, 7), (6, 7), (7, 7), (8, 7), (9, 7), (10, 7), (5, 8), (6, 8), (7, 8), (8, 8), (9, 8), (10, 8),
+               (4, 9), (5, 9), (6, 9), (9, 9), (10, 9), (11, 9), (4, 10), (5, 10), (10, 10), (11, 10), (3, 11), (4, 11),
+               (11, 11), (12, 11)}
+        red = ramp('#4e1416', '#68191b', '#7e2023', '#93292a')
+        for (x, y) in pts:
+            k = 3 if (x < 8 and y < 7) else 2 if y < 9 else 1
+            t.rgb[y, x] = red[k]
+            t.height[y, x] = 175
+            t.rough[y, x] = 150
+        for (x, y) in pts:  # a 1-px drop shadow to the bottom right
+            if (x + 1, y + 1) not in pts and x + 1 < W and y + 1 < H:
+                t.rgb[y + 1, x + 1] = shade(t.rgb[y + 1, x + 1], 0.82)
+    return t
+
+
+def wall_yellow():
+    """The entrance hall's warm yellow painted plaster, rolled on thick, scuffed low down by strollers."""
+    seed = 2707
+    t = Tex(rough=200, height=150)
+    pal = ramp('#8a6a22', '#977529', '#a37f30', '#ae8936', '#b8933e')
+    n = fbm(W, H, seed, cells=(8, 4, 2), weights=(0.45, 0.35, 0.2))
+    wn = white(W, H, seed + 1)
+    v = norm01(0.62 * n + 0.38 * wn) * 0.9 + 0.05
+    t.rgb = quant(v, pal)
+    t.height = 140 + 25 * v
+    for (x, y) in ((3, 12), (4, 12), (5, 13), (11, 14), (12, 14)):
+        t.rgb[y, x] = mix(t.rgb[y, x], hexc('#4a3a1c'), 0.45)
+    return t
+
+
+def carpet_purple():
+    """Plum lobby carpet: a low cut pile in two shades of purple with a faint diamond weave, matted where
+    the queue stood."""
+    seed = 2808
+    t = Tex(rough=250, height=145)
+    pal = ramp('#2a1426', '#33192e', '#3c1e36', '#45233e', '#4e2846')
+    wn = white(W, H, seed)
+    n = tile_noise(W, H, 4, seed + 1)
+    weave = (((XX + YY) % 8 == 0) | ((XX - YY) % 8 == 0)) * 0.12
+    t.rgb = quant(np.clip(0.5 + 0.3 * (wn - 0.5) + 0.25 * (n - 0.5) + weave, 0, 0.999), pal)
+    t.height = 135 + 25 * wn
+    m = norm01(blur_wrap(white(W, H, seed + 2), 2)) > 0.8
+    t.rgb[m] = mix(t.rgb[m], hexc('#5a4256'), 0.25)
+    return t
+
+
+def cladding_teal():
+    """The street front's upper cladding: vertical standing-seam metal panels in faded teal, a seam every
+    4 px, rust weeping from the fixings, a pale chalky bloom."""
+    seed = 2909
+    t = Tex(rough=150, metal=110, height=140)
+    pal = ramp('#123a3a', '#174545', '#1c5050', '#235b5a', '#2b6764', '#33726d')
+    n = fbm(W, H, seed, cells=(8, 4), weights=(0.6, 0.4))
+    wn = white(W, H, seed + 1)
+    v = 0.5 + 0.3 * (n - 0.5) + 0.15 * (wn - 0.5)
+    t.rgb = quant(np.clip(v, 0, 0.999), pal)
+    for x in range(W):
+        if x % 4 == 0:
+            t.rgb[:, x] = shade(t.rgb[:, x], 0.72)
+            t.height[:, x] = 170
+        elif x % 4 == 1:
+            t.rgb[:, x] = shade(t.rgb[:, x], 1.12)
+            t.height[:, x] = 160
+    for x in (2, 10):
+        t.rgb[1, x] = hexc('#6a4a32')
+        for y in range(2, 6 + (x % 3)):
+            t.rgb[y, x] = mix(t.rgb[y, x], hexc('#6a4024'), 0.35)
+    bloom = wn > 0.9
+    t.rgb[bloom] = mix(t.rgb[bloom], hexc('#8aa6a0'), 0.25)
     return t
 
 
@@ -920,6 +1015,11 @@ ALL = {
     'curtain_star': curtain_star,
     'carpet_confetti': carpet_confetti,
     'wall_stripe': wall_stripe,
+    'soffit_cream': lambda: soffit(False),
+    'soffit_star': lambda: soffit(True),
+    'wall_yellow': wall_yellow,
+    'carpet_purple': carpet_purple,
+    'cladding_teal': cladding_teal,
     'door_shutter': lambda: door_shutter(False),
     'door_shutter_bottom': lambda: door_shutter(True),
 }

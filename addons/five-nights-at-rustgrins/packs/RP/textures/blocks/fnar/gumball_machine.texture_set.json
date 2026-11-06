@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "gumball_machine",
+    "metalness_emissive_roughness": "gumball_machine_mer",
+    "heightmap": "gumball_machine_height"
+  }
+}

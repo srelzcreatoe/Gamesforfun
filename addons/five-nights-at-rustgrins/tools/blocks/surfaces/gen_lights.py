@@ -445,6 +445,78 @@ def broken_lamp_texture():
     return t
 
 
+# ------------------------------------------------------------------ marquee bulbs and the stage lip (full cubes)
+def _round_lamp(t, cx, cy, rad, lit, core='#fff6dc', mid='#ffe2a0', rim='#d8a858', dead='#6b675e', seed=0):
+    """A round bulb / lens: bright core, warm ring, a dark socket ring; dead glass when unlit."""
+    wn = white(16, 16, seed)
+    for y in range(16):
+        for x in range(16):
+            d = ((x + 0.5 - cx) ** 2 + (y + 0.5 - cy) ** 2) ** 0.5
+            if d < rad - 1.4:
+                col, em = ((core, 255) if lit else (dead, 0))
+            elif d < rad - 0.6:
+                col, em = ((mid, 235) if lit else (shade(hexc(dead), 0.85), 0))
+            elif d < rad + 0.4:
+                col, em = ((rim, 160) if lit else ('#3a3630', 0))
+            else:
+                continue
+            c = hexc(col) if isinstance(col, str) else col
+            if not lit and wn[y, x] > 0.85:
+                c = shade(c, 0.8)  # dust on the dead glass
+            t.rgb[y, x] = c
+            t.emit[y, x] = em
+            t.rough[y, x] = 40
+            t.metal[y, x] = 0
+            t.height[y, x] = 200 if d < rad - 0.6 else 175
+    if lit:
+        t.rgb[int(cy - rad / 2), int(cx - rad / 2)] = hexc('#ffffff')
+
+
+def bulb_frame(lit):
+    """One block of the WELCOME arch's marquee frame: a painted teal-grey channel with a raised rim and one
+    big round bulb in the middle of every face (a row of bulbs whichever way the frame runs)."""
+    t = Tex(16, 16, rough=150, metal=60, height=150)
+    wn = white(16, 16, 6101)
+    base, hi, lo = hexc('#4f6a6c'), hexc('#6f8c8d'), hexc('#2f4244')
+    for y in range(16):
+        for x in range(16):
+            c = shade(base, 0.92 + 0.14 * wn[y, x])
+            if x in (0, 15) or y in (0, 15):
+                c = lo
+            elif x in (1, 14) or y in (1, 14):
+                c = hi
+            t.rgb[y, x] = c
+            t.height[y, x] = 165 if x in (1, 14) or y in (1, 14) else 140
+    for (x, y) in ((3, 3), (12, 3), (3, 12), (12, 12)):
+        t.rgb[y, x] = hexc('#8a8f8c')  # screws
+    _round_lamp(t, 8, 8, 4.2, lit, seed=6102)
+    return t
+
+
+def stage_lip(lit):
+    """The stage's curved front: lacquered dark wood with a round footlight let into it."""
+    t = stage_lip_side()
+    _round_lamp(t, 8, 8.5, 4.0, lit, core='#fff3d0', mid='#ffd890', rim='#9a7a3a', seed=6202)
+    return t
+
+
+def stage_lip_side():
+    t = Tex(16, 16, rough=120, metal=0, height=145)
+    wn = white(16, 16, 6201)
+    pal = ['#24160d', '#2c1b10', '#342114', '#3c2718']
+    for y in range(16):
+        for x in range(16):
+            k = int((wn[y, x] * 0.5 + ((x * 7 + y // 4 * 3) % 5) / 10) * 4) % 4
+            t.rgb[y, x] = hexc(pal[k])
+            if y in (0, 15):
+                t.rgb[y, x] = hexc('#4a3420')  # brass-capped edges
+                t.metal[y, x] = 180
+                t.rough[y, x] = 90
+            if y % 4 == 3 and y != 15:
+                t.rgb[y, x] = shade(t.rgb[y, x], 0.8)  # plank seams
+    return t
+
+
 def build():
     out = {}
     t = broken_lamp_texture()
@@ -463,6 +535,15 @@ def build():
         t = troffer(lit)
         t.save(n)
         out[n] = t
+    for lit in (True, False):
+        for name, fn in (('bulb_frame', bulb_frame), ('stage_lip', stage_lip)):
+            n = f'{name}_{"on" if lit else "off"}'
+            t = fn(lit)
+            t.save(n)
+            out[n] = t
+    t = stage_lip_side()
+    t.save('stage_lip_side')
+    out['stage_lip_side'] = t
     return out
 
 

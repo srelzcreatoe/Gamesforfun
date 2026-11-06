@@ -403,6 +403,17 @@
       ]
     }
   ],
+  "booth_seat": [
+    {
+      "label": "north",
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.4
+    }
+  ],
   "bunting": [
     {
       "label": "three in a row",
@@ -444,6 +455,17 @@
         0.1,
         -1
       ]
+    }
+  ],
+  "cafe_table": [
+    {
+      "label": "table",
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.2
     }
   ],
   "crt_monitor": [
@@ -593,6 +615,17 @@
         0
       ],
       "dist": 0.95
+    }
+  ],
+  "disco_ball": [
+    {
+      "label": "mirror ball",
+      "focus": [
+        0,
+        0.45,
+        0
+      ],
+      "dist": 1.6
     }
   ],
   "door_button": [
@@ -1171,6 +1204,17 @@
       "dist": 1.6
     }
   ],
+  "gumball_machine": [
+    {
+      "label": "gumballs",
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 1.7
+    }
+  ],
   "hanging_wires": [
     {
       "label": "bundle",
@@ -1691,6 +1735,60 @@
       ]
     }
   ],
+  "par_can": [
+    {
+      "label": "red on",
+      "states": {
+        "fnar:color": 0,
+        "fnar:lit": true
+      },
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 1.4
+    },
+    {
+      "label": "pink on",
+      "states": {
+        "fnar:color": 1,
+        "fnar:lit": true
+      },
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 1.4
+    },
+    {
+      "label": "blue on",
+      "states": {
+        "fnar:color": 2,
+        "fnar:lit": true
+      },
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 1.4
+    },
+    {
+      "label": "green on",
+      "states": {
+        "fnar:color": 3,
+        "fnar:lit": true
+      },
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 1.4
+    }
+  ],
   "parts_shelf": [
     {
       "label": "north",
@@ -2142,6 +2240,17 @@
         0.1,
         -1
       ]
+    }
+  ],
+  "popcorn_machine": [
+    {
+      "label": "popcorn",
+      "focus": [
+        0,
+        0.4,
+        0
+      ],
+      "dist": 1.5
     }
   ],
   "prize_case": [
@@ -2996,6 +3105,40 @@
       ]
     }
   ],
+  "stanchion": [
+    {
+      "label": "post",
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 1.6
+    }
+  ],
+  "star_chair": [
+    {
+      "label": "north",
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 1.9
+    },
+    {
+      "label": "back",
+      "states": {
+        "minecraft:cardinal_direction": "south"
+      },
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 1.9
+    }
+  ],
   "time_clock": [
     {
       "label": "north",
@@ -3201,6 +3344,17 @@
         0
       ],
       "dist": 1.9
+    }
+  ],
+  "velvet_rope": [
+    {
+      "label": "rope",
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 2.4
     }
   ],
   "vent_cover": [

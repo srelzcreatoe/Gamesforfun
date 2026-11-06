@@ -13,15 +13,16 @@ const N = (id, x, y, z, yaw, extra = {}) => Object.freeze({ id, x, y, z, yaw, ..
 
 export const NODES = Object.freeze(Object.fromEntries([
   // stage (performers stand on the 1-block stage)
-  N('ST_R', 38.5, 1, 4.5, 0, { pose: 'stage' }),
-  N('ST_M', 32.5, 1, 5.5, 0, { pose: 'stage' }),
-  N('ST_N', 44.5, 1, 5.5, 0, { pose: 'stage' }),
-  // the Dining Hall (party tables run N-S at x 21, 27, 33 | 44, 50, 56 between z 14 and 30, a carpet aisle x 35-42 between them)
-  N('DIN_FRONT', 38.5, 0, 12.0, 0),
-  N('DIN_NW', 18.0, 0, 11.5, -90),
+  N('ST_R', 38.5, 1, 6.0, 0, { pose: 'stage' }),
+  N('ST_M', 32.5, 1, 7.0, 0, { pose: 'stage' }),
+  N('ST_N', 44.5, 1, 7.0, 0, { pose: 'stage' }),
+  // the Dining Hall (party tables run N-S at x 27, 33 | 44, 50 between z 16 and 30, cafe tables at x 21 and 56, a checker aisle
+  // x 36-41 between them, a checker floor in front of the curved stage, booths along the east and south walls)
+  N('DIN_FRONT', 38.5, 0, 14.0, 0),
+  N('DIN_NW', 18.0, 0, 13.0, -90),
   N('DIN_W', 17.5, 0, 23.5, 135),
   N('DIN_C', 38.5, 0, 22.5, 0),
-  N('DIN_E', 54.5, 0, 12.0, 90),
+  N('DIN_E', 54.5, 0, 13.5, 90),
   N('DIN_SW', 29.5, 0, 32.0, 0),
   N('DIN_SE', 46.5, 0, 32.0, 0),
   N('DIN_CAB', 17.5, 0, 33.5, -90),
@@ -73,33 +74,33 @@ export const NODES = Object.freeze(Object.fromEntries([
 // Edges: [a, b, waypoints between a and b (excluding the endpoints)]. Bidirectional.
 const E = (a, b, via = []) => Object.freeze({ a, b, via: Object.freeze(via.map((p) => Object.freeze(p))) });
 export const EDGES = Object.freeze([
-  // stage <-> dining (step down off the stage front at z 9, under the proscenium header)
-  E('ST_R', 'DIN_FRONT', [[38.5, 1, 9.3], [38.5, 0, 10.4]]),
-  E('ST_M', 'DIN_FRONT', [[32.5, 1, 9.3], [32.5, 0, 10.4], [36.0, 0, 11.6]]),
-  E('ST_N', 'DIN_FRONT', [[44.5, 1, 9.3], [44.5, 0, 10.4], [41.0, 0, 11.6]]),
-  E('ST_M', 'DIN_NW', [[30.5, 1, 9.3], [30.0, 0, 10.4], [22.0, 0, 11.5]]),
-  E('ST_N', 'DIN_E', [[46.5, 1, 9.3], [47.0, 0, 10.4], [52.0, 0, 11.6]]),
-  E('ST_R', 'DIN_C', [[39.5, 1, 9.3], [40.0, 0, 10.4], [39.5, 0, 13.0]]),
-  // around the dining hall: the front zone (z 10-13), the side aisles, the carpet aisle and the south zone (z 31-37)
-  E('DIN_FRONT', 'DIN_NW', [[30.0, 0, 11.6], [22.0, 0, 11.6]]),
+  // stage <-> dining (down the steps in the middle of the curved stage lip at z 11)
+  E('ST_R', 'DIN_FRONT', [[38.5, 1, 10.3], [38.5, 0, 12.4]]),
+  E('ST_M', 'DIN_FRONT', [[32.5, 1, 10.3], [32.5, 0, 12.4], [36.0, 0, 13.6]]),
+  E('ST_N', 'DIN_FRONT', [[44.5, 1, 10.3], [44.5, 0, 12.4], [41.0, 0, 13.6]]),
+  E('ST_M', 'DIN_NW', [[30.5, 1, 10.3], [30.0, 0, 12.4], [22.0, 0, 13.0]]),
+  E('ST_N', 'DIN_E', [[46.5, 1, 10.3], [47.0, 0, 12.4], [52.0, 0, 13.4]]),
+  E('ST_R', 'DIN_C', [[39.5, 1, 10.3], [40.0, 0, 12.4], [39.5, 0, 15.0]]),
+  // around the dining hall: the front zone (z 12-15), the side aisles, the checker aisle and the south zone (z 31-35)
+  E('DIN_FRONT', 'DIN_NW', [[30.0, 0, 13.6], [22.0, 0, 13.2]]),
   E('DIN_FRONT', 'DIN_C'),
-  E('DIN_FRONT', 'DIN_E', [[48.0, 0, 11.6]]),
-  E('DIN_NW', 'DIN_W', [[17.5, 0, 17.0]]),
-  E('DIN_NW', 'BACK', [[16.0, 0, 11.5], [13.2, 0, 11.0], [9.0, 0, 9.0]]),
-  E('DIN_W', 'BACK', [[17.5, 0, 14.0], [16.0, 0, 11.5], [13.2, 0, 11.0], [9.0, 0, 9.0]]),
+  E('DIN_FRONT', 'DIN_E', [[48.0, 0, 13.6]]),
+  E('DIN_NW', 'DIN_W', [[17.5, 0, 18.0]]),
+  E('DIN_NW', 'BACK', [[16.0, 0, 12.0], [13.2, 0, 11.0], [9.0, 0, 9.0]]),
+  E('DIN_W', 'BACK', [[17.5, 0, 15.0], [16.0, 0, 12.0], [13.2, 0, 11.0], [9.0, 0, 9.0]]),
   E('DIN_W', 'DIN_CAB', [[17.5, 0, 28.0]]),
   E('DIN_W', 'DIN_SW', [[18.0, 0, 32.0]]),
   E('DIN_W', 'MW_GRATE', [[16.0, 0, 22.5], [11.4, 0, 23.0], [10.6, 1, 23.2]]),
   E('DIN_CAB', 'DIN_SW', [[20.0, 0, 32.5]]),
   E('DIN_CAB', 'CAB_OUT', []),
-  E('DIN_C', 'DIN_E', [[39.5, 0, 13.0], [48.0, 0, 11.8]]),
+  E('DIN_C', 'DIN_E', [[39.5, 0, 15.0], [48.0, 0, 13.6]]),
   E('DIN_C', 'DIN_SW', [[38.5, 0, 32.0]]),
   E('DIN_C', 'DIN_SE', [[38.5, 0, 32.0]]),
-  E('DIN_C', 'DIN_W', [[39.5, 0, 13.0], [30.0, 0, 11.6], [22.0, 0, 11.6], [17.5, 0, 17.0]]),
-  E('DIN_E', 'DIN_SE', [[57.5, 0, 13.0], [60.0, 0, 20.0], [60.0, 0, 31.0], [50.0, 0, 32.0]]),
+  E('DIN_C', 'DIN_W', [[39.5, 0, 15.0], [30.0, 0, 13.6], [22.0, 0, 13.4], [17.5, 0, 18.0]]),
+  E('DIN_E', 'DIN_SE', [[57.5, 0, 14.5], [60.0, 0, 20.0], [60.0, 0, 31.0], [50.0, 0, 32.0]]),
   E('DIN_SW', 'DIN_SE'),
-  E('DIN_E', 'KIT', [[61.0, 0, 10.4], [65.5, 0, 10.4]]),
-  E('DIN_E', 'REST', [[57.5, 0, 13.0], [60.0, 0, 19.5], [62.0, 0, 20.0], [66.5, 0, 20.0]]),
+  E('DIN_E', 'KIT', [[61.0, 0, 10.6], [65.5, 0, 10.4]]),
+  E('DIN_E', 'REST', [[57.5, 0, 14.5], [60.0, 0, 19.5], [62.0, 0, 20.0], [66.5, 0, 20.0]]),
   E('KIT', 'REST', [[65.5, 0, 10.4], [61.0, 0, 10.4], [60.0, 0, 15.0], [60.0, 0, 19.5], [62.0, 0, 20.0], [66.5, 0, 20.0]]),
   E('REST', 'DIN_SE', [[66.5, 0, 20.0], [62.0, 0, 20.0], [60.0, 0, 21.0], [60.0, 0, 31.0], [50.0, 0, 32.0]]),
   E('KIT', 'DIN_SE', [[65.5, 0, 10.4], [61.0, 0, 10.4], [60.0, 0, 18.0], [60.0, 0, 31.0], [50.0, 0, 32.0]]),

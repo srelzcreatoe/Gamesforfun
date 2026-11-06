@@ -15,7 +15,15 @@
           4,
           5,
           6,
-          7
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
         ]
       },
       "traits": {
@@ -187,6 +195,94 @@
           "minecraft:material_instances": {
             "*": {
               "texture": "fnar_neon_sign_23",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:tile') == 8",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_neon_sign_24",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:tile') == 9",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_neon_sign_25",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:tile') == 10",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_neon_sign_26",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:tile') == 11",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_neon_sign_27",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:tile') == 12",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_neon_sign_28",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:tile') == 13",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_neon_sign_29",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:tile') == 14",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_neon_sign_30",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:tile') == 15",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_neon_sign_31",
               "render_method": "alpha_test"
             }
           }

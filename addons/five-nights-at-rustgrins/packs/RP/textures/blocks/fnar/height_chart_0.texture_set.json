@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "height_chart_0",
+    "metalness_emissive_roughness": "height_chart_0_mer",
+    "heightmap": "height_chart_0_height"
+  }
+}

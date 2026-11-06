@@ -18,9 +18,9 @@ const C = (id, label, room, loc, look, sees, extra = {}) => Object.freeze({
 
 export const CAMERAS = Object.freeze([
   // under the hall's ceiling, straight down the carpet aisle at the band under the proscenium
-  C('1A', 'CAM 1A · SHOW STAGE', 'DINING', [38.5, 9.4, 19.6], [38.5, 2.2, 4.5], ['ST_R', 'ST_M', 'ST_N', 'DIN_FRONT'], { mount: [38, 9, 20, 'n', 'ceiling'] }),
+  C('1A', 'CAM 1A · SHOW STAGE', 'DINING', [38.5, 8.4, 19.6], [38.5, 2.2, 6.5], ['ST_R', 'ST_M', 'ST_N', 'DIN_FRONT'], { mount: [38, 8, 20, 'n', 'ceiling'] }),
   // high in the hall's south-east corner, over the whole room
-  C('1B', 'CAM 1B · DINING AREA', 'DINING', [61.5, 9.35, 37.0], [42.8, 1.2, 20.4], ['DIN_NW', 'DIN_W', 'DIN_C', 'DIN_E', 'DIN_SW', 'DIN_SE', 'DIN_FRONT'], { mount: [61, 9, 37, 'n'] }),
+  C('1B', 'CAM 1B · DINING AREA', 'DINING', [61.5, 8.35, 37.0], [42.7, 1.0, 20.5], ['DIN_NW', 'DIN_W', 'DIN_C', 'DIN_E', 'DIN_SW', 'DIN_SE', 'DIN_FRONT'], { mount: [61, 8, 37, 'n'] }),
   // inside the Grand Marquee, high in the corner by the curtains, looking down on his spot and the gap he peeks through
   C('1C', 'CAM 1C · GRAND MARQUEE', 'CABARET', [13.5, 6.35, 30.0], [11.2, 3.05, 34.1], ['CAB', 'CAB_PEEK'], { mount: [13, 6, 29, 's'] }),
   C('2A', 'CAM 2A · WEST HALL', 'WEST_HALL', [27.5, 5.35, 40.0], [27.5, 0.0, 52.0], ['WH_N', 'WH_M', 'WH_S'], { mount: [27, 5, 39, 's'] }),

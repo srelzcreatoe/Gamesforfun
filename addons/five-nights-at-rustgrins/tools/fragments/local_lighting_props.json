@@ -31,6 +31,10 @@
     "light_color": "#e8eeff",
     "light_type": "static_light"
   },
+  "fnar:par_can": {
+    "light_color": "#ffe0c8",
+    "light_type": "point_light"
+  },
   "fnar:show_tape": {
     "light_color": "#c8ff6a",
     "light_type": "static_light"

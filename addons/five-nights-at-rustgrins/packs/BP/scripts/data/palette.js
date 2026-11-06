@@ -66,6 +66,8 @@ export const PALETTE = Object.freeze({
   dead_bush: M('deadbush'), jukebox: M('jukebox'), chiseled_quartz: M('chiseled_quartz_block', { pillar_axis: 'y' }),
   pink_glass: M('pink_stained_glass'), mic_stand: M('lightning_rod', { facing_direction: 1, powered_bit: false }),
   neon_rod_z: M('end_rod', { facing_direction: 3 }), // a white neon tube along z (the facade's outline)
+  cut_sandstone: M('cut_sandstone'), dark_prismarine: M('dark_prismarine'), window_cyan: M('cyan_stained_glass_pane'),
+  dark_oak_log_x: M('dark_oak_log', { pillar_axis: 'x' }), dark_oak_log_z: M('dark_oak_log', { pillar_axis: 'z' }),
   ...Object.fromEntries(['n', 's', 'w', 'e'].map((f) => [`dropper_${f}`, M('dropper', { facing_direction: { n: 2, s: 3, w: 4, e: 5 }[f], triggered_bit: false })])),
   ...Object.fromEntries(Object.entries({ n: 'north', s: 'south', w: 'west', e: 'east' }).map(([k, d]) => [`lectern_${k}`, M('lectern', { 'minecraft:cardinal_direction': d, powered_bit: false })])),
   red_t: M('red_terracotta'), black_t: M('black_terracotta'), gray_t: M('gray_terracotta'), white_t: M('white_terracotta'),
@@ -111,6 +113,10 @@ export const PALETTE = Object.freeze({
   ceiling: F('ceiling_tile'), ceiling_stained: F('ceiling_tile_stained'), ceiling_dark: F('ceiling_dark'),
   carpet: F('carpet_party'), curtain_purple: F('curtain_purple'), curtain_red: F('curtain_red'), tent: F('tent_stripe'),
   curtain_star: F('curtain_star'), carpet_confetti: F('carpet_confetti'), wall_stripe: F('wall_stripe'),
+  soffit_cream: F('soffit_cream'), soffit_star: F('soffit_star'), wall_yellow: F('wall_yellow'), carpet_purple: F('carpet_purple'),
+  cladding_teal: F('cladding_teal'),
+  bulb_on: F('bulb_frame', { 'fnar:lit': true }), bulb_off: F('bulb_frame', { 'fnar:lit': false }),
+  ...cardStates('lip', 'stage_lip', 'fnar:lit', [true, false]), // the stage's curved front with a round footlight
   duct: F('duct_metal'), stage_floor: F('stage_floor'),
   shutter: F('door_shutter', { 'fnar:part': 0 }), shutter_bottom: F('door_shutter', { 'fnar:part': 1 }),
   lamp_on: F('ceiling_lamp', { 'fnar:lit': true }), lamp_off: F('ceiling_lamp', { 'fnar:lit': false }),
@@ -149,6 +155,10 @@ export const PALETTE = Object.freeze({
   ...card('wetsign', 'wet_floor_sign'),
   ...card('mop', 'mop_bucket'),
   ...card('trash', 'trash_can'),
+  ...card('starchair', 'star_chair'), cafe_table: F('cafe_table'), ...card('booth', 'booth_seat'), disco_ball: F('disco_ball'),
+  stanchion: F('stanchion'), ...card('rope', 'velvet_rope'), ...card('popcorn', 'popcorn_machine'), gumball: F('gumball_machine'),
+  ...Object.fromEntries(['red', 'pink', 'blue', 'green'].flatMap((c, i) => [true, false].flatMap((lit) => Object.entries(CARD).map(([k, v]) =>
+    [`par_${c}_${lit}_${k}`, F('par_can', { 'minecraft:cardinal_direction': v, 'fnar:color': i, 'fnar:lit': lit })])))),
   ...card('shelf', 'parts_shelf'),
   ...card('toilet', 'toilet'),
   ...card('sink', 'sink'),
@@ -197,13 +207,15 @@ export const PICTURES = Object.freeze({
   poster_auction: [2, 3], poster_torn: [2, 2], lot_tag: [1, 1], wall_writing: [4, 2],
   neon_sign: [3, 1], play_net: [1, 1],
   sign_stage: [10, 3], sign_facade: [12, 4], menu_board: [4, 2],
+  sign_welcome: [9, 2], sign_mascot: [6, 6], height_chart: [1, 3], token_prices: [2, 2],
 });
 /** Variant counts for 1x1 pictures that use fnar:tile as a variant index (wall_writing: several pictures in one block). */
-export const PICTURE_VARIANTS = Object.freeze({ drawing: 6, sign_staff: 4, lot_tag: 6, wall_writing: 16, neon_sign: 24, play_net: 2 });
+export const PICTURE_VARIANTS = Object.freeze({ drawing: 6, sign_staff: 4, lot_tag: 6, wall_writing: 16, neon_sign: 35, play_net: 2 });
 /** neon_sign tiles: the first tile of each sign and its size. */
 export const NEON = Object.freeze({
   funzone: [0, 3, 1], prizes: [3, 3, 1], party: [6, 2, 1], pizza: [8, 2, 1], games: [10, 2, 1], star: [12, 1, 1], slice: [13, 1, 1],
   skeeball: [14, 4, 1], tokens: [18, 3, 1], tickets: [21, 3, 1],
+  showtime: [24, 4, 1], arcade: [28, 3, 1], restrooms: [31, 4, 1],
 });
 /** wall_writing tiles: the first tile of each picture and its size (tiles run row-major from the top-left). */
 export const WRITING = Object.freeze({ show: [0, 4, 2], name: [8, 3, 2], tally: [14, 1, 1], scratches: [15, 1, 1] });

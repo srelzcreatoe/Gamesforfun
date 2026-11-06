@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "par_can_red_on",
+    "metalness_emissive_roughness": "par_can_red_on_mer",
+    "heightmap": "par_can_red_on_height"
+  }
+}

@@ -41,7 +41,7 @@ export const ROOMS = Object.freeze([
   R('BACKSTAGE', 'Backstage', [1, 1, 13, 13], 6, 'backstage'),
   R('MIDWAY', 'Midnight Midway', [1, 15, 13, 27], 7, 'midway'),
   R('CABARET', 'The Grand Marquee', [4, 29, 13, 37], 7, 'cabaret'), // the Ringmaster's curtained side stage (once Kitty's Cabaret)
-  R('DINING', 'Dining Hall', [15, 1, 62, 37], 10, 'dining'), // the grand hall: the band's stage under a proscenium
+  R('DINING', 'Dining Hall', [15, 1, 62, 37], 9, 'dining'), // the showroom: the band's curved stage under a starry soffit
   // the kitchen, the restrooms and the entrance hall keep their own wall layer (x 64): the hall's east wall stays its own
   R('KITCHEN', 'Kitchen', [65, 1, 80, 13], 6, 'kitchen'),
   R('RESTROOMS', 'Restrooms', [65, 15, 68, 25], 6, 'restroom'),
@@ -79,8 +79,9 @@ export const OPENINGS = Object.freeze([
   O('restroom_door', 'DINING', 'RESTROOMS', [63, 0, 19, 64, 2, 21], 'door'),
   O('mens_door', 'RESTROOMS', 'MENS', [69, 0, 17, 69, 2, 17], 'door'),
   O('womens_door', 'RESTROOMS', 'WOMENS', [69, 0, 23, 69, 2, 23], 'door'),
-  O('foyer_arch', 'DINING', 'FOYER', [63, 0, 30, 64, 4, 36]),
-  O('front_doors', 'FOYER', 'OUTSIDE', [99, 0, 32, 99, 2, 36], 'glass_door'),
+  O('foyer_arch', 'DINING', 'FOYER', [63, 0, 31, 64, 2, 35], 'welcome'), // the WELCOME arch (its rounded top is cut by the build plan)
+  O('front_doors', 'FOYER', 'OUTSIDE', [99, 0, 34, 99, 2, 37], 'glass_door'),
+  O('arcade_arch', 'DINING', 'GAMEROOM', [55, 0, 38, 58, 2, 42]), // under the red ARCADE neon
   O('prize_door', 'FOYER', 'PRIZE', [87, 0, 26, 93, 2, 26]),
   O('gameroom_arch', 'FOYER', 'GAMEROOM', [67, 0, 42, 76, 3, 42]),
   O('funzone_arch', 'FOYER', 'FUNZONE', [86, 0, 42, 92, 3, 42]),
@@ -159,7 +160,16 @@ export const DUCTS = Object.freeze({
 // ---------------------------------------------------------------- stages and props the game animates
 // The band's stage: boards at y = 0 over x 23..54, z 1..8, a step along the front (z 9); performers stand at y = 1.
 // A proscenium frames it (pillars at x 21..22 / 55..56, the header with the big sign at y 7..9, z 10).
-export const STAGE = Object.freeze({ box: Object.freeze([23, 1, 54, 9]), topY: 0, proscenium: Object.freeze({ x1: 21, x2: 56, z: 10, y1: 7, y2: 9 }) });
+// The band's stage: boards at y = 0 over x 23..54 from the backdrop (z 1) to a curved front lip (z 9 at the
+// ends, 11 across the middle: STAGE.front[x]); performers stand at y = 1. Red drapes hang at x 22 and 55, a
+// cream soffit with red stars follows the lip at y 7..8, the big sign hangs on it.
+const STAGE_FRONT = Object.freeze(Object.fromEntries(Array.from({ length: 32 }, (_, i) => {
+  const x = 23 + i;
+  return [x, x <= 24 || x >= 53 ? 9 : x <= 27 || x >= 50 ? 10 : 11];
+})));
+export const STAGE = Object.freeze({ box: Object.freeze([23, 1, 54, 11]), topY: 0, front: STAGE_FRONT, drapes: Object.freeze([22, 55]), soffit: Object.freeze({ y1: 7, y2: 8 }) });
+/** The round drum in the showroom ceiling (a raised recess, a ring of PAR cans, the mirror ball in the middle). */
+export const DRUM = Object.freeze({ cx: 38.5, cz: 27.5, r: 4.6 });
 export const MIDWAY_RING = Object.freeze({ cx: 6, cz: 21, r: 4, topY: 0 });
 export const SHOW_TAPE = Object.freeze({ x: 10, y: 0, z: 26, dir: 'n' }); // on the floor by the Midway's south wall, facing the room
 // Kitty's Cabaret is the Ringmaster's stage now, the Grand Marquee: its curtains are parted for good, so
@@ -193,4 +203,4 @@ export const DAY_LIGHTS = Object.freeze([
   ...[86, 94].flatMap((x) => [8, 20].map((z) => DL(x, 4, z, 12))),
 ]);
 
-export const SPAWN_OUTSIDE = Object.freeze({ x: 116.5, y: 0, z: 34.5, yaw: 90 }); // the parking lot, facing the front doors (west)
+export const SPAWN_OUTSIDE = Object.freeze({ x: 116.5, y: 0, z: 35.5, yaw: 90 }); // the parking lot, facing the front doors (west)

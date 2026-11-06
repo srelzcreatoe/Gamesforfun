@@ -20,7 +20,7 @@
       "minecraft:destructible_by_mining": {
         "seconds_to_destroy": 1.0
       },
-      "minecraft:map_color": "#222026"
+      "minecraft:map_color": "#26242a"
     }
   }
 }

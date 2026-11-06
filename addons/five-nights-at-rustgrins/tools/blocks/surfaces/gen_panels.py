@@ -585,6 +585,120 @@ def menu_board():
     return c
 
 
+def sign_welcome():
+    """WELCOME over the entrance arch: fat purple letters, cut from board with a lighter bevel and a dark
+    edge, set along a gentle curve; the wall shows through around them."""
+    from font import render
+    c = _transparent(144, 32, rough=170, height=150)
+    face, hi, lo, edge = hexc('#5c2c72'), hexc('#7e4a94'), hexc('#3e1c4e'), hexc('#24102e')
+    word = 'WELCOME'
+    def bold(m):
+        m = np.kron(m, np.ones((3, 3), bool))
+        out = np.zeros((m.shape[0] + 1, m.shape[1] + 2), bool)
+        for dx in (0, 1, 2):
+            for dy in (0, 1):
+                out[dy:dy + m.shape[0], dx:dx + m.shape[1]] |= m
+        return out
+    masks = [bold(render(ch, font='tall')) for ch in word]
+    total = sum(m.shape[1] for m in masks) + 2 * (len(word) - 1)
+    x = (c.w - total) // 2
+    for i, m in enumerate(masks):
+        h, w = m.shape
+        t = (i - (len(word) - 1) / 2) / ((len(word) - 1) / 2)
+        y = 2 + int(round(6 * t * t))  # the outer letters sit lower: an arc over the arch
+        for yy, xx in zip(*np.nonzero(m)):
+            X, Y = x + xx, y + yy
+            top = yy == 0 or not m[yy - 1, xx]
+            left = xx == 0 or not m[yy, xx - 1]
+            bot = yy == h - 1 or not m[yy + 1, xx]
+            right = xx == w - 1 or not m[yy, xx + 1]
+            col = hi if (top or left) else lo if (bot or right) else face
+            c.px(X, Y, col, rough=150, height=200 if (top or left) else 185)
+            if Y + 1 < c.h and not (yy + 1 < h and m[yy + 1, xx]):
+                c.px(X + 1, Y + 1, edge, rough=200, height=160)  # the letter's thickness
+        x += w + 2
+    return c
+
+
+def sign_mascot():
+    """The big street sign's mascot: Rustgrin in his red top hat, waving, cut out of board and outlined in
+    neon (a warm white tube), glowing eyes."""
+    from sprites import emissive_keys, sprite
+    s = sprite('rustgrin_wave', ('rustgrin_wave',))
+    rgb, mask = s['rgb'], s['mask']
+    eyes = emissive_keys('rustgrin_wave')
+    k = 4
+    h, w = mask.shape
+    c = _transparent(96, 96, rough=160, height=150)
+    big = np.kron(mask, np.ones((k, k), bool))
+    H, Wd = big.shape
+    x0, y0 = (96 - Wd) // 2, 96 - H - 2
+    # a two-pixel neon outline around the cut-out
+    pad = np.zeros((H + 6, Wd + 6), bool)
+    pad[3:-3, 3:-3] = big
+    ring = np.zeros_like(pad)
+    for dx in range(-2, 3):
+        for dy in range(-2, 3):
+            if abs(dx) + abs(dy) <= 2:
+                ring |= np.roll(np.roll(pad, dy, 0), dx, 1)
+    ring &= ~pad
+    for yy, xx in zip(*np.nonzero(ring)):
+        X, Y = x0 + xx - 3, y0 + yy - 3
+        inner = any(0 <= yy + dy < pad.shape[0] and 0 <= xx + dx < pad.shape[1] and pad[yy + dy, xx + dx]
+                    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+        c.px(X, Y, '#fff0c8' if inner else '#e8a85a', emit=255 if inner else 120, rough=50, height=200)
+    for yy in range(h):
+        for xx in range(w):
+            if not mask[yy, xx]:
+                continue
+            col = rgb[yy, xx]
+            e = 255 if (yy < eyes.shape[0] and xx < eyes.shape[1] and eyes[yy, xx]) else None
+            for dy in range(k):
+                for dx in range(k):
+                    shadeK = 1.08 if (dx == 0 or dy == 0) else 0.94 if (dx == k - 1 or dy == k - 1) else 1.0
+                    c.px(x0 + xx * k + dx, y0 + yy * k + dy, np.clip(col * shadeK, 0, 255), emit=e, rough=170, height=170)
+    return c
+
+
+def height_chart():
+    """CHECK FIRST: a cardboard height chart by the arch: a ruler down one side, FUN! at the top, balloons."""
+    c = Canvas(16, 48, rough=230)
+    c.noise_fill(['#c9c19a', '#d2caa4', '#dad2ad'], 4401, amt=0.6)
+    c.rect(0, 0, 16, 9, '#2a6a3a')
+    c.text('FUN', 0, 2, '#f0dc60', center='c', shadow='#183a20')
+    for y in range(11, 46, 2):
+        c.px(1, y, '#3a3226')
+        if y % 6 == 5:
+            c.px(2, y, '#3a3226'); c.px(3, y, '#3a3226')
+    for (x, y, col) in [(8, 34, '#c23a3a'), (11, 33, '#3a6ad0'), (9, 37, '#d8b43a'), (12, 38, '#3aa856'), (6, 39, '#9a4ac8'),
+                        (10, 41, '#e0782a')]:
+        for dx, dy in ((0, 0), (1, 0), (0, 1), (1, 1), (0, -1), (1, -1)):
+            c.px(x + dx, y + dy, col)
+        c.px(x, y + 2, '#5a5248')
+    c.text('ANY', 0, 14, '#3a2a6a', center='c')
+    c.text('SIZE', 0, 21, '#3a2a6a', condensed=True, center='c')
+    _border(c, '#8a7a50')
+    c.age(4402, fade=0.12, stains=1, dirt=0.12, torn=(('br', 2),))
+    return c
+
+
+def token_prices():
+    """The token counter's price board: four red strips, the best deal last."""
+    c = Canvas(32, 32, rough=200)
+    c.noise_fill(['#c8bfa0', '#d0c7a8'], 4501, amt=0.5)
+    c.rect(1, 1, 31, 7, '#2a2a5a')
+    c.text('TOKENS', 0, 2, '#f0dc60', condensed=True, center='c')
+    for i, price in enumerate(('1.99', '2.99', '3.99', '6.99')):
+        y = 9 + i * 6
+        c.rect(1, y, 31, y + 5, '#9a2a2a' if i < 3 else '#2a2a5a')
+        c.text(str(i + 1) if i < 3 else '!', 2, y, '#f4e8c8')
+        from font import render
+        pw = render(price).shape[1]
+        c.text(price, 30 - pw, y, '#f4e8c8')
+    c.age(4502, fade=0.08, stains=0, dirt=0.1)
+    return c
+
+
 def sign_out_of_order():
     c = Canvas(32, 16, rough=245)
     c.a[:] = 0
@@ -937,7 +1051,8 @@ def _neon_slice(c, core, glow):
 
 def neon_sign():
     """One block, 24 tiles: FUN ZONE (3x1), PRIZES (3x1), PARTY (2x1), PIZZA (2x1), GAMES (2x1), a star, a slice,
-    SKEE-BALL (4x1), TOKENS (3x1), TICKETS (3x1)."""
+    SKEE-BALL (4x1), TOKENS (3x1), TICKETS (3x1),
+    SHOWTIME! (4x1), ARCADE (3x1), RESTROOMS (4x1)."""
     return [(_neon_panel(48, 'FUN ZONE', '#7ff6e8', '#1fd0c0', dead=(5,)), 3, 1),
             (_neon_panel(48, 'PRIZES', '#ffe27a', '#e0a020', dead=(4,), spacing=3), 3, 1),
             (_neon_panel(32, 'PARTY', '#ff6fb5', '#ff2f8e', dead=()), 2, 1),
@@ -947,7 +1062,10 @@ def neon_sign():
             (_neon_panel(16, '', '#ffd27a', '#ff8a3a', icon=_neon_slice), 1, 1),
             (_neon_panel(64, 'SKEE-BALL', '#7ab8ff', '#2f6fe0', dead=(7,)), 4, 1),
             (_neon_panel(48, 'TOKENS', '#ffe27a', '#e0a020', dead=()), 3, 1),
-            (_neon_panel(48, 'TICKETS', '#ff8a3a', '#ff4a1a', dead=(2,)), 3, 1)]
+            (_neon_panel(48, 'TICKETS', '#ff8a3a', '#ff4a1a', dead=(2,)), 3, 1),
+            (_neon_panel(64, 'SHOWTIME!', '#ff5a5a', '#e01a2a', dead=()), 4, 1),
+            (_neon_panel(48, 'ARCADE', '#ff4a4a', '#d0101a', dead=(3,)), 3, 1),
+            (_neon_panel(64, 'RESTROOMS', '#7aff8a', '#20c040', dead=(5,)), 4, 1)]
 
 
 def play_net(i):
@@ -985,6 +1103,10 @@ PANELS = {
     'sign_stage': (sign_stage, 10, 3),
     'sign_facade': (sign_facade, 12, 4),
     'menu_board': (menu_board, 4, 2),
+    'sign_welcome': (sign_welcome, 9, 2),
+    'sign_mascot': (sign_mascot, 6, 6),
+    'height_chart': (height_chart, 1, 3),
+    'token_prices': (token_prices, 2, 2),
     'poster_auction': (poster_auction, 2, 3),
     'poster_torn': (poster_torn, 2, 2),
 }

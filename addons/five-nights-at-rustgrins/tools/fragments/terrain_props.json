@@ -29,8 +29,14 @@
   "fnar_boarded_planks": {
     "textures": "textures/blocks/fnar/boarded_planks"
   },
+  "fnar_booth_seat": {
+    "textures": "textures/blocks/fnar/booth_seat"
+  },
   "fnar_bunting": {
     "textures": "textures/blocks/fnar/bunting"
+  },
+  "fnar_cafe_table": {
+    "textures": "textures/blocks/fnar/cafe_table"
   },
   "fnar_crt_monitor": {
     "textures": "textures/blocks/fnar/crt_monitor"
@@ -49,6 +55,9 @@
   },
   "fnar_desk_phone_ringing": {
     "textures": "textures/blocks/fnar/desk_phone_ringing"
+  },
+  "fnar_disco_ball": {
+    "textures": "textures/blocks/fnar/disco_ball"
   },
   "fnar_door_button": {
     "textures": "textures/blocks/fnar/door_button"
@@ -98,6 +107,9 @@
   "fnar_guitar_amp": {
     "textures": "textures/blocks/fnar/guitar_amp"
   },
+  "fnar_gumball_machine": {
+    "textures": "textures/blocks/fnar/gumball_machine"
+  },
   "fnar_hanging_wires": {
     "textures": "textures/blocks/fnar/hanging_wires"
   },
@@ -118,6 +130,30 @@
   },
   "fnar_pa_speaker": {
     "textures": "textures/blocks/fnar/pa_speaker"
+  },
+  "fnar_par_can_blue_off": {
+    "textures": "textures/blocks/fnar/par_can_blue_off"
+  },
+  "fnar_par_can_blue_on": {
+    "textures": "textures/blocks/fnar/par_can_blue_on"
+  },
+  "fnar_par_can_green_off": {
+    "textures": "textures/blocks/fnar/par_can_green_off"
+  },
+  "fnar_par_can_green_on": {
+    "textures": "textures/blocks/fnar/par_can_green_on"
+  },
+  "fnar_par_can_pink_off": {
+    "textures": "textures/blocks/fnar/par_can_pink_off"
+  },
+  "fnar_par_can_pink_on": {
+    "textures": "textures/blocks/fnar/par_can_pink_on"
+  },
+  "fnar_par_can_red_off": {
+    "textures": "textures/blocks/fnar/par_can_red_off"
+  },
+  "fnar_par_can_red_on": {
+    "textures": "textures/blocks/fnar/par_can_red_on"
   },
   "fnar_parts_shelf": {
     "textures": "textures/blocks/fnar/parts_shelf"
@@ -166,6 +202,9 @@
   },
   "fnar_plush_wall": {
     "textures": "textures/blocks/fnar/plush_wall"
+  },
+  "fnar_popcorn_machine": {
+    "textures": "textures/blocks/fnar/popcorn_machine"
   },
   "fnar_prize_case": {
     "textures": "textures/blocks/fnar/prize_case"
@@ -224,6 +263,12 @@
   "fnar_stage_truss": {
     "textures": "textures/blocks/fnar/stage_truss"
   },
+  "fnar_stanchion": {
+    "textures": "textures/blocks/fnar/stanchion"
+  },
+  "fnar_star_chair": {
+    "textures": "textures/blocks/fnar/star_chair"
+  },
   "fnar_time_clock": {
     "textures": "textures/blocks/fnar/time_clock"
   },
@@ -232,6 +277,9 @@
   },
   "fnar_trash_can": {
     "textures": "textures/blocks/fnar/trash_can"
+  },
+  "fnar_velvet_rope": {
+    "textures": "textures/blocks/fnar/velvet_rope"
   },
   "fnar_vent_cover": {
     "textures": "textures/blocks/fnar/vent_cover"
