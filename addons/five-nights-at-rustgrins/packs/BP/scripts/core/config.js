@@ -71,6 +71,17 @@ export const CONFIG = Object.freeze({
       door: 'DOOR_L', retreat: Object.freeze(['DIN_W', 'BACK', 'WH_N', 'DIN_NW']),
       hold: (a) => Math.max(60, 200 - 6 * a), // ticks he lingers at a shut door before giving up
       enterDelay: 30, // after he decides to come in, a moment before the office belongs to him
+      // the smarter half (see door_stalker.js). Mirehop is erratic: odd hops, fake-outs, slipping away.
+      erratic: 0.3, // chance a hunting step is a random hop instead of the planned one
+      dash: 0.3, // while the guard is on the cameras, chance a hunting step is a quick double hop
+      slip: true, // stared at too long on a camera, he slips out of the frame behind the static
+      linger: 0.5, // chance giving up at a shut door is a fake-out: he waits just out of the light
+      lingerMax: 260, // ticks he lingers in the corner before leaving for real
+      stalkMax: 240, // ticks he waits at the corner for a good moment before stepping in anyway
+      eagerFor: 700, // ticks after being turned away that he hunts again sooner
+      busyBonus: 4, // entry-roll bonus while the guard is on the cameras
+      wary: 100, // ticks after a light check on his side that he waits it out instead of coming in
+      entryGrace: 70, // ticks from his arrival in the doorway (and its tell) to his first try at an open door
     }),
     noxbriar: Object.freeze({
       mo: 100, start: 'ST_N', side: 'R',
@@ -92,6 +103,10 @@ export const CONFIG = Object.freeze({
       hold: (a) => Math.max(60, 200 - 6 * a),
       enterDelay: 30,
       kitchenHum: 0.6, // chance her humming plays from the kitchen when she arrives there
+      // Noxbriar is patient and quiet: few odd hops, a long wait for the right moment, a soft hum.
+      erratic: 0.06, dash: 0, slip: false,
+      linger: 0.3, lingerMax: 320, stalkMax: 360, eagerFor: 900, busyBonus: 3, wary: 140, entryGrace: 70,
+      hallHum: 0.55, // chance she hums softly as she comes down the East Hall
     }),
     rustgrin: Object.freeze({
       mo: 60, start: 'ST_R', side: 'R',
@@ -100,6 +115,12 @@ export const CONFIG = Object.freeze({
       repelTo: 'EH_N',
       enterAfter: 60, // ticks of the guard on the cameras (not on 4B) with the right door open
       laughChance: 0.7,
+      // camera-shy and patient (see rustgrin.js)
+      blinkAfter: 40, // a stare at least this long...
+      blinkChance: (a) => Math.min(0.75, a / 24), // ...and the moment the guard looks away he may move at once
+      blinkCooldown: 500,
+      hotStop: 0.55, // a route stop the guard watches this much is skipped when a darker way exists
+      patience: 360, // after the door turns him away he waits this long before coming again
     }),
     cat: Object.freeze({
       // Dances on the Midway ring with the Purple Rat while the show tape plays. Stage 0 dancing,
@@ -125,6 +146,8 @@ export const CONFIG = Object.freeze({
       twitch: 0.15, // chance an opportunity sends him one node BACK instead
       grace: (a) => Math.max(70, 170 - 4 * a), // ticks at the vent before he drops in
       retreatIndex: 2, // after banging on a shut vent he crawls back to this index of his route
+      nervousAfter: 50, // stared at this long in a duct, he squeaks and backs off a section
+      switchAfter: 2, // turned away this many times on one side, he tries the other duct
     }),
     top_hat_rat: Object.freeze({
       // The Ringmaster. Nights 1-5: stands on his stage, the Grand Marquee (CAM 1C), and never moves.
@@ -204,6 +227,44 @@ export const CONFIG = Object.freeze({
     Object.freeze({ id: 'curtain_call', title: 'Curtain Call', ai: { mirehop: 10, noxbriar: 10, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 15 } }),
     Object.freeze({ id: 'showstopper', title: 'SHOWSTOPPER (20/20/20/20/20/20)', ai: { mirehop: 20, noxbriar: 20, rustgrin: 20, cat: 20, purple_rat: 20, top_hat_rat: 20 } }),
   ]),
+
+  // What the animatronics notice about the guard (core/ai/guard_model.js) and how they plan
+  // their way to the office (core/ai/graph.js: weighted shortest paths over the route graph).
+  brain: Object.freeze({
+    campWindow: 400, // ticks over which door / vent / monitor habits are averaged
+    camp: 0.55, // a door (or vent) shut this much of the time counts as camped
+    gapStart: 700, // assumed ticks between hall-light checks before any are seen
+    gapAlpha: 0.35, // how fast the learned rhythm follows the guard's checks
+    quietTicks: 60, // with no rhythm learnt yet, this long without a light check is a good moment
+    afterCheck: 0.45, // a light check just ended: safe for this fraction of the usual gap...
+    overdue: 1.6, // ...and again once the guard is this far past it (they stopped checking)
+    heatTau: 600, // camera attention fades over ~30 s
+    heatFull: 120, // attention that counts as "always watched"
+    freezeMax: 160, // an opportunity won while watched waits this long for the guard to look away
+    hearSteps: 30, // footsteps carry this many blocks from the office doors
+    // path costs (in blocks of extra walking)
+    watchedCost: 60, // a node on the live camera
+    heatCost: 30, // x attention (0..1)
+    litCost: 80, // a node within `lightReach` of a lit hall light
+    lightReach: 12,
+    crowdCost: 25, // another animatronic is standing there
+    otherSideCost: 150, // the other half of the building
+  }),
+
+  // The director (core/ai/director.js): pressure by projected power, slots, spacing, pincer.
+  director: Object.freeze({
+    evalEvery: 100,
+    judgeAfter: 0.12, // fraction of the night before the guard's power is judged
+    cruise: Object.freeze([Object.freeze([0.45, 2]), Object.freeze([0.28, 1])]), // projected power at 6 AM -> bonus
+    struggle: Object.freeze([Object.freeze([-0.12, -3]), Object.freeze([0.0, -2]), Object.freeze([0.06, -1])]),
+    maxBonus: Object.freeze({ 1: 1, 2: 1, default: 2 }),
+    minBonus: -3,
+    closeCallWindow: 600, // close calls within this many ticks...
+    closeCallsEase: 2, // ...this many of them, and the director eases off
+    minGap: 50, // ticks between two strikes
+    breather: 120, // ticks nobody strikes after a close call
+    pincer: 2, // roll bonus for a side stalker while the other side is worked or camped
+  }),
 
   hallucination: Object.freeze({ cooldown: 400 }),
   // Rare "Rusted Rustgrin" event: when the monitor goes down there is this chance (nights >= 2)

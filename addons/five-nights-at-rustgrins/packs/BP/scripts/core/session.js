@@ -14,6 +14,8 @@ import { Cat } from './ai/cat.js';
 import { PurpleRat } from './ai/purple_rat.js';
 import { TopHatRat } from './ai/top_hat_rat.js';
 import { ShowTape } from './show_tape.js';
+import { GuardModel } from './ai/guard_model.js';
+import { Director } from './ai/director.js';
 
 const AI_CLASSES = { mirehop: DoorStalker, noxbriar: DoorStalker, rustgrin: Rustgrin, cat: Cat, purple_rat: PurpleRat, top_hat_rat: TopHatRat };
 
@@ -51,6 +53,10 @@ export class NightSession {
     this.nextHallucination = 400;
     this.phoneMuted = false;
     this.tape = new ShowTape(this);
+    /** what the animatronics have noticed about the guard's habits tonight */
+    this.habits = new GuardModel(this);
+    /** pressure, slots, spacing and the pincer (see ai/director.js) */
+    this.director = new Director(this);
     this.chars = {};
     for (const id of CAST) this.chars[id] = new AI_CLASSES[id](this, id);
   }
@@ -344,6 +350,8 @@ export class NightSession {
       return;
     }
     // animatronics (on the Final Act only the Ringmaster thinks; he moves the others)
+    this.habits.tick();
+    this.director.tick();
     this.tape.tick();
     for (const c of Object.values(this.chars)) {
       if (this.final && c.id !== 'top_hat_rat') continue;
@@ -424,7 +432,9 @@ export class NightSession {
   }
 
   debugLine() {
-    return Object.values(this.chars).filter((c) => c.baseAi > 0).map((c) => c.debug()).join(' | ');
+    const cast = Object.values(this.chars).filter((c) => c.baseAi > 0).map((c) => c.debug());
+    if (this.director.enabled) cast.push(this.director.debug());
+    return cast.join(' | ');
   }
 }
 

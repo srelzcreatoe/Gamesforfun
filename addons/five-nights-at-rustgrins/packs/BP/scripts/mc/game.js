@@ -113,6 +113,14 @@ function fill(text, vars) {
   return String(text ?? '').replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined && vars[k] !== null ? String(vars[k]) : m));
 }
 
+/** Caption for a sound tagged with the hall it comes from (footsteps, a hum, a growl). */
+function approachCaption(e) {
+  const hall = e.approach === 'L' ? 'West Hall' : e.approach === 'R' ? 'East Hall' : 'dining room';
+  if (e.id === 'fnar.noxbriar.hum') return `soft humming in the ${hall}`;
+  if (e.id === 'fnar.cat.growl') return `a low growl down the ${hall}`;
+  return e.fast ? `hurried footsteps in the ${hall}` : `heavy footsteps in the ${hall}`;
+}
+
 export class Game {
   constructor() {
     this.state = 'UNBUILT';
@@ -1419,9 +1427,12 @@ export class Game {
           if (where) where = { x: where.x, y: where.y + 1.5, z: where.z };
         }
         if (e.kitchen && this.cams.active && s.devices.cams.cam === '6') cap('pots and humming in the kitchen');
+        else if (e.approach) cap(approachCaption(e));
         this.audio.play(e.id, where, g, { vol: e.vol, relayCam: this.cams.active ? s.devices.cams.cam : null });
         return;
       }
+      case 'cue':
+        return this.renderCue(e, g);
       case 'at_door':
         cap(e.who === 'mirehop' ? 'a guitar string twangs - left door' : 'soft humming - right window');
         return;
@@ -1509,6 +1520,43 @@ export class Game {
         return void this.jumpscare(e.who, g);
       case 'win':
         return void this.sixAm(g);
+      default:
+        return;
+    }
+  }
+
+  /**
+   * Tells for the animatronics' smarter habits (core/ai): every one has a sound and a caption.
+   * @param {import('@minecraft/server').Player} g
+   */
+  renderCue(e, g) {
+    const s = this.session;
+    const cap = (t) => this.save.settings.captions && this.hud.setCaption(t, system.currentTick);
+    const door = e.side === 'L' ? 'door_l' : 'door_r';
+    switch (e.kind) {
+      case 'linger':
+        // a fake-out: they only stepped back to the corner, just out of the light
+        this.audio.play(e.who === 'noxbriar' ? 'fnar.noxbriar.hum' : 'fnar.mirehop.strum', door, g, { vol: 0.35, pitch: 0.8 });
+        cap(e.side === 'L' ? 'a soft twang, just down the left hall' : 'soft humming, just down the right hall');
+        return;
+      case 'slip':
+        // stared at too long, he slipped out of the frame: the feed tears
+        if (this.cams.active && s.devices.cams.cam === e.cam) {
+          this.audio.play('fnar.cam.glitch', null, g, { vol: 0.7 });
+          cap('the feed tears - something slipped out of view');
+        }
+        return;
+      case 'blink':
+        this.audio.play('fnar.rustgrin.laugh', 'near_office', g, { vol: 0.45, pitch: 0.75 });
+        cap('a low laugh - he moved the moment you looked away');
+        return;
+      case 'nervous':
+        cap(`a squeak in the ${e.side === 'L' ? 'west' : 'east'} duct - he backed off`);
+        return;
+      case 'switch':
+        this.audio.play('fnar.rat.maracas', 'midway', g, { vol: 0.5, pitch: 1.2 });
+        cap('maracas fading back towards the Midway - he is trying the other duct');
+        return;
       default:
         return;
     }

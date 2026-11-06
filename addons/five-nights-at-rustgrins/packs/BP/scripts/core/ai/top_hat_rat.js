@@ -12,6 +12,11 @@
 //                 a SPOTLIGHT from a camera that sees him drives him back one step.
 //   walker  Custom Night with his AI above 0: he walks to the office all night (Act III rules).
 //
+// He learns: every SPOTLIGHT that hits him is remembered by the side he was walking, and
+// each new walk prefers the side where he was caught less (a dry laugh from the booth when
+// he changes his route). His summons keep the guard turning: performers for the other side
+// than his last call are more likely.
+//
 // Pure (no @minecraft imports): effects go through the session.
 
 import { Animatronic, routePath, polyLength } from './base.js';
@@ -45,6 +50,9 @@ function summonPlan(who, rng) {
   }
 }
 
+/** The side a performer's summon always goes to (the Cat and the Purple Rat pick one each time). */
+const SUMMON_SIDE = Object.freeze({ mirehop: 'L', noxbriar: 'R', rustgrin: 'R' });
+
 const GAME_CAMS = Object.freeze(['1A', '1B', '2A', '2B', '3', '4A', '4B', '5', '7', '8', '9', '10']);
 const GAMES = Object.freeze(['still', 'cam', 'find', 'doors', 'light', 'vents']);
 
@@ -69,6 +77,22 @@ export class TopHatRat extends Animatronic {
     this.lastSummon = null;
     this.returns = []; // performers turned away: [{ who, home, at }]
     this.saidHour5 = false;
+    this.lastSummonSide = null;
+    this.spotHits = { L: 0, R: 0 }; // SPOTLIGHT hits by the side he was walking
+    this.lastWalkSide = null;
+  }
+
+  /** The side for a new walk: where the guard's spotlight caught him less. */
+  pickSide() {
+    const s = this.s;
+    const h = this.spotHits;
+    const side = s.rng.weighted([['L', 1 / (1 + h.L)], ['R', 1 / (1 + h.R)]]);
+    if (this.lastWalkSide && side !== this.lastWalkSide && h[this.lastWalkSide] > h[side]) {
+      // he changes his route: a dry laugh from the booth
+      s.emit({ fx: 'sound', id: 'fnar.tophat.laugh', at: this.id, vol: 0.6 });
+    }
+    this.lastWalkSide = side;
+    return side;
   }
 
   /** Does he take part tonight (anything but standing in the booth)? */
@@ -119,7 +143,7 @@ export class TopHatRat extends Animatronic {
     this.nextEvent = Math.max(this.nextEvent, s.t + this.F.introTicks);
     if (n === 3) {
       // he leaves the booth himself
-      this.side = s.rng.chance(0.5) ? 'L' : 'R';
+      this.side = this.pickSide();
       this.idx = 0;
       this.state = 'walk';
       this.pauseUntil = s.t + this.F.introTicks;
@@ -149,7 +173,9 @@ export class TopHatRat extends Animatronic {
   pickPerformer() {
     const s = this.s;
     const home = PERFORMERS.filter((id) => id !== this.lastSummon && !this.returns.some((r) => r.who === id));
-    return s.rng.pick(home.length ? home : PERFORMERS);
+    const pool = home.length ? home : PERFORMERS;
+    // keep the guard turning: a performer for the same side as the last call weighs half
+    return s.rng.weighted(pool.map((id) => [id, SUMMON_SIDE[id] && SUMMON_SIDE[id] === this.lastSummonSide ? 0.5 : 1]));
   }
 
   /** Send a performer to a door or vent; it arrives as the warning runs out. */
@@ -158,6 +184,7 @@ export class TopHatRat extends Animatronic {
     const plan = summonPlan(who, s.rng);
     if (!plan) return;
     this.lastSummon = who;
+    this.lastSummonSide = plan.side;
     const path = routePath(plan.route);
     const travel = Math.max(20, warn - 15 - (plan.late ?? 0));
     const start = s.t + (plan.late ?? 0);
@@ -296,7 +323,7 @@ export class TopHatRat extends Animatronic {
     if (this.state === 'home') {
       // Custom Night: leave the booth when the pause is over
       if (s.t < this.pauseUntil) return;
-      this.side = s.rng.chance(0.5) ? 'L' : 'R';
+      this.side = this.pickSide();
       this.idx = 0;
       this.state = 'walk';
     }
@@ -362,6 +389,7 @@ export class TopHatRat extends Animatronic {
       return { ok: true, hit: false };
     }
     s.drainPower(F.spotlightCost);
+    this.spotHits[this.side]++;
     s.emit({ fx: 'spotlight', hit: true, cam: cam.id });
     s.emit({ fx: 'pa', key: 'spotlight' });
     // he bows and steps back: one spot in the Final Act, all the way to his booth in the Custom Night

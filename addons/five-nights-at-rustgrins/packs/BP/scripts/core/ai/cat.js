@@ -9,7 +9,10 @@
 // (before she has run). At stage 3 she sprints down a hall (west, or from night 4
 // sometimes east) the moment the guard looks at that hall's camera, or after a while
 // anyway. A shut door makes her bang (power drain grows each time) and slink back to
-// the ring; an open door is the end.
+// the ring; an open door is the end. Smarter (from night 4, when she can pick a hall): she
+// prefers the hall whose door the guard leaves open and that nobody else is working, and a
+// low growl down that hall tells which one. Her sprint waits a moment if another strike
+// just started (director spacing).
 
 import { Animatronic } from './base.js';
 import { CONFIG } from '../config.js';
@@ -48,11 +51,23 @@ export class Cat extends Animatronic {
     else if (n === 3) {
       this.placeAt('DIN_W', 'stand');
       s.emit({ fx: 'hide', who: this.id });
-      const east = s.night >= this.cfg.eastFromNight && s.rng.chance(this.cfg.eastChance);
-      this.side = east ? 'R' : 'L';
+      this.side = this.chooseSide();
       this.waitUntil = s.t + this.cfg.waitAtStage3(this.ai);
+      if (s.night >= this.cfg.eastFromNight) s.emit({ fx: 'sound', id: 'fnar.cat.growl', at: this.side === 'L' ? 'door_l' : 'door_r', vol: 0.4, approach: this.side });
     }
     s.staticOn(['8'], 20);
+  }
+
+  /** West before night 4; then mostly west, but away from a camped door or one someone else is working. */
+  chooseSide() {
+    const s = this.s;
+    if (s.night < this.cfg.eastFromNight) return 'L';
+    const w = { L: 1 - this.cfg.eastChance, R: this.cfg.eastChance };
+    for (const side of ['L', 'R']) {
+      if (s.habits.camped(side)) w[side] *= 0.45;
+      if (s.director.holder(side)) w[side] *= 0.4;
+    }
+    return s.rng.weighted([['L', w.L], ['R', w.R]]);
   }
 
   /** The tape was rewound above 60 %: back to the ring, if she has not run yet. */
@@ -97,11 +112,15 @@ export class Cat extends Animatronic {
     }
     // stage 3: waiting to run
     const hallCam = this.side === 'L' ? '2A' : '4A';
-    if ((open && s.devices.cams.cam === hallCam) || s.t >= this.waitUntil) this.run();
+    if (!((open && s.devices.cams.cam === hallCam) || s.t >= this.waitUntil)) return;
+    // another strike just started: she gives the guard a moment (never for long)
+    if (!s.director.mayStrike(this.id) && s.t < this.waitUntil + 100) return;
+    this.run();
   }
 
   run() {
     const s = this.s;
+    s.director.struck(this.id);
     this.state = 'run';
     const route = this.cfg.routes[this.side];
     this.node = route[0];
@@ -118,6 +137,7 @@ export class Cat extends Animatronic {
       s.drainPower(drain);
       s.emit({ fx: 'sound', id: 'fnar.cat.bang', at: 'door_' + this.side.toLowerCase(), vol: 1 });
       s.emit({ fx: 'cat_bang', side: this.side, drain });
+      s.director.closeCall(this.id);
       this.state = 'idle';
       this.setStage(this.cfg.bangReset(s.rng));
       this.nextMo = s.t + this.cfg.mo;
