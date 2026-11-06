@@ -221,14 +221,15 @@ export const ENDINGS = Object.freeze({
 export const GUIDE = Object.freeze([
   ['Controls', 'You sit at the office desk. Each side wall has a RED door button and a WHITE light button. Right-click or tap them.\nClick the CRT monitor (or use the Camera Tablet in your hand) to raise the monitor. On the cameras, click a camera on the map; press LOWER or Esc to put the monitor down. Without the map: scroll the hotbar to change cameras, and sneak or use the tablet to lower.\nThe Office Remote opens every control in one menu, including the two ceiling VENTS.'],
   ['Power', 'Power drains all night. Every closed door, lit hall light, sealed vent and the raised monitor uses more (see USAGE). At 0 % the doors open, the lights die... and someone comes to sing for you.'],
-  ['Mirehop', 'The green rabbit. He comes down the WEST hall to your LEFT door, and a guitar twang means he is there. Check with the left light, and keep the left door shut until he leaves.'],
-  ['Noxbriar', 'The black bear. She comes down the EAST hall to your RIGHT window, and soft humming means she is there. On dark cameras you will mostly see her eyes.'],
-  ['Rustgrin', 'The grey bear. He only moves while nobody watches him. Microphone feedback outside the RIGHT door means he is in the corner nook, which only CAM 4B can see. Keep the right door shut while you are on the cameras.'],
-  ['The Cat', 'Dances on the Midway ring (CAM 8) while the show tape plays. When the music slows she gets restless; when it stops she leaves the ring. Checking CAM 8 holds her in place. If she runs, she sprints down a hall: shut that door. Each bang costs more power.'],
-  ['Purple Rat', 'Shares the Midway ring with the Cat and loves the crawl ducts. Listen for his maracas above the ceiling, left or right. CAM 9 and CAM 10 show the ducts. Seal that VENT when he is right above you, and open it after he bangs on it.'],
+  ['Mirehop', 'The green rabbit. He comes down the WEST hall to your LEFT door: heavy footsteps in the hall, then a guitar twang means he is there. Check with the left light, and keep the left door shut until he leaves.\nHe is erratic and he learns: he steps in right after you check the light, or while you are on the cameras. When he gives up he may only step back to the corner (a soft twang, CAM 2B) and come straight back once the door opens. Listen for his footsteps.'],
+  ['Noxbriar', 'The black bear. She comes down the EAST hall to your RIGHT window: quiet humming in the hall means she is coming, humming at the window means she is there. On dark cameras you will mostly see her eyes.\nShe is patient: she waits in the corner (CAM 4B) for you to look away, and never comes while Rustgrin holds the right side.'],
+  ['Rustgrin', 'The grey bear. He only moves while nobody watches him, and never into a room you are watching. Microphone feedback outside the RIGHT door means he is in the corner nook, which only CAM 4B can see. Keep the right door shut while you are on the cameras.\nStare at him and look away, and he may move at once (a low laugh). He avoids the cameras you watch most, and waits in the dark while the right hall light is on.'],
+  ['The Cat', 'Dances on the Midway ring (CAM 8) while the show tape plays. When the music slows she gets restless; when it stops she leaves the ring. Checking CAM 8 holds her in place. If she runs, she sprints down a hall: shut that door. Each bang costs more power.\nFrom night 4 she picks the hall whose door you leave open, and a low growl down that hall tells you which.'],
+  ['Purple Rat', 'Shares the Midway ring with the Cat and loves the crawl ducts. Listen for his maracas above the ceiling, left or right. CAM 9 and CAM 10 show the ducts. Seal that VENT when he is right above you, and open it after he bangs on it.\nIn a duct he only moves while you look away; stare at him on CAM 9 or 10 and he squeaks and backs off. He picks the duct on the side you are busy with least, and a vent you keep sealing sends him to the other one.'],
   ['The Show Tape', 'The troupe dances to a tape deck on CAM 8. Press PLAY SHOW there to rewind it. Below 30 % the Cat and the Purple Rat grow bolder; at 0 % the music stops and both come for you. Rewind above 60 % to call the Cat back to the ring.'],
   ['The Ringmaster', 'He stands on his own stage, the Grand Marquee (CAM 1C, once Kitty\'s Cabaret), and calls the office every night. He does not move. Not yet.'],
-  ['The Final Act', 'Night 6 belongs to the Ringmaster. ACT I: he sends one performer at a time with a 10-second warning, so shut the right door or vent in time. ACT II: do what he asks before his timer runs out. ACT III: he walks to your office and no door stops him. Find him on a camera and press SPOTLIGHT to drive him back a step.'],
+  ['How They Think', 'They are not random. They notice what you do: which cameras you watch, how often you check each light, which door you keep shut. Check a light like clockwork and they learn the rhythm; camp one door and the other side gets busier. Only one of them works a door at a time, and they give you a moment between one threat and the next.\nEvery trick has a tell: footsteps or humming in a hall, a soft twang, a low laugh, a growl, a squeak in a duct, a camera feed that tears. Listen, and look where they do not expect.'],
+  ['The Final Act', 'Night 6 belongs to the Ringmaster. ACT I: he sends one performer at a time with a 10-second warning, so shut the right door or vent in time. ACT II: do what he asks before his timer runs out. ACT III: he walks to your office and no door stops him. Find him on a camera and press SPOTLIGHT to drive him back a step. He remembers which side you caught him on.'],
   ['Custom Night', 'After the Final Act: set each animatronic from 0 to 20. With the Ringmaster above 0, he walks to your office all night long; keep the SPOTLIGHT ready. Beat all six at 20 for the third star.'],
   ['Free Roam', 'The pizzeria by day. A live show starts every few minutes (watch the countdown), and the animatronics talk to you when you walk up and look at them. Use the Time Card to clock in: the guests leave, the lights go out, and the night shift begins.'],
   ['Storms', 'Nights 5 and 6 come with a storm. Thunder can hide the sounds you listen for, every flash of lightning lights the halls for a moment, and each strike makes the power flicker.'],
@@ -238,22 +239,22 @@ export const GUIDE = Object.freeze([
 
 /** Shown at the start of a night (hints on) and on the game-over screen. */
 export const TUTORIAL_HINTS = Object.freeze({
-  1: 'Tip: check the hall lights every few seconds. Shut a door only while someone is standing there.',
+  1: 'Tip: check the hall lights every few seconds. Footsteps in a hall mean someone is close. Shut a door only while someone is standing there.',
   2: 'Tip: keep the show tape on CAM 8 above 30 %, and glance at the Cat often.',
   3: 'Tip: maracas mean the Purple Rat is in a duct. Seal that VENT when the sound is right above you.',
   4: 'Tip: microphone feedback at the right door means Rustgrin. Shut the right door before you raise the monitor.',
-  5: 'Tip: power is tight tonight. Open doors and vents as soon as the threat has gone.',
+  5: 'Tip: power is tight tonight. Open doors and vents as soon as the threat has gone, but a soft twang or hum means they only stepped back.',
   6: 'Tip: listen to the Ringmaster. Every act starts with a 10-second warning.',
   7: 'Tip: rewind the tape early, and save power for the SPOTLIGHT.',
 });
 
 /** Game-over tips by who caught the guard. */
 export const KILL_TIPS = Object.freeze({
-  mirehop: 'Mirehop came through the LEFT door. Check the left light and shut the door while he is there.',
-  noxbriar: 'Noxbriar came through the RIGHT side. Humming at the window means: shut the right door.',
-  rustgrin: 'Rustgrin waits in the nook by the RIGHT door. Keep that door shut whenever you raise the monitor.',
-  cat: 'The Cat sprinted to your door. Keep the show tape playing and shut the door of the hall she runs down.',
-  purple_rat: 'The Purple Rat dropped through a vent. Seal the vent his maracas are rattling above.',
+  mirehop: 'Mirehop came through the LEFT door. He slips in while you are on the cameras: hear his guitar, shut the door before you raise the monitor.',
+  noxbriar: 'Noxbriar came through the RIGHT side. Humming in the East Hall means she is coming; humming at the window means: shut the right door.',
+  rustgrin: 'Rustgrin waits in the nook by the RIGHT door. Keep that door shut whenever you raise the monitor. He moves the moment you look away.',
+  cat: 'The Cat sprinted to your door. Keep the show tape playing, and listen: a growl down a hall tells which door she will run to.',
+  purple_rat: 'The Purple Rat dropped through a vent. Seal the vent his maracas are rattling above; staring at him on CAM 9 or 10 makes him back off.',
   top_hat_rat: 'Doors do not stop the Ringmaster. Find him on the cameras and press SPOTLIGHT.',
   rusted: 'He was never there. Raise the monitor the moment you see him.',
   encore: 'The Rusted one plays Rustgrin\'s part: he moves only when nobody is watching. Keep the right door shut while you are on the cameras.',

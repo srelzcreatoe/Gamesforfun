@@ -1,5 +1,7 @@
 // Shared animatronic logic: AI level with hourly ramp, movement opportunities,
-// timed walks between route nodes. Pure (no @minecraft imports).
+// timed walks between route nodes, and the shared senses: being watched on a camera
+// (and the moment the guard looks away), opportunities that wait for the guard to look
+// elsewhere, and footsteps the guard can hear near the office. Pure (no @minecraft imports).
 //
 // A walk is announced to the game layer with an effect
 //   { fx: 'move', who, path: [[x,y,z], ...], dur, anim, toNode, fromNode }
@@ -9,6 +11,7 @@
 import { CONFIG } from '../config.js';
 import { NODES, pathBetween } from '../../data/nodes.js';
 import { CAMS_FOR_NODE } from '../../data/cameras.js';
+import { distToOffice, sideOf } from './graph.js';
 
 export function polyLength(path) {
   let len = 0;
@@ -47,6 +50,13 @@ export class Animatronic {
     this.state = 'idle';
     this.nextMo = (this.cfg.mo ?? 100) + s.rng.int(0, 40);
     this.inside = false;
+    /** an opportunity won while watched, waiting for the guard to look away: { until, go } */
+    this.pending = null;
+    this.seenSince = -1; // tick the current stare began (-1: not watched)
+    this.awayAt = -1e9; // tick the guard last looked away from this character
+    this.staredFor = 0; // how long that last stare lasted
+    /** uses the director's pincer bonus (a side stalker) */
+    this.pincer = false;
   }
 
   /** Current AI level (0..20) including the hourly ramp. */
@@ -64,13 +74,89 @@ export class Animatronic {
     return this.baseAi > 0 && this.s.t >= this.activation;
   }
 
-  /** True when this tick is a movement opportunity that succeeds. */
-  opportunity() {
+  /**
+   * True when this tick is a movement opportunity that succeeds. The roll adds the
+   * director's pressure (and pincer) bonus and `extra`; it never drops below a 1-in-20.
+   */
+  opportunity(extra = 0) {
     if (!this.active || this.walk) return false;
     if (this.s.t < this.nextMo) return false;
     this.nextMo = this.s.t + (this.cfg.mo ?? 100);
     const a = this.ai;
-    return a > 0 && this.s.rng.d20() <= a;
+    if (a <= 0) return false;
+    const roll = Math.max(1, Math.min(20, a + extra + this.s.director.rollBonus(this)));
+    return this.s.rng.d20() <= roll;
+  }
+
+  /**
+   * Track being watched: when a stare starts, and when (and after how long) the guard looks
+   * away. Call once per tick before acting. Returns whether the guard watches right now.
+   */
+  tickEyes() {
+    const t = this.s.t;
+    const w = !this.walk && !!this.node && this.watched();
+    if (w) {
+      if (this.seenSince < 0) this.seenSince = t;
+    } else if (this.seenSince >= 0) {
+      this.staredFor = t - this.seenSince;
+      this.awayAt = t;
+      this.seenSince = -1;
+    }
+    return w;
+  }
+
+  /** How long the current stare has lasted (0 when not watched). */
+  get stared() {
+    return this.seenSince >= 0 ? this.s.t - this.seenSince : 0;
+  }
+
+  /**
+   * A movement opportunity that prefers the guard looking elsewhere. One won while the guard
+   * watches is kept, and spent a moment after the guard looks away ("they moved while you
+   * blinked"). Returns 'move' when the character should move now, 'stared' when the guard
+   * outlasted it (the kept opportunity is lost; erratic ones slip away instead), else false.
+   * @returns {'move' | 'stared' | false}
+   */
+  opportunityUnseen() {
+    const s = this.s;
+    const p = this.pending;
+    if (p) {
+      if (this.watched()) {
+        p.go = 0;
+        if (s.t < p.until) return false;
+        this.pending = null;
+        this.nextMo = s.t + (this.cfg.mo ?? 100);
+        return 'stared';
+      }
+      if (!p.go) p.go = s.t + s.rng.int(3, 12);
+      if (s.t < p.go) return false;
+      this.pending = null;
+      this.nextMo = s.t + (this.cfg.mo ?? 100);
+      return 'move';
+    }
+    if (!this.opportunity()) return false;
+    if (this.watched()) {
+      this.pending = { until: s.t + CONFIG.brain.freezeMax, go: 0 };
+      return false;
+    }
+    return 'move';
+  }
+
+  /**
+   * Footsteps near the office: positional, louder the closer to the doors, tagged with the
+   * side of the building they come from (a player hears which hall).
+   */
+  stepCue(node, { id = 'fnar.step.heavy', fast = false } = {}) {
+    const d = distToOffice(node);
+    const reach = CONFIG.brain.hearSteps;
+    if (!(d <= reach)) return;
+    const vol = Math.round(Math.max(0.3, Math.min(0.95, 1.05 - d / reach)) * 100) / 100;
+    this.s.emit({ fx: 'sound', id, at: this.id, vol, approach: sideOf(node), fast: fast || undefined });
+  }
+
+  /** Is this character working that way into the office (director slots)? */
+  holds(_slot) {
+    return false;
   }
 
   /** Is the guard looking at this animatronic on a working camera right now? */
