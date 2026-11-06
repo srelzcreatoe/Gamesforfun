@@ -207,10 +207,25 @@ generators. Placed by `funzone()`, `prize()` and the stage in `dining()`.
 | `prize_case` | facing | glass-topped prize counter: bouncy ball, bear, slinky, toy car, ring, rocket, each with a ticket price tag |
 | `plush_wall` | facing (wall mounted) | pegboard hung with three rows of plush prizes in the cast's and pastel colours |
 | `stage_truss` | facing = the truss axis | aluminium box truss hung under the ceiling; the stage spotlights hang in it |
-| `neon_sign` | `fnar:tile` 0-13: FUN ZONE (3x1), PRIZES (3x1), PARTY (2x1), PIZZA (2x1), GAMES (2x1), a star, a pizza slice; light 5 | neon tubes on a bare mounting rail, one letter dead in most signs; place with `neon(p, 'funzone' \| 'prizes' \| ...)` (`NEON` in `palette.js`) |
+| `neon_sign` | `fnar:tile` 0-23: FUN ZONE (3x1), PRIZES (3x1), PARTY (2x1), PIZZA (2x1), GAMES (2x1), a star, a pizza slice, SKEE-BALL (4x1), TOKENS (3x1), TICKETS (3x1); light 5 | neon tubes on a bare mounting rail, one letter dead in most signs; place with `neon(p, 'funzone' \| 'prizes' \| ...)` (`NEON` in `palette.js`) |
 | `play_net` | `fnar:tile` 0-1 (whole, torn) | rope cargo net panel for the play structure railings |
 | `tinsel_curtain` | full cube | gold tinsel strands for the show stage backdrop |
 | `wallpaper_party` | full cube | 80s party wallpaper: teal with confetti, squiggles and stars, faded at the bottom |
+
+## E — the remake (the grand dining hall, the street front)
+
+Section A generators (`gen_cubes.py`, `gen_panels.py`, `gen_lights.py`).
+
+| name | states | look |
+|---|---|---|
+| `curtain_star` | full cube | the band's backdrop: midnight-blue velvet in deep folds sewn with small silver stars (the biggest glint faintly) |
+| `carpet_confetti` | full cube | family fun-centre carpet: near-black with bright confetti dashes, dots and squiggles, trodden flat |
+| `wall_stripe` | full cube | the 80s racing-stripe band: red, orange and yellow stripes with a cream pinstripe on navy gloss paint |
+| `ceiling_dark` | full cube | acoustic tiles painted near-black in a dark T-bar grid (the Dining Hall's theatre ceiling), damp stains |
+| `footlight` | `fnar:lit` (light 7, warm point light); facing = where it shines | a low black trough of three bulbs with a hood and reflector, on the stage's front edge; switched with the stage spotlights |
+| `sign_stage` | 10 x 3 picture; light 4 | RUSTGRIN'S / PIZZA REVUE in gold letters on a red marquee board ringed with bulbs (a few dead), over the stage |
+| `sign_facade` | 12 x 4 picture; light 9 | the street sign: big pink and teal neon on a black steel board, chaser bulbs, one dead letter |
+| `menu_board` | 4 x 2 picture | white plastic letters on grooved black felt over the order counter |
 
 Also: `security_camera` has a `fnar:ceiling` state (a ceiling mount with a drop
 rod) for CAM 1A, and `ceiling_lamp` a `fnar:dim` state (light 11) for the

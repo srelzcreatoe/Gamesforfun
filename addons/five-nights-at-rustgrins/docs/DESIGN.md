@@ -127,25 +127,45 @@ accessibility remote and captions.
 Pizzeria built by script into the world (Flat world recommended; any world
 works — the lot is cleared). Single storey + crawl ducts above the ceilings.
 Local coordinates: +X east, +Z south, floor level y = 0 (floor blocks at
-y = -1). Building ≈ 80 × 70 blocks inside a fenced lot with a parking area.
+y = -1). Building 100 × 72 blocks; the street facade (east) faces a fenced
+parking lot, a roadside pylon sign and the road.
 
-Rooms: Show Stage + Dining Area (north/center), Backstage (NW), Midway (W, the
-Cat + Purple Rat on the ring), the Grand Marquee (W, the Ringmaster's stage,
-once Kitty's Cabaret, curtains parted), Supply Closet (SW),
-West Hall + W. Hall Corner, Office (south center), East Hall + E. Hall Corner,
-Kitchen (NE), Restrooms (E), Prize Corner (between the halls: arcades, the prize
-counter and a wall of plush prizes), the Fun Zone (SE: a play structure over a
-ball pit, skee-ball, kiddie rides, arcades, a party room) with Parts & Service
-behind it (the auction crates), Staff Room (time clock lobby), entrance foyer,
-crawl ducts West/East (y 9–10) ending in two ceiling vents in the office.
+The look is a big, abandoned 80s family pizzeria (a big-screen haunted pizzeria
+crossed with a classic family fun centre, all original): dusty, faded, warm pools
+of light by day and near darkness at night.
 
-Heights: the cast stands 5 blocks tall, so every room they walk is 6 tall and
-the rooms where they perform on a 1-high ring or stage (dining, Midway, Grand
-Marquee, gallery) are 7; the office and the front-of-house rooms stay 5.
+Rooms:
+* **Dining Hall** (north/center, 48 × 37, 10 tall under a dark theatre
+  ceiling): long party tables (paper hats, plates, cloths) either side of a red
+  carpet aisle, pendant lamps on chains, brass sconces, garlands; the order
+  counter with the kitchen's window and the menu board, a salad bar; the
+  **Show Stage** under a proscenium: a starry midnight curtain between red
+  wings, footlights, spotlights under the header and the big marquee sign
+  RUSTGRIN'S PIZZA REVUE.
+* West side: Backstage (spare heads), the Midnight Midway showroom (the Cat +
+  Purple Rat on the ring), the **Grand Marquee** (the Ringmaster's curtained side
+  stage, SORRY! OUT OF ORDER on the closed half of the curtain), the Gallery,
+  the Staff Room (time-clock lobby).
+* East side: Kitchen, Restrooms, the **Prize Corner** (prize cases, the plush
+  wall, token and claw machines), the long **Entrance Hall** (front doors under a
+  striped awning, ticket booth, hand-stamp podium, photo booth, a standee).
+* South-east: the **Game Room** (skee-ball, rows of arcade cabinets, air hockey,
+  token machines, a ticket counter, a crawl tube overhead), the **Fun Zone**
+  (two padded play towers, crawl tubes overhead, a slide into the ball pit,
+  kiddie rides), Parts & Service behind them (the auction crates).
+* South: Supply Closet, West Hall + W. Hall Corner, the **Party Room** between
+  the halls, the Office (south center; a bank of dead CRT monitors over the
+  desk), East Hall + E. Hall Corner.
+* Crawl ducts West/East (y 9–10, never over the Dining Hall or the Fun Zone)
+  ending in two ceiling vents in the office.
+
+Heights: the cast stands 4 blocks tall, so every room they walk is 6+ tall and
+the rooms where they perform on a 1-high ring or stage are 7+ (the Dining Hall
+is 10); the office and the front-of-house rooms can be lower.
 Doorways are deliberately short (3 blocks): the animatronics stoop through them
 and lean in at the office doors and the right window. At night the halls, the
-hall corners and the door areas are dark (block light 0–1); only the hall-light
-switch lights them.
+hall corners and the door areas are dark (block light 0–1, checked by
+`tools/map/validate_map.mjs`); only the hall-light switch lights them.
 
 Cameras: 1A Show Stage · 1B Dining Area · 1C Grand Marquee · 2A West Hall ·
 2B W. Hall Corner · 3 Supply Closet · 4A East Hall · 4B E. Hall Corner ·

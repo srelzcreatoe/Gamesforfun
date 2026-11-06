@@ -1,9 +1,11 @@
 # Five Nights at Rustgrin's
 
 An original FNAF-style night-guard horror add-on for **Minecraft Bedrock
-1.26.50+**. You are the last night guard of *Rustgrin's Pizza Revue*, a dying
-80s pizzeria with a show stage, a circus ring, the Ringmaster's Grand Marquee and a
-crawl-duct system above the ceilings. Five nights. Then the Ringmaster takes
+1.26.50+**. You are the last night guard of *Rustgrin's Pizza Revue*, a big, dying
+80s family pizzeria: a grand dining hall with the band's stage under a proscenium,
+a circus showroom, the Ringmaster's curtained Grand Marquee, a game room and a
+fun zone of crawl tubes and ball pits, a crawl-duct system above the ceilings,
+and dark halls down to your office. Five nights. Then the Ringmaster takes
 the sixth for himself. Built with vanilla-style blocks, ready for **Vibrant
 Visuals**, and it runs with every experiment toggle **off**.
 

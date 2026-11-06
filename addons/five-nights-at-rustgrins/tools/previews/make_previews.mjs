@@ -313,6 +313,15 @@ export const SCENES = [
     },
   },
   {
+    name: '30_cam_1b', voxels: 'night', style: 'camera_feed', caption: 'CAM 1B: the Dining Hall from the corner - Mirehop is off the stage',
+    hud: { cam: '1B', lines: ['§fCAM 1B · DINING AREA', '§7Night 3 §8| §f1 AM §8| §fPOWER 83% §8| §7USAGE §a▮▮§8▯▯▯▯▯'] },
+    scene: {
+      camera: camShot('1B', 64), exposure: 1.7,
+      entities: [at('mirehop', 'DIN_C', 'walk', { yaw: 160, eyes: true, t: 0.35 }), at('rustgrin', 'ST_R', 'idle', { eyes: true, t: 0.2 }), at('noxbriar', 'ST_N', 'idle', { t: 0.2 })],
+      extra_lights: [irLight('1B', 12), point([38.5, 4.2, 22.5], '#e8ffe8', 18, 10), point([38.5, 5.5, 9.0], '#e8ffe8', 8, 12)],
+    },
+  },
+  {
     name: '29_party_room', voxels: 'day', caption: 'The Party Room between the halls: a birthday table set for children who never came',
     scene: { camera: { pos: [36.5, 2.4, 39.6], target: [36.5, 0.8, 54], fov: 70 }, exposure: 1.0 },
   },

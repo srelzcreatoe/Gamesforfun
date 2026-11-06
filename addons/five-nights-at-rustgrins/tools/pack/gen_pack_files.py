@@ -179,6 +179,10 @@ BLOCK_NAMES = {
     'skeeball_lane': 'Skee-Ball Lane', 'kiddie_ride': 'Kiddie Rocket Ride', 'prize_case': 'Prize Case', 'plush_wall': 'Plush Prize Wall',
     'stage_truss': 'Stage Truss', 'neon_sign': 'Neon Sign', 'play_net': 'Cargo Net', 'tinsel_curtain': 'Tinsel Curtain',
     'wallpaper_party': 'Party Wallpaper',
+    # the remake (docs/BLOCKS.md E)
+    'curtain_star': 'Starry Stage Curtain', 'carpet_confetti': 'Confetti Carpet', 'wall_stripe': 'Racing Stripe Wall',
+    'ceiling_dark': 'Dark Ceiling Tile', 'footlight': 'Stage Footlight', 'sign_stage': 'Stage Marquee Sign',
+    'sign_facade': 'Street Neon Sign', 'menu_board': 'Menu Board',
 }
 
 
@@ -213,13 +217,13 @@ def lang():
 SOUND_RULES = [
     ('cloth', ('carpet_party', 'curtain_', 'tent_stripe', 'plush_rat', 'party_hat', 'bunting', 'balloons', 'poster_', 'drawing', 'desk_clutter', 'plate_set', 'sign_out_of_order',
                'spare_head', 'slumped_suit', 'birthday_cake', 'floor_decal', 'lot_tag', 'wall_writing', 'vinyl_pad', 'play_net', 'plush_wall',
-               'tinsel_curtain', 'wallpaper_party', 'ball_pit')),
+               'tinsel_curtain', 'wallpaper_party', 'ball_pit', 'carpet_confetti', 'menu_board')),
     ('wood', ('stage_floor', 'party_table', 'pizza_box', 'sign_staff', 'stage_star', 'boarded_planks')),
     ('metal', ('duct_metal', 'door_shutter', 'vent_cover', 'locker', 'trash_can', 'security_camera', 'pa_speaker', 'time_clock', 'crt_monitor', 'desk_fan', 'desk_phone',
                'show_tape', 'arcade_cabinet', 'stage_speaker', 'guitar_amp', 'door_button', 'light_button', 'ceiling_lamp', 'exit_sign', 'stage_spotlight', 'hanging_lamp',
                'wall_sconce', 'mop_bucket', 'wet_floor_sign', 'parts_shelf', 'party_chair', 'sign_revue', 'sign_cabaret', 'sign_midway',
                'endo_parts', 'fallen_chair', 'hanging_wires', 'walter_things', 'emergency_light', 'play_tube', 'play_slide', 'skeeball_lane',
-               'kiddie_ride', 'prize_case', 'stage_truss', 'neon_sign')),
+               'kiddie_ride', 'prize_case', 'stage_truss', 'neon_sign', 'footlight', 'sign_stage', 'sign_facade')),
 ]
 
 

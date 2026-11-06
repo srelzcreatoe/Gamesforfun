@@ -23,7 +23,7 @@
     "sound": "cloth"
   },
   "fnar:carpet_confetti": {
-    "sound": "stone"
+    "sound": "cloth"
   },
   "fnar:carpet_party": {
     "sound": "cloth"
@@ -98,7 +98,7 @@
     "sound": "cloth"
   },
   "fnar:footlight": {
-    "sound": "stone"
+    "sound": "metal"
   },
   "fnar:guitar_amp": {
     "sound": "metal"
@@ -122,7 +122,7 @@
     "sound": "cloth"
   },
   "fnar:menu_board": {
-    "sound": "stone"
+    "sound": "cloth"
   },
   "fnar:mop_bucket": {
     "sound": "metal"
@@ -203,7 +203,7 @@
     "sound": "metal"
   },
   "fnar:sign_facade": {
-    "sound": "stone"
+    "sound": "metal"
   },
   "fnar:sign_midway": {
     "sound": "metal"
@@ -218,7 +218,7 @@
     "sound": "wood"
   },
   "fnar:sign_stage": {
-    "sound": "stone"
+    "sound": "metal"
   },
   "fnar:sink": {
     "sound": "stone"

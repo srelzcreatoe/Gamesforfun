@@ -29,7 +29,7 @@
 
 export const BUILDING = Object.freeze({ x1: 0, z1: 0, x2: 99, z2: 71, floorY: -1, roofY: 12 });
 /** The whole lot (cleared and rebuilt by /fnar:setup). */
-export const LOT = Object.freeze({ x1: -12, z1: -16, x2: 146, z2: 87, groundY: -1, clearTop: 26, baseY: -6 });
+export const LOT = Object.freeze({ x1: -12, z1: -16, x2: 146, z2: 87, groundY: -1, clearTop: 24, baseY: -6 });
 
 /** Chunk-aligned ticking area covering the lot (relative to the origin, rounded outward at build time). */
 export const TICK_PAD = 2;

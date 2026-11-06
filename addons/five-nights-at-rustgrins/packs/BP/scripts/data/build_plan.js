@@ -736,6 +736,13 @@ function halls(p, rng) {
   p.picture('poster_party', 46, 4, 60, 'w', 2, 2); // the corner poster
   p.picture('poster_revue', 46, 4, 42, 'w', 2, 3);
   p.set(46, 0, 53, 'trash_w');
+  // more LET'S PARTY! posters and a paper garland down each hall, left up after the last birthday
+  p.picture('poster_party', 26, 4, 56, 'e', 2, 2);
+  p.picture('poster_party', 46, 4, 47, 'w', 2, 2);
+  for (let z = 40; z <= 55; z++) {
+    p.set(28, 5, z, 'bunting_w');
+    p.set(44, 5, z, 'bunting_e');
+  }
   // office windows (glass + bars) on both sides
   for (const side of ['L', 'R']) {
     const w = OFFICE.windows[side];
