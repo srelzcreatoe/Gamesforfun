@@ -206,7 +206,7 @@ function exterior(p) {
     p.fill(LOTX.x1 + 1, -1, z, LOTX.x1 + 6, -1, z, 'paint_line');
     p.fill(LOTX.x2 - 6, -1, z, LOTX.x2 - 1, -1, z, 'paint_line');
   }
-  for (let x = LOTX.x1 + 9; x <= LOTX.x2 - 9; x += 4) p.fill(x, -1, 34, x + 1, -1, 34, 'paint_yellow'); // the centre line of the drive lane
+  for (let x = LOTX.x1 + 9; x <= LOTX.x2 - 9; x += 4) p.fill(x, -1, 35, x + 1, -1, 35, 'paint_yellow'); // the centre line of the drive lane
   p.fill(LOTX.curbW, -1, lz1, LOTX.curbW, -1, lz2, 'curb');
   p.fill(LOTX.curbE, -1, lz1, LOTX.curbE, -1, lz2, 'curb');
   p.fill(LOTX.curbE, -1, 28, LOTX.walk1 + 2, -1, 40, 'blackstone'); // the driveway to the street
@@ -264,46 +264,70 @@ function exterior(p) {
   lastWeekOutside(p);
 }
 
-/** The street facade: the tall false front with the big sign, the striped awning, the windows. */
+/** The street front (ref: the haunted pizzeria's front at night): long, low and symmetric about the doors (z 35.5).
+ *  Teal standing-seam cladding over a red trim line, pale stone pillars washed by uplights, dark arched windows in
+ *  the wings, a checker band at the base, taller end towers with red-framed windows; in the middle the glass doors
+ *  under the big neon sign, and Rustgrin in his red top hat waving over the roofline. */
+const FACADE = Object.freeze({
+  pillars: Object.freeze([-1, 8, 18, 19, 29, 42, 52, 53, 63, 72]),
+  bays: Object.freeze([[9, 17], [20, 28], [43, 51], [54, 62]]),
+  towers: Object.freeze([[0, 7], [64, 71]]),
+});
+
 function facade(p) {
   const X = FRONT;
-  // the false front rises above the roof around the sign, stepped at the crown
-  p.fill(X, 13, 22, X, 18, 46, 'ext_wall');
-  p.fill(X, 19, 22, X, 19, 46, 'roof_edge');
-  p.fill(X, 19, 27, X, 21, 41, 'ext_wall');
-  p.fill(X, 22, 27, X, 22, 41, 'roof_edge');
-  p.fill(X, 22, 31, X, 23, 37, 'ext_wall');
-  p.fill(X, 24, 31, X, 24, 37, 'roof_edge');
-  p.fill(X, 8, 22, X, 12, 22, 'ext_trim');
-  p.fill(X, 8, 46, X, 12, 46, 'ext_trim');
-  // white neon tubes along the stepped crown
-  for (const [y, z1, z2] of [[19, 22, 26], [19, 42, 46], [22, 27, 30], [22, 38, 41], [24, 31, 37]]) p.fill(X + 1, y, z1, X + 1, y, z2, 'neon_rod_z');
-  // the sign board and the big neon sign (12 x 4), a star on the crown
-  p.fill(X, 13, 28, X, 18, 41, 'blackstone_bricks');
-  p.picture('sign_facade', X + 1, 17, 40, 'e', 12, 4);
-  neon(p, 'star', X + 1, 21, 34, 'e');
-  // striped awning over the doors on two poles
-  for (let z = 29; z <= 39; z++) {
-    p.fill(X + 1, 4, z, X + 4, 4, z, z % 2 ? 'red_wool' : 'white_wool');
-    p.set(X + 4, 3, z, 'bunting_e');
+  const top = BUILDING.roofY + 1; // the coping
+  // the main body: a dark plinth, the checker band, warm yellow wall, a red trim line, teal cladding, the coping
+  const band = (z1, z2, y1, y2, key) => p.fill(X, y1, z1, X, y2, z2, key);
+  band(-1, 72, 0, 0, 'blackstone_bricks');
+  for (const [z1, z2] of [[-1, 32], [39, 72]]) band(z1, z2, 1, 1, 'wall_checker');
+  for (const [z1, z2] of [[-1, 32], [39, 72]]) band(z1, z2, 2, 4, 'wall_yellow');
+  band(-1, 72, 5, 5, 'wall_yellow');
+  band(-1, 72, 6, 6, 'red_c');
+  band(-1, 72, 7, top - 1, 'cladding_teal');
+  band(-1, 72, top, top, 'roof_edge');
+  // the arched dark windows in the wings
+  for (const [a, b] of FACADE.bays) {
+    p.fill(X - 1, 2, a + 1, X, 3, b - 1, 'window_tint');
+    p.fill(X - 1, 4, a + 2, X, 4, b - 2, 'window_tint');
+    p.fill(X - 1, 5, a + 3, X, 5, b - 3, 'window_tint');
   }
-  for (const z of [29, 39]) p.fill(X + 4, 0, z, X + 4, 3, z, 'lamp_post');
-  // planters either side of the doors, long dead
-  for (const z of [26, 42]) {
-    p.fill(X + 1, 0, z - 1, X + 2, 0, z + 1, 'blackstone_bricks');
-    p.set(X + 1, 1, z, 'dead_bush');
-    p.set(X + 2, 1, z - 1, 'dead_bush');
+  // the end towers rise higher: quilted teal below, two tall red-framed windows, a lit yellow band, the cap
+  for (const [z1, z2] of FACADE.towers) {
+    p.fill(X - 3, top, z1, X, top + 3, z2, 'ext_wall2');
+    p.fill(X - 3, top + 3, z1, X, top + 3, z2, 'roof_edge');
+    band(z1, z2, 1, 5, 'dark_prismarine');
+    band(z1, z2, 7, top, 'red_c');
+    for (const [w1, w2] of [[z1 + 1, z1 + 2], [z2 - 2, z2 - 1]]) band(w1, w2, 8, top - 1, 'window_cyan');
+    band(z1, z2, top + 1, top + 1, 'yellow_t');
+    band(z1, z2, top + 2, top + 2, 'red_c');
   }
-  p.fill(X - 1, 0, 32, X - 1, 0, 36, 'red_carpet');
-  // windows: the Prize Corner and the Fun Zone look out on the lot
-  const win = (z1, z2, y2 = 3) => p.fill(BUILDING.x2, 1, z1, X, y2, z2, 'window');
-  for (const [z1, z2] of [[4, 7], [14, 16], [20, 22]]) win(z1, z2);
-  for (const [z1, z2] of [[50, 54], [58, 62], [65, 68]]) win(z1, z2, 4);
-  // painted stripes along the front under the band
-  for (const [z1, z2] of [[-1, 28], [40, 72]]) {
-    p.fill(X, 5, z1, X, 5, z2, 'yellow_t');
-    p.fill(X, 6, z1, X, 6, z2, 'red_t');
+  // pale stone pillars, uplights at their feet
+  for (const z of FACADE.pillars) {
+    const tower = z === -1 || z === 8 || z === 63 || z === 72;
+    p.fill(X, 0, z, X + 1, tower ? top + 3 : top + 1, z, 'cut_sandstone');
+    fixture(p, X + 2, 0, z, 'foot_true_w', 'OUTSIDE');
   }
+  // the entrance: the sign board over the doors on a ledge, the big neon sign, Rustgrin waving above the roofline
+  band(30, 41, 7, top - 1, 'blackstone_bricks');
+  p.fill(X + 1, 6, 30, X + 1, 6, 41, 'blackstone_slab');
+  p.picture('sign_facade', X + 1, 10, 41, 'e', 12, 4);
+  p.picture('sign_mascot', X + 1, 16, 38, 'e', 6, 6);
+  p.fill(X - 1, 0, 35, X - 1, 0, 36, 'red_carpet');
+}
+
+/** A dead tree: a bare dark trunk with crooked branches and twigs, no leaves. */
+function deadTree(p, x, z, h) {
+  p.fill(x, 0, z, x, h, z, 'dark_oak_log');
+  p.fill(x - 3, h - 4, z, x - 1, h - 4, z, 'dark_oak_log_x');
+  p.fill(x - 3, h - 3, z, x - 3, h - 2, z, 'fence_dark');
+  p.fill(x + 1, h - 2, z, x + 2, h - 2, z, 'dark_oak_log_x');
+  p.fill(x + 2, h - 1, z, x + 2, h + 1, z, 'fence_dark');
+  p.fill(x, h - 1, z + 1, x, h - 1, z + 3, 'dark_oak_log_z');
+  p.fill(x, h, z + 3, x, h + 1, z + 3, 'fence_dark');
+  p.fill(x, h - 6, z - 2, x, h - 6, z - 1, 'dark_oak_log_z');
+  p.fill(x, h - 5, z - 2, x, h - 4, z - 2, 'fence_dark');
+  p.fill(x, h + 1, z, x, h + 2, z, 'fence_dark');
 }
 
 /** Outside, the week before the auction: Walter's car, boarded windows, the notice by the door. */
@@ -336,13 +360,18 @@ function lastWeekOutside(p) {
   p.set(cx + 1, 0, 41, 'decal_puddle_n');
   // the facade: windows boarded over, the auction notice by the doors
   const X = FRONT + 1;
-  for (const [y, z, k] of [[1, 4, 'across'], [2, 4, 'x'], [3, 5, 'across'], [1, 6, 'x'], [2, 7, 'across'], [3, 7, 'across'],
-    [1, 14, 'across'], [2, 15, 'x'], [3, 14, 'across'], [1, 21, 'x'], [3, 22, 'across'], [1, 31, 'across'], [2, 31, 'x'], [1, 37, 'x'], [2, 37, 'across'],
-    [2, 50, 'across'], [3, 51, 'x'], [1, 52, 'across'], [4, 54, 'across'], [2, 59, 'x'], [3, 60, 'across'], [1, 66, 'across'], [4, 67, 'x']]) {
+  for (const [y, z, k] of [[2, 11, 'across'], [3, 12, 'x'], [2, 13, 'across'], [3, 14, 'across'], [4, 13, 'x'],
+    [2, 23, 'x'], [3, 24, 'across'], [2, 46, 'across'], [5, 47, 'x'],
+    [2, 56, 'across'], [3, 57, 'x'], [2, 58, 'across'], [3, 59, 'across'], [4, 58, 'x'], [2, 60, 'x']]) {
     p.set(X, y, z, `boards_${k}_e`);
   }
-  p.picture('poster_auction', X, 3, 30, 'e', 2, 3);
-  p.picture('poster_party', X, 3, 41, 'e', 2, 2);
+  p.picture('poster_auction', X, 4, 32, 'e', 2, 3);
+  p.picture('poster_party', X, 4, 40, 'e', 2, 2);
+  // bare trees behind the building and at the lot's edge, black against the sky
+  deadTree(p, -8, 24, 17);
+  deadTree(p, -7, 49, 15);
+  deadTree(p, 40, -12, 11);
+  deadTree(p, 96, 82, 9);
   // rain water standing on the lot, a red light over the staff exit, the dumpster overflowing
   for (const [x, z, d] of [[116, 26, 'n'], [121, 41, 'e'], [112, 55, 's'], [125, 18, 'w'], [104, 38, 'n'], [127, 63, 'e']]) p.set(x, 0, z, `decal_puddle_${d}`);
   p.set(BUILDING.x1 - 2, 3, 60, 'emerg_true_w');
@@ -475,7 +504,7 @@ function dining(p, rng) {
   }
   p.picture('sign_stage', 34, top, STAGE.front[38] + 1, 's', 10, 3); // RUSTGRIN'S PIZZA REVUE in bulbs, on the soffit
   // a row of coloured PAR cans under the soffit's back edge, aimed at the band
-  for (const [i, x] of [25, 28, 31, 34, 43, 46, 49, 52].entries()) parCan(p, x, S.y1 - 1, STAGE.front[x] - 1, i, 'n');
+  for (const [i, x] of [25, 28, 31, 34, 43, 47, 49, 52].entries()) parCan(p, x, S.y1 - 1, STAGE.front[x] - 1, i, 'n');
   // the band's equipment: speaker stacks at the corners, two amps, a mic stand
   for (const x of [sx1 + 2, sx2 - 2]) for (const y of [1, 2]) p.set(x, y, 7, 'speaker_s');
   p.set(29, 1, 3, 'amp_s');
@@ -543,7 +572,7 @@ function dining(p, rng) {
   neon(p, 'party', 37, 4, 37, 'n'); // over the Party Room door
   neon(p, 'arcade', 58, 4, 37, 'n'); // over the passage to the Game Room
   neon(p, 'pizza', 62, 7, 32, 'w'); // over the WELCOME arch
-  neon(p, 'restrooms', 62, 4, 18, 'w'); // over the restroom door
+  neon(p, 'restrooms', 62, 6, 18, 'w'); // over the restroom door
   for (let z = 2; z <= 36; z++) {
     p.set(15, top, z, 'bunting_e');
     p.set(62, top, z, 'bunting_w');
@@ -693,10 +722,40 @@ function clawMachine(p, x, z, dir, colour = 'blue_c') {
 }
 
 function foyer(p, rng) {
-  // The Entrance Hall (x 64-98, z 27-41): the front doors in the east wall, the ticket booth and the hand-stamp
-  // podium just inside, a queue rope, then a long hall of posters and benches to the Dining Hall's arch;
-  // arches south into the Game Room and the Fun Zone, a doorway north into the Prize Corner.
-  // ---- the ticket booth in the north-east corner
+  // The Entrance Hall (x 65-98, z 27-41; ref: a family fun centre's lobby): warm yellow walls over plum carpet, a
+  // black-and-white checker path from the glass doors to the WELCOME arch framed in marquee bulbs, the curved token
+  // counter under a cream soffit with red stars (a slatwall of plush, a popcorn machine, the price board), brass
+  // stanchions with red velvet ropes, the height chart; the ticket booth by the doors, arches to the games.
+  // ---- the checker path from the doors to the arch
+  p.fill(65, -1, 31, 98, -1, 37, 'tile');
+  // ---- the WELCOME arch (the foyer side of the wall at x 64): a frame of marquee bulbs round the doorway
+  for (const [y, z] of [[0, 30], [1, 30], [2, 30], [3, 30], [0, 36], [1, 36], [2, 36], [3, 36], [3, 31], [3, 35], [4, 31], [4, 32], [4, 33], [4, 34], [4, 35]]) {
+    p.set(64, y, z, 'bulb_off');
+    p.meta.hanging.push({ x: 64, y, z, group: 'foyer' });
+  }
+  p.picture('sign_welcome', 65, 6, 37, 'e', 9, 2);
+  p.picture('height_chart', 65, 3, 39, 'e', 1, 3);
+  // ---- the token counter in the north-west corner: a curved teal counter, the plush slatwall behind, the soffit
+  for (const [x, z] of [[67, 29], [68, 29], [69, 29], [70, 29], [71, 28], [72, 27]]) p.set(x, 0, z, 'cyan_t');
+  p.set(67, 1, 29, 'popcorn_s');
+  p.set(69, 1, 29, 'clutter_s');
+  for (let x = 67; x <= 70; x++) for (const y of [1, 2, 3]) p.set(x, y, 27, 'plushwall_s');
+  p.fill(66, 6, 27, 72, 6, 29, 'soffit_cream');
+  for (const [x, z] of [[66, 29], [67, 29], [68, 29], [69, 29], [70, 29], [71, 28], [72, 27]]) p.set(x, 5, z, x % 2 ? 'soffit_star' : 'soffit_cream');
+  for (const x of [68, 71]) {
+    p.set(x, 5, 30, 'hanging_off');
+    p.set(x, 6, 30, 'chain_y');
+    p.meta.hanging.push({ x, y: 5, z: 30, group: 'foyer' });
+  }
+  p.picture('token_prices', 73, 4, 27, 's', 2, 2);
+  // brass stanchions and red velvet ropes along the path (gaps for the counter, the arches and the prize door)
+  const ropeLine = (z, x1, x2) => {
+    for (let x = x1; x <= x2; x++) p.set(x, 0, z, (x - x1) % 2 ? 'rope_n' : 'stanchion');
+  };
+  ropeLine(30, 74, 86);
+  ropeLine(38, 77, 85);
+  ropeLine(38, 93, 97);
+  // ---- the ticket booth in the north-east corner, the hand-stamp podium by the doors
   p.fill(94, 0, 27, 94, 3, 29, 'dark_oak');
   p.fill(98, 0, 27, 98, 3, 29, 'dark_oak');
   p.fill(95, 0, 29, 97, 0, 29, 'stripped_dark_oak_x');
@@ -707,52 +766,36 @@ function foyer(p, rng) {
   p.set(96, 0, 27, 'dark_oak_stairs_n');
   p.set(95, 1, 28, 'clutter_s');
   neon(p, 'tickets', 95, 4, 30, 's');
-  // the hand-stamp podium and a queue rope from the doors
-  p.set(90, 0, 34, 'lectern_e');
-  for (const z of [31, 37]) {
-    for (const x of [86, 91, 96]) p.set(x, 0, z, 'mic_stand');
-    for (const x of [87, 88, 89, 90, 92, 93, 94, 95]) p.set(x, 0, z, 'chain_x');
-  }
-  // a welcome standee in the middle of the hall: the Revue on one face, the party poster on the other
-  p.fill(78, 0, 33, 78, 2, 34, 'dark_oak');
-  p.picture('poster_revue', 79, 2, 34, 'e', 2, 3);
-  p.picture('poster_revue', 77, 2, 33, 'w', 2, 3);
-  p.set(78, 3, 33, 'star_e');
-  // a coin-op photo booth (a curtain on the front), dead plants in planters by the arches
+  p.set(96, 0, 31, 'lectern_e');
+  // ---- along the north wall: a bench under the photo-spot poster, gumball machines, the photo booth
+  p.fill(75, 0, 27, 80, 0, 27, 'dark_oak_stairs_n');
+  p.picture('poster_revue', 77, 5, 27, 's', 2, 3);
+  for (const x of [75, 80]) p.set(x, 5, 27, 'star_s');
+  for (const x of [73, 74]) p.set(x, 0, 28, 'gumball');
   p.fill(82, 0, 27, 83, 2, 27, 'red_c');
   p.fill(82, 0, 28, 82, 2, 28, 'curtain_red');
   p.fill(83, 0, 28, 83, 1, 28, 'red_c');
   p.set(83, 2, 28, 'window');
   p.fill(82, 3, 27, 83, 3, 28, 'yellow_c');
+  // ---- along the south wall: kiddie rides, dead plants, the claw machine, the arches' neon
   for (const x of [66, 77, 85, 93]) {
     p.set(x, 0, 41, 'blackstone_bricks');
     p.set(x, 1, 41, 'dead_bush');
   }
-  // benches along the north wall, gumball machines and kiddie rides by the arches
-  for (const [a, b] of [[66, 70], [74, 78]]) p.fill(a, 0, 27, b, 0, 27, 'dark_oak_stairs_n');
-  for (const x of [72, 80]) {
-    p.set(x, 0, 27, 'red_c');
-    p.set(x, 1, 27, 'pink_glass');
-  }
   p.set(79, 0, 41, 'kiddie_n');
   p.set(83, 0, 41, 'kiddie_n');
   clawMachine(p, 65, 40, 'e', 'red_c');
-  // walls: the photo spot (a giant Revue poster under stars), party posters, drawings, neon over every arch
-  p.picture('poster_revue', 76, 5, 27, 's', 2, 3);
-  for (const x of [74, 79]) p.set(x, 5, 27, 'star_s');
-  p.picture('poster_party', 67, 5, 27, 's', 2, 2);
   p.picture('poster_midway', 84, 5, 27, 's', 2, 3);
   p.picture('poster_cabaret', 81, 5, 41, 'n', 2, 3);
+  p.picture('poster_party', 95, 5, 41, 'n', 2, 2);
   p.picture('poster_rules', 98, 5, 39, 'w', 2, 2);
   for (let i = 0; i < 6; i++) p.picture('drawing', 78 + i, 2, 41, 'n', 1, 1, rng.int(0, 5));
-  neon(p, 'games', 72, 5, 41, 'n');
+  neon(p, 'arcade', 72, 5, 41, 'n');
   neon(p, 'funzone', 90, 5, 41, 'n');
   neon(p, 'prizes', 89, 4, 27, 's');
-  neon(p, 'pizza', 65, 6, 34, 'e');
-  neon(p, 'star', 65, 6, 31, 'e');
-  neon(p, 'star', 65, 6, 37, 'e');
-  for (let x = 66; x <= 97; x++) if (x % 2) { p.set(x, 6, 27, 'bunting_s'); p.set(x, 6, 41, 'bunting_n'); }
-  for (const [x, z] of [[66, 28], [85, 28], [97, 40], [66, 38]]) p.set(x, 0, z, `balloons_${rng.int(0, 2)}`);
+  for (let x = 73; x <= 97; x++) if (x % 2) p.set(x, 6, 27, 'bunting_s');
+  for (let x = 66; x <= 97; x++) if (x % 2) p.set(x, 6, 41, 'bunting_n');
+  for (const [x, z] of [[85, 28], [97, 40], [66, 38]]) p.set(x, 0, z, `balloons_${rng.int(0, 2)}`);
   p.set(98, 0, 40, 'trash_w');
   p.set(65, 0, 28, 'trash_e');
 }
@@ -853,12 +896,14 @@ function gameroom(p, rng) {
   // The Game Room (x 49-79, z 43-61, 7 tall): skee-ball along the north wall, two back-to-back rows of arcade
   // cabinets, more along the walls, token machines, kiddie rides by the arch, and the overhead crawl tube from
   // the Fun Zone. Bright and loud by day; at night only the screens, the neon and the coin slots still glow.
-  for (let x = 50; x <= 58; x++) {
+  // skee-ball along the north wall, west of the passage in from the showroom (x 55-58)
+  for (let x = 49; x <= 54; x++) {
     p.set(x, 0, 43, 'skee_back_s');
     p.set(x, 0, 44, 'skee_front_s');
   }
-  neon(p, 'skeeball', 53, 4, 43, 's');
-  for (const x of [51, 57]) neon(p, 'star', x, 4, 43, 's');
+  neon(p, 'skeeball', 50, 4, 43, 's');
+  neon(p, 'star', 54, 4, 43, 's');
+  neon(p, 'arcade', 56, 4, 43, 's'); // the inside face of the passage
   // arcade rows (back to back), alternating cabinet facings so both sides have a screen
   for (const [zA, zB] of [[49, 50], [55, 56]]) {
     for (let x = 53; x <= 65; x++) {
@@ -1272,7 +1317,7 @@ function decayRestrooms(p) {
 }
 
 function decayFoyer(p) {
-  p.picture('poster_auction', 70, 5, 27, 's', 2, 3);
+  p.picture('poster_auction', 98, 4, 30, 'w', 2, 3);
   p.set(97, 0, 34, 'decal_puddle_n');
   for (const [x, z] of [[94, 33], [88, 35], [82, 34], [76, 33], [70, 34]]) p.set(x, 0, z, 'decal_prints_faint_e');
   p.set(85, 0, 35, 'decal_tickets_n');
@@ -1422,8 +1467,8 @@ function signs(p) {
   p.sign(33, 1, 60, 's', ['', 'LEFT VENT', '^']);
   p.sign(39, 1, 60, 's', ['', 'RIGHT VENT', '^']);
   p.sign(93, 2, 28, 'w', ['TICKETS', '', 'Hand stamps', 'at the podium']);
-  p.sign(FRONT + 1, 2, 38, 'e', ['FINAL WEEKEND', 'Everything', 'must go!', 'Auction Sat.']);
-  p.sign(FRONT + 1, 2, 28, 'e', ['RUSTGRIN\'S', 'Pizza Revue', 'OPEN 11 - 9', 'Shows hourly!']);
+  p.sign(FRONT + 1, 2, 39, 'e', ['FINAL WEEKEND', 'Everything', 'must go!', 'Auction Sat.']);
+  p.sign(FRONT + 1, 2, 31, 'e', ['RUSTGRIN\'S', 'Pizza Revue', 'OPEN 11 - 9', 'Shows hourly!']);
 }
 
 /** Generate the full plan. */

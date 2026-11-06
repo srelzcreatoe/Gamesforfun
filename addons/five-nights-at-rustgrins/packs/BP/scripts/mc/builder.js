@@ -17,7 +17,7 @@ import { dim, W, origin, fillLocal, listLocal, setLocal, runCmd, checkPalette, t
 import { loadBuild, storeBuild } from './persistence.js';
 import { log } from './log.js';
 
-export const BUILD_VERSION = 10; // 4: the guard's seat by the desk, door buttons beside it (1.0.2); 5: the CRT monitor and arcade cabinets load again (1.0.3); 6: the Ringmaster's booth, the Final Act sign (1.0.4); 7: the Grand Marquee (1.0.5); 8: taller rooms, shorter doors, dark halls, the Fun Zone, the EXTRAS button (1.0.6); 9: the remade pizzeria: the grand Dining Hall and its proscenium stage, the Entrance Hall, the Game Room, the Prize Corner, the Party Room, the street facade; 10: the stage, facade and neon signs load (split into blocks of 16 tiles) (1.0.10)
+export const BUILD_VERSION = 11; // 4: the guard's seat by the desk, door buttons beside it (1.0.2); 5: the CRT monitor and arcade cabinets load again (1.0.3); 6: the Ringmaster's booth, the Final Act sign (1.0.4); 7: the Grand Marquee (1.0.5); 8: taller rooms, shorter doors, dark halls, the Fun Zone, the EXTRAS button (1.0.6); 9: the remade pizzeria: the grand Dining Hall and its proscenium stage, the Entrance Hall, the Game Room, the Prize Corner, the Party Room, the street facade; 10: the stage, facade and neon signs load (split into blocks of 16 tiles) (1.0.10); 11: the showroom remade after the reference pictures: the curved stage, the WELCOME arch, the token counter, the arcade passage, the street front with Rustgrin waving
 const MAX_FILL = 32768;
 const UNITS_PER_STEP = 6; // small ops per job step
 
