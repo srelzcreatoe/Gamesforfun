@@ -80,7 +80,7 @@ export const CONFIG = Object.freeze({
       stalkMax: 240, // ticks he waits at the corner for a good moment before stepping in anyway
       eagerFor: 700, // ticks after being turned away that he hunts again sooner
       busyBonus: (a) => Math.round(a * 0.35), // entry-roll bonus while the guard is on the cameras
-      wary: 100, // ticks after a light check on his side that he waits it out instead of coming in
+      wary: (a) => Math.max(40, 130 - 5 * a), // ticks after a light check on his side that he waits it out (bolder at higher AI)
       entryGrace: 70, // ticks from his arrival in the doorway (and its tell) to his first try at an open door
     }),
     noxbriar: Object.freeze({
@@ -106,7 +106,7 @@ export const CONFIG = Object.freeze({
       // Noxbriar is patient and quiet: few odd hops, a long wait for the right moment, a soft hum.
       erratic: 0.06, dash: 0, slip: false,
       linger: (a) => Math.min(0.45, 0.05 + a * 0.025), lingerMax: 320, stalkMax: 360, eagerFor: 900,
-      busyBonus: (a) => Math.round(a * 0.35), wary: 140, entryGrace: 70,
+      busyBonus: (a) => Math.round(a * 0.35), wary: (a) => Math.max(60, 170 - 6 * a), entryGrace: 70,
       hallHum: 0.55, // chance she hums softly as she comes down the East Hall
     }),
     rustgrin: Object.freeze({
@@ -122,6 +122,7 @@ export const CONFIG = Object.freeze({
       blinkCooldown: 500,
       hotStop: 0.55, // a route stop the guard watches this much is skipped when a darker way exists
       patience: (a) => Math.max(100, 400 - 25 * a), // after the door turns him away he waits this long before coming again
+      litPatience: 200, // a right hall light on this long no longer keeps him out of the nook
     }),
     cat: Object.freeze({
       // Dances on the Midway ring with the Purple Rat while the show tape plays. Stage 0 dancing,

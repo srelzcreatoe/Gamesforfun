@@ -214,6 +214,23 @@ function botNight(n, seed, kind, hooks = {}) {
   check(toldBack === back, 'the comeback is announced by footsteps in the West Hall', `${toldBack}/${back}`);
 }
 
+// ------------------------------------------------------------------------ 6b. a light left on is no wall
+{
+  let mire = 0;
+  let rust = 0;
+  for (let i = 0; i < RUNS / 2; i++) {
+    run(night(3, 600 + i, { ai: ONLY({ mirehop: 12 }), ticksPerHour: 1500, mods: { infinitePower: true } }), {
+      guard: (s) => { if (!s.devices.lightL) s.input('light_l'); },
+      onFx: (e) => { if (e.fx === 'at_door' && e.who === 'mirehop') mire++; },
+    });
+    run(night(4, 650 + i, { ai: ONLY({ rustgrin: 14 }), ticksPerHour: 1500, mods: { infinitePower: true } }), {
+      guard: (s) => { if (!s.devices.lightR) s.input('light_r'); if (!s.devices.doorR) s.input('door_r'); },
+      onFx: (e) => { if (e.fx === 'at_nook') rust++; },
+    });
+  }
+  check(mire >= RUNS / 2 && rust >= RUNS / 2, 'a hall light left on all night only delays them: Mirehop still reaches the door, Rustgrin the nook', `${mire} door visits, ${rust} nook visits`);
+}
+
 // ------------------------------------------------------------------------ 7. the learned light rhythm
 {
   // a guard who checks the left light every 150 ticks (and shuts the door on whoever is there)

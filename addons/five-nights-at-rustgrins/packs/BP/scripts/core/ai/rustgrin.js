@@ -9,7 +9,8 @@
 //   - the blink: when a long stare ends he may move the moment the guard looks away (a low
 //     laugh, and static where he stood);
 //   - the dark: he does not slip from the hall into the nook while the right hall light is
-//     on, and leaves the right side to Noxbriar while she is at the window (director slots);
+//     on (unless it stays on for long), and leaves the right side to Noxbriar while she is
+//     at the window (director slots);
 //   - patient: after the door turns him back he laughs from the hall and takes his time
 //     before the next try.
 
@@ -131,8 +132,10 @@ export class Rustgrin extends Animatronic {
       }
     }
     if (target === this.goal) {
-      // into the nook: not under a lit hall light, not while the right side is worked, spaced from other strikes
-      if (g.lit(this.side) || !d.free(this.side, this.id) || !d.mayStrike(this.id)) return false;
+      // into the nook: not while the right side is worked, spaced from other strikes, and not
+      // under a lit hall light - though a light left on only holds him for so long
+      if (!d.free(this.side, this.id) || !d.mayStrike(this.id)) return false;
+      if (g.lit(this.side) && g.light[this.side].onAt > s.t - this.cfg.litPatience) return false;
       d.struck(this.id, this.side);
     }
     if (!via && !adjacent(this.node, target)) via = planPath(this.node, target, { cost: this.darkFn, blocked: this.blockFn });

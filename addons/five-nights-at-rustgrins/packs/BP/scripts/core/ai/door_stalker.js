@@ -199,9 +199,11 @@ export class DoorStalker extends Animatronic {
       if (waited > this.cfg.stalkMax) this.backOff();
       return;
     }
-    if (!d.mayStrike(this.id) || g.lit(this.side)) return; // spacing; never into a lit hall
+    if (!d.mayStrike(this.id)) return; // spacing
+    // a good moment: not into a lit hall, not on camera, and by the learned rhythm of the
+    // guard's checks. After `stalkMax` they come anyway (a light left on does not stop them).
     const patient = waited < this.cfg.stalkMax;
-    if (patient && (this.watched() || !g.safeWindow(this.side))) return;
+    if (patient && (g.lit(this.side) || this.watched() || !g.safeWindow(this.side))) return;
     d.struck(this.id, this.side);
     this.state = this.mode;
     this.goTo(this.door);
@@ -257,7 +259,7 @@ export class DoorStalker extends Animatronic {
     }
     if (!this.opportunity(g.busy() ? this.cfg.busyBonus(this.ai) : 0)) return;
     // the guard looked down this hall a moment ago: wait it out, they will look away again
-    if (!g.busy() && !g.lit(this.side) && g.justChecked(this.side, this.cfg.wary)) return;
+    if (!g.busy() && !g.lit(this.side) && g.justChecked(this.side, this.cfg.wary(this.ai))) return;
     this.state = 'entering';
     this.enterAt = s.t + this.cfg.enterDelay;
     s.emit({ fx: 'sound', id: 'fnar.servo.move', at: this.id, vol: 0.8 });
