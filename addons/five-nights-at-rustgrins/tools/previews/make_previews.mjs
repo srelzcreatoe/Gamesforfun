@@ -76,18 +76,18 @@ export const SCENES = [
   {
     name: '02_show_stage', voxels: 'lit', caption: 'The Show Stage: Mirehop, Rustgrin and Noxbriar',
     scene: {
-      camera: { pos: [38.5, 3.0, 22.5], target: [38.5, 4.2, 4.5], fov: 62 }, exposure: 1.15,
+      camera: { pos: [38.5, 2.6, 21.5], target: [38.5, 3.6, 5.0], fov: 60 }, exposure: 1.15,
       entities: [
         at('rustgrin', 'ST_R', 'pose_1', { t: 0.3 }),
         at('mirehop', 'ST_M', 'pose_1', { yaw: -14, t: 0.3 }),
         at('noxbriar', 'ST_N', 'pose_1', { yaw: 14, t: 0.3 }),
       ],
       extra_lights: [
-        spot([38.5, 6.4, 12.5], [38.5, 1.6, 4.5], { intensity: 280 }),
-        spot([32.5, 6.4, 12.5], [32.5, 1.6, 5.5], { color: '#ffc2d6', intensity: 220 }),
-        spot([44.5, 6.4, 12.5], [44.5, 1.6, 5.5], { color: '#c6d6ff', intensity: 220 }),
-        point([38.5, 1.6, 8.2], '#ffd9a0', 10, 9),
-        point([38.5, 6.0, 12.0], '#ffe2b8', 10, 16),
+        spot([38.5, 5.6, 13.5], [38.5, 1.6, 6.0], { intensity: 280 }),
+        spot([32.5, 5.6, 13.5], [32.5, 1.6, 7.0], { color: '#ffc2d6', intensity: 220 }),
+        spot([44.5, 5.6, 13.5], [44.5, 1.6, 7.0], { color: '#c6d6ff', intensity: 220 }),
+        point([38.5, 1.6, 9.5], '#ffd9a0', 10, 9),
+        point([38.5, 5.0, 13.0], '#ffe2b8', 10, 16),
       ],
     },
   },
@@ -121,7 +121,7 @@ export const SCENES = [
     scene: {
       camera: camShot('1A'), exposure: 1.55,
       entities: [at('rustgrin', 'ST_R', 'pose_1', { t: 0.3, eyes: true }), at('noxbriar', 'ST_N', 'pose_1', { t: 0.3 })],
-      extra_lights: [irLight('1A', 12), spot([38.5, 6.4, 12], [38.5, 1.6, 4.5], { intensity: 520 }), spot([44.5, 6.4, 12], [44.5, 1.6, 5.5], { intensity: 420 }), point([41.5, 3.2, 8.5], '#e8ffe8', 22, 12)],
+      extra_lights: [irLight('1A', 12), spot([38.5, 5.6, 13], [38.5, 1.6, 6.0], { intensity: 520 }), spot([44.5, 5.6, 13], [44.5, 1.6, 7.0], { intensity: 420 }), point([41.5, 3.2, 9.5], '#e8ffe8', 22, 12)],
     },
   },
   {
@@ -221,9 +221,9 @@ export const SCENES = [
     },
   },
   {
-    name: '15_free_roam_day', voxels: 'day', caption: 'Free Roam: the pizzeria by day, the band performing',
+    name: '15_free_roam_day', voxels: 'day', caption: 'Free Roam: the showroom by day - star-back chairs, the starry soffit, the band on the curved stage',
     scene: {
-      camera: { pos: [53.5, 5.2, 34.5], target: [38.5, 3.4, 6.0], fov: 70 }, exposure: 1.0,
+      camera: { pos: [58.5, 2.1, 31.5], target: [37.0, 3.0, 9.0], fov: 74 }, exposure: 1.0,
       entities: [
         at('rustgrin', 'ST_R', 'perform_1', { t: 0.8 }),
         at('mirehop', 'ST_M', 'perform_1', { t: 0.4 }),

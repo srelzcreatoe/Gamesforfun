@@ -227,6 +227,32 @@ Section A generators (`gen_cubes.py`, `gen_panels.py`, `gen_lights.py`).
 | `sign_facade` | 12 x 4 picture; light 9 | the street sign: big pink and teal neon on a black steel board, chaser bulbs, one dead letter |
 | `menu_board` | 4 x 2 picture | white plastic letters on grooved black felt over the order counter |
 
+## F — the second remake (after the reference pictures)
+
+Cubes and lights in the section A generators, props in `tools/blocks/props/props_remake.py`.
+
+| name | states | look |
+|---|---|---|
+| `soffit_cream`, `soffit_star` | full cubes | cream-painted soffit plaster; the star variant carries a deep-red star (they alternate along the stage's and the token counter's soffits) |
+| `wall_yellow` | full cube | the entrance hall's warm yellow plaster |
+| `carpet_purple` | full cube | plum lobby carpet with a faint diamond weave |
+| `cladding_teal` | full cube | faded teal standing-seam metal for the street front, rust from the fixings |
+| `bulb_frame` | `fnar:lit` (light 7) | a teal-grey channel with one big round bulb on every face: the WELCOME arch's marquee frame (lit with the hall's lamps) |
+| `stage_lip` | `fnar:lit` (light 6); facing | the stage's curved front: dark lacquered wood with a round footlight on the front face, stage boards on top (switched with the stage lights) |
+| `star_chair` | facing | dark wood chair, maroon padded seat, a star cut right through the yoke back |
+| `cafe_table` | none | square wood-laminate table on a black pedestal, a chrome napkin holder |
+| `booth_seat` | facing | one cell of a diner booth: tan tufted vinyl seat and channelled back on a dark plinth |
+| `disco_ball` | none | a mirror ball on its rod |
+| `stanchion`, `velvet_rope` | none / facing (rope along x for north/south) | a brass rope post; a red velvet rope sagging to the next post |
+| `par_can` | `fnar:color` 0-3 (red, pink, blue, green), `fnar:lit` (light 7); facing | a PAR can on a clamp, tilted down, coloured gel |
+| `popcorn_machine` | facing | countertop popcorn machine |
+| `gumball_machine` | none | floor-standing gumball machine |
+| `sign_welcome` | 9 x 2 picture | WELCOME in fat purple letters on an arc, transparent around them |
+| `sign_mascot` | 6 x 6 picture; light 8 | Rustgrin in his red top hat waving, a cut-out outlined in warm neon (the street sign) |
+| `height_chart` | 1 x 3 picture | the "any size" fun height chart |
+| `token_prices` | 2 x 2 picture | the token counter's price board |
+| `neon_sign` | adds SHOWTIME! (4x1), ARCADE (3x1), RESTROOMS (4x1) | |
+
 Also: `security_camera` has a `fnar:ceiling` state (a ceiling mount with a drop
 rod) for CAM 1A, and `ceiling_lamp` a `fnar:dim` state (light 11) for the
 office lamp, so its light stops at the office door frames.

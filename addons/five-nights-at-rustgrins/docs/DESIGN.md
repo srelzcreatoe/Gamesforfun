@@ -127,28 +127,38 @@ accessibility remote and captions.
 Pizzeria built by script into the world (Flat world recommended; any world
 works — the lot is cleared). Single storey + crawl ducts above the ceilings.
 Local coordinates: +X east, +Z south, floor level y = 0 (floor blocks at
-y = -1). Building 100 × 72 blocks; the street facade (east) faces a fenced
-parking lot, a roadside pylon sign and the road.
+y = -1). Building 100 × 72 blocks; the street front (east) faces a fenced
+parking lot, a roadside pylon sign and the road: long, low and symmetric, teal
+cladding over a red trim line, pale stone pillars washed by uplights, dark
+arched windows in the wings, a checker band at the base, taller end towers, and
+the glass doors under the big neon sign with Rustgrin waving over the roofline.
 
 The look is a big, abandoned 80s family pizzeria (a big-screen haunted pizzeria
 crossed with a classic family fun centre, all original): dusty, faded, warm pools
 of light by day and near darkness at night.
 
 Rooms:
-* **Dining Hall** (north/center, 48 × 37, 10 tall under a dark theatre
-  ceiling): long party tables (paper hats, plates, cloths) either side of a red
-  carpet aisle, pendant lamps on chains, brass sconces, garlands; the order
-  counter with the kitchen's window and the menu board, a salad bar; the
-  **Show Stage** under a proscenium: a starry midnight curtain between red
-  wings, footlights, spotlights under the header and the big marquee sign
-  RUSTGRIN'S PIZZA REVUE.
+* **Dining Hall** (the showroom; north/center, 48 × 37, 9 tall under a dark
+  ceiling): confetti carpet, a checker dance floor in front of the stage and a
+  checker aisle, long party tables (red-and-white hats, balloons), cafe tables
+  with star-back chairs, diner booths along the east and south walls, pendant
+  lamps, a truss of PAR cans, the round drum in the ceiling with the mirror
+  ball, framed posters over a checker band, SHOWTIME! and RESTROOMS neon, the
+  red ARCADE neon over the passage to the Game Room, the order counter with the
+  kitchen's window and the menu board, a salad bar; the **Show Stage**: a curved
+  front lip with round footlights, a cream soffit with red stars following it,
+  coloured PAR cans, red side drapes, a starry midnight backdrop and the big
+  marquee sign RUSTGRIN'S PIZZA REVUE.
 * West side: Backstage (spare heads), the Midnight Midway showroom (the Cat +
   Purple Rat on the ring), the **Grand Marquee** (the Ringmaster's curtained side
   stage, SORRY! OUT OF ORDER on the closed half of the curtain), the Gallery,
   the Staff Room (time-clock lobby).
 * East side: Kitchen, Restrooms, the **Prize Corner** (prize cases, the plush
-  wall, token and claw machines), the long **Entrance Hall** (front doors under a
-  striped awning, ticket booth, hand-stamp podium, photo booth, a standee).
+  wall, token and claw machines), the long **Entrance Hall** (yellow walls, plum
+  carpet and a checker path from the glass doors to the WELCOME arch framed in
+  marquee bulbs; the curved token counter under a starry soffit with the plush
+  slatwall, a popcorn machine and the price board; brass stanchions with velvet
+  ropes, the height chart, the ticket booth, a photo booth).
 * South-east: the **Game Room** (skee-ball, rows of arcade cabinets, air hockey,
   token machines, a ticket counter, a crawl tube overhead), the **Fun Zone**
   (two padded play towers, crawl tubes overhead, a slide into the ball pit,
@@ -159,9 +169,10 @@ Rooms:
 * Crawl ducts West/East (y 9–10, never over the Dining Hall or the Fun Zone)
   ending in two ceiling vents in the office.
 
-Heights: the cast stands 4 blocks tall, so every room they walk is 6+ tall and
-the rooms where they perform on a 1-high ring or stage are 7+ (the Dining Hall
-is 10); the office and the front-of-house rooms can be lower.
+Heights: the cast stands about 3 blocks tall; every room they walk is 6+ tall
+(the map validator keeps a conservative 5.1 of head room) and the rooms where
+they perform on a 1-high ring or stage are 7+ (the Dining Hall is 9); the office
+and the front-of-house rooms can be lower.
 Doorways are deliberately short (3 blocks): the animatronics stoop through them
 and lean in at the office doors and the right window. At night the halls, the
 hall corners and the door areas are dark (block light 0–1, checked by
