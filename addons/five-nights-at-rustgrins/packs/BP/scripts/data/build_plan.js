@@ -307,7 +307,11 @@ function facade(p) {
     const tower = z === -1 || z === 8 || z === 63 || z === 72;
     p.fill(X, 0, z, X + 1, tower ? top + 3 : top + 1, z, 'cut_sandstone');
     fixture(p, X + 2, 0, z, 'foot_true_w', 'OUTSIDE');
+    fixture(p, X + 2, 2, z, 'light12', 'OUTSIDE'); // the uplight's wash up the stone
   }
+  // a warm glow low in every bay and over the doors (the lit yellow panels of the reference)
+  for (const [a, b] of FACADE.bays) fixture(p, X + 1, 1, (a + b) >> 1, 'light10', 'OUTSIDE');
+  for (const z of [31, 40]) fixture(p, X + 1, 2, z, 'light11', 'OUTSIDE');
   // the entrance: the sign board over the doors on a ledge, the big neon sign, Rustgrin waving above the roofline
   band(30, 41, 7, top - 1, 'blackstone_bricks');
   p.fill(X + 1, 6, 30, X + 1, 6, 41, 'blackstone_slab');
@@ -502,6 +506,7 @@ function dining(p, rng) {
     p.set(x, S.y1, f, x % 3 === 1 ? 'soffit_star' : 'soffit_cream');
     p.fill(x, S.y2, sz1 + 2, x, S.y2, f - 1, 'soffit_cream'); // its top closes over the stage
   }
+  p.fill(34, S.y1 - 1, STAGE.front[38], 43, S.y1 - 1, STAGE.front[38], 'soffit_cream'); // a fascia behind the sign's bottom row
   p.picture('sign_stage', 34, top, STAGE.front[38] + 1, 's', 10, 3); // RUSTGRIN'S PIZZA REVUE in bulbs, on the soffit
   // a row of coloured PAR cans under the soffit's back edge, aimed at the band
   for (const [i, x] of [25, 28, 31, 34, 43, 47, 49, 52].entries()) parCan(p, x, S.y1 - 1, STAGE.front[x] - 1, i, 'n');

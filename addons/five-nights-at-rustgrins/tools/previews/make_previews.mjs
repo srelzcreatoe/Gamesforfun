@@ -322,6 +322,29 @@ export const SCENES = [
     },
   },
   {
+    name: '31_entrance_arch', voxels: 'day', caption: 'The Entrance Hall: the WELCOME arch in marquee bulbs, the token counter under its starry soffit',
+    scene: { camera: { pos: [78.5, 2.0, 38.5], target: [64.5, 2.4, 31.0], fov: 68 }, exposure: 1.0 },
+  },
+  {
+    name: '32_facade', voxels: 'lit', caption: "The street front at night: Rustgrin waves over the neon sign; nobody has opened the doors in weeks",
+    scene: {
+      camera: { pos: [139, 5.5, 35.5], target: [100, 8.0, 35.5], fov: 56 }, exposure: 1.6,
+      extra_lights: [
+        { type: 'dir', pos: [190, 110, 10], target: [100, 0, 35], color: '#9aaee0', intensity: 1.5, shadow: true, shadowExtent: 90 },
+        { type: 'ambient', color: '#1e2742', intensity: 1.6 },
+        point([104, 9, 35.5], '#ff6fb5', 8, 16),
+        point([104, 14, 35.5], '#ffe2b0', 6, 14),
+      ],
+    },
+  },
+  {
+    name: '33_from_the_stage', voxels: 'night', caption: 'From the stage at night: the footlights are dead, the drum and the tables wait in the dark',
+    scene: {
+      camera: { pos: [38.5, 3.2, 5.5], target: [38.5, 1.4, 30], fov: 78 }, exposure: 2.8,
+      extra_lights: [{ type: 'ambient', color: '#1a2238', intensity: 2.2 }, point([50.2, 1.9, 24.5], '#ffb867', 4, 8)],
+    },
+  },
+  {
     name: '29_party_room', voxels: 'day', caption: 'The Party Room between the halls: a birthday table set for children who never came',
     scene: { camera: { pos: [36.5, 2.4, 39.6], target: [36.5, 0.8, 54], fov: 70 }, exposure: 1.0 },
   },
