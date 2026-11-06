@@ -58,11 +58,6 @@ export function isDark(n) {
 }
 
 export const isCrawl = (n) => !!NODES[n]?.crawl;
-export const isStage = (n) => NODES[n]?.pose === 'stage';
-/** The side of the office a door / window node opens onto ('L' | 'R'), or null. */
-export const doorSide = (n) => NODES[n]?.door ?? null;
-/** The side of the office a vent node drops into ('L' | 'R'), or null. */
-export const ventSide = (n) => NODES[n]?.vent ?? null;
 
 /** Every door / window node of the office, by side. */
 export const DOOR_NODES = Object.freeze({
@@ -116,13 +111,6 @@ export function planPath(from, goal, { cost, blocked } = {}) {
   const out = [found];
   while (out[0] !== from) out.unshift(prev.get(out[0]));
   return out;
-}
-
-/** Total walking length of a node list. */
-export function pathLength(nodes) {
-  let l = 0;
-  for (let i = 1; i < nodes.length; i++) l += edgeLength(nodes[i - 1], nodes[i]);
-  return l;
 }
 
 /**

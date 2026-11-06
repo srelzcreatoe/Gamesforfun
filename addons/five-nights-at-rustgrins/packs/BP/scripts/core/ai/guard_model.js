@@ -15,13 +15,8 @@ import { videoCams } from './graph.js';
 
 const SIDES = Object.freeze(['L', 'R']);
 
-/** A door or vent cover: when it last changed, and how much of the last while it was shut. */
-function track(rec, closed, t, k) {
-  if (closed !== rec.closed) {
-    rec.closed = closed;
-    if (closed) rec.closedAt = t;
-    else rec.openedAt = t;
-  }
+/** A door or vent cover: how much of the last while it has been shut. */
+function track(rec, closed, k) {
   rec.ratio += ((closed ? 1 : 0) - rec.ratio) * k;
 }
 
@@ -31,14 +26,11 @@ export class GuardModel {
     this.s = s;
     this.cfg = CONFIG.brain;
     const light = () => ({ on: false, onAt: -1e9, offAt: -1e9, gap: this.cfg.gapStart, checks: 0 });
-    const shut = () => ({ closed: false, ratio: 0, closedAt: -1e9, openedAt: -1e9 });
+    const shut = () => ({ ratio: 0 });
     this.light = { L: light(), R: light() };
     this.door = { L: shut(), R: shut() };
     this.vent = { L: shut(), R: shut() };
     this.camsOpen = false;
-    this.camsOpenedAt = -1e9;
-    this.camsClosedAt = -1e9;
-    this.upRatio = 0;
     /** camId -> { v, t }: attention that fades with time */
     this.heat = Object.create(null);
   }
@@ -61,16 +53,11 @@ export class GuardModel {
         L.on = false;
         L.offAt = t;
       }
-      track(this.door[side], s.doorClosed(side), t, k);
-      track(this.vent[side], s.ventClosed(side), t, k);
+      track(this.door[side], s.doorClosed(side), k);
+      track(this.vent[side], s.ventClosed(side), k);
     }
     const open = d.cams.open && !s.powerOut;
-    if (open !== this.camsOpen) {
-      this.camsOpen = open;
-      if (open) this.camsOpenedAt = t;
-      else this.camsClosedAt = t;
-    }
-    this.upRatio += ((open ? 1 : 0) - this.upRatio) * k;
+    this.camsOpen = open;
     if (open && s.camWorking(d.cams.cam)) {
       const h = (this.heat[d.cams.cam] ??= { v: 0, t });
       h.v = this.camHeat(d.cams.cam) + 1;
@@ -136,12 +123,5 @@ export class GuardModel {
     let m = 0;
     for (const cam of videoCams(node)) m = Math.max(m, this.camHeat(cam));
     return Math.min(1, m / this.cfg.heatFull);
-  }
-
-  /** How much of the guard's attention leans to one side lately (lights and doors): 0..1. */
-  attention(side) {
-    const L = this.light[side];
-    const freq = Math.min(1, this.cfg.gapStart / Math.max(60, L.gap) / 4);
-    return Math.min(1, 0.6 * this.door[side].ratio + 0.4 * freq);
   }
 }

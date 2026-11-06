@@ -48,7 +48,6 @@ export class DoorStalker extends Animatronic {
     this.lingerUntil = 0;
     this.returnAt = 0;
     this.eagerUntil = 0;
-    this.turnedAway = 0;
     /** @type {string | null | undefined} */
     this._corner = undefined;
     this.costFn = (_a, b) => this.stepCost(b);
@@ -280,7 +279,6 @@ export class DoorStalker extends Animatronic {
   giveUp() {
     const s = this.s;
     const easy = s.director.pressure < 0;
-    this.turnedAway++;
     this.eagerUntil = easy ? 0 : s.t + this.cfg.eagerFor;
     this.mode = 'roam';
     s.director.release(this.side, this.id);
