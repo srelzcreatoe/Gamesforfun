@@ -296,6 +296,28 @@ check(P.music === 'fnar.music.bgm' && game().save.settings.bgm === true, 'and ba
   game().session.chars.mirehop.placeAt('DOOR_L', 'stand');
   await steps(2);
   check(ent('mirehop')?.props['fnar:anim'] === 'lean', `at the left door Mirehop leans in (${ent('mirehop')?.props['fnar:anim']})`);
+  // the smarter cast's habits each have a tell: a sound and a caption (core/ai, rendered by game.js)
+  {
+    const s = game().session;
+    const tells = [
+      [{ fx: 'cue', kind: 'linger', who: 'mirehop', side: 'L' }, 'fnar.mirehop.strum', /soft twang/],
+      [{ fx: 'cue', kind: 'linger', who: 'noxbriar', side: 'R' }, 'fnar.noxbriar.hum', /soft humming/],
+      [{ fx: 'cue', kind: 'blink', who: 'rustgrin', from: 'DIN_C' }, 'fnar.rustgrin.laugh', /looked away/],
+      [{ fx: 'cue', kind: 'switch', who: 'purple_rat', side: 'R' }, 'fnar.rat.maracas', /other duct/],
+      [{ fx: 'cue', kind: 'nervous', who: 'purple_rat', side: 'L' }, null, /squeak in the west duct/],
+      [{ fx: 'sound', id: 'fnar.step.heavy', at: 'mirehop', vol: 0.6, approach: 'L' }, 'fnar.step.heavy', /footsteps in the West Hall/],
+      [{ fx: 'sound', id: 'fnar.noxbriar.hum', at: 'noxbriar', vol: 0.4, approach: 'R' }, 'fnar.noxbriar.hum', /humming in the East Hall/],
+      [{ fx: 'sound', id: 'fnar.cat.growl', at: 'door_l', vol: 0.4, approach: 'L' }, 'fnar.cat.growl', /growl down the West Hall/],
+    ];
+    for (const [e, sound, caption] of tells) {
+      const n0 = mock.sounds.length;
+      s.emit(e);
+      await steps(5);
+      const what = e.kind ?? e.id;
+      check(!sound || mock.sounds.slice(n0).includes(sound), `the ${what} tell plays ${sound}`);
+      check(caption.test(P.actionBar ?? ''), `the ${what} tell has a caption (got: ${(P.actionBar ?? '').split('\n').at(-1)})`);
+    }
+  }
   // night 4: he is glimpsed out of place, and snaps back once watched on CAM 1C
   debug('night', '4');
   await steps(5);
@@ -307,6 +329,13 @@ check(P.music === 'fnar.music.bgm' && game().save.settings.bgm === true, 'and ba
   game().session.input('cams_open', '1C');
   await steps(70);
   check(game().booth.at === 'CAB' && game().session.chars.top_hat_rat.node === 'CAB', `watched on CAM 1C, he is back in his booth (at ${game().booth.at})`);
+  {
+    // stared down on a camera, Mirehop slips out of the frame: the watched feed tears
+    const n0 = mock.sounds.length;
+    game().session.emit({ fx: 'cue', kind: 'slip', who: 'mirehop', cam: '1C' });
+    await steps(5);
+    check(mock.sounds.slice(n0).includes('fnar.cam.glitch') && /slipped out of view/.test(P.actionBar ?? ''), 'a slip-away tears the feed being watched (glitch and caption)');
+  }
   game().session.input('cams_close');
   await steps(10);
 }
