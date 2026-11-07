@@ -6,6 +6,7 @@ import { Raster } from './png.js';
 import { makeZip } from './zip.js';
 import { TARGETS } from './model.js';
 import { compileHorror, directorFunctions, dwellerSpawn, hProp, migrateHorror } from './horror.js';
+import { addLimitParts, limitFunctions, limitOf } from './limits.js';
 
 const J = (o) => JSON.stringify(o, null, 2) + '\n';
 const ver3 = (v) => (Array.isArray(v) && v.length === 3 ? v.map((x) => Math.max(0, parseInt(x, 10) || 0)) : [1, 0, 0]);
@@ -160,8 +161,10 @@ export function behaviorEntityJSON(project, e, notes = [], extraRp = [], directo
   if (e.horror?.enabled) {
     const r = compileHorror({ ns: project.namespace, name: e.name, h: e.horror, components, groups, events, properties: props, notes });
     extraRp.push(...r.files);
-    if (r.director) { directors.push(r.director); notes.push(`Appearance director: first after ${r.director.ap.firstAfter} min, then every ${r.director.ap.every[0]}-${r.director.ap.every[1]} min (${r.director.ap.chance}% chance)`); }
+    if (r.director) { directors.push({ ...r.director, max: limitOf(e) }); notes.push(`Appearance director: first after ${r.director.ap.firstAfter} min, then every ${r.director.ap.every[0]}-${r.director.ap.every[1]} min (${r.director.ap.chance}% chance)`); }
   }
+
+  addLimitParts(project.namespace, e, groups, events, notes);
 
   const description = {
     identifier: id,
@@ -333,11 +336,13 @@ export function buildPacks(project, opts = {}) {
   }
   if (Object.keys(soundEntities).length) rp.push({ path: 'sounds.json', data: J({ entity_sounds: { entities: soundEntities } }) });
   // Appearance director: per-player timers in BP functions, run every tick.
+  // "Only N at once": slot tags kept by a tick function.
   const dirFiles = directorFunctions(project.namespace, project, directors);
-  if (dirFiles.length) {
-    bp.push(...dirFiles);
-    bp.push({ path: 'functions/tick.json', data: J({ values: [`${project.namespace}/dwellers/tick`] }) });
-  }
+  const limFiles = limitFunctions(project.namespace, project.entities);
+  const ticks = [];
+  if (dirFiles.length) { bp.push(...dirFiles); ticks.push(`${project.namespace}/dwellers/tick`); }
+  if (limFiles.length) { bp.push(...limFiles); ticks.push(`${project.namespace}/limits`); }
+  if (ticks.length) bp.push({ path: 'functions/tick.json', data: J({ values: ticks }) });
   // Custom audio: files under sounds/<ns>/ plus sound_definitions.json so the
   // ids (<ns>.<name>) work in sounds.json, /playsound and the horror scares.
   const custom = project.sounds || [];

@@ -146,7 +146,7 @@ export function HorrorPanel({ e, p }) {
   return (
     <div class="tab-horror">
       <Card title={e.displayName || e.name} icon={A.icon} sub={`${A.label} · ${DWELLER_TYPES.find((t) => t[0] === h.type)?.[1]}${h.type !== 'underground' ? ` · ${h.time === 'night' ? 'night only' : 'day and night'}` : ''}`}>
-        <p class="summary">📅 {appearSummary(ap, h.type, h.time)}</p>
+        <p class="summary">📅 {appearSummary(ap, h.type, h.time, e.limit)}</p>
         <div class="actions wrap" style={{ justifyContent: 'flex-start' }}>
           <Btn kind="primary" icon="nodes" onClick={() => setTab('board')}>Node board</Btn>
           <Btn icon="brush" onClick={() => openLookPicker(e)}>Change look</Btn>
@@ -180,7 +180,8 @@ export function HorrorPanel({ e, p }) {
       </Card>
 
       <Card title="When it shows up" icon="⏱" sub="The timer makes sure players actually meet it">
-        <AppearanceEditor ap={ap} type={h.type} time={h.time} set={(o) => set((x) => { Object.assign(x.appear, o); }, `h:ap:${Object.keys(o).join()}`)} />
+        <AppearanceEditor ap={ap} type={h.type} time={h.time} set={(o) => set((x) => { Object.assign(x.appear, o); }, `h:ap:${Object.keys(o).join()}`)}
+          limit={e.limit} setLimit={(l) => ecommit(e, (en) => { en.limit = l; })} />
       </Card>
 
       <Card title="Strength" icon="❤">

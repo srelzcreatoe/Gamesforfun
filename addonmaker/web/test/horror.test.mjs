@@ -145,10 +145,10 @@ test('appearance director: functions, tick.json and valid commands', () => {
   });
   const { bp, rp } = buildPacks(p);
   const tick = JSON.parse(bp.files.find((f) => f.path === 'functions/tick.json').data);
-  assert.deepEqual(tick.values, [`${p.namespace}/dwellers/tick`]);
+  assert.deepEqual(tick.values, [`${p.namespace}/dwellers/tick`, `${p.namespace}/limits`]);
   const fnFiles = bp.files.filter((f) => f.path.endsWith('.mcfunction'));
   const fnNames = new Set(fnFiles.map((f) => f.path.replace(/^functions\//, '').replace(/\.mcfunction$/, '')));
-  assert.ok(fnNames.has(tick.values[0]));
+  for (const v of tick.values) assert.ok(fnNames.has(v), `tick.json runs missing ${v}`);
   const known = fs.existsSync(cmdFile) ? new Set(JSON.parse(fs.readFileSync(cmdFile, 'utf8')).commands.map((c) => c.name)) : null;
   for (const f of fnFiles) {
     for (const line of f.data.split('\n').filter((l) => l && !l.startsWith('#'))) {

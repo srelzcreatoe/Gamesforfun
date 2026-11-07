@@ -4,6 +4,7 @@ import { Btn, Toggle } from '../common.jsx';
 import { state, commit, go, openModal, closeModal, toast } from '../store.js';
 import { DWELLER_PRESETS, dwellerFromPreset, applyDwellerPreset } from '../../core/dwellers.js';
 import { ARCHETYPES, DWELLER_TYPES, DWELLER_TIMES, RARITY } from '../../core/horror.js';
+import { LIMIT_CHOICES } from '../../core/limits.js';
 import { DWELLER_BODIES } from '../../core/geo.js';
 import { baseEntity } from '../../core/model.js';
 import { slug } from '../../core/util.js';
@@ -27,17 +28,34 @@ export function Slider({ label, value, min, max, step = 1, unit = '', onChange, 
   );
 }
 
-export function appearSummary(ap, type, time) {
-  if (!ap.director && !ap.natural) return 'Only appears from its spawn egg or /summon.';
+export const limitText = (limit) => (limit?.on ? (Number(limit.max) === 1 ? 'Only one can exist at a time.' : `At most ${limit.max} can exist at a time.`) : '');
+
+/** “How many can exist at once”: No limit / 1 / 2 / 3 / 5. */
+export function LimitPicker({ limit, set, hint = true }) {
+  const cur = limit?.on ? Number(limit.max) || 1 : 0;
+  return (
+    <div class="field">
+      <span>How many can exist at once</span>
+      <div class="inline wrap">
+        {LIMIT_CHOICES.map((n) => <button type="button" class={`cchip ${cur === n ? 'on' : ''}`} aria-pressed={cur === n} onClick={() => set(n ? { on: true, max: n } : { on: false, max: limit?.max || 1 })}>{n === 0 ? 'No limit' : n === 1 ? 'Only 1' : n}</button>)}
+      </div>
+      {hint && <span class="hint">{cur ? `The ${cur === 1 ? 'one' : 'ones'} already in the world stay. Any extra copy (natural spawn, spawn egg or /summon) vanishes the moment it appears. Counts mobs in loaded areas.` : 'Any number can exist, like normal mobs.'}</span>}
+    </div>
+  );
+}
+
+export function appearSummary(ap, type, time, limit) {
+  const lim = limitText(limit);
+  if (!ap.director && !ap.natural) return `Only appears from its spawn egg or /summon.${lim ? ' ' + lim : ''}`;
   const where = type === 'underground' ? 'underground' : type === 'surface' ? (time === 'night' ? 'on the surface at night' : 'on the surface') : time === 'night' ? 'in caves, or outside at night' : 'anywhere';
   const parts = [];
   if (ap.director) parts.push(`shows up ${where} about ${ap.firstAfter} min after you join, then every ${ap.every[0]}–${ap.every[1]} min (${ap.chance}% chance each time)`);
   if (ap.natural) parts.push(`${ap.director ? 'also ' : ''}spawns naturally (${ap.rarity})`);
   if (ap.leaveAfter > 0) parts.push(`leaves after ~${ap.leaveAfter} min if it doesn't catch you`);
-  return parts.join('; ') + '.';
+  return parts.join('; ') + '.' + (lim ? ' ' + lim : '');
 }
 
-export function AppearanceEditor({ ap, type, time, set }) {
+export function AppearanceEditor({ ap, type, time, set, limit, setLimit }) {
   return (
     <div class="stack">
       <Toggle label="Appearance timer" hint="Guaranteed visits: it comes to find you" value={ap.director} onChange={(v) => set({ director: v })} />
@@ -50,14 +68,14 @@ export function AppearanceEditor({ ap, type, time, set }) {
           <span class="hint">Appears</span>
           {[['near', 'Close by'], ['medium', 'Medium'], ['far', 'Far away']].map(([k, l]) => <button type="button" class={`cchip ${ap.distance === k ? 'on' : ''}`} onClick={() => set({ distance: k })}>{l}</button>)}
         </div>
-        <Toggle label="Only one at a time" value={ap.oneAtATime !== false} onChange={(v) => set({ oneAtATime: v })} />
       </>}
       <Slider label="Leaves if it hasn't caught you after" unit={ap.leaveAfter ? ' min' : ' (never)'} value={ap.leaveAfter} min={0} max={20} onChange={(v) => set({ leaveAfter: v })} />
       <Toggle label="Also spawn naturally" hint="Like normal mobs, in the dark" value={ap.natural} onChange={(v) => set({ natural: v })} />
       {ap.natural && (
         <div class="inline wrap">{Object.keys(RARITY).map((r) => <button type="button" class={`cchip ${ap.rarity === r ? 'on' : ''}`} onClick={() => set({ rarity: r })}>{r}</button>)}</div>
       )}
-      <p class="summary">📅 {appearSummary(ap, type, time)}</p>
+      {setLimit && <LimitPicker limit={limit} set={setLimit} />}
+      <p class="summary">📅 {appearSummary(ap, type, time, limit)}</p>
     </div>
   );
 }
@@ -71,6 +89,7 @@ export function openDwellerWizard() {
     const [time, setTime] = useState('night');
     const [style, setStyle] = useState('stalker');
     const [ap, setAp] = useState({ director: true, firstAfter: 3, every: [6, 12], chance: 70, oneAtATime: true, leaveAfter: 5, distance: 'medium', natural: true, rarity: 'uncommon' });
+    const [limit, setLimit] = useState({ on: true, max: 1 });
     const [name, setName] = useState('');
     const [stats, setStats] = useState([45, 8, 0.33]);
     const pickLook = (l) => {
@@ -99,6 +118,7 @@ export function openDwellerWizard() {
       e.horror.type = type; e.horror.time = time;
       if (time === 'always') e.horror.weakness.sunlight = 'none';
       e.horror.appear = { ...e.horror.appear, ...ap };
+      e.limit = { ...limit };
       e.components['minecraft:health'] = { value: stats[0], max: stats[0] };
       e.horror.hunt.damage = stats[1];
       e.components['minecraft:movement'] = { value: stats[2] };
@@ -134,7 +154,7 @@ export function openDwellerWizard() {
         </>}
         {step === 3 && <>
           <h3>When does it show up?</h3>
-          <AppearanceEditor ap={ap} type={type} time={time} set={(o) => setAp((a) => ({ ...a, ...o }))} />
+          <AppearanceEditor ap={ap} type={type} time={time} set={(o) => setAp((a) => ({ ...a, ...o }))} limit={limit} setLimit={setLimit} />
         </>}
         {step === 4 && <>
           <h3>Name & strength</h3>
@@ -142,7 +162,7 @@ export function openDwellerWizard() {
           <Slider label="Health" unit=" ♥/2" value={stats[0]} min={10} max={200} step={5} onChange={(v) => setStats([v, stats[1], stats[2]])} />
           <Slider label="Damage per hit" value={stats[1]} min={1} max={30} onChange={(v) => setStats([stats[0], v, stats[2]])} />
           <Slider label="Walk speed" value={stats[2]} min={0.15} max={0.6} step={0.01} onChange={(v) => setStats([stats[0], stats[1], v])} />
-          <p class="summary">👁 {ARCHETYPES[style].label}: {ARCHETYPES[style].blurb}<br />📅 {appearSummary(ap, type, time)}</p>
+          <p class="summary">👁 {ARCHETYPES[style].label}: {ARCHETYPES[style].blurb}<br />📅 {appearSummary(ap, type, time, limit)}</p>
         </>}
         <div class="actions sticky">
           {step > 0 && <Btn kind="ghost" onClick={() => setStep(step - 1)}>Back</Btn>}

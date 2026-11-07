@@ -58,8 +58,17 @@ try {
   await page.locator('[data-port="hit"]').click({ force: true });
   await page.locator('[data-node="hunt"]').click();
   await page.waitForTimeout(1500);
-  const h = await page.evaluate(() => { const k = Object.keys(localStorage).find((x) => x.startsWith('mobsmith.p.')); return JSON.parse(localStorage.getItem(k)).entities[0].horror; });
+  const ent0 = () => page.evaluate(() => { const k = Object.keys(localStorage).find((x) => x.startsWith('mobsmith.p.')); return JSON.parse(localStorage.getItem(k)).entities[0]; });
+  const h = (await ent0()).horror;
   if (h.senses.seen !== 'freeze' || !h.hunt.onHurt) throw new Error('node board edits did not reach the dweller settings');
+  // "How many at once" on the Spawning tab.
+  if (!(await ent0()).limit?.on) throw new Error('wizard dweller should be limited to one');
+  await page.locator('nav.tabs .tab', { hasText: 'Spawning' }).click();
+  await page.getByRole('button', { name: '3', exact: true }).click();
+  await page.waitForTimeout(700);
+  const lim = (await ent0()).limit;
+  if (!lim.on || lim.max !== 3) throw new Error('limit picker did not save: ' + JSON.stringify(lim));
+  await page.getByRole('button', { name: 'Only 1' }).click();
   while (await page.locator('.top .btn[aria-label="Back"]').count()) await page.locator('.top .btn[aria-label="Back"]').click();
   await page.getByRole('tab', { name: 'Creator' }).click();
   await page.locator('.pcard', { hasText: /^New/ }).first().click();

@@ -14,6 +14,7 @@ export const NODE_TYPES = {
   senses: { kind: 'stat', label: 'Senses', icon: '👂', out: 'part', fields: { detect: ['Notices within', num(8, 64)], lose: ['Loses track beyond', num(16, 160)] }, desc: 'How far it notices you' },
   where: { kind: 'spawn', label: 'Lives', icon: '🌗', out: 'part', fields: { type: ['Where', pick('underground', 'surface', 'both')], time: ['When', pick('night', 'always')] }, desc: 'Underground, surface or both' },
   timer: { kind: 'spawn', label: 'Appearance timer', icon: '⏱', out: 'part', fields: { firstAfter: ['First after (min)', num(1, 30)], everyMin: ['Every, shortest (min)', num(1, 60)], everyMax: ['Every, longest (min)', num(1, 90)], chance: ['Chance %', num(5, 100, 5)], leaveAfter: ['Leaves after (min, 0 = never)', num(0, 20)], distance: ['Appears', pick('near', 'medium', 'far')] }, desc: 'Comes to find you on a schedule' },
+  limit: { kind: 'spawn', label: 'How many at once', icon: '☝', out: 'part', fields: { max: ['At most', pick('1', '2', '3', '5')] }, desc: 'Extra copies vanish the moment they appear' },
   natural: { kind: 'spawn', label: 'Natural spawning', icon: '🌱', out: 'part', fields: { rarity: ['Rarity', pick('rare', 'uncommon', 'common')] }, desc: 'Spawns in the dark like normal mobs' },
   lights: { kind: 'trait', label: 'Smashes lights', icon: '🕯', out: 'part', desc: 'Breaks torches and lanterns while hunting' },
   doors: { kind: 'trait', label: 'Breaks doors', icon: '🚪', out: 'part', desc: 'Bashes doors down' },
@@ -109,6 +110,7 @@ export function graphFromConfig(e, prev) {
   part('where', { type: h.type, time: h.time });
   part('timer', { firstAfter: h.appear.firstAfter, everyMin: h.appear.every[0], everyMax: h.appear.every[1], chance: h.appear.chance, leaveAfter: h.appear.leaveAfter, distance: h.appear.distance }, h.appear.director);
   part('natural', { rarity: h.appear.rarity }, h.appear.natural);
+  part('limit', { max: String(e.limit?.max || 1) }, !!e.limit?.on);
   const traits = [['lights', h.traits.breakLights], ['doors', h.traits.breakDoors], ['climb', h.traits.climb], ['nofall', h.traits.noFall], ['fire', h.weakness.fire]];
   traits.forEach(([id, on], i) => { add(id, COL.trait, i * 100); if (on) link(id, 'core'); });
   add('sun', COL.trait, traits.length * 100, { mode: h.weakness.sunlight === 'burn' ? 'burn' : 'vanish' });
@@ -194,6 +196,7 @@ export function applyGraph(e) {
     Object.assign(h.appear, { firstAfter: Number(t.firstAfter) || 3, every: [Number(t.everyMin) || 6, Math.max(Number(t.everyMin) || 6, Number(t.everyMax) || 12)], chance: Number(t.chance) || 70, leaveAfter: Number(t.leaveAfter) || 0, distance: t.distance || 'medium' });
   }
   h.appear.natural = toCore('natural');
+  if (node('limit')) e.limit = { on: toCore('limit'), max: Number(d('limit').max) || 1 };
   if (node('natural')) h.appear.rarity = d('natural').rarity || 'uncommon';
   h.traits.breakLights = toCore('lights');
   h.traits.breakDoors = toCore('doors');

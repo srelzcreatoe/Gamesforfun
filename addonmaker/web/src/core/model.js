@@ -52,6 +52,7 @@ export function baseEntity(name = 'new_mob', template = 'humanoid') {
     spawnCategory: '',
     runtimeId: '',
     egg: { enabled: true, base: '#3f6fb5', overlay: '#f2c14e' },
+    limit: { on: false, max: 1 },
     components: {
       'minecraft:type_family': { family: [slug(name), 'mob'] },
       'minecraft:health': { value: 20, max: 20 },
@@ -108,6 +109,8 @@ export function migrateProject(p) {
   p.version ??= [1, 0, 0];
   p.sounds ??= [];
   for (const e of p.entities) {
+    // Older dwellers had "only one at a time" (near a player); it is now a real limit.
+    if (e.limit === undefined && e.horror?.enabled) e.limit = { on: e.horror.appear?.oneAtATime !== false, max: 1 };
     const d = baseEntity(e.name || 'mob', e.model?.template || 'humanoid');
     for (const k of Object.keys(d)) if (e[k] === undefined) e[k] = d[k];
     e.uid ||= uid();

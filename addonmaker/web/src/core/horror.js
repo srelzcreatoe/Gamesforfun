@@ -514,11 +514,13 @@ export function directorFunctions(ns, project, directors) {
     init.push(`scoreboard players set @s ${d.objective} ${minS - first}`);
     second.push(`scoreboard players add @a ${d.objective} 1`);
     second.push(`execute as @a[scores={${d.objective}=${minS}..}] at @s run function ${ns}/dwellers/${d.name}`);
-    const guard = d.ap.oneAtATime !== false ? `unless entity @e[type=${id},r=160] ` : '';
+    // With a limit, count the copies first and only summon while there's room.
+    const guard = d.max ? `if score #n ${roll} matches ..${d.max - 1} ` : '';
     files.push({ path: `functions/${ns}/dwellers/${d.name}.mcfunction`, data: [
-      `# Appearance roll for ${id}: every ${minS}-${maxS}s, ${chance}% chance.`,
+      `# Appearance roll for ${id}: every ${minS}-${maxS}s, ${chance}% chance${d.max === 1 ? ', only when none exists yet' : d.max ? `, only while fewer than ${d.max} exist` : ''}.`,
       `scoreboard players random @s ${d.objective} ${minS - maxS} 0`,
       `scoreboard players random @s ${roll} 1 100`,
+      ...(d.max ? [`scoreboard players set #n ${roll} 0`, `execute as @e[type=${id}] run scoreboard players add #n ${roll} 1`] : []),
       `execute if score @s ${roll} matches 1..${chance} ${guard}run summon ${id} ^ ^ ^-${near} ~ ~ ${hEvent(ns, 'arrive')}`,
       '',
     ].join('\n') });

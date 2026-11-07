@@ -411,6 +411,7 @@ export const PRESETS = [
     build(e, id, ns) {
       setModel(e, 'golem', { body: { color: '#5a1e2e', pattern: 'stripes', color2: '#f2a541' }, head: '#7a2a3c', armR: '#5a1e2e', armL: '#5a1e2e', legR: '#3a1420', legL: '#3a1420' });
       essentials(e, { health: 300, speed: 0.28 });
+      e.limit = { on: true, max: 1 };
       e.components['minecraft:type_family'] = fam(e.name, 'monster', 'mob');
       e.properties.push({ ...newProperty(`${ns}:phase`, 'int'), def: 0, range: [0, 1] });
       Object.assign(e.components, {

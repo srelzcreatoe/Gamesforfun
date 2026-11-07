@@ -17,11 +17,12 @@ test('config → board → config round-trips for all 22 dwellers', () => {
   const p = newProject('Graph');
   for (const d of DWELLER_PRESETS) {
     const e = dwellerFromPreset(p, d.id);
-    const before = clone(KEYS(e.horror));
+    if (DWELLER_PRESETS.indexOf(d) % 2) e.limit = { on: DWELLER_PRESETS.indexOf(d) % 4 === 1, max: 3 };
+    const before = clone({ ...KEYS(e.horror), limit: e.limit });
     const hp = e.components['minecraft:health'].value;
     e.horror.graph = graphFromConfig(e);
     applyGraph(e);
-    assert.deepEqual(KEYS(e.horror), before, d.id);
+    assert.deepEqual({ ...KEYS(e.horror), limit: e.limit }, before, d.id);
     assert.equal(e.components['minecraft:health'].value, hp);
   }
 });
@@ -47,5 +48,7 @@ test('rewiring the board changes the exported behaviour', () => {
   const { bp } = buildPacks(p);
   const ent = JSON.parse(bp.files.find((f) => f.path === 'entities/nw.json').data)['minecraft:entity'];
   assert.ok(ent.component_groups[`${p.namespace}:horror_frozen`]);
-  assert.ok(!bp.files.some((f) => f.path === 'functions/tick.json'), 'timer disconnected → no director');
+  assert.ok(!bp.files.some((f) => f.path.includes('/dwellers/')), 'timer disconnected → no director');
+  const tick = JSON.parse(bp.files.find((f) => f.path === 'functions/tick.json').data);
+  assert.deepEqual(tick.values, [`${p.namespace}/limits`], 'still only one at a time');
 });

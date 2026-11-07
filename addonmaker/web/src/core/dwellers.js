@@ -289,6 +289,7 @@ export function applyDwellerPreset(e, p, ns) {
   if (p.tweak) p.tweak(h);
   e.horror = h;
   e.dwellerMode = 'horror';
+  e.limit = { on: true, max: 1 };
   e.spawnCategory = 'monster';
   e.spawn = { enabled: false, population: 'monster', conditions: dwellerSpawn(h) };
   e.sounds = snd(p.sounds[0], p.sounds[1]);

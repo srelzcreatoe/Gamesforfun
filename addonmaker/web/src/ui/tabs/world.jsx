@@ -5,6 +5,7 @@ import { FilterEditor, JsonEditor } from '../fields.jsx';
 import { ecommit } from '../screens/entity.jsx';
 import { vanilla } from '../meta.js';
 import { SoundPicker } from '../audio.jsx';
+import { LimitPicker } from '../screens/wizard.jsx';
 import { isObj, clone } from '../../core/util.js';
 
 // ---------------- Sounds ----------------
@@ -103,6 +104,9 @@ export function SpawnTab({ e }) {
   const upd = (fn, key) => ecommit(e, (en) => fn(en.spawn), key);
   return (
     <div>
+      <Card title="How many at once" icon="☝" sub="Make it unique, like a boss or a dweller">
+        <LimitPicker limit={e.limit} set={(l) => ecommit(e, (en) => { en.limit = l; })} />
+      </Card>
       <Card title="Natural spawning" sub="Where and when this mob appears in the world by itself">
         <Toggle label="Spawns naturally" value={s.enabled} onChange={(v) => upd((x) => {
           x.enabled = v;
