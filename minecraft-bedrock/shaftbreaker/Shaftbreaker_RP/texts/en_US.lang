@@ -1,0 +1,19 @@
+pack.name=The Shaftbreaker (Resources)
+pack.description=A stone cave-dweller that stalks the deep mineshafts.
+
+entity.shaftbreaker:shaftbreaker.name=Shaftbreaker
+item.spawn_egg.entity.shaftbreaker:shaftbreaker.name=Shaftbreaker Spawn Egg
+
+subtitles.entity.shaftbreaker.ambient=Shaftbreaker grinds
+subtitles.entity.shaftbreaker.angry=Shaftbreaker snarls
+subtitles.entity.shaftbreaker.hurt=Shaftbreaker cracks
+subtitles.entity.shaftbreaker.death=Shaftbreaker crumbles
+subtitles.entity.shaftbreaker.attack=Shaftbreaker strikes
+subtitles.entity.shaftbreaker.roar=Shaftbreaker roars
+subtitles.entity.shaftbreaker.activate=Shaftbreaker stirs
+subtitles.entity.shaftbreaker.freeze=Shaftbreaker freezes
+subtitles.entity.shaftbreaker.unfreeze=Shaftbreaker shifts
+subtitles.entity.shaftbreaker.step=Heavy footsteps
+subtitles.entity.shaftbreaker.smash=Stone shatters
+subtitles.entity.shaftbreaker.scrape=Claws scrape stone
+subtitles.entity.shaftbreaker.screech=Shaftbreaker screeches

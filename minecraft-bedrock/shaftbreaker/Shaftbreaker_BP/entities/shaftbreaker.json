@@ -1,0 +1,497 @@
+{
+  "format_version": "1.26.30",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "shaftbreaker:shaftbreaker",
+      "spawn_category": "monster",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "properties": {
+        "shaftbreaker:phase": {
+          "type": "enum",
+          "values": ["dormant", "stalking", "watching", "breaker", "frenzy"],
+          "default": "dormant",
+          "client_sync": true
+        },
+        "shaftbreaker:stuck": {
+          "type": "int",
+          "range": [0, 4],
+          "default": 0,
+          "client_sync": false
+        }
+      }
+    },
+
+    "component_groups": {
+      "shaftbreaker:dormant": {
+        "minecraft:movement": { "value": 0.0 },
+        "minecraft:knockback_resistance": { "value": 1.0 },
+        "minecraft:body_rotation_blocked": {},
+        "minecraft:ambient_sound_interval": { "event_name": "undefined" },
+        "minecraft:environment_sensor": {
+          "triggers": [
+            {
+              "filters": { "test": "has_target", "subject": "self", "value": true },
+              "event": "shaftbreaker:on_wake"
+            }
+          ]
+        }
+      },
+
+      "shaftbreaker:stalking": {
+        "minecraft:movement": { "value": 0.24 },
+        "minecraft:knockback_resistance": { "value": 0.6 },
+        "minecraft:ambient_sound_interval": { "event_name": "ambient", "value": 7.0, "range": 6.0 },
+        "minecraft:behavior.melee_box_attack": {
+          "priority": 3,
+          "speed_multiplier": 0.75,
+          "track_target": true,
+          "cooldown_time": 2.0,
+          "require_complete_path": false
+        },
+        "minecraft:looked_at": {
+          "search_radius": 24.0,
+          "find_players_only": true,
+          "field_of_view": 45.0,
+          "scale_fov_by_distance": false,
+          "line_of_sight_obstruction_type": "collision_for_camera",
+          "look_at_locations": [
+            { "location": "head" },
+            { "location": "body" },
+            { "location": "feet", "vertical_offset": 0.5 }
+          ],
+          "min_looked_at_duration": 0.35,
+          "looked_at_cooldown": 0.1,
+          "set_target": "once_and_keep_scanning",
+          "filters": {
+            "all_of": [
+              { "test": "actor_health", "subject": "other", "operator": ">", "value": 0 },
+              { "test": "has_ability", "subject": "other", "operator": "not", "value": "invulnerable" },
+              { "test": "has_equipment", "subject": "other", "domain": "head", "operator": "not", "value": "carved_pumpkin" }
+            ]
+          },
+          "looked_at_event": { "event": "shaftbreaker:on_noticed", "target": "self" }
+        },
+        "minecraft:environment_sensor": {
+          "triggers": [
+            {
+              "filters": { "test": "has_target", "subject": "self", "value": false },
+              "event": "shaftbreaker:on_lost_target"
+            },
+            {
+              "filters": {
+                "all_of": [
+                  { "test": "has_target", "subject": "self", "value": true },
+                  { "test": "target_distance", "subject": "self", "operator": "<", "value": 5.5 }
+                ]
+              },
+              "event": "shaftbreaker:on_enrage"
+            }
+          ]
+        },
+        "minecraft:timer": {
+          "looping": true,
+          "randomInterval": false,
+          "time": { "min": 2.0, "max": 2.0 },
+          "time_down_event": { "event": "shaftbreaker:on_stuck_check", "target": "self" }
+        }
+      },
+
+      "shaftbreaker:watching": {
+        "minecraft:movement": { "value": 0.0 },
+        "minecraft:knockback_resistance": { "value": 0.9 },
+        "minecraft:ambient_sound_interval": { "event_name": "ambient", "value": 5.0, "range": 4.0 },
+        "minecraft:behavior.look_at_target": {
+          "priority": 1,
+          "look_distance": 32.0,
+          "probability": 1.0,
+          "look_time": { "min": 30.0, "max": 30.0 }
+        },
+        "minecraft:looked_at": {
+          "search_radius": 32.0,
+          "find_players_only": true,
+          "field_of_view": 45.0,
+          "scale_fov_by_distance": false,
+          "line_of_sight_obstruction_type": "collision_for_camera",
+          "look_at_locations": [
+            { "location": "head" },
+            { "location": "body" },
+            { "location": "feet", "vertical_offset": 0.5 }
+          ],
+          "looked_at_cooldown": 0.75,
+          "set_target": "never",
+          "filters": {
+            "all_of": [
+              { "test": "actor_health", "subject": "other", "operator": ">", "value": 0 },
+              { "test": "has_ability", "subject": "other", "operator": "not", "value": "invulnerable" },
+              { "test": "has_equipment", "subject": "other", "domain": "head", "operator": "not", "value": "carved_pumpkin" }
+            ]
+          },
+          "not_looked_at_event": { "event": "shaftbreaker:on_unnoticed", "target": "self" }
+        },
+        "minecraft:environment_sensor": {
+          "triggers": [
+            {
+              "filters": { "test": "has_target", "subject": "self", "value": false },
+              "event": "shaftbreaker:on_lost_target"
+            },
+            {
+              "filters": {
+                "all_of": [
+                  { "test": "has_target", "subject": "self", "value": true },
+                  { "test": "target_distance", "subject": "self", "operator": "<", "value": 6.0 }
+                ]
+              },
+              "event": "shaftbreaker:on_enrage"
+            }
+          ]
+        },
+        "minecraft:timer": {
+          "looping": false,
+          "randomInterval": true,
+          "time": { "min": 4.0, "max": 7.0 },
+          "time_down_event": { "event": "shaftbreaker:on_enrage", "target": "self" }
+        }
+      },
+
+      "shaftbreaker:breaker": {
+        "minecraft:movement": { "value": 0.2 },
+        "minecraft:knockback_resistance": { "value": 1.0 },
+        "minecraft:ambient_sound_interval": { "event_name": "angry", "value": 3.0, "range": 3.0 },
+        "minecraft:behavior.melee_box_attack": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "track_target": true,
+          "cooldown_time": 1.2,
+          "require_complete_path": false
+        },
+        "minecraft:break_blocks": {
+          "breakable_blocks": [
+            "minecraft:stone",
+            "minecraft:cobblestone",
+            "minecraft:mossy_cobblestone",
+            "minecraft:granite",
+            "minecraft:diorite",
+            "minecraft:andesite",
+            "minecraft:tuff",
+            "minecraft:deepslate",
+            "minecraft:cobbled_deepslate",
+            "minecraft:infested_stone",
+            "minecraft:infested_cobblestone",
+            "minecraft:infested_deepslate",
+            "minecraft:dripstone_block",
+            "minecraft:pointed_dripstone",
+            "minecraft:gravel",
+            "minecraft:dirt",
+            "minecraft:coarse_dirt",
+            "minecraft:dirt_with_roots",
+            "minecraft:clay",
+            "minecraft:moss_block",
+            "minecraft:moss_carpet",
+            "minecraft:glow_lichen",
+            "minecraft:oak_planks",
+            "minecraft:spruce_planks",
+            "minecraft:birch_planks",
+            "minecraft:jungle_planks",
+            "minecraft:acacia_planks",
+            "minecraft:dark_oak_planks",
+            "minecraft:mangrove_planks",
+            "minecraft:cherry_planks",
+            "minecraft:pale_oak_planks",
+            "minecraft:oak_fence",
+            "minecraft:spruce_fence",
+            "minecraft:birch_fence",
+            "minecraft:jungle_fence",
+            "minecraft:acacia_fence",
+            "minecraft:dark_oak_fence",
+            "minecraft:mangrove_fence",
+            "minecraft:cherry_fence",
+            "minecraft:pale_oak_fence",
+            "minecraft:oak_log",
+            "minecraft:spruce_log",
+            "minecraft:dark_oak_log",
+            "minecraft:rail",
+            "minecraft:web",
+            "minecraft:torch",
+            "minecraft:lantern",
+            "minecraft:soul_lantern",
+            "minecraft:iron_chain",
+            "minecraft:ladder"
+          ]
+        },
+        "minecraft:environment_sensor": {
+          "triggers": [
+            {
+              "filters": { "test": "has_target", "subject": "self", "value": false },
+              "event": "shaftbreaker:on_lost_target"
+            },
+            {
+              "filters": {
+                "any_of": [
+                  { "test": "target_distance", "subject": "self", "operator": "<", "value": 3.5 },
+                  { "test": "is_game_rule", "domain": "mobgriefing", "value": false }
+                ]
+              },
+              "event": "shaftbreaker:on_breaker_done"
+            }
+          ]
+        },
+        "minecraft:timer": {
+          "looping": false,
+          "randomInterval": true,
+          "time": { "min": 6.0, "max": 10.0 },
+          "time_down_event": { "event": "shaftbreaker:on_breaker_done", "target": "self" }
+        }
+      },
+
+      "shaftbreaker:frenzy": {
+        "minecraft:movement": { "value": 0.32 },
+        "minecraft:knockback_resistance": { "value": 0.8 },
+        "minecraft:ambient_sound_interval": { "event_name": "angry", "value": 2.5, "range": 2.5 },
+        "minecraft:behavior.melee_box_attack": {
+          "priority": 3,
+          "speed_multiplier": 1.2,
+          "track_target": true,
+          "cooldown_time": 1.0,
+          "horizontal_reach": 1.0,
+          "melee_fov": 120.0,
+          "require_complete_path": false
+        },
+        "minecraft:behavior.leap_at_target": {
+          "priority": 4,
+          "yd": 0.4,
+          "must_be_on_ground": true
+        },
+        "minecraft:environment_sensor": {
+          "triggers": [
+            {
+              "filters": { "test": "has_target", "subject": "self", "value": false },
+              "event": "shaftbreaker:on_lost_target"
+            },
+            {
+              "filters": {
+                "all_of": [
+                  { "test": "has_target", "subject": "self", "value": true },
+                  { "test": "target_distance", "subject": "self", "operator": ">", "value": 24.0 }
+                ]
+              },
+              "event": "shaftbreaker:on_calm"
+            }
+          ]
+        },
+        "minecraft:timer": {
+          "looping": true,
+          "randomInterval": false,
+          "time": { "min": 2.0, "max": 2.0 },
+          "time_down_event": { "event": "shaftbreaker:on_frenzy_check", "target": "self" }
+        }
+      }
+    },
+
+    "components": {
+      "minecraft:type_family": { "family": ["shaftbreaker", "monster", "mob"] },
+      "minecraft:health": { "value": 80, "max": 80 },
+      "minecraft:attack": { "damage": 9 },
+      "minecraft:collision_box": { "width": 0.9, "height": 2.9 },
+      "minecraft:movement": { "value": 0.0 },
+      "minecraft:movement.basic": {},
+      "minecraft:navigation.walk": {
+        "can_walk": true,
+        "can_pass_doors": true,
+        "can_open_doors": false,
+        "can_path_over_water": true,
+        "avoid_water": true,
+        "avoid_damage_blocks": true
+      },
+      "minecraft:jump.static": {},
+      "minecraft:can_climb": {},
+      "minecraft:variable_max_auto_step": {
+        "base_value": 1.0625,
+        "jump_prevented_value": 0.5625
+      },
+      "minecraft:physics": {},
+      "minecraft:pushable_by_entity": {},
+      "minecraft:pushable_by_block": {},
+      "minecraft:knockback_resistance": { "value": 0.6 },
+      "minecraft:follow_range": { "value": 32, "max": 32 },
+      "minecraft:breathable": { "total_supply": 15, "suffocate_time": 0 },
+      "minecraft:fire_immune": {},
+      "minecraft:nameable": {},
+      "minecraft:is_hidden_when_invisible": {},
+      "minecraft:despawn": { "despawn_from_distance": {} },
+      "minecraft:conditional_bandwidth_optimization": {},
+      "minecraft:loot": { "table": "loot_tables/entities/shaftbreaker.json" },
+      "minecraft:experience_reward": { "on_death": "query.last_hit_by_player ? 15 : 0" },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          { "cause": "suffocation", "deals_damage": "no" },
+          { "cause": "fall", "deals_damage": "yes", "damage_multiplier": 0.5 },
+          {
+            "cause": "all",
+            "deals_damage": "yes",
+            "on_damage": {
+              "event": "shaftbreaker:on_enrage",
+              "target": "self",
+              "filters": {
+                "any_of": [
+                  { "test": "is_family", "subject": "other", "value": "player" },
+                  { "test": "is_family", "subject": "other", "value": "mob" }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "minecraft:behavior.float": { "priority": 0 },
+      "minecraft:behavior.hurt_by_target": { "priority": 1 },
+      "minecraft:behavior.nearest_attackable_target": {
+        "priority": 2,
+        "must_see": true,
+        "must_see_forget_duration": 12.0,
+        "reselect_targets": true,
+        "entity_types": [
+          {
+            "filters": { "test": "is_family", "subject": "other", "value": "player" },
+            "max_dist": 24
+          }
+        ]
+      }
+    },
+
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": { "component_groups": ["shaftbreaker:dormant"] },
+        "set_property": { "shaftbreaker:phase": "dormant", "shaftbreaker:stuck": "0" }
+      },
+
+      "shaftbreaker:become_dormant": {
+        "remove": { "component_groups": ["shaftbreaker:stalking", "shaftbreaker:watching", "shaftbreaker:breaker", "shaftbreaker:frenzy"] },
+        "add": { "component_groups": ["shaftbreaker:dormant"] },
+        "set_property": { "shaftbreaker:phase": "dormant", "shaftbreaker:stuck": "0" },
+        "reset_target": {}
+      },
+      "shaftbreaker:become_stalking": {
+        "remove": { "component_groups": ["shaftbreaker:dormant", "shaftbreaker:watching", "shaftbreaker:breaker", "shaftbreaker:frenzy"] },
+        "add": { "component_groups": ["shaftbreaker:stalking"] },
+        "set_property": { "shaftbreaker:phase": "stalking", "shaftbreaker:stuck": "0" }
+      },
+      "shaftbreaker:become_watching": {
+        "remove": { "component_groups": ["shaftbreaker:dormant", "shaftbreaker:stalking", "shaftbreaker:breaker", "shaftbreaker:frenzy"] },
+        "add": { "component_groups": ["shaftbreaker:watching"] },
+        "set_property": { "shaftbreaker:phase": "watching", "shaftbreaker:stuck": "0" }
+      },
+      "shaftbreaker:become_breaker": {
+        "remove": { "component_groups": ["shaftbreaker:dormant", "shaftbreaker:stalking", "shaftbreaker:watching", "shaftbreaker:frenzy"] },
+        "add": { "component_groups": ["shaftbreaker:breaker"] },
+        "set_property": { "shaftbreaker:phase": "breaker", "shaftbreaker:stuck": "0" }
+      },
+      "shaftbreaker:become_frenzy": {
+        "remove": { "component_groups": ["shaftbreaker:dormant", "shaftbreaker:stalking", "shaftbreaker:watching", "shaftbreaker:breaker"] },
+        "add": { "component_groups": ["shaftbreaker:frenzy"] },
+        "set_property": { "shaftbreaker:phase": "frenzy", "shaftbreaker:stuck": "0" }
+      },
+
+      "shaftbreaker:on_wake": {
+        "filters": { "test": "enum_property", "domain": "shaftbreaker:phase", "value": "dormant" },
+        "trigger": "shaftbreaker:become_stalking",
+        "play_sound": { "sound": "activate" }
+      },
+      "shaftbreaker:on_noticed": {
+        "filters": { "test": "enum_property", "domain": "shaftbreaker:phase", "value": "stalking" },
+        "trigger": "shaftbreaker:become_watching",
+        "play_sound": { "sound": "freeze" }
+      },
+      "shaftbreaker:on_unnoticed": {
+        "filters": { "test": "enum_property", "domain": "shaftbreaker:phase", "value": "watching" },
+        "trigger": "shaftbreaker:become_stalking",
+        "play_sound": { "sound": "unfreeze" }
+      },
+      "shaftbreaker:on_enrage": {
+        "filters": { "test": "enum_property", "domain": "shaftbreaker:phase", "operator": "not", "value": "frenzy" },
+        "trigger": "shaftbreaker:become_frenzy",
+        "play_sound": { "sound": "roar" }
+      },
+      "shaftbreaker:on_calm": {
+        "filters": { "test": "enum_property", "domain": "shaftbreaker:phase", "value": "frenzy" },
+        "trigger": "shaftbreaker:become_stalking"
+      },
+      "shaftbreaker:on_lost_target": {
+        "filters": { "test": "enum_property", "domain": "shaftbreaker:phase", "operator": "not", "value": "dormant" },
+        "trigger": "shaftbreaker:become_dormant"
+      },
+      "shaftbreaker:on_break_through": {
+        "filters": {
+          "all_of": [
+            { "test": "is_game_rule", "domain": "mobgriefing", "value": true },
+            {
+              "any_of": [
+                { "test": "enum_property", "domain": "shaftbreaker:phase", "value": "stalking" },
+                { "test": "enum_property", "domain": "shaftbreaker:phase", "value": "frenzy" }
+              ]
+            }
+          ]
+        },
+        "trigger": "shaftbreaker:become_breaker"
+      },
+      "shaftbreaker:on_breaker_done": {
+        "filters": { "test": "enum_property", "domain": "shaftbreaker:phase", "value": "breaker" },
+        "sequence": [
+          {
+            "filters": { "test": "has_target", "subject": "self", "value": true },
+            "trigger": "shaftbreaker:become_frenzy"
+          },
+          {
+            "filters": { "test": "has_target", "subject": "self", "value": false },
+            "trigger": "shaftbreaker:become_dormant"
+          }
+        ]
+      },
+      "shaftbreaker:on_stuck_check": {
+        "sequence": [
+          {
+            "filters": {
+              "all_of": [
+                { "test": "has_target", "subject": "self", "value": true },
+                { "test": "target_distance", "subject": "self", "operator": ">", "value": 4.0 },
+                { "test": "is_moving", "subject": "self", "value": false }
+              ]
+            },
+            "set_property": { "shaftbreaker:stuck": "math.min(query.property('shaftbreaker:stuck') + 1, 4)" }
+          },
+          {
+            "filters": {
+              "any_of": [
+                { "test": "has_target", "subject": "self", "value": false },
+                { "test": "target_distance", "subject": "self", "operator": "<=", "value": 4.0 },
+                { "test": "is_moving", "subject": "self", "value": true }
+              ]
+            },
+            "set_property": { "shaftbreaker:stuck": "0" }
+          },
+          {
+            "filters": { "test": "int_property", "domain": "shaftbreaker:stuck", "operator": ">=", "value": 2 },
+            "trigger": "shaftbreaker:on_break_through"
+          }
+        ]
+      },
+      "shaftbreaker:on_frenzy_check": {
+        "sequence": [
+          {
+            "trigger": "shaftbreaker:on_stuck_check"
+          },
+          {
+            "filters": {
+              "all_of": [
+                { "test": "is_underground", "subject": "self", "value": true },
+                { "test": "has_target", "subject": "self", "value": true },
+                { "test": "target_distance", "subject": "self", "operator": ">", "value": 8.0 },
+                { "test": "random_chance", "value": 6 }
+              ]
+            },
+            "trigger": "shaftbreaker:on_break_through"
+          }
+        ]
+      }
+    }
+  }
+}

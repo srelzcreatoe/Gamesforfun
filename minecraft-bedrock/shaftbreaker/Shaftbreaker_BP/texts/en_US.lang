@@ -1,0 +1,5 @@
+pack.name=The Shaftbreaker (Behavior)
+pack.description=Adds the Shaftbreaker, a five-phase cave stalker that tears through stone.
+
+entity.shaftbreaker:shaftbreaker.name=Shaftbreaker
+item.spawn_egg.entity.shaftbreaker:shaftbreaker.name=Shaftbreaker Spawn Egg

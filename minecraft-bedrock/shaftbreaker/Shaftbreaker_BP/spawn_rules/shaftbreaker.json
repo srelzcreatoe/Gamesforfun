@@ -1,0 +1,57 @@
+{
+  "format_version": "1.17.0",
+  "minecraft:spawn_rules": {
+    "description": {
+      "identifier": "shaftbreaker:shaftbreaker",
+      "population_control": "monster"
+    },
+    "conditions": [
+      {
+        "minecraft:spawns_underground": {},
+        "minecraft:spawns_on_block_filter": [
+          "minecraft:stone",
+          "minecraft:granite",
+          "minecraft:diorite",
+          "minecraft:andesite",
+          "minecraft:tuff",
+          "minecraft:deepslate",
+          "minecraft:gravel",
+          "minecraft:cobblestone",
+          "minecraft:oak_planks",
+          "minecraft:dark_oak_planks"
+        ],
+        "minecraft:brightness_filter": {
+          "min": 0,
+          "max": 0,
+          "adjust_for_weather": false
+        },
+        "minecraft:height_filter": {
+          "min": -63,
+          "max": 40
+        },
+        "minecraft:difficulty_filter": {
+          "min": "easy",
+          "max": "hard"
+        },
+        "minecraft:weight": {
+          "default": 3
+        },
+        "minecraft:herd": {
+          "min_size": 1,
+          "max_size": 1
+        },
+        "minecraft:density_limit": {
+          "underground": 1
+        },
+        "minecraft:biome_filter": {
+          "all_of": [
+            { "test": "has_biome_tag", "value": "overworld" },
+            { "test": "has_biome_tag", "value": "monster" },
+            { "test": "has_biome_tag", "operator": "not", "value": "deep_dark" },
+            { "test": "has_biome_tag", "operator": "not", "value": "mooshroom_island" }
+          ]
+        }
+      }
+    ]
+  }
+}

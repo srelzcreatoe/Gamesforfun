@@ -1,0 +1,402 @@
+{
+  "format_version": "1.20.20",
+  "sound_definitions": {
+    "shaftbreaker.ambient": {
+      "category": "hostile",
+      "max_distance": 24.0,
+      "subtitle": "subtitles.entity.shaftbreaker.ambient",
+      "sounds": [
+        {
+          "name": "sounds/mob/creaking/idle1",
+          "pitch": 0.62,
+          "volume": 0.9
+        },
+        {
+          "name": "sounds/mob/creaking/idle2",
+          "pitch": 0.62,
+          "volume": 0.9
+        },
+        {
+          "name": "sounds/mob/creaking/idle3",
+          "pitch": 0.62,
+          "volume": 0.9
+        },
+        {
+          "name": "sounds/mob/creaking/idle4",
+          "pitch": 0.62,
+          "volume": 0.9
+        },
+        {
+          "name": "sounds/mob/creaking/idle5",
+          "pitch": 0.62,
+          "volume": 0.9
+        },
+        {
+          "name": "sounds/mob/creaking/idle6",
+          "pitch": 0.62,
+          "volume": 0.9
+        }
+      ]
+    },
+    "shaftbreaker.angry": {
+      "category": "hostile",
+      "max_distance": 32.0,
+      "subtitle": "subtitles.entity.shaftbreaker.angry",
+      "sounds": [
+        {
+          "name": "sounds/mob/zoglin/angry1",
+          "pitch": 0.55,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/mob/zoglin/angry2",
+          "pitch": 0.55,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/mob/zoglin/angry3",
+          "pitch": 0.55,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/mob/warden/agitated_1",
+          "pitch": 1.15,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/mob/warden/agitated_2",
+          "pitch": 1.15,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/mob/warden/agitated_3",
+          "pitch": 1.15,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/mob/warden/agitated_4",
+          "pitch": 1.15,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/mob/warden/agitated_5",
+          "pitch": 1.15,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/mob/warden/agitated_6",
+          "pitch": 1.15,
+          "volume": 0.8
+        }
+      ]
+    },
+    "shaftbreaker.hurt": {
+      "category": "hostile",
+      "subtitle": "subtitles.entity.shaftbreaker.hurt",
+      "sounds": [
+        {
+          "name": "sounds/mob/irongolem/hit1",
+          "pitch": 0.72,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/mob/irongolem/hit2",
+          "pitch": 0.72,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/mob/irongolem/hit3",
+          "pitch": 0.72,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/mob/irongolem/hit4",
+          "pitch": 0.72,
+          "volume": 1.0
+        }
+      ]
+    },
+    "shaftbreaker.death": {
+      "category": "hostile",
+      "subtitle": "subtitles.entity.shaftbreaker.death",
+      "sounds": [
+        {
+          "name": "sounds/mob/irongolem/death",
+          "pitch": 0.6,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/mob/creaking/death",
+          "pitch": 0.55,
+          "volume": 1.0
+        }
+      ]
+    },
+    "shaftbreaker.attack": {
+      "category": "hostile",
+      "subtitle": "subtitles.entity.shaftbreaker.attack",
+      "sounds": [
+        {
+          "name": "sounds/mob/warden/attack_impact_1",
+          "pitch": 0.9,
+          "volume": 0.9
+        },
+        {
+          "name": "sounds/mob/warden/attack_impact_2",
+          "pitch": 0.9,
+          "volume": 0.9
+        }
+      ]
+    },
+    "shaftbreaker.roar": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "subtitle": "subtitles.entity.shaftbreaker.roar",
+      "sounds": [
+        {
+          "name": "sounds/mob/ravager/roar1",
+          "pitch": 0.7,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/mob/ravager/roar2",
+          "pitch": 0.7,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/mob/ravager/roar3",
+          "pitch": 0.7,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/mob/ravager/roar4",
+          "pitch": 0.7,
+          "volume": 1.0
+        }
+      ]
+    },
+    "shaftbreaker.activate": {
+      "category": "hostile",
+      "max_distance": 24.0,
+      "subtitle": "subtitles.entity.shaftbreaker.activate",
+      "sounds": [
+        {
+          "name": "sounds/mob/creaking/activate",
+          "pitch": 0.6,
+          "volume": 1.0
+        }
+      ]
+    },
+    "shaftbreaker.freeze": {
+      "category": "hostile",
+      "max_distance": 24.0,
+      "subtitle": "subtitles.entity.shaftbreaker.freeze",
+      "sounds": [
+        {
+          "name": "sounds/mob/creaking/freeze1",
+          "pitch": 0.6,
+          "volume": 0.9
+        },
+        {
+          "name": "sounds/mob/creaking/freeze2",
+          "pitch": 0.6,
+          "volume": 0.9
+        },
+        {
+          "name": "sounds/mob/creaking/freeze3",
+          "pitch": 0.6,
+          "volume": 0.9
+        },
+        {
+          "name": "sounds/mob/creaking/freeze4",
+          "pitch": 0.6,
+          "volume": 0.9
+        }
+      ]
+    },
+    "shaftbreaker.unfreeze": {
+      "category": "hostile",
+      "max_distance": 24.0,
+      "subtitle": "subtitles.entity.shaftbreaker.unfreeze",
+      "sounds": [
+        {
+          "name": "sounds/mob/creaking/unfreeze1",
+          "pitch": 0.6,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/mob/creaking/unfreeze2",
+          "pitch": 0.6,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/mob/creaking/unfreeze3",
+          "pitch": 0.6,
+          "volume": 0.8
+        }
+      ]
+    },
+    "shaftbreaker.step": {
+      "category": "hostile",
+      "max_distance": 32.0,
+      "subtitle": "subtitles.entity.shaftbreaker.step",
+      "sounds": [
+        {
+          "name": "sounds/mob/warden/step_1",
+          "pitch": 0.8,
+          "volume": 0.9,
+          "weight": 2
+        },
+        {
+          "name": "sounds/mob/warden/step_2",
+          "pitch": 0.8,
+          "volume": 0.9,
+          "weight": 2
+        },
+        {
+          "name": "sounds/mob/warden/step_3",
+          "pitch": 0.8,
+          "volume": 0.9,
+          "weight": 2
+        },
+        {
+          "name": "sounds/mob/warden/step_4",
+          "pitch": 0.8,
+          "volume": 0.9,
+          "weight": 2
+        },
+        {
+          "name": "sounds/block/deepslate/step1",
+          "pitch": 0.6,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/block/deepslate/step2",
+          "pitch": 0.6,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/block/deepslate/step3",
+          "pitch": 0.6,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/block/deepslate/step4",
+          "pitch": 0.6,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/block/deepslate/step5",
+          "pitch": 0.6,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/block/deepslate/step6",
+          "pitch": 0.6,
+          "volume": 1.0
+        }
+      ]
+    },
+    "shaftbreaker.smash": {
+      "category": "hostile",
+      "max_distance": 32.0,
+      "subtitle": "subtitles.entity.shaftbreaker.smash",
+      "sounds": [
+        {
+          "name": "sounds/block/deepslate/break1",
+          "pitch": 0.62,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/block/deepslate/break2",
+          "pitch": 0.62,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/block/deepslate/break3",
+          "pitch": 0.62,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/block/deepslate/break4",
+          "pitch": 0.62,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/item/mace/smash_ground1",
+          "pitch": 0.75,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/item/mace/smash_ground2",
+          "pitch": 0.75,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/item/mace/smash_ground3",
+          "pitch": 0.75,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/item/mace/smash_ground4",
+          "pitch": 0.75,
+          "volume": 0.8
+        }
+      ]
+    },
+    "shaftbreaker.scrape": {
+      "category": "hostile",
+      "max_distance": 24.0,
+      "subtitle": "subtitles.entity.shaftbreaker.scrape",
+      "sounds": [
+        {
+          "name": "sounds/block/grindstone/grindstone1",
+          "pitch": 0.7,
+          "volume": 0.7
+        },
+        {
+          "name": "sounds/block/grindstone/grindstone2",
+          "pitch": 0.7,
+          "volume": 0.7
+        },
+        {
+          "name": "sounds/block/grindstone/grindstone3",
+          "pitch": 0.7,
+          "volume": 0.7
+        }
+      ]
+    },
+    "shaftbreaker.screech": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "subtitle": "subtitles.entity.shaftbreaker.screech",
+      "sounds": [
+        {
+          "name": "sounds/mob/ghast/scream1",
+          "pitch": 0.45,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/mob/ghast/scream2",
+          "pitch": 0.45,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/mob/ghast/scream3",
+          "pitch": 0.45,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/mob/ghast/scream4",
+          "pitch": 0.45,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/mob/ghast/scream5",
+          "pitch": 0.45,
+          "volume": 0.8
+        }
+      ]
+    }
+  }
+}

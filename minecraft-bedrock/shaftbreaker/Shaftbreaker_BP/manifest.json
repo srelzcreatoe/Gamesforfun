@@ -1,0 +1,23 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "The Shaftbreaker (Behavior)",
+    "description": "Adds the Shaftbreaker, a five-phase cave stalker that tears through stone. Requires the Shaftbreaker resource pack.",
+    "uuid": "df027595-48b0-4f8c-bd30-0707a7bede5d",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 26, 30]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "89f535ab-4caa-4649-a58c-4656a4f4b3ea",
+      "version": [1, 0, 0]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "5db17f0a-4bb1-4615-8024-3b1abffc96ac",
+      "version": [1, 0, 0]
+    }
+  ]
+}

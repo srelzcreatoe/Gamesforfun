@@ -1,0 +1,26 @@
+{
+  "entity_sounds": {
+    "entities": {
+      "shaftbreaker:shaftbreaker": {
+        "volume": 1.0,
+        "pitch": [0.9, 1.1],
+        "events": {
+          "ambient": "shaftbreaker.ambient",
+          "angry": "shaftbreaker.angry",
+          "hurt": "shaftbreaker.hurt",
+          "death": "shaftbreaker.death",
+          "attack": "shaftbreaker.attack",
+          "roar": "shaftbreaker.roar",
+          "activate": "shaftbreaker.activate",
+          "freeze": "shaftbreaker.freeze",
+          "unfreeze": "shaftbreaker.unfreeze",
+          "step": {
+            "sound": "shaftbreaker.step",
+            "volume": 0.3,
+            "pitch": [0.85, 1.0]
+          }
+        }
+      }
+    }
+  }
+}

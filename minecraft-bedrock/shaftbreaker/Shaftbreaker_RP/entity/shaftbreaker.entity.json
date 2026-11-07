@@ -1,0 +1,75 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "shaftbreaker:shaftbreaker",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/shaftbreaker"
+      },
+      "geometry": {
+        "default": "geometry.shaftbreaker"
+      },
+      "render_controllers": [
+        "controller.render.shaftbreaker"
+      ],
+      "scripts": {
+        "scale": "0.58",
+        "initialize": [
+          "variable.phase = 0.0;",
+          "variable.look_weight = 0.0;",
+          "variable.move_blend = 0.0;",
+          "variable.lunging = 0.0;",
+          "variable.lunge_blend = 0.0;",
+          "variable.base_weight = 1.0;"
+        ],
+        "pre_animation": [
+          "variable.phase = query.property('shaftbreaker:phase') == 'stalking' ? 1.0 : (query.property('shaftbreaker:phase') == 'watching' ? 2.0 : (query.property('shaftbreaker:phase') == 'breaker' ? 3.0 : (query.property('shaftbreaker:phase') == 'frenzy' ? 4.0 : 0.0)));",
+          "variable.look_weight = math.lerp(variable.look_weight, variable.phase > 0.0 ? 1.0 : 0.0, math.min(1.0, query.delta_time * 3.0));",
+          "variable.move_blend = math.clamp(query.modified_move_speed * 4.0, 0.0, 1.0);",
+          "variable.lunge_blend = math.lerp(variable.lunge_blend, variable.lunging, math.min(1.0, query.delta_time * 12.0));",
+          "variable.base_weight = 1.0 - variable.lunge_blend;"
+        ],
+        "animate": [
+          "phase_controller",
+          {
+            "look_at": "variable.look_weight"
+          },
+          "attack_controller"
+        ],
+        "should_update_effects_offscreen": "1.0"
+      },
+      "animations": {
+        "dormant": "animation.shaftbreaker.dormant",
+        "look_at": "animation.shaftbreaker.look_at",
+        "stalk_idle": "animation.shaftbreaker.stalk_idle",
+        "stalk_walk": "animation.shaftbreaker.stalk_walk",
+        "watch": "animation.shaftbreaker.watch",
+        "breaker_smash": "animation.shaftbreaker.breaker_smash",
+        "breaker_walk": "animation.shaftbreaker.breaker_walk",
+        "frenzy_idle": "animation.shaftbreaker.frenzy_idle",
+        "frenzy_run": "animation.shaftbreaker.frenzy_run",
+        "frenzy_lunge": "animation.shaftbreaker.frenzy_lunge",
+        "phase_controller": "controller.animation.shaftbreaker.phase",
+        "attack_controller": "controller.animation.shaftbreaker.attack"
+      },
+      "particle_effects": {
+        "debris": "shaftbreaker:stone_debris",
+        "step_dust": "shaftbreaker:step_dust"
+      },
+      "sound_effects": {
+        "step": "shaftbreaker.step",
+        "smash": "shaftbreaker.smash",
+        "scrape": "shaftbreaker.scrape",
+        "screech": "shaftbreaker.screech"
+      },
+      "spawn_egg": {
+        "base_color": "#96766c",
+        "overlay_color": "#ffb05a"
+      },
+      "enable_attachables": false
+    }
+  }
+}
