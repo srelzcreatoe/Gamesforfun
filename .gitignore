@@ -9,3 +9,7 @@ captures/
 out/
 assets/worlds/
 CubicWorld_Source.zip
+minecraft-bedrock/shaftbreaker/tools/node_modules/
+minecraft-bedrock/shaftbreaker/tools/.cache/
+minecraft-bedrock/shaftbreaker/tools/_vanilla_test/
+minecraft-bedrock/shaftbreaker/tools/_scratch/

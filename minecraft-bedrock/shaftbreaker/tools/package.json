@@ -1,0 +1,10 @@
+{
+  "name": "shaftbreaker-tools",
+  "private": true,
+  "type": "module",
+  "description": "Build, preview and validation tooling for the Shaftbreaker Bedrock add-on",
+  "dependencies": {
+    "three": "0.169.0",
+    "ajv": "8.17.1"
+  }
+}
