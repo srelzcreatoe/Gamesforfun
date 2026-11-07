@@ -28,7 +28,7 @@
         "pre_animation": [
           "variable.phase = query.property('shaftbreaker:phase') == 'stalking' ? 1.0 : (query.property('shaftbreaker:phase') == 'watching' ? 2.0 : (query.property('shaftbreaker:phase') == 'breaker' ? 3.0 : (query.property('shaftbreaker:phase') == 'frenzy' ? 4.0 : 0.0)));",
           "variable.look_weight = math.lerp(variable.look_weight, variable.phase > 0.0 ? 1.0 : 0.0, math.min(1.0, query.delta_time * 3.0));",
-          "variable.move_blend = math.clamp(query.modified_move_speed * 4.0, 0.0, 1.0);",
+          "variable.move_blend = math.clamp(query.modified_move_speed * 6.0, 0.0, 1.0);",
           "variable.lunge_blend = math.lerp(variable.lunge_blend, variable.lunging, math.min(1.0, query.delta_time * 12.0));",
           "variable.base_weight = 1.0 - variable.lunge_blend;"
         ],
