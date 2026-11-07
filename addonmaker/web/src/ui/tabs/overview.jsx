@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import { Card, Row, TextInput, Toggle, NumInput, Select, Chips, Btn } from '../common.jsx';
-import { Preview3D, PREVIEW_MODES } from '../preview3d.jsx';
+import { Preview3D, PREVIEW_MODES, DWELLER_MODES } from '../preview3d.jsx';
 import { ecommit } from '../screens/entity.jsx';
 import { slug } from '../../core/util.js';
 import { setTab, toast } from '../store.js';
@@ -8,10 +8,12 @@ import { vanilla } from '../meta.js';
 
 export const SPAWN_CATEGORIES = [['', '(not set)'], 'creature', 'monster', 'ambient', 'water_creature', 'water_ambient', 'underground_water_creature', 'axolotls', 'misc'];
 
-export function ModeChips({ mode, setMode, extra = [] }) {
+export function ModeChips({ mode, setMode, extra = [], entity }) {
+  const dweller = entity?.horror?.enabled;
+  const modes = dweller ? [['idle', 'Idle'], ['walk', 'Walk'], ...DWELLER_MODES, ['attack', 'Attack'], ['still', 'Rest pose']] : PREVIEW_MODES;
   return (
     <div class="mode-chips">
-      {[...PREVIEW_MODES, ...extra].map(([k, l]) => <button type="button" class={`cchip ${mode === k ? 'on' : ''}`} onClick={() => setMode(k)}>{l}</button>)}
+      {[...modes, ...extra].map(([k, l]) => <button type="button" class={`cchip ${mode === k ? 'on' : ''}`} onClick={() => setMode(k)}>{l}</button>)}
     </div>
   );
 }
@@ -26,7 +28,7 @@ export function OverviewTab({ e, p }) {
     <div class="tab-overview">
       <div class="preview-wrap">
         <Preview3D entity={e} mode={mode} height={280} />
-        <ModeChips mode={mode} setMode={setMode} />
+        <ModeChips mode={mode} setMode={setMode} entity={e} />
       </div>
 
       {e.horror?.enabled && (

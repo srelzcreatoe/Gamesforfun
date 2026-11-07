@@ -7,7 +7,7 @@ import { TEMPLATES, makeModel, packUVs, modelFromGeometry, geometryJSON } from '
 import { defaultAnims } from '../../core/anim.js';
 import { uid, clone, parseLenientJSON } from '../../core/util.js';
 import { toast } from '../store.js';
-import { pickFile, readAsText, saveFile } from '../native.js';
+import { pickFile, readAsText, readAsDataURL, saveFile } from '../native.js';
 import { geoId } from '../../core/packgen.js';
 
 const ROLES = [['none', '—'], ['head', 'Head (looks at target)'], ['body', 'Body'], ['armR', 'Right arm'], ['armL', 'Left arm'], ['legR', 'Right leg'], ['legL', 'Left leg'],
@@ -37,6 +37,20 @@ export function ModelTab({ e, p }) {
     });
     confirmDialog('Replace the model?', `Switch to the ${TEMPLATES[t].label} template? Your current bones${painted ? ' and painted texture layout' : ''} will be replaced (you can undo).`, 'Replace', go, false);
   };
+  const importOwn = async () => {
+    const f = await pickFile('.json');
+    if (!f) return;
+    let model;
+    try { model = modelFromGeometry(parseLenientJSON(await readAsText(f))); } catch (err) { toast('Could not read geometry: ' + err.message, 'error'); return; }
+    ecommit(e, (en) => { en.model = model; en.textures = []; });
+    confirmDialog('Add its texture?', `Model imported (${model.bones.length} bones). Pick the matching .png texture now? You can also do it later in the Texture tab.`, 'Pick PNG', async () => {
+      const pf = await pickFile('image/png');
+      if (!pf) return;
+      const data = await readAsDataURL(pf);
+      ecommit(e, (en) => { en.textures = [{ uid: uid(), name: 'default', data }]; });
+      toast('Model and texture ready. Check each bone\'s Role below so the built-in animations move the right parts.', 'ok', 6000);
+    }, false);
+  };
   const importGeo = async () => {
     const f = await pickFile('.json');
     if (!f) return;
@@ -50,8 +64,12 @@ export function ModelTab({ e, p }) {
     <div class="tab-model">
       <div class="preview-wrap">
         <Preview3D entity={e} mode={mode} height={300} />
-        <ModeChips mode={mode} setMode={setMode} />
+        <ModeChips mode={mode} setMode={setMode} entity={e} />
       </div>
+      <Card title="Use your own model" icon="⬆" sub="From Blockbench or any Bedrock model maker">
+        <p class="hint">Import a <code>.geo.json</code> and its <code>.png</code>. Then set each bone's Role (below) so walking, attacking and the dweller moves work, or upload your own animations in the Animations tab.</p>
+        <Btn icon="upload" kind="primary" onClick={importOwn}>Import model + texture</Btn>
+      </Card>
       <Card title="Body template">
         <div class="tpl-grid">
           {Object.entries(TEMPLATES).map(([k, t]) => (

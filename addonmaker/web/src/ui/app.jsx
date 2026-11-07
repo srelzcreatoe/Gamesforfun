@@ -7,6 +7,7 @@ import { EntityScreen } from './screens/entity.jsx';
 import { vanilla, catalog } from './meta.js';
 import { activityGroup } from '../core/packgen.js';
 import { BUILTIN_EVENTS } from '../core/validate.js';
+import { music, toggle as toggleMusic, initMusic } from './settings.js';
 
 function Datalists() {
   const p = state.project;
@@ -52,6 +53,7 @@ function TopBar() {
     <header class="top">
       {r.screen !== 'home' ? <Btn icon="back" kind="ghost" aria-label="Back" onClick={() => back()} /> : <span class="top-logo">⛏</span>}
       <div class="top-t"><strong>{title}</strong><span>{sub}</span></div>
+      <Btn icon="music" class={`btn ghost icon-only music-btn ${music.playing ? 'on' : ''}`} aria-label={music.playing ? 'Pause music' : 'Play music'} onClick={toggleMusic} />
       {r.screen !== 'home' && <>
         <Btn icon="undo" kind="ghost" aria-label="Undo" disabled={!canUndo()} onClick={undo} />
         <Btn icon="redo" kind="ghost" aria-label="Redo" disabled={!canRedo()} onClick={redo} />
@@ -64,6 +66,7 @@ function TopBar() {
 export function App() {
   useStore();
   useEffect(() => {
+    initMusic();
     window.mobsmithBack = () => (back() ? 'handled' : 'exit');
     const onHide = () => saveNow();
     document.addEventListener('visibilitychange', onHide);

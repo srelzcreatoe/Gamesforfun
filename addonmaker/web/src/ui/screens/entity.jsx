@@ -8,10 +8,13 @@ import { TextureTab } from '../tabs/texture.jsx';
 import { AnimationsTab } from '../tabs/anims.jsx';
 import { SoundsTab, SpawnTab, LootTab, TradesTab } from '../tabs/world.jsx';
 import { FilesTab } from '../tabs/files.jsx';
+import { BoardTab } from '../tabs/board.jsx';
+import { isAdvanced, setSetting } from '../settings.js';
 
 export const TABS = [
   ['overview', 'Overview', OverviewTab],
   ['dweller', 'Dweller', DwellerTab],
+  ['board', 'Node board', BoardTab],
   ['components', 'Behavior', ComponentsTab],
   ['groups', 'Groups', GroupsTab],
   ['events', 'Events', EventsTab],
@@ -32,9 +35,22 @@ export function ecommit(e, fn, key) {
   commit((p) => { const ent = p.entities.find((x) => x.uid === id); if (ent) fn(ent, p); }, key);
 }
 
+// Simple mode hides the raw JSON-level tabs; Advanced shows everything.
+const ADVANCED_ONLY = new Set(['components', 'groups', 'events', 'properties', 'files']);
+export function visibleTabs(e) {
+  const adv = isAdvanced();
+  return TABS.filter(([k]) => {
+    if (!adv && ADVANCED_ONLY.has(k)) return false;
+    if (k === 'board') return !!e.horror?.enabled;
+    if (k === 'trades' && !adv) return !e.horror?.enabled || !!e.trades?.enabled;
+    return true;
+  });
+}
+
 export function EntityScreen() {
   const e = currentEntity();
   if (!e) return <Empty title="Entity not found" />;
+  const tabs = visibleTabs(e);
   const tab = TABS.find((t) => t[0] === state.tab) || TABS[0];
   const Comp = tab[2];
   const counts = {
@@ -46,11 +62,12 @@ export function EntityScreen() {
   return (
     <div class="screen entity">
       <nav class="tabs" role="tablist">
-        {TABS.map(([k, l]) => (
+        {tabs.map(([k, l]) => (
           <button type="button" role="tab" aria-selected={k === tab[0]} class={`tab ${k === tab[0] ? 'on' : ''} ${k === 'dweller' ? 'feature' : ''}`} onClick={() => setTab(k)}>
             {l}{counts[k] ? <span class="tab-n">{counts[k]}</span> : null}
           </button>
         ))}
+        <button type="button" class="tab mode-tab" title="Switch between Simple and Advanced" onClick={() => setSetting('mode', isAdvanced() ? 'simple' : 'advanced')}>{isAdvanced() ? 'Simple' : 'Advanced ›'}</button>
       </nav>
       <div class="tab-body" key={tab[0]}>
         <Comp e={e} p={state.project} />

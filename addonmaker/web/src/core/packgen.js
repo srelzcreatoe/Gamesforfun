@@ -5,7 +5,7 @@ import { buildAnimations } from './anim.js';
 import { Raster } from './png.js';
 import { makeZip } from './zip.js';
 import { TARGETS } from './model.js';
-import { compileHorror } from './horror.js';
+import { compileHorror, directorFunctions, dwellerSpawn, hProp, migrateHorror } from './horror.js';
 
 const J = (o) => JSON.stringify(o, null, 2) + '\n';
 const ver3 = (v) => (Array.isArray(v) && v.length === 3 ? v.map((x) => Math.max(0, parseInt(x, 10) || 0)) : [1, 0, 0]);
@@ -94,7 +94,7 @@ function gearTableJSON(g) {
 const GEAR_SLOT = { mainhand: 'slot.weapon.mainhand', offhand: 'slot.weapon.offhand', head: 'slot.armor.head', chest: 'slot.armor.chest', legs: 'slot.armor.legs', feet: 'slot.armor.feet' };
 
 /** Behavior-pack entity definition, including everything Mobsmith wires automatically. */
-export function behaviorEntityJSON(project, e, notes = [], extraRp = []) {
+export function behaviorEntityJSON(project, e, notes = [], extraRp = [], directors = []) {
   const id = `${project.namespace}:${e.name}`;
   const components = clone(e.components);
   const groups = {};
@@ -160,6 +160,7 @@ export function behaviorEntityJSON(project, e, notes = [], extraRp = []) {
   if (e.horror?.enabled) {
     const r = compileHorror({ ns: project.namespace, name: e.name, h: e.horror, components, groups, events, properties: props, notes });
     extraRp.push(...r.files);
+    if (r.director) { directors.push(r.director); notes.push(`Appearance director: first after ${r.director.ap.firstAfter} min, then every ${r.director.ap.every[0]}-${r.director.ap.every[1]} min (${r.director.ap.chance}% chance)`); }
   }
 
   const description = {
@@ -168,7 +169,8 @@ export function behaviorEntityJSON(project, e, notes = [], extraRp = []) {
     is_summonable: !!e.summonable,
   };
   if (e.experimental) description.is_experimental = true;
-  if (e.spawnCategory) description.spawn_category = e.spawnCategory;
+  if (e.horror?.enabled) description.spawn_category = 'monster';
+  else if (e.spawnCategory) description.spawn_category = e.spawnCategory;
   if (e.runtimeId) description.runtime_identifier = e.runtimeId;
   if (Object.keys(props).length) description.properties = props;
 
@@ -215,15 +217,26 @@ export function renderControllerJSON(project, e) {
     rc.arrays = { textures: { 'Array.skins': Array.from({ length: n }, (_, i) => (i === 0 ? 'Texture.default' : `Texture.v${i}`)) } };
     rc.textures = [`Array.skins[${q}]`];
   } else rc.textures = ['Texture.default'];
+  if (e.horror?.enabled) rc.part_visibility = [{ '*': `query.property('${hProp(project.namespace)}') != 'arriving'` }];
   return { format_version: '1.8.0', render_controllers: { [rcId(project, e)]: rc } };
 }
 
+/** Spawn conditions actually exported (dwellers use their own habitat settings). */
+export function spawnConditions(e) {
+  if (e.horror?.enabled) {
+    const h = migrateHorror(e.horror);
+    return h.appear.natural ? { population: 'monster', conditions: dwellerSpawn(h) } : null;
+  }
+  return e.spawn?.enabled && e.spawn.conditions?.length ? { population: e.spawn.population || 'animal', conditions: e.spawn.conditions } : null;
+}
+
 export function spawnRulesJSON(project, e) {
+  const sc = spawnConditions(e);
   return {
     format_version: '1.8.0',
     'minecraft:spawn_rules': {
-      description: { identifier: `${project.namespace}:${e.name}`, population_control: e.spawn.population || 'animal' },
-      conditions: clone(e.spawn.conditions || []),
+      description: { identifier: `${project.namespace}:${e.name}`, population_control: sc?.population || 'animal' },
+      conditions: clone(sc?.conditions || []),
     },
   };
 }
@@ -284,13 +297,14 @@ export function buildPacks(project, opts = {}) {
 
   const lang = [`pack.name=${project.name}`, `pack.description=${(project.description || '').replace(/\n/g, ' ')}`];
   const soundEntities = {};
+  const directors = [];
   for (const e of project.entities) {
     const id = `${project.namespace}:${e.name}`;
     const n = (notes[e.name] = []);
     const extraRp = [];
-    bp.push({ path: `entities/${e.name}.json`, data: J(behaviorEntityJSON(project, e, n, extraRp)) });
+    bp.push({ path: `entities/${e.name}.json`, data: J(behaviorEntityJSON(project, e, n, extraRp, directors)) });
     for (const f of extraRp) rp.push({ path: f.path, data: J(f.json) });
-    if (e.spawn?.enabled && e.spawn.conditions?.length) bp.push({ path: `spawn_rules/${e.name}.json`, data: J(spawnRulesJSON(project, e)) });
+    if (spawnConditions(e)) bp.push({ path: `spawn_rules/${e.name}.json`, data: J(spawnRulesJSON(project, e)) });
     if (e.loot?.enabled && e.loot.pools?.length) bp.push({ path: lootPath(project, e), data: J(lootTableJSON(e.loot.pools)) });
     if (e.gear?.enabled && Object.keys(GEAR_SLOT).some((k) => e.gear[k])) bp.push({ path: gearPath(project, e), data: J(gearTableJSON(e.gear)) });
     if (e.trades?.enabled && e.trades.tiers?.length) bp.push({ path: tradePath(project, e), data: J({ tiers: clone(e.trades.tiers) }) });
@@ -318,6 +332,12 @@ export function buildPacks(project, opts = {}) {
     }
   }
   if (Object.keys(soundEntities).length) rp.push({ path: 'sounds.json', data: J({ entity_sounds: { entities: soundEntities } }) });
+  // Appearance director: per-player timers in BP functions, run every tick.
+  const dirFiles = directorFunctions(project.namespace, project, directors);
+  if (dirFiles.length) {
+    bp.push(...dirFiles);
+    bp.push({ path: 'functions/tick.json', data: J({ values: [`${project.namespace}/dwellers/tick`] }) });
+  }
   // Custom audio: files under sounds/<ns>/ plus sound_definitions.json so the
   // ids (<ns>.<name>) work in sounds.json, /playsound and the horror scares.
   const custom = project.sounds || [];

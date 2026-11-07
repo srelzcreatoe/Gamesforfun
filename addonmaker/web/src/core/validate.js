@@ -175,6 +175,7 @@ function validateEntity(project, e, catalog, vanilla, add) {
     if ((p.type === 'int' || p.type === 'float') && Number(p.range?.[0]) > Number(p.range?.[1])) add('error', `Property ${p.name}: range min is above max.`, e, 'properties');
   }
 
+  const h = e.horror;
   // Model and textures.
   const m = e.model;
   const bn = new Set();
@@ -210,8 +211,8 @@ function validateEntity(project, e, catalog, vanilla, add) {
     if (!anywhere(q)) add('warn', `You have ${e.textures.length} skins but no ${q} component picks one; it will always show the first skin.`, e, 'texture');
   }
 
-  // Spawning.
-  if (e.spawn?.enabled) {
+  // Spawning (dwellers use their own appearance settings).
+  if (e.spawn?.enabled && !h?.enabled) {
     if (!e.spawn.conditions?.length) add('error', 'Natural spawning is on but has no conditions.', e, 'spawn');
     e.spawn.conditions?.forEach((c, i) => {
       if (!PLACEMENTS.some((p) => c[p])) add('error', `Spawn condition ${i + 1} needs a place (surface, underground, underwater or lava).`, e, 'spawn');
@@ -245,9 +246,12 @@ function validateEntity(project, e, catalog, vanilla, add) {
     for (let i = 1; i < sl.length; i++) if (sl[i].from < sl[i - 1].to) add('warn', 'Two schedule slots overlap; the later one wins while both match.', e, 'dweller');
   }
   // Horror dweller.
-  const h = e.horror;
   if (h?.enabled) {
     if (h.senses.seen === 'freeze' && h.stalk.on) add('info', 'Freeze-when-seen works best with stalking off (it hunts while unseen instead).', e, 'dweller');
+    const ap = h.appear || {};
+    if (!ap.director && !ap.natural) add('warn', 'This dweller never appears on its own: turn on the appearance timer or natural spawning (or use its spawn egg).', e, 'dweller');
+    if (ap.director && Number(ap.every?.[0]) > Number(ap.every?.[1])) add('error', 'Appearance interval: the minimum is larger than the maximum.', e, 'dweller');
+    if (ap.director && Number(ap.chance) <= 0) add('warn', 'Appearance chance is 0%, so the timer never brings it.', e, 'dweller');
     if (!h.stalk.on && !h.hunt.onClose && !h.hunt.onHurt && !['charge', 'freeze'].includes(h.senses.seen)) add('warn', 'Nothing ever makes this horror dweller hunt. Turn on a hunt trigger.', e, 'dweller');
     if (Number(h.hunt.close) >= Number(h.senses.detect)) add('warn', 'Hunt distance is larger than its detection range.', e, 'dweller');
     if (h.stalk.on && Number(h.stalk.keep) >= Number(h.senses.detect)) add('warn', 'Stalking distance is larger than its detection range, so it will never get close.', e, 'dweller');

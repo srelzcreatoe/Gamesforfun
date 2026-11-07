@@ -50,7 +50,7 @@ class MainActivity : Activity() {
             loadWithOverviewMode = true
             useWideViewPort = true
         }
-        web.setBackgroundColor(0xFF0F1720.toInt())
+        web.setBackgroundColor(0xFF1F1712.toInt())
         web.addJavascriptInterface(Bridge(), "MobsmithAndroid")
         web.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {

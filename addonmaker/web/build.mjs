@@ -15,7 +15,7 @@ const html = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="color-scheme" content="dark light">
-<meta name="theme-color" content="#0f1720">
+<meta name="theme-color" content="#261b14">
 <title>Mobsmith</title>
 <link rel="stylesheet" href="app.css">
 </head>
@@ -55,6 +55,7 @@ const opts = {
   jsx: 'automatic',
   jsxImportSource: 'preact',
   loader: { '.json': 'json' },
+  external: ['fonts/*', 'music/*', '*.woff2', '*.svg'],
   outfile: path.join(OUT, 'app.js'),
   legalComments: 'none',
   logLevel: 'info',

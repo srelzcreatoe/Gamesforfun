@@ -4,6 +4,7 @@ import { Card, Btn, Row, Toggle, Select, NumInput, TextInput, Chips, Collapse, E
 import { FilterEditor, JsonEditor } from '../fields.jsx';
 import { ecommit } from '../screens/entity.jsx';
 import { vanilla } from '../meta.js';
+import { SoundPicker } from '../audio.jsx';
 import { isObj, clone } from '../../core/util.js';
 
 // ---------------- Sounds ----------------
@@ -15,7 +16,7 @@ export function SoundsTab({ e }) {
   const [nk, setNk] = useState('ambient');
   return (
     <div>
-      <Card title="Sounds" sub="Uses the game's own sound files: pick any vanilla sound for each event">
+      <Card title="Sounds" sub="Pick a game sound for each event, or upload your own (▶ previews your own sounds, ✎ edits them)">
         <Toggle label="Custom sounds for this mob" value={s.enabled} onChange={(v) => upd((x) => { x.enabled = v; })} />
         {s.enabled && <>
           <Row label="Volume"><NumInput min={0} value={s.volume} onChange={(v) => upd((x) => { x.volume = v; }, 'snd:v')} /></Row>
@@ -27,10 +28,10 @@ export function SoundsTab({ e }) {
           {evs.map(([k, v]) => (
             <div class="snd">
               <code class="snd-k">{k}</code>
-              <TextInput value={v.sound} list="dl-sounds" mono placeholder="mob.zombie.say" onChange={(t) => upd((x) => { x.events[k].sound = t; }, `snd:${k}`)} />
               <label class="mini"><span>vol</span><NumInput min={0} value={v.volume ?? 1} onChange={(n) => upd((x) => { x.events[k].volume = n; }, `snd:${k}:v`)} /></label>
               <label class="mini"><span>pitch</span><NumInput min={0} value={v.pitch ?? 1} onChange={(n) => upd((x) => { x.events[k].pitch = n; }, `snd:${k}:p`)} /></label>
               <Btn small kind="ghost" icon="trash" aria-label={`Remove ${k} sound`} onClick={() => upd((x) => { delete x.events[k]; })} />
+              <SoundPicker value={v.sound} onChange={(t) => upd((x) => { x.events[k].sound = t; }, `snd:${k}`)} />
             </div>
           ))}
           <div class="inline">

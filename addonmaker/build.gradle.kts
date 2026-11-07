@@ -11,8 +11,8 @@ android {
         applicationId = "com.gamesforfun.mobsmith"
         minSdk = 24
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.2.0"
     }
 
     // A shared, non-secret signing key is committed so every build of the APK

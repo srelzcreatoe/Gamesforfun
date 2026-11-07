@@ -9,6 +9,7 @@ import os from 'node:os';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { readZip } from '../src/core/zip.js';
+import { DWELLER_PRESETS } from '../src/core/dwellers.js';
 
 const require = createRequire(import.meta.url);
 let chromium;
@@ -25,9 +26,9 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.listen(0, r));
 const url = `http://localhost:${server.address().port}/index.html`;
 
-const TABS = ['Overview', 'Dweller', 'Behavior', 'Groups', 'Events', 'Properties', 'Model', 'Texture', 'Animations', 'Sounds', 'Spawning', 'Loot & gear', 'Trades', 'Files'];
 const PRESETS = ['Blank mob', 'Farm animal', 'Tameable pet', 'Melee monster', 'Ranged shooter', 'Rideable mount', 'Flying critter', 'Water creature', 'Village dweller', 'Village guard', 'Boss', 'Projectile',
-  'Cave Stalker', 'The Still One', 'Ceiling Crawler', 'Hollow Shade', 'Mimic', 'Screamer'];
+  ...DWELLER_PRESETS.map((d) => d.label)];
+const esc = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await (await browser.newContext({ viewport: { width: 412, height: 900 }, acceptDownloads: true, hasTouch: true })).newPage();
@@ -37,24 +38,55 @@ page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 let failed = false;
 try {
   await page.goto(url);
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('mobsmith.settings', JSON.stringify({ mode: 'advanced', music: false })); });
   await page.reload();
-  await page.getByText('New add-on').click();
+  // Dweller creator wizard, from the Dwellers home tab.
+  await page.getByRole('tab', { name: 'Dwellers' }).click();
+  await page.getByRole('button', { name: 'Create your own dweller' }).click();
+  await page.locator('.modal input').fill('Wizard Test');
+  await page.getByRole('button', { name: 'OK' }).click();
+  await page.locator('.wizard .pcard', { hasText: 'Hollow Grinner' }).click();
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Next' }).click();
+  await page.locator('.modal input.txt').fill('Cave Grin');
+  await page.getByRole('button', { name: 'Create dweller' }).click();
+  await page.locator('.tab', { hasText: 'Node board' }).click();
+  await page.getByRole('button', { name: 'Fit' }).click();
+  await page.locator('[data-node="seen"]').click();
+  await page.locator('.modal').getByRole('button', { name: /Freeze/ }).click();
+  await page.getByRole('button', { name: 'Done' }).click();
+  // Tap-to-connect: tap the "You hit it" port, then the Hunt block.
+  await page.locator('[data-port="hit"]').click({ force: true });
+  await page.locator('[data-node="hunt"]').click();
+  await page.waitForTimeout(1500);
+  const h = await page.evaluate(() => { const k = Object.keys(localStorage).find((x) => x.startsWith('mobsmith.p.')); return JSON.parse(localStorage.getItem(k)).entities[0].horror; });
+  if (h.senses.seen !== 'freeze' || !h.hunt.onHurt) throw new Error('node board edits did not reach the dweller settings');
+  while (await page.locator('.top .btn[aria-label="Back"]').count()) await page.locator('.top .btn[aria-label="Back"]').click();
+  await page.getByRole('tab', { name: 'Creator' }).click();
+  await page.locator('.pcard', { hasText: /^New/ }).first().click();
   await page.locator('.modal input').fill('Smoke Test');
   await page.getByRole('button', { name: 'OK' }).click();
   for (const pr of PRESETS) {
     await page.getByRole('button', { name: 'New', exact: true }).click();
     await page.locator('.modal input').first().fill(`${pr} one`);
-    await page.locator('.preset', { has: page.locator('strong', { hasText: new RegExp(`^${pr}$`) }) }).click();
+    await page.locator('.preset', { has: page.locator('strong', { hasText: new RegExp(`^${esc(pr)}$`) }) }).click();
     await page.getByRole('button', { name: 'Create' }).click();
+    const TABS = await page.locator('nav.tabs .tab:not(.mode-tab)').allInnerTexts();
     for (const t of TABS) {
-      await page.locator('.tab', { hasText: t }).first().click();
+      await page.locator('nav.tabs .tab:not(.mode-tab)', { hasText: t.replace(/\d+$/, '') }).first().click();
       await page.waitForTimeout(120);
+      if (t === 'Node board') {
+        await page.getByRole('button', { name: 'Fit' }).click();
+        await page.locator('[data-node="notice"]').click();
+        await page.getByRole('button', { name: 'Done' }).click();
+      }
       if (t === 'Dweller') {
         // Visit both dweller modes.
+        const wasHorror = await page.locator('.seg button.horror.on').count();
         await page.locator('.seg button', { hasText: 'Horror dweller' }).click();
         await page.waitForTimeout(150);
         await page.locator('.seg button', { hasText: 'Village dweller' }).click();
+        await page.waitForTimeout(100);
+        if (wasHorror) await page.locator('.seg button', { hasText: 'Horror dweller' }).click();
         await page.waitForTimeout(100);
       }
     }

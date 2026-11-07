@@ -125,7 +125,12 @@ export const TEMPLATES = {
   },
 };
 
-export function makeModel(template = 'humanoid') {
+export function makeModel(template = 'humanoid', spec = null, colors = {}) {
+  if (spec) {
+    const model = { template, texW: 64, texH: 64, autoUv: true, material: 'entity_alphatest', bones: dwellerBody(spec, colors), spec };
+    packUVs(model);
+    return model;
+  }
   const t = TEMPLATES[template] || TEMPLATES.humanoid;
   const model = { template, texW: 64, texH: 64, autoUv: true, material: 'entity_alphatest', bones: t.bones() };
   packUVs(model);
@@ -200,59 +205,87 @@ export function modelBounds(model) {
 }
 
 function shade([r, g, b], f) { return [Math.min(255, r * f), Math.min(255, g * f), Math.min(255, b * f)]; }
+const mix3 = (a, b, t) => [0, 1, 2].map((i) => a[i] * (1 - t) + b[i] * t);
 
-/** Paints every cube face with its bone colour, light-direction shading and noise. */
+/**
+ * Paints every cube face with its bone colour, light-direction shading, a
+ * pattern and noise, then draws a face on the head. Options:
+ *  noise, outline, outlineColor, eyes, eyeStyle (normal|glow|hollow|rect|sunken|many|single|button|none),
+ *  eyeColor, mouth (none|line|grin|bigGrin|stitched|gape), faceColor, dripColor, toothColor
+ */
 export function autoPaint(model, opts = {}) {
-  const { noise = 0.07, outline = true, eyes = true, seed = 7, eyeStyle = 'normal', eyeColor = '#ff2a2a', mouth = 'line' } = opts;
+  const {
+    noise = 0.07, outline = true, outlineColor = null, eyes = true, seed = 7, eyeStyle = 'normal',
+    eyeColor = '#ff2a2a', mouth = 'line', faceColor = null, dripColor = '#7a0d0d', toothColor = '#efe4bf',
+  } = opts;
   const R = new Raster(model.texW, model.texH);
   const FACE_LIGHT = { up: 1.14, down: 0.72, north: 1.0, south: 0.9, east: 0.84, west: 0.84 };
+  const oc = outlineColor ? hexToRgb(outlineColor) : null;
   for (const bone of model.bones) {
     const base = hexToRgb(bone.color);
     const accent = hexToRgb(bone.color2 || '#ffffff');
     const rand = rng(seed + hashStr(bone.name));
-    for (const cube of bone.cubes) {
+    bone.cubes.forEach((cube, ci) => {
       const rects = faceRects(cube);
+      const isFaceCube = bone.role === 'head' && ci === 0;
       for (const [face, r] of Object.entries(rects)) {
         const x0 = Math.floor(r.x), y0 = Math.floor(r.y), w = Math.ceil(r.w), h = Math.ceil(r.h);
-        const col = shade(base, FACE_LIGHT[face]);
+        const light = FACE_LIGHT[face];
+        const col = shade(base, light);
+        const acc = shade(accent, light);
+        const fseed = seed + hashStr(bone.name + face + ci);
         for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
           let c = col;
-          if (bone.pattern === 'stripes' && Math.floor((x + y) / 2) % 3 === 0) c = shade(accent, FACE_LIGHT[face]);
-          else if (bone.pattern === 'gradient') { const t = h > 1 ? y / (h - 1) : 0; c = [0, 1, 2].map((i) => col[i] * (1 - t * 0.35) + shade(accent, FACE_LIGHT[face])[i] * t * 0.35); }
-          else if (bone.pattern === 'spots' && rand() < 0.11) c = shade(accent, FACE_LIGHT[face] * 0.95);
-          else if (bone.pattern === 'grime' && rand() < 0.28) c = [0, 1, 2].map((i) => col[i] * 0.5 + shade(accent, FACE_LIGHT[face])[i] * 0.5);
-          else if (bone.pattern === 'cracks' && crackAt(x, y, w, h, seed + hashStr(bone.name + face))) c = shade(accent, FACE_LIGHT[face]);
-          const n = 1 + (rand() * 2 - 1) * noise;
-          let px = shade(c, n);
-          if (outline && w > 2 && h > 2 && (x === 0 || y === 0 || x === w - 1 || y === h - 1)) px = shade(px, 0.82);
+          const ty = h > 1 ? y / (h - 1) : 0;
+          switch (bone.pattern) {
+            case 'stripes': if (Math.floor((x + y) / 2) % 3 === 0) c = acc; break;
+            case 'gradient': c = mix3(col, acc, ty * 0.6); break;
+            case 'fade': c = mix3(col, acc, Math.pow(ty, 1.3)); break;
+            case 'spots': if (rand() < 0.11) c = shade(accent, light * 0.95); break;
+            case 'grime': if (rand() < 0.28) c = mix3(col, acc, 0.5); break;
+            case 'cracks': if (crackAt(x, y, w, h, fseed)) c = acc; break;
+            case 'veins': if (crackAt(x, y, w, h, fseed) || crackAt(x, y, w, h, fseed + 99)) c = mix3(col, acc, 0.75); break;
+            case 'ribs':
+              if (face === 'north' && w >= 4 && y > h * 0.15 && y < h * 0.62 && y % 2 === 0 && x > 0 && x < w - 1 && Math.abs(x - (w - 1) / 2) > 0.6) c = mix3(col, acc, 0.8);
+              else if (crackAt(x, y, w, h, fseed)) c = mix3(col, acc, 0.6);
+              break;
+            default: break;
+          }
+          if (isFaceCube && faceColor && face === 'north') c = mix3(col, shade(hexToRgb(faceColor), light), Math.min(1, ty * 1.6));
+          let px = shade(c, 1 + (rand() * 2 - 1) * noise);
+          const edge = w > 2 && h > 2 && (x === 0 || y === 0 || x === w - 1 || y === h - 1);
+          if (edge && oc) px = mix3(px, oc, 0.85);
+          else if (edge && outline) px = shade(px, 0.82);
           R.set(x0 + x, y0 + y, px[0], px[1], px[2], 255);
         }
       }
-      if (eyes && eyeStyle !== 'normal' && bone.role === 'head' && cube === bone.cubes[0]) {
-        paintHorrorFace(R, rects.north, eyeStyle, hexToRgb(eyeColor), mouth, shade(base, 0.35));
-      } else if (eyes && (bone.role === 'head' || (model.template === 'blob' && bone.role === 'body'))) {
-        const f = rects.north;
-        const fw = Math.round(f.w), fh = Math.round(f.h);
-        if (fw >= 4 && fh >= 3) {
-          const ey = Math.floor(f.y) + Math.max(1, Math.floor(fh * 0.38));
-          const inset = Math.max(1, Math.floor(fw * 0.22));
-          const ew = fw >= 8 ? 2 : 1;
-          for (const ex of [Math.floor(f.x) + inset, Math.floor(f.x) + fw - inset - ew]) {
-            for (let i = 0; i < ew; i++) {
-              R.set(ex + i, ey, 245, 245, 245, 255);
-              R.set(ex + (ex < f.x + fw / 2 ? ew - 1 : 0), ey, 32, 28, 40, 255);
-            }
-          }
-          if (fh >= 6 && fw >= 6 && model.template !== 'blob') {
-            const my = ey + Math.max(2, Math.floor(fh * 0.3));
-            const mx = Math.floor(f.x + fw / 2) - 1;
-            R.set(mx, my, ...shade(base, 0.55), 255); R.set(mx + 1, my, ...shade(base, 0.55), 255);
-          }
-        }
+      if (eyes && bone.role === 'head' && ci === 0 && eyeStyle !== 'none') {
+        if (eyeStyle === 'normal') paintFriendlyFace(R, rects.north, base, model.template !== 'blob');
+        else paintHorrorFace(R, rects.north, { style: eyeStyle, eye: hexToRgb(eyeColor), mouth, dark: shade(base, 0.35), drip: hexToRgb(dripColor), tooth: hexToRgb(toothColor), seed: fseedOf(bone, seed) });
+      } else if (eyes && model.template === 'blob' && bone.role === 'body' && ci === 0) {
+        paintFriendlyFace(R, rects.north, base, false);
       }
-    }
+    });
   }
   return R;
+}
+const fseedOf = (bone, seed) => seed + hashStr(bone.name + 'face');
+
+function paintFriendlyFace(R, f, base, withMouth) {
+  const fw = Math.round(f.w), fh = Math.round(f.h);
+  if (fw < 4 || fh < 3) return;
+  const ey = Math.floor(f.y) + Math.max(1, Math.floor(fh * 0.38));
+  const inset = Math.max(1, Math.floor(fw * 0.22));
+  const ew = fw >= 8 ? 2 : 1;
+  for (const ex of [Math.floor(f.x) + inset, Math.floor(f.x) + fw - inset - ew]) {
+    for (let i = 0; i < ew; i++) R.set(ex + i, ey, 245, 245, 245, 255);
+    R.set(ex + (ex < f.x + fw / 2 ? ew - 1 : 0), ey, 32, 28, 40, 255);
+  }
+  if (withMouth && fh >= 6 && fw >= 6) {
+    const my = ey + Math.max(2, Math.floor(fh * 0.3));
+    const mx = Math.floor(f.x + fw / 2) - 1;
+    R.set(mx, my, ...shade(base, 0.55), 255); R.set(mx + 1, my, ...shade(base, 0.55), 255);
+  }
 }
 
 function crackAt(x, y, w, h, seed) {
@@ -268,33 +301,216 @@ function crackAt(x, y, w, h, seed) {
   return false;
 }
 
-/** Horror faces: glowing or hollow eyes plus an optional grin. */
-function paintHorrorFace(R, f, style, eyeRgb, mouth, dark) {
+/** Horror faces: many eye and mouth styles (glowing, sunken, dripping, grins…). */
+function paintHorrorFace(R, f, o) {
   const x0 = Math.floor(f.x), y0 = Math.floor(f.y), fw = Math.round(f.w), fh = Math.round(f.h);
   if (fw < 4 || fh < 4) return;
-  const ey = y0 + Math.max(1, Math.floor(fh * 0.3));
-  const ew = fw >= 7 ? 2 : 1, eh = fh >= 8 ? 2 : 1;
-  const inset = Math.max(1, Math.floor(fw * 0.18));
-  for (const ex of [x0 + inset, x0 + fw - inset - ew]) {
-    for (let dy = -1; dy <= eh; dy++) for (let dx = -1; dx <= ew; dx++) R.set(ex + dx, ey + dy, dark[0] * 0.4, dark[1] * 0.4, dark[2] * 0.4, 255);
-    for (let dy = 0; dy < eh; dy++) for (let dx = 0; dx < ew; dx++) {
-      if (style === 'glow') R.set(ex + dx, ey + dy, eyeRgb[0], eyeRgb[1], eyeRgb[2], 255);
-      else R.set(ex + dx, ey + dy, 4, 3, 6, 255);
+  const set = (x, y, c) => { if (x >= x0 && x < x0 + fw && y >= y0 && y < y0 + fh) R.set(x, y, c[0], c[1], c[2], 255); };
+  const black = [6, 4, 6];
+  const ey = y0 + Math.max(1, Math.floor(fh * (fh >= 10 ? 0.28 : 0.3)));
+  const ew = fw >= 8 ? (o.style === 'rect' ? 2 : 2) : 1;
+  const eh = o.style === 'rect' ? (fh >= 10 ? 2 : 1) : o.style === 'sunken' ? Math.max(2, Math.floor(fh * 0.28)) : fh >= 8 ? 2 : 1;
+  const inset = Math.max(1, Math.floor(fw * (o.style === 'rect' ? 0.16 : 0.18)));
+  const eyeXs = [x0 + inset, x0 + fw - inset - ew];
+  let mouthTop = ey + eh + Math.max(2, Math.floor(fh * 0.2));
+  if (o.style === 'many') {
+    const r = rng(o.seed);
+    for (let k = 0; k < Math.max(4, Math.floor(fw * fh / 9)); k++) {
+      const x = x0 + 1 + Math.floor(r() * (fw - 2)), y = y0 + 1 + Math.floor(r() * (fh * 0.6));
+      set(x, y, o.eye); set(x + 1, y, shade(o.eye, 0.5));
     }
-    if (style === 'hollow' && ew > 1) R.set(ex + (ex < x0 + fw / 2 ? ew - 1 : 0), ey + eh - 1, eyeRgb[0], eyeRgb[1], eyeRgb[2], 255);
+    mouthTop = y0 + Math.floor(fh * 0.7);
+  } else if (o.style === 'single') {
+    const cx = x0 + Math.floor(fw / 2) - 1, cy = y0 + Math.floor(fh * 0.35);
+    for (let dy = -1; dy <= 2; dy++) for (let dx = -1; dx <= 2; dx++) set(cx + dx, cy + dy, black);
+    for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) set(cx + dx, cy + dy, o.eye);
+    set(cx, cy, [255, 255, 255]);
+    mouthTop = cy + 4;
+  } else if (o.style === 'button') {
+    for (const ex of eyeXs) {
+      for (let dy = 0; dy < Math.max(2, ew); dy++) for (let dx = 0; dx < Math.max(2, ew); dx++) set(ex + dx, ey + dy, black);
+      set(ex, ey, shade(o.eye, 1));
+    }
+  } else {
+    for (const ex of eyeXs) {
+      if (o.style === 'sunken') {
+        // Dark vertical sockets with a white pinprick pupil (fades into the skin).
+        for (let dy = -1; dy <= eh + 1; dy++) for (let dx = -1; dx <= ew; dx++) {
+          const t = dy < 0 || dy > eh ? 0.45 : dx < 0 || dx >= ew ? 0.6 : 1;
+          const [r0, g0, b0] = R.get(ex + dx, ey + dy);
+          set(ex + dx, ey + dy, mix3([r0, g0, b0], o.dark, t));
+        }
+        set(ex + (ex < x0 + fw / 2 ? ew - 1 : 0), ey + Math.floor(eh / 2), [250, 250, 245]);
+        continue;
+      }
+      for (let dy = -1; dy <= eh; dy++) for (let dx = -1; dx <= ew; dx++) set(ex + dx, ey + dy, mix3(o.dark, black, 0.6));
+      for (let dy = 0; dy < eh; dy++) for (let dx = 0; dx < ew; dx++) {
+        if (o.style === 'glow' || o.style === 'rect') set(ex + dx, ey + dy, dy === 0 ? mix3(o.eye, [255, 255, 230], 0.35) : o.eye);
+        else set(ex + dx, ey + dy, black);
+      }
+      if (o.style === 'hollow' && ew > 1) set(ex + (ex < x0 + fw / 2 ? ew - 1 : 0), ey + eh - 1, o.eye);
+      if (o.style === 'rect') {
+        // Bloody drips running down from each eye.
+        const r = rng(o.seed + ex);
+        for (let dx = 0; dx < ew; dx++) {
+          const len = 1 + Math.floor(r() * Math.max(2, fh * 0.25));
+          for (let k = 1; k <= len; k++) set(ex + dx, ey + eh + k, shade(o.drip, 1 - k / (len + 2)));
+        }
+      }
+    }
   }
-  if (mouth === 'none') return;
-  const my = ey + eh + Math.max(2, Math.floor(fh * 0.25));
-  if (my >= y0 + fh) return;
-  const mx0 = x0 + Math.max(1, Math.floor(fw * (mouth === 'grin' ? 0.12 : 0.3))), mx1 = x0 + fw - 1 - Math.max(1, Math.floor(fw * (mouth === 'grin' ? 0.12 : 0.3)));
-  for (let x = mx0; x <= mx1; x++) {
-    R.set(x, my, 10, 6, 8, 255);
-    if (mouth === 'grin') {
-      if (my + 1 < y0 + fh) R.set(x, my + 1, (x - mx0) % 2 ? 230 : 10, (x - mx0) % 2 ? 224 : 6, (x - mx0) % 2 ? 210 : 8, 255);
-      if (x === mx0 || x === mx1) R.set(x, my - 1, 10, 6, 8, 255);
+  // Mouths.
+  const mx0 = x0 + Math.max(1, Math.floor(fw * 0.1)), mx1 = x0 + fw - 1 - Math.max(1, Math.floor(fw * 0.1));
+  switch (o.mouth) {
+    case 'bigGrin': {
+      const my = Math.max(mouthTop, y0 + Math.floor(fh * 0.62));
+      const rows = Math.max(2, Math.min(4, y0 + fh - my - 1));
+      for (let x = mx0; x <= mx1; x++) {
+        const curve = Math.round(Math.abs(x - (mx0 + mx1) / 2) / ((mx1 - mx0) / 2 + 0.01) * 1.2);
+        const top = my - curve;
+        for (let k = -1; k <= rows; k++) set(x, top + k, k === -1 || k === rows ? mix3(o.drip, black, 0.5) : black);
+        const tooth = (x - mx0) % 2 === 0;
+        for (let k = 0; k < rows; k++) {
+          const upper = k < Math.ceil(rows / 2);
+          if (upper ? (tooth || k === 0) : (!tooth || k === rows - 1)) set(x, top + k, shade(o.tooth, upper ? 1 : 0.88));
+        }
+      }
+      break;
     }
+    case 'grin': {
+      const my = Math.min(y0 + fh - 2, mouthTop);
+      for (let x = mx0; x <= mx1; x++) {
+        set(x, my, [10, 6, 8]);
+        set(x, my + 1, (x - mx0) % 2 ? o.tooth : [10, 6, 8]);
+        if (x === mx0 || x === mx1) set(x, my - 1, [10, 6, 8]);
+      }
+      break;
+    }
+    case 'stitched': {
+      const my = Math.min(y0 + fh - 2, mouthTop);
+      for (let x = mx0 + 1; x <= mx1 - 1; x++) { set(x, my, [20, 14, 10]); if ((x - mx0) % 2) { set(x, my - 1, [20, 14, 10]); set(x, my + 1, [20, 14, 10]); } }
+      break;
+    }
+    case 'gape': {
+      const my = Math.min(y0 + fh - 3, mouthTop);
+      const cx = x0 + Math.floor(fw / 2);
+      for (let dy = 0; dy < 3; dy++) for (let dx = -1 - (dy === 1 ? 1 : 0); dx <= 1 + (dy === 1 ? 1 : 0); dx++) set(cx + dx - 1, my + dy, black);
+      break;
+    }
+    case 'line': {
+      const my = Math.min(y0 + fh - 2, mouthTop);
+      for (let x = x0 + Math.floor(fw * 0.3); x <= x0 + fw - 1 - Math.floor(fw * 0.3); x++) set(x, my, [12, 8, 10]);
+      break;
+    }
+    default: break;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Dweller body builder: proportions → bones. Pixel units, entity faces -Z.
+export const DEFAULT_BODY = {
+  legLen: 22, legW: 2, footL: 0, hipW: 6,
+  torsoW: 8, torsoH: 12, torsoD: 4,
+  neck: 1, neckW: 3,
+  headW: 6, headH: 9, headD: 6, headForward: 0,
+  armLen: 26, armW: 2, handSize: 3, hands: 'block', clawLen: 5,
+  extraArms: false, antlers: false, hat: false, hood: false, horns: false, spikes: false, tail: 0,
+  quad: false, float: false, hunch: 1,
+};
+
+export function dwellerBody(spec = {}, colors = {}) {
+  const s = { ...DEFAULT_BODY, ...spec };
+  const col = (role, d) => colors[role] || d;
+  const bones = [];
+  const push = (b) => { bones.push(b); return b; };
+  if (s.quad) return quadBody(s, col);
+  const legTop = s.float ? 4 : s.legLen;
+  if (!s.float) {
+    const lx = s.hipW / 2 - s.legW / 2;
+    for (const [side, role, name] of [[-1, 'legR', 'rightLeg'], [1, 'legL', 'leftLeg']]) {
+      const px = side * lx;
+      const cubes = [C([px - s.legW / 2, 0, -s.legW / 2], [s.legW, s.legLen, s.legW])];
+      if (s.footL > 0) cubes.push(C([px - s.legW / 2 - 0.5, 0, -s.legW / 2 - s.footL], [s.legW + 1, 2, s.footL]));
+      if (s.hands === 'claws') for (let i = 0; i < 2; i++) cubes.push(C([px - s.legW / 2 + i * (s.legW - 0.6), 0, -s.legW / 2 - (s.footL || 0) - 2], [0.6, 0.6, 2]));
+      push(B(name, role, [px, s.legLen, 0], cubes, { color: col(role, col('legs', '#2a2a2e')) }));
+    }
+  }
+  const torsoBottom = s.float ? 0 : legTop + 3;
+  const bodyCubes = s.float
+    ? [C([-s.torsoW / 2, 0, -s.torsoD / 2 - 1], [s.torsoW, s.torsoH + legTop, s.torsoD + 2]), C([-s.torsoW / 2 - 1, 0, -s.torsoD / 2 - 2], [s.torsoW + 2, 3, s.torsoD + 4])]
+    : [C([-s.torsoW / 2, torsoBottom, -s.torsoD / 2], [s.torsoW, s.torsoH, s.torsoD]), C([-s.hipW / 2, legTop, -s.torsoD / 2 + 0.5], [s.hipW, 3, Math.max(2, s.torsoD - 1)])];
+  const topY = s.float ? s.torsoH + legTop : torsoBottom + s.torsoH;
+  if (s.spikes) for (let i = 0; i < 3; i++) bodyCubes.push(C([-0.5, topY - 3 - i * 4, s.torsoD / 2], [1, 2, 2]));
+  if (s.tail > 0) bodyCubes.push(C([-0.75, legTop + 1, s.torsoD / 2], [1.5, 1.5, s.tail]));
+  push(B('body', 'body', [0, legTop, 0], bodyCubes, { color: col('body', '#1d1b20') }));
+  // Head (with neck).
+  const headCubes = [C([-s.headW / 2, topY + s.neck, -s.headD / 2 - s.headForward], [s.headW, s.headH, s.headD])];
+  if (s.neck > 0) headCubes.push(C([-s.neckW / 2, topY, -s.neckW / 2 - s.headForward / 2], [s.neckW, s.neck + 0.5, s.neckW]));
+  const hTop = topY + s.neck + s.headH;
+  if (s.hood) headCubes.push(C([-s.headW / 2 - 1, topY + s.neck - 1, -s.headD / 2 - s.headForward + 0.5], [s.headW + 2, s.headH + 2, s.headD + 1.5]));
+  push(B('head', 'head', [0, topY, 0], headCubes, { parent: 'body', color: col('head', '#cfc8bd') }));
+  if (s.antlers || s.hat || s.horns) {
+    const ex = [];
+    if (s.antlers) {
+      for (const side of [-1, 1]) {
+        const bx = side * (s.headW / 2 - 1);
+        ex.push(C([bx - 0.5, hTop, -0.5 - s.headForward], [1, 6, 1]), C([bx + (side > 0 ? 0 : -3), hTop + 4, -0.5 - s.headForward], [3.5, 1, 1]), C([bx + side * 3 - 0.5, hTop + 4, -0.5 - s.headForward], [1, 4, 1]), C([bx + side * 1 - 0.5, hTop + 6, -0.5 - s.headForward], [1, 3, 1]));
+      }
+    }
+    if (s.horns) for (const side of [-1, 1]) ex.push(C([side * (s.headW / 2) - 1, hTop - 2, -1 - s.headForward], [2, 4, 2]), C([side * (s.headW / 2 + 1) - 0.5, hTop + 1, -0.5 - s.headForward], [1, 3, 1]));
+    if (s.hat) ex.push(C([-s.headW / 2 - 2, hTop, -s.headD / 2 - 2 - s.headForward], [s.headW + 4, 1, s.headD + 4]), C([-s.headW / 2 + 0.5, hTop + 1, -s.headD / 2 + 0.5 - s.headForward], [s.headW - 1, Math.round(s.headH * 1.1), s.headD - 1]));
+    push(B('headwear', 'none', [0, topY, 0], ex, { parent: 'head', color: col('extra', '#e9e2d0') }));
+  }
+  // Arms (+ hands / claws as their own bones so they can be coloured separately).
+  const shoulderY = topY - 1;
+  const armSets = [[shoulderY, s.armLen, '']];
+  if (s.extraArms) armSets.push([shoulderY - Math.round(s.torsoH * 0.45), Math.round(s.armLen * 0.8), 'Lower']);
+  for (const [sy, len, tag] of armSets) {
+    for (const [side, role, name] of [[-1, 'armR', 'rightArm'], [1, 'armL', 'leftArm']]) {
+      const px = side * (s.torsoW / 2 + s.armW / 2);
+      push(B(`${name}${tag}`, tag ? 'none' : role, [px, sy, 0], [C([px - s.armW / 2, sy - len, -s.armW / 2], [s.armW, len, s.armW])], { parent: 'body', color: col('arms', col('body', '#1d1b20')) }));
+      if (s.hands !== 'none') {
+        const hs = s.handSize, hy = sy - len;
+        const cubes = [C([px - hs / 2, hy - hs + 0.5, -hs / 2], [hs, hs, hs])];
+        if (s.hands === 'claws') for (let i = 0; i < 3; i++) cubes.push(C([px - hs / 2 + 0.2 + i * (hs - 0.6) / 2, hy - hs + 0.5 - s.clawLen, -hs / 2 + 0.3], [0.6, s.clawLen, 0.6]));
+        push(B(`${name}${tag}Hand`, 'none', [px, sy, 0], cubes, { parent: `${name}${tag}`, color: col('hands', '#e8b878') }));
+      }
+    }
+  }
+  if (s.hunch) for (const b of bones) b.hunch = s.hunch;
+  return bones;
+}
+
+function quadBody(s, col) {
+  const bones = [];
+  const L = s.bodyLen || 18, W = s.torsoW || 8, H = s.torsoH || 7, legLen = s.legLen || 14, lw = s.legW || 2;
+  const bodyY = legLen;
+  bones.push(B('body', 'body', [0, bodyY + H / 2, 0], [C([-W / 2, bodyY, -L / 2], [W, H, L]), ...(s.spikes ? [0, 1, 2, 3].map((i) => C([-0.5, bodyY + H, -L / 2 + 2 + i * 4], [1, 2, 2])) : [])], { color: col('body', '#2b2622') }));
+  const hz = -L / 2 - (s.neck || 2);
+  bones.push(B('head', 'head', [0, bodyY + H - 1, -L / 2], [C([-s.headW / 2, bodyY + H - 2 - s.headH / 2, hz - s.headD], [s.headW, s.headH, s.headD]), ...(s.neck ? [C([-s.neckW / 2, bodyY + H - 3, hz], [s.neckW, s.neckW, s.neck + 1])] : [])], { parent: 'body', color: col('head', '#3a332c') }));
+  const legs = [['frontRight', 'legFR', -1, -1], ['frontLeft', 'legFL', 1, -1], ['backRight', 'legBR', -1, 1], ['backLeft', 'legBL', 1, 1]];
+  for (const [name, role, sx, sz] of legs) {
+    const px = sx * (W / 2 + (s.splay ? 2 : -lw / 2)), pz = sz * (L / 2 - 2);
+    const cubes = [C([px - lw / 2, 0, pz - lw / 2], [lw, legLen + 1, lw])];
+    if (s.splay) cubes.push(C([Math.min(px, sx * W / 2) - (sx > 0 ? 0 : 0), legLen, pz - lw / 2], [Math.abs(px - sx * W / 2) + lw / 2, lw, lw]));
+    if (s.hands === 'claws') for (let i = 0; i < 3; i++) cubes.push(C([px - lw / 2 + i * (lw - 0.6) / 2, 0, pz - lw / 2 - 2], [0.6, 0.6, 2.5]));
+    bones.push(B(name, role, [px, legLen, pz], cubes, { color: col('legs', '#221e1a') }));
+  }
+  if (s.tail > 0) bones.push(B('tail', 'tail', [0, bodyY + H - 1, L / 2], [C([-0.75, bodyY + H - 2, L / 2], [1.5, 1.5, s.tail])], { parent: 'body', color: col('body', '#2b2622') }));
+  return bones;
+}
+
+/** Dweller body presets usable as model templates. */
+export const DWELLER_BODIES = {
+  grinner: { label: 'Grinner', hint: 'Tall, boxy head, big hands.', spec: { legLen: 24, legW: 3, footL: 3, hipW: 7, torsoW: 10, torsoH: 13, torsoD: 6, neck: 1, neckW: 4, headW: 8, headH: 12, headD: 8, armLen: 28, armW: 4, handSize: 4 }, collision: [0.8, 2.9] },
+  lurker: { label: 'Lurker', hint: 'Skeletal, long claws, ribs.', spec: { legLen: 22, legW: 3, footL: 3, hipW: 6, torsoW: 9, torsoH: 14, torsoD: 5, neck: 2, neckW: 3, headW: 8, headH: 12, headD: 8, headForward: 1, armLen: 32, armW: 3, handSize: 3, hands: 'claws', clawLen: 6 }, collision: [0.7, 2.8] },
+  brute: { label: 'Brute', hint: 'Huge and wide, tiny head.', spec: { legLen: 14, legW: 6, hipW: 12, torsoW: 18, torsoH: 16, torsoD: 10, neck: 0, headW: 6, headH: 6, headD: 6, headForward: 2, armLen: 24, armW: 6, handSize: 7 }, collision: [1.4, 2.4] },
+  longneck: { label: 'Long neck', hint: 'Peeks over walls on an impossible neck.', spec: { legLen: 18, legW: 2, hipW: 6, torsoW: 8, torsoH: 11, torsoD: 4, neck: 18, neckW: 2, headW: 6, headH: 7, headD: 6, armLen: 22, armW: 2, handSize: 3, hands: 'claws' }, collision: [0.7, 2.9] },
+  doll: { label: 'Doll', hint: 'Small and uncanny.', spec: { legLen: 6, legW: 2, hipW: 4, torsoW: 6, torsoH: 6, torsoD: 3, neck: 0, headW: 7, headH: 7, headD: 7, armLen: 6, armW: 2, handSize: 2, hunch: 0 }, collision: [0.5, 1.2] },
+  wraith: { label: 'Wraith', hint: 'Floating robe, no legs.', spec: { float: true, torsoW: 10, torsoH: 16, torsoD: 6, neck: 0, headW: 8, headH: 8, headD: 8, hood: true, armLen: 13, armW: 3, handSize: 3, hands: 'claws', clawLen: 4 }, collision: [0.8, 2.2] },
+  hound: { label: 'Hound', hint: 'Long-legged four-legged hunter.', spec: { quad: true, bodyLen: 18, torsoW: 8, torsoH: 7, legLen: 14, legW: 2, neck: 3, neckW: 3, headW: 6, headH: 6, headD: 8, tail: 8, hands: 'claws' }, collision: [0.9, 1.4] },
+  spider: { label: 'Spider-limbed', hint: 'Low body, splayed limbs.', spec: { quad: true, splay: true, bodyLen: 16, torsoW: 8, torsoH: 5, legLen: 11, legW: 2, neck: 0, headW: 7, headH: 7, headD: 7, hands: 'claws' }, collision: [0.9, 0.9] },
+};
 
 export function cloneModel(m) {
   const c = clone(m);
@@ -370,4 +586,8 @@ export function modelFromGeometry(json) {
     })),
   };
   return model;
+}
+
+for (const [k, d] of Object.entries(DWELLER_BODIES)) {
+  TEMPLATES[k] = { label: d.label, hint: d.hint, horror: true, collision: d.collision, bones: () => dwellerBody(d.spec) };
 }

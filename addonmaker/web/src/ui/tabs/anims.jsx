@@ -3,8 +3,51 @@ import { Card, Btn, Row, Toggle, Select, NumInput, TextInput, Collapse, Empty } 
 import { Preview3D } from '../preview3d.jsx';
 import { ModeChips } from './overview.jsx';
 import { ecommit } from '../screens/entity.jsx';
-import { ANIM_KINDS, WHEN_PRESETS, newCustomAnim } from '../../core/anim.js';
-import { slug, uid } from '../../core/util.js';
+import { ANIM_KINDS, WHEN_PRESETS, newCustomAnim, ANIM_SLOTS, parseAnimationFile } from '../../core/anim.js';
+import { slug, uid, parseLenientJSON } from '../../core/util.js';
+import { toast, openModal, closeModal } from '../store.js';
+import { pickFile, readAsText } from '../native.js';
+
+// Preview mode that shows each slot playing.
+const SLOT_MODE = { idle: 'idle', walk: 'walk', run: 'run', attack: 'attack', hunt: 'run', stalk: 'stalk', flee: 'flee', frozen: 'frozen' };
+const SLOT_GUESS = { idle: /idle|stand|breath/, walk: /walk|move/, run: /run|sprint|chase/, attack: /attack|hit|swing|bite|slash/, hunt: /hunt|chase|charge/, stalk: /stalk|sneak|creep|crouch/, flee: /flee|escape|run_away|scared/, frozen: /frozen|freeze|still|pose/ };
+
+/** Bones an animation moves that this model doesn't have. */
+function missingBones(e, data) {
+  const have = new Set(e.model.bones.map((b) => b.name));
+  return Object.keys(data?.bones || {}).filter((b) => !have.has(b));
+}
+
+/** Picks an .animation.json, adds its animations, and optionally assigns one to a slot. */
+async function importAnimations(e, slot) {
+  const f = await pickFile('.json,application/json');
+  if (!f) return;
+  let list;
+  try { list = parseAnimationFile(parseLenientJSON(await readAsText(f))); } catch (err) { toast('Not an animation file: ' + err.message, 'error', 5000); return; }
+  if (!list.length) { toast('That file has no animations in it', 'error'); return; }
+  const assign = (a) => ecommit(e, (en) => {
+    en.anims.imported ||= [];
+    for (const x of list) if (!en.anims.imported.some((y) => y.source === x.source)) en.anims.imported.push(x);
+    const keep = en.anims.imported.find((y) => y.source === a?.source);
+    if (slot && keep) (en.anims.slots ||= {})[slot] = `imp:${keep.uid}`;
+  });
+  const done = (a) => {
+    assign(a);
+    const miss = a ? missingBones(e, a.data) : [];
+    toast(miss.length ? `Imported. ${miss.length} bone(s) aren't in this model (${miss.slice(0, 3).join(', ')}), so those parts won't move.` : `Imported ${list.length} animation${list.length === 1 ? '' : 's'}${slot && a ? ` → ${slot}` : ''}`, miss.length ? 'info' : 'ok', 5000);
+  };
+  if (!slot || list.length === 1) { done(slot ? list[0] : null); return; }
+  const guess = list.find((a) => SLOT_GUESS[slot]?.test(a.source.toLowerCase()));
+  function Pick() {
+    return (
+      <div class="stack">
+        <p class="hint">This file has {list.length} animations. Which one is “{slot}”? The others are kept so you can use them for other slots.</p>
+        {list.map((a) => <Btn kind={a === guess ? 'primary' : ''} onClick={() => { closeModal(); done(a); }}>{a.source}</Btn>)}
+      </div>
+    );
+  }
+  openModal({ title: `Pick the ${slot} animation`, body: Pick });
+}
 
 function Slider({ value, min, max, step, onChange }) {
   return (
@@ -18,18 +61,59 @@ function Slider({ value, min, max, step, onChange }) {
 export function AnimationsTab({ e }) {
   const [mode, setMode] = useState('walk');
   const [custom, setCustom] = useState(null);
+  const [imp, setImp] = useState(null);
   const a = e.anims || {};
   const set = (k, fn, key) => ecommit(e, (en) => { en.anims[k] ||= {}; fn(en.anims[k]); }, key);
   const bones = e.model.bones.map((b) => b.name);
   return (
     <div class="tab-anims">
       <div class="preview-wrap">
-        <Preview3D entity={e} mode={custom ? 'idle' : mode} custom={custom} height={280} />
-        <ModeChips mode={custom ? '' : mode} setMode={(m) => { setCustom(null); setMode(m); }} />
+        <Preview3D entity={e} mode={custom || imp ? 'still' : mode} custom={custom} imported={imp} height={280} />
+        <ModeChips mode={custom || imp ? '' : mode} setMode={(m) => { setCustom(null); setImp(null); setMode(m); }} entity={e} />
         {(a.custom || []).length > 0 && (
-          <div class="mode-chips">{a.custom.map((c) => <button type="button" class={`cchip ${custom === c.name ? 'on' : ''}`} onClick={() => setCustom(c.name)}>▶ {c.name}</button>)}</div>
+          <div class="mode-chips">{a.custom.map((c) => <button type="button" class={`cchip ${custom === c.name ? 'on' : ''}`} onClick={() => { setImp(null); setCustom(c.name); }}>▶ {c.name}</button>)}</div>
         )}
       </div>
+      <Card title="Animation slots" sub="Choose what plays for each action: the built-in motion, your own imported animation, or one you keyframe below">
+        {ANIM_SLOTS.filter(([, , , dw]) => !dw || e.horror?.enabled).map(([slot, label, desc]) => {
+          const val = a.slots?.[slot] || 'builtin';
+          const opts = [['builtin', 'Built-in motion'], ['off', 'Nothing'],
+            ...(a.imported || []).map((x) => [`imp:${x.uid}`, `⬆ ${x.name}`]),
+            ...(a.custom || []).map((x) => [`cus:${x.uid}`, `🎬 ${x.name}`])];
+          return (
+            <div class="slot-row">
+              <div class="slot-t"><strong>{label}</strong><span class="hint">{desc}</span></div>
+              <Select value={val} options={opts} onChange={(v) => ecommit(e, (en) => { (en.anims.slots ||= {})[slot] = v; })} />
+              <Btn small kind="ghost" icon="play" aria-label={`Preview ${label}`} onClick={() => { setCustom(null); setImp(null); setMode(SLOT_MODE[slot]); }} />
+              <Btn small kind="ghost" icon="upload" aria-label={`Upload ${label} animation`} onClick={() => importAnimations(e, slot)} />
+            </div>
+          );
+        })}
+        <p class="hint">Upload a Bedrock <code>.animation.json</code> (for example from Blockbench). Bone names in it must match this model's bones (Model tab). {e.horror?.enabled ? 'Hunting, stalking, fleeing and frozen play while the dweller is in that state.' : ''}</p>
+      </Card>
+
+      <Card title="Imported animations" sub="Animations from your own files" right={<Btn small icon="upload" kind="primary" onClick={() => importAnimations(e, null)}>Import</Btn>}>
+        {!(a.imported || []).length && <Empty icon="⬆" title="None yet">Import a .animation.json, then pick it in a slot above.</Empty>}
+        {(a.imported || []).map((ia) => {
+          const miss = missingBones(e, ia.data);
+          const used = Object.entries(a.slots || {}).filter(([, v]) => v === `imp:${ia.uid}`).map(([k]) => k);
+          return (
+            <div class="csnd">
+              <Btn small kind={imp === ia.uid ? 'primary' : ''} icon="play" aria-label={`Preview ${ia.name}`} onClick={() => { setCustom(null); setImp(imp === ia.uid ? null : ia.uid); }} />
+              <div class="csnd-main">
+                <TextInput value={ia.name} mono onChange={(v) => ecommit(e, (en) => { const x = en.anims.imported.find((y) => y.uid === ia.uid); if (x) x.name = slug(v, { fallback: 'anim' }); }, `ia:${ia.uid}`)} />
+                <span class="hint">{ia.source} · {Object.keys(ia.data?.bones || {}).length} bones{used.length ? ` · used for ${used.join(', ')}` : ''}</span>
+                {miss.length > 0 && <span class="hint warn-t">Not in this model: {miss.slice(0, 5).join(', ')}{miss.length > 5 ? '…' : ''}</span>}
+              </div>
+              <Btn small kind="ghost" icon="trash" aria-label={`Delete ${ia.name}`} onClick={() => ecommit(e, (en) => {
+                en.anims.imported = en.anims.imported.filter((y) => y.uid !== ia.uid);
+                for (const [k, v] of Object.entries(en.anims.slots || {})) if (v === `imp:${ia.uid}`) en.anims.slots[k] = 'builtin';
+              })} />
+            </div>
+          );
+        })}
+      </Card>
+
       <Card title="Built-in motion" sub="Generated from bone roles (Model tab) and exported as Molang">
         {Object.entries(ANIM_KINDS).map(([k, info]) => (
           <div class="anim-row">

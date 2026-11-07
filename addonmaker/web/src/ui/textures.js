@@ -61,7 +61,8 @@ export async function renderFrontSprite(entity, size = 128, { background = true 
     minY = Math.min(minY, cu.origin[1]); maxY = Math.max(maxY, cu.origin[1] + cu.size[1]);
   }
   const w = maxX - minX, h = maxY - minY;
-  const scale = Math.max(1, Math.floor((size * 0.8) / Math.max(w, h, 1)));
+  let scale = (size * 0.86) / Math.max(w, h, 1);
+  if (scale >= 2) scale = Math.floor(scale);
   const ox = Math.round((size - w * scale) / 2), oy = Math.round((size - h * scale) / 2 + size * 0.04);
   cubes.sort((a, b) => (b.origin[2]) - (a.origin[2]));
   for (const cu of cubes) {

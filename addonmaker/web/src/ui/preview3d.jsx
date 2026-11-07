@@ -93,10 +93,11 @@ function applyPose(groups, pose) {
 }
 
 export const PREVIEW_MODES = [
-  ['idle', 'Idle'], ['walk', 'Walk'], ['attack', 'Attack'], ['hunt', 'Hunt'], ['fly', 'Fly'], ['swim', 'Swim'], ['still', 'Rest pose'],
+  ['idle', 'Idle'], ['walk', 'Walk'], ['run', 'Run'], ['attack', 'Attack'], ['fly', 'Fly'], ['swim', 'Swim'], ['still', 'Rest pose'],
 ];
+export const DWELLER_MODES = [['stalk', 'Stalk'], ['run', 'Hunt'], ['flee', 'Flee'], ['frozen', 'Frozen']];
 
-export function Preview3D({ entity, mode = 'idle', custom = null, height = 260, autoRotate = true, texIdx = 0, highlight }) {
+export function Preview3D({ entity, mode = 'idle', custom = null, imported = null, height = 260, autoRotate = true, texIdx = 0, highlight }) {
   const host = useRef(null);
   const ctx = useRef(null);
   const [failed, setFailed] = useState(false);
@@ -178,24 +179,20 @@ export function Preview3D({ entity, mode = 'idle', custom = null, height = 260, 
       camera.position.set(tx + Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * orbit.dist, ty + Math.sin(orbit.pitch) * orbit.dist, tz + Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * orbit.dist);
       camera.lookAt(tx, ty, tz);
       if (c.model) {
-        const m = c.mode;
-        const walking = m === 'walk' || m === 'hunt';
-        if (walking) c.dist += dt * (m === 'hunt' ? 16 : 9);
+        const m = c.mode === 'hunt' ? 'run' : c.mode;
+        const moving = { walk: 0.65, run: 0.95, stalk: 0.35, flee: 0.95 }[m] || 0;
+        if (moving) c.dist += dt * (m === 'run' || m === 'flee' ? 16 : m === 'stalk' ? 5 : 9);
         const attackCycle = (t % 1.4) / 0.35;
         const st = {
-          time: t, dist: c.dist, speed: walking ? (m === 'hunt' ? 0.95 : 0.65) : 0,
+          time: t, dist: c.dist, speed: moving,
           attack: m === 'attack' && attackCycle < 1 ? attackCycle : 0,
-          tx: Math.sin(t * 0.9) * 12, ty: Math.sin(t * 0.6) * 35, hunting: m === 'hunt',
-          air: m === 'fly', water: m === 'swim',
+          tx: Math.sin(t * 0.9) * 12, ty: Math.sin(t * 0.6) * 35,
+          running: m === 'run', hunting: m === 'run', stalking: m === 'stalk', fleeing: m === 'flee', frozen: m === 'frozen',
+          air: m === 'fly' || m === 'idle', water: m === 'swim' || m === 'idle',
         };
         if (m === 'still') st.only = new Set();
-        else if (c.custom) { st.only = new Set(['idle']); st.custom = c.custom; }
-        else {
-          const ambient = ['idle', 'look', 'twitch', 'hunch', 'float'];
-          const kinds = { idle: [...ambient, 'fly', 'swim'], walk: ['walk', ...ambient], attack: ['attack', ...ambient], hunt: ['walk', 'reach', ...ambient], fly: ['fly', ...ambient], swim: ['swim', 'idle'] }[m] || ['idle'];
-          st.only = new Set(kinds);
-          if (m === 'idle') { st.air = true; st.water = true; }
-        }
+        if (c.custom) st.custom = c.custom;
+        if (c.imported) st.imported = c.imported;
         applyPose(c.model.groups, evalPose(c.entity, st));
       }
       renderer.render(scene, camera);
@@ -231,7 +228,7 @@ export function Preview3D({ entity, mode = 'idle', custom = null, height = 260, 
   useEffect(() => {
     const c = ctx.current;
     if (!c) return;
-    c.entity = entity; c.mode = mode; c.custom = custom; c.autoRotate = autoRotate;
+    c.entity = entity; c.mode = mode; c.custom = custom; c.imported = imported; c.autoRotate = autoRotate;
   });
 
   useEffect(() => {

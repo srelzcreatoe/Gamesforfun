@@ -12,6 +12,7 @@
     "test:ui": "node test/ui-smoke.mjs"
   },
   "dependencies": {
+    "@fontsource/silkscreen": "^5.3.0",
     "preact": "10.26.9",
     "three": "0.170.0"
   },

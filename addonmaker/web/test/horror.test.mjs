@@ -7,7 +7,9 @@ import catalog from '../data/catalog.json' with { type: 'json' };
 import { newProject } from '../src/core/model.js';
 import { PRESETS, entityFromPreset } from '../src/core/presets.js';
 import { buildPacks } from '../src/core/packgen.js';
-import { ARCHETYPES, SEEN_REACTIONS, HORROR_STATES, hProp } from '../src/core/horror.js';
+import { ARCHETYPES, SEEN_REACTIONS, HORROR_STATES, hProp, DWELLER_TYPES } from '../src/core/horror.js';
+import fs from 'node:fs';
+import path from 'node:path';
 import { validateProject } from '../src/core/validate.js';
 import { isObj } from '../src/core/util.js';
 
@@ -36,7 +38,7 @@ function checkEntity(ent, ns, label) {
       if (ps) assert.ok(PARTICLES.has(ps[1]), `${label}: particle ${ps[1]}`);
       const snd = c.match(/^playsound (\S+)/);
       if (snd) assert.ok(vanilla.sounds.includes(snd[1]), `${label}: sound ${snd[1]} not in vanilla`);
-      assert.match(c, /^(playsound|camerashake add|effect|title|fog|particle) /, `${label}: unexpected command ${c}`);
+      assert.match(c, /^(playsound|camerashake add|effect|title|fog|particle|scoreboard players set @p\[r=\d+\] ms[a-z0-9]+ \d+$) ?/, `${label}: unexpected command ${c}`);
     }
   });
   // Every event fired by a component exists on the entity.
@@ -58,7 +60,7 @@ function checkEntity(ent, ns, label) {
 }
 
 test('every horror preset compiles to a consistent state machine', () => {
-  assert.equal(HORROR.length, 6);
+  assert.ok(HORROR.length >= 6);
   const p = newProject('Night Terrors');
   for (const pr of HORROR) p.entities.push(entityFromPreset(p, pr.id, pr.id));
   const issues = validateProject(p, catalog, vanilla).filter((i) => i.level !== 'info');
@@ -99,7 +101,7 @@ test('every seen-reaction × archetype combination stays consistent', () => {
 
 test('freeze reaction: frozen while watched, hunts while unwatched', () => {
   const p = newProject('Statues');
-  const e = entityFromPreset(p, 'h_statue', 'still');
+  const e = entityFromPreset(p, 'still_one', 'still');
   p.entities.push(e);
   const ent = JSON.parse(buildPacks(p).bp.files.find((f) => f.path === 'entities/still.json').data)['minecraft:entity'];
   const la = ent.components['minecraft:looked_at'];
@@ -126,4 +128,71 @@ test('user events and groups survive horror compilation', () => {
   assert.deepEqual(sp.sequence[0].add.component_groups, ['mix:glow']);
   assert.ok(sp.sequence[1].add.component_groups.includes('mix:horror_dormant'));
   assert.ok(ent.component_groups['mix:glow']);
+});
+
+const META = process.env.BEDROCK_META || '/home/user/mojang/bedrock-samples/metadata';
+const cmdFile = path.join(META, 'command_modules/mojang-commands.json');
+
+test('appearance director: functions, tick.json and valid commands', () => {
+  const p = newProject('Director Test');
+  const types = DWELLER_TYPES.map((t) => t[0]);
+  HORROR.slice(0, 6).forEach((pr, i) => {
+    const e = entityFromPreset(p, pr.id, `d${i}`);
+    e.horror.type = types[i % 3];
+    e.horror.time = i % 2 ? 'always' : 'night';
+    e.horror.appear = { ...e.horror.appear, director: true, firstAfter: 2 + i, every: [5, 9], chance: 60 };
+    p.entities.push(e);
+  });
+  const { bp, rp } = buildPacks(p);
+  const tick = JSON.parse(bp.files.find((f) => f.path === 'functions/tick.json').data);
+  assert.deepEqual(tick.values, [`${p.namespace}/dwellers/tick`]);
+  const fnFiles = bp.files.filter((f) => f.path.endsWith('.mcfunction'));
+  const fnNames = new Set(fnFiles.map((f) => f.path.replace(/^functions\//, '').replace(/\.mcfunction$/, '')));
+  assert.ok(fnNames.has(tick.values[0]));
+  const known = fs.existsSync(cmdFile) ? new Set(JSON.parse(fs.readFileSync(cmdFile, 'utf8')).commands.map((c) => c.name)) : null;
+  for (const f of fnFiles) {
+    for (const line of f.data.split('\n').filter((l) => l && !l.startsWith('#'))) {
+      const name = line.split(' ')[0];
+      if (known) assert.ok(known.has(name), `${f.path}: unknown command ${name}`);
+      for (const fn of line.matchAll(/function (\S+)/g)) assert.ok(fnNames.has(fn[1]), `${f.path}: calls missing function ${fn[1]}`);
+      for (const obj of line.matchAll(/(?:objectives add|players \w+ \S+) (ms[_a-z0-9]+)/g)) assert.ok(obj[1].length <= 16, `objective ${obj[1]} too long`);
+      const sm = line.match(/summon (\S+) \^ \^ \^-\d+ ~ ~ (\S+)$/);
+      if (line.includes('summon')) {
+        assert.ok(sm, `${f.path}: summon syntax ${line}`);
+        const ent = JSON.parse(bp.files.find((x) => x.path === `entities/${sm[1].split(':')[1]}.json`).data)['minecraft:entity'];
+        assert.ok(ent.events[sm[2]], `summon event ${sm[2]} missing`);
+        assert.ok(ent.component_groups[`${p.namespace}:horror_arrive`]['minecraft:teleport'], 'arrive teleports');
+      }
+    }
+  }
+  // Every dweller is hidden while arriving and has habitat-checked settling.
+  for (const e of p.entities) {
+    const rc = JSON.parse(rp.files.find((f) => f.path === `render_controllers/${e.name}.render_controllers.json`).data);
+    const ctrl = Object.values(rc.render_controllers)[0];
+    assert.match(ctrl.part_visibility[0]['*'], /arriving/);
+    const ent = JSON.parse(bp.files.find((x) => x.path === `entities/${e.name}.json`).data)['minecraft:entity'];
+    const settle = ent.events[`${p.namespace}:horror_settle`].sequence;
+    if (!(e.horror.type === 'both' && e.horror.time === 'always')) assert.equal(settle.length, 2, `${e.name} settle checks habitat`);
+    const cb = ent.components['minecraft:collision_box'];
+    if (e.horror.type !== 'surface') assert.ok(cb.height <= 1.9 && cb.width <= 0.9, `${e.name} hitbox fits caves`);
+  }
+});
+
+test('natural spawning follows dweller type', () => {
+  const p = newProject('Spawn Test');
+  for (const [type] of DWELLER_TYPES) {
+    const e = entityFromPreset(p, 'h_stalker', `s_${type}`);
+    e.horror.type = type;
+    e.horror.appear.natural = true;
+    p.entities.push(e);
+  }
+  const off = entityFromPreset(p, 'h_stalker', 's_off');
+  off.horror.appear.natural = false;
+  p.entities.push(off);
+  const { bp } = buildPacks(p);
+  const rules = (n) => JSON.parse(bp.files.find((f) => f.path === `spawn_rules/${n}.json`).data)['minecraft:spawn_rules'].conditions;
+  assert.ok(rules('s_underground')[0]['minecraft:spawns_underground']);
+  assert.ok(rules('s_surface')[0]['minecraft:spawns_on_surface']);
+  assert.equal(rules('s_both').length, 2);
+  assert.ok(!bp.files.some((f) => f.path === 'spawn_rules/s_off.json'));
 });

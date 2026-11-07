@@ -2,7 +2,7 @@
 import { uid, uuid, slug, clone } from './util.js';
 import { makeModel, TEMPLATES } from './geo.js';
 import { defaultAnims } from './anim.js';
-import { defaultHorror } from './horror.js';
+import { defaultHorror, migrateHorror } from './horror.js';
 
 export const PROJECT_VERSION = 1;
 
@@ -114,9 +114,7 @@ export function migrateProject(p) {
     for (const g of e.groups) g.uid ||= uid();
     for (const ev of e.events) ev.uid ||= uid();
     e.anims.custom ||= [];
-    const dh = defaultHorror();
-    e.horror = { ...dh, ...e.horror };
-    for (const k of ['senses', 'stalk', 'hunt', 'scares', 'traits', 'weakness', 'habitat']) e.horror[k] = { ...dh[k], ...(e.horror[k] || {}) };
+    e.horror = migrateHorror(e.horror || defaultHorror());
     e.sounds.events ||= {};
   }
   return p;
