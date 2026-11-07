@@ -9,3 +9,4 @@ captures/
 out/
 assets/worlds/
 CubicWorld_Source.zip
+node_modules/

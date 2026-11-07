@@ -1,0 +1,22 @@
+{
+  "name": "mobsmith-web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Mobsmith add-on studio UI (bundled into the Android app assets)",
+  "scripts": {
+    "catalog": "node tools/gen-catalog.mjs",
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch",
+    "test": "node --test test/*.test.mjs",
+    "test:ui": "node test/ui-smoke.mjs"
+  },
+  "dependencies": {
+    "preact": "10.26.9",
+    "three": "0.170.0"
+  },
+  "devDependencies": {
+    "ajv": "8.17.1",
+    "esbuild": "0.25.5"
+  }
+}

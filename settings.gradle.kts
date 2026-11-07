@@ -14,4 +14,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "CubicWorld"
-include("core", "android", "desktop")
+include("core", "android", "desktop", "addonmaker")
