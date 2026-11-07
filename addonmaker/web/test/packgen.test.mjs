@@ -144,3 +144,15 @@ test('schema check catches wrong value types (negative control)', { skip: !haveS
     assert.ok(trade(JSON.parse(f.data).tiers), ajv.errorsText(trade.errors));
   }
 });
+
+test('custom sounds export into the resource pack', () => {
+  const p = fullProject();
+  p.sounds = [{ uid: 's1', name: 'scream', ext: 'ogg', category: 'hostile', volume: 1, pitch: 0.8 }];
+  p.entities[0].sounds.events.ambient = { sound: `${p.namespace}.scream`, volume: 1, pitch: 1 };
+  const issues = validateProject(p, catalog, vanilla).filter((i) => i.level !== 'info');
+  assert.deepEqual(issues, []);
+  const { rp } = buildPacks(p, { customSounds: [{ uid: 's1', bytes: new Uint8Array([79, 103, 103, 83]) }] });
+  const defs = JSON.parse(rp.files.find((f) => f.path === 'sounds/sound_definitions.json').data);
+  assert.deepEqual(defs.sound_definitions[`${p.namespace}.scream`].sounds[0], { name: `sounds/${p.namespace}/scream`, volume: 1, load_on_low_memory: true, pitch: 0.8 });
+  assert.ok(rp.files.some((f) => f.path === `sounds/${p.namespace}/scream.ogg`));
+});

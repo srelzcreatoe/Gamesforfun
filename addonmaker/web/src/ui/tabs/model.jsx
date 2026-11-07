@@ -12,7 +12,7 @@ import { geoId } from '../../core/packgen.js';
 
 const ROLES = [['none', '—'], ['head', 'Head (looks at target)'], ['body', 'Body'], ['armR', 'Right arm'], ['armL', 'Left arm'], ['legR', 'Right leg'], ['legL', 'Left leg'],
   ['legFR', 'Front-right leg'], ['legFL', 'Front-left leg'], ['legBR', 'Back-right leg'], ['legBL', 'Back-left leg'], ['wingL', 'Left wing'], ['wingR', 'Right wing'], ['tail', 'Tail'], ['finL', 'Left fin'], ['finR', 'Right fin'], ['item', 'Held item anchor']];
-const PATTERNS = [['none', 'Plain'], ['spots', 'Spots'], ['stripes', 'Stripes'], ['gradient', 'Gradient']];
+const PATTERNS = [['none', 'Plain'], ['spots', 'Spots'], ['stripes', 'Stripes'], ['gradient', 'Gradient'], ['cracks', 'Cracks'], ['grime', 'Grime']];
 
 function V3({ value, onChange, step }) {
   return (
@@ -78,6 +78,13 @@ export function ModelTab({ e, p }) {
         <Row label="Auto-paint noise"><input type="range" min="0" max="0.3" step="0.01" value={e.autoPaint?.noise ?? 0.07} onInput={(ev) => { const v = Number(ev.currentTarget.value); ecommit(e, (en) => { en.autoPaint = { ...(en.autoPaint || {}), noise: v }; }, 'm:noise'); }} /></Row>
         <Toggle label="Outlines on faces" value={e.autoPaint?.outline !== false} onChange={(v) => ecommit(e, (en) => { en.autoPaint = { ...(en.autoPaint || {}), outline: v }; })} />
         <Toggle label="Draw eyes on the head" value={e.autoPaint?.eyes !== false} onChange={(v) => ecommit(e, (en) => { en.autoPaint = { ...(en.autoPaint || {}), eyes: v }; })} />
+        {e.autoPaint?.eyes !== false && <>
+          <Row label="Eye style"><Select value={e.autoPaint?.eyeStyle || 'normal'} options={[['normal', 'Friendly'], ['glow', 'Glowing'], ['hollow', 'Hollow sockets']]} onChange={(v) => ecommit(e, (en) => { en.autoPaint = { ...(en.autoPaint || {}), eyeStyle: v }; })} /></Row>
+          {(e.autoPaint?.eyeStyle || 'normal') !== 'normal' && <>
+            <Row label="Eye colour"><input type="color" value={e.autoPaint?.eyeColor || '#ff2a2a'} aria-label="Eye colour" onInput={(ev) => { const v = ev.currentTarget.value; ecommit(e, (en) => { en.autoPaint = { ...(en.autoPaint || {}), eyeColor: v }; }, 'm:eyec'); }} /></Row>
+            <Row label="Mouth"><Select value={e.autoPaint?.mouth || 'line'} options={[['none', 'None'], ['line', 'Thin line'], ['grin', 'Toothy grin']]} onChange={(v) => ecommit(e, (en) => { en.autoPaint = { ...(en.autoPaint || {}), mouth: v }; })} /></Row>
+          </>}
+        </>}
         {painted && <p class="hint">You painted a custom texture, so bone colours below only matter if you go back to auto-paint (Texture tab).</p>}
       </Card>
       <Card title={`Bones (${m.bones.length})`} sub="Bones are the moving parts. Cubes are the boxes inside them (units: pixels, 16 = one block).">

@@ -26,7 +26,8 @@ await new Promise((r) => server.listen(0, r));
 const url = `http://localhost:${server.address().port}/index.html`;
 
 const TABS = ['Overview', 'Dweller', 'Behavior', 'Groups', 'Events', 'Properties', 'Model', 'Texture', 'Animations', 'Sounds', 'Spawning', 'Loot & gear', 'Trades', 'Files'];
-const PRESETS = ['Blank mob', 'Farm animal', 'Tameable pet', 'Melee monster', 'Ranged shooter', 'Rideable mount', 'Flying critter', 'Water creature', 'Village dweller', 'Village guard', 'Boss', 'Projectile'];
+const PRESETS = ['Blank mob', 'Farm animal', 'Tameable pet', 'Melee monster', 'Ranged shooter', 'Rideable mount', 'Flying critter', 'Water creature', 'Village dweller', 'Village guard', 'Boss', 'Projectile',
+  'Cave Stalker', 'The Still One', 'Ceiling Crawler', 'Hollow Shade', 'Mimic', 'Screamer'];
 
 const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await (await browser.newContext({ viewport: { width: 412, height: 900 }, acceptDownloads: true, hasTouch: true })).newPage();
@@ -49,6 +50,13 @@ try {
     for (const t of TABS) {
       await page.locator('.tab', { hasText: t }).first().click();
       await page.waitForTimeout(120);
+      if (t === 'Dweller') {
+        // Visit both dweller modes.
+        await page.locator('.seg button', { hasText: 'Horror dweller' }).click();
+        await page.waitForTimeout(150);
+        await page.locator('.seg button', { hasText: 'Village dweller' }).click();
+        await page.waitForTimeout(100);
+      }
     }
     await page.locator('.top .btn[aria-label="Back"]').click();
     await page.waitForTimeout(100);

@@ -4,6 +4,7 @@ import { baseEntity, newGroup, newEvent, newProperty } from './model.js';
 import { uid } from './util.js';
 import { makeModel } from './geo.js';
 import { defaultAnims } from './anim.js';
+import { defaultHorror, ARCHETYPES, habitatSpawn } from './horror.js';
 
 const fam = (...f) => ({ family: f });
 const isFam = (value, subject = 'other') => ({ test: 'is_family', subject, value });
@@ -471,6 +472,115 @@ export const PRESETS = [
     },
   },
 ];
+
+function horrorDweller(e, { archetype, template, colors, paint, health, speed, snd, pitch, where, rarity, egg, loot, tweak, anims }) {
+  setModel(e, template, colors);
+  essentials(e, { health, speed });
+  for (const id of ['minecraft:behavior.random_stroll', 'minecraft:behavior.look_at_player', 'minecraft:behavior.random_look_around']) delete e.components[id];
+  e.components['minecraft:type_family'] = fam(e.name, 'monster', 'horror', 'mob');
+  const col = { gaunt: [0.7, 2.9], crawler: [1.1, 0.9], shade: [0.8, 2.2], humanoid: [0.6, 1.9] }[template];
+  e.components['minecraft:collision_box'] = { width: col[0], height: col[1] };
+  e.components['minecraft:despawn'] = { despawn_from_distance: { min_distance: 48, max_distance: 128 } };
+  e.components['minecraft:experience_reward'] = { on_death: 'query.last_hit_by_player ? 15 : 0' };
+  e.components['minecraft:knockback_resistance'] = { value: 0.6 };
+  e.horror = defaultHorror();
+  e.horror.enabled = true;
+  e.horror.archetype = archetype;
+  ARCHETYPES[archetype].apply(e.horror);
+  e.horror.habitat = { where, rarity };
+  if (tweak) tweak(e.horror);
+  e.dwellerMode = 'horror';
+  e.autoPaint = { noise: 0.1, outline: true, eyes: true, ...paint };
+  if (anims) Object.assign(e.anims, anims(e.anims));
+  e.spawn = { enabled: true, population: 'monster', conditions: habitatSpawn(e.horror.habitat) };
+  e.spawnCategory = 'monster';
+  e.sounds = sounds(snd, pitch);
+  e.egg = { enabled: true, ...egg };
+  e.loot = { enabled: true, pools: loot };
+}
+
+PRESETS.push(
+  {
+    id: 'h_stalker', group: 'horror', label: 'Cave Stalker', icon: '👁', blurb: 'Lurks at the edge of your torchlight in deep caves. Look at it and it bolts. Get too close and it hunts you.',
+    build(e) {
+      horrorDweller(e, {
+        archetype: 'stalker', template: 'gaunt', health: 40, speed: 0.32, where: 'caves', rarity: 'rare',
+        colors: { body: { color: '#cfc8bd', pattern: 'cracks', color2: '#6d6258' }, head: '#ddd6cb' },
+        paint: { eyeStyle: 'hollow', eyeColor: '#f2eee4', mouth: 'grin' },
+        snd: { ambient: 'mob.warden.idle', hurt: 'mob.endermen.hit', death: 'mob.ghast.death', step: 'mob.warden.step' }, pitch: [0.5, 0.7],
+        egg: { base: '#cfc8bd', overlay: '#121212' },
+        loot: [lootPool('minecraft:bone', 1, 3), { rolls: 1, conditions: [{ condition: 'killed_by_player' }, { condition: 'random_chance_with_looting', chance: 0.25, looting_multiplier: 0.05 }], entries: [{ type: 'item', name: 'minecraft:ender_pearl', weight: 1 }] }],
+      });
+    },
+  },
+  {
+    id: 'h_statue', group: 'horror', label: 'The Still One', icon: '🗿', blurb: 'A stone figure in dark forests. It cannot move while you look at it. Don\'t blink.',
+    build(e) {
+      horrorDweller(e, {
+        archetype: 'statue', template: 'gaunt', health: 60, speed: 0.35, where: 'forest', rarity: 'uncommon',
+        colors: { body: { color: '#7c7f84', pattern: 'cracks', color2: '#3e4044' }, head: '#8a8d92', armR: '#74777c', armL: '#74777c', legR: '#6b6e73', legL: '#6b6e73' },
+        paint: { eyeStyle: 'hollow', eyeColor: '#ff3b3b', mouth: 'none', noise: 0.14 },
+        anims: (a) => ({ twitch: { ...a.twitch, on: false }, idle: { ...a.idle, on: false }, walk: { ...a.walk, amp: 30 } }),
+        snd: { ambient: 'mob.creaking.ambient', hurt: 'mob.creaking.sway', death: 'mob.creaking.death', step: 'mob.creaking.step' }, pitch: [0.6, 0.8],
+        egg: { base: '#7c7f84', overlay: '#ff3b3b' },
+        loot: [lootPool('minecraft:cobblestone', 2, 5)],
+      });
+    },
+  },
+  {
+    id: 'h_crawler', group: 'horror', label: 'Ceiling Crawler', icon: '🕷', blurb: 'Climbs walls and ceilings in caves and lunges at you the moment you look at it.',
+    build(e) {
+      horrorDweller(e, {
+        archetype: 'crawler', template: 'crawler', health: 24, speed: 0.38, where: 'caves', rarity: 'uncommon',
+        colors: { body: { color: '#3a3438', pattern: 'grime', color2: '#121014' }, head: '#4a4248' },
+        paint: { eyeStyle: 'glow', eyeColor: '#ff2a2a', mouth: 'grin' },
+        snd: { ambient: 'mob.spider.say', hurt: 'mob.spider.say', death: 'mob.spider.death', step: 'mob.spider.step' }, pitch: [0.6, 0.8],
+        egg: { base: '#2e292d', overlay: '#ff2a2a' },
+        loot: [lootPool('minecraft:string', 1, 3), lootPool('minecraft:spider_eye', 0, 1)],
+      });
+    },
+  },
+  {
+    id: 'h_shade', group: 'horror', label: 'Hollow Shade', icon: '🌫', blurb: 'Drifts through the dark, smothers you in fog and darkness, and vanishes when you look straight at it.',
+    build(e) {
+      horrorDweller(e, {
+        archetype: 'shade', template: 'shade', health: 30, speed: 0.28, where: 'anywhere', rarity: 'rare',
+        colors: {},
+        paint: { eyeStyle: 'glow', eyeColor: '#b48cff', mouth: 'none' },
+        snd: { ambient: 'mob.vex.ambient', hurt: 'mob.vex.hurt', death: 'mob.vex.death' }, pitch: [0.4, 0.6],
+        egg: { base: '#17151c', overlay: '#b48cff' },
+        loot: [lootPool('minecraft:phantom_membrane', 0, 2)],
+      });
+    },
+  },
+  {
+    id: 'h_mimic', group: 'horror', label: 'Mimic', icon: '🎭', blurb: 'Looks and sounds like a harmless villager at night, until you walk up to it.',
+    build(e) {
+      horrorDweller(e, {
+        archetype: 'mimic', template: 'humanoid', health: 30, speed: 0.3, where: 'night', rarity: 'uncommon',
+        colors: { body: '#7a5a3a', head: '#d9a57c', armR: '#7a5a3a', armL: '#7a5a3a', legR: '#5e4630', legL: '#5e4630' },
+        paint: { eyeStyle: 'normal' },
+        anims: (a) => ({ twitch: { on: true, amp: 0.35 }, reach: { on: true, amp: 1 } }),
+        snd: { ambient: 'mob.villager.idle', hurt: 'mob.villager.hit', death: 'mob.warden.death' }, pitch: [0.8, 1.0],
+        egg: { base: '#7a5a3a', overlay: '#8b0000' },
+        loot: [lootPool('minecraft:emerald', 0, 2), lootPool('minecraft:rotten_flesh', 1, 2)],
+      });
+    },
+  },
+  {
+    id: 'h_screamer', group: 'horror', label: 'Screamer', icon: '😱', blurb: 'A pale face far away in the night. Meet its gaze and it shrieks and sprints at you.',
+    build(e) {
+      horrorDweller(e, {
+        archetype: 'screamer', template: 'gaunt', health: 30, speed: 0.36, where: 'night', rarity: 'rare',
+        colors: { body: { color: '#1c1c22', pattern: 'grime', color2: '#000000' }, head: '#e9e4da', armR: '#1c1c22', armL: '#1c1c22', legR: '#16161b', legL: '#16161b' },
+        paint: { eyeStyle: 'hollow', eyeColor: '#ffffff', mouth: 'grin' },
+        snd: { ambient: 'mob.ghast.moan', hurt: 'mob.ghast.scream', death: 'mob.ghast.death' }, pitch: [0.5, 0.7],
+        egg: { base: '#1c1c22', overlay: '#e9e4da' },
+        loot: [lootPool('minecraft:bone', 1, 2)],
+      });
+    },
+  },
+);
 
 export function entityFromPreset(project, presetId, name, displayName) {
   const p = PRESETS.find((x) => x.id === presetId) || PRESETS[0];

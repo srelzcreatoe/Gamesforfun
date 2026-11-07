@@ -2,6 +2,7 @@
 import { uid, uuid, slug, clone } from './util.js';
 import { makeModel, TEMPLATES } from './geo.js';
 import { defaultAnims } from './anim.js';
+import { defaultHorror } from './horror.js';
 
 export const PROJECT_VERSION = 1;
 
@@ -25,6 +26,7 @@ export function newProject(name = 'My Add-on') {
     icon: null,
     uuids: { bp: uuid(), bpModule: uuid(), rp: uuid(), rpModule: uuid() },
     entities: [],
+    sounds: [],
     created: Date.now(),
     updated: Date.now(),
   };
@@ -69,6 +71,8 @@ export function baseEntity(name = 'new_mob', template = 'humanoid') {
     gear: { enabled: false, mainhand: '', offhand: '', head: '', chest: '', legs: '', feet: '', dropChance: 0.085 },
     trades: { enabled: false, tiers: [] },
     schedule: { enabled: false, activities: [], slots: [] },
+    horror: defaultHorror(),
+    dwellerMode: 'village',
   };
 }
 
@@ -102,6 +106,7 @@ export function migrateProject(p) {
   p.uuids ??= { bp: uuid(), bpModule: uuid(), rp: uuid(), rpModule: uuid() };
   p.target ??= '1.26.0';
   p.version ??= [1, 0, 0];
+  p.sounds ??= [];
   for (const e of p.entities) {
     const d = baseEntity(e.name || 'mob', e.model?.template || 'humanoid');
     for (const k of Object.keys(d)) if (e[k] === undefined) e[k] = d[k];
@@ -109,6 +114,9 @@ export function migrateProject(p) {
     for (const g of e.groups) g.uid ||= uid();
     for (const ev of e.events) ev.uid ||= uid();
     e.anims.custom ||= [];
+    const dh = defaultHorror();
+    e.horror = { ...dh, ...e.horror };
+    for (const k of ['senses', 'stalk', 'hunt', 'scares', 'traits', 'weakness', 'habitat']) e.horror[k] = { ...dh[k], ...(e.horror[k] || {}) };
     e.sounds.events ||= {};
   }
   return p;

@@ -93,7 +93,7 @@ function applyPose(groups, pose) {
 }
 
 export const PREVIEW_MODES = [
-  ['idle', 'Idle'], ['walk', 'Walk'], ['attack', 'Attack'], ['fly', 'Fly'], ['swim', 'Swim'], ['still', 'Rest pose'],
+  ['idle', 'Idle'], ['walk', 'Walk'], ['attack', 'Attack'], ['hunt', 'Hunt'], ['fly', 'Fly'], ['swim', 'Swim'], ['still', 'Rest pose'],
 ];
 
 export function Preview3D({ entity, mode = 'idle', custom = null, height = 260, autoRotate = true, texIdx = 0, highlight }) {
@@ -179,19 +179,20 @@ export function Preview3D({ entity, mode = 'idle', custom = null, height = 260, 
       camera.lookAt(tx, ty, tz);
       if (c.model) {
         const m = c.mode;
-        const walking = m === 'walk';
-        if (walking) c.dist += dt * 9;
+        const walking = m === 'walk' || m === 'hunt';
+        if (walking) c.dist += dt * (m === 'hunt' ? 16 : 9);
         const attackCycle = (t % 1.4) / 0.35;
         const st = {
-          time: t, dist: c.dist, speed: walking ? 0.65 : 0,
+          time: t, dist: c.dist, speed: walking ? (m === 'hunt' ? 0.95 : 0.65) : 0,
           attack: m === 'attack' && attackCycle < 1 ? attackCycle : 0,
-          tx: Math.sin(t * 0.9) * 12, ty: Math.sin(t * 0.6) * 35,
+          tx: Math.sin(t * 0.9) * 12, ty: Math.sin(t * 0.6) * 35, hunting: m === 'hunt',
           air: m === 'fly', water: m === 'swim',
         };
         if (m === 'still') st.only = new Set();
         else if (c.custom) { st.only = new Set(['idle']); st.custom = c.custom; }
         else {
-          const kinds = { idle: ['idle', 'look', 'fly', 'swim'], walk: ['walk', 'idle', 'look'], attack: ['attack', 'idle', 'look'], fly: ['fly', 'idle', 'look'], swim: ['swim', 'idle'] }[m] || ['idle'];
+          const ambient = ['idle', 'look', 'twitch', 'hunch', 'float'];
+          const kinds = { idle: [...ambient, 'fly', 'swim'], walk: ['walk', ...ambient], attack: ['attack', ...ambient], hunt: ['walk', 'reach', ...ambient], fly: ['fly', ...ambient], swim: ['swim', 'idle'] }[m] || ['idle'];
           st.only = new Set(kinds);
           if (m === 'idle') { st.air = true; st.water = true; }
         }

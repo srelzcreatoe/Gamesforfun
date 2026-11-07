@@ -29,6 +29,11 @@ export function OverviewTab({ e, p }) {
         <ModeChips mode={mode} setMode={setMode} />
       </div>
 
+      {e.horror?.enabled && (
+        <button type="button" class="horror-banner" onClick={() => setTab('dweller')}>
+          <span>👁</span><span><strong>Horror dweller: {e.horror.archetype}</strong><span class="hint">Reacts when seen: {e.horror.senses.seen} · hunts at {e.horror.hunt.speed}× speed · tap to tune</span></span>
+        </button>
+      )}
       <Card title="Identity">
         <Row label="Display name"><TextInput value={e.displayName} onChange={(v) => ecommit(e, (en) => { en.displayName = v; }, 'ov:dn')} /></Row>
         <Row label="Id" hint={`${p.namespace}:${e.name}`}>

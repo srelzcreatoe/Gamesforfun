@@ -7,6 +7,7 @@ import { catalog, DESC, label, starterFor } from '../meta.js';
 import { activityGroup, activityEvent } from '../../core/packgen.js';
 import { clone, slug, uid, ticksToClock, clockToTicks } from '../../core/util.js';
 import { setTab, toast } from '../store.js';
+import { HorrorPanel } from './horror.jsx';
 
 export const ROLES = [
   ['', 'Not a dweller', 'Ignores villages.', '🚫'],
@@ -182,6 +183,19 @@ function applySchedulePreset(sc, key) {
 }
 
 export function DwellerTab({ e, p }) {
+  const mode = e.dwellerMode === 'horror' ? 'horror' : 'village';
+  return (
+    <div class="tab-dweller">
+      <div class="seg" role="tablist" aria-label="Dweller type">
+        <button type="button" role="tab" aria-selected={mode === 'village'} class={mode === 'village' ? 'on' : ''} onClick={() => ecommit(e, (en) => { en.dwellerMode = 'village'; })}>🏘 Village dweller</button>
+        <button type="button" role="tab" aria-selected={mode === 'horror'} class={`horror ${mode === 'horror' ? 'on' : ''}`} onClick={() => ecommit(e, (en) => { en.dwellerMode = 'horror'; })}>👁 Horror dweller{e.horror?.enabled ? ' ●' : ''}</button>
+      </div>
+      {mode === 'horror' ? <HorrorPanel e={e} p={p} /> : <VillagePanel e={e} p={p} />}
+    </div>
+  );
+}
+
+function VillagePanel({ e, p }) {
   const d = e.components['minecraft:dweller'];
   const role = d?.dweller_role || '';
   const kit = ROLE_KIT[role];
@@ -211,7 +225,7 @@ export function DwellerTab({ e, p }) {
     toast(added.length ? `Added: ${added.join(', ')}` : 'Everything for this role is already there', 'ok', 5000);
   };
   return (
-    <div class="tab-dweller">
+    <div class="tab-village">
       <Card title="Village dweller settings" icon="🏘" sub="How this mob relates to villages">
         <div class="roles">
           {ROLES.map(([k, l, desc, ic]) => (

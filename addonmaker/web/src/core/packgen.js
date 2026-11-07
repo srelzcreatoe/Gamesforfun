@@ -5,6 +5,7 @@ import { buildAnimations } from './anim.js';
 import { Raster } from './png.js';
 import { makeZip } from './zip.js';
 import { TARGETS } from './model.js';
+import { compileHorror } from './horror.js';
 
 const J = (o) => JSON.stringify(o, null, 2) + '\n';
 const ver3 = (v) => (Array.isArray(v) && v.length === 3 ? v.map((x) => Math.max(0, parseInt(x, 10) || 0)) : [1, 0, 0]);
@@ -93,7 +94,7 @@ function gearTableJSON(g) {
 const GEAR_SLOT = { mainhand: 'slot.weapon.mainhand', offhand: 'slot.weapon.offhand', head: 'slot.armor.head', chest: 'slot.armor.chest', legs: 'slot.armor.legs', feet: 'slot.armor.feet' };
 
 /** Behavior-pack entity definition, including everything Mobsmith wires automatically. */
-export function behaviorEntityJSON(project, e, notes = []) {
+export function behaviorEntityJSON(project, e, notes = [], extraRp = []) {
   const id = `${project.namespace}:${e.name}`;
   const components = clone(e.components);
   const groups = {};
@@ -155,6 +156,12 @@ export function behaviorEntityJSON(project, e, notes = []) {
     notes.push('Ambient sound → minecraft:ambient_sound_interval');
   }
 
+  let props = propertiesJSON(e) || {};
+  if (e.horror?.enabled) {
+    const r = compileHorror({ ns: project.namespace, name: e.name, h: e.horror, components, groups, events, properties: props, notes });
+    extraRp.push(...r.files);
+  }
+
   const description = {
     identifier: id,
     is_spawnable: !!e.spawnable,
@@ -163,8 +170,7 @@ export function behaviorEntityJSON(project, e, notes = []) {
   if (e.experimental) description.is_experimental = true;
   if (e.spawnCategory) description.spawn_category = e.spawnCategory;
   if (e.runtimeId) description.runtime_identifier = e.runtimeId;
-  const props = propertiesJSON(e);
-  if (props) description.properties = props;
+  if (Object.keys(props).length) description.properties = props;
 
   const body = { description };
   if (Object.keys(groups).length) body.component_groups = groups;
@@ -184,7 +190,7 @@ export function clientEntityJSON(project, e) {
   const texCount = Math.max(1, e.textures?.length || 0);
   const textures = {};
   for (let i = 0; i < texCount; i++) textures[i === 0 ? 'default' : `v${i}`] = texturePath(project, e, i);
-  const anim = buildAnimations(e, animPrefix(project, e));
+  const anim = buildAnimations(e, animPrefix(project, e), { ns: project.namespace });
   const desc = {
     identifier: id,
     materials: { default: e.model.material || 'entity_alphatest' },
@@ -281,7 +287,9 @@ export function buildPacks(project, opts = {}) {
   for (const e of project.entities) {
     const id = `${project.namespace}:${e.name}`;
     const n = (notes[e.name] = []);
-    bp.push({ path: `entities/${e.name}.json`, data: J(behaviorEntityJSON(project, e, n)) });
+    const extraRp = [];
+    bp.push({ path: `entities/${e.name}.json`, data: J(behaviorEntityJSON(project, e, n, extraRp)) });
+    for (const f of extraRp) rp.push({ path: f.path, data: J(f.json) });
     if (e.spawn?.enabled && e.spawn.conditions?.length) bp.push({ path: `spawn_rules/${e.name}.json`, data: J(spawnRulesJSON(project, e)) });
     if (e.loot?.enabled && e.loot.pools?.length) bp.push({ path: lootPath(project, e), data: J(lootTableJSON(e.loot.pools)) });
     if (e.gear?.enabled && Object.keys(GEAR_SLOT).some((k) => e.gear[k])) bp.push({ path: gearPath(project, e), data: J(gearTableJSON(e.gear)) });
@@ -310,6 +318,22 @@ export function buildPacks(project, opts = {}) {
     }
   }
   if (Object.keys(soundEntities).length) rp.push({ path: 'sounds.json', data: J({ entity_sounds: { entities: soundEntities } }) });
+  // Custom audio: files under sounds/<ns>/ plus sound_definitions.json so the
+  // ids (<ns>.<name>) work in sounds.json, /playsound and the horror scares.
+  const custom = project.sounds || [];
+  if (custom.length) {
+    const defs = {};
+    const bytes = new Map((opts.customSounds || []).map((c) => [c.uid, c.bytes]));
+    for (const cs of custom) {
+      const file = `sounds/${project.namespace}/${cs.name}`;
+      const one = { name: file, volume: Number(cs.volume) || 1, load_on_low_memory: true };
+      if (Number(cs.pitch) && Number(cs.pitch) !== 1) one.pitch = Number(cs.pitch);
+      if (cs.stream) one.stream = true;
+      defs[`${project.namespace}.${cs.name}`] = { category: cs.category || 'hostile', ...(cs.maxDistance ? { max_distance: Number(cs.maxDistance) } : {}), sounds: [one] };
+      if (bytes.has(cs.uid)) rp.push({ path: `${file}.${cs.ext || 'ogg'}`, data: bytes.get(cs.uid) });
+    }
+    rp.push({ path: 'sounds/sound_definitions.json', data: J({ format_version: '1.14.0', sound_definitions: defs }) });
+  }
   const langText = lang.join('\n') + '\n';
   for (const p of [bp, rp]) {
     p.push({ path: 'texts/en_US.lang', data: langText });

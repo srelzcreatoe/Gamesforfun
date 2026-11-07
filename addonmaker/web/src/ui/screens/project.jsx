@@ -8,6 +8,7 @@ import { renderFrontSprite } from '../textures.js';
 import { exportAddon, exportBackup, issues } from '../exporting.js';
 import { pickFile, readAsDataURL } from '../native.js';
 import { IssueList } from './issues.jsx';
+import { SoundLibrary } from './sounds.jsx';
 
 export function Thumb({ entity, size = 56 }) {
   const [url, setUrl] = useState(null);
@@ -38,8 +39,19 @@ export function newEntityDialog() {
       <div class="new-entity">
         <label class="field"><span>Name</span><input class="txt" placeholder="e.g. Ember Fox" value={name} autoFocus onInput={(e) => setName(e.currentTarget.value)} /></label>
         <p class="hint">Id: <code>{p.namespace}:{unique}</code></p>
+        <h4>Creatures & village</h4>
         <div class="preset-grid">
-          {PRESETS.map((pr) => (
+          {PRESETS.filter((pr) => pr.group !== 'horror').map((pr) => (
+            <button type="button" class={`preset ${preset === pr.id ? 'on' : ''}`} onClick={() => setPreset(pr.id)}>
+              <span class="preset-i">{pr.icon}</span>
+              <strong>{pr.label}</strong>
+              <span class="hint">{pr.blurb}</span>
+            </button>
+          ))}
+        </div>
+        <h4>👁 Horror dwellers</h4>
+        <div class="preset-grid horror">
+          {PRESETS.filter((pr) => pr.group === 'horror').map((pr) => (
             <button type="button" class={`preset ${preset === pr.id ? 'on' : ''}`} onClick={() => setPreset(pr.id)}>
               <span class="preset-i">{pr.icon}</span>
               <strong>{pr.label}</strong>
@@ -106,7 +118,7 @@ export function ProjectScreen() {
                 <span class="ent-text">
                   <strong>{e.displayName || e.name}</strong>
                   <code>{p.namespace}:{e.name}</code>
-                  <span class="hint">{Object.keys(e.components).length} components · {e.groups.length} groups · {e.events.length} events{e.components['minecraft:dweller'] ? ' · dweller' : ''}</span>
+                  <span class="hint">{e.horror?.enabled ? '👁 horror dweller · ' : ''}{Object.keys(e.components).length} components · {e.groups.length} groups · {e.events.length} events{e.components['minecraft:dweller'] ? ' · village dweller' : ''}</span>
                 </span>
               </button>
               <div class="ent-act">
@@ -124,6 +136,8 @@ export function ProjectScreen() {
           <Btn icon="save" kind="ghost" onClick={() => exportBackup(p)}>Backup</Btn>
         </div>
       </Card>
+
+      <SoundLibrary p={p} />
 
       <Card title="Add-on settings">
         <Row label="Name"><TextInput value={p.name} onChange={set('name')} /></Row>

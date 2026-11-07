@@ -388,3 +388,38 @@ pre.code { margin: 0; padding: 10px; border-radius: 10px; background: var(--bg2)
 .new-entity .field input { font-size: 16px; }
 
 .banner.info-b { background: color-mix(in srgb, var(--info) 14%, transparent); color: var(--text); font-weight: 500; font-size: 13.5px; }
+
+/* Custom sounds */
+.csnd { display: flex; gap: 6px; align-items: center; padding: 8px 0; border-bottom: 1px dashed color-mix(in srgb, var(--line) 70%, transparent); }
+.csnd-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.csnd-main .sel { width: auto; }
+
+/* Dweller mode switch + horror */
+.seg { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+.seg button { flex: 1; padding: 10px 8px; border-radius: 10px; border: 0; background: transparent; font-weight: 700; cursor: pointer; }
+.seg button.on { background: var(--acc); color: var(--acc-ink); }
+.seg button.horror.on { background: #b91c1c; color: #fff; }
+.tab-village, .tab-horror { display: flex; flex-direction: column; gap: 12px; }
+.preset-grid.horror .preset { background: linear-gradient(160deg, color-mix(in srgb, #b91c1c 18%, var(--card2)), var(--card2)); }
+.preset-grid.horror .preset.on { border-color: #ef4444; box-shadow: 0 0 0 2px color-mix(in srgb, #ef4444 35%, transparent); }
+.tab-horror .role.on { border-color: #ef4444; background: color-mix(in srgb, #b91c1c 18%, var(--card2)); }
+.horror-banner { display: flex; gap: 10px; align-items: center; text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid #b91c1c; background: color-mix(in srgb, #b91c1c 14%, var(--card)); cursor: pointer; font-size: 22px; }
+.horror-banner > span:last-child { display: flex; flex-direction: column; font-size: 14px; }
+.slide { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; border-bottom: 1px dashed color-mix(in srgb, var(--line) 70%, transparent); }
+.slide-h { display: flex; justify-content: space-between; font-weight: 600; font-size: 14px; }
+.slide-h strong { font-family: var(--mono); color: #f87171; }
+.slide input[type='range'] { width: 100%; accent-color: #ef4444; }
+.diagram { width: 100%; height: auto; }
+.diagram .node rect { fill: var(--card2); stroke: var(--line); stroke-width: 1.5; }
+.diagram .node.hunting rect { stroke: #ef4444; fill: color-mix(in srgb, #b91c1c 22%, var(--card2)); }
+.diagram .node.stalking rect { stroke: #f59e0b; }
+.diagram .node.frozen rect { stroke: #60a5fa; }
+.diagram .node.gone rect { stroke-dasharray: 4 3; }
+.diagram .nl { fill: var(--text); font: 700 12px system-ui, sans-serif; }
+.diagram .ns { fill: var(--mut); font: 10px system-ui, sans-serif; }
+.diagram .edge path { fill: none; stroke: var(--mut); stroke-width: 1.4; }
+.diagram .edge text { fill: var(--mut); font: 9.5px system-ui, sans-serif; paint-order: stroke; stroke: var(--card); stroke-width: 3px; }
+.diagram .arr { fill: var(--mut); }
+.cmd { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px dashed color-mix(in srgb, var(--line) 70%, transparent); }
+.cmd-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cmd-t code { word-break: break-all; color: var(--acc); }

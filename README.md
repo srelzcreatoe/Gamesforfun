@@ -143,8 +143,9 @@ simulation distance are separate settings with Low/Balanced/High presets.
 ## Also in this repo: Mobsmith add-on studio
 
 `addonmaker/` is **Mobsmith**, an Android app for making custom mobs for
-Minecraft: Bedrock Edition. It covers every entity component, village dweller
-settings with a daily-schedule builder, trades, models, a texture painter and
+Minecraft: Bedrock Edition. It covers every entity component, village dwellers
+with a daily-schedule builder, horror dwellers with a stalker AI (gaze reactions,
+hunting, scares, dread fog), custom sounds, trades, models, a texture painter and
 animations, and exports a ready-to-import `.mcaddon`. Install `Mobsmith.apk`;
 see [addonmaker/README.md](addonmaker/README.md).
 

@@ -3,6 +3,7 @@
 import { isObj } from './util.js';
 import { activityGroup } from './packgen.js';
 import { modelBounds, faceRects } from './geo.js';
+import { horrorNames, hProp } from './horror.js';
 
 export const BUILTIN_EVENTS = ['minecraft:entity_spawned', 'minecraft:entity_born', 'minecraft:entity_transformed', 'minecraft:on_prime'];
 const MOVE_GOALS = /behavior\.(random_stroll|random_swim|random_fly|random_hover|swim_wander|follow_|tempt|panic|move_|melee|stomp|delayed_attack|go_home|work|sleep|mingle|explore_outskirts|stroll_towards_village|defend_village_target|avoid_mob_type|flee_sun|breed|float_wander)/;
@@ -50,6 +51,12 @@ export function validateProject(project, catalog, vanilla) {
   if (!/^[a-z0-9_]+$/.test(project.namespace || '')) add('error', `Namespace "${project.namespace}" may only use a-z, 0-9 and _.`, null, 'project');
   if (['minecraft', 'minecon'].includes(project.namespace)) add('error', 'The namespace "minecraft" is reserved. Pick your own (for example your name).', null, 'project');
   if (!project.entities.length) add('error', 'Add at least one entity before exporting.', null, 'project');
+  const sn = new Set();
+  for (const cs of project.sounds || []) {
+    if (!/^[a-z0-9_]+$/.test(cs.name || '')) add('error', `Custom sound name "${cs.name}" may only use a-z, 0-9 and _.`, null, 'project');
+    if (sn.has(cs.name)) add('error', `Two custom sounds are named "${cs.name}".`, null, 'project');
+    sn.add(cs.name);
+  }
   const names = new Set();
   for (const e of project.entities) {
     if (names.has(e.name)) add('error', `Two entities are both named "${e.name}".`, e, 'overview');
@@ -106,6 +113,8 @@ function validateEntity(project, e, catalog, vanilla, add) {
   // Component groups and events.
   const groupNames = new Set(e.groups.map((g) => g.name));
   if (e.schedule?.enabled) for (const a of e.schedule.activities) groupNames.add(activityGroup(project, a.name));
+  const hn = horrorNames(ns, e.horror);
+  for (const g of hn.groups) groupNames.add(g);
   const seenG = new Set();
   for (const g of e.groups) {
     if (!g.name) add('error', 'A component group has no name.', e, 'groups');
@@ -114,8 +123,10 @@ function validateEntity(project, e, catalog, vanilla, add) {
   }
   const eventNames = new Set(e.events.map((x) => x.name));
   if (e.schedule?.enabled) for (const a of e.schedule.activities) eventNames.add(`${ns}:schedule_${a.name}`);
+  for (const ev of hn.events) eventNames.add(ev);
   const usedGroups = new Set();
   const propNames = new Set(e.properties.map((p) => p.name));
+  if (e.horror?.enabled) propNames.add(hProp(ns));
   const seenE = new Set();
   for (const ev of e.events) {
     if (!ev.name) add('error', 'An event has no name.', e, 'events');
@@ -233,8 +244,23 @@ function validateEntity(project, e, catalog, vanilla, add) {
     const sl = [...(e.schedule.slots || [])].filter((s) => s.from < s.to).sort((a, b) => a.from - b.from);
     for (let i = 1; i < sl.length; i++) if (sl[i].from < sl[i - 1].to) add('warn', 'Two schedule slots overlap; the later one wins while both match.', e, 'dweller');
   }
+  // Horror dweller.
+  const h = e.horror;
+  if (h?.enabled) {
+    if (h.senses.seen === 'freeze' && h.stalk.on) add('info', 'Freeze-when-seen works best with stalking off (it hunts while unseen instead).', e, 'dweller');
+    if (!h.stalk.on && !h.hunt.onClose && !h.hunt.onHurt && !['charge', 'freeze'].includes(h.senses.seen)) add('warn', 'Nothing ever makes this horror dweller hunt. Turn on a hunt trigger.', e, 'dweller');
+    if (Number(h.hunt.close) >= Number(h.senses.detect)) add('warn', 'Hunt distance is larger than its detection range.', e, 'dweller');
+    if (h.stalk.on && Number(h.stalk.keep) >= Number(h.senses.detect)) add('warn', 'Stalking distance is larger than its detection range, so it will never get close.', e, 'dweller');
+    if (e.properties.some((p) => p.name === hProp(ns))) add('error', `Property ${hProp(ns)} is reserved for the horror AI.`, e, 'properties');
+    if (e.groups.some((g) => hn.groups.includes(g.name))) add('error', 'One of your groups uses a name reserved for the horror AI (…:horror_*).', e, 'groups');
+    if (e.events.some((x) => hn.events.includes(x.name))) add('error', 'One of your events uses a name reserved for the horror AI (…:horror_*).', e, 'events');
+    for (const s of [h.scares.screamSound, h.scares.heartbeatSound, h.scares.seenSound]) {
+      if (s && vanilla?.sounds?.length && !vanilla.sounds.includes(s) && !(project.sounds || []).some((cs) => `${ns}.${cs.name}` === s)) add('warn', `Scare sound "${s}" isn't a vanilla or custom sound.`, e, 'dweller');
+    }
+  }
+
   // Sounds.
   if (e.sounds?.enabled && vanilla?.sounds?.length) {
-    for (const [k, v] of Object.entries(e.sounds.events || {})) if (v?.sound && !vanilla.sounds.includes(v.sound)) add('warn', `Sound "${v.sound}" (${k}) isn't a known vanilla sound.`, e, 'sounds');
+    for (const [k, v] of Object.entries(e.sounds.events || {})) if (v?.sound && !vanilla.sounds.includes(v.sound) && !(project.sounds || []).some((cs) => `${ns}.${cs.name}` === v.sound)) add('warn', `Sound "${v.sound}" (${k}) isn't a vanilla sound or one of your custom sounds.`, e, 'sounds');
   }
 }

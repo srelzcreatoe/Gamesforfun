@@ -13,6 +13,17 @@ Install: `Mobsmith.apk` in the repository root (Android 7.0+).
   - A **daily schedule builder** with a visual timeline and activities (wander, gather, sleep, work, patrol…). On export it becomes a `minecraft:scheduler` plus one component group and event per activity, the same pattern vanilla villagers use.
   - Toggles for every village AI goal: staying in the village, doors and paths, social, trading, defense and raids.
   - Trading.
+- **Horror dwellers** (Dweller tab → 👁 Horror dweller): a stalker AI that Mobsmith compiles into standard Bedrock data on export. It uses an enum property for its state, mutually exclusive state groups, an entity sensor, `minecraft:looked_at` and filtered events, the same pattern vanilla's creaking uses.
+  - **States**: dormant → stalking (follows you while keeping its distance) → hunting (chases and attacks), plus fleeing, frozen and gone. A live diagram shows the current setup.
+  - **When you look at it**: flee, freeze (moves only while unwatched), vanish, teleport away, charge, or stare back. You can set gaze cone, range and stare time, and a carved pumpkin can protect you.
+  - **Hunt triggers**: getting too close, a stalking timer, or hitting it. You set the chase speed, damage and give-up time, and what it does afterwards (stalk again, lose interest, or vanish).
+  - **Scares**: a darkness pulse, heartbeat, scream, camera shake, a custom **dread fog** (a generated fog file pushed onto nearby players), particles and on-screen messages.
+  - **Traits**: smashes torches and lanterns, breaks doors, climbs walls; weak to sunlight or fire.
+  - **Habitat and rarity**: these generate spawn rules (deep caves, surface at night, dark forests).
+  - **Archetypes and presets**: Cave Stalker, The Still One, Ceiling Crawler, Hollow Shade, Mimic and Screamer.
+  - **Horror bodies**: Gaunt, Crawler and Shade, with glowing or hollow eyes, grins, cracks and grime.
+  - **Horror animations**: twitch, hunch, reach-while-hunting and float.
+- **Custom sounds**: import `.ogg`/`.wav` files (stored in IndexedDB), use them as `<namespace>.<name>` in any sound picker, scare or `/playsound`. They're exported to `sounds/` and `sound_definitions.json`, and project backups include them.
 - **Logic editors**:
   - Component groups.
   - Events with add/remove, set_property, trigger, queue_command, randomize and sequence, nested as deep as you need.
@@ -28,7 +39,7 @@ Install: `Mobsmith.apk` in the repository root (Android 7.0+).
   - Economy trades with levels.
 - **Validator** that flags broken group/event/property references, goals missing their requirements (movement, attack, shooter…), spawn-rule mistakes, UV overflow and more, each with a "Fix" link.
 - **Files tab** that shows every generated file, syntax-highlighted.
-- **12 presets**: blank, farm animal, tameable pet, melee monster, ranged shooter, rideable mount, flying critter, water creature, village dweller, village guard, boss (with an enrage phase driven by a property), and projectile.
+- **18 presets**: blank, farm animal, tameable pet, melee monster, ranged shooter, rideable mount, flying critter, water creature, village dweller, village guard, boss (with an enrage phase driven by a property), projectile, and 6 horror dwellers.
 - **Export**: open directly in Minecraft, save `.mcaddon` / `.mcpack` through the system file picker, share, or save a project backup (`.json`).
 
 ## Layout
@@ -77,7 +88,9 @@ node tools/gen-catalog.mjs /path/to/bedrock-samples/metadata
 npm test
 ```
 
-`npm test` builds every preset into packs and checks that:
+`npm test` also compiles every horror archetype × seen-reaction × stalking combination (84 state machines). It checks that every transition targets a real group, event and state, that no component is in both base and a state group, and that every sound, particle and light block exists in vanilla.
+
+Like the other presets, `npm test` builds every preset into packs and checks that:
 
 - the validator reports no errors or warnings;
 - every JSON/PNG/ZIP file is well formed;
@@ -88,7 +101,7 @@ npm test
 npm run test:ui
 ```
 
-`npm run test:ui` needs Playwright. It drives the built app in headless Chromium at phone size: it creates all 12 presets, opens all 14 tabs of each, exports, and checks the downloaded add-on.
+`npm run test:ui` needs Playwright. It drives the built app in headless Chromium at phone size: it creates all 18 presets, opens all 14 tabs of each (and both dweller modes), exports, and checks the downloaded add-on.
 
 ## Data and licensing notes
 
@@ -97,6 +110,7 @@ npm run test:ui
 ## Known limitations
 
 - Tested in desktop Chromium and with Node. **Not yet run on a physical Android device or emulator.** "Open in Minecraft" hands the file to the game with an `ACTION_VIEW` content URI; if a device's Minecraft doesn't accept it, use **Save .mcaddon** and open the file from a file manager.
-- Sounds use vanilla sound events. Custom audio files, custom items and blocks, and the Script API aren't included yet.
+- Horror scares run through `queue_command` in entity events (`playsound`, `camerashake`, `effect`, `title`, `fog`, `particle`). Commands run by add-ons generally don't need cheats, but this hasn't been confirmed on a device. If a scare doesn't fire, the AI itself (states, gaze reactions, hunting) still works, because it doesn't depend on commands.
+- Custom items and blocks, and the Script API, aren't included yet.
 - Village AI such as sleeping in beds and working at job sites is engine logic tuned for villagers. Custom dwellers use the same components, but some behaviours may differ from vanilla villagers.
 - The committed signing key is a convenience key for sideloading, not for store publishing.

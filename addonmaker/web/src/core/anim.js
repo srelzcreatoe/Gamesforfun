@@ -22,6 +22,7 @@ export function termToMolang(t) {
   if (!t) return 0;
   let core;
   if (t.fn === 'lin') core = `${SRC[t.src]} * ${num(t.a)}`;
+  else if (t.fn === 'spike') core = `math.pow(math.sin(${SRC[t.src]} * ${num(t.f)}${t.ph ? ` + ${num(t.ph)}` : ''}), 16) * ${num(t.a)}`;
   else {
     const fn = t.fn === 'cos' ? 'math.cos' : 'math.sin';
     const inner = `${SRC[t.src]} * ${num(t.f)}${t.ph ? ` + ${num(t.ph)}` : ''}`;
@@ -35,6 +36,7 @@ export function termEval(t, s) {
   const v = s[t.src] ?? 0;
   if (t.fn === 'lin') return v * t.a + (t.add || 0);
   const ang = ((v * t.f + (t.ph || 0)) * Math.PI) / 180;
+  if (t.fn === 'spike') return Math.pow(Math.sin(ang), 16) * t.a + (t.add || 0);
   return (t.fn === 'cos' ? Math.cos(ang) : Math.sin(ang)) * t.a + (t.add || 0);
 }
 
@@ -45,11 +47,20 @@ export const ANIM_KINDS = {
   attack: { label: 'Attack swing', help: 'Arms swing (or head lunges) when it attacks.' },
   fly: { label: 'Wing flap', help: 'Wings flap and the body bobs.' },
   swim: { label: 'Swim sway', help: 'Tail and fins sway.' },
+  twitch: { label: 'Creepy twitch', help: 'Sudden jerks of the head and arms.', horror: true },
+  hunch: { label: 'Hunched pose', help: 'Leans forward with a craned neck.', horror: true },
+  reach: { label: 'Reach while hunting', help: 'Arms stretch out while it chases you (horror AI) or has a target.', horror: true },
+  float: { label: 'Float & drift', help: 'Hovers up and down: for bodies without legs.', horror: true },
 };
 
 export function defaultAnims(template) {
+  const horror = ['gaunt', 'crawler', 'shade'].includes(template);
   return {
-    walk: { on: template !== 'fish' && template !== 'blob', amp: template === 'golem' ? 45 : 70, speed: template === 'golem' ? 0.55 : 1 },
+    twitch: { on: horror, amp: 1 },
+    hunch: { on: template === 'gaunt', amp: 1 },
+    reach: { on: template === 'gaunt' || template === 'shade', amp: 1 },
+    float: { on: template === 'shade', amp: 1 },
+    walk: { on: !['fish', 'blob', 'shade'].includes(template), amp: template === 'golem' ? 45 : template === 'gaunt' ? 40 : 70, speed: template === 'golem' ? 0.55 : template === 'gaunt' ? 0.7 : template === 'crawler' ? 1.6 : 1 },
     look: { on: template !== 'fish' },
     idle: { on: true, amp: 1 },
     attack: { on: template === 'humanoid' || template === 'golem' || template === 'quadruped', amp: 1, both: template === 'golem' },
@@ -118,6 +129,35 @@ function motions(model, anims) {
     put('fly', 'legR', 'rotation', [35, 0, 0]);
     if (out.fly) out.fly.weight = f.when === 'air' ? 'air' : 'always';
   }
+  const tw = anims.twitch;
+  if (tw?.on) {
+    const s = tw.amp ?? 1;
+    put('twitch', 'head', 'rotation', [T('time', 'spike', 23, 90, -14 * s), 0, T('time', 'spike', 37, 0, 26 * s)]);
+    put('twitch', 'armR', 'rotation', [0, 0, T('time', 'spike', 29, 40, 9 * s)]);
+    put('twitch', 'armL', 'rotation', [0, 0, T('time', 'spike', 31, 10, -9 * s)]);
+  }
+  const hn = anims.hunch;
+  if (hn?.on && byRole.body) {
+    const s = hn.amp ?? 1;
+    put('hunch', 'body', 'rotation', [18 * s, 0, 0]);
+    put('hunch', 'head', 'rotation', [-24 * s, 0, 0]);
+    put('hunch', 'armR', 'rotation', [-16 * s, 0, 6 * s]);
+    put('hunch', 'armL', 'rotation', [-16 * s, 0, -6 * s]);
+  }
+  const rc = anims.reach;
+  if (rc?.on) {
+    const s = rc.amp ?? 1;
+    put('reach', 'armR', 'rotation', [-85 * s, 0, 0]);
+    put('reach', 'armL', 'rotation', [-85 * s, 0, 0]);
+    if (out.reach) out.reach.weight = 'hunting';
+  }
+  const fl = anims.float;
+  if (fl?.on) {
+    const s = fl.amp ?? 1;
+    put('float', 'body', 'position', [0, T('time', 'sin', 95, 0, 1.2 * s, 1.5 * s), 0]);
+    put('float', 'armR', 'rotation', [T('time', 'sin', 60, 0, 6 * s, -8 * s), 0, 0]);
+    put('float', 'armL', 'rotation', [T('time', 'sin', 60, 180, 6 * s, -8 * s), 0, 0]);
+  }
   const sw = anims.swim;
   if (sw?.on) {
     const s = sw.amp ?? 1, k = 480 * (sw.speed || 1);
@@ -160,7 +200,7 @@ export function newCustomAnim(name = 'dance') {
  * Builds Bedrock animation JSON plus the client-entity wiring.
  * @returns {{file:object, map:Object<string,string>, animate:Array}}
  */
-export function buildAnimations(entity, prefix) {
+export function buildAnimations(entity, prefix, opts = {}) {
   const model = entity.model, anims = entity.anims || {};
   const animations = {}, map = {}, animate = [];
   const ms = motions(model, anims);
@@ -174,7 +214,9 @@ export function buildAnimations(entity, prefix) {
     animations[id] = { loop: true, bones };
     const short = kind === 'look' ? 'look_at_target' : kind;
     map[short] = id;
-    const wexpr = WEIGHT[m.weight];
+    const wexpr = m.weight === 'hunting'
+      ? (entity.horror?.enabled && opts.ns ? `query.property('${opts.ns}:horror_state') == 'hunting'` : 'query.has_target')
+      : WEIGHT[m.weight];
     animate.push(wexpr ? { [short]: wexpr } : short);
   }
   for (const ca of anims.custom || []) {
@@ -219,7 +261,7 @@ export function evalPose(entity, state) {
   const ms = motions(entity.model, entity.anims || {});
   const pose = {};
   const get = (bn) => (pose[bn] ||= { rot: [0, 0, 0], pos: [0, 0, 0], scale: [1, 1, 1] });
-  const weightOf = (w) => w === 'speed' ? state.speed : w === 'attacking' ? (state.attack > 0 ? 1 : 0) : w === 'air' ? (state.air ? 1 : 0) : w === 'water' ? (state.water ? 1 : 0) : 1;
+  const weightOf = (w) => w === 'speed' ? state.speed : w === 'attacking' ? (state.attack > 0 ? 1 : 0) : w === 'air' ? (state.air ? 1 : 0) : w === 'water' ? (state.water ? 1 : 0) : w === 'hunting' ? (state.hunting ? 1 : 0) : 1;
   for (const [kind, m] of Object.entries(ms)) {
     if (state.only && !state.only.has(kind)) continue;
     const wt = weightOf(m.weight);

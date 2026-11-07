@@ -18,7 +18,7 @@ function Datalists() {
       <datalist id="dl-vanilla-entities">{vanilla.entities.map((v) => <option value={v} />)}</datalist>
       <datalist id="dl-families">{vanilla.families.map((v) => <option value={v} />)}</datalist>
       <datalist id="dl-effects">{vanilla.effects.map((v) => <option value={v} />)}</datalist>
-      <datalist id="dl-sounds">{vanilla.sounds.map((v) => <option value={v} />)}</datalist>
+
       <datalist id="dl-biomes">{vanilla.biomes.map((v) => <option value={v.replace('minecraft:', '')} />)}</datalist>
       <datalist id="dl-biometags">{vanilla.biomeTags.map((v) => <option value={v} />)}</datalist>
       <datalist id="dl-causes">{vanilla.causes.map((v) => <option value={v} />)}</datalist>
@@ -33,6 +33,7 @@ function Datalists() {
     <div hidden>
       {statics}
       <datalist id="dl-entities">{ents.map((v) => <option value={v} />)}</datalist>
+      <datalist id="dl-sounds">{[...(p?.sounds || []).map((s) => `${p.namespace}.${s.name}`), ...vanilla.sounds].map((v) => <option value={v} />)}</datalist>
       <datalist id="dl-events">{events.map((v) => <option value={v} />)}</datalist>
       <datalist id="dl-groups">{groups.map((v) => <option value={v} />)}</datalist>
       <datalist id="dl-props">{(e?.properties || []).map((v) => <option value={v.name} />)}</datalist>
