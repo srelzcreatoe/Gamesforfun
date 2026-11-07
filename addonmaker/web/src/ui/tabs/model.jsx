@@ -8,6 +8,10 @@ import { defaultAnims } from '../../core/anim.js';
 import { uid, clone, parseLenientJSON } from '../../core/util.js';
 import { toast } from '../store.js';
 import { pickFile, readAsText, readAsDataURL, saveFile } from '../native.js';
+import { eyesGlow, EMISSIVE_MATERIAL } from '../../core/paint.js';
+
+const EYE_STYLES = [['normal', 'Friendly'], ['glow', 'Glowing'], ['rect', 'Glowing slits + drips'], ['hollow', 'Hollow sockets'], ['sunken', 'Sunken + pinprick pupils'], ['many', 'Many eyes'], ['single', 'One big eye'], ['button', 'Buttons'], ['none', 'No eyes']];
+const MOUTHS = [['none', 'None'], ['line', 'Thin line'], ['grin', 'Toothy grin'], ['bigGrin', 'Huge jagged grin'], ['stitched', 'Stitched shut'], ['gape', 'Gaping hole']];
 import { geoId } from '../../core/packgen.js';
 
 const ROLES = [['none', '—'], ['head', 'Head (looks at target)'], ['body', 'Body'], ['armR', 'Right arm'], ['armL', 'Left arm'], ['legR', 'Right leg'], ['legL', 'Left leg'],
@@ -37,6 +41,13 @@ export function ModelTab({ e, p }) {
     });
     confirmDialog('Replace the model?', `Switch to the ${TEMPLATES[t].label} template? Your current bones${painted ? ' and painted texture layout' : ''} will be replaced (you can undo).`, 'Replace', go, false);
   };
+  /** Updates auto-paint options; glowing eyes switch the material to emissive. */
+  const setPaint = (o, key) => ecommit(e, (en) => {
+    en.autoPaint = { ...(en.autoPaint || {}), ...o };
+    const glow = eyesGlow(en.autoPaint);
+    if (glow) en.model.material = EMISSIVE_MATERIAL;
+    else if (en.model.material === EMISSIVE_MATERIAL) en.model.material = 'entity_alphatest';
+  }, key);
   const importOwn = async () => {
     const f = await pickFile('.json');
     if (!f) return;
@@ -97,10 +108,16 @@ export function ModelTab({ e, p }) {
         <Toggle label="Outlines on faces" value={e.autoPaint?.outline !== false} onChange={(v) => ecommit(e, (en) => { en.autoPaint = { ...(en.autoPaint || {}), outline: v }; })} />
         <Toggle label="Draw eyes on the head" value={e.autoPaint?.eyes !== false} onChange={(v) => ecommit(e, (en) => { en.autoPaint = { ...(en.autoPaint || {}), eyes: v }; })} />
         {e.autoPaint?.eyes !== false && <>
-          <Row label="Eye style"><Select value={e.autoPaint?.eyeStyle || 'normal'} options={[['normal', 'Friendly'], ['glow', 'Glowing'], ['hollow', 'Hollow sockets']]} onChange={(v) => ecommit(e, (en) => { en.autoPaint = { ...(en.autoPaint || {}), eyeStyle: v }; })} /></Row>
+          <Row label="Eye style"><Select value={e.autoPaint?.eyeStyle || 'normal'} options={EYE_STYLES} onChange={(v) => setPaint({ eyeStyle: v })} /></Row>
           {(e.autoPaint?.eyeStyle || 'normal') !== 'normal' && <>
-            <Row label="Eye colour"><input type="color" value={e.autoPaint?.eyeColor || '#ff2a2a'} aria-label="Eye colour" onInput={(ev) => { const v = ev.currentTarget.value; ecommit(e, (en) => { en.autoPaint = { ...(en.autoPaint || {}), eyeColor: v }; }, 'm:eyec'); }} /></Row>
-            <Row label="Mouth"><Select value={e.autoPaint?.mouth || 'line'} options={[['none', 'None'], ['line', 'Thin line'], ['grin', 'Toothy grin']]} onChange={(v) => ecommit(e, (en) => { en.autoPaint = { ...(en.autoPaint || {}), mouth: v }; })} /></Row>
+            <Row label="Eye colour"><input type="color" value={e.autoPaint?.eyeColor || '#ff2a2a'} aria-label="Eye colour" onInput={(ev) => setPaint({ eyeColor: ev.currentTarget.value }, 'm:eyec')} /></Row>
+            <Row label="Mouth"><Select value={e.autoPaint?.mouth || 'line'} options={MOUTHS} onChange={(v) => setPaint({ mouth: v })} /></Row>
+            {['bigGrin', 'grin'].includes(e.autoPaint?.mouth) && <Row label="Teeth colour"><input type="color" value={e.autoPaint?.toothColor || '#efe4bf'} aria-label="Teeth colour" onInput={(ev) => setPaint({ toothColor: ev.currentTarget.value }, 'm:tooth')} /></Row>}
+            <Row label="Face colour" hint="Tints the face around the eyes and mouth">
+              <div class="inline"><input type="color" value={e.autoPaint?.faceColor || '#5c0f12'} aria-label="Face colour" onInput={(ev) => setPaint({ faceColor: ev.currentTarget.value }, 'm:face')} />
+                {e.autoPaint?.faceColor && <Btn small kind="ghost" onClick={() => setPaint({ faceColor: null })}>None</Btn>}</div>
+            </Row>
+            {eyesGlow({ ...e.autoPaint, eyeStyle: e.autoPaint?.eyeStyle, glowEyes: true }) && <Toggle label="Eyes glow in the dark" hint="Uses the game's emissive material, like enderman eyes" value={eyesGlow(e.autoPaint || {})} onChange={(v) => setPaint({ glowEyes: v })} />}
           </>}
         </>}
         {painted && <p class="hint">You painted a custom texture, so bone colours below only matter if you go back to auto-paint (Texture tab).</p>}

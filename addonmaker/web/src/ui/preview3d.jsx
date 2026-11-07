@@ -1,13 +1,13 @@
 // Live 3D preview of an entity model with its texture and animations.
 import { useEffect, useRef, useState } from 'preact/hooks';
 import {
-  WebGLRenderer, Scene, PerspectiveCamera, AmbientLight, DirectionalLight, Group, Mesh,
-  BufferGeometry, Float32BufferAttribute, MeshLambertMaterial, Texture, NearestFilter,
-  SRGBColorSpace, GridHelper, Euler, FrontSide,
+  WebGLRenderer, Scene, PerspectiveCamera, HemisphereLight, DirectionalLight, Group, Mesh,
+  BufferGeometry, Float32BufferAttribute, MeshLambertMaterial, MeshBasicMaterial, Texture, CanvasTexture, NearestFilter,
+  SRGBColorSpace, GridHelper, Euler, FrontSide, Color, PlaneGeometry,
 } from 'three';
 import { faceRects, modelBounds } from '../core/geo.js';
 import { evalPose } from '../core/anim.js';
-import { entityTextureURL, loadImage } from './textures.js';
+import { entityTextureURL, loadImage, splitEmissive } from './textures.js';
 
 const D2R = Math.PI / 180;
 
@@ -114,19 +114,37 @@ export function Preview3D({ entity, mode = 'idle', custom = null, imported = nul
     el.appendChild(renderer.domElement);
     const scene = new Scene();
     const camera = new PerspectiveCamera(35, 1, 0.05, 200);
-    scene.add(new AmbientLight(0xffffff, 1.6));
-    const sun = new DirectionalLight(0xffffff, 1.3);
+    // Warm sky / dark ground fill, a key light from the front and a cool rim light behind.
+    scene.add(new HemisphereLight(0xfff1dc, 0x2a2018, 1.55));
+    const sun = new DirectionalLight(0xffffff, 1.55);
     sun.position.set(-3, 6, -5);
     scene.add(sun);
+    const rim = new DirectionalLight(0xa9b8ff, 0.75);
+    rim.position.set(4, 3, 6);
+    scene.add(rim);
+    // Soft contact shadow under the feet.
+    const sh = document.createElement('canvas');
+    sh.width = sh.height = 64;
+    const sg = sh.getContext('2d');
+    const grad = sg.createRadialGradient(32, 32, 2, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(0,0,0,0.55)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+    sg.fillStyle = grad; sg.fillRect(0, 0, 64, 64);
+    const shadow = new Mesh(new PlaneGeometry(1, 1), new MeshBasicMaterial({ map: new CanvasTexture(sh), transparent: true, depthWrite: false }));
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = 0.002;
+    scene.add(shadow);
     const grid = new GridHelper(6, 6, 0x6b7280, 0x374151);
     grid.material.transparent = true; grid.material.opacity = 0.35;
     scene.add(grid);
     const tex = new Texture();
     tex.magFilter = NearestFilter; tex.minFilter = NearestFilter; tex.generateMipmaps = false;
     tex.flipY = false; tex.colorSpace = SRGBColorSpace;
+    const glowTex = new Texture();
+    glowTex.magFilter = NearestFilter; glowTex.minFilter = NearestFilter; glowTex.generateMipmaps = false;
+    glowTex.flipY = false; glowTex.colorSpace = SRGBColorSpace;
     const material = new MeshLambertMaterial({ map: tex, alphaTest: 0.5, side: FrontSide });
     const orbit = { yaw: Math.PI * 0.82, pitch: 0.28, dist: 4, target: [0, 1, 0], auto: true, lastTouch: 0 };
-    const c = { renderer, scene, camera, tex, material, orbit, model: null, raf: 0, t0: performance.now(), dist: 0, el };
+    const c = { renderer, scene, camera, tex, glowTex, shadow, material, orbit, model: null, raf: 0, t0: performance.now(), dist: 0, el };
     ctx.current = c;
 
     const resize = () => {
@@ -203,7 +221,7 @@ export function Preview3D({ entity, mode = 'idle', custom = null, imported = nul
       ro?.disconnect();
       cv.removeEventListener('pointerdown', down); cv.removeEventListener('pointermove', move);
       cv.removeEventListener('pointerup', up); cv.removeEventListener('pointercancel', up); cv.removeEventListener('wheel', wheel);
-      renderer.dispose(); material.dispose(); tex.dispose();
+      renderer.dispose(); material.dispose(); tex.dispose(); glowTex.dispose();
       el.removeChild(cv);
     };
     return () => c.cleanup();
@@ -223,6 +241,7 @@ export function Preview3D({ entity, mode = 'idle', custom = null, imported = nul
     const hgt = (max[1] - min[1]) / 16, wid = Math.max(max[0] - min[0], max[2] - min[2]) / 16;
     c.orbit.target = [0, (min[1] + max[1]) / 32, 0];
     c.orbit.dist = Math.max(1.6, Math.max(hgt, wid) * 2.3);
+    c.shadow.scale.setScalar(Math.max(0.7, wid * 1.6));
   }, [modelKey]);
 
   useEffect(() => {
@@ -235,9 +254,25 @@ export function Preview3D({ entity, mode = 'idle', custom = null, imported = nul
     const c = ctx.current;
     if (!c) return;
     let alive = true;
-    loadImage(texURL).then((img) => { if (alive) { c.tex.image = img; c.tex.needsUpdate = true; } }).catch(() => {});
+    const emissive = /emissive/.test(entity.model.material || '');
+    loadImage(texURL).then((img) => {
+      if (!alive) return;
+      const m = c.material;
+      if (emissive) {
+        // Like the game: low-alpha pixels are opaque and glow.
+        const { color, glow } = splitEmissive(texURL, img);
+        c.tex.image = color; c.glowTex.image = glow;
+        c.glowTex.needsUpdate = true;
+        m.emissive = new Color(0xffffff); m.emissiveMap = c.glowTex; m.alphaTest = 0.01;
+      } else {
+        c.tex.image = img;
+        m.emissive = new Color(0x000000); m.emissiveMap = null; m.alphaTest = 0.5;
+      }
+      c.tex.needsUpdate = true;
+      m.needsUpdate = true;
+    }).catch(() => {});
     return () => { alive = false; };
-  }, [texURL]);
+  }, [texURL, entity.model.material]);
 
   if (failed) return <div class="preview fallback" style={{ height }}>3D preview needs WebGL, which this device doesn't support.</div>;
   return <div class="preview" ref={host} style={{ height }} />;

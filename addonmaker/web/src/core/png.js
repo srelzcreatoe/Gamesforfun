@@ -1,41 +1,33 @@
 // Tiny PNG encoder/decoder-free helpers that work without a canvas, so the
 // pack generator and tests can create textures and icons anywhere.
+import { zlibSync } from 'fflate';
 import { crc32 } from './zip.js';
 import { bytesToBase64 } from './util.js';
 
-function adler32(data) {
-  let a = 1, b = 0;
-  for (let i = 0; i < data.length; i++) { a = (a + data[i]) % 65521; b = (b + a) % 65521; }
-  return ((b << 16) | a) >>> 0;
-}
-
-/** Encodes RGBA pixels as a PNG using stored (uncompressed) deflate blocks. */
+/** Encodes RGBA pixels as a compressed PNG (per-row Sub/Up filters + zlib). */
 export function encodePNG(width, height, rgba) {
   const rowLen = width * 4 + 1;
   const raw = new Uint8Array(rowLen * height);
   for (let y = 0; y < height; y++) {
-    raw[y * rowLen] = 0;
-    raw.set(rgba.subarray(y * width * 4, (y + 1) * width * 4), y * rowLen + 1);
+    const row = rgba.subarray(y * width * 4, (y + 1) * width * 4);
+    const prev = y ? rgba.subarray((y - 1) * width * 4, y * width * 4) : null;
+    // Pick the filter with the smallest sum of absolute differences.
+    let best = 0, bestScore = Infinity;
+    for (const f of [0, 1, 2]) {
+      if (f === 2 && !prev) continue;
+      let score = 0;
+      for (let i = 0; i < row.length; i++) {
+        const v = f === 0 ? row[i] : f === 1 ? row[i] - (i >= 4 ? row[i - 4] : 0) : row[i] - prev[i];
+        const b = v & 0xff;
+        score += b < 128 ? b : 256 - b;
+      }
+      if (score < bestScore) { bestScore = score; best = f; }
+    }
+    const o = y * rowLen;
+    raw[o] = best;
+    for (let i = 0; i < row.length; i++) raw[o + 1 + i] = best === 0 ? row[i] : best === 1 ? row[i] - (i >= 4 ? row[i - 4] : 0) : row[i] - prev[i];
   }
-  const blocks = [];
-  const MAX = 65535;
-  for (let i = 0; i < raw.length || i === 0; i += MAX) {
-    const chunk = raw.subarray(i, Math.min(raw.length, i + MAX));
-    const last = i + MAX >= raw.length ? 1 : 0;
-    const hdr = new Uint8Array(5);
-    hdr[0] = last;
-    hdr[1] = chunk.length & 0xff; hdr[2] = chunk.length >> 8;
-    hdr[3] = ~chunk.length & 0xff; hdr[4] = (~chunk.length >> 8) & 0xff;
-    blocks.push(hdr, chunk);
-    if (raw.length === 0) break;
-  }
-  const zlen = 2 + blocks.reduce((a, b) => a + b.length, 0) + 4;
-  const z = new Uint8Array(zlen);
-  z[0] = 0x78; z[1] = 0x01;
-  let p = 2;
-  for (const b of blocks) { z.set(b, p); p += b.length; }
-  const ad = adler32(raw);
-  z[p++] = ad >>> 24; z[p++] = (ad >>> 16) & 0xff; z[p++] = (ad >>> 8) & 0xff; z[p++] = ad & 0xff;
+  const z = zlibSync(raw, { level: 9 });
 
   const chunks = [];
   const chunk = (type, data) => {

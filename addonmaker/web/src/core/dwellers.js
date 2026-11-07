@@ -5,6 +5,7 @@ import { baseEntity } from './model.js';
 import { makeModel, DWELLER_BODIES } from './geo.js';
 import { defaultAnims } from './anim.js';
 import { defaultHorror, ARCHETYPES, dwellerSpawn } from './horror.js';
+import { eyesGlow, EMISSIVE_MATERIAL } from './paint.js';
 
 const pool = (item, min, max) => ({
   rolls: 1,
@@ -255,6 +256,7 @@ export function applyDwellerPreset(e, p, ns) {
     for (const b of bonesOf(e.model, k)) { b.pattern = pattern; if (color2) b.color2 = color2; }
   }
   e.autoPaint = { noise: 0.08, outline: true, eyes: true, ...p.paint };
+  e.model.material = eyesGlow(e.autoPaint) ? EMISSIVE_MATERIAL : 'entity_alphatest';
   e.anims = defaultAnims(p.body);
   for (const [k, amp] of Object.entries(p.anims || {})) e.anims[k] = amp ? { ...e.anims[k], on: true, amp } : { ...e.anims[k], on: false };
   const [health, damage, speed] = p.stats;
@@ -317,6 +319,7 @@ export function applyDwellerLook(e, id) {
   }
   e.textures = [];
   e.autoPaint = { noise: 0.08, outline: true, eyes: true, ...p.paint };
+  e.model.material = eyesGlow(e.autoPaint) ? EMISSIVE_MATERIAL : 'entity_alphatest';
   const keep = { custom: e.anims?.custom || [], imported: e.anims?.imported || [], slots: e.anims?.slots };
   e.anims = defaultAnims(p.body);
   for (const [k, amp] of Object.entries(p.anims || {})) e.anims[k] = amp ? { ...e.anims[k], on: true, amp } : { ...e.anims[k], on: false };

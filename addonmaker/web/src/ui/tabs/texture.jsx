@@ -13,19 +13,25 @@ const PALETTE = ['#000000', '#3b3b3b', '#7a7a7a', '#bdbdbd', '#ffffff', '#5c3a21
   '#7f1d1d', '#dc2626', '#f97316', '#f59e0b', '#facc15', '#365314', '#65a30d', '#4ade80', '#0f766e', '#2dd4bf',
   '#1e3a8a', '#3b82f6', '#7dd3fc', '#4c1d95', '#a78bfa', '#be185d', '#f472b6'];
 const TOOLS = [['pen', 'brush', 'Pencil'], ['erase', 'eraser', 'Eraser'], ['fill', 'fill', 'Fill'], ['pick', 'picker', 'Pick colour'], ['shade', 'sun', 'Shade (lighten/darken)']];
+const GLOW_TOOL = ['glow', 'wand', 'Glow paint (glows in the dark)'];
+const GLOW_A = 24;
 
 export function TextureTab({ e, p }) {
   const [idx, setIdx] = useState(0);
   const [tool, setTool] = useState('pen');
   const [color, setColor] = useState('#dc2626');
   const [size, setSize] = useState(1);
+  // S = image pixels per model texel (auto-painted textures are high resolution).
+  const [S, setS] = useState(1);
   const [zoom, setZoom] = useState(() => Math.max(3, Math.floor(Math.min(window.innerWidth - 40, 720) / e.model.texW)));
   const [overlay, setOverlay] = useState(true);
   const [darken, setDarken] = useState(true);
   const cvs = useRef(null), ov = useRef(null);
   const hist = useRef({ undo: [], redo: [] });
   const drawing = useRef(false);
-  const W = e.model.texW, H = e.model.texH;
+  const W = e.model.texW * S, H = e.model.texH * S;
+  const emissive = /emissive/.test(e.model.material || '');
+  const tools = emissive ? [...TOOLS, GLOW_TOOL] : TOOLS;
   const painted = e.textures?.length > 0;
   const tex = e.textures?.[Math.min(idx, (e.textures?.length || 1) - 1)];
   const srcURL = tex ? tex.data : autoTextureURL(e);
@@ -34,11 +40,16 @@ export function TextureTab({ e, p }) {
   useEffect(() => {
     const c = cvs.current;
     if (!c) return;
-    c.width = W; c.height = H;
-    const g = c.getContext('2d');
-    g.imageSmoothingEnabled = false;
-    loadImage(srcURL).then((img) => { g.clearRect(0, 0, W, H); g.drawImage(img, 0, 0); }).catch(() => {});
-  }, [srcURL, W, H]);
+    loadImage(srcURL).then((img) => {
+      const k = Math.max(1, Math.round((img.naturalWidth || img.width) / e.model.texW));
+      if (k !== S) { setS(k); setZoom(Math.max(1, Math.floor(Math.min(window.innerWidth - 40, 720) / (e.model.texW * k)))); }
+      c.width = e.model.texW * k; c.height = e.model.texH * k;
+      const g = c.getContext('2d');
+      g.imageSmoothingEnabled = false;
+      g.clearRect(0, 0, c.width, c.height);
+      g.drawImage(img, 0, 0, c.width, c.height);
+    }).catch(() => {});
+  }, [srcURL, e.model.texW, e.model.texH]);
 
   // UV overlay.
   useEffect(() => {
@@ -55,11 +66,12 @@ export function TextureTab({ e, p }) {
         if (r.w <= 0 || r.h <= 0) continue;
         g.strokeStyle = COL[face];
         g.globalAlpha = 0.85;
-        g.strokeRect(r.x * zoom + 0.5, r.y * zoom + 0.5, r.w * zoom - 1, r.h * zoom - 1);
-        if (face === 'north' && r.w * zoom > 30) { g.fillStyle = COL[face]; g.font = `${Math.max(9, Math.min(12, zoom * 2))}px sans-serif`; g.fillText(`${b.name} front`, r.x * zoom + 3, r.y * zoom + 12); }
+        const z = zoom * S;
+        g.strokeRect(r.x * z + 0.5, r.y * z + 0.5, r.w * z - 1, r.h * z - 1);
+        if (face === 'north' && r.w * z > 30) { g.fillStyle = COL[face]; g.font = `${Math.max(9, Math.min(12, z * 2))}px sans-serif`; g.fillText(`${b.name} front`, r.x * z + 3, r.y * z + 12); }
       }
     }
-  }, [overlay, zoom, W, H, JSON.stringify(e.model.bones)]);
+  }, [overlay, zoom, W, H, S, JSON.stringify(e.model.bones)]);
 
   const ensurePainted = () => {
     if (painted) return true;
@@ -95,6 +107,12 @@ export function TextureTab({ e, p }) {
       const px = x - half + dx, py = y - half + dy;
       if (px < 0 || py < 0 || px >= W || py >= H) continue;
       if (tool === 'erase') g.clearRect(px, py, 1, 1);
+      else if (tool === 'glow') {
+        const [r0, g0, b0] = hexToRgb(color);
+        const d = g.createImageData(1, 1);
+        d.data[0] = r0; d.data[1] = g0; d.data[2] = b0; d.data[3] = GLOW_A;
+        g.putImageData(d, px, py);
+      }
       else if (tool === 'shade') {
         const d = g.getImageData(px, py, 1, 1).data;
         if (!d[3]) continue;
@@ -159,7 +177,9 @@ export function TextureTab({ e, p }) {
     if (!f) return;
     const data = await readAsDataURL(f);
     const img = await loadImage(data);
-    if (img.width !== W || img.height !== H) toast(`Image is ${img.width}×${img.height}; the model expects ${W}×${H}. It will be stretched in game.`, 'info', 5000);
+    const tw = e.model.texW, th = e.model.texH;
+    const k = img.width / tw;
+    if (!(Number.isInteger(k) && k >= 1 && img.height === th * k)) toast(`Image is ${img.width}×${img.height}; the model expects ${tw}×${th} (or 2×, 4× that). It will be stretched in game.`, 'info', 5000);
     ecommit(e, (en) => {
       if (!en.textures.length) en.textures.push({ uid: uid(), name: 'default', data });
       else en.textures[Math.min(idx, en.textures.length - 1)].data = data;
@@ -203,9 +223,9 @@ export function TextureTab({ e, p }) {
       )}
 
       <div class="painter-tools">
-        {TOOLS.map(([k, ic, l]) => <button type="button" class={`tool ${tool === k ? 'on' : ''}`} title={l} aria-label={l} onClick={() => setTool(k)}><Icon name={ic} /></button>)}
+        {tools.map(([k, ic, l]) => <button type="button" class={`tool ${tool === k ? 'on' : ''}`} title={l} aria-label={l} onClick={() => setTool(k)}><Icon name={ic} /></button>)}
         <input type="color" value={color} aria-label="Colour" onInput={(ev) => setColor(ev.currentTarget.value)} />
-        <Select value={String(size)} options={[['1', '1px'], ['2', '2px'], ['3', '3px'], ['4', '4px']]} onChange={(v) => setSize(Number(v))} />
+        <Select value={String(size)} options={[1, 2, 3, 4, 6, 8, 12].map((n) => [String(n), `${n}px`])} onChange={(v) => setSize(Number(v))} />
         {tool === 'shade' && <button type="button" class="cchip on" onClick={() => setDarken(!darken)}>{darken ? 'Darken' : 'Lighten'}</button>}
         <span class="grow" />
         <Btn small kind="ghost" icon="undo" aria-label="Undo stroke" onClick={undoPaint} />
@@ -219,7 +239,7 @@ export function TextureTab({ e, p }) {
         </div>
       </div>
       <div class="inline wrap">
-        <label class="inline"><span class="hint">Zoom</span><input type="range" min="2" max="24" value={zoom} onInput={(ev) => setZoom(Number(ev.currentTarget.value))} /></label>
+        <label class="inline"><span class="hint">Zoom</span><input type="range" min="1" max="24" value={zoom} onInput={(ev) => setZoom(Number(ev.currentTarget.value))} /></label>
         <Toggle label="UV guides" value={overlay} onChange={setOverlay} />
       </div>
       <div class="inline wrap">
@@ -227,6 +247,7 @@ export function TextureTab({ e, p }) {
         <Btn small icon="save" onClick={() => saveFile(`${e.name}${idx ? `_v${idx}` : ''}.png`, base64ToBytes(cvs.current.toDataURL('image/png')), 'image/png')}>Export PNG</Btn>
         {painted && <Btn small kind="ghost" icon="wand" onClick={() => confirmDialog('Back to auto-paint?', 'Remove your painted skins and use the generated texture again?', 'Reset', () => ecommit(e, (en) => { en.textures = []; setIdx(0); }))}>Reset to auto-paint</Btn>}
       </div>
+      {S > 1 && <p class="hint">High-detail texture: {S} pixels per model pixel ({W}×{H}).{emissive ? ' The ✨ glow brush paints pixels that glow in the dark (the game\'s emissive material).' : ''}</p>}
       <p class="hint">Guides: <span style={{ color: '#22d3ee' }}>front</span>, <span style={{ color: '#a78bfa' }}>back</span>, <span style={{ color: '#f59e0b' }}>sides</span>, <span style={{ color: '#4ade80' }}>top</span>, <span style={{ color: '#f87171' }}>bottom</span>.</p>
       <Preview3D entity={e} mode="idle" height={220} texIdx={idx} />
     </div>

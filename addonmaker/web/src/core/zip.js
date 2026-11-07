@@ -1,5 +1,5 @@
-// Minimal ZIP writer (STORE method) with UTF-8 names. Packs are small, so
-// skipping compression keeps the writer tiny and universally readable.
+// Minimal ZIP writer (deflate, or store when that is smaller) with UTF-8 names.
+import { deflateSync, inflateSync } from 'fflate';
 
 const CRC_TABLE = (() => {
   const t = new Uint32Array(256);
@@ -32,19 +32,23 @@ export function makeZip(files) {
   let offset = 0;
   for (const f of files) {
     const name = enc.encode(f.path.replace(/\\/g, '/'));
-    const data = typeof f.data === 'string' ? enc.encode(f.data) : f.data;
-    const crc = crc32(data);
+    const plain = typeof f.data === 'string' ? enc.encode(f.data) : f.data;
+    const crc = crc32(plain);
+    const packed = plain.length > 64 ? deflateSync(plain, { level: 6 }) : null;
+    const deflated = !!packed && packed.length < plain.length;
+    const data = deflated ? packed : plain;
+    const method = deflated ? 8 : 0;
     const lh = new Uint8Array(30 + name.length);
     const lv = new DataView(lh.buffer);
     lv.setUint32(0, 0x04034b50, true);
     lv.setUint16(4, 20, true);
     lv.setUint16(6, 0x0800, true); // UTF-8 names
-    lv.setUint16(8, 0, true); // store
+    lv.setUint16(8, method, true); // 8 = deflate, 0 = store
     lv.setUint16(10, dosTime, true);
     lv.setUint16(12, dosDate, true);
     lv.setUint32(14, crc, true);
     lv.setUint32(18, data.length, true);
-    lv.setUint32(22, data.length, true);
+    lv.setUint32(22, plain.length, true);
     lv.setUint16(26, name.length, true);
     lv.setUint16(28, 0, true);
     lh.set(name, 30);
@@ -56,12 +60,12 @@ export function makeZip(files) {
     cv.setUint16(4, 20, true);
     cv.setUint16(6, 20, true);
     cv.setUint16(8, 0x0800, true);
-    cv.setUint16(10, 0, true);
+    cv.setUint16(10, method, true);
     cv.setUint16(12, dosTime, true);
     cv.setUint16(14, dosDate, true);
     cv.setUint32(16, crc, true);
     cv.setUint32(20, data.length, true);
-    cv.setUint32(24, data.length, true);
+    cv.setUint32(24, plain.length, true);
     cv.setUint16(28, name.length, true);
     cv.setUint16(30, 0, true);
     cv.setUint16(32, 0, true);
@@ -88,7 +92,7 @@ export function makeZip(files) {
   return out;
 }
 
-/** Reads a ZIP (stored or deflated entries when DecompressionStream exists). */
+/** Reads a ZIP (stored or deflated entries). */
 export async function readZip(bytes) {
   const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   let eocd = -1;
@@ -114,11 +118,8 @@ export async function readZip(bytes) {
     if (name.endsWith('/')) continue;
     let data;
     if (method === 0) data = raw.slice();
-    else if (method === 8 && typeof DecompressionStream !== 'undefined') {
-      const ds = new DecompressionStream('deflate-raw');
-      const buf = await new Response(new Blob([raw]).stream().pipeThrough(ds)).arrayBuffer();
-      data = new Uint8Array(buf);
-    } else continue;
+    else if (method === 8) data = inflateSync(raw);
+    else continue;
     out.push({ path: name, data });
   }
   return out;

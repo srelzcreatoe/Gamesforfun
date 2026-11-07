@@ -36,6 +36,19 @@ Install: `Mobsmith.apk` in the repository root (Android 7.0+).
   - Events with add/remove, set_property, trigger, queue_command, randomize and sequence, nested as deep as you need.
   - Entity properties (bool, int, float, enum).
   - A visual **filter builder** with every filter test.
+- **Detailed models and textures**:
+  - **Bodies**: dweller bodies are built like anatomy.
+    - Shoulders, chest, waist and hips.
+    - Two-part arms and legs with elbows and knees (child bones with a slight bend, so the built-in animations still move whole limbs).
+    - Hands with three fingers and a thumb, and claws on the fingertips.
+    - Feet with toes, a brow ridge and spine knobs.
+    - Ragged robe hems for wraiths, and snouts and two-part tails for four-legged bodies.
+  - **Auto-paint at up to 4 pixels per model pixel** (PNG up to 512 px; the game scales HD textures like HD resource packs):
+    - face lighting, soft edge shading and skin variation;
+    - shaded ribs and spine, cracks and veins;
+    - detailed faces: socket shadows, glowing eyes that light the skin, blood drips, lips, and jagged teeth that meet in the middle.
+  - **Glowing eyes in the dark**: glowing eye styles use the `entity_emissive_alpha` material with low-alpha eye pixels, the same encoding vanilla uses for enderman eyes. The 3D preview shows the glow, and the texture painter has a glow brush.
+  - **Compression**: textures and add-on files are compressed (fflate), so high-detail textures stay small (about 60 KB each).
 - **Model editor**: 6 general body templates (humanoid, golem, four-legged, flyer, swimmer, blob) and 11 horror bodies, bones, cubes, pivots, rotations, automatic UV packing, and import/export of `.geo.json`.
 - **Texture painter**: pencil, eraser, fill, colour picker and shading brush, with UV guides, undo, skin variants (random skin on spawn in one tap) and PNG import/export. If you don't paint, an auto-paint texture is generated from the bone colours.
 - **Animations**: procedural walk, run, look-at, idle, attack, wing-flap and swim motions, plus dweller stalk, flee and frozen poses, all driven by bone roles, plus custom keyframe animations with "plays when" conditions. The live 3D preview evaluates the same data that is exported as Molang.
@@ -114,7 +127,10 @@ npm run test:ui
 - that rewiring the board changes the exported behaviour;
 - appearance-director functions (command names checked against the official command list);
 - animation-slot export;
-- the sound editor's audio processing and WAV encoding.
+- the sound editor's audio processing and WAV encoding;
+- high-detail textures (including a PNG decode round-trip);
+- glow pixels appearing only on faces, plus the emissive material in exports;
+- jointed bodies that still stand on the ground.
 
 ```bash
 npm run test:ui
@@ -130,7 +146,7 @@ npm run test:ui
 
 - Pixel font: [Silkscreen](https://fonts.google.com/specimen/Silkscreen) by Jason Kottke, SIL Open Font License 1.1 (bundled from `@fontsource/silkscreen`).
 - Music: 5 original tracks synthesized by `tools/gen_music.py` (numpy synth, encoded to OGG Vorbis with ffmpeg). Run `python3 tools/gen_music.py` to regenerate them.
-- 3D preview: three.js (MIT). UI: Preact (MIT).
+- 3D preview: three.js (MIT). UI: Preact (MIT). Compression: fflate (MIT).
 
 ## Known limitations
 
