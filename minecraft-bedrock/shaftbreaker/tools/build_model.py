@@ -511,110 +511,127 @@ def build_head():
     box(jaw, 3.25, 3.5, 72.75, 75.25, -3.5, -2.5, tag='mouthwall', inner='east')
 
 
-def fb_ray(el, spread, sx, back):
-    """unit direction for front (back=False, -Z) / back (+Z) shards: el above horizontal, spread = degrees
-    fanned out toward side sx"""
-    e, s = math.radians(el), math.radians(spread)
-    return (sx * math.cos(e) * math.sin(s), math.sin(e), (1 if back else -1) * math.cos(e) * math.cos(s))
+def spike(owner, base, tip, w, embed=1.25, roll=0.0, up=None, **paint):
+    """Chunky stepped stone spike of the mane (dormant_head / dormant_full): three stacked square blocks, each
+    centred on the one before, tapering w -> ~0.65 w -> ~0.4 w (>= 1 unit) to a blunt stepped point.  `base` is
+    where the shaft leaves the collar (`embed` units of it sit inside the collar), `tip` the point.  The square
+    cross-section is aligned to `up` (default: a flat face toward the front, -Z) and rolled by `roll` degrees."""
+    b = np.array(base, float)
+    d = np.array(tip, float) - b
+    length = float(np.linalg.norm(d))
+    d /= length
+    if up is None:
+        up = (0.0, 0.0, -1.0) if abs(d[2]) < 0.8 else (0.0, 1.0, 0.0)
+    u = np.array(up, float)
+    u = u - np.dot(u, d) * d
+    u /= np.linalg.norm(u)
+    if roll:
+        a = math.radians(roll)
+        u = u * math.cos(a) + np.cross(d, u) * math.sin(a)
+    r = orient(d, u)
+    P = qv(b)
+    widths = [_half(w), _half(max(1.0, w * 0.66)), _half(max(1.0, w * 0.4))]
+    if widths[2] >= widths[1]:
+        widths[2] = max(1.0, widths[1] - 0.5)
+    fr = (0.44, 0.32, 0.24)
+    total = length + embed
+    y = -embed
+    cubes = []
+    for i, sw in enumerate(widths):
+        L = q(total * fr[i]) if i < 2 else q(length - y)
+        L = max(1.0, L)
+        x0 = P[0] - sw / 2
+        z0 = P[2] - sw / 2
+        c = box(owner, x0, x0 + sw, P[1] + y, P[1] + y + L, z0, z0 + sw, tag='stone', rot=r, pivot=P,
+                brick=(1.25, 1.25), mane=True, **paint)
+        cubes.append(c)
+        y = q(y + L)
+    return cubes
 
 
-# Side mane (creature's RIGHT side; |x| given, mirrored to the left).  Every shard is AIMED at a front-view
-# outline point so the collar reads as an orderly sunburst of ~7 distinct spike points per side with dark
-# notches between them (dormant_full / dormant_head), not a fuzzy ruff:
-#   ((|x|, y, z) base of the shaft, (|x|, y) tip as seen from the front, azimuth deg (+ = leaning back), w, t)
-# The FRONT layer draws the outline; the BACK layer repeats the upper rays further back (aligned with them in
-# the front view, so the notches stay open) and fills the side / three-quarter views.  Above the jaw (y > 70.5)
-# every base sits behind z = +1.5 and well outside the head, so the head can turn / tilt (look_at, watch) without
-# entering the collar, and in profile the head sits in front of the mane (stalk_full / watch_full).
-MANE_SIDE_FRONT = [
-    ((7.0, 71.25, 4.5), (10.25, 79.75), 16, 4.0, 3.0),   # crown: leaning out ~68 deg, dark gap to the temple
-    ((7.5, 70.5, 3.75), (12.75, 77.5), 12, 4.0, 3.0),     # high (~50 deg)
-    ((7.75, 69.75, 2.5), (14.75, 74.5), 10, 4.0, 3.0),    # upper (~33 deg)
-    ((8.25, 69.0, 1.0), (16.0, 71.25), 2, 4.0, 3.0),      # straight out at chin level (widest)
-    ((8.5, 68.0, 0.5), (16.25, 67.75), -8, 4.0, 3.0),     # mid
-    ((9.0, 67.0, 0.75), (15.5, 64.5), -4, 3.5, 3.0),      # low: out-down over the arm top
-    ((9.25, 66.25, 1.25), (13.5, 61.5), 4, 3.5, 2.5),     # lowest
+# Mane: a dense radial ruff of chunky stepped spikes around the neck (dormant_head / dormant_full / stalk_full).
+# Front view: a sunburst centred on the throat, ~32 units wide (x +-16 at y ~67), whose upper rays rise beside the
+# head to eye level (y ~80, behind the head plane so the head can turn freely), whose lower rays hang over the chest
+# as two V-shaped "lapels" of down-pointing spikes either side of a dark throat channel, and a bushy hump of spikes
+# rising up / back behind the head in the side views.
+#   (base (|x|, y, z), tip (|x|, y, z), width) -- creature's left side (+x); mirrored to the right
+MANE_SIDE = [
+    # crown: rising beside the head (inner faces ~0.25 off the head side, front faces behind z 0.25)
+    ((6.0, 72.0, 3.0), (7.0, 80.5, 3.5), 3.0),
+    ((7.25, 71.5, 2.25), (10.25, 79.25, 2.5), 3.5),
+    ((8.25, 70.75, 1.75), (13.0, 76.5, 1.75), 3.5),
+    # side outline (widest at chin level)
+    ((8.75, 69.5, 1.0), (15.25, 72.75, 1.0), 3.5),
+    ((9.0, 68.0, 0.5), (16.25, 68.5, 0.5), 4.0),
+    ((9.0, 66.25, 0.5), (15.75, 64.0, 0.5), 3.5),
+    ((8.75, 64.75, 0.75), (14.0, 60.0, 0.5), 3.5),
+    ((8.0, 63.5, 1.0), (11.25, 57.75, 0.75), 3.0),
+    # front layer between the outline rays, pointing out and forward
+    ((7.75, 70.0, -0.5), (12.0, 75.0, -2.75), 3.0),
+    ((8.0, 67.25, -1.25), (13.5, 66.75, -3.75), 3.0),
+    ((7.5, 64.75, -1.0), (11.0, 60.75, -3.25), 3.0),
+    # back layer: bushy in the three-quarter / side views
+    ((7.0, 70.0, 4.5), (11.0, 76.25, 8.0), 3.0),
+    ((7.5, 67.5, 4.25), (13.0, 68.5, 8.5), 3.0),
+    ((7.0, 64.75, 4.0), (11.0, 61.5, 8.0), 3.0),
 ]
-MANE_SIDE_SHOULDER = [   # short chunky shards in front of the collar over the shoulder tops (below the head's sweep)
-    ((6.75, 67.75, -1.0), (10.75, 70.25), -15, 3.5, 3.0),
-    ((7.25, 66.5, -1.5), (12.0, 66.75), -18, 3.5, 3.0),
+# Front lapels (mane_front): chunky spikes hanging down / out over the chest either side of the dark throat channel
+# (|x| < 1.75 stays open).  Bases outside the jaw's 55-deg swing (8.14 units from the hinge [0, 73, 3.5]).
+MANE_FRONT = [
+    ((3.25, 66.0, -3.25), (4.25, 59.75, -5.25), 3.0),
+    ((6.0, 66.5, -2.75), (8.5, 60.5, -4.75), 3.0),
+    ((3.0, 62.5, -3.0), (3.75, 56.75, -4.75), 2.5),
+    ((5.75, 63.0, -2.75), (7.5, 57.25, -4.5), 3.0),
+    ((6.75, 69.25, -2.0), (9.5, 73.5, -4.25), 3.0),     # upward ray in front of the shoulder (beside the jaw)
+    # short rays pointing toward the viewer (square ends seen head-on) that fill the front of the ruff
+    ((8.0, 68.75, -1.5), (10.5, 70.5, -6.5), 3.0),
+    ((9.25, 66.0, -1.0), (12.25, 65.25, -5.75), 3.0),
+    ((5.0, 64.5, -2.75), (5.75, 63.5, -7.25), 2.5),
+    ((8.5, 62.75, -0.75), (10.75, 59.25, -4.75), 3.0),
 ]
-MANE_SIDE_BACK = [   # tips ~75 % of the way to the matching front-layer tip (inside the front outline)
-    ((5.75, 70.25, 5.75), (8.0, 77.25), 40, 4.0, 3.0),    # behind the head: the art's near-temple point
-    ((6.75, 69.75, 5.25), (10.75, 75.25), 38, 4.0, 3.0),
-    ((7.25, 69.25, 4.75), (12.5, 73.25), 34, 4.0, 3.0),
-    ((7.75, 68.5, 4.25), (13.75, 70.25), 30, 4.0, 3.0),
-    ((8.25, 67.5, 4.0), (13.75, 66.5), 28, 3.5, 3.0),
-]
-# Front bib (mane_front): blades hanging down the chest from just below the chin, across the shadowed throat
-# recess.  The top tier starts ~10 units from the jaw hinge (outside the jaw's swing) and low enough that the
-# head + neck can pitch 35-45 deg down without the chin entering it.  No tip passes z -6.
-#   (x, y, z, elevation, spread, length, width, thickness);  x > 0 entries are mirrored
-MANE_FRONT = [     # the side blades angle down and INWARD (a chevron converging on the throat column, dormant_head)
-    (3.25, 66.75, -5.0, -76, -55, 6.0, 3.0, 2.0),      # top tier, flanking the throat
-    (1.0, 67.0, -5.25, -82, 4, 5.0, 2.0, 1.5),         # centre pair hanging across the recess
-    (0.0, 64.5, -4.75, -85, 0, 4.5, 2.5, 1.5),         # centre single below them
-    (6.25, 66.75, -3.75, -72, -50, 6.5, 3.0, 2.0),     # outer, from the collar edge in toward the sternum
-    (8.75, 65.0, -3.25, -76, -10, 5.5, 3.0, 2.0),      # outermost, over the arm root
-    (4.5, 63.25, -4.25, -74, -40, 5.0, 3.0, 2.0),      # lower tier, over the ribs
-]
-# Back (mane_back): a fan rising up and back behind the head to eye level, bushy in the side views
+# Back hump (mane_back): spikes rising up / back behind the head and fanning down the upper back
 MANE_BACK = [
-    (2.25, 69.0, 6.25, 62, 12, 10.0, 4.0, 3.0),       # top row: rising behind the head
-    (0.0, 67.25, 6.0, 50, 0, 9.5, 4.0, 3.0),          # centre
-    (4.5, 68.25, 5.0, 48, 32, 9.0, 4.0, 3.0),         # upper-mid, fanned out
-    (2.25, 65.0, 5.0, 30, 14, 8.5, 4.0, 3.0),         # lower-mid
-    (0.0, 61.75, 4.75, 12, 0, 7.5, 3.5, 3.0),         # low
-    (3.0, 60.75, 4.5, 0, 22, 6.5, 3.5, 2.5),          # low flanks
+    ((0.0, 69.75, 6.75), (0.0, 78.5, 10.0), 3.5),
+    ((3.0, 70.0, 6.5), (4.0, 79.75, 8.25), 3.0),
+    ((0.0, 67.0, 6.0), (0.0, 71.5, 12.0), 3.5),
+    ((3.75, 68.0, 5.5), (6.5, 72.75, 10.75), 3.0),
+    ((0.0, 63.75, 5.5), (0.0, 64.0, 11.25), 3.0),
+    ((3.5, 64.25, 5.25), (6.0, 62.0, 10.5), 3.0),
+    ((2.0, 61.0, 4.75), (3.0, 58.0, 9.0), 2.5),
 ]
-
-
-BIB_SHADOW = (65.0, 68.5, 0.35)     # the bib's upper ends sit in the shadow of the chin (dormant_head)
 
 
 def build_mane():
-    """Collar of chunky stepped shards radiating like a sunburst around the neck (dormant_full / dormant_head):
-    ~7 distinct points per side from beside the head (leaning out, a dark gap to the temple) through straight
-    out at chin level (widest, x +-16) to out-down over the arm tops; blades hanging down the front from just
-    below the chin; a fan rising up/back behind the head."""
+    """Radial ruff of chunky stepped stone spikes around the neck (see MANE_* above) on a solid collar core, so no
+    background shows through the ruff."""
     rng = Rng(202)
     bone('mane_front', 'chest', (0, 65, -3))
     bone('mane_back', 'chest', (0, 66, 3))
     bone('mane_left', 'chest', (6, 66, 0))
     bone('mane_right', 'chest', (-6, 66, 0))
 
-    def aimed(owner, sx, base, tip, az, w, t):
-        bx, by, bz = base
-        tx, ty = tip[0] + rng.u(-0.2, 0.2), tip[1] + rng.u(-0.2, 0.2)
-        dx, dy = tx - bx, ty - by
-        dz = abs(dx) * math.tan(math.radians(az + rng.u(-2, 2)))
-        L = math.sqrt(dx * dx + dy * dy + dz * dz)
-        # rolled 45 deg about its own axis: from the front each shard shows a lit upper facet and a dark underside
-        shard(owner, (sx * bx, by, bz), (sx * dx, dy, dz), L, w=w, t=t, up=(0.0, 0.7071, -0.7071))
+    def jit(p, a):
+        return (p[0] + rng.u(-a, a), p[1] + rng.u(-a, a), p[2] + rng.u(-a, a))
 
     for sx, owner in ((-1, 'mane_right'), (1, 'mane_left')):
-        for base, tip, az, w, t in MANE_SIDE_BACK:
-            aimed(owner, sx, base, tip, az, w, t)
-        for base, tip, az, w, t in MANE_SIDE_FRONT + MANE_SIDE_SHOULDER:
-            aimed(owner, sx, base, tip, az, w, t)
-        # collar bulk under the shards (keeps the ruff solid; inner face at |x| 4.5, below the jaw)
-        box(owner, sx * 4.5, sx * 9.25, 64.5, 68.75, -0.75, 4.0, tag='spike', tone=0.62)
-
-    for (x, y, z, el, sp, L, w, t) in MANE_FRONT:
-        for sx in ((-1, 1) if x > 0 else (1,)):
-            d = fb_ray(el + rng.u(-1.5, 1.5), sp + rng.u(-2, 2), sx, back=False)
-            # outer blades rolled (lit outer facet); the ones next to the throat stay flat so nothing passes z -6
-            up = (0.0, 0.0, -1.0) if x < 4.0 else (sx * 0.5, 0.5, -0.7071)
-            shard('mane_front', (sx * x, y, z), d, L, w=w, t=t, embed=1.0, up=up, shadow=BIB_SHADOW)
+        for base, tip, w in MANE_SIDE:
+            t = jit(tip, 0.3)
+            spike(owner, (sx * base[0], base[1], base[2]), (sx * t[0], t[1], t[2]), w, roll=rng.u(-12, 12),
+                  tone=rng.u(0.92, 1.06))
+        # collar core under the spikes (beside / behind the neck, below the jaw line)
+        box(owner, sx * 4.75, sx * 9.0, 63.0, 70.5, -1.5, 4.5, tone=0.72, brick=(1.25, 1.25), mane=True)
     for sx in (-1, 1):
-        box('mane_front', sx * 4.75, sx * 7.0, 63.5, 67.5, -4.0, -2.25, tag='spike', tone=0.62, shadow=BIB_SHADOW)
-    box('mane_front', -4.25, 4.25, 59.5, 63.0, -4.0, -2.25, tag='spike', tone=0.7)
-
-    for (x, y, z, el, sp, L, w, t) in MANE_BACK:
-        for sx in ((-1, 1) if x > 0 else (1,)):
-            d = fb_ray(el + rng.u(-1.5, 1.5), sp + rng.u(-2, 2), sx, back=True)
-            shard('mane_back', (sx * x, y, z), d, L + q(rng.u(-0.25, 0.25)), w=w, t=t, front_shade=THROAT)
-    box('mane_back', -5.0, 5.0, 60.0, 68.5, 2.75, 4.5, tag='spike', tone=0.8, front_shade=THROAT)
+        for base, tip, w in MANE_FRONT:
+            t = jit(tip, 0.25)
+            spike('mane_front', (sx * base[0], base[1], base[2]), (sx * t[0], t[1], t[2]), w, embed=1.0,
+                  roll=rng.u(-10, 10), tone=rng.u(0.9, 1.04), shadow=(64.0, 68.5, 0.3))
+        box('mane_front', sx * 2.0, sx * 8.0, 60.0, 66.5, -3.0, -1.25, tone=0.6, brick=(1.25, 1.25), mane=True)
+    for base, tip, w in MANE_BACK:
+        for sx in ((-1, 1) if base[0] > 0 else (1,)):
+            t = jit(tip, 0.3)
+            spike('mane_back', (sx * base[0], base[1], base[2]), (sx * t[0], t[1], t[2]), w,
+                  roll=rng.u(-12, 12), tone=rng.u(0.92, 1.06))
+    box('mane_back', -5.0, 5.0, 60.5, 69.5, 4.25, 6.0, tone=0.7, brick=(1.25, 1.25), mane=True)
 
 
 AX = -12.0     # right arm axis: cubes sit 1 unit outside the (fixed) bone pivots at x = -11 (art shoulder width)
@@ -998,9 +1015,9 @@ def hexc(s):
 PAL = {   # SPEC section 5 albedo (unlit): dusky "mauve-taupe" granite -- a low-chroma pinkish grey (hue ~335 deg, sat ~0.14).
     #   Under warm cave light (renderer --bg mine) it reads as the art's warm pink-brown (masked compare vs
     #   dormant_torso: hue ~15 deg like the art); the SPEC's warmer #96766c turns salmon-orange under that light.
-    'base': hexc('#8c7882'), 'light': hexc('#bcaab0'), 'dark': hexc('#4a3a3e'), 'soot': hexc('#2a201e'),
-    'spike': hexc('#968589'), 'spike_top': hexc('#b4a2a6'), 'spike_bevel': hexc('#c2b0b4'),
-    'spike_down': hexc('#4e3c40'), 'claw': hexc('#1e1714'), 'claw_tip': hexc('#5a4a42'), 'claw_edge': hexc('#4a3c36'),
+    'base': hexc('#937670'), 'light': hexc('#c2a59b'), 'dark': hexc('#4a3632'), 'soot': hexc('#2a201c'),
+    'spike': hexc('#8f736d'), 'spike_top': hexc('#ad928a'), 'spike_bevel': hexc('#bea299'),
+    'spike_down': hexc('#4e3a36'), 'claw': hexc('#1e1714'), 'claw_tip': hexc('#5a4a42'), 'claw_edge': hexc('#4a3c36'),
     'mouth': hexc('#120c0a'), 'mouth_bg': hexc('#1c120e'), 'mouth_rim': hexc('#241812'),
     'tooth_spill': hexc('#3a2418'), 'tooth_side': hexc('#6e5242'),
     'eye_core': hexc('#fff4dc'), 'eye_edge': hexc('#ffe6c0'), 'eye_rim': hexc('#ffb05a'), 'eye_halo': hexc('#c8805e'),
