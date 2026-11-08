@@ -57,9 +57,11 @@
               "minecraft:smooth_basalt",
               "minecraft:cobbled_deepslate",
               "minecraft:dripstone_block",
+              "minecraft:calcite",
               "brine:tracked_mud",
               "brine:bloodstained_deepslate",
-              "brine:clawed_deepslate"
+              "brine:clawed_deepslate",
+              "brine:veined_deepslate"
             ]
           }
         ]
@@ -72,7 +74,8 @@
           }
         ]
       },
-      "minecraft:map_color": "#7b0000"
+      "minecraft:map_color": "#7b0000",
+      "minecraft:light_emission": 5
     }
   }
 }

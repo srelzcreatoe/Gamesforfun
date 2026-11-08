@@ -13,7 +13,7 @@ ID = 'brine:brinesleeper'
 # fixed UUIDs so re-running the script produces the same packs
 RP_H, RP_M = '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e01', '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e02'
 BP_H, BP_M = '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e03', '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e04'
-VER = [1, 3, 1]   # bump on every release so Minecraft imports the update over an older copy
+VER = [1, 4, 0]   # bump on every release so Minecraft imports the update over an older copy
 
 
 def write(path, obj):

@@ -1,0 +1,33 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:scatter_feature": {
+    "description": {
+      "identifier": "brine:candle_cluster"
+    },
+    "places_feature": "brine:candle_on_floor",
+    "distribution": {
+      "iterations": 5,
+      "x": {
+        "distribution": "uniform",
+        "extent": [
+          -2,
+          3
+        ]
+      },
+      "y": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          2
+        ]
+      },
+      "z": {
+        "distribution": "uniform",
+        "extent": [
+          -2,
+          3
+        ]
+      }
+    }
+  }
+}

@@ -3,7 +3,11 @@
 Checks that every JSON parses; that feature / feature-rule / biome identifiers match their file names;
 that every referenced feature, structure, block, texture, fog and sound exists; that the .mcstructure
 files decode; and that the Brinesleeper spawn rule targets the biome's tag.
-Usage: python3 validate_packs.py <pack root dir containing resource_pack/ and behavior_pack/>
+Usage: python3 validate_packs.py <pack root dir containing resource_pack/ and behavior_pack/> [mojang-blocks.json]
+
+With Mojang's block metadata (bedrock-samples metadata/vanilladata_modules/mojang-blocks.json) every vanilla block
+named by a feature or stored in a structure palette is also checked: the name must exist and every state must be
+one of that block's real states with an allowed value, and no state may be missing.
 """
 import glob
 import json
@@ -12,6 +16,11 @@ import struct
 import sys
 
 ROOT = sys.argv[1] if len(sys.argv) > 1 else '..'
+VANILLA = None
+if len(sys.argv) > 2:
+    _meta = json.load(open(sys.argv[2]))
+    _props = {p['name']: [v['value'] for v in p['values']] for p in _meta['block_properties']}
+    VANILLA = {b['name']: {p['name']: _props.get(p['name'], []) for p in b.get('properties', [])} for b in _meta['data_items']}
 RP = os.path.join(ROOT, 'resource_pack')
 BP = os.path.join(ROOT, 'behavior_pack')
 errors, notes = [], []
@@ -54,10 +63,29 @@ for path in glob.glob(f'{BP}/blocks/*.json'):
     custom_blocks[ident] = d['minecraft:block']
 
 
-def check_block(name, where):
+def check_block(name, where, states=None):
+    if isinstance(name, list):                           # weighted list [{"block": ..., "weight": n}]
+        for e in name:
+            check_block(e['block'], where)
+        return
     if isinstance(name, dict):
-        name = name.get('name', '')
+        name, states = name.get('name', ''), name.get('states')
     if name.startswith('minecraft:'):
+        if VANILLA is None:
+            return
+        if name not in VANILLA:
+            err(f'{where}: no vanilla block called {name}')
+            return
+        if states is not None:
+            real = VANILLA[name]
+            for k, v in states.items():
+                if k not in real:
+                    err(f'{where}: {name} has no state {k}')
+                elif real[k] and v not in real[k] and not (isinstance(v, int) and bool(v) in real[k] and set(real[k]) == {False, True}):
+                    err(f'{where}: {name} state {k}={v!r} is not one of {real[k]}')
+            for k in real:
+                if k not in states:
+                    err(f'{where}: {name} is missing its {k} state')
         return
     if name not in custom_blocks:
         err(f'{where}: unknown block {name}')
@@ -84,6 +112,21 @@ for ident, (kind, body, fmt) in features.items():
             err(f'feature {ident}: missing structure file {ns}/{path}.mcstructure')
     if kind == 'minecraft:single_block_feature':
         check_block(body['places_block'], ident)
+        for b in body.get('may_replace', []):
+            check_block(b, ident)
+    if kind == 'minecraft:ore_feature':
+        for rr in body['replace_rules']:
+            check_block(rr['places_block'], ident)
+            for b in rr.get('may_replace', []):
+                check_block(b, ident)
+    if kind == 'minecraft:fossil_feature':
+        check_block(body['ore_block'], ident)
+        if not isinstance(body['max_empty_corners'], int):
+            err(f'feature {ident}: max_empty_corners must be an integer')
+    if kind == 'minecraft:sequence_feature' and not body['features']:
+        err(f'feature {ident}: empty sequence')
+    if kind == 'minecraft:structure_template_feature' and not 0 <= body.get('adjustment_radius', 0) <= 16:
+        err(f'feature {ident}: adjustment_radius must be within [0, 16]')
     if kind == 'minecraft:vegetation_patch_feature':
         check_block(body['ground_block'], ident)
     if kind == 'minecraft:growing_plant_feature':
@@ -116,6 +159,13 @@ for path in glob.glob(f'{BP}/feature_rules/*.json'):
     ident = fr['description']['identifier']
     if ident.split(':')[-1] != os.path.basename(path)[:-5]:
         err(f'{path}: identifier {ident} does not match the file name')
+    passes = {'pregeneration_pass', 'first_pass', 'before_underground_pass', 'underground_pass', 'after_underground_pass',
+              'before_surface_pass', 'surface_pass', 'after_surface_pass', 'before_sky_pass', 'sky_pass', 'after_sky_pass', 'final_pass'}
+    if fr['conditions']['placement_pass'] not in passes:
+        err(f'{path}: unknown placement pass {fr["conditions"]["placement_pass"]}')
+    sc = fr.get('distribution', {}).get('scatter_chance')
+    if isinstance(sc, dict) and not 0 < sc['numerator'] <= sc['denominator']:
+        err(f'{path}: scatter_chance must be a fraction between 0 and 1')
     if fr['description']['places_feature'] not in features:
         err(f'{path}: places missing feature {fr["description"]["places_feature"]}')
     rule_targets.add(fr['description']['places_feature'])
@@ -180,8 +230,14 @@ for rel in sorted(structure_files):
         err(f'{rel}: block index count does not match size {size}')
     if any(i >= len(pal) for i in idx[0]):
         err(f'{rel}: block index out of palette range')
-    notes.append(f'{rel}: ' + ' > '.join(pal[i]['states']['dripstone_thickness'] for i in reversed(idx[0])) + (
-        ' (hanging)' if pal[0]['states']['hanging'] else ''))
+    for p_ in pal:
+        check_block({'name': p_['name'], 'states': p_['states']}, f'structure {rel}')
+    if 'dripstone_thickness' in pal[0]['states']:
+        notes.append(f'{rel}: ' + ' > '.join(pal[i]['states']['dripstone_thickness'] for i in reversed(idx[0])) + (
+            ' (hanging)' if pal[0]['states']['hanging'] else ''))
+    else:
+        used = sum(1 for i in idx[0] if i >= 0)
+        notes.append(f'{rel}: {size[0]}x{size[1]}x{size[2]}, {used} blocks of {len(pal)} kinds')
 
 # ------------------------------------------------------------------ biome, client biome, fog, textures, sounds
 biomes = {}

@@ -1,0 +1,12 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:sequence_feature": {
+    "description": {
+      "identifier": "brine:lake_ribcage"
+    },
+    "features": [
+      "brine:in_lake_probe",
+      "brine:ribcage_any"
+    ]
+  }
+}

@@ -125,7 +125,7 @@ export function makeWater(size, level, opts = {}) {
       time: { value: 0 }, waterColor: { value: new THREE.Color(opts.color || 0x0b1c22) },
       glint: { value: new THREE.Color(opts.glint || 0x9fd6ff) },
       ripples: { value: Array.from({ length: 8 }, () => new THREE.Vector4(0, 0, -100, 0)) },
-      opacity: { value: opts.opacity ?? 0.9 }, reflectAmt: { value: opts.reflect ?? 0.85 },
+      opacity: { value: opts.opacity ?? 0.9 }, reflectAmt: { value: opts.reflect ?? 0.85 }, waveAmp: { value: opts.waves ?? 1.0 },
     }]),
     vertexShader: /* glsl */`
       uniform mat4 textureMatrix;
@@ -140,7 +140,7 @@ export function makeWater(size, level, opts = {}) {
       }`,
     fragmentShader: /* glsl */`
       uniform sampler2D tDiffuse; uniform float time; uniform vec3 waterColor; uniform vec3 glint;
-      uniform vec4 ripples[8]; uniform float opacity; uniform float reflectAmt;
+      uniform vec4 ripples[8]; uniform float opacity; uniform float reflectAmt; uniform float waveAmp;
       varying vec4 vUv; varying vec3 vWorld;
       #include <fog_pars_fragment>
       vec2 waves(vec2 p) {
@@ -161,7 +161,7 @@ export function makeWater(size, level, opts = {}) {
         return g;
       }
       void main() {
-        vec2 g = waves(vWorld.xz);
+        vec2 g = waves(vWorld.xz) * waveAmp;
         vec4 uv = vUv; uv.xy += g * 0.014 * uv.w;
         vec3 refl = texture2DProj(tDiffuse, uv).rgb;
         vec3 V = normalize(cameraPosition - vWorld);

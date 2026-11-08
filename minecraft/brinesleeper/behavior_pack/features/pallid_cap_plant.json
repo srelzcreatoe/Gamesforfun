@@ -1,0 +1,14 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:single_block_feature": {
+    "description": {
+      "identifier": "brine:pallid_cap_plant"
+    },
+    "places_block": "brine:pallid_cap",
+    "enforce_placement_rules": true,
+    "enforce_survivability_rules": true,
+    "may_replace": [
+      "minecraft:air"
+    ]
+  }
+}

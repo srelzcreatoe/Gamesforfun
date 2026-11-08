@@ -1,0 +1,44 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:feature_rules": {
+    "description": {
+      "identifier": "brine:stillwater_hall_plants_level0",
+      "places_feature": "brine:plant_on_floor"
+    },
+    "conditions": {
+      "placement_pass": "underground_pass",
+      "minecraft:biome_filter": [
+        {
+          "test": "has_biome_tag",
+          "operator": "==",
+          "value": "stillwater_caves"
+        }
+      ]
+    },
+    "distribution": {
+      "iterations": 26,
+      "coordinate_eval_order": "zyx",
+      "x": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          16
+        ]
+      },
+      "y": {
+        "distribution": "uniform",
+        "extent": [
+          -24,
+          -18
+        ]
+      },
+      "z": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          16
+        ]
+      }
+    }
+  }
+}

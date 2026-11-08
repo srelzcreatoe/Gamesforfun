@@ -1,0 +1,18 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:weighted_random_feature": {
+    "description": {
+      "identifier": "brine:ribcage_any"
+    },
+    "features": [
+      [
+        "brine:ribcage_0",
+        1
+      ],
+      [
+        "brine:ribcage_1",
+        1
+      ]
+    ]
+  }
+}

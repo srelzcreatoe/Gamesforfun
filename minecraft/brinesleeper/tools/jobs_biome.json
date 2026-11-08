@@ -1,3 +1,2 @@
-[{"name": "biome_lake", "view": "lake", "w": 1600, "h": 900},
- {"name": "biome_shore", "view": "shore", "w": 1000, "h": 640},
- {"name": "biome_ceiling", "view": "ceiling", "w": 1000, "h": 640}]
+[{"name": "vista", "view": "vista", "w": 1600, "h": 900, "exposure": 1.8},
+ {"name": "lurk", "view": "lurk", "w": 1600, "h": 900, "creature": true, "anim": "idle_water", "animTime": 1.2, "exposure": 1.7}]

@@ -1,0 +1,90 @@
+{
+  "format_version": "1.26.30",
+  "minecraft:block": {
+    "description": {
+      "identifier": "brine:pale_dripstone_middle",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "minecraft:geometry.cross",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "brine_pale_dripstone_middle",
+          "render_method": "alpha_test_single_sided",
+          "ambient_occlusion": 0.0,
+          "face_dimming": false
+        }
+      },
+      "minecraft:collision_box": {
+        "origin": [
+          -2.5,
+          0,
+          -2.5
+        ],
+        "size": [
+          5.0,
+          16,
+          5.0
+        ]
+      },
+      "minecraft:selection_box": {
+        "origin": [
+          -5.0,
+          0,
+          -5.0
+        ],
+        "size": [
+          10,
+          16,
+          10
+        ]
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.5
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 3.0
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:placement_filter": {
+        "conditions": [
+          {
+            "allowed_faces": [
+              "down"
+            ],
+            "block_filter": [
+              "minecraft:stone",
+              "minecraft:deepslate",
+              "minecraft:tuff",
+              "minecraft:smooth_basalt",
+              "minecraft:granite",
+              "minecraft:diorite",
+              "minecraft:andesite",
+              "minecraft:cobbled_deepslate",
+              "minecraft:calcite",
+              "minecraft:dripstone_block",
+              "minecraft:gravel",
+              "minecraft:dirt",
+              "minecraft:mud",
+              "minecraft:clay",
+              "minecraft:coarse_dirt",
+              "brine:bloodstained_deepslate",
+              "brine:clawed_deepslate",
+              "brine:veined_deepslate",
+              "brine:tracked_mud",
+              "minecraft:cobblestone",
+              "minecraft:mossy_cobblestone",
+              "brine:pale_dripstone_base",
+              "brine:pale_dripstone_middle",
+              "brine:pale_dripstone_frustum",
+              "brine:pale_dripstone_tip"
+            ]
+          }
+        ]
+      },
+      "minecraft:map_color": "#cfc9b6"
+    }
+  }
+}

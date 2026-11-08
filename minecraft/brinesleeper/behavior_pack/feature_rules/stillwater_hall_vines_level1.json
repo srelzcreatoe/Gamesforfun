@@ -1,0 +1,44 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:feature_rules": {
+    "description": {
+      "identifier": "brine:stillwater_hall_vines_level1",
+      "places_feature": "brine:blood_vine_on_ceiling"
+    },
+    "conditions": {
+      "placement_pass": "underground_pass",
+      "minecraft:biome_filter": [
+        {
+          "test": "has_biome_tag",
+          "operator": "==",
+          "value": "stillwater_caves"
+        }
+      ]
+    },
+    "distribution": {
+      "iterations": 14,
+      "coordinate_eval_order": "zyx",
+      "x": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          16
+        ]
+      },
+      "y": {
+        "distribution": "uniform",
+        "extent": [
+          15,
+          27
+        ]
+      },
+      "z": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          16
+        ]
+      }
+    }
+  }
+}

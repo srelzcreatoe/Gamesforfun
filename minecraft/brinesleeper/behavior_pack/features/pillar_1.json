@@ -1,0 +1,13 @@
+{
+  "format_version": "1.21.110",
+  "minecraft:structure_template_feature": {
+    "description": {
+      "identifier": "brine:pillar_1"
+    },
+    "structure_name": "brine:pillar_1",
+    "facing_direction": "random",
+    "constraints": {},
+    "rotate_around_center": true,
+    "ground_level": 11
+  }
+}

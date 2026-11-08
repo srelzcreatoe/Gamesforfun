@@ -1,0 +1,26 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:ore_feature": {
+    "description": {
+      "identifier": "brine:silt_mud"
+    },
+    "count": 24,
+    "replace_rules": [
+      {
+        "places_block": "minecraft:mud",
+        "may_replace": [
+          "minecraft:stone",
+          "minecraft:deepslate",
+          "minecraft:tuff",
+          "minecraft:smooth_basalt",
+          "minecraft:granite",
+          "minecraft:diorite",
+          "minecraft:andesite",
+          "minecraft:cobbled_deepslate",
+          "minecraft:calcite",
+          "minecraft:dripstone_block"
+        ]
+      }
+    ]
+  }
+}

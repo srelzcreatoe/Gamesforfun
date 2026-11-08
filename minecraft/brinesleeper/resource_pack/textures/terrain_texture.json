@@ -19,6 +19,12 @@
     "brine_deepslate_top_plain": {
       "textures": "textures/blocks/brine/deepslate_top_plain"
     },
+    "brine_veined_deepslate": {
+      "textures": "textures/blocks/brine/veined_deepslate"
+    },
+    "brine_veined_deepslate_top": {
+      "textures": "textures/blocks/brine/veined_deepslate_top"
+    },
     "brine_mud_plain": {
       "textures": "textures/blocks/brine/mud_plain"
     },
@@ -30,6 +36,21 @@
     },
     "brine_bloodroot": {
       "textures": "textures/blocks/brine/bloodroot"
+    },
+    "brine_pallid_cap": {
+      "textures": "textures/blocks/brine/pallid_cap"
+    },
+    "brine_pale_dripstone_base": {
+      "textures": "textures/blocks/brine/pale_dripstone_base"
+    },
+    "brine_pale_dripstone_middle": {
+      "textures": "textures/blocks/brine/pale_dripstone_middle"
+    },
+    "brine_pale_dripstone_frustum": {
+      "textures": "textures/blocks/brine/pale_dripstone_frustum"
+    },
+    "brine_pale_dripstone_tip": {
+      "textures": "textures/blocks/brine/pale_dripstone_tip"
     }
   }
 }

@@ -6,6 +6,9 @@
   "brine:clawed_deepslate": {
     "sound": "deepslate"
   },
+  "brine:veined_deepslate": {
+    "sound": "deepslate"
+  },
   "brine:tracked_mud": {
     "sound": "mud"
   },
@@ -14,5 +17,20 @@
   },
   "brine:bloodroot": {
     "sound": "roots"
+  },
+  "brine:pallid_cap": {
+    "sound": "fungus"
+  },
+  "brine:pale_dripstone_base": {
+    "sound": "pointed_dripstone"
+  },
+  "brine:pale_dripstone_middle": {
+    "sound": "pointed_dripstone"
+  },
+  "brine:pale_dripstone_frustum": {
+    "sound": "pointed_dripstone"
+  },
+  "brine:pale_dripstone_tip": {
+    "sound": "pointed_dripstone"
   }
 }

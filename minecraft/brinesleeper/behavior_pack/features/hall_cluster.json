@@ -1,0 +1,27 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:scatter_feature": {
+    "description": {
+      "identifier": "brine:hall_cluster"
+    },
+    "places_feature": "brine:hall_piece",
+    "distribution": {
+      "iterations": 7,
+      "x": {
+        "distribution": "uniform",
+        "extent": [
+          -8,
+          9
+        ]
+      },
+      "y": 0,
+      "z": {
+        "distribution": "uniform",
+        "extent": [
+          -8,
+          9
+        ]
+      }
+    }
+  }
+}

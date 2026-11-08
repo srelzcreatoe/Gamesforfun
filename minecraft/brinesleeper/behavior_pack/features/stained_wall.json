@@ -1,0 +1,19 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:ore_feature": {
+    "description": {
+      "identifier": "brine:stained_wall"
+    },
+    "count": 14,
+    "replace_rules": [
+      {
+        "places_block": "brine:bloodstained_deepslate",
+        "may_replace": [
+          "minecraft:deepslate",
+          "minecraft:stone",
+          "minecraft:tuff"
+        ]
+      }
+    ]
+  }
+}

@@ -7,11 +7,15 @@
     "features": [
       [
         "brine:bone_coral_plant",
-        3
+        4
       ],
       [
         "brine:bloodroot_plant",
         4
+      ],
+      [
+        "brine:pallid_cap_plant",
+        2
       ]
     ]
   }

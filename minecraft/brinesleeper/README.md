@@ -153,45 +153,65 @@ Every pose is registered on the entity, so you can trigger any of them with `/pl
 
 ![Stillwater Caves](preview/stillwater_caves_preview.png)
 
-The Brinesleeper's home is a flooded cave biome. It takes over part of the vanilla Dripstone
-Caves, deep underground.
+The Brinesleeper's home is a flooded cave biome deep underground. Since version 1.4 it is built
+around **flooded halls**: huge domed caverns over black lakes up to 10 blocks deep, with great
+stone pillars standing in the water.
+
+![The flooded halls](preview/stillwater_vista.png)
 
 * **Identifier:** `brine:stillwater_caves`. Needs Minecraft Bedrock **1.26.30 or newer**.
   Custom biomes no longer need an experimental toggle.
 * **Find it:** run `/locate biome brine:stillwater_caves` and teleport to the coordinates it
-  prints. It is underground, usually below sea level.
+  prints. It replaces 70% of the vanilla Dripstone Caves, in big connected regions.
+* **The halls:** carved at two waterlines, **y = -24** and **y = 12**. Each hall system is several
+  overlapping domes, 40 to 60+ blocks across. Neighbouring chunks join into one long lake system
+  (see `preview/stillwater_hall_map.png`).
 * **Spawning:**
-  * No vanilla hostile mob can spawn here. The biome has no `monster` tag, the same way the Deep
-    Dark keeps monsters out. It also has no `dripstone_caves` tag, so drowned don't spawn either.
+  * No vanilla hostile mob can spawn here. The biome has no `monster` tag (as with the Deep Dark)
+    and no `dripstone_caves` tag (no drowned).
   * The Brinesleeper's spawn rule targets the biome's own `stillwater_caves` tag. It spawns in
-    the water and on the dark cave floor, and nowhere else.
-  * Passive bats and glow squid still appear.
-  * Mobs can still wander in from neighbouring caves, and spawners in dungeons or mineshafts that
-    happen to generate inside the biome still work.
+    the lakes and on the dark shores, and nowhere else.
+  * Passive bats and glow squid still appear. Mobs can wander in from neighbouring caves, and
+    dungeon or mineshaft spawners that generate inside the biome still work.
 * **Look and sound:**
-  * dense blue-black fog from 6 to 64 blocks
-  * dark, nearly opaque water
-  * drifting ash
-  * no music (the Stillwater Curse), only the cave mood sounds, distant echoing splashes and
-    drips
-* **Terrain:** cave walls of deepslate with bands of tuff and smooth basalt.
+  * dense blue-black fog from 8 to 96 blocks
+  * dark water, drifting ash
+  * no music (the Stillwater Curse), only cave mood sounds and distant echoing splashes and drips
 * **Decorations:**
+  * pale (bleached) dripstone curtains and vanilla pointed dripstone
   * blood-stained ceilings dripping red weeping vines
-  * vanilla pointed dripstone stalactites and stalagmites
-  * still pools sunk into the floor
-  * gravel and mud shores with bone coral and bloodroot
-  * three-toed footprint trails in the mud
-  * claw marks raked into the walls
+  * glowing crimson veins in the walls and lakebeds
+  * silt, clay and gravel lakebeds
+  * ribcages lying in the shallows, and bone fossils in the walls
+  * sunken deepslate shrines, arches and walls where lit candles still burn
+  * shores of bone coral, glowing bloodroot and pallid caps
+  * three-toed footprint trails in the mud, and claw marks raked into the walls
 
-Five new blocks are in the Creative inventory's Nature tab:
+New blocks are in the Creative inventory's Nature tab. Their textures are original pixel art in
+vanilla's palettes and styles:
 
 | Block | Where it generates |
 |---|---|
-| Bloodstained Deepslate | Ceiling patches, with weeping vines hanging from them |
+| Bloodstained Deepslate | Ceiling patches with weeping vines, stained walls and pillars |
 | Clawed Deepslate | Claw marks raked into the walls |
-| Tracked Mud | Footprints in the mud shores |
+| Veined Deepslate | Crimson veins in walls and lakebeds (light 3) |
+| Tracked Mud | Footprints in the mud |
 | Bone Coral | Pale branching coral on shores |
-| Bloodroot | Dark red reeds on shores |
+| Bloodroot | Dark red reeds on shores (light 5) |
+| Pallid Caps | Clusters of pale cave mushrooms (light 3) |
+| Pale Dripstone (base, middle, frustum, tip) | Hanging curtains. Each piece hangs from the block above and breaks if that block goes |
+
+**How the halls are made:** a custom biome can't reshape terrain, so the halls are carved by
+structure features.
+* Each hall piece (`biome_shapes.py`) is a rounded dome of air over a bowl of water. Structure
+  void fills everything else, so it only carves.
+* Every piece shares one waterline row, and the feature rule pins that row to a fixed world
+  height. Overlapping pieces always agree, so they merge into one lake with rock left standing
+  between them.
+* Pillars and ribcages are placed after a probe that only succeeds in lake water, so they never
+  plug an ordinary tunnel.
+* Water placed by world generation can spill into lower caves where a lake cuts one open,
+  forming waterfalls.
 
 Test it in a **new** world:
 
@@ -204,35 +224,34 @@ Test it in a **new** world:
 The biome only generates in chunks created after the pack is added, so explored areas of an
 existing world don't change. Back up a world before adding the pack to it.
 
-To make the biome more or less common, edit `minecraft:replace_biomes` in
-`behavior_pack/biomes/stillwater_caves.biome.json` (generated by `tools/biome.py`):
-* `amount` is the share of Dripstone Caves it takes over (0.5).
-* `noise_frequency_scale` sets patch size (0.5). Lower values give bigger, rarer patches. Published
-  cave-biome packs use 0.5 to 1.
+**Tuning:** settings are at the top of `tools/biome.py`, then rebuild with `pack.py`.
+* `AMOUNT` (0.7) is the share of Dripstone Caves taken over.
+* `FREQUENCY` (0.3) is the `noise_frequency_scale`. Lower values give bigger, rarer regions.
+* `LEVELS` sets the hall waterlines.
+* Hall density is the `stillwater_halls_level*` rules' `scatter_chance` (3/5 and 1/2 of chunks).
 
-Keep the `minecraft:` prefix on the target (`"minecraft:dripstone_caves"`). Microsoft's docs,
-Mojang's schema and the Bedrock Wiki all say targets must not be namespaced, but the game resolves
-them by full identifier. Mojang's own samples and every published biome pack use the prefix.
-
-**Troubleshooting:** version 1.3.0 wrote the target without the prefix. The game then logged
-`No biome found with name: 'dripstone_caves'` and skipped the whole biome, so the Brinesleeper
-had nowhere to spawn. Version 1.3.1 fixes this. Import the new `.mcaddon` (it installs over 1.3.0)
-and test in a new world.
+Keep the `minecraft:` prefix on the replace target (`"minecraft:dripstone_caves"`). The docs
+say otherwise, but the game resolves targets by full identifier: version 1.3.0 failed with
+`No biome found with name: 'dripstone_caves'` until 1.3.1 added the prefix.
 
 **How the pack is checked:**
-* `tools/validate_packs.py` checks every file and cross-reference offline. It also catches
-  version-specific mistakes, like the target prefix and the snap range key that format 1.26.50
-  renamed.
+* `tools/validate_packs.py <pack root> [mojang-blocks.json]` checks every file and
+  cross-reference offline.
+  * Given Mojang's block metadata (`bedrock-samples/metadata/vanilladata_modules/mojang-blocks.json`),
+    it also checks every vanilla block and block state used by a feature or stored in a structure
+    file: the name must exist, each state must be real with an allowed value, and no state may
+    be missing.
 * `tools/schema_check.py` runs the packs through Mojang's JSON schemas. Some of those schemas
-  are wrong: they reject forms that Mojang's own samples and vanilla files use, such as weighted
-  `[name, weight]` lists, plain block names and string textures. So treat its output as hints,
-  not a verdict.
-* The feature details follow [featurelab](https://github.com/stirante/featurelab)'s in-game
-  measurements. For example, `random_horizontal` snaps only to floors and ceilings, so claw marks
-  use a wall test instead.
+  reject forms the game and Mojang's own samples use, such as weighted lists, plain block names
+  and list-style `allowed_faces`. Treat its output as hints.
+* Feature behaviour follows [featurelab](https://github.com/stirante/featurelab)'s in-game
+  measurements. These cover the sequence probe, `rotate_around_center`, `ground_level`, the snap
+  range key and the fossil fields.
 
-The preview image comes from `tools/biome_preview.py`, which runs the biome's own generation rules
-on a sample cavern. It is not an in-game screenshot.
+The preview pictures come from `tools/biome_preview.py`. It runs the same hall pieces, rules and
+numbers on a 112 x 112 block sample and bakes block light the way the game spreads it
+(`viewer/biome.html` renders it). These are not in-game screenshots: world generation details
+(where chunks meet, how spilled water flows) can differ in the real game.
 
 ## Use it
 
@@ -275,9 +294,11 @@ python3 make_poses_sheet.py shots/v2sheet ../preview/brinesleeper_poses_sheet.pn
 python3 pack.py .. shots/v2sheet/face.png   # packs, biome and .mcaddon
 python3 validate_packs.py ..     # offline check of every pack file and reference
 python3 schema_check.py <bedrock-schemas checkout> ..   # optional: Mojang's JSON schemas (some are buggy)
-python3 biome_preview.py out     # simulate the biome on a sample cavern -> out/biome_scene.json
-node shoot.js viewer/biome.html jobs_biome.json shots/biome 1600 900
-python3 make_biome_sheet.py shots/biome out/biome_tex ../preview/stillwater_caves_preview.png
+python3 biome_preview.py out_s12 12   # simulate the biome on a 112 x 112 sample -> scene, faces, map
+python3 biome_preview.py out_s13 13
+node shoot.js viewer/biome.html jobs_biome.json shots/biome 1600 900 "&assets=/out_s12"   # vista, lurk
+node shoot.js viewer/biome.html jobs_biome_b.json shots/biome 1280 720 "&assets=/out_s13" # shrine, shore
+python3 make_biome_sheet.py shots/biome out_s12/biome_map.png out_s12/biome_tex ../preview/stillwater_caves_preview.png
 python3 export_bbmodel.py out/brinesleeper.geo.json out/brinesleeper.png out/brinesleeper.animation.json ../brinesleeper.bbmodel
 python3 build_viewer.py          # preview/viewer.html
 npm run video                    # MP4 (software WebGL, ~1.5 h at 1080p)

@@ -22,9 +22,9 @@
       [
         {
           "range_min": 7,
-          "range_max": 11
+          "range_max": 13
         },
-        1
+        2
       ]
     ],
     "growth_direction": "down",

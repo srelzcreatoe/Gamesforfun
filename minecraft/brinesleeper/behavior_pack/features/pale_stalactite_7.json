@@ -1,0 +1,18 @@
+{
+  "format_version": "1.21.110",
+  "minecraft:structure_template_feature": {
+    "description": {
+      "identifier": "brine:pale_stalactite_7"
+    },
+    "structure_name": "brine:pale_stalactite_7",
+    "facing_direction": "south",
+    "constraints": {
+      "block_intersection": {
+        "block_allowlist": [
+          "minecraft:air"
+        ],
+        "only_check_intersection_for_motion_blocking_blocks": false
+      }
+    }
+  }
+}

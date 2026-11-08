@@ -1,0 +1,22 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:weighted_random_feature": {
+    "description": {
+      "identifier": "brine:lakebed_silt"
+    },
+    "features": [
+      [
+        "brine:silt_mud",
+        3
+      ],
+      [
+        "brine:silt_clay",
+        2
+      ],
+      [
+        "brine:silt_gravel",
+        2
+      ]
+    ]
+  }
+}

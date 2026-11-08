@@ -27,7 +27,7 @@
     "extra_deep_block_chance": 0.5,
     "vertical_range": 6,
     "vegetation_feature": "brine:shore_plant",
-    "vegetation_chance": 0.14,
+    "vegetation_chance": 0.18,
     "horizontal_radius": {
       "range_min": 2,
       "range_max": 5

@@ -25,9 +25,9 @@
     "surface": "ceiling",
     "depth": 1,
     "extra_deep_block_chance": 0.35,
-    "vertical_range": 10,
+    "vertical_range": 12,
     "vegetation_feature": "brine:blood_vine",
-    "vegetation_chance": 0.12,
+    "vegetation_chance": 0.16,
     "horizontal_radius": {
       "range_min": 2,
       "range_max": 4
