@@ -76,16 +76,32 @@ function readPackFiles() {
   };
 }
 
-export async function loadIntoBlockbench(page, files) {
-  return page.evaluate(async ({ geo, tex, anims }) => {
+// display = true (shots / record only, never the exported .bbmodel): Blockbench draws the add-on's emissive texels
+// (eyes / teeth, alpha < 255 = glow in game) as see-through holes, so show them opaque; hide the locator gizmos.
+export async function loadIntoBlockbench(page, files, display = false) {
+  return page.evaluate(async ({ geo, tex, anims, display }) => {
     loadModelFile({ content: geo, path: 'shaftbreaker.geo.json', name: 'shaftbreaker.geo.json' });
     const t0 = Date.now();
     while (!window.Project && Date.now() - t0 < 10000) await new Promise((r) => setTimeout(r, 50));
+    if (display) {
+      const img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = tex; });
+      const cv = document.createElement('canvas');
+      cv.width = img.width; cv.height = img.height;
+      const cx = cv.getContext('2d');
+      cx.drawImage(img, 0, 0);
+      const d = cx.getImageData(0, 0, cv.width, cv.height);
+      for (let i = 3; i < d.data.length; i += 4) d.data[i] = 255;
+      cx.putImageData(d, 0, 0);
+      tex = cv.toDataURL('image/png');
+    }
     const texture = new Texture({ name: 'shaftbreaker.png' }).fromDataURL(tex).add(false);
     while (!texture.loaded && Date.now() - t0 < 20000) await new Promise((r) => setTimeout(r, 50));
     for (const a of anims) AnimationCodec.codecs.bedrock.loadFile({ content: a.content, path: a.path });
     Project.name = 'shaftbreaker';
+    if (display && window.Locator) for (const l of Locator.all) l.visibility = false;
     Canvas.updateAll();
+    if (display && window.Canvas && Canvas.updateVisibility) Canvas.updateVisibility();
     return {
       blockbench: Blockbench.version,
       format: Format.id,
@@ -96,7 +112,7 @@ export async function loadIntoBlockbench(page, files) {
       uv: [Project.texture_width, Project.texture_height],
       animations: Animation.all.map((a) => `${a.name} (${a.length}s, ${a.loop})`),
     };
-  }, files);
+  }, { ...files, display });
 }
 
 async function setView(page, { mode = 'edit', anim, t = 0, view = 'threequarter', camera }) {
@@ -143,7 +159,7 @@ async function cmdBbmodel() {
 
 async function cmdShots() {
   const { browser, page, log } = await openBlockbench({ width: Number(args.width || 1280), height: Number(args.height || 720) });
-  const info = await loadIntoBlockbench(page, readPackFiles());
+  const info = await loadIntoBlockbench(page, readPackFiles(), true);
   console.log(`Blockbench ${info.blockbench}: ${info.bones} bones, ${info.cubes} cubes, ${info.animations.length} animations`);
   const times = String(args.t ?? '0').split(',').map(Number);
   const views = String(args.view || 'threequarter').split(',');
@@ -167,7 +183,7 @@ async function cmdRecord() {
   const plan = JSON.parse(fs.readFileSync(path.resolve(String(args.plan)), 'utf8'));
   const fps = plan.fps || 30;
   const { browser, page } = await openBlockbench({ width: plan.width || 1280, height: plan.height || 720 });
-  await loadIntoBlockbench(page, readPackFiles());
+  await loadIntoBlockbench(page, readPackFiles(), true);
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'bbrec-'));
   let frame = 0;
   const lerp = (a, b, u) => a.map((v, k) => v + (b[k] - v) * u);
