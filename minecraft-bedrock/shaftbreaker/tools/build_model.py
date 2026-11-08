@@ -27,6 +27,7 @@ Layout of this file:
 import json
 import math
 import os
+import re
 import sys
 
 import numpy as np
@@ -331,7 +332,7 @@ def finger(hand, name_a, name_b, knuckle, la, lb, lclaw, splay, curl, w=1.0, d=1
     x2 = J[0] - q(w2 / 2)
     z2 = J[2] - q(d2 / 2)
     box(bb, x2, x2 + w2, J[1] - lb, J[1] + 0.5, z2, z2 + d2, rot=rb, pivot=J,                 # middle phalanx
-        soot=('const', min(1.0, soot + 0.15)))
+        soot=('const', min(1.0, soot + 0.1)))
     # claw: three tapering near-black segments, each curling a bit more toward the palm
     C = qv(np.array(J) + Rb @ np.array([0, -lb + 0.25, 0]))
     cw = [(1.25, 1.25), (1.0, 1.0), (0.5, 0.5)] if w >= 1.75 else [(1.0, 1.0), (0.75, 0.75), (0.5, 0.5)]
@@ -447,8 +448,8 @@ def build_head():
     box(head, -4, -3, 73.5, 75.5, -4.5, 3.5, tag='face', inner='west', **fp)
     box(head, 3, 4, 73.5, 75.5, -4.5, 3.5, tag='face', inner='east', **fp)
     box(head, -3, 3, 73.5, 75.5, -3.5, 3.5, tag='mouth', stone_faces=('south',), **fp)  # palate
-    for x0 in (-2.5, -1.0, 0.25, 1.75):
-        box(head, x0, x0 + 0.75, 73.75, 75.0, -4.25, -3.5, tag='tooth')
+    for x0 in (-2.5, -1.0, 0.5, 2.0):                                              # 4 upper teeth (0.5 wide)
+        box(head, x0, x0 + 0.5, 73.75, 75.0, -4.25, -3.5, tag='tooth')
     # inner cheek plates: hidden inside the closed jaw, frame the cavity when the jaw drops
     box(head, -3.75, -3.5, 71.75, 73.5, -3.25, 3.0, tag='mouthwall', inner='west')
     box(head, 3.5, 3.75, 71.75, 73.5, -3.25, 3.0, tag='mouthwall', inner='east')
@@ -461,8 +462,8 @@ def build_head():
     box(jaw, 3, 4, 72.25, 73.5, -4.5, 3.5, tag='face', inner='east', **fp)
     box(jaw, -3, 3, 72.25, 72.75, -3.5, 3.5, tag='mouth', stone_faces=('south',), **fp)  # tongue
     box(jaw, -3, 3, 72.75, 73.5, 2.75, 3.5, tag='mouth', stone_faces=('south',), **fp)  # back wall
-    for x0 in (-2.5, -1.0, 0.25, 1.75):
-        box(jaw, x0, x0 + 0.75, 72.25, 73.25, -4.25, -3.5, tag='tooth')
+    for x0 in (-2.5, -1.0, 0.5, 2.0):                                              # 4 lower teeth
+        box(jaw, x0, x0 + 0.5, 72.25, 73.25, -4.25, -3.5, tag='tooth')
     # cheek plates rising from the jaw (inside the skull when closed)
     box(jaw, -3.5, -3.25, 72.75, 77.25, -2.5, 3.0, tag='mouthwall', inner='west')
     box(jaw, 3.25, 3.5, 72.75, 77.25, -2.5, 3.0, tag='mouthwall', inner='east')
@@ -563,7 +564,7 @@ def build_arm_right():
                           (33.75, 31.0, 5.0, 4.5, 0, 0)], 0.25, rng, plates_per=2, soot=sootf)
 
     hand = bone('hand_right', 'arm_right_lower', (-11, 31, 0))
-    hs = ('const', 0.3)
+    hs = ('const', 0.26)
     box(hand, -13.0, -9.0, 29.25, 32.0, -1.75, 2.0, soot=hs)                   # wrist
     box(hand, -14.0, -8.0, 24.5, 29.25, -1.25, 1.5, soot=hs)                   # palm faces front (-Z)
     box(hand, -13.5, -8.5, 25.75, 29.0, 1.5, 2.0, tag='plate', soot=hs)         # back of the hand
@@ -572,17 +573,17 @@ def build_arm_right():
     box(hand, -14.25, -14.0, 25.5, 28.75, -0.75, 1.25, tag='plate', soot=hs)    # outer edge
     # four fingers: 1 = most medial (toward the body) ... 4 = most lateral; thumb on the medial side
     specs = [  # x, la, lb, claw, splay(a, b, claw), curl(a, b, c0, c1, c2)
-        (-8.75, 4.5, 3.5, 4.5, (-12, -6, 5), (-8, -22, -32, -45, -58)),
-        (-10.5, 5.25, 4.0, 5.0, (-4, -2, 2), (-7, -20, -30, -42, -55)),
-        (-12.25, 5.5, 4.0, 5.0, (5, 3, -2), (-7, -20, -30, -42, -55)),
-        (-14.0, 4.75, 3.75, 4.75, (16, 8, -8), (-8, -22, -32, -45, -58)),
+        (-9.0, 4.5, 3.5, 4.5, (0, 2, 5), (-12, -26, -36, -48, -60)),
+        (-10.75, 5.25, 4.0, 5.0, (-1, 0, 2), (-7, -20, -30, -42, -55)),
+        (-12.5, 5.5, 4.0, 5.0, (5, 3, -2), (-7, -20, -30, -42, -55)),
+        (-14.25, 4.75, 3.75, 4.75, (16, 8, -8), (-8, -22, -32, -45, -58)),
     ]
     tips = []
     for i, (x, la, lb, lc, sp, cu) in enumerate(specs):
         tips.append(finger('hand_right', f'finger_right_{i + 1}_a', f'finger_right_{i + 1}_b', (x, 25.0, 0.0),
-                           la, lb, lc, sp, cu, w=1.75, d=1.75, soot=0.3))
-    tips.append(finger('hand_right', 'thumb_right_a', 'thumb_right_b', (-8.0, 26.5, -0.25), 3.25, 2.75, 4.0,
-                       (-16, -8, 2), (-12, -26, -38, -50, -62), w=1.5, d=1.5, thumb=True, soot=0.4))
+                           la, lb, lc, sp, cu, w=1.75, d=1.75, soot=0.24))
+    tips.append(finger('hand_right', 'thumb_right_a', 'thumb_right_b', (-8.75, 27.0, -1.0), 3.25, 2.75, 4.0,
+                       (-6, 2, 8), (-42, -38, -42, -52, -62), w=1.5, d=1.5, thumb=True, soot=0.3))
     tip = np.mean(np.array(tips[:4]), axis=0)
     hand.locators['claw_right'] = qv((tip[0], tip[1] - 1.0, tip[2] - 1.0))
     TIPS['right'] = tips
@@ -600,7 +601,7 @@ def build_leg_right():
                       (33.0, 29.75, 4.5, 4.0, 0, 0)], 0.25, rng, plates_per=2)
 
     ll = bone('leg_right_lower', 'leg_right_upper', (-5, 28, 0))
-    soot = ('y', 21.0, 3.0, 0.62)
+    soot = ('y', 21.0, 3.0, 0.56)
     box(ll, -7.5, -2.5, 26.0, 30.25, -3.0, 2.25, soot=soot)                     # knee block (kneecap forward)
     box(ll, -6.25, -3.75, 26.75, 29.5, -3.5, -3.0, tag='plate', soot=soot)
     # shin widens toward the ankle like a tree trunk
@@ -617,7 +618,7 @@ def build_leg_right():
     box(ll, -1.0, -0.5, 6.5, 10.0, -0.75, 0.75, tag='plate', soot=soot)         # small medial rib
 
     ft = bone('foot_right', 'leg_right_lower', (-5, 6, 0))
-    fs = ('y', 21.0, 0.0, 0.7)
+    fs = ('y', 21.0, 0.0, 0.58)
     core = box(ft, -9.5, -0.75, 0.0, 6.75, -3.75, 3.5, soot=fs)                 # broad ankle / heel core
     box(ft, -8.75, -1.25, 6.75, 8.0, -3.0, 3.0, soot=fs)                         # filler inside the shin
     # toe-roots: low block + upper step; front ones splayed with a Y rotation
@@ -865,10 +866,6 @@ PAL = {
     'spike': hexc('#a8908c'), 'claw': hexc('#1e1714'), 'mouth': hexc('#120c0a'),
     'eye_core': hexc('#fff4dc'), 'eye_rim': hexc('#ffb05a'), 'tooth': hexc('#f2e2c8'),
 }
-if os.environ.get('SB_BASE'):          # experiment hook: SB_BASE=r,g,b
-    PAL['base'] = np.array([float(v) for v in os.environ['SB_BASE'].split(',')])
-    PAL['light'] = np.minimum(255, PAL['base'] * 1.32)
-    PAL['dark'] = PAL['base'] * 0.5
 
 
 def _hash(*vals):
@@ -1316,20 +1313,10 @@ def geo_json(W, H):
 
 
 def dump_geo(obj):
-    """compact-but-readable JSON: one cube per line"""
+    """compact-but-readable JSON: number arrays and per-face uv objects on one line"""
     s = json.dumps(obj, indent=2)
-    # collapse small arrays/objects onto one line
-    import re
     s = re.sub(r'\[\s+([-\d.,\s]+?)\s+\]', lambda m: '[' + ', '.join(x.strip() for x in m.group(1).split(',')) + ']', s)
-    out_lines = []
-    for line in s.split('\n'):
-        out_lines.append(line)
-    s = '\n'.join(out_lines)
-
-    def collapse(m):
-        return re.sub(r'\s*\n\s*', ' ', m.group(0))
-    # per-face uv objects onto one line
-    s = re.sub(r'"(north|south|east|west|up|down)": \{[^{}]*\}', collapse, s)
+    s = re.sub(r'"(north|south|east|west|up|down)": \{[^{}]*\}', lambda m: re.sub(r'\s*\n\s*', ' ', m.group(0)), s)
     return s + '\n'
 
 
@@ -1343,12 +1330,10 @@ def main():
         raise SystemExit('grid check failed')
     zf = resolve_zfight()
     culled = cull_hidden_faces()
-    for k, b in enumerate(BONES.values()):
-        pass
     if zf:
         for c1, f1, c2, f2 in zf[:40]:
             print('ZFIGHT', c1.bone, c1.lo, c1.hi, f1, '|', c2.bone, c2.lo, c2.hi, f2)
-        print(f'{len(zf)} coplanar overlapping face pairs')
+        raise SystemExit(f'{len(zf)} coplanar overlapping face pairs (would z-fight)')
     W, H, area = pack_uvs()
     img = paint_atlas(W, H)
     os.makedirs(os.path.dirname(GEO_PATH), exist_ok=True)

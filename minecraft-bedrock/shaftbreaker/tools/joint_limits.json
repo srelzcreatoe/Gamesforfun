@@ -1,0 +1,160 @@
+{
+  "$comment": [
+    "Joint limits and per-animation options for tools/check_anims.mjs (Shaftbreaker, Minecraft Bedrock).",
+    "Source of truth: SPEC.md section 4 (joint table) and section 7 (animation list). Edit SPEC first, then this file.",
+    "All rotations are TOTAL local rotations (bone rest rotation + animation rotation) in Bedrock FILE convention",
+    "degrees (SPEC section 2). 'joints' keys are bone names or globs ('*' = any characters); an exact name wins over",
+    "a glob, otherwise the first matching glob in file order is used. Left/right Z ranges are mirrored: the RIGHT",
+    "limb (at -X) abducts with +Z, the LEFT limb (at +X) abducts with -Z.",
+    "Lengths are geometry FILE units (1 unit = 1/16 block before the 0.58 client render scale);",
+    "units_per_block = 16 / 0.58 = 27.5862 file units per block of world distance."
+  ],
+  "render_scale": 0.58,
+  "units_per_block": 27.586206896551722,
+  "geometry": "Shaftbreaker_RP/models/entity/shaftbreaker.geo.json",
+  "animations_dir": "Shaftbreaker_RP/animations",
+
+  "thresholds": {
+    "limit_epsilon_deg": 0.05,
+    "ground_sink_below": -0.5,
+    "ground_float_above": 1.0,
+    "foot_planted_height": 0.75,
+    "foot_slide_max": 0.6,
+    "foot_speed_tolerance": 0.2,
+    "foot_slip_warn_fraction": 0.05,
+    "foot_speed_frame_warn": 0.5,
+    "seam_rotation_deg": 1.5,
+    "seam_position": 0.25,
+    "seam_scale": 0.02,
+    "seam_velocity_warn_deg_per_frame": 1.0,
+    "pop_warn_deg_per_frame": 20,
+    "pop_error_deg_per_frame": 45,
+    "pop_position_warn_per_frame": 4.0,
+    "penetration_min_depth": 0.75,
+    "min_distance_samples": 120
+  },
+
+  "joints": {
+    "leg_right_upper": { "x": [-110, 45], "y": [-35, 35], "z": [-15, 45] },
+    "leg_left_upper": { "x": [-110, 45], "y": [-35, 35], "z": [-45, 15] },
+    "leg_*_lower": { "x": [0, 150], "y": [-8, 8], "z": [-8, 8] },
+    "foot_*": { "x": [-50, 60], "y": [-25, 25], "z": [-25, 25] },
+    "arm_right_upper": { "x": [-190, 70], "y": [-90, 90], "z": [-35, 160] },
+    "arm_left_upper": { "x": [-190, 70], "y": [-90, 90], "z": [-160, 35] },
+    "arm_*_lower": { "x": [-150, 0], "y": [-60, 60], "z": [-12, 12] },
+    "hand_*": { "x": [-85, 75], "y": [-70, 70], "z": [-50, 50] },
+    "finger_*_a": { "x": [-115, 15], "y": [-15, 15], "z": [-30, 30] },
+    "thumb_*_a": { "x": [-115, 15], "y": [-15, 15], "z": [-30, 30] },
+    "finger_*_b": { "x": [-115, 10], "y": [-8, 8], "z": [-8, 8] },
+    "thumb_*_b": { "x": [-115, 10], "y": [-8, 8], "z": [-8, 8] },
+    "body": { "x": [-40, 75], "y": [-60, 60], "z": [-35, 35] },
+    "waist": { "x": [-30, 50], "y": [-45, 45], "z": [-30, 30] },
+    "chest": { "x": [-30, 50], "y": [-45, 45], "z": [-30, 30] },
+    "neck": { "x": [-45, 60], "y": [-70, 70], "z": [-35, 35] },
+    "head": { "x": [-60, 55], "y": [-85, 85], "z": [-40, 40] },
+    "jaw": { "x": [0, 55], "y": [-5, 5], "z": [-5, 5] },
+    "mane_*": { "x": [-35, 35], "y": [-35, 35], "z": [-35, 35] }
+  },
+
+  "groups": {
+    "$comment": "Interpenetration groups (bone-name globs). Groups whose bones are parent/child of each other are 'adjacent' and never tested against each other.",
+    "torso": ["body", "waist", "chest", "neck"],
+    "mane": ["mane_*"],
+    "head": ["head", "jaw"],
+    "arm_R_upper": ["arm_right_upper"],
+    "arm_R_lower": ["arm_right_lower"],
+    "hand_R": ["hand_right", "finger_right_*", "thumb_right_*"],
+    "arm_L_upper": ["arm_left_upper"],
+    "arm_L_lower": ["arm_left_lower"],
+    "hand_L": ["hand_left", "finger_left_*", "thumb_left_*"],
+    "leg_R_upper": ["leg_right_upper"],
+    "leg_R_lower": ["leg_right_lower"],
+    "foot_R": ["foot_right"],
+    "leg_L_upper": ["leg_left_upper"],
+    "leg_L_lower": ["leg_left_lower"],
+    "foot_L": ["foot_left"]
+  },
+
+  "interpenetration": {
+    "$comment": "Pairs listed in warn_pairs are reported as warnings, every other non-adjacent pair as errors. rest_baseline: penetration already present in the rest pose (a modelling overlap) is subtracted per cube pair, so only overlap the ANIMATION adds beyond min_depth is reported; rest overlaps are listed once in the geometry section.",
+    "rest_baseline": true,
+    "ignore_pairs": [["hand_R", "arm_R_lower"], ["hand_L", "arm_L_lower"]],
+    "warn_pairs": [
+      ["mane", "arm_R_upper"], ["mane", "arm_R_lower"],
+      ["mane", "arm_L_upper"], ["mane", "arm_L_lower"],
+      ["mane", "head"]
+    ]
+  },
+
+  "feet": {
+    "right": ["foot_right"],
+    "left": ["foot_left"]
+  },
+
+  "defaults": {
+    "$comment": "Options applied to every animation unless overridden below. driver: 'time' or 'distance' (auto-detected from anim_time_update containing query.modified_distance_moved). queries: Molang values used while sampling.",
+    "driver": "time",
+    "airborne": false,
+    "foot_slide_severity": "error",
+    "queries": {
+      "query.is_on_ground": 1,
+      "query.is_alive": 1,
+      "query.modified_move_speed": 0,
+      "query.ground_speed": 0,
+      "query.target_x_rotation": 0,
+      "query.target_y_rotation": 0,
+      "variable.attack_time": -1,
+      "variable.base_weight": 1,
+      "variable.move_blend": 0,
+      "variable.look_weight": 1
+    },
+    "properties": { "shaftbreaker:phase": "dormant" }
+  },
+
+  "animations": {
+    "$comment": "Keys are FULL animation names (SPEC section 7). speed_blocks_per_second (distance-driven only) is the approximate in-game ground speed, ~44*(movement*speed_multiplier)^2 b/s from the BP; it only converts distance to seconds for the pop check and the report.",
+    "animation.shaftbreaker.dormant": { "driver": "time" },
+    "animation.shaftbreaker.look_at": {
+      "driver": "time",
+      "additive": true,
+      "sweep": [
+        { "query.target_x_rotation": -90, "query.target_y_rotation": 0 },
+        { "query.target_x_rotation": 90, "query.target_y_rotation": 0 },
+        { "query.target_x_rotation": 0, "query.target_y_rotation": -90 },
+        { "query.target_x_rotation": 0, "query.target_y_rotation": 90 },
+        { "query.target_x_rotation": -60, "query.target_y_rotation": -75 },
+        { "query.target_x_rotation": -60, "query.target_y_rotation": 75 },
+        { "query.target_x_rotation": 60, "query.target_y_rotation": -75 },
+        { "query.target_x_rotation": 60, "query.target_y_rotation": 75 }
+      ]
+    },
+    "animation.shaftbreaker.stalk_idle": { "driver": "time", "properties": { "shaftbreaker:phase": "stalking" } },
+    "animation.shaftbreaker.stalk_walk": {
+      "driver": "distance",
+      "speed_blocks_per_second": 1.45,
+      "queries": { "query.modified_move_speed": 0.18, "variable.move_blend": 1 },
+      "properties": { "shaftbreaker:phase": "stalking" }
+    },
+    "animation.shaftbreaker.watch": { "driver": "time", "properties": { "shaftbreaker:phase": "watching" } },
+    "animation.shaftbreaker.breaker_smash": { "driver": "time", "properties": { "shaftbreaker:phase": "breaker" } },
+    "animation.shaftbreaker.breaker_walk": {
+      "driver": "distance",
+      "speed_blocks_per_second": 1.75,
+      "queries": { "query.modified_move_speed": 0.2, "variable.move_blend": 1 },
+      "properties": { "shaftbreaker:phase": "breaker" }
+    },
+    "animation.shaftbreaker.frenzy_idle": { "driver": "time", "properties": { "shaftbreaker:phase": "frenzy" } },
+    "animation.shaftbreaker.frenzy_run": {
+      "driver": "distance",
+      "speed_blocks_per_second": 6.5,
+      "queries": { "query.modified_move_speed": 0.38, "variable.move_blend": 1 },
+      "properties": { "shaftbreaker:phase": "frenzy" }
+    },
+    "animation.shaftbreaker.frenzy_lunge": {
+      "driver": "time",
+      "airborne": true,
+      "queries": { "variable.attack_time": 0.5 },
+      "properties": { "shaftbreaker:phase": "frenzy" }
+    }
+  }
+}
