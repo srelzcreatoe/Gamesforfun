@@ -1,4 +1,4 @@
-"""Generates the remaining resource-pack definitions: moth/waypoint clients, skull attachable,
+"""Generates the remaining resource-pack definitions: moth client, skull attachable,
 block models, particles, texture atlases, block sounds and language files."""
 import json, os, copy
 
@@ -61,21 +61,6 @@ def moth():
     }}})
 
 
-# =============================================================== waypoint (never visible)
-def waypoint():
-    w('models/entity/sb_empty.geo.json', {'format_version': '1.12.0', 'minecraft:geometry': [{
-        'description': {'identifier': 'geometry.sb_empty', 'texture_width': 16, 'texture_height': 16,
-                        'visible_bounds_width': 0.1, 'visible_bounds_height': 0.1, 'visible_bounds_offset': [0, 0, 0]},
-        'bones': [{'name': 'root', 'pivot': [0, 0, 0]}]}]})
-    w('entity/waypoint.entity.json', {'format_version': '1.10.0', 'minecraft:client_entity': {'description': {
-        'identifier': f'{NS}:waypoint',
-        'materials': {'default': 'entity_alphatest'},
-        'textures': {'default': 'textures/entity/shaft_moth/shaft_moth'},
-        'geometry': {'default': 'geometry.sb_empty'},
-        'render_controllers': ['controller.render.default'],
-    }}})
-
-
 # =============================================================== skull attachable (worn trophy)
 def skull():
     g = json.load(open(os.path.join(MODEL, 'shaftbreaker.geo.json')))['minecraft:geometry'][0]
@@ -94,34 +79,28 @@ def skull():
             out.append(c)
         return out
     cy = 78.0
-    worn_dy = 28.2 - cy
-    held_s = 0.5
-    bones = [
-        {'name': 'worn', 'parent': 'head', 'pivot': [0, 24, 0], 'cubes': tx(head['cubes'] + jaw['cubes'], worn_dy, 1.1, cy)},
-        {'name': 'held', 'parent': 'rightItem', 'pivot': [0, 0, 0], 'cubes': tx(head['cubes'] + jaw['cubes'], 4 - cy, held_s, cy)},
-    ]
-    w('models/entity/sb_skull.geo.json', {'format_version': '1.12.0', 'minecraft:geometry': [{
+    # Same technique as Microsoft's custom_items crown sample: one bone bound to whatever slot holds the item.
+    skull_bone = {'name': 'skull', 'pivot': [0, 24, 0], 'binding': 'q.item_slot_to_bone_name(context.item_slot)',
+                  'cubes': tx(head['cubes'] + jaw['cubes'], 28.2 - cy, 1.12, cy)}
+    w('models/entity/sb_skull.geo.json', {'format_version': '1.16.0', 'minecraft:geometry': [{
         'description': {'identifier': 'geometry.sb_skull', 'texture_width': 256, 'texture_height': 128,
-                        'visible_bounds_width': 2, 'visible_bounds_height': 3, 'visible_bounds_offset': [0, 1.5, 0]},
-        'bones': bones}]})
+                        'visible_bounds_width': 2, 'visible_bounds_height': 3.5, 'visible_bounds_offset': [0, 1.25, 0]},
+        'bones': [skull_bone]}]})
     # icon geometry (single bone, centered) used by the previewer for the inventory icon
     w(os.path.join(ROOT, 'build/sb_skull_icon.geo.json'), {'format_version': '1.12.0', 'minecraft:geometry': [{
         'description': {'identifier': 'geometry.sb_skull_icon', 'texture_width': 256, 'texture_height': 128},
         'bones': [{'name': 'skull', 'pivot': [0, 0, 0], 'cubes': tx(head['cubes'] + jaw['cubes'], 0, 1.0, cy)}]}]}, base='/')
     w('attachables/shaftbreaker_skull.json', {'format_version': '1.10.0', 'minecraft:attachable': {'description': {
         'identifier': f'{NS}:shaftbreaker_skull',
-        'materials': {'default': 'entity_alphatest', 'enchanted': 'entity_alphatest_glint'},
-        'textures': {'default': 'textures/entity/shaftbreaker/shaftbreaker', 'enchanted': 'textures/misc/enchanted_actor_glint'},
+        'materials': {'default': 'armor', 'enchanted': 'armor_enchanted'},
+        'textures': {'default': 'textures/entity/shaftbreaker/shaftbreaker', 'enchanted': 'textures/misc/enchanted_item_glint'},
         'geometry': {'default': 'geometry.sb_skull'},
-        'render_controllers': ['controller.render.sb_skull'],
+        'scripts': {'parent_setup': 'variable.helmet_layer_visible = 0.0;'},
+        'render_controllers': ['controller.render.armor'],
     }}})
-    w('render_controllers/sb_skull.render_controllers.json', {'format_version': '1.10.0', 'render_controllers': {
-        'controller.render.sb_skull': {
-            'geometry': 'Geometry.default',
-            'materials': [{'*': 'Material.default'}],
-            'textures': ['Texture.default', 'Texture.enchanted'],
-            'part_visibility': [{'*': True}, {'worn': "c.item_slot == 'head'"}, {'held': "c.item_slot != 'head'"}],
-        }}})
+    old_rc = os.path.join(RP, 'render_controllers/sb_skull.render_controllers.json')
+    if os.path.exists(old_rc):
+        os.remove(old_rc)
 
 
 # =============================================================== block models
@@ -287,9 +266,12 @@ def atlases():
     w('textures/item_texture.json', {'resource_pack_name': 'shaftbreaker', 'texture_name': 'atlas.items',
                                      'texture_data': {k: {'textures': f'textures/items/{k}'} for k in
                                                       ['sb_skull', 'sb_resonance_dial', 'sb_resonance_shard', 'sb_cairn_marker']}})
-    w('blocks.json', {'format_version': [1, 1, 0],
-                      f'{NS}:den_heart': {'sound': 'deepslate'}, f'{NS}:den_crack': {'sound': 'stone'},
-                      f'{NS}:den_dust': {'sound': 'gravel'}, f'{NS}:den_spine': {'sound': 'bone_block'}, f'{NS}:cairn_marker': {'sound': 'stone'}})
+    w('blocks.json', {'format_version': '1.19.30',
+                      f'{NS}:den_heart': {'sound': 'deepslate', 'textures': 'sb_den_heart'},
+                      f'{NS}:den_crack': {'sound': 'stone', 'textures': 'sb_den_crack'},
+                      f'{NS}:den_dust': {'sound': 'gravel', 'textures': 'sb_den_dust'},
+                      f'{NS}:den_spine': {'sound': 'bone_block', 'textures': 'sb_den_spine'},
+                      f'{NS}:cairn_marker': {'sound': 'stone', 'textures': 'sb_cairn'}})
 
 
 LANG = {
@@ -297,7 +279,6 @@ LANG = {
     'pack.description': 'An adaptive cave dweller that learns how you escape. No experimental toggles required.',
     f'entity.{NS}:shaftbreaker.name': 'Shaftbreaker',
     f'entity.{NS}:shaft_moth.name': 'Shaft Moth',
-    f'entity.{NS}:waypoint.name': 'Shaftbreaker Waypoint',
     f'item.spawn_egg.entity.{NS}:shaftbreaker.name': 'Spawn Shaftbreaker',
     f'item.spawn_egg.entity.{NS}:shaft_moth.name': 'Spawn Shaft Moth',
     f'item.{NS}:shaftbreaker_skull.name': 'Shaftbreaker Skull',
@@ -320,5 +301,8 @@ def lang():
 
 
 if __name__ == '__main__':
-    moth(); waypoint(); skull(); block_models(); particles(); atlases(); lang()
+    moth(); skull(); block_models(); particles(); atlases(); lang()
+    for old in ('entity/waypoint.entity.json', 'models/entity/sb_empty.geo.json'):
+        if os.path.exists(os.path.join(RP, old)):
+            os.remove(os.path.join(RP, old))
     print('resource pack definitions generated')

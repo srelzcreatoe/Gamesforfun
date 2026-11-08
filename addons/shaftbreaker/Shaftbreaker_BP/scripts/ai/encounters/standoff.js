@@ -53,7 +53,7 @@ function* standoffCore(ctx, cr, o = {}) {
       yield W(sec(2.6));
     } else if (choice === 'advance') {
       const s = findSpot(ctx.map, pl, { minDist: Math.max(4.5, dist(cr.loc, pl.location) - 3), maxDist: dist(cr.loc, pl.location) - 0.8, los: true, inViewOk: true, crawl: false, maxChecks: 30 });
-      if (s) { cr.clearAct(); cr.setPhase('stalking'); cr.moveTo(s.pos, false); yield W(sec(2)); cr.setMode('scripted'); cr.setPhase('watching'); cr.face(pl.getHeadLocation()); cr.setAct(ACT.STARE, true); }
+      if (s) { cr.clearAct(); cr.setPhase('stalking'); cr.moveTo(s.pos, false); yield W(sec(2)); cr.halt(); cr.setPhase('watching'); cr.face(pl.getHeadLocation()); cr.setAct(ACT.STARE, true); }
     } else if (choice === 'retreat') {
       stopMusic(pl);
       yield* passiveExit(ctx, cr, 'backward');                         // N02
@@ -76,7 +76,7 @@ function* standoffCore(ctx, cr, o = {}) {
       const t2 = now() + sec(12);
       while (now() < t2 && cr.valid && !cr.arrived(1.4)) yield W(5);
       if (!cr.valid) return 'lost';
-      cr.setMode('scripted'); cr.setPhase('watching'); cr.face(pl.getHeadLocation()); cr.setAct(ACT.STARE, true);
+      cr.halt(); cr.setPhase('watching'); cr.face(pl.getHeadLocation()); cr.setAct(ACT.STARE, true);
       yield* hold(ctx, cr, { ticks: sec(rand(6, 10)), approachDist: 6, returnOnSpot: false });
       yield* passiveExit(ctx, cr, 'backward');
       return 'false_retreat';
@@ -112,7 +112,7 @@ export const STANDOFF_TEMPLATES = [
     *run(ctx, plan) {
       const cr = appear(ctx, { pos: plan.s.pos }, { phase: 'watching', eyes: 1.0 });
       if (!cr) return 'no_spawn';
-      cr.setMode('scripted');
+      cr.halt();
       return yield* standoffCore(ctx, cr);
     },
   },
@@ -130,7 +130,7 @@ export const STANDOFF_TEMPLATES = [
       if (ret) cr.moveTo(ret.pos, false);
       const r = yield* hold(ctx, cr, { ticks: sec(16), approachDist: 5, returnOnSpot: false, custom: () => (ret && cr.arrived(1.4) ? 'arrived' : null) });
       if (r === 'approach' || r === 'touched') {
-        cr.clearAct(); cr.setMode('scripted'); cr.face(ctx.player.location);
+        cr.clearAct(); cr.halt(); cr.face(ctx.player.location);
         if (chance(0.5)) {                                             // deceptive escape
           ctx.tel.notes.push('N05 deceptive escape');
           sfx(ctx, 'shaftbreaker.roar_cut', cr.loc, 0.9, 1.1);
@@ -160,7 +160,7 @@ export const STANDOFF_TEMPLATES = [
     *run(ctx, plan) {
       const cr = appear(ctx, { pos: plan.s.pos }, { phase: 'breaker', act: ACT.KNEEL, eyes: 0.5 });
       if (!cr) return 'no_spawn';
-      cr.setMode('scripted'); cr.setAct(ACT.KNEEL, true);
+      cr.halt(); cr.setAct(ACT.KNEEL, true);
       const r = yield* hold(ctx, cr, { ticks: sec(rand(14, 22)), approachDist: 4, returnOnSpot: false });
       if (r === 'approach' || r === 'touched') {
         cr.setEyes(1.0); cr.face(ctx.player.location);
@@ -191,7 +191,7 @@ export const STANDOFF_TEMPLATES = [
       yield W(sec(rand(8, 14)));                                       // preparation window
       const cr = appear(ctx, { pos: plan.s.pos }, { phase: 'watching', eyes: 1.0 });
       if (!cr) return 'no_spawn';
-      cr.setMode('scripted');
+      cr.halt();
       return yield* standoffCore(ctx, cr, { aggress: 1.2, contactHunt: 0.7 });
     },
   },
@@ -207,7 +207,7 @@ export const STANDOFF_TEMPLATES = [
       ctx.allowHunt = false;
       const cr = appear(ctx, { pos: plan.s.pos }, { phase: 'dormant', eyes: 0.5 });
       if (!cr) return 'no_spawn';
-      cr.setMode('scripted');
+      cr.halt();
       cr.setAct(ACT.STARE, true);
       let r = yield* hold(ctx, cr, { ticks: sec(40), approachDist: 7 });
       if (r === 'spotted') r = yield* hold(ctx, cr, { ticks: sec(rand(6, 9)), approachDist: 7, returnOnSpot: false });
@@ -231,7 +231,7 @@ export const STANDOFF_TEMPLATES = [
     plan(ctx) { const d = nearestDen(ctx.player.location, 110); return d ? { den: d.den } : null; },
     *run(ctx, plan) {
       const pl = ctx.player;
-      spawnMoths(pl.dimension, pl.location, randi(2, 3), plan.den);
+      spawnMoths(pl.dimension, pl.location, randi(2, 3), plan.den, pl);
       yield W(sec(4));
       const dir = norm(sub(plan.den, pl.location));
       const callAt = { x: pl.location.x + dir.x * 26, y: pl.location.y + 1, z: pl.location.z + dir.z * 26 };

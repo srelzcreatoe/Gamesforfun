@@ -5,10 +5,11 @@ import { config, freqMul, intensityMul, prefs } from '../core/config.js';
 import { WalkMap, isUnderground, resetBudget, BlockCache } from '../world/space.js';
 import { profile, evidence, decay, noteEncounter, saveDirty, trait, curious, markDirty, forget, bumpRegion } from './memory.js';
 import { ws, wsDirty, wsSave, addDanger, pushHistory, suppressionAt, pruneSuppression, nearestDen } from './worldstate.js';
-import { creature, despawnAll } from './creature.js';
+import { creature, despawnAll, seenByAnyone } from './creature.js';
+import { initBrain, brainTick, brainFast, lurkTick, presenceEligible, brainState } from './brain.js';
 import { tickHeart, stopAllFor, maybeRoomTone, setDanger } from '../audio.js';
 import { record, log } from '../core/log.js';
-import { tryGenerateDen, tickMoths } from '../world/den.js';
+import { tryGenerateDen, tryGenerateDenFromMap, tickMoths, tickGuides } from '../world/den.js';
 import { MINOR_TEMPLATES } from './encounters/minor.js';
 import { OBSERVE_TEMPLATES } from './encounters/observe.js';
 import { STANDOFF_TEMPLATES } from './encounters/standoff.js';
@@ -52,8 +53,8 @@ export function dropPlayer(id) { players.delete(id); forget(id); }
 function scheduleFresh(s, pf) {
   const t = now(); const m = freqMul();
   const familiar = pf.familiarity > 40;
-  s.nextMinor = t + mins(rand(1.5, 4) * m);
-  s.firstContactAt = t + mins((familiar ? rand(4, 9) : rand(6, 14)) * m);
+  s.nextMinor = t + sec(rand(25, 60) * m);
+  s.firstContactAt = t + mins((familiar ? rand(2, 4) : rand(2.5, 5)) * m);
   s.nextMajor = s.firstContactAt;
   s.scheduled = true;
 }
@@ -67,7 +68,8 @@ export function onBreak(player, pos) {
   if (s.underground) s.interest = clamp(s.interest + 0.12, 0, 100);
   // N48 listening chamber: inside an echoing den region your mining carries further (and it hears it)
   const den = nearestDen(pos, 16);
-  if (den && den.den.listen && s.underground) {
+  if (den && den.den.listen && s.underground && now() - (s.lastEcho || 0) > sec(4)) {
+    s.lastEcho = now();
     s.interest = clamp(s.interest + 0.6, 0, 100);
     const echo = { x: den.den.x + (den.den.x - pos.x) * 0.5, y: den.den.y + 2, z: den.den.z + (den.den.z - pos.z) * 0.5 };
     system.runTimeout(() => safe('echo', () => player.dimension.playSound('dig.stone', echo, { volume: 0.5, pitch: 0.8 })), 8);
@@ -168,7 +170,7 @@ export const running = () => cur;
 function startEncounter(tpl, player, s, map, plan) {
   const pf = profile(player);
   const ctx = {
-    player, ps: s, tpl, plan, map, t0: now(), spotted: false, contact: 0, prefs: prefs(player), isolated: s.isolated, allowHunt: true,
+    player, ps: s, tpl, plan, map, t0: now(), spotted: false, contact: 0, prefs: prefs(player), isolated: s.isolated, allowHunt: true, manual: !!(creature() && creature().manual),
     tel: { id: tpl.id, family: tpl.family, features: tpl.features, player: player.name, trigger: tpl.trigger, telegraph: tpl.telegraph, counterplay: tpl.counterplay, phases: [], notes: [], outcome: '', reason: s.reason || '' },
     later: (ticks, fn) => system.runTimeout(() => safe('later', fn), ticks),
     *refreshMap() {
@@ -186,6 +188,15 @@ function startEncounter(tpl, player, s, map, plan) {
   log('basic', `encounter ${tpl.id} [${tpl.features.join(',')}] for ${player.name} (state=${s.state}, int=${s.interest.toFixed(0)}) ${s.reason || ''}`);
 }
 
+/** after a beat the creature goes back to lurking (it is not deleted) */
+function handBack() {
+  const c = creature();
+  if (!c || c.defeated) return;
+  c.releaseTarget(); c.stop(); c.clearAct(); c.setGait(0); c.setSpectral(false); c.setGravity(true);
+  c.lockStance = false; c.setEyes(0.75); c.setPhase('stalking'); c.setMode('still');
+  brainState().nextMove = now();
+}
+
 function finishEncounter(outcome) {
   if (!cur) return;
   const { ctx, tpl } = cur;
@@ -198,9 +209,9 @@ function finishEncounter(outcome) {
   record(ctx.tel);
   pushHistory({ id: tpl.id, f: tpl.family, p: ctx.tel.player, t: worldTicks(), o: ctx.tel.outcome });
   const minor = tpl.family === 'audio' || tpl.family === 'env';
-  if (minor) s.nextMinor = t + mins(rand(2, 4.5) * m);
-  else if (tpl.family === 'hunt') { s.nextMajor = t + mins(rand(5, 9) + rand(2, 4) * m); s.nextMinor = t + mins(3 * m); s.interest = clamp(s.interest - 25, 10, 100); s.provocation = clamp(s.provocation - 60, 0, 100); }
-  else { s.nextMajor = t + mins(rand(7, 13) * m); s.nextMinor = t + mins(rand(1.5, 3) * m); s.interest = clamp(s.interest - 6, 10, 100); }
+  if (minor) s.nextMinor = t + mins(rand(1.2, 2.5) * m);
+  else if (tpl.family === 'hunt') { s.nextMajor = t + mins(rand(5, 8) * m); s.nextMinor = t + mins(2 * m); s.interest = clamp(s.interest - 25, 10, 100); s.provocation = clamp(s.provocation - 60, 0, 100); }
+  else { s.nextMajor = t + mins(rand(4, 7.5) * m); s.nextMinor = t + mins(rand(1, 2) * m); s.interest = clamp(s.interest - 6, 10, 100); }
   if (ctx.spotted) provoke(pl, 7, 'seen');
   if ((ctx.contact || 0) > sec(3)) provoke(pl, 12, 'held eye contact');
   if (ctx.tel.outcome === 'approach' || ctx.tel.outcome === 'touched') provoke(pl, 14, 'approached it');
@@ -217,8 +228,7 @@ function finishEncounter(outcome) {
   addDanger(tpl.family === 'hunt' ? -20 : tpl.family === 'standoff' ? -8 : minor ? -1 : -4);
   if (ctx.listenWatch && valid(pl)) { s.listenUntil = t + sec(9); s.listenRef = { breaks: s.breakCount, pos: pl.location, mining: s.recentBreaks >= 2 }; }
   // cleanup: never leave the creature, its music or its tag behind
-  const c = creature();
-  if (c && tpl.needsCreature) { c.releaseTarget(); c.vanish(true); }
+  handBack();
   if (valid(pl)) stopAllFor(pl);
   cur = null;
   log('basic', `encounter ${tpl.id} ended: ${ctx.tel.outcome} (${ctx.tel.duration})`);
@@ -234,8 +244,6 @@ function stepEncounter() {
   else if (pl.dimension.id !== OVERWORLD) r.abort('dimension');
   if (r.done) {
     safe('genReturn', () => r.gen.return(undefined));
-    const c = creature();
-    if (c) { c.releaseTarget(); c.vanish(true); }
     finishEncounter(r.reason);
     return;
   }
@@ -294,7 +302,6 @@ function updatePlayer(p, dt) {
   const th = [14 - fam * 0.06, 36 - fam * 0.12];
   s.state = cur && cur.ctx.player.id === p.id && cur.tpl.family === 'hunt' ? 'hunting'
     : prov || s.provocation >= 45 ? 'provoked' : s.interest >= th[1] || (pf.sightings >= 2 && s.interest >= th[0]) ? 'observing' : s.interest >= th[0] ? 'interested' : 'dormant';
-  tickHeart(p);
   if (ug && s.state !== 'dormant') maybeRoomTone(p, s.interest / 100);
   if (ug) decay(p, dt / 20);
 }
@@ -315,14 +322,13 @@ function groupSignals(list) {
   }
 }
 
+function manualNear(p) {
+  const c = creature();
+  return !!(c && c.manual && valid(p) && dist(c.loc, p.location) < 96);
+}
+
 function eligible(p) {
-  const cfg = config();
-  if (!cfg.enabled || !cfg.naturalEncounters) return false;
-  if (!valid(p) || p.dimension.id !== OVERWORLD || !isPlayableTarget(p)) return false;
-  const s = pstate(p);
-  if (now() < s.graceUntil) return false;
-  if (!s.underground && !cfg.surfaceMode) return false;
-  return true;
+  return presenceEligible(p, manualNear(p));
 }
 
 function familyMul(s, pf, fam, major) {
@@ -349,13 +355,15 @@ function familyMul(s, pf, fam, major) {
 function choosePlayer(list) {
   let best = null; let bestScore = -1;
   const t = now();
+  const c = creature();
+  const majorAllowed = !(c && seenByAnyone(c));                    // it only sets up a scare while nobody is watching it
   for (const p of list) {
     if (!eligible(p)) continue;
     const s = pstate(p);
     if (!s.scheduled) continue;
     if (t - lastGlobalEnd < sec(30)) continue;                       // world-level breathing room
     const minorDue = t >= s.nextMinor;
-    const majorDue = t >= s.nextMajor && t >= s.firstContactAt && t - lastGlobalMajorEnd >= mins(2.5);
+    const majorDue = majorAllowed && t >= s.nextMajor && t >= s.firstContactAt && t - lastGlobalMajorEnd >= mins(2);
     if (!minorDue && !majorDue) continue;
     let score = (majorDue ? 2 : 1) + (t - Math.min(s.nextMinor, s.nextMajor)) / 1200 + (s.isolated ? 1.5 * (1 + trait(p, 'group_separated')) : 0);
     if (score > bestScore) { bestScore = score; best = { p, major: majorDue }; }
@@ -375,8 +383,9 @@ function candidates(p, s, map, major) {
   for (const tpl of TEMPLATES) {
     if (tpl.needsCreature && (peaceful || (cfg.harmless && tpl.family === 'hunt'))) continue;
     if (tpl.needsCreature && worldTicks() < ws().defeatedUntil) continue;
-    if (tpl.surface && s.underground) continue;
-    if (!tpl.surface && !s.underground) continue;
+    const ugOK = s.underground || manualNear(p);
+    if (tpl.surface && ugOK) continue;
+    if (!tpl.surface && !ugOK) continue;
     if (STATES.indexOf(s.state) < STATES.indexOf(tpl.minState || 'dormant')) continue;
     if ((tpl.minFamiliarity || 0) > pf.familiarity) continue;
     if ((tpl.minSightings || 0) > pf.sightings && !(tpl.family === 'hunt' && s.provokedUntil > t)) continue;
@@ -443,8 +452,9 @@ export function directorTick() {
   const dt = 40;
   for (const p of list) safe('updatePlayer', () => updatePlayer(p, dt));
   safe('group', () => groupSignals(list));
-  safe('moths', () => tickMoths(list));
+  safe('moths', () => tickMoths(list, pstate));
   ws().danger = clamp(ws().danger + 0.06, 0, 100);                      // ~ +1.8 per minute
+  safe('brain', brainTick);
   if (cur) return;
   if (pendingScan) {
     const ps = pendingScan;
@@ -459,9 +469,10 @@ export function directorTick() {
     // dens grow quietly while nothing else happens
     for (const p of list) {
       const s = pstate(p); const pf = profile(p);
-      if (s.underground && (pf.undergroundSec > 20 * 60 || pf.familiarity > 15) && (!s.lastDenTry || now() - s.lastDenTry > mins(5))) {
+      if (s.underground && s.ugTicks > mins(2.5) && (!s.lastDenTry || now() - s.lastDenTry > mins(1))) {
         s.lastDenTry = now();
-        safe('den', () => tryGenerateDen(p));
+        const bm = brainState();
+        safe('den', () => { if (!(bm.map && bm.mapFor === p.id && tryGenerateDenFromMap(p, bm.map))) tryGenerateDen(p); });
         break;
       }
     }
@@ -472,8 +483,11 @@ export function directorTick() {
 
 /** called every tick: drive the scan and the running encounter */
 export function fastTick() {
+  safe('brainFast', brainFast);
+  safe('guides', tickGuides);
   if (pendingScan && !pendingScan.map.done) safe('scan', () => pendingScan.map.step(110));
   if (cur) safe('step', () => stepEncounter());
+  else if (now() % 5 === 0) safe('lurk', lurkTick);
 }
 
 export function slowTick() {
@@ -499,17 +513,24 @@ export function forceEncounter(player, id) {
   return `started ${id}`;
 }
 
-export function stopEncounter() { if (cur) cur.abort('stopped'); stepEncounter(); despawnAll(true); }
+export function stopEncounter() { if (cur) cur.abort('stopped'); stepEncounter(); despawnAll(true); brainState().nextArrival = now() + mins(3); }
 
 export function debugLine(p) {
   const s = pstate(p);
   const pf = profile(p);
   const c = creature();
   const tops = Object.entries(pf.traits).filter(([, t]) => t.s > 1).sort((a, b) => b[1].s - a[1].s).slice(0, 3).map(([k, t]) => `${k.replace('escape_', 'esc_')}:${t.s.toFixed(0)}/${t.c.toFixed(0)}`).join(' ');
-  const enc = cur ? `${cur.tpl.id}` : '-';
+  const enc = cur ? `${cur.tpl.id}` : c ? (c.moving ? 'lurk:moving' : 'lurk') : 'absent';
   const nm = Math.max(0, (s.nextMajor - now()) / 20).toFixed(0);
   const nn = Math.max(0, (s.nextMinor - now()) / 20).toFixed(0);
   return `§7SB §f${s.state}§7 int=${s.interest.toFixed(0)} prov=${s.provocation.toFixed(0)} dng=${ws().danger.toFixed(0)} ug=${s.underground ? 1 : 0} | enc=§e${enc}§7 ph=${c ? c.phase : '-'} act=${c ? c.act : '-'} | major ${nm}s minor ${nn}s | ${tops}`;
 }
 
 export { players as _players, scheduleFresh, wsDirty, wsSave };
+
+initBrain({
+  pstate,
+  running: () => cur,
+  provoke,
+  onArrive: (p) => { const s = pstate(p); if (!s.scheduled) scheduleFresh(s, profile(p)); },
+});

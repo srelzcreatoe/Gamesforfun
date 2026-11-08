@@ -2,7 +2,6 @@ pack.name=The Shaftbreaker
 pack.description=An adaptive cave dweller that learns how you escape. No experimental toggles required.
 entity.shaftbreaker:shaftbreaker.name=Shaftbreaker
 entity.shaftbreaker:shaft_moth.name=Shaft Moth
-entity.shaftbreaker:waypoint.name=Shaftbreaker Waypoint
 item.spawn_egg.entity.shaftbreaker:shaftbreaker.name=Spawn Shaftbreaker
 item.spawn_egg.entity.shaftbreaker:shaft_moth.name=Spawn Shaft Moth
 item.shaftbreaker:shaftbreaker_skull.name=Shaftbreaker Skull

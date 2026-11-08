@@ -38,11 +38,12 @@ function ps(player) {
 /** set the perceived danger (0..1) for a player; heartbeat follows it smoothly */
 export function setDanger(player, d) { const s = ps(player); s.danger = clamp(Math.max(d, s.danger * 0.92), 0, 1); }
 
+/** call every 5 ticks: a real rhythm, and danger fades within ~10 s once nothing is happening */
 export function tickHeart(player) {
   const s = ps(player);
-  s.danger *= 0.985;
+  s.danger *= 0.965;
   const pr = prefs(player);
-  if (!pr.heartbeat || s.danger < 0.28) return;
+  if (!pr.heartbeat || s.danger < 0.32) return;
   const t = now();
   if (t < s.nextBeat) return;
   const bpm = 64 + s.danger * 86;
@@ -56,8 +57,11 @@ export function startMusic(player, track) {
   if (track === 'music.shaftbreaker.chase' && (!cfg.chaseMusic || pr.reducedChase)) return;
   const s = ps(player);
   if (s.music === track) return;
-  try { player.playMusic(track, { fade: 1.0, loop: true, volume: pr.reducedAudio ? 0.45 : 0.8 }); s.music = track; } catch { /* ignore */ }
+  const vol = track === 'music.shaftbreaker.presence' ? 0.7 : 0.85;
+  try { player.playMusic(track, { fade: 2.0, loop: true, volume: pr.reducedAudio ? vol * 0.55 : vol }); s.music = track; } catch { /* ignore */ }
 }
+
+export function currentMusic(player) { return ps(player).music; }
 
 export function stopMusic(player) {
   const s = ps(player);
@@ -67,7 +71,8 @@ export function stopMusic(player) {
 }
 
 export function stopAllFor(player) {
-  stopMusic(player);
+  const m = ps(player).music;
+  if (m === 'music.shaftbreaker.chase' || m === 'music.shaftbreaker.standoff') stopMusic(player);   // the presence bed carries on
   try { player.runCommand('stopsound @s shaftbreaker.breath'); } catch { /* ignore */ }
   const s = ps(player); s.danger = 0;
 }

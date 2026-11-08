@@ -35,7 +35,7 @@
           "v.stw = v.stw + ((v.stance > 0 ? 1.0 : 0.0) - v.stw) * math.min(1.0, q.delta_time * 5.0);",
           "v.base_weight = (1.0 - v.actw) * (1.0 - v.stw);",
           "v.stance_weight = (1.0 - v.actw) * v.stw;",
-          "v.move_blend = math.clamp(q.modified_move_speed * 2.2, 0.0, 1.0);",
+          "v.move_blend = math.clamp(math.max(q.modified_move_speed * 2.2, q.property('shaftbreaker:moving')), 0.0, 1.0);",
           "v.look_target = (v.act == 2 ? 0.6 : (v.act == 3 ? 0.6 : (v.act == 4 ? 0.6 : (v.act == 6 ? 0.4 : (v.act == 7 ? 0.0 : (v.act == 8 ? 0.8 : (v.act == 9 ? 0.7 : (v.act == 10 ? 0.0 : (v.act == 11 ? 0.5 : (v.act == 14 ? 0.4 : (v.act == 15 ? 0.0 : (v.act == 16 ? 0.7 : (v.act == 17 ? 0.0 : (v.act == 18 ? 0.3 : (v.act == 19 ? 0.0 : (v.act == 20 ? 0.3 : (v.act == 21 ? 0.0 : (v.act == 22 ? 0.0 : (v.act == 23 ? 0.0 : (v.act == 24 ? 0.0 : (v.act == 25 ? 0.0 : (v.act == 26 ? 0.0 : (v.act == 27 ? 0.0 : (v.act == 28 ? 0.3 : (v.act == 29 ? 0.0 : (v.act == 30 ? 0.5 : (v.act == 31 ? 0.2 : (v.act == 32 ? 0.0 : (v.act == 33 ? 0.6 : (v.act == 34 ? 0.8 : (v.act == 35 ? 0.0 : (v.act == 36 ? 0.8 : (v.act == 39 ? 0.0 : (v.act == 41 ? math.clamp((q.life_time - v.act_t0) / 3.5, 0, 1) : (v.act == 42 ? 0.3 : (v.act == 43 ? 0.3 : (v.act == 44 ? 0.3 : (v.act == 45 ? 0.5 : 1.0))))))))))))))))))))))))))))))))))))));",
           "v.look_w = v.look_w + (v.look_target - v.look_w) * math.min(1.0, q.delta_time * 4.0);",
           "v.eyes = q.property('shaftbreaker:eyes');"
@@ -126,6 +126,7 @@
       },
       "sound_effects": {
         "step": "shaftbreaker.step",
+        "step_soft": "shaftbreaker.step_soft",
         "scrape": "shaftbreaker.scrape",
         "smash": "shaftbreaker.smash",
         "screech": "shaftbreaker.screech",

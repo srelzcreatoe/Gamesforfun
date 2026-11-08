@@ -3,14 +3,26 @@ import { world, system, ItemStack } from '@minecraft/server';
 import { ACT, ACT_SECONDS } from '../generated/acts.js';
 import { now, sec, valid, sub, len, lenXZ, norm, add, floor3, center, dist, yawTo, dirFromYaw, rand, chance, reportError, OVERWORLD, safe } from '../core/util.js';
 import { config } from '../core/config.js';
-import { BlockCache, lightAt, lineOfSight } from '../world/space.js';
+import { BlockCache, WalkMap, lightAt, lineOfSight, perceive, bodyPoints } from '../world/space.js';
 import { canBreak } from '../world/protection.js';
 import { playAt } from '../audio.js';
 import { log } from '../core/log.js';
 
 export const SB_ID = 'shaftbreaker:shaftbreaker';
-export const WP_ID = 'shaftbreaker:waypoint';
 export const PHASES = ['dormant', 'stalking', 'watching', 'breaker', 'frenzy'];
+/** movement speeds in blocks per tick */
+export const SPEED = { creep: 0.055, stalk: 0.085, walk: 0.115, fast: 0.18, scramble: 0.21 };
+
+/** does any player in range currently see the creature? */
+export function seenByAnyone(cr, maxDist = 64) {
+  if (!cr || !valid(cr.e)) return false;
+  const pts = bodyPoints(cr.loc, cr.stance);
+  for (const p of cr.dim.getPlayers({ location: cr.loc, maxDistance: maxDist })) {
+    const s = perceive(p, pts);
+    if (s.visible && s.angle < 60) return true;
+  }
+  return false;
+}
 
 /** The one and only Shaftbreaker (world singleton). */
 export class Creature {
@@ -25,8 +37,26 @@ export class Creature {
     this.stance = 0;
     this.grav = true;
     this.nav = 'walk';
-    this.wp = null;          // waypoint entity
-    this.goal = null;        // waypoint target position
+    this.goal = null;        // movement target
+    this.path = null;        // validated cell centres to follow
+    this.pathI = 0;
+    this.job = null;         // incremental path search
+    this.speed = SPEED.walk;
+    this.faceTarget = null;  // keep facing this while moving (backward retreat)
+    this.gain = 1.0;         // adaptive physics gain
+    this.slowTicks = 0;
+    this.stepMode = false;   // path-stepping fallback when physics stalls
+    this.movingProp = 0;
+    this.chaseTarget = null; // scripted pursuit (harmless preview / engine fallback)
+    this.lastEngineHit = 0;
+    this.relocator = null;   // brain hook: returns a hidden spot or null
+    this.manual = false;     // spawned by egg/summon: stalks whoever is nearest, anywhere
+    this.hiddenSince = 0;
+    this.nextSqueeze = 0;
+    this.chaseSpeed = 0;
+    this.nextChasePlan = 0;
+    /** @type {{x:number,y:number,z:number}|null} */
+    this.prevStep = null;
     this.lastPos = entity.location;
     this.lastMoveCheck = now();
     this.stuckTicks = 0;
@@ -34,7 +64,6 @@ export class Creature {
     this.broken = 0;         // blocks broken this encounter
     this.nextBreak = 0;
     this.defeated = false;
-    this.manualStep = null;  // scripted stepping (backward retreat)
     this.safeChase = null;   // harmless-preview chase target
     this.resumeMode = null;  // movement mode to restore after a rooted act
     this.lockStance = false;
@@ -55,7 +84,7 @@ export class Creature {
     // knock-down recoveries root the body for their length, then the previous movement mode resumes
     if ((act === ACT.RECOVER || act === ACT.RECOVER_MIRROR) && this.mode !== 'scripted' && this.mode !== 'defeated') {
       this.resumeMode = this.mode;
-      this.setMode('scripted');
+      this.halt();
     }
     this.act = act;
     const name = Object.keys(ACT).find((k) => ACT[k] === act);
@@ -74,7 +103,7 @@ export class Creature {
     if (this.mode === m) return;
     this.mode = m;
     safe('mode', () => this.e.triggerEvent(`sb:mode_${m}`));
-    if (m !== 'travel' && m !== 'travel_fast') this.clearWaypoint();
+    if (m === 'hunt' || m === 'frenzy') this.stop();
   }
 
   setGravity(on) { if (this.grav === on) return; this.grav = on; safe('grav', () => this.e.triggerEvent(on ? 'sb:grav_on' : 'sb:grav_off')); }
@@ -89,21 +118,31 @@ export class Creature {
     });
   }
 
-  /** walk (real pathfinding) to a position using the invisible waypoint lure */
-  moveTo(pos, fast = false) {
+  /**
+   * Walk to a position along cells proven walkable (incremental search from the creature's own feet).
+   * @param {{x:number,y:number,z:number}} pos
+   * @param {boolean|number} speed true = fast, false = walk, or blocks per tick
+   */
+  moveTo(pos, speed = false, faceTarget = null) {
     this.goal = { x: pos.x, y: pos.y, z: pos.z };
-    this.manualStep = null;
-    safe('moveTo', () => {
-      if (!valid(this.wp)) {
-        this.wp = this.dim.spawnEntity(WP_ID, { x: pos.x, y: pos.y + 0.1, z: pos.z });
-      } else {
-        this.wp.teleport({ x: pos.x, y: pos.y + 0.1, z: pos.z });
-      }
-    });
-    this.mode = '';
-    this.setMode(fast ? 'travel_fast' : 'travel');
-    this.stuckTicks = 0;
+    this.speed = typeof speed === 'number' ? speed : speed ? SPEED.fast : SPEED.walk;
+    this.faceTarget = faceTarget;
+    this.path = null; this.pathI = 0; this.stepMode = false; this.slowTicks = 0; this.stuckTicks = 0;
+    const g = floor3(pos);
+    this.job = new WalkMap(this.dim, this.loc, { maxNodes: 1600, maxDist: 64, goal: (n) => Math.abs(n.x - g.x) + Math.abs(n.z - g.z) <= 1 && Math.abs(n.y - g.y) <= 1 });
+    if (this.mode !== 'scripted' && this.mode !== 'still') { this.mode = ''; }
+    this.setMode('scripted');
   }
+
+  stop() {
+    this.goal = null; this.path = null; this.job = null; this.chaseTarget = null; this.faceTarget = null;
+    this.setMoving(0);
+  }
+
+  /** stop moving and hold position under script control (for posed acts) */
+  halt() { this.stop(); this.setMode('scripted'); }
+
+  get moving() { return !!(this.job || (this.path && this.pathI < this.path.length)); }
 
   arrived(r = 1.4) {
     if (!this.goal) return true;
@@ -111,44 +150,102 @@ export class Creature {
     return lenXZ(sub(l, this.goal)) < r && Math.abs(l.y - this.goal.y) < 2.2;
   }
 
-  clearWaypoint() {
-    if (valid(this.wp)) safe('wpRemove', () => this.wp.remove());
-    this.wp = null; this.goal = null;
-  }
-
-  /**
-   * Scripted slow stepping along a validated path (backward retreat, creeping).
-   * Every step stays inside cells the walk-map proved to be open: no phasing.
-   * @param {{x:number,y:number,z:number}[]} cells path cells (feet positions)
-   * @param {{x:number,y:number,z:number}|null} facePos keep facing this point
-   * @param {number} speed blocks per tick
-   */
+  /** follow an explicit validated path (backward retreat, creeping) */
   stepAlong(cells, facePos, speed = 0.07) {
     this.setMode('scripted');
-    this.manualStep = { cells: cells.map(center), i: 0, facePos, speed };
+    this.job = null;
+    this.path = cells.map(center); this.pathI = 0;
+    this.goal = this.path[this.path.length - 1] || null;
+    this.faceTarget = facePos; this.speed = speed; this.stepMode = false; this.slowTicks = 0;
   }
 
-  tickManualStep() {
-    const ms = this.manualStep;
-    if (!ms) return;
+  setMoving(v) {
+    const q = Math.round(v * 4) / 4;
+    if (q === this.movingProp) return;
+    this.movingProp = q;
+    safe('moving', () => this.e.setProperty('shaftbreaker:moving', q));
+  }
+
+  tickMover() {
+    if (this.job) {
+      this.job.step(160);
+      if (!this.job.done) return;
+      const m = this.job; this.job = null;
+      let end = m.found;
+      if (!end && this.goal) {           // unreachable exactly: go as close as the real cave allows
+        let best = Infinity;
+        for (const n of m.nodes.values()) { const d = Math.abs(n.x + 0.5 - this.goal.x) + Math.abs(n.z + 0.5 - this.goal.z) + Math.abs(n.y - this.goal.y) * 1.5; if (d < best) { best = d; end = n; } }
+      }
+      this.path = end ? m.pathTo(end).map(center) : [];
+      this.pathI = this.path.length > 1 ? 1 : 0;
+      if (!this.path.length) { this.goal = null; this.setMoving(0); }
+      return;
+    }
+    if (!this.path) return;
+    if (this.pathI >= this.path.length) { this.path = null; this.setMoving(0); return; }
     const l = this.loc;
-    const tgt = ms.cells[ms.i];
-    if (!tgt) { this.manualStep = null; return; }
+    const tgt = this.path[this.pathI];
     const d = sub(tgt, l);
     const dl = lenXZ(d);
-    if (dl < 0.15) { ms.i++; if (ms.i >= ms.cells.length) this.manualStep = null; return; }
-    const stepLen = Math.min(ms.speed, dl);
+    if (dl < 0.32 && Math.abs(d.y) < 1.2) { this.pathI++; return; }
     const n = norm({ x: d.x, y: 0, z: d.z });
-    const ny = d.y > 0.05 ? tgt.y : (d.y < -0.05 && dl < 0.55 ? tgt.y : l.y);   // step up at once, step down only above the lower cell
-    const next = { x: l.x + n.x * stepLen, y: ny, z: l.z + n.z * stepLen };
-    safe('step', () => this.e.teleport(next, ms.facePos ? { facingLocation: ms.facePos, keepVelocity: false } : { keepVelocity: false }));
+    // face movement (or the watched target), turning at most 25 degrees per tick
+    const want = this.faceTarget ? yawTo(l, this.faceTarget) : yawTo(l, tgt);
+    safe('turn', () => {
+      const cur = this.e.getRotation().y;
+      const diff = ((want - cur + 540) % 360) - 180;
+      this.e.setRotation({ x: 0, y: cur + Math.max(-25, Math.min(25, diff)) });
+    });
+    this.setMoving(Math.min(1, this.speed / 0.12));
+    if (this.stepMode) {               // fallback: step along the validated path (never into solid cells)
+      const stepLen = Math.min(this.speed, dl);
+      const ny = d.y > 0.05 ? tgt.y : (d.y < -0.05 && dl < 0.55 ? tgt.y : l.y);
+      safe('step', () => this.e.teleport({ x: l.x + n.x * stepLen, y: ny, z: l.z + n.z * stepLen }, { keepVelocity: false }));
+      return;
+    }
+    // physics steering with adaptive gain (friction differs between surfaces and versions)
+    const prev = this.prevStep;
+    if (prev) {
+      const moved = lenXZ(sub(l, prev));
+      const expect = this.speed;
+      if (moved < expect * 0.3) this.slowTicks++; else this.slowTicks = Math.max(0, this.slowTicks - 2);
+      this.gain = Math.max(0.6, Math.min(3.2, this.gain * Math.pow(expect / Math.max(moved, 0.01), 0.25)));
+      if (this.slowTicks > 10) { this.stepMode = true; this.slowTicks = 0; }
+    }
+    this.prevStep = { x: l.x, y: l.y, z: l.z };
+    let onGround = true; try { onGround = this.e.isOnGround; } catch { /* ignore */ }
+    const jump = d.y > 0.5 && onGround && dl < 1.4 ? 0.42 : 0;
+    safe('impulse', () => {
+      const v = this.e.getVelocity();
+      this.e.clearVelocity();
+      this.e.applyImpulse({ x: n.x * this.speed * this.gain, y: jump || v.y, z: n.z * this.speed * this.gain });
+    });
+  }
+
+  /** scripted pursuit of a player (harmless preview, or when engine navigation stalls) */
+  chase(player, speed = SPEED.fast) {
+    this.chaseTarget = player;
+    this.chaseSpeed = speed;
+    this.nextChasePlan = 0;
+  }
+
+  tickChase(t) {
+    const p = this.chaseTarget;
+    if (!p) return;
+    if (!valid(p)) { this.chaseTarget = null; return; }
+    if (t >= (this.nextChasePlan || 0)) {
+      this.nextChasePlan = t + 15;
+      const keep = this.chaseTarget;
+      this.moveTo(p.location, this.chaseSpeed || SPEED.fast);
+      this.chaseTarget = keep;
+    }
   }
 
   // ---------------------------------------------------------------- hunt target
   huntTarget(player, frenzy = false) {
-    if (config().harmless) {                       // harmless preview: chase with the lure only, no attack goal exists
+    if (config().harmless || !isDamageable(player)) {  // harmless preview / creative: a chase with no attack goal at all
       this.safeChase = player;
-      this.moveTo(player.location, true);
+      this.chase(player, frenzy ? SPEED.scramble : SPEED.fast);
       return;
     }
     this.safeChase = null;
@@ -159,6 +256,7 @@ export class Creature {
 
   releaseTarget() {
     this.safeChase = null;
+    this.chaseTarget = null;
     for (const p of world.getAllPlayers()) safe('untag', () => p.removeTag('sb_target'));
   }
 
@@ -176,11 +274,9 @@ export class Creature {
       if (this.act) this.setAct(0);
       if (this.resumeMode && this.mode === 'scripted') { const m = this.resumeMode; this.resumeMode = null; this.mode = ''; this.setMode(m); }
     }
-    if (this.manualStep) this.tickManualStep();
-    if (this.safeChase && t % 10 === 0) {
-      if (valid(this.safeChase) && (this.mode === 'travel_fast' || this.mode === 'travel')) this.moveTo(this.safeChase.location, true);
-      else this.safeChase = null;
-    }
+    if (this.chaseTarget) this.tickChase(t);
+    if (this.mode === 'scripted') this.tickMover();
+    else if (this.movingProp) this.setMoving(0);
     if (t % 4 === 0 && !this.lockStance) this.updateStance();
     if (t % 20 === 0) this.updateStuck();
     if (t % 5 === 0) this.updateClimb();
@@ -211,7 +307,7 @@ export class Creature {
 
   updateStuck() {
     const l = this.loc;
-    const moving = this.mode === 'travel' || this.mode === 'travel_fast' || this.mode === 'hunt' || this.mode === 'frenzy';
+    const moving = this.mode === 'hunt' || this.mode === 'frenzy' || (this.mode === 'scripted' && this.moving);
     const moved = lenXZ(sub(l, this.lastPos)) + Math.abs(l.y - this.lastPos.y) * 0.5;
     this.lastPos = { x: l.x, y: l.y, z: l.z };
     if (!moving) { this.stuckTicks = 0; return; }
@@ -230,7 +326,7 @@ export class Creature {
   /** N22: twist the shoulders through a one-wide gap (animation only; collision is unchanged, no phasing) */
   updateSqueeze(t) {
     if (this.act || this.stance !== 0 || t < (this.nextSqueeze || 0)) return;
-    if (!(this.mode === 'travel' || this.mode === 'travel_fast' || this.mode === 'hunt')) return;
+    if (!(this.moving || this.mode === 'hunt')) return;
     let v; try { v = this.e.getVelocity(); } catch { return; }
     if (lenXZ(v) < 0.04) return;
     const c = new BlockCache(this.dim);
@@ -268,7 +364,7 @@ export class Creature {
     if (!breakable.length) return false;
     this.nextBreak = t + sec(1.8);
     this.face(pos);
-    this.setMode('scripted');
+    this.halt();
     this.setAct(ACT.BREAK_STRIKE);
     // tell: scrape + falling grit before the change
     playAt(this.dim, 'shaftbreaker.scrape', l, 0.9, rand(0.85, 1.0));
@@ -310,25 +406,40 @@ export class Creature {
   }
 
   // ---------------------------------------------------------------- endings
-  /** controlled vanish (only call when unobserved or as a last-resort despawn) */
+  /**
+   * Disappear from the players' point of view. The creature persists: if it is unseen it simply stays
+   * in the dark; if it is seen (or a visible vanish is requested) it is relocated to a hidden spot and the
+   * old position gets the vanish effect. Only when no hidden spot exists is it removed.
+   */
   vanish(quiet = false) {
-    if (!valid(this.e)) return;
+    if (!valid(this.e) || this.defeated) return;
     const l = this.loc;
-    if (!quiet) {
+    this.releaseTarget(); this.stop(); this.clearAct(); this.setGait(0); this.setSpectral(false);
+    this.setGravity(true); this.lockStance = false;
+    const watched = seenByAnyone(this);
+    if (!quiet || watched) {
       playAt(this.dim, 'shaftbreaker.vanish', l, 0.6, rand(0.9, 1.1));
       safe('vanishFx', () => this.dim.spawnParticle('shaftbreaker:vanish', l));
+      const spot = this.relocator ? safe('relocate', () => this.relocator(), null) : null;
+      if (!spot) { this.despawn(); return; }
+      safe('relocateTp', () => this.e.teleport(spot, { keepVelocity: false }));
     }
-    this.clearWaypoint();
-    this.releaseTarget();
-    safe('remove', () => this.e.remove());
+    this.setPhase('stalking');
+    this.setMode('still');
+    this.hiddenSince = now();
+  }
+
+  /** really remove it (withdrawal, defeat, commands) */
+  despawn() {
+    this.releaseTarget(); this.stop();
+    safe('remove', () => valid(this.e) && this.e.remove());
   }
 
   beginDefeat() {
     if (this.defeated) return;
     this.defeated = true;
-    this.clearWaypoint();
     this.releaseTarget();
-    this.manualStep = null;
+    this.stop();
     const e = this.e;
     const dim = this.dim;
     safe('defeatAct', () => { e.setProperty('shaftbreaker:act', ACT.COLLAPSE); e.setProperty('shaftbreaker:eyes', 0.35); });
@@ -387,25 +498,27 @@ export function spawnCreature(dim, pos, opts = {}) {
 
 /** adopt an egg-spawned creature as the primary (newest wins) */
 export function adopt(entity) {
-  if (current && valid(current.e) && current.e.id !== entity.id) safe('replace', () => current.vanish(true));
+  if (current && valid(current.e) && current.e.id !== entity.id) safe('replace', () => current.despawn());
   current = new Creature(entity);
+  current.manual = true;               // spawn egg / summon: it stays and stalks whoever is nearest
   return current;
 }
 
 export function despawnAll(quiet = true) {
-  if (current) { try { current.vanish(quiet); } catch { /* ignore */ } }
+  if (current) { try { if (!quiet) current.vanish(false); current.despawn(); } catch { /* ignore */ } }
   current = null;
   safe('sweep', () => {
     const dim = world.getDimension(OVERWORLD);
     for (const e of dim.getEntities({ type: SB_ID })) e.remove();
-    for (const e of dim.getEntities({ type: WP_ID })) e.remove();
   });
 }
 
 export function tickCreature() {
-  if (current && !valid(current.e)) {
-    if (valid(current.wp)) safe('wpOrphan', () => current.wp.remove());
-    current = null;
-  }
+  if (current && !valid(current.e)) current = null;
   if (current) current.tick();
+}
+
+/** creative/spectator players cannot be damaged: hunts against them are harmless chases */
+export function isDamageable(player) {
+  try { const g = String(player.getGameMode()).toLowerCase(); return g === 'survival' || g === 'adventure'; } catch { return true; }
 }

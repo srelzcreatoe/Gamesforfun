@@ -37,7 +37,6 @@
         "*": {
           "texture": "sb_den_spine",
           "render_method": "alpha_test",
-          "ambient_occlusion": false,
           "face_dimming": false
         }
       },

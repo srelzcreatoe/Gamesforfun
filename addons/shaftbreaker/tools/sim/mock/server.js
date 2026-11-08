@@ -129,7 +129,7 @@ export class Entity {
     this._valid = true; this._props = {}; this._dyn = {}; this._tags = new Set(); this._groups = new Set();
     this._rot = { x: 0, y: 0 }; this._vel = { x: 0, y: 0, z: 0 }; this._hp = 20; this._max = 20; this.nameTag = '';
     this.isOnGround = true; this.isClimbing = false; this.isInWater = false; this.isSwimming = false; this.isSprinting = false; this.isSneaking = false;
-    if (typeId === 'shaftbreaker:shaftbreaker') { this._hp = 112; this._max = 112; this._groups = new Set(['sb:mode_still', 'sb:grav_on', 'sb:stance_stand', 'sb:nav_walk']); this._props = { 'shaftbreaker:phase': 'dormant', 'shaftbreaker:act': 0, 'shaftbreaker:stance': 0, 'shaftbreaker:gait': 0, 'shaftbreaker:spectral': false, 'shaftbreaker:eyes': 0.85, 'shaftbreaker:defeated': false }; }
+    if (typeId === 'shaftbreaker:shaftbreaker') { this._hp = 112; this._max = 112; this._groups = new Set(['sb:mode_still', 'sb:grav_on', 'sb:stance_stand', 'sb:nav_walk']); this._props = { 'shaftbreaker:phase': 'dormant', 'shaftbreaker:act': 0, 'shaftbreaker:stance': 0, 'shaftbreaker:gait': 0, 'shaftbreaker:spectral': false, 'shaftbreaker:eyes': 0.85, 'shaftbreaker:moving': 0, 'shaftbreaker:defeated': false }; }
   }
   get isValid() { return this._valid; }
   remove() { this._valid = false; world._entities = world._entities.filter((e) => e !== this); }
@@ -144,6 +144,7 @@ export class Entity {
   getTags() { return [...this._tags]; }
   triggerEvent(ev) {
     SIM.events.push({ t: tick, id: this.id, ev });
+    if (this.typeId === 'shaftbreaker:shaft_moth') { if (ev === 'sb:become_guide') { this._groups.delete('sb:wander'); this._groups.add('sb:guide'); } else if (ev === 'sb:despawn') this.remove(); return; }
     if (this.typeId !== 'shaftbreaker:shaftbreaker') return;
     const cats = { mode: 'sb:mode_', grav: 'sb:grav_', stance: 'sb:stance_', nav: 'sb:nav_' };
     for (const pre of Object.values(cats)) {
@@ -152,14 +153,14 @@ export class Entity {
     if (ev === 'sb:despawn') this.remove();
   }
   mode() { for (const g of this._groups) if (g.startsWith('sb:mode_')) return g.slice(8); return 'still'; }
-  teleport(loc, o = {}) { this.location = { ...loc }; if (o.facingLocation) this.lookAt(o.facingLocation); }
+  teleport(loc, o = {}) { const from = { ...this.location }; this.location = { ...loc }; if (o.facingLocation) this.lookAt(o.facingLocation); this._vel = { x: 0, y: 0, z: 0 }; if (SIM.onTeleport) SIM.onTeleport(this, from, this.location); }
   tryTeleport(loc, o) { this.teleport(loc, o); return true; }
   lookAt(p) { this._rot = { x: 0, y: Math.atan2(-(p.x - this.location.x), p.z - this.location.z) * 57.2958 }; }
   setRotation(r) { this._rot = { ...r }; }
   getRotation() { return { ...this._rot }; }
   getVelocity() { return { ...this._vel }; }
   clearVelocity() { this._vel = { x: 0, y: 0, z: 0 }; }
-  applyImpulse(v) { this._vel = { x: this._vel.x + v.x, y: this._vel.y + v.y, z: this._vel.z + v.z }; this._impulse = 6; }
+  applyImpulse(v) { this._vel = { x: this._vel.x + v.x, y: this._vel.y + v.y, z: this._vel.z + v.z }; this._impulse = 6; this._impulsed = true; }
   applyKnockback(h, v) { if (this.typeId === 'minecraft:player') this._knock = { ...h, v }; }
   getHeadLocation() { return { x: this.location.x, y: this.location.y + (this.typeId === 'minecraft:player' ? 1.62 : 2.6), z: this.location.z }; }
   getViewDirection() { const r = this._rot.y / 57.2958, p = this._rot.x / 57.2958; return { x: -Math.sin(r) * Math.cos(p), y: -Math.sin(p), z: Math.cos(r) * Math.cos(p) }; }
@@ -186,7 +187,7 @@ export class Player extends Entity {
   constructor(name, dim, loc) { super('minecraft:player', dim, loc); this.name = name; this._hp = 20; this._max = 20; this._music = null; this.onScreenDisplay = { setActionBar: (t) => { this._actionbar = t; }, setTitle: (t) => SIM.messages.push(`[title:${name}] ${t}`) }; this.camera = { fade: () => { this._fades = (this._fades || 0) + 1; } }; }
   getGameMode() { return this._gm || 'Survival'; }
   sendMessage(m) { SIM.messages.push(`[${this.name}] ${typeof m === 'string' ? m : JSON.stringify(m)}`); }
-  playSound(id, o = {}) { SIM.sounds.push({ t: tick, id, loc: o.location, who: this.name }); }
+  playSound(id, o = {}) { SIM.sounds.push({ t: tick, id, loc: o.location, who: this.name, ctx: SIM.curEnc }); }
   playMusic(id) { this._music = id; SIM.musics.push({ t: tick, id, who: this.name }); }
   stopMusic() { this._music = null; }
   runCommand(c) { SIM.commands.push(`${this.name}: ${c}`); return { successCount: 1 }; }

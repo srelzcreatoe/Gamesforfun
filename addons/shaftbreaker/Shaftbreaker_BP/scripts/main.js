@@ -11,12 +11,13 @@ import { isWoodenDoorId } from './core/blocks.js';
 import { loadPlaced, notePlaced, noteRemoved, savePlaced, placedCount } from './world/protection.js';
 import { isUnderground } from './world/space.js';
 import { onDenHeartBroken } from './world/den.js';
-import { SB_ID, WP_ID, creature, tickCreature, adopt, despawnAll, onDefeat, dropLoot } from './ai/creature.js';
+import { SB_ID, creature, tickCreature, adopt, despawnAll, onDefeat, dropLoot } from './ai/creature.js';
 import { onPlayerHitMob, directorTick, fastTick, slowTick, onBreak, onPlace, onDoorUse, onPlayerDeath, onPlayerSpawn, onCreatureHurtByPlayer, armRetaliation, dropPlayer, forceEncounter, stopEncounter, debugLine, pstate, TEMPLATES, running } from './ai/director.js';
 import { profile, evidence, markDirty, resetProfile } from './ai/memory.js';
 import { ws, wsDirty, wsReset } from './ai/worldstate.js';
 import { openDial } from './ui.js';
-import { playFor, forgetAudio, stopAllMusic } from './audio.js';
+import { presenceAudio } from './ai/brain.js';
+import { playFor, forgetAudio, stopAllMusic, tickHeart } from './audio.js';
 
 let inited = false;
 
@@ -33,6 +34,8 @@ function init() {
   system.runInterval(() => safe('director', directorTick), 40);
   system.runInterval(() => safe('slow', () => { slowTick(); savePlaced(); }), 600);
   system.runInterval(() => safe('trophy', trophyTick), 40);
+  system.runInterval(() => safe('presence', presenceAudio), 20);
+  system.runInterval(() => safe('heart', () => { for (const p of world.getAllPlayers()) tickHeart(p); }), 5);
   system.runInterval(() => safe('debug', debugTick), 10);
   console.warn(`[Shaftbreaker] ready (preset=${config().preset}, templates=${TEMPLATES.length}, placed-registry=${placedCount()})`);
 }
@@ -93,6 +96,7 @@ world.afterEvents.entityHurt.subscribe((ev) => safe('hurt', () => {
   if (e.typeId === 'minecraft:player' && ev.damageSource.damagingEntity?.typeId === SB_ID) {
     const s = pstate(/** @type {any} */ (e));
     s.lastHurtBy = now();
+    const c = creature(); if (c) c.lastEngineHit = now();
   }
 }));
 

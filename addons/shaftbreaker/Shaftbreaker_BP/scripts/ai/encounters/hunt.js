@@ -5,7 +5,7 @@ import { W, seen, sighted, appear, hiddenRetreat, passiveExit, sfx, scratchNear,
 import { now, sec, valid, sub, len, lenXZ, dist, norm, rand, chance, pick, center, floor3, clamp, safe } from '../../core/util.js';
 import { config } from '../../core/config.js';
 import { MEATS, DAMAGING, isWoodenDoorId } from '../../core/blocks.js';
-import { creature } from '../creature.js';
+import { creature, SPEED } from '../creature.js';
 import { profile, evidence, weaken, trait, unlocked, curious, bumpRegion, regionCenter, markDirty } from '../memory.js';
 import { ws, wsDirty, addDanger } from '../worldstate.js';
 import { setDanger, startMusic, stopMusic, caption, playAt } from '../../audio.js';
@@ -39,7 +39,7 @@ function narrowCorridor(cr, toward) {
 function* cornerLunge(ctx, cr) {                                     // N21
   const pl = ctx.player;
   ctx.tel.notes.push('N21 corner lunge');
-  cr.setMode('scripted'); cr.face(pl.location);
+  cr.halt(); cr.face(pl.location);
   cr.setAct(ACT.BRACE);
   playAt(cr.dim, 'shaftbreaker.scrape', cr.loc, 0.9, 0.8);
   yield W(sec(1.0));                                                // one-second wall brace = dodge window
@@ -57,7 +57,7 @@ function* cornerLunge(ctx, cr) {                                     // N21
 function* rupture(ctx, cr) {                                         // ground rupture
   const pl = ctx.player;
   ctx.tel.notes.push('rupture');
-  cr.setMode('scripted'); cr.face(pl.location);
+  cr.halt(); cr.face(pl.location);
   cr.setAct(ACT.RUPTURE);
   yield W(sec(0.15));
   safe('warn', () => cr.dim.spawnParticle('shaftbreaker:warning_ring', cr.loc));
@@ -74,7 +74,7 @@ function* rupture(ctx, cr) {                                         // ground r
 function* heavyStrike(ctx, cr) {                                     // heavy + L38 shield pressure
   const pl = ctx.player;
   ctx.tel.notes.push('heavy');
-  cr.setMode('scripted'); cr.face(pl.location);
+  cr.halt(); cr.face(pl.location);
   cr.setAct(ACT.HEAVY);
   yield W(sec(1.05));                                               // long wind-up
   if (!cr.valid) return;
@@ -102,7 +102,7 @@ function holdsShield(pl) {
 
 function* vehicleStrike(ctx, cr, vehicle) {                          // L37
   ctx.tel.notes.push('L37 vehicle strike');
-  cr.setMode('scripted'); cr.face(vehicle.location);
+  cr.halt(); cr.face(vehicle.location);
   cr.setAct(ACT.CLAW_RIGHT);
   playAt(cr.dim, 'shaftbreaker.growl', cr.loc, 0.9, 1.0);
   yield W(sec(0.55));
@@ -130,7 +130,7 @@ function* eatMeat(ctx, cr, item) {
   cr.moveTo(item.location, true);
   const until = now() + sec(6);
   while (now() < until && cr.valid && valid(item) && !cr.arrived(1.6)) yield W(4);
-  cr.setMode('scripted');
+  cr.halt();
   cr.setAct(ACT.EAT, true);
   safe('meat', () => valid(item) && item.remove());
   yield W(sec(rand(3.5, 5.5)));
@@ -168,6 +168,7 @@ export function* pursue(ctx, cr, opts = {}) {
   if (unlocked(pl, 'escape_pillars') && chance(0.7)) { cr.setNav('climb'); ctx.tel.notes.push('L47 climbing approach'); }
   cr.setPhase('breaker');
   cr.huntTarget(pl, false);
+  ctx.huntStartPos = { ...cr.loc };
   ctx.tel.phases.push('breaker');
   const quiet = !!opts.quiet;
   if (!quiet) startMusic(pl, 'music.shaftbreaker.chase');
@@ -196,17 +197,36 @@ export function* pursue(ctx, cr, opts = {}) {
     if (el >= maxT) return 'cap';
     if (phase === 'frenzy' && frenzyTicks >= sec(Math.min(30, cfg.maxHuntSeconds))) return 'cap';
     if (d > 48 || (lostLOS > sec(12) && d > 22)) return 'escaped';
-    if (!isUnderground(pl)) {
+    if (!ctx.manual && !isUnderground(pl)) {
       surfaceT += 5;
       if (!cfg.surfaceMode || surfaceT > sec(6)) return 'surface';      // L52 / L53
     } else surfaceT = 0;
     if (hp < 0.4 && el > sec(3)) return 'low_health';                     // L40 / L41
     if (cr.act && cr.act !== ACT.CLIMB) continue;
+    // ---- engine fallback: if the built-in chase goal is not moving it, the script pursues instead
+    if (!ctx.engineChecked && el > sec(3)) {
+      ctx.engineChecked = true;
+      if (dist(cr.loc, ctx.huntStartPos || cr.loc) < 1.0 && d > 3.5) { ctx.scriptChase = true; ctx.tel.notes.push('engine pursuit stalled: scripted pursuit'); }
+    }
+    if (ctx.scriptChase && !cr.chaseTarget && !cr.act) cr.chase(pl, phase === 'frenzy' ? SPEED.scramble : SPEED.fast);
+    // ---- scripted claw when in reach and no engine attack has landed recently (telegraphed wind-up)
+    if (d < 2.6 && now() - cr.lastEngineHit > sec(1.7) && now() > (ctx.nextClaw || 0) && cr.inFront(pl, 3.0, 85)) {
+      ctx.nextClaw = now() + sec(1.6);
+      const keepChase = ctx.scriptChase;
+      cr.halt(); cr.face(pl.location);
+      cr.setAct(chance(0.5) ? ACT.CLAW_RIGHT : ACT.CLAW_LEFT);
+      yield W(sec(0.5));
+      if (cr.valid && cr.inFront(pl, 2.9, 75) && cr.strike(pl, 6 * diffMul(), canHurt(ctx))) ctx.hits++;
+      yield W(sec(0.4));
+      if (!cr.valid) continue;
+      if (keepChase) cr.chase(pl, phase === 'frenzy' ? SPEED.scramble : SPEED.fast); else cr.huntTarget(pl, phase === 'frenzy');
+      continue;
+    }
     // ---- trap recognition (N17): hesitate near a hazard type that hurt it before
     if (unlocked(pl, 'trap_reuse') && now() > trapPause && hazardAhead(cr, pl.location) && chance(0.55)) {
       trapPause = now() + sec(8);
       ctx.tel.notes.push('N17 tested a step');
-      cr.setMode('scripted'); cr.setAct(ACT.LISTEN);
+      cr.halt(); cr.setAct(ACT.LISTEN);
       yield W(sec(1.4));
       cr.clearAct(); cr.huntTarget(pl, phase === 'frenzy');
       continue;
@@ -251,7 +271,7 @@ export function* pursue(ctx, cr, opts = {}) {
     if (!ctx.leapTried && pl.location.y - cr.loc.y >= 2 && lenXZ(sub(pl.location, cr.loc)) < 5 && chance(0.2)) {
       ctx.leapTried = true;
       ctx.tel.notes.push('N26 failed leap');
-      cr.setMode('scripted'); cr.face(pl.location); cr.setAct(ACT.FAILED_LEAP);
+      cr.halt(); cr.face(pl.location); cr.setAct(ACT.FAILED_LEAP);
       yield W(sec(2.0));
       cr.huntTarget(pl, phase === 'frenzy');
       continue;
@@ -473,7 +493,7 @@ export function* huntSequence(ctx, plan = {}) {
   ctx.allowHunt = false;
   ws().hunts++; wsDirty();
   // ---- TELEGRAPH (no damage possible yet: no attack goal is active)
-  cr.setMode('scripted');
+  cr.halt();
   cr.face(pl.location);
   cr.setPhase('breaker');
   cr.setEyes(1.0);
@@ -513,7 +533,7 @@ export function* huntSequence(ctx, plan = {}) {
     return outcome;
   }
   if (outcome === 'distracted') { yield* passiveExit(ctx, cr, 'walk'); return outcome; }
-  cr.setMode('scripted');
+  cr.halt();
   cr.setAct(ACT.FRENZY_HALT);
   cr.setPhase('watching');
   yield W(sec(1.3));

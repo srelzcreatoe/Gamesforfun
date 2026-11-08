@@ -2,7 +2,7 @@
 import { system, BlockPermutation } from '@minecraft/server';
 import { now, sec, mins, rand, randi, chance, pick, dist, distXZ, sub, norm, center, floor3, key, safe, valid, worldTicks, OVERWORLD } from '../core/util.js';
 import { config } from '../core/config.js';
-import { isPlayerMadeHint, NATURAL_BREAKABLE } from '../core/blocks.js';
+import { isPlayerMadeHint, NATURAL_BREAKABLE, isPassableId } from '../core/blocks.js';
 import { BlockCache, lineOfSight, lightAt, isChunkLoaded, hiddenAirNear } from './space.js';
 import { canDress, wasPlaced } from './protection.js';
 import { ws, wsDirty, activeDens, nearestDen } from '../ai/worldstate.js';
@@ -13,50 +13,179 @@ import { log } from '../core/log.js';
 export const MOTH_ID = 'shaftbreaker:shaft_moth';
 
 /** Shaft Moths (L75-L80): original ecology. Clue moths drift toward a den. */
-export function spawnMoths(dim, near, n, den) {
+export function spawnMoths(dim, near, n, den, follower = null) {
   for (let i = 0; i < n; i++) {
-    const pos = hiddenAirNear(dim, near, { x: near.x, y: near.y + 1.6, z: near.z }, 7) || { x: near.x + rand(-4, 4), y: near.y + 2, z: near.z + rand(-4, 4) };
+    const pos = hiddenAirNear(dim, near, { x: near.x, y: near.y + 1.6, z: near.z }, 7) || { x: near.x + rand(-1.5, 1.5), y: near.y + 1.5, z: near.z + rand(-1.5, 1.5) };
     safe('moth', () => {
       const m = dim.spawnEntity(MOTH_ID, pos);
-      m.setProperty('shaftbreaker:clue', !!den);
-      if (den) m.setDynamicProperty('sb:den', den.id);
       m.setDynamicProperty('sb:born', worldTicks());
+      if (den && follower && i === 0) startGuide(m, den, follower);
     });
   }
 }
 
-/** steer clue moths toward their den with small impulses; physics keeps them out of walls */
-export function tickMoths(players) {
-  const dens = activeDens();
+// ------------------------------------------------------------------ guide moths (L78/L80): they lead you to the den
+/** @type {Map<string, any>} */
+const guides = new Map();
+/** guides each player let fly off unfollowed: moths come less often for people who ignore them */
+const ignored = new Map();
+let lastGuideAt = -1e9;
+
+class MinHeap {
+  constructor() { this.a = []; }
+  push(n) { const a = this.a; a.push(n); let i = a.length - 1; while (i > 0) { const p = (i - 1) >> 1; if (a[p].f <= a[i].f) break; [a[p], a[i]] = [a[i], a[p]]; i = p; } }
+  pop() {
+    const a = this.a; const top = a[0]; const last = a.pop();
+    if (a.length && last) { a[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < a.length && a[l].f < a[m].f) m = l; if (r < a.length && a[r].f < a[m].f) m = r; if (m === i) break; [a[m], a[i]] = [a[i], a[m]]; i = m; } }
+    return top;
+  }
+  get size() { return this.a.length; }
+}
+
+/** incremental A* through open air (moths fly; they never pass through blocks) */
+class AirPath {
+  constructor(dim, from, to) {
+    this.cache = new BlockCache(dim);
+    this.goal = floor3(to); this.done = false; this.path = null; this.best = null;
+    const s = floor3(from);
+    this.open = new MinHeap(); this.came = new Map(); this.g = new Map();
+    const k = key(s); this.g.set(k, 0); this.came.set(k, null);
+    this.open.push({ ...s, f: this.h(s) });
+    this.best = { ...s, hh: this.h(s) };
+    this.expanded = 0;
+  }
+  h(c) { return Math.abs(c.x - this.goal.x) + Math.abs(c.y - this.goal.y) * 1.2 + Math.abs(c.z - this.goal.z); }
+  air(x, y, z) { return this.cache.passable(x, y, z); }
+  step(n = 220) {
+    while (n-- > 0 && !this.done) {
+      if (!this.open.size || this.expanded > 3500) { this.finish(this.best); return; }
+      const c = this.open.pop(); this.expanded++;
+      const hh = this.h(c);
+      if (hh < this.best.hh) this.best = { x: c.x, y: c.y, z: c.z, hh };
+      if (hh <= 2.5) { this.finish(c); return; }
+      const gc = this.g.get(key(c));
+      for (const [dx, dy, dz] of [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0], [0, -1, 0]]) {
+        const nb = { x: c.x + dx, y: c.y + dy, z: c.z + dz };
+        if (!this.air(nb.x, nb.y, nb.z)) continue;
+        const k = key(nb); const ng = gc + 1;
+        if (this.g.has(k) && this.g.get(k) <= ng) continue;
+        this.g.set(k, ng); this.came.set(k, key(c));
+        this.open.push({ ...nb, f: ng + this.h(nb) * 1.3 });
+      }
+    }
+  }
+  finish(c) {
+    const out = []; let k = key(c); let guard = 0;
+    while (k && guard++ < 600) { const [x, y, z] = k.split(',').map(Number); out.push({ x: x + 0.5, y: y + 0.4, z: z + 0.5 }); k = this.came.get(k); }
+    this.path = out.reverse(); this.done = true;
+  }
+}
+
+/** turn a moth into a guide for a player toward a den */
+export function startGuide(m, den, player) {
+  safe('guide', () => { m.triggerEvent('sb:become_guide'); m.setProperty('shaftbreaker:clue', true); m.setDynamicProperty('sb:den', den.id); });
+  guides.set(m.id, { m, den, follower: player.id, born: now(), job: null, route: null, ri: 0, nextPlan: 0, orbit: 0, arrivedAt: 0 });
+}
+
+export function guideCount() { return guides.size; }
+
+/** the widest open circle above the Den Heart the moth can fly around without clipping into the den walls */
+function orbitRing(dim, c) {
+  const open = (x, y, z) => { try { const b = dim.getBlock({ x: Math.floor(x), y: Math.floor(y), z: Math.floor(z) }); return !b || isPassableId(b.typeId); } catch { return false; } };
+  for (const dy of [0, 0.6, -0.4, 1.2]) {
+    for (const rad of [1.8, 1.3, 0.9, 0.55]) {
+      let ok = true;
+      for (let a = 0; a < 16 && ok; a++) { const t = a / 16 * Math.PI * 2; for (const hy of [-0.2, 0.2]) if (!open(c.x + Math.cos(t) * rad, c.y + dy + hy, c.z + Math.sin(t) * rad)) { ok = false; break; } }
+      if (ok) return { rad, dy };
+    }
+  }
+  return { rad: 0.3, dy: 0 };
+}
+
+/** every tick: fly guides along their routes; wait (facing the den) when the player falls behind */
+export function tickGuides() {
+  for (const [id, g] of guides) {
+    const m = g.m;
+    if (!valid(m)) { guides.delete(id); continue; }
+    const t = now();
+    if (t - g.born > mins(5)) { safe('gEnd', () => m.remove()); guides.delete(id); ignored.set(g.follower, (ignored.get(g.follower) || 0) + 1); continue; }
+    const denC = { x: g.den.x + 0.5, y: g.den.y + 2.0, z: g.den.z + 0.5 };
+    const pos = m.location;
+    let follower = null;
+    for (const p of m.dimension.getPlayers({ location: pos, maxDistance: 40 })) if (p.id === g.follower) follower = p;
+    if (!g.arrivedAt) {                                          // nobody is following any more: it gives up and drifts off
+      if (!follower || dist(pos, follower.location) > 24) { if (!g.lostSince) g.lostSince = t; } else g.lostSince = 0;
+      if (g.lostSince && t - g.lostSince > sec(60)) { safe('gLost', () => m.remove()); guides.delete(id); ignored.set(g.follower, (ignored.get(g.follower) || 0) + 1); continue; }
+    }
+    if (dist(pos, denC) < 3.5 || g.arrivedAt) {                 // arrived: circle the Den Heart, then fade
+      if (!g.arrivedAt) { g.arrivedAt = t; if (follower && dist(follower.location, denC) < 16) ignored.set(g.follower, 0); safe('arrive', () => m.dimension.spawnParticle('shaftbreaker:den_aura', denC)); }
+      if (!g.ring) g.ring = orbitRing(m.dimension, denC);
+      g.orbit += 0.12;
+      const r = g.ring;
+      const o = { x: denC.x + Math.cos(g.orbit) * r.rad, y: denC.y + r.dy + Math.sin(g.orbit * 2) * 0.2, z: denC.z + Math.sin(g.orbit) * r.rad };
+      safe('orbit', () => m.teleport(o, { facingLocation: { x: o.x - Math.sin(g.orbit), y: o.y, z: o.z + Math.cos(g.orbit) } }));
+      if (t - g.arrivedAt > sec(25)) { safe('gFade', () => m.remove()); guides.delete(id); }
+      continue;
+    }
+    if (!g.job && (!g.route || t >= g.nextPlan)) { g.job = new AirPath(m.dimension, pos, denC); }
+    if (g.job) {
+      g.job.step(220);
+      if (g.job.done) { g.route = g.job.path; g.ri = Math.min(1, g.route.length - 1); g.job = null; g.nextPlan = t + sec(4); }
+    }
+    const bob = Math.sin(t / 6 + id.length) * 0.03;
+    const waiting = !follower || dist(pos, follower.location) > 9;
+    if (waiting || !g.route || g.ri >= g.route.length) {        // hover in place, nose pointed at the den
+      safe('hover', () => m.teleport({ x: pos.x, y: pos.y + bob, z: pos.z }, { facingLocation: denC }));
+      if (t % 20 === 0) safe('mote', () => m.dimension.spawnParticle('shaftbreaker:mote', pos));
+      continue;
+    }
+    const nxt = g.route[g.ri];
+    const d = sub(nxt, pos);
+    const L = Math.sqrt(d.x * d.x + d.y * d.y + d.z * d.z);
+    if (L < 0.35) { g.ri++; continue; }
+    const sp = Math.min(0.17, L);
+    const np = { x: pos.x + d.x / L * sp, y: pos.y + d.y / L * sp + bob, z: pos.z + d.z / L * sp };
+    safe('fly', () => m.teleport(np, { facingLocation: { x: np.x + d.x, y: np.y, z: np.z + d.z } }));
+    if (t % 12 === 0) safe('trail', () => m.dimension.spawnParticle('shaftbreaker:mote', pos));
+  }
+}
+
+/** every 2 s: dens attract moths; a guide appears for underground players when a den exists */
+export function tickMoths(players, pstate) {
   for (const p of players) {
     if (p.dimension.id !== OVERWORLD) continue;
-    let moths = [];
-    try { moths = p.dimension.getEntities({ type: MOTH_ID, location: p.location, maxDistance: 64 }); } catch { continue; }
-    for (const m of moths) {
-      if (!valid(m)) continue;
-      const born = /** @type {number} */ (m.getDynamicProperty('sb:born') ?? 0);
-      if (born && worldTicks() - born > mins(4)) { safe('mothExpire', () => m.remove()); continue; }
-      const denId = m.getDynamicProperty('sb:den');
-      let den = denId ? dens.find((d) => d.id === denId) : null;
-      if (!den) { const nd = nearestDen(m.location, 64); den = nd ? nd.den : null; }
-      if (!den) continue;
-      const d = sub(center(den), m.location);
-      const dd = Math.sqrt(d.x * d.x + d.z * d.z);
-      if (dd < 3) continue;
-      const n = norm({ x: d.x, y: d.y * 0.3, z: d.z });
-      const swirl = Math.sin(now() / 13 + born) * 0.025;
-      safe('mothPush', () => m.applyImpulse({ x: n.x * 0.04 - n.z * swirl, y: n.y * 0.02 + 0.004, z: n.z * 0.04 + n.x * swirl }));
-    }
-    // ambient moths near an active den
-    const nd = nearestDen(p.location, 56);
-    if (nd && moths.length < 2 && chance(0.25)) spawnMoths(p.dimension, p.location, 1, nd.den);
+    const s = pstate(p);
+    if (!s.underground) continue;
+    const nd = nearestDen(p.location, 220);
     if (nd && nd.dist < 16) {
       const pf = profile(p);
       const k = `den${nd.den.id}`;
       pf.denSeen = pf.denSeen || {};
-      if (!pf.denSeen[k] || worldTicks() - pf.denSeen[k] > mins(20)) { pf.denSeen[k] = worldTicks(); evidence(p, 'den_interference', 0.5, 'found the den by following clues'); }
+      if (!pf.denSeen[k] || worldTicks() - pf.denSeen[k] > mins(20)) { pf.denSeen[k] = worldTicks(); evidence(p, 'den_interference', 0.5, 'found the den by following moths'); }
       if (now() % 80 < 40) safe('aura', () => p.dimension.spawnParticle('shaftbreaker:den_aura', { x: nd.den.x + 0.5, y: nd.den.y + 1.2, z: nd.den.z + 0.5 }));
+      continue;
     }
+    if (!nd || guides.size >= 3) continue;
+    let mine = false;
+    for (const g of guides.values()) if (g.follower === p.id) mine = true;
+    if (mine || now() < (s.nextGuide || 0) || now() - lastGuideAt < sec(45)) continue;
+    const seen = (profile(p).denSeen || {})[`den${nd.den.id}`];
+    if (seen && worldTicks() - seen < mins(15)) continue;        // you already found this den: the moths leave you be for a while
+    s.nextGuide = now() + sec(rand(120, 200) * Math.min(3, 1 + 0.6 * (ignored.get(p.id) || 0)));
+    lastGuideAt = now();
+    // reuse a natural moth nearby, or one flutters in from the dark
+    let m = null;
+    safe('findMoth', () => { m = p.dimension.getEntities({ type: MOTH_ID, location: p.location, maxDistance: 14 }).find((e) => !guides.has(e.id)) || null; });
+    if (!m) {
+      const eye = p.getHeadLocation();
+      const view = p.getViewDirection();
+      const spot = { x: eye.x + view.x * 3, y: eye.y + 0.3, z: eye.z + view.z * 3 };
+      const c = new BlockCache(p.dimension);
+      const f = floor3(spot);
+      const pos = c.passable(f.x, f.y, f.z) ? spot : (hiddenAirNear(p.dimension, p.location, eye, 4) || { x: eye.x, y: eye.y + 0.6, z: eye.z });
+      safe('spawnGuide', () => { m = p.dimension.spawnEntity(MOTH_ID, pos); m.setDynamicProperty('sb:born', worldTicks()); });
+    }
+    if (m) { startGuide(m, nd.den, p); log('basic', `guide moth leading ${p.name} toward den #${nd.den.id} (${Math.round(nd.dist)} blocks)`); }
   }
 }
 
@@ -103,6 +232,39 @@ export function tryGenerateDen(player) {
     }
     if (!clean) continue;
     buildDen(dim, { x, y: F, z }, cache);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Preferred placement: a node of the brain's walk map (so the den is provably connected to the player
+ * by walkable cave), 26-46 steps away, out of sight, dark, with a little open floor around it.
+ */
+export function tryGenerateDenFromMap(player, map) {
+  const cfg = config();
+  if (!cfg.denGeneration || cfg.harmless || building || !map) return false;
+  if (activeDens().length >= 6 || nearestDen(player.location, 140)) return false;
+  const dim = player.dimension;
+  const eye = player.getHeadLocation();
+  const c = map.cache;
+  const cands = map.list().filter((n) => n.d >= 26 && n.d <= 46 && !n.crawl);
+  for (let i = 0; i < 40 && cands.length; i++) {
+    const n = cands.splice(randi(0, cands.length - 1), 1)[0];
+    if (c.headroom(n.x, n.y, n.z) < 3) continue;
+    if (lightAt(dim, { x: n.x, y: n.y + 1, z: n.z }) > 6) continue;
+    if (lineOfSight(dim, eye, { x: n.x + 0.5, y: n.y + 1.2, z: n.z + 0.5 })) continue;
+    let open = 0;
+    for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) if (c.floor(n.x + dx, n.y - 1, n.z + dz) && c.passable(n.x + dx, n.y, n.z + dz) && c.passable(n.x + dx, n.y + 1, n.z + dz)) open++;
+    if (open < 9) continue;
+    let clean = true;
+    for (let k = 0; k < 40 && clean; k++) {
+      const q = { x: n.x + randi(-4, 4), y: n.y + randi(-1, 3), z: n.z + randi(-4, 4) };
+      const id = c.id(q.x, q.y, q.z);
+      if (id === '?' || isPlayerMadeHint(id) || wasPlaced(q)) clean = false;
+    }
+    if (!clean) continue;
+    buildDen(dim, { x: n.x, y: n.y, z: n.z }, c);
     return true;
   }
   return false;

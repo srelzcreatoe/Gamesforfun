@@ -1,5 +1,5 @@
 build/
-tools/sim/build/
+tools/sim/build*/
 tools/sim/node_modules/
 tools/sim/last_run_*.json
 tools/previewer/node_modules/

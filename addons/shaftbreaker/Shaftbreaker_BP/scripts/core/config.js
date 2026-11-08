@@ -29,6 +29,7 @@ export const DEFAULTS = Object.freeze({
   trophyVision: true,
   trophyFilter: false,
   harmless: false,                    // creature never damages players or edits blocks
+  creativeEncounters: true,           // creative players are stalked too (no damage; hunts become chases)
   debug: 'off',                       // off | basic | verbose
 });
 

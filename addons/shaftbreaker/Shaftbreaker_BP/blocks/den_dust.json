@@ -30,8 +30,7 @@
       "minecraft:material_instances": {
         "*": {
           "texture": "sb_den_dust",
-          "render_method": "alpha_test",
-          "ambient_occlusion": false
+          "render_method": "alpha_test"
         }
       },
       "minecraft:placement_filter": {

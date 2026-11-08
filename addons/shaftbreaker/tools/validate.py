@@ -53,6 +53,13 @@ for p in glob.glob(RP + '/animation_controllers/*.json'):
 rcs = {}
 for p in glob.glob(RP + '/render_controllers/*.json'):
     rcs.update((load(p) or {}).get('render_controllers', {}))
+# render controllers cannot read context.* variables (the 1.0 skull error: "unknown variable 'context.item_slot'")
+for p in glob.glob(RP + '/render_controllers/*.json'):
+    if re.search(r'\b(?:context|c)\.[a-z_]+', open(p).read()): err(f'{os.path.basename(p)}: render controller uses a context.* variable')
+vanilla_rcs = set()
+if VRP:
+    for p in glob.glob(os.path.join(VRP, 'render_controllers/*.json')):
+        vanilla_rcs.update(re.findall(r'"(controller\.render\.[a-z0-9_.]+)"\s*:\s*\{', open(p).read()))
 sdefs = (load(RP + '/sounds/sound_definitions.json') or {}).get('sound_definitions', {})
 particles = {}
 for p in glob.glob(RP + '/particles/*.json'):
@@ -139,7 +146,7 @@ for p in glob.glob(RP + '/attachables/*.json'):
     for gid in desc.get('geometry', {}).values():
         if gid not in geos: err(f'attachable geometry {gid} missing')
     for rc in desc.get('render_controllers', []):
-        if rc not in rcs: err(f'attachable rc {rc} missing')
+        if rc not in rcs and rc not in vanilla_rcs: err(f'attachable rc {rc} missing')
 
 # ---------------------------------------------------------------- behavior entities
 bp_entities = {}
@@ -181,6 +188,10 @@ for p in glob.glob(BP + '/blocks/*.json'):
     g = comps.get('minecraft:geometry')
     gid = g if isinstance(g, str) else (g or {}).get('identifier')
     if gid and gid not in geos and not gid.startswith('minecraft:'): err(f'{ident}: block geometry {gid} missing')
+    # material_instances without a geometry render as the missing-texture cube in game (bug report from 1.0)
+    if comps.get('minecraft:material_instances') and not gid: err(f'{ident}: material_instances without minecraft:geometry (renders untextured)')
+    for inst, m in comps.get('minecraft:material_instances', {}).items():
+        if not isinstance(m.get('ambient_occlusion', 1.0), (int, float)) or isinstance(m.get('ambient_occlusion'), bool): err(f'{ident}: ambient_occlusion must be a number')
     for inst, m in comps.get('minecraft:material_instances', {}).items():
         if m['texture'] not in terrain: err(f'{ident}: texture {m["texture"]} not in terrain_texture')
     lt = comps.get('minecraft:loot')
@@ -208,7 +219,8 @@ for p in glob.glob(BP + '/scripts/**/*.js', recursive=True):
     js += open(p).read() + '\n'
 sb = bp_entities.get('shaftbreaker:shaftbreaker', {})
 props = set(sb.get('description', {}).get('properties', {}).keys()) | {'shaftbreaker:clue'}
-events = set(sb.get('events', {}).keys())
+events = set()
+for _e in bp_entities.values(): events |= set(_e.get('events', {}).keys())
 for m in re.findall(r"'(shaftbreaker:[a-z_]+)'", js):
     if m.startswith('shaftbreaker:') and m.count(':') == 1:
         name = m.split(':')[1]

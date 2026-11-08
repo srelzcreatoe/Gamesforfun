@@ -6,7 +6,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BP = os.path.join(ROOT, 'Shaftbreaker_BP')
 RP = os.path.join(ROOT, 'Shaftbreaker_RP')
 NS = 'shaftbreaker'
-VERSION = [1, 0, 0]
+VERSION = [2, 0, 0]
 MIN_ENGINE = [1, 21, 120]
 UUID = {
     'bp_header': '6f1c2b0e-3a5d-4c7e-9b21-5d8e7a4c1f01',
@@ -66,21 +66,9 @@ def hunt_target_filter():
 def shaftbreaker():
     look = {'priority': 7, 'look_distance': 48, 'probability': 1.0, 'angle_of_view_horizontal': 360, 'angle_of_view_vertical': 180,
             'look_time': [4, 8]}
-    travel_target = {'priority': 1, 'must_see': False, 'reselect_targets': True, 'within_radius': 96, 'attack_interval': 1,
-                     'must_reach': False,
-                     'entity_types': [{'filters': {'test': 'is_family', 'subject': 'other', 'value': 'sb_waypoint'}, 'max_dist': 96, 'must_see': False}]}
     hunt_target = {'priority': 1, 'must_see': False, 'reselect_targets': True, 'within_radius': 64, 'attack_interval': 1,
                    'must_see_forget_duration': 20,
                    'entity_types': [{'filters': hunt_target_filter(), 'max_dist': 64, 'must_see': False}]}
-
-    def travel(speed):
-        return {
-            'minecraft:movement': {'value': speed},
-            'minecraft:behavior.nearest_attackable_target': travel_target,
-            'minecraft:behavior.melee_attack': {'priority': 3, 'speed_multiplier': 1.0, 'track_target': True,
-                                                'require_complete_path': False, 'reach_multiplier': 0.9, 'cooldown_time': 3.0},
-            'minecraft:behavior.float': {'priority': 0},
-        }
 
     def hunt(speed, mult, cooldown):
         return {
@@ -93,12 +81,10 @@ def shaftbreaker():
         }
 
     groups = {
-        'sb:mode_still': {'minecraft:movement': {'value': 0.0}, 'minecraft:behavior.look_at_player': look, 'minecraft:body_rotation_blocked': {}},
-        'sb:mode_travel': travel(0.21),
-        'sb:mode_travel_fast': travel(0.30),
+        'sb:mode_still': {'minecraft:movement': {'value': 0.0}, 'minecraft:behavior.look_at_player': look},
+        'sb:mode_scripted': {'minecraft:movement': {'value': 0.25}},
         'sb:mode_hunt': hunt(0.36, 1.0, 0.75),
         'sb:mode_frenzy': hunt(0.45, 1.12, 0.6),
-        'sb:mode_scripted': {'minecraft:movement': {'value': 0.0}, 'minecraft:body_rotation_blocked': {}},
         'sb:mode_defeated': {'minecraft:movement': {'value': 0.0}, 'minecraft:body_rotation_blocked': {},
                              'minecraft:damage_sensor': {'triggers': [{'cause': 'all', 'deals_damage': 'no'}]}},
         'sb:grav_on': {'minecraft:physics': {}},
@@ -118,7 +104,7 @@ def shaftbreaker():
         'sb:despawn': {'minecraft:instant_despawn': {}},
     }
     cats = {
-        'mode': ['sb:mode_still', 'sb:mode_travel', 'sb:mode_travel_fast', 'sb:mode_hunt', 'sb:mode_frenzy', 'sb:mode_scripted', 'sb:mode_defeated'],
+        'mode': ['sb:mode_still', 'sb:mode_hunt', 'sb:mode_frenzy', 'sb:mode_scripted', 'sb:mode_defeated'],
         'grav': ['sb:grav_on', 'sb:grav_off'],
         'stance': ['sb:stance_stand', 'sb:stance_crouch', 'sb:stance_crawl'],
         'nav': ['sb:nav_walk', 'sb:nav_doors', 'sb:nav_climb'],
@@ -152,6 +138,7 @@ def shaftbreaker():
                     'shaftbreaker:gait': {'type': 'int', 'range': [0, 2], 'default': 0, 'client_sync': True},
                     'shaftbreaker:spectral': {'type': 'bool', 'default': False, 'client_sync': True},
                     'shaftbreaker:eyes': {'type': 'float', 'range': [0.0, 1.0], 'default': 0.85, 'client_sync': True},
+                    'shaftbreaker:moving': {'type': 'float', 'range': [0.0, 1.0], 'default': 0.0, 'client_sync': True},
                     'shaftbreaker:defeated': {'type': 'bool', 'default': False, 'client_sync': False},
                 },
             },
@@ -170,6 +157,7 @@ def shaftbreaker():
                 'minecraft:knockback_resistance': {'value': 0.55},
                 'minecraft:pushable': {'is_pushable': False, 'is_pushable_by_piston': True},
                 'minecraft:nameable': {},
+                'minecraft:ambient_sound_interval': {'value': 7, 'range': 9, 'event_name': 'ambient'},
                 'minecraft:conditional_bandwidth_optimization': {},
                 'minecraft:despawn': {'despawn_from_distance': {'min_distance': 80, 'max_distance': 128}},
                 'minecraft:loot': {'table': 'loot_tables/entities/shaftbreaker.json'},
@@ -195,36 +183,22 @@ def shaftbreaker():
     w(BP, 'entities/shaftbreaker.json', ent)
 
 
-def waypoint():
-    w(BP, 'entities/waypoint.json', {
-        'format_version': '1.21.90',
-        'minecraft:entity': {
-            'description': {'identifier': f'{NS}:waypoint', 'is_spawnable': False, 'is_summonable': True},
-            'component_groups': {'sb:expire': {'minecraft:instant_despawn': {}}},
-            'components': {
-                'minecraft:type_family': {'family': ['sb_waypoint', 'inanimate']},
-                'minecraft:health': {'value': 1000, 'max': 1000},
-                'minecraft:collision_box': {'width': 0.1, 'height': 0.1},
-                'minecraft:custom_hit_test': {'hitboxes': [{'width': 0.01, 'height': 0.01, 'pivot': [0, 0, 0]}]},
-                'minecraft:physics': {'has_gravity': False, 'has_collision': False},
-                'minecraft:pushable': {'is_pushable': False, 'is_pushable_by_piston': False},
-                'minecraft:knockback_resistance': {'value': 1.0},
-                'minecraft:damage_sensor': {'triggers': [{'cause': 'all', 'deals_damage': 'no'}]},
-                'minecraft:fire_immune': {},
-                'minecraft:timer': {'looping': False, 'time': 75, 'randomInterval': False, 'time_down_event': {'event': 'sb:expire', 'target': 'self'}},
-            },
-            'events': {'sb:expire': {'add': {'component_groups': ['sb:expire']}}},
-        }
-    })
-
-
 def moth():
     w(BP, 'entities/shaft_moth.json', {
         'format_version': '1.21.90',
         'minecraft:entity': {
             'description': {'identifier': f'{NS}:shaft_moth', 'is_spawnable': True, 'is_summonable': True, 'spawn_category': 'ambient',
                             'properties': {'shaftbreaker:clue': {'type': 'bool', 'default': False, 'client_sync': True}}},
-            'component_groups': {'sb:despawn': {'minecraft:instant_despawn': {}}},
+            'component_groups': {
+                'sb:despawn': {'minecraft:instant_despawn': {}},
+                'sb:wander': {
+                    'minecraft:behavior.random_hover': {'priority': 4, 'xz_dist': 6, 'y_dist': 4, 'y_offset': -1, 'interval': 1, 'hover_height': [1, 3]},
+                    'minecraft:behavior.avoid_mob_type': {'priority': 2, 'entity_types': [{'filters': {'test': 'is_family', 'subject': 'other', 'value': 'player'},
+                                                                                           'max_dist': 3, 'walk_speed_multiplier': 1.0, 'sprint_speed_multiplier': 1.2}]},
+                    'minecraft:despawn': {'despawn_from_distance': {'min_distance': 32, 'max_distance': 64}},
+                },
+                'sb:guide': {'minecraft:physics': {'has_gravity': False, 'has_collision': True}},
+            },
             'components': {
                 'minecraft:type_family': {'family': ['shaft_moth', 'ambient', 'arthropod']},
                 'minecraft:health': {'value': 3, 'max': 3},
@@ -236,17 +210,17 @@ def moth():
                 'minecraft:movement.hover': {},
                 'minecraft:navigation.hover': {'can_path_over_water': True, 'can_sink': False, 'can_pass_doors': False, 'can_path_from_air': True,
                                                'avoid_water': True, 'avoid_damage_blocks': True, 'avoid_sun': False},
-                'minecraft:behavior.random_hover': {'priority': 4, 'xz_dist': 6, 'y_dist': 4, 'y_offset': -1, 'interval': 1, 'hover_height': [1, 3]},
-                'minecraft:behavior.avoid_mob_type': {'priority': 2, 'entity_types': [{'filters': {'test': 'is_family', 'subject': 'other', 'value': 'player'},
-                                                                                       'max_dist': 3, 'walk_speed_multiplier': 1.0, 'sprint_speed_multiplier': 1.2}]},
                 'minecraft:breathable': {'breathes_air': True, 'breathes_water': False, 'total_supply': 15, 'suffocate_time': 0},
-                'minecraft:despawn': {'despawn_from_distance': {'min_distance': 32, 'max_distance': 64}},
                 'minecraft:pushable': {'is_pushable': True, 'is_pushable_by_piston': True},
                 'minecraft:damage_sensor': {'triggers': [{'cause': 'fall', 'deals_damage': 'no'}]},
                 'minecraft:loot': {'table': 'loot_tables/entities/shaft_moth.json'},
                 'minecraft:nameable': {},
             },
-            'events': {'sb:despawn': {'add': {'component_groups': ['sb:despawn']}}},
+            'events': {
+                'minecraft:entity_spawned': {'add': {'component_groups': ['sb:wander']}},
+                'sb:become_guide': {'remove': {'component_groups': ['sb:wander']}, 'add': {'component_groups': ['sb:guide']}},
+                'sb:despawn': {'add': {'component_groups': ['sb:despawn']}},
+            },
         }
     })
     w(BP, 'spawn_rules/shaft_moth.json', {
@@ -325,6 +299,7 @@ def blocks():
             b['minecraft:block']['permutations'] = perms
         return b
     w(BP, 'blocks/den_heart.json', blk(f'{NS}:den_heart', {
+        'minecraft:geometry': 'minecraft:geometry.full_block',
         'minecraft:destructible_by_mining': {'seconds_to_destroy': 7},
         'minecraft:destructible_by_explosion': {'explosion_resistance': 18},
         'minecraft:light_emission': 4,
@@ -333,6 +308,7 @@ def blocks():
         'minecraft:loot': 'loot_tables/blocks/den_heart.json',
     }))
     w(BP, 'blocks/den_crack.json', blk(f'{NS}:den_crack', {
+        'minecraft:geometry': 'minecraft:geometry.full_block',
         'minecraft:destructible_by_mining': {'seconds_to_destroy': 2.5},
         'minecraft:destructible_by_explosion': {'explosion_resistance': 6},
         'minecraft:map_color': '#46413f',
@@ -346,7 +322,7 @@ def blocks():
         'minecraft:geometry': 'geometry.sb_dust_layer',
         'minecraft:light_dampening': 0,
         'minecraft:map_color': '#6f6a64',
-        'minecraft:material_instances': {'*': {'texture': 'sb_den_dust', 'render_method': 'alpha_test', 'ambient_occlusion': False}},
+        'minecraft:material_instances': {'*': {'texture': 'sb_den_dust', 'render_method': 'alpha_test'}},
         'minecraft:placement_filter': {'conditions': [{'allowed_faces': ['up'], 'block_filter': [{'tags': "!q.any_tag('air')"}]}]},
         'minecraft:loot': 'loot_tables/blocks/empty.json',
     }))
@@ -357,7 +333,7 @@ def blocks():
         'minecraft:geometry': 'geometry.sb_spine',
         'minecraft:light_dampening': 0,
         'minecraft:map_color': '#d8cdb8',
-        'minecraft:material_instances': {'*': {'texture': 'sb_den_spine', 'render_method': 'alpha_test', 'ambient_occlusion': False, 'face_dimming': False}},
+        'minecraft:material_instances': {'*': {'texture': 'sb_den_spine', 'render_method': 'alpha_test', 'face_dimming': False}},
         'minecraft:loot': 'loot_tables/blocks/den_spine.json',
     }, states={'shaftbreaker:hanging': [False, True]},
         perms=[{'condition': "q.block_state('shaftbreaker:hanging') == true",
@@ -398,5 +374,8 @@ def loot():
 
 
 if __name__ == '__main__':
-    manifests(); shaftbreaker(); waypoint(); moth(); items(); blocks(); loot()
+    manifests(); shaftbreaker(); moth(); items(); blocks(); loot()
+    old = os.path.join(BP, 'entities/waypoint.json')
+    if os.path.exists(old):
+        os.remove(old)
     print('behavior pack JSON generated')

@@ -58,7 +58,7 @@ export const MEATS = set('beef', 'porkchop', 'mutton', 'chicken', 'rabbit', 'rot
 export function isAirId(id) { return AIR.has(id); }
 export function isLiquidId(id) { return LIQUID.has(id); }
 /** can a body occupy this cell? */
-export function isPassableId(id) { return AIR.has(id) || SOFT.has(id) || id.endsWith('_carpet') || id.endsWith('_button') || id.endsWith('pressure_plate'); }
+export function isPassableId(id) { return AIR.has(id) || SOFT.has(id) || id === 'shaftbreaker:den_dust' || id === 'shaftbreaker:den_spine' || id.endsWith('_carpet') || id.endsWith('_button') || id.endsWith('pressure_plate'); }
 /** does it block a line of sight? (glass and leaves are see-through) */
 export function blocksSight(id) {
   if (isPassableId(id) || LIQUID.has(id)) return false;

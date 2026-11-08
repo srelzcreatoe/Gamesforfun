@@ -135,7 +135,7 @@ export const OBSERVE_TEMPLATES = [
       const cr = appear(ctx, { pos: plan.anchor }, { phase: 'watching', act: ACT.CEILING_HANG, eyes: 0.9 });
       if (!cr) return 'no_spawn';
       cr.lockStance = true;
-      cr.setGravity(false); cr.setMode('scripted'); cr.setAct(ACT.CEILING_HANG, true);
+      cr.setGravity(false); cr.halt(); cr.setAct(ACT.CEILING_HANG, true);
       safe('pin', () => cr.e.teleport(plan.anchor));
       const below = (s) => {
         const p = ctx.player.location;
@@ -210,7 +210,7 @@ export const OBSERVE_TEMPLATES = [
             sighted(ctx);
             if (s.dist > 8 && s.dist < 22 && chance(0.6)) {
               ctx.tel.notes.push('N29 dropped prone');
-              cr.setMode('scripted'); cr.setAct(ACT.PRONE, true);
+              cr.halt(); cr.setAct(ACT.PRONE, true);
               const r = yield* hold(ctx, cr, { ticks: sec(rand(3, 6)), approachDist: 7, returnOnSpot: false });
               cr.clearAct();
               yield* passiveExit(ctx, cr, r === 'approach' ? 'walk' : 'backward');
@@ -266,7 +266,7 @@ export const OBSERVE_TEMPLATES = [
           ctx.tel.notes.push('followed mining vibrations');
           const m = ctx.map; const pl = ctx.player.location;
           const closer = findSpot(m, ctx.player, { minDist: Math.max(8, dist(cr.loc, pl) - 5), maxDist: dist(cr.loc, pl) - 1, los: false, crawl: false });
-          if (closer) { cr.clearAct(); cr.setPhase('stalking'); cr.moveTo(closer.pos); yield W(sec(3)); cr.setMode('scripted'); cr.setAct(ACT.LISTEN, true); }
+          if (closer) { cr.clearAct(); cr.setPhase('stalking'); cr.moveTo(closer.pos); yield W(sec(3)); cr.halt(); cr.setAct(ACT.LISTEN, true); }
         }
       }
       cr.vanish(!seen(ctx, cr).visible);
@@ -315,7 +315,7 @@ export const OBSERVE_TEMPLATES = [
     *run(ctx, plan) {
       const cr = appear(ctx, { pos: plan.s.pos }, { phase: 'dormant', face: 'away', eyes: 0.7 });
       if (!cr) return 'no_spawn';
-      cr.setMode('scripted');
+      cr.halt();
       let r = yield* hold(ctx, cr, { ticks: holdT(12, 22), approachDist: 8 });
       if (r !== 'spotted') { yield* passiveExit(ctx, cr); return r; }
       cr.setAct(ACT.DELAYED_TURN, true);
@@ -382,13 +382,13 @@ export const OBSERVE_TEMPLATES = [
           yield W(4);
           const s = seen(ctx, cr);
           if (s.visible && s.angle < 30) {
-            sighted(ctx); cr.setMode('scripted'); cr.setAct(ACT.PRONE, true);
+            sighted(ctx); cr.halt(); cr.setAct(ACT.PRONE, true);
             ctx.tel.notes.push('N29 prone when spotted');
             yield* hold(ctx, cr, { ticks: sec(rand(3, 5)), approachDist: 6, returnOnSpot: false });
             cr.clearAct(); yield* passiveExit(ctx, cr, 'walk'); return 'spotted';
           }
           if (cr.arrived(1.6)) {
-            cr.setMode('scripted'); cr.clearAct(); cr.face(ctx.player.getHeadLocation());
+            cr.halt(); cr.clearAct(); cr.face(ctx.player.getHeadLocation());
             sfx(ctx, 'shaftbreaker.breath', cr.loc, 0.8, 0.95);
             caption(ctx.player, 'Breathing, right behind you', cr.loc);
             setDanger(ctx.player, 0.7);
@@ -413,7 +413,7 @@ export const OBSERVE_TEMPLATES = [
     *run(ctx, plan) {
       const cr = appear(ctx, { pos: plan.s.pos }, { phase: 'dormant', eyes: 0.55, spectral: true });
       if (!cr) return 'no_spawn';
-      cr.setMode('scripted');
+      cr.halt();
       const r = yield* hold(ctx, cr, { ticks: holdT(12, 20), approachDist: 12, returnOnSpot: false });
       safe('wisp', () => cr.dim.spawnParticle('shaftbreaker:wisp', cr.loc));
       cr.vanish(true);

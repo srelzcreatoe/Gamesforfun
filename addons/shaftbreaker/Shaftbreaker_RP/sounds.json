@@ -9,7 +9,16 @@
         ],
         "events": {
           "hurt": "shaftbreaker.hurt",
-          "death": "shaftbreaker.collapse"
+          "death": "shaftbreaker.collapse",
+          "ambient": "shaftbreaker.idle",
+          "step": {
+            "sound": "shaftbreaker.step_soft",
+            "volume": 0.8,
+            "pitch": [
+              0.9,
+              1.05
+            ]
+          }
         }
       },
       "shaftbreaker:shaft_moth": {

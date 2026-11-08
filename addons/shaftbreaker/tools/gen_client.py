@@ -1,6 +1,6 @@
 """Generates the Shaftbreaker client entity, animation controllers, render controllers and the
 shared act table used by the scripts. One source of truth -> no drift between script and client."""
-import json, os, shutil
+import json, os, shutil, glob
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RP = os.path.join(ROOT, 'Shaftbreaker_RP')
@@ -77,10 +77,28 @@ def build():
     shutil.copy(os.path.join(BUILD, 'shaftbreaker.acts.animation.json'), os.path.join(RP, 'animations/shaftbreaker.acts.animation.json'))
     shutil.copy(os.path.join(MODEL, 'shaftbreaker.geo.json'), os.path.join(RP, 'models/entity/shaftbreaker.geo.json'))
 
+    # ---- post-process walking clips: footstep events + an anim clock that never freezes
+    ROBUST_TIME = "query.anim_time + query.delta_time * math.max(query.ground_speed, query.property('shaftbreaker:moving') * 2.2)"
+    STEPS = {
+        'animation.shaftbreaker.stalk_walk': {'0.05': 'step_soft', '1.15': 'step_soft'},
+        'animation.shaftbreaker.crouch_walk': {'0.1': 'step_soft', '0.9': 'step_soft'},
+        'animation.shaftbreaker.crawl_walk': {'0.0': 'step_soft', '0.9': 'step_soft'},
+        'animation.shaftbreaker.backward_walk': {'0.05': 'step_soft', '1.15': 'step_soft'},
+        'animation.shaftbreaker.limp': {'0.2': 'step_soft', '0.7': 'scrape', '1.2': 'step_soft'},
+        'animation.shaftbreaker.scramble': {'0.0': 'step_soft', '0.6': 'step_soft', '1.2': 'step_soft', '1.8': 'step_soft'},
+    }
+    for f in glob.glob(os.path.join(RP, 'animations/shaftbreaker.*.animation.json')):
+        d = json.load(open(f))
+        for name, a in d['animations'].items():
+            if a.get('anim_time_update') == 'query.modified_distance_moved':
+                a['anim_time_update'] = ROBUST_TIME
+            if name in STEPS:
+                a['sound_effects'] = {**a.get('sound_effects', {}), **{t: {'effect': e} for t, e in STEPS[name].items()}}
+        json.dump(d, open(f, 'w'), separators=(',', ':'))
+
     all_anims = {}
-    for p in PROVIDED:
-        all_anims.update(json.load(open(os.path.join(MODEL, f'shaftbreaker.{p}.animation.json')))['animations'])
-    all_anims.update(json.load(open(os.path.join(BUILD, 'shaftbreaker.acts.animation.json')))['animations'])
+    for f in glob.glob(os.path.join(RP, 'animations/shaftbreaker.*.animation.json')):
+        all_anims.update(json.load(open(f))['animations'])
     short = {k.replace('animation.shaftbreaker.', ''): k for k in all_anims}
 
     # ------------------------------------------------------------- molang helpers
@@ -107,7 +125,7 @@ def build():
         "v.stw = v.stw + ((v.stance > 0 ? 1.0 : 0.0) - v.stw) * math.min(1.0, q.delta_time * 5.0);",
         "v.base_weight = (1.0 - v.actw) * (1.0 - v.stw);",
         "v.stance_weight = (1.0 - v.actw) * v.stw;",
-        "v.move_blend = math.clamp(q.modified_move_speed * 2.2, 0.0, 1.0);",
+        "v.move_blend = math.clamp(math.max(q.modified_move_speed * 2.2, q.property('shaftbreaker:moving')), 0.0, 1.0);",
         f"v.look_target = {look_expr};",
         "v.look_w = v.look_w + (v.look_target - v.look_w) * math.min(1.0, q.delta_time * 4.0);",
         "v.eyes = q.property('shaftbreaker:eyes');",
@@ -219,7 +237,7 @@ def build():
                 'render_controllers': ['controller.render.shaftbreaker', 'controller.render.shaftbreaker_eyes'],
                 'spawn_egg': {'base_color': '#3b3230', 'overlay_color': '#e8d7b0'},
                 'sound_effects': {
-                    'step': 'shaftbreaker.step', 'scrape': 'shaftbreaker.scrape', 'smash': 'shaftbreaker.smash',
+                    'step': 'shaftbreaker.step', 'step_soft': 'shaftbreaker.step_soft', 'scrape': 'shaftbreaker.scrape', 'smash': 'shaftbreaker.smash',
                     'screech': 'shaftbreaker.screech', 'swing': 'shaftbreaker.swing', 'growl': 'shaftbreaker.growl',
                     'death': 'shaftbreaker.collapse', 'chew': 'shaftbreaker.chew', 'roar': 'shaftbreaker.roar',
                 },

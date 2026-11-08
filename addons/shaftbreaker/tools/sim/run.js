@@ -16,7 +16,8 @@ let rs = SEED * 9973 + 17;
 Math.random = () => ((rs = (rs * 48271) % 2147483647) / 2147483647);
 
 // ---- copy scripts + install mocks
-const build = path.join(here, 'build');
+const build = path.join(here, `build-${process.pid}`);   // per-process copy so several runs can go in parallel
+process.on('exit', () => { try { fs.rmSync(build, { recursive: true, force: true }); } catch { /* ignore */ } });
 fs.rmSync(build, { recursive: true, force: true });
 fs.cpSync(path.join(ROOT, 'Shaftbreaker_BP/scripts'), path.join(build, 'scripts'), { recursive: true });
 for (const [name, file] of [['server', 'server.js'], ['server-ui', 'server-ui.js']]) {
@@ -105,49 +106,52 @@ function angleTo(p, target) {
 }
 function canSee(p, e) { const h = p.getHeadLocation(); const t = { x: e.location.x, y: e.location.y + 1.6, z: e.location.z }; const d = { x: t.x - h.x, y: t.y - h.y, z: t.z - h.z }; const L = Math.hypot(d.x, d.y, d.z); return !vw.raycast(h, d, L - 0.4, false, false); }
 
-// ---- creature physics (stands in for the game's navigation + goals)
+// ---- creature physics (stands in for the game's physics + navigation goals)
 const cstate = new Map();
+function cellFree(x, y, z, tall) { return vw.passable(Math.floor(x), Math.floor(y), Math.floor(z)) && (!tall || vw.passable(Math.floor(x), Math.floor(y) + 1, Math.floor(z))); }
 function creatureStep(e) {
   const st = cstate.get(e.id) || { path: [], repath: 0, atkReady: 0, atkHitAt: 0, target: null };
   cstate.set(e.id, st);
   const mode = e.mode();
   const grav = !e._groups.has('sb:grav_off');
-  // impulses
-  if (e._impulse > 0) {
-    e._impulse--;
-    const n = { x: e.location.x + e._vel.x * 0.35, y: e.location.y, z: e.location.z + e._vel.z * 0.35 };
-    if (vw.passable(Math.floor(n.x), Math.floor(n.y), Math.floor(n.z)) && vw.passable(Math.floor(n.x), Math.floor(n.y) + 1, Math.floor(n.z))) e.location = n;
-    e._vel = { x: e._vel.x * 0.7, y: 0, z: e._vel.z * 0.7 };
+  const crawl = e._groups.has('sb:stance_crawl');
+  // physics: velocity from impulses moves the body with collision; ground friction removes most of it each tick
+  if (e._impulsed || e._impulse > 0) {
+    const v = e._vel;
+    const nx = e.location.x + v.x, nz = e.location.z + v.z;
+    if (cellFree(nx, e.location.y, nz, !crawl)) e.location = { ...e.location, x: nx, z: nz };
+    else if (cellFree(e.location.x + v.x, e.location.y + 1, e.location.z + v.z, !crawl) && vw.solid(Math.floor(nx), Math.floor(e.location.y), Math.floor(nz))) {
+      e.location = { x: nx, y: Math.floor(e.location.y) + 1, z: nz };          // auto-step one block
+    }
+    e._vel = { x: v.x * 0.45, y: 0, z: v.z * 0.45 };
+    e._impulsed = false; if (e._impulse > 0) e._impulse--;
   }
-  if (grav) { // fall to floor
-    let fx = Math.floor(e.location.x), fy = Math.floor(e.location.y), fz = Math.floor(e.location.z);
+  if (grav) {
+    const fx = Math.floor(e.location.x), fy = Math.floor(e.location.y), fz = Math.floor(e.location.z);
     if (vw.passable(fx, fy - 1, fz)) { e.location = { ...e.location, y: Math.max(e.location.y - 0.5, fy - 1) }; e.isOnGround = false; } else e.isOnGround = true;
   }
-  let target = null; let speedVal = 0;
-  if (mode === 'travel' || mode === 'travel_fast') { const wp = world._entities.find((x) => x.typeId === 'shaftbreaker:waypoint' && x.isValid); if (wp) target = wp.location; speedVal = mode === 'travel' ? 0.21 : 0.30; }
-  if (mode === 'hunt' || mode === 'frenzy') { const tp = world._players.find((p) => p.hasTag('sb_target') && p.isValid && !p._dead); if (tp) { target = tp.location; st.target = tp; } speedVal = mode === 'hunt' ? 0.36 : 0.45 * 1.12; }
-  if (!target) return;
-  const crawl = e._groups.has('sb:stance_crawl');
+  if (!(mode === 'hunt' || mode === 'frenzy')) return;
+  const tp = world._players.find((p) => p.hasTag('sb_target') && p.isValid && !p._dead);
+  if (!tp) return;
+  st.target = tp;
   const doors = e._groups.has('sb:nav_doors');
-  if (--st.repath <= 0 || !st.path.length) {
-    const g = { x: Math.floor(target.x), y: Math.floor(target.y), z: Math.floor(target.z) };
+  if (--st.repath <= 0 || !st.path.length || (e._tpTick || 0) > (st.planT || 0)) {
+    st.planT = M.system.currentTick;
+    const g = { x: Math.floor(tp.location.x), y: Math.floor(tp.location.y), z: Math.floor(tp.location.z) };
     st.path = bfs(e.location, (c) => Math.abs(c.x - g.x) + Math.abs(c.z - g.z) <= 1 && Math.abs(c.y - g.y) <= 1, 2500, { crawl, doors }) || [];
     st.repath = 10;
   }
-  const spd = speedVal * 0.5;
-  if (st.path.length) moveAlong(e, st.path, spd); else e._vel = { x: 0, y: 0, z: 0 };
-  if (st.path.length > 0) faceDir(e, target);
+  const spd = (mode === 'hunt' ? 0.36 : 0.45 * 1.12) * 0.5;
+  if (st.path.length) { moveAlong(e, st.path, spd); faceDir(e, tp.location); }
   // delayed attack (engine goal) on the hunt target
-  if ((mode === 'hunt' || mode === 'frenzy') && st.target) {
-    const t = M.system.currentTick;
-    const d = d3(e.location, st.target.location);
-    if (!st.atkHitAt && t >= st.atkReady && d < 2.2) { st.atkHitAt = t + 10; }
-    if (st.atkHitAt && t >= st.atkHitAt) {
-      st.atkHitAt = 0; st.atkReady = t + 33;
-      if (d3(e.location, st.target.location) < 2.7 && !st.target._dead) {
-        SIM.hits.push({ t, n: 6, act: e._props['shaftbreaker:act'], phase: e._props['shaftbreaker:phase'], mode, src: 'engine', p: { ...st.target.location }, c: { ...e.location }, los: canSee(st.target, e) });
-        world._damage(st.target, 6, 'entityAttack', e);
-      }
+  const t = M.system.currentTick;
+  const d = d3(e.location, tp.location);
+  if (!st.atkHitAt && t >= st.atkReady && d < 2.2) { st.atkHitAt = t + 10; }
+  if (st.atkHitAt && t >= st.atkHitAt) {
+    st.atkHitAt = 0; st.atkReady = t + 33;
+    if (d3(e.location, tp.location) < 2.7 && !tp._dead) {
+      SIM.hits.push({ t, n: 6, act: e._props['shaftbreaker:act'], phase: e._props['shaftbreaker:phase'], mode, src: 'engine', p: { ...tp.location }, c: { ...e.location }, los: canSee(tp, e) });
+      world._damage(tp, 6, 'entityAttack', e);
     }
   }
 }
@@ -241,7 +245,27 @@ SIM.onSpawn = (e) => {
   }
 };
 const huntTell = new Map();
+const tpStats = { relocations: 0, visibleRelocations: [] };
+SIM.onTeleport = (e, from, to) => {
+  if (e.typeId !== 'shaftbreaker:shaftbreaker') return;
+  e._tpTick = M.system.currentTick;                                // the engine stand-in must replan after any teleport
+  if (d3(from, to) < 1.5) return;                                  // path steps are not relocations
+  tpStats.relocations++;
+  e._lastTp = { t: M.system.currentTick, to: { ...to }, stack: new Error().stack.split('\n').slice(2, 7).map((l) => l.trim().replace(/^at /, '').replace(/\(.*scripts\//, '(').replace(/\(file:.*\//, '(')).join(' < ') };
+  if (SIM.particles.some((q) => q.id === 'shaftbreaker:vanish' && q.t === M.system.currentTick)) { tpStats.fxVanish = (tpStats.fxVanish || 0) + 1; return; }   // a visible vanish with its dust cloud: by design
+  for (const b of bots) {
+    for (const [lbl, pos] of [['from', from], ['to', to]]) {
+      const head = { x: pos.x, y: pos.y + 2.2, z: pos.z };
+      if (canSee(b.p, { location: pos }) && angleTo(b.p, head) < 50 && d3(b.p.location, pos) < 48) tpStats.visibleRelocations.push({ t: M.system.currentTick, lbl, d: d3(b.p.location, pos).toFixed(1), enc: dir.running() ? dir.running().tpl.id : 'lurk', stack: new Error().stack.split('\n').slice(2, 6).map((l) => l.trim().replace(/^at /, '').replace(/\(.*scripts\//, '(')).join(' < ') });
+    }
+  }
+};
+const GUIDES = {};
+const presence = { ugTicks: 0, withCreature: 0, distSum: 0, seenTicks: 0 };
 const dir = await import(pathToFileURL(path.join(build, 'scripts/ai/director.js')).href);
+const WSM = await import(pathToFileURL(path.join(build, 'scripts/ai/worldstate.js')).href);
+const crMod = await import(pathToFileURL(path.join(build, 'scripts/ai/creature.js')).href);
+const brMod = await import(pathToFileURL(path.join(build, 'scripts/ai/brain.js')).href);
 const mem = await import(pathToFileURL(path.join(build, 'scripts/ai/memory.js')).href);
 const learnLog = [];
 const encLog = []; const stateHist = {}; const wallWhy = {};
@@ -266,20 +290,42 @@ for (let i = 0; i < total; i++) {
   const ms = Number(process.hrtime.bigint() - s0) / 1e6;
   stats.tickMs.push(ms);
   const sbs = world._entities.filter((e) => e.isValid && e.typeId === 'shaftbreaker:shaftbreaker');
+  for (const m of world._entities) {
+    if (!m.isValid || m.typeId !== 'shaftbreaker:shaft_moth' || !m._groups.has('sb:guide')) continue;
+    const dens = WSM.ws().dens; if (!dens.length) continue;
+    let den = dens[0], bd = 1e9; for (const d of dens) { const q = d3(m.location, d); if (q < bd) { bd = q; den = d; } }
+    const g = (GUIDES[m.id] ||= { start: bd, min: bd, ticks: 0, solid: 0, moved: 0, aligned: 0, followerMin: 1e9, last: { ...m.location } });
+    g.ticks++; g.min = Math.min(g.min, bd);
+    if (vw.solid(Math.floor(m.location.x), Math.floor(m.location.y), Math.floor(m.location.z))) g.solid++;
+    const mv = { x: m.location.x - g.last.x, z: m.location.z - g.last.z };
+    if (Math.hypot(mv.x, mv.z) > 0.02) { g.moved++; const fd = m.getViewDirection(); if ((fd.x * mv.x + fd.z * mv.z) / Math.hypot(mv.x, mv.z) > 0.7) g.aligned++; }
+    g.last = { ...m.location };
+    for (const b of bots) g.followerMin = Math.min(g.followerMin, d3(b.p.location, m.location));
+  }
   stats.maxCreatures = Math.max(stats.maxCreatures, sbs.length);
   for (const e of sbs) {
     const inBase = e.location.x > -30 && e.location.x < -26 && e.location.z > 6 && e.location.z < 10;
     if (inBase && !e._inBaseLogged) { e._inBaseLogged = 1; const r = dir.running(); console.log(`DEBUG creature entered base t=${(i / 1200).toFixed(2)}m mode=${e.mode()} act=${e._props['shaftbreaker:act']} enc=${r ? r.tpl.id : '-'} trail=${JSON.stringify((e._trail || []).slice(-8).map((q) => [q.x.toFixed(2), q.y.toFixed(1), q.z.toFixed(2)]))} now=${JSON.stringify(e.location)} groups=${[...e._groups].join(',')}`); }
     e._prev = { ...e.location }; (e._trail ||= []).push({ ...e.location }); if (e._trail.length > 40) e._trail.shift();
     const x = Math.floor(e.location.x), y = Math.floor(e.location.y), z = Math.floor(e.location.z);
-    if (!e._groups.has('sb:grav_off') && vw.solid(x, y, z)) { stats.creatureInWall++; const r = dir.running(); const k = `${r ? r.tpl.id : '-'}:${e.mode()}:act${e._props['shaftbreaker:act']}`; wallWhy[k] = (wallWhy[k] || 0) + 1; }
+    if (!e._groups.has('sb:grav_off') && vw.solid(x, y, z)) { stats.creatureInWall++; if (stats.creatureInWall <= 3) console.log('INWALL lastTp', JSON.stringify(e._lastTp), JSON.stringify((e._trail || []).slice(-6).map((q) => [q.x.toFixed(2), q.y.toFixed(2), q.z.toFixed(2)])), e.mode(), 'cell', x, y, z, vw.get(x, y, z)); const r = dir.running(); const k = `${r ? r.tpl.id : '-'}:${e.mode()}:act${e._props['shaftbreaker:act']}`; wallWhy[k] = (wallWhy[k] || 0) + 1; }
     const act = e._props['shaftbreaker:act'];
     if (act === 35 || act === 16) { if (!huntTell.has(e.id)) huntTell.set(e.id, M.system.currentTick); }
     if (e._props['shaftbreaker:phase'] === 'frenzy') { e._fz = (e._fz || 0) + 1; stats.frenzyMax = Math.max(stats.frenzyMax, e._fz); }
   }
+  for (let k = (SIM._hbSeen || 0); k < SIM.sounds.length; k++) { const x = SIM.sounds[k]; if (x.id !== 'shaftbreaker.heartbeat' || x.ctx !== 'lurk') continue; const b = bots.find((q) => q.p.name === x.who); const sb = sbs[0]; if (!b || !sb) continue; const dd = d3(sb.location, b.p.location); const vis = canSee(b.p, sb) && angleTo(b.p, { x: sb.location.x, y: sb.location.y + 2, z: sb.location.z }) < 50; const key = `${dd < 8 ? '<8' : dd < 14 ? '<14' : dd < 24 ? '<24' : '24+'}:${vis ? 'vis' : 'hid'}`; (SIM.hbWhy ||= {})[key] = (SIM.hbWhy[key] || 0) + 1; }
+  SIM._hbSeen = SIM.sounds.length;
   const r = dir.running();
+  SIM.curEnc = r ? r.tpl.id : (sbs.length ? 'lurk' : 'absent');
   if (r !== lastRun) { if (r) encLog.push({ t: M.system.currentTick, id: r.tpl.id, f: r.tpl.family, p: r.ctx.player.name }); lastRun = r; }
   if (i % 200 === 0) for (const b of bots) { const st = dir.pstate(b.p).state; stateHist[st] = (stateHist[st] || 0) + 1; }
+  if (i % 20 === 0) for (const b of bots) {
+    const ugNow = vw.sky(Math.floor(b.p.location.x), Math.floor(b.p.location.y) + 1, Math.floor(b.p.location.z)) === 0;
+    if (!ugNow) continue;
+    presence.ugTicks++;
+    const sb = sbs[0];
+    if (sb) { presence.withCreature++; presence.distSum += d3(sb.location, b.p.location); { const dd = d3(sb.location, b.p.location); const k = SIM.curEnc === 'lurk' ? (dd < 10 ? 'lurk<10' : dd < 16 ? 'lurk<16' : 'lurk16+') : 'enc'; if (k === 'lurk<10') { const c = crMod.creature(); const B = brMod.brainState(); const why = `${c && c.moving ? 'mov' : 'still'}:${c && c.stepMode ? 'step' : 'phys'}:${B.map && B.mapFor === b.p.id ? 'map' : 'nomap'}:${brMod.hiddenSpot(b.p, 12, 30) ? 'spot' : 'nospot'}:${b.mode}`; presence.why = presence.why || {}; presence.why[why] = (presence.why[why] || 0) + 1; } presence.hist = presence.hist || {}; presence.hist[k] = (presence.hist[k] || 0) + 1; } if (canSee(b.p, sb) && angleTo(b.p, { x: sb.location.x, y: sb.location.y + 2, z: sb.location.z }) < 50) presence.seenTicks++; }
+  }
   for (const b of bots) {
     const ug = b.p.location.y < 55 && vw.sky(Math.floor(b.p.location.x), Math.floor(b.p.location.y) + 1, Math.floor(b.p.location.z)) === 0;
     if (ug && stats.ugStart[b.p.name] === undefined) stats.ugStart[b.p.name] = M.system.currentTick;
@@ -314,6 +360,11 @@ for (const e of SIM.errors.slice(0, 12)) console.log('  ERR', e.split('\n').slic
 console.log(`max simultaneous Shaftbreakers: ${stats.maxCreatures} (singleton ${stats.maxCreatures <= 1 ? 'OK' : 'VIOLATED'})`);
 console.log(`creature spawns: ${stats.spawns}, spawned inside a player's direct view: ${stats.spawnInView.length}`, stats.spawnInView.slice(0, 5));
 console.log(`creature-in-wall ticks: ${stats.creatureInWall}`);
+console.log(`relocations (teleports > 1.5 blocks): ${tpStats.relocations} (${tpStats.fxVanish || 0} visible vanishes with fx), silent ones inside someone's view: ${tpStats.visibleRelocations.length}`, tpStats.visibleRelocations.slice(0, 4));
+console.log(`presence: creature around for ${(100 * presence.withCreature / Math.max(1, presence.ugTicks)).toFixed(0)}% of underground time, mean distance ${(presence.distSum / Math.max(1, presence.withCreature)).toFixed(1)} blocks, in view ${(100 * presence.seenTicks / Math.max(1, presence.withCreature)).toFixed(1)}% of that time`);
+console.log('guide moths: ' + Object.values(GUIDES).length + ' ' + JSON.stringify(Object.values(GUIDES).map((g) => ({ den: `${g.start.toFixed(0)}->${g.min.toFixed(0)}`, s: (g.ticks / 20).toFixed(0), solid: g.solid, faceTravel: g.moved ? (g.aligned / g.moved).toFixed(2) : '-', pl: g.followerMin.toFixed(0) }))));
+const denm = await import(pathToFileURL(path.join(build, 'scripts/world/den.js')).href);
+console.log(`dens: ${ws.ws().dens.length}; guide moths active at end: ${denm.guideCount()}; music: ${JSON.stringify(SIM.musics.reduce((a, m) => { a[m.id] = (a[m.id] || 0) + 1; return a; }, {}))}`);
 console.log(`hits on players: ${SIM.hits.length} (engine ${SIM.hits.filter((h) => h.src === 'engine').length}, scripted ${SIM.hits.filter((h) => h.src === 'script').length}); untelegraphed: ${stats.hitsBeforeTell.length}`);
 console.log(`longest frenzy: ${(stats.frenzyMax / 20).toFixed(1)} s; blocks broken by commands: ${SIM.broken.length}`);
 console.log(`encounters (history ring, last 40): ${hist.length}  by family: ${JSON.stringify(fam)}`);
@@ -338,6 +389,10 @@ for (const b of bots) {
 console.log(`dens: ${ws.ws().dens.length}; sounds played: ${SIM.sounds.length}; particles: ${SIM.particles.length}; music starts: ${SIM.musics.length}`);
 const dynSizes = Object.entries(world._dyn).map(([k, v]) => `${k}:${String(v).length}`).join(' ');
 console.log(`world dynamic properties: ${dynSizes}`);
+console.log('lurk distance samples: ' + JSON.stringify(presence.hist) + ' close-why ' + JSON.stringify(presence.why));
+console.log('lurk heartbeat by dist/vis: ' + JSON.stringify(SIM.hbWhy));
+console.log('heartbeat by context: ' + JSON.stringify(SIM.sounds.filter((x) => x.id === 'shaftbreaker.heartbeat').reduce((a, x) => { a[x.ctx] = (a[x.ctx] || 0) + 1; return a; }, {})));
+console.log('top sounds: ' + Object.entries(SIM.sounds.reduce((a, x) => { a[x.id] = (a[x.id] || 0) + 1; return a; }, {})).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([k, v]) => `${k}=${v}`).join(' '));
 if (learnLog.length) console.log(learnLog.join('\n'));
 if (SCENARIO === 'learn') console.log('last hits: ' + SIM.hits.slice(-6).map((h) => `${h.src}@${(h.t / 1200).toFixed(1)}m p(${h.p.x.toFixed(1)},${h.p.y.toFixed(0)},${h.p.z.toFixed(1)}) c(${h.c.x.toFixed(1)},${h.c.y.toFixed(0)},${h.c.z.toFixed(1)}) los=${h.los}`).join(' | '));
 if (SCENARIO === 'learn') console.log('hunt outcomes: ' + recs.filter((r) => r.family === 'hunt').map((r) => `${r.outcome}${r.notes.filter((n) => /L45|L47|door/.test(n)).length ? '(' + r.notes.filter((n) => /L45|L47|door/.test(n)).join(',') + ')' : ''}`).join(' '));

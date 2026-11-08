@@ -422,6 +422,49 @@
         }
       ]
     },
+    "music.shaftbreaker.presence": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/music_presence",
+          "volume": 0.7,
+          "stream": true
+        }
+      ]
+    },
+    "music.shaftbreaker.close": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/music_close",
+          "volume": 0.75,
+          "stream": true
+        }
+      ]
+    },
+    "shaftbreaker.step_soft": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/step_soft_1",
+          "volume": 0.85
+        },
+        {
+          "name": "sounds/shaftbreaker/step_soft_2",
+          "volume": 0.85
+        },
+        {
+          "name": "sounds/shaftbreaker/step_soft_3",
+          "volume": 0.85
+        },
+        {
+          "name": "sounds/shaftbreaker/step_soft_4",
+          "volume": 0.85
+        }
+      ],
+      "max_distance": 30,
+      "min_distance": 2
+    },
     "music.shaftbreaker.standoff": {
       "category": "music",
       "sounds": [
@@ -429,6 +472,44 @@
           "name": "sounds/shaftbreaker/music_standoff",
           "volume": 0.6,
           "stream": true
+        }
+      ]
+    },
+    "shaftbreaker.idle": {
+      "category": "hostile",
+      "max_distance": 24,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/breath_1",
+          "volume": 0.5
+        },
+        {
+          "name": "sounds/shaftbreaker/breath_2",
+          "volume": 0.5
+        },
+        {
+          "name": "sounds/shaftbreaker/click_1",
+          "volume": 0.55
+        },
+        {
+          "name": "sounds/shaftbreaker/click_2",
+          "volume": 0.55
+        },
+        {
+          "name": "sounds/shaftbreaker/click_3",
+          "volume": 0.55
+        },
+        {
+          "name": "sounds/shaftbreaker/growl_1",
+          "volume": 0.45
+        },
+        {
+          "name": "sounds/shaftbreaker/growl_3",
+          "volume": 0.45
+        },
+        {
+          "name": "sounds/shaftbreaker/step_soft_2",
+          "volume": 0.3
         }
       ]
     }

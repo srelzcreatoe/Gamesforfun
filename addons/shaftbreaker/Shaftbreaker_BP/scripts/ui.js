@@ -66,7 +66,8 @@ async function notes(player) {
     '§fLight, company and preparation make it leave.§7 Groups are watched from afar.',
     '§fIt will not follow you into daylight§7 (unless your world enables surface mode).',
     '§fMeat§7 dropped near it can distract it. Not always.',
-    '§fShaft moths§7 drift toward its den. Breaking the Den Heart quiets the territory for days, but it remembers.',
+    '§fShaft moths§7 lead the way to its den: follow one and it waits for you. Breaking the Den Heart quiets the territory for days, but it remembers.',
+    '§fIt is usually close.§7 Listen: clicks, scrapes and breathing come from where it really is. The music deepens when it is near.',
     '§fCraft a Resonance Dial§7 from copper, redstone and an amethyst shard or resonance shard.',
   ].join('\n\n')).button('Close');
   await f.show(player);
@@ -100,7 +101,8 @@ async function worldSettings(player) {
     .toggle('Surface mode (advanced)', { defaultValue: c.surfaceMode })
     .toggle('Harmless preview (no damage, no block edits)', { defaultValue: c.harmless })
     .toggle('Trophy drop on defeat', { defaultValue: c.trophyDrop })
-    .dropdown('Debug logging', ENUMS.debug, { defaultValueIndex: idx('debug') });
+    .dropdown('Debug logging', ENUMS.debug, { defaultValueIndex: idx('debug') })
+    .toggle('Stalk creative-mode players too (no damage)', { defaultValue: c.creativeEncounters });
   const r = await f.show(player);
   if (r.canceled || !r.formValues) return;
   const v = r.formValues;
@@ -113,6 +115,7 @@ async function worldSettings(player) {
   else setConfig('debug', ENUMS.debug[/** @type {number} */ (v[18])]);
   setConfig('maxHuntSeconds', Number(v[11]));
   setConfig('deathGraceSeconds', Number(v[12]));
+  setConfig('creativeEncounters', !!v[19]);
   player.sendMessage('§7[Shaftbreaker] World settings saved.');
 }
 

@@ -1,5 +1,5 @@
 // Small voxel world with procedurally carved caves, a mineshaft corridor and a surface, for simulation.
-const PASSABLE = /air|torch|short_grass|rail|web|light_block|_carpet|lichen|vine/;
+const PASSABLE = /air|torch|short_grass|rail|web|light_block|_carpet|lichen|vine|den_dust|den_spine/;
 
 export class VoxelWorld {
   constructor(seed = 1, size = 112, minY = -24, maxY = 72) {

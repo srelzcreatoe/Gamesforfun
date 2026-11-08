@@ -1,22 +1,23 @@
 {
-  "format_version": [
-    1,
-    1,
-    0
-  ],
+  "format_version": "1.19.30",
   "shaftbreaker:den_heart": {
-    "sound": "deepslate"
+    "sound": "deepslate",
+    "textures": "sb_den_heart"
   },
   "shaftbreaker:den_crack": {
-    "sound": "stone"
+    "sound": "stone",
+    "textures": "sb_den_crack"
   },
   "shaftbreaker:den_dust": {
-    "sound": "gravel"
+    "sound": "gravel",
+    "textures": "sb_den_dust"
   },
   "shaftbreaker:den_spine": {
-    "sound": "bone_block"
+    "sound": "bone_block",
+    "textures": "sb_den_spine"
   },
   "shaftbreaker:cairn_marker": {
-    "sound": "stone"
+    "sound": "stone",
+    "textures": "sb_cairn"
   }
 }

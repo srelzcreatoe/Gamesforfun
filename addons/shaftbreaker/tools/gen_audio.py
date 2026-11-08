@@ -486,6 +486,73 @@ def standoff_music():
     return norm(y * 0.7 + wet / np.abs(wet).max() * np.abs(y).max() * 0.45, 0.75)
 
 
+def step_soft(v):
+    """the creature's own slow, heavy footfall: stone thud + a claw tick + grit"""
+    d = 0.55
+    t = t_axis(d)
+    thump = osc_sin(46 + 22 * np.exp(-t / 0.025)) * env_exp(d, 0.11 + 0.02 * v)
+    body = lp(noise(d), 520) * env_exp(d, 0.06)
+    x = thump * 0.9 + body * 0.5
+    place(x, damped(1700 + 300 * v, 0.008, 0.05) * 0.25, 0.03 + 0.01 * v)       # claw tick
+    place(x, grains(0.25, 14, 1500, 5200, size=0.003, decay=0.05) * 0.35, 0.02)
+    return fade(norm(lp(x, 3800)))
+
+
+def loopify(x, xf=0.08):
+    """crossfade the tail into the head so the loop point is continuous"""
+    L = int(xf * SR)
+    y = x[:-L].copy()
+    r = np.linspace(0, 1, L)
+    y[:L] = x[:L] * r + x[-L:] * (1 - r)
+    return y
+
+
+def presence_music():
+    """dread bed: integer-cycle partials and circular reverb make it loop seamlessly"""
+    d = 44.0
+    t = t_axis(d)
+
+    def part(f, ph=0.0):
+        return np.sin(2 * np.pi * round(f * d) / d * t + ph)
+    swell = 0.65 + 0.35 * np.sin(2 * np.pi * 2 / d * t)
+    drone = (part(27.5) * 0.55 + part(29.14) * 0.45 + part(41.2) * 0.3 + part(55.0, 1) * 0.18 + part(58.27, 2) * 0.14) * swell
+    wind = stft_shape(noise(d, 'pink'), lambda f, tt: peaks(f, [(180 + 120 * math.sin(2 * math.pi * tt / d * 3), 220, 1.0), (520, 300, 0.3)])) * 0.22
+    pad = vocal(d, lambda tt: 110 + 2 * np.sin(2 * np.pi * tt / d * 4), lambda tt: [(320, 120, 1.0), (850, 200, 0.35)], rough=0.2, breath=0.3, drive=1.2)
+    pad = lp(pad, 1200) * (0.5 + 0.5 * np.sin(2 * np.pi * 3 / d * t - 1.2)) * 0.07
+    x = drone + wind + pad
+    # sparse distant events: bowed metal and three far knocks
+    for at, f in [(6.0, 311.1), (19.5, 233.1), (31.0, 349.2)]:
+        L = 7.0; tt = t_axis(L)
+        bow = sum(np.sin(2 * np.pi * f * k * tt) * a for k, a in [(1, 1.0), (2.76, 0.4), (5.4, 0.15)])
+        bow *= np.clip(tt / 2.5, 0, 1) * np.exp(-np.clip(tt - 2.5, 0, None) / 1.6) * 0.05
+        place(x, lp(bow, 2200), at)
+    for k in range(3):
+        place(x, knock(0)[:int(0.9 * SR)] * 0.06, 25.0 + k * 0.7)
+    wet = convolve(x, cave_ir(3.2, bright=1800), circular=True)
+    return norm(x * 0.7 + wet / np.abs(wet).max() * np.abs(x).max() * 0.55, 0.7)
+
+
+def close_music():
+    """tension loop for when it is near: sub pulse, dissonant tremolo, breath swells, ticking"""
+    bpm = 72; beat = 60 / bpm; bars = 8
+    d = bars * 4 * beat
+    n = int(d * SR)
+    t = t_axis(d)
+    x = np.zeros(n)
+    for b in range(bars * 4):
+        tt = t_axis(0.6)
+        place(x, osc_sin(41 + 30 * np.exp(-tt / 0.03)) * env_exp(0.6, 0.18) * (0.9 if b % 4 == 0 else 0.55), b * beat)
+        place(x, hp(noise(0.03), 4500) * env_exp(0.03, 0.006) * 0.12, b * beat + beat / 2)
+    cl = sum(osc_saw(np.full(n, round(f * d) / d)) for f in (110.0, 116.5, 164.8, 174.6))   # whole cycles per loop: seamless
+    trem = 0.5 + 0.5 * np.sin(2 * np.pi * round(9 * d) / d * t)
+    rise = 0.35 + 0.65 * (0.5 - 0.5 * np.cos(2 * np.pi * t / d))
+    x += lp(cl, 1400) * trem * rise * 0.09
+    br = stft_shape(noise(d), lambda f, tt: peaks(f, [(600 + 300 * math.sin(2 * math.pi * tt / (beat * 8)), 500, 1.0)]))
+    x += br * (0.5 + 0.5 * np.sin(2 * np.pi * t / (beat * 8))) ** 3 * 0.12
+    wet = convolve(x, cave_ir(1.8, bright=2600), circular=True)
+    return loopify(norm(x * 0.8 + wet / np.abs(wet).max() * np.abs(x).max() * 0.35, 0.8))
+
+
 # ----------------------------------------------------------------------------- export
 SOUNDS = {
     # event: (generator, variants, category, kwargs for sound_definitions)
@@ -518,6 +585,9 @@ SOUNDS = {
     'shaftbreaker.dial': (dial, 1, 'ui', {'volume': 0.6}),
     'shaftbreaker.moth_flutter': (flutter, 2, 'neutral', {'volume': 0.35, 'max_distance': 10}),
     'music.shaftbreaker.chase': (lambda v: chase_music(), 1, 'music', {'volume': 0.75, 'stream': True}),
+    'music.shaftbreaker.presence': (lambda v: presence_music(), 1, 'music', {'volume': 0.7, 'stream': True}),
+    'music.shaftbreaker.close': (lambda v: close_music(), 1, 'music', {'volume': 0.75, 'stream': True}),
+    'shaftbreaker.step_soft': (step_soft, 4, 'hostile', {'volume': 0.85, 'min_distance': 2, 'max_distance': 30}),
     'music.shaftbreaker.standoff': (lambda v: standoff_music(), 1, 'music', {'volume': 0.6, 'stream': True}),
 }
 
@@ -555,9 +625,12 @@ def build(only=None):
         if 'min_distance' in opts:
             d['min_distance'] = opts['min_distance']
         defs[ev] = d
+    defs['shaftbreaker.idle'] = {'category': 'hostile', 'max_distance': 24, 'sounds': [
+        {'name': f'sounds/shaftbreaker/{n}', 'volume': vol} for n, vol in
+        [('breath_1', 0.5), ('breath_2', 0.5), ('click_1', 0.55), ('click_2', 0.55), ('click_3', 0.55), ('growl_1', 0.45), ('growl_3', 0.45), ('step_soft_2', 0.3)]]}
     json.dump({'format_version': '1.14.0', 'sound_definitions': defs}, open(os.path.join(RP, 'sounds/sound_definitions.json'), 'w'), indent=2)
     json.dump({'entity_sounds': {'entities': {
-        'shaftbreaker:shaftbreaker': {'volume': 1.0, 'pitch': [0.9, 1.05], 'events': {'hurt': 'shaftbreaker.hurt', 'death': 'shaftbreaker.collapse'}},
+        'shaftbreaker:shaftbreaker': {'volume': 1.0, 'pitch': [0.9, 1.05], 'events': {'hurt': 'shaftbreaker.hurt', 'death': 'shaftbreaker.collapse', 'ambient': 'shaftbreaker.idle', 'step': {'sound': 'shaftbreaker.step_soft', 'volume': 0.8, 'pitch': [0.9, 1.05]}}},
         'shaftbreaker:shaft_moth': {'volume': 0.6, 'pitch': [0.9, 1.2], 'events': {'ambient': 'shaftbreaker.moth_flutter'}},
     }}}, open(os.path.join(RP, 'sounds.json'), 'w'), indent=2)
     print('sounds:', len(defs))

@@ -3,7 +3,7 @@ import { system } from '@minecraft/server';
 import { ACT } from '../../generated/acts.js';
 import { now, sec, valid, sub, len, lenXZ, dist, center, rand, randi, chance, pick, floor3, angleTo, norm } from '../../core/util.js';
 import { findSpot, perceive, bodyPoints, creatureMap, lineOfSight, lightAt } from '../../world/space.js';
-import { creature, spawnCreature } from '../creature.js';
+import { creature, spawnCreature, seenByAnyone } from '../creature.js';
 import { noteSighting } from '../memory.js';
 import { playAt, playFor, setDanger, caption } from '../../audio.js';
 import { log } from '../../core/log.js';
@@ -45,8 +45,23 @@ export function appear(ctx, query, opts = {}) {
     }
   }
   const facePos = opts.face === 'away' ? awayPoint(spot.pos, ctx.player.location) : ctx.player.getHeadLocation();
+  const existing = creature();
+  if (existing) {
+    // the creature already lives in these caves: it moves to the spot while nobody is looking
+    if (seenByAnyone(existing)) { ctx.tel.notes.push('creature watched: could not reposition'); return null; }
+    existing.stop(); existing.releaseTarget(); existing.setGravity(true); existing.lockStance = false;
+    existing.setGait(0); existing.setSpectral(!!opts.spectral); existing.setEyes(opts.eyes ?? 0.85);
+    try { existing.e.teleport(spot.pos, { keepVelocity: false }); } catch { return null; }
+    existing.setMode('still');
+    existing.setPhase(opts.phase || 'watching');
+    existing.setAct(opts.act || 0, !!opts.act);
+    existing.face(facePos);
+    ctx.creatureSpot = spot;
+    ctx.tel.notes.push(`moved into position d=${spot.dist?.toFixed?.(1)} light=${lightAt(ctx.player.dimension, spot.pos)}`);
+    return existing;
+  }
   const cr = spawnCreature(ctx.player.dimension, spot.pos, { phase: opts.phase || 'watching', act: opts.act || 0, eyes: opts.eyes ?? 0.85, spectral: opts.spectral, face: facePos });
-  if (cr) { ctx.creatureSpot = spot; ctx.tel.notes.push(`spawn d=${spot.dist?.toFixed?.(1)} light=${lightAt(ctx.player.dimension, spot.pos)}`); }
+  if (cr) { ctx.creatureSpot = spot; ctx.tel.notes.push(`arrived d=${spot.dist?.toFixed?.(1)} light=${lightAt(ctx.player.dimension, spot.pos)}`); }
   return cr;
 }
 
@@ -162,21 +177,21 @@ export function* passiveExit(ctx, cr, style = 'auto') {
     const until = now() + sec(14);
     while (now() < until && cr.valid) {
       yield W(4);
-      if (cr.manualStep) cr.manualStep.facePos = ctx.player.getHeadLocation();
+      if (cr.faceTarget) cr.faceTarget = ctx.player.getHeadLocation();
       s = seen(ctx, cr);
       if (!s.visible) { yield W(6); if (!seen(ctx, cr).visible) break; }
-      if (!cr.manualStep && cr.arrived(1.2)) break;
+      if (!cr.moving && cr.arrived(1.2)) break;
       if (cr.stuck) break;
     }
   } else if (chance(0.5)) {
     yield* passiveExit(ctx, cr, 'moths');
     return;
   } else {
-    // nowhere to back off to: fold into the dark (controlled despawn)
+    // nowhere to back off to: fold into the dark, then reappear elsewhere out of sight
     cr.setAct(ACT.VANISH);
     yield W(sec(1.1));
   }
-  cr.vanish(seen(ctx, cr).visible === false);
+  cr.vanish(seen(ctx, cr).visible === false);   // persists: stays hidden or relocates out of sight
 }
 
 /** a plausible 3D position for a sound with no creature (behind stone / down a side tunnel) */

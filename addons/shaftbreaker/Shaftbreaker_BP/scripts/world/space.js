@@ -120,7 +120,7 @@ export class WalkMap {
   /**
    * @param {Dimension} dim
    * @param {Vec3} origin
-   * @param {{maxNodes?:number, maxDist?:number, allowCrawl?:boolean}} opts
+   * @param {{maxNodes?:number, maxDist?:number, allowCrawl?:boolean, goal?:(n:any)=>boolean}} opts
    */
   constructor(dim, origin, opts = {}) {
     this.dim = dim;
@@ -128,6 +128,8 @@ export class WalkMap {
     this.maxNodes = opts.maxNodes ?? 1400;
     this.maxDist = opts.maxDist ?? 48;
     this.allowCrawl = opts.allowCrawl ?? true;
+    this.goal = opts.goal || null;      // optional early exit: (node) => boolean
+    this.found = null;
     this.nodes = new Map();
     this.queue = [];
     this.done = false;
@@ -173,6 +175,7 @@ export class WalkMap {
           if (!this.nodes.has(k2)) {
             const m = { x, y, z, d: n.d + 1, crawl, p: key(n) };
             this.nodes.set(k2, m); this.queue.push(m);
+            if (this.goal && this.goal(m)) { this.found = m; this.done = true; return true; }
             if (this.nodes.size >= this.maxNodes) { this.done = true; return true; }
           }
           break;
