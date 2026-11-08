@@ -22,7 +22,7 @@
         "distribution": "uniform",
         "extent": [
           0,
-          15
+          16
         ]
       },
       "y": {
@@ -36,7 +36,7 @@
         "distribution": "uniform",
         "extent": [
           0,
-          15
+          16
         ]
       }
     }

@@ -239,10 +239,14 @@ def decorate(v):
         return d.plant(x, y, z) if R.random() < 0.4 else d.footprint(x, y, z)
 
     def claws(x, y, z):
-        for _ in range(3):
-            p = d.wall(x + R.randint(-1, 1), y + R.randint(-1, 2), z + R.randint(-1, 1))
-            if p and d.v[p] in (DEEP, STONE, TUFF, BASALT):
-                d.v[p] = CLAWED
+        fy = d.snap(x, y, z, 'floor', 12)
+        if fy is None:
+            return
+        for _ in range(20):
+            cx, cy, cz = x + R.randint(-5, 5), fy + R.randint(0, 3), z + R.randint(-5, 5)
+            if d.inb(cx, cy, cz) and d.v[cx, cy, cz] in (DEEP, STONE, TUFF, BASALT) and \
+                    any(d.at(cx + a, cy, cz + b) == AIR for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                d.v[cx, cy, cz] = CLAWED
 
     def trail(x, y, z):
         for _ in range(6):
@@ -261,7 +265,7 @@ def decorate(v):
         (4, lambda p: d.patch(*p, 'floor', MUD, mud_life, 0.12, (2, 4), 1, 6, 0.4, 0.5)),
         (24, lambda p: plant_on_floor(*p)),
         (2, lambda p: trail(*p)),
-        (6, lambda p: claws(*p)),
+        (10, lambda p: claws(*p)),
     ]
     for n, act in plan:
         for cx, cz in chunks:

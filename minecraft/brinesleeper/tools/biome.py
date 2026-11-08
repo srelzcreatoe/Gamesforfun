@@ -33,7 +33,8 @@ FOG = f'{NS}:fog_stillwater_caves'
 AMBIENT = 'ambient.brine.stillwater.additions'
 BIOME_FORMAT = '1.26.30'          # minecraft:subsurface_builder + noise_gradient
 FEATURE_FORMAT = '1.21.60'
-SNAP_EMBED_FORMAT = '1.26.20'     # snap_to_surface "embed_in_surface"
+SNAP_EMBED_FORMAT = '1.26.20'     # snap_to_surface "embed_in_surface" (must stay below 1.26.50, where the range key is renamed)
+STRUCTURE_FORMAT = '1.21.110'
 BLOCK_FORMAT = '1.26.30'
 HERE = os.path.dirname(os.path.abspath(__file__))
 AUDIO = os.path.normpath(os.path.join(HERE, '..', '..', '..', 'assets', 'audio'))
@@ -110,10 +111,13 @@ def biome_files(RP, BP):
                         {'range': {'min': 0.18, 'max': 0.3}, 'block': 'minecraft:smooth_basalt'},
                         {'range': {'min': 0.3, 'max': 1.0}, 'block': 'minecraft:deepslate'},
                     ]}},
-                # takes over part of the vanilla dripstone caves (append new rules at the END only)
+                # takes over part of the vanilla dripstone caves (append new rules at the END only).
+                # Targets need the full 'minecraft:' identifier: the game reports "No biome found with name"
+                # for a bare 'dripstone_caves', whatever the docs say. A low noise_frequency_scale (as in
+                # published cave-biome packs) keeps whole caves together instead of speckling them.
                 'minecraft:replace_biomes': {'replacements': [{
-                    'dimension': 'minecraft:overworld', 'targets': ['dripstone_caves'],
-                    'amount': 0.55, 'noise_frequency_scale': 10}]},
+                    'dimension': 'minecraft:overworld', 'targets': ['minecraft:dripstone_caves'],
+                    'amount': 0.5, 'noise_frequency_scale': 0.5}]},
                 # no 'monster' tag: vanilla zombies, skeletons, creepers, spiders, witches, endermen, slimes and
                 # cave spiders cannot spawn; no 'dripstone_caves' tag: no drowned
                 'minecraft:tags': {'tags': ['caves', 'overworld', TAG]},
@@ -126,7 +130,7 @@ def biome_files(RP, BP):
             'description': {'identifier': BIOME},
             'components': {
                 'minecraft:fog_appearance': {'fog_identifier': FOG},
-                'minecraft:water_appearance': {'surface_color': '#1b2a30', 'surface_opacity': 0.9},
+                'minecraft:water_appearance': {'surface_color': '#1b2a30'},
                 'minecraft:sky_color': {'sky_color': '#0b1013'},
                 'minecraft:atmosphere_identifier': {'atmosphere_identifier': 'minecraft:default_atmospherics'},
                 'minecraft:color_grading_identifier': {'color_grading_identifier': 'minecraft:default_color_grading'},
@@ -139,8 +143,8 @@ def biome_files(RP, BP):
                     'underwater_loop': 'ambient.underwater.loop',
                 },
                 'minecraft:precipitation': {'ash': 0.035},
-                # the Stillwater Curse: the music fades to nothing down here
-                'minecraft:biome_music': {'music_definition': '', 'volume_multiplier': 0.0},
+                # the Stillwater Curse: the music fades to nothing down here (Mojang's Chill Oasis sample form)
+                'minecraft:biome_music': {'volume_multiplier': 0.0},
             },
         },
     })
@@ -617,9 +621,9 @@ def rule(name, places, iterations, y=(-56, 72)):
             'conditions': {'placement_pass': 'underground_pass',
                            'minecraft:biome_filter': [{'test': 'has_biome_tag', 'operator': '==', 'value': TAG}]},
             'distribution': {'iterations': iterations, 'coordinate_eval_order': 'zyx',
-                             'x': {'distribution': 'uniform', 'extent': [0, 15]},
+                             'x': {'distribution': 'uniform', 'extent': [0, 16]},
                              'y': {'distribution': 'uniform', 'extent': list(y)},
-                             'z': {'distribution': 'uniform', 'extent': [0, 15]}},
+                             'z': {'distribution': 'uniform', 'extent': [0, 16]}},
         },
     }
 
@@ -631,20 +635,22 @@ def decorations():
     for n, w in zip(STALACTITES, (3, 4, 3, 2, 1)):
         s = feat(f'stalactite_{n}', 'structure_template_feature', {
             'structure_name': f'{NS}:stalactite_{n}', 'facing_direction': 'south',
-            'constraints': {'block_intersection': {'block_allowlist': air}}})
+            'constraints': {'block_intersection': {'block_allowlist': air, 'only_check_intersection_for_motion_blocking_blocks': False}}},
+            STRUCTURE_FORMAT)
         hang.append((scatter(f'stalactite_{n}_hang', s, 1, y=-(n - 1)), w))
     stalactite = weighted('stalactite_any', hang)
     stand = []
     for n, w in zip(STALAGMITES, (3, 4, 2, 1)):
         stand.append((feat(f'stalagmite_{n}', 'structure_template_feature', {
             'structure_name': f'{NS}:stalagmite_{n}', 'facing_direction': 'south',
-            'constraints': {'block_intersection': {'block_allowlist': air}}}), w))
+            'constraints': {'block_intersection': {'block_allowlist': air, 'only_check_intersection_for_motion_blocking_blocks': False}}},
+            STRUCTURE_FORMAT), w))
     stalagmite = weighted('stalagmite_any', stand)
 
     # --- blood: weeping vines dripping from stained ceilings
     vine = feat('blood_vine', 'growing_plant_feature', {
         'height_distribution': [[{'range_min': 1, 'range_max': 3}, 6], [{'range_min': 3, 'range_max': 7}, 3], [{'range_min': 7, 'range_max': 11}, 1]],
-        'growth_direction': 'DOWN', 'body_blocks': [['minecraft:weeping_vines', 1]], 'head_blocks': [['minecraft:weeping_vines', 1]],
+        'growth_direction': 'down', 'body_blocks': [['minecraft:weeping_vines', 1]], 'head_blocks': [['minecraft:weeping_vines', 1]],
         'allow_water': False})
     bloody_ceiling = patch('bloodstained_ceiling_patch', 'ceiling', f'{NS}:bloodstained_deepslate', vine, 0.12, (2, 4), 1,
                            vrange=10, deep_chance=0.35, edge=0.5)
@@ -664,14 +670,16 @@ def decorations():
     one_print = snap('footprint', print_block, 'floor', 4, ['minecraft:mud', 'minecraft:gravel', 'minecraft:clay'], embed=True)
     mud_life = weighted('mud_life', [(plant, 2), (one_print, 3)])
     mud = patch('mud_patch', 'floor', 'minecraft:mud', mud_life, 0.12, (2, 4), 1, vrange=6, deep_chance=0.4, edge=0.5)
-    trail = scatter('footprint_trail', one_print, 6, x={'distribution': 'uniform', 'extent': [-1, 1]},
-                    y={'distribution': 'uniform', 'extent': [-1, 1]}, z={'distribution': 'uniform', 'extent': [-7, 7]})
-    claw_block = single('clawed_block', f'{NS}:clawed_deepslate',
-                        ['minecraft:deepslate', 'minecraft:stone', 'minecraft:tuff', 'minecraft:smooth_basalt', 'minecraft:cobbled_deepslate'],
-                        survive=False)
-    claw_wall = snap('claw_mark', claw_block, 'random_horizontal', 10, embed=True)
-    claws = scatter('claw_marks', claw_wall, 3, x={'distribution': 'uniform', 'extent': [-1, 1]},
-                    y={'distribution': 'uniform', 'extent': [-1, 2]}, z={'distribution': 'uniform', 'extent': [-1, 1]})
+    trail = scatter('footprint_trail', one_print, 6, x={'distribution': 'uniform', 'extent': [-1, 2]},
+                    y={'distribution': 'uniform', 'extent': [-1, 2]}, z={'distribution': 'uniform', 'extent': [-7, 8]})
+    claw_block = feat('clawed_block', 'single_block_feature', {
+        'places_block': f'{NS}:clawed_deepslate', 'enforce_placement_rules': False, 'enforce_survivability_rules': False,
+        'may_replace': ['minecraft:deepslate', 'minecraft:stone', 'minecraft:tuff', 'minecraft:smooth_basalt', 'minecraft:cobbled_deepslate'],
+        # a wall block: at least one of its four sides is open air
+        'may_attach_to': {'sides': ['minecraft:air'], 'min_sides_must_attach': 1, 'auto_rotate': False}})
+    claw_scatter = scatter('claw_marks_near_floor', claw_block, 20, x={'distribution': 'uniform', 'extent': [-5, 6]},
+                           y={'distribution': 'uniform', 'extent': [0, 4]}, z={'distribution': 'uniform', 'extent': [-5, 6]})
+    claws = snap('claw_marks', claw_scatter, 'floor', 12)
 
     # --- rules: each places its feature only underground in Stillwater Caves
     rule('stillwater_bloodstained_ceilings', deep('bloodstained_ceiling_deep', bloody_ceiling), 5)
@@ -685,7 +693,7 @@ def decorations():
     rule('stillwater_mud', deep('mud_deep', mud), 4)
     rule('stillwater_plants', deep('plant_deep', snap('plant_on_floor', plant, 'floor', 12)), 24)
     rule('stillwater_footprints', deep('footprint_deep', trail), 2)
-    rule('stillwater_claw_marks', deep('claw_marks_deep', claws), 6)
+    rule('stillwater_claw_marks', deep('claw_marks_deep', claws), 10)
 
 
 def feature_files(BP):

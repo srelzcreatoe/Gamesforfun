@@ -89,8 +89,25 @@ for ident, (kind, body, fmt) in features.items():
     if kind == 'minecraft:growing_plant_feature':
         for b, _ in body['body_blocks'] + body['head_blocks']:
             check_block(b, ident)
-    if kind == 'minecraft:snap_to_surface_feature' and body.get('embed_in_surface') and fmt < '1.26.20':
-        err(f'feature {ident}: embed_in_surface needs format_version 1.26.20+')
+    ver = tuple(int(p) for p in fmt.split('.'))
+    if kind == 'minecraft:snap_to_surface_feature':
+        if body.get('embed_in_surface') and ver < (1, 26, 20):
+            err(f'feature {ident}: embed_in_surface needs format_version 1.26.20+')
+        # 1.26.50 renamed vertical_search_range to search_range; each version accepts only its own name
+        want = 'search_range' if ver >= (1, 26, 50) else 'vertical_search_range'
+        other = 'vertical_search_range' if want == 'search_range' else 'search_range'
+        if want not in body or other in body:
+            err(f'feature {ident}: format {fmt} needs "{want}" (and not "{other}")')
+        if body.get('surface') == 'wall' and ver < (1, 26, 50):
+            err(f'feature {ident}: surface "wall" needs format_version 1.26.50+')
+        if body.get('surface') == 'random_horizontal':
+            err(f'feature {ident}: "random_horizontal" picks floor or ceiling, never a wall')
+    if kind == 'minecraft:growing_plant_feature' and body.get('growth_direction') not in ('up', 'down'):
+        err(f'feature {ident}: growth_direction should be "up" or "down"')
+    if kind == 'minecraft:weighted_random_feature':
+        for f in body['features']:
+            if not isinstance(f[1], int) or f[1] < 1:
+                err(f'feature {ident}: weight {f[1]} must be a whole number of at least 1 (fractions are truncated)')
 
 rule_targets = set()
 for path in glob.glob(f'{BP}/feature_rules/*.json'):
@@ -179,11 +196,16 @@ for path in glob.glob(f'{BP}/biomes/*.json'):
     if not reps:
         err(f'{path}: no minecraft:replace_biomes, so the biome never generates')
     for r in reps:
-        if any(':' in t for t in r['targets']):
-            err(f'{path}: replace_biomes targets must not be namespaced')
+        # the game looks targets up by full identifier: a bare name fails with "No biome found with name"
+        if not all(t.startswith('minecraft:') for t in r['targets']):
+            err(f'{path}: replace_biomes targets need the full identifier, e.g. "minecraft:dripstone_caves"')
         if not (0 < r['amount'] <= 1 and 0 < r['noise_frequency_scale'] <= 100):
             err(f'{path}: replacement amount / noise_frequency_scale out of range')
 
+CLIENT_KEYS = {'minecraft:fog_appearance', 'minecraft:water_appearance', 'minecraft:sky_color', 'minecraft:ambient_sounds',
+               'minecraft:biome_music', 'minecraft:precipitation', 'minecraft:atmosphere_identifier', 'minecraft:color_grading_identifier',
+               'minecraft:lighting_identifier', 'minecraft:water_identifier', 'minecraft:foliage_appearance', 'minecraft:grass_appearance',
+               'minecraft:dry_foliage_color', 'minecraft:cubemap_identifier'}
 fogs = {}
 for path in glob.glob(f'{RP}/fogs/*.json'):
     d = load(path) or {}
@@ -191,6 +213,9 @@ for path in glob.glob(f'{RP}/fogs/*.json'):
 for path in glob.glob(f'{RP}/biomes/*.json'):
     d = load(path) or {}
     cb = d['minecraft:client_biome']
+    for k in cb['components']:
+        if k not in CLIENT_KEYS:
+            err(f'{path}: unknown client biome component {k}')
     if cb['description']['identifier'] not in biomes:
         err(f'{path}: client biome for unknown biome {cb["description"]["identifier"]}')
     fid = cb['components'].get('minecraft:fog_appearance', {}).get('fog_identifier', '')

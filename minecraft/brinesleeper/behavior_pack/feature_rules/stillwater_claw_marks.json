@@ -16,13 +16,13 @@
       ]
     },
     "distribution": {
-      "iterations": 6,
+      "iterations": 10,
       "coordinate_eval_order": "zyx",
       "x": {
         "distribution": "uniform",
         "extent": [
           0,
-          15
+          16
         ]
       },
       "y": {
@@ -36,7 +36,7 @@
         "distribution": "uniform",
         "extent": [
           0,
-          15
+          16
         ]
       }
     }

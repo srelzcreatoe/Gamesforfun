@@ -1,33 +1,11 @@
 {
   "format_version": "1.21.60",
-  "minecraft:scatter_feature": {
+  "minecraft:snap_to_surface_feature": {
     "description": {
       "identifier": "brine:claw_marks"
     },
-    "places_feature": "brine:claw_mark",
-    "distribution": {
-      "iterations": 3,
-      "x": {
-        "distribution": "uniform",
-        "extent": [
-          -1,
-          1
-        ]
-      },
-      "y": {
-        "distribution": "uniform",
-        "extent": [
-          -1,
-          2
-        ]
-      },
-      "z": {
-        "distribution": "uniform",
-        "extent": [
-          -1,
-          1
-        ]
-      }
-    }
+    "feature_to_snap": "brine:claw_marks_near_floor",
+    "vertical_search_range": 12,
+    "surface": "floor"
   }
 }

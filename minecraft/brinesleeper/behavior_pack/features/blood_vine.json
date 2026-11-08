@@ -27,7 +27,7 @@
         1
       ]
     ],
-    "growth_direction": "DOWN",
+    "growth_direction": "down",
     "body_blocks": [
       [
         "minecraft:weeping_vines",

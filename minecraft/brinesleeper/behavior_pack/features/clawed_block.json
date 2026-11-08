@@ -13,6 +13,13 @@
       "minecraft:tuff",
       "minecraft:smooth_basalt",
       "minecraft:cobbled_deepslate"
-    ]
+    ],
+    "may_attach_to": {
+      "sides": [
+        "minecraft:air"
+      ],
+      "min_sides_must_attach": 1,
+      "auto_rotate": false
+    }
   }
 }

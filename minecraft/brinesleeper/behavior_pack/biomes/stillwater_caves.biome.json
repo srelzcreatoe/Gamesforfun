@@ -78,10 +78,10 @@
           {
             "dimension": "minecraft:overworld",
             "targets": [
-              "dripstone_caves"
+              "minecraft:dripstone_caves"
             ],
-            "amount": 0.55,
-            "noise_frequency_scale": 10
+            "amount": 0.5,
+            "noise_frequency_scale": 0.5
           }
         ]
       },

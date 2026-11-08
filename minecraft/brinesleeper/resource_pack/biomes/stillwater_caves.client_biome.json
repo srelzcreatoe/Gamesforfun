@@ -9,8 +9,7 @@
         "fog_identifier": "brine:fog_stillwater_caves"
       },
       "minecraft:water_appearance": {
-        "surface_color": "#1b2a30",
-        "surface_opacity": 0.9
+        "surface_color": "#1b2a30"
       },
       "minecraft:sky_color": {
         "sky_color": "#0b1013"
@@ -43,7 +42,6 @@
         "ash": 0.035
       },
       "minecraft:biome_music": {
-        "music_definition": "",
         "volume_multiplier": 0.0
       }
     }
