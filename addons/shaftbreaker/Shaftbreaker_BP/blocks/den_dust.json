@@ -1,0 +1,54 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "shaftbreaker:den_dust",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.3
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -8,
+          0,
+          -8
+        ],
+        "size": [
+          16,
+          1,
+          16
+        ]
+      },
+      "minecraft:geometry": "geometry.sb_dust_layer",
+      "minecraft:light_dampening": 0,
+      "minecraft:map_color": "#6f6a64",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "sb_den_dust",
+          "render_method": "alpha_test",
+          "ambient_occlusion": false
+        }
+      },
+      "minecraft:placement_filter": {
+        "conditions": [
+          {
+            "allowed_faces": [
+              "up"
+            ],
+            "block_filter": [
+              {
+                "tags": "!q.any_tag('air')"
+              }
+            ]
+          }
+        ]
+      },
+      "minecraft:loot": "loot_tables/blocks/empty.json"
+    }
+  }
+}

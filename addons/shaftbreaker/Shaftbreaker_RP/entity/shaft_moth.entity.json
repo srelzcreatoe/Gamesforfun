@@ -1,0 +1,42 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "shaftbreaker:shaft_moth",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/shaft_moth/shaft_moth"
+      },
+      "geometry": {
+        "default": "geometry.shaft_moth"
+      },
+      "scripts": {
+        "initialize": [
+          "v.phase = math.random(0, 360);"
+        ],
+        "animate": [
+          "fly",
+          {
+            "dust": "q.property('shaftbreaker:clue') ? 1.0 : 0.25"
+          }
+        ]
+      },
+      "animations": {
+        "fly": "animation.shaft_moth.fly",
+        "dust": "animation.shaft_moth.dust"
+      },
+      "particle_effects": {
+        "dust": "shaftbreaker:mote"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#6e665c",
+        "overlay_color": "#efe6d2"
+      }
+    }
+  }
+}

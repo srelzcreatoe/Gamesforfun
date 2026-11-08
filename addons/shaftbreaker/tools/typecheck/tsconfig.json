@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "allowJs": true, "checkJs": true, "noEmit": true, "target": "es2022", "module": "es2022",
+    "moduleResolution": "node", "strict": false, "noImplicitAny": false, "skipLibCheck": true,
+    "lib": ["es2022"], "baseUrl": ".", "typeRoots": [],
+    "paths": {
+      "@minecraft/server": ["./node_modules/@minecraft/server"],
+      "@minecraft/server-ui": ["./node_modules/@minecraft/server-ui"]
+    }
+  },
+  "include": ["../../Shaftbreaker_BP/scripts/**/*.js", "globals.d.ts"]
+}

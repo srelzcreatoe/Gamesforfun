@@ -1,0 +1,20 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "shaftbreaker:waypoint",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/shaft_moth/shaft_moth"
+      },
+      "geometry": {
+        "default": "geometry.sb_empty"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ]
+    }
+  }
+}

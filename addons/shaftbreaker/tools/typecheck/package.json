@@ -1,0 +1,10 @@
+{
+  "name": "shaftbreaker-typecheck",
+  "private": true,
+  "description": "Type-checks the add-on scripts against the official Script API typings: npm install && npx tsc -p .",
+  "devDependencies": {
+    "@minecraft/server": "2.3.0",
+    "@minecraft/server-ui": "2.0.0",
+    "typescript": "5.6.3"
+  }
+}

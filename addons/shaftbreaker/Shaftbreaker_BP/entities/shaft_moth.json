@@ -1,0 +1,121 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "shaftbreaker:shaft_moth",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "spawn_category": "ambient",
+      "properties": {
+        "shaftbreaker:clue": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "sb:despawn": {
+        "minecraft:instant_despawn": {}
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "shaft_moth",
+          "ambient",
+          "arthropod"
+        ]
+      },
+      "minecraft:health": {
+        "value": 3,
+        "max": 3
+      },
+      "minecraft:collision_box": {
+        "width": 0.4,
+        "height": 0.35
+      },
+      "minecraft:physics": {},
+      "minecraft:can_fly": {},
+      "minecraft:flying_speed": {
+        "value": 0.12
+      },
+      "minecraft:movement": {
+        "value": 0.25
+      },
+      "minecraft:movement.hover": {},
+      "minecraft:navigation.hover": {
+        "can_path_over_water": true,
+        "can_sink": false,
+        "can_pass_doors": false,
+        "can_path_from_air": true,
+        "avoid_water": true,
+        "avoid_damage_blocks": true,
+        "avoid_sun": false
+      },
+      "minecraft:behavior.random_hover": {
+        "priority": 4,
+        "xz_dist": 6,
+        "y_dist": 4,
+        "y_offset": -1,
+        "interval": 1,
+        "hover_height": [
+          1,
+          3
+        ]
+      },
+      "minecraft:behavior.avoid_mob_type": {
+        "priority": 2,
+        "entity_types": [
+          {
+            "filters": {
+              "test": "is_family",
+              "subject": "other",
+              "value": "player"
+            },
+            "max_dist": 3,
+            "walk_speed_multiplier": 1.0,
+            "sprint_speed_multiplier": 1.2
+          }
+        ]
+      },
+      "minecraft:breathable": {
+        "breathes_air": true,
+        "breathes_water": false,
+        "total_supply": 15,
+        "suffocate_time": 0
+      },
+      "minecraft:despawn": {
+        "despawn_from_distance": {
+          "min_distance": 32,
+          "max_distance": 64
+        }
+      },
+      "minecraft:pushable": {
+        "is_pushable": true,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:loot": {
+        "table": "loot_tables/entities/shaft_moth.json"
+      },
+      "minecraft:nameable": {}
+    },
+    "events": {
+      "sb:despawn": {
+        "add": {
+          "component_groups": [
+            "sb:despawn"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "resource_pack_name": "shaftbreaker",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "sb_skull": {
+      "textures": "textures/items/sb_skull"
+    },
+    "sb_resonance_dial": {
+      "textures": "textures/items/sb_resonance_dial"
+    },
+    "sb_resonance_shard": {
+      "textures": "textures/items/sb_resonance_shard"
+    },
+    "sb_cairn_marker": {
+      "textures": "textures/items/sb_cairn_marker"
+    }
+  }
+}

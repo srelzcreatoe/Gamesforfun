@@ -1,0 +1,224 @@
+// @ts-check
+import { system } from '@minecraft/server';
+import { ACT } from '../../generated/acts.js';
+import { now, sec, valid, sub, len, lenXZ, dist, center, rand, randi, chance, pick, floor3, angleTo, norm } from '../../core/util.js';
+import { findSpot, perceive, bodyPoints, creatureMap, lineOfSight, lightAt } from '../../world/space.js';
+import { creature, spawnCreature } from '../creature.js';
+import { noteSighting } from '../memory.js';
+import { playAt, playFor, setDanger, caption } from '../../audio.js';
+import { log } from '../../core/log.js';
+import { spawnMoths } from '../../world/den.js';
+
+/** @typedef {import('../creature.js').Creature} Creature */
+
+/** pause n ticks inside an encounter generator */
+export const W = (n) => Math.max(1, Math.round(n));
+
+export function seen(ctx, cr) {
+  if (!cr || !cr.valid) return { visible: false, angle: 180, dist: 999, headVisible: false };
+  return perceive(ctx.player, bodyPoints(cr.loc, cr.stance));
+}
+
+/** mark a confirmed sighting once per encounter */
+export function sighted(ctx) {
+  if (ctx.spotted) return;
+  ctx.spotted = true;
+  noteSighting(ctx.player);
+  ctx.tel.notes.push('sighted');
+}
+
+/**
+ * Spawn the creature at a validated spot from the walk map.
+ * @returns {Creature|null}
+ */
+export function appear(ctx, query, opts = {}) {
+  let spot = query.pos ? { pos: query.pos, node: null } : findSpot(ctx.map, ctx.player, query);
+  if (!spot) return null;
+  // re-validate at the moment of spawning: never pop into direct view (the player may have turned)
+  if (!opts.allowInView) {
+    if (inAnyonesView(ctx.player.dimension, spot.pos)) {
+      ctx.tel.notes.push('spawn spot now in view: re-planned');
+      const q = query.pos ? (ctx.plan && ctx.plan.q) || { minDist: 8, maxDist: 26, los: false, maxLight: 7, crawl: false } : query;
+      const ok = (n, c, m) => !inAnyonesView(ctx.player.dimension, c) && (!q.test || q.test(n, c, m));
+      spot = findSpot(ctx.map, ctx.player, { ...q, minAngle: Math.max(q.minAngle || 0, 58), test: ok }) || findSpot(ctx.map, ctx.player, { ...q, los: false, test: ok });
+      if (!spot) return null;
+    }
+  }
+  const facePos = opts.face === 'away' ? awayPoint(spot.pos, ctx.player.location) : ctx.player.getHeadLocation();
+  const cr = spawnCreature(ctx.player.dimension, spot.pos, { phase: opts.phase || 'watching', act: opts.act || 0, eyes: opts.eyes ?? 0.85, spectral: opts.spectral, face: facePos });
+  if (cr) { ctx.creatureSpot = spot; ctx.tel.notes.push(`spawn d=${spot.dist?.toFixed?.(1)} light=${lightAt(ctx.player.dimension, spot.pos)}`); }
+  return cr;
+}
+
+/** is this spot inside any nearby player's direct view right now? (multiplayer-safe spawning) */
+export function inAnyonesView(dim, pos) {
+  const pts = [{ x: pos.x, y: pos.y + 2.3, z: pos.z }, { x: pos.x, y: pos.y + 1.5, z: pos.z }, { x: pos.x, y: pos.y + 0.6, z: pos.z }];
+  for (const p of dim.getPlayers({ location: pos, maxDistance: 56 })) {
+    let eye; try { eye = p.getHeadLocation(); } catch { continue; }
+    for (const pt of pts) if (angleTo(p.getViewDirection(), eye, pt) < 52 && lineOfSight(dim, eye, pt)) return true;
+  }
+  return false;
+}
+
+export function awayPoint(from, player) {
+  const d = sub(from, player);
+  return { x: from.x + d.x, y: from.y + 1.6, z: from.z + d.z };
+}
+
+/**
+ * Hold while observing the player. Resolves with the first event that happens:
+ *  'spotted'   player looks straight at it (sustained)
+ *  'contact'   prolonged eye contact accumulated beyond `stareLimit`
+ *  'approach'  player walks inside `approachDist`
+ *  'touched'   player within 2.2 blocks
+ *  'timeout'   nothing happened
+ *  'gone'      creature vanished / invalid
+ */
+export function* hold(ctx, cr, o = {}) {
+  const until = now() + (o.ticks ?? sec(20));
+  let lookTicks = 0; let contact = ctx.contact ?? 0;
+  const spotNeed = o.spotTicks ?? 5;
+  while (now() < until) {
+    yield W(o.every ?? 4);
+    if (!cr.valid) return 'gone';
+    if (o.faceEvery && now() % o.faceEvery < 4) cr.face(ctx.player.getHeadLocation());
+    const s = seen(ctx, cr);
+    ctx.lastSeen = s;
+    if (s.visible && s.angle < 60) setDanger(ctx.player, Math.max(0.15, Math.min(0.55, 1.2 - s.dist / 40)));
+    if (s.dist < 2.4) return 'touched';
+    if (o.approachDist && s.dist < o.approachDist) return 'approach';
+    if (s.visible && s.angle < (o.spotAngle ?? 24)) {
+      lookTicks += o.every ?? 4;
+      if (s.headVisible && s.angle < 12) contact += o.every ?? 4;
+      if (lookTicks >= spotNeed) { sighted(ctx); if (o.returnOnSpot !== false) return 'spotted'; }
+    } else lookTicks = Math.max(0, lookTicks - 2);
+    ctx.contact = contact;
+    if (o.stareLimit && contact >= o.stareLimit) return 'contact';
+    if (o.custom) { const r = o.custom(s); if (r) return r; }
+  }
+  return 'timeout';
+}
+
+/** a creature-reachable cell hidden from the player, away from them */
+export function hiddenRetreat(ctx, cr, minPath = 4, maxPath = 18) {
+  const m = creatureMap(cr.e, 450, maxPath + 2);
+  if (!m) return null;
+  m.finish(3000);
+  const eye = ctx.player.getHeadLocation();
+  const from = cr.loc;
+  const pl = ctx.player.location;
+  const cands = m.list().filter((n) => n.d >= minPath && n.d <= maxPath).sort((a, b) => lenXZ(sub(center(b), pl)) - lenXZ(sub(center(a), pl)));
+  let tries = 0;
+  for (const n of cands) {
+    if (tries++ > 40) break;
+    const c = center(n);
+    if (lenXZ(sub(c, pl)) < lenXZ(sub(from, pl)) - 1) continue; // must not move toward the player
+    if (!lineOfSight(ctx.player.dimension, eye, { x: c.x, y: c.y + 1.6, z: c.z }) && !lineOfSight(ctx.player.dimension, eye, { x: c.x, y: c.y + 2.6, z: c.z })) {
+      return { node: n, pos: c, path: m.pathTo(n) };
+    }
+  }
+  return null;
+}
+
+/**
+ * Standard non-violent ending. styles:
+ *  'backward'  N02 backs away without turning, eyes locked, until darkness breaks line of sight
+ *  'glance'    N10 turns away, final still look, then leaves
+ *  'walk'      walks out of sight
+ *  'auto'      picks based on whether it is being watched
+ */
+export function* passiveExit(ctx, cr, style = 'auto') {
+  if (!cr || !cr.valid) return;
+  let s = seen(ctx, cr);
+  if (!s.visible && style === 'auto') { cr.vanish(true); return; }
+  if (style === 'auto') style = chance(0.12) ? 'moths' : pick(['backward', 'backward', 'glance', 'walk']);
+  if (style === 'moths') {                                            // L26: original shaft-moth scatter exit
+    ctx.tel.notes.push('L26 moth scatter');
+    cr.setAct(ACT.ROAR);
+    yield W(sec(0.6));
+    spawnMoths(cr.dim, { x: cr.loc.x, y: cr.loc.y + 1.5, z: cr.loc.z }, randi(4, 6), null);
+    try { cr.dim.spawnParticle('shaftbreaker:wisp', cr.loc); } catch { /* ignore */ }
+    playAt(cr.dim, 'shaftbreaker.moth_flutter', cr.loc, 1.0, 0.8);
+    cr.vanish(true);
+    return;
+  }
+  ctx.tel.notes.push(`exit:${style}`);
+  const r = hiddenRetreat(ctx, cr);
+  if (style === 'glance') {
+    cr.setAct(ACT.LAST_GLANCE, true);
+    if (r) cr.face(r.pos);
+    yield W(sec(2.4));
+    cr.clearAct();
+  }
+  if (r) {
+    if (style === 'backward') {
+      cr.setPhase('watching');
+      cr.setAct(ACT.BACKWARD, true);
+      cr.stepAlong(r.path, ctx.player.getHeadLocation(), 0.055);
+    } else {
+      cr.setPhase('stalking');
+      cr.moveTo(r.pos, false);
+    }
+    const until = now() + sec(14);
+    while (now() < until && cr.valid) {
+      yield W(4);
+      if (cr.manualStep) cr.manualStep.facePos = ctx.player.getHeadLocation();
+      s = seen(ctx, cr);
+      if (!s.visible) { yield W(6); if (!seen(ctx, cr).visible) break; }
+      if (!cr.manualStep && cr.arrived(1.2)) break;
+      if (cr.stuck) break;
+    }
+  } else if (chance(0.5)) {
+    yield* passiveExit(ctx, cr, 'moths');
+    return;
+  } else {
+    // nowhere to back off to: fold into the dark (controlled despawn)
+    cr.setAct(ACT.VANISH);
+    yield W(sec(1.1));
+  }
+  cr.vanish(seen(ctx, cr).visible === false);
+}
+
+/** a plausible 3D position for a sound with no creature (behind stone / down a side tunnel) */
+export function soundSpot(ctx, minD = 8, maxD = 20, hidden = true) {
+  const s = findSpot(ctx.map, ctx.player, { minDist: minD, maxDist: maxD, los: hidden ? false : undefined, maxChecks: 50 });
+  if (s) return { x: s.pos.x, y: s.pos.y + 1, z: s.pos.z };
+  const p = ctx.player.location; const a = rand(0, Math.PI * 2); const d = rand(minD, maxD);
+  return { x: p.x + Math.cos(a) * d, y: p.y + rand(-2, 3), z: p.z + Math.sin(a) * d };
+}
+
+/** sound at a world spot heard by the target (and anyone else nearby, it is a real sound) */
+export function sfx(ctx, id, pos, vol = 1, pitch = 1) { playAt(ctx.player.dimension, id, pos, vol, pitch); }
+
+/** spawn a claw-scratch decal on the nearest wall face around a point (N43) */
+export function scratchNear(dim, pos, tries = 10) {
+  const b = floor3(pos);
+  for (let i = 0; i < tries; i++) {
+    const x = b.x + randi(-2, 2), y = b.y + randi(0, 2), z = b.z + randi(-2, 2);
+    let blk; try { blk = dim.getBlock({ x, y, z }); } catch { continue; }
+    if (!blk || blk.isAir || blk.isLiquid) continue;
+    const id = blk.typeId;
+    if (!/stone|deepslate|tuff|granite|diorite|andesite|dirt|calcite|dripstone/.test(id)) continue;
+    /** @type {[number, number, string, number, number][]} */
+    const faces = [[1, 0, 'scratch_ew', 1.02, 0.5], [-1, 0, 'scratch_ew', -0.02, 0.5], [0, 1, 'scratch_ns', 0.5, 1.02], [0, -1, 'scratch_ns', 0.5, -0.02]];
+    for (const [dx, dz, pid, ox, oz] of faces) {
+      let nb; try { nb = dim.getBlock({ x: x + dx, y, z: z + dz }); } catch { continue; }
+      if (nb && nb.isAir) {
+        try { dim.spawnParticle(`shaftbreaker:${pid}`, { x: x + ox, y: y + 0.5 + rand(-0.15, 0.2), z: z + oz }); } catch { /* ignore */ }
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/** escalate an observation into a hunt (only through this readable path) */
+export function wantsHunt(ctx, base) {
+  const ps = ctx.ps;
+  let p = base;
+  if (ps.state === 'provoked') p *= 1.7;
+  if (ctx.allowHunt === false) p = 0;
+  return chance(Math.min(0.85, p));
+}
+
+export { now, sec, valid, dist, len, rand, randi, chance, pick, angleTo, norm, center, caption, playFor, setDanger, log, system, creature };

@@ -1,0 +1,26 @@
+{
+  "resource_pack_name": "shaftbreaker",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "sb_den_heart": {
+      "textures": "textures/blocks/sb_den_heart"
+    },
+    "sb_den_crack": {
+      "textures": "textures/blocks/sb_den_crack"
+    },
+    "sb_den_dust": {
+      "textures": "textures/blocks/sb_den_dust"
+    },
+    "sb_den_spine": {
+      "textures": "textures/blocks/sb_den_spine"
+    },
+    "sb_cairn": {
+      "textures": "textures/blocks/sb_cairn"
+    },
+    "sb_cairn_top": {
+      "textures": "textures/blocks/sb_cairn_top"
+    }
+  }
+}

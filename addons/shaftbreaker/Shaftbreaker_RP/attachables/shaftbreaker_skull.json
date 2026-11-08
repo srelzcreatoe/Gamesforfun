@@ -1,0 +1,22 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:attachable": {
+    "description": {
+      "identifier": "shaftbreaker:shaftbreaker_skull",
+      "materials": {
+        "default": "entity_alphatest",
+        "enchanted": "entity_alphatest_glint"
+      },
+      "textures": {
+        "default": "textures/entity/shaftbreaker/shaftbreaker",
+        "enchanted": "textures/misc/enchanted_actor_glint"
+      },
+      "geometry": {
+        "default": "geometry.sb_skull"
+      },
+      "render_controllers": [
+        "controller.render.sb_skull"
+      ]
+    }
+  }
+}

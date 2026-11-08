@@ -1,0 +1,27 @@
+{
+  "entity_sounds": {
+    "entities": {
+      "shaftbreaker:shaftbreaker": {
+        "volume": 1.0,
+        "pitch": [
+          0.9,
+          1.05
+        ],
+        "events": {
+          "hurt": "shaftbreaker.hurt",
+          "death": "shaftbreaker.collapse"
+        }
+      },
+      "shaftbreaker:shaft_moth": {
+        "volume": 0.6,
+        "pitch": [
+          0.9,
+          1.2
+        ],
+        "events": {
+          "ambient": "shaftbreaker.moth_flutter"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "shaftbreaker:den_heart",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 7
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 18
+      },
+      "minecraft:light_emission": 4,
+      "minecraft:map_color": "#2b2523",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "sb_den_heart",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:loot": "loot_tables/blocks/den_heart.json"
+    }
+  }
+}

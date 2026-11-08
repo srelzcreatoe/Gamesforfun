@@ -1,0 +1,808 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "shaftbreaker:shaftbreaker",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "spawn_category": "monster",
+      "properties": {
+        "shaftbreaker:phase": {
+          "type": "enum",
+          "values": [
+            "dormant",
+            "stalking",
+            "watching",
+            "breaker",
+            "frenzy"
+          ],
+          "default": "dormant",
+          "client_sync": true
+        },
+        "shaftbreaker:act": {
+          "type": "int",
+          "range": [
+            0,
+            63
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "shaftbreaker:stance": {
+          "type": "int",
+          "range": [
+            0,
+            2
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "shaftbreaker:gait": {
+          "type": "int",
+          "range": [
+            0,
+            2
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "shaftbreaker:spectral": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        },
+        "shaftbreaker:eyes": {
+          "type": "float",
+          "range": [
+            0.0,
+            1.0
+          ],
+          "default": 0.85,
+          "client_sync": true
+        },
+        "shaftbreaker:defeated": {
+          "type": "bool",
+          "default": false,
+          "client_sync": false
+        }
+      }
+    },
+    "component_groups": {
+      "sb:mode_still": {
+        "minecraft:movement": {
+          "value": 0.0
+        },
+        "minecraft:behavior.look_at_player": {
+          "priority": 7,
+          "look_distance": 48,
+          "probability": 1.0,
+          "angle_of_view_horizontal": 360,
+          "angle_of_view_vertical": 180,
+          "look_time": [
+            4,
+            8
+          ]
+        },
+        "minecraft:body_rotation_blocked": {}
+      },
+      "sb:mode_travel": {
+        "minecraft:movement": {
+          "value": 0.21
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 96,
+          "attack_interval": 1,
+          "must_reach": false,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "sb_waypoint"
+              },
+              "max_dist": 96,
+              "must_see": false
+            }
+          ]
+        },
+        "minecraft:behavior.melee_attack": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "track_target": true,
+          "require_complete_path": false,
+          "reach_multiplier": 0.9,
+          "cooldown_time": 3.0
+        },
+        "minecraft:behavior.float": {
+          "priority": 0
+        }
+      },
+      "sb:mode_travel_fast": {
+        "minecraft:movement": {
+          "value": 0.3
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 96,
+          "attack_interval": 1,
+          "must_reach": false,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "sb_waypoint"
+              },
+              "max_dist": 96,
+              "must_see": false
+            }
+          ]
+        },
+        "minecraft:behavior.melee_attack": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "track_target": true,
+          "require_complete_path": false,
+          "reach_multiplier": 0.9,
+          "cooldown_time": 3.0
+        },
+        "minecraft:behavior.float": {
+          "priority": 0
+        }
+      },
+      "sb:mode_hunt": {
+        "minecraft:movement": {
+          "value": 0.36
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 64,
+          "attack_interval": 1,
+          "must_see_forget_duration": 20,
+          "entity_types": [
+            {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "player"
+                  },
+                  {
+                    "test": "has_tag",
+                    "subject": "other",
+                    "value": "sb_target"
+                  }
+                ]
+              },
+              "max_dist": 64,
+              "must_see": false
+            }
+          ]
+        },
+        "minecraft:behavior.delayed_attack": {
+          "priority": 2,
+          "attack_once": false,
+          "track_target": true,
+          "require_complete_path": false,
+          "random_stop_interval": 0,
+          "reach_multiplier": 1.35,
+          "speed_multiplier": 1.0,
+          "attack_duration": 0.9,
+          "hit_delay_pct": 0.55,
+          "cooldown_time": 0.75
+        },
+        "minecraft:behavior.float": {
+          "priority": 0
+        }
+      },
+      "sb:mode_frenzy": {
+        "minecraft:movement": {
+          "value": 0.45
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 64,
+          "attack_interval": 1,
+          "must_see_forget_duration": 20,
+          "entity_types": [
+            {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "player"
+                  },
+                  {
+                    "test": "has_tag",
+                    "subject": "other",
+                    "value": "sb_target"
+                  }
+                ]
+              },
+              "max_dist": 64,
+              "must_see": false
+            }
+          ]
+        },
+        "minecraft:behavior.delayed_attack": {
+          "priority": 2,
+          "attack_once": false,
+          "track_target": true,
+          "require_complete_path": false,
+          "random_stop_interval": 0,
+          "reach_multiplier": 1.35,
+          "speed_multiplier": 1.12,
+          "attack_duration": 0.9,
+          "hit_delay_pct": 0.55,
+          "cooldown_time": 0.6
+        },
+        "minecraft:behavior.float": {
+          "priority": 0
+        }
+      },
+      "sb:mode_scripted": {
+        "minecraft:movement": {
+          "value": 0.0
+        },
+        "minecraft:body_rotation_blocked": {}
+      },
+      "sb:mode_defeated": {
+        "minecraft:movement": {
+          "value": 0.0
+        },
+        "minecraft:body_rotation_blocked": {},
+        "minecraft:damage_sensor": {
+          "triggers": [
+            {
+              "cause": "all",
+              "deals_damage": "no"
+            }
+          ]
+        }
+      },
+      "sb:grav_on": {
+        "minecraft:physics": {}
+      },
+      "sb:grav_off": {
+        "minecraft:physics": {
+          "has_gravity": false,
+          "has_collision": true
+        }
+      },
+      "sb:stance_stand": {
+        "minecraft:collision_box": {
+          "width": 0.8,
+          "height": 1.9
+        },
+        "minecraft:custom_hit_test": {
+          "hitboxes": [
+            {
+              "width": 1.2,
+              "height": 3.0,
+              "pivot": [
+                0,
+                1.5,
+                0
+              ]
+            }
+          ]
+        }
+      },
+      "sb:stance_crouch": {
+        "minecraft:collision_box": {
+          "width": 0.8,
+          "height": 1.9
+        },
+        "minecraft:custom_hit_test": {
+          "hitboxes": [
+            {
+              "width": 1.2,
+              "height": 1.9,
+              "pivot": [
+                0,
+                0.95,
+                0
+              ]
+            }
+          ]
+        }
+      },
+      "sb:stance_crawl": {
+        "minecraft:collision_box": {
+          "width": 0.8,
+          "height": 0.9
+        },
+        "minecraft:custom_hit_test": {
+          "hitboxes": [
+            {
+              "width": 1.5,
+              "height": 1.0,
+              "pivot": [
+                0,
+                0.5,
+                0
+              ]
+            }
+          ]
+        }
+      },
+      "sb:nav_walk": {
+        "minecraft:navigation.walk": {
+          "can_path_over_water": true,
+          "avoid_damage_blocks": true,
+          "can_pass_doors": true,
+          "can_open_doors": false,
+          "is_amphibious": true,
+          "can_walk": true,
+          "can_sink": false
+        }
+      },
+      "sb:nav_doors": {
+        "minecraft:navigation.walk": {
+          "can_path_over_water": true,
+          "avoid_damage_blocks": true,
+          "can_pass_doors": true,
+          "can_open_doors": true,
+          "is_amphibious": true,
+          "can_walk": true,
+          "can_sink": false
+        },
+        "minecraft:annotation.open_door": {}
+      },
+      "sb:nav_climb": {
+        "minecraft:navigation.climb": {
+          "can_path_over_water": true,
+          "avoid_damage_blocks": true
+        }
+      },
+      "sb:despawn": {
+        "minecraft:instant_despawn": {}
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "shaftbreaker",
+          "monster",
+          "mob"
+        ]
+      },
+      "minecraft:health": {
+        "value": 112,
+        "max": 112
+      },
+      "minecraft:attack": {
+        "damage": 6
+      },
+      "minecraft:follow_range": {
+        "value": 64,
+        "max": 64
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:jump.static": {},
+      "minecraft:can_climb": {},
+      "minecraft:variable_max_auto_step": {
+        "base_value": 1.0625,
+        "jump_prevented_value": 0.5625
+      },
+      "minecraft:breathable": {
+        "breathes_air": true,
+        "breathes_water": true,
+        "suffocate_time": 0,
+        "total_supply": 15
+      },
+      "minecraft:underwater_movement": {
+        "value": 0.07
+      },
+      "minecraft:knockback_resistance": {
+        "value": 0.55
+      },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:nameable": {},
+      "minecraft:conditional_bandwidth_optimization": {},
+      "minecraft:despawn": {
+        "despawn_from_distance": {
+          "min_distance": 80,
+          "max_distance": 128
+        }
+      },
+      "minecraft:loot": {
+        "table": "loot_tables/entities/shaftbreaker.json"
+      },
+      "minecraft:experience_reward": {
+        "on_death": "q.last_hit_by_player ? 45 : 0"
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "all",
+            "deals_damage": "no",
+            "on_damage": {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "actor_health",
+                    "subject": "self",
+                    "operator": "<=",
+                    "value": 22
+                  },
+                  {
+                    "test": "bool_property",
+                    "subject": "self",
+                    "domain": "shaftbreaker:defeated",
+                    "operator": "!="
+                  }
+                ]
+              },
+              "event": "sb:defeated"
+            }
+          },
+          {
+            "cause": "drowning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "suffocation",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fall",
+            "deals_damage": "yes",
+            "damage_multiplier": 0.4
+          },
+          {
+            "cause": "fire",
+            "deals_damage": "yes",
+            "damage_multiplier": 0.5
+          },
+          {
+            "cause": "fire_tick",
+            "deals_damage": "yes",
+            "damage_multiplier": 0.5
+          }
+        ]
+      }
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": {
+          "component_groups": [
+            "sb:mode_still",
+            "sb:grav_on",
+            "sb:stance_stand",
+            "sb:nav_walk"
+          ]
+        }
+      },
+      "sb:despawn": {
+        "add": {
+          "component_groups": [
+            "sb:despawn"
+          ]
+        }
+      },
+      "sb:defeated": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "sb:mode_still",
+                "sb:mode_travel",
+                "sb:mode_travel_fast",
+                "sb:mode_hunt",
+                "sb:mode_frenzy",
+                "sb:mode_scripted"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "sb:mode_defeated"
+              ]
+            }
+          },
+          {
+            "set_property": {
+              "shaftbreaker:act": 29,
+              "shaftbreaker:phase": "dormant"
+            }
+          },
+          {
+            "set_property": {
+              "shaftbreaker:defeated": true
+            }
+          }
+        ]
+      },
+      "sb:mode_still": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:mode_travel",
+            "sb:mode_travel_fast",
+            "sb:mode_hunt",
+            "sb:mode_frenzy",
+            "sb:mode_scripted",
+            "sb:mode_defeated"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:mode_still"
+          ]
+        }
+      },
+      "sb:mode_travel": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:mode_still",
+            "sb:mode_travel_fast",
+            "sb:mode_hunt",
+            "sb:mode_frenzy",
+            "sb:mode_scripted",
+            "sb:mode_defeated"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:mode_travel"
+          ]
+        }
+      },
+      "sb:mode_travel_fast": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:mode_still",
+            "sb:mode_travel",
+            "sb:mode_hunt",
+            "sb:mode_frenzy",
+            "sb:mode_scripted",
+            "sb:mode_defeated"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:mode_travel_fast"
+          ]
+        }
+      },
+      "sb:mode_hunt": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:mode_still",
+            "sb:mode_travel",
+            "sb:mode_travel_fast",
+            "sb:mode_frenzy",
+            "sb:mode_scripted",
+            "sb:mode_defeated"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:mode_hunt"
+          ]
+        }
+      },
+      "sb:mode_frenzy": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:mode_still",
+            "sb:mode_travel",
+            "sb:mode_travel_fast",
+            "sb:mode_hunt",
+            "sb:mode_scripted",
+            "sb:mode_defeated"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:mode_frenzy"
+          ]
+        }
+      },
+      "sb:mode_scripted": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:mode_still",
+            "sb:mode_travel",
+            "sb:mode_travel_fast",
+            "sb:mode_hunt",
+            "sb:mode_frenzy",
+            "sb:mode_defeated"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:mode_scripted"
+          ]
+        }
+      },
+      "sb:grav_on": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:grav_off"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:grav_on"
+          ]
+        }
+      },
+      "sb:grav_off": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:grav_on"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:grav_off"
+          ]
+        }
+      },
+      "sb:stance_stand": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:stance_crouch",
+            "sb:stance_crawl"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:stance_stand"
+          ]
+        }
+      },
+      "sb:stance_crouch": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:stance_stand",
+            "sb:stance_crawl"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:stance_crouch"
+          ]
+        }
+      },
+      "sb:stance_crawl": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:stance_stand",
+            "sb:stance_crouch"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:stance_crawl"
+          ]
+        }
+      },
+      "sb:nav_walk": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:nav_doors",
+            "sb:nav_climb"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:nav_walk"
+          ]
+        }
+      },
+      "sb:nav_doors": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:nav_walk",
+            "sb:nav_climb"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:nav_doors"
+          ]
+        }
+      },
+      "sb:nav_climb": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:nav_walk",
+            "sb:nav_doors"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:nav_climb"
+          ]
+        }
+      }
+    }
+  }
+}

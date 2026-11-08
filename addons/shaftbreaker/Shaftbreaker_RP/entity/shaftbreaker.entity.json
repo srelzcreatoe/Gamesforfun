@@ -1,0 +1,145 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "shaftbreaker:shaftbreaker",
+      "materials": {
+        "default": "entity_alphatest",
+        "spectral": "entity_alphablend",
+        "eyes": "entity_alphablend"
+      },
+      "textures": {
+        "default": "textures/entity/shaftbreaker/shaftbreaker",
+        "spectral": "textures/entity/shaftbreaker/shaftbreaker_spectral",
+        "eyes": "textures/entity/shaftbreaker/shaftbreaker_eyes"
+      },
+      "geometry": {
+        "default": "geometry.shaftbreaker"
+      },
+      "scripts": {
+        "scale": "0.58",
+        "initialize": [
+          "v.actw = 0.0;",
+          "v.stw = 0.0;",
+          "v.look_w = 1.0;",
+          "v.act_t0 = 0.0;",
+          "v.swing = 0.0;"
+        ],
+        "pre_animation": [
+          "v.act = q.property('shaftbreaker:act');",
+          "v.stance = q.property('shaftbreaker:stance');",
+          "v.gait = q.property('shaftbreaker:gait');",
+          "v.full = (v.act == 3 || v.act == 4 || v.act == 5 || v.act == 6 || v.act == 7 || v.act == 8 || v.act == 9 || v.act == 10 || v.act == 11 || v.act == 12 || v.act == 13 || v.act == 14 || v.act == 15 || v.act == 16 || v.act == 17 || v.act == 18 || v.act == 19 || v.act == 20 || v.act == 21 || v.act == 22 || v.act == 23 || v.act == 24 || v.act == 25 || v.act == 26 || v.act == 27 || v.act == 28 || v.act == 29 || v.act == 30 || v.act == 31 || v.act == 32 || v.act == 33 || v.act == 34 || v.act == 35 || v.act == 42 || v.act == 43 || v.act == 44 || v.act == 45) ? 1.0 : 0.0;",
+          "v.k = math.min(1.0, q.delta_time * 7.0);",
+          "v.actw = v.actw + (v.full - v.actw) * v.k;",
+          "v.stw = v.stw + ((v.stance > 0 ? 1.0 : 0.0) - v.stw) * math.min(1.0, q.delta_time * 5.0);",
+          "v.base_weight = (1.0 - v.actw) * (1.0 - v.stw);",
+          "v.stance_weight = (1.0 - v.actw) * v.stw;",
+          "v.move_blend = math.clamp(q.modified_move_speed * 2.2, 0.0, 1.0);",
+          "v.look_target = (v.act == 2 ? 0.6 : (v.act == 3 ? 0.6 : (v.act == 4 ? 0.6 : (v.act == 6 ? 0.4 : (v.act == 7 ? 0.0 : (v.act == 8 ? 0.8 : (v.act == 9 ? 0.7 : (v.act == 10 ? 0.0 : (v.act == 11 ? 0.5 : (v.act == 14 ? 0.4 : (v.act == 15 ? 0.0 : (v.act == 16 ? 0.7 : (v.act == 17 ? 0.0 : (v.act == 18 ? 0.3 : (v.act == 19 ? 0.0 : (v.act == 20 ? 0.3 : (v.act == 21 ? 0.0 : (v.act == 22 ? 0.0 : (v.act == 23 ? 0.0 : (v.act == 24 ? 0.0 : (v.act == 25 ? 0.0 : (v.act == 26 ? 0.0 : (v.act == 27 ? 0.0 : (v.act == 28 ? 0.3 : (v.act == 29 ? 0.0 : (v.act == 30 ? 0.5 : (v.act == 31 ? 0.2 : (v.act == 32 ? 0.0 : (v.act == 33 ? 0.6 : (v.act == 34 ? 0.8 : (v.act == 35 ? 0.0 : (v.act == 36 ? 0.8 : (v.act == 39 ? 0.0 : (v.act == 41 ? math.clamp((q.life_time - v.act_t0) / 3.5, 0, 1) : (v.act == 42 ? 0.3 : (v.act == 43 ? 0.3 : (v.act == 44 ? 0.3 : (v.act == 45 ? 0.5 : 1.0))))))))))))))))))))))))))))))))))))));",
+          "v.look_w = v.look_w + (v.look_target - v.look_w) * math.min(1.0, q.delta_time * 4.0);",
+          "v.eyes = q.property('shaftbreaker:eyes');"
+        ],
+        "animate": [
+          "ctrl_phase",
+          "ctrl_stance",
+          "ctrl_act",
+          "ctrl_attack",
+          {
+            "look_at": "v.look_w"
+          }
+        ],
+        "should_update_bones_and_effects_offscreen": "1.0"
+      },
+      "animations": {
+        "backward_walk": "animation.shaftbreaker.backward_walk",
+        "brace": "animation.shaftbreaker.brace",
+        "break_strike": "animation.shaftbreaker.break_strike",
+        "breaker_walk": "animation.shaftbreaker.breaker_walk",
+        "breath": "animation.shaftbreaker.breath",
+        "broken_gait": "animation.shaftbreaker.broken_gait",
+        "ceiling_drop": "animation.shaftbreaker.ceiling_drop",
+        "ceiling_hang": "animation.shaftbreaker.ceiling_hang",
+        "ceiling_reach": "animation.shaftbreaker.ceiling_reach",
+        "claw_left": "animation.shaftbreaker.claw_left",
+        "claw_left_add": "animation.shaftbreaker.claw_left_add",
+        "claw_right": "animation.shaftbreaker.claw_right",
+        "claw_right_add": "animation.shaftbreaker.claw_right_add",
+        "claw_wide": "animation.shaftbreaker.claw_wide",
+        "claw_wide_add": "animation.shaftbreaker.claw_wide_add",
+        "climb": "animation.shaftbreaker.climb",
+        "collapse": "animation.shaftbreaker.collapse",
+        "crawl_idle": "animation.shaftbreaker.crawl_idle",
+        "crawl_walk": "animation.shaftbreaker.crawl_walk",
+        "crooked_gait": "animation.shaftbreaker.crooked_gait",
+        "crouch_idle": "animation.shaftbreaker.crouch_idle",
+        "crouch_walk": "animation.shaftbreaker.crouch_walk",
+        "door_reach": "animation.shaftbreaker.door_reach",
+        "dormant": "animation.shaftbreaker.dormant",
+        "eat": "animation.shaftbreaker.eat",
+        "failed_hide": "animation.shaftbreaker.failed_hide",
+        "failed_leap": "animation.shaftbreaker.failed_leap",
+        "finish_step": "animation.shaftbreaker.finish_step",
+        "freeze_step": "animation.shaftbreaker.freeze_step",
+        "frenzy_halt": "animation.shaftbreaker.frenzy_halt",
+        "frenzy_idle": "animation.shaftbreaker.frenzy_idle",
+        "frenzy_lunge": "animation.shaftbreaker.frenzy_lunge",
+        "frenzy_run": "animation.shaftbreaker.frenzy_run",
+        "head_tilt": "animation.shaftbreaker.head_tilt",
+        "heavy": "animation.shaftbreaker.heavy",
+        "kneel": "animation.shaftbreaker.kneel",
+        "last_glance": "animation.shaftbreaker.last_glance",
+        "limp": "animation.shaftbreaker.limp",
+        "listen": "animation.shaftbreaker.listen",
+        "look_at": "animation.shaftbreaker.look_at",
+        "peek_below": "animation.shaftbreaker.peek_below",
+        "peek_left": "animation.shaftbreaker.peek_left",
+        "peek_right": "animation.shaftbreaker.peek_right",
+        "prone_drop": "animation.shaftbreaker.prone_drop",
+        "recover": "animation.shaftbreaker.recover",
+        "recover_mirror": "animation.shaftbreaker.recover_mirror",
+        "roar": "animation.shaftbreaker.roar",
+        "rupture": "animation.shaftbreaker.rupture",
+        "scramble": "animation.shaftbreaker.scramble",
+        "scream_cut": "animation.shaftbreaker.scream_cut",
+        "shove": "animation.shaftbreaker.shove",
+        "squeeze": "animation.shaftbreaker.squeeze",
+        "stalk_idle": "animation.shaftbreaker.stalk_idle",
+        "stalk_walk": "animation.shaftbreaker.stalk_walk",
+        "stare": "animation.shaftbreaker.stare",
+        "twitch": "animation.shaftbreaker.twitch",
+        "vanish": "animation.shaftbreaker.vanish",
+        "wall_brace": "animation.shaftbreaker.wall_brace",
+        "watch": "animation.shaftbreaker.watch",
+        "ctrl_phase": "controller.animation.shaftbreaker.phase",
+        "ctrl_stance": "controller.animation.shaftbreaker.stance",
+        "ctrl_act": "controller.animation.shaftbreaker.act",
+        "ctrl_attack": "controller.animation.shaftbreaker.attack"
+      },
+      "render_controllers": [
+        "controller.render.shaftbreaker",
+        "controller.render.shaftbreaker_eyes"
+      ],
+      "spawn_egg": {
+        "base_color": "#3b3230",
+        "overlay_color": "#e8d7b0"
+      },
+      "sound_effects": {
+        "step": "shaftbreaker.step",
+        "scrape": "shaftbreaker.scrape",
+        "smash": "shaftbreaker.smash",
+        "screech": "shaftbreaker.screech",
+        "swing": "shaftbreaker.swing",
+        "growl": "shaftbreaker.growl",
+        "death": "shaftbreaker.collapse",
+        "chew": "shaftbreaker.chew",
+        "roar": "shaftbreaker.roar"
+      },
+      "particle_effects": {
+        "debris": "shaftbreaker:debris",
+        "step_dust": "shaftbreaker:step_dust"
+      },
+      "enable_attachables": false
+    }
+  }
+}

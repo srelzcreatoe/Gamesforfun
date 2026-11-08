@@ -1,0 +1,15 @@
+pack.name=The Shaftbreaker
+pack.description=An adaptive cave dweller that learns how you escape. No experimental toggles required.
+entity.shaftbreaker:shaftbreaker.name=Shaftbreaker
+entity.shaftbreaker:shaft_moth.name=Shaft Moth
+entity.shaftbreaker:waypoint.name=Shaftbreaker Waypoint
+item.spawn_egg.entity.shaftbreaker:shaftbreaker.name=Spawn Shaftbreaker
+item.spawn_egg.entity.shaftbreaker:shaft_moth.name=Spawn Shaft Moth
+item.shaftbreaker:shaftbreaker_skull.name=Shaftbreaker Skull
+item.shaftbreaker:resonance_dial.name=Resonance Dial
+item.shaftbreaker:resonance_shard.name=Resonance Shard
+tile.shaftbreaker:den_heart.name=Den Heart
+tile.shaftbreaker:den_crack.name=Fractured Den Wall
+tile.shaftbreaker:den_dust.name=Den Dust
+tile.shaftbreaker:den_spine.name=Den Spine
+tile.shaftbreaker:cairn_marker.name=Cairn Marker

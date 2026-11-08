@@ -140,6 +140,10 @@ simulation distance are separate settings with Low/Balanced/High presets.
   exact test matrix and what was **not** covered (no physical device was
   available in the build environment).
 
+## Add-ons
+
+- [`addons/shaftbreaker`](addons/shaftbreaker/README.md): **The Shaftbreaker**, an adaptive cave-dweller add-on for Minecraft Bedrock (no experimental toggles). Ready-to-import package: `addons/shaftbreaker/dist/Shaftbreaker.mcaddon`.
+
 ## License / credits
 
 See [CREDITS.md](CREDITS.md). Engine: libGDX (Apache-2.0). All game content
