@@ -256,13 +256,13 @@ function buildMine() {
     const chain = new THREE.Mesh(new THREE.BoxGeometry(1, 0.8 * BLOCK, 1), lanternFrame);
     chain.position.y = 3.6 + 0.4 * BLOCK;
     g.add(glass, cap, chain);
-    const light = new THREE.PointLight(0xff9a48, cfg.lantern ?? 700, 13 * BLOCK, 1.6);
+    const light = new THREE.PointLight(cfg.lanternColor ?? 0xffa860, cfg.lantern ?? 700, 13 * BLOCK, 1.6);
     light.position.y = -2;
     g.add(light);
     scene.add(g);
   }
-  scene.add(new THREE.HemisphereLight(0x5a4a40, 0x120c08, cfg.ambient ?? 0.6));
-  const key = new THREE.SpotLight(0xffd2a8, cfg.key ?? 2600, 40 * BLOCK, 0.55, 0.6, 1.4);
+  scene.add(new THREE.HemisphereLight(cfg.ambientColor ?? 0x5a4e48, 0x120c08, cfg.ambient ?? 0.6));
+  const key = new THREE.SpotLight(cfg.keyColor ?? 0xffe8d8, cfg.key ?? 2600, 40 * BLOCK, 0.55, 0.6, 1.4);
   key.position.set(-1.5 * BLOCK, 5.4 * BLOCK, -7 * BLOCK);
   key.target.position.set(0, 1.6 * BLOCK, 0);
   key.castShadow = true;
@@ -270,7 +270,7 @@ function buildMine() {
   key.shadow.bias = -0.0004;
   key.shadow.normalBias = 0.6;
   scene.add(key, key.target);
-  const rim = new THREE.SpotLight(0xff8a3a, cfg.rim ?? 3200, 40 * BLOCK, 0.6, 0.7, 1.4);
+  const rim = new THREE.SpotLight(cfg.rimColor ?? 0xffa868, cfg.rim ?? 3200, 40 * BLOCK, 0.6, 0.7, 1.4);
   rim.position.set(2.5 * BLOCK, 4.8 * BLOCK, 8 * BLOCK);
   rim.target.position.set(0, 2 * BLOCK, 0);
   scene.add(rim, rim.target);
