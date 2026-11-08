@@ -25,6 +25,196 @@
           "load_on_low_memory": true
         }
       ]
+    },
+    "mob.brinesleeper.breathe": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/mob/brinesleeper/breathe",
+          "volume": 0.7,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "mob.brinesleeper.click": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/mob/brinesleeper/click1",
+          "volume": 0.9,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/mob/brinesleeper/click2",
+          "volume": 0.9,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "mob.brinesleeper.call": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/mob/brinesleeper/call",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "mob.brinesleeper.lunge": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/mob/brinesleeper/lunge",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "mob.brinesleeper.grasp": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/mob/brinesleeper/grasp",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "mob.brinesleeper.hurt": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/mob/brinesleeper/hurt",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "mob.brinesleeper.death": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/mob/brinesleeper/death",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "mob.brinesleeper.emerge": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/mob/brinesleeper/emerge",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "mob.brinesleeper.submerge": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/mob/brinesleeper/submerge",
+          "volume": 0.9,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "mob.brinesleeper.step": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/mob/brinesleeper/step1",
+          "volume": 0.6,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/mob/brinesleeper/step2",
+          "volume": 0.6,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "brine.fx.splash_far": {
+      "category": "ambient",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/brine_fx/splash_far",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "brine.fx.surge": {
+      "category": "ambient",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/brine_fx/surge",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "brine.fx.bubbles": {
+      "category": "ambient",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/brine_fx/bubbles",
+          "volume": 0.8,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "brine.fx.ripple": {
+      "category": "ambient",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/brine_fx/ripple",
+          "volume": 0.6,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "brine.fx.drip": {
+      "category": "ambient",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/brine_fx/drip",
+          "volume": 0.6,
+          "load_on_low_memory": true
+        }
+      ]
     }
   }
 }

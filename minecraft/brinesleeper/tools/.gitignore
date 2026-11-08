@@ -4,3 +4,4 @@ shots/
 frames/
 package-lock.json
 __pycache__/
+.typecheck/

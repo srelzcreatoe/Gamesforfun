@@ -8,6 +8,21 @@ and arms long enough to drag its clawed hands on the ground.
 It comes with its own cave biome, the [Stillwater Caves](#stillwater-caves-biome), where it is
 the only hostile mob that spawns.
 
+**Version 2.0, "The Water Remembers"**, turns it into a full horror add-on:
+* A hidden director stages every encounter, with 26 mechanics.
+* Most encounters are sightings: something watching from the water, a figure under the surface
+  that is not your reflection, a hand rising from the lake, footsteps that copy yours. It
+  almost never chases.
+* Hunts are rare, short and fair.
+* It uses only the stable Script API (Bedrock 1.26.40) and needs no experimental toggles.
+
+See **[ADDON_REPORT.md](ADDON_REPORT.md)** for:
+* the mechanics table
+* AI states and pacing
+* settings and presets
+* the animation inventory
+* testing status (static checks pass; still needs an in-game test)
+
 ![Preview sheet](preview/brinesleeper_preview_sheet.png)
 
 ![Stalking & bipedal poses](preview/brinesleeper_poses_sheet.png)
@@ -30,7 +45,8 @@ contain.
 | `brinesleeper.bbmodel` | Blockbench project (Bedrock Entity format) with the texture and all animations embedded. Open it with **File → Open Model**. |
 | `Brinesleeper.mcaddon` | One-tap import for Minecraft Bedrock: resource pack and behavior pack together. |
 | `resource_pack/` | Geometry, texture, animations, animation controllers, render controller, client entity, the biome's fog, look, sounds and block textures, and the en_US names. |
-| `behavior_pack/` | Starter AI (amphibious hunter, spawn rule, spawn egg) and the Stillwater Caves biome: biome, blocks, features, feature rules and dripstone structures. |
+| `behavior_pack/` | The creature (70 HP, script-driven AI modes and poses), its apparitions, the director script (`scripts/main.js`), the spawn rule, and the Stillwater Caves biome: biome, blocks, features, feature rules and structures. |
+| `ADDON_REPORT.md` | Mechanics, states, pacing, settings, animation inventory, testing and compatibility report. |
 | `preview/` | Preview sheet, poses sheet, turnaround strip, the MP4, `viewer.html`, and the biome preview. |
 | `tools/` | The scripts that generate everything: model, texture, animations, packs, renders. |
 
@@ -261,20 +277,23 @@ You can also import `resource_pack/models/entity/brinesleeper.geo.json` and the
 
 **Minecraft Bedrock:**
 1. Open `Brinesleeper.mcaddon`.
-2. Activate **Brinesleeper Resources** and **Brinesleeper Behaviors** on a world.
-3. Use the *Spawn Brinesleeper* egg, or run `/summon brine:brinesleeper`.
+2. Activate **Brinesleeper Resources** and **Brinesleeper Behaviors** on a **new** world.
+   No experimental toggles are needed.
+3. Find the caves with `/locate biome brine:stillwater_caves`. Spend time there: nothing
+   happens for the first 6–10 minutes.
 
-The packs are version 1.3.1, so they import over an earlier copy. They need Minecraft Bedrock
-1.26.30 or newer, for the custom biome.
+The packs are version 2.0.0, so they import over 1.x. They need Minecraft Bedrock **1.26.40 or
+newer**, for the stable `@minecraft/server` 2.9.0 and `@minecraft/server-ui` 2.1.0 script
+modules. The director has not been play-tested in-game yet; ADDON_REPORT.md lists what to check.
 
-The behavior pack is a starting point and has not been play-tested. It includes:
-* An amphibious hunter that targets players.
-* **Dryland Hunt:** a 15–20 s timer starts when it leaves the water, then it heads back to water.
-* Spawning only in the Stillwater Caves biome, in water or on the dark cave floor.
-
-False Reflection, Echoed Splashes and Stillwater Curse are concept mechanics. They are not
-implemented as gameplay. The biome only hints at them through its silence, its dark water and
-its distant echoing splashes.
+* **Settings:** run `/brine:settings` (operators) to choose a preset: Quiet Dread, Balanced
+  Horror (default), Relentless or Observation Only. It also has the grasp toggle and an
+  encounter frequency slider.
+* **Testing:** with cheats on, run `/brine:encounter <name>` to stage any mechanic at once.
+  `/brine:status` shows the hidden director state.
+* **Spawning:** `/summon brine:brinesleeper` and the spawn egg still work. A summoned or
+  natural creature just roams and fights back if attacked. The director stages its own
+  encounters, and keeps one creature per world.
 
 **Java Edition:** Blockbench can convert the project to *Modded Entity* or OptiFine CEM with
 **File → Convert Project**.
@@ -291,8 +310,9 @@ node shoot.js viewer/cinema.html jobs_sheet.json shots/v2sheet 690 1120
 node shoot.js viewer/cinema.html jobs_poses.json shots/v2sheet 300 690
 python3 make_sheet.py shots/v2sheet ../preview/brinesleeper_preview_sheet.png
 python3 make_poses_sheet.py shots/v2sheet ../preview/brinesleeper_poses_sheet.png
-python3 pack.py .. shots/v2sheet/face.png   # packs, biome and .mcaddon
-python3 validate_packs.py ..     # offline check of every pack file and reference
+python3 pack.py .. shots/v2sheet/face.png   # packs, biome, creature, director script and .mcaddon
+python3 validate_packs.py .. mojang-blocks.json   # offline check of every pack file, reference, block state and script id
+./typecheck.sh                   # the director script against the official @minecraft/server 2.9.0 / server-ui 2.1.0 typings
 python3 schema_check.py <bedrock-schemas checkout> ..   # optional: Mojang's JSON schemas (some are buggy)
 python3 biome_preview.py out_s12 12   # simulate the biome on a 112 x 112 sample -> scene, faces, map
 python3 biome_preview.py out_s13 13

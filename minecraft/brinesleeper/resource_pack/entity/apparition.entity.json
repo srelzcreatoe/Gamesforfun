@@ -1,0 +1,64 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "brine:apparition",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/brinesleeper",
+        "shade": "textures/entity/brinesleeper_shade"
+      },
+      "geometry": {
+        "default": "geometry.brinesleeper",
+        "hand": "geometry.brinesleeper_hand"
+      },
+      "animations": {
+        "watch": "animation.brinesleeper.watch",
+        "idle_water": "animation.brinesleeper.idle_water",
+        "walk": "animation.brinesleeper.walk",
+        "stalk": "animation.brinesleeper.crouch_stalk",
+        "run": "animation.brinesleeper.run",
+        "swim": "animation.brinesleeper.swim",
+        "lunge": "animation.brinesleeper.lunge",
+        "grasp": "animation.brinesleeper.grasp",
+        "emerge": "animation.brinesleeper.emerge",
+        "submerge": "animation.brinesleeper.submerge",
+        "look_at_target": "animation.brinesleeper.look_at_target",
+        "submerged_watch": "animation.brinesleeper.submerged_watch",
+        "shoreline_stalk": "animation.brinesleeper.shoreline_stalk",
+        "corner_watch": "animation.brinesleeper.corner_watch",
+        "ceiling_lurk": "animation.brinesleeper.ceiling_lurk",
+        "distant_observer": "animation.brinesleeper.distant_observer",
+        "veil_stalk": "animation.brinesleeper.veil_stalk",
+        "reflection_lurk": "animation.brinesleeper.reflection_lurk",
+        "tunnel_crawl": "animation.brinesleeper.tunnel_crawl",
+        "patient_strike": "animation.brinesleeper.patient_strike",
+        "shadow_hide": "animation.brinesleeper.shadow_hide",
+        "full_stand": "animation.brinesleeper.full_stand",
+        "head_tilt": "animation.brinesleeper.head_tilt",
+        "slow_approach": "animation.brinesleeper.slow_approach",
+        "emerge_roar": "animation.brinesleeper.emerge_roar",
+        "water_rise": "animation.brinesleeper.water_rise",
+        "hunting_stance": "animation.brinesleeper.hunting_stance",
+        "behind_cover": "animation.brinesleeper.behind_cover",
+        "ledge_watch": "animation.brinesleeper.ledge_watch",
+        "retreat": "animation.brinesleeper.retreat",
+        "invert": "animation.brinesleeper.invert",
+        "act": "controller.animation.brinesleeper.act"
+      },
+      "scripts": {
+        "animate": [
+          "act",
+          {
+            "invert": "query.property('brine:form') >= 1"
+          }
+        ]
+      },
+      "render_controllers": [
+        "controller.render.brinesleeper_apparition"
+      ]
+    }
+  }
+}

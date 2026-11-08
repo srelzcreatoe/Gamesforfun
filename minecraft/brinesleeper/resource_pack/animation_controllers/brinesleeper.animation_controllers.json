@@ -4,12 +4,23 @@
     "controller.animation.brinesleeper.move": {
       "initial_state": "land_idle",
       "states": {
+        "scripted": {
+          "blend_transition": 0.5,
+          "transitions": [
+            {
+              "land_idle": "query.property('brine:act') == 0"
+            }
+          ]
+        },
         "land_idle": {
           "animations": [
             "watch"
           ],
           "blend_transition": 0.3,
           "transitions": [
+            {
+              "scripted": "query.property('brine:act') != 0"
+            },
             {
               "water_idle": "query.is_in_water"
             },
@@ -34,6 +45,9 @@
           "blend_transition": 0.25,
           "transitions": [
             {
+              "scripted": "query.property('brine:act') != 0"
+            },
+            {
               "water_idle": "query.is_in_water"
             },
             {
@@ -53,6 +67,9 @@
           ],
           "blend_transition": 0.25,
           "transitions": [
+            {
+              "scripted": "query.property('brine:act') != 0"
+            },
             {
               "water_idle": "query.is_in_water"
             },
@@ -74,6 +91,9 @@
           "blend_transition": 0.3,
           "transitions": [
             {
+              "scripted": "query.property('brine:act') != 0"
+            },
+            {
               "water_idle": "query.is_in_water"
             },
             {
@@ -94,6 +114,9 @@
           "blend_transition": 0.2,
           "transitions": [
             {
+              "scripted": "query.property('brine:act') != 0"
+            },
+            {
               "water_idle": "query.is_in_water"
             },
             {
@@ -111,6 +134,9 @@
           "blend_transition": 0.4,
           "transitions": [
             {
+              "scripted": "query.property('brine:act') != 0"
+            },
+            {
               "land_idle": "!query.is_in_water"
             },
             {
@@ -124,6 +150,9 @@
           ],
           "blend_transition": 0.4,
           "transitions": [
+            {
+              "scripted": "query.property('brine:act') != 0"
+            },
             {
               "land_idle": "!query.is_in_water"
             },
@@ -177,6 +206,1590 @@
         "default": {
           "animations": [
             "look_at_target"
+          ]
+        }
+      }
+    },
+    "controller.animation.brinesleeper.act": {
+      "initial_state": "none",
+      "states": {
+        "none": {
+          "transitions": [
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_watch": {
+          "animations": [
+            "watch"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_submerged_watch": {
+          "animations": [
+            "submerged_watch"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_shoreline_stalk": {
+          "animations": [
+            "shoreline_stalk"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_corner_watch": {
+          "animations": [
+            "corner_watch"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_distant_observer": {
+          "animations": [
+            "distant_observer"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_full_stand": {
+          "animations": [
+            "full_stand"
+          ],
+          "blend_transition": 1.2,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_emerge": {
+          "animations": [
+            "emerge"
+          ],
+          "blend_transition": 0.4,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_submerge": {
+          "animations": [
+            "submerge"
+          ],
+          "blend_transition": 0.6,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_ledge_watch": {
+          "animations": [
+            "ledge_watch"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_behind_cover": {
+          "animations": [
+            "behind_cover"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_head_tilt": {
+          "animations": [
+            "head_tilt"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_shadow_hide": {
+          "animations": [
+            "shadow_hide"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_tunnel_crawl": {
+          "animations": [
+            "tunnel_crawl"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_retreat": {
+          "animations": [
+            "retreat"
+          ],
+          "blend_transition": 0.6,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_water_rise": {
+          "animations": [
+            "water_rise"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_hunting_stance": {
+          "animations": [
+            "hunting_stance"
+          ],
+          "blend_transition": 1.0,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_slow_approach": {
+          "animations": [
+            "slow_approach"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_patient_strike": {
+          "animations": [
+            "patient_strike"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_veil_stalk": {
+          "animations": [
+            "veil_stalk"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_reflection_lurk": {
+          "animations": [
+            "reflection_lurk"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            }
+          ]
+        },
+        "act_idle_water": {
+          "animations": [
+            "idle_water"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            }
           ]
         }
       }

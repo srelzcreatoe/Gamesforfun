@@ -320,6 +320,76 @@ for path in glob.glob(f'{BP}/spawn_rules/*.json'):
         if not any(v in b['components']['minecraft:tags']['tags'] for b in biomes.values()):
             err(f'{path}: spawn biome tag {v} is not carried by any pack biome')
 
+# ------------------------------------------------------------------ the director script against the packs it drives
+import re
+bp_manifest = load(f'{BP}/manifest.json') or {}
+script_mods = [m for m in bp_manifest.get('modules', []) if m.get('type') == 'script']
+deps = {d.get('module_name'): d.get('version') for d in bp_manifest.get('dependencies', []) if 'module_name' in d}
+if script_mods:
+    entry = f"{BP}/{script_mods[0]['entry']}"
+    if not os.path.exists(entry):
+        err(f'script entry {entry} is missing')
+    for mod, ver in (('@minecraft/server', '2.9.0'), ('@minecraft/server-ui', '2.1.0')):
+        if deps.get(mod) != ver:
+            err(f'manifest: {mod} should be the stable {ver} (got {deps.get(mod)})')
+    js = open(entry).read() if os.path.exists(entry) else ''
+    ents = {}
+    for path in glob.glob(f'{BP}/entities/*.json'):
+        d = load(path) or {}
+        e = d['minecraft:entity']
+        ents[e['description']['identifier']] = e
+    creature = ents.get('brine:brinesleeper', {})
+    events = set(creature.get('events', {}))
+    props = set()
+    for e in ents.values():
+        props |= set(e['description'].get('properties', {}))
+    parts = set()
+    for path in glob.glob(f'{RP}/particles/*.json'):
+        parts.add((load(path) or {})['particle_effect']['description']['identifier'])
+    sdefs = set((load(f'{RP}/sounds/sound_definitions.json') or {}).get('sound_definitions', {}))
+    anims = set((load(f'{RP}/animations/brinesleeper.animation.json') or {}).get('animations', {}))
+    for pid in sorted(set(re.findall(r"particle\([^,]+,\s*'([a-z_:]+)'", js))):
+        if pid not in parts:
+            err(f'script spawns particle {pid}, which no particle file defines')
+    for sid in sorted(set(re.findall(r"sound\([^,]+,\s*'([a-z_.]+)'", js))):
+        if sid not in sdefs:
+            err(f'script plays sound {sid}, which sound_definitions.json lacks')
+    for ev in sorted(set(re.findall(r"triggerEvent\('([^']+)'\)", js)) | {f'brine:mode_{m}' for m in re.findall(r"setMode\([^,]+,\s*'([a-z_]+)'\)", js)}):
+        if ev not in events:
+            err(f'script triggers {ev}, which the creature does not define')
+    for pr in sorted(set(re.findall(r"setProperty\('([^']+)'", js))):
+        if pr not in props:
+            err(f'script sets property {pr}, which no entity defines')
+    for an in sorted(set(re.findall(r"playAnimation\('([^']+)'", js))):
+        if an not in anims:
+            err(f'script plays {an}, which the animation file lacks')
+    # pose ids: the script's ACT table must match the act controller's state transitions
+    m = re.search(r'const ACT = \{(.*?)\};', js, re.S)
+    js_acts = {k: int(v) for k, v in re.findall(r'([a-z_]+): (\d+)', m.group(1))} if m else {}
+    ctrl = (load(f'{RP}/animation_controllers/brinesleeper.animation_controllers.json') or {}).get('animation_controllers', {})
+    act_c = ctrl.get('controller.animation.brinesleeper.act', {}).get('states', {})
+    rp_acts = {}
+    for tr in act_c.get('none', {}).get('transitions', []):
+        (state, cond), = tr.items()
+        rp_acts[state[4:]] = int(cond.split('==')[1])
+    for k, v in js_acts.items():
+        if k != 'none' and rp_acts.get(k) != v:
+            err(f'pose {k}: script id {v} but the act controller uses {rp_acts.get(k)}')
+    for name in set(re.findall(r"(?:setAct\([^,]+,\s*|stageCreature\([^,]+,\s*|spawnShade\([^,]+,[^,]+,\s*)'([a-z_]+)'", js)):
+        if name not in js_acts:
+            err(f'script uses pose {name}, which is not in its ACT table')
+    # every animation the client entities name exists, and every controller animation is named by the entity
+    for path in glob.glob(f'{RP}/entity/*.json'):
+        ce = (load(path) or {})['minecraft:client_entity']['description']
+        for short, full in ce.get('animations', {}).items():
+            if full.startswith('animation.') and full not in anims:
+                err(f'{os.path.basename(path)}: animation {short} -> {full} does not exist')
+        for st in act_c.values():
+            for a in st.get('animations', []):
+                if a not in ce.get('animations', {}):
+                    err(f'{os.path.basename(path)}: act controller plays {a}, which this client entity does not name')
+    notes.append(f'script: {len(js.splitlines())} lines; {len(js_acts) - 1} poses, {len(parts)} particles, {len(sdefs)} sound events checked')
+
 print(f'{len(features)} features, {len(rule_targets)} rule targets, {len(structure_files)} structures, '
       f'{len(custom_blocks)} blocks, {len(biomes)} biome(s), {len(fogs)} fog(s)')
 for n in notes:

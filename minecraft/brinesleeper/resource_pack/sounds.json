@@ -10,5 +10,28 @@
         ]
       }
     }
+  },
+  "entity_sounds": {
+    "entities": {
+      "brine:brinesleeper": {
+        "volume": 1.0,
+        "pitch": [
+          0.9,
+          1.05
+        ],
+        "events": {
+          "ambient": {
+            "sound": "mob.brinesleeper.breathe",
+            "volume": 0.6
+          },
+          "hurt": "mob.brinesleeper.hurt",
+          "death": "mob.brinesleeper.death",
+          "step": {
+            "sound": "mob.brinesleeper.step",
+            "volume": 0.35
+          }
+        }
+      }
+    }
   }
 }

@@ -45,13 +45,15 @@
         "retreat": "animation.brinesleeper.retreat",
         "move": "controller.animation.brinesleeper.move",
         "attack": "controller.animation.brinesleeper.attack",
-        "look": "controller.animation.brinesleeper.look"
+        "look": "controller.animation.brinesleeper.look",
+        "act": "controller.animation.brinesleeper.act"
       },
       "scripts": {
         "animate": [
           "move",
           "attack",
-          "look"
+          "look",
+          "act"
         ]
       },
       "render_controllers": [

@@ -45,6 +45,9 @@ TARGETS = [
     ('resource_pack/entity', S('rp/entity/index.schema.json')),
     ('resource_pack/render_controllers', S('rp/render_controllers/index.schema.json')),
     ('resource_pack/models', S('rp/models/index.schema.json')),
+    ('resource_pack/particles', S('rp/particles/index.schema.json')),
+    ('resource_pack/animation_controllers', S('rp/animation_controllers/index.schema.json')),
+    ('resource_pack/animations', S('rp/animations/index.schema.json')),
 ]
 
 total, bad = 0, 0
