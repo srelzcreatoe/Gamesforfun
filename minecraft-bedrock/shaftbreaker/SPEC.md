@@ -114,7 +114,7 @@ all bone rotations 0 at rest unless noted. Proportions measured from the art (he
 | mane_left | chest | [6, 66, 0] | spikes on the left shoulder, pointing out/up |
 | mane_right | chest | [-6, 66, 0] | spikes on the right shoulder, pointing out/up |
 | neck | chest | [0, 68, 0] | ~4 × 4, y 68–72 |
-| head | neck | [0, 72, 1] | skull box 8 w × 8 d, total head height ≈10.5 (y ≈71.5–82) incl. jaw |
+| head | neck | [0, 72, 1] | skull box 8 w × 8 d, total head height 12.75 (y 71.5–84.25) incl. jaw (art ≈1.6 h/w) |
 | jaw | head | [0, 73, 3.5] | lower jaw + lower teeth; hinge at back; open = +X |
 | arm_right_upper | chest | [-11, 65, 0] | upper arm ~3.75 thick, to elbow y 45 |
 | arm_right_lower | arm_right_upper | [-11, 45, 0] | forearm ~4–4.5 thick (thicker toward wrist), to wrist y 31 |
@@ -167,13 +167,14 @@ Joint limits are machine-checked by `tools/check_anims.mjs` using `tools/joint_l
   rotated outward), radiating from neck/shoulders: sideways-up on the shoulders, up beside the head
   (reaching ~2/3 of head height), forward-down over the upper chest, up/back on the upper back.
   Front view: collar ~30 units wide. Spikes slightly lighter (#a88a80 lit tops).
-* Head: box ≈ 8 w × 8 d × 10.5 h. Face (front, -Z): two square glowing eyes ≈1.5–2 units, centred around
+* Head: box ≈ 8 w × 8 d × 12.75 h. Face (front, -Z): two square glowing eyes ≈1.5–2 units, centred around
   50 % of head height, inner gap ≈ eye width; below them a cheek band, then a dark mouth band with
   TWO ROWS of FOUR glowing teeth (upper row hangs from the skull, lower row rises from the jaw, thin dark
   gap between rows), then a thin chin. Faint brick seams on the skull. Frenzy opens the jaw wide
   (dark mouth interior + teeth top and bottom, see `frenzy_head.png`).
-* Material: `entity_emissive_alpha` — texture ALPHA encodes glow (alpha 0 = full glow, 255 = normal).
-  Eyes: warm white core #fff4dc with #ffb05a rim, alpha 0–30. Teeth: #f2e2c8, alpha ≈ 70.
+* Material: `entity_emissive_alpha_one_sided` (back-face culled) — texture ALPHA encodes glow (alpha 0 = full glow,
+  255 = normal). Eyes: warm white core #fff4dc, thin warm rim, alpha 10–30 (never 0: editors zero alpha-0 RGB).
+  Teeth: #fff0d8, alpha ≈ 35.
   Everything else alpha 255. Mouth interior near-black #120c0a, alpha 255.
 
 ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@
     "description": {
       "identifier": "shaftbreaker:shaftbreaker",
       "materials": {
-        "default": "entity_emissive_alpha"
+        "default": "entity_emissive_alpha_one_sided"
       },
       "textures": {
         "default": "textures/entity/shaftbreaker"

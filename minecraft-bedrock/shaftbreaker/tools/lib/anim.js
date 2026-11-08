@@ -100,11 +100,13 @@ export function localTime(anim, elapsed) {
 export function sampleAnimation(anim, t, ctx) {
   ctx.values['query.anim_time'] = t;
   const out = {};
+  const override = !!anim.override_previous_animation;
   for (const [name, bone] of Object.entries(anim.bones || {})) {
     out[name.toLowerCase()] = {
       rotation: sampleChannel(bone.rotation, t, ctx),
       position: sampleChannel(bone.position, t, ctx),
       scale: sampleChannel(bone.scale, t, ctx, true),
+      override,
     };
   }
   return out;
@@ -118,6 +120,14 @@ export function combineLayers(layers) {
     if (!pose || !weight) continue;
     for (const [name, p] of Object.entries(pose)) {
       const tgt = (total[name] ||= { rotation: [0, 0, 0], position: [0, 0, 0], scale: [1, 1, 1] });
+      if (p.override) {
+        // override_previous_animation: blend from the accumulated pose toward this one by weight
+        for (let i = 0; i < AXES; i++) {
+          if (p.rotation) tgt.rotation[i] *= 1 - weight;
+          if (p.position) tgt.position[i] *= 1 - weight;
+          if (p.scale) tgt.scale[i] = 1 + (tgt.scale[i] - 1) * (1 - weight);
+        }
+      }
       for (let i = 0; i < AXES; i++) {
         if (p.rotation) tgt.rotation[i] += p.rotation[i] * weight;
         if (p.position) tgt.position[i] += p.position[i] * weight;

@@ -17,9 +17,9 @@ to whole texels.  Everything is seeded and deterministic.
 
 Layout of this file:
     1. data model + math (rotations, snapping)
-    2. modelling helpers: box(), stack(), plates(), spike(), finger(), mirroring
+    2. modelling helpers: box(), stack(), plates(), shard() (mane spikes), finger(), mirroring
     3. the creature: torso, head + jaw, mane, arms + hands, legs + feet
-    4. checks: grid, z-fighting (coplanar overlapping faces), hidden-face culling
+    4. checks: grid, z-fighting (coplanar overlapping faces), jaw-sweep clearance, hidden-face culling
     5. UV packing
     6. texture painting (bricks, mortar, bevel, cracks, dust, soot, AO, glow)
     7. output
@@ -77,20 +77,23 @@ def rot_matrix(r):
     return Rz(-rz) @ Ry(ry) @ Rx(-rx)
 
 
-def dir_to_rot(d, twist=0.0):
-    """Euler (rx, ry, rz) that turns local +Y into direction d (ry = twist about the spike)."""
+def orient(d, up=(0.0, 1.0, 0.0)):
+    """Bedrock euler (rx, ry, rz) of the rotation that maps local +Y onto direction d and local +Z onto the
+    component of `up` perpendicular to d (exact inverse of rot_matrix: R = Rz(-rz) . Ry(ry) . Rx(-rx))."""
     d = np.asarray(d, float)
     d = d / np.linalg.norm(d)
-    lim = math.degrees(math.acos(min(0.9999, abs(d[2])))) * 0.9     # |d_z| must stay <= cos(twist)
-    ry = math.radians(max(-lim, min(lim, twist)))
-    s = max(-1.0, min(1.0, -d[2] / math.cos(ry)))
-    rx = math.asin(s)
-    x, y = -math.sin(rx) * math.sin(ry), math.cos(rx)
-    rz = math.atan2(d[0], d[1]) - math.atan2(x, y)
-    r = (round(math.degrees(rx), 1), round(math.degrees(ry), 1), round(math.degrees(rz), 1))
-    r = tuple(((a + 180) % 360) - 180 for a in r)
-    chk = rot_matrix(r) @ np.array([0, 1, 0])
-    assert np.dot(chk, d) > 0.999, (d, r, chk)
+    u = np.asarray(up, float)
+    u = u - np.dot(u, d) * d
+    if np.linalg.norm(u) < 1e-3:
+        u = np.array([0.0, 0.0, -1.0]) - d[2] * d
+    u = u / np.linalg.norm(u)
+    R = np.column_stack([np.cross(d, u), d, u])
+    b = math.asin(max(-1.0, min(1.0, -R[2, 0])))
+    c = math.atan2(R[2, 1], R[2, 2])
+    a = math.atan2(R[1, 0], R[0, 0])
+    r = (round(-math.degrees(c), 1), round(math.degrees(b), 1), round(-math.degrees(a), 1))
+    chk = rot_matrix(r)
+    assert np.dot(chk @ np.array([0, 1.0, 0]), d) > 0.999 and np.dot(chk @ np.array([0, 0, 1.0]), u) > 0.999, (d, u, r)
     return r
 
 
@@ -203,10 +206,11 @@ class Rng:
 FACE_AXIS = {'north': (2, -1), 'south': (2, 1), 'east': (0, -1), 'west': (0, 1), 'up': (1, 1), 'down': (1, -1)}
 FACES = ('north', 'south', 'east', 'west', 'up', 'down')
 SIDE_FACES = ('north', 'south', 'east', 'west')
+LAT_FACES = ('east', 'north', 'south')     # right-side limbs: lateral (-X), front, back -- never the medial face
 
 
-def stack(b, cx, cz, segs, jitter, rng, tag='stone', plates_per=2, plate_faces=SIDE_FACES, plate_size=(1.0, 2.25),
-          proud=(0.25, 0.5), **paint):
+def stack(b, cx, cz, segs, jitter, rng, tag='stone', plates_per=2, plate_faces=SIDE_FACES, plate_size=(1.25, 2.5),
+          proud=(0.5, 1.0), **paint):
     """A limb built from stacked, slightly offset stone blocks (top -> bottom).
     segs: list of (y_top, y_bottom, width_x, depth_z[, dx, dz])"""
     out = []
@@ -231,9 +235,9 @@ def _rect_overlap(a, b):
     return a[0] < b[1] and b[0] < a[1] and a[2] < b[3] and b[2] < a[3]
 
 
-def plates(b, core, n, rng, faces=SIDE_FACES, size=(1.0, 2.25), proud=(0.25, 0.5), tag='plate', margin=0.0,
-           yrange=None, **paint):
-    """scatter n non-overlapping proud stone plates over the given faces of a core cube"""
+def plates(b, core, n, rng, faces=SIDE_FACES, size=(1.0, 2.25), proud=(0.5, 0.75), tag='plate', margin=0.0,
+           yrange=None, min_size=1.0, **paint):
+    """scatter n non-overlapping proud stone plates (>= min_size wide) over the given faces of a core cube"""
     made = []
     for _ in range(n * 8):
         if len(made) >= n:
@@ -249,9 +253,9 @@ def plates(b, core, n, rng, faces=SIDE_FACES, size=(1.0, 2.25), proud=(0.25, 0.5
             if hi - lo < 0.5:
                 break
             dmax = min(size[1], hi - lo)
-            dmin = min(size[0], dmax)
+            dmin = min(max(size[0], min_size), dmax)
             dd = q(rng.u(dmin, dmax))
-            dd = max(0.5, min(dd, q(hi - lo)))
+            dd = max(min(min_size, q(hi - lo)), min(dd, q(hi - lo)))
             p = lo + q(rng.u(0, max(0.0, hi - lo - dd)))
             dims.append(dd)
             pos.append(q(p))
@@ -279,37 +283,40 @@ def plates(b, core, n, rng, faces=SIDE_FACES, size=(1.0, 2.25), proud=(0.25, 0.5
     return made
 
 
-def spike(b, base, d, length, thick=2.5, twist=0.0, tag='spike', embed=1.0, steps=3, **paint):
-    """stepped stone spike: 2-3 stacked square cubes tapering to a point, pointing along d"""
-    r = dir_to_rot(d, twist)
-    piv = qv(base)
-    total = length + embed
-    if steps == 3 and thick >= 3.5:
-        widths = [thick, thick - 1.0, thick - 2.0, max(0.5, thick - 3.0)]
-        fr = [0.40, 0.27, 0.19, 0.14]
-    elif steps == 3:
-        widths = [thick, max(1.0, thick - 1.0), max(0.5, thick - 2.0)]
-        fr = [0.45, 0.32, 0.23]
+def shard(b, base, d, length, w=3.0, t=2.5, up=(0.0, 1.0, 0.0), embed=1.5, tag='spike', **paint):
+    """Chunky stepped stone spike of the mane (ref_mane_crop): a thick shaft plus one (or, for long spikes,
+    two) narrower blunt tip blocks -- no block is thinner than 1 unit.  Local +Y runs along d, local +Z is
+    the spike's 'upper' side (`up` with its d-component removed); each tip block hangs 0.25 below the upper
+    face of the block before it, so the step shows on the underside.  w = width across (local X),
+    t = thickness (local Z).  `embed` units of the shaft sit behind `base`, inside the collar."""
+    r = orient(d, up)
+    P = qv(base)
+    if length >= 8.0:
+        segs = [(w, t, 0.56), (max(1.5, w - 1.0), max(1.25, t - 1.0), 0.27),
+                (max(1.25, w - 1.75), max(1.25, t - 1.75), 0.17)]
     else:
-        widths = [thick, max(0.5, thick - 1.5)]
-        fr = [0.6, 0.4]
+        segs = [(w, t, 0.62), (max(1.5, w - 1.25), max(1.25, t - 1.25), 0.38)]
+    total = length + embed
     y = -embed
+    ztop = P[2] - q(t / 2) + t
     cubes = []
-    for i, (w, f) in enumerate(zip(widths, fr)):
-        L = q(total * f) if i < len(fr) - 1 else q(length - y)
-        L = max(0.5, L)
-        c = box(b, piv[0] - w / 2, piv[0] + w / 2, piv[1] + y, piv[1] + y + L, piv[2] - w / 2, piv[2] + w / 2,
-                tag=tag, rot=r, pivot=piv, **paint)
+    for i, (sw, st, f) in enumerate(segs):
+        L = q(total * f) if i < len(segs) - 1 else q(length - y)
+        L = max(1.0, L)
+        x0 = P[0] - q(sw / 2)
+        z1 = ztop if i == 0 else q(ztop - 0.25)
+        c = box(b, x0, x0 + sw, P[1] + y, P[1] + y + L, z1 - st, z1, tag=tag, rot=r, pivot=P, **paint)
         c.paint['spike_len'] = (y, y + L, -embed, length)
         cubes.append(c)
         y = q(y + L)
+        ztop = z1
     return cubes
 
 
-def finger(hand, name_a, name_b, knuckle, la, lb, lclaw, splay, curl, w=1.0, d=1.25, soot=0.55, thumb=False):
-    """two-bone finger with a long, dark, tapered claw.  Curl/splay are baked as cube rotations
-    (bones stay at rotation 0 in the rest pose).  splay = (a, b, claw) degrees about Z,
-    curl = (a, b, claw0, claw1, claw2) degrees about X (negative = toward the palm / front).
+def finger(hand, name_a, name_b, knuckle, la, lb, lclaw, splay, curl, w=1.75, d=1.75, soot=0.4):
+    """two-bone finger with a long, dark, hooked claw.  Curl/splay are baked as cube rotations (bones stay
+    at rotation 0 in the rest pose).  splay = (a, b, (claw0, claw1, claw2)) degrees about Z (right hand:
+    + = lateral), curl = (a, b, claw0, claw1, claw2) degrees about X (negative = toward the palm / front).
     Returns the rest-pose claw tip position."""
     K = qv(knuckle)
     ba = bone(name_a, hand, K)
@@ -327,26 +334,26 @@ def finger(hand, name_a, name_b, knuckle, la, lb, lclaw, splay, curl, w=1.0, d=1
     bb = bone(name_b, name_a, J)
     rb = (curl[1], 0, splay[1])
     Rb = rot_matrix(rb)
-    w2 = w - 0.25 if w > 1.5 else w
     d2 = d - 0.25
-    x2 = J[0] - q(w2 / 2)
+    x2 = J[0] - q(w / 2)
     z2 = J[2] - q(d2 / 2)
-    box(bb, x2, x2 + w2, J[1] - lb, J[1] + 0.5, z2, z2 + d2, rot=rb, pivot=J,                 # middle phalanx
+    box(bb, x2, x2 + w, J[1] - lb, J[1] + 0.5, z2, z2 + d2, rot=rb, pivot=J,                 # middle phalanx
         soot=('const', min(1.0, soot + 0.1)))
-    # claw: three tapering near-black segments, each curling a bit more toward the palm
+    # claw: three tapering near-black segments (1.5 -> 1.0 -> 0.75 thick), each curling further toward the
+    # palm (X) and hooking toward the palm centre (Z)
     C = qv(np.array(J) + Rb @ np.array([0, -lb + 0.25, 0]))
-    cw = [(1.25, 1.25), (1.0, 1.0), (0.5, 0.5)] if w >= 1.75 else [(1.0, 1.0), (0.75, 0.75), (0.5, 0.5)]
-    cl = [q(lclaw * 0.4), q(lclaw * 0.35), q(lclaw * 0.3)]
+    cw = (1.5, 1.0, 0.75) if w >= 1.5 else (1.25, 1.0, 0.75)
+    cl = (q(lclaw * 0.4), q(lclaw * 0.33), q(lclaw * 0.27))
     P = np.array(C, float)
     for k in range(3):
-        rc = (curl[2 + k], 0, splay[2])
+        rc = (curl[2 + k], 0, splay[2][k])
         Rc = rot_matrix(rc)
         piv = qv(P)
-        cwx, cdz = cw[k]
         L = cl[k] + 0.25
-        cx0 = piv[0] - q(cwx / 2)
-        cz0 = piv[2] - q(cdz / 2)
-        box(bb, cx0, cx0 + cwx, piv[1] - L, piv[1] + 0.25, cz0, cz0 + cdz, tag='claw', rot=rc, pivot=piv, claw_k=k)
+        cx0 = piv[0] - q(cw[k] / 2)
+        cz0 = piv[2] - q(cw[k] / 2)
+        box(bb, cx0, cx0 + cw[k], piv[1] - L, piv[1] + 0.25, cz0, cz0 + cw[k], tag='claw', rot=rc, pivot=piv,
+            claw_k=k)
         P = np.array(piv) + Rc @ np.array([0, -cl[k], 0])
     return P
 
@@ -373,83 +380,103 @@ def mirror_bones(pairs):
 # 3. the creature
 # =====================================================================================
 
+# Jaw swing: the jaw (hinge [0, 73, 3.5]) sweeps the region under the chin (|x| < 4.25, y 64-71.5) when it opens
+# to 55 deg.  Torso / neck / mane cubes stay out of it (the neck is set back, z >= 1.25, and its faces are painted
+# as the shadowed throat); check_jaw_sweep() fails the build if any cube shows inside the open mouth.
+THROAT = 0.36               # deep-shadow stone tone of faces seen through the throat gap under the chin
+
+
 def build_torso():
     rng = Rng(101)
     bone('root', None, (0, 0, 0))
 
-    # ---- pelvis / hip block (y 45-51.75) with the lighter belt band on its top front
+    # ---- pelvis / hip block (y 45-51.75): lighter belt band on its top front, a codpiece block hanging over
+    #      the band centre (1 unit proud, narrowing downward) and two belt-loop posts (dormant_torso)
     body = bone('body', 'root', (0, 47, 0))
     belt = box(body, -6.5, 6.5, 48.25, 51.25, -3, 3)
     box(body, -6.25, 6.25, 50.25, 51.75, -3.5, -3, tag='band')                 # light belt band (front)
     box(body, -6.25, 6.25, 51.25, 51.75, -3, 2.5, tag='band')                  # its top face, dusty
     box(body, -6.75, -6.5, 48.5, 51.0, -2.5, 2.5, tag='plate')                  # iliac ends
     box(body, 6.5, 6.75, 48.5, 51.0, -2.5, 2.5, tag='plate')
-    box(body, -2.25, 2.25, 45.0, 48.25, -3.25, 2.0)                             # sacrum / codpiece block
-    box(body, -1.75, 1.75, 45.5, 47.75, -3.75, -3.25, tag='plate')              # its front plate
+    box(body, -2.0, 2.0, 45.0, 48.25, -3.25, 2.0)                               # sacrum
+    box(body, -2.25, 2.25, 47.0, 51.5, -4.25, -3.0, tag='plate')               # codpiece (over the band)
+    box(body, -1.75, 1.75, 44.75, 47.0, -4.0, -3.0, tag='plate')                # its narrower lower block
+    for sx in (-1, 1):
+        box(body, sx * 4.0, sx * 5.0, 51.25, 53.25, -3.75, -2.75, tag='plate')  # belt-loop posts
     box(body, -3.0, 3.0, 46.25, 48.25, 2.0, 3.25, tag='plate')                  # lower-back block
     box(body, -5.75, -2.5, 48.5, 50.75, 3.0, 3.5, tag='plate')                  # back plates
     box(body, 2.5, 5.75, 48.5, 50.75, 3.0, 3.5, tag='plate')
-    plates(body, belt, 3, rng, faces=('north',), size=(1.0, 2.0), proud=(0.25, 0.25), yrange=(48.25, 50.25))
+    plates(body, belt, 2, rng, faces=('north',), size=(1.0, 2.0), proud=(0.25, 0.25), yrange=(48.25, 50.25))
 
-    # ---- waist: narrow segmented lower spine (y 50-56.5)
+    # ---- waist: exposed lower ribcage in shadow (y 50-56.5): 4-wide spine, lateral rib bars behind dark
+    #      gaps, two rungs and segment lines (ref_torso_grid / dormant_torso)
     waist = bone('waist', 'body', (0, 50, 0))
-    box(waist, -1.75, 1.75, 50, 56.5, -1.25, 1.75)                              # spinal core
-    v1 = box(waist, -3.0, 3.0, 52.0, 54.0, -2.0, 2.25)                          # vertebra blocks
-    v2 = box(waist, -2.75, 2.75, 54.5, 56.0, -1.75, 2.5)
-    box(waist, -0.75, 0.75, 52.25, 53.75, 2.25, 3.0, tag='plate')               # spinous processes
-    box(waist, -0.75, 0.75, 54.75, 56.0, 2.5, 3.25, tag='plate')
-    box(waist, -1.5, 1.5, 52.5, 53.5, -2.5, -2.0, tag='plate')                  # front plates
-    box(waist, -1.25, 1.25, 54.75, 55.75, -2.25, -1.75, tag='plate')
-    plates(waist, v1, 2, rng, faces=('east', 'west'), size=(0.75, 1.5), proud=(0.25, 0.25))
-    plates(waist, v2, 2, rng, faces=('east', 'west'), size=(0.75, 1.5), proud=(0.25, 0.25))
+    wt = dict(tone=0.74)
+    box(waist, -2.0, 2.0, 50, 56.5, -1.5, 2.0, **wt)                            # spinal column
+    box(waist, -1.5, 1.5, 52.0, 53.5, -2.0, -1.5, tag='plate', **wt)            # vertebra segment fronts
+    box(waist, -1.5, 1.5, 54.25, 55.75, -2.0, -1.5, tag='plate', **wt)
+    for sx in (-1, 1):
+        box(waist, sx * 2.75, sx * 4.0, 51.5, 56.0, -1.25, 1.75, **wt)          # lateral rib bars (0.75 gap)
+    box(waist, -2.75, 2.75, 52.5, 53.0, -0.75, 1.25, tag='plate', **wt)         # rungs linking bars and spine
+    box(waist, -2.75, 2.75, 54.75, 55.25, -0.75, 1.25, tag='plate', **wt)
+    box(waist, -0.75, 0.75, 52.25, 53.75, 2.0, 2.75, tag='plate', **wt)         # spinous processes
+    box(waist, -0.75, 0.75, 54.5, 55.75, 2.0, 2.75, tag='plate', **wt)
 
-    # ---- chest: narrow ribcage of stacked rib plates + shoulder girdle (y 56-69)
+    # ---- chest: ribcage of stacked rib plates + shoulder girdle (y 56-66.75), shadowed by the collar.
+    #      Nothing above y 64.25 in front of z 1 (the jaw swing pocket).
     chest = bone('chest', 'waist', (0, 56, 0))
-    box(chest, -2.5, 2.5, 56, 68, -2.0, 2.5)                                    # core
-    ribs = [(-3.5, 56.5, 57.75, -2.75, 3.0), (-4.25, 58.5, 59.75, -3.0, 3.25), (-4.75, 60.5, 61.75, -3.25, 3.25),
-            (-5.25, 62.5, 63.75, -3.25, 3.5)]
+    ct = dict(tone=0.76, shadow=(58.0, 64.5, 0.3))
+    box(chest, -2.5, 2.5, 56, 64.0, -2.0, 2.5, **ct)                            # core
+    ribs = [(-4.25, 56.25, 57.5, -2.75, 3.0), (-4.25, 58.25, 59.5, -3.0, 3.25), (-4.75, 60.25, 61.5, -3.25, 3.25),
+            (-5.25, 62.25, 63.5, -3.25, 3.5)]
     for xw, y0, y1, z0, z1 in ribs:
-        r = box(chest, xw, -xw, y0, y1, z0, z1)
-        plates(chest, r, 2, rng, faces=('north',), size=(0.75, 1.25), proud=(0.25, 0.25))
-    box(chest, -5.5, 5.5, 64.25, 66.75, -3.25, 3.25)                            # upper chest block
-    box(chest, -1.0, 1.0, 57.0, 63.25, -3.75, -2.0, tag='plate')                # sternum
-    box(chest, -10.0, 10.0, 63.5, 66.25, -1.75, 1.75)                           # shoulder girdle bar
-    box(chest, -4.0, 4.0, 66.75, 69.0, -2.5, 2.75)                              # neck base / trapezius
+        r = box(chest, xw, -xw, y0, y1, z0, z1, **ct)
+        plates(chest, r, 2, rng, faces=('north',), size=(1.0, 1.25), proud=(0.25, 0.5), **ct)
+    box(chest, -5.5, 5.5, 63.75, 64.25, -3.25, 3.25, shade={'up': THROAT}, **ct)  # upper chest (centre stays low)
+    for sx in (-1, 1):
+        box(chest, sx * 4.25, sx * 5.5, 64.25, 66.75, -3.25, 3.25, **ct)         # upper chest flanks
+        box(chest, sx * 4.5, sx * 10.0, 63.25, 66.25, -1.75, 1.75)               # shoulder girdle bars
+    box(chest, -4.0, 4.0, 64.25, 66.5, 1.0, 3.0, shade={'north': THROAT}, **ct)  # neck base / trapezius
+    box(chest, -1.0, 1.0, 57.0, 63.25, -3.75, -2.0, tag='plate', **ct)          # sternum
     box(chest, -6.0, -1.5, 59.5, 64.0, 3.25, 3.75, tag='plate')                 # scapulae
     box(chest, 1.5, 6.0, 59.5, 64.0, 3.25, 3.75, tag='plate')
     box(chest, -0.75, 0.75, 57.0, 63.0, 3.25, 4.0, tag='plate')                 # dorsal spine ridge
-    chest_b = BONES['chest']
-    chest_b.locators['lead'] = (0, 63.0, -4.0)
+    BONES['chest'].locators['lead'] = (0, 63.0, -4.0)
 
-    # ---- neck
+    # ---- neck: set back behind the jaw swing; its front/top read as the dark throat under the chin
     neck = bone('neck', 'chest', (0, 68, 0))
-    box(neck, -2.0, 2.0, 67.5, 70.5, -1.5, 2.25)
-    box(neck, -1.75, 1.75, 70.5, 71.5, 1.25, 2.75)                              # top block under the skull (behind the jaw)
-    box(neck, -1.5, 1.5, 67.75, 70.25, -2.0, -1.5, tag='plate', tone=0.72)      # throat plate (in shadow)
-    box(neck, -1.25, 1.25, 68.25, 70.5, 2.25, 2.75, tag='plate')                # nape plate
+    box(neck, -2.0, 2.0, 66.0, 69.5, 1.25, 3.75, shade={'north': THROAT, 'up': 0.3}, tone=0.75)
+
+
+UPPER_TEETH = ((-2.25, -1.5), (-1.0, -0.25), (0.25, 1.0), (1.5, 2.25))      # 0.75 wide, 0.5 gaps (span 4.5)
+LOWER_TEETH = ((-1.75, -1.25), (-0.75, -0.25), (0.25, 0.75), (1.25, 1.75))  # narrower row (span 3.5)
+EYES = ((-3.0, -1.25), (1.25, 3.0))                                          # 1.75 square, y 77.5-79.25
+EYE_Y = (77.5, 79.25)
 
 
 def build_head():
-    # Head box 8 w x 8 d x 12 h (y 71.5-83.5).  Face from the art (dormant_head / frenzy_head):
-    #   forehead 79-83.5 | eyes 77-79 (2x2, inner gap 2) | cheek band 75.5-77 |
-    #   dark mouth band 72.25-75.5 with 4 upper teeth (73.75-75) + 4 lower teeth (72.25-73.25) | chin 71.5-72.25
+    # Head box 8 w x 8 d x 12.75 h (y 71.5-84.25; the art measures ~1.6 h/w).  Face (dormant_head / frenzy_head):
+    #   forehead 79.25-84.25 | eyes 77.5-79.25 (1.75 sq, centres +-2.125, gap 2.5) | cheek band 75.25-77.5 with a
+    #   dark nostril | mouth band 72.5-75.25: 4 upper teeth (74-75.25) hanging from the band, 4 shorter lower teeth
+    #   (72.5-73.5), 0.5 gap | chin bar 71.5-72.5
     head = bone('head', 'neck', (0, 72, 1))
     fp = dict(grid='bone', brick=(1.5, 1.25))
-    box(head, -4, 4, 75.5, 83.5, -3.75, 3.5, tag='cranium', dark_faces=('down',), **fp)  # skull
-    # face plates framing two recessed glowing eyes (0.5 deep sockets)
-    box(head, -4, 4, 79.0, 83.5, -4.5, -3.75, tag='face', **fp)                   # forehead
-    box(head, -1, 1, 77.0, 79.0, -4.5, -3.75, tag='face', **fp)                   # between the eyes
-    box(head, -4, -3, 77.0, 79.0, -4.5, -3.75, tag='face', **fp)                  # outer eye frames
-    box(head, 3, 4, 77.0, 79.0, -4.5, -3.75, tag='face', **fp)
-    box(head, -4, 4, 75.5, 77.0, -4.5, -3.75, tag='face', dark_faces=('down',), **fp)  # cheek band
-    for x0 in (-3.0, 1.0):                                                          # glowing eyes (2 x 2)
-        box(head, x0, x0 + 2.0, 77.0, 79.0, -4.0, -3.75, tag='eye')
-    # upper mouth: side walls, dark palate, four upper teeth hanging in the dark band
-    box(head, -4, -3, 73.5, 75.5, -4.5, 3.5, tag='face', inner='west', **fp)
-    box(head, 3, 4, 73.5, 75.5, -4.5, 3.5, tag='face', inner='east', **fp)
-    box(head, -3, 3, 73.5, 75.5, -3.5, 3.5, tag='mouth', stone_faces=('south',), **fp)  # palate
-    for x0 in (-2.5, -1.0, 0.5, 2.0):                                              # 4 upper teeth (0.5 wide)
-        box(head, x0, x0 + 0.5, 73.75, 75.0, -4.25, -3.5, tag='tooth')
+    box(head, -4, 4, 75.25, 84.25, -3.75, 3.5, tag='cranium', dark_faces=('down',), **fp)  # skull
+    # face plates framing two recessed glowing eyes (0.25 deep sockets)
+    box(head, -4, 4, EYE_Y[1], 84.25, -4.5, -3.75, tag='face', **fp)              # forehead
+    box(head, -1.25, 1.25, EYE_Y[0], EYE_Y[1], -4.5, -3.75, tag='face', **fp)     # between the eyes
+    box(head, -4, -3, EYE_Y[0], EYE_Y[1], -4.5, -3.75, tag='face', **fp)          # outer eye frames
+    box(head, 3, 4, EYE_Y[0], EYE_Y[1], -4.5, -3.75, tag='face', **fp)
+    box(head, -4, 4, 75.25, EYE_Y[0], -4.5, -3.75, tag='face', dark_faces=('down',), nose=True, **fp)  # cheek band
+    for x0, x1 in EYES:                                                             # glowing eyes
+        box(head, x0, x1, EYE_Y[0], EYE_Y[1], -4.25, -4.0, tag='eye')
+    # upper mouth: side walls, palate (its front face is the warm-dark closed-mouth background), upper teeth
+    box(head, -4, -3, 73.5, 75.25, -4.5, 3.5, tag='face', inner='west', **fp)
+    box(head, 3, 4, 73.5, 75.25, -4.5, 3.5, tag='face', inner='east', **fp)
+    box(head, -3, 3, 73.5, 75.25, -3.5, 3.5, tag='mouth', stone_faces=('south',), bg_faces=('north',),
+        teeth=UPPER_TEETH, **fp)
+    for x0, x1 in UPPER_TEETH:
+        box(head, x0, x1, 74.0, 75.25, -4.25, -3.5, tag='tooth')
     # inner cheek plates: hidden inside the closed jaw, frame the cavity when the jaw drops
     box(head, -3.75, -3.5, 71.75, 73.5, -3.25, 3.0, tag='mouthwall', inner='west')
     box(head, 3.5, 3.75, 71.75, 73.5, -3.25, 3.0, tag='mouthwall', inner='east')
@@ -457,13 +484,14 @@ def build_head():
 
     # ---- jaw (hinged at the back: pivot [0, 73, 3.5]; +X opens)
     jaw = bone('jaw', 'head', (0, 73, 3.5))
-    box(jaw, -4, 4, 71.5, 72.25, -4.5, 3.5, tag='face', top='mouth', **fp)       # chin / jaw floor
-    box(jaw, -4, -3, 72.25, 73.5, -4.5, 3.5, tag='face', inner='west', **fp)     # jaw side walls
-    box(jaw, 3, 4, 72.25, 73.5, -4.5, 3.5, tag='face', inner='east', **fp)
-    box(jaw, -3, 3, 72.25, 72.75, -3.5, 3.5, tag='mouth', stone_faces=('south',), **fp)  # tongue
-    box(jaw, -3, 3, 72.75, 73.5, 2.75, 3.5, tag='mouth', stone_faces=('south',), **fp)  # back wall
-    for x0 in (-2.5, -1.0, 0.5, 2.0):                                              # 4 lower teeth
-        box(jaw, x0, x0 + 0.5, 72.25, 73.25, -4.25, -3.5, tag='tooth')
+    box(jaw, -4, 4, 71.5, 72.5, -4.5, 3.5, tag='face', top='mouth', **fp)         # chin bar / jaw floor
+    box(jaw, -4, -3, 72.5, 73.5, -4.5, 3.5, tag='face', inner='west', **fp)       # jaw side walls
+    box(jaw, 3, 4, 72.5, 73.5, -4.5, 3.5, tag='face', inner='east', **fp)
+    box(jaw, -3, 3, 72.5, 72.75, -3.5, 3.5, tag='mouth', stone_faces=('south',), **fp)    # tongue
+    box(jaw, -3, 3, 72.75, 73.5, -3.5, -3.25, tag='mouth', bg_faces=('north',), teeth=LOWER_TEETH, **fp)  # gum
+    box(jaw, -3, 3, 72.75, 73.5, 2.75, 3.5, tag='mouth', stone_faces=('south',), **fp)    # back wall
+    for x0, x1 in LOWER_TEETH:                                                      # 4 lower teeth
+        box(jaw, x0, x1, 72.5, 73.5, -4.25, -3.5, tag='tooth')
     # cheek plates rising from the jaw (inside the skull when closed)
     box(jaw, -3.5, -3.25, 72.75, 77.25, -2.5, 3.0, tag='mouthwall', inner='west')
     box(jaw, 3.25, 3.5, 72.75, 77.25, -2.5, 3.0, tag='mouthwall', inner='east')
@@ -471,119 +499,177 @@ def build_head():
     box(jaw, 3.25, 3.5, 72.75, 75.25, -3.5, -2.5, tag='mouthwall', inner='east')
 
 
+def side_ray(el, az, sx):
+    """unit direction: el = degrees above horizontal, az = degrees from straight-out-sideways (+ = toward the
+    back, - = toward the front); sx = -1 for the right side (-X), +1 for the left"""
+    e, a = math.radians(el), math.radians(az)
+    return (sx * math.cos(e) * math.cos(a), math.sin(e), math.cos(e) * math.sin(a))
+
+
+def fb_ray(el, spread, sx, back):
+    """unit direction for front (back=False, -Z) / back (+Z) shards: el above horizontal, spread = degrees
+    fanned out toward side sx"""
+    e, s = math.radians(el), math.radians(spread)
+    return (sx * math.cos(e) * math.sin(s), math.sin(e), (1 if back else -1) * math.cos(e) * math.cos(s))
+
+
+# Side rows (creature's RIGHT side; |x| given, mirrored to the left).  Each entry:
+#   (|x|, y, z, elevation, azimuth, length, width, thickness)    -- base point of the shaft (embedded 1.5)
+# Rows overlap like shingles; together they draw the art's sunburst outline in the front view:
+#   (6.5, 80) crown -> (12.4, 75.7) upper -> (15.4, 70.6) widest at chin level -> (15.2, 65.5) -> (14.5, 62).
+MANE_CROWN = [  # near-vertical, hugging the head (inner face |x| >= 4.5): tips y ~80, x 7-8.5
+    (6.0, 70.25, -0.5, 80, -15, 10.5, 3.0, 2.75),
+    (6.5, 70.0, 2.0, 77, 18, 10.5, 3.0, 2.75),
+    (5.25, 69.75, 4.5, 72, 48, 10.0, 3.0, 2.75),
+]
+MANE_ROWS = [
+    [  # high (~60 deg): beside the temples
+        (7.0, 69.75, -1.75, 60, -22, 8.5, 3.25, 2.75),
+        (7.25, 70.0, 0.75, 62, 6, 8.5, 3.25, 2.75),
+        (6.75, 69.75, 3.25, 60, 32, 8.5, 3.25, 2.75),
+    ],
+    [  # upper (~42 deg): up and out over the shoulder tops
+        (6.75, 69.25, -2.75, 38, -35, 7.5, 3.25, 2.75),
+        (7.5, 69.75, -0.25, 44, -10, 8.0, 3.25, 2.75),
+        (7.5, 69.75, 2.25, 46, 15, 8.0, 3.25, 2.75),
+        (6.5, 69.5, 4.5, 46, 40, 7.5, 3.25, 2.75),
+    ],
+    [  # mid-upper (~25 deg)
+        (8.0, 70.0, -1.5, 24, -20, 7.5, 3.25, 2.75),
+        (8.25, 70.25, 1.0, 27, 4, 7.5, 3.25, 2.75),
+        (7.75, 70.0, 3.5, 28, 26, 7.0, 3.25, 2.75),
+    ],
+    [  # mid (~8 deg): straight out at chin level, the widest point of the collar
+        (8.25, 69.5, -2.75, 6, -28, 7.25, 3.25, 2.75),
+        (8.75, 69.75, -0.5, 9, -8, 7.0, 3.25, 2.75),
+        (8.75, 69.75, 2.0, 9, 12, 7.0, 3.25, 2.75),
+        (8.0, 69.5, 4.25, 12, 34, 6.5, 3.25, 2.75),
+    ],
+    [  # down (~-12 deg)
+        (9.0, 68.0, -1.75, -12, -20, 6.75, 3.25, 2.75),
+        (9.25, 68.25, 0.75, -12, 2, 6.75, 3.25, 2.75),
+        (9.0, 68.0, 3.25, -14, 24, 6.25, 3.25, 2.75),
+    ],
+    [  # low (~-35 deg): out and down, draped over the arm tops (hide arm_*_upper above y ~63)
+        (9.25, 67.0, -2.5, -32, -22, 6.5, 3.25, 2.75),
+        (9.75, 67.0, -0.25, -38, -4, 6.5, 3.25, 2.75),
+        (9.75, 67.0, 2.0, -38, 12, 6.5, 3.25, 2.75),
+        (9.25, 66.75, 4.0, -32, 30, 6.0, 3.25, 2.75),
+    ],
+]
+# Front bib (mane_front): blades hanging down the chest either side of the dark throat channel (|x| < ~1.5 above
+# y 63).  The top inner pair sits in front of the jaw's sweep (back face z <= -4.5).
+#   (x, y, z, elevation, spread, length, width, thickness)
+MANE_FRONT = [
+    (2.75, 69.25, -5.75, -78, 8, 6.0, 3.0, 1.75),      # top tier, flanking the throat under the chin
+    (6.5, 67.0, -4.0, -62, 22, 5.5, 3.0, 1.75),
+    (3.5, 63.25, -4.5, -70, 8, 5.0, 3.0, 1.75),        # middle tier
+    (6.0, 62.75, -4.0, -64, 18, 5.0, 3.0, 1.75),
+    (1.5, 61.0, -4.25, -74, 6, 4.75, 2.75, 1.5),       # bottom tier: hangs to y ~57
+]
+# Back (mane_back): rows rising up and back, the top row to eye level behind the head
+MANE_BACK = [
+    (1.75, 69.25, 6.0, 61, 10, 10.0, 3.25, 2.75),      # top row: rising behind the head to eye level
+    (4.5, 69.0, 5.0, 62, 28, 10.0, 3.25, 2.75),
+    (0.0, 67.5, 5.5, 50, 0, 9.0, 3.25, 2.75),          # upper-mid
+    (3.0, 67.0, 5.0, 44, 18, 8.5, 3.25, 2.75),
+    (5.25, 66.5, 4.25, 40, 40, 8.0, 3.0, 2.75),
+    (1.75, 64.5, 5.0, 30, 8, 8.0, 3.25, 2.75),         # lower-mid
+    (4.25, 63.75, 4.5, 22, 30, 7.5, 3.0, 2.5),
+    (0.0, 61.5, 4.75, 12, 0, 7.0, 3.25, 2.75),         # low
+    (2.75, 60.5, 4.5, 0, 16, 6.5, 3.0, 2.5),
+    (0.0, 58.5, 4.25, -14, 0, 5.5, 3.0, 2.5),
+]
+
+
 def build_mane():
-    """dense collar of chunky stepped spikes radiating from the neck and shoulders.
-    Laid out as rings around the neck (crown / mid / outer / low) plus a hanging front bib.
-    theta: 0 = front (-Z), 90 = creature's right (-X), 180 = back (+Z)."""
+    """Collar of chunky stepped shards in orderly, overlapping rows radiating like a sunburst around the neck
+    (dormant_head / ref_mane_crop): up beside the head to eye level, up-out over the shoulder tops, straight
+    out at chin level (widest, x +-15.5), out-down over the arm tops, blades hanging down the front either side
+    of a dark throat channel, and tall shards rising up/back behind the head."""
     rng = Rng(202)
     bone('mane_front', 'chest', (0, 65, -3))
     bone('mane_back', 'chest', (0, 66, 3))
     bone('mane_left', 'chest', (6, 66, 0))
     bone('mane_right', 'chest', (-6, 66, 0))
-    ZC = 0.5   # collar centre z
 
-    def owner(theta):
-        a = abs(theta)
-        if a <= 45:
-            return 'mane_front'
-        if a >= 140:
-            return 'mane_back'
-        return 'mane_right' if theta > 0 else 'mane_left'
+    def jit(v, a=0.25):
+        return q(v + rng.u(-a, a))
 
-    def ring(theta, y, rx, rz, tilt, length, thick, jit=1.0):
-        th = math.radians(theta + rng.u(-4, 4) * jit)
-        ox, oz = -math.sin(th), -math.cos(th)
-        tl = math.radians(tilt + rng.u(-6, 6) * jit)
-        base = (rx * ox + rng.u(-0.3, 0.3), y + rng.u(-0.4, 0.4), ZC + rz * oz + rng.u(-0.3, 0.3))
-        d = (math.cos(tl) * ox, math.sin(tl), math.cos(tl) * oz)
-        spike(owner(theta), base, d, length + rng.u(-0.5, 0.5), thick=thick, twist=rng.u(-30, 30), embed=1.5)
+    for sx, owner in ((-1, 'mane_right'), (1, 'mane_left')):
+        for rows in MANE_ROWS[::-1]:
+            for (x, y, z, el, az, L, w, t) in rows:
+                d = side_ray(el + rng.u(-4, 4), az + rng.u(-5, 5), sx)
+                shard(owner, (sx * jit(x), jit(y), jit(z)), d, L + q(rng.u(-0.5, 0.5)), w=w, t=t)
+        for (x, y, z, el, az, L, w, t) in MANE_CROWN:
+            d = side_ray(el + rng.u(-3, 3), az + rng.u(-5, 5), sx)
+            out = (sx * math.cos(math.radians(az)), 0.0, math.sin(math.radians(az)))   # step faces outward
+            shard(owner, (sx * x, jit(y), jit(z)), d, L + q(rng.u(-0.5, 0.5)), w=w, t=t, up=out)
+        # collar bulk under the shards (keeps the ruff solid; inner face at |x| 4.5, below the jaw)
+        box(owner, sx * 4.5, sx * 9.25, 64.5, 69.25, -2.75, 3.5, tag='spike', tone=0.8)
 
-    # (theta, tilt, length, thick) per ring, right side; mirrored (theta -> -theta) for the left
-    crown = [(66, 64, 8.5, 3.5), (88, 74, 9.5, 3.5), (112, 68, 9.0, 3.5), (138, 60, 8.5, 3.5), (162, 55, 8.0, 3.5)]
-    mid = [(42, 8, 7.5, 4.0), (62, 24, 8.0, 4.0), (82, 33, 8.5, 4.0), (102, 36, 8.5, 4.0), (124, 38, 8.0, 4.0),
-           (146, 42, 8.5, 3.5), (167, 45, 8.5, 3.5)]
-    outer = [(36, -30, 6.5, 3.5), (58, -4, 7.0, 3.5), (80, 12, 7.0, 4.0), (102, 16, 7.0, 3.5), (126, 18, 7.0, 3.5),
-             (152, 24, 7.5, 3.5)]
-    low = [(118, -4, 6.0, 3.0), (142, 2, 6.0, 3.0), (164, 6, 5.5, 3.0)]
-    high_back = [(132, 62, 9.0, 3.5), (154, 66, 9.5, 3.5)]          # tall spikes rising behind the head
-    upper = [(74, 52, 8.5, 3.5), (98, 50, 8.5, 3.5)]                 # fills the arc between crown and mid rings
-    for sgn in (1, -1):
-        for th, tl, L, t in crown:
-            ring(sgn * th, 69.0, 5.0, 3.5, tl, L, t)
-        for th, tl, L, t in mid:
-            ring(sgn * th, 67.0, 7.0, 4.0, tl, L, t)
-        for th, tl, L, t in outer:
-            ring(sgn * th, 64.75, 9.0, 4.5, tl, L, t)
-        for th, tl, L, t in low:
-            ring(sgn * th, 61.75, 5.5, 4.0, tl, L, t)
-        for th, tl, L, t in high_back:
-            ring(sgn * th, 67.75, 4.5, 4.5, tl, L, t)
-        for th, tl, L, t in upper:
-            ring(sgn * th, 68.0, 6.0, 4.0, tl, L, t)
-    # back centre line
-    ring(180, 69.0, 5.0, 3.5, 54, 8.0, 3.5, jit=0.3)
-    ring(180, 67.75, 4.5, 4.5, 68, 9.5, 3.5, jit=0.3)
-    ring(180, 67.0, 7.0, 4.0, 45, 8.0, 4.0, jit=0.3)
-    ring(180, 64.75, 9.0, 4.5, 24, 7.0, 3.5, jit=0.3)
-    ring(180, 61.75, 5.5, 4.0, 8, 6.0, 3.0, jit=0.3)
-    ring(180, 59.25, 4.0, 3.5, -12, 5.0, 3.0, jit=0.3)
+    for (x, y, z, el, sp, L, w, t) in MANE_FRONT:
+        for sx in ((-1, 1) if x > 0 else (1,)):
+            d = fb_ray(el + rng.u(-3, 3), sp + rng.u(-3, 3), sx, back=False)
+            shard('mane_front', (sx * x, jit(y), z), d, L + q(rng.u(-0.25, 0.25)), w=w, t=t, embed=1.0,
+                  up=(0.0, 0.0, -1.0))
+    for sx in (-1, 1):
+        box('mane_front', sx * 4.75, sx * 7.0, 63.5, 68.0, -4.0, -2.25, tag='spike', tone=0.8)
+    box('mane_front', -4.25, 4.25, 59.5, 63.0, -4.0, -2.25, tag='spike', tone=0.8)
 
-    # front bib: rows of shards hanging forward/down over the upper chest
-    bib = [  # y, z, [x...], (dy, dz), length, thick
-        (67.0, -3.0, (-3.5, 3.5), (-0.50, -0.80), 5.5, 3.5),          # either side of the dark throat
-        (64.75, -3.25, (-4.75, -2.0, 2.0, 4.75), (-0.65, -0.72), 6.0, 3.5),
-        (62.25, -3.25, (-3.25, 0.0, 3.25), (-0.82, -0.52), 5.5, 3.0),
-        (60.0, -3.0, (-1.5, 1.5), (-0.90, -0.40), 4.5, 2.5),
-    ]
-    for y, z, xs, (dy, dz), L, t in bib:
-        for x in xs:
-            d = (x * 0.1 + rng.u(-0.05, 0.05), dy + rng.u(-0.05, 0.05), dz)
-            spike('mane_front', (x + rng.u(-0.25, 0.25), y + rng.u(-0.25, 0.25), z), d, L + rng.u(-0.4, 0.4),
-                  thick=t, twist=rng.u(-25, 25), embed=1.5)
+    for (x, y, z, el, sp, L, w, t) in MANE_BACK:
+        for sx in ((-1, 1) if x > 0 else (1,)):
+            d = fb_ray(el + rng.u(-3, 3), sp + rng.u(-3, 3), sx, back=True)
+            shard('mane_back', (sx * jit(x), jit(y), jit(z)), d, L + q(rng.u(-0.5, 0.5)), w=w, t=t)
+    box('mane_back', -5.0, 5.0, 60.0, 68.5, 2.75, 4.5, tag='spike', tone=0.8)
 
-    # collar bulk under the spikes (keeps the ruff solid, no see-through gaps)
-    box('mane_right', -10.5, -4.5, 64.5, 67.5, -2.75, 3.0, tag='plate')
-    box('mane_left', 4.5, 10.5, 64.5, 67.5, -2.75, 3.0, tag='plate')
-    box('mane_front', -5.0, 5.0, 63.5, 67.25, -3.75, -2.5, tag='plate')
-    box('mane_back', -5.0, 5.0, 60.0, 68.5, 2.75, 4.25, tag='plate')
+
+AX = -12.0     # right arm axis: cubes sit 1 unit outside the (fixed) bone pivots at x = -11 (art shoulder width)
 
 
 def build_arm_right():
     rng = Rng(303)
     au = bone('arm_right_upper', 'chest', (-11, 65, 0))
-    cap = box(au, -13.5, -8.5, 61.5, 67.0, -2.5, 2.5)                          # shoulder block
-    plates(au, cap, 2, rng, faces=('east', 'north', 'south'), size=(1.0, 2.0), proud=(0.25, 0.25))
-    stack(au, -11, 0, [(61.5, 58.0, 4.0, 3.75), (58.0, 54.75, 4.25, 4.0), (54.75, 51.25, 4.0, 4.0),
-                       (51.25, 48.0, 4.25, 3.75), (48.0, 45.5, 4.0, 3.75, 0, 0)], 0.25, rng, plates_per=2)
+    cap = box(au, AX - 2.25, AX + 2.25, 61.0, 67.0, -2.25, 2.25)                 # shoulder block (under the spikes)
+    plates(au, cap, 2, rng, faces=LAT_FACES, size=(1.0, 2.0), proud=(0.5, 0.75), yrange=(61.0, 64.0))
+    # slim upper arm (3.5-3.75), outline stepping every ~3.75 units
+    stack(au, AX, 0, [(61.0, 57.25, 3.5, 3.5, 0.25, 0.0), (57.25, 53.5, 3.75, 3.5, -0.25, 0.25),
+                      (53.5, 49.75, 3.5, 3.75, 0.25, -0.25), (49.75, 46.0, 3.75, 3.5, -0.25, 0.0)],
+          0.0, rng, plates_per=2, plate_faces=LAT_FACES, proud=(0.5, 0.75))
 
     al = bone('arm_right_lower', 'arm_right_upper', (-11, 45, 0))
-    box(al, -13.5, -8.5, 42.75, 47.25, -2.25, 2.75)                            # visible elbow block
-    box(al, -12.5, -9.5, 43.25, 46.75, 2.75, 3.25, tag='plate')                 # olecranon
-    sootf = ('y', 40.0, 31.0, 0.55)
-    stack(al, -11, 0.25, [(42.75, 39.75, 4.25, 4.0), (39.75, 36.75, 4.5, 4.25), (36.75, 33.75, 4.75, 4.5),
-                          (33.75, 31.0, 5.0, 4.5, 0, 0)], 0.25, rng, plates_per=2, soot=sootf)
+    box(al, AX - 2.5, AX + 2.5, 43.0, 47.0, -2.0, 2.5)                           # elbow block (5 x 4.5)
+    box(al, AX - 3.25, AX + 2.75, 45.0, 47.25, -2.75, 3.25, tag='plate')         # cuff ring (0.75 proud, 0.25 medial)
+    box(al, AX - 1.5, AX + 1.5, 43.5, 46.75, 3.25, 3.75, tag='plate')            # olecranon
+    sootf = ('y', 41.0, 31.0, 0.65)
+    # forearm flares toward the wrist: 5.5 -> 6 -> 6.5 wide
+    stack(al, AX, 0.25, [(43.0, 39.0, 5.5, 5.0, -0.25, 0.0), (39.0, 35.0, 6.0, 5.25, 0.0, 0.25),
+                         (35.0, 31.0, 6.5, 5.5, -0.25, 0.0)],
+          0.0, rng, plates_per=2, plate_faces=LAT_FACES, proud=(0.5, 0.75), soot=sootf)
 
     hand = bone('hand_right', 'arm_right_lower', (-11, 31, 0))
-    hs = ('const', 0.26)
-    box(hand, -13.0, -9.0, 29.25, 32.0, -1.75, 2.0, soot=hs)                   # wrist
-    box(hand, -14.0, -8.0, 24.5, 29.25, -1.25, 1.5, soot=hs)                   # palm faces front (-Z)
-    box(hand, -13.5, -8.5, 25.75, 29.0, 1.5, 2.0, tag='plate', soot=hs)         # back of the hand
-    box(hand, -12.5, -9.5, 26.5, 28.5, 2.0, 2.25, tag='plate', soot=hs)
-    box(hand, -13.0, -9.0, 25.25, 28.5, -1.5, -1.25, tag='plate', soot=hs)      # palm pad
-    box(hand, -14.25, -14.0, 25.5, 28.75, -0.75, 1.25, tag='plate', soot=hs)    # outer edge
-    # four fingers: 1 = most medial (toward the body) ... 4 = most lateral; thumb on the medial side
-    specs = [  # x, la, lb, claw, splay(a, b, claw), curl(a, b, c0, c1, c2)
-        (-9.0, 4.5, 3.5, 4.5, (0, 2, 5), (-12, -26, -36, -48, -60)),
-        (-10.75, 5.25, 4.0, 5.0, (-1, 0, 2), (-7, -20, -30, -42, -55)),
-        (-12.5, 5.5, 4.0, 5.0, (5, 3, -2), (-7, -20, -30, -42, -55)),
-        (-14.25, 4.75, 3.75, 4.75, (16, 8, -8), (-8, -22, -32, -45, -58)),
+    hs = ('const', 0.42)
+    box(hand, AX - 2.75, AX + 2.75, 29.0, 31.5, -2.0, 2.25, soot=hs)             # wrist
+    box(hand, AX - 3.0, AX + 3.0, 24.5, 29.0, -1.25, 1.5, soot=hs)               # palm (6 wide), faces front (-Z)
+    box(hand, AX - 2.5, AX + 2.5, 25.75, 29.0, 1.5, 2.0, tag='plate', soot=hs)   # back of the hand
+    box(hand, AX - 1.5, AX + 1.5, 26.5, 28.5, 2.0, 2.25, tag='plate', soot=hs)
+    box(hand, AX - 2.0, AX + 2.0, 25.25, 28.5, -1.5, -1.25, tag='plate', soot=hs)  # palm pad
+    box(hand, AX - 3.25, AX - 3.0, 25.5, 28.75, -0.75, 1.25, tag='plate', soot=hs)  # outer edge
+    # four fingers: 1 = most medial (toward the body) ... 4 = most lateral.  Lateral fingers flare out, the
+    # claws hook back toward the palm centre; finger 1 stays straight so it clears the shin at rest.
+    specs = [  # knuckle x, la, lb, claw, splay(a, b, (claw0..2)), curl(a, b, claw0..2)
+        (-9.75, 4.5, 3.5, 4.75, (2, 3, (8, 12, 16)), (-12, -26, -36, -48, -60)),
+        (-11.5, 5.25, 4.0, 5.0, (5, 6, (2, -3, -8)), (-7, -20, -30, -42, -55)),
+        (-13.25, 5.5, 4.0, 5.0, (12, 11, (-2, -10, -18)), (-7, -20, -30, -42, -55)),
+        (-15.0, 4.75, 3.75, 4.75, (24, 21, (6, -6, -18)), (-8, -22, -32, -45, -58)),
     ]
     tips = []
     for i, (x, la, lb, lc, sp, cu) in enumerate(specs):
         tips.append(finger('hand_right', f'finger_right_{i + 1}_a', f'finger_right_{i + 1}_b', (x, 25.0, 0.0),
-                           la, lb, lc, sp, cu, w=1.75, d=1.75, soot=0.24))
-    tips.append(finger('hand_right', 'thumb_right_a', 'thumb_right_b', (-8.75, 27.0, -1.0), 3.25, 2.75, 4.0,
-                       (-6, 2, 8), (-42, -38, -42, -52, -62), w=1.5, d=1.5, thumb=True, soot=0.3))
+                           la, lb, lc, sp, cu, w=1.75, d=1.75, soot=0.40))
+    # thumb on the medial front edge of the palm: short, curls down and in toward the palm centre
+    tips.append(finger('hand_right', 'thumb_right_a', 'thumb_right_b', (-9.75, 27.25, -1.25), 3.25, 2.5, 3.75,
+                       (6, 14, (24, 34, 44)), (-22, -14, -18, -26, -34), w=1.5, d=1.5, soot=0.45))
     tip = np.mean(np.array(tips[:4]), axis=0)
     hand.locators['claw_right'] = qv((tip[0], tip[1] - 1.0, tip[2] - 1.0))
     TIPS['right'] = tips
@@ -594,59 +680,57 @@ TIPS = {}
 
 def build_leg_right():
     rng = Rng(404)
+    # ---- thigh: slim (3.75-4 wide), inner edge at |x| >= 3.75 so the gap between the thighs stays >= 7.5;
+    #      plates only on the outer / front / back faces
     lu = bone('leg_right_upper', 'body', (-5, 47, 0))
-    hip = box(lu, -7.5, -2.5, 44.25, 48.5, -2.5, 2.5)                           # hip joint block
-    plates(lu, hip, 2, rng, faces=('east', 'north'), size=(1.0, 2.0), proud=(0.25, 0.25))
-    stack(lu, -5, 0, [(44.25, 40.5, 4.5, 4.25), (40.5, 36.75, 4.75, 4.25), (36.75, 33.0, 4.5, 4.5),
-                      (33.0, 29.75, 4.5, 4.0, 0, 0)], 0.25, rng, plates_per=2)
+    box(lu, -7.5, -3.75, 44.25, 48.5, -2.25, 2.25)                               # hip joint block (in the pelvis)
+    box(lu, -8.25, -7.5, 43.0, 47.0, -1.75, 1.75, tag='plate')                    # hip plate
+    stack(lu, -5.625, 0, [(44.25, 40.5, 3.75, 4.0, 0, 0), (40.5, 36.75, 4.0, 4.0, -0.25, 0.25),
+                          (36.75, 33.0, 3.75, 4.25, 0, -0.25), (33.0, 29.75, 4.0, 4.0, -0.25, 0)],
+          0, rng, plates_per=2, plate_faces=LAT_FACES, proud=(0.5, 0.75))
 
+    # ---- shin: thicker than the thigh and widening like a trunk (5.25 at the knee -> 8.25 at y 6.5-10),
+    #      soot streaks from mid-shin down
     ll = bone('leg_right_lower', 'leg_right_upper', (-5, 28, 0))
-    soot = ('y', 21.0, 3.0, 0.56)
-    box(ll, -7.5, -2.5, 26.0, 30.25, -3.0, 2.25, soot=soot)                     # knee block (kneecap forward)
-    box(ll, -6.25, -3.75, 26.75, 29.5, -3.5, -3.0, tag='plate', soot=soot)
-    # shin widens toward the ankle like a tree trunk
-    stack(ll, -5, 0, [(26.0, 22.25, 4.5, 4.25), (22.25, 18.5, 5.0, 4.5), (18.5, 14.5, 5.75, 5.0),
-                      (14.5, 10.5, 6.75, 5.75, 0, 0), (10.5, 6.5, 8.0, 6.5, 0, 0)], 0.25, rng, plates_per=3, soot=soot)
-    # stepped buttress ribs running down into the foot roots: (x0, x1, z0, z1) lower (y 6.5-10.5) / upper (10.5-14)
-    ribs = [((-8.25, -6.75, -4.0, -3.25), (-8.0, -7.0, -3.5, -3.0)),
-            ((-3.25, -1.75, -4.0, -3.25), (-3.0, -2.0, -3.5, -3.0)),
-            ((-9.75, -9.0, -1.0, 1.0), (-9.0, -8.5, -0.75, 0.75)),
-            ((-5.75, -4.25, 3.25, 4.0), (-5.5, -4.5, 2.75, 3.25))]
-    for lo, hi in ribs:
-        box(ll, lo[0], lo[1], 6.5, 10.5, lo[2], lo[3], tag='plate', soot=soot)
-        box(ll, hi[0], hi[1], 10.5, 14.0, hi[2], hi[3], tag='plate', soot=soot)
-    box(ll, -1.0, -0.5, 6.5, 10.0, -0.75, 0.75, tag='plate', soot=soot)         # small medial rib
+    soot = ('y', 24.0, 8.0, 0.78)
+    box(ll, -8.25, -3.25, 26.0, 30.25, -3.0, 2.25, soot=soot)                     # knee block (kneecap forward)
+    box(ll, -6.75, -4.5, 26.75, 29.5, -3.5, -3.0, tag='plate', soot=soot)
+    shin = [(22.5, 26.0, -8.25, -3.0, -2.5, 2.5), (18.5, 22.5, -8.5, -2.5, -2.75, 2.75),
+            (14.0, 18.5, -8.75, -2.0, -3.0, 3.0), (10.0, 14.0, -9.25, -2.0, -3.25, 3.25),
+            (6.5, 10.0, -10.25, -2.0, -3.5, 3.75)]
+    for y0, y1, x0, x1, z0, z1 in shin:
+        s = box(ll, x0, x1, y0, y1, z0, z1, soot=soot)
+        # no proud plates on the outer face where the claws hang at rest; none at all on the root-ridged base
+        if y0 >= 12:
+            plates(ll, s, 2, rng, faces=('north', 'south'), size=(1.25, 2.5), proud=(0.5, 0.75), soot=soot)
+    # root ridges: each toe-root continues up the lower shin as a proud vertical buttress
+    for x0, x1, y1 in ((-6.75, -5.5, 12.0), (-4.0, -2.75, 11.0), (-9.75, -8.25, 12.5)):
+        box(ll, x0, x1, 5.0, y1, -4.25, -3.5, tag='plate', soot=soot)
+    box(ll, -11.0, -10.25, 5.0, 11.0, -1.0, 0.5, tag='plate', soot=soot)          # outer ridge
+    box(ll, -6.75, -5.25, 5.0, 10.0, 3.75, 4.5, tag='plate', soot=soot)           # rear ridge
+    box(ll, -10.0, -8.75, 5.0, 9.5, 3.75, 4.5, tag='plate', soot=soot)            # rear-outer ridge
 
+    # ---- foot: separate flared root base (~13.5 wide, inner edge at x -2 -> 4-unit gap between the feet):
+    #      ankle core + 3 front toe-roots with dark crevices between them, an outer root and a rear spur
     ft = bone('foot_right', 'leg_right_lower', (-5, 6, 0))
-    fs = ('y', 21.0, 0.0, 0.58)
-    core = box(ft, -9.5, -0.75, 0.0, 6.75, -3.75, 3.5, soot=fs)                 # broad ankle / heel core
-    box(ft, -8.75, -1.25, 6.75, 8.0, -3.0, 3.0, soot=fs)                         # filler inside the shin
-    # toe-roots: low block + upper step; front ones splayed with a Y rotation
-    roots = [
-        # front-centre
-        dict(lo=(-6.25, -3.75, 0.0, 3.0, -7.5, -3.75), hi=(-6.0, -4.0, 3.0, 5.25, -5.5, -3.75), rot=None),
-        # front-lateral (splayed outward)
-        dict(lo=(-9.25, -6.75, 0.0, 3.0, -7.0, -3.5), hi=(-9.0, -7.0, 3.0, 5.0, -5.25, -3.5), rot=(0, 22, 0),
-             piv=(-8.0, 0, -3.75)),
-        # front-medial (splayed inward, smaller)
-        dict(lo=(-3.25, -1.0, 0.0, 2.75, -6.75, -3.5), hi=(-3.0, -1.25, 2.75, 4.75, -5.0, -3.5), rot=(0, -18, 0),
-             piv=(-2.0, 0, -3.75)),
-        # lateral root
-        dict(lo=(-13.5, -9.5, 0.0, 3.0, -1.5, 1.25), hi=(-11.25, -9.5, 3.0, 5.5, -1.25, 1.0), rot=None),
-        # lateral-rear root
-        dict(lo=(-12.25, -9.0, 0.0, 2.5, 1.5, 3.75), hi=(-10.5, -9.0, 2.5, 4.5, 1.75, 3.5), rot=(0, 25, 0),
-             piv=(-9.0, 0, 2.5)),
-        # rear spur
-        dict(lo=(-6.25, -3.75, 0.0, 2.5, 3.5, 7.0), hi=(-6.0, -4.0, 2.5, 4.75, 3.5, 5.25), rot=None),
+    fs = ('y', 14.0, 2.0, 0.85)
+    core = box(ft, -10.5, -2.25, 0.0, 6.75, -3.75, 4.0, soot=fs)
+    roots = [  # stepped blocks (x0, x1, y0, y1, z0, z1), optional Y splay about the root's back
+        ([(-7.25, -5.0, 0.0, 2.75, -8.25, -3.75), (-7.0, -5.25, 2.75, 5.0, -6.5, -3.75),
+          (-7.0, -5.25, 5.0, 6.5, -5.0, -3.75)], None, None),                                   # front centre
+        ([(-4.5, -2.25, 0.0, 2.5, -7.75, -3.75), (-4.25, -2.5, 2.5, 4.5, -6.0, -3.75),
+          (-4.25, -2.5, 4.5, 6.0, -4.75, -3.75)], None, None),                                  # front medial
+        ([(-10.0, -7.75, 0.0, 2.75, -8.0, -3.75), (-9.75, -8.0, 2.75, 5.0, -6.25, -3.75),
+          (-9.75, -8.0, 5.0, 6.5, -4.75, -3.75)], (0, 20, 0), (-8.75, 0, -3.75)),              # front lateral
+        ([(-15.75, -10.0, 0.0, 2.5, -1.25, 1.0), (-13.25, -10.0, 2.5, 4.75, -1.0, 0.75),
+          (-11.5, -10.0, 4.75, 6.25, -0.75, 0.5)], (0, -20, 0), (-10.5, 0, 0)),                # outer (~70 deg)
+        ([(-7.0, -4.75, 0.0, 3.0, 4.0, 7.5), (-6.75, -5.0, 3.0, 4.75, 4.0, 5.75)], None, None),  # rear spur
     ]
-    for r in roots:
-        lo, hi = r['lo'], r['hi']
-        kw = dict(rot=r['rot'], pivot=r.get('piv')) if r['rot'] else {}
-        box(ft, lo[0], lo[1], lo[2], lo[3], lo[4], lo[5], soot=fs, **kw)
-        box(ft, hi[0], hi[1], hi[2], hi[3], hi[4], hi[5], tag='plate', soot=fs, **kw)
-    box(ft, -0.75, -0.25, 0.0, 2.25, -1.0, 1.0, tag='plate', soot=fs)            # medial nub
-    plates(ft, core, 3, rng, faces=('north', 'east', 'south'), size=(0.75, 1.5), proud=(0.25, 0.25),
-           yrange=(4.75, 6.75), soot=fs)
+    for blocks, rot, piv in roots:
+        kw = dict(rot=rot, pivot=piv) if rot else {}
+        for i, (x0, x1, y0, y1, z0, z1) in enumerate(blocks):
+            box(ft, x0, x1, y0, y1, z0, z1, tag='stone' if i == 0 else 'plate', soot=fs, **kw)
+    box(ft, -10.0, -8.5, 0.0, 4.25, 4.0, 5.5, tag='plate', soot=fs, rot=(0, 30, 0), pivot=(-9.25, 0, 4.0))  # rear-outer root
     ft.locators['foot_right'] = (-5.0, 0.0, 0.0)
 
 
@@ -736,9 +820,11 @@ def check_grid():
     return bad
 
 
-def _inside_any(pw, skip=()):
-    """is world (rest pose) point pw strictly inside any cube?"""
+def _inside_any(pw, skip=(), bones=None):
+    """is world (rest pose) point pw strictly inside any cube (of `bones`, default: all bones)?"""
     for b in BONES.values():
+        if bones is not None and b.name not in bones:
+            continue
         for o in b.cubes:
             if o in skip:
                 continue
@@ -752,7 +838,8 @@ def _inside_any(pw, skip=()):
 
 def check_zfight():
     """coplanar, same-facing, area-overlapping visible faces (same frame), within and across bones (rest pose).
-    Overlaps buried inside other geometry are ignored."""
+    Overlaps buried inside other geometry of the SAME two bones are ignored (a third, independently animated
+    bone -- e.g. a mane flap -- may move away and expose them)."""
     issues = []
     groups = {}
     for b in BONES.values():
@@ -783,12 +870,38 @@ def check_zfight():
                     p[a1] = lo1 + (hi1 - lo1) * fu
                     p[a2] = lo2 + (hi2 - lo2) * fv
                     pw = c1.to_world(np.array(p))
-                    if not _inside_any(pw, skip=(c1, c2)):
+                    if not _inside_any(pw, skip=(c1, c2), bones=(c1.bone, c2.bone)):
                         buried = False
                         break
                 if not buried:
                     issues.append((c1, f1, c2, f2))
     return issues
+
+
+JAW_POSES = ((0, 40), (0, 55), (-20, 55), (-35, 55), (20, 30), (35, 0))   # (head X, jaw X) degrees
+
+
+def check_jaw_sweep():
+    """Pose head + jaw (rotations about their pivots, file convention) and return the cubes of other bones whose
+    sample points fall inside the open-mouth cavity (below the palate, above the tongue, between the walls)."""
+    hp, jp = np.array(BONES['head'].pivot), np.array(BONES['jaw'].pivot)
+    g = (np.arange(4) + 0.5) / 4
+    grid = np.array([[a, b, c] for a in g for b in g for c in g])
+    bad = []
+    for hx, jx in JAW_POSES:
+        Rh, Rj = rot_matrix((hx, 0, 0)), rot_matrix((jx, 0, 0))
+        for b in BONES.values():
+            if b.name in ('head', 'jaw'):
+                continue
+            for c in b.cubes:
+                pw = c.to_world(np.array(c.lo) + grid * np.array(c.size))
+                ph = (pw - hp) @ Rh + hp                 # world -> head rest frame
+                pj = (ph - jp) @ Rj + jp                 # head -> jaw rest frame
+                cav = (np.abs(ph[:, 0]) < 3.0) & (ph[:, 1] < 73.5) & (ph[:, 2] > -4.5) & (ph[:, 2] < 3.5) & \
+                      (pj[:, 1] > 72.75) & (pj[:, 2] > -4.5)
+                if cav.any():
+                    bad.append(((hx, jx), c, int(cav.sum())))
+    return bad
 
 
 def resolve_zfight():
@@ -861,10 +974,13 @@ def hexc(s):
     return np.array([int(s[i:i + 2], 16) for i in (1, 3, 5)], float)
 
 
-PAL = {
-    'base': hexc('#8a7879'), 'light': hexc('#bea9a4'), 'dark': hexc('#483a3b'), 'soot': hexc('#2a201e'),
-    'spike': hexc('#a8908c'), 'claw': hexc('#1e1714'), 'mouth': hexc('#120c0a'),
-    'eye_core': hexc('#fff4dc'), 'eye_rim': hexc('#ffb05a'), 'tooth': hexc('#f2e2c8'),
+PAL = {   # SPEC section 5 albedo (unlit), slightly desaturated: warm mauve-taupe granite (hue ~10 deg, sat ~0.23)
+    'base': hexc('#927670'), 'light': hexc('#c0a59c'), 'dark': hexc('#4a3632'), 'soot': hexc('#2a201c'),
+    'spike': hexc('#9a7f78'), 'spike_top': hexc('#b2978e'), 'spike_bevel': hexc('#c0a59c'),
+    'spike_down': hexc('#4e3a34'), 'claw': hexc('#1e1714'), 'mouth': hexc('#120c0a'),
+    'mouth_bg': hexc('#3a2219'), 'mouth_rim': hexc('#4a2c20'), 'tooth_spill': hexc('#6e3c28'),
+    'eye_core': hexc('#fff4dc'), 'eye_edge': hexc('#ffe6c0'), 'eye_rim': hexc('#ffb05a'), 'eye_halo': hexc('#c8805e'),
+    'tooth': hexc('#fff0d8'), 'tooth_edge': hexc('#f2d6ae'), 'nostril': hexc('#2a1a14'),
 }
 
 
@@ -938,78 +1054,94 @@ def face_points(c, f, W, H):
 
 
 def brick_layout(c, f, W, H, P, brick):
-    """per-texel brick id, and distances (texels) to the brick's top/left/bottom/right seam"""
+    """per-texel brick id, and distances (texels) to the brick's top/left/bottom/right seam.
+    'cube' grid: fixed-size bricks (bw x bh units) on every face, rows starting at the face's top edge, the last
+    row / column cut by the face edge -> the same brick scale on every limb segment and spike.
+    'bone' grid: world-aligned rows/columns, continuous across neighbouring plates (the face)."""
     bw, bh = brick
     grid = c.paint.get('grid', 'cube')
-    if f in ('north', 'south', 'east', 'west'):
-        if grid == 'bone':
-            # world aligned rows/columns (continuous across neighbouring plates, e.g. the face)
-            horiz = P[..., 0] if f in ('north', 'south') else P[..., 2]
-            if f in ('south', 'east'):
-                horiz = -horiz
-            vert = -P[..., 1]
-            rows = np.floor(vert / bh).astype(int)
-            rv = (vert / bh - rows) * bh * TPU
-            off = (rows % 2) * 0.5 * bw
-            cols = np.floor((horiz + off) / bw).astype(int)
-            cu = ((horiz + off) / bw - cols) * bw * TPU
-            top, left = rv, cu
-            bot, right = bh * TPU - rv, bw * TPU - cu
-            return rows * 997 + cols, top, left, bot, right
-        n_r = max(1, int(round(H / (bh * TPU))))
-        edges_r = np.round(np.linspace(0, H, n_r + 1)).astype(int)
-        jj = np.arange(H)
-        row = np.searchsorted(edges_r, jj, side='right') - 1
-        top_r = jj - edges_r[row]
-        bot_r = edges_r[row + 1] - 1 - jj
-        n_c = max(1, int(round(W / (bw * TPU))))
-        cw = W / n_c
-        ii = np.arange(W)
-        rid = np.zeros((H, W), int)
-        L = np.zeros((H, W))
-        R = np.zeros((H, W))
-        fo = hash01(c.seed, FACES.index(f)) * cw
-        for r in range(n_r):
-            off = fo + (0.5 * cw if r % 2 else 0.0)
-            pos = (ii + off) / cw
-            col = np.floor(pos).astype(int)
-            frac = (pos - col) * cw
-            sel = row == r
-            rid[sel, :] = r * 101 + col[None, :]
-            L[sel, :] = frac[None, :]
-            R[sel, :] = (cw - frac - 1)[None, :]
-        T = np.repeat(top_r[:, None], W, 1).astype(float)
-        B = np.repeat(bot_r[:, None], W, 1).astype(float)
-        return rid, T, L, B, R
-    # top / bottom faces: plain grid
-    n_r = max(1, int(round(H / (bh * TPU))))
-    n_c = max(1, int(round(W / (bw * TPU))))
+    if f in SIDE_FACES and grid == 'bone':
+        horiz = P[..., 0] if f in ('north', 'south') else P[..., 2]
+        if f in ('south', 'east'):
+            horiz = -horiz
+        vert = -P[..., 1]
+        rows = np.floor(vert / bh).astype(int)
+        rv = (vert / bh - rows) * bh * TPU
+        off = (rows % 2) * 0.5 * bw
+        cols = np.floor((horiz + off) / bw).astype(int)
+        cu = ((horiz + off) / bw - cols) * bw * TPU
+        top, left = rv, cu
+        bot, right = bh * TPU - rv, bw * TPU - cu
+        return rows * 997 + cols, top, left, bot, right
+    rh = int(round((bh if f in SIDE_FACES else bw) * TPU))
+    cwid = bw * TPU
     jj = np.arange(H)
     ii = np.arange(W)
-    er = np.round(np.linspace(0, H, n_r + 1)).astype(int)
-    ec = np.round(np.linspace(0, W, n_c + 1)).astype(int)
-    row = np.searchsorted(er, jj, side='right') - 1
-    col = np.searchsorted(ec, ii, side='right') - 1
-    rid = row[:, None] * 101 + col[None, :]
-    T = (jj - er[row])[:, None].repeat(W, 1).astype(float)
-    B = (er[row + 1] - 1 - jj)[:, None].repeat(W, 1).astype(float)
-    L = (ii - ec[col])[None, :].repeat(H, 0).astype(float)
-    R = (ec[col + 1] - 1 - ii)[None, :].repeat(H, 0).astype(float)
+    row = jj // rh
+    nrow = row.max() + 1
+    if nrow > 1 and H - (nrow - 1) * rh < 3:            # no sliver row at the bottom edge
+        row = np.minimum(row, nrow - 2)
+    row_top = row * rh
+    row_bot = np.where(row == row.max(), H, (row + 1) * rh)
+    top_r = jj - row_top
+    bot_r = row_bot - 1 - jj
+    rid = np.zeros((H, W), int)
+    L = np.zeros((H, W))
+    R = np.zeros((H, W))
+    fo = hash01(c.seed, FACES.index(f)) * cwid
+    for r in range(int(row.max()) + 1):
+        off = fo + (0.5 * cwid if r % 2 else 0.0)
+        pos = (ii + off) / cwid
+        col = np.floor(pos).astype(int)
+        frac = (pos - col) * cwid
+        sel = row == r
+        rid[sel, :] = r * 101 + col[None, :]
+        L[sel, :] = frac[None, :]
+        R[sel, :] = np.minimum(cwid - frac - 1, W - 1 - ii)[None, :]
+    T = np.repeat(top_r[:, None], W, 1).astype(float)
+    B = np.repeat(bot_r[:, None], W, 1).astype(float)
     return rid, T, L, B, R
 
 
 AO_CUBES = {}
+AO_EXTRA = {}
+# cross-bone contact shading (rest pose, half weight) between bones that barely move relative to each other
+AO_PAIRS = {
+    'body': ('leg_right_upper', 'leg_left_upper', 'waist'),
+    'leg_right_upper': ('body',), 'leg_left_upper': ('body',),
+    'waist': ('body', 'chest'),
+    'chest': ('mane_front', 'mane_back', 'mane_left', 'mane_right', 'neck', 'waist'),
+    'neck': ('head', 'jaw', 'chest', 'mane_back'),
+    'arm_right_upper': ('mane_right', 'chest'), 'arm_left_upper': ('mane_left', 'chest'),
+    'mane_front': ('chest', 'mane_left', 'mane_right'), 'mane_back': ('chest', 'mane_left', 'mane_right'),
+    'mane_left': ('chest', 'mane_front', 'mane_back'), 'mane_right': ('chest', 'mane_front', 'mane_back'),
+}
+
+
+def _occlusion(c, cands, S, lo_box, hi_box):
+    occ = np.zeros(S.shape[0])
+    for o in cands:
+        if o is c:
+            continue
+        if np.any(o.wlo > hi_box) or np.any(o.whi < lo_box):
+            continue
+        if o.rot:
+            loc = (S - np.array(o.pivot)) @ o.matrix() + np.array(o.pivot)   # inverse rotation (R^T as row @ R)
+        else:
+            loc = S
+        inside = np.all((loc > np.array(o.lo) + 1e-6) & (loc < np.array(o.hi) - 1e-6), axis=-1)
+        occ = occ + inside.mean(1)
+    return occ
 
 
 def ambient_occlusion(c, Pw, Nw):
-    """cheap AO: fraction of hemisphere sample points that fall inside other cubes of the same bone"""
+    """cheap AO: fraction of hemisphere sample points inside other cubes of the same bone (full weight) or of a
+    static-ish neighbouring bone (AO_PAIRS, half weight)"""
     cands = AO_CUBES.get(c.bone, [])
-    if not cands:
-        return np.ones(Pw.shape[:2])
+    extra = AO_EXTRA.get(c.bone, [])
     H, W, _ = Pw.shape
     pts = Pw.reshape(-1, 3)
     n = Nw / np.linalg.norm(Nw)
-    # tangent frame
     a = np.array([1.0, 0, 0]) if abs(n[0]) < 0.9 else np.array([0, 1.0, 0])
     t1 = np.cross(n, a)
     t1 /= np.linalg.norm(t1)
@@ -1023,21 +1155,8 @@ def ambient_occlusion(c, Pw, Nw):
     samples = np.array(samples)
     lo_box = pts.min(0) - 1.6
     hi_box = pts.max(0) + 1.6
-    occ = np.zeros(len(pts))
     S = pts[:, None, :] + samples[None, :, :] + n[None, None, :] * 0.05
-    for o in cands:
-        if o is c:
-            continue
-        # bounding test (world AABB of o)
-        if np.any(o.wlo > hi_box) or np.any(o.whi < lo_box):
-            continue
-        if o.rot:
-            Minv = o.matrix()
-            loc = (S - np.array(o.pivot)) @ Minv + np.array(o.pivot)   # inverse rotation (R^T applied as row @ R)
-        else:
-            loc = S
-        inside = np.all((loc > np.array(o.lo) + 1e-6) & (loc < np.array(o.hi) - 1e-6), axis=-1)
-        occ = occ + inside.mean(1)
+    occ = _occlusion(c, cands, S, lo_box, hi_box) + 0.5 * _occlusion(c, extra, S, lo_box, hi_box)
     occ = np.clip(occ, 0, 1)
     return (1 - 0.5 * occ).reshape(H, W)
 
@@ -1052,6 +1171,9 @@ def prepare_ao():
             o.wlo, o.whi = wc.min(0), wc.max(0)
             lst.append(o)
         AO_CUBES[b.name] = lst
+    for name, others in AO_PAIRS.items():
+        if name in AO_CUBES:
+            AO_EXTRA[name] = [o for on in others if on in AO_CUBES for o in AO_CUBES[on]]
 
 
 def soot_amount(c, Pw):
@@ -1067,6 +1189,17 @@ def soot_amount(c, Pw):
     return base
 
 
+def _ring(P, rects, lo, hi):
+    """texels whose (x, y) lies between `lo` and `hi` units outside any of the rectangles (x0, x1, y0, y1)"""
+    out = np.zeros(P.shape[:2], bool)
+    for x0, x1, y0, y1 in rects:
+        dx = np.maximum(np.maximum(x0 - P[..., 0], P[..., 0] - x1), 0)
+        dy = np.maximum(np.maximum(y0 - P[..., 1], P[..., 1] - y1), 0)
+        dd = np.maximum(dx, dy)
+        out |= (dd > lo) & (dd <= hi)
+    return out
+
+
 def paint_face(c, f, W, H):
     """returns RGBA float array (H, W, 4) in 0..255"""
     P, I, J = face_points(c, f, W, H)
@@ -1080,108 +1213,138 @@ def paint_face(c, f, W, H):
     rgb = np.zeros((H, W, 3))
     alpha = np.full((H, W), 255.0)
     seed = c.seed * 13 + FACES.index(f)
+    g3 = NZ_GRAIN(Pw[..., 0] * 3, Pw[..., 1] * 3, Pw[..., 2] * 3)
 
+    # flat dark faces: throat / neck seen through the gap under the chin
+    shade = c.paint.get('shade', {}).get(f)      # deep-shadow factor for this face (throat seen under the chin)
+    # closed-mouth background (palate / gum front): warm dark brown, lighter rim, glow spilling beside the teeth
+    if tag == 'mouth' and f in c.paint.get('bg_faces', ()):
+        rgb[:] = PAL['mouth_bg'] * (1 + 0.12 * g3)[..., None]
+        rim = (I < 0.26) | (I > I.max() - 0.26) | (J < 0.26) | (J > J.max() - 0.26)
+        rgb[rim] = PAL['mouth_rim']
+        teeth = c.paint.get('teeth', ())
+        y0, y1 = c.lo[1], c.hi[1]
+        spill = _ring(P, [(x0, x1, y0, y1) for x0, x1 in teeth], 0.0, 0.26)
+        if c.lo[1] >= 73.4:                                   # palate: also the row just under the upper teeth
+            spill |= _ring(P, [(x0, x1, 74.0, y1) for x0, x1 in teeth], 0.0, 0.26) & (P[..., 1] < 74.0)
+        # the glow spilling between the teeth: dim warm texels, partly emissive so it shows in the dark
+        rgb[spill] = PAL['tooth_spill'] * 0.8
+        alpha[spill] = 190
+        return np.dstack([rgb, alpha])
     dark = (tag == 'mouth' and f not in c.paint.get('stone_faces', ())) or f == c.paint.get('inner') or \
         f in c.paint.get('dark_faces', ()) or (f == 'up' and c.paint.get('top') == 'mouth')
     if tag == 'mouth' and not dark:
         tag = 'face'
     if dark:
-        g = NZ_GRAIN(Pw[..., 0] * 3, Pw[..., 1] * 3, Pw[..., 2] * 3)
-        rgb[:] = PAL['mouth'] * (1 + 0.25 * g)[..., None]
-        # faint ridges inside the mouth
+        rgb[:] = PAL['mouth'] * (1 + 0.25 * g3)[..., None]
         return np.dstack([rgb, alpha])
     if tag == 'tooth':
+        # bright warm-white glow (alpha 35 = ~86 % emissive), barely darker toward the root, warmer side edges
         v = J / max(J.max(), 1e-6)
-        shade = 1.0 - 0.10 * v
-        rgb[:] = PAL['tooth'] * shade[..., None]
-        edge = (I < 0.26) | (I > I.max() - 0.26)
-        rgb[edge] *= 0.86
-        if f == 'north':
-            rgb[(J < 0.26)] = np.minimum(255, rgb[(J < 0.26)] * 1.05)
-        alpha[:] = 70
-        return np.dstack([rgb, alpha])
+        rgb[:] = PAL['tooth'] * (1.0 - 0.04 * v)[..., None]
+        if f in ('north', 'south'):
+            edge = (I < 0.26) | (I > I.max() - 0.26)
+            rgb[edge] = PAL['tooth_edge']
+        alpha[:] = 35
+        return np.dstack([np.clip(rgb, 0, 255), alpha])
     if tag == 'eye':
-        # square glowing eye: warm-white core, orange rim; alpha 0 (core) .. 30 (rim) = emissive
+        # square white-hot eye: warm-white core filling most of the square, 1-texel warm rim.
+        # alpha 10 (core) .. 30 (rim): ~96 % glow, and robust against editors that zero alpha-0 RGB
         dd = np.minimum(np.minimum(I, I.max() + 0.125 - I), np.minimum(J, J.max() + 0.125 - J)) * TPU  # texels to edge
-        core = np.clip((dd - 1.0) / 1.6, 0, 1)
-        rgb[:] = PAL['eye_rim'] * (1 - core[..., None]) + PAL['eye_core'] * core[..., None]
-        alpha[:] = 30 * (1 - core)
+        core = np.clip((dd - 0.5) / 1.0, 0, 1)
+        cen = np.clip((dd - 1.5) / 2.0, 0, 1)
+        inner = PAL['eye_edge'] * (1 - cen[..., None]) + PAL['eye_core'] * cen[..., None]
+        rim = PAL['eye_rim'] * 0.5 + PAL['eye_edge'] * 0.5
+        rgb[:] = rim * (1 - core[..., None]) + inner * core[..., None]
+        alpha[:] = 30 - 20 * core
         return np.dstack([rgb, alpha])
     if tag == 'claw':
+        # near-black claw (#1e1714); only a faint lighter tip and a thin glossy edge (tip <= ~#3c302a)
         k = c.paint.get('claw_k', 0)
         g = NZ_GRAIN(Pw[..., 0] * 4, Pw[..., 1] * 4, Pw[..., 2] * 4)
         base = PAL['claw'] * (1.0 + 0.12 * g)[..., None]
-        # tip highlight: lighter toward the end of the last segment, glossy edge on one side
         if f in SIDE_FACES:
             v = J / max(J.max(), 1e-6)
-            hl = (0.10 + 0.25 * k) * v
+            hl = (0.04 + 0.06 * k) * v
             base = base + (np.array([92, 74, 66]) * hl[..., None])
             edge = I < 0.3
-            base[edge] = base[edge] * 1.35 + 6
+            base[edge] = base[edge] * 1.15 + 3
         if f == 'up':
-            base = base * 1.2
-        rgb[:] = base
+            base = base * 1.15
+        rgb[:] = np.minimum(base, np.array([60, 48, 42]))
         return np.dstack([np.clip(rgb, 0, 255), alpha])
 
-    # ---------------- stone family
-    brick = c.paint.get('brick', (1.5, 1.5) if tag != 'spike' else (1.5, 1.25))
+    # ---------------- stone family (stone / plate / band / spike / face / cranium / mouthwall)
+    headish = tag in ('face', 'cranium', 'mouthwall')
+    brick = c.paint.get('brick', (1.5, 1.25))
     if tag == 'spike':
-        brick = (min(brick[0], c.size[0] * 0.55 + 0.25), 1.25)
+        brick = (min(1.5, c.size[0] * 0.55 + 0.25), 1.25)
     rid, T, L, B, R = brick_layout(c, f, W, H, P, brick)
-    base = PAL['base'].copy()
-    if tag == 'plate':
-        base = base * (1.0 + 0.07 * (hash01(c.seed, 3) - 0.45))
+    up_amt = Nw[1]
+    if tag == 'spike':
+        base = PAL['spike'].copy()
+    elif tag == 'plate':
+        base = PAL['base'] * (1.0 + 0.07 * (hash01(c.seed, 3) - 0.45))
     elif tag == 'band':
         base = PAL['light'] * 0.93
-    elif tag == 'spike':
-        base = PAL['base'] * 1.04
     elif tag == 'mouthwall':
-        base = PAL['base'] * 0.5
-    base = base * c.paint.get('tone', 1.0)
-    # per-brick tone: most tiles within +-7 %, a few distinctly darker / lighter
+        base = PAL['base'] * 0.82                      # lit stone side wall of the open mouth
+    else:
+        base = PAL['base'].copy()
+    base = base * c.paint.get('tone', 1.0) * (shade or 1.0)
+    # per-brick tone: warm hues only; +-12 % with 10 % outliers on the body, gentler on the head and spikes
     uniq = np.unique(rid)
     tone = np.ones((H, W))
     hue = np.zeros((H, W))
+    spread, p_lo, p_hi, k_lo, k_hi = (0.24, 0.05, 0.95, 0.78, 1.15)
+    if headish:
+        spread, p_lo, p_hi, k_lo, k_hi = (0.12, 0.025, 0.97, 0.88, 1.07)
+    elif tag == 'spike':
+        spread, p_lo, p_hi, k_lo, k_hi = (0.16, 0.03, 0.96, 0.86, 1.08)
     for u in uniq:
         h1 = hash01(seed, u, 1)
         h2 = hash01(seed, u, 2)
-        headish = tag in ('face', 'cranium')
-        t = 1.0 + (h1 - 0.5) * (0.12 if headish else 0.19)
-        if h2 < (0.025 if headish else 0.08):
-            t *= 0.86 if headish else 0.83
-        elif h2 > (0.96 if headish else 0.93):
-            t *= 1.08 if headish else 1.11
+        t = 1.0 + (h1 - 0.5) * spread
+        if h2 < p_lo:
+            t *= k_lo
+        elif h2 > p_hi:
+            t *= k_hi
         sel = rid == u
         tone[sel] = t
-        hue[sel] = (hash01(seed, u, 3) - 0.5) * 0.06
+        hue[sel] = (hash01(seed, u, 3) - 0.3) * 0.05          # -0.015 .. +0.035: never cooler than the base
     col = base[None, None, :] * tone[..., None]
     col[..., 0] *= 1 + hue
     col[..., 2] *= 1 - hue
-    # large-scale tonal drift + granite grain + specks
+    # large-scale tonal drift + granite grain + rare dark 2x1 chips (no single-texel pepper)
     drift = NZ_TONE(Pw[..., 0] * 0.35, Pw[..., 1] * 0.35, Pw[..., 2] * 0.35)
     col *= (1 + 0.06 * drift)[..., None]
     grain = NZ_GRAIN(Pw[..., 0] * 5.0, Pw[..., 1] * 5.0, Pw[..., 2] * 5.0)
     rnd = np.random.default_rng(seed).uniform(-1, 1, (H, W))
-    col *= (1 + 0.03 * grain + 0.03 * rnd)[..., None]
-    speck = np.random.default_rng(seed + 7).uniform(0, 1, (H, W))
-    col[speck > 0.985] *= 1.15
-    col[speck < 0.012] *= 0.75
-    # 1-texel bevel per tile: lighter top/left, darker bottom/right
+    col *= (1 + 0.03 * grain + (0.015 if headish else 0.025) * rnd)[..., None]
+    if not headish and W > 2:
+        chip = np.random.default_rng(seed + 7).uniform(0, 1, (H, W)) < 0.003
+        chip[:, 1:] |= chip[:, :-1].copy()
+        col[chip] *= 0.8
+    # bevel per brick: highlight on the first texel row / column INSIDE the brick (after the mortar seam),
+    # darker bottom / right edge
     bev = np.zeros((H, W))
-    bev += np.where(T < 1, 0.11, 0) + np.where(L < 1, 0.05, 0)
-    bev -= np.where(B < 1, 0.12, 0) + np.where(R < 1, 0.07, 0)
+    bev += np.where((T >= 1) & (T < 2), 0.14, 0) + np.where((L >= 1) & (L < 2), 0.07, 0)
+    bev -= np.where(B < 1, 0.14, 0) + np.where(R < 1, 0.08, 0)
     col *= (1 + bev)[..., None]
-    # mortar seams (first texel row/col of every tile); faces of very small cubes get none
+    # mortar seams (first texel row/col of every brick); faces of very small cubes get none
     mortar = (T < 1) & (H > 4)
     mortar |= (L < 1) & (W > 4)
     if f in SIDE_FACES and c.paint.get('grid', 'cube') == 'cube':
         mortar &= ~(J < 0.26)                       # the cube's own top edge stays crisp
     mcol = PAL['dark'] * (0.9 + 0.2 * np.random.default_rng(seed + 3).uniform(0, 1, (H, W)))[..., None]
-    mix = 0.40 if tag not in ('face', 'cranium') else 0.30
+    if headish:
+        mix = 0.40
+    else:
+        mix = 0.55 if f in SIDE_FACES else 0.45
     col[mortar] = col[mortar] * (1 - mix) + mcol[mortar] * mix
-    # cracks: short random walks
+    # cracks: short random walks (rarer on the head)
     cr = np.random.default_rng(seed + 11)
-    ncr = int(cr.poisson(W * H / 1100.0 * (0.6 if tag in ('face', 'cranium') else 1.0)))
+    ncr = int(cr.poisson(W * H / 1100.0 * (0.3 if headish else 1.0)))
     for _ in range(ncr):
         x, y = cr.integers(0, W), cr.integers(0, H)
         ln = cr.integers(3, 8)
@@ -1200,7 +1363,6 @@ def paint_face(c, f, W, H):
         col[J < 0.26] *= 1.08
         col[(J > J.max() - 0.26)] *= 0.88
     # orientation: up faces dusty and lighter, down faces darker
-    up_amt = Nw[1]
     if up_amt > 0.3:
         dust = NZ_DUST(Pw[..., 0] * 1.3, Pw[..., 1] * 1.3, Pw[..., 2] * 1.3)
         k = (0.09 + 0.05 * dust) * up_amt
@@ -1209,20 +1371,27 @@ def paint_face(c, f, W, H):
         col[dsp > 0.93] = col[dsp > 0.93] * 0.85 + PAL['light'] * 0.15
     elif up_amt < -0.3:
         col *= 1 - 0.12 * (-up_amt)
-    # spikes: lighter toward the tip, darker at the root
+    # spikes: darker at the root, lighter toward the tip; bright lit top facets with a light bevel, dark undersides
     if tag == 'spike':
         sl = c.paint.get('spike_len')
         if sl:
             y_loc = P[..., 1] - c.pivot[1]
             tt = np.clip((y_loc - sl[2]) / (sl[3] - sl[2]), 0, 1)
-            col *= (0.82 + 0.26 * tt)[..., None]
-        if up_amt > 0.3 or f == 'up':
-            col = col * 0.75 + PAL['spike'] * 0.25 * 1.12
-    # soot / char: vertical streaks whose coverage grows lower down (world-aligned: streaks run across cubes)
+            col *= (0.86 + 0.2 * tt)[..., None]
+        if up_amt > 0.35:
+            k = min(1.0, (up_amt - 0.35) / 0.4)
+            col = col * (1 - 0.55 * k) + PAL['spike_top'] * (0.55 * k) * (tone[..., None] * 0.6 + 0.4)
+            if f in SIDE_FACES or f == 'up':
+                bevl = (J < 0.26) | (I < 0.26)
+                col[bevl] = col[bevl] * 0.4 + PAL['spike_bevel'] * 0.6
+        elif up_amt < -0.35:
+            k = min(1.0, (-up_amt - 0.35) / 0.4)
+            col = col * (1 - 0.6 * k) + PAL['spike_down'] * (0.6 * k)
+    # soot / char: long vertical streaks whose coverage grows lower down (world-aligned: streaks run across cubes)
     sa = soot_amount(c, Pw)
     if np.any(sa > 0):
-        st = NZ_STREAK(Pw[..., 0] * 1.5, Pw[..., 1] * 0.2, Pw[..., 2] * 1.5)
-        st2 = NZ_GRAIN(Pw[..., 0] * 2.6 + 7, Pw[..., 1] * 0.55, Pw[..., 2] * 2.6 + 3)
+        st = NZ_STREAK(Pw[..., 0] * 1.5, Pw[..., 1] * 0.08, Pw[..., 2] * 1.5)
+        st2 = NZ_GRAIN(Pw[..., 0] * 2.6 + 7, Pw[..., 1] * 0.25, Pw[..., 2] * 2.6 + 3)
         sv = np.clip(0.5 + 0.5 * (0.75 * st + 0.35 * st2) / 0.55, 0, 1)     # ~uniform 0..1
         th = 1.0 - np.clip(sa, 0, 0.95)
         m = np.clip((sv - th) / 0.12 + 0.5, 0, 1)
@@ -1233,15 +1402,35 @@ def paint_face(c, f, W, H):
         sc = PAL['soot'] * (0.85 + 0.3 * np.random.default_rng(seed + 9).uniform(0, 1, (H, W)))[..., None]
         col = col * (1 - 0.85 * m[..., None]) + sc * (0.85 * m[..., None])
         col *= (1 - 0.12 * np.clip(sa, 0, 1))[..., None]
-    # ambient occlusion from the same bone
+    # baked shadow under the collar (in-game entities get no self-shadowing)
+    sh = c.paint.get('shadow')
+    if sh:
+        y0, y1, amt = sh
+        col *= (1 - amt * np.clip((Pw[..., 1] - y0) / (y1 - y0), 0, 1))[..., None]
+    # ambient occlusion (same bone + static neighbours)
     ao = ambient_occlusion(c, Pw, Nw)
     col *= ao[..., None]
-    # eye sockets: stone walls warmed by the glow (still opaque, alpha 255)
+    # keep every stone texel warm (no blue-grey bricks): B <= 0.96 G
+    col[..., 2] = np.minimum(col[..., 2], col[..., 1] * 0.96)
     if tag == 'face':
-        ex = ((P[..., 0] > -3.01) & (P[..., 0] < -0.99)) | ((P[..., 0] > 0.99) & (P[..., 0] < 3.01))
-        sock = ex & (P[..., 1] > 76.99) & (P[..., 1] < 79.01) & (P[..., 2] > -4.51) & (P[..., 2] < -3.74)
+        # glow around the eyes: socket walls and a 1-texel halo partly emissive, a 2nd ring tinted (opaque)
+        eyes = [(x0, x1, EYE_Y[0], EYE_Y[1]) for x0, x1 in EYES]
+        if Nw[2] < -0.9 and P[0, 0, 2] <= -4.49:
+            halo = _ring(P, eyes, 0.0, 0.26)
+            ring2 = _ring(P, eyes, 0.26, 0.51)
+            col[ring2] = col[ring2] * 0.72 + PAL['eye_rim'] * 0.28
+            col[halo] = col[halo] * 0.3 + PAL['eye_halo'] * 0.7
+            alpha[halo] = 150
+        ex = np.zeros(P.shape[:2], bool)
+        for x0, x1, y0, y1 in eyes:
+            ex |= (P[..., 0] > x0 - 0.01) & (P[..., 0] < x1 + 0.01) & (P[..., 1] > y0 - 0.01) & (P[..., 1] < y1 + 0.01)
+        sock = ex & (P[..., 2] > -4.51) & (P[..., 2] < -4.24) & (abs(Nw[2]) < 0.5)
         if np.any(sock):
-            col[sock] = col[sock] * 0.55 + PAL['eye_rim'] * 0.42
+            col[sock] = col[sock] * 0.45 + PAL['eye_rim'] * 0.5
+            alpha[sock] = 150
+        if c.paint.get('nose') and Nw[2] < -0.9:
+            nos = (np.abs(P[..., 0]) < 0.25) & (P[..., 1] > 76.25) & (P[..., 1] < 77.0)
+            col[nos] = PAL['nostril']
     return np.dstack([np.clip(col, 0, 255), alpha])
 
 
@@ -1334,6 +1523,11 @@ def main():
         for c1, f1, c2, f2 in zf[:40]:
             print('ZFIGHT', c1.bone, c1.lo, c1.hi, f1, '|', c2.bone, c2.lo, c2.hi, f2)
         raise SystemExit(f'{len(zf)} coplanar overlapping face pairs (would z-fight)')
+    jaw = check_jaw_sweep()
+    if jaw:
+        for pose, c, k in jaw[:20]:
+            print('JAW', pose, c.bone, c.lo, c.hi, k)
+        raise SystemExit(f'{len(jaw)} cubes show inside the open mouth (jaw sweep)')
     W, H, area = pack_uvs()
     img = paint_atlas(W, H)
     os.makedirs(os.path.dirname(GEO_PATH), exist_ok=True)
