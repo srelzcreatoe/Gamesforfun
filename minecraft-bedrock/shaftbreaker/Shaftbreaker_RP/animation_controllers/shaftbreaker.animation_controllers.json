@@ -6,64 +6,145 @@
       "states": {
         "dormant": {
           "animations": [
-            { "dormant": "variable.base_weight" }
+            {
+              "dormant": "variable.base_weight"
+            }
           ],
           "transitions": [
-            { "stalking": "query.property('shaftbreaker:phase') == 'stalking'" },
-            { "watching": "query.property('shaftbreaker:phase') == 'watching'" },
-            { "breaker": "query.property('shaftbreaker:phase') == 'breaker'" },
-            { "frenzy": "query.property('shaftbreaker:phase') == 'frenzy'" }
+            {
+              "stalking": "query.property('shaftbreaker:phase') == 'stalking'"
+            },
+            {
+              "watching": "query.property('shaftbreaker:phase') == 'watching'"
+            },
+            {
+              "breaker": "query.property('shaftbreaker:phase') == 'breaker'"
+            },
+            {
+              "frenzy": "query.property('shaftbreaker:phase') == 'frenzy'"
+            }
           ],
           "blend_transition": 0.6
         },
         "stalking": {
           "animations": [
-            { "stalk_idle": "variable.base_weight * (1.0 - variable.move_blend)" },
-            { "stalk_walk": "variable.base_weight * variable.move_blend" }
+            {
+              "stalk_idle": "variable.base_weight * (1.0 - variable.move_blend)"
+            },
+            {
+              "stalk_walk": "variable.base_weight * variable.move_blend"
+            }
           ],
           "transitions": [
-            { "dormant": "query.property('shaftbreaker:phase') == 'dormant'" },
-            { "watching": "query.property('shaftbreaker:phase') == 'watching'" },
-            { "breaker": "query.property('shaftbreaker:phase') == 'breaker'" },
-            { "frenzy": "query.property('shaftbreaker:phase') == 'frenzy'" }
+            {
+              "dormant": "query.property('shaftbreaker:phase') == 'dormant'"
+            },
+            {
+              "watching": "query.property('shaftbreaker:phase') == 'watching'"
+            },
+            {
+              "breaker": "query.property('shaftbreaker:phase') == 'breaker'"
+            },
+            {
+              "frenzy": "query.property('shaftbreaker:phase') == 'frenzy'"
+            }
           ],
           "blend_transition": 0.4
         },
         "watching": {
           "animations": [
-            { "watch": "variable.base_weight" }
+            {
+              "watch": "variable.base_weight"
+            }
           ],
           "transitions": [
-            { "dormant": "query.property('shaftbreaker:phase') == 'dormant'" },
-            { "stalking": "query.property('shaftbreaker:phase') == 'stalking'" },
-            { "breaker": "query.property('shaftbreaker:phase') == 'breaker'" },
-            { "frenzy": "query.property('shaftbreaker:phase') == 'frenzy'" }
+            {
+              "dormant": "query.property('shaftbreaker:phase') == 'dormant'"
+            },
+            {
+              "stalking": "query.property('shaftbreaker:phase') == 'stalking'"
+            },
+            {
+              "breaker": "query.property('shaftbreaker:phase') == 'breaker'"
+            },
+            {
+              "frenzy": "query.property('shaftbreaker:phase') == 'frenzy'"
+            }
           ],
-          "blend_transition": 0.45
+          "blend_transition": 0.7
         },
         "breaker": {
           "animations": [
-            { "breaker_smash": "variable.base_weight * (1.0 - variable.move_blend)" },
-            { "breaker_walk": "variable.base_weight * variable.move_blend" }
+            {
+              "breaker_smash": "variable.base_weight"
+            }
           ],
           "transitions": [
-            { "dormant": "query.property('shaftbreaker:phase') == 'dormant'" },
-            { "stalking": "query.property('shaftbreaker:phase') == 'stalking'" },
-            { "watching": "query.property('shaftbreaker:phase') == 'watching'" },
-            { "frenzy": "query.property('shaftbreaker:phase') == 'frenzy'" }
+            {
+              "dormant": "query.property('shaftbreaker:phase') == 'dormant'"
+            },
+            {
+              "stalking": "query.property('shaftbreaker:phase') == 'stalking'"
+            },
+            {
+              "watching": "query.property('shaftbreaker:phase') == 'watching'"
+            },
+            {
+              "frenzy": "query.property('shaftbreaker:phase') == 'frenzy'"
+            },
+            {
+              "breaker_move": "query.modified_move_speed > 0.05"
+            }
           ],
-          "blend_transition": 0.5
+          "blend_transition": 0.3
+        },
+        "breaker_move": {
+          "animations": [
+            {
+              "breaker_walk": "variable.base_weight"
+            }
+          ],
+          "transitions": [
+            {
+              "dormant": "query.property('shaftbreaker:phase') == 'dormant'"
+            },
+            {
+              "stalking": "query.property('shaftbreaker:phase') == 'stalking'"
+            },
+            {
+              "watching": "query.property('shaftbreaker:phase') == 'watching'"
+            },
+            {
+              "frenzy": "query.property('shaftbreaker:phase') == 'frenzy'"
+            },
+            {
+              "breaker": "query.modified_move_speed < 0.03"
+            }
+          ],
+          "blend_transition": 0.3
         },
         "frenzy": {
           "animations": [
-            { "frenzy_idle": "variable.base_weight * (1.0 - variable.move_blend)" },
-            { "frenzy_run": "variable.base_weight * variable.move_blend" }
+            {
+              "frenzy_idle": "variable.base_weight * (1.0 - variable.move_blend)"
+            },
+            {
+              "frenzy_run": "variable.base_weight * variable.move_blend"
+            }
           ],
           "transitions": [
-            { "dormant": "query.property('shaftbreaker:phase') == 'dormant'" },
-            { "stalking": "query.property('shaftbreaker:phase') == 'stalking'" },
-            { "watching": "query.property('shaftbreaker:phase') == 'watching'" },
-            { "breaker": "query.property('shaftbreaker:phase') == 'breaker'" }
+            {
+              "dormant": "query.property('shaftbreaker:phase') == 'dormant'"
+            },
+            {
+              "stalking": "query.property('shaftbreaker:phase') == 'stalking'"
+            },
+            {
+              "watching": "query.property('shaftbreaker:phase') == 'watching'"
+            },
+            {
+              "breaker": "query.property('shaftbreaker:phase') == 'breaker'"
+            }
           ],
           "blend_transition": 0.5
         }
@@ -74,9 +155,11 @@
       "states": {
         "default": {
           "transitions": [
-            { "lunge": "variable.attack_time > 0.0" }
+            {
+              "lunge": "variable.attack_time > 0.0"
+            }
           ],
-          "blend_transition": 0.1
+          "blend_transition": 0.2
         },
         "lunge": {
           "animations": [
@@ -89,9 +172,11 @@
             "variable.lunging = 0.0;"
           ],
           "transitions": [
-            { "default": "query.all_animations_finished" }
+            {
+              "default": "query.all_animations_finished"
+            }
           ],
-          "blend_transition": 0.25
+          "blend_transition": 0.2
         }
       }
     }

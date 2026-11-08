@@ -55,34 +55,38 @@ function handPose(side, h) {
 // feet planted a little wider than the hips. Only uncanny micro-motion: an irregular, barely visible breath that the
 // head does NOT follow (it stays locked on its stare), two sharp 2-degree head jolts that creep back, sudden tiny
 // finger twitches (different hands, different fingers, never symmetric) and a faint rattle of the mane spikes.
+// Hands (dormant_hands.png): the palm is turned in toward the thigh (forearm -20 + wrist -42 deg of Y, mirrored on the
+// left) and every knuckle is bent a little more (-8..-12 / -13..-16), so the model's built-in claw hook, which curls
+// toward the palm, reads from the front as the art's inward-hooking cage. 12.5-13 deg of shoulder abduction keeps the
+// claw tips >= 2 units clear of the shins (thumb included) through the whole loop, twitches included.
 const D_LEN = 8.0;
 const D_FEET = {
   right: { ground: [-9.25, -0.5], yaw: 7 },
   left: { ground: [9, 0.25], yaw: -5 },
 };
 const D_HAND_R = {
-  upper: [-1.5, 0, 11],
-  lower: [-5, -16, 6],
-  hand: [7, -28, 3],
+  upper: [-1.5, 0, 12.5],
+  lower: [-5, -20, 5],
+  hand: [0, -42, 2],
   fingers: [
-    [[-3, 2, -2], [-4, 0, 0]],
-    [[-1, 0, -1], [-3, 0, 0]],
-    [[0, 0, 1], [-4, 0, 0]],
-    [[-3, -2, 3], [-5, 0, 0]],
+    [[-10, 2, -3], [-14, 0, 0]],
+    [[-9, 0, -1], [-13, 0, 0]],
+    [[-8, 0, 2], [-15, 0, 0]],
+    [[-11, -2, 5], [-16, 0, 0]],
   ],
-  thumb: [[-6, 0, -6], [-6, 0, 0]],
+  thumb: [[-12, 0, -6], [-10, 0, 0]],
 };
 const D_HAND_L = {
-  upper: [-1, 0, 11.5],
-  lower: [-6, -14, 5.5],
-  hand: [8, -30, 3],
+  upper: [-1, 0, 13],
+  lower: [-6, -18, 4.5],
+  hand: [1, -44, 2],
   fingers: [
-    [[-2, 2, -2], [-6, 0, 0]],
-    [[-2, 0, -1], [-2, 0, 0]],
-    [[1, 0, 1], [-5, 0, 0]],
-    [[-4, -2, 2], [-4, 0, 0]],
+    [[-9, 2, -3], [-15, 0, 0]],
+    [[-10, 0, -1], [-12, 0, 0]],
+    [[-7, 0, 2], [-16, 0, 0]],
+    [[-12, -2, 4], [-14, 0, 0]],
   ],
-  thumb: [[-7, 0, -6], [-5, 0, 0]],
+  thumb: [[-13, 0, -6], [-9, 0, 0]],
 };
 const D_BASE = {
   root: { position: [0, 0, 0] },
@@ -136,8 +140,8 @@ function dormantPose(t) {
     const r = shudder(t, L, 2.42, 0.45, 8, 0.9) + shudder(t, L, 5.82, 0.4, 9, 0.7);
     rot(P, m, m === 'mane_front' || m === 'mane_back' ? [r * s, 0, 0] : [0, 0, r * s]);
   }
-  // jaw: a tiny click shut on the first jolt (teeth grind), otherwise sealed
-  rot(P, 'jaw', [0.6 * pulse(t, L, 2.33, 0.05, 0.1, 0.25), 0, 0]);
+  // jaw: sealed (0.3 deg keeps catmullrom undershoot above the 0 deg jaw limit); a tiny grinding click with jolt 1
+  rot(P, 'jaw', [0.3 + 0.6 * pulse(t, L, 2.33, 0.05, 0.1, 0.25), 0, 0]);
 
   // --- finger twitches (sudden curl, slow release); never both hands at once
   const tw = (t0, a, h, r) => pulse(t, L, t0, a, h, r);
@@ -166,71 +170,100 @@ function dormantPose(t) {
 // ============================================================================================ LOOK_AT
 // Pure Molang additive layer (weight = variable.look_weight from the client entity: 0 in dormant, 1 elsewhere).
 // Signs follow vanilla look_at_target (rotation [target_x, target_y, 0] on the head): +target_x = look down
-// (+X pitches the head forward), +target_y = turn toward the creature's right (+Y). Clamped so the skull never
-// swings into the shoulder spikes; 35 % on the neck, 65 % on the head.
-const LOOK_PITCH = [-40, 35];
-const LOOK_YAW = 60;
+// (+X pitches the head forward), +target_y = turn toward the creature's right (+Y). Clamped (pitch -24..30, yaw +-50),
+// 35 % on the neck, 65 % on the head.
+// The tall stone collar sits round the skull, and every phase except dormant already holds the head tipped back over a
+// hunched chest, so looking UP or far to the SIDE would grind the skull into the spikes. Like a vulture, it cranes:
+//   * the neck slides up out of the collar (position in chest space, so "up" is up-and-forward when hunched):
+//     0.11 per degree of up-pitch + 0.065 per degree of yaw, capped at 5 units;
+//   * the side spikes flare away from the turning skull (0.22 deg per deg of yaw, <= 11 deg) and the back spikes lay
+//     back when it looks up (0.4 deg per deg, <= 9.6 deg).
+// Tested (tools/_scratch/anim_dormant/critic/lookeval.mjs) over watch, stalk_idle, frenzy_idle and breaker_smash at
+// 11 target directions incl. up+side corners: the worst skull-vs-collar overlap this layer ADDS is 0.7 units (stalk_idle,
+// 20 up + 40 side), versus 4 units with plain clamped rotations.
+const LOOK = { up: 24, down: 30, yaw: 50, neck: 0.35, liftUp: 0.11, liftYaw: 0.065, liftMax: 5, flareYaw: 0.22, layBack: 0.4 };
 function lookAt() {
-  const px = `math.clamp(query.target_x_rotation, ${LOOK_PITCH[0]}, ${LOOK_PITCH[1]})`;
-  const py = `math.clamp(query.target_y_rotation, ${-LOOK_YAW}, ${LOOK_YAW})`;
+  const L = LOOK;
+  const px = `math.clamp(query.target_x_rotation, ${-L.up}, ${L.down})`;
+  const py = `math.clamp(query.target_y_rotation, ${-L.yaw}, ${L.yaw})`;
+  const up = `math.max(0.0, -${px})`;
+  const ay = `math.abs(${py})`;
+  const hs = +(1 - L.neck).toFixed(2);
   return {
     loop: true,
     bones: {
-      neck: { rotation: [`${px} * 0.35`, `${py} * 0.35`, 0] },
-      head: { rotation: [`${px} * 0.65`, `${py} * 0.65`, 0] },
+      mane_back: { rotation: [`${up} * ${-L.layBack}`, 0, 0] },
+      mane_left: { rotation: [0, 0, `${ay} * ${L.flareYaw}`] },
+      mane_right: { rotation: [0, 0, `${ay} * ${-L.flareYaw}`] },
+      neck: {
+        rotation: [`${px} * ${L.neck}`, `${py} * ${L.neck}`, 0],
+        position: [0, `math.min(${up} * ${L.liftUp} + ${ay} * ${L.liftYaw}, ${L.liftMax})`, 0],
+      },
+      head: { rotation: [`${px} * ${hs}`, `${py} * ${hs}`, 0] },
     },
   };
 }
 
 // ============================================================================================ WATCH
-// "Observes from a distance, partly turned and on edge." Stance turned ~35 deg to its left, head and neck twisted back
-// to stare at the viewer with a slight tilt, weight on the left leg (left hip up, right hip dropped, right knee soft),
-// near-upright with a slight hunch. Tense claws that ripple and twitch, an occasional sharp bird-like head tilt that
+// "Observes from a distance, partly turned and on edge." Hips turned 40 deg to its left and the torso twisted 18 deg
+// further (shoulders ~58 deg, which is what watch_full.png shows from the front), head and neck twisted back to stare
+// straight at the viewer, weight on the left leg (left hip up, right hip dropped, right knee soft), near-upright with
+// a slight hunch (24 deg spread over body/waist/chest). The head is craned up and forward out of the collar (neck
+// position offset) so the face, both rows of teeth and the chin stay clear of the spikes (>= 1 unit through the loop);
+// its tilt (~15 deg toward its left) mostly comes from the twisted, leaning torso, so the head's own roll is small.
+// The arms hang plumb in the world (shoulder flexion cancels the hunch), the near claws >= 2.8 units off the shin. Tense claws that ripple and twitch, an occasional sharp bird-like head tilt that
 // bristles the mane, a quick glance, and a weight re-settle; quicker, shallower breathing than dormant.
 const W_LEN = 6.0;
-const W_ROOT_YAW = -30;
+const W_ROOT_YAW = -40;
 const yawXZ = (x, z, deg) => { const a = (deg * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a); return [c * x + s * z, -s * x + c * z]; };
-// feet given in the turned stance frame, rotated into entity space
+// stance-frame offset -> entity-space root position (root position is applied in the entity frame, before its yaw)
+const stancePos = (x, y, z) => { const [ex, ez] = yawXZ(x, z, W_ROOT_YAW); return [ex, y, ez]; };
+// feet given in the turned stance frame, rotated into entity space: left (weighted) under its hip, right (free) out
+// to the side and a little back, toes turned out
 const W_FEET = (() => {
-  const r = yawXZ(-9.5, -3.5, W_ROOT_YAW), l = yawXZ(6.25, 1.0, W_ROOT_YAW);
-  return { right: { ground: r, yaw: W_ROOT_YAW + 9 }, left: { ground: l, yaw: W_ROOT_YAW - 5 } };
+  const r = yawXZ(-11, 3.0, W_ROOT_YAW), l = yawXZ(5.75, 0.25, W_ROOT_YAW);
+  return { right: { ground: r, yaw: W_ROOT_YAW + 12 }, left: { ground: l, yaw: W_ROOT_YAW - 4 } };
 })();
-const W_HAND_R = { // near arm: hangs straight, a little behind, claws tense
-  upper: [3, 0, 5],
-  lower: [-8, -22, 2],
-  hand: [-6, -36, 2],
+const W_HAND_R = { // near arm: hangs plumb, just forward of the thigh, palm turned in, claws tense and hooked inward
+  upper: [-20, 0, 9.5],
+  lower: [-11, -22, 3],
+  hand: [-2, -36, 2],
   fingers: [
-    [[-20, 2, -3], [-22, 0, 0]],
-    [[-16, 0, -1], [-20, 0, 0]],
-    [[-14, 0, 2], [-19, 0, 0]],
-    [[-19, -2, 5], [-21, 0, 0]],
+    [[-9, 3, -4], [-12, 0, 0]],
+    [[-8, 0, -2], [-12, 0, 0]],
+    [[-7, 0, 2], [-13, 0, 0]],
+    [[-10, -3, 5], [-14, 0, 0]],
   ],
-  thumb: [[-14, 0, -8], [-16, 0, 0]],
+  thumb: [[-11, 0, -8], [-9, 0, 0]],
 };
-const W_HAND_L = { // far arm: hangs slightly forward, elbow softer
-  upper: [-9, 0, 6],
-  lower: [-14, -18, 2],
-  hand: [-8, -30, 1],
+const W_HAND_L = { // far arm: hangs plumb a little further forward, elbow softer
+  upper: [-24, 0, 8.5],
+  lower: [-16, -18, 3],
+  hand: [0, -36, 2],
   fingers: [
-    [[-18, 2, -2], [-24, 0, 0]],
-    [[-17, 0, -1], [-19, 0, 0]],
-    [[-13, 0, 1], [-20, 0, 0]],
-    [[-20, -2, 4], [-18, 0, 0]],
+    [[-10, 3, -3], [-13, 0, 0]],
+    [[-8, 0, -1], [-11, 0, 0]],
+    [[-6, 0, 2], [-14, 0, 0]],
+    [[-11, -3, 4], [-12, 0, 0]],
   ],
-  thumb: [[-15, 0, -8], [-14, 0, 0]],
+  thumb: [[-12, 0, -8], [-8, 0, 0]],
 };
 const W_BASE = {
-  root: { rotation: [0, W_ROOT_YAW, 0], position: [1.0, 0, 0] },
-  body: { rotation: [3, -3, -4], position: [0, -1.0, 0] },
-  waist: { rotation: [3, -2, 2] },
-  chest: { rotation: [5, -3, 3.5], position: [0, 0, 0] },
-  neck: { rotation: [16, 15, 1] },
-  head: { rotation: [-13, 23, 8] },
-  jaw: { rotation: [0, 0, 0] },
-  mane_front: { rotation: [0, 0, 0] },
-  mane_back: { rotation: [0, 0, 0] },
-  mane_left: { rotation: [0, 0, 0] },
-  mane_right: { rotation: [0, 0, 0] },
+  // pelvis shifted over the left (weighted) foot, along the turned stance's left axis
+  root: { rotation: [0, W_ROOT_YAW, 0], position: stancePos(1.3, 0, 0) },
+  body: { rotation: [5, -5, -4], position: [0, -1.2, 0] },
+  waist: { rotation: [5, -6, 2] },
+  chest: { rotation: [14, -7, 4], position: [0, 0, 0] },
+  // the head is craned up and forward OUT of the collar (stone neck vertebrae slide: position offset), turned back
+  // toward the viewer: total face yaw ~0 (root -40, torso -18, neck +21, head +37)
+  neck: { rotation: [12, 21, -3], position: [0, 1.6, -1.6] },
+  head: { rotation: [-25, 37, -7] },
+  jaw: { rotation: [0.4, 0, 0] },
+  // on edge: the collar spikes stand slightly raised the whole time
+  mane_front: { rotation: [-2, 0, 0] },
+  mane_back: { rotation: [-3, 0, 0] },
+  mane_left: { rotation: [0, 0, 4] },
+  mane_right: { rotation: [0, 0, -4] },
   ...handPose('right', W_HAND_R),
   ...handPose('left', W_HAND_L),
 };
@@ -256,7 +289,7 @@ function watchPose(t) {
 
   // --- weight re-settle (t 3.0): it eases a little more onto the left leg, then drifts back (feet stay planted)
   const ws = pulse(t, L, 2.9, 0.7, 0.6, 1.5, smooth, smoother);
-  pos(P, 'root', [0.6 * ws, -0.25 * ws, 0]);
+  pos(P, 'root', stancePos(0.6 * ws, -0.25 * ws, 0));
   rot(P, 'body', [0, 0, -1.2 * ws]);
   rot(P, 'chest', [0, 0, 0.8 * ws]);
   rot(P, 'arm_right_upper', [0, 0, 0.6 * pulse(t, L, 3.05, 0.8, 0.5, 1.5, smooth, smoother)]);
@@ -268,8 +301,9 @@ function watchPose(t) {
   const tiltN = pulse(t, L, 1.6, 0.16, 0.7, 0.85);
   rot(P, 'neck', [0, 1.5 * tiltN, 2.5 * tiltN]);
   const bristle = pulse(t, L, 1.62, 0.12, 0.6, 1.3);
-  rot(P, 'mane_left', [0, 0, -5 * bristle]);
-  rot(P, 'mane_right', [0, 0, 5 * bristle]);
+  // side spikes splay AWAY from the skull (left +Z / right -Z), back and front spikes rise
+  rot(P, 'mane_left', [0, 0, 2.5 * bristle]);
+  rot(P, 'mane_right', [0, 0, -2.5 * bristle]);
   rot(P, 'mane_back', [-4 * bristle, 0, 0]);
   rot(P, 'mane_front', [-3 * bristle, 0, 0]);
   rot(P, 'chest', [-0.6 * pulse(t, L, 1.6, 0.15, 0.3, 0.9), 0, 0]);

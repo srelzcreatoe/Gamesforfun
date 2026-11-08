@@ -1,0 +1,17 @@
+{
+  "fps": 30,
+  "width": 1280,
+  "height": 720,
+  "segments": [
+    { "mode": "edit", "duration": 6, "orbit": { "degrees": [-35, 325], "radius": 175, "height": 58, "target": [0, 44, 0] } },
+    { "mode": "edit", "duration": 2.5, "viewFrom": "threequarter", "viewTo": "face" },
+    { "mode": "animate", "anim": "animation.shaftbreaker.dormant", "duration": 3.5, "timeFrom": 1.0, "viewFrom": "front", "viewTo": "threequarter" },
+    { "mode": "animate", "anim": "animation.shaftbreaker.stalk_idle", "duration": 3.5, "timeFrom": 0.5, "viewFrom": "threequarter", "viewTo": "right" },
+    { "mode": "animate", "anim": "animation.shaftbreaker.stalk_walk", "duration": 3.04, "speed": 1.45, "loopLength": 2.2, "viewFrom": "right", "viewTo": "right" },
+    { "mode": "animate", "anim": "animation.shaftbreaker.watch", "duration": 3, "timeFrom": 0.5, "viewFrom": "front", "viewTo": "threequarter_left" },
+    { "mode": "animate", "anim": "animation.shaftbreaker.breaker_smash", "duration": 3.6, "loopLength": 1.8, "viewFrom": "threequarter_left", "viewTo": "left" },
+    { "mode": "animate", "anim": "animation.shaftbreaker.frenzy_idle", "duration": 2.5, "viewFrom": "threequarter", "viewTo": "threequarter" },
+    { "mode": "animate", "anim": "animation.shaftbreaker.frenzy_run", "duration": 2.2, "speed": 6.0, "loopLength": 13.2, "viewFrom": "right", "viewTo": "right" },
+    { "mode": "animate", "anim": "animation.shaftbreaker.frenzy_lunge", "duration": 1.8, "loopLength": 0.9, "viewFrom": "threequarter", "viewTo": "threequarter" }
+  ]
+}

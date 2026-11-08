@@ -52,11 +52,11 @@ sb.init = async (config) => {
     width: 1024, height: 768, background: 'studio', scale: 0.58, bloom: false, fov: 35, glow: 1.0,
     emissive: true, exposure: 1.0, ...config,
   };
-  renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer = new THREE.WebGLRenderer({ antialias: cfg.antialias ?? true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(1);
   renderer.setSize(cfg.width, cfg.height);
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = cfg.softShadows === false ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = cfg.background === 'mine' ? THREE.ACESFilmicToneMapping : THREE.NoToneMapping;
   renderer.toneMappingExposure = cfg.exposure;
@@ -266,7 +266,7 @@ function buildMine() {
   key.position.set(-1.5 * BLOCK, 5.4 * BLOCK, -7 * BLOCK);
   key.target.position.set(0, 1.6 * BLOCK, 0);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.mapSize.set(cfg.shadowSize ?? 2048, cfg.shadowSize ?? 2048);
   key.shadow.bias = -0.0004;
   key.shadow.normalBias = 0.6;
   scene.add(key, key.target);

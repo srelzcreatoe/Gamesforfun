@@ -191,3 +191,90 @@ export function bake(len, n, poseFn, tol = {}) {
   }
   return out;
 }
+
+// ------------------------------------------------------------------------------------------- arm IK
+const norm3 = (v) => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
+const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross3 = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+export { norm3, dot3, cross3 };
+
+// World pivot of a bone (entity file space) for the pose: walks the chain root -> bone using rest pivots,
+// animation position offsets (in the parent's frame) and rotations.
+const boneDef = new Map(rig.geo.bones.map((b) => [b.name, b]));
+export function chainOf(bone) {
+  const out = [];
+  for (let b = boneDef.get(bone); b; b = b.parent ? boneDef.get(b.parent) : null) out.unshift(b.name);
+  return out;
+}
+export function boneFrame(pose, bone) {
+  // returns { R: world rotation of the bone, p: world pivot }
+  let R = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+  let p = [0, 0, 0];
+  let prevPivot = [0, 0, 0];
+  for (const name of chainOf(bone)) {
+    const d = boneDef.get(name);
+    const local = add3(sub3(d.pivot, prevPivot), pose.getPos(name));
+    p = add3(p, mulv3(R, local));
+    R = mul3(R, boneRotation(pose.getRot(name)));
+    prevPivot = d.pivot;
+  }
+  return { R, p };
+}
+
+// Two-bone arm IK: puts the wrist (hand pivot) of `side` at world position `wrist`, elbow pointing toward `pole`
+// (world direction, e.g. back/out). Writes arm_<side>_upper (rotation; keeps its position offset) and
+// arm_<side>_lower (elbow flexion, always <= 0). Returns { elbowX, upper, elbow (world), reach }.
+export function setArm(pose, side, wrist, pole) {
+  const up = `arm_${side}_upper`, lo = `arm_${side}_lower`, hd = `hand_${side}`;
+  const a = Math.hypot(...sub3(boneDef.get(lo).pivot, boneDef.get(up).pivot));
+  const b = Math.hypot(...sub3(boneDef.get(hd).pivot, boneDef.get(lo).pivot));
+  pose.setRot(up, [0, 0, 0]);
+  const parent = boneFrame(pose, boneDef.get(up).parent);
+  const S = boneFrame(pose, up).p;
+  let D = sub3(wrist, S);
+  let d = Math.hypot(...D);
+  const u = norm3(D);
+  // soft reach limit: targets beyond ~88 % of the arm length are eased toward 98.5 % (tanh, C1-continuous), so the
+  // elbow never snaps straight (the IK singularity) and always keeps a slight bend (>= ~20 deg)
+  const knee = 0.88 * (a + b), dMax = 0.985 * (a + b);
+  if (d > knee) d = knee + (dMax - knee) * Math.tanh((d - knee) / (dMax - knee));
+  d = clamp(d, Math.abs(a - b) + 1e-6, a + b - 1e-6);
+  const cosA = clamp((a * a + d * d - b * b) / (2 * a * d), -1, 1);
+  const alpha = Math.acos(cosA);
+  const cosE = clamp((a * a + b * b - d * d) / (2 * a * b), -1, 1);
+  const flex = Math.PI - Math.acos(cosE); // elbow flexion (rad)
+  let pp = sub3(pole, scale3(u, dot3(pole, u)));
+  pp = norm3(pp);
+  const dir1 = add3(scale3(u, Math.cos(alpha)), scale3(pp, Math.sin(alpha)));
+  const E = add3(S, scale3(dir1, a));
+  const dir2 = norm3(sub3(add3(S, scale3(u, d)), E));
+  let f = sub3(dir2, scale3(dir1, dot3(dir2, dir1)));
+  f = Math.hypot(...f) < 1e-6 ? scale3(pp, -1) : norm3(f);
+  const Y = scale3(dir1, -1), Z = scale3(f, -1), X = cross3(Y, Z);
+  const Rw = [X[0], Y[0], Z[0], X[1], Y[1], Z[1], X[2], Y[2], Z[2]];
+  const local = eulerFromMatrix(mul3(transpose3(parent.R), Rw));
+  pose.setRot(up, local);
+  pose.setRot(lo, [-flex / DEG, 0, 0]);
+  return { upper: local, elbowX: -flex / DEG, elbow: E, reach: d };
+}
+
+// Hand rotation = twist about its own long axis first, then wrist flexion/extension and side bend in the forearm
+// frame: R = Rz(side) · Rx(flex) · Ry(twist) (Bedrock degrees), converted to Bedrock Z·Y·X euler.
+export function handRot(flex, twist, sideBend = 0) {
+  return eulerFromMatrix(mul3(mul3(boneRotation([0, 0, sideBend]), boneRotation([flex, 0, 0])), boneRotation([0, twist, 0])));
+}
+
+// JSON with objects indented but number arrays kept on one line (keeps the animation file compact and diff-able).
+export function stringifyCompact(value, indent = '') {
+  const next = indent + '  ';
+  if (Array.isArray(value)) {
+    if (value.every((v) => typeof v !== 'object' || v === null)) return '[' + value.map((v) => JSON.stringify(v)).join(', ') + ']';
+    return '[\n' + value.map((v) => next + stringifyCompact(v, next)).join(',\n') + '\n' + indent + ']';
+  }
+  if (value && typeof value === 'object') {
+    const ents = Object.entries(value);
+    if (!ents.length) return '{}';
+    return '{\n' + ents.map(([k, v]) => next + JSON.stringify(k) + ': ' + stringifyCompact(v, next)).join(',\n') + '\n' + indent + '}';
+  }
+  return JSON.stringify(value);
+}

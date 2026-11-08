@@ -271,10 +271,13 @@ async function cmdVideo() {
   const v = await openViewer(baseInit({ width: W, height: H, background: plan.background || 'mine', bloom: plan.bloom ?? true, fov: plan.fov || 35, exposure: plan.exposure || 1.0, glow: plan.glow || 1.0, bloomStrength: plan.bloomStrength, bloomThreshold: plan.bloomThreshold, ...(plan.lights || {}) }));
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sbvid-'));
   let frame = 0, life = 0;
-  const only = args.shot !== undefined ? Number(args.shot) : null;
+  // --shot N or --shots 0-7,16 renders a subset (for parallel rendering; concat the parts afterwards)
+  const sel = args.shots !== undefined || args.shot !== undefined
+    ? new Set(String(args.shots ?? args.shot).split(',').flatMap((r) => { const [a, b] = r.split('-').map(Number); return Array.from({ length: (b ?? a) - a + 1 }, (_, i) => a + i); }))
+    : null;
   for (let si = 0; si < plan.shots.length; si++) {
     const shot = plan.shots[si];
-    if (only !== null && only !== si) continue;
+    if (sel && !sel.has(si)) continue;
     const prev = plan.shots[si - 1];
     await v.page.evaluate(() => window.sb.resetEvents());
     const nF = Math.round(shot.duration * fps);
@@ -323,7 +326,8 @@ async function cmdVideo() {
   fs.mkdirSync(path.dirname(out), { recursive: true });
   // fades via ffmpeg fade filters (first 0.8 s in, last 1 s out)
   const total = frame / fps;
-  const vf = [`fade=t=in:st=0:d=0.8`, `fade=t=out:st=${Math.max(0, total - 1).toFixed(2)}:d=1`].join(',');
+  const fadeInOn = !sel || sel.has(0), fadeOutOn = !sel || sel.has(plan.shots.length - 1);
+  const vf = [fadeInOn && `fade=t=in:st=0:d=0.8`, fadeOutOn && `fade=t=out:st=${Math.max(0, total - 1).toFixed(2)}:d=1`].filter(Boolean).join(',') || 'null';
   const ff = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(fps), '-i', path.join(tmp, 'f%05d.jpg'), '-vf', vf, '-c:v', 'libx264', '-preset', 'slow', '-crf', String(args.crf || 18), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out], { stdio: 'inherit' });
   if (ff.status !== 0) throw new Error('ffmpeg failed');
   console.log('wrote', out);

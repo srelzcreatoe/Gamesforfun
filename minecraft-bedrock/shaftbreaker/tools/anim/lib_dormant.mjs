@@ -206,10 +206,23 @@ export function bakeAnimation(poseFn, opts) {
   return { loop, animation_length: length, ...(opts.extra || {}), bones };
 }
 
+// JSON with tab indentation, but vectors and single keyframes kept on one line (readable diffs, small files)
+function fmt(v, ind = '') {
+  const inline = (x) => Array.isArray(x) || (x && typeof x === 'object' && 'post' in x && Object.values(x).every((y) => typeof y !== 'object' || Array.isArray(y)));
+  if (v === null || typeof v !== 'object') return JSON.stringify(v);
+  if (inline(v)) return JSON.stringify(v).replace(/,(?=\S)/g, ', ').replace(/":/g, '": ');
+  const ents = Object.entries(v);
+  if (!ents.length) return '{}';
+  const ni = ind + '\t';
+  return '{\n' + ents.map(([k, x]) => `${ni}${JSON.stringify(k)}: ${fmt(x, ni)}`).join(',\n') + '\n' + ind + '}';
+}
+
 export function writeAnimationFile(file, animations) {
   const json = { format_version: '1.8.0', animations };
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, JSON.stringify(json, null, '\t') + '\n');
+  const text = fmt(json) + '\n';
+  JSON.parse(text); // sanity
+  fs.writeFileSync(file, text);
   return file;
 }
 
