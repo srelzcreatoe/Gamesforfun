@@ -1,0 +1,29 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "shaftbreaker:veinstone"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "ingredients": [
+      {
+        "item": "minecraft:cobblestone",
+        "count": 4
+      },
+      {
+        "item": "shaftbreaker:veinstone_shard"
+      }
+    ],
+    "unlock": [
+      {
+        "item": "shaftbreaker:veinstone_shard"
+      }
+    ],
+    "result": {
+      "item": "shaftbreaker:veinstone",
+      "count": 4
+    }
+  }
+}

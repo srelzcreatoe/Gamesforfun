@@ -1,0 +1,64 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "The Shaftbreaker - Behavior",
+    "description": "pack.description",
+    "uuid": "c8375b78-611e-40f8-abe4-05865e1b5a12",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      130
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "b9ab5ba0-c21d-4da4-b128-9e754b302294",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "b3ac5cec-ca19-49e1-ab89-395443db618a",
+      "version": [
+        1,
+        0,
+        0
+      ],
+      "entry": "scripts/main.js"
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "d368cde3-cba8-47b6-aa40-4d1297ffdb5e",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.4.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "2.0.0"
+    }
+  ],
+  "metadata": {
+    "authors": [
+      "Shaftbreaker add-on"
+    ],
+    "product_type": "addon"
+  }
+}

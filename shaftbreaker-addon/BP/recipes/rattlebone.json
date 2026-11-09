@@ -1,0 +1,29 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "shaftbreaker:rattlebone"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "ingredients": [
+      {
+        "item": "minecraft:bone",
+        "count": 2
+      },
+      {
+        "item": "minecraft:string"
+      }
+    ],
+    "unlock": [
+      {
+        "item": "minecraft:bone"
+      }
+    ],
+    "result": {
+      "item": "shaftbreaker:rattlebone",
+      "count": 2
+    }
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "shaftbreaker:scored_stone",
+      "menu_category": {
+        "category": "nature"
+      },
+      "states": {
+        "shaftbreaker:pattern": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    "components": {
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "shaftbreaker_scored_stone_0",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.5
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 6
+      },
+      "minecraft:map_color": "#7a7474",
+      "minecraft:loot": "loot_tables/blocks/scored_stone.json",
+      "tag:stone": {},
+      "tag:shaftbreaker_solid": {},
+      "tag:minecraft:is_pickaxe_item_destructible": {}
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('shaftbreaker:pattern') == 1",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "shaftbreaker_scored_stone_1",
+              "render_method": "opaque"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('shaftbreaker:pattern') == 2",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "shaftbreaker_scored_stone_2",
+              "render_method": "opaque"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('shaftbreaker:pattern') == 3",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "shaftbreaker_scored_stone_3",
+              "render_method": "opaque"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

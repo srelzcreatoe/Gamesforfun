@@ -1,0 +1,22 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:item": {
+    "description": {
+      "identifier": "shaftbreaker:field_journal",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "shaftbreaker_field_journal",
+      "minecraft:max_stack_size": 1,
+      "minecraft:display_name": {
+        "value": "item.shaftbreaker.field_journal.name"
+      },
+      "minecraft:cooldown": {
+        "category": "shaftbreaker_menu",
+        "duration": 0.5
+      }
+    }
+  }
+}

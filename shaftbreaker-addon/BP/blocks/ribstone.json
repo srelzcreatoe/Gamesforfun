@@ -1,0 +1,37 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "shaftbreaker:ribstone",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "shaftbreaker_ribstone_side",
+          "render_method": "opaque"
+        },
+        "up": {
+          "texture": "shaftbreaker_ribstone_top",
+          "render_method": "opaque"
+        },
+        "down": {
+          "texture": "shaftbreaker_ribstone_top",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 2.0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 6
+      },
+      "minecraft:map_color": "#cfc3a5",
+      "tag:shaftbreaker_solid": {},
+      "tag:minecraft:is_pickaxe_item_destructible": {},
+      "tag:stone": {}
+    }
+  }
+}

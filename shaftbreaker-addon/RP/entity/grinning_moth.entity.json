@@ -1,0 +1,38 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "shaftbreaker:grinning_moth",
+      "materials": {
+        "default": "entity_emissive_alpha",
+        "wings": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/grinning_moth"
+      },
+      "geometry": {
+        "default": "geometry.shaftbreaker.grinning_moth"
+      },
+      "scripts": {
+        "scale": "0.9",
+        "animate": [
+          "wings",
+          "look"
+        ]
+      },
+      "animations": {
+        "flap": "animation.grinning_moth.flap",
+        "perch": "animation.grinning_moth.perch",
+        "look": "animation.grinning_moth.look",
+        "wings": "controller.animation.grinning_moth.wings"
+      },
+      "render_controllers": [
+        "controller.render.grinning_moth"
+      ],
+      "spawn_egg": {
+        "base_color": "#4a3c34",
+        "overlay_color": "#e6d8c0"
+      }
+    }
+  }
+}

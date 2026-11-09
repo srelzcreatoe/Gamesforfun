@@ -1,0 +1,74 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "shaftbreaker:bloodmoss_carpet",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "geometry.shaftbreaker.carpet",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "shaftbreaker_bloodmoss",
+          "render_method": "opaque"
+        },
+        "up": {
+          "texture": "shaftbreaker_bloodmoss",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.1
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0.5
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:map_color": "#5a1418",
+      "minecraft:collision_box": {
+        "origin": [
+          -8,
+          0,
+          -8
+        ],
+        "size": [
+          16,
+          1,
+          16
+        ]
+      },
+      "minecraft:selection_box": {
+        "origin": [
+          -8,
+          0,
+          -8
+        ],
+        "size": [
+          16,
+          1,
+          16
+        ]
+      },
+      "minecraft:placement_filter": {
+        "conditions": [
+          {
+            "allowed_faces": [
+              "up"
+            ],
+            "block_filter": [
+              {
+                "tags": "q.any_tag('stone', 'dirt', 'minecraft:is_pickaxe_item_destructible', 'minecraft:is_shovel_item_destructible', 'shaftbreaker_solid')"
+              }
+            ]
+          }
+        ]
+      },
+      "minecraft:flammable": {
+        "catch_chance_modifier": 30,
+        "destroy_chance_modifier": 60
+      }
+    }
+  }
+}

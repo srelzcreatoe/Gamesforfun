@@ -1,0 +1,81 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "shaftbreaker:bloodroot_vines",
+      "menu_category": {
+        "category": "nature"
+      },
+      "states": {
+        "shaftbreaker:end": [
+          false,
+          true
+        ]
+      }
+    },
+    "components": {
+      "minecraft:geometry": "geometry.shaftbreaker.cross",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "shaftbreaker_bloodroot_vines",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.2
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0.5
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:map_color": "#5a0f12",
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -5,
+          0,
+          -5
+        ],
+        "size": [
+          10,
+          16,
+          10
+        ]
+      },
+      "minecraft:placement_filter": {
+        "conditions": [
+          {
+            "allowed_faces": [
+              "down"
+            ],
+            "block_filter": [
+              {
+                "tags": "q.any_tag('stone', 'dirt', 'minecraft:is_pickaxe_item_destructible', 'minecraft:is_shovel_item_destructible', 'shaftbreaker_solid')"
+              },
+              "shaftbreaker:bloodroot_vines"
+            ]
+          }
+        ]
+      },
+      "minecraft:loot": "loot_tables/blocks/empty.json",
+      "minecraft:flammable": {
+        "catch_chance_modifier": 30,
+        "destroy_chance_modifier": 60
+      },
+      "tag:shaftbreaker_hanging": {}
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('shaftbreaker:end')",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "shaftbreaker_bloodroot_vines_end",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,1096 @@
+{
+  "format_version": "1.20.20",
+  "sound_definitions": {
+    "shaftbreaker.step": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 28,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/step1",
+          "volume": 0.9,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/step2",
+          "volume": 0.9,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/step3",
+          "volume": 0.9,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/step4",
+          "volume": 0.9,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.step_wet": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 24,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/step_wet1",
+          "volume": 0.9,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/step_wet2",
+          "volume": 0.9,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.scrape": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 40,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/scrape1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/scrape2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/scrape3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.smash": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 48,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/smash1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/smash2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/smash3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.screech": {
+      "category": "hostile",
+      "min_distance": 4,
+      "max_distance": 96,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/screech1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/screech2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/screech3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.scream_far": {
+      "category": "hostile",
+      "min_distance": 24,
+      "max_distance": 128,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/scream_far1",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/scream_far2",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.growl": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 24,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/growl1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/growl2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/growl3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.attack_snarl": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 24,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/growl1",
+          "volume": 0.7,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/growl2",
+          "volume": 0.7,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/growl3",
+          "volume": 0.7,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/click1",
+          "volume": 0.7,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/click2",
+          "volume": 0.7,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/click3",
+          "volume": 0.7,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/click4",
+          "volume": 0.7,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.breath": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 12,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/breath1",
+          "volume": 0.9,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/breath2",
+          "volume": 0.9,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/breath3",
+          "volume": 0.9,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/breath4",
+          "volume": 0.9,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.click": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 20,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/click1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/click2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/click3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/click4",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.hurt": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 32,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/hurt1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/hurt2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/hurt3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.death": {
+      "category": "hostile",
+      "min_distance": 8,
+      "max_distance": 96,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/death1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.whisper": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 10,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/whisper1",
+          "volume": 0.7,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/whisper2",
+          "volume": 0.7,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/whisper3",
+          "volume": 0.7,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/whisper4",
+          "volume": 0.7,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.knock": {
+      "category": "hostile",
+      "min_distance": 4,
+      "max_distance": 56,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/knock1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/knock2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/knock3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.vanish": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 24,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/vanish1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/vanish2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.appear": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 20,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/appear1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.crawl": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 28,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/crawl1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/crawl2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/crawl3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.climb": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 28,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/climb1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/climb2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.move_far": {
+      "category": "hostile",
+      "min_distance": 6,
+      "max_distance": 64,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/move_far1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/move_far2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/move_far3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/mob/move_far4",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.jaw": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 16,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/mob/jaw_open1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.heartbeat.slow": {
+      "category": "player",
+      "min_distance": 64,
+      "max_distance": 128,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/player/heartbeat_slow",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.heartbeat.med": {
+      "category": "player",
+      "min_distance": 64,
+      "max_distance": 128,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/player/heartbeat_med",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.heartbeat.fast": {
+      "category": "player",
+      "min_distance": 64,
+      "max_distance": 128,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/player/heartbeat_fast",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.spotted": {
+      "category": "hostile",
+      "min_distance": 64,
+      "max_distance": 128,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/player/spotted1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/player/spotted2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/player/spotted3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.tinnitus": {
+      "category": "player",
+      "min_distance": 64,
+      "max_distance": 128,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/player/tinnitus1",
+          "volume": 0.6,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.pressure": {
+      "category": "hostile",
+      "min_distance": 64,
+      "max_distance": 128,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/player/pressure1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.rumble": {
+      "category": "ambient",
+      "min_distance": 16,
+      "max_distance": 96,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/player/rumble1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/player/rumble2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/player/rumble3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.drip": {
+      "category": "ambient",
+      "min_distance": 2,
+      "max_distance": 24,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/player/drip1",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/player/drip2",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/player/drip3",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/player/drip4",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.ambience": {
+      "category": "ambient",
+      "min_distance": 64,
+      "max_distance": 128,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/player/ambience1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        },
+        {
+          "name": "sounds/shaftbreaker/player/ambience2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        },
+        {
+          "name": "sounds/shaftbreaker/player/ambience3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        },
+        {
+          "name": "sounds/shaftbreaker/player/ambience4",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        },
+        {
+          "name": "sounds/shaftbreaker/player/ambience5",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        }
+      ]
+    },
+    "shaftbreaker.territory": {
+      "category": "ambient",
+      "min_distance": 64,
+      "max_distance": 128,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/player/territory1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        },
+        {
+          "name": "sounds/shaftbreaker/player/territory2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        },
+        {
+          "name": "sounds/shaftbreaker/player/territory3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        },
+        {
+          "name": "sounds/shaftbreaker/player/territory4",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        }
+      ]
+    },
+    "shaftbreaker.block.organ_pulse": {
+      "category": "block",
+      "min_distance": 1.0,
+      "max_distance": 20,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/block/organ_pulse1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/block/organ_pulse2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.block.organ_burst": {
+      "category": "block",
+      "min_distance": 1.0,
+      "max_distance": 32,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/block/organ_burst1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.block.pod_open": {
+      "category": "block",
+      "min_distance": 1.0,
+      "max_distance": 20,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/block/pod_open1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.block.flesh_break": {
+      "category": "block",
+      "min_distance": 1.0,
+      "max_distance": 16,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/block/flesh_break1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/block/flesh_break2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/block/flesh_break3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.block.flesh_step": {
+      "category": "block",
+      "min_distance": 1.0,
+      "max_distance": 12,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/block/flesh_step1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/block/flesh_step2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/block/flesh_step3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.block.chime": {
+      "category": "block",
+      "min_distance": 2,
+      "max_distance": 48,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/block/chime1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/block/chime2",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.moth.flutter": {
+      "category": "neutral",
+      "min_distance": 1.0,
+      "max_distance": 12,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/moth/flutter1",
+          "volume": 0.6,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/moth/flutter2",
+          "volume": 0.6,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/moth/flutter3",
+          "volume": 0.6,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.moth.giggle": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 16,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/moth/giggle1",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/moth/giggle2",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        },
+        {
+          "name": "sounds/shaftbreaker/moth/giggle3",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.moth.death": {
+      "category": "neutral",
+      "min_distance": 1.0,
+      "max_distance": 12,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/moth/death1",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": false
+        }
+      ]
+    },
+    "shaftbreaker.music.stalk": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/music/stalk",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        }
+      ]
+    },
+    "shaftbreaker.sfx_music.stalk": {
+      "category": "hostile",
+      "min_distance": 100,
+      "max_distance": 200,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/music/stalk",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        }
+      ]
+    },
+    "shaftbreaker.music.encounter": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/music/encounter",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        }
+      ]
+    },
+    "shaftbreaker.sfx_music.encounter": {
+      "category": "hostile",
+      "min_distance": 100,
+      "max_distance": 200,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/music/encounter",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        }
+      ]
+    },
+    "shaftbreaker.music.chase": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/music/chase",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        }
+      ]
+    },
+    "shaftbreaker.sfx_music.chase": {
+      "category": "hostile",
+      "min_distance": 100,
+      "max_distance": 200,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/music/chase",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        }
+      ]
+    },
+    "shaftbreaker.music.final": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/music/final",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        }
+      ]
+    },
+    "shaftbreaker.sfx_music.final": {
+      "category": "hostile",
+      "min_distance": 100,
+      "max_distance": 200,
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/music/final",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "load_on_low_memory": true,
+          "stream": true
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "shaftbreaker:phantom",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "concealed": "textures/entity/shaftbreaker_concealed",
+        "default": "textures/entity/shaftbreaker",
+        "enraged": "textures/entity/shaftbreaker_enraged"
+      },
+      "geometry": {
+        "default": "geometry.shaftbreaker"
+      },
+      "scripts": {
+        "scale": "0.56",
+        "initialize": [
+          "variable.move_blend = 0.0;",
+          "variable.attacking = 0.0;",
+          "variable.attack_w = 0.0;",
+          "variable.base_weight = 1.0;"
+        ],
+        "pre_animation": [
+          "variable.move_blend = math.lerp(variable.move_blend, math.clamp(query.modified_move_speed * 4.0, 0.0, 1.0), 0.18);",
+          "variable.attack_w = math.lerp(variable.attack_w, variable.attacking, 0.3);"
+        ],
+        "animate": [
+          "main",
+          "look",
+          "tilt",
+          "appear_ctrl"
+        ]
+      },
+      "animations": {
+        "look_at": "animation.shaftbreaker.look_at",
+        "stalk_idle": "animation.shaftbreaker.stalk_idle",
+        "watch": "animation.shaftbreaker.watch",
+        "peek_left": "animation.shaftbreaker.peek_left",
+        "peek_right": "animation.shaftbreaker.peek_right",
+        "vanish": "animation.shaftbreaker.vanish",
+        "appear": "animation.shaftbreaker.appear",
+        "head_tilt": "animation.shaftbreaker.head_tilt",
+        "jaw_chatter": "animation.shaftbreaker.jaw_chatter",
+        "twitch": "animation.shaftbreaker.twitch",
+        "main": "controller.animation.shaftbreaker.phantom",
+        "tilt": "controller.animation.shaftbreaker.tilt",
+        "look": "controller.animation.shaftbreaker.look",
+        "appear_ctrl": "controller.animation.shaftbreaker.appear"
+      },
+      "render_controllers": [
+        "controller.render.shaftbreaker"
+      ],
+      "enable_attachables": false
+    }
+  }
+}

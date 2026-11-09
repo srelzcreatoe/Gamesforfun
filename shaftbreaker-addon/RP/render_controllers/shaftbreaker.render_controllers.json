@@ -1,0 +1,53 @@
+{
+  "format_version": "1.10.0",
+  "render_controllers": {
+    "controller.render.shaftbreaker": {
+      "arrays": {
+        "textures": {
+          "Array.skins": [
+            "Texture.concealed",
+            "Texture.default",
+            "Texture.enraged"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.skins[query.property('shaftbreaker:eyes')]"
+      ]
+    },
+    "controller.render.grinning_moth": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        },
+        {
+          "wing*": "Material.wings"
+        },
+        {
+          "antenna*": "Material.wings"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ]
+    },
+    "controller.render.shaftbreaker_empty": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ]
+    }
+  }
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "flipbook_texture": "textures/blocks/pulsing_flesh",
+    "atlas_tile": "shaftbreaker_pulsing_flesh",
+    "ticks_per_frame": 5,
+    "blend_frames": true
+  },
+  {
+    "flipbook_texture": "textures/blocks/organ_core",
+    "atlas_tile": "shaftbreaker_organ_core",
+    "ticks_per_frame": 4,
+    "blend_frames": true
+  },
+  {
+    "flipbook_texture": "textures/blocks/dwelling_heart",
+    "atlas_tile": "shaftbreaker_dwelling_heart",
+    "ticks_per_frame": 3,
+    "blend_frames": true
+  }
+]

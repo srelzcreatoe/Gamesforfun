@@ -1,0 +1,33 @@
+{
+  "resource_pack_name": "shaftbreaker",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "shaftbreaker_config_wheel": {
+      "textures": "textures/items/config_wheel"
+    },
+    "shaftbreaker_field_journal": {
+      "textures": "textures/items/field_journal"
+    },
+    "shaftbreaker_glowspore_flare": {
+      "textures": "textures/items/glowspore_flare"
+    },
+    "shaftbreaker_moth_dust": {
+      "textures": "textures/items/moth_dust"
+    },
+    "shaftbreaker_organ_muffler": {
+      "textures": "textures/items/organ_muffler"
+    },
+    "shaftbreaker_organ_tissue": {
+      "textures": "textures/items/organ_tissue"
+    },
+    "shaftbreaker_rattlebone": {
+      "textures": "textures/items/rattlebone"
+    },
+    "shaftbreaker_shaftbreaker_claw": {
+      "textures": "textures/items/shaftbreaker_claw"
+    },
+    "shaftbreaker_veinstone_shard": {
+      "textures": "textures/items/veinstone_shard"
+    }
+  }
+}

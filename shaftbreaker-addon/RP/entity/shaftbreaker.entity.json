@@ -1,0 +1,104 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "shaftbreaker:shaftbreaker",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "concealed": "textures/entity/shaftbreaker_concealed",
+        "default": "textures/entity/shaftbreaker",
+        "enraged": "textures/entity/shaftbreaker_enraged"
+      },
+      "geometry": {
+        "default": "geometry.shaftbreaker"
+      },
+      "scripts": {
+        "scale": "0.56",
+        "initialize": [
+          "variable.move_blend = 0.0;",
+          "variable.attacking = 0.0;",
+          "variable.attack_w = 0.0;",
+          "variable.base_weight = 1.0;"
+        ],
+        "pre_animation": [
+          "variable.move_blend = math.lerp(variable.move_blend, math.clamp(query.modified_move_speed * 4.0, 0.0, 1.0), 0.18);",
+          "variable.attack_w = math.lerp(variable.attack_w, variable.attacking, 0.3);"
+        ],
+        "animate": [
+          "main",
+          "crouch",
+          "attack",
+          "look",
+          "tilt",
+          "appear_ctrl"
+        ]
+      },
+      "animations": {
+        "dormant": "animation.shaftbreaker.dormant",
+        "look_at": "animation.shaftbreaker.look_at",
+        "stalk_idle": "animation.shaftbreaker.stalk_idle",
+        "stalk_walk": "animation.shaftbreaker.stalk_walk",
+        "watch": "animation.shaftbreaker.watch",
+        "breaker_smash": "animation.shaftbreaker.breaker_smash",
+        "breaker_walk": "animation.shaftbreaker.breaker_walk",
+        "frenzy_idle": "animation.shaftbreaker.frenzy_idle",
+        "frenzy_run": "animation.shaftbreaker.frenzy_run",
+        "frenzy_lunge": "animation.shaftbreaker.frenzy_lunge",
+        "crouch_full": "animation.shaftbreaker.crouch_full",
+        "crouch_stalk": "animation.shaftbreaker.crouch_stalk",
+        "crouch_run": "animation.shaftbreaker.crouch_run",
+        "crawl": "animation.shaftbreaker.crawl",
+        "climb": "animation.shaftbreaker.climb",
+        "swim": "animation.shaftbreaker.swim",
+        "scream": "animation.shaftbreaker.scream",
+        "threat_rear": "animation.shaftbreaker.threat_rear",
+        "peek_left": "animation.shaftbreaker.peek_left",
+        "peek_right": "animation.shaftbreaker.peek_right",
+        "stalk_walk_back": "animation.shaftbreaker.stalk_walk_back",
+        "vanish": "animation.shaftbreaker.vanish",
+        "appear": "animation.shaftbreaker.appear",
+        "head_tilt": "animation.shaftbreaker.head_tilt",
+        "jaw_chatter": "animation.shaftbreaker.jaw_chatter",
+        "twitch": "animation.shaftbreaker.twitch",
+        "stagger": "animation.shaftbreaker.stagger",
+        "death": "animation.shaftbreaker.death",
+        "false_lunge": "animation.shaftbreaker.false_lunge",
+        "heavy_strike": "animation.shaftbreaker.heavy_strike",
+        "main": "controller.animation.shaftbreaker.main",
+        "crouch": "controller.animation.shaftbreaker.crouch",
+        "attack": "controller.animation.shaftbreaker.attack",
+        "look": "controller.animation.shaftbreaker.look",
+        "tilt": "controller.animation.shaftbreaker.tilt",
+        "appear_ctrl": "controller.animation.shaftbreaker.appear"
+      },
+      "particle_effects": {
+        "debris": "shaftbreaker:debris",
+        "step_dust": "shaftbreaker:step_dust"
+      },
+      "sound_effects": {
+        "step": {
+          "effect": "shaftbreaker.step"
+        },
+        "scrape": {
+          "effect": "shaftbreaker.scrape"
+        },
+        "smash": {
+          "effect": "shaftbreaker.smash"
+        },
+        "screech": {
+          "effect": "shaftbreaker.attack_snarl"
+        }
+      },
+      "render_controllers": [
+        "controller.render.shaftbreaker"
+      ],
+      "spawn_egg": {
+        "base_color": "#3a2c28",
+        "overlay_color": "#b3261e"
+      },
+      "enable_attachables": false
+    }
+  }
+}

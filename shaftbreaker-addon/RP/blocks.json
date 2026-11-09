@@ -1,0 +1,79 @@
+{
+  "format_version": [
+    1,
+    1,
+    0
+  ],
+  "shaftbreaker:bloodmoss": {
+    "sound": "moss_block"
+  },
+  "shaftbreaker:bloodmoss_carpet": {
+    "sound": "moss_carpet"
+  },
+  "shaftbreaker:bloodroot_vines": {
+    "sound": "hanging_roots"
+  },
+  "shaftbreaker:bone_chime": {
+    "sound": "bone_block"
+  },
+  "shaftbreaker:cracked_organ_core": {
+    "sound": "shaftbreaker_flesh"
+  },
+  "shaftbreaker:cracked_veinstone": {
+    "sound": "stone"
+  },
+  "shaftbreaker:crimson_thorns": {
+    "sound": "amethyst_cluster"
+  },
+  "shaftbreaker:deep_veinstone": {
+    "sound": "deepslate"
+  },
+  "shaftbreaker:dripfang": {
+    "sound": "pointed_dripstone"
+  },
+  "shaftbreaker:dweller_droppings": {
+    "sound": "shaftbreaker_flesh"
+  },
+  "shaftbreaker:dwelling_heart": {
+    "sound": "shaftbreaker_flesh"
+  },
+  "shaftbreaker:fleshstone": {
+    "sound": "shaftbreaker_flesh"
+  },
+  "shaftbreaker:glowspore_cluster": {
+    "sound": "fungus"
+  },
+  "shaftbreaker:hanging_tissue": {
+    "sound": "shaftbreaker_flesh"
+  },
+  "shaftbreaker:organ_core": {
+    "sound": "shaftbreaker_flesh"
+  },
+  "shaftbreaker:pulsing_flesh": {
+    "sound": "shaftbreaker_flesh"
+  },
+  "shaftbreaker:ribstone": {
+    "sound": "bone_block"
+  },
+  "shaftbreaker:scored_deepslate": {
+    "sound": "deepslate"
+  },
+  "shaftbreaker:scored_stone": {
+    "sound": "stone"
+  },
+  "shaftbreaker:sinew_membrane": {
+    "sound": "shaftbreaker_flesh"
+  },
+  "shaftbreaker:skull_pile": {
+    "sound": "bone_block"
+  },
+  "shaftbreaker:veinstone": {
+    "sound": "stone"
+  },
+  "shaftbreaker:watcher_pod": {
+    "sound": "shaftbreaker_flesh"
+  },
+  "shaftbreaker:watcher_pod_open": {
+    "sound": "shaftbreaker_flesh"
+  }
+}

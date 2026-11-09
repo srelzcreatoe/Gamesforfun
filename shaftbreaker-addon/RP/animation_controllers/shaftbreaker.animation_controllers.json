@@ -1,0 +1,1288 @@
+{
+ "format_version": "1.10.0",
+ "animation_controllers": {
+  "controller.animation.shaftbreaker.main": {
+   "initial_state": "dormant",
+   "states": {
+    "dormant": {
+     "animations": [
+      {
+       "dormant": "1.0"
+      }
+     ],
+     "transitions": [
+      {
+       "crawling": "query.property('shaftbreaker:pose') == 2"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.45
+    },
+    "stalk": {
+     "animations": [
+      {
+       "stalk_idle": "1.0 - variable.move_blend"
+      },
+      {
+       "stalk_walk": "variable.move_blend"
+      },
+      {
+       "jaw_chatter": "0.35"
+      }
+     ],
+     "transitions": [
+      {
+       "crawling": "query.property('shaftbreaker:pose') == 2"
+      },
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.45
+    },
+    "watch": {
+     "animations": [
+      {
+       "watch": "1.0"
+      },
+      {
+       "twitch": "1.0"
+      }
+     ],
+     "transitions": [
+      {
+       "crawling": "query.property('shaftbreaker:pose') == 2"
+      },
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.45
+    },
+    "threat": {
+     "animations": [
+      {
+       "frenzy_idle": "(1.0 - variable.move_blend) * (1.0 - variable.attack_w)"
+      },
+      {
+       "breaker_walk": "variable.move_blend * (1.0 - variable.attack_w)"
+      },
+      {
+       "threat_rear": "1.0 - variable.attack_w"
+      }
+     ],
+     "transitions": [
+      {
+       "crawling": "query.property('shaftbreaker:pose') == 2"
+      },
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.45
+    },
+    "hunt": {
+     "animations": [
+      {
+       "frenzy_idle": "(1.0 - variable.move_blend) * (1.0 - variable.attack_w)"
+      },
+      {
+       "frenzy_run": "variable.move_blend * (1.0 - variable.attack_w)"
+      }
+     ],
+     "transitions": [
+      {
+       "crawling": "query.property('shaftbreaker:pose') == 2"
+      },
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.3
+    },
+    "search": {
+     "animations": [
+      {
+       "stalk_idle": "1.0 - variable.move_blend"
+      },
+      {
+       "breaker_walk": "variable.move_blend"
+      }
+     ],
+     "transitions": [
+      {
+       "crawling": "query.property('shaftbreaker:pose') == 2"
+      },
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.45
+    },
+    "break": {
+     "animations": [
+      {
+       "breaker_smash": "1.0"
+      }
+     ],
+     "transitions": [
+      {
+       "crawling": "query.property('shaftbreaker:pose') == 2"
+      },
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.45
+    },
+    "retreat": {
+     "animations": [
+      {
+       "stalk_walk_back": "1.0"
+      }
+     ],
+     "transitions": [
+      {
+       "crawling": "query.property('shaftbreaker:pose') == 2"
+      },
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.45
+    },
+    "scream": {
+     "animations": [
+      {
+       "watch": "1.0"
+      },
+      "scream"
+     ],
+     "transitions": [
+      {
+       "crawling": "query.property('shaftbreaker:pose') == 2"
+      },
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.25
+    },
+    "vanish": {
+     "animations": [
+      {
+       "watch": "1.0"
+      },
+      "vanish"
+     ],
+     "transitions": [
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "climb": {
+     "animations": [
+      "climb"
+     ],
+     "transitions": [
+      {
+       "crawling": "query.property('shaftbreaker:pose') == 2"
+      },
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.25
+    },
+    "swim": {
+     "animations": [
+      "swim"
+     ],
+     "transitions": [
+      {
+       "crawling": "query.property('shaftbreaker:pose') == 2"
+      },
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.4
+    },
+    "peek_l": {
+     "animations": [
+      {
+       "stalk_idle": "1.0"
+      },
+      "peek_left"
+     ],
+     "transitions": [
+      {
+       "crawling": "query.property('shaftbreaker:pose') == 2"
+      },
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.45
+    },
+    "peek_r": {
+     "animations": [
+      {
+       "stalk_idle": "1.0"
+      },
+      "peek_right"
+     ],
+     "transitions": [
+      {
+       "crawling": "query.property('shaftbreaker:pose') == 2"
+      },
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.45
+    },
+    "stagger": {
+     "animations": [
+      {
+       "frenzy_idle": "1.0 - variable.attack_w"
+      },
+      "stagger"
+     ],
+     "transitions": [
+      {
+       "crawling": "query.property('shaftbreaker:pose') == 2"
+      },
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      }
+     ],
+     "blend_transition": 0.1
+    },
+    "death": {
+     "animations": [
+      "death"
+     ],
+     "transitions": [
+      {
+       "dormant": "query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:state') == 'stagger'"
+      }
+     ],
+     "blend_transition": 0.3
+    },
+    "crawling": {
+     "animations": [
+      "crawl"
+     ],
+     "transitions": [
+      {
+       "death": "query.property('shaftbreaker:state') == 'death'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "dormant": "query.property('shaftbreaker:pose') != 2 && query.property('shaftbreaker:state') == 'dormant'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:pose') != 2 && query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "watch": "query.property('shaftbreaker:pose') != 2 && query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "threat": "query.property('shaftbreaker:pose') != 2 && query.property('shaftbreaker:state') == 'threat'"
+      },
+      {
+       "hunt": "query.property('shaftbreaker:pose') != 2 && query.property('shaftbreaker:state') == 'hunt'"
+      },
+      {
+       "search": "query.property('shaftbreaker:pose') != 2 && query.property('shaftbreaker:state') == 'search'"
+      },
+      {
+       "break": "query.property('shaftbreaker:pose') != 2 && query.property('shaftbreaker:state') == 'break'"
+      },
+      {
+       "retreat": "query.property('shaftbreaker:pose') != 2 && query.property('shaftbreaker:state') == 'retreat'"
+      },
+      {
+       "scream": "query.property('shaftbreaker:pose') != 2 && query.property('shaftbreaker:state') == 'scream'"
+      },
+      {
+       "climb": "query.property('shaftbreaker:pose') != 2 && query.property('shaftbreaker:state') == 'climb'"
+      },
+      {
+       "swim": "query.property('shaftbreaker:pose') != 2 && query.property('shaftbreaker:state') == 'swim'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:pose') != 2 && query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:pose') != 2 && query.property('shaftbreaker:state') == 'peek_r'"
+      },
+      {
+       "stagger": "query.property('shaftbreaker:pose') != 2 && query.property('shaftbreaker:state') == 'stagger'"
+      }
+     ],
+     "blend_transition": 0.35
+    }
+   }
+  },
+  "controller.animation.shaftbreaker.crouch": {
+   "initial_state": "off",
+   "states": {
+    "off": {
+     "transitions": [
+      {
+       "on": "query.property('shaftbreaker:pose') == 1"
+      }
+     ],
+     "blend_transition": 0.35
+    },
+    "on": {
+     "animations": [
+      {
+       "crouch_stalk": "(query.property('shaftbreaker:state') == 'stalk' || query.property('shaftbreaker:state') == 'search' || query.property('shaftbreaker:state') == 'retreat' || query.property('shaftbreaker:state') == 'peek_l' || query.property('shaftbreaker:state') == 'peek_r') ? 1.0 : 0.0"
+      },
+      {
+       "crouch_run": "(query.property('shaftbreaker:state') == 'hunt' || query.property('shaftbreaker:state') == 'threat' || query.property('shaftbreaker:state') == 'stagger' || query.property('shaftbreaker:state') == 'break') ? 1.0 : 0.0"
+      },
+      {
+       "crouch_full": "(query.property('shaftbreaker:state') == 'watch' || query.property('shaftbreaker:state') == 'dormant' || query.property('shaftbreaker:state') == 'scream' || query.property('shaftbreaker:state') == 'vanish') ? 1.0 : 0.0"
+      }
+     ],
+     "transitions": [
+      {
+       "off": "query.property('shaftbreaker:pose') != 1"
+      }
+     ],
+     "blend_transition": 0.35
+    }
+   }
+  },
+  "controller.animation.shaftbreaker.attack": {
+   "initial_state": "default",
+   "states": {
+    "default": {
+     "transitions": [
+      {
+       "lunge": "query.property('shaftbreaker:attack') == 1 || query.is_delayed_attacking"
+      },
+      {
+       "heavy": "query.property('shaftbreaker:attack') == 2"
+      },
+      {
+       "false_lunge": "query.property('shaftbreaker:attack') == 3"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "lunge": {
+     "animations": [
+      "frenzy_lunge"
+     ],
+     "on_entry": [
+      "variable.attacking = 1.0;"
+     ],
+     "on_exit": [
+      "variable.attacking = 0.0;"
+     ],
+     "transitions": [
+      {
+       "default": "query.all_animations_finished"
+      }
+     ],
+     "blend_transition": 0.2
+    },
+    "heavy": {
+     "animations": [
+      "heavy_strike"
+     ],
+     "on_entry": [
+      "variable.attacking = 1.0;"
+     ],
+     "on_exit": [
+      "variable.attacking = 0.0;"
+     ],
+     "transitions": [
+      {
+       "default": "query.all_animations_finished"
+      }
+     ],
+     "blend_transition": 0.2
+    },
+    "false_lunge": {
+     "animations": [
+      "false_lunge"
+     ],
+     "on_entry": [
+      "variable.attacking = 1.0;"
+     ],
+     "on_exit": [
+      "variable.attacking = 0.0;"
+     ],
+     "transitions": [
+      {
+       "default": "query.all_animations_finished"
+      }
+     ],
+     "blend_transition": 0.2
+    }
+   }
+  },
+  "controller.animation.shaftbreaker.look": {
+   "initial_state": "look",
+   "states": {
+    "look": {
+     "animations": [
+      "look_at"
+     ],
+     "transitions": [
+      {
+       "none": "query.property('shaftbreaker:state') == 'death' || query.property('shaftbreaker:state') == 'vanish' || query.property('shaftbreaker:state') == 'climb'"
+      }
+     ],
+     "blend_transition": 0.3
+    },
+    "none": {
+     "transitions": [
+      {
+       "look": "!(query.property('shaftbreaker:state') == 'death' || query.property('shaftbreaker:state') == 'vanish' || query.property('shaftbreaker:state') == 'climb')"
+      }
+     ],
+     "blend_transition": 0.3
+    }
+   }
+  },
+  "controller.animation.shaftbreaker.tilt": {
+   "initial_state": "off",
+   "states": {
+    "off": {
+     "transitions": [
+      {
+       "on": "query.property('shaftbreaker:tilt')"
+      }
+     ],
+     "blend_transition": 0.5
+    },
+    "on": {
+     "animations": [
+      "head_tilt"
+     ],
+     "transitions": [
+      {
+       "off": "!query.property('shaftbreaker:tilt')"
+      }
+     ],
+     "blend_transition": 0.8
+    }
+   }
+  },
+  "controller.animation.shaftbreaker.appear": {
+   "initial_state": "check",
+   "states": {
+    "check": {
+     "transitions": [
+      {
+       "appear": "query.property('shaftbreaker:materialize')"
+      },
+      {
+       "idle": "query.life_time > 0.25"
+      }
+     ]
+    },
+    "appear": {
+     "animations": [
+      "appear"
+     ],
+     "transitions": [
+      {
+       "idle": "query.all_animations_finished"
+      }
+     ]
+    },
+    "idle": {
+     "transitions": [
+      {
+       "appear": "query.property('shaftbreaker:materialize') && query.life_time < 0.5"
+      }
+     ]
+    }
+   }
+  },
+  "controller.animation.shaftbreaker.phantom": {
+   "initial_state": "watch",
+   "states": {
+    "watch": {
+     "animations": [
+      {
+       "watch": "1.0"
+      },
+      {
+       "twitch": "1.0"
+      }
+     ],
+     "transitions": [
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      }
+     ],
+     "blend_transition": 0.3
+    },
+    "stalk": {
+     "animations": [
+      "stalk_idle",
+      {
+       "jaw_chatter": "0.35"
+      }
+     ],
+     "transitions": [
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "peek_l": "query.property('shaftbreaker:state') == 'peek_l'"
+      },
+      {
+       "peek_r": "query.property('shaftbreaker:state') == 'peek_r'"
+      }
+     ],
+     "blend_transition": 0.3
+    },
+    "peek_l": {
+     "animations": [
+      "stalk_idle",
+      "peek_left"
+     ],
+     "transitions": [
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      }
+     ],
+     "blend_transition": 0.3
+    },
+    "peek_r": {
+     "animations": [
+      "stalk_idle",
+      "peek_right"
+     ],
+     "transitions": [
+      {
+       "watch": "query.property('shaftbreaker:state') == 'watch'"
+      },
+      {
+       "vanish": "query.property('shaftbreaker:state') == 'vanish'"
+      },
+      {
+       "stalk": "query.property('shaftbreaker:state') == 'stalk'"
+      }
+     ],
+     "blend_transition": 0.3
+    },
+    "vanish": {
+     "animations": [
+      {
+       "watch": "1.0"
+      },
+      "vanish"
+     ],
+     "blend_transition": 0.1
+    }
+   }
+  }
+ }
+}

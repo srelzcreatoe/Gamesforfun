@@ -1,0 +1,497 @@
+{
+  "sounds/shaftbreaker/mob/step1": {
+    "duration": 0.45,
+    "channels": 1,
+    "peak_db": -1.39
+  },
+  "sounds/shaftbreaker/mob/step2": {
+    "duration": 0.5,
+    "channels": 1,
+    "peak_db": -0.95
+  },
+  "sounds/shaftbreaker/mob/step3": {
+    "duration": 0.55,
+    "channels": 1,
+    "peak_db": -1.18
+  },
+  "sounds/shaftbreaker/mob/step4": {
+    "duration": 0.48,
+    "channels": 1,
+    "peak_db": -1.03
+  },
+  "sounds/shaftbreaker/mob/step_wet1": {
+    "duration": 0.5,
+    "channels": 1,
+    "peak_db": -0.86
+  },
+  "sounds/shaftbreaker/mob/step_wet2": {
+    "duration": 0.5,
+    "channels": 1,
+    "peak_db": -1.21
+  },
+  "sounds/shaftbreaker/mob/scrape1": {
+    "duration": 1.0,
+    "channels": 1,
+    "peak_db": -1.61
+  },
+  "sounds/shaftbreaker/mob/scrape2": {
+    "duration": 1.4,
+    "channels": 1,
+    "peak_db": -1.29
+  },
+  "sounds/shaftbreaker/mob/scrape3": {
+    "duration": 1.2,
+    "channels": 1,
+    "peak_db": -1.16
+  },
+  "sounds/shaftbreaker/mob/smash1": {
+    "duration": 1.0,
+    "channels": 1,
+    "peak_db": -1.01
+  },
+  "sounds/shaftbreaker/mob/smash2": {
+    "duration": 1.15,
+    "channels": 1,
+    "peak_db": -1.08
+  },
+  "sounds/shaftbreaker/mob/smash3": {
+    "duration": 0.9,
+    "channels": 1,
+    "peak_db": -0.86
+  },
+  "sounds/shaftbreaker/mob/screech1": {
+    "duration": 2.0,
+    "channels": 1,
+    "peak_db": -1.34
+  },
+  "sounds/shaftbreaker/mob/screech2": {
+    "duration": 2.4,
+    "channels": 1,
+    "peak_db": -1.13
+  },
+  "sounds/shaftbreaker/mob/screech3": {
+    "duration": 1.7,
+    "channels": 1,
+    "peak_db": -1.27
+  },
+  "sounds/shaftbreaker/mob/scream_far1": {
+    "duration": 3.5,
+    "channels": 1,
+    "peak_db": -7.1
+  },
+  "sounds/shaftbreaker/mob/scream_far2": {
+    "duration": 3.9,
+    "channels": 1,
+    "peak_db": -7.29
+  },
+  "sounds/shaftbreaker/mob/growl1": {
+    "duration": 1.8,
+    "channels": 1,
+    "peak_db": -0.81
+  },
+  "sounds/shaftbreaker/mob/growl2": {
+    "duration": 2.3,
+    "channels": 1,
+    "peak_db": -1.18
+  },
+  "sounds/shaftbreaker/mob/growl3": {
+    "duration": 2.0,
+    "channels": 1,
+    "peak_db": -1.1
+  },
+  "sounds/shaftbreaker/mob/breath1": {
+    "duration": 2.6,
+    "channels": 1,
+    "peak_db": -3.8
+  },
+  "sounds/shaftbreaker/mob/breath2": {
+    "duration": 1.8,
+    "channels": 1,
+    "peak_db": -3.21
+  },
+  "sounds/shaftbreaker/mob/breath3": {
+    "duration": 1.6,
+    "channels": 1,
+    "peak_db": -4.27
+  },
+  "sounds/shaftbreaker/mob/breath4": {
+    "duration": 3.0,
+    "channels": 1,
+    "peak_db": -2.94
+  },
+  "sounds/shaftbreaker/mob/click1": {
+    "duration": 0.7,
+    "channels": 1,
+    "peak_db": -2.19
+  },
+  "sounds/shaftbreaker/mob/click2": {
+    "duration": 0.6,
+    "channels": 1,
+    "peak_db": -2.17
+  },
+  "sounds/shaftbreaker/mob/click3": {
+    "duration": 1.1,
+    "channels": 1,
+    "peak_db": -1.91
+  },
+  "sounds/shaftbreaker/mob/click4": {
+    "duration": 0.35,
+    "channels": 1,
+    "peak_db": -1.79
+  },
+  "sounds/shaftbreaker/mob/hurt1": {
+    "duration": 0.7,
+    "channels": 1,
+    "peak_db": -0.93
+  },
+  "sounds/shaftbreaker/mob/hurt2": {
+    "duration": 0.85,
+    "channels": 1,
+    "peak_db": -0.96
+  },
+  "sounds/shaftbreaker/mob/hurt3": {
+    "duration": 0.65,
+    "channels": 1,
+    "peak_db": -1.15
+  },
+  "sounds/shaftbreaker/mob/death1": {
+    "duration": 3.0,
+    "channels": 1,
+    "peak_db": -1.13
+  },
+  "sounds/shaftbreaker/mob/whisper1": {
+    "duration": 2.2,
+    "channels": 1,
+    "peak_db": -9.3
+  },
+  "sounds/shaftbreaker/mob/whisper2": {
+    "duration": 1.8,
+    "channels": 1,
+    "peak_db": -9.12
+  },
+  "sounds/shaftbreaker/mob/whisper3": {
+    "duration": 2.8,
+    "channels": 1,
+    "peak_db": -9.29
+  },
+  "sounds/shaftbreaker/mob/whisper4": {
+    "duration": 2.5,
+    "channels": 1,
+    "peak_db": -9.31
+  },
+  "sounds/shaftbreaker/mob/knock1": {
+    "duration": 1.2,
+    "channels": 1,
+    "peak_db": -1.96
+  },
+  "sounds/shaftbreaker/mob/knock2": {
+    "duration": 1.5,
+    "channels": 1,
+    "peak_db": -2.28
+  },
+  "sounds/shaftbreaker/mob/knock3": {
+    "duration": 1.1,
+    "channels": 1,
+    "peak_db": -1.8
+  },
+  "sounds/shaftbreaker/mob/vanish1": {
+    "duration": 1.5,
+    "channels": 1,
+    "peak_db": -0.92
+  },
+  "sounds/shaftbreaker/mob/vanish2": {
+    "duration": 1.55,
+    "channels": 1,
+    "peak_db": -1.32
+  },
+  "sounds/shaftbreaker/mob/appear1": {
+    "duration": 1.2,
+    "channels": 1,
+    "peak_db": -5.99
+  },
+  "sounds/shaftbreaker/mob/crawl1": {
+    "duration": 1.0,
+    "channels": 1,
+    "peak_db": -2.9
+  },
+  "sounds/shaftbreaker/mob/crawl2": {
+    "duration": 0.9,
+    "channels": 1,
+    "peak_db": -3.22
+  },
+  "sounds/shaftbreaker/mob/crawl3": {
+    "duration": 1.2,
+    "channels": 1,
+    "peak_db": -3.01
+  },
+  "sounds/shaftbreaker/mob/climb1": {
+    "duration": 1.0,
+    "channels": 1,
+    "peak_db": -1.9
+  },
+  "sounds/shaftbreaker/mob/climb2": {
+    "duration": 1.05,
+    "channels": 1,
+    "peak_db": -2.25
+  },
+  "sounds/shaftbreaker/mob/move_far1": {
+    "duration": 3.0,
+    "channels": 1,
+    "peak_db": -7.97
+  },
+  "sounds/shaftbreaker/mob/move_far2": {
+    "duration": 3.6,
+    "channels": 1,
+    "peak_db": -7.9
+  },
+  "sounds/shaftbreaker/mob/move_far3": {
+    "duration": 2.5,
+    "channels": 1,
+    "peak_db": -8.15
+  },
+  "sounds/shaftbreaker/mob/move_far4": {
+    "duration": 3.9,
+    "channels": 1,
+    "peak_db": -8.32
+  },
+  "sounds/shaftbreaker/mob/jaw_open1": {
+    "duration": 0.8,
+    "channels": 1,
+    "peak_db": -1.86
+  },
+  "sounds/shaftbreaker/player/heartbeat_slow": {
+    "duration": 0.95,
+    "channels": 1,
+    "peak_db": -2.03
+  },
+  "sounds/shaftbreaker/player/heartbeat_med": {
+    "duration": 0.62,
+    "channels": 1,
+    "peak_db": -2.35
+  },
+  "sounds/shaftbreaker/player/heartbeat_fast": {
+    "duration": 0.42,
+    "channels": 1,
+    "peak_db": -1.96
+  },
+  "sounds/shaftbreaker/player/spotted1": {
+    "duration": 2.6,
+    "channels": 1,
+    "peak_db": -1.09
+  },
+  "sounds/shaftbreaker/player/spotted2": {
+    "duration": 2.4,
+    "channels": 1,
+    "peak_db": -1.02
+  },
+  "sounds/shaftbreaker/player/spotted3": {
+    "duration": 2.9,
+    "channels": 1,
+    "peak_db": -0.84
+  },
+  "sounds/shaftbreaker/player/tinnitus1": {
+    "duration": 4.0,
+    "channels": 1,
+    "peak_db": -13.95
+  },
+  "sounds/shaftbreaker/player/rumble1": {
+    "duration": 4.0,
+    "channels": 1,
+    "peak_db": -2.97
+  },
+  "sounds/shaftbreaker/player/rumble2": {
+    "duration": 4.8,
+    "channels": 1,
+    "peak_db": -2.95
+  },
+  "sounds/shaftbreaker/player/rumble3": {
+    "duration": 3.4,
+    "channels": 1,
+    "peak_db": -3.03
+  },
+  "sounds/shaftbreaker/player/drip1": {
+    "duration": 1.0,
+    "channels": 1,
+    "peak_db": -6.28
+  },
+  "sounds/shaftbreaker/player/drip2": {
+    "duration": 1.3,
+    "channels": 1,
+    "peak_db": -5.8
+  },
+  "sounds/shaftbreaker/player/drip3": {
+    "duration": 0.8,
+    "channels": 1,
+    "peak_db": -6.36
+  },
+  "sounds/shaftbreaker/player/drip4": {
+    "duration": 1.5,
+    "channels": 1,
+    "peak_db": -6.14
+  },
+  "sounds/shaftbreaker/player/ambience1": {
+    "duration": 26.0,
+    "channels": 1,
+    "peak_db": -11.94
+  },
+  "sounds/shaftbreaker/player/ambience2": {
+    "duration": 24.0,
+    "channels": 1,
+    "peak_db": -12.25
+  },
+  "sounds/shaftbreaker/player/ambience3": {
+    "duration": 28.0,
+    "channels": 1,
+    "peak_db": -12.47
+  },
+  "sounds/shaftbreaker/player/ambience4": {
+    "duration": 22.0,
+    "channels": 1,
+    "peak_db": -12.09
+  },
+  "sounds/shaftbreaker/player/ambience5": {
+    "duration": 30.0,
+    "channels": 1,
+    "peak_db": -12.01
+  },
+  "sounds/shaftbreaker/player/territory1": {
+    "duration": 24.0,
+    "channels": 1,
+    "peak_db": -12.06
+  },
+  "sounds/shaftbreaker/player/territory2": {
+    "duration": 27.0,
+    "channels": 1,
+    "peak_db": -12.14
+  },
+  "sounds/shaftbreaker/player/territory3": {
+    "duration": 22.0,
+    "channels": 1,
+    "peak_db": -11.89
+  },
+  "sounds/shaftbreaker/player/territory4": {
+    "duration": 30.0,
+    "channels": 1,
+    "peak_db": -12.56
+  },
+  "sounds/shaftbreaker/player/pressure1": {
+    "duration": 2.5,
+    "channels": 1,
+    "peak_db": -3.01
+  },
+  "sounds/shaftbreaker/block/organ_pulse1": {
+    "duration": 1.0,
+    "channels": 1,
+    "peak_db": -2.39
+  },
+  "sounds/shaftbreaker/block/organ_pulse2": {
+    "duration": 1.05,
+    "channels": 1,
+    "peak_db": -1.88
+  },
+  "sounds/shaftbreaker/block/organ_burst1": {
+    "duration": 1.5,
+    "channels": 1,
+    "peak_db": -0.79
+  },
+  "sounds/shaftbreaker/block/pod_open1": {
+    "duration": 1.0,
+    "channels": 1,
+    "peak_db": -1.99
+  },
+  "sounds/shaftbreaker/block/flesh_break1": {
+    "duration": 0.35,
+    "channels": 1,
+    "peak_db": -2.21
+  },
+  "sounds/shaftbreaker/block/flesh_break2": {
+    "duration": 0.3,
+    "channels": 1,
+    "peak_db": -2.22
+  },
+  "sounds/shaftbreaker/block/flesh_break3": {
+    "duration": 0.4,
+    "channels": 1,
+    "peak_db": -2.19
+  },
+  "sounds/shaftbreaker/block/flesh_step1": {
+    "duration": 0.25,
+    "channels": 1,
+    "peak_db": -2.84
+  },
+  "sounds/shaftbreaker/block/flesh_step2": {
+    "duration": 0.22,
+    "channels": 1,
+    "peak_db": -3.11
+  },
+  "sounds/shaftbreaker/block/flesh_step3": {
+    "duration": 0.28,
+    "channels": 1,
+    "peak_db": -2.92
+  },
+  "sounds/shaftbreaker/block/chime1": {
+    "duration": 1.2,
+    "channels": 1,
+    "peak_db": -2.79
+  },
+  "sounds/shaftbreaker/block/chime2": {
+    "duration": 1.25,
+    "channels": 1,
+    "peak_db": -2.89
+  },
+  "sounds/shaftbreaker/moth/flutter1": {
+    "duration": 0.7,
+    "channels": 1,
+    "peak_db": -6.67
+  },
+  "sounds/shaftbreaker/moth/flutter2": {
+    "duration": 0.9,
+    "channels": 1,
+    "peak_db": -5.95
+  },
+  "sounds/shaftbreaker/moth/flutter3": {
+    "duration": 0.6,
+    "channels": 1,
+    "peak_db": -6.1
+  },
+  "sounds/shaftbreaker/moth/giggle1": {
+    "duration": 1.0,
+    "channels": 1,
+    "peak_db": -3.06
+  },
+  "sounds/shaftbreaker/moth/giggle2": {
+    "duration": 1.15,
+    "channels": 1,
+    "peak_db": -3.39
+  },
+  "sounds/shaftbreaker/moth/giggle3": {
+    "duration": 0.85,
+    "channels": 1,
+    "peak_db": -2.86
+  },
+  "sounds/shaftbreaker/moth/death1": {
+    "duration": 0.5,
+    "channels": 1,
+    "peak_db": -2.1
+  },
+  "sounds/shaftbreaker/music/stalk": {
+    "duration": 45.0,
+    "channels": 2,
+    "peak_db": -5.97
+  },
+  "sounds/shaftbreaker/music/encounter": {
+    "duration": 30.0,
+    "channels": 2,
+    "peak_db": -3.11
+  },
+  "sounds/shaftbreaker/music/chase": {
+    "duration": 25.6,
+    "channels": 2,
+    "peak_db": -1.23
+  },
+  "sounds/shaftbreaker/music/final": {
+    "duration": 39.2727,
+    "channels": 2,
+    "peak_db": -0.94
+  }
+}

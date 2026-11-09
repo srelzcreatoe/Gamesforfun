@@ -1,0 +1,217 @@
+{
+ "format_version": "1.8.0",
+ "animations": {
+  "animation.grinning_moth.flap": {
+   "loop": true,
+   "animation_length": 0.24,
+   "bones": {
+    "wing_left": {
+     "rotation": {
+      "0.0": [
+       0,
+       0,
+       -55
+      ],
+      "0.12": [
+       0,
+       0,
+       40
+      ],
+      "0.24": [
+       0,
+       0,
+       -55
+      ]
+     }
+    },
+    "wing_right": {
+     "rotation": {
+      "0.0": [
+       0,
+       0,
+       55
+      ],
+      "0.12": [
+       0,
+       0,
+       -40
+      ],
+      "0.24": [
+       0,
+       0,
+       55
+      ]
+     }
+    },
+    "wing_left_hind": {
+     "rotation": {
+      "0.0": [
+       0,
+       0,
+       -45
+      ],
+      "0.12": [
+       0,
+       0,
+       32
+      ],
+      "0.24": [
+       0,
+       0,
+       -45
+      ]
+     }
+    },
+    "wing_right_hind": {
+     "rotation": {
+      "0.0": [
+       0,
+       0,
+       45
+      ],
+      "0.12": [
+       0,
+       0,
+       -32
+      ],
+      "0.24": [
+       0,
+       0,
+       45
+      ]
+     }
+    },
+    "body": {
+     "position": {
+      "0.0": [
+       0,
+       0.4,
+       0
+      ],
+      "0.12": [
+       0,
+       -0.4,
+       0
+      ],
+      "0.24": [
+       0,
+       0.4,
+       0
+      ]
+     }
+    },
+    "legs": {
+     "rotation": [
+      30,
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.grinning_moth.perch": {
+   "loop": true,
+   "animation_length": 3.0,
+   "bones": {
+    "wing_left": {
+     "rotation": {
+      "0.0": [
+       0,
+       0,
+       6
+      ],
+      "1.5": [
+       0,
+       0,
+       12
+      ],
+      "3.0": [
+       0,
+       0,
+       6
+      ]
+     }
+    },
+    "wing_right": {
+     "rotation": {
+      "0.0": [
+       0,
+       0,
+       -6
+      ],
+      "1.5": [
+       0,
+       0,
+       -12
+      ],
+      "3.0": [
+       0,
+       0,
+       -6
+      ]
+     }
+    },
+    "antenna_left": {
+     "rotation": {
+      "0.0": [
+       0,
+       0,
+       0
+      ],
+      "1.0": [
+       8,
+       0,
+       0
+      ],
+      "2.0": [
+       -4,
+       0,
+       0
+      ],
+      "3.0": [
+       0,
+       0,
+       0
+      ]
+     }
+    },
+    "antenna_right": {
+     "rotation": {
+      "0.0": [
+       0,
+       0,
+       0
+      ],
+      "1.2": [
+       6,
+       0,
+       0
+      ],
+      "2.2": [
+       -6,
+       0,
+       0
+      ],
+      "3.0": [
+       0,
+       0,
+       0
+      ]
+     }
+    }
+   }
+  },
+  "animation.grinning_moth.look": {
+   "loop": true,
+   "bones": {
+    "head": {
+     "rotation": [
+      "math.clamp(query.target_x_rotation, -40, 40)",
+      "math.clamp(query.target_y_rotation, -60, 60)",
+      0
+     ]
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,30 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "shaftbreaker:fleshstone"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "ingredients": [
+      {
+        "item": "minecraft:cobblestone",
+        "count": 2
+      },
+      {
+        "item": "shaftbreaker:organ_tissue",
+        "count": 2
+      }
+    ],
+    "unlock": [
+      {
+        "item": "shaftbreaker:organ_tissue"
+      }
+    ],
+    "result": {
+      "item": "shaftbreaker:fleshstone",
+      "count": 2
+    }
+  }
+}

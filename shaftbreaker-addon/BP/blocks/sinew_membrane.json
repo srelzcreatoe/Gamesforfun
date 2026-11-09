@@ -1,0 +1,78 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "shaftbreaker:sinew_membrane",
+      "menu_category": {
+        "category": "nature"
+      },
+      "states": {
+        "shaftbreaker:axis": [
+          0,
+          1
+        ]
+      }
+    },
+    "components": {
+      "minecraft:geometry": "geometry.shaftbreaker.pane",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "shaftbreaker_sinew_membrane",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.4
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0.5
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -8,
+          0,
+          -1
+        ],
+        "size": [
+          16,
+          16,
+          2
+        ]
+      },
+      "minecraft:map_color": "#9c3430",
+      "minecraft:loot": "loot_tables/blocks/organ_scrap.json",
+      "minecraft:flammable": {
+        "catch_chance_modifier": 30,
+        "destroy_chance_modifier": 60
+      }
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('shaftbreaker:axis') == 1",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          },
+          "minecraft:selection_box": {
+            "origin": [
+              -8,
+              0,
+              -1
+            ],
+            "size": [
+              16,
+              16,
+              2
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

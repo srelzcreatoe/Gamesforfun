@@ -1,0 +1,45 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "The Shaftbreaker - Resources",
+    "description": "pack.description",
+    "uuid": "d368cde3-cba8-47b6-aa40-4d1297ffdb5e",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      130
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "4fd10fdc-a569-4d41-9483-15cdf04fa3e6",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "c8375b78-611e-40f8-abe4-05865e1b5a12",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "metadata": {
+    "authors": [
+      "Shaftbreaker add-on"
+    ],
+    "product_type": "addon"
+  }
+}

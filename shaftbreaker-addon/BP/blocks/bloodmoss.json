@@ -1,0 +1,38 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "shaftbreaker:bloodmoss",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "shaftbreaker_bloodmoss_side",
+          "render_method": "opaque"
+        },
+        "up": {
+          "texture": "shaftbreaker_bloodmoss",
+          "render_method": "opaque"
+        },
+        "down": {
+          "texture": "shaftbreaker_veinstone",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.6
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 6
+      },
+      "minecraft:map_color": "#5a1418",
+      "tag:shaftbreaker_solid": {},
+      "tag:minecraft:is_pickaxe_item_destructible": {},
+      "tag:dirt": {},
+      "minecraft:loot": "loot_tables/blocks/bloodmoss.json"
+    }
+  }
+}

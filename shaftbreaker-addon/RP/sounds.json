@@ -1,0 +1,92 @@
+{
+  "entity_sounds": {
+    "entities": {
+      "shaftbreaker:shaftbreaker": {
+        "volume": 1.0,
+        "pitch": [
+          0.9,
+          1.1
+        ],
+        "events": {
+          "hurt": "shaftbreaker.hurt",
+          "death": "shaftbreaker.death"
+        }
+      },
+      "shaftbreaker:grinning_moth": {
+        "volume": 0.8,
+        "pitch": [
+          0.9,
+          1.2
+        ],
+        "events": {
+          "hurt": "shaftbreaker.moth.giggle",
+          "death": "shaftbreaker.moth.death",
+          "ambient": "shaftbreaker.moth.flutter"
+        }
+      },
+      "shaftbreaker:phantom": {
+        "volume": 0,
+        "events": {}
+      },
+      "shaftbreaker:waypoint": {
+        "volume": 0,
+        "events": {}
+      }
+    }
+  },
+  "block_sounds": {
+    "shaftbreaker_flesh": {
+      "volume": 1.0,
+      "pitch": [
+        0.8,
+        1.0
+      ],
+      "events": {
+        "default": "",
+        "item.use.on": {
+          "sound": "shaftbreaker.block.flesh_step"
+        },
+        "break": {
+          "sound": "shaftbreaker.block.flesh_break"
+        },
+        "hit": {
+          "sound": "shaftbreaker.block.flesh_step",
+          "volume": 0.35
+        },
+        "place": {
+          "sound": "shaftbreaker.block.flesh_break",
+          "volume": 0.8
+        },
+        "power.on": "",
+        "power.off": ""
+      }
+    }
+  },
+  "interactive_sounds": {
+    "block_sounds": {
+      "shaftbreaker_flesh": {
+        "volume": 1.0,
+        "pitch": 1.0,
+        "events": {
+          "default": "",
+          "fall": {
+            "sound": "shaftbreaker.block.flesh_step",
+            "volume": 0.4
+          },
+          "jump": {
+            "sound": "shaftbreaker.block.flesh_step",
+            "volume": 0.12
+          },
+          "step": {
+            "sound": "shaftbreaker.block.flesh_step",
+            "volume": 0.3
+          },
+          "land": {
+            "sound": "shaftbreaker.block.flesh_step",
+            "volume": 0.22
+          }
+        }
+      }
+    }
+  }
+}

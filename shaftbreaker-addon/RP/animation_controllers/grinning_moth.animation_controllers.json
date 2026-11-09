@@ -1,0 +1,32 @@
+{
+ "format_version": "1.10.0",
+ "animation_controllers": {
+  "controller.animation.grinning_moth.wings": {
+   "initial_state": "fly",
+   "states": {
+    "fly": {
+     "animations": [
+      "flap"
+     ],
+     "transitions": [
+      {
+       "perch": "query.property('shaftbreaker:perched')"
+      }
+     ],
+     "blend_transition": 0.2
+    },
+    "perch": {
+     "animations": [
+      "perch"
+     ],
+     "transitions": [
+      {
+       "fly": "!query.property('shaftbreaker:perched')"
+      }
+     ],
+     "blend_transition": 0.3
+    }
+   }
+  }
+ }
+}

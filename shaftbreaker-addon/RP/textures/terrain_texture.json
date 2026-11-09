@@ -1,0 +1,122 @@
+{
+  "resource_pack_name": "shaftbreaker",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "shaftbreaker_bloodmoss": {
+      "textures": "textures/blocks/bloodmoss"
+    },
+    "shaftbreaker_bloodmoss_side": {
+      "textures": "textures/blocks/bloodmoss_side"
+    },
+    "shaftbreaker_bloodroot_vines": {
+      "textures": "textures/blocks/bloodroot_vines"
+    },
+    "shaftbreaker_bloodroot_vines_end": {
+      "textures": "textures/blocks/bloodroot_vines_end"
+    },
+    "shaftbreaker_bone_chime": {
+      "textures": "textures/blocks/bone_chime"
+    },
+    "shaftbreaker_cracked_organ_core": {
+      "textures": "textures/blocks/cracked_organ_core"
+    },
+    "shaftbreaker_cracked_veinstone": {
+      "textures": "textures/blocks/cracked_veinstone"
+    },
+    "shaftbreaker_crimson_thorns": {
+      "textures": "textures/blocks/crimson_thorns"
+    },
+    "shaftbreaker_deep_veinstone": {
+      "textures": "textures/blocks/deep_veinstone"
+    },
+    "shaftbreaker_deep_veinstone_top": {
+      "textures": "textures/blocks/deep_veinstone_top"
+    },
+    "shaftbreaker_dripfang_base": {
+      "textures": "textures/blocks/dripfang_base"
+    },
+    "shaftbreaker_dripfang_middle": {
+      "textures": "textures/blocks/dripfang_middle"
+    },
+    "shaftbreaker_dripfang_tip": {
+      "textures": "textures/blocks/dripfang_tip"
+    },
+    "shaftbreaker_dweller_droppings": {
+      "textures": "textures/blocks/dweller_droppings"
+    },
+    "shaftbreaker_dwelling_heart": {
+      "textures": "textures/blocks/dwelling_heart"
+    },
+    "shaftbreaker_fleshstone": {
+      "textures": "textures/blocks/fleshstone"
+    },
+    "shaftbreaker_glowspore_cluster": {
+      "textures": "textures/blocks/glowspore_cluster"
+    },
+    "shaftbreaker_hanging_tissue": {
+      "textures": "textures/blocks/hanging_tissue"
+    },
+    "shaftbreaker_hanging_tissue_end": {
+      "textures": "textures/blocks/hanging_tissue_end"
+    },
+    "shaftbreaker_organ_core": {
+      "textures": "textures/blocks/organ_core"
+    },
+    "shaftbreaker_pulsing_flesh": {
+      "textures": "textures/blocks/pulsing_flesh"
+    },
+    "shaftbreaker_ribstone_side": {
+      "textures": "textures/blocks/ribstone_side"
+    },
+    "shaftbreaker_ribstone_top": {
+      "textures": "textures/blocks/ribstone_top"
+    },
+    "shaftbreaker_scored_deepslate_0": {
+      "textures": "textures/blocks/scored_deepslate_0"
+    },
+    "shaftbreaker_scored_deepslate_1": {
+      "textures": "textures/blocks/scored_deepslate_1"
+    },
+    "shaftbreaker_scored_deepslate_2": {
+      "textures": "textures/blocks/scored_deepslate_2"
+    },
+    "shaftbreaker_scored_deepslate_3": {
+      "textures": "textures/blocks/scored_deepslate_3"
+    },
+    "shaftbreaker_scored_stone_0": {
+      "textures": "textures/blocks/scored_stone_0"
+    },
+    "shaftbreaker_scored_stone_1": {
+      "textures": "textures/blocks/scored_stone_1"
+    },
+    "shaftbreaker_scored_stone_2": {
+      "textures": "textures/blocks/scored_stone_2"
+    },
+    "shaftbreaker_scored_stone_3": {
+      "textures": "textures/blocks/scored_stone_3"
+    },
+    "shaftbreaker_sinew_membrane": {
+      "textures": "textures/blocks/sinew_membrane"
+    },
+    "shaftbreaker_skull_pile": {
+      "textures": "textures/blocks/skull_pile"
+    },
+    "shaftbreaker_veinstone": {
+      "textures": "textures/blocks/veinstone"
+    },
+    "shaftbreaker_watcher_pod": {
+      "textures": "textures/blocks/watcher_pod"
+    },
+    "shaftbreaker_watcher_pod_open": {
+      "textures": "textures/blocks/watcher_pod_open"
+    },
+    "shaftbreaker_watcher_pod_open_top": {
+      "textures": "textures/blocks/watcher_pod_open_top"
+    },
+    "shaftbreaker_watcher_pod_top": {
+      "textures": "textures/blocks/watcher_pod_top"
+    }
+  }
+}

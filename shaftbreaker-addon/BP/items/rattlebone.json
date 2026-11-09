@@ -1,0 +1,31 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:item": {
+    "description": {
+      "identifier": "shaftbreaker:rattlebone",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "shaftbreaker_rattlebone",
+      "minecraft:max_stack_size": 16,
+      "minecraft:display_name": {
+        "value": "item.shaftbreaker.rattlebone.name"
+      },
+      "minecraft:throwable": {
+        "do_swing_animation": true,
+        "launch_power_scale": 1.0,
+        "max_launch_power": 1.0
+      },
+      "minecraft:projectile": {
+        "projectile_entity": "shaftbreaker:rattlebone_projectile",
+        "minimum_critical_power": 1.25
+      },
+      "minecraft:cooldown": {
+        "category": "shaftbreaker_rattle",
+        "duration": 1.0
+      }
+    }
+  }
+}

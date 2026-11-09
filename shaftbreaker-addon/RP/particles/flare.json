@@ -1,0 +1,65 @@
+{
+  "format_version": "1.10.0",
+  "particle_effect": {
+    "description": {
+      "identifier": "shaftbreaker:flare",
+      "basic_render_parameters": {
+        "material": "particles_add",
+        "texture": "textures/particle/shaftbreaker_particles"
+      }
+    },
+    "components": {
+      "minecraft:emitter_rate_instant": {
+        "num_particles": 60
+      },
+      "minecraft:emitter_lifetime_once": {
+        "active_time": 0.1
+      },
+      "minecraft:emitter_shape_sphere": {
+        "radius": 0.3,
+        "direction": "outwards"
+      },
+      "minecraft:particle_lifetime_expression": {
+        "max_lifetime": "1.0 + variable.particle_random_1 * 1.4"
+      },
+      "minecraft:particle_initial_speed": "4 + variable.particle_random_2 * 6",
+      "minecraft:particle_motion_dynamic": {
+        "linear_acceleration": [
+          0,
+          -3,
+          0
+        ],
+        "linear_drag_coefficient": 2.2
+      },
+      "minecraft:particle_appearance_tinting": {
+        "color": {
+          "gradient": {
+            "0.0": "#ffffe0b0",
+            "0.4": "#ffff8a40",
+            "1.0": "#00c03010"
+          },
+          "interpolant": "variable.particle_age / variable.particle_lifetime"
+        }
+      },
+      "minecraft:particle_appearance_billboard": {
+        "size": [
+          0.12,
+          0.12
+        ],
+        "facing_camera_mode": "lookat_xyz",
+        "uv": {
+          "texture_width": 64,
+          "texture_height": 64,
+          "uv": [
+            8,
+            8
+          ],
+          "uv_size": [
+            8,
+            8
+          ]
+        }
+      }
+    }
+  }
+}

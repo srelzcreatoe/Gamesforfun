@@ -1,0 +1,31 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "shaftbreaker:glowspore_flare"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "ingredients": [
+      {
+        "item": "minecraft:stick"
+      },
+      {
+        "item": "shaftbreaker:glowspore_cluster"
+      },
+      {
+        "item": "minecraft:gunpowder"
+      }
+    ],
+    "unlock": [
+      {
+        "item": "shaftbreaker:glowspore_cluster"
+      }
+    ],
+    "result": {
+      "item": "shaftbreaker:glowspore_flare",
+      "count": 2
+    }
+  }
+}

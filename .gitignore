@@ -9,3 +9,8 @@ captures/
 out/
 assets/worlds/
 CubicWorld_Source.zip
+
+# Shaftbreaker add-on build/test scratch
+shaftbreaker-addon/.sim/
+shaftbreaker-addon/dist/*.mcpack
+__pycache__/

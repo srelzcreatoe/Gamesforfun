@@ -1,0 +1,18 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:item": {
+    "description": {
+      "identifier": "shaftbreaker:organ_tissue",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "shaftbreaker_organ_tissue",
+      "minecraft:max_stack_size": 64,
+      "minecraft:display_name": {
+        "value": "item.shaftbreaker.organ_tissue.name"
+      }
+    }
+  }
+}
