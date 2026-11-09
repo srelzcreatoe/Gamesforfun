@@ -6,7 +6,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BP = os.path.join(ROOT, 'Shaftbreaker_BP')
 RP = os.path.join(ROOT, 'Shaftbreaker_RP')
 NS = 'shaftbreaker'
-VERSION = [2, 0, 0]
+VERSION = [2, 1, 0]
 MIN_ENGINE = [1, 21, 120]
 UUID = {
     'bp_header': '6f1c2b0e-3a5d-4c7e-9b21-5d8e7a4c1f01',
@@ -70,9 +70,10 @@ def shaftbreaker():
                    'must_see_forget_duration': 20,
                    'entity_types': [{'filters': hunt_target_filter(), 'max_dist': 64, 'must_see': False}]}
 
-    def hunt(speed, mult, cooldown):
+    def hunt(speed, mult, cooldown, damage=6):
         return {
             'minecraft:movement': {'value': speed},
+            'minecraft:attack': {'damage': damage},
             'minecraft:behavior.nearest_attackable_target': hunt_target,
             'minecraft:behavior.delayed_attack': {'priority': 2, 'attack_once': False, 'track_target': True, 'require_complete_path': False,
                                                   'random_stop_interval': 0, 'reach_multiplier': 1.35, 'speed_multiplier': mult,
@@ -83,8 +84,10 @@ def shaftbreaker():
     groups = {
         'sb:mode_still': {'minecraft:movement': {'value': 0.0}, 'minecraft:behavior.look_at_player': look},
         'sb:mode_scripted': {'minecraft:movement': {'value': 0.25}},
-        'sb:mode_hunt': hunt(0.36, 1.0, 0.75),
-        'sb:mode_frenzy': hunt(0.45, 1.12, 0.6),
+        'sb:mode_hunt': hunt(0.36, 1.0, 0.75, 7),
+        'sb:mode_frenzy': hunt(0.45, 1.12, 0.6, 8),
+        # rage: it snaps (stared down, shot, struck, cornered) and comes faster than a sprinting player
+        'sb:mode_rage': hunt(0.44, 1.3, 0.55, 8),
         'sb:mode_defeated': {'minecraft:movement': {'value': 0.0}, 'minecraft:body_rotation_blocked': {},
                              'minecraft:damage_sensor': {'triggers': [{'cause': 'all', 'deals_damage': 'no'}]}},
         'sb:grav_on': {'minecraft:physics': {}},
@@ -100,11 +103,12 @@ def shaftbreaker():
         'sb:nav_doors': {'minecraft:navigation.walk': {'can_path_over_water': True, 'avoid_damage_blocks': True, 'can_pass_doors': True,
                                                        'can_open_doors': True, 'is_amphibious': True, 'can_walk': True, 'can_sink': False},
                          'minecraft:annotation.open_door': {}},
-        'sb:nav_climb': {'minecraft:navigation.climb': {'can_path_over_water': True, 'avoid_damage_blocks': True}},
+        'sb:nav_climb': {'minecraft:navigation.climb': {'can_path_over_water': True, 'avoid_damage_blocks': True, 'can_pass_doors': True,
+                                                        'can_open_doors': False, 'is_amphibious': True, 'can_sink': False}},
         'sb:despawn': {'minecraft:instant_despawn': {}},
     }
     cats = {
-        'mode': ['sb:mode_still', 'sb:mode_hunt', 'sb:mode_frenzy', 'sb:mode_scripted', 'sb:mode_defeated'],
+        'mode': ['sb:mode_still', 'sb:mode_hunt', 'sb:mode_frenzy', 'sb:mode_rage', 'sb:mode_scripted', 'sb:mode_defeated'],
         'grav': ['sb:grav_on', 'sb:grav_off'],
         'stance': ['sb:stance_stand', 'sb:stance_crouch', 'sb:stance_crawl'],
         'nav': ['sb:nav_walk', 'sb:nav_doors', 'sb:nav_climb'],

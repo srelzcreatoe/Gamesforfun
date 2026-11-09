@@ -237,7 +237,7 @@ for ev in set(re.findall(r"triggerEvent\('([a-z_:]+)'\)", js)) | {f'sb:mode_{m}'
     if ev not in events: err(f'script triggers unknown entity event {ev}')
 for m in set(re.findall(r"'((?:music\.)?shaftbreaker\.[a-z_]+)'", js)):
     if m not in sdefs: err(f'script sound {m} undefined')
-for m in set(re.findall(r"'(random\.[a-z_]+|dig\.[a-z_]+)'", js)):
+for m in set(re.findall(r"'(random\.[a-z_]+|dig\.[a-z_]+|open\.[a-z_]+)'", js)):
     if vanilla_sounds and m not in vanilla_sounds: err(f'vanilla sound {m} not found')
 for m in set(re.findall(r"getProperty\('([a-z_:]+)'\)", js)) | set(re.findall(r"setProperty\('([a-z_:]+)'", js)):
     if m not in props: err(f'script uses unknown entity property {m}')

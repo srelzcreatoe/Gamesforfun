@@ -25,6 +25,8 @@ export class BlockCache {
     try {
       const b = this.dim.getBlock({ x, y, z });
       v = b ? b.typeId : '?';
+      // an open door / gate / trapdoor can be walked through (breaching opens them during a rage)
+      if (b && (v.endsWith('_door') || v.endsWith('fence_gate') || v.endsWith('trapdoor') || v === 'minecraft:wooden_door') && b.permutation.getState('open_bit') === true) v += '#open';
     } catch { v = '?'; }
     this.m.set(k, v);
     return v;

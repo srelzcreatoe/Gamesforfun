@@ -211,7 +211,7 @@ class World {
   getAllPlayers() { return this._players.filter((p) => p.isValid); }
   getPlayers() { return this.getAllPlayers(); }
   getAbsoluteTime() { return tick + 100000; }
-  getTimeOfDay() { return 18000; }
+  getTimeOfDay() { return SIM.timeOfDay ?? 6000; }
   getDay() { return 5; }
   getDefaultSpawnLocation() { return { x: 0, y: 70, z: 0 }; }
   getDifficulty() { return this.difficulty; }
@@ -231,7 +231,7 @@ class World {
     this.afterEvents.entityHurt.fire({ hurtEntity: target, damage: n, damageSource: { cause, damagingEntity: by } });
     if (target._hp <= 0) {
       this.afterEvents.entityDie.fire({ deadEntity: target, damageSource: { cause, damagingEntity: by } });
-      if (target.typeId === 'minecraft:player') { target._dead = tick; }
+      if (target.typeId === 'minecraft:player') { target._dead = tick; SIM.deaths = (SIM.deaths || 0) + 1; }
       else target.remove();
     }
     return true;

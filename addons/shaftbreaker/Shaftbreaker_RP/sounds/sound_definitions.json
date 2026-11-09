@@ -198,6 +198,20 @@
       ],
       "max_distance": 24
     },
+    "shaftbreaker.neck_crack": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/neck_crack_1",
+          "volume": 0.85
+        },
+        {
+          "name": "sounds/shaftbreaker/neck_crack_2",
+          "volume": 0.85
+        }
+      ],
+      "max_distance": 24
+    },
     "shaftbreaker.breath": {
       "category": "hostile",
       "sounds": [

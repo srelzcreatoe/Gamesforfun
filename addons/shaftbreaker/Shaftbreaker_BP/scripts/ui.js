@@ -60,11 +60,13 @@ async function personal(player) {
 
 async function notes(player) {
   const f = new ActionFormData().title('Field notes').body([
-    '§fIt usually only watches.§7 Most meetings end with it backing into the dark.',
-    '§fEvery real attack is announced:§7 a roar or, rarely, dust, breath and a raised claw. You always get a moment.',
+    '§fIt is always near, and it wants to be seen.§7 On the ground, on a ledge, on the ceiling, behind a tree. Look away and it is closer.',
+    '§fDo not stare it down. Do not hit it. Do not run at it.§7 It snaps, screams, and comes faster than you can run.',
+    '§fEvery attack is announced:§7 a scream before a chase, a coil before a lunge. Walk right up to it and it strikes.',
+    '§fIt opens doors and smashes glass to reach you.§7 It puts everything back afterwards.',
     '§fIt learns slowly and forgets slowly.§7 Using the same escape again and again makes it wait for you there. Change routes.',
     '§fLight, company and preparation make it leave.§7 Groups are watched from afar.',
-    '§fIt will not follow you into daylight§7 (unless your world enables surface mode).',
+    '§fIt will not follow you into daylight.§7 At night the surface is no refuge.',
     '§fMeat§7 dropped near it can distract it. Not always.',
     '§fShaft moths§7 lead the way to its den: follow one and it waits for you. Breaking the Den Heart quiets the territory for days, but it remembers.',
     '§fIt is usually close.§7 Listen: clicks, scrapes and breathing come from where it really is. The music deepens when it is near.',
@@ -102,7 +104,8 @@ async function worldSettings(player) {
     .toggle('Harmless preview (no damage, no block edits)', { defaultValue: c.harmless })
     .toggle('Trophy drop on defeat', { defaultValue: c.trophyDrop })
     .dropdown('Debug logging', ENUMS.debug, { defaultValueIndex: idx('debug') })
-    .toggle('Stalk creative-mode players too (no damage)', { defaultValue: c.creativeEncounters });
+    .toggle('Stalk creative-mode players too (no damage)', { defaultValue: c.creativeEncounters })
+    .toggle('Night stalking on the surface', { defaultValue: c.nightStalking });
   const r = await f.show(player);
   if (r.canceled || !r.formValues) return;
   const v = r.formValues;
@@ -116,6 +119,7 @@ async function worldSettings(player) {
   setConfig('maxHuntSeconds', Number(v[11]));
   setConfig('deathGraceSeconds', Number(v[12]));
   setConfig('creativeEncounters', !!v[19]);
+  setConfig('nightStalking', !!v[20]);
   player.sendMessage('§7[Shaftbreaker] World settings saved.');
 }
 

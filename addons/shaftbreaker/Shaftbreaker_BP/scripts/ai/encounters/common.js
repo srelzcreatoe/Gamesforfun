@@ -48,7 +48,7 @@ export function appear(ctx, query, opts = {}) {
   const existing = creature();
   if (existing) {
     // the creature already lives in these caves: it moves to the spot while nobody is looking
-    if (seenByAnyone(existing)) { ctx.tel.notes.push('creature watched: could not reposition'); return null; }
+    if (seenByAnyone(existing) || inAnyonesView(existing.dim, existing.loc)) { ctx.tel.notes.push('creature watched: could not reposition'); return null; }
     existing.stop(); existing.releaseTarget(); existing.setGravity(true); existing.lockStance = false;
     existing.setGait(0); existing.setSpectral(!!opts.spectral); existing.setEyes(opts.eyes ?? 0.85);
     try { existing.e.teleport(spot.pos, { keepVelocity: false }); } catch { return null; }
@@ -136,62 +136,31 @@ export function hiddenRetreat(ctx, cr, minPath = 4, maxPath = 18) {
 }
 
 /**
- * Standard non-violent ending. styles:
- *  'backward'  N02 backs away without turning, eyes locked, until darkness breaks line of sight
- *  'glance'    N10 turns away, final still look, then leaves
- *  'walk'      walks out of sight
- *  'auto'      picks based on whether it is being watched
+ * Standard non-violent ending. It never walks away from you: unseen, it is simply gone; seen, it
+ * vanishes where it stands (or, now and then, bursts into shaft moths).
  */
 export function* passiveExit(ctx, cr, style = 'auto') {
   if (!cr || !cr.valid) return;
-  let s = seen(ctx, cr);
-  if (!s.visible && style === 'auto') { cr.vanish(true); return; }
-  if (style === 'auto') style = chance(0.12) ? 'moths' : pick(['backward', 'backward', 'glance', 'walk']);
-  if (style === 'moths') {                                            // L26: original shaft-moth scatter exit
+  const s = seen(ctx, cr);
+  if (!s.visible && style !== 'moths') { cr.vanish(true); return; }
+  if (style === 'moths' || chance(0.12)) {                           // L26: original shaft-moth scatter exit
     ctx.tel.notes.push('L26 moth scatter');
+    cr.halt();
     cr.setAct(ACT.ROAR);
     yield W(sec(0.6));
     spawnMoths(cr.dim, { x: cr.loc.x, y: cr.loc.y + 1.5, z: cr.loc.z }, randi(4, 6), null);
     try { cr.dim.spawnParticle('shaftbreaker:wisp', cr.loc); } catch { /* ignore */ }
     playAt(cr.dim, 'shaftbreaker.moth_flutter', cr.loc, 1.0, 0.8);
-    cr.vanish(true);
+    cr.vanish(false);
     return;
   }
-  ctx.tel.notes.push(`exit:${style}`);
-  const r = hiddenRetreat(ctx, cr);
-  if (style === 'glance') {
-    cr.setAct(ACT.LAST_GLANCE, true);
-    if (r) cr.face(r.pos);
-    yield W(sec(2.4));
-    cr.clearAct();
-  }
-  if (r) {
-    if (style === 'backward') {
-      cr.setPhase('watching');
-      cr.setAct(ACT.BACKWARD, true);
-      cr.stepAlong(r.path, ctx.player.getHeadLocation(), 0.055);
-    } else {
-      cr.setPhase('stalking');
-      cr.moveTo(r.pos, false);
-    }
-    const until = now() + sec(14);
-    while (now() < until && cr.valid) {
-      yield W(4);
-      if (cr.faceTarget) cr.faceTarget = ctx.player.getHeadLocation();
-      s = seen(ctx, cr);
-      if (!s.visible) { yield W(6); if (!seen(ctx, cr).visible) break; }
-      if (!cr.moving && cr.arrived(1.2)) break;
-      if (cr.stuck) break;
-    }
-  } else if (chance(0.5)) {
-    yield* passiveExit(ctx, cr, 'moths');
-    return;
-  } else {
-    // nowhere to back off to: fold into the dark, then reappear elsewhere out of sight
-    cr.setAct(ACT.VANISH);
-    yield W(sec(1.1));
-  }
-  cr.vanish(seen(ctx, cr).visible === false);   // persists: stays hidden or relocates out of sight
+  ctx.tel.notes.push('exit: vanished in place');
+  cr.halt();
+  cr.face(ctx.player.getHeadLocation());
+  if (style === 'glance') { cr.setAct(ACT.LAST_GLANCE, true); yield W(sec(1.6)); }
+  cr.setAct(ACT.VANISH);
+  yield W(sec(0.9));
+  cr.vanish(false);
 }
 
 /** a plausible 3D position for a sound with no creature (behind stone / down a side tunnel) */

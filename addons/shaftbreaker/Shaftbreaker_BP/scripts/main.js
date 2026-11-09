@@ -18,6 +18,7 @@ import { ws, wsDirty, wsReset } from './ai/worldstate.js';
 import { openDial } from './ui.js';
 import { presenceAudio } from './ai/brain.js';
 import { playFor, forgetAudio, stopAllMusic, tickHeart } from './audio.js';
+import { restoreBreaches, pendingBreaches } from './world/breach.js';
 
 let inited = false;
 
@@ -37,7 +38,16 @@ function init() {
   system.runInterval(() => safe('presence', presenceAudio), 20);
   system.runInterval(() => safe('heart', () => { for (const p of world.getAllPlayers()) tickHeart(p); }), 5);
   system.runInterval(() => safe('debug', debugTick), 10);
-  console.warn(`[Shaftbreaker] ready (preset=${config().preset}, templates=${TEMPLATES.length}, placed-registry=${placedCount()})`);
+  // everything it opened or smashed during a chase is put back (also after a reload mid-chase)
+  system.runTimeout(() => safe('restoreLoad', () => restoreBreaches({ force: true })), 100);
+  system.runInterval(() => safe('restore', () => {
+    if (!pendingBreaches()) return;
+    const r = running();
+    if (r && r.tpl.family === 'hunt') return;
+    const c = creature();
+    restoreBreaches({ keepNear: c ? c.loc : null });
+  }), 60);
+  console.warn(`[Shaftbreaker] ready v2.1 (preset=${config().preset}, templates=${TEMPLATES.length}, night stalking=${config().nightStalking ? 'on' : 'off'}, placed-registry=${placedCount()})`);
 }
 
 // ------------------------------------------------------------------ startup

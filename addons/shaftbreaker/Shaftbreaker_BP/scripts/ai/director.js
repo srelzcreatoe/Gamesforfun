@@ -6,16 +6,17 @@ import { WalkMap, isUnderground, resetBudget, BlockCache } from '../world/space.
 import { profile, evidence, decay, noteEncounter, saveDirty, trait, curious, markDirty, forget, bumpRegion } from './memory.js';
 import { ws, wsDirty, wsSave, addDanger, pushHistory, suppressionAt, pruneSuppression, nearestDen } from './worldstate.js';
 import { creature, despawnAll, seenByAnyone } from './creature.js';
-import { initBrain, brainTick, brainFast, lurkTick, presenceEligible, brainState } from './brain.js';
+import { initBrain, brainTick, brainFast, lurkTick, presenceEligible, brainState, brainTarget } from './brain.js';
 import { tickHeart, stopAllFor, maybeRoomTone, setDanger } from '../audio.js';
 import { record, log } from '../core/log.js';
 import { tryGenerateDen, tryGenerateDenFromMap, tickMoths, tickGuides } from '../world/den.js';
 import { MINOR_TEMPLATES } from './encounters/minor.js';
 import { OBSERVE_TEMPLATES } from './encounters/observe.js';
 import { STANDOFF_TEMPLATES } from './encounters/standoff.js';
-import { HUNT_TEMPLATES } from './encounters/hunt.js';
+import { HUNT_TEMPLATES, isDaylight } from './encounters/hunt.js';
+import { STALK_TEMPLATES, ambushMoment, addTension } from './encounters/stalk.js';
 
-export const TEMPLATES = [...MINOR_TEMPLATES, ...OBSERVE_TEMPLATES, ...STANDOFF_TEMPLATES, ...HUNT_TEMPLATES];
+export const TEMPLATES = [...MINOR_TEMPLATES, ...OBSERVE_TEMPLATES, ...STANDOFF_TEMPLATES, ...HUNT_TEMPLATES, ...STALK_TEMPLATES];
 const BY_ID = new Map(TEMPLATES.map((t) => [t.id, t]));
 const STATES = ['dormant', 'interested', 'observing', 'provoked', 'hunting'];
 const FAMILY_WEIGHT = { stalk: 30, uncanny: 20, audio: 15, env: 15, standoff: 10, hunt: 8, rare: 2 };
@@ -33,7 +34,7 @@ export function pstate(player) {
       underground: false, ugTicks: 0, sessionStart: t,
       interest: 12, provocation: 0, state: 'dormant',
       nextMinor: 0, nextMajor: 0, firstContactAt: 0, scheduled: false,
-      graceUntil: t + sec(120),               // re-entry grace
+      graceUntil: t + sec(60),                // re-entry grace
       breaks: [], breakCount: 0, recentBreaks: 0, lastBreakTick: -1e9, lastBreakPos: null, mineHeading: null,
       moves: [], moving: false, stillTicks: 0,
       torches: [], cairns: [],
@@ -147,6 +148,8 @@ export function onCreatureHurtByPlayer(player, amount) {
     if (c && dist(player.location, c.loc) - dist(start, c.loc) > 1.8) evidence(player, 'melee_retreat', 0.8, 'backed off after a swing');
   }, sec(1));
   if (cur && cur.ctx.player.id === player.id) cur.ctx.provoked = true;
+  addTension(s, 30);
+  queueRage(player, 'struck');
 }
 
 export function armRetaliation(player, at) { pstate(player).retaliationArmed = at; provoke(player, 25, 'den'); }
@@ -188,6 +191,55 @@ function startEncounter(tpl, player, s, map, plan) {
   log('basic', `encounter ${tpl.id} [${tpl.features.join(',')}] for ${player.name} (state=${s.state}, int=${s.interest.toFixed(0)}) ${s.reason || ''}`);
 }
 
+/** start a specific template for a player now (stalker clock, rage, ambush) */
+function startById(id, p, plan = null) {
+  const tpl = BY_ID.get(id);
+  if (!tpl || cur) return false;
+  const s = pstate(p);
+  const bm = brainState();
+  let map = bm.map && bm.mapFor === p.id && now() - bm.mapT < sec(12) ? bm.map : null;
+  if (!map) { map = new WalkMap(p.dimension, p.location, { maxNodes: 900, maxDist: 36 }); map.finish(5000); }
+  const pl = plan || safe(`plan:${id}`, () => tpl.plan({ player: p, ps: s, map, isolated: s.isolated }), null);
+  if (!pl) { planFails[id] = (planFails[id] || 0) + 1; return false; }
+  s.reason = 'stalker';
+  startEncounter(tpl, p, s, map, pl);
+  return true;
+}
+
+/** the visible stalker's own clock: a show every minute or two, and the ambush it promised */
+function stalkerClock() {
+  const c = creature();
+  if (!c || c.defeated || cur || pendingScan) return false;
+  const p = brainTarget();
+  if (!p || !eligible(p)) return false;
+  const s = pstate(p);
+  if (now() < s.graceUntil) return false;
+  const bm = brainState();
+  if (!bm.map || bm.mapFor !== p.id || now() - bm.mapT > sec(10)) return false;
+  if (seenByAnyone(c)) return false;                                     // it only repositions while nobody is looking
+  if (s.ambush && ambushMoment(p, s)) {
+    if (startById('stalk_ambush', p)) { s.ambush = null; return true; }
+    s.ambush.at = now() + sec(8);
+    return false;
+  }
+  if (!s.nextShow) s.nextShow = now() + sec(rand(20, 40) * freqMul());
+  if (now() < s.nextShow) return false;
+  if (startById('stalk_show', p)) return true;
+  s.nextShow = now() + sec(6);
+  return false;
+}
+
+let pendingRage = null;
+/** struck or shot: it snaps (after any non-hunt beat is cut short) */
+function queueRage(player, why) {
+  const c = creature();
+  if (!c || c.defeated || !eligible(player)) return;
+  if (cur && cur.tpl.family === 'hunt') return;                            // already coming for someone
+  if (cur && cur.tpl.id === 'stalk_show' && cur.ctx.player.id === player.id) { cur.ctx.provoked = true; return; }
+  if (cur) cur.abort('provoked');
+  pendingRage = { player, why, at: now() };
+}
+
 /** after a beat the creature goes back to lurking (it is not deleted) */
 function handBack() {
   const c = creature();
@@ -216,6 +268,11 @@ function finishEncounter(outcome) {
   if ((ctx.contact || 0) > sec(3)) provoke(pl, 12, 'held eye contact');
   if (ctx.tel.outcome === 'approach' || ctx.tel.outcome === 'touched') provoke(pl, 14, 'approached it');
   if (tpl.family === 'hunt' && ['escaped', 'cap', 'surface', 'no_path'].includes(ctx.tel.outcome)) provoke(pl, 18, 'escaped a hunt');
+  if (tpl.id === 'stalk_show' || tpl.id === 'stalk_ambush' || tpl.id === 'rage') {
+    const o = ctx.tel.outcome;
+    s.lastShowEnd = t;
+    s.nextShow = t + sec((ctx.raged || tpl.id !== 'stalk_show' ? rand(70, 120) : o === 'unnoticed' || o === 'no_spawn' ? rand(15, 30) : rand(40, 80)) * m);
+  }
   s.lastEncounterEnd = t;
   lastGlobalEnd = t;
   if (!minor) lastGlobalMajorEnd = t;
@@ -269,6 +326,11 @@ function updatePlayer(p, dt) {
   const ug = isUnderground(p);
   if (ug && !s.underground) { s.underground = true; if (!s.scheduled) scheduleFresh(s, pf); }
   if (!ug && s.underground) { s.underground = false; }
+  // at night it also stalks you on the surface (through the trees, around your house)
+  s.night = !ug && !!config().nightStalking && p.dimension.id === OVERWORLD && !isDaylight();
+  if (s.night && !s.scheduled) scheduleFresh(s, pf);
+  if (s.night) s.ugTicks += dt;
+  s.tension = (s.tension || 0) * 0.996;                                   // tension fades over a few quiet minutes
   if (ug) {
     s.ugTicks += dt; pf.undergroundSec += dt / 20; markDirty(p);
     s.interest = clamp(s.interest + 0.09 * intensityMul(), 0, 100);       // ~ +2.7 per minute underground
@@ -363,7 +425,7 @@ function choosePlayer(list) {
     if (!s.scheduled) continue;
     if (t - lastGlobalEnd < sec(30)) continue;                       // world-level breathing room
     const minorDue = t >= s.nextMinor;
-    const majorDue = majorAllowed && t >= s.nextMajor && t >= s.firstContactAt && t - lastGlobalMajorEnd >= mins(2);
+    const majorDue = majorAllowed && t >= s.nextMajor && t >= s.firstContactAt && t - lastGlobalMajorEnd >= mins(2) && (s.nextShow || 0) - t > sec(25) && !s.ambush;
     if (!minorDue && !majorDue) continue;
     let score = (majorDue ? 2 : 1) + (t - Math.min(s.nextMinor, s.nextMajor)) / 1200 + (s.isolated ? 1.5 * (1 + trait(p, 'group_separated')) : 0);
     if (score > bestScore) { bestScore = score; best = { p, major: majorDue }; }
@@ -456,6 +518,7 @@ export function directorTick() {
   ws().danger = clamp(ws().danger + 0.06, 0, 100);                      // ~ +1.8 per minute
   safe('brain', brainTick);
   if (cur) return;
+  if (safe('stalker', stalkerClock, false)) return;
   if (pendingScan) {
     const ps = pendingScan;
     if (!valid(ps.player)) { pendingScan = null; return; }
@@ -487,7 +550,11 @@ export function fastTick() {
   safe('guides', tickGuides);
   if (pendingScan && !pendingScan.map.done) safe('scan', () => pendingScan.map.step(110));
   if (cur) safe('step', () => stepEncounter());
-  else if (now() % 5 === 0) safe('lurk', lurkTick);
+  if (!cur && pendingRage) {
+    const r = pendingRage; pendingRage = null;
+    if (valid(r.player) && now() - r.at < sec(4)) safe('rage', () => startById('rage', r.player, { why: r.why }));
+  }
+  if (!cur && now() % 5 === 0) safe('lurk', lurkTick);
 }
 
 export function slowTick() {
@@ -521,9 +588,10 @@ export function debugLine(p) {
   const c = creature();
   const tops = Object.entries(pf.traits).filter(([, t]) => t.s > 1).sort((a, b) => b[1].s - a[1].s).slice(0, 3).map(([k, t]) => `${k.replace('escape_', 'esc_')}:${t.s.toFixed(0)}/${t.c.toFixed(0)}`).join(' ');
   const enc = cur ? `${cur.tpl.id}` : c ? (c.moving ? 'lurk:moving' : 'lurk') : 'absent';
+  const show = s.nextShow ? Math.max(0, (s.nextShow - now()) / 20).toFixed(0) : '-';
   const nm = Math.max(0, (s.nextMajor - now()) / 20).toFixed(0);
   const nn = Math.max(0, (s.nextMinor - now()) / 20).toFixed(0);
-  return `§7SB §f${s.state}§7 int=${s.interest.toFixed(0)} prov=${s.provocation.toFixed(0)} dng=${ws().danger.toFixed(0)} ug=${s.underground ? 1 : 0} | enc=§e${enc}§7 ph=${c ? c.phase : '-'} act=${c ? c.act : '-'} | major ${nm}s minor ${nn}s | ${tops}`;
+  return `§7SB §f${s.state}§7 int=${s.interest.toFixed(0)} prov=${s.provocation.toFixed(0)} dng=${ws().danger.toFixed(0)} ug=${s.underground ? 1 : 0} | enc=§e${enc}§7 ph=${c ? c.phase : '-'} act=${c ? c.act : '-'} | show ${show}s tension ${(s.tension || 0).toFixed(0)} major ${nm}s minor ${nn}s | ${tops}`;
 }
 
 export { players as _players, scheduleFresh, wsDirty, wsSave };
@@ -532,5 +600,5 @@ initBrain({
   pstate,
   running: () => cur,
   provoke,
-  onArrive: (p) => { const s = pstate(p); if (!s.scheduled) scheduleFresh(s, profile(p)); },
+  onArrive: (p) => { const s = pstate(p); if (!s.scheduled) scheduleFresh(s, profile(p)); s.arrivedAt = now(); if (s.lastHuntEnd === undefined) s.lastHuntEnd = now(); s.nextShow = now() + sec(rand(18, 35) * freqMul()); },
 });

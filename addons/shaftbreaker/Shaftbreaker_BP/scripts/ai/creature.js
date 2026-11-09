@@ -11,7 +11,7 @@ import { log } from '../core/log.js';
 export const SB_ID = 'shaftbreaker:shaftbreaker';
 export const PHASES = ['dormant', 'stalking', 'watching', 'breaker', 'frenzy'];
 /** movement speeds in blocks per tick */
-export const SPEED = { creep: 0.055, stalk: 0.085, walk: 0.115, fast: 0.18, scramble: 0.21 };
+export const SPEED = { creep: 0.055, stalk: 0.085, walk: 0.115, fast: 0.18, scramble: 0.21, rage: 0.34 };   // rage is faster than a sprinting player (0.28)
 
 /** does any player in range currently see the creature? */
 export function seenByAnyone(cr, maxDist = 64) {
@@ -67,6 +67,7 @@ export class Creature {
     this.safeChase = null;   // harmless-preview chase target
     this.resumeMode = null;  // movement mode to restore after a rooted act
     this.lockStance = false;
+    this.rage = false;       // rage chase: faster engine mode, scripted fallback at rage speed
   }
 
   get valid() { return valid(this.e) && !this.defeated; }
@@ -103,7 +104,7 @@ export class Creature {
     if (this.mode === m) return;
     this.mode = m;
     safe('mode', () => this.e.triggerEvent(`sb:mode_${m}`));
-    if (m === 'hunt' || m === 'frenzy') this.stop();
+    if (m === 'hunt' || m === 'frenzy' || m === 'rage') this.stop();
   }
 
   setGravity(on) { if (this.grav === on) return; this.grav = on; safe('grav', () => this.e.triggerEvent(on ? 'sb:grav_on' : 'sb:grav_off')); }
@@ -124,6 +125,7 @@ export class Creature {
    * @param {boolean|number} speed true = fast, false = walk, or blocks per tick
    */
   moveTo(pos, speed = false, faceTarget = null) {
+    if (!this.goal || dist(this.goal, pos) > 1.5) this.replans = 0;
     this.goal = { x: pos.x, y: pos.y, z: pos.z };
     this.speed = typeof speed === 'number' ? speed : speed ? SPEED.fast : SPEED.walk;
     this.faceTarget = faceTarget;
@@ -200,7 +202,16 @@ export class Creature {
     if (this.stepMode) {               // fallback: step along the validated path (never into solid cells)
       const stepLen = Math.min(this.speed, dl);
       const ny = d.y > 0.05 ? tgt.y : (d.y < -0.05 && dl < 0.55 ? tgt.y : l.y);
-      safe('step', () => this.e.teleport({ x: l.x + n.x * stepLen, y: ny, z: l.z + n.z * stepLen }, { keepVelocity: false }));
+      const np = { x: l.x + n.x * stepLen, y: ny, z: l.z + n.z * stepLen };
+      // the world may have changed since the path was planned (a block placed, a den grown): re-plan instead
+      const fc = floor3({ x: np.x, y: np.y + 0.05, z: np.z });
+      const c = new BlockCache(this.dim);
+      if (!c.passable(fc.x, fc.y, fc.z) || (this.stance !== 2 && !c.passable(fc.x, fc.y + 1, fc.z))) {
+        const g = this.goal; const sp = this.speed; const ft = this.faceTarget;
+        if (g && (this.replans = (this.replans || 0) + 1) <= 4) this.moveTo(g, sp, ft); else { this.stop(); this.replans = 0; }
+        return;
+      }
+      safe('step', () => this.e.teleport(np, { keepVelocity: false }));
       return;
     }
     // physics steering with adaptive gain (friction differs between surfaces and versions)
@@ -245,13 +256,13 @@ export class Creature {
   huntTarget(player, frenzy = false) {
     if (config().harmless || !isDamageable(player)) {  // harmless preview / creative: a chase with no attack goal at all
       this.safeChase = player;
-      this.chase(player, frenzy ? SPEED.scramble : SPEED.fast);
+      this.chase(player, this.rage ? SPEED.rage : frenzy ? SPEED.scramble : SPEED.fast);
       return;
     }
     this.safeChase = null;
     for (const p of world.getAllPlayers()) if (p.id !== player.id) safe('untag', () => p.removeTag('sb_target'));
     safe('tag', () => player.addTag('sb_target'));
-    this.setMode(frenzy ? 'frenzy' : 'hunt');
+    this.setMode(frenzy ? (this.rage ? 'rage' : 'frenzy') : 'hunt');
   }
 
   releaseTarget() {
@@ -288,6 +299,13 @@ export class Creature {
     const c = new BlockCache(this.dim);
     const l = floor3(this.loc);
     let h = c.headroom(l.x, l.y, l.z);
+    // look ahead along a scripted path: drop to a crawl before reaching a one-block gap
+    if (this.path && this.pathI < this.path.length) {
+      for (let i = this.pathI; i < Math.min(this.path.length, this.pathI + 2); i++) {
+        const q = floor3(this.path[i]);
+        if (lenXZ(sub(this.path[i], this.loc)) < 2.2) h = Math.min(h, Math.max(1, c.headroom(q.x, q.y, q.z)));
+      }
+    }
     try {
       const v = this.e.getVelocity();
       if (lenXZ(v) > 0.05) {
@@ -307,7 +325,7 @@ export class Creature {
 
   updateStuck() {
     const l = this.loc;
-    const moving = this.mode === 'hunt' || this.mode === 'frenzy' || (this.mode === 'scripted' && this.moving);
+    const moving = this.mode === 'hunt' || this.mode === 'frenzy' || this.mode === 'rage' || (this.mode === 'scripted' && this.moving);
     const moved = lenXZ(sub(l, this.lastPos)) + Math.abs(l.y - this.lastPos.y) * 0.5;
     this.lastPos = { x: l.x, y: l.y, z: l.z };
     if (!moving) { this.stuckTicks = 0; return; }

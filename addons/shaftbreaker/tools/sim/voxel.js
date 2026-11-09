@@ -28,8 +28,8 @@ export class VoxelWorld {
       this.data[this.idx(x, y, z)] = 0; this.data[this.idx(x, yy, z)] = this.pid('minecraft:gravel');
     }
   }
-  passable(x, y, z) { return PASSABLE.test(this.get(x, y, z)); }
-  solid(x, y, z) { const id = this.get(x, y, z); return !PASSABLE.test(id) && !/water|lava/.test(id); }
+  passable(x, y, z) { const id = this.get(x, y, z); return PASSABLE.test(id) || (/door|fence_gate/.test(id) && this.getStates(x, y, z).open_bit === true); }
+  solid(x, y, z) { const id = this.get(x, y, z); return !this.passable(x, y, z) && !/water|lava/.test(id); }
   topY(x, z) { for (let y = this.maxY - 1; y >= this.minY; y--) if (!this.passable(x, y, z)) return y; return null; }
   sky(x, y, z) { for (let yy = y + 1; yy < this.maxY; yy++) if (!this.passable(x, yy, z)) return 0; return 15; }
   light(x, y, z) {
@@ -113,5 +113,24 @@ export class VoxelWorld {
     for (let z = 2; z <= 6; z++) for (let y = my; y < my + 2; y++) this.data[this.idx(-28, y, z)] = 0;
     this.data[this.idx(-28, my, 6)] = this.pid('minecraft:oak_door');
     this.data[this.idx(-28, my + 1, 6)] = this.pid('minecraft:oak_door');
+    // the surface: a small forest (trunks to hide behind) and a house with glass windows and a door
+    for (let i = 0; i < 70; i++) {
+      const tx = Math.floor((this.rand() - 0.5) * this.size * 0.85), tz = Math.floor((this.rand() - 0.5) * this.size * 0.85);
+      if (Math.abs(tx - 14) < 9 && Math.abs(tz - 14) < 9) continue;
+      const h = 4 + Math.floor(this.rand() * 3);
+      for (let y = 61; y < 61 + h; y++) if (this.inBounds(tx, y, tz)) this.data[this.idx(tx, y, tz)] = this.pid('minecraft:oak_log');
+      for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) for (let y = 61 + h - 2; y <= 61 + h; y++) {
+        if (!this.inBounds(tx + dx, y, tz + dz) || (dx === 0 && dz === 0 && y < 61 + h)) continue;
+        if (Math.abs(dx) + Math.abs(dz) > 3) continue;
+        if (this.get(tx + dx, y, tz + dz) === 'minecraft:air') this.data[this.idx(tx + dx, y, tz + dz)] = this.pid('minecraft:oak_leaves');
+      }
+    }
+    for (let x = 10; x <= 18; x++) for (let z = 10; z <= 18; z++) for (let y = 61; y <= 64; y++) {
+      const wall = x === 10 || x === 18 || z === 10 || z === 18;
+      this.data[this.idx(x, y, z)] = y === 64 ? this.pid('minecraft:oak_planks') : wall ? this.pid((y === 62 && (x === 14 || z === 14)) ? 'minecraft:glass' : 'minecraft:oak_planks') : 0;
+    }
+    this.data[this.idx(14, 61, 10)] = this.pid('minecraft:oak_door'); this.states.set(`14,61,10`, { open_bit: false, upper_block_bit: false });
+    this.data[this.idx(14, 62, 10)] = this.pid('minecraft:oak_door'); this.states.set(`14,62,10`, { open_bit: false, upper_block_bit: true });
+    this.house = { x: 14, y: 61, z: 14 };
   }
 }

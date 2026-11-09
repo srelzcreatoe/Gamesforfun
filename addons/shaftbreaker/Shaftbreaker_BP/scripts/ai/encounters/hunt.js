@@ -11,6 +11,7 @@ import { ws, wsDirty, addDanger } from '../worldstate.js';
 import { setDanger, startMusic, stopMusic, caption, playAt } from '../../audio.js';
 import { isUnderground, skyLightAt, findSpot, lineOfSight, BlockCache } from '../../world/space.js';
 import { canBreak } from '../../world/protection.js';
+import { breach, barrierAhead, breachAllowed, restoreBreaches, findEntry } from '../../world/breach.js';
 import { log } from '../../core/log.js';
 
 function diffMul() {
@@ -18,6 +19,11 @@ function diffMul() {
     const d = String(world.getDifficulty()).toLowerCase();
     return d === 'easy' ? 0.6 : d === 'hard' ? 1.4 : d === 'peaceful' ? 0 : 1.0;
   } catch { return 1; }
+}
+
+/** is it daytime in the Overworld? (a raging Shaftbreaker follows you onto the surface at night) */
+export function isDaylight() {
+  try { const t = world.getTimeOfDay(); return t < 12600 || t > 23400; } catch { return true; }
 }
 
 function canHurt(ctx) {
@@ -49,7 +55,7 @@ function* cornerLunge(ctx, cr) {                                     // N21
   safe('lunge', () => cr.e.applyImpulse({ x: d.x * 1.15, y: 0.28, z: d.z * 1.15 }));
   yield W(sec(0.38));
   if (cr.inFront(pl, 2.8, 65) || dist(cr.loc, pl.location) < 2.0) {
-    if (cr.strike(pl, 8 * diffMul(), canHurt(ctx))) ctx.hits++;
+    if (cr.strike(pl, 10 * diffMul(), canHurt(ctx))) ctx.hits++;
   }
   yield W(sec(0.5));
 }
@@ -85,7 +91,7 @@ function* heavyStrike(ctx, cr) {                                     // heavy + 
       caption(pl, 'Your shield is wrenched aside');
       ctx.tel.notes.push('L38 shield pressure');
     }
-    if (cr.strike(pl, 9 * diffMul(), canHurt(ctx))) ctx.hits++;
+    if (cr.strike(pl, 11 * diffMul(), canHurt(ctx))) ctx.hits++;
     if (blocking) evidence(pl, 'shield_dependence', 1, 'blocked a heavy strike');
   }
   yield W(sec(0.7));
@@ -163,13 +169,22 @@ export function* pursue(ctx, cr, opts = {}) {
   let trapPause = 0;
   let lastDoorRattle = 0;
   let vehicleSince = 0;
-  // adaptive navigation unlocks
-  if (unlocked(pl, 'escape_door')) { cr.setNav('doors'); ctx.tel.notes.push('L45 doors unlocked'); }
-  if (unlocked(pl, 'escape_pillars') && chance(0.7)) { cr.setNav('climb'); ctx.tel.notes.push('L47 climbing approach'); }
-  cr.setPhase('breaker');
-  cr.huntTarget(pl, false);
+  const rage = !!opts.rage;
+  // adaptive navigation unlocks; a raging Shaftbreaker climbs walls, pillars and ledges after you
+  if (rage) { cr.setNav('climb'); ctx.tel.notes.push('rage: climbing pursuit'); }
+  else if (unlocked(pl, 'escape_door')) { cr.setNav('doors'); ctx.tel.notes.push('L45 doors unlocked'); }
+  if (!rage && unlocked(pl, 'escape_pillars') && chance(0.7)) { cr.setNav('climb'); ctx.tel.notes.push('L47 climbing approach'); }
+  cr.rage = rage;
+  if (rage) { phase = 'frenzy'; ctx.tel.phases.push('frenzy'); cr.setPhase('frenzy'); }
+  else cr.setPhase('breaker');
+  // fairness: no hit can land within ~1.8 s of the scream; it closes in under script control first
+  const armAt = rage ? now() + sec(0.7) : 0;
+  if (rage) cr.chase(pl, SPEED.rage); else cr.huntTarget(pl, false);
+  let armed = !rage;
+  let lastProgress = { t: now(), d: dist(cr.loc, pl.location), pos: { ...cr.loc } };
+  let scriptUntil = 0;
   ctx.huntStartPos = { ...cr.loc };
-  ctx.tel.phases.push('breaker');
+  if (!rage) ctx.tel.phases.push('breaker');
   const quiet = !!opts.quiet;
   if (!quiet) startMusic(pl, 'music.shaftbreaker.chase');
 
@@ -196,30 +211,68 @@ export function* pursue(ctx, cr, opts = {}) {
     // ---- end conditions
     if (el >= maxT) return 'cap';
     if (phase === 'frenzy' && frenzyTicks >= sec(Math.min(30, cfg.maxHuntSeconds))) return 'cap';
-    if (d > 48 || (lostLOS > sec(12) && d > 22)) return 'escaped';
-    if (!ctx.manual && !isUnderground(pl)) {
+    if (d > (rage ? 56 : 48) || (lostLOS > sec(rage ? 15 : 12) && d > (rage ? 28 : 22))) return 'escaped';
+    if (!ctx.manual && !isUnderground(pl) && isDaylight()) {           // it never follows you into daylight
       surfaceT += 5;
       if (!cfg.surfaceMode || surfaceT > sec(6)) return 'surface';      // L52 / L53
     } else surfaceT = 0;
     if (hp < 0.4 && el > sec(3)) return 'low_health';                     // L40 / L41
+    if (!armed) { if (now() >= armAt) { armed = true; cr.chaseTarget = null; cr.huntTarget(pl, true); } else continue; }
     if (cr.act && cr.act !== ACT.CLIMB) continue;
-    // ---- engine fallback: if the built-in chase goal is not moving it, the script pursues instead
-    if (!ctx.engineChecked && el > sec(3)) {
-      ctx.engineChecked = true;
-      if (dist(cr.loc, ctx.huntStartPos || cr.loc) < 1.0 && d > 3.5) { ctx.scriptChase = true; ctx.tel.notes.push('engine pursuit stalled: scripted pursuit'); }
+    // ---- nothing stops it: open doors, smash glass and leaves right in front of it (all restored later)
+    if (breachAllowed() && d > 1.8 && now() >= (ctx.nextBreach || 0) && (rage || phase === 'frenzy')) {
+      const q = barrierAhead(cr.dim, cr.loc, pl.location, 2.2);
+      if (q) {
+        const kind = breach(cr.dim, q);
+        if (kind) {
+          ctx.nextBreach = now() + sec(0.5);
+          ctx.breaches = (ctx.breaches || 0) + 1;
+          if (ctx.breaches === 1) ctx.tel.notes.push(`breach: ${kind}`);
+          cr.setAct(kind === 'break' ? ACT.BREAK_STRIKE : ACT.DOOR_REACH);
+          if (ctx.scriptChase) cr.chase(pl, rage ? SPEED.rage : phase === 'frenzy' ? SPEED.scramble : SPEED.fast);
+        }
+      }
     }
-    if (ctx.scriptChase && !cr.chaseTarget && !cr.act) cr.chase(pl, phase === 'frenzy' ? SPEED.scramble : SPEED.fast);
+    // ---- engine fallback: whenever the built-in chase stops making progress, the script pursues
+    //      (it crawls through one-block gaps and steps where the engine will not), then hands back
+    if (now() - lastProgress.t >= sec(1.5)) {
+      const moved = dist(cr.loc, lastProgress.pos);
+      const closed = lastProgress.d - d;
+      if (!ctx.scriptChase && d > 3.2 && moved < 1.0 && closed < 0.8) {
+        ctx.scriptChase = true; scriptUntil = now() + sec(rand(5, 8));
+        if (!ctx.stallNoted) { ctx.stallNoted = true; ctx.tel.notes.push('engine pursuit stalled: scripted pursuit'); }
+      } else if (ctx.scriptChase && d > 3.2 && moved < 1.0 && closed < 0.8 && breachAllowed() && !ctx.entry && now() >= (ctx.nextEntry || 0)) {
+        // shut in behind walls: it goes for the nearest door or window
+        ctx.nextEntry = now() + sec(4);
+        const e = findEntry(cr.dim, pl.location, cr.loc, 9);
+        if (e) { ctx.entry = e; ctx.entryUntil = now() + sec(9); cr.chaseTarget = null; cr.moveTo(e.stand, SPEED.rage, pl.getHeadLocation()); ctx.tel.notes.push('heading for a way in'); }
+      } else if (ctx.scriptChase && now() >= scriptUntil && s.visible && d < 18 && !ctx.forceScript) {
+        ctx.scriptChase = false; cr.chaseTarget = null; cr.huntTarget(pl, phase === 'frenzy');
+      }
+      lastProgress = { t: now(), d, pos: { ...cr.loc } };
+    }
+    if (ctx.entry) {                                                  // at the door / window: through it
+      if (lenXZ(sub(cr.loc, ctx.entry.stand)) < 1.6 || now() > ctx.entryUntil) {
+        const b = ctx.entry.barrier;
+        const kind = breach(cr.dim, b);
+        for (const dy of [-1, 1]) breach(cr.dim, { x: b.x, y: b.y + dy, z: b.z });
+        if (kind) { ctx.breaches = (ctx.breaches || 0) + 1; ctx.tel.notes.push(`breach: ${kind} (way in)`); cr.face(pl.location); cr.setAct(kind === 'break' ? ACT.BREAK_STRIKE : ACT.DOOR_REACH); }
+        ctx.entry = null; cr.stop(); cr.chase(pl, rage ? SPEED.rage : SPEED.scramble);
+      }
+      continue;
+    }
+    if (ctx.scriptChase && !cr.chaseTarget && !cr.act) cr.chase(pl, rage ? SPEED.rage : phase === 'frenzy' ? SPEED.scramble : SPEED.fast);
     // ---- scripted claw when in reach and no engine attack has landed recently (telegraphed wind-up)
     if (d < 2.6 && now() - cr.lastEngineHit > sec(1.7) && now() > (ctx.nextClaw || 0) && cr.inFront(pl, 3.0, 85)) {
-      ctx.nextClaw = now() + sec(1.6);
+      ctx.nextClaw = now() + sec(rage ? 1.4 : 1.6);
       const keepChase = ctx.scriptChase;
       cr.halt(); cr.face(pl.location);
       cr.setAct(chance(0.5) ? ACT.CLAW_RIGHT : ACT.CLAW_LEFT);
-      yield W(sec(0.5));
-      if (cr.valid && cr.inFront(pl, 2.9, 75) && cr.strike(pl, 6 * diffMul(), canHurt(ctx))) ctx.hits++;
+      yield W(sec(rage ? 0.4 : 0.5));
+      if (cr.valid && cr.inFront(pl, 2.9, 75) && cr.strike(pl, (rage ? 8 : 7) * diffMul(), canHurt(ctx))) ctx.hits++;
       yield W(sec(0.4));
       if (!cr.valid) continue;
-      if (keepChase) cr.chase(pl, phase === 'frenzy' ? SPEED.scramble : SPEED.fast); else cr.huntTarget(pl, phase === 'frenzy');
+      if (keepChase) cr.chase(pl, rage ? SPEED.rage : phase === 'frenzy' ? SPEED.scramble : SPEED.fast); else cr.huntTarget(pl, phase === 'frenzy');
       continue;
     }
     // ---- trap recognition (N17): hesitate near a hazard type that hurt it before
@@ -402,7 +455,7 @@ export const HUNT_TEMPLATES = [
     ...HUNT_BASE,
     id: 'hunt', features: ['N26', 'N46', 'N49', 'N22', 'L25', 'L27', 'L28', 'L29', 'L30', 'L31', 'L32', 'L33', 'L34', 'L35', 'L37', 'L38', 'L39', 'L40', 'L41', 'L42', 'L43', 'L45', 'L47', 'L48', 'L52', 'L53', 'L63', 'L82', 'N17', 'N21', 'N23', 'N27', 'N28', 'N30', 'N35'],
     minState: 'observing', minSightings: 2, cooldownMin: 9,
-    weight: () => 1,
+    weight: () => 0,                                              // hunts now come from the stalker (rage); still forceable
     plan(ctx) {
       const existing = creature();
       if (existing) return { reuse: true };
@@ -481,6 +534,18 @@ export const HUNT_TEMPLATES = [
       return yield* huntSequence(ctx, plan);
     },
   },
+  {
+    ...HUNT_BASE,
+    id: 'rage', features: ['L25', 'L27', 'L30', 'L47', 'N21'], minState: 'dormant', cooldownMin: 0,
+    trigger: 'stared down too long, shot or struck, cornered, or a hunt is due when it is spotted',
+    telegraph: 'a scream (and its lunge, if it lunged) before the pursuit; chase music starts',
+    counterplay: 'break line of sight, get into daylight, fight back, regroup',
+    weight: () => 0,                                              // only started by the stalker / when provoked
+    plan() { return creature() ? { reuse: true } : null; },
+    *run(ctx, plan) {
+      return yield* huntSequence(ctx, { reuse: true, rage: true, why: plan.why || ctx.plan?.why, lunged: plan.lunged });
+    },
+  },
 ];
 
 /** telegraph -> pursuit -> ending (shared by all hunts and escalations) */
@@ -494,11 +559,20 @@ export function* huntSequence(ctx, plan = {}) {
   ws().hunts++; wsDirty();
   // ---- TELEGRAPH (no damage possible yet: no attack goal is active)
   cr.halt();
+  if (!cr.grav || cr.act === ACT.CEILING_HANG) { cr.setAct(ACT.CEILING_DROP); cr.setGravity(true); yield W(sec(0.6)); }
+  cr.lockStance = false; cr.setGravity(true);
   cr.face(pl.location);
   cr.setPhase('breaker');
   cr.setEyes(1.0);
-  const quiet = cfg.quietHunt && !cfg.harmless && chance(0.05) && ctx.prefs && !ctx.prefs.reducedChase;
-  if (quiet) {                                                         // N35: silent hunt, safety tells remain
+  const rage = !!plan.rage;
+  const quiet = !rage && cfg.quietHunt && !cfg.harmless && chance(0.05) && ctx.prefs && !ctx.prefs.reducedChase;
+  if (rage) {                                                          // it snaps: one scream, then it comes
+    ctx.tel.notes.push(`rage (${plan.why || 'snapped'})`);
+    cr.setAct(ACT.ROAR);
+    playAt(cr.dim, 'shaftbreaker.screech', cr.loc, 1.0, rand(0.95, 1.08));
+    caption(pl, 'It screams', cr.loc);
+    yield W(sec(plan.lunged ? 0.8 : 1.1));
+  } else if (quiet) {                                                         // N35: silent hunt, safety tells remain
     ctx.tel.notes.push('N35 silent pursuit');
     cr.setAct(ACT.BRACE);
     safe('dust', () => cr.dim.spawnParticle('shaftbreaker:dust_fall', { x: cr.loc.x, y: cr.loc.y + 2.6, z: cr.loc.z }));
@@ -513,10 +587,12 @@ export function* huntSequence(ctx, plan = {}) {
   setDanger(pl, 0.85);
   if (!cr.valid) return 'lost';
   cr.clearAct();
-  const outcome = yield* pursue(ctx, cr, { quiet });
+  const outcome = yield* pursue(ctx, cr, { quiet, rage });
   ctx.tel.outcome = outcome;
   stopMusic(pl);
-  if (cr.valid) cr.releaseTarget();
+  if (cr.valid) { cr.releaseTarget(); cr.rage = false; cr.setNav('walk'); }
+  ctx.ps.lastHuntEnd = now();
+  ctx.later(sec(9), () => restoreBreaches({ keepNear: creature() ? creature().loc : null }));
   learnFromHunt(ctx, outcome);
   addDanger(-30);
   ws().lastHuntEnd = now(); wsDirty();
@@ -532,7 +608,7 @@ export function* huntSequence(ctx, plan = {}) {
     cr.vanish(!seen(ctx, cr).visible);
     return outcome;
   }
-  if (outcome === 'distracted') { yield* passiveExit(ctx, cr, 'walk'); return outcome; }
+  if (outcome === 'distracted') { yield* passiveExit(ctx, cr); return outcome; }
   cr.halt();
   cr.setAct(ACT.FRENZY_HALT);
   cr.setPhase('watching');
@@ -544,7 +620,9 @@ export function* huntSequence(ctx, plan = {}) {
     yield W(sec(3));
   }
   if (outcome === 'caught' || outcome === 'player_left') { cr.vanish(!seen(ctx, cr).visible); return outcome; }
-  yield* passiveExit(ctx, cr, 'backward');
+  // it does not walk away: it vanishes where it stands
+  if (seen(ctx, cr).visible) { cr.setAct(ACT.VANISH); yield W(sec(0.9)); }
+  cr.vanish(false);
   return outcome;
 }
 

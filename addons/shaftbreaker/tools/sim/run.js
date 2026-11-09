@@ -23,8 +23,10 @@ fs.cpSync(path.join(ROOT, 'Shaftbreaker_BP/scripts'), path.join(build, 'scripts'
 for (const [name, file] of [['server', 'server.js'], ['server-ui', 'server-ui.js']]) {
   const d = path.join(here, 'node_modules/@minecraft', name);
   fs.mkdirSync(d, { recursive: true });
-  fs.writeFileSync(path.join(d, 'package.json'), JSON.stringify({ name: `@minecraft/${name}`, type: 'module', main: 'index.js' }));
-  fs.writeFileSync(path.join(d, 'index.js'), `export * from ${JSON.stringify(pathToFileURL(path.join(here, 'mock', file)).href)};\n`);
+  // parallel runs share this shim: write atomically and only when it differs
+  const put = (f, txt) => { const fp = path.join(d, f); try { if (fs.readFileSync(fp, 'utf8') === txt) return; } catch { /* missing */ } const tmp = `${fp}.${process.pid}.tmp`; fs.writeFileSync(tmp, txt); fs.renameSync(tmp, fp); };
+  put('package.json', JSON.stringify({ name: `@minecraft/${name}`, type: 'module', main: 'index.js' }));
+  put('index.js', `export * from ${JSON.stringify(pathToFileURL(path.join(here, 'mock', file)).href)};\n`);
 }
 
 const M = await import(pathToFileURL(path.join(here, 'mock/server.js')).href);
@@ -35,6 +37,7 @@ console.warn = (...a) => { const s = a.join(' '); scriptLog.push(s); if (/\(x\d+
 
 const vw = new VoxelWorld(SEED);
 world._init(vw);
+SIM.timeOfDay = SCENARIO === 'night' ? 18000 : 6000;
 const dim = world.getDimension('minecraft:overworld');
 
 // ---- protected blocks guard (T11)
@@ -45,19 +48,23 @@ SIM.guardSet = (x, y, z, oldId, newId) => {
 
 // ---- players
 function findStart(i) {
+  if (SCENARIO === 'night') {                                       // on the surface near the house and the trees
+    for (let r = 0; r < 4000; r++) { const x = Math.floor(rand2(-30, 30)), z = Math.floor(rand2(-30, 30)); if (vw.standable(x, 61, z) && vw.sky(x, 61, z) > 0) return { x: x + 0.5, y: 61, z: z + 0.5 }; }
+  }
   for (let r = 0; r < 4000; r++) {
     const x = Math.floor((Math.random() - 0.5) * 60), z = Math.floor((Math.random() - 0.5) * 60), y = Math.floor(-10 + Math.random() * 40);
     if (vw.standable(x, y, z) && vw.sky(x, y, z) === 0) return { x: x + 0.5, y, z: z + 0.5 };
   }
   return { x: 0.5, y: 20, z: 0.5 };
 }
+function rand2(a, b) { return a + Math.random() * (b - a); }
 const STRATS = ['stairs', 'door', 'random', 'fighter'];
 const bots = [];
 for (let i = 0; i < NPLAYERS; i++) {
   const p = new Player(`Bot${i + 1}`, dim, findStart(i));
   p._spawnPoint = { x: 0, y: 61, z: 0, dimension: dim };
   world._players.push(p); world._entities.push(p);
-  bots.push({ p, strat: SCENARIO === 'stairs' ? 'stairs' : SCENARIO === 'door' ? 'door' : STRATS[i % STRATS.length], path: [], goal: null, mode: 'explore', lookT: 0, mineDir: null, mineLeft: 0, torchT: 0, react: 0, attackT: 0, deadT: 0, escapes: 0 });
+  bots.push({ p, strat: SCENARIO === 'stairs' ? 'stairs' : SCENARIO === 'door' ? 'door' : SCENARIO === 'night' ? (i % 2 ? 'fighter' : 'house') : STRATS[i % STRATS.length], path: [], goal: null, mode: 'explore', lookT: 0, mineDir: null, mineLeft: 0, torchT: 0, react: 0, attackT: 0, deadT: 0, escapes: 0 });
 }
 
 // ---- boot the add-on exactly like the game would
@@ -130,7 +137,7 @@ function creatureStep(e) {
     const fx = Math.floor(e.location.x), fy = Math.floor(e.location.y), fz = Math.floor(e.location.z);
     if (vw.passable(fx, fy - 1, fz)) { e.location = { ...e.location, y: Math.max(e.location.y - 0.5, fy - 1) }; e.isOnGround = false; } else e.isOnGround = true;
   }
-  if (!(mode === 'hunt' || mode === 'frenzy')) return;
+  if (!(mode === 'hunt' || mode === 'frenzy' || mode === 'rage')) return;
   const tp = world._players.find((p) => p.hasTag('sb_target') && p.isValid && !p._dead);
   if (!tp) return;
   st.target = tp;
@@ -141,7 +148,7 @@ function creatureStep(e) {
     st.path = bfs(e.location, (c) => Math.abs(c.x - g.x) + Math.abs(c.z - g.z) <= 1 && Math.abs(c.y - g.y) <= 1, 2500, { crawl, doors }) || [];
     st.repath = 10;
   }
-  const spd = (mode === 'hunt' ? 0.36 : 0.45 * 1.12) * 0.5;
+  const spd = (mode === 'hunt' ? 0.36 : mode === 'rage' ? 0.44 * 1.3 : 0.45 * 1.12) * 0.5;
   if (st.path.length) { moveAlong(e, st.path, spd); faceDir(e, tp.location); }
   // delayed attack (engine goal) on the hunt target
   const t = M.system.currentTick;
@@ -150,8 +157,8 @@ function creatureStep(e) {
   if (st.atkHitAt && t >= st.atkHitAt) {
     st.atkHitAt = 0; st.atkReady = t + 33;
     if (d3(e.location, tp.location) < 2.7 && !tp._dead) {
-      SIM.hits.push({ t, n: 6, act: e._props['shaftbreaker:act'], phase: e._props['shaftbreaker:phase'], mode, src: 'engine', p: { ...tp.location }, c: { ...e.location }, los: canSee(tp, e) });
-      world._damage(tp, 6, 'entityAttack', e);
+      SIM.hits.push({ t, n: mode === 'rage' ? 8 : mode === 'frenzy' ? 8 : 7, act: e._props['shaftbreaker:act'], phase: e._props['shaftbreaker:phase'], mode, src: 'engine', p: { ...tp.location }, c: { ...e.location }, los: canSee(tp, e) });
+      world._damage(tp, mode === 'rage' ? 8 : mode === 'frenzy' ? 8 : 7, 'entityAttack', e);
     }
   }
 }
@@ -167,7 +174,7 @@ function botStep(b) {
   }
   if (t % 80 === 0 && p._hp < 20) p._hp++;
   const sb = world._entities.find((e) => e.typeId === 'shaftbreaker:shaftbreaker' && e.isValid);
-  const hunted = sb && (sb.mode() === 'hunt' || sb.mode() === 'frenzy') && p.hasTag('sb_target');
+  const hunted = sb && (sb.mode() === 'hunt' || sb.mode() === 'frenzy' || sb.mode() === 'rage') && p.hasTag('sb_target');
   if (hunted && b.mode !== 'flee' && b.mode !== 'fight') {
     b.mode = b.strat === 'fighter' && Math.random() < 0.7 ? 'fight' : 'flee'; b.path = [];
     if (Math.random() < 0.12) { const it = dim.spawnItem(new ItemStack('minecraft:beef', 1), { ...p.location }); void it; }
@@ -183,12 +190,14 @@ function botStep(b) {
   if (b.mode === 'flee') {
     if (!b.path.length) {
       if (b.strat === 'stairs') b.path = bfs(p.location, (c) => vw.sky(c.x, c.y, c.z) > 0, 40000) || [];
+      else if (b.strat === 'house') b.path = bfs(p.location, (c) => c.x >= 12 && c.x <= 16 && c.z >= 12 && c.z <= 16 && c.y === 61, 9000, { doors: true }) || [];
       else if (b.strat === 'door') b.path = bfs(p.location, (c) => c.x >= -29 && c.x <= -27 && c.z >= 7 && c.z <= 9 && c.y === 20, 6000, { doors: true }) || [];
       if (!b.path.length) { const g = sb ? (() => { for (let i = 0; i < 30; i++) { const c = randomGoal(p, 30); if (c && d3(c, sb.location) > d3(p.location, sb.location) + 8) return c; } return null; })() : null; if (g) b.path = bfs(p.location, (c) => c.x === g.x && c.y === g.y && c.z === g.z, 4000) || []; }
     }
     if (b.path.length) { const nx = b.path[0]; faceDir(p, { x: nx.x + 0.5, y: nx.y, z: nx.z + 0.5 }); moveAlong(p, b.path, 0.28); p.isSprinting = true; }
     else if (sb) faceDir(p, sb.location);
     if (b.strat === 'door' && /door/.test(vw.get(Math.floor(p.location.x), Math.floor(p.location.y), Math.floor(p.location.z)))) world.afterEvents.playerInteractWithBlock.fire({ player: p, block: dim.getBlock(p.location), isFirstEvent: true });
+    if (b.strat === 'house' && !b.path.length && vw.getStates(14, 61, 10).open_bit) { vw.states.set('14,61,10', { open_bit: false, upper_block_bit: false }); vw.states.set('14,62,10', { open_bit: false, upper_block_bit: true }); }
     if (b.strat === 'stairs' && b.path.length && b.path[0].y > p.location.y) p.isClimbing = true; else p.isClimbing = false;
     return;
   }
@@ -196,9 +205,21 @@ function botStep(b) {
   // react to a visible creature
   if (sb && canSee(p, sb) && d3(p.location, sb.location) < 40) {
     const ang = angleTo(p, { x: sb.location.x, y: sb.location.y + 2, z: sb.location.z });
-    if (ang < 60 && !b.react) b.react = t + 20 * (2 + Math.random() * 7);
-    if (b.react && t < b.react) { faceDir(p, sb.location); if (Math.random() < 0.004) { b.path = bfs(p.location, (c) => d3(c, sb.location) < 4, 1500) || []; } if (b.path.length) moveAlong(p, b.path, 0.18); return; }
-  } else b.react = 0;
+    if (ang < 60 && !b.react) {
+      const r = Math.random();
+      b.reactKind = r < 0.42 ? 'stare' : r < 0.6 ? 'charge' : r < 0.7 ? 'hit' : 'away';
+      b.react = t + 20 * (b.reactKind === 'stare' ? 3 + Math.random() * 10 : 2 + Math.random() * 4);
+      (SIM.reacts ||= {})[b.reactKind] = (SIM.reacts[b.reactKind] || 0) + 1;
+      if (b.reactKind === 'charge') b.path = bfs(p.location, (c) => d3(c, sb.location) < 3, 2500) || [];
+      if (b.reactKind === 'hit') { const dd = d3(p.location, sb.location); if (dd < 30 && Math.random() < 0.7) world._damage(sb, dd < 3.5 ? 6 : 4, dd < 3.5 ? 'entityAttack' : 'projectile', p); }
+    }
+    if (b.react && t < b.react) {
+      if (b.reactKind === 'away') { p._rot = { x: 0, y: p._rot.y + 180 }; b.react = 0; b.lookT = t + 60; return; }
+      faceDir(p, sb.location);
+      if (b.reactKind === 'charge' && b.path.length) { moveAlong(p, b.path, 0.26); p.isSprinting = true; }
+      return;
+    }
+  } else if (!b.react || t >= b.react) b.react = 0;
   // mining run
   if (b.mode === 'mine') {
     if (t % 18 === 0) {
@@ -265,6 +286,8 @@ const presence = { ugTicks: 0, withCreature: 0, distSum: 0, seenTicks: 0 };
 const dir = await import(pathToFileURL(path.join(build, 'scripts/ai/director.js')).href);
 const WSM = await import(pathToFileURL(path.join(build, 'scripts/ai/worldstate.js')).href);
 const crMod = await import(pathToFileURL(path.join(build, 'scripts/ai/creature.js')).href);
+const LOGM = await import(pathToFileURL(path.join(build, 'scripts/core/log.js')).href);
+const ALLTEL = new Set();
 const brMod = await import(pathToFileURL(path.join(build, 'scripts/ai/brain.js')).href);
 const mem = await import(pathToFileURL(path.join(build, 'scripts/ai/memory.js')).href);
 const learnLog = [];
@@ -311,6 +334,7 @@ for (let i = 0; i < total; i++) {
     if (!e._groups.has('sb:grav_off') && vw.solid(x, y, z)) { stats.creatureInWall++; if (stats.creatureInWall <= 3) console.log('INWALL lastTp', JSON.stringify(e._lastTp), JSON.stringify((e._trail || []).slice(-6).map((q) => [q.x.toFixed(2), q.y.toFixed(2), q.z.toFixed(2)])), e.mode(), 'cell', x, y, z, vw.get(x, y, z)); const r = dir.running(); const k = `${r ? r.tpl.id : '-'}:${e.mode()}:act${e._props['shaftbreaker:act']}`; wallWhy[k] = (wallWhy[k] || 0) + 1; }
     const act = e._props['shaftbreaker:act'];
     if (act === 35 || act === 16) { if (!huntTell.has(e.id)) huntTell.set(e.id, M.system.currentTick); }
+    if (act !== e._lastAct) { if (act === 35 || act === 16) (SIM.huntTells ||= []).push(M.system.currentTick); if (act === 17 || act === 43 || act === 44 || act === 35) (SIM.tells ||= []).push(M.system.currentTick); e._lastAct = act; }
     if (e._props['shaftbreaker:phase'] === 'frenzy') { e._fz = (e._fz || 0) + 1; stats.frenzyMax = Math.max(stats.frenzyMax, e._fz); }
   }
   for (let k = (SIM._hbSeen || 0); k < SIM.sounds.length; k++) { const x = SIM.sounds[k]; if (x.id !== 'shaftbreaker.heartbeat' || x.ctx !== 'lurk') continue; const b = bots.find((q) => q.p.name === x.who); const sb = sbs[0]; if (!b || !sb) continue; const dd = d3(sb.location, b.p.location); const vis = canSee(b.p, sb) && angleTo(b.p, { x: sb.location.x, y: sb.location.y + 2, z: sb.location.z }) < 50; const key = `${dd < 8 ? '<8' : dd < 14 ? '<14' : dd < 24 ? '<24' : '24+'}:${vis ? 'vis' : 'hid'}`; (SIM.hbWhy ||= {})[key] = (SIM.hbWhy[key] || 0) + 1; }
@@ -318,6 +342,8 @@ for (let i = 0; i < total; i++) {
   const r = dir.running();
   SIM.curEnc = r ? r.tpl.id : (sbs.length ? 'lurk' : 'absent');
   if (r !== lastRun) { if (r) encLog.push({ t: M.system.currentTick, id: r.tpl.id, f: r.tpl.family, p: r.ctx.player.name }); lastRun = r; }
+  if (i % 100 === 0) for (const r of LOGM.recent(60)) ALLTEL.add(r);
+  if (process.env.SBDBG && i % 1200 === 0) { const b = bots[0]; const st = dir.pstate(b.p); const B = brMod.brainState(); const c = crMod.creature(); console.log(`DBG t=${(i / 1200).toFixed(0)}m night=${st.night} ug=${st.underground} ugT=${(st.ugTicks / 20).toFixed(0)} grace=${Math.max(0, st.graceUntil - i)} cr=${!!c} tgt=${B.targetId === b.p.id} mapFor=${B.mapFor === b.p.id} mapAge=${i - B.mapT} nextShow=${st.nextShow ? ((st.nextShow - i) / 20).toFixed(0) : '-'} run=${dir.running() ? dir.running().tpl.id : '-'} pos=${b.p.location.x.toFixed(0)},${b.p.location.y.toFixed(0)},${b.p.location.z.toFixed(0)} elig=${brMod.presenceEligible(b.p)} arrDelay=${st.arrivalDelay} nextArr=${B.nextArrival - i}`); }
   if (i % 200 === 0) for (const b of bots) { const st = dir.pstate(b.p).state; stateHist[st] = (stateHist[st] || 0) + 1; }
   if (i % 20 === 0) for (const b of bots) {
     const ugNow = vw.sky(Math.floor(b.p.location.x), Math.floor(b.p.location.y) + 1, Math.floor(b.p.location.z)) === 0;
@@ -335,9 +361,12 @@ const wall = (Date.now() - t0) / 1000;
 
 // hits: every creature hit must follow a telegraph by >= 1.8 s
 for (const h of SIM.hits) {
-  const tells = [...huntTell.values()].filter((t) => t <= h.t);
+  const tells = (SIM.huntTells || []).filter((t) => t <= h.t);
   const lastTell = tells.length ? Math.max(...tells) : -1e9;
+  if (h.src === 'engine' && h.t - lastTell > 20 * 60) stats.hitsBeforeTell.push({ ...h, why: 'engine hit with no roar/scream in the last minute' });
   if (h.t - lastTell < 36 && h.src === 'engine') stats.hitsBeforeTell.push(h);
+  // scripted hits (lunge / claw) need their own wind-up within the previous 2 s, or a roar/scream earlier in the chase
+  if (h.src === 'script' && !(SIM.tells || []).some((t) => t <= h.t && h.t - t <= 40) && !(lastTell > -1e9 && h.t - lastTell < 20 * 60)) stats.hitsBeforeTell.push({ ...h, why: 'scripted hit without wind-up' });
   if (h.phase === 'dormant') stats.hitsBeforeTell.push({ ...h, why: 'dormant phase' });
 }
 
@@ -345,6 +374,30 @@ for (const h of SIM.hits) {
 const log = await import(pathToFileURL(path.join(build, 'scripts/core/log.js')).href);
 const ws = await import(pathToFileURL(path.join(build, 'scripts/ai/worldstate.js')).href);
 const recs = log.recent(60);
+for (const r of log.recent(60)) ALLTEL.add(r);
+{
+  const all = [...ALLTEL];
+  const notes = all.flatMap((r) => r.notes || []);
+  const cnt = (re) => notes.filter((n) => re.test(n)).length;
+  const by = (re, strip) => notes.filter((n) => re.test(n)).reduce((a, n) => { const k = n.replace(strip, ''); a[k] = (a[k] || 0) + 1; return a; }, {});
+  const shows = all.filter((r) => r.id === 'stalk_show');
+  const rages = all.filter((r) => (r.notes || []).some((n) => /^rage \(/.test(n)));
+  const firstShow = encLog.find((e) => e.id === 'stalk_show');
+  const firstChase = (SIM.musics || []).find((m) => m.id === 'music.shaftbreaker.chase');
+  const firstRage = firstChase ? { t: firstChase.t } : null;
+  console.log(`STALKER: shows ${shows.length} by kind ${JSON.stringify(by(/^show:/, /^show:/))}; reactions ${JSON.stringify(by(/^reaction:/, /^reaction:/))}; standoff ${JSON.stringify(by(/^standoff:/, /^standoff:/))}`);
+  console.log(`STALKER: show outcomes ${JSON.stringify(shows.reduce((a, r) => { a[r.outcome] = (a[r.outcome] || 0) + 1; return a; }, {}))}; tests ${JSON.stringify(by(/^test:/, /^test:/))}; creeps ${cnt(/^crept/)}; lunges ${cnt(/^lunge$/)} (hit ${cnt(/^lunge hit/)}); close strikes ${cnt(/^close strike/)}; rages ${rages.length} why ${JSON.stringify(by(/^rage \(/, /^rage \(|\)$/g))}; ambush armed ${cnt(/^ambush armed/)}, ambushes ${all.filter((r) => r.id === 'stalk_ambush').length}; breaches ${cnt(/^breach:/)}; vanished-in-place ${cnt(/vanished in place|exit: vanished/)}`);
+  { // everything it opened or smashed must be back once no chase is running
+    const brm = await import(pathToFileURL(path.join(build, 'scripts/world/breach.js')).href);
+    const pendingAtEnd = brm.pendingBreaches(); const huntAtEnd = dir.running() ? dir.running().tpl.family === 'hunt' : false;
+    console.log(`BREACH: still pending when the run ended: ${pendingAtEnd} (hunt running at end: ${huntAtEnd})`);
+    if (!huntAtEnd) brm.restoreBreaches({});
+    const glassGone = []; for (let x = 10; x <= 18; x++) for (let z = 10; z <= 18; z++) if ((x === 14 || z === 14) && (x === 10 || x === 18 || z === 10 || z === 18) && vw.get(x, 62, z) === 'minecraft:air' && !(x === 14 && z === 10)) glassGone.push(`${x},62,${z}`);
+    const doorOpen = !!vw.getStates(14, 61, 10).open_bit || !!vw.getStates(14, 62, 10).open_bit;
+    console.log(`BREACH RESTORE: pending ${brm.pendingBreaches()}, house windows missing ${glassGone.length}, house door left open ${doorOpen} -> ${brm.pendingBreaches() === 0 && !glassGone.length && !doorOpen ? 'OK' : 'FAIL'}`);
+  }
+  console.log(`STALKER: first show at ${firstShow ? (firstShow.t / 1200).toFixed(1) : '-'} min, first chase at ${firstRage ? (firstRage.t / 1200).toFixed(1) : (rages.length ? 'inline' : '-')} min; damage to players ${SIM.hits.reduce((a, h) => a + h.n, 0).toFixed(0)} in ${SIM.hits.length} hits; deaths ${SIM.deaths || 0}; bot reactions ${JSON.stringify(SIM.reacts || {})}`);
+}
 const hist = ws.ws().history;
 const fam = {}; const ids = {}; const outcomes = {};
 for (const r of hist) { fam[r.f] = (fam[r.f] || 0) + 1; ids[r.id] = (ids[r.id] || 0) + 1; }
@@ -365,6 +418,7 @@ console.log(`presence: creature around for ${(100 * presence.withCreature / Math
 console.log('guide moths: ' + Object.values(GUIDES).length + ' ' + JSON.stringify(Object.values(GUIDES).map((g) => ({ den: `${g.start.toFixed(0)}->${g.min.toFixed(0)}`, s: (g.ticks / 20).toFixed(0), solid: g.solid, faceTravel: g.moved ? (g.aligned / g.moved).toFixed(2) : '-', pl: g.followerMin.toFixed(0) }))));
 const denm = await import(pathToFileURL(path.join(build, 'scripts/world/den.js')).href);
 console.log(`dens: ${ws.ws().dens.length}; guide moths active at end: ${denm.guideCount()}; music: ${JSON.stringify(SIM.musics.reduce((a, m) => { a[m.id] = (a[m.id] || 0) + 1; return a; }, {}))}`);
+if (stats.hitsBeforeTell.length) console.log('UNTELEGRAPHED', JSON.stringify(stats.hitsBeforeTell.slice(0, 4).map((h) => ({ t: h.t, src: h.src, act: h.act, mode: h.mode, phase: h.phase, why: h.why, n: h.n }))));
 console.log(`hits on players: ${SIM.hits.length} (engine ${SIM.hits.filter((h) => h.src === 'engine').length}, scripted ${SIM.hits.filter((h) => h.src === 'script').length}); untelegraphed: ${stats.hitsBeforeTell.length}`);
 console.log(`longest frenzy: ${(stats.frenzyMax / 20).toFixed(1)} s; blocks broken by commands: ${SIM.broken.length}`);
 console.log(`encounters (history ring, last 40): ${hist.length}  by family: ${JSON.stringify(fam)}`);

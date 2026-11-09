@@ -8,7 +8,7 @@
 import { world } from '@minecraft/server';
 import { now, sec, mins, rand, randi, chance, pick, dist, valid, safe, worldTicks, OVERWORLD, clamp } from '../core/util.js';
 import { config, freqMul, prefs } from '../core/config.js';
-import { WalkMap, findSpot, isUnderground } from '../world/space.js';
+import { WalkMap, findSpot, isUnderground, BlockCache } from '../world/space.js';
 import { creature, spawnCreature, seenByAnyone, SPEED } from './creature.js';
 import { noteSighting } from './memory.js';
 import { ws } from './worldstate.js';
@@ -19,7 +19,7 @@ import { log } from '../core/log.js';
 const B = {
   targetId: null, map: null, mapT: -1e9, mapJob: null, mapFor: null,
   nextMove: 0, nextCue: 0, withdrawSince: 0, nextArrival: 0, caughtUntil: 0, retreatAt: 0,
-  lastSeenTick: -1e9, arrivedAt: 0, shyUntil: 0, lastSightNote: -1e9, nextReplan: 0, closeSince: 0, lastSpike: -1e9,
+  lastSeenTick: -1e9, arrivedAt: 0, shyUntil: 0, lastSightNote: -1e9, nextReplan: 0, closeSince: 0, lastSpike: -1e9, mapOutside: false,
   /** @type {Record<string, {since:number}>} */
   music: {},
 };
@@ -45,7 +45,7 @@ export function presenceEligible(p, manual = false) {
   if (!cfg.naturalEncounters || peaceful() || worldTicks() < ws().defeatedUntil) return false;
   const s = api.pstate(p);
   if (now() < s.graceUntil) return false;
-  return s.underground || cfg.surfaceMode;
+  return s.underground || s.night || cfg.surfaceMode;
 }
 
 function target() {
@@ -61,7 +61,8 @@ export function hiddenSpot(p, minD, maxD, preferBehind = false) {
   const m = B.map;
   if (!m || B.mapFor !== p.id) return null;
   const dim = p.dimension;
-  const base = { minDist: minD, maxDist: maxD, los: false, maxLight: 8, crawl: false, maxChecks: 90, test: (n, c) => !inAnyonesView(dim, c) };
+  const dark = api && api.pstate(p).underground ? 8 : undefined;          // on the surface at night: out of sight is enough
+  const base = { minDist: minD, maxDist: maxD, los: false, maxLight: dark, crawl: false, maxChecks: 90, test: (n, c) => !inAnyonesView(dim, c) };
   const s = (preferBehind && findSpot(m, p, { ...base, minAngle: 100 })) || findSpot(m, p, base);
   return s ? s.pos : null;
 }
@@ -122,14 +123,39 @@ function arrive(p) {
   api.onArrive(p);
 }
 
+/** a standable surface cell outside around a player shut inside a building (night stalking) */
+function outsideOrigin(p) {
+  const dim = p.dimension;
+  const c = new BlockCache(dim);
+  for (let i = 0; i < 28; i++) {
+    const a = rand(0, Math.PI * 2), r = rand(7, 20);
+    const x = Math.floor(p.location.x + Math.cos(a) * r), z = Math.floor(p.location.z + Math.sin(a) * r);
+    const top = safe('top', () => dim.getTopmostBlock({ x, z }), null);
+    if (!top) continue;
+    const id = top.typeId;
+    if (id.endsWith('leaves') || id.endsWith('_log') || id.includes('glass') || id.includes('planks')) continue;
+    const y = top.location.y + 1;
+    if (Math.abs(y - p.location.y) > 8) continue;
+    if (c.standable(x, y, z)) return { x: x + 0.5, y, z: z + 0.5 };
+  }
+  return null;
+}
+
 // ------------------------------------------------------------------ every tick: keep a fresh walk map around the target
 export function brainFast() {
   const p = target();
   if (!p) return;
-  if (!B.mapJob && now() - B.mapT > sec(5)) B.mapJob = { m: new WalkMap(p.dimension, p.location, { maxNodes: 1300, maxDist: 46 }), id: p.id };
+  if (!B.mapJob && now() - B.mapT > sec(5)) B.mapJob = { m: new WalkMap(p.dimension, p.location, { maxNodes: 1300, maxDist: 46 }), id: p.id, outside: false };
   if (B.mapJob) {
     B.mapJob.m.step(110);
-    if (B.mapJob.m.done) { B.map = B.mapJob.m; B.mapFor = B.mapJob.id; B.mapT = now(); B.mapJob = null; }
+    if (B.mapJob.m.done) {
+      // shut in (a house at night): the creature works from the ground outside instead
+      if (!B.mapJob.outside && B.mapJob.m.nodes.size < 90 && !api.pstate(p).underground) {
+        const o = outsideOrigin(p);
+        if (o) { B.mapJob = { m: new WalkMap(p.dimension, o, { maxNodes: 1300, maxDist: 40 }), id: p.id, outside: true }; return; }
+      }
+      B.map = B.mapJob.m; B.mapFor = B.mapJob.id; B.mapT = now(); B.mapOutside = B.mapJob.outside; B.mapJob = null;
+    }
   }
 }
 
@@ -216,7 +242,7 @@ export function presenceAudio() {
     const d = dist(c.loc, p.location);
     const recentlySeen = now() - B.lastSeenTick < sec(20);
     let want = null;
-    if (d < 46 && (isUnderground(p) || c.manual)) {
+    if (d < 46 && (isUnderground(p) || c.manual || api.pstate(p).night)) {
       // hysteresis: become "close" under 14 blocks (or when just seen), fall back to "presence" only beyond 32
       const close = d < 14 || recentlySeen || (cur === 'music.shaftbreaker.close' && (d < 32 || now() - B.lastSeenTick < sec(45)));
       want = close ? 'music.shaftbreaker.close' : 'music.shaftbreaker.presence';

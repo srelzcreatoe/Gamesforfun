@@ -102,6 +102,9 @@
         "minecraft:movement": {
           "value": 0.36
         },
+        "minecraft:attack": {
+          "damage": 7
+        },
         "minecraft:behavior.nearest_attackable_target": {
           "priority": 1,
           "must_see": false,
@@ -150,6 +153,9 @@
         "minecraft:movement": {
           "value": 0.45
         },
+        "minecraft:attack": {
+          "damage": 8
+        },
         "minecraft:behavior.nearest_attackable_target": {
           "priority": 1,
           "must_see": false,
@@ -189,6 +195,57 @@
           "attack_duration": 0.9,
           "hit_delay_pct": 0.55,
           "cooldown_time": 0.6
+        },
+        "minecraft:behavior.float": {
+          "priority": 0
+        }
+      },
+      "sb:mode_rage": {
+        "minecraft:movement": {
+          "value": 0.44
+        },
+        "minecraft:attack": {
+          "damage": 8
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 64,
+          "attack_interval": 1,
+          "must_see_forget_duration": 20,
+          "entity_types": [
+            {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "player"
+                  },
+                  {
+                    "test": "has_tag",
+                    "subject": "other",
+                    "value": "sb_target"
+                  }
+                ]
+              },
+              "max_dist": 64,
+              "must_see": false
+            }
+          ]
+        },
+        "minecraft:behavior.delayed_attack": {
+          "priority": 2,
+          "attack_once": false,
+          "track_target": true,
+          "require_complete_path": false,
+          "random_stop_interval": 0,
+          "reach_multiplier": 1.35,
+          "speed_multiplier": 1.3,
+          "attack_duration": 0.9,
+          "hit_delay_pct": 0.55,
+          "cooldown_time": 0.55
         },
         "minecraft:behavior.float": {
           "priority": 0
@@ -300,7 +357,11 @@
       "sb:nav_climb": {
         "minecraft:navigation.climb": {
           "can_path_over_water": true,
-          "avoid_damage_blocks": true
+          "avoid_damage_blocks": true,
+          "can_pass_doors": true,
+          "can_open_doors": false,
+          "is_amphibious": true,
+          "can_sink": false
         }
       },
       "sb:despawn": {
@@ -445,6 +506,7 @@
                 "sb:mode_still",
                 "sb:mode_hunt",
                 "sb:mode_frenzy",
+                "sb:mode_rage",
                 "sb:mode_scripted"
               ]
             }
@@ -479,6 +541,7 @@
           "component_groups": [
             "sb:mode_hunt",
             "sb:mode_frenzy",
+            "sb:mode_rage",
             "sb:mode_scripted",
             "sb:mode_defeated"
           ]
@@ -499,6 +562,7 @@
           "component_groups": [
             "sb:mode_still",
             "sb:mode_frenzy",
+            "sb:mode_rage",
             "sb:mode_scripted",
             "sb:mode_defeated"
           ]
@@ -519,6 +583,7 @@
           "component_groups": [
             "sb:mode_still",
             "sb:mode_hunt",
+            "sb:mode_rage",
             "sb:mode_scripted",
             "sb:mode_defeated"
           ]
@@ -526,6 +591,27 @@
         "add": {
           "component_groups": [
             "sb:mode_frenzy"
+          ]
+        }
+      },
+      "sb:mode_rage": {
+        "filters": {
+          "test": "bool_property",
+          "domain": "shaftbreaker:defeated",
+          "operator": "!="
+        },
+        "remove": {
+          "component_groups": [
+            "sb:mode_still",
+            "sb:mode_hunt",
+            "sb:mode_frenzy",
+            "sb:mode_scripted",
+            "sb:mode_defeated"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sb:mode_rage"
           ]
         }
       },
@@ -540,6 +626,7 @@
             "sb:mode_still",
             "sb:mode_hunt",
             "sb:mode_frenzy",
+            "sb:mode_rage",
             "sb:mode_defeated"
           ]
         },

@@ -30,6 +30,7 @@ export const DEFAULTS = Object.freeze({
   trophyFilter: false,
   harmless: false,                    // creature never damages players or edits blocks
   creativeEncounters: true,           // creative players are stalked too (no damage; hunts become chases)
+  nightStalking: true,                // at night it stalks players on the surface too (trees, houses)
   debug: 'off',                       // off | basic | verbose
 });
 

@@ -486,6 +486,23 @@ def standoff_music():
     return norm(y * 0.7 + wet / np.abs(wet).max() * np.abs(y).max() * 0.45, 0.75)
 
 
+def neck_crack(v):
+    """bone popping under strain: a quick ratchet of sharp cracks over a dry grinding creak"""
+    d = 1.1
+    x = np.zeros(int(d * SR))
+    grind = stft_shape(noise(0.55), lambda f, tt: peaks(f, [(700 + 400 * tt, 300, 1.0), (2300, 600, 0.5)])) * env_adsr(0.55, 0.05, 0.2, 0.7, 0.25)
+    place(x, grind * 0.22, 0.04)
+    at = 0.05
+    for k in range(4 + v):
+        n = int(0.012 * SR)
+        burst = hp(noise(0.012), 1800) * np.exp(-np.linspace(0, 9, n))
+        pop = damped(160 + 60 * R.random(), 0.018, 0.05)
+        place(x, burst * (0.9 + 0.3 * R.random()), at)
+        place(x, pop * 0.55, at)
+        at += 0.045 + R.random() * (0.05 if k < 3 else 0.12)
+    return fade(norm(reverb(x, 0.18, 0.7)[:int(d * SR)]))
+
+
 def step_soft(v):
     """the creature's own slow, heavy footfall: stone thud + a claw tick + grit"""
     d = 0.55
@@ -568,6 +585,7 @@ SOUNDS = {
     'shaftbreaker.chew': (chew, 2, 'hostile', {'volume': 0.6, 'max_distance': 16}),
     'shaftbreaker.hurt': (hurt, 3, 'hostile', {'volume': 0.9, 'max_distance': 32}),
     'shaftbreaker.click': (click, 3, 'hostile', {'volume': 0.55, 'max_distance': 24}),
+    'shaftbreaker.neck_crack': (neck_crack, 2, 'hostile', {'volume': 0.85, 'max_distance': 24}),
     'shaftbreaker.breath': (breath, 3, 'hostile', {'volume': 0.5, 'max_distance': 14}),
     'shaftbreaker.knock': (knock, 2, 'hostile', {'volume': 0.9, 'max_distance': 48}),
     'shaftbreaker.pickaxe': (pickaxe, 3, 'hostile', {'volume': 0.75, 'max_distance': 40}),
