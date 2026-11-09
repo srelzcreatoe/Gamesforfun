@@ -71,7 +71,7 @@ const TEX = {
   cobbled_deepslate: 'cobbled_deepslate', bone_block: ['bone_block', 'bone_block_top', 'bone_block_top'],
   deepslate_bricks: 'deepslate_bricks', cracked_deepslate_bricks: 'cracked_deepslate_bricks', deepslate_tiles: 'deepslate_tiles',
   polished_deepslate: 'polished_deepslate', chiseled_deepslate: ['chiseled_deepslate', 'polished_deepslate', 'polished_deepslate'],
-  deepslate_brick_slab: 'deepslate_bricks',
+  deepslate_brick_slab: 'deepslate_bricks', chest: 'chest',
 };
 const texFor = (name, face) => { const t = TEX[name]; if (!Array.isArray(t)) return t; return face === 2 ? t[1] : face === 3 ? t[2] : t[0]; };
 
@@ -231,6 +231,7 @@ async function buildModelInLake() {
   t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.generateMipmaps = false; t.colorSpace = THREE.SRGBColorSpace;
   model = buildModel(geo, t, { material: new THREE.MeshLambertMaterial({ map: t, alphaTest: 0.5 }) });
   model.anims = compileAnimations(await json(`${ASSET}/brinesleeper.animation.json`));
+  model.root.scale.setScalar(1.15);               // the in-game scale (horror.py SCALE)
   scene.add(model.root);
 }
 
@@ -251,7 +252,7 @@ function render(job) {
     if (m && job.creature) {
       applyPose(model, samplePose(model.anims[`animation.brinesleeper.${job.anim || 'idle_water'}`], job.animTime ?? 1.2));
       const p = P(m[0], m[1], m[2]);
-      model.root.position.set(p.x, p.y - 2 - 33, p.z);         // chest-deep: the pose's waterline is 33 px up
+      model.root.position.set(p.x, p.y - 2 - 33 * 1.15, p.z);  // chest-deep: the pose's waterline is 33 px up, scaled
       const dx = cam[0] - m[0], dz = cam[2] - m[2];
       model.root.rotation.y = Math.atan2(-dx, -dz);             // facing the viewer (the model faces -z)
       // the strongest candle group near the creature lights it, as block light would

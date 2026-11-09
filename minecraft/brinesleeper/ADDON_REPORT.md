@@ -1,4 +1,4 @@
-# The Brinesleeper 3.0: "The Water Remembers"
+# The Brinesleeper 4.0: "The Water Remembers"
 
 The full horror add-on, built on the existing Brinesleeper model and its home biome, the
 [Stillwater Caves](README.md#stillwater-caves-biome). A hidden director script stages every
@@ -9,6 +9,69 @@ almost never chases, and leaves signs that the water is not what it seems.
 [Testing report](#testing-report)). It has **not** been run inside Minecraft from this
 environment. The [runtime checklist](#runtime-checklist-not-yet-verified-in-game) lists what
 still needs an in-game pass.
+
+---
+
+## What's new in 4.0: "The Great Water"
+
+**Guaranteed great halls.**
+* The pack ships three great hall structures, `brine:great_hall_0` to `_2` (80 × 44 × 80). Each
+  has a domed cavern over a lake up to 12 blocks deep, and a 3-block rock shell so nothing leaks
+  and nothing from older caves floats inside. It contains:
+  * 7–10 great pillars and 2–3 islands
+  * pale dripstone and weeping-vine curtains, and vanilla stalactites
+  * blood-stained ceilings, and glowing veins in the walls and lakebed
+  * shores of bone coral, bloodroot and pallid caps
+  * a sunken shrine and a ribcage in the shallows
+  * lit candles, and 3–4 chests
+* When a player is in the Stillwater Caves and no hall lies within 130 blocks, `halls.js` places
+  one 45–48 blocks away along the direction they face.
+  * Its waterline is just under their feet, so the tunnel out of its near side opens right in
+    front of them. The last few blocks of rock are cleared.
+  * A distant splash calls them in.
+  * The chests are filled with loot as soon as the hall is placed: diamonds, emeralds, gold,
+    golden apples, enchanted books, experience bottles, nautilus shells. Rarer: a Heart of the
+    Sea, a trident, a totem.
+* Halls are never placed within 8 blocks of the surface or the sea floor.
+* `/brine:hall` and the settings wheel's test page build one on demand. The caves page can turn
+  them off.
+
+**An aquatic predator.**
+* Its swimming and hauling out are driven by the script every tick: straight, fast and
+  impossible to lose. Its old AI only walks it on land.
+* **lurk:** it moves deep under the water at a distance. Bubbles show where it waits.
+* **surface:** far off, it rises with its head or upper body out of the water, eyes glinting.
+  Look at it for about a second and it vanishes; come within 10 blocks and it also goes.
+* **approach:** it crosses the lake toward the bank nearest you, and the wake comes toward you.
+* **climb:** it hauls itself out onto the bank. If the bank is right at your feet, it ambushes
+  instead.
+* **standoff:** it stands and stares. Close in or stare it down and it charges or dives away.
+* **stalk:** on land, seen from more than 14 blocks away, it vanishes, in smoke or under the
+  water.
+* **chase:** if it goes into the water after you, it climbs out at your bank.
+* **deep:** if you are in the water, it swims at you far faster than you can swim, grabs you,
+  drags you down, lets go, circles and comes back.
+* **Pacing on Balanced:**
+  * a summoned creature starts within 4–10 s
+  * 1–2 sightings, then it comes ashore
+  * a stand-off, then a chase or a retreat
+  * 50–120 s of lurking between attacks
+
+**Taller, stronger, with loot.**
+* Scale 1.15 (just over 4 blocks), with a collision box of 1.15 × 3.91 to match.
+* Drops:
+  * always 1–3 diamonds
+  * 2–4 rolls of emeralds, gold, prismarine crystals, nautilus shells, experience bottles,
+    bones, ink and golden apples
+  * a 1 in 6 chance of a Heart of the Sea
+  * a 1 in 7 chance of an enchanted trident
+  * a 1 in 3 chance of an enchanted book
+  * 80 XP
+
+**Bigger biome:** it replaces 90% of the Dripstone Caves, with noise scale 0.2 for larger
+connected regions.
+
+![A great hall](preview/great_hall_vista.png)
 
 ---
 
@@ -125,7 +188,7 @@ for you at once, and `/brine:status` shows the hidden director state. Settings a
 
 | | |
 |---|---|
-| Pack version | 3.0.0. It imports over 1.x and 2.x. |
+| Pack version | 4.0.0. It imports over every earlier version. |
 | Minimum game version | Minecraft Bedrock **1.26.40** (manifest `min_engine_version`). |
 | Script modules | `@minecraft/server` **2.9.0** and `@minecraft/server-ui` **2.1.0**, the stable versions that ship with 1.26.40. No beta APIs and no experimental toggles. |
 | Custom biome | Non-experimental `minecraft:replace_biomes`, available since 1.26.30. |
@@ -369,7 +432,9 @@ minecraft/brinesleeper/
 ├── behavior_pack/
 │   ├── manifest.json               # data + script modules (@minecraft/server 2.9.0, server-ui 2.1.0)
 │   ├── scripts/                    # index.js (entry), main.js (director), brain.js (the creature's mind),
-│   │                               # care.js (no hostiles, repairs), menu.js (settings wheel), config.js
+│   │                               # care.js (no hostiles, repairs), halls.js (great halls), menu.js (wheel), config.js
+│   ├── structures/brine/great_hall_*.mcstructure   # the three great halls (80 x 44 x 80)
+│   ├── loot_tables/entities/brinesleeper.json
 │   ├── items/config_wheel.json     # the Brinesleeper Settings wheel
 │   ├── entities/brinesleeper.json  # 70 HP, AI modes, brine:act property
 │   ├── entities/apparition.json    # untouchable shapes (silhouette / reflection / hand)
@@ -424,3 +489,9 @@ minecraft/brinesleeper/
   stone. They only touch the hall bands, and only once per chunk. Turn them off on the
   settings wheel.
 * **The music is synthesized** for this pack. It is dark ambient, not orchestral.
+* **Great halls are placed by the script** in front of you, not by world generation, because
+  that is the only way to guarantee one every time.
+  * They replace the rock in an 80 × 80 area.
+  * If you are looking at the spot, you will see the tunnel open up.
+  * They need the player to be at least 13 blocks below the surface. Shallower spots are
+    skipped.

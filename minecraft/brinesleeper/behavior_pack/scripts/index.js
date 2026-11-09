@@ -3,4 +3,5 @@
 import './main.js';
 import './brain.js';
 import './care.js';
+import './halls.js';
 import './menu.js';

@@ -61,6 +61,7 @@ q = lambda name: f"query.property('{NS}:{name}')"
 
 # =================================================================== behavior: the creature and the apparition
 THREATS = {1: (100, 6), 2: (150, 8), 3: (220, 11)}      # health, melee damage (the script adds the lunge and grasp)
+SCALE = 1.15                                             # the model at 115%: just over 4 blocks tall
 
 
 def creature_bp(BP, spawn_conditions):
@@ -143,7 +144,11 @@ def creature_bp(BP, spawn_conditions):
                 'minecraft:type_family': {'family': ['brinesleeper', 'monster', 'mob']},
                 'minecraft:health': {'value': 150, 'max': 150},
                 'minecraft:attack': {'damage': 8},
-                'minecraft:collision_box': {'width': 1.0, 'height': 3.4},
+                # a little taller than before (4 blocks), and the hitbox matches the model
+                'minecraft:scale': {'value': SCALE},
+                'minecraft:collision_box': {'width': round(1.0 * SCALE, 2), 'height': round(3.4 * SCALE, 2)},
+                'minecraft:loot': {'table': 'loot_tables/entities/brinesleeper.json'},
+                'minecraft:experience_reward': {'on_death': 'query.last_hit_by_player ? 80 : 0'},
                 **move(0.28, 0.27),
                 # it climbs out onto ledges a full block high instead of bumping against the bank (no more stuck in the water)
                 'minecraft:variable_max_auto_step': {'base_value': 1.0625, 'controlled_value': 1.0625, 'jump_prevented_value': 0.5625},
@@ -859,6 +864,29 @@ def config_wheel(RP, BP):
     })
 
 
+# =================================================================== what it leaves behind
+def loot_tables(BP):
+    count = lambda lo, hi: [{'function': 'set_count', 'count': {'min': lo, 'max': hi}}]
+    write(f'{BP}/loot_tables/entities/brinesleeper.json', {'pools': [
+        {'rolls': 1, 'entries': [{'type': 'item', 'name': 'minecraft:diamond', 'weight': 1, 'functions': count(1, 3)}]},
+        {'rolls': {'min': 2, 'max': 4}, 'entries': [
+            {'type': 'item', 'name': 'minecraft:prismarine_crystals', 'weight': 10, 'functions': count(2, 6)},
+            {'type': 'item', 'name': 'minecraft:emerald', 'weight': 8, 'functions': count(2, 6)},
+            {'type': 'item', 'name': 'minecraft:gold_ingot', 'weight': 8, 'functions': count(2, 7)},
+            {'type': 'item', 'name': 'minecraft:experience_bottle', 'weight': 6, 'functions': count(3, 8)},
+            {'type': 'item', 'name': 'minecraft:nautilus_shell', 'weight': 6, 'functions': count(1, 2)},
+            {'type': 'item', 'name': 'minecraft:bone', 'weight': 10, 'functions': count(3, 8)},
+            {'type': 'item', 'name': 'minecraft:ink_sac', 'weight': 6, 'functions': count(2, 5)},
+            {'type': 'item', 'name': 'minecraft:golden_apple', 'weight': 3, 'functions': count(1, 2)},
+        ]},
+        {'rolls': 1, 'entries': [{'type': 'item', 'name': 'minecraft:heart_of_the_sea', 'weight': 1}, {'type': 'empty', 'weight': 5}]},
+        {'rolls': 1, 'entries': [{'type': 'item', 'name': 'minecraft:trident', 'weight': 1, 'functions': [{'function': 'enchant_randomly'}]},
+                                 {'type': 'empty', 'weight': 6}]},
+        {'rolls': 1, 'entries': [{'type': 'item', 'name': 'minecraft:enchanted_book', 'weight': 1, 'functions': [{'function': 'enchant_randomly'}]},
+                                 {'type': 'empty', 'weight': 2}]},
+    ]})
+
+
 # =================================================================== entry point
 def lang_lines():
     return f'entity.{SHADE}.name=???\nitem.{NS}:config_wheel=Brinesleeper Settings\n'
@@ -873,4 +901,5 @@ def build(RP, BP, SRC, spawn_conditions, audio):
     sounds(RP, audio)
     atmosphere(RP, audio)
     config_wheel(RP, BP)
+    loot_tables(BP)
     shutil.copytree(os.path.join(HERE, 'scripts'), f'{BP}/scripts', dirs_exist_ok=True)

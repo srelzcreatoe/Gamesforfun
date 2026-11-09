@@ -509,6 +509,13 @@ def preview_textures(out):
             if img is tip:
                 img.putpixel((x, ln), biome.rgb(biome.BLOOD[4]) + (255,))
     imgs['weeping_vines'], imgs['weeping_vines_tip'] = vine, tip
+    chest = tex_noise(['#5b3a1e', '#6e4825', '#7d532b'], [0.4, 0.75], 116, 2.0, 0.5)
+    for i in range(16):
+        chest.putpixel((i, 5), biome.rgb('#2b1c10') + (255,)); chest.putpixel((0, i), biome.rgb('#2b1c10') + (255,))
+        chest.putpixel((15, i), biome.rgb('#2b1c10') + (255,))
+    for (i, j) in ((7, 5), (8, 5), (7, 6), (8, 6), (7, 7), (8, 7)):
+        chest.putpixel((i, j), biome.rgb('#b9b9b9') + (255,))
+    imgs['chest'] = chest
     for name, pal in (('candle', ['#c9b98f', '#e2d3a8', '#efe3c0']), ('red_candle', ['#6e1414', '#8f1d1d', '#a82a2a'])):
         img = Image.new('RGBA', (16, 16))
         for x in range(16):

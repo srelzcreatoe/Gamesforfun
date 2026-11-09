@@ -11,6 +11,6 @@ rm -f ./*.js && cp ../scripts/*.js .
 echo 'declare const console: { warn(...a: any[]): void; log(...a: any[]): void; error(...a: any[]): void };' > globals.d.ts
 cat > tsconfig.json <<'JSON'
 {"compilerOptions": {"allowJs": true, "checkJs": true, "noEmit": true, "target": "es2022", "module": "es2022",
-  "moduleResolution": "node", "lib": ["es2022"], "types": [], "noUnusedLocals": true}, "files": ["index.js", "main.js", "brain.js", "care.js", "menu.js", "config.js", "globals.d.ts"]}
+  "moduleResolution": "node", "lib": ["es2022"], "types": [], "noUnusedLocals": true}, "files": ["index.js", "main.js", "brain.js", "care.js", "menu.js", "config.js", "halls.js", "globals.d.ts"]}
 JSON
 node_modules/.bin/tsc -p tsconfig.json && echo "scripts: no type errors against @minecraft/server 2.9.0 / server-ui 2.1.0"

@@ -3,6 +3,7 @@ import { world, system, ItemStack, CommandPermissionLevel, CustomCommandParamTyp
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { config, setConfig, PRESETS, PRESET_KEYS, THREATS } from './config.js';
 import { CREATURE, EVENT_NAMES, creatures, forceEvent, statusText } from './main.js';
+import { buildHall } from './halls.js';
 
 const WHEEL = 'brine:config_wheel';
 const isOp = (p) => { try { return p.commandPermissionLevel >= CommandPermissionLevel.GameDirectors; } catch (e) { return false; } };
@@ -76,23 +77,26 @@ function caves(player) {
   new ModalFormData().title('The caves')
     .toggle('No other hostile mobs in the Stillwater Caves', { defaultValue: config.blockHostiles })
     .toggle('Repair floating vines and plants, seal leaking lake edges', { defaultValue: config.repair })
+    .toggle('Great flooded halls (a vast lake cavern near you in the caves)', { defaultValue: config.halls })
     .toggle('Debug messages (operators)', { defaultValue: config.debug })
     .show(player).then((r) => {
       if (r.canceled || !r.formValues) return;
-      const [blockHostiles, repair, dbg] = r.formValues;
-      setConfig({ blockHostiles: !!blockHostiles, repair: !!repair, debug: !!dbg });
+      const [blockHostiles, repair, halls, dbg] = r.formValues;
+      setConfig({ blockHostiles: !!blockHostiles, repair: !!repair, halls: !!halls, debug: !!dbg });
       openMenu(player);
     }).catch(() => { /* closed */ });
 }
 
 function test(player) {
-  const names = [...EVENT_NAMES, 'summon_here'];
+  const names = ['great_hall_here', 'summon_here', ...EVENT_NAMES];
   new ModalFormData().title('Test an encounter')
     .dropdown('Stage now, for you', names.map((n) => n.replace(/_/g, ' ')), { defaultValueIndex: 0 })
     .show(player).then((r) => {
       if (r.canceled || !r.formValues) return;
       const name = names[Number(r.formValues[0])];
-      if (name === 'summon_here') {
+      if (name === 'great_hall_here') {
+        if (!buildHall(player, true)) player.sendMessage('§7No room for a great hall here (too close to the surface or the world edge).');
+      } else if (name === 'summon_here') {
         const v = player.getViewDirection();
         try { player.dimension.spawnEntity(CREATURE, { x: player.location.x + v.x * 12, y: player.location.y, z: player.location.z + v.z * 12 }); }
         catch (e) { player.sendMessage('§7No room there.'); }
@@ -131,6 +135,13 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry: reg }) => {
     const p = asPlayer(origin);
     if (!p) return { status: CustomCommandStatus.Failure, message: 'Run this as a player.' };
     system.run(() => giveWheel(p));
+    return { status: CustomCommandStatus.Success };
+  });
+  reg.registerCommand({ name: 'brine:hall', description: 'Build a great flooded hall next to you now.',
+    permissionLevel: CommandPermissionLevel.GameDirectors, cheatsRequired: true }, (origin) => {
+    const p = asPlayer(origin);
+    if (!p) return { status: CustomCommandStatus.Failure, message: 'Run this as a player.' };
+    system.run(() => { if (!buildHall(p, true)) p.sendMessage('§7No room for a great hall here.'); });
     return { status: CustomCommandStatus.Success };
   });
   reg.registerCommand({ name: 'brine:encounter', description: 'Testing: stage one Brinesleeper encounter for yourself now.',

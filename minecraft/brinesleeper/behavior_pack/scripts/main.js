@@ -19,7 +19,9 @@ const ACT = {
   emerge_roar: 23,
 };
 // how far below the waterline the model's root sits for each water pose (from the pose calibration, 16 px = 1 block)
-const WATER_DEPTH = { submerged_watch: 2.06, idle_water: 2.06, emerge: 0.25, submerge: 0.25, water_rise: 0.5, retreat: 0.375, emerge_roar: 0.375 };
+const S = 1.15;                    // the model's scale (horror.py SCALE)
+const WATER_DEPTH = { submerged_watch: 2.06 * S, idle_water: 2.06 * S, emerge: 0.25 * S, submerge: 0.25 * S, water_rise: 0.5 * S,
+  retreat: 0.375 * S, emerge_roar: 0.375 * S };
 const FORM = { silhouette: 0, reflection: 1, hand: 2 };
 
 // ------------------------------------------------------------------ small helpers

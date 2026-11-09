@@ -8,7 +8,28 @@ and arms long enough to drag its clawed hands on the ground.
 It comes with its own cave biome, the [Stillwater Caves](#stillwater-caves-biome), where it is
 the only hostile mob that spawns.
 
-**Version 3.0, "The Deep"**, gives the creature a mind of its own, wherever it is:
+**Version 4.0, "The Great Water"**:
+* **Every visit to its biome finds a vast flooded hall like the concept pictures.** It is
+  80 × 80 blocks with a lake up to 12 deep, great pillars, islands, pale and red curtains,
+  glowing veins, a sunken shrine, a ribcage, and 3–4 loot chests. The script builds one near you
+  whenever you're in the Stillwater Caves, with its tunnel opening at your feet.
+* **It's an aquatic predator now.** Its swimming and climbing are driven directly, so it never
+  circles under a ledge again.
+  * It lurks under the water and surfaces far away to watch you. Look at it and it's gone.
+  * It crosses the lake toward your shore with its wake showing, then hauls itself out onto
+    your ledge.
+  * It stands off, then charges or dives back into the water.
+  * In the water it swims at you much faster than you can, drags you down, and circles back.
+  * On land, seen from far away, it vanishes.
+* **Stronger, taller, with loot.**
+  * It is 15% taller, just over 4 blocks, with a hitbox to match.
+  * It always drops 1–3 diamonds, plus emeralds, gold, prismarine and experience bottles,
+    sometimes a Heart of the Sea or an enchanted trident, and 80 XP.
+* **The biome is bigger:** it replaces 90% of the Dripstone Caves, in larger regions.
+
+![A great hall](preview/great_hall_vista.png)
+
+**Version 3.0, "The Deep"**, gave the creature a mind of its own, wherever it is:
 * It roams the water and the shores, stalks you on land and in the water, stands off and
   stares, then either runs or charges.
 * It ambushes from the water at the edge, drags swimmers under, and circles them in the dark.
@@ -293,7 +314,7 @@ You can also import `resource_pack/models/entity/brinesleeper.geo.json` and the
 3. Find the caves with `/locate biome brine:stillwater_caves`. Spend time there: nothing
    happens for the first 6–10 minutes.
 
-The packs are version 3.0.0, so they import over older versions. They need Minecraft Bedrock **1.26.40 or
+The packs are version 4.0.0, so they import over older versions. They need Minecraft Bedrock **1.26.40 or
 newer**, for the stable `@minecraft/server` 2.9.0 and `@minecraft/server-ui` 2.1.0 script
 modules. The director has not been play-tested in-game yet; ADDON_REPORT.md lists what to check.
 
@@ -305,8 +326,10 @@ modules. The director has not been play-tested in-game yet; ADDON_REPORT.md list
   * whether it takes your lights
   * the cave fixes
   * a test page
-* **Testing:** with cheats on, run `/brine:encounter <name>` to stage any mechanic at once.
-  `/brine:status` shows the hidden director state.
+* **Testing:** with cheats on:
+  * `/brine:hall` builds a great hall next to you at once.
+  * `/brine:encounter <name>` stages any mechanic at once.
+  * `/brine:status` shows the hidden director state.
 * **Spawning:** with `/summon brine:brinesleeper` or the spawn egg, it starts stalking the
   nearest player within 5–15 seconds.
   * Play in **Survival** to see it properly. Mobs can't target Creative players, so it can't

@@ -42,7 +42,7 @@ FEATURE_FORMAT = '1.21.60'
 SNAP_EMBED_FORMAT = '1.26.20'     # snap_to_surface "embed_in_surface" (must stay below 1.26.50, where the range key is renamed)
 STRUCTURE_FORMAT = '1.21.110'
 BLOCK_FORMAT = '1.26.30'
-AMOUNT, FREQUENCY = 0.7, 0.3       # share of the dripstone caves taken over, and how coarse the patches are
+AMOUNT, FREQUENCY = 0.9, 0.2       # share of the dripstone caves taken over, and how coarse the patches are
 LEVELS = (-24, 12)                # world y of the two waterlines the flooded halls are carved at
 HERE = os.path.dirname(os.path.abspath(__file__))
 AUDIO = os.path.normpath(os.path.join(HERE, '..', '..', '..', 'assets', 'audio'))
@@ -723,6 +723,9 @@ def structures(BP):
         col = [('minecraft:pointed_dripstone', {'dripstone_thickness': t, 'hanging': Byte(0)}) for t in thickness(n)]
         write_shape(column(col), f'{BP}/structures/{NS}/stalagmite_{n}.mcstructure')
     for name, shape in shapes.all_structures().items():
+        write_shape(shape, f'{BP}/structures/{NS}/{name}.mcstructure')
+    # the great halls the director script places wherever a player is in the caves (scripts/halls.js)
+    for name, shape in shapes.great_halls().items():
         write_shape(shape, f'{BP}/structures/{NS}/{name}.mcstructure')
 
 

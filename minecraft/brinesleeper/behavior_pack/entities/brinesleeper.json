@@ -273,9 +273,18 @@
       "minecraft:attack": {
         "damage": 8
       },
+      "minecraft:scale": {
+        "value": 1.15
+      },
       "minecraft:collision_box": {
-        "width": 1.0,
-        "height": 3.4
+        "width": 1.15,
+        "height": 3.91
+      },
+      "minecraft:loot": {
+        "table": "loot_tables/entities/brinesleeper.json"
+      },
+      "minecraft:experience_reward": {
+        "on_death": "query.last_hit_by_player ? 80 : 0"
       },
       "minecraft:movement": {
         "value": 0.28
