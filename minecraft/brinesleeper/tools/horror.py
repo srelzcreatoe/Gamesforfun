@@ -9,7 +9,9 @@ Writes into the packs (called from pack.py after biome.build):
                                   a 1.2 s blend, never a snap), shade texture, hand-only geometry, inverted reflection
   RP particles/                   brine:ripple, brine:bubbles, brine:drips, brine:splash
   RP sounds/                      synthesized creature and water sounds (merged into the biome's sound files)
-  BP scripts/main.js              copied from tools/scripts/main.js
+  BP scripts/                     the director (index.js entry), copied from tools/scripts/
+  BP items/ RP textures/items/     the Brinesleeper Settings wheel
+  RP sounds/music/                four ambient tracks for the caves, a chase theme, sighting stings
 ACTS must match the ACT table in scripts/main.js (validate_packs.py checks it).
 """
 import copy
@@ -32,10 +34,11 @@ SHADE = f'{NS}:apparition'
 HERE = os.path.dirname(os.path.abspath(__file__))
 ACTS = ['none', 'watch', 'submerged_watch', 'shoreline_stalk', 'corner_watch', 'distant_observer', 'full_stand', 'emerge',
         'submerge', 'ledge_watch', 'behind_cover', 'head_tilt', 'shadow_hide', 'tunnel_crawl', 'retreat', 'water_rise',
-        'hunting_stance', 'slow_approach', 'patient_strike', 'veil_stalk', 'reflection_lurk', 'idle_water']
+        'hunting_stance', 'slow_approach', 'patient_strike', 'veil_stalk', 'reflection_lurk', 'idle_water', 'swim', 'emerge_roar']
 # how long the blend into each pose takes: rising onto two legs and dropping back down are slow, deliberate blends
 BLEND = {'full_stand': 1.2, 'hunting_stance': 1.0, 'submerge': 0.6, 'emerge': 0.4, 'water_rise': 0.8, 'retreat': 0.6}
-HOLD = ('emerge', 'submerge', 'water_rise', 'retreat', 'emerge_roar')     # one-shot poses keep their last frame
+HOLD = ('emerge', 'submerge', 'water_rise', 'retreat', 'emerge_roar')
+BLEND.update({'emerge_roar': 0.3, 'swim': 0.6})     # one-shot poses keep their last frame
 POSES = ('submerged_watch', 'shoreline_stalk', 'corner_watch', 'ceiling_lurk', 'distant_observer', 'veil_stalk',
          'reflection_lurk', 'tunnel_crawl', 'patient_strike', 'shadow_hide', 'full_stand', 'head_tilt', 'slow_approach',
          'emerge_roar', 'water_rise', 'hunting_stance', 'behind_cover', 'ledge_watch', 'retreat')
@@ -57,16 +60,24 @@ q = lambda name: f"query.property('{NS}:{name}')"
 
 
 # =================================================================== behavior: the creature and the apparition
+THREATS = {1: (100, 6), 2: (150, 8), 3: (220, 11)}      # health, melee damage (the script adds the lunge and grasp)
+
+
 def creature_bp(BP, spawn_conditions):
-    in_water = lambda v: {'test': 'in_water', 'subject': 'self', 'operator': '==', 'value': v}
-    variant = lambda op, v: {'test': 'is_mark_variant', 'subject': 'self', 'operator': op, 'value': v}
-    players = [{'filters': {'test': 'is_family', 'subject': 'other', 'value': 'player'}, 'max_dist': 24}]
-    modes = ['brine:ai_roam', 'brine:ai_hold', 'brine:ai_observe', 'brine:ai_hunt', 'brine:ai_withdraw']
+    players = lambda dist: [{'filters': {'test': 'is_family', 'subject': 'other', 'value': 'player'}, 'max_dist': dist}]
+    modes = ['brine:ai_roam_land', 'brine:ai_roam_water', 'brine:ai_hold', 'brine:ai_observe', 'brine:ai_stalk', 'brine:ai_hunt',
+             'brine:ai_withdraw']
     # every mode group re-declares movement and physics: removing a group that overrode a component removes the
     # component itself, so the next mode must always bring its own
     move = lambda land, water: {'minecraft:movement': {'value': land}, 'minecraft:underwater_movement': {'value': water},
                                 'minecraft:physics': {}}
     mode = lambda keep: {'remove': {'component_groups': [m for m in modes if m != keep]}, 'add': {'component_groups': [keep]}}
+    fight_back = {'minecraft:behavior.hurt_by_target': {'priority': 1},
+                  'minecraft:behavior.melee_attack': {'priority': 3, 'speed_multiplier': 1.5, 'track_target': True}}
+    threat = {f'brine:threat_{k}': {'minecraft:health': {'value': hp, 'max': hp}, 'minecraft:attack': {'damage': dmg}}
+              for k, (hp, dmg) in THREATS.items()}
+    threat_events = {f'brine:threat_{k}': {'remove': {'component_groups': [g for g in threat if g != f'brine:threat_{k}']},
+                                           'add': {'component_groups': [f'brine:threat_{k}']}} for k in THREATS}
     write(f'{BP}/entities/brinesleeper.json', {
         'format_version': '1.21.0',
         'minecraft:entity': {
@@ -75,96 +86,87 @@ def creature_bp(BP, spawn_conditions):
                 'properties': {f'{NS}:act': {'type': 'int', 'range': [0, 31], 'default': 0, 'client_sync': True}},
             },
             'component_groups': {
-                # natural spawns may despawn; the director's staged creature never does (it removes it itself)
-                'brine:natural': {'minecraft:despawn': {'despawn_from_distance': {}}},
-                # what it does on its own: wanders the water and the shores, watches, does not hunt
-                'brine:ai_roam': {
-                    **move(0.25, 0.15),
-                    'minecraft:behavior.random_swim': {'priority': 6, 'speed_multiplier': 1.0, 'xz_dist': 10, 'y_dist': 5},
-                    'minecraft:behavior.random_stroll': {'priority': 7, 'speed_multiplier': 0.6},
-                    'minecraft:behavior.look_at_player': {'priority': 8, 'look_distance': 16, 'probability': 0.05},
+                **threat,
+                # wandering, on land: strolls the shores and makes for land if it finds itself swimming
+                'brine:ai_roam_land': {
+                    **move(0.28, 0.27), **fight_back,
+                    'minecraft:behavior.move_to_land': {'priority': 4, 'search_range': 16, 'search_height': 5, 'goal_radius': 0.5},
+                    'minecraft:behavior.random_stroll': {'priority': 6, 'speed_multiplier': 0.8},
+                    'minecraft:behavior.look_at_player': {'priority': 8, 'look_distance': 24, 'probability': 0.08},
                     'minecraft:behavior.random_look_around': {'priority': 9},
-                    'minecraft:behavior.hurt_by_target': {'priority': 1},
-                    'minecraft:behavior.melee_attack': {'priority': 3, 'speed_multiplier': 1.5, 'track_target': True},
+                },
+                # wandering, in the water: swims the lakes and makes for the water if it finds itself ashore
+                'brine:ai_roam_water': {
+                    **move(0.28, 0.27), **fight_back,
+                    'minecraft:behavior.move_to_water': {'priority': 4, 'search_range': 24, 'search_height': 8, 'search_count': 1,
+                                                         'goal_radius': 1.5, 'speed_multiplier': 1.2},
+                    'minecraft:behavior.random_swim': {'priority': 6, 'speed_multiplier': 1.2, 'xz_dist': 12, 'y_dist': 6},
+                    'minecraft:behavior.look_at_player': {'priority': 8, 'look_distance': 24, 'probability': 0.08},
                 },
                 # held perfectly still in a pose the script chose: no AI, no gravity (it can float at the waterline)
-                'brine:ai_hold': {
-                    **move(0, 0),
-                    'minecraft:physics': {'has_gravity': False, 'has_collision': True},
-                },
-                # still, but its eyes follow you
+                'brine:ai_hold': {**move(0, 0), 'minecraft:physics': {'has_gravity': False, 'has_collision': True}},
+                # standing off: still, staring, its eyes follow you
                 'brine:ai_observe': {
                     **move(0, 0),
-                    'minecraft:behavior.look_at_player': {'priority': 1, 'look_distance': 48, 'probability': 1.0},
+                    'minecraft:behavior.look_at_player': {'priority': 1, 'look_distance': 64, 'probability': 1.0},
                 },
-                # the hunt: fast on land, faster in the water, strikes for 5 (the script adds the 7-damage lunge)
+                # stalking: creeps toward you (crouched on land), stopping when the script says so
+                'brine:ai_stalk': {
+                    **move(0.24, 0.3),
+                    'minecraft:behavior.nearest_attackable_target': {
+                        'priority': 2, 'must_see': False, 'reselect_targets': True, 'within_radius': 64, 'entity_types': players(64)},
+                    'minecraft:behavior.move_towards_target': {'priority': 3, 'speed_multiplier': 1.0, 'within_radius': 64},
+                    'minecraft:behavior.look_at_player': {'priority': 4, 'look_distance': 64, 'probability': 1.0},
+                },
+                # the hunt: faster than you on land, much faster in the water; leaps, strikes
                 'brine:ai_hunt': {
-                    **move(0.3, 0.2),
+                    **move(0.36, 0.38),
                     'minecraft:behavior.hurt_by_target': {'priority': 1},
                     'minecraft:behavior.nearest_attackable_target': {
-                        'priority': 2, 'must_see': False, 'reselect_targets': True, 'within_radius': 32, 'entity_types': players},
-                    'minecraft:behavior.melee_attack': {'priority': 3, 'speed_multiplier': 1.4, 'track_target': True},
+                        'priority': 2, 'must_see': False, 'reselect_targets': True, 'within_radius': 48, 'entity_types': players(48)},
+                    'minecraft:behavior.leap_at_target': {'priority': 3, 'yd': 0.45, 'must_be_on_ground': False},
+                    'minecraft:behavior.melee_attack': {'priority': 4, 'speed_multiplier': 1.55, 'track_target': True},
                 },
-                # backs away from players and makes for the water
+                # backs off fast and makes for the water
                 'brine:ai_withdraw': {
-                    **move(0.28, 0.18),
-                    'minecraft:behavior.move_to_water': {'priority': 1, 'search_range': 24, 'search_height': 8, 'search_count': 1,
-                                                         'goal_radius': 1.5, 'speed_multiplier': 1.5},
+                    **move(0.4, 0.36),
+                    'minecraft:behavior.move_to_water': {'priority': 1, 'search_range': 32, 'search_height': 8, 'search_count': 1,
+                                                         'goal_radius': 1.5, 'speed_multiplier': 1.6},
                     'minecraft:behavior.avoid_mob_type': {'priority': 2, 'entity_types': [
-                        {'filters': {'test': 'is_family', 'subject': 'other', 'value': 'player'}, 'max_dist': 16,
-                         'walk_speed_multiplier': 1.2, 'sprint_speed_multiplier': 1.5}]},
-                    'minecraft:behavior.random_swim': {'priority': 6, 'speed_multiplier': 1.2, 'xz_dist': 12, 'y_dist': 6},
+                        {'filters': {'test': 'is_family', 'subject': 'other', 'value': 'player'}, 'max_dist': 32,
+                         'walk_speed_multiplier': 1.4, 'sprint_speed_multiplier': 1.8}]},
+                    'minecraft:behavior.random_swim': {'priority': 6, 'speed_multiplier': 1.3, 'xz_dist': 14, 'y_dist': 6},
                 },
-                # Dryland Hunt: it can only stay out of the water for 15-20 s before it must go back
-                'brine:wet': {'minecraft:mark_variant': {'value': 0}},
-                'brine:dryland_hunt': {
-                    'minecraft:mark_variant': {'value': 1},
-                    'minecraft:timer': {'looping': False, 'time': [15, 20], 'randomInterval': True,
-                                        'time_down_event': {'event': 'brine:dried_out', 'target': 'self'}},
-                },
-                'brine:dried_out': {
-                    'minecraft:mark_variant': {'value': 2},
-                    'minecraft:behavior.move_to_water': {'priority': 0, 'search_range': 24, 'search_height': 8,
-                                                         'search_count': 1, 'goal_radius': 1.5, 'speed_multiplier': 1.4},
-                },
+                'brine:vanish': {'minecraft:instant_despawn': {}},
             },
             'components': {
                 'minecraft:type_family': {'family': ['brinesleeper', 'monster', 'mob']},
-                'minecraft:health': {'value': 70, 'max': 70},
-                'minecraft:attack': {'damage': 5},
-                'minecraft:collision_box': {'width': 1.1, 'height': 3.4},
-                'minecraft:movement': {'value': 0.25},
-                'minecraft:underwater_movement': {'value': 0.15},
-                'minecraft:navigation.generic': {'is_amphibious': True, 'can_path_over_water': False, 'can_swim': True,
-                                                 'can_walk': True, 'can_breach': True, 'avoid_damage_blocks': True},
-                'minecraft:movement.amphibious': {'max_turn': 10},
+                'minecraft:health': {'value': 150, 'max': 150},
+                'minecraft:attack': {'damage': 8},
+                'minecraft:collision_box': {'width': 1.0, 'height': 3.4},
+                **move(0.28, 0.27),
+                # it climbs out onto ledges a full block high instead of bumping against the bank (no more stuck in the water)
+                'minecraft:variable_max_auto_step': {'base_value': 1.0625, 'controlled_value': 1.0625, 'jump_prevented_value': 0.5625},
+                'minecraft:navigation.generic': {'is_amphibious': True, 'can_path_over_water': False, 'can_swim': True, 'can_walk': True,
+                                                 'can_sink': False, 'can_breach': True, 'avoid_damage_blocks': True},
+                'minecraft:movement.amphibious': {'max_turn': 20},
                 'minecraft:jump.static': {},
                 'minecraft:breathable': {'total_supply': 15, 'suffocate_time': 0, 'breathes_water': True, 'breathes_air': True},
-                'minecraft:physics': {},
                 'minecraft:pushable': {'is_pushable': False, 'is_pushable_by_piston': True},
-                'minecraft:knockback_resistance': {'value': 0.6},
+                'minecraft:knockback_resistance': {'value': 0.75},
                 'minecraft:nameable': {},
                 'minecraft:persistent': {},
-                'minecraft:follow_range': {'value': 32, 'max': 48},
-                'minecraft:ambient_sound_interval': {'value': 14, 'range': 18, 'event_name': 'ambient'},
-                'minecraft:damage_sensor': {'triggers': [{'cause': 'fall', 'deals_damage': 'no'}, {'cause': 'drowning', 'deals_damage': 'no'}]},
-                'minecraft:environment_sensor': {'triggers': [
-                    {'filters': {'all_of': [in_water(False), variant('==', 0)]}, 'event': 'brine:left_water'},
-                    {'filters': {'all_of': [in_water(True), variant('!=', 0)]}, 'event': 'brine:entered_water'},
-                ]},
+                'minecraft:follow_range': {'value': 64, 'max': 64},
+                'minecraft:ambient_sound_interval': {'value': 12, 'range': 16, 'event_name': 'ambient'},
+                'minecraft:damage_sensor': {'triggers': [{'cause': 'fall', 'deals_damage': 'no'}, {'cause': 'drowning', 'deals_damage': 'no'},
+                                                         {'cause': 'suffocation', 'deals_damage': 'no'}]},
             },
             'events': {
-                'minecraft:entity_spawned': {'add': {'component_groups': ['brine:wet', 'brine:natural', 'brine:ai_roam']}},
-                'brine:staged': {'remove': {'component_groups': ['brine:natural']}},
-                'brine:mode_roam': mode('brine:ai_roam'),
-                'brine:mode_hold': mode('brine:ai_hold'),
-                'brine:mode_observe': mode('brine:ai_observe'),
-                'brine:mode_hunt': mode('brine:ai_hunt'),
-                'brine:mode_withdraw': mode('brine:ai_withdraw'),
-                'brine:left_water': {'remove': {'component_groups': ['brine:wet']}, 'add': {'component_groups': ['brine:dryland_hunt']}},
-                'brine:dried_out': {'remove': {'component_groups': ['brine:dryland_hunt']}, 'add': {'component_groups': ['brine:dried_out']}},
-                'brine:entered_water': {'remove': {'component_groups': ['brine:dryland_hunt', 'brine:dried_out']},
-                                        'add': {'component_groups': ['brine:wet']}},
+                'minecraft:entity_spawned': {'add': {'component_groups': ['brine:ai_roam_water', 'brine:threat_2']}},
+                'brine:staged': {},
+                'brine:vanish': {'add': {'component_groups': ['brine:vanish']}},
+                **{f'brine:mode_{m.split("ai_")[1]}': mode(m) for m in modes},
+                **threat_events,
             },
         },
     })
@@ -187,7 +189,9 @@ def apparition_bp(BP):
                 'properties': {f'{NS}:form': {'type': 'int', 'range': [0, 3], 'default': 0, 'client_sync': True},
                                f'{NS}:act': {'type': 'int', 'range': [0, 31], 'default': 0, 'client_sync': True}},
             },
-            'component_groups': {'brine:vanish': {'minecraft:instant_despawn': {}}},
+            'component_groups': {'brine:vanish': {'minecraft:instant_despawn': {}},
+                                 # the shape under the water is bigger than it should be
+                                 'brine:huge': {'minecraft:scale': {'value': 1.8}}},
             'components': {
                 'minecraft:type_family': {'family': ['brine_apparition', 'inanimate']},
                 'minecraft:health': {'value': 1, 'max': 1},
@@ -201,7 +205,8 @@ def apparition_bp(BP):
                 # a safety net: whatever happens to the script, an apparition never outlives 40 seconds
                 'minecraft:timer': {'looping': False, 'time': 40, 'time_down_event': {'event': 'brine:vanish', 'target': 'self'}},
             },
-            'events': {'brine:vanish': {'add': {'component_groups': ['brine:vanish']}}},
+            'events': {'brine:vanish': {'add': {'component_groups': ['brine:vanish']}},
+                       'brine:huge': {'add': {'component_groups': ['brine:huge']}}},
         },
     })
 
@@ -538,9 +543,325 @@ def sounds(RP, audio):
     write(sj_path, sj)
 
 
+# =================================================================== music, heartbeat, roars: the atmosphere layer
+MSR = 32000                                        # music sample rate (smaller files, same feel)
+
+
+def lp(x, cutoff, sr=MSR, order=4):
+    """gentle low-pass in the frequency domain (fast on long signals)"""
+    n = len(x)
+    N = 1 << (n - 1).bit_length()
+    X = np.fft.rfft(x, N)
+    f = np.fft.rfftfreq(N, 1 / sr)
+    return np.fft.irfft(X / (1 + (f / cutoff) ** order), N)[:n]
+
+
+def hp(x, cutoff, sr=MSR):
+    return x - lp(x, cutoff, sr, 2)
+
+
+def fftconv(x, ir):
+    n = len(x) + len(ir) - 1
+    N = 1 << (n - 1).bit_length()
+    return np.fft.irfft(np.fft.rfft(x, N) * np.fft.rfft(ir, N), N)[:n]
+
+
+def hall(x, seconds, seed, wet=0.7, damp=2200, sr=MSR):
+    rng = np.random.default_rng(seed)
+    n = int(seconds * sr)
+    tt = np.arange(n) / sr
+    ir = lp(rng.normal(0, 1, n) * np.exp(-tt / (seconds / 5.5)), damp, sr)
+    ir[0] = 0
+    ir /= np.sqrt(np.sum(ir ** 2)) + 1e-9
+    y = fftconv(x, ir)
+    y /= np.max(np.abs(y)) + 1e-9
+    d = np.concatenate([x / (np.max(np.abs(x)) + 1e-9), np.zeros(len(y) - len(x))])
+    return (1 - wet) * d + wet * y
+
+
+def tone(freq, dur, sr=MSR, harmonics=6, phase=0.0):
+    tt = np.arange(int(dur * sr)) / sr
+    f = freq if np.isscalar(freq) else freq[: len(tt)]
+    ph = 2 * np.pi * (f * tt if np.isscalar(f) else np.cumsum(f) / sr) + phase
+    return sum(np.sin(k * ph) / k for k in range(1, harmonics + 1))
+
+
+def env(n, a, r, sr=MSR):
+    tt = np.arange(n) / sr
+    return np.clip(np.minimum(tt / max(a, 1e-3), (n / sr - tt) / max(r, 1e-3)), 0, 1)
+
+
+def place(buf, x, at, sr=MSR):
+    s = int(at * sr)
+    if s >= len(buf):
+        return
+    e = min(len(buf), s + len(x))
+    buf[s:e] += x[: e - s]
+
+
+def ambient_track(seed, root, dur=78.0):
+    """a dark drone for the flooded halls: low pads, dissonant shimmers, something calling far away under the water"""
+    rng = np.random.default_rng(seed)
+    n = int(dur * MSR)
+    tt = np.arange(n) / MSR
+    out = np.zeros(n)
+    swell = 0.55 + 0.45 * np.sin(2 * np.pi * tt / rng.uniform(18, 30) + rng.uniform(0, 6))
+    for f, amp in ((root, 1.0), (root * 1.5, 0.35), (root * 2 * 2 ** (1 / 12), 0.25)):     # root, fifth, a minor second above
+        for det in (-0.004, 0.0, 0.005):
+            out += amp * tone(f * (1 + det), dur, harmonics=7, phase=rng.uniform(0, 6))
+    out = lp(out, 420) * swell
+    for _ in range(rng.integers(3, 6)):                       # high dissonant shimmers that come and go
+        at, ln = rng.uniform(4, dur - 14), rng.uniform(8, 14)
+        f0 = root * 16 * 2 ** (rng.integers(0, 12) / 12)
+        cl = sum(np.sin(2 * np.pi * f0 * 2 ** (k / 12) * np.arange(int(ln * MSR)) / MSR) for k in (0, 1, 6))
+        trem = 0.6 + 0.4 * np.sin(2 * np.pi * rng.uniform(4, 7) * np.arange(int(ln * MSR)) / MSR)
+        place(out, 0.06 * cl * trem * env(int(ln * MSR), ln * 0.45, ln * 0.45), at)
+    for _ in range(rng.integers(2, 4)):                       # a long call, far off, under the water
+        at, ln = rng.uniform(6, dur - 10), rng.uniform(4, 7)
+        m = int(ln * MSR)
+        tc = np.arange(m) / MSR
+        f = rng.uniform(140, 260) * (1 + 0.35 * np.sin(np.pi * tc / ln) - 0.2 * tc / ln) * (1 + 0.012 * np.sin(2 * np.pi * 5 * tc))
+        call = np.sin(2 * np.pi * np.cumsum(f) / MSR) + 0.3 * np.sin(4 * np.pi * np.cumsum(f) / MSR)
+        place(out, 0.22 * lp(call, 900) * env(m, ln * 0.4, ln * 0.5), at)
+    for _ in range(rng.integers(3, 6)):                       # something heavy, deep below
+        at = rng.uniform(3, dur - 4)
+        m = int(1.6 * MSR)
+        tc = np.arange(m) / MSR
+        place(out, 0.9 * np.sin(2 * np.pi * np.cumsum(46 - 14 * tc) / MSR) * np.exp(-tc / 0.5), at)
+    for _ in range(rng.integers(2, 4)):                       # a scrape of claw on stone
+        at, ln = rng.uniform(5, dur - 5), rng.uniform(1.2, 2.2)
+        m = int(ln * MSR)
+        nz = rng.normal(0, 1, m)
+        band = lp(hp(nz, rng.uniform(1800, 2600)), rng.uniform(3500, 5000))
+        place(out, 0.08 * band * env(m, 0.3, 0.6), at)
+    for _ in range(rng.integers(6, 12)):                      # drips
+        at = rng.uniform(1, dur - 1)
+        m = int(0.09 * MSR)
+        tc = np.arange(m) / MSR
+        place(out, 0.18 * np.sin(2 * np.pi * np.cumsum(1300 * np.exp(-tc / 0.03) + 420) / MSR) * np.exp(-tc / 0.025), at)
+    out = hall(out, 4.0, seed, wet=0.55)[:n]
+    return out * env(n, 4.0, 5.0)
+
+
+def chase_loop(seed, dur=32.0, bpm=132):
+    """the chase: a pounding double heartbeat, grinding low strings and a rising shriek"""
+    rng = np.random.default_rng(seed)
+    n = int(dur * MSR)
+    out = np.zeros(n)
+    beat = 60 / bpm
+    m = int(0.35 * MSR)
+    tc = np.arange(m) / MSR
+    thump = np.sin(2 * np.pi * np.cumsum(62 - 30 * tc / 0.35) / MSR) * np.exp(-tc / 0.09)
+    k = 0
+    while k * beat < dur:
+        place(out, thump, k * beat)
+        place(out, 0.6 * thump, k * beat + beat * 0.32)
+        k += 1
+    root = 41.2
+    for i in range(int(dur / (beat / 2))):                    # eighth-note stabs, a minor second apart
+        at = i * beat / 2
+        f = root * (2 ** (1 / 12) if (i // 8) % 2 else 1.0)
+        m = int(beat / 2 * MSR)
+        st = tone(f * 2, beat / 2, harmonics=9) + 0.7 * tone(f * 2 * 2 ** (1 / 12), beat / 2, harmonics=9)
+        place(out, 0.35 * lp(st, 700) * np.exp(-np.arange(m) / MSR / 0.12), at)
+    tt = np.arange(n) / MSR
+    shriek = sum(np.sin(2 * np.pi * (660 * 2 ** (j / 12)) * tt * (1 + 0.15 * tt / dur)) for j in (0, 1, 6))
+    out += 0.05 * shriek * (0.6 + 0.4 * np.sin(2 * np.pi * 11 * tt)) * np.clip(tt / dur, 0, 1)
+    out = hall(out, 1.6, seed, wet=0.3)[:n]
+    return out * env(n, 0.02, 0.05)
+
+
+def sting(seed, dur=4.5):
+    """a sighting: a cluster that swells out of nothing, then a hit"""
+    rng = np.random.default_rng(seed)
+    n = int(dur * MSR)
+    tt = np.arange(n) / MSR
+    base = rng.uniform(220, 330)
+    cl = sum(np.sin(2 * np.pi * base * 2 ** (k / 12) * tt * (1 + 0.01 * k * tt)) for k in (0, 1, 2, 6, 7, 11, 13))
+    sw = cl * np.clip(tt / (dur * 0.7), 0, 1) ** 2.5
+    hit = np.zeros(n)
+    place(hit, (lp(rng.normal(0, 1, int(0.6 * MSR)), 1500) + 2 * np.sin(2 * np.pi * 38 * np.arange(int(0.6 * MSR)) / MSR))
+          * np.exp(-np.arange(int(0.6 * MSR)) / MSR / 0.18), dur * 0.7)
+    out = hall(0.12 * sw + hit, 3.0, seed, wet=0.5)[:n]
+    return out * env(n, 0.05, 0.8)
+
+
+def heartbeat():
+    m = int(0.62 * MSR)
+    out = np.zeros(m)
+    for at, amp in ((0.0, 1.0), (0.27, 0.7)):                 # lub-dub
+        k = int(0.22 * MSR)
+        tc = np.arange(k) / MSR
+        place(out, amp * np.sin(2 * np.pi * np.cumsum(58 - 22 * tc / 0.22) / MSR) * np.exp(-tc / 0.06), at)
+    return lp(out, 240)
+
+
+def creature_fx(audio):
+    rng = np.random.default_rng(77)
+    splash = _wav(os.path.join(audio, 'splash.wav'))
+    sp = np.interp(np.arange(0, len(splash) - 1, SR / MSR * 0.55), np.arange(len(splash)), splash)
+    fx = {}
+    m = int(2.3 * MSR)
+    tc = np.arange(m) / MSR
+    roar = sum(np.tanh(2.5 * tone(np.full(m, 1.0) * f * (1.25 - 0.45 * tc / 2.3), 2.3, harmonics=10)) for f in (95, 142, 71))
+    roar = lp(roar + 0.9 * lp(rng.normal(0, 1, m), 1400) * (0.5 + 0.5 * np.sin(2 * np.pi * 13 * tc)), 2600) * env(m, 0.08, 0.9)
+    fx['mob/brinesleeper/roar'] = hall(roar, 2.4, 1, wet=0.45)
+    m = int(1.4 * MSR)
+    tc = np.arange(m) / MSR
+    fx['mob/brinesleeper/hiss'] = hall(hp(rng.normal(0, 1, m), 2500) * env(m, 0.5, 0.6) * (0.6 + 0.4 * np.sin(2 * np.pi * 7 * tc)), 1.8, 2)
+    m = int(3.6 * MSR)
+    tc = np.arange(m) / MSR
+    moan = tone(np.full(m, 1.0) * 62 * (1 - 0.25 * tc / 3.6) * (1 + 0.02 * np.sin(2 * np.pi * 4 * tc)), 3.6, harmonics=8)
+    fx['mob/brinesleeper/moan'] = hall(lp(moan, 380) * env(m, 0.9, 1.4), 4.5, 3, wet=0.7)
+    m = int(1.4 * MSR)
+    kn = np.zeros(m)
+    for at in (0.0, 0.33, 0.66):
+        k = int(0.2 * MSR)
+        tk = np.arange(k) / MSR
+        place(kn, (lp(rng.normal(0, 1, k), 900) + 1.5 * np.sin(2 * np.pi * 170 * tk)) * np.exp(-tk / 0.035), at)
+    fx['brine_fx/knock'] = hall(kn, 2.4, 4, wet=0.5)
+    m = int(0.9 * MSR)
+    tc = np.arange(m) / MSR
+    thump = 1.4 * np.sin(2 * np.pi * np.cumsum(48 - 16 * tc) / MSR) * np.exp(-tc / 0.18)
+    fx['brine_fx/thump'] = lp(thump + 0.3 * fit(_bubbles(0.9, 10, rng) if False else rng.normal(0, 0.2, m), m), 500)
+    m = int(0.6 * MSR)
+    fx['brine_fx/snuff'] = hp(rng.normal(0, 1, m), 3000) * np.exp(-np.arange(m) / MSR / 0.16)
+    m = int(1.8 * MSR)
+    burst = fit(sp, m) * 1.4 + 0.8 * lp(rng.normal(0, 1, m), 1800) * np.exp(-np.arange(m) / MSR / 0.35)
+    fx['brine_fx/burst'] = hall(burst, 2.0, 5, wet=0.4)
+    fx['brine_fx/heartbeat'] = heartbeat()
+    return fx
+
+
+MUSIC = {
+    'music/brine/stillwater_1': lambda: ambient_track(101, 41.2),
+    'music/brine/stillwater_2': lambda: ambient_track(102, 36.7),
+    'music/brine/stillwater_3': lambda: ambient_track(103, 43.65),
+    'music/brine/stillwater_4': lambda: ambient_track(104, 38.9),
+    'music/brine/chase': lambda: chase_loop(201),
+    'music/brine/sting_1': lambda: sting(301),
+    'music/brine/sting_2': lambda: sting(302),
+    'music/brine/sting_3': lambda: sting(303),
+}
+EXTRA_EVENTS = {
+    'mob.brinesleeper.roar': (['mob/brinesleeper/roar'], 1.0, 'hostile'),
+    'mob.brinesleeper.hiss': (['mob/brinesleeper/hiss'], 0.7, 'hostile'),
+    'mob.brinesleeper.moan': (['mob/brinesleeper/moan'], 1.0, 'hostile'),
+    'brine.fx.knock': (['brine_fx/knock'], 0.9, 'ambient'),
+    'brine.fx.thump': (['brine_fx/thump'], 1.0, 'ambient'),
+    'brine.fx.snuff': (['brine_fx/snuff'], 0.7, 'block'),
+    'brine.fx.burst': (['brine_fx/burst'], 1.0, 'hostile'),
+    'brine.heartbeat': (['brine_fx/heartbeat'], 1.0, 'player'),
+}
+
+
+def encode(x, out, sr):
+    x = x / (np.max(np.abs(x)) or 1.0) * 0.85
+    pcm = (x * 32767).astype(np.int16)
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        wav_path = os.path.join(tmp, 'a.wav')
+        with wave.open(wav_path, 'w') as w:
+            w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes(pcm.tobytes())
+        subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', wav_path, '-c:a', 'libvorbis', '-q:a', '3', out], check=True)
+
+
+def atmosphere(RP, audio):
+    for rel, x in creature_fx(audio).items():
+        encode(x, f'{RP}/sounds/{rel}.ogg', MSR)
+    for rel, fn in MUSIC.items():
+        encode(fn(), f'{RP}/sounds/{rel}.ogg', MSR)
+    defs_path = f'{RP}/sounds/sound_definitions.json'
+    defs = load(defs_path)
+    for ev, (files, vol, cat) in EXTRA_EVENTS.items():
+        defs['sound_definitions'][ev] = {'category': cat, 'max_distance': 48.0, 'min_distance': 2.0,
+                                         'sounds': [{'name': f'sounds/{f}', 'volume': vol, 'load_on_low_memory': True} for f in files]}
+    # the biome's own music (biome_music in the client biome) and the director's chase theme and stings
+    defs['sound_definitions']['music.brine.stillwater'] = {'category': 'music', 'sounds': [
+        {'name': f'sounds/music/brine/stillwater_{i}', 'stream': True, 'volume': 0.75} for i in range(1, 5)]}
+    defs['sound_definitions']['music.brine.chase'] = {'category': 'music', 'sounds': [
+        {'name': 'sounds/music/brine/chase', 'stream': True, 'volume': 0.85}]}
+    defs['sound_definitions']['music.brine.sting'] = {'category': 'music', 'sounds': [
+        {'name': f'sounds/music/brine/sting_{i}', 'volume': 0.9} for i in range(1, 4)]}
+    write(defs_path, defs)
+    write(f'{RP}/sounds/music_definitions.json', {
+        'brine_stillwater': {'event_name': 'music.brine.stillwater', 'min_delay': 20, 'max_delay': 70}})
+
+
+def eye_particles(RP):
+    base = lambda ident, comps: {'format_version': '1.10.0', 'particle_effect': {
+        'description': {'identifier': ident, 'basic_render_parameters': {'material': 'particles_add', 'texture': 'textures/particle/brine_fx'}},
+        'components': comps}}
+    uv = lambda u, v, s: {'texture_width': 32, 'texture_height': 32, 'uv': [u, v], 'uv_size': [s, s]}
+    # eye shine: two pale points in the dark, a little apart, watching (particles are drawn unlit, so they glow)
+    write(f'{RP}/particles/brine_eyes.json', base(f'{NS}:eyes', {
+        'minecraft:emitter_rate_instant': {'num_particles': 1},
+        'minecraft:emitter_lifetime_once': {'active_time': 0.05},
+        'minecraft:emitter_shape_point': {},
+        'minecraft:particle_lifetime_expression': {'max_lifetime': 1.15},
+        'minecraft:particle_initial_speed': 0,
+        'minecraft:particle_motion_dynamic': {},
+        'minecraft:particle_appearance_billboard': {'size': [0.055, 0.055], 'facing_camera_mode': 'lookat_xyz', 'uv': uv(16, 0, 8)},
+        'minecraft:particle_appearance_tinting': {'color': [1.0, 0.86, 0.78,
+                                                            '(0.6 + 0.4 * math.sin(variable.particle_age * 900)) * math.min(1, (variable.particle_lifetime - variable.particle_age) * 4)']},
+    }))
+    write(f'{RP}/particles/brine_smoke.json', {'format_version': '1.10.0', 'particle_effect': {
+        'description': {'identifier': f'{NS}:smoke', 'basic_render_parameters': {'material': 'particles_blend', 'texture': 'textures/particle/brine_fx'}},
+        'components': {
+            'minecraft:emitter_rate_instant': {'num_particles': 6},
+            'minecraft:emitter_lifetime_once': {'active_time': 0.1},
+            'minecraft:emitter_shape_sphere': {'radius': 0.15, 'direction': 'outwards'},
+            'minecraft:particle_lifetime_expression': {'max_lifetime': '0.9 + variable.particle_random_1 * 0.6'},
+            'minecraft:particle_initial_speed': 0.3,
+            'minecraft:particle_motion_dynamic': {'linear_acceleration': [0, 0.8, 0], 'linear_drag_coefficient': 1.5},
+            'minecraft:particle_appearance_billboard': {'size': ['0.1 + variable.particle_age * 0.2', '0.1 + variable.particle_age * 0.2'],
+                                                        'facing_camera_mode': 'lookat_xyz', 'uv': uv(16, 0, 8)},
+            'minecraft:particle_appearance_tinting': {'color': [0.18, 0.18, 0.2, '0.7 * (1 - variable.particle_age / variable.particle_lifetime)']},
+        }}})
+
+
+def config_wheel(RP, BP):
+    """the settings item: a dark iron cog with a drop of red at its hub (vanilla item-style pixel art)"""
+    img = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+    px = img.load()
+    for y in range(16):
+        for x in range(16):
+            dx, dy = x - 7.5, y - 7.5
+            r, a = math.hypot(dx, dy), math.atan2(dy, dx)
+            tooth = 6.9 if math.cos(a * 8) > 0.35 else 5.6
+            if r <= tooth:
+                if r < 2.2:
+                    px[x, y] = (150, 24, 30, 255) if r < 1.3 else (92, 12, 16, 255)
+                elif r < 3.3:
+                    px[x, y] = (34, 34, 40, 255)
+                else:
+                    shade = 0.75 + 0.25 * math.cos(a + 2.3)
+                    c = int(96 * shade) + (14 if r < 4.4 else 0)
+                    px[x, y] = (c, c, c + 8, 255)
+                if r > tooth - 1:
+                    px[x, y] = (40, 40, 46, 255)
+    os.makedirs(f'{RP}/textures/items', exist_ok=True)
+    img.save(f'{RP}/textures/items/brine_config_wheel.png')
+    write(f'{RP}/textures/item_texture.json', {'resource_pack_name': 'brinesleeper', 'texture_name': 'atlas.items',
+                                               'texture_data': {'brine_config_wheel': {'textures': 'textures/items/brine_config_wheel'}}})
+    write(f'{BP}/items/config_wheel.json', {
+        'format_version': '1.21.0',
+        'minecraft:item': {
+            'description': {'identifier': f'{NS}:config_wheel', 'menu_category': {'category': 'items'}},
+            'components': {
+                'minecraft:icon': 'brine_config_wheel',
+                'minecraft:max_stack_size': 1,
+                'minecraft:display_name': {'value': 'Brinesleeper Settings'},
+                'minecraft:glint': False,
+                'minecraft:hand_equipped': False,
+            },
+        },
+    })
+
+
 # =================================================================== entry point
 def lang_lines():
-    return f'entity.{SHADE}.name=???\n'
+    return f'entity.{SHADE}.name=???\nitem.{NS}:config_wheel=Brinesleeper Settings\n'
 
 
 def build(RP, BP, SRC, spawn_conditions, audio):
@@ -548,6 +869,8 @@ def build(RP, BP, SRC, spawn_conditions, audio):
     apparition_bp(BP)
     client_files(RP, SRC)
     particles(RP)
+    eye_particles(RP)
     sounds(RP, audio)
-    os.makedirs(f'{BP}/scripts', exist_ok=True)
-    shutil.copy(os.path.join(HERE, 'scripts', 'main.js'), f'{BP}/scripts/main.js')
+    atmosphere(RP, audio)
+    config_wheel(RP, BP)
+    shutil.copytree(os.path.join(HERE, 'scripts'), f'{BP}/scripts', dirs_exist_ok=True)

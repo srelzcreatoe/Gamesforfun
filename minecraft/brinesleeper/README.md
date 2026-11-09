@@ -8,7 +8,18 @@ and arms long enough to drag its clawed hands on the ground.
 It comes with its own cave biome, the [Stillwater Caves](#stillwater-caves-biome), where it is
 the only hostile mob that spawns.
 
-**Version 2.0, "The Water Remembers"**, turns it into a full horror add-on:
+**Version 3.0, "The Deep"**, gives the creature a mind of its own, wherever it is:
+* It roams the water and the shores, stalks you on land and in the water, stands off and
+  stares, then either runs or charges.
+* It ambushes from the water at the edge, drags swimmers under, and circles them in the dark.
+* Your heartbeat rises as it gets closer, and there are its eyes in the dark, a chase theme,
+  the caves' own music, lures and whispers. It takes your lights.
+* It has three threat levels and is faster.
+* There is a *Brinesleeper Settings* wheel for everything.
+* The biome now has murky water, and no other hostile mobs. Floating vines and leaking lake
+  edges are repaired.
+
+**Version 2.0, "The Water Remembers"**, made it a full horror add-on:
 * A hidden director stages every encounter, with 26 mechanics.
 * Most encounters are sightings: something watching from the water, a figure under the surface
   that is not your reflection, a hand rising from the lake, footsteps that copy yours. It
@@ -282,18 +293,25 @@ You can also import `resource_pack/models/entity/brinesleeper.geo.json` and the
 3. Find the caves with `/locate biome brine:stillwater_caves`. Spend time there: nothing
    happens for the first 6–10 minutes.
 
-The packs are version 2.0.0, so they import over 1.x. They need Minecraft Bedrock **1.26.40 or
+The packs are version 3.0.0, so they import over older versions. They need Minecraft Bedrock **1.26.40 or
 newer**, for the stable `@minecraft/server` 2.9.0 and `@minecraft/server-ui` 2.1.0 script
 modules. The director has not been play-tested in-game yet; ADDON_REPORT.md lists what to check.
 
-* **Settings:** run `/brine:settings` (operators) to choose a preset: Quiet Dread, Balanced
-  Horror (default), Relentless or Observation Only. It also has the grasp toggle and an
-  encounter frequency slider.
+* **Settings:** operators get the *Brinesleeper Settings* wheel on first join, or with
+  `/brine:wheel`. Use it, or run `/brine:settings`. It covers:
+  * presets: Quiet Dread, Balanced Horror (default), Relentless, Nightmare, Observation Only
+  * threat level
+  * heartbeat, music, screen effects, whispers, lures
+  * whether it takes your lights
+  * the cave fixes
+  * a test page
 * **Testing:** with cheats on, run `/brine:encounter <name>` to stage any mechanic at once.
   `/brine:status` shows the hidden director state.
-* **Spawning:** `/summon brine:brinesleeper` and the spawn egg still work. A summoned or
-  natural creature just roams and fights back if attacked. The director stages its own
-  encounters, and keeps one creature per world.
+* **Spawning:** with `/summon brine:brinesleeper` or the spawn egg, it starts stalking the
+  nearest player within 5–15 seconds.
+  * Play in **Survival** to see it properly. Mobs can't target Creative players, so it can't
+    chase or grab you there.
+  * Natural spawns stay at one per world.
 
 **Java Edition:** Blockbench can convert the project to *Modded Entity* or OptiFine CEM with
 **File → Convert Project**.

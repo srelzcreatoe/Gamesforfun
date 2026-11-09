@@ -30,6 +30,11 @@
     "component_groups": {
       "brine:vanish": {
         "minecraft:instant_despawn": {}
+      },
+      "brine:huge": {
+        "minecraft:scale": {
+          "value": 1.8
+        }
       }
     },
     "components": {
@@ -87,6 +92,13 @@
         "add": {
           "component_groups": [
             "brine:vanish"
+          ]
+        }
+      },
+      "brine:huge": {
+        "add": {
+          "component_groups": [
+            "brine:huge"
           ]
         }
       }

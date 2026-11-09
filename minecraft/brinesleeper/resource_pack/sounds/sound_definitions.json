@@ -215,6 +215,154 @@
           "load_on_low_memory": true
         }
       ]
+    },
+    "mob.brinesleeper.roar": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/mob/brinesleeper/roar",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "mob.brinesleeper.hiss": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/mob/brinesleeper/hiss",
+          "volume": 0.7,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "mob.brinesleeper.moan": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/mob/brinesleeper/moan",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "brine.fx.knock": {
+      "category": "ambient",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/brine_fx/knock",
+          "volume": 0.9,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "brine.fx.thump": {
+      "category": "ambient",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/brine_fx/thump",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "brine.fx.snuff": {
+      "category": "block",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/brine_fx/snuff",
+          "volume": 0.7,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "brine.fx.burst": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/brine_fx/burst",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "brine.heartbeat": {
+      "category": "player",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/brine_fx/heartbeat",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "music.brine.stillwater": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/music/brine/stillwater_1",
+          "stream": true,
+          "volume": 0.75
+        },
+        {
+          "name": "sounds/music/brine/stillwater_2",
+          "stream": true,
+          "volume": 0.75
+        },
+        {
+          "name": "sounds/music/brine/stillwater_3",
+          "stream": true,
+          "volume": 0.75
+        },
+        {
+          "name": "sounds/music/brine/stillwater_4",
+          "stream": true,
+          "volume": 0.75
+        }
+      ]
+    },
+    "music.brine.chase": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/music/brine/chase",
+          "stream": true,
+          "volume": 0.85
+        }
+      ]
+    },
+    "music.brine.sting": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/music/brine/sting_1",
+          "volume": 0.9
+        },
+        {
+          "name": "sounds/music/brine/sting_2",
+          "volume": 0.9
+        },
+        {
+          "name": "sounds/music/brine/sting_3",
+          "volume": 0.9
+        }
+      ]
     }
   }
 }

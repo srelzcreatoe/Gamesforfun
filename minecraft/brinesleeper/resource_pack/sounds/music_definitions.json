@@ -1,0 +1,7 @@
+{
+  "brine_stillwater": {
+    "event_name": "music.brine.stillwater",
+    "min_delay": 20,
+    "max_delay": 70
+  }
+}

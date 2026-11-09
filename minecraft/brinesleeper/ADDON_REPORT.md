@@ -1,4 +1,4 @@
-# The Brinesleeper 2.0: "The Water Remembers"
+# The Brinesleeper 3.0: "The Water Remembers"
 
 The full horror add-on, built on the existing Brinesleeper model and its home biome, the
 [Stillwater Caves](README.md#stillwater-caves-biome). A hidden director script stages every
@@ -9,6 +9,88 @@ almost never chases, and leaves signs that the water is not what it seems.
 [Testing report](#testing-report)). It has **not** been run inside Minecraft from this
 environment. The [runtime checklist](#runtime-checklist-not-yet-verified-in-game) lists what
 still needs an in-game pass.
+
+---
+
+## What's new in 3.0: "The Deep"
+
+**A summoned or natural Brinesleeper now has a mind of its own.** It no longer just wanders.
+It roams both the water and the shores, picks someone, and stalks them, on land as well as in
+the water:
+* **Stalk:** it creeps after you in its crouched walk, and its eyes glint in the dark.
+* **Closing in:** while you aren't looking, it is suddenly closer.
+* **Breathing:** if you don't turn around, you hear it breathe behind you.
+* **Stand-off:** it stops and stares, with only its head above the water if it's swimming.
+* **Break or charge:** walk at it and it either breaks and runs or comes for you. Stare it down
+  too long and it does the same.
+* **Chase:** it roars and charges. It is faster than you and leaps at you, with the chase theme
+  playing.
+* **Ambush:** it waits under the water by the edge where you stand. Bubbles give it away, then it
+  bursts out roaring and drags you toward the water.
+* **Drag under:** in the water it is much faster than you. It circles, grabs you and drags you
+  down, with a black-out flash. Break free by hitting it or kicking up (jump).
+* **Grudge:** it remembers who hurt it. Kill it and a few minutes later another one comes back
+  for you.
+
+**The water is the horror.** Something is in it, and it wants you:
+* **The water is murky:** 92% opaque, and 9 blocks of near-black visibility underneath.
+* **While you swim over deep water:**
+  * a huge dark shape glides beneath you with a moan, and the light dims as it passes over
+  * something bumps you
+  * or the real creature starts circling you
+* **Lures and knocking:** from the water come sounds that shouldn't be down here (someone hurt, a
+  villager, a cat). There is knocking from the stone.
+
+**Atmosphere:**
+* Your **heartbeat** speeds up as it gets closer: 68 to 150 bpm, played to you alone.
+* The caves now have **their own music**: four slow dark tracks with long silences between
+  them.
+* There is a **chase theme** and **sighting stings**.
+* Small **screen effects:** a little shake on a roar, darkness as the shape passes, a black-out
+  when grabbed.
+* Rare **whispers**.
+* **It takes your lights:** torches and lanterns you aren't looking at fall to the floor, and
+  candles and campfires go out. Nothing is lost; you find the torch on the ground.
+
+**Stronger:**
+* Three threat levels:
+
+  | Threat level | Health | Melee | Lunge |
+  |---|---|---|---|
+  | Dangerous | 100 | 6 | 10 |
+  | Deadly (default) | 150 | 8 | 12 |
+  | Apex | 220 | 11 | 15 |
+
+* Faster on land and much faster in the water.
+* It steps up full-block ledges, so it doesn't get stuck in the water.
+* If it is still stuck after 10 s and nobody can see it, it repositions.
+
+**Faster pacing:**
+* Balanced: the first sign within 45–90 s in the caves, and big encounters every 3–6 minutes.
+* A summoned creature starts stalking within 5–15 s.
+* There is a new **Nightmare** preset.
+
+**Settings wheel:** the *Brinesleeper Settings* item, a dark cog with a red hub. Operators get
+it on first join, or with `/brine:wheel`. Right-click it to open the menus:
+* presets and pacing
+* the creature (threat, grasp, lights)
+* atmosphere (heartbeat, music, screen effects, whispers, lures)
+* the caves (block hostiles, repairs)
+* a test page to stage any encounter or summon one in front of you
+
+**Biome fixes:**
+* **Murky water.**
+* **No other hostile mob ever spawns** in the Stillwater Caves. The biome has no `monster` tag,
+  and the script removes any that slip through (spawners, slimes). Mobs you summon nearby are
+  left alone.
+* **Floating vines, stalactites and plants are repaired.** They came from flooded halls carved
+  later by a neighbouring chunk. Each chunk around you is checked once, as you explore.
+* **Leaking lake edges are sealed with stone.** These are the "water walls" where a hall cut
+  into an older cave.
+
+**Test it in Survival.** Minecraft mobs can't target players in Creative, so in Creative it
+can only stalk you by jumping closer while you aren't looking. It can't walk after you, chase
+or grab you.
 
 ---
 
@@ -43,7 +125,7 @@ for you at once, and `/brine:status` shows the hidden director state. Settings a
 
 | | |
 |---|---|
-| Pack version | 2.0.0. It imports over 1.x. |
+| Pack version | 3.0.0. It imports over 1.x and 2.x. |
 | Minimum game version | Minecraft Bedrock **1.26.40** (manifest `min_engine_version`). |
 | Script modules | `@minecraft/server` **2.9.0** and `@minecraft/server-ui` **2.1.0**, the stable versions that ship with 1.26.40. No beta APIs and no experimental toggles. |
 | Custom biome | Non-experimental `minecraft:replace_biomes`, available since 1.26.30. |
@@ -181,12 +263,30 @@ Settings are saved with the world.
 
 **Presets:**
 
-| Preset | Minor events | Major gap | First quiet | Hunt chance | Revelation | Damage |
+| Preset | First quiet | Minor signs | Big encounters | Free creature rests between stalks | Hunt chance | Damage |
 |---|---|---|---|---|---|---|
-| Quiet Dread | 150–300 s | 18–28 min | 8–12 min | 12% | 5% | 80% |
-| **Balanced Horror** (default) | 80–170 s | 12–20 min | 6–10 min | 35% | 8% | 100% |
-| Relentless | 45–100 s | 6–10 min | 3–5 min | 60% | 9% | 100% |
-| Observation Only | 80–170 s | 10–16 min | 6–10 min | none | 8% | none |
+| Quiet Dread | 3–5 min | 90–180 s | 8–14 min | 150–300 s | 20% | 80% |
+| **Balanced Horror** (default) | 45–90 s | 35–80 s | 3–6 min | 50–120 s | 45% | 100% |
+| Relentless | 20–40 s | 20–45 s | 1.5–3 min | 25–60 s | 70% | 100% |
+| Nightmare | 5–15 s | 12–30 s | 1–2 min | 12–35 s | 85% | 125% |
+| Observation Only | 45–90 s | 35–80 s | 3–6 min | 50–120 s | none | none |
+
+**Settings wheel pages:**
+
+| Page | Settings |
+|---|---|
+| Presets & pacing | Awake on/off, preset, encounter frequency 50–200% |
+| The creature | Threat (Dangerous, Deadly, Apex), drowning grasp, takes your lights |
+| Atmosphere | Heartbeat, chase music and stings, screen effects, whispers, lures |
+| The caves | Block other hostile mobs, repair floating plants and seal leaking lakes, debug messages |
+| Test an encounter | Stage any encounter now, or summon a creature in front of you |
+
+The caves' background music is part of the biome. Use Minecraft's own Music volume slider for
+it. The menu's music switch covers the chase theme and stings.
+
+**Commands (operators):**
+* `/brine:settings` opens the menu.
+* `/brine:wheel` gives you the wheel.
 
 **Testing commands (operators, cheats on):**
 * `/brine:encounter <name>` stages one encounter now. The names are: third_splash,
@@ -268,7 +368,9 @@ minecraft/brinesleeper/
 ├── README.md
 ├── behavior_pack/
 │   ├── manifest.json               # data + script modules (@minecraft/server 2.9.0, server-ui 2.1.0)
-│   ├── scripts/main.js             # the director
+│   ├── scripts/                    # index.js (entry), main.js (director), brain.js (the creature's mind),
+│   │                               # care.js (no hostiles, repairs), menu.js (settings wheel), config.js
+│   ├── items/config_wheel.json     # the Brinesleeper Settings wheel
 │   ├── entities/brinesleeper.json  # 70 HP, AI modes, brine:act property
 │   ├── entities/apparition.json    # untouchable shapes (silhouette / reflection / hand)
 │   ├── spawn_rules/                # Stillwater Caves only
@@ -316,3 +418,9 @@ minecraft/brinesleeper/
   is skipped quietly rather than forced.
 * **The grasp's pull strength and the hunt movement speeds** are best guesses until
   play-tested.
+* **Creative mode:** vanilla AI can't target players in Creative. Stalking, chases and grabs
+  need Survival or Adventure.
+* **Repairs change blocks:** they remove floating decorations and seal leaking lake edges with
+  stone. They only touch the hall bands, and only once per chunk. Turn them off on the
+  settings wheel.
+* **The music is synthesized** for this pack. It is dark ambient, not orchestral.

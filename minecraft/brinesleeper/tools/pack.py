@@ -16,7 +16,7 @@ RP_H, RP_M = '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e01', '7b0d8f0e-3c1a-4c55-9a52-2b
 BP_H, BP_M = '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e03', '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e04'
 BP_S = '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e05'
 ENGINE = [1, 26, 40]          # Bedrock 1.26.40: the stable @minecraft/server 2.9.0 and @minecraft/server-ui 2.1.0
-VER = [2, 0, 0]   # bump on every release so Minecraft imports the update over an older copy
+VER = [3, 0, 0]   # bump on every release so Minecraft imports the update over an older copy
 
 
 def write(path, obj):
@@ -50,7 +50,7 @@ write(f'{BP}/manifest.json', {
                'description': 'The Brinesleeper: The Water Remembers. A hidden director, the creature, and the Stillwater Caves',
                'uuid': BP_H, 'version': VER, 'min_engine_version': ENGINE},
     'modules': [{'type': 'data', 'uuid': BP_M, 'version': VER},
-                {'type': 'script', 'language': 'javascript', 'uuid': BP_S, 'version': VER, 'entry': 'scripts/main.js'}],
+                {'type': 'script', 'language': 'javascript', 'uuid': BP_S, 'version': VER, 'entry': 'scripts/index.js'}],
     'dependencies': [{'uuid': RP_H, 'version': VER},
                      {'module_name': '@minecraft/server', 'version': '2.9.0'},
                      {'module_name': '@minecraft/server-ui', 'version': '2.1.0'}],

@@ -332,14 +332,15 @@ if script_mods:
     for mod, ver in (('@minecraft/server', '2.9.0'), ('@minecraft/server-ui', '2.1.0')):
         if deps.get(mod) != ver:
             err(f'manifest: {mod} should be the stable {ver} (got {deps.get(mod)})')
-    js = open(entry).read() if os.path.exists(entry) else ''
+    js = ''.join(open(f).read() for f in sorted(glob.glob(f'{BP}/scripts/*.js')))     # every script module together
     ents = {}
     for path in glob.glob(f'{BP}/entities/*.json'):
         d = load(path) or {}
         e = d['minecraft:entity']
         ents[e['description']['identifier']] = e
-    creature = ents.get('brine:brinesleeper', {})
-    events = set(creature.get('events', {}))
+    events = set()
+    for e in ents.values():                    # events the script triggers on the creature or the apparition
+        events |= set(e.get('events', {}))
     props = set()
     for e in ents.values():
         props |= set(e['description'].get('properties', {}))
@@ -356,7 +357,7 @@ if script_mods:
             err(f'script plays sound {sid}, which sound_definitions.json lacks')
     for ev in sorted(set(re.findall(r"triggerEvent\('([^']+)'\)", js)) | {f'brine:mode_{m}' for m in re.findall(r"setMode\([^,]+,\s*'([a-z_]+)'\)", js)}):
         if ev not in events:
-            err(f'script triggers {ev}, which the creature does not define')
+            err(f'script triggers {ev}, which no entity defines')
     for pr in sorted(set(re.findall(r"setProperty\('([^']+)'", js))):
         if pr not in props:
             err(f'script sets property {pr}, which no entity defines')
@@ -388,6 +389,28 @@ if script_mods:
             for a in st.get('animations', []):
                 if a not in ce.get('animations', {}):
                     err(f'{os.path.basename(path)}: act controller plays {a}, which this client entity does not name')
+    for path in glob.glob(f'{BP}/items/*.json'):
+        it = (load(path) or {})['minecraft:item']
+        icon = it['components'].get('minecraft:icon')
+        icons = (load(f'{RP}/textures/item_texture.json') or {}).get('texture_data', {})
+        icon_name = icon if isinstance(icon, str) else (icon or {}).get('textures', {}).get('default')
+        if icon_name not in icons:
+            err(f'{os.path.basename(path)}: icon {icon_name} is not in item_texture.json')
+        elif not os.path.exists(f"{RP}/{icons[icon_name]['textures']}.png"):
+            err(f'{os.path.basename(path)}: icon texture file is missing')
+    mdefs = load(f'{RP}/sounds/music_definitions.json') if os.path.exists(f'{RP}/sounds/music_definitions.json') else {}
+    for path in glob.glob(f'{RP}/biomes/*.json'):
+        md = (load(path) or {})['minecraft:client_biome']['components'].get('minecraft:biome_music', {}).get('music_definition')
+        if md and md not in mdefs:
+            err(f'{os.path.basename(path)}: music_definition {md} is not in music_definitions.json')
+        elif md and mdefs[md]['event_name'] not in sdefs:
+            err(f'music {md}: event {mdefs[md]["event_name"]} has no sound definition')
+    for mid in sorted(set(re.findall(r"playMusic\('([^']+)'", js))):
+        if mid not in sdefs:
+            err(f'script plays music {mid}, which sound_definitions.json lacks')
+    for pid in sorted(set(re.findall(r"playSound\('([^']+)'", js))):
+        if pid not in sdefs and not pid.startswith(('game.', 'mob.villager', 'mob.cat', 'random.')):
+            err(f'script plays {pid} to a player, which sound_definitions.json lacks')
     notes.append(f'script: {len(js.splitlines())} lines; {len(js_acts) - 1} poses, {len(parts)} particles, {len(sdefs)} sound events checked')
 
 print(f'{len(features)} features, {len(rule_targets)} rule targets, {len(structure_files)} structures, '

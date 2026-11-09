@@ -7,10 +7,10 @@ mkdir -p .typecheck
 cd .typecheck
 [ -f package.json ] || echo '{"name": "typecheck", "version": "1.0.0", "private": true}' > package.json
 npm install --no-audit --no-fund --ignore-scripts @minecraft/server@2.9.0 @minecraft/server-ui@2.1.0 typescript@5.6.3 >/dev/null
-cp ../scripts/main.js main.js
+rm -f ./*.js && cp ../scripts/*.js .
 echo 'declare const console: { warn(...a: any[]): void; log(...a: any[]): void; error(...a: any[]): void };' > globals.d.ts
 cat > tsconfig.json <<'JSON'
 {"compilerOptions": {"allowJs": true, "checkJs": true, "noEmit": true, "target": "es2022", "module": "es2022",
-  "moduleResolution": "node", "lib": ["es2022"], "types": [], "noUnusedLocals": true}, "files": ["main.js", "globals.d.ts"]}
+  "moduleResolution": "node", "lib": ["es2022"], "types": [], "noUnusedLocals": true}, "files": ["index.js", "main.js", "brain.js", "care.js", "menu.js", "config.js", "globals.d.ts"]}
 JSON
-node_modules/.bin/tsc -p tsconfig.json && echo "main.js: no type errors against @minecraft/server 2.9.0 / server-ui 2.1.0"
+node_modules/.bin/tsc -p tsconfig.json && echo "scripts: no type errors against @minecraft/server 2.9.0 / server-ui 2.1.0"

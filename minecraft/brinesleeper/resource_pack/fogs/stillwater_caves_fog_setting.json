@@ -19,14 +19,14 @@
       },
       "water": {
         "fog_start": 0.0,
-        "fog_end": 18.0,
-        "fog_color": "#08151a",
+        "fog_end": 9.0,
+        "fog_color": "#040b0e",
         "render_distance_type": "fixed",
         "transition_fog": {
           "init_fog": {
             "fog_start": 0.0,
             "fog_end": 0.01,
-            "fog_color": "#08151a",
+            "fog_color": "#040b0e",
             "render_distance_type": "fixed"
           },
           "min_percent": 0.25,

@@ -144,7 +144,8 @@ def biome_files(RP, BP):
             'description': {'identifier': BIOME},
             'components': {
                 'minecraft:fog_appearance': {'fog_identifier': FOG},
-                'minecraft:water_appearance': {'surface_color': '#1b2a30'},
+                # murky: you can't see what is under you
+                'minecraft:water_appearance': {'surface_color': '#0c171c', 'surface_opacity': 0.92},
                 'minecraft:sky_color': {'sky_color': '#0b1013'},
                 'minecraft:atmosphere_identifier': {'atmosphere_identifier': 'minecraft:default_atmospherics'},
                 'minecraft:color_grading_identifier': {'color_grading_identifier': 'minecraft:default_color_grading'},
@@ -157,8 +158,8 @@ def biome_files(RP, BP):
                     'underwater_loop': 'ambient.underwater.loop',
                 },
                 'minecraft:precipitation': {'ash': 0.035},
-                # the Stillwater Curse: the music fades to nothing down here (Mojang's Chill Oasis sample form)
-                'minecraft:biome_music': {'volume_multiplier': 0.0},
+                # its own music: four slow, dark tracks with long silences between them (music_definitions.json)
+                'minecraft:biome_music': {'music_definition': 'brine_stillwater', 'volume_multiplier': 1.0},
             },
         },
     })
@@ -169,10 +170,11 @@ def biome_files(RP, BP):
             'distance': {
                 'air': {'fog_start': 8.0, 'fog_end': 96.0, 'fog_color': '#0c1216', 'render_distance_type': 'fixed'},
                 'weather': {'fog_start': 8.0, 'fog_end': 96.0, 'fog_color': '#0c1216', 'render_distance_type': 'fixed'},
+                # under the surface you see 9 blocks into near-black water, and less the deeper you go
                 'water': {
-                    'fog_start': 0.0, 'fog_end': 18.0, 'fog_color': '#08151a', 'render_distance_type': 'fixed',
+                    'fog_start': 0.0, 'fog_end': 9.0, 'fog_color': '#040b0e', 'render_distance_type': 'fixed',
                     'transition_fog': {
-                        'init_fog': {'fog_start': 0.0, 'fog_end': 0.01, 'fog_color': '#08151a', 'render_distance_type': 'fixed'},
+                        'init_fog': {'fog_start': 0.0, 'fog_end': 0.01, 'fog_color': '#040b0e', 'render_distance_type': 'fixed'},
                         'min_percent': 0.25, 'mid_seconds': 5, 'mid_percent': 0.6, 'max_seconds': 30},
                 },
                 'lava': {'fog_start': 0.0, 'fog_end': 0.64, 'fog_color': '#991A00', 'render_distance_type': 'fixed'},

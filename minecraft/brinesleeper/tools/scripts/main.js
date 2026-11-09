@@ -2,10 +2,8 @@
 // A hidden director that stages the Brinesleeper's encounters in the Stillwater Caves.
 // Stable Script API only: @minecraft/server 2.9.0 and @minecraft/server-ui 2.1.0 (Bedrock 1.26.40), no experiments.
 // Every effect is built from documented calls: entity events/properties for poses, particles, sounds, raycasts.
-import {
-  world, system, CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause, EntityInitializationCause, GameMode,
-} from '@minecraft/server';
-import { ModalFormData } from '@minecraft/server-ui';
+import { world, system, CommandPermissionLevel, EntityDamageCause, EntityInitializationCause, GameMode } from '@minecraft/server';
+import { config, PRESETS, preset, threat, freq, loadConfig } from './config.js';
 
 const CREATURE = 'brine:brinesleeper';
 const SHADE = 'brine:apparition';
@@ -17,32 +15,12 @@ const TPS = 20;
 const ACT = {
   none: 0, watch: 1, submerged_watch: 2, shoreline_stalk: 3, corner_watch: 4, distant_observer: 5, full_stand: 6, emerge: 7,
   submerge: 8, ledge_watch: 9, behind_cover: 10, head_tilt: 11, shadow_hide: 12, tunnel_crawl: 13, retreat: 14, water_rise: 15,
-  hunting_stance: 16, slow_approach: 17, patient_strike: 18, veil_stalk: 19, reflection_lurk: 20, idle_water: 21,
+  hunting_stance: 16, slow_approach: 17, patient_strike: 18, veil_stalk: 19, reflection_lurk: 20, idle_water: 21, swim: 22,
+  emerge_roar: 23,
 };
 // how far below the waterline the model's root sits for each water pose (from the pose calibration, 16 px = 1 block)
-const WATER_DEPTH = { submerged_watch: 2.06, idle_water: 2.06, emerge: 0.25, submerge: 0.25, water_rise: 0.5, retreat: 0.375 };
+const WATER_DEPTH = { submerged_watch: 2.06, idle_water: 2.06, emerge: 0.25, submerge: 0.25, water_rise: 0.5, retreat: 0.375, emerge_roar: 0.375 };
 const FORM = { silhouette: 0, reflection: 1, hand: 2 };
-
-// ------------------------------------------------------------------ configuration and presets
-const PRESETS = {
-  quiet: { label: 'Quiet Dread', minor: [150, 300], major: [18 * 60, 28 * 60], firstQuiet: [8 * 60, 12 * 60], hunt: 0.12, revelation: 0.05, damage: 0.8 },
-  balanced: { label: 'Balanced Horror', minor: [80, 170], major: [12 * 60, 20 * 60], firstQuiet: [6 * 60, 10 * 60], hunt: 0.35, revelation: 0.08, damage: 1 },
-  relentless: { label: 'Relentless', minor: [45, 100], major: [6 * 60, 10 * 60], firstQuiet: [3 * 60, 5 * 60], hunt: 0.6, revelation: 0.09, damage: 1 },
-  observation: { label: 'Observation Only', minor: [80, 170], major: [10 * 60, 16 * 60], firstQuiet: [6 * 60, 10 * 60], hunt: 0, revelation: 0.08, damage: 0 },
-};
-const PRESET_KEYS = Object.keys(PRESETS);
-let config = { enabled: true, preset: 'balanced', grasp: true, frequency: 100, debug: false };
-
-function loadConfig() {
-  try {
-    const raw = world.getDynamicProperty('brine:config');
-    if (typeof raw === 'string') config = { ...config, ...JSON.parse(raw) };
-  } catch (e) { /* keep defaults */ }
-  if (!PRESETS[config.preset]) config.preset = 'balanced';
-}
-function saveConfig() { world.setDynamicProperty('brine:config', JSON.stringify(config)); }
-const preset = () => PRESETS[config.preset] ?? PRESETS.balanced;
-const freq = () => Math.max(0.5, Math.min(2, (config.frequency ?? 100) / 100));
 
 // ------------------------------------------------------------------ small helpers
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -242,6 +220,7 @@ function removeQuietly(e) { try { if (e.isValid) e.remove(); } catch (e2) { /* g
 function stageCreature(pos, act, face) {
   const dim = overworld();
   for (const c of creatures()) {
+    if (!c.hasTag(STAGED)) return undefined;              // a free creature is out there: the brain runs the encounters
     const seen = world.getAllPlayers().some((p) => p.dimension.id === dim.id && inSight(p, c.getHeadLocation(), 64));
     if (seen) return undefined;
     removeQuietly(c);
@@ -249,12 +228,14 @@ function stageCreature(pos, act, face) {
   let c;
   try { c = dim.spawnEntity(CREATURE, pos); } catch (e) { return undefined; }
   c.addTag(STAGED);
-  c.triggerEvent('brine:staged');
+  c.triggerEvent(`brine:threat_${config.threat}`);
   setMode(c, 'hold');
   setAct(c, act);
   try { c.teleport(pos, { facingLocation: face }); } catch (e) { /* ok */ }
   return c;
 }
+/** a creature not staged by the director (summoned, natural, or come back for you) near this player */
+const freeCreatureNear = (player, r = 96) => creatures().some((c) => !c.hasTag(STAGED) && flat(c.location, player.location) < r);
 /** keep a held creature exactly where it should be (water poses float at the waterline) */
 function hold(c, pos, face) { try { if (c.isValid) c.teleport(pos, face ? { facingLocation: face } : undefined); } catch (e) { /* gone */ } }
 const waterPose = (surface, act) => ({ x: surface.x, y: surface.y - (WATER_DEPTH[act] ?? 0), z: surface.z });
@@ -276,6 +257,11 @@ let scene = null;
 function startScene(name, player, gen) {
   scene = { name, playerId: player.id, gen, wake: now(), started: now(), creature: undefined };
   debug(`scene ${name} for ${player.name}`);
+}
+/** a short musical sting for the one player who sees something */
+function sting(player, volume = 0.75) {
+  if (!config.music) return;
+  try { player.playSound('music.brine.sting', { volume }); } catch (e) { /* gone */ }
 }
 function endScene(reason) {
   if (!scene) return;
@@ -364,6 +350,8 @@ function* sceneWaterline(player) {
   const c = stageCreature(waterPose(s, 'submerged_watch'), 'submerged_watch', player.getHeadLocation());
   if (!c) return;
   scene.creature = c;
+  yield* waitUntil(() => !player.isValid || looksAt(player, add(s, { x: 0, y: 0.4, z: 0 }), 0.9), 20 * TPS, 4);
+  if (player.isValid && c.isValid) sting(player, 0.6);
   markTerritory(s);
   const where = waterPose(s, 'submerged_watch');
   // it holds still; its head stays on where the player was (it does not follow)
@@ -543,7 +531,9 @@ function* sceneHunt(player, second = false) {
   sound(c.dimension, 'mob.brinesleeper.emerge', s, 1, 0.9);
   particle(c.dimension, 'brine:splash', s);
   for (let i = 0; i < 20; i++) { hold(c, waterPose(s, 'water_rise')); yield 2; }
-  sound(c.dimension, 'mob.brinesleeper.lunge', s, 1, 0.85);
+  sound(c.dimension, 'mob.brinesleeper.roar', s, 1.2, 0.95);
+  sting(player, 0.9);
+  if (config.music) { try { player.playMusic('music.brine.chase', { loop: true, fade: 0.5, volume: 0.9 }); } catch (e) { /* ok */ } }
   setAct(c, 'none');
   setMode(c, 'hunt');
   const dur = (second ? randInt(5, 7) : randInt(10, 20)) * TPS;
@@ -563,7 +553,7 @@ function* sceneHunt(player, second = false) {
       sound(c.dimension, 'mob.brinesleeper.lunge', c.location, 1, rand(0.95, 1.1));
       yield 7;
       if (c.isValid && player.isValid && flat(player.location, c.location) < 3.6 && preset().damage > 0) {
-        player.applyDamage(Math.round(7 * preset().damage), { cause: EntityDamageCause.entityAttack, damagingEntity: c });
+        player.applyDamage(Math.round(threat().lunge * preset().damage), { cause: EntityDamageCause.entityAttack, damagingEntity: c });
         const k = norm(sub(player.location, c.location));
         try { player.applyKnockback({ x: k.x * 0.6, z: k.z * 0.6 }, 0.25); } catch (e) { /* ok */ }
       }
@@ -577,6 +567,7 @@ function* sceneHunt(player, second = false) {
     }
     yield 4;
   }
+  if (config.music) { try { player.stopMusic(); } catch (e) { /* ok */ } }
   if (!c.isValid) return;
   // withdrawal; sometimes a false retreat: it leaves, the water goes still, and it comes back once from behind
   setMode(c, 'withdraw');
@@ -607,7 +598,7 @@ function* drowningGrasp(player, c) {
     particle(player.dimension, 'brine:bubbles', player.location);
     if (!hurt && now() > grasp.until - 30) {
       hurt = true;
-      player.applyDamage(Math.round(3 * preset().damage), { cause: EntityDamageCause.entityAttack, damagingEntity: c });
+      player.applyDamage(Math.round(threat().grasp * preset().damage), { cause: EntityDamageCause.entityAttack, damagingEntity: c });
     }
     if (player.isJumping && chance(0.25)) grasp.broken = true;   // kicking upward can break the hold
     yield 4;
@@ -626,7 +617,7 @@ function* minorThirdSplash(player) {
   yield randInt(30, 60);
   const s = findSpot(player, 'water', 8, 16, { behind: 1.4, eyeHeight: 0.2 }) ?? findSpot(player, 'water', 8, 18, { eyeHeight: 0.2 });
   if (!s) return;
-  sound(player.dimension, 'brine.fx.splash_far', s, 1, rand(0.85, 1));
+  sound(player.dimension, 'brine.fx.splash_far', s, 1.4, rand(0.85, 1));
   particle(player.dimension, 'brine:splash', s);
   yield 10;
   particle(player.dimension, 'brine:ripple', s);
@@ -686,7 +677,7 @@ function* minorReverseWake(player) {
 }
 /** The False Reflection: under the surface in front of you, a shape that is not yours */
 function* minorFalseReflection(player) {
-  const s = findSpot(player, 'water', 3, 6, { ahead: 0.5, allowView: true, depth: 2, eyeHeight: 0 });
+  const s = findSpot(player, 'water', 2, 5, { ahead: 0.5, allowView: true, depth: 2, eyeHeight: 0 });
   if (!s) return;
   const shade = spawnShade(s, FORM.reflection, pick(['full_stand', 'distant_observer', 'head_tilt']), player.getHeadLocation());
   if (!shade) return;
@@ -697,7 +688,7 @@ function* minorFalseReflection(player) {
 }
 /** The Watching Hand: a hand comes up out of the water, holds, and goes back down */
 function* minorWatchingHand(player) {
-  const s = findSpot(player, 'water', 7, 14, { depth: 3, sight: true, eyeHeight: 0.5 });
+  const s = findSpot(player, 'water', 5, 10, { depth: 3, sight: true, eyeHeight: 0.5 });
   if (!s) return;
   let y = s.y + 0.4;
   const shade = spawnShade({ x: s.x, y, z: s.z }, FORM.hand, 'full_stand', player.getHeadLocation());
@@ -711,7 +702,7 @@ function* minorWatchingHand(player) {
 }
 /** The Standing Silhouette: a tall shape at the edge of the light, gone when you look properly or come closer */
 function* minorSilhouette(player) {
-  const s = findSpot(player, 'floor', 24, 40, { room: 4, sight: true, eyeHeight: 3.0 });
+  const s = findSpot(player, 'floor', 16, 30, { room: 4, sight: true, eyeHeight: 3.0 });
   if (!s) return;
   const shade = spawnShade(s, FORM.silhouette, pick(['full_stand', 'shadow_hide', 'head_tilt']), player.getHeadLocation());
   if (!shade) return;
@@ -752,7 +743,29 @@ function* minorFinalReflection(player, at) {
   removeQuietly(shade);
 }
 
+/** A Lure: from the water, a sound that should not be down here (something has learned what brings you closer) */
+function* minorLure(player) {
+  if (!config.lures) return;
+  const s = findSpot(player, 'water', 12, 24, { eyeHeight: 0.4 }) ?? findSpot(player, 'floor', 12, 24, { room: 2 });
+  if (!s) return;
+  const lure = pick([['game.player.hurt', 0.7], ['mob.villager.idle', 0.7], ['mob.cat.meow', 0.6], ['random.splash', 0.9]]);
+  sound(player.dimension, lure[0], s, 0.9, lure[1]);
+  yield randInt(30, 60);
+  if (chance(0.5)) sound(player.dimension, lure[0], s, 0.7, lure[1] * 0.9);
+  yield 20;
+  particle(player.dimension, 'brine:ripple', s);
+}
+/** Knocking: three knocks on the stone, from somewhere in the dark */
+function* minorKnocking(player) {
+  const s = findSpot(player, 'floor', 8, 16, { room: 2, allowView: true });
+  if (!s) return;
+  sound(player.dimension, 'brine.fx.knock', add(s, { x: 0, y: 1, z: 0 }), 1, rand(0.8, 1));
+  yield 60;
+  if (chance(0.35)) sound(player.dimension, 'brine.fx.knock', add(s, { x: 0, y: 1, z: 0 }), 0.8, 0.7);
+}
 const MINORS = {
+  lure: (p) => minorLure(p),
+  knocking: (p) => minorKnocking(p),
   third_splash: (p) => minorThirdSplash(p),
   silent_water: (p) => minorSilentWater(p),
   reverse_wake: (p) => minorReverseWake(p),
@@ -793,8 +806,8 @@ function chooseMinor(player, w) {
   const water = nearWater(player.dimension, player.location, 6);
   /** @type {[string, number][]} */
   const options = [];
-  if (water) options.push(['false_reflection', 3], ['watching_hand', 2], ['reverse_wake', 2], ['breath_on_the_water', 1], ['silent_water', 1]);
-  else options.push(['dryland_imitation', 3], ['standing_silhouette', 2], ['silent_water', 1]);
+  if (water) options.push(['false_reflection', 3], ['watching_hand', 3], ['reverse_wake', 2], ['breath_on_the_water', 1], ['silent_water', 1], ['lure', 2]);
+  else options.push(['dryland_imitation', 3], ['standing_silhouette', 3], ['silent_water', 1], ['knocking', 2], ['lure', 1]);
   if (w.memories.length) options.push(['empty_pool', 1]);
   return weighted(options);
 }
@@ -888,7 +901,7 @@ function tickPlayer(player) {
     w.tension = Math.max(0, w.tension - 8);
   }
   // first sighting at 8-15 minutes in the caves; then a long cooldown between major encounters
-  if (!scene && t >= w.nextMajor && w.biomeSeconds > w.firstQuiet + 120) {
+  if (!scene && t >= w.nextMajor && w.biomeSeconds > w.firstQuiet + 30 && !freeCreatureNear(player)) {
     const name = chooseMajor(player, w);
     startScene(name, player, MAJORS[name](player));
     w.majors++;
@@ -936,9 +949,14 @@ function tickDirector() {
 // ------------------------------------------------------------------ world events
 world.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
   if (entity.typeId !== CREATURE || cause !== EntityInitializationCause.Spawned) return;
-  // one real Brinesleeper per world: a natural spawn while another exists is undone
   system.run(() => {
-    if (!entity.isValid || entity.hasTag(STAGED)) return;
+    if (!entity.isValid) return;
+    entity.triggerEvent(`brine:threat_${config.threat}`);
+    if (entity.hasTag(STAGED)) return;
+    // natural spawns never happen within 24 blocks of a player, so a creature this close was summoned or hatched from an egg
+    const summoned = world.getAllPlayers().some((p) => p.dimension.id === entity.dimension.id && flat(p.location, entity.location) < 20);
+    if (summoned) return;
+    // one real Brinesleeper per world: a natural spawn while another exists is undone
     if (creatures().filter((c) => c.id !== entity.id).length > 0) removeQuietly(entity);
   });
 });
@@ -1005,24 +1023,7 @@ function wrongEcho(player) {
 world.afterEvents.playerBreakBlock.subscribe(({ player }) => wrongEcho(player));
 world.afterEvents.playerPlaceBlock.subscribe(({ player }) => wrongEcho(player));
 
-// ------------------------------------------------------------------ settings, test and status commands
-function openSettings(player) {
-  const form = new ModalFormData()
-    .title('The Brinesleeper')
-    .toggle('Enabled', { defaultValue: config.enabled })
-    .dropdown('Preset', PRESET_KEYS.map((k) => PRESETS[k].label), { defaultValueIndex: Math.max(0, PRESET_KEYS.indexOf(config.preset)) })
-    .toggle('Drowning grasp', { defaultValue: config.grasp })
-    .slider('Encounter frequency (%)', 50, 200, { defaultValue: config.frequency, valueStep: 10 })
-    .toggle('Debug messages (operators)', { defaultValue: config.debug });
-  form.show(player).then((r) => {
-    if (r.canceled || !r.formValues) return;
-    const [enabled, presetIndex, graspOn, frequency, dbg] = r.formValues;
-    config = { enabled: !!enabled, preset: PRESET_KEYS[Number(presetIndex)] ?? 'balanced', grasp: !!graspOn, frequency: Number(frequency), debug: !!dbg };
-    saveConfig();
-    player.sendMessage(`§7Brinesleeper: ${config.enabled ? PRESETS[config.preset].label : 'disabled'}.`);
-  }).catch(() => { /* closed */ });
-}
-
+// ------------------------------------------------------------------ test hooks used by the settings menu and commands (menu.js)
 function forceEvent(player, name) {
   if (MINORS[name]) { startMinor(player, name, MINORS[name](player)); return true; }
   if (MAJORS[name]) {
@@ -1037,42 +1038,13 @@ function forceEvent(player, name) {
 }
 const EVENT_NAMES = [...Object.keys(MINORS), ...Object.keys(MAJORS), 'stolen_wake', 'last_safe_step', 'final_reflection'];
 
-system.beforeEvents.startup.subscribe(({ customCommandRegistry: reg }) => {
-  reg.registerEnum('brine:encounter_name', EVENT_NAMES);
-  reg.registerCommand({ name: 'brine:settings', description: 'Brinesleeper settings: enable, preset, grasp, frequency.',
-    permissionLevel: CommandPermissionLevel.GameDirectors }, (origin) => {
-    const p = origin.sourceEntity;
-    if (!p || p.typeId !== 'minecraft:player') return { status: CustomCommandStatus.Failure, message: 'Run this as a player.' };
-    system.run(() => openSettings(/** @type {import('@minecraft/server').Player} */ (p)));
-    return { status: CustomCommandStatus.Success };
-  });
-  reg.registerCommand({ name: 'brine:encounter', description: 'Testing: stage one Brinesleeper encounter for yourself now.',
-    permissionLevel: CommandPermissionLevel.GameDirectors, cheatsRequired: true,
-    mandatoryParameters: [{ name: 'brine:encounter_name', type: CustomCommandParamType.Enum }] }, (origin, name) => {
-    const p = origin.sourceEntity;
-    if (!p || p.typeId !== 'minecraft:player') return { status: CustomCommandStatus.Failure, message: 'Run this as a player.' };
-    system.run(() => forceEvent(/** @type {import('@minecraft/server').Player} */ (p), String(name)));
-    return { status: CustomCommandStatus.Success, message: `Staging ${name}.` };
-  });
-  reg.registerCommand({ name: 'brine:status', description: 'Testing: show the hidden director state for yourself.',
-    permissionLevel: CommandPermissionLevel.GameDirectors, cheatsRequired: true }, (origin) => {
-    const p = origin.sourceEntity;
-    if (!p || p.typeId !== 'minecraft:player') return { status: CustomCommandStatus.Failure };
-    const w = watches.get(p.id);
-    if (!w) return { status: CustomCommandStatus.Success, message: 'No record yet.' };
-    return { status: CustomCommandStatus.Success, message:
-      `in caves ${w.inBiome}, ${Math.round(w.biomeSeconds)} s there (quiet until ${w.firstQuiet} s), tension ${Math.round(w.tension)}, ` +
-      `next minor ${Math.max(0, Math.round((w.nextMinor - now()) / TPS))} s, next major ${Math.max(0, Math.round((w.nextMajor - now()) / TPS))} s, ` +
-      `memories ${w.memories.length}, scene ${scene ? scene.name : 'none'}, preset ${PRESETS[config.preset].label}` };
-  });
-});
-
-system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceEntity }) => {
-  if (!sourceEntity || sourceEntity.typeId !== 'minecraft:player') return;
-  const p = /** @type {import('@minecraft/server').Player} */ (sourceEntity);
-  if (id === 'brine:settings') openSettings(p);
-  else if (id === 'brine:encounter') forceEvent(p, message.trim());
-});
+function statusText(player) {
+  const w = watches.get(player.id);
+  if (!w) return 'No record yet.';
+  return `in caves ${w.inBiome}, ${Math.round(w.biomeSeconds)} s there (quiet until ${w.firstQuiet} s), tension ${Math.round(w.tension)}, ` +
+    `next minor ${Math.max(0, Math.round((w.nextMinor - now()) / TPS))} s, next major ${Math.max(0, Math.round((w.nextMajor - now()) / TPS))} s, ` +
+    `memories ${w.memories.length}, scene ${scene ? scene.name : 'none'}, preset ${PRESETS[config.preset].label}`;
+}
 
 // ------------------------------------------------------------------ start
 world.afterEvents.worldLoad.subscribe(() => {
@@ -1085,3 +1057,11 @@ world.afterEvents.worldLoad.subscribe(() => {
   system.runInterval(tickDirector, 10);
   system.runInterval(stepGenerators, 1);
 });
+
+export {
+  CREATURE, SHADE, BIOME, STAGED, TPS, ACT, FORM, WATER_DEPTH, EVENT_NAMES,
+  rand, randInt, chance, pick, now, sub, add, mul, len, flat, norm, dot, floorV,
+  debug, block, isWater, isOpen, isSolid, inBiome, clearLine, looksAt, inSight, sound, particle, silenced,
+  waterSurface, floorAt, nearWater, findSpot, creatures, setMode, setAct, removeQuietly, spawnShade, overworld,
+  watchOf, huntable, health, sting, forceEvent, statusText, wetTrail,
+};
