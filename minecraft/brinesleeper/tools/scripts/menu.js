@@ -1,9 +1,12 @@
-// The settings wheel (brine:config_wheel) and the commands: /brine:settings, /brine:wheel, /brine:encounter, /brine:status.
+// The settings wheel (brine:config_wheel) and the commands: /brine:settings, /brine:wheel, /brine:hall, /brine:notebook,
+// /brine:memory, /brine:encounter, /brine:status.
 import { world, system, ItemStack, CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus } from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { config, setConfig, PRESETS, PRESET_KEYS, THREATS } from './config.js';
 import { CREATURE, EVENT_NAMES, creatures, forceEvent, statusText } from './main.js';
 import { buildHall } from './halls.js';
+import { giveNotebook } from './notebook.js';
+import { memoryText, setMemory } from './brain.js';
 
 const WHEEL = 'brine:config_wheel';
 const isOp = (p) => { try { return p.commandPermissionLevel >= CommandPermissionLevel.GameDirectors; } catch (e) { return false; } };
@@ -49,10 +52,11 @@ function creature(player) {
     .dropdown('Threat', keys.map((k) => `${THREATS[k].label}`), { defaultValueIndex: Math.max(0, keys.indexOf(config.threat)) })
     .toggle('Drowning grasp (it drags swimmers under)', { defaultValue: config.grasp })
     .toggle('It takes your lights (torches fall, candles go out)', { defaultValue: config.lights })
+    .toggle('It learns you, and follows you out of the caves (and home)', { defaultValue: config.follow })
     .show(player).then((r) => {
       if (r.canceled || !r.formValues) return;
-      const [th, grasp, lights] = r.formValues;
-      setConfig({ threat: keys[Number(th)] ?? 2, grasp: !!grasp, lights: !!lights });
+      const [th, grasp, lights, follow] = r.formValues;
+      setConfig({ threat: keys[Number(th)] ?? 2, grasp: !!grasp, lights: !!lights, follow: !!follow });
       for (const c of creatures()) { try { c.triggerEvent(`brine:threat_${config.threat}`); } catch (e) { /* ok */ } }
       openMenu(player);
     }).catch(() => { /* closed */ });
@@ -88,7 +92,7 @@ function caves(player) {
 }
 
 function test(player) {
-  const names = ['great_hall_here', 'summon_here', ...EVENT_NAMES];
+  const names = ['great_hall_here', 'summon_here', 'notebook', 'what_it_knows', 'make_it_bold', 'forget_me', ...EVENT_NAMES];
   new ModalFormData().title('Test an encounter')
     .dropdown('Stage now, for you', names.map((n) => n.replace(/_/g, ' ')), { defaultValueIndex: 0 })
     .show(player).then((r) => {
@@ -100,7 +104,11 @@ function test(player) {
         const v = player.getViewDirection();
         try { player.dimension.spawnEntity(CREATURE, { x: player.location.x + v.x * 12, y: player.location.y, z: player.location.z + v.z * 12 }); }
         catch (e) { player.sendMessage('§7No room there.'); }
-      } else if (!forceEvent(player, name)) player.sendMessage('§7Nothing to stage that here.');
+      } else if (name === 'notebook') giveNotebook(player, true);
+      else if (name === 'what_it_knows') player.sendMessage(memoryText(player));
+      else if (name === 'make_it_bold') { setMemory(player, 0.75); player.sendMessage('§8It is not afraid of you anymore.'); }
+      else if (name === 'forget_me') { setMemory(player, undefined); player.sendMessage('§8It has forgotten you. For now.'); }
+      else if (!forceEvent(player, name)) player.sendMessage('§7Nothing to stage that here.');
     }).catch(() => { /* closed */ });
 }
 
@@ -151,6 +159,19 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry: reg }) => {
     if (!p) return { status: CustomCommandStatus.Failure, message: 'Run this as a player.' };
     system.run(() => forceEvent(p, String(name)));
     return { status: CustomCommandStatus.Success, message: `Staging ${name}.` };
+  });
+  reg.registerCommand({ name: 'brine:notebook', description: 'Get a fresh copy of your Waterlogged Notebook.',
+    permissionLevel: CommandPermissionLevel.Any }, (origin) => {
+    const p = asPlayer(origin);
+    if (!p) return { status: CustomCommandStatus.Failure, message: 'Run this as a player.' };
+    system.run(() => giveNotebook(p, true));
+    return { status: CustomCommandStatus.Success };
+  });
+  reg.registerCommand({ name: 'brine:memory', description: 'Testing: show what the Brinesleeper has learned about you.',
+    permissionLevel: CommandPermissionLevel.GameDirectors }, (origin) => {
+    const p = asPlayer(origin);
+    if (!p) return { status: CustomCommandStatus.Failure };
+    return { status: CustomCommandStatus.Success, message: memoryText(p) };
   });
   reg.registerCommand({ name: 'brine:status', description: 'Testing: show the hidden director state for yourself.',
     permissionLevel: CommandPermissionLevel.GameDirectors, cheatsRequired: true }, (origin) => {

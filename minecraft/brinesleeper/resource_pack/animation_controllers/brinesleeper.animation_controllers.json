@@ -283,6 +283,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -361,6 +373,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -439,6 +463,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -517,6 +553,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -595,6 +643,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -673,6 +733,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -751,6 +823,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -829,6 +913,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -907,6 +1003,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -985,6 +1093,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -1063,6 +1183,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -1141,6 +1273,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -1219,6 +1363,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -1226,7 +1382,7 @@
           "animations": [
             "tunnel_crawl"
           ],
-          "blend_transition": 0.8,
+          "blend_transition": 0.5,
           "blend_via_shortest_path": true,
           "transitions": [
             {
@@ -1297,6 +1453,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -1375,6 +1543,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -1453,6 +1633,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -1531,6 +1723,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -1609,6 +1813,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -1687,6 +1903,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -1765,6 +1993,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -1843,6 +2083,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -1921,6 +2173,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -1999,6 +2263,18 @@
             },
             {
               "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
             }
           ]
         },
@@ -2077,6 +2353,378 @@
             },
             {
               "act_swim": "query.property('brine:act') == 22"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
+            }
+          ]
+        },
+        "act_run": {
+          "animations": [
+            "run"
+          ],
+          "blend_transition": 0.3,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            },
+            {
+              "act_swim": "query.property('brine:act') == 22"
+            },
+            {
+              "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
+            }
+          ]
+        },
+        "act_stalk": {
+          "animations": [
+            "stalk"
+          ],
+          "blend_transition": 0.5,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            },
+            {
+              "act_swim": "query.property('brine:act') == 22"
+            },
+            {
+              "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
+            }
+          ]
+        },
+        "act_walk": {
+          "animations": [
+            "walk"
+          ],
+          "blend_transition": 0.5,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            },
+            {
+              "act_swim": "query.property('brine:act') == 22"
+            },
+            {
+              "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_ceiling_lurk": "query.property('brine:act') == 27"
+            }
+          ]
+        },
+        "act_ceiling_lurk": {
+          "animations": [
+            "ceiling_lurk"
+          ],
+          "blend_transition": 0.8,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            {
+              "none": "query.property('brine:act') == 0"
+            },
+            {
+              "act_watch": "query.property('brine:act') == 1"
+            },
+            {
+              "act_submerged_watch": "query.property('brine:act') == 2"
+            },
+            {
+              "act_shoreline_stalk": "query.property('brine:act') == 3"
+            },
+            {
+              "act_corner_watch": "query.property('brine:act') == 4"
+            },
+            {
+              "act_distant_observer": "query.property('brine:act') == 5"
+            },
+            {
+              "act_full_stand": "query.property('brine:act') == 6"
+            },
+            {
+              "act_emerge": "query.property('brine:act') == 7"
+            },
+            {
+              "act_submerge": "query.property('brine:act') == 8"
+            },
+            {
+              "act_ledge_watch": "query.property('brine:act') == 9"
+            },
+            {
+              "act_behind_cover": "query.property('brine:act') == 10"
+            },
+            {
+              "act_head_tilt": "query.property('brine:act') == 11"
+            },
+            {
+              "act_shadow_hide": "query.property('brine:act') == 12"
+            },
+            {
+              "act_tunnel_crawl": "query.property('brine:act') == 13"
+            },
+            {
+              "act_retreat": "query.property('brine:act') == 14"
+            },
+            {
+              "act_water_rise": "query.property('brine:act') == 15"
+            },
+            {
+              "act_hunting_stance": "query.property('brine:act') == 16"
+            },
+            {
+              "act_slow_approach": "query.property('brine:act') == 17"
+            },
+            {
+              "act_patient_strike": "query.property('brine:act') == 18"
+            },
+            {
+              "act_veil_stalk": "query.property('brine:act') == 19"
+            },
+            {
+              "act_reflection_lurk": "query.property('brine:act') == 20"
+            },
+            {
+              "act_idle_water": "query.property('brine:act') == 21"
+            },
+            {
+              "act_swim": "query.property('brine:act') == 22"
+            },
+            {
+              "act_emerge_roar": "query.property('brine:act') == 23"
+            },
+            {
+              "act_run": "query.property('brine:act') == 24"
+            },
+            {
+              "act_stalk": "query.property('brine:act') == 25"
+            },
+            {
+              "act_walk": "query.property('brine:act') == 26"
             }
           ]
         }

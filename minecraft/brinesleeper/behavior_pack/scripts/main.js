@@ -4,6 +4,7 @@
 // Every effect is built from documented calls: entity events/properties for poses, particles, sounds, raycasts.
 import { world, system, CommandPermissionLevel, EntityDamageCause, EntityInitializationCause, GameMode } from '@minecraft/server';
 import { config, PRESETS, preset, threat, freq, loadConfig } from './config.js';
+import { inStillwater, press } from './areas.js';
 
 const CREATURE = 'brine:brinesleeper';
 const SHADE = 'brine:apparition';
@@ -16,7 +17,7 @@ const ACT = {
   none: 0, watch: 1, submerged_watch: 2, shoreline_stalk: 3, corner_watch: 4, distant_observer: 5, full_stand: 6, emerge: 7,
   submerge: 8, ledge_watch: 9, behind_cover: 10, head_tilt: 11, shadow_hide: 12, tunnel_crawl: 13, retreat: 14, water_rise: 15,
   hunting_stance: 16, slow_approach: 17, patient_strike: 18, veil_stalk: 19, reflection_lurk: 20, idle_water: 21, swim: 22,
-  emerge_roar: 23,
+  emerge_roar: 23, run: 24, stalk: 25, walk: 26, ceiling_lurk: 27,
 };
 // how far below the waterline the model's root sits for each water pose (from the pose calibration, 16 px = 1 block)
 const S = 1.15;                    // the model's scale (horror.py SCALE)
@@ -141,7 +142,7 @@ function findSpot(player, kind, minD, maxD, opts = {}) {
       s = floorAt(dim, x, y, z, opts.room ?? 4);
       if (s && kind === 'shore' && !nearWater(dim, add(s, { x: 0, y: 0, z: 0 }), 1)) s = undefined;
     }
-    if (!s || !inBiome(dim, s)) continue;
+    if (!s || (!opts.anywhere && !inStillwater(dim, s))) continue;
     const head = add(s, { x: 0, y: opts.eyeHeight ?? 1.5, z: 0 });
     if (!opts.allowView && looksAt(player, head, 0.8)) continue;
     if (opts.sight && !inSight(player, head)) continue;
@@ -535,8 +536,9 @@ function* sceneHunt(player, second = false) {
   for (let i = 0; i < 20; i++) { hold(c, waterPose(s, 'water_rise')); yield 2; }
   sound(c.dimension, 'mob.brinesleeper.roar', s, 1.2, 0.95);
   sting(player, 0.9);
-  if (config.music) { try { player.playMusic('music.brine.chase', { loop: true, fade: 0.5, volume: 0.9 }); } catch (e) { /* ok */ } }
-  setAct(c, 'none');
+  press(player.id, 'chase', now() + 60);
+  try { player.playSound('brine.spotted', { volume: 1 }); } catch (e) { /* ok */ }
+  setAct(c, 'run');
   setMode(c, 'hunt');
   const dur = (second ? randInt(5, 7) : randInt(10, 20)) * TPS;
   const end = now() + dur;
@@ -544,6 +546,9 @@ function* sceneHunt(player, second = false) {
   while (now() < end && c.isValid && player.isValid) {
     if (!huntable(player) || player.dimension.id !== c.dimension.id) break;
     const d = flat(player.location, c.location);
+    press(player.id, 'chase', now() + 40);
+    const v = c.getVelocity();
+    setAct(c, c.isInWater ? 'swim' : Math.hypot(v.x, v.z) > 0.04 ? 'run' : 'hunting_stance');
     if (d > 40) break;                                        // too far: an impossible pursuit is abandoned
     stuck = d < bestDist - 0.5 ? 0 : stuck + 4;
     bestDist = Math.min(bestDist, d);
@@ -569,8 +574,9 @@ function* sceneHunt(player, second = false) {
     }
     yield 4;
   }
-  if (config.music) { try { player.stopMusic(); } catch (e) { /* ok */ } }
+  press(player.id, 'near', now() + 120);                      // the chase is over; it is still near
   if (!c.isValid) return;
+  setAct(c, 'retreat');
   // withdrawal; sometimes a false retreat: it leaves, the water goes still, and it comes back once from behind
   setMode(c, 'withdraw');
   const falseRetreat = !second && w.tension > 60 && chance(0.35) && preset().hunt > 0;
@@ -829,7 +835,7 @@ function chooseMajor(player, w) {
 function tickPlayer(player) {
   const w = watchOf(player);
   const dim = player.dimension;
-  const here = inBiome(dim, player.location);
+  const here = inStillwater(dim, player.location);
   const t = now();
   // leaving the biome: maybe the final reflection, once per visit
   if (w.inBiome && !here) {
@@ -955,11 +961,17 @@ world.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
     if (!entity.isValid) return;
     entity.triggerEvent(`brine:threat_${config.threat}`);
     if (entity.hasTag(STAGED)) return;
-    // natural spawns never happen within 24 blocks of a player, so a creature this close was summoned or hatched from an egg
+    // there is only ever one. A creature summoned or hatched next to a player takes the place of the old one;
+    // a natural spawn while one already exists is undone.
+    const others = creatures().filter((c) => c.id !== entity.id);
+    if (!others.length) return;
     const summoned = world.getAllPlayers().some((p) => p.dimension.id === entity.dimension.id && flat(p.location, entity.location) < 20);
-    if (summoned) return;
-    // one real Brinesleeper per world: a natural spawn while another exists is undone
-    if (creatures().filter((c) => c.id !== entity.id).length > 0) removeQuietly(entity);
+    if (summoned) {
+      for (const c of others) {
+        if (scene && scene.creature && scene.creature.id === c.id) scene = null;
+        removeQuietly(c);
+      }
+    } else removeQuietly(entity);
   });
 });
 

@@ -80,8 +80,8 @@
             "targets": [
               "minecraft:dripstone_caves"
             ],
-            "amount": 0.9,
-            "noise_frequency_scale": 0.2
+            "amount": 1.0,
+            "noise_frequency_scale": 0.15
           }
         ]
       },

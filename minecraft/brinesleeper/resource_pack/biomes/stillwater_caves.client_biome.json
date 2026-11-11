@@ -43,7 +43,7 @@
         "ash": 0.035
       },
       "minecraft:biome_music": {
-        "music_definition": "brine_stillwater",
+        "music_definition": "",
         "volume_multiplier": 1.0
       }
     }

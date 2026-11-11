@@ -42,7 +42,7 @@ FEATURE_FORMAT = '1.21.60'
 SNAP_EMBED_FORMAT = '1.26.20'     # snap_to_surface "embed_in_surface" (must stay below 1.26.50, where the range key is renamed)
 STRUCTURE_FORMAT = '1.21.110'
 BLOCK_FORMAT = '1.26.30'
-AMOUNT, FREQUENCY = 0.9, 0.2       # share of the dripstone caves taken over, and how coarse the patches are
+AMOUNT, FREQUENCY = 1.0, 0.15      # all of the dripstone caves, in big connected regions
 LEVELS = (-24, 12)                # world y of the two waterlines the flooded halls are carved at
 HERE = os.path.dirname(os.path.abspath(__file__))
 AUDIO = os.path.normpath(os.path.join(HERE, '..', '..', '..', 'assets', 'audio'))
@@ -158,8 +158,9 @@ def biome_files(RP, BP):
                     'underwater_loop': 'ambient.underwater.loop',
                 },
                 'minecraft:precipitation': {'ash': 0.035},
-                # its own music: four slow, dark tracks with long silences between them (music_definitions.json)
-                'minecraft:biome_music': {'music_definition': 'brine_stillwater', 'volume_multiplier': 1.0},
+                # no vanilla music down here: the add-on's script plays the caves' own tracks (and the 'it is near' and chase
+                # themes) itself, so they also play in the great halls and can change the moment it comes for you
+                'minecraft:biome_music': {'music_definition': '', 'volume_multiplier': 1.0},
             },
         },
     })

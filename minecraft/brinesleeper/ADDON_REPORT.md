@@ -1,4 +1,4 @@
-# The Brinesleeper 4.0: "The Water Remembers"
+# The Brinesleeper 5.0: "The Water Remembers"
 
 The full horror add-on, built on the existing Brinesleeper model and its home biome, the
 [Stillwater Caves](README.md#stillwater-caves-biome). A hidden director script stages every
@@ -9,6 +9,117 @@ almost never chases, and leaves signs that the water is not what it seems.
 [Testing report](#testing-report)). It has **not** been run inside Minecraft from this
 environment. The [runtime checklist](#runtime-checklist-not-yet-verified-in-game) lists what
 still needs an in-game pass.
+
+---
+
+## What's new in 5.0: "It Follows"
+
+**There is only ever one.**
+* At most one Brinesleeper exists in the world. A natural spawn while one is out there is
+  undone.
+* A summoned one (or one from a spawn egg) next to a player takes the old one's place.
+* If an old one loads in from a far-off chunk, the one farther from the players is removed.
+
+**It no longer wedges itself under ledges.** Under a low ceiling, or when you go somewhere
+low, it drops onto all fours:
+* Its hitbox shrinks to 1.6 blocks high, and it plays the tunnel crawl.
+* It stands back up once there are 5 blocks of headroom.
+* If it is stuck anyway, it gets low and pushes. After 9 s it is simply somewhere else, the
+  next time nobody is looking.
+
+**Nothing else lives down there.** Every mob, not just hostile ones, is removed the moment it
+spawns in the Stillwater Caves or a great hall. This includes bats, glow squid, fish and
+axolotls. Hostile mobs that wander in are cleared every 4 s. Spawn eggs still work.
+
+**Its own soundtrack.** In the biome and the halls, vanilla music is switched off. The script
+plays, for each player:
+* **calm:** one of five slow, eerie tracks, then a long silence, then another.
+* **near:** a low, pulsing track when it is close and has your attention: watching, stalking,
+  crossing the water, rising or standing off.
+* **chase:** a hard loop when it comes for you.
+* **spotted:** a sharp sting the moment it has you in its eyes.
+* The heartbeat speeds up as it gets closer.
+
+**It learns you.** It keeps a saved memory of each player:
+* **Looking behind you:** it waits longer before moving again, and comes out of the water
+  instead of walking up.
+* **Carrying light:** it puts out more of your torches, lanterns, candles and campfires.
+* **Running:** it runs faster, and chases for longer.
+* **Swimming:** it comes for you in the water more often.
+* **Fighting:** it ambushes more often and strikes again sooner.
+* **Boldness:** grows with every meeting, every time it lets you see it, every minute you
+  spend in its caves, and most of all if you kill one.
+  * Bolder, it lets you look at it longer, watches from closer, and stops running from you.
+    It walks upright toward you (slow approach) and chases more often.
+  * At **0.45**, it **leaves its home and follows you**. If you have been far from it for
+    90 s, and you are underground, out at night or near water, it is suddenly in the nearest
+    deep water (a dripstone cave lake, a river, the pond by your door) or somewhere dark,
+    30–50 blocks away.
+  * At **0.65**, it **comes to your home** at night, once a night, and the torches by your
+    door go out first.
+* Roughly: on Balanced, it follows you after 15–25 minutes in its caves, and comes home a while
+  after that. Killing one makes the next one far bolder.
+
+**The Cave Dweller cycle, in the water and out of it.** Every phase has its own body language,
+and every animation from the preview is now used:
+
+| Phase | What it does | Animations |
+|---|---|---|
+| watch | Far off, it lets itself be seen. Look long enough, or come close, and it is gone. | submerged watch, idle in water, ceiling lurk, ledge watch, corner watch, behind cover, veil stalk (in the vines), reflection lurk (at the water's edge), shadow hide, distant observer, head tilt, patient strike, full stand |
+| vanish | Under the water, or in smoke with wet tracks leading away | submerge |
+| stalk | It only creeps closer while you are not looking. Turn around and it stops dead, then waits. Stare it down and it stares back. | crouch stalk, shoreline stalk (along the water), tunnel crawl, slow approach (once it is bold) |
+| rise | It rises out of the water in front of you, slowly, and looks at you | water rise |
+| climb | It hauls itself out onto your bank | emerge |
+| stand-off | It stands and stares, and sometimes just starts walking at you | hunting stance, head tilt, patient strike, full stand, slow approach |
+| chase | It runs, leaps and lunges | run, lunge |
+| ambush | Stand still at the edge of deep water and it bursts out at you | emerge roar |
+| the deep | In the water, it swims at you, grabs you and drags you down | swim, grasp |
+| retreat | It turns away, runs for the water and goes under | retreat, run, submerge |
+| roam | No one near: it walks the shores and swims the lakes | walk, watch, swim, idle in water |
+
+**Any water will do.** Water searches no longer have to be inside the biome. It uses the lakes
+of ordinary dripstone caves (where great halls are now placed too), rivers and ponds, to hide,
+watch, ambush and follow.
+
+**The biome, near you and bigger.**
+* **A hall near spawn:** when a world first runs, a starter hall is placed deep under the land,
+  140–220 blocks from the world spawn.
+  * When someone walks within 72 blocks of it, an **old well** is dug down to it: a ring of
+    stone with two red candles, and a ladder shaft.
+  * Inside a hall that lies outside the biome, the Stillwater fog is pushed onto you.
+* **Halls in dripstone caves too:** if no hall is within 100 blocks (was 130), one is placed in
+  front of you.
+* **The biome:** it now replaces all of the Dripstone Caves (was 90%), in bigger connected
+  regions (noise scale 0.15, was 0.2).
+
+**The Waterlogged Notebook.** Every player is handed one when they first join. It holds a few
+short pages from someone who went down to the still water. The last page gives the
+coordinates, distance and direction of the nearest still water: the natural caves or the old
+well, whichever is closer. As it learns you, new pages appear in the notebook: "It knows. You
+run. It was never slower than you. It was letting you."
+* `/brine:notebook` gives any player a fresh copy, with the last page rewritten from where they
+  stand.
+
+**New in the settings wheel:**
+* The creature page: *It learns you, and follows you out of the caves (and home)*.
+* The test page:
+  * *notebook*
+  * *what it knows* (also `/brine:memory`)
+  * *make it bold* (skip straight to following and home visits)
+  * *forget me*
+
+**How this was tested:** the static checks below all pass. In addition, the whole script set was
+run headless in node against a mock of the Script API: a flooded test cave, a scripted player
+who wanders, stares, swims, fights and flees, and crude stand-ins for the AI modes.
+* Seven scenarios were run, up to 16,000 ticks each (about 13 minutes of game time), on the
+  Balanced, Relentless and Nightmare presets.
+* Results:
+  * no script errors, and no state loops
+  * every phase reached, and every animation used in at least one run
+  * one creature at all times, kills followed by a return
+  * home visits and following firing for a player it knows
+* This exercised the logic, not the game: pathfinding, real cave shapes and the feel of the
+  timings still need an in-game pass.
 
 ---
 
@@ -188,7 +299,7 @@ for you at once, and `/brine:status` shows the hidden director state. Settings a
 
 | | |
 |---|---|
-| Pack version | 4.0.0. It imports over every earlier version. |
+| Pack version | 5.0.0. It imports over every earlier version. |
 | Minimum game version | Minecraft Bedrock **1.26.40** (manifest `min_engine_version`). |
 | Script modules | `@minecraft/server` **2.9.0** and `@minecraft/server-ui` **2.1.0**, the stable versions that ship with 1.26.40. No beta APIs and no experimental toggles. |
 | Custom biome | Non-experimental `minecraft:replace_biomes`, available since 1.26.30. |
@@ -281,7 +392,8 @@ Two things were added:
 * "Hold on last frame" on the one-shot poses: emerge, submerge, water_rise, retreat and
   emerge_roar. A scripted pose then never snaps back to the bind pose.
 
-Scripted poses use the client-synced property `brine:act` (21 poses). The act animation
+Scripted poses use the client-synced property `brine:act` (27 poses since 5.0, including run, crouch stalk, walk and
+ceiling lurk, so the creature's own mind drives its gait too). The act animation
 controller can blend from any pose to any other, so every change is animated:
 * 0.4 s for emerge.
 * 0.6 s for submerge and retreat.
@@ -303,7 +415,9 @@ controller can blend from any pose to any other, so every change is animated:
 | full_stand | Two-Legged Revelation, silhouettes, reflections, the hand |
 | shadow_hide | Standing Silhouette |
 | tunnel_crawl | Unfinished Crawl |
-| reflection_lurk, veil_stalk, slow_approach, ceiling_lurk | Available poses. ceiling_lurk is not staged yet because it needs ceiling placement. |
+| reflection_lurk, veil_stalk, ceiling_lurk | 5.0: watch spots at the water's edge, beside weeping vines, and hanging from 5–9 block ceilings (`brain.js` `watchPlace`) |
+| slow_approach | 5.0: its stalk and its walk toward you once it is bold |
+| run, crouch_stalk, walk, tunnel_crawl, shoreline_stalk (5.0) | Its own gait, chosen every quarter second from its speed, headroom and the water nearby (`brain.js` `gait`) |
 | look_at_target | Head tracking while it is not held |
 | invert *(new)* | False Reflection, Final Reflection, Watching Hand |
 
@@ -422,6 +536,13 @@ mechanic.
 | Drowning Grasp | The downward pull is strong enough to feel and weak enough to escape (knockback strength may need tuning) |
 | Multiplayer | Scenes end cleanly on death, leaving and dimension change. Only one creature exists. |
 | Performance | No noticeable tick cost with several players in the caves |
+| Crawling (5.0) | Under a 2–3 block ceiling it drops to all fours and follows you through; it stands again in the open |
+| One creature (5.0) | Summon two: the older one goes. `/summon` far away while one exists: the new one is undone. |
+| No other mobs (5.0) | No bats, squid or fish in the biome or halls; spawn eggs still work |
+| Soundtrack (5.0) | Calm tracks in the biome only; near track while it watches or stalks; chase loop; spotted sting; no vanilla music overlapping |
+| Ceiling lurk (5.0) | Hangs from a 5–9 block ceiling without clipping |
+| Following (5.0) | With *make it bold*, go 110+ blocks away into a cave or out at night: it turns up in nearby water within about 2 minutes |
+| Notebook (5.0) | Given on first join; the last page points at the nearest still water; new pages appear as it learns you |
 
 ## File structure
 ```

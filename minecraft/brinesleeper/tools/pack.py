@@ -16,7 +16,7 @@ RP_H, RP_M = '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e01', '7b0d8f0e-3c1a-4c55-9a52-2b
 BP_H, BP_M = '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e03', '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e04'
 BP_S = '7b0d8f0e-3c1a-4c55-9a52-2b8f6f1c9e05'
 ENGINE = [1, 26, 40]          # Bedrock 1.26.40: the stable @minecraft/server 2.9.0 and @minecraft/server-ui 2.1.0
-VER = [4, 0, 0]   # bump on every release so Minecraft imports the update over an older copy
+VER = [5, 0, 0]   # bump on every release so Minecraft imports the update over an older copy
 
 
 def write(path, obj):

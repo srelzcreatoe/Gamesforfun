@@ -256,6 +256,18 @@
       },
       "brine:vanish": {
         "minecraft:instant_despawn": {}
+      },
+      "brine:standing": {
+        "minecraft:collision_box": {
+          "width": 1.15,
+          "height": 3.91
+        }
+      },
+      "brine:crawling": {
+        "minecraft:collision_box": {
+          "width": 1.15,
+          "height": 1.6
+        }
       }
     },
     "components": {
@@ -357,7 +369,32 @@
         "add": {
           "component_groups": [
             "brine:ai_roam_water",
-            "brine:threat_2"
+            "brine:threat_2",
+            "brine:standing"
+          ]
+        }
+      },
+      "brine:crawl_on": {
+        "remove": {
+          "component_groups": [
+            "brine:standing"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "brine:crawling"
+          ]
+        }
+      },
+      "brine:crawl_off": {
+        "remove": {
+          "component_groups": [
+            "brine:crawling"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "brine:standing"
           ]
         }
       },

@@ -27,6 +27,7 @@ export const DEFAULTS = {
   enabled: true, preset: 'balanced', threat: 2, frequency: 100,
   grasp: true, heartbeat: true, music: true, screen: true, lights: true, whispers: true, lures: true,
   blockHostiles: true, repair: true, halls: true, debug: false,
+  follow: true, notebook: true,
 };
 export const config = { ...DEFAULTS };
 

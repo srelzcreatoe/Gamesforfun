@@ -312,28 +312,60 @@
         }
       ]
     },
+    "brine.spotted": {
+      "category": "hostile",
+      "max_distance": 48.0,
+      "min_distance": 2.0,
+      "sounds": [
+        {
+          "name": "sounds/brine_fx/spotted",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
     "music.brine.stillwater": {
       "category": "music",
       "sounds": [
         {
           "name": "sounds/music/brine/stillwater_1",
           "stream": true,
-          "volume": 0.75
+          "volume": 0.8
         },
         {
           "name": "sounds/music/brine/stillwater_2",
           "stream": true,
-          "volume": 0.75
+          "volume": 0.8
         },
         {
           "name": "sounds/music/brine/stillwater_3",
           "stream": true,
-          "volume": 0.75
+          "volume": 0.8
         },
         {
           "name": "sounds/music/brine/stillwater_4",
           "stream": true,
-          "volume": 0.75
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/music/brine/stillwater_5",
+          "stream": true,
+          "volume": 0.8
+        }
+      ]
+    },
+    "music.brine.near": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/music/brine/near_1",
+          "stream": true,
+          "volume": 0.85
+        },
+        {
+          "name": "sounds/music/brine/near_2",
+          "stream": true,
+          "volume": 0.85
         }
       ]
     },

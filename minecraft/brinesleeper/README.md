@@ -8,6 +8,30 @@ and arms long enough to drag its clawed hands on the ground.
 It comes with its own cave biome, the [Stillwater Caves](#stillwater-caves-biome), where it is
 the only hostile mob that spawns.
 
+**Version 5.0, "It Follows"** (details in [ADDON_REPORT.md](ADDON_REPORT.md)):
+* **There is only ever one**, and nothing else lives in its caves: no bats, no fish, no
+  zombies.
+* **It learns you.** It notices whether you look behind you, carry light, run, swim or fight,
+  and changes how it hunts you. It grows bolder with every meeting. Then it leaves its caves to
+  follow you, through dripstone-cave lakes, rivers and the pond by your door, and at last it
+  comes to your home at night.
+* **The Cave Dweller cycle, in and out of the water**, using every animation from the
+  preview: watch, vanish, stalk, stand off, chase, retreat.
+  * It watches from the ceiling, a ledge, the vines and the water's edge.
+  * It stalks only while you aren't looking, along the shore or on all fours through tunnels.
+  * It rises out of the lake in front of you.
+  * It runs at you, and bursts out of the water if you stand at the edge.
+* **It no longer gets stuck under blocks:** under a low ceiling it drops to all fours, with a
+  1.6-block hitbox.
+* **Its own soundtrack:**
+  * five eerie tracks in the biome
+  * a "near" track when it has your attention
+  * a chase loop
+  * a sting the moment it spots you
+* **A Waterlogged Notebook** for every player: a few short pages, and the last one points to
+  the nearest still water. A great hall is now placed near spawn, down an old well, and the
+  biome takes over all of the Dripstone Caves.
+
 **Version 4.0, "The Great Water"**:
 * **Every visit to its biome finds a vast flooded hall like the concept pictures.** It is
   80 × 80 blocks with a lake up to 12 deep, great pillars, islands, pale and red curtains,
@@ -311,10 +335,11 @@ You can also import `resource_pack/models/entity/brinesleeper.geo.json` and the
 1. Open `Brinesleeper.mcaddon`.
 2. Activate **Brinesleeper Resources** and **Brinesleeper Behaviors** on a **new** world.
    No experimental toggles are needed.
-3. Find the caves with `/locate biome brine:stillwater_caves`. Spend time there: nothing
-   happens for the first 6–10 minutes.
+3. Read the *Waterlogged Notebook* you are handed: its last page says where the nearest still
+   water is (or the old well near spawn that leads down to a great hall). You can also use
+   `/locate biome brine:stillwater_caves`.
 
-The packs are version 4.0.0, so they import over older versions. They need Minecraft Bedrock **1.26.40 or
+The packs are version 5.0.0, so they import over older versions. They need Minecraft Bedrock **1.26.40 or
 newer**, for the stable `@minecraft/server` 2.9.0 and `@minecraft/server-ui` 2.1.0 script
 modules. The director has not been play-tested in-game yet; ADDON_REPORT.md lists what to check.
 
@@ -326,6 +351,10 @@ modules. The director has not been play-tested in-game yet; ADDON_REPORT.md list
   * whether it takes your lights
   * the cave fixes
   * a test page
+* **The notebook:** every player gets one on first join. `/brine:notebook` gives a fresh copy.
+* **Learning:** it remembers each player and grows bolder; at 0.45 it follows you out of its
+  caves, at 0.65 it comes to your home at night. `/brine:memory` (operators) shows what it
+  knows. The test page can make it bold at once, or forget you.
 * **Testing:** with cheats on:
   * `/brine:hall` builds a great hall next to you at once.
   * `/brine:encounter <name>` stages any mechanic at once.
@@ -334,7 +363,7 @@ modules. The director has not been play-tested in-game yet; ADDON_REPORT.md list
   nearest player within 5–15 seconds.
   * Play in **Survival** to see it properly. Mobs can't target Creative players, so it can't
     chase or grab you there.
-  * Natural spawns stay at one per world.
+  * There is only ever one: a new one next to a player replaces the old one.
 
 **Java Edition:** Blockbench can convert the project to *Modded Entity* or OptiFine CEM with
 **File → Convert Project**.

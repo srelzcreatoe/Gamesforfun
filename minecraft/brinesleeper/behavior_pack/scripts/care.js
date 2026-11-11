@@ -8,6 +8,7 @@
 import { world, system, BlockVolume, EntityInitializationCause } from '@minecraft/server';
 import { config } from './config.js';
 import { CREATURE, SHADE, inBiome, block, debug } from './main.js';
+import { inStillwater } from './areas.js';
 
 const LEVELS = [-24, 12];                       // the hall waterlines (biome.py LEVELS)
 const HANGING = ['minecraft:weeping_vines', 'brine:pale_dripstone_base', 'brine:pale_dripstone_middle', 'brine:pale_dripstone_frustum',
@@ -15,22 +16,42 @@ const HANGING = ['minecraft:weeping_vines', 'brine:pale_dripstone_base', 'brine:
 const STANDING = ['brine:bone_coral', 'brine:bloodroot', 'brine:pallid_cap'];
 const WATER = ['minecraft:water'];               // still water only: real waterfalls are left alone
 
-// ------------------------------------------------------------------ no hostile mobs
+// ------------------------------------------------------------------ no other mobs: the Brinesleeper is alone down there
+// Every mob that spawns in the Stillwater Caves or in a great hall is removed at once (bats, glow squid and fish
+// included), except ones a player hatches from a spawn egg. Hostile mobs that wander in are cleared every few seconds.
+const eggs = new Map();                        // player id -> tick of their last spawn egg use
+function usedEgg(player, itemStack) {
+  if (itemStack && itemStack.typeId.endsWith('_spawn_egg')) eggs.set(player.id, system.currentTick);
+}
+world.afterEvents.playerInteractWithBlock.subscribe(({ player, beforeItemStack }) => usedEgg(player, beforeItemStack));
+world.afterEvents.itemUse.subscribe(({ source, itemStack }) => usedEgg(source, itemStack));
+const fromEgg = (entity) => world.getAllPlayers().some((p) => system.currentTick - (eggs.get(p.id) ?? -99) < 3 &&
+  Math.hypot(p.location.x - entity.location.x, p.location.z - entity.location.z) < 10);
+
 world.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
-  if (!config.blockHostiles || cause !== EntityInitializationCause.Spawned) return;
-  if (entity.typeId === CREATURE || entity.typeId === SHADE) return;
-  let hostile = false;
-  try { hostile = !!entity.getComponent('minecraft:type_family')?.hasTypeFamily('monster'); } catch (e) { return; }
-  if (!hostile) return;
+  if (!config.blockHostiles || (cause !== EntityInitializationCause.Spawned && cause !== EntityInitializationCause.Born)) return;
+  if (entity.typeId === CREATURE || entity.typeId === SHADE || entity.typeId === 'minecraft:player') return;
+  let mob = false;
+  try { mob = !!entity.getComponent('minecraft:type_family')?.hasTypeFamily('mob'); } catch (e) { return; }
+  if (!mob) return;
   system.run(() => {
-    if (!entity.isValid) return;
-    if (!inBiome(entity.dimension, entity.location)) return;
-    // summoned mobs (within 16 blocks of a player) are left alone; natural and spawner mobs are not
-    if (world.getAllPlayers().some((p) => p.dimension.id === entity.dimension.id &&
-      Math.hypot(p.location.x - entity.location.x, p.location.z - entity.location.z) < 16)) return;
+    if (!entity.isValid || fromEgg(entity)) return;
+    if (!inStillwater(entity.dimension, entity.location)) return;
     try { entity.remove(); } catch (e) { /* gone */ }
   });
 });
+function sweep() {
+  if (!config.blockHostiles) return;
+  for (const p of world.getAllPlayers()) {
+    if (!inStillwater(p.dimension, p.location)) continue;
+    let near = [];
+    try { near = p.dimension.getEntities({ location: p.location, maxDistance: 72, families: ['monster'], excludeTypes: [CREATURE, SHADE] }); }
+    catch (e) { continue; }
+    for (const e of near) {
+      if (inStillwater(e.dimension, e.location)) { try { e.remove(); } catch (er) { /* gone */ } }
+    }
+  }
+}
 
 // ------------------------------------------------------------------ repairs, one chunk at a time
 const known = new Set();                       // chunks checked or waiting to be
@@ -123,6 +144,7 @@ function work() {
 }
 
 world.afterEvents.worldLoad.subscribe(() => {
+  system.runInterval(sweep, 80);
   system.runInterval(plan, 40);
   system.runInterval(work, 1);
 });
