@@ -148,9 +148,12 @@ export class Dread {
       if (!c.node || c.walk || AT_DOOR[c.node] !== side) continue;
       if (!this.rng.chance(this.odds(0.25, 0.08))) continue;
       this.setHollow(c.id, true, 90 + this.rng.int(0, 60));
+      const spot = side === 'L' ? 'door_l' : 'door_r';
+      this.game.audio.play('fnar.night.twitch', spot, g, { vol: 0.9 });
+      // the first empty stare caught in the light each night, per side, gets the sting
       if (!this.revealed.has(side)) {
         this.revealed.add(side);
-        this.game.audio.play('fnar.night.twitch', side === 'L' ? 'door_l' : 'door_r', g, { vol: 0.9 });
+        this.game.audio.play('fnar.night.stinger', null, g, { vol: 0.75 });
       }
     }
   }
