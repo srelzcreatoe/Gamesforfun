@@ -165,8 +165,10 @@ GLINT_MIN = 170         # a painted glint on the eyeball: every channel above th
 GLINT_MAX_PX = 12       # ...in a speck of at most this many texels that touches the eyeball
 SOCKET_EDGE = np.array([19.0, 13.0, 11.0])  # just inside the rim (where the old eye outline was, warmer)
 SOCKET_DEEP = np.array([6.0, 4.0, 3.0])     # the bottom of the hole: a warm near-black, never 0,0,0
+# (a texel is 1/8 of a model pixel: ~7/d screen px at d blocks in 1080p, so the fringe keeps the point from
+#  dropping out down the hall; alpha >= 128 so it also survives an alpha-tested eyes material)
 PINPRICK_CORE = (232, 242, 255, 255)        # one cold blue-white texel at the old pupil's centre...
-PINPRICK_FRINGE = (120, 160, 255, 96)       # ...and a faint cold fringe on its four sides
+PINPRICK_FRINGE = (150, 185, 255, 150)      # ...and a dimmer cold fringe on its four sides
 HEIGHT_FLAT, HEIGHT_RECESS = 224, 40        # hollow heightmap: the body flat, the sockets sunk in a little
 STEPS4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
 STEPS8 = STEPS4 + ((1, 1), (1, -1), (-1, 1), (-1, -1))
