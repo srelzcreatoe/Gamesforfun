@@ -49,7 +49,7 @@ export const LOOPS = Object.freeze({
 
 export class Audio {
   constructor() {
-    /** @type {Map<string, { id: string, next: number, inst: any[], where: any, vol: number, player: any }>} */
+    /** @type {Map<string, { id: string, next: number, inst: any[], where: any, vol: number, player: any, pitch: number }>} */
     this.loops = new Map();
   }
 
@@ -81,14 +81,19 @@ export class Audio {
   }
 
   /**
-   * Start (or keep) a loop under `key`. where as in play(); null = at the player.
+   * Start (or keep) a loop under `key`. where as in play(); null = at the player. A running loop keeps
+   * playing and takes the new pitch from its next repeat (a faster heartbeat: the file is shorter, so
+   * it repeats sooner).
    * @param {import('@minecraft/server').Player} player
    */
-  loop(key, id, where, player, vol = 1) {
+  loop(key, id, where, player, vol = 1, pitch = 1) {
     const cur = this.loops.get(key);
-    if (cur && cur.id === id) return;
+    if (cur && cur.id === id) {
+      cur.pitch = pitch;
+      return;
+    }
     if (cur) this.stop(key);
-    this.loops.set(key, { id, next: 0, inst: [], where, vol, player });
+    this.loops.set(key, { id, next: 0, inst: [], where, vol, player, pitch });
   }
 
   stop(key) {
@@ -112,12 +117,13 @@ export class Audio {
     const now = system.currentTick;
     for (const l of this.loops.values()) {
       if (now < l.next) continue;
-      l.next = now + (LOOPS[l.id] ?? 200);
+      const pitch = l.pitch || 1;
+      l.next = now + Math.max(1, Math.round((LOOPS[l.id] ?? 200) / pitch));
       try {
         let inst;
         const p = typeof l.where === 'string' ? SPOTS[l.where] : l.where;
-        if (!p) inst = l.player?.playSound(l.id, { volume: l.vol });
-        else inst = dim().playSound(l.id, W(p.x, p.y, p.z), { volume: l.vol });
+        if (!p) inst = l.player?.playSound(l.id, { volume: l.vol, pitch });
+        else inst = dim().playSound(l.id, W(p.x, p.y, p.z), { volume: l.vol, pitch });
         l.inst = [...l.inst.slice(-1), inst]; // the previous copy may still be fading
       } catch (e) {
         log.warn(`loop ${l.id}: ${e?.message ?? e}`);

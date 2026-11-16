@@ -21,6 +21,7 @@ import { CALLS, HUNG_UP, TAKEOVER, FINAL, ENDINGS, TUTORIAL_HINTS, KILL_TIPS, DA
 import { Builder } from './builder.js';
 import { Puppets, yawToward } from './puppets.js';
 import { Dread } from './dread.js';
+import { LEAN_NODES, leanSpot } from './lean.js';
 import { Actuators } from './actuators.js';
 import { Audio } from './audio.js';
 import { Hud, mapTitle, MAP_OFF, FX_ON, JS_ON, hourLabel, spotlightReady } from './hud.js';
@@ -41,9 +42,6 @@ const JUMPSCARE_EYE_Y = Object.freeze({ rustgrin: 2.15, mirehop: 1.97, noxbriar:
 /** How far in front of the lens each jumpscare starts: the lunge ends with the nearest point of the head 0.43-0.47
  *  blocks from it, filling the screen without cutting through it (the Cat and the Ringmaster reach further). */
 const JUMPSCARE_DIST = Object.freeze({ rustgrin: 1.6, mirehop: 1.6, noxbriar: 1.6, purple_rat: 1.65, cat: 1.65, top_hat_rat: 1.7, rusted: 1.6 });
-/** Leaning in at an office door or window, each animatronic plants its feet this far behind the opening's outer face
- *  (blocks): bent forward, its face stops about half a block outside, so a closed shutter never cuts through it. */
-const LEAN_BACK = Object.freeze({ rustgrin: 1.61, mirehop: 1.49, noxbriar: 1.61, purple_rat: 1.65, cat: 1.76, top_hat_rat: 1.7 });
 const NIGHT_HUD = [HudElement.Health, HudElement.Hunger, HudElement.Armor, HudElement.StatusEffects, HudElement.PaperDoll, HudElement.AirBubbles, HudElement.HorseHealth];
 /** The hand slot during a shift: it holds the Camera Tablet, and hotbar scrolls on the cameras return here. */
 const NEUTRAL_SLOT = 4;
@@ -84,16 +82,6 @@ function jumpscareShot(p, id) {
   const dist = JUMPSCARE_DIST[id] ?? 1.65;
   const pos = { x: cam.x + fwd.x * dist, y: cam.y - (JUMPSCARE_EYE_Y[id] ?? 2.1), z: cam.z + fwd.z * dist };
   return { cam, pos, facing: (rot.y + 180) % 360 };
-}
-/** Standing at the office doors and the window, they bend down so their face fills the opening. */
-const LEAN_NODES = new Set(['DOOR_L', 'DOOR_R', 'WIN_R']);
-/** Where a character stands to lean in at a lean node: straight out from the opening, LEAN_BACK behind its outer face. */
-function leanSpot(id, node) {
-  const n = NODES[node];
-  const d = OFFICE.doors[n.door === 'L' ? 'L' : 'R'];
-  const back = LEAN_BACK[id] ?? 1.65;
-  // the left opening's outer face is the west side of its wall cell, the right one's the east side
-  return { x: n.door === 'L' ? d.x - back : d.x + 1 + back, y: n.y, z: n.z };
 }
 /** Each character's "voice" when it talks to a guest in Free Roam. */
 const VOICE = Object.freeze({

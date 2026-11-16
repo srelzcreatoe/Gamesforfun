@@ -324,6 +324,31 @@ check(P.music === 'fnar.music.bgm' && game().save.settings.bgm === true, 'and ba
   game().session.chars.mirehop.placeAt('DOOR_L', 'stand');
   await steps(2);
   check(ent('mirehop')?.props['fnar:anim'] === 'lean', `at the left door Mirehop leans in (${ent('mirehop')?.props['fnar:anim']})`);
+  {
+    // caught in the hall light: the head snaps round to the guard and follows him, it leans in closer,
+    // its own sound slowed down, then the guard's name (driven directly: the AI must not move it meanwhile)
+    const dr = game().dread;
+    const e = ent('mirehop');
+    const x0 = e.location.x;
+    const lit = { lightL: true, doorL: false, lightR: false, doorR: false };
+    const t0 = system.currentTick;
+    const n0 = mock.sounds.length;
+    for (let i = 0; i <= 90; i += 2) dr.tickDoors(game().session, lit, P, t0 + i);
+    check(e.location.x > x0 + 0.3 && e.location.x < x0 + 0.4, `caught in the light, it leans in closer (${(e.location.x - x0).toFixed(2)} blocks)`);
+    check(e.props['fnar:look_yaw'] !== 0 || e.props['fnar:look_pitch'] !== 0, `its head follows the guard (yaw ${e.props['fnar:look_yaw']}, pitch ${e.props['fnar:look_pitch']})`);
+    check(mock.sounds.slice(n0).includes('fnar.mirehop.strum') && mock.sounds.slice(n0).includes('fnar.hall.whisper'), 'then its own sound, slowed, and a whisper');
+    check(String(game().hud.message).includes(P.name), `the whisper is the guard's name (${game().hud.message})`);
+    // the door shut in its face: it knocks, then pounds and the view shakes
+    const shut = { lightL: false, doorL: true, lightR: false, doorR: false };
+    const c0 = mock.commands.length;
+    const n1 = mock.sounds.length;
+    for (let i = 0; i < 12; i++) {
+      dr.nextTell.set('mirehop@DOOR_L', 0);
+      dr.tell(game().session.chars.mirehop, shut, P, system.currentTick + 200 * (i + 1));
+    }
+    check(mock.sounds.slice(n1).includes('fnar.night.knock'), 'at the shut door it knocks');
+    check(mock.commands.slice(c0).some((c) => c.startsWith('camerashake')), 'and soon pounds on it hard enough to shake the view');
+  }
   // the smarter cast's habits each have a tell: a sound and a caption (core/ai, rendered by game.js)
   {
     const s = game().session;

@@ -181,6 +181,12 @@ class Entity {
     for (const v of [loc.x, loc.y, loc.z]) if (!Number.isFinite(v)) throw new Error(`teleport to non-finite location ${JSON.stringify(loc)}`);
     this.location = { ...loc };
     if (opts?.rotation && !Number.isFinite(opts.rotation.y)) throw new Error('non-finite rotation');
+    if (opts?.rotation) this.rotation = { x: opts.rotation.x ?? 0, y: opts.rotation.y };
+  }
+
+  getRotation() {
+    rw('getRotation');
+    return { ...(this.rotation ?? { x: 0, y: 0 }) };
   }
 
   setProperty(k, v) {
