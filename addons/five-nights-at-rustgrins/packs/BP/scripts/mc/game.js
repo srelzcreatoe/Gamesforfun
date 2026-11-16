@@ -1500,7 +1500,8 @@ export class Game {
       case 'hour':
         this.audio.play('fnar.clock.chime', null, g, { vol: 0.5 });
         this.dread.onHour(e.hour, g);
-        if (!this.cams.active) g.onScreenDisplay.setTitle(' ', { fadeInDuration: 0, stayDuration: 40, fadeOutDuration: 10, subtitle: `§f${hourLabel(e.hour)}` });
+        // from 3 AM the hour comes up blood red
+        if (!this.cams.active) g.onScreenDisplay.setTitle(' ', { fadeInDuration: 0, stayDuration: 40, fadeOutDuration: 10, subtitle: `${e.hour >= 3 ? '§4' : '§f'}${hourLabel(e.hour)}` });
         return;
       case 'phone': {
         if (e.muted) {
