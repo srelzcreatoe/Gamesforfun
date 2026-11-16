@@ -9,7 +9,9 @@
    },
    "textures": {
     "default": "textures/entity/fnar/cat",
-    "eyes": "textures/entity/fnar/cat_eyes"
+    "eyes": "textures/entity/fnar/cat_eyes",
+    "hollow": "textures/entity/fnar/cat_hollow",
+    "pinprick": "textures/entity/fnar/cat_pinprick"
    },
    "geometry": {
     "default": "geometry.fnar.cat"

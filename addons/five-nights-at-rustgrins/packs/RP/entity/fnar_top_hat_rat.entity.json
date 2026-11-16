@@ -9,7 +9,9 @@
    },
    "textures": {
     "default": "textures/entity/fnar/top_hat_rat",
-    "eyes": "textures/entity/fnar/top_hat_rat_eyes"
+    "eyes": "textures/entity/fnar/top_hat_rat_eyes",
+    "hollow": "textures/entity/fnar/top_hat_rat_hollow",
+    "pinprick": "textures/entity/fnar/top_hat_rat_pinprick"
    },
    "geometry": {
     "default": "geometry.fnar.top_hat_rat"

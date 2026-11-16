@@ -1,0 +1,8 @@
+{
+ "format_version": "1.21.30",
+ "minecraft:texture_set": {
+  "color": "top_hat_rat_hollow",
+  "metalness_emissive_roughness": "top_hat_rat_hollow_mer",
+  "heightmap": "top_hat_rat_hollow_height"
+ }
+}

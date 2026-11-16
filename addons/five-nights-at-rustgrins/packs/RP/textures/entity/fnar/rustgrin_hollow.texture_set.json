@@ -1,0 +1,8 @@
+{
+ "format_version": "1.21.30",
+ "minecraft:texture_set": {
+  "color": "rustgrin_hollow",
+  "metalness_emissive_roughness": "rustgrin_hollow_mer",
+  "heightmap": "rustgrin_hollow_height"
+ }
+}

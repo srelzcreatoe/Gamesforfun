@@ -5,7 +5,8 @@ Inputs:  assets/source_models/FNAF_Animatronics_RP and FNAF_Animatronics_2_RP
          (geometry, textures, animations for rustgrin, mirehop, noxbriar,
          purple_rat, cat, top_hat_rat - supplied by the map owner).
 Outputs: packs/RP: models/entity, textures/entity/fnar (+ _eyes, _mer, texture
-         sets), animations, animation_controllers, entity, render_controllers;
+         sets; the hollow-eyed look: _hollow (+ _mer, _height, texture set) and
+         _pinprick), animations, animation_controllers, entity, render_controllers;
          packs/BP: entities.
 
 Run:  python3 tools/entities/build_entities.py
@@ -72,6 +73,18 @@ def head_bones(geo):
     return out
 
 
+def north_rect(cube):
+    """Texel rectangle (x0, y0, x1, y1) of a cube's north (front) face, or None."""
+    uv = cube.get('uv')
+    if not isinstance(uv, dict) or 'north' not in uv:
+        return None
+    u, v = uv['north']['uv']
+    us, vs = uv['north']['uv_size']
+    x0, x1 = sorted([int(math.floor(u)), int(math.ceil(u + us))])
+    y0, y1 = sorted([int(math.floor(v)), int(math.ceil(v + vs))])
+    return x0, y0, x1, y1
+
+
 def eye_mask(geo, img):
     a = np.asarray(img.convert('RGBA')).astype(int)
     red = (a[..., 0] > 140) & (a[..., 1] < 90) & (a[..., 2] < 90) & (a[..., 3] > 0)
@@ -79,13 +92,10 @@ def eye_mask(geo, img):
     bones = {b['name']: b for b in geo['bones']}
     for bn in head_bones(geo):
         for c in bones[bn].get('cubes', []):
-            uv = c.get('uv')
-            if not isinstance(uv, dict) or 'north' not in uv:
+            r = north_rect(c)
+            if r is None:
                 continue
-            u, v = uv['north']['uv']
-            us, vs = uv['north']['uv_size']
-            x0, x1 = sorted([int(math.floor(u)), int(math.ceil(u + us))])
-            y0, y1 = sorted([int(math.floor(v)), int(math.ceil(v + vs))])
+            x0, y0, x1, y1 = r
             mask[y0:y1, x0:x1] |= red[y0:y1, x0:x1]
     return mask
 
@@ -143,6 +153,156 @@ def make_rusted(img):
     return Image.fromarray(res, 'RGBA')
 
 
+# ------------------------------------------------------------------ hollow eyes (fnar:hollow)
+# At the scariest moments the pupils vanish. The body swaps to <tex>_hollow.png, where each eye is an empty,
+# near-black socket, and the eyes layer draws <id>_pinprick.png (one small cold point deep in each socket)
+# instead of the glowing pupils. All of it is derived from the base texture here, so a rebuild reproduces it.
+# Every model paints its eyes the same way, on the north face of the head cube that carries the pupils: a dark
+# eyeball (every channel < 40) with a pupil blob on it (red ring, red pupil, a dark centre, a white glint; the
+# Ringmaster: a pale iris ring around a red-brown pupil) and a few painted white glints, framed by a lighter rim.
+EYE_DARK_MAX = 40       # eyeball paint: every channel below this
+GLINT_MIN = 170         # a painted glint on the eyeball: every channel above this...
+GLINT_MAX_PX = 12       # ...in a speck of at most this many texels that touches the eyeball
+SOCKET_EDGE = np.array([19.0, 13.0, 11.0])  # just inside the rim (where the old eye outline was, warmer)
+SOCKET_DEEP = np.array([6.0, 4.0, 3.0])     # the bottom of the hole: a warm near-black, never 0,0,0
+PINPRICK_CORE = (232, 242, 255, 255)        # one cold blue-white texel at the old pupil's centre...
+PINPRICK_FRINGE = (120, 160, 255, 96)       # ...and a faint cold fringe on its four sides
+HEIGHT_FLAT, HEIGHT_RECESS = 224, 40        # hollow heightmap: the body flat, the sockets sunk in a little
+STEPS4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
+STEPS8 = STEPS4 + ((1, 1), (1, -1), (-1, 1), (-1, -1))
+
+
+def components(m, steps=STEPS4):
+    """Connected components of a bool texel array: (labels, count), labels 1..count, 0 = not in m."""
+    h, w = m.shape
+    lab = np.zeros((h, w), int)
+    n = 0
+    for y, x in zip(*np.nonzero(m)):
+        if lab[y, x]:
+            continue
+        n += 1
+        lab[y, x] = n
+        stack = [(y, x)]
+        while stack:
+            cy, cx = stack.pop()
+            for dy, dx in steps:
+                ny, nx = cy + dy, cx + dx
+                if 0 <= ny < h and 0 <= nx < w and m[ny, nx] and not lab[ny, nx]:
+                    lab[ny, nx] = n
+                    stack.append((ny, nx))
+    return lab, n
+
+
+def shift_and(m, steps):
+    """Texels of m whose neighbours along every step are in m too (outside the array counts as not in m)."""
+    h, w = m.shape
+    p = np.pad(m, 1)
+    out = m.copy()
+    for dy, dx in steps:
+        out &= p[1 + dy:1 + dy + h, 1 + dx:1 + dx + w]
+    return out
+
+
+def socket_mask(geo, img, mask):
+    """The texels to empty for the hollow look, and one texel per eye for its pinprick.
+
+    Searched on the north face of the head cube that carries the emissive pupil mask (eye_mask):
+    1. pupil blobs: the 8-connected non-dark texels that hold the mask (red ring, iris, glint) plus the
+       texels they enclose (the dark pupil centre);
+    2. the socket: the dark eyeball paint 4-connected to a pupil blob (it stops at the lighter rim);
+    3. painted white glints (small specks, every channel > GLINT_MIN) touching that eyeball, then any small
+       speck the socket encloses.
+    The rim, lids and brows are lighter than the eyeball paint and are not touched.
+    Returns (socket bool array over the whole texture, [(x, y) pinprick texel per pupil blob]).
+    """
+    heads = set(head_bones(geo))
+    faces = [r for b in geo['bones'] if b['name'] in heads for r in map(north_rect, b.get('cubes', [])) if r]
+    x0, y0, x1, y1 = max(faces, key=lambda r: int(mask[r[1]:r[3], r[0]:r[2]].sum()))
+    a = np.asarray(img.convert('RGBA')).astype(int)[y0:y1, x0:x1]
+    seeds = mask[y0:y1, x0:x1]
+    rgb, opaque = a[..., :3], a[..., 3] > 0
+    dark = opaque & (rgb.max(-1) < EYE_DARK_MAX)
+    lab, _ = components(opaque & ~dark, STEPS8)
+    pupils = np.isin(lab, np.unique(lab[seeds & (lab > 0)]))
+    outside, _ = components(~pupils)
+    edge = np.unique(np.concatenate([outside[0], outside[-1], outside[:, 0], outside[:, -1]]))
+    pupils |= (outside > 0) & ~np.isin(outside, edge)
+    lab, _ = components(dark | pupils)
+    sock = np.isin(lab, np.unique(lab[pupils]))
+    near = sock | ~shift_and(~sock, STEPS4)
+    lab, n = components(opaque & ~sock & (rgb.min(-1) > GLINT_MIN))
+    for k in range(1, n + 1):
+        part = lab == k
+        if part.sum() <= GLINT_MAX_PX and (part & near).any():
+            sock |= part
+    # (and any other small speck the socket now encloses: a greyer glint next to a white one)
+    lab, n = components(~sock)
+    edge = np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))
+    for k in range(1, n + 1):
+        part = lab == k
+        if k not in edge and part.sum() <= GLINT_MAX_PX:
+            sock |= part
+    full = np.zeros(mask.shape, bool)
+    full[y0:y1, x0:x1] = sock
+    lab, n = components(pupils, STEPS8)
+    centres = []
+    for k in range(1, n + 1):
+        ys, xs = np.nonzero(lab == k)
+        centres.append((x0 + int(math.floor(xs.mean() + 0.5)), y0 + int(math.floor(ys.mean() + 0.5))))
+    return full, sorted(centres)
+
+
+def socket_depth(sock):
+    """0 right inside each socket's rim .. 1 at its deepest texel (octagonal erosion steps, per socket)."""
+    d = np.zeros(sock.shape)
+    cur, k = sock.copy(), 0
+    while cur.any():
+        k += 1
+        d[cur] = k
+        cur = shift_and(cur, STEPS8 if k % 2 else STEPS4)
+    t = np.zeros(sock.shape)
+    lab, n = components(sock)
+    for i in range(1, n + 1):
+        part = lab == i
+        t[part] = (d[part] - 1) / max(1.0, d[part].max() - 1)
+    return t
+
+
+def make_hollow(img, sock, depth):
+    """The body with its eyes emptied: each socket a warm near-black, lighter just inside the rim, black deep in."""
+    a = np.asarray(img.convert('RGBA')).copy()
+    w = (1 - (1 - depth) ** 2)[..., None]  # the light dies right inside the rim; most of the hole is deep
+    col = SOCKET_EDGE + (SOCKET_DEEP - SOCKET_EDGE) * w
+    a[sock, :3] = np.round(col[sock]).astype(np.uint8)
+    a[sock, 3] = 255
+    return Image.fromarray(a, 'RGBA')
+
+
+def make_pinprick(sock, centres):
+    """The hollow eyes layer: one small cold point of light in each socket, nothing else."""
+    out = np.zeros(sock.shape + (4,), np.uint8)
+    for x, y in centres:
+        for dx, dy in STEPS4:
+            if sock[y + dy, x + dx]:
+                out[y + dy, x + dx] = PINPRICK_FRINGE
+        out[y, x] = PINPRICK_CORE
+    return Image.fromarray(out, 'RGBA')
+
+
+def write_hollow(tex_dir, name, img, sock, depth, metal_boost=0):
+    """<name>_hollow.png and its Vibrant Visuals texture set: the body's MER without the pupils' glow, the
+    sockets non-metallic and rough, and a heightmap (flat elsewhere) that sinks the sockets in a little."""
+    hollow = make_hollow(img, sock, depth)
+    hollow.save(os.path.join(tex_dir, f'{name}_hollow.png'))
+    mer = np.asarray(make_mer(hollow, np.zeros(sock.shape, bool), metal_boost)).copy()
+    mer[sock] = [0, 0, 245]
+    Image.fromarray(mer, 'RGB').save(os.path.join(tex_dir, f'{name}_hollow_mer.png'))
+    height = np.full(sock.shape, float(HEIGHT_FLAT))
+    height[sock] -= HEIGHT_RECESS * (0.3 + 0.7 * depth[sock])
+    Image.fromarray(np.round(height).astype(np.uint8), 'L').save(os.path.join(tex_dir, f'{name}_hollow_height.png'))
+    write_json(os.path.join(tex_dir, f'{name}_hollow.texture_set.json'), texture_set(f'{name}_hollow', heightmap=True))
+
+
 def rename_anims(anims, cid, geo, eye):
     out = {}
     for k, v in anims['animations'].items():
@@ -178,7 +338,9 @@ def controller(cid):
     return {'format_version': '1.10.0', 'animation_controllers': {f'controller.animation.fnar.{cid}': {'initial_state': 'idle', 'states': states}}}
 
 
-def client_entity(eid, geo_id, tex, eyes_tex):
+def client_entity(eid, geo_id, tex, eyes_id):
+    """tex: the body texture (its _hollow twin is the hollow-eyed body); eyes_id: the model whose _eyes /
+    _pinprick layers fit this geometry."""
     anims = {v: f'animation.fnar.{geo_id}.{ANIMS[v]}' for v in ANIM_VALUES}
     anims['look'] = f'animation.fnar.{geo_id}.look'
     anims['ctrl'] = f'controller.animation.fnar.{geo_id}'
@@ -188,7 +350,12 @@ def client_entity(eid, geo_id, tex, eyes_tex):
             'description': {
                 'identifier': f'fnar:{eid}',
                 'materials': {'default': 'entity_alphatest', 'eyes': 'creaking_eyes'},
-                'textures': {'default': f'textures/entity/fnar/{tex}', 'eyes': f'textures/entity/fnar/{eyes_tex}'},
+                'textures': {
+                    'default': f'textures/entity/fnar/{tex}',
+                    'eyes': f'textures/entity/fnar/{eyes_id}_eyes',
+                    'hollow': f'textures/entity/fnar/{tex}_hollow',
+                    'pinprick': f'textures/entity/fnar/{eyes_id}_pinprick',
+                },
                 'geometry': {'default': f'geometry.fnar.{geo_id}'},
                 'scripts': {
                     'scale': f'{SCALE}',
@@ -223,6 +390,7 @@ def behavior_entity(eid):
                     'fnar:anim': {'type': 'enum', 'values': ANIM_VALUES, 'default': 'idle', 'client_sync': True},
                     'fnar:eyes': {'type': 'bool', 'default': False, 'client_sync': True},
                     'fnar:hidden': {'type': 'bool', 'default': False, 'client_sync': True},
+                    'fnar:hollow': {'type': 'bool', 'default': False, 'client_sync': True},
                     'fnar:look_yaw': {'type': 'int', 'range': [-90, 90], 'default': 0, 'client_sync': True},
                     'fnar:look_pitch': {'type': 'int', 'range': [-45, 45], 'default': 0, 'client_sync': True},
                     'fnar:variant': {'type': 'int', 'range': [0, 3], 'default': 0, 'client_sync': True},
@@ -246,19 +414,24 @@ def behavior_entity(eid):
     }
 
 
+# fnar:hollow (a bool: 0 / 1 in Molang) picks the texture: the body gets its emptied sockets, the eyes layer (still
+# shown only while fnar:eyes is on) its pinpricks instead of the glowing pupils.
+HOLLOW = "query.property('fnar:hollow')"
 RENDER = {
     'format_version': '1.10.0',
     'render_controllers': {
         'controller.render.fnar.body': {
+            'arrays': {'textures': {'Array.skin': ['Texture.default', 'Texture.hollow']}},
             'geometry': 'Geometry.default',
             'materials': [{'*': 'Material.default'}],
-            'textures': ['Texture.default'],
+            'textures': [f'Array.skin[{HOLLOW}]'],
             'part_visibility': [{'*': '!variable.fnar_hidden'}],
         },
         'controller.render.fnar.eyes': {
+            'arrays': {'textures': {'Array.eyes': ['Texture.eyes', 'Texture.pinprick']}},
             'geometry': 'Geometry.default',
             'materials': [{'*': 'Material.eyes'}],
-            'textures': ['Texture.eyes'],
+            'textures': [f'Array.eyes[{HOLLOW}]'],
             'ignore_lighting': True,
             'part_visibility': [{'*': False}, {'head': 'variable.fnar_eyes && !variable.fnar_hidden'}],
         },
@@ -266,8 +439,11 @@ RENDER = {
 }
 
 
-def texture_set(name):
-    return {'format_version': '1.21.30', 'minecraft:texture_set': {'color': name, 'metalness_emissive_roughness': f'{name}_mer'}}
+def texture_set(name, heightmap=False):
+    layers = {'color': name, 'metalness_emissive_roughness': f'{name}_mer'}
+    if heightmap:
+        layers['heightmap'] = f'{name}_height'
+    return {'format_version': '1.21.30', 'minecraft:texture_set': layers}
 
 
 def main():
@@ -290,18 +466,23 @@ def main():
         make_eyes(img, mask).save(os.path.join(tex_dir, f'{cid}_eyes.png'))
         make_mer(img, mask).save(os.path.join(tex_dir, f'{cid}_mer.png'))
         write_json(os.path.join(tex_dir, f'{cid}.texture_set.json'), texture_set(cid))
+        sock, centres = socket_mask(g, img, mask)
+        depth = socket_depth(sock)
+        write_hollow(tex_dir, cid, img, sock, depth)
+        make_pinprick(sock, centres).save(os.path.join(tex_dir, f'{cid}_pinprick.png'))
         anims = json.load(open(os.path.join(src, 'animations', f'{cid}.animation.json')))
         write_json(os.path.join(RP, 'animations', f'fnar_{cid}.animation.json'), {'format_version': anims.get('format_version', '1.8.0'), 'animations': rename_anims(anims, cid, geo, eye)})
         write_json(os.path.join(RP, 'animation_controllers', f'fnar_{cid}.animation_controllers.json'), controller(cid))
-        write_json(os.path.join(RP, 'entity', f'fnar_{cid}.entity.json'), client_entity(cid, cid, cid, f'{cid}_eyes'))
+        write_json(os.path.join(RP, 'entity', f'fnar_{cid}.entity.json'), client_entity(cid, cid, cid, cid))
         write_json(os.path.join(BP, 'entities', f'{cid}.json'), behavior_entity(cid))
-        print(f'{cid}: eye pixels {int(mask.sum())}')
+        print(f'{cid}: eye pixels {int(mask.sum())}, hollow socket pixels {int(sock.sum())}, pinpricks at {centres}')
         if cid == 'rustgrin':
             rusted = make_rusted(img)
             rusted.save(os.path.join(tex_dir, 'rustgrin_rusted.png'))
             make_mer(rusted, mask, metal_boost=60).save(os.path.join(tex_dir, 'rustgrin_rusted_mer.png'))
             write_json(os.path.join(tex_dir, 'rustgrin_rusted.texture_set.json'), texture_set('rustgrin_rusted'))
-            write_json(os.path.join(RP, 'entity', 'fnar_rusted.entity.json'), client_entity('rusted', 'rustgrin', 'rustgrin_rusted', 'rustgrin_eyes'))
+            write_hollow(tex_dir, 'rustgrin_rusted', rusted, sock, depth, metal_boost=60)
+            write_json(os.path.join(RP, 'entity', 'fnar_rusted.entity.json'), client_entity('rusted', 'rustgrin', 'rustgrin_rusted', 'rustgrin'))
             write_json(os.path.join(BP, 'entities', 'rusted.json'), behavior_entity('rusted'))
     write_json(os.path.join(RP, 'render_controllers', 'fnar.render_controllers.json'), RENDER)
     print('entities built')

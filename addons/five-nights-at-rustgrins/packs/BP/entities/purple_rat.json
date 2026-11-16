@@ -41,6 +41,11 @@
      "default": false,
      "client_sync": true
     },
+    "fnar:hollow": {
+     "type": "bool",
+     "default": false,
+     "client_sync": true
+    },
     "fnar:look_yaw": {
      "type": "int",
      "range": [

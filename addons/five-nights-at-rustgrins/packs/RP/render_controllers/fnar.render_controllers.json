@@ -2,6 +2,14 @@
  "format_version": "1.10.0",
  "render_controllers": {
   "controller.render.fnar.body": {
+   "arrays": {
+    "textures": {
+     "Array.skin": [
+      "Texture.default",
+      "Texture.hollow"
+     ]
+    }
+   },
    "geometry": "Geometry.default",
    "materials": [
     {
@@ -9,7 +17,7 @@
     }
    ],
    "textures": [
-    "Texture.default"
+    "Array.skin[query.property('fnar:hollow')]"
    ],
    "part_visibility": [
     {
@@ -18,6 +26,14 @@
    ]
   },
   "controller.render.fnar.eyes": {
+   "arrays": {
+    "textures": {
+     "Array.eyes": [
+      "Texture.eyes",
+      "Texture.pinprick"
+     ]
+    }
+   },
    "geometry": "Geometry.default",
    "materials": [
     {
@@ -25,7 +41,7 @@
     }
    ],
    "textures": [
-    "Texture.eyes"
+    "Array.eyes[query.property('fnar:hollow')]"
    ],
    "ignore_lighting": true,
    "part_visibility": [

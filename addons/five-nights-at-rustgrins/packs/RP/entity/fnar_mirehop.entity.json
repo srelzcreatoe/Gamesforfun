@@ -9,7 +9,9 @@
    },
    "textures": {
     "default": "textures/entity/fnar/mirehop",
-    "eyes": "textures/entity/fnar/mirehop_eyes"
+    "eyes": "textures/entity/fnar/mirehop_eyes",
+    "hollow": "textures/entity/fnar/mirehop_hollow",
+    "pinprick": "textures/entity/fnar/mirehop_pinprick"
    },
    "geometry": {
     "default": "geometry.fnar.mirehop"
