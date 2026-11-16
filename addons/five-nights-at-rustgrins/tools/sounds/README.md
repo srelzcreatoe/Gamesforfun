@@ -28,6 +28,7 @@ Vorbis decoding) and Pillow (spectrograms) are optional extras for the checker.
 | `recipes_office.py` | ambience, doors/lights/buttons/vents, cameras, power, clock, phone, hallucinations, UI |
 | `recipes_anim.py` | footsteps, servos, Mirehop / Noxbriar / Rustgrin / Cat / Purple Rat / Ringmaster sounds |
 | `recipes_final.py` | the Final Act: PA chime, applause, spotlight |
+| `recipes_night.py` | the night shift: the drone and heartbeat beds, breathing, children's voices, the far music box, building noises, knocks, the radio, stingers, the midnight cue |
 | `recipes_music.py` | instruments and the compositions (music box, calliope, 80s band) |
 | `check_sounds.py` | self-check: duration, channels, peak, RMS, DC, edges, loop seams, size, spectrograms |
 | `sound_manifest.json` | generated: exact durations, channels, loop flags, max distance, peaks, pre-fade seam metrics |
@@ -212,6 +213,78 @@ they peak above -1 dBFS. `js/animatronic.ogg` serves all six regular animatronic
 * `final.spot` is a relay clunk, an arc of bright noise flickering at 33 Hz and a
   hot 100/200 Hz hum.
 
+**The night shift** (`recipes_night.py`). Three new rooms: `night_far` (3.6 s,
+dark, late reflections: the empty halls), `night_cellar` (a small hard wet room)
+and `night_backroom`. Two new materials: `beam_modes` (two long I-beams, free-free
+bending modes 1 : 2.76 : 5.40 : 8.93 …, slightly apart so they beat, plus the deck
+plate) and `pipe_modes` (a loose steel pipe).
+* `night.drone` (12 s loop, 240 ticks) is three beating pairs of sines a tritone
+  apart (~36.7 / 51.9 / 73.4 Hz, given as cycles per loop, so each is exactly
+  periodic). The beat rates differ left and right (2–3 beats per loop), so the
+  throb wanders across the stereo field. Gentle tanh adds intermodulation. On top:
+  a low-passed saw on the bottom tone (harmonics that small speakers can play),
+  sub rumble, and air through a slowly sweeping band-pass. The shimmer is eight
+  inharmonic partials between 1.9 and 6.4 kHz, each a beating pair with a slow phase
+  wander, swelling in and out once or twice per loop and panning, in the far hall.
+  It is set by RMS (-31 dBFS). Its A-weighted level is about 7 dB under `amb.building`,
+  and the shimmer sits about 12 dB under the drone.
+* `night.heartbeat` (2 s loop, 40 ticks) is two lub-dubs placed with wrap-around.
+  Each is a soft-edged thump whose pitch falls (lub 64→34 Hz, dub 88→46 Hz,
+  0.29 s apart), with a knock an octave up, low noise and a blood rush, then
+  saturation, a 380 Hz low-pass and a 90 Hz body resonance ("inside the head").
+  The beats sit at 0.28 s and 1.285 s, so the wrap point falls in the quiet.
+* `night.breath`: noise through a moving formant track (an open "a/ae" for the
+  inhale, which has catches and ragged amplitude; "o/u" for the exhale). The rattle
+  is irregular glottal-fry pulses through the same mouth plus a buzzing grille.
+  Between the breaths a valve ticks and a small servo hisses. All of it goes
+  through a peaky, slightly crushed speaker and the corridor IR.
+* `night.musicbox_far` plays two phrases of Rustgrin's Theme (bars 1–4, bars 13–15)
+  on the same comb tines, ±34 cents out of tune. The tempo slows (128→58 bpm),
+  one or two notes barely sound, and the pitch sags as the spring runs down. It is
+  high-passed, darkened and played almost entirely from the far hall, with a late
+  echo off the far wall.
+* `night.kids` are child voices: the phone babble with a child's pitch (275–335 Hz),
+  formants scaled ×1.4–1.5 and big intonation swings, plus laughs. A laugh is
+  "ha"/"hee" syllables at about 5 per second, with aspirated onsets, a pitch hop
+  on each syllable, a falling line, and sometimes a squeaky in-breath. They are
+  "remembered": played back at 66–86 % speed, warbling, read by three detuned heads
+  and put in the dining-hall IR. The reverb is kept low enough that the "ha-ha"
+  rhythm survives (about 2/3 of its modulation). One laugh plays backwards (v1),
+  all of it backwards (v2), or a reverse reverb makes a group laugh's echo arrive
+  first (v3).
+* `night.giggle` is one "hee-hee" laugh with a nasal in-breath and lip click, close
+  and dry. v1 wobbles like chewed tape; v2 slows down into a deep chuckle.
+* `night.scrape` is stick-slip chatter whose rate follows the drag speed (pulls
+  with jerks), through the object (pipe or frame modes) and the tile, with a
+  speed-following grit band and a thin squeal at the fastest moments, deep in
+  the corridor.
+* `night.knock`: three 5–6 ms fist contacts into the office door's modes,
+  low-passed, with deep body thuds, steel-finger ticks and slat rattle; the third
+  knock comes late.
+* `night.door_rattle`: rattle bursts through the slat and door modes, the panel
+  flexing, a rail scrape as the slats lift, and a clunk as they drop.
+* `night.radio` models a tuning dial: two stations (the Midway waltz from the
+  calliope tape, slowed and wobbling, and a talk station of babble). Static
+  ducks as a station comes in, and heterodyne whistles slide down to zero beat.
+  It goes through a small 4th-order band-passed, saturated speaker, then the
+  back-room IR and a 2.3 kHz wall.
+* `night.drip` is the bubble chirp, impact tick and splash in the cellar IR.
+* `night.groan`: slow stick-slip pulses (13→52→13 Hz; v2 rising to 66 Hz and
+  letting go with a bang) through broad body resonances, so the slip rate is the
+  groan's pitch. The beams' damped modes add the metal ring, and the far IR follows.
+* `night.twitch`: a servo whip (full speed almost at once, braking into a hard
+  stop), the drive chattering on and off before it catches, a skipping-buffer
+  stutter (v1), a control-board buzz, and the neck snap with an overshoot bounce.
+* `night.stinger`: the hit's own bells and noise, reverberated and reversed, swell
+  into a 92→27 Hz sub hit. On top are a seven-note cluster of long bells (minor
+  seconds and tritones), a saw stab whose filter snaps shut, and the door's clang.
+  It ends with the bells ringing and a thin beating tone (ears ringing), in the
+  big hall. Peak -3 dBFS, RMS about -21 dBFS: well under the jumpscares.
+* `night.midnight`: a tick-tock wall clock (two small-metal mode sets plus the
+  wooden case) that slows a hair and stops; one D3 toll of the soft bell, far off
+  in the far hall; five lub-dubs getting faster and louder; and a breath of static
+  shaped by a mouth (noise through "uh→o→u" formants) with mains hum.
+
 **Hallucinations, UI, showtime.**
 * `hall.whisper` is unvoiced formant noise with sibilants, convolved with a
   hall and reversed, so it swells in and sweeps right to left.
@@ -293,6 +366,21 @@ nameN.ogg`, and the definition lists them all, so Minecraft picks one at random.
 | `fnar.final.chime` | 1 | 1.9 s | stereo |  | hostile | - |
 | `fnar.final.applause` | 1 | 4.5 s | stereo |  | hostile | - |
 | `fnar.final.spot` | 1 | 0.9 s | stereo |  | hostile | - |
+| `fnar.night.drone` | 1 | 12 s | stereo | loop | ambient | - |
+| `fnar.night.heartbeat` | 1 | 2 s | mono | loop | player | 12 |
+| `fnar.night.breath` | 3 | 3 s | mono |  | hostile | 10 |
+| `fnar.night.musicbox_far` | 2 | 8 s | mono |  | hostile | 48 |
+| `fnar.night.kids` | 3 | 5 s | mono |  | hostile | 40 |
+| `fnar.night.giggle` | 2 | 1.5 s | mono |  | hostile | 12 |
+| `fnar.night.scrape` | 2 | 3 s | mono |  | hostile | 32 |
+| `fnar.night.knock` | 2 | 2.5 s | mono |  | hostile | 16 |
+| `fnar.night.door_rattle` | 2 | 2 s | mono |  | hostile | 16 |
+| `fnar.night.radio` | 2 | 5 s | mono |  | block | 24 |
+| `fnar.night.drip` | 3 | 1 s | mono |  | ambient | 12 |
+| `fnar.night.groan` | 2 | 4 s | mono |  | ambient | 64 |
+| `fnar.night.twitch` | 3 | 0.4 s | mono |  | hostile | 16 |
+| `fnar.night.stinger` | 2 | 3 s | stereo |  | hostile | - |
+| `fnar.night.midnight` | 1 | 6 s | stereo |  | ui | - |
 | `fnar.hall.whisper` | 1 | 2 s | stereo |  | hostile | - |
 | `fnar.hall.sting` | 1 | 1.5 s | stereo |  | hostile | - |
 | `fnar.ui.click` | 1 | 0.1 s | stereo |  | ui | - |

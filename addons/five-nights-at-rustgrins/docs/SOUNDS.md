@@ -9,7 +9,8 @@ No samples from FNAF or anywhere else.
   (`"format_version": "1.20.20"`, `"sound_definitions": { "fnar.<group>.<name>": {...} }`).
   Every event lists its file(s) as `"sounds/fnar/<group>/<name>"` (no
   extension); several variants per event where noted (Minecraft picks one at
-  random). Set `"category"` (`ambient`, `block`, `hostile`, `ui`, `music`) and,
+  random). Set `"category"` (`ambient`, `block`, `hostile`, `ui`, `music`; also
+  `weather` for the storms and `player` for the guard's own heartbeat) and,
   for positional sounds, `"min_distance"`/`"max_distance"`.
 * **Positional sounds must be mono** (stereo is not spatialised). Music and UI
   stingers may be stereo.
@@ -101,6 +102,30 @@ gain if they peak above -1 dBFS):
 | `fnar.final.chime` | yes | 1.9 s | the Ringmaster's PA: three-note carnival chime through an old ceiling speaker |
 | `fnar.final.applause` | yes | 4.5 s | a small unseen audience clapping (a game done right) |
 | `fnar.final.spot` | yes | 0.9 s | a theatre spotlight striking: relay clunk, arc, hot hum |
+
+**The night shift** (the layer of dread under every shift; `recipes_night.py`)
+
+Two beds play under everything, low enough not to mask the gameplay tells
+(footsteps, hums, twangs, servo whirr). The rest are one-shots the night
+script scatters around the building. Positional ones are mono, with the
+distances given. The stereo ones play at the player.
+| event | channels | dur | dist (min/max) | description |
+|---|---|---|---|---|
+| `fnar.night.drone` | stereo, `ambient` | 12 s loop (240 ticks) | - | deep sub drone: close low tones a tritone apart (D1/Ab1/D2) beating slowly, differently left and right; a low growl, sub rumble, slowly moving air; a faint high metallic shimmer drifting in and out |
+| `fnar.night.heartbeat` | mono, `player`, at the player | 2 s loop (40 ticks) | 4/12 | heavy heartbeat, two lub-dubs per loop (60 bpm), close and muffled, as if heard from inside the head. Played with pitch up to 1.3; at pitch p it lasts 2/p s, so restart it every 40/p ticks |
+| `fnar.night.breath` | mono, `hostile` | 3 s ×3 | 1/10 | slow mechanical breathing through a speaker grille just outside the door: a ragged inhale, a valve tick and servo hiss, a rattling exhale |
+| `fnar.night.musicbox_far` | mono, `hostile` | 8 s ×2 | 8/48 | Rustgrin's Theme on the music box, very far away down empty halls: badly detuned, the spring running down, a note or two dying out, a big dark reverb |
+| `fnar.night.kids` | mono, `hostile` | 5 s ×3 | 6/40 | distant children's party chatter and laughter, as if remembered: slowed, warbling, smeared, reverberant; one laugh backwards (v1), all of it backwards (v2), one slurred group laugh whose echo arrives first (v3). Formant voices, no words |
+| `fnar.night.giggle` | mono, `hostile` | 1.5 s ×2 | 1/12 | a single small, warped childlike giggle, much too close (v2 slurs down into a deep chuckle) |
+| `fnar.night.scrape` | mono, `hostile` | 3 s ×2 | 4/32 | metal dragged slowly over tile somewhere down a hall: a pipe in two pulls (v1), a heavy strut that is set down at the end (v2) |
+| `fnar.night.knock` | mono, `hostile` | 2.5 s ×2 | 2/16 | three slow, heavy knocks on the office's steel door, the third a little late (v2: then the fingertips drag down the door) |
+| `fnar.night.door_rattle` | mono, `hostile` | 2 s ×2 | 2/16 | someone slowly testing the steel shutter: the slats rattle in their rails, scrape up a finger's width and drop back |
+| `fnar.night.radio` | mono, `block` | 5 s ×2 | 2/24 | an old radio left on in a back room: static and whistles as the dial drifts, a muffled, warped snatch of the Midway waltz (the Ringmaster's calliope tune), static again (v2 drifts on to a talk station) |
+| `fnar.night.drip` | mono, `ambient` | 1 s ×3 | 1/12 | a water drip in a small dark room: into a puddle, onto a wet floor, two drops |
+| `fnar.night.groan` | mono, `ambient` | 4 s ×2 | 8/64 | the building's steel frame groaning, deep and long, far away (v2 rises and lets go with a bang) |
+| `fnar.night.twitch` | mono, `hostile` | 0.4 s ×3 | 1/16 | a sudden glitchy servo jerk, an animatronic head snapping round toward you |
+| `fnar.night.stinger` | stereo, `hostile` | 3 s ×2 | - | big scare sting: a reversed swell into a sub-bass hit with a dissonant metal cluster and a brass-like stab on top, ending in a ringing tail (and a ringing in the ears). Quieter than the jumpscares |
+| `fnar.night.midnight` | stereo, `ui` | 6 s | - | the start of the night shift: a wall clock ticking, one low distant bell toll, a heartbeat swelling under it, a breath of static at the end |
 
 **Hallucinations / UI / music**
 | event | stereo | dur | description |

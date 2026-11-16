@@ -45,6 +45,7 @@ from fnar_dsp import (N, SR, ampdb, bq, dbamp, dc_block, eq, fade_edges, fit, li
 import recipes_anim as ra  # noqa: E402
 import recipes_final as rf  # noqa: E402
 import recipes_music as rm  # noqa: E402
+import recipes_night as rn  # noqa: E402
 import recipes_office as ro  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
@@ -177,6 +178,28 @@ EVENTS = [
     # --- storms on nights 5 and 6 -------------------------------------------------
     Ev('storm.thunder', rf.storm_thunder, 6.0, variants=3, stereo=True, cat='weather', level=('peak', -1.5), fout=0.4),
     Ev('storm.rain', rf.storm_rain, 12.0, stereo=True, loop=True, cat='weather', level=('lufs', -30)),
+    # --- the night shift: dread under every shift (recipes_night) -----------------
+    # beds: the drone (stereo, 240 ticks) and the heartbeat (mono, at the player, 40 ticks)
+    Ev('night.drone', rn.night_drone, 12.0, stereo=True, loop=True, cat='ambient', level=('rms', -31)),
+    Ev('night.heartbeat', rn.night_heartbeat, 2.0, loop=True, cat='player', dist=(4, 12), level=('peak', -8.0),
+       note='60 bpm; at pitch p restart every 40/p ticks'),
+    Ev('night.breath', rn.night_breath, 3.0, variants=3, cat='hostile', dist=(1, 10), level=('lufs', -21), fout=0.1),
+    Ev('night.musicbox_far', rn.night_musicbox_far, 8.0, variants=2, cat='hostile', dist=(8, 48), level=('lufs', -22),
+       fout=0.3),
+    Ev('night.kids', rn.night_kids, 5.0, variants=3, cat='hostile', dist=(6, 40), level=('lufs', -22), fin=0.05,
+       fout=0.3),
+    Ev('night.giggle', rn.night_giggle, 1.5, variants=2, cat='hostile', dist=(1, 12), level=('peak', -2.5), fout=0.1),
+    Ev('night.scrape', rn.night_scrape, 3.0, variants=2, cat='hostile', dist=(4, 32), level=('peak', -3.0), fout=0.15),
+    Ev('night.knock', rn.night_knock, 2.5, variants=2, cat='hostile', dist=(2, 16), level=('peak', -1.5), fout=0.1),
+    Ev('night.door_rattle', rn.night_door_rattle, 2.0, variants=2, cat='hostile', dist=(2, 16), level=('peak', -2.5),
+       fout=0.1),
+    Ev('night.radio', rn.night_radio, 5.0, variants=2, cat='block', dist=(2, 24), level=('lufs', -21), fout=0.2),
+    Ev('night.drip', rn.night_drip, 1.0, variants=3, cat='ambient', dist=(1, 12), level=('peak', -5.0), fout=0.1),
+    Ev('night.groan', rn.night_groan, 4.0, variants=2, cat='ambient', dist=(8, 64), level=('rms', -24.5), fout=0.3),
+    Ev('night.twitch', rn.night_twitch, 0.4, variants=3, cat='hostile', dist=(1, 16), level=('peak', -2.5), fout=0.05),
+    Ev('night.stinger', rn.night_stinger, 3.0, variants=2, stereo=True, cat='hostile', level=('peak', -3.0),
+       fout=0.3),
+    Ev('night.midnight', rn.night_midnight, 6.0, stereo=True, cat='ui', level=('peak', -3.0), fout=0.3),
     # --- hallucinations / UI / music ---------------------------------------------
     Ev('hall.whisper', ro.hall_whisper, 2.0, stereo=True, cat='hostile', level=('peak', -4.0)),
     Ev('hall.sting', ro.hall_sting, 1.5, stereo=True, cat='hostile', level=('peak', -1.5), fout=0.15),
