@@ -166,9 +166,11 @@ GLINT_MAX_PX = 12       # ...in a speck of at most this many texels that touches
 SOCKET_EDGE = np.array([19.0, 13.0, 11.0])  # just inside the rim (where the old eye outline was, warmer)
 SOCKET_DEEP = np.array([6.0, 4.0, 3.0])     # the bottom of the hole: a warm near-black, never 0,0,0
 # (a texel is 1/8 of a model pixel: ~7/d screen px at d blocks in 1080p, so the fringe keeps the point from
-#  dropping out down the hall; alpha >= 128 so it also survives an alpha-tested eyes material)
+#  dropping out down the hall; its alpha >= 128 so it also survives an alpha-tested eyes material, and the
+#  fainter corners round it off where the material blends)
 PINPRICK_CORE = (232, 242, 255, 255)        # one cold blue-white texel at the old pupil's centre...
-PINPRICK_FRINGE = (150, 185, 255, 150)      # ...and a dimmer cold fringe on its four sides
+PINPRICK_FRINGE = (80, 110, 190, 150)       # ...a dim cold fringe on its four sides...
+PINPRICK_CORNER = (40, 60, 120, 70)         # ...and fainter still on the diagonals
 HEIGHT_FLAT, HEIGHT_RECESS = 224, 40        # hollow heightmap: the body flat, the sockets sunk in a little
 STEPS4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
 STEPS8 = STEPS4 + ((1, 1), (1, -1), (-1, 1), (-1, -1))
@@ -284,9 +286,9 @@ def make_pinprick(sock, centres):
     """The hollow eyes layer: one small cold point of light in each socket, nothing else."""
     out = np.zeros(sock.shape + (4,), np.uint8)
     for x, y in centres:
-        for dx, dy in STEPS4:
+        for dx, dy in STEPS8:
             if sock[y + dy, x + dx]:
-                out[y + dy, x + dx] = PINPRICK_FRINGE
+                out[y + dy, x + dx] = PINPRICK_FRINGE if (dx, dy) in STEPS4 else PINPRICK_CORNER
         out[y, x] = PINPRICK_CORE
     return Image.fromarray(out, 'RGBA')
 
