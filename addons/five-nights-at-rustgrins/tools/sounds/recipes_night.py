@@ -13,7 +13,7 @@ import functools
 
 import numpy as np
 
-from fnar_dsp import (N, PI2, SR, T, ar, band_noise, bitcrush, bw, circ, click_train, decay, env_pts, eq, fit,
+from fnar_dsp import (N, PI2, SR, T, ar, band_noise, bitcrush, bq, bw, circ, click_train, decay, env_pts, eq, fit,
                       formants, gate, hz, midi, parse_line, periodic_lfo, phase, place, plate_modes, pulse,
                       resonators, reverb, rng, room_ir, sat, saw, servo, smooth_noise, strike, tvbq, varispeed,
                       voice_src, vowel_track, white)
@@ -66,7 +66,7 @@ def beam_modes():
 def pipe_modes():
     """a loose steel pipe / endoskeleton strut: bright, long-ringing bending modes"""
     r = rng('mat', 'pipe')
-    modes = [(165.0 * q * r.uniform(0.99, 1.01), 1.4 * q ** -0.35, q ** -0.15) for q in FREE_BEAM]
+    modes = [(165.0 * q * r.uniform(0.99, 1.01), 0.8 * q ** -0.35, 0.5 * q ** 0.2) for q in FREE_BEAM]
     modes += plate_modes(r, 1100, 7000, 22, 0.45, 0.12, -2.0)
     return tuple(modes)
 
@@ -141,7 +141,7 @@ def night_drone(v, r, n):
         sh[1] += s * g * np.sin(th)
     sh = reverb(sh, ir_far_st(), wet=1.0, dry=0.35, circular=True)
     sh = circ(bw, sh, 'hp', 1200, 2)
-    mix = (U(sub) + 0.16 * U(growl) + 0.4 * U(rumble) + 0.035 * U(air) + 0.0035 * U(sh))
+    mix = (U(sub) + 0.4 * U(growl) + 0.28 * U(rumble) + 0.06 * U(air) + 0.012 * U(sh))
     return mix * (1 + 0.12 * periodic_lfo(n, 1, r))
 
 
@@ -216,7 +216,7 @@ def night_breath(v, r, n):
     valve = hit(n, tv, small_metal('valve'), 0.0003) + 0.5 * hit(n, e0 - 0.03, frame_modes('chest'), 0.0008)
     hiss = bw(white(r, n), 'hp', 2800) * ar(n, 0.004, 0.2, tv + 0.01)
     whir = servo(r, n, gate(n, tv, tv + 0.2, 0.03, 0.06) * 0.5, base=360, span=260, gear=0.25, grit=0.15)
-    s = (P(air_in) * 0.8 + P(air_out) + 0.55 * P(rattle) + 0.12 * P(grille) + 0.18 * P(valve) + 0.1 * P(hiss)
+    s = (P(air_in) * 1.25 + P(air_out) + 0.55 * P(rattle) + 0.12 * P(grille) + 0.18 * P(valve) + 0.1 * P(hiss)
          + 0.07 * P(whir))
     # through the animatronic's speaker: band-limited, peaky, a little broken
     s = bw(s, 'bp', (170, 6500), 2)
@@ -224,7 +224,7 @@ def night_breath(v, r, n):
     s = sat(P(s) * 1.2, 1.8)
     s = 0.85 * s + 0.15 * bitcrush(s, 9, 2)
     on = bw(np.minimum(inh + exh, 1.0), 'lp', 8, 1)
-    s += 0.012 * (np.sin(PI2 * 60 * t) + 0.6 * np.sin(PI2 * 180 * t + 1.0)) * on
+    s += 0.008 * (np.sin(PI2 * 60 * t) + 0.6 * np.sin(PI2 * 180 * t + 1.0)) * on
     s = reverb(s, ir_hall(), wet=0.22)
     return s * env_pts(n, [(0, 1), (dur - 0.12, 1), (dur, 0)])
 
@@ -287,7 +287,7 @@ def _child_laugh(r, k, rate, f0, fscale, vowel='a', fall=0.25, gasp=0.0, amp_fal
         d = r.uniform(0.55, 0.72) / rate
         fi = f0 * (1 - fall * i / max(1, k - 1)) * r.uniform(0.96, 1.05)
         x = np.clip((t - tt) / d, 0, 1)
-        f0c = np.where(t >= tt - 0.012, fi * (1 + 0.1 * np.sin(np.pi * x) - 0.08 * x), f0c)
+        f0c = np.where(t >= tt - 0.012, fi * (1 + 0.15 * np.sin(np.pi * x) - 0.1 * x), f0c)
         a = (1 - amp_fall * i / k) * r.uniform(0.8, 1.0)
         henv += gate(n, tt, tt + 0.03, 0.004, 0.02) * a
         venv += gate(n, tt + 0.018, tt + d, 0.008, 0.03) * a
@@ -318,7 +318,15 @@ def _party_toot(r, dur=0.5, f0=430.0):
     return P(s)
 
 
-def _remembered(r, dry, n, speed, wow=0.012, heads=((0.0, 1.0), (0.019, 0.55), (0.037, 0.4))):
+def _kid_babble(r, dur, f0, fscale):
+    """excited child chatter: the phone babble with a child's pitch and formants and
+    big, lively swings of intonation"""
+    n = N(dur)
+    lively = f0 * 2 ** (0.3 * smooth_noise(r, n, 2.2) + 0.1 * smooth_noise(r, n, 7))
+    return babble(r, dur, lively, fscale)
+
+
+def _remembered(r, dry, n, speed, wow=0.012, heads=((0.0, 1.0), (0.019, 0.45), (0.037, 0.3))):
     """play a dry recording back slowed to `speed`, warbling, read by three slightly
     detuned heads (smeared), out of a big room far away"""
     t = T(n)
@@ -328,7 +336,7 @@ def _remembered(r, dry, n, speed, wow=0.012, heads=((0.0, 1.0), (0.019, 0.55), (
                + 0.003 * np.sin(PI2 * (3.3 + j) * t + r.uniform(0, PI2)))
         out += g * varispeed(dry, speed * (1 + dev), start=-N(off))
     wet = reverb(out, ir_dining_st()[0], wet=1.0, dry=0.0)
-    out = 0.45 * out + 0.9 * wet
+    out = 0.8 * out + 0.42 * wet            # wetter than this and the laughs lose their 'ha-ha' rhythm
     return bw(bw(out, 'hp', 200, 2), 'lp', 3000, 2)
 
 
@@ -341,29 +349,30 @@ def night_kids(v, r, n):
     dd = m / SR
     dry = np.zeros(m)
     if v in (0, 1):
-        for f0, fs, t0, t1, a in ((285, 1.42, 0.1, dd - 0.5, 0.5), (318, 1.5, 0.6, dd - 0.25, 0.4),
-                                  (262, 1.38, 1.2, dd - 0.1, 0.35)):
-            place(dry, P(babble(r, t1 - t0, f0, fs)) * a, t0)
-        place(dry, _child_laugh(r, 6, 5.2, 360, 1.45, 'a', gasp=0.8) * 0.9, 1.05)
-        place(dry, _child_laugh(r, 5, 6.0, 420, 1.55, 'i') * 0.7, 1.3)
+        for f0, fs, t0, t1, a in ((300, 1.42, 0.1, dd - 0.5, 0.32), (335, 1.5, 0.6, dd - 0.25, 0.27),
+                                  (275, 1.38, 1.2, dd - 0.1, 0.22)):
+            place(dry, P(_kid_babble(r, t1 - t0, f0, fs)) * a, t0)
+        place(dry, _child_laugh(r, 6, 5.2, 430, 1.45, 'a', gasp=0.8), 1.05)
+        place(dry, _child_laugh(r, 5, 6.0, 500, 1.55, 'i') * 0.8, 1.3)
+        place(dry, _child_laugh(r, 4, 5.6, 460, 1.5, 'a') * 0.55, 2.35)
         place(dry, _party_toot(r, 0.45, 440) * 0.12, 0.35)
         if v == 0:
             # one laugh plays backwards, its echo swelling up into it
-            lg = _backwards(_child_laugh(r, 4, 4.8, 330, 1.45, 'a'), ir_dining_st()[0])
-            place(dry, P(lg) * 0.6, 2.9 - lg.shape[-1] / SR)
+            lg = _backwards(_child_laugh(r, 4, 4.8, 400, 1.45, 'a'), ir_dining_st()[0])
+            place(dry, P(lg) * 0.6, 3.3 - lg.shape[-1] / SR)
         else:
             dry = reverb(dry, ir_dining_st()[0], wet=0.8, dry=0.6)[::-1]       # all of it backwards
-            place(dry, _child_laugh(r, 5, 5.5, 380, 1.5, 'a', amp_fall=0.6) * 0.35, dd - 1.1)
+            place(dry, _child_laugh(r, 5, 5.5, 450, 1.5, 'a', amp_fall=0.6) * 0.45, dd - 1.1)
     else:
         # one burst of group laughter, slowed right down (deep, slurred), its echo arriving first
         group = np.zeros(N(2.4))
-        for i, (f0, fs, t0, k, rate, vw) in enumerate(((350, 1.45, 0.0, 7, 5.0, 'a'), (410, 1.55, 0.07, 6, 5.8, 'i'),
-                                                       (300, 1.4, 0.15, 6, 4.6, 'a'))):
+        for i, (f0, fs, t0, k, rate, vw) in enumerate(((440, 1.45, 0.0, 7, 5.0, 'a'), (520, 1.55, 0.07, 6, 5.8, 'i'),
+                                                       (390, 1.4, 0.15, 6, 4.6, 'a'))):
             place(group, _child_laugh(r, k, rate, f0, fs, vw, gasp=0.6 if i == 0 else 0.0) * (1.0 - 0.2 * i), t0)
         t_on, tail = 0.75, 0.7
         place(dry, group, t_on)
         place(dry, P(_preverb(group, ir_dining_st()[0], tail)) * 0.5 * float(np.max(np.abs(group))), t_on - tail)
-        place(dry, P(babble(r, 1.4, 300, 1.45)) * 0.3, 2.1)
+        place(dry, P(_kid_babble(r, 1.4, 320, 1.45)) * 0.25, 2.1)
     out = _remembered(r, dry, n, speed, wow=(0.012, 0.012, 0.018)[v])
     return out * env_pts(n, [(0, 0), (0.45, 1), (dur - 0.7, 1), (dur, 0)])
 
@@ -480,8 +489,8 @@ def night_door_rattle(v, r, n):
     fr = click_train(r, n, 60 + 80 * sp, jitter=0.45, amp_jitter=0.6, t0=lift[0], t1=lift[1]) * sp
     rail = P(resonators(fr, slat_modes())) + 0.4 * P(tvbq(white(r, n), 'bp', 1500 + 1800 * sp, 1.5) * sp)
     clunk = resonators(strike(n, drop, 0.003), door_modes()) + 0.8 * thud(r, n, drop, 100, 55, 0.2, 0.02, noise=0.5)
-    mix = P(slats) + 0.35 * P(panel) + 0.25 * P(flex) + 0.45 * P(rail) + 0.6 * P(clunk)
-    mix = reverb(mix, ir_office(), wet=0.22)
+    mix = P(slats) + 0.35 * P(panel) + 0.12 * P(flex) + 0.45 * P(rail) + 0.6 * P(clunk)
+    mix = bw(reverb(mix, ir_office(), wet=0.22), 'lp', 9000, 2)          # thick steel: no fizz on top
     return mix * env_pts(n, [(0, 1), (n / SR - 0.12, 1), (n / SR, 0)])
 
 
@@ -553,25 +562,30 @@ def night_groan(v, r, n):
     """the building's steel frame groaning: slow stick-slip friction through long
     I-beam modes, a moan of friction noise following the slip, far away"""
     dur = n / SR
-    if v == 0:
-        rate = env_pts(n, [(0, 12), (0.6, 16), (1.8, 34), (2.6, 26), (3.4, 14), (dur, 12)])
+    if v == 0:      # slow creaks that run together into a moan, and back
+        rate = env_pts(n, [(0, 13), (0.7, 18), (1.6, 44), (2.3, 52), (2.9, 30), (3.5, 16), (dur, 13)])
         amp = env_pts(n, [(0, 0), (0.35, 0.35), (1.5, 1.0), (2.7, 0.8), (3.5, 0.15), (dur, 0)])
         pop = None
-    else:
-        rate = env_pts(n, [(0, 20), (1.2, 28), (2.4, 46), (2.75, 52), (dur, 52)])
+    else:           # a rising moan, then the stress lets go
+        rate = env_pts(n, [(0, 20), (1.2, 30), (2.4, 58), (2.75, 66), (dur, 66)])
         amp = env_pts(n, [(0, 0), (0.5, 0.4), (2.0, 0.9), (2.72, 1.0), (2.76, 0.0), (dur, 0)])
-        pop = 2.76                                     # the stress lets go
-    rate = rate * (1 + 0.12 * smooth_noise(r, n, 4))
-    clicks = click_train(r, n, rate, jitter=0.28, amp_jitter=0.5) * amp
-    body = resonators(clicks, beam_modes())
+        pop = 2.76
+    rate = rate * (1 + 0.08 * smooth_noise(r, n, 4))
+    clicks = click_train(r, n, rate, jitter=0.05, amp_jitter=0.25) * amp
+    # the slip pulses sound through the frame's broad body resonances, so the slip rate is
+    # the groan's pitch; the beams' own modes (damped while loaded) add the metal ring
+    src = bw(clicks, 'lp', 1400, 2)
+    body = sum(g * P(bq(src, 'bp', f, q)) for f, q, g in ((80, 2.0, 1.0), (215, 2.5, 0.8), (480, 3.0, 0.5),
+                                                         (1050, 4.0, 0.3), (1900, 5.0, 0.12)))
+    ring = resonators(clicks, [(f, t60 * 0.22, a) for f, t60, a in beam_modes()])
     moan = tvbq(white(r, n), 'bp', rate * 4.0, 3.0) * amp ** 1.5
-    mix = P(body) + 0.25 * P(moan)
+    mix = P(body) + 0.2 * P(ring) + 0.1 * P(moan)
     if pop:
         bang = resonators(strike(n, pop, 0.002), beam_modes())
         mix += 0.9 * P(bang) + 0.7 * P(thud(r, n, pop, 70, 30, 0.8, 0.05, noise=0.9))
     mix = bw(mix, 'lp', 3000, 2)
     wet = reverb(mix, ir_far(), wet=1.0, dry=0.0)
-    out = 0.75 * P(mix) + 0.6 * P(wet)
+    out = 0.75 * P(mix) + 0.35 * P(wet)
     return out * env_pts(n, [(0, 1), (dur - 0.6, 1), (dur, 0)])
 
 
@@ -586,7 +600,10 @@ def night_twitch(v, r, n):
         segs, stops = [(0.006, 0.24)], [0.24]
     sp = np.zeros(n)
     for a, b in segs:
-        sp += gate(n, a, b, 0.012, 0.003)
+        # a whip: full speed almost at once, braking hard as it reaches the target, then the stop
+        x = np.clip((t - a) / (b - a), 0, 1)
+        prof = np.where(x < 0.22, np.sin(0.5 * np.pi * x / 0.22), 1 - 0.55 * (np.maximum(x - 0.22, 0) / 0.78) ** 1.3)
+        sp += prof * gate(n, a, b, 0.004, 0.003)
     # the drive glitches: it chatters on and off before it catches
     chat = 0.5 + 0.5 * np.sign(np.sin(PI2 * (42, 58, 35)[v] * t + r.uniform(0, PI2)))
     sp *= np.where(t < segs[0][0] + 0.06, 0.35 + 0.65 * chat, 1.0)
@@ -608,7 +625,7 @@ def night_twitch(v, r, n):
     if v == 2:
         rat = click_train(r, n, 40, jitter=0.4, amp_jitter=0.6, t0=0.25, t1=0.34) * decay(n, 0.08, 0.24)
         mix += 0.2 * P(resonators(rat, frame_modes('rattle')))
-    mix = reverb(mix, ir_hall(), wet=0.12)
+    mix = reverb(mix, ir_hall(), wet=0.08)
     return mix * env_pts(n, [(0, 1), (n / SR - 0.05, 1), (n / SR, 0)])
 
 
@@ -683,8 +700,8 @@ def night_midnight(v, r, n):
     t_toll = 0.85
     toll = bell(hz(midi('D3')), dur - t_toll, [(ra, a, tt * 1.8) for ra, a, tt in SOFT_BELL], attack=0.003, r=r)
     toll += 0.3 * bw(white(r, toll.shape[-1]), 'lp', 600, 2) * ar(toll.shape[-1], 0.001, 0.05)
-    toll = reverb(bw(toll, 'lp', 1800, 2), ir_far_st(), wet=1.0, dry=0.3)
-    place(out, P(toll) * 0.75, t_toll)
+    toll = reverb(bw(toll, 'lp', 1500, 2), ir_far_st(), wet=1.0, dry=0.12)
+    place(out, P(toll) * 0.45, t_toll)
     # the heartbeat underneath, getting faster and closer
     hb = np.zeros(n)
     for tb, a in ((1.6, 0.25), (2.5, 0.45), (3.38, 0.65), (4.24, 0.85), (5.08, 1.0)):
@@ -699,7 +716,7 @@ def night_midnight(v, r, n):
         nz = 0.7 * common + 0.3 * white(r, m)
         nz = eq(nz, ('peak', 3000, 0.8, 4.0), ('hs', 9000, 0.7, -4.0))
         br[ch] = 0.6 * nz + 0.5 * formants(nz, F, B, (0, -3, -6, -9)) + 0.15 * P(_crackle(r, m, 120))
-    br *= env_pts(m, [(0, 0), (0.35, 1), (0.55, 0.8), (0.95, 0)])
+    br = bw(br, 'lp', 8000, 2) * env_pts(m, [(0, 0), (0.35, 1), (0.55, 0.8), (0.95, 0)])
     place(out, P(br) * 0.3, 4.9)
     out += 0.004 * np.stack([np.sin(PI2 * 60 * t), np.sin(PI2 * 60 * t)]) * gate(n, 4.9, 5.85, 0.2, 0.3)
     return out * env_pts(n, [(0, 1), (dur - 0.4, 1), (dur, 0)])

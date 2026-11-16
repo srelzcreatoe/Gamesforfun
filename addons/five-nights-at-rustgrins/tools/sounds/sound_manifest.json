@@ -1131,12 +1131,12 @@
    "max_distance": null,
    "note": "",
    "peaks_db": [
-    -20.3
+    -20.63
    ],
    "seam_prefade": {
-    "step": 1.996,
-    "hf": 0.806,
-    "hf_p99": 2.248
+    "step": 2.083,
+    "hf": 0.905,
+    "hf_p99": 1.804
    }
   },
   "fnar.night.heartbeat": {
@@ -1175,9 +1175,9 @@
    "max_distance": 10,
    "note": "",
    "peaks_db": [
-    -7.47,
-    -7.37,
-    -7.38
+    -7.88,
+    -8.25,
+    -7.8
    ]
   },
   "fnar.night.musicbox_far": {
@@ -1213,9 +1213,9 @@
    "max_distance": 40,
    "note": "",
    "peaks_db": [
-    -4.07,
-    -3.7,
-    -3.85
+    -6.32,
+    -4.77,
+    -5.39
    ]
   },
   "fnar.night.giggle": {
@@ -1232,8 +1232,8 @@
    "max_distance": 12,
    "note": "",
    "peaks_db": [
-    -2.42,
-    -2.58
+    -2.34,
+    -2.45
    ]
   },
   "fnar.night.scrape": {
@@ -1250,7 +1250,7 @@
    "max_distance": 32,
    "note": "",
    "peaks_db": [
-    -3.47,
+    -3.86,
     -3.55
    ]
   },
@@ -1286,8 +1286,8 @@
    "max_distance": 16,
    "note": "",
    "peaks_db": [
-    -2.94,
-    -3.13
+    -2.8,
+    -3.18
    ]
   },
   "fnar.night.radio": {
@@ -1342,8 +1342,8 @@
    "max_distance": 64,
    "note": "",
    "peaks_db": [
-    -6.16,
-    -5.77
+    -5.38,
+    -6.77
    ]
   },
   "fnar.night.twitch": {
@@ -1361,9 +1361,9 @@
    "max_distance": 16,
    "note": "",
    "peaks_db": [
-    -2.55,
-    -3.2,
-    -2.63
+    -2.91,
+    -2.95,
+    -2.75
    ]
   },
   "fnar.night.stinger": {
@@ -1397,7 +1397,7 @@
    "max_distance": null,
    "note": "",
    "peaks_db": [
-    -3.07
+    -2.99
    ]
   },
   "fnar.hall.whisper": {

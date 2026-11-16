@@ -195,7 +195,7 @@ EVENTS = [
        fout=0.1),
     Ev('night.radio', rn.night_radio, 5.0, variants=2, cat='block', dist=(2, 24), level=('lufs', -21), fout=0.2),
     Ev('night.drip', rn.night_drip, 1.0, variants=3, cat='ambient', dist=(1, 12), level=('peak', -5.0), fout=0.1),
-    Ev('night.groan', rn.night_groan, 4.0, variants=2, cat='ambient', dist=(8, 64), level=('peak', -6.0), fout=0.3),
+    Ev('night.groan', rn.night_groan, 4.0, variants=2, cat='ambient', dist=(8, 64), level=('rms', -24.5), fout=0.3),
     Ev('night.twitch', rn.night_twitch, 0.4, variants=3, cat='hostile', dist=(1, 16), level=('peak', -2.5), fout=0.05),
     Ev('night.stinger', rn.night_stinger, 3.0, variants=2, stereo=True, cat='hostile', level=('peak', -3.0),
        fout=0.3),
