@@ -691,6 +691,198 @@
         }
       ]
     },
+    "fnar.night.drone": {
+      "category": "ambient",
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/drone"
+        }
+      ]
+    },
+    "fnar.night.heartbeat": {
+      "category": "player",
+      "min_distance": 4.0,
+      "max_distance": 12.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/heartbeat"
+        }
+      ]
+    },
+    "fnar.night.breath": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 10.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/breath1"
+        },
+        {
+          "name": "sounds/fnar/night/breath2"
+        },
+        {
+          "name": "sounds/fnar/night/breath3"
+        }
+      ]
+    },
+    "fnar.night.musicbox_far": {
+      "category": "hostile",
+      "min_distance": 8.0,
+      "max_distance": 48.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/musicbox_far1"
+        },
+        {
+          "name": "sounds/fnar/night/musicbox_far2"
+        }
+      ]
+    },
+    "fnar.night.kids": {
+      "category": "hostile",
+      "min_distance": 6.0,
+      "max_distance": 40.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/kids1"
+        },
+        {
+          "name": "sounds/fnar/night/kids2"
+        },
+        {
+          "name": "sounds/fnar/night/kids3"
+        }
+      ]
+    },
+    "fnar.night.giggle": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 12.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/giggle1"
+        },
+        {
+          "name": "sounds/fnar/night/giggle2"
+        }
+      ]
+    },
+    "fnar.night.scrape": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 32.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/scrape1"
+        },
+        {
+          "name": "sounds/fnar/night/scrape2"
+        }
+      ]
+    },
+    "fnar.night.knock": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/knock1"
+        },
+        {
+          "name": "sounds/fnar/night/knock2"
+        }
+      ]
+    },
+    "fnar.night.door_rattle": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/door_rattle1"
+        },
+        {
+          "name": "sounds/fnar/night/door_rattle2"
+        }
+      ]
+    },
+    "fnar.night.radio": {
+      "category": "block",
+      "min_distance": 2.0,
+      "max_distance": 24.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/radio1"
+        },
+        {
+          "name": "sounds/fnar/night/radio2"
+        }
+      ]
+    },
+    "fnar.night.drip": {
+      "category": "ambient",
+      "min_distance": 1.0,
+      "max_distance": 12.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/drip1"
+        },
+        {
+          "name": "sounds/fnar/night/drip2"
+        },
+        {
+          "name": "sounds/fnar/night/drip3"
+        }
+      ]
+    },
+    "fnar.night.groan": {
+      "category": "ambient",
+      "min_distance": 8.0,
+      "max_distance": 64.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/groan1"
+        },
+        {
+          "name": "sounds/fnar/night/groan2"
+        }
+      ]
+    },
+    "fnar.night.twitch": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/twitch1"
+        },
+        {
+          "name": "sounds/fnar/night/twitch2"
+        },
+        {
+          "name": "sounds/fnar/night/twitch3"
+        }
+      ]
+    },
+    "fnar.night.stinger": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/stinger1"
+        },
+        {
+          "name": "sounds/fnar/night/stinger2"
+        }
+      ]
+    },
+    "fnar.night.midnight": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fnar/night/midnight"
+        }
+      ]
+    },
     "fnar.hall.whisper": {
       "category": "hostile",
       "sounds": [
