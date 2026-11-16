@@ -417,7 +417,6 @@ def _speed_segments(r, n, segs, jerk=0.35):
 def night_scrape(v, r, n):
     """metal dragged slowly over tile somewhere down the hall: stick-slip chatter
     through the object and the floor, grit, a thin squeal, the corridor"""
-    t = T(n)
     if v == 0:
         sp = _speed_segments(r, n, [(0.08, 1.2, 1.0), (1.45, 2.65, 0.85)])
         modes, sq_f = pipe_modes(), 1730.0
