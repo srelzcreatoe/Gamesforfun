@@ -9,7 +9,9 @@
    },
    "textures": {
     "default": "textures/entity/fnar/rustgrin",
-    "eyes": "textures/entity/fnar/rustgrin_eyes"
+    "eyes": "textures/entity/fnar/rustgrin_eyes",
+    "hollow": "textures/entity/fnar/rustgrin_hollow",
+    "pinprick": "textures/entity/fnar/rustgrin_pinprick"
    },
    "geometry": {
     "default": "geometry.fnar.rustgrin"

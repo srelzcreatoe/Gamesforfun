@@ -8,6 +8,8 @@
 //                      (Bedrock's 16-value limit: a new animation needs a second property)
 //   fnar:eyes    bool  glowing eyes layer
 //   fnar:hidden  bool  render nothing (kept alive so its chunk/tag stay valid)
+//   fnar:hollow  bool  the pupils vanish: empty near-black sockets; with fnar:eyes on, one cold
+//                      pinprick of light deep in each (fnar:eyes off: pitch-black holes)
 //   fnar:look_yaw / fnar:look_pitch  int  head turn towards a camera (degrees, smoothed client side)
 //   fnar:variant int   0 normal, 1 alternate skin (Rustgrin: rusted)
 
@@ -157,6 +159,11 @@ export class Puppets {
 
   eyes(id, on) {
     this.setProp(id, 'fnar:eyes', !!on);
+  }
+
+  /** Hollow eyes: empty sockets instead of pupils (the eyes layer, if on, shows a pinprick in each). */
+  hollow(id, on) {
+    this.setProp(id, 'fnar:hollow', !!on);
   }
 
   hide(id, hidden = true) {
