@@ -363,7 +363,7 @@ export class NightSession {
     const hp = this.def.hallucinations ?? 0;
     if (hp > 0 && this.t >= this.nextHallucination && this.rng.chance(hp)) {
       this.nextHallucination = this.t + CONFIG.hallucination.cooldown;
-      this.emit({ fx: 'hallucination', kind: this.rng.pick(['showtime', 'whisper', 'poster', 'face', 'eyes']) });
+      this.emit({ fx: 'hallucination', kind: this.rng.pick(['showtime', 'whisper', 'poster', 'face', 'eyes', 'band_stare', 'giggle']) });
     }
   }
 

@@ -290,6 +290,32 @@ check(P.music === 'fnar.music.bgm' && game().save.settings.bgm === true, 'and ba
   const ent = (id) => [...mock.entities.values()].find((e) => e.typeId === `fnar:${id}`);
   check(ent('cat')?.props['fnar:anim'] === 'perform' && ent('purple_rat')?.props['fnar:anim'] === 'perform', 'night 2: the troupe dances on the Midway ring');
   check(ent('top_hat_rat')?.props['fnar:anim'] === 'pose', 'the Ringmaster stands posed in his booth');
+  // night dread: the midnight sting and the drone, honest tells at the doors, hollow eyes, the empty building
+  {
+    const dr = game().dread;
+    const now = () => system.currentTick;
+    check(mock.sounds.includes('fnar.night.midnight') && game().audio.loops.has('dread_drone'), 'the night shift starts with the midnight sting and the drone under it');
+    const d = { ...game().session.snapshot().devices, doorL: true, lightL: false };
+    const fake = { id: 'mirehop', node: 'DOOR_L' };
+    dr.tell(fake, d, P, now()); // the first tell waits a few seconds after the arrival
+    dr.nextTell.set('mirehop@DOOR_L', now());
+    const n0 = mock.sounds.length;
+    dr.tell(fake, d, P, now());
+    check(mock.sounds.slice(n0).some((x) => x === 'fnar.night.knock' || x === 'fnar.night.door_rattle'), 'something at a shut door knocks on it or rattles it');
+    dr.nextTell.set('mirehop@DOOR_L', now());
+    const n1 = mock.sounds.length;
+    dr.tell(fake, { ...d, doorL: false }, P, now());
+    check(mock.sounds.slice(n1).includes('fnar.night.breath'), 'something at an open, dark door breathes');
+    dr.setHollow('mirehop', true, 10);
+    await steps(1);
+    check(ent('mirehop')?.props['fnar:hollow'] === true, 'hollow eyes: the pupils go');
+    await steps(12);
+    check(ent('mirehop')?.props['fnar:hollow'] === false, 'and come back');
+    dr.nextAmbient = now();
+    const n2 = mock.sounds.length;
+    await steps(12);
+    check(mock.sounds.slice(n2).some((x) => x.startsWith('fnar.night.')), 'the empty building makes its own sounds');
+  }
   // 3-block animatronics: they stoop through the 3-tall doorways (not the 4-tall hall-to-corner link) and
   // lean in at the office door
   const { inLowDoorway } = await import(path.join(ROOT, 'packs/BP/scripts/mc/puppets.js'));

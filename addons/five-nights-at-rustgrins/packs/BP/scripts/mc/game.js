@@ -20,6 +20,7 @@ import { LOBBY_BUTTON_AT, STAR_SLOTS } from '../data/lobby.js';
 import { CALLS, HUNG_UP, TAKEOVER, FINAL, ENDINGS, TUTORIAL_HINTS, KILL_TIPS, DAY_TALK, CREEPY_TALK, SHOW_PA, CLOSING_PA, ENCORE } from '../data/story.js';
 import { Builder } from './builder.js';
 import { Puppets, yawToward } from './puppets.js';
+import { Dread } from './dread.js';
 import { Actuators } from './actuators.js';
 import { Audio } from './audio.js';
 import { Hud, mapTitle, MAP_OFF, FX_ON, JS_ON, hourLabel, spotlightReady } from './hud.js';
@@ -129,6 +130,7 @@ export class Game {
     this.plan = generatePlan();
     this.builder = new Builder((msg, frac, report) => this.onBuildProgress(msg, frac, report));
     this.puppets = new Puppets();
+    this.dread = new Dread(this);
     this.act = new Actuators(this.plan.meta);
     this.audio = new Audio();
     this.hud = new Hud();
@@ -937,6 +939,8 @@ export class Game {
           for (const id of CAST) {
             this.puppets.anim(id, 'pose');
             this.lookAtNearest(id);
+            // for a breath, the pupils are gone
+            if (this.rng.chance(0.5)) this.dread.setHollow(id, true, 40 + this.rng.int(0, 40));
           }
         }
         break;
@@ -946,6 +950,7 @@ export class Game {
           r.nextShow = now + SHOW.every;
           r.announced = false;
           for (const id of CAST) this.puppets.look(id, 0, 0);
+          this.dread.clearHollow();
           this.act.lampGroup('dining', true);
         }
         break;
@@ -1072,6 +1077,7 @@ export class Game {
         const pos = this.puppets.positionOf(id);
         const e = this.puppets.get(id);
         if (pos && e) this.headToward(id, e, pos, p.getHeadLocation());
+        this.dread.setHollow(id, true);
       }
       await wait(40);
       for (const line of CLOSING_PA) {
@@ -1190,6 +1196,7 @@ export class Game {
     this.audio.loop('fan', 'fnar.amb.fan', 'desk', null, 0.5);
     this.audio.loop('building', 'fnar.amb.building', null, player, 0.5);
     if (this.storm) this.audio.loop('rain', 'fnar.storm.rain', null, player, 0.7);
+    this.dread.start(player);
     log.info(`start ${this.nightLabel}${opts.ai ? ` ${JSON.stringify(opts.ai)}` : ''}${Object.keys(mods).length ? ` mods ${Object.keys(mods).join(',')}` : ''}`);
   }
 
@@ -1291,6 +1298,7 @@ export class Game {
     this.tickPa(g, now);
     this.tickBooth(g, now);
     this.tickStare(g);
+    this.dread.tick(g, now);
     if (now % 200 === 0) this.sweepMobs();
     if (this.cams.active) this.cams.tick(this.camCover());
     if (now % 10 === 0) this.keepInOffice(g);
@@ -1408,6 +1416,7 @@ export class Game {
         return;
       case 'light':
         this.act.hallLight(e.side, e.on);
+        this.dread.onLight(e.side, e.on, g);
         this.audio.play(e.on ? 'fnar.light.on' : 'fnar.light.off', 'office', g, { vol: 0.7 });
         if (e.on) this.audio.loop(`buzz_${e.side}`, 'fnar.amb.light_buzz', e.side === 'L' ? 'door_l' : 'door_r', null, 0.6);
         else this.audio.stop(`buzz_${e.side}`);
@@ -1490,6 +1499,7 @@ export class Game {
         return void this.takeover(g);
       case 'hour':
         this.audio.play('fnar.clock.chime', null, g, { vol: 0.5 });
+        this.dread.onHour(e.hour, g);
         if (!this.cams.active) g.onScreenDisplay.setTitle(' ', { fadeInDuration: 0, stayDuration: 40, fadeOutDuration: 10, subtitle: `§f${hourLabel(e.hour)}` });
         return;
       case 'phone': {
@@ -1994,6 +2004,7 @@ export class Game {
       const pitch = (-Math.atan2(dy, Math.hypot(dx, dz)) * 180) / Math.PI;
       this.puppets.look(c.id, rel, pitch);
       this.audio.play('fnar.servo.head', { x: node.x, y: node.y + 2, z: node.z }, g, { vol: 0.6, relayCam: cam.id });
+      this.dread.onStare(c.id, cam.id, { x: node.x, y: node.y + 2, z: node.z }, g);
     }
   }
 
@@ -2020,6 +2031,28 @@ export class Game {
           }, 30);
           break;
         }
+        case 'band_stare': {
+          // every face on the live camera turns to the lens, the pupils gone; with the monitor down,
+          // a giggle right behind the seat instead
+          const s = this.session;
+          const cam = this.cams.active ? CAMERA_BY_ID[s.devices.cams.cam] : null;
+          const seen = cam ? Object.values(s.chars).filter((c) => c.node && !c.walk && cam.sees.includes(c.node)) : [];
+          if (!seen.length) {
+            this.audio.play('fnar.night.giggle', { x: 36.5, y: 1.7, z: 69.5 }, g, { vol: 0.5 });
+            if (this.save.settings.captions) this.hud.setCaption('a giggle... right behind you', system.currentTick, 70);
+            break;
+          }
+          for (const c of seen) {
+            this.stare[c.id] = STARE_AFTER - 1; // the next stare tick turns the head to the lens
+            this.dread.setHollow(c.id, true, 80);
+          }
+          this.audio.play('fnar.night.twitch', null, g, { vol: 0.7 });
+          break;
+        }
+        case 'giggle':
+          this.audio.play('fnar.night.giggle', { x: 36.5, y: 1.7, z: 69.5 }, g, { vol: 0.5 });
+          if (this.save.settings.captions) this.hud.setCaption('a giggle... right behind you', system.currentTick, 70);
+          break;
         case 'eyes':
           for (const id of CAST) this.puppets.eyes(id, false);
           system.runTimeout(() => {
@@ -2099,6 +2132,7 @@ export class Game {
       const { cam, pos, facing } = jumpscareShot(g, look);
       g.addEffect('invisibility', 200, { amplifier: 0, showParticles: false });
       this.puppets.jumpscareAt(id, L(pos), facing);
+      this.dread.onJumpscare(id);
       g.camera.setCamera('minecraft:free', { location: cam, facingLocation: { x: pos.x, y: cam.y - 0.1, z: pos.z } });
       g.playSound(`fnar.js.${look}`, { volume: 1.0 });
       runCmd(`camerashake add @a[name="${g.name}"] 0.7 1.4 rotational`);

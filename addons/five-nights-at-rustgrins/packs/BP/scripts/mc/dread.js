@@ -1,0 +1,337 @@
+// Night dread: the building gets worse as the night goes on. Presentation only: nothing here moves an
+// animatronic or changes a rule, so the AI balance is untouched.
+//
+//   - a sub drone under the whole night, a second layer once something is close, a heartbeat once
+//     something is at the office (or the power is nearly gone)
+//   - honest tells at the office: breathing outside an open door, knocking and rattling on a shut one,
+//     something breathing (or knocking) in a vent
+//   - the sounds of the empty building: a far music box, children laughing in rooms nobody is in, a
+//     radio in a back room, metal scraping down a hall, drips, the frame groaning, later a giggle
+//     right behind the seat
+//   - eyes that go hollow (pupils gone, a cold pinprick in each black socket) when an animatronic is
+//     stared at on a camera, caught in the hall light, at the turn of an hour, in some jumpscares
+//   - a hall light that stutters while something stands in it, the office lamp stuttering at midnight
+//     and at 4 AM, darkness pulses when the power is almost out
+import { system } from '@minecraft/server';
+import { CAMERA_BY_ID } from '../data/cameras.js';
+import { log } from './log.js';
+
+/** Office nodes: an animatronic here is at the left door, the right door or the right window. */
+const AT_DOOR = Object.freeze({ DOOR_L: 'L', DOOR_R: 'R', WIN_R: 'R' });
+/** The duct ends over the office vents. */
+const AT_VENT = Object.freeze({ WD_END: 'L', ED_END: 'R' });
+/** One step out from the office: the hall corners, the nook, the hall ends, the last duct sections. */
+const NEAR = new Set(['WC', 'EC', 'NOOK', 'WH_S', 'EH_S', 'WD_5', 'ED_5']);
+
+/** Where the building's own sounds come from (local coordinates). */
+const PLACES = Object.freeze({
+  stage: { x: 38.5, y: 3.0, z: 6.0 },
+  backstage: { x: 7.0, y: 1.5, z: 7.0 },
+  gallery: { x: 8.5, y: 1.5, z: 45.0 },
+  dining: { x: 38.5, y: 2.0, z: 22.0 },
+  party: { x: 36.0, y: 1.5, z: 47.5 },
+  gameroom: { x: 64.0, y: 1.5, z: 52.0 },
+  funzone: { x: 90.0, y: 2.0, z: 56.0 },
+  west_hall_n: { x: 27.5, y: 1.5, z: 41.0 },
+  east_hall_n: { x: 45.5, y: 1.5, z: 41.0 },
+  kitchen: { x: 72.0, y: 1.5, z: 7.0 },
+  staff: { x: 8.0, y: 1.5, z: 60.0 },
+  parts: { x: 64.0, y: 1.5, z: 67.0 },
+  restrooms: { x: 72.0, y: 1.5, z: 20.0 },
+  office_back: { x: 36.5, y: 1.7, z: 69.5 }, // behind the seat
+});
+
+/** The empty building. hour: from which hour (0 = 12 AM) it can happen; w: weight. */
+const AMBIENT = Object.freeze([
+  { id: 'fnar.night.musicbox_far', at: ['stage', 'backstage', 'gallery'], hour: 1, w: 3, vol: 0.9, cap: 'a music box, somewhere far away' },
+  { id: 'fnar.night.kids', at: ['dining', 'party', 'gameroom', 'funzone'], hour: 2, w: 3, vol: 0.8, cap: 'children laughing in the empty building' },
+  { id: 'fnar.night.scrape', at: ['west_hall_n', 'east_hall_n', 'dining'], hour: 1, w: 2, vol: 0.8, cap: 'metal scraping, far down a hall' },
+  { id: 'fnar.night.radio', at: ['kitchen', 'staff', 'parts'], hour: 0, w: 2, vol: 0.8, cap: 'a radio crackles in a back room' },
+  { id: 'fnar.night.drip', at: ['restrooms', 'kitchen', 'backstage', 'west_hall_n', 'east_hall_n'], hour: 0, w: 4, vol: 0.7, cap: null },
+  { id: 'fnar.night.groan', at: ['dining', 'gameroom', 'party'], hour: 2, w: 2, vol: 1.0, cap: 'the building groans' },
+  { id: 'fnar.night.giggle', at: ['office_back'], hour: 4, w: 1, vol: 0.45, cap: 'a giggle... right behind you' },
+]);
+
+const HOLLOW_PROP = 'fnar:hollow';
+
+export class Dread {
+  /** @param {any} game the Game (session, audio, puppets, act, hud, rng, save, cams) */
+  constructor(game) {
+    this.game = game;
+    this.reset();
+  }
+
+  reset() {
+    this.level = -1; // 0 calm, 1 something close, 2 something at the office
+    this.nextAmbient = 0;
+    /** id -> tick the hollow eyes end */
+    this.hollow = new Map();
+    /** door/vent key -> next tick a tell may play there */
+    this.nextTell = new Map();
+    this.nextDark = 0;
+    /** @type {Set<string>} tells keys seen this check */
+    this.present = new Set();
+    this.revealed = new Set(); // sides whose hall light already caught a hollow stare tonight
+  }
+
+  get rng() {
+    return this.game.rng;
+  }
+
+  cap(text, ticks = 70) {
+    if (text && this.game.save.settings.captions) this.game.hud.setCaption(text, system.currentTick, ticks);
+  }
+
+  // ---------------------------------------------------------------- night start / end
+  /** The night shift begins: the clock, the bell, the office lamp catching. */
+  start(g) {
+    this.reset();
+    const now = system.currentTick;
+    this.nextAmbient = now + 500 + this.rng.int(0, 500);
+    this.game.audio.play('fnar.night.midnight', null, g, { vol: 0.9 });
+    this.game.audio.loop('dread_drone', 'fnar.night.drone', null, g, 0.35);
+    // the office lamp catches, fails, catches
+    this.lampStutter([6, 10, 15, 19]);
+    this.level = 0;
+  }
+
+  /** The office lamp goes off and on at these tick offsets (off, on, off, on...), unless the night moved on. */
+  lampStutter(at) {
+    const act = this.game.act;
+    const s = this.game.session;
+    const live = () => this.game.state === 'NIGHT' && this.game.session === s && !s.powerOut;
+    at.forEach((t, i) => system.runTimeout(() => live() && act.officeLamp(i % 2 === 1), t));
+  }
+
+  /** Stop the beds (the night ended, the power went out, a jumpscare). */
+  stopBeds() {
+    const a = this.game.audio;
+    a.stop('dread_drone');
+    a.stop('dread_drone2');
+    a.stop('dread_heart');
+    this.level = -1;
+  }
+
+  // ---------------------------------------------------------------- hollow eyes
+  /** Pupils gone, a pinprick in each black socket, for `ticks` (0 = until cleared). */
+  setHollow(id, on, ticks = 0) {
+    const p = this.game.puppets;
+    if (on) this.hollow.set(id, ticks ? system.currentTick + ticks : Infinity);
+    else this.hollow.delete(id);
+    if (typeof p.hollow === 'function') p.hollow(id, on);
+    else p.setProp(id, HOLLOW_PROP, !!on);
+  }
+
+  clearHollow() {
+    for (const id of [...this.hollow.keys()]) this.setHollow(id, false);
+  }
+
+  /** How likely an eerie moment is tonight at this hour (grows through the night and the week). */
+  odds(base, perHour) {
+    const s = this.game.session;
+    const night = Math.min(5, s?.night ?? 1);
+    return Math.min(0.85, base + perHour * (s?.hour ?? 0) + 0.05 * Math.max(0, night - 1));
+  }
+
+  /** An animatronic watched on a camera turned its head to the lens: sometimes its pupils go too. */
+  onStare(id, cam, where, g) {
+    if (!this.rng.chance(this.odds(0.12, 0.08))) return;
+    this.setHollow(id, true, 110 + this.rng.int(0, 90));
+    this.game.audio.play('fnar.night.twitch', where, g, { vol: 0.8, relayCam: cam });
+  }
+
+  /** The hall light came on: whoever stands in it may be staring back with empty eyes. */
+  onLight(side, on, g) {
+    if (!on) return;
+    const s = this.game.session;
+    for (const c of Object.values(s.chars)) {
+      if (!c.node || c.walk || AT_DOOR[c.node] !== side) continue;
+      if (!this.rng.chance(this.odds(0.25, 0.08))) continue;
+      this.setHollow(c.id, true, 90 + this.rng.int(0, 60));
+      if (!this.revealed.has(side)) {
+        this.revealed.add(side);
+        this.game.audio.play('fnar.night.twitch', side === 'L' ? 'door_l' : 'door_r', g, { vol: 0.9 });
+      }
+    }
+  }
+
+  /** The clock struck: things get worse at the turn of the late hours. */
+  onHour(hour, g) {
+    const s = this.game.session;
+    const a = this.game.audio;
+    if (hour >= 2 && this.game.cams.active) {
+      // every face on the live camera snaps to the lens, eyes empty
+      const cam = CAMERA_BY_ID[s.devices.cams.cam];
+      for (const c of Object.values(s.chars)) {
+        if (!c.node || c.walk || !cam?.sees.includes(c.node)) continue;
+        this.setHollow(c.id, true, 60);
+        a.play('fnar.night.twitch', null, g, { vol: 0.6, pitch: 0.9 + this.rng.next() * 0.2 });
+      }
+    }
+    if (hour === 3) {
+      a.play('fnar.night.musicbox_far', PLACES.stage, g, { vol: 1.0, pitch: 0.92 });
+      this.cap('3 AM - the music box plays on the empty stage');
+    } else if (hour === 4) {
+      a.play('fnar.night.groan', PLACES.dining, g, { vol: 1.0, pitch: 0.8 });
+      this.lampStutter([2, 5, 8, 20]);
+      this.cap('4 AM - the lights struggle');
+    } else if (hour === 5) {
+      a.loop('dread_heart', 'fnar.night.heartbeat', null, g, 0.8);
+      a.play('fnar.hall.whisper', null, g, { vol: 0.7, pitch: 0.7 });
+      this.cap('5 AM - one more hour');
+    }
+  }
+
+  /** A jumpscare: some of them come at you with empty eyes. */
+  onJumpscare(id) {
+    this.stopBeds();
+    if (this.rng.chance(0.35)) this.setHollow(id, true);
+  }
+
+  // ---------------------------------------------------------------- every tick of the night
+  /** @param {import('@minecraft/server').Player} g */
+  tick(g, now) {
+    const s = this.game.session;
+    if (!s || this.level < 0) return;
+    // hollow eyes run out (or end once the animatronic walks off)
+    for (const [id, until] of [...this.hollow]) {
+      if (now >= until || s.chars[id]?.walk) this.setHollow(id, false);
+    }
+    if (now % 10 !== 0) return;
+    if (s.powerOut) {
+      this.stopBeds();
+      return;
+    }
+    const snap = s.snapshot();
+    const d = snap.devices;
+    let atOffice = 0;
+    let near = 0;
+    this.present = new Set();
+    for (const c of Object.values(s.chars)) {
+      if (!c.node || c.walk) continue;
+      if (AT_DOOR[c.node] || AT_VENT[c.node]) {
+        atOffice++;
+        this.tell(c, d, g, now);
+      } else if (NEAR.has(c.node)) near++;
+    }
+    for (const k of [...this.nextTell.keys()]) if (!this.present.has(k)) this.nextTell.delete(k); // they left
+    const lowPower = snap.powerPct <= 10;
+    const level = atOffice || lowPower ? 2 : near || snap.hour >= 4 ? 1 : 0;
+    this.setLevel(level, g);
+    this.stutter(s, d, now);
+    // darkness pulses as the power runs out (only with the monitor down: the feed has night vision)
+    if (lowPower && !this.game.cams.active && now >= this.nextDark) {
+      this.nextDark = now + 400 + this.rng.int(0, 400);
+      try {
+        g.addEffect('darkness', 60, { amplifier: 0, showParticles: false });
+      } catch {
+        // ignore
+      }
+    }
+    if (now >= this.nextAmbient) this.ambient(snap, g, now);
+  }
+
+  setLevel(level, g) {
+    if (level === this.level) return;
+    const a = this.game.audio;
+    if (level >= 1) a.loop('dread_drone2', 'fnar.night.drone', null, g, 0.3);
+    else a.stop('dread_drone2');
+    if (level >= 2) a.loop('dread_heart', 'fnar.night.heartbeat', null, g, 0.7);
+    else if (this.game.session?.hour !== 5) a.stop('dread_heart');
+    this.level = level;
+  }
+
+  /** Honest tells for whoever is at a door, the window or a vent. */
+  tell(c, d, g, now) {
+    const key = `${c.id}@${c.node}`;
+    this.present.add(key);
+    // the first tell comes a few seconds after they arrive (the arrival has its own cue)
+    if (!this.nextTell.has(key)) {
+      this.nextTell.set(key, now + 60 + this.rng.int(0, 80));
+      return;
+    }
+    if (now < /** @type {number} */ (this.nextTell.get(key))) return;
+    const a = this.game.audio;
+    const door = AT_DOOR[c.node];
+    if (door) {
+      const spot = door === 'L' ? 'door_l' : 'door_r';
+      const where = door === 'L' ? 'left door' : c.node === 'WIN_R' ? 'right window' : 'right door';
+      const shut = door === 'L' ? d.doorL : d.doorR;
+      const lit = door === 'L' ? d.lightL : d.lightR;
+      if (shut && c.node !== 'WIN_R') {
+        if (this.rng.chance(0.6)) {
+          a.play('fnar.night.knock', spot, g, { vol: 0.9 });
+          this.cap(`knocking on the ${where}`);
+        } else {
+          a.play('fnar.night.door_rattle', spot, g, { vol: 0.9 });
+          this.cap(`something tries the ${where}`);
+        }
+        this.nextTell.set(key, now + 160 + this.rng.int(0, 160));
+        return;
+      }
+      if (!lit) {
+        a.play('fnar.night.breath', spot, g, { vol: 0.8 });
+        this.cap(`breathing, just outside the ${where}`);
+      }
+      this.nextTell.set(key, now + 220 + this.rng.int(0, 200));
+      return;
+    }
+    const vent = AT_VENT[c.node];
+    if (vent) {
+      const spot = vent === 'L' ? 'vent_l' : 'vent_r';
+      const shut = vent === 'L' ? d.ventL : d.ventR;
+      if (shut) {
+        a.play('fnar.night.knock', spot, g, { vol: 0.7, pitch: 0.8 });
+        this.cap(`something knocking inside the ${vent === 'L' ? 'left' : 'right'} vent`);
+      } else {
+        a.play('fnar.night.breath', spot, g, { vol: 0.7, pitch: 1.15 });
+        this.cap(`something breathing in the ${vent === 'L' ? 'left' : 'right'} vent`);
+      }
+      this.nextTell.set(key, now + 240 + this.rng.int(0, 200));
+    }
+  }
+
+  /** A lit hall light stutters while something stands in it. */
+  stutter(s, d, now) {
+    for (const side of ['L', 'R']) {
+      const lit = side === 'L' ? d.lightL : d.lightR;
+      if (!lit) continue;
+      const someone = Object.values(s.chars).some((c) => c.node && !c.walk && AT_DOOR[c.node] === side);
+      if (!someone || !this.rng.chance(0.04)) continue;
+      const act = this.game.act;
+      act.hallLight(side, false);
+      system.runTimeout(() => {
+        const cur = this.game.session;
+        if (this.game.state !== 'NIGHT' || cur !== s || s.powerOut) return;
+        act.hallLight(side, side === 'L' ? s.devices.lightL : s.devices.lightR);
+      }, 2 + this.rng.int(0, 3));
+    }
+  }
+
+  /** One of the building's own sounds, from somewhere nobody is. */
+  ambient(snap, g, now) {
+    const hour = snap.hour ?? 0;
+    const pool = AMBIENT.filter((e) => hour >= e.hour);
+    const total = pool.reduce((t, e) => t + e.w, 0);
+    let r = this.rng.next() * total;
+    let e = pool[0];
+    for (const x of pool) {
+      r -= x.w;
+      if (r <= 0) {
+        e = x;
+        break;
+      }
+    }
+    // sooner as the night goes on
+    const base = Math.max(600, 1500 - hour * 150);
+    this.nextAmbient = now + Math.round(base * (0.6 + this.rng.next() * 0.8));
+    if (!e) return;
+    const where = PLACES[this.rng.pick(e.at)];
+    try {
+      this.game.audio.play(e.id, where, g, { vol: e.vol, pitch: 0.9 + this.rng.next() * 0.15, relayCam: this.game.cams.active ? snap.devices.cam : null });
+      this.cap(e.cap);
+    } catch (err) {
+      log.warn(`dread ${e.id}: ${err?.message ?? err}`);
+    }
+  }
+}

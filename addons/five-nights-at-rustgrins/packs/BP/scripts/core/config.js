@@ -209,7 +209,7 @@ export const CONFIG = Object.freeze({
   nights: Object.freeze({
     0: Object.freeze({ title: 'Training', ai: { mirehop: 6, noxbriar: 0, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 200 }, ticksPerHour: 300, ramp: false, phone: 0, tape: false, hallucinations: 0 }),
     1: Object.freeze({ title: 'Night 1', ai: { mirehop: 3, noxbriar: 2, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 1000, noxbriar: 2400 }, ramp: true, phone: 1, tape: false, hallucinations: 0 }),
-    2: Object.freeze({ title: 'Night 2', ai: { mirehop: 4, noxbriar: 3, rustgrin: 0, cat: 2, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 400, noxbriar: 800, cat: 600 }, ramp: true, phone: 2, tape: true, hallucinations: 0 }),
+    2: Object.freeze({ title: 'Night 2', ai: { mirehop: 4, noxbriar: 3, rustgrin: 0, cat: 2, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 400, noxbriar: 800, cat: 600 }, ramp: true, phone: 2, tape: true, hallucinations: 0.001 }),
     3: Object.freeze({ title: 'Night 3', ai: { mirehop: 6, noxbriar: 5, rustgrin: 1, cat: 5, purple_rat: 4, top_hat_rat: 0 }, activation: { purple_rat: 800, rustgrin: 1600 }, ramp: true, phone: 3, tape: true, hallucinations: 0.002 }),
     4: Object.freeze({ title: 'Night 4', ai: { mirehop: 8, noxbriar: 8, rustgrin: 3, cat: 7, purple_rat: 7, top_hat_rat: 0 }, activation: {}, ramp: true, phone: 4, tape: true, hallucinations: 0.004 }),
     5: Object.freeze({ title: 'Night 5', ai: { mirehop: 15, noxbriar: 15, rustgrin: 7, cat: 13, purple_rat: 13, top_hat_rat: 0 }, activation: {}, ramp: true, phone: 5, tape: true, hallucinations: 0.006 }),
