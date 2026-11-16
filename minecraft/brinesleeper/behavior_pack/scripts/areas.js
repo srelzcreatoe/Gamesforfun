@@ -29,6 +29,9 @@ export function inStillwater(dim, pos) {
   return biomeAt(dim, pos) === BIOME || !!hallAt(pos);
 }
 
+// a staged creature the director hands over to the creature's own mind (brain.js): creature id -> { state, target }
+export const handoff = new Map();
+
 // what the creature is doing to each player, for the music: 'near' or 'chase', with an expiry tick
 export const pressure = new Map();
 export function press(playerId, level, until) {

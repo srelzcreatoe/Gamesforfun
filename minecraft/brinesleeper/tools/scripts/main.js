@@ -2,9 +2,9 @@
 // A hidden director that stages the Brinesleeper's encounters in the Stillwater Caves.
 // Stable Script API only: @minecraft/server 2.9.0 and @minecraft/server-ui 2.1.0 (Bedrock 1.26.40), no experiments.
 // Every effect is built from documented calls: entity events/properties for poses, particles, sounds, raycasts.
-import { world, system, CommandPermissionLevel, EntityDamageCause, EntityInitializationCause, GameMode } from '@minecraft/server';
-import { config, PRESETS, preset, threat, freq, loadConfig } from './config.js';
-import { inStillwater, press } from './areas.js';
+import { world, system, CommandPermissionLevel, EntityInitializationCause, GameMode } from '@minecraft/server';
+import { config, PRESETS, preset, freq, loadConfig } from './config.js';
+import { inStillwater, press, handoff } from './areas.js';
 
 const CREATURE = 'brine:brinesleeper';
 const SHADE = 'brine:apparition';
@@ -17,7 +17,7 @@ const ACT = {
   none: 0, watch: 1, submerged_watch: 2, shoreline_stalk: 3, corner_watch: 4, distant_observer: 5, full_stand: 6, emerge: 7,
   submerge: 8, ledge_watch: 9, behind_cover: 10, head_tilt: 11, shadow_hide: 12, tunnel_crawl: 13, retreat: 14, water_rise: 15,
   hunting_stance: 16, slow_approach: 17, patient_strike: 18, veil_stalk: 19, reflection_lurk: 20, idle_water: 21, swim: 22,
-  emerge_roar: 23, run: 24, stalk: 25, walk: 26, ceiling_lurk: 27,
+  emerge_roar: 23, run: 24, stalk: 25, walk: 26, ceiling_lurk: 27, crawl_still: 28,
 };
 // how far below the waterline the model's root sits for each water pose (from the pose calibration, 16 px = 1 block)
 const S = 1.15;                    // the model's scale (horror.py SCALE)
@@ -274,11 +274,11 @@ function endScene(reason) {
     // never vanish in plain sight: sink or walk away first (see withdraw), unless it is already out of view
     const seen = world.getAllPlayers().some((p) => inSight(p, c.getHeadLocation(), 64));
     if (!seen) removeQuietly(c);
-    else { setAct(c, 'none'); setMode(c, 'withdraw'); pendingWithdraw.add(c.id); }
+    else { setMode(c, 'hold'); setAct(c, c.isInWater ? 'submerge' : 'retreat'); pendingWithdraw.set(c.id, now()); }
   }
   scene = null;
 }
-const pendingWithdraw = new Set();
+const pendingWithdraw = new Map();
 
 /** wait until pred() is true, polling every `step` ticks; returns true if it happened before the timeout */
 function* waitUntil(pred, timeout, step = 2) {
@@ -314,19 +314,17 @@ function* sinkAway(c, surface) {
   particle(c.dimension, 'brine:ripple', surface);
   removeQuietly(c);
 }
-/** walk/slip away out of view, then remove */
+/** it turns away and holds still, half turned from you; the moment you look away it is gone (smoke if you never do) */
 function* slipAway(c, player) {
+  setMode(c, 'hold');
+  if (c.isInWater) { yield* sinkAway(c, c.location); return; }
   setAct(c, 'retreat');
-  yield 30;
-  setAct(c, 'none');
-  setMode(c, 'withdraw');
-  const gone = yield* waitUntil(() => !c.isValid || (player.isValid && !inSight(player, c.getHeadLocation())) || c.isInWater, 20 * TPS, 4);
-  if (c.isValid && c.isInWater) {
-    setMode(c, 'hold');
-    yield* sinkAway(c, c.location);
-    return;
-  }
-  if (gone && c.isValid) removeQuietly(c);
+  yield* waitUntil(() => !c.isValid || (player.isValid && !inSight(player, c.getHeadLocation())), 12 * TPS, 4);
+  if (!c.isValid) return;
+  particle(c.dimension, 'brine:smoke', add(c.location, { x: 0, y: 1.5, z: 0 }));
+  particle(c.dimension, 'brine:smoke', add(c.location, { x: 0, y: 3, z: 0 }));
+  wetTrail(c.dimension, c.location, add(c.location, mul(norm(sub(c.location, player.location)), 8)));
+  removeQuietly(c);
 }
 /** aftermath: wet drips along the way it went, from where it stood back to the water */
 function wetTrail(dim, from, to) {
@@ -520,9 +518,7 @@ function* sceneCrawl(player) {
 }
 
 // ---------- The Hunt (+ The Drowning Grasp, + The False Retreat)
-let grasp = null;
 function* sceneHunt(player, second = false) {
-  const w = watchOf(player);
   const s = findSpot(player, 'water', second ? 9 : 14, second ? 16 : 24,
     { depth: 2, eyeHeight: 0.4, behind: second ? 1.2 : undefined, sight: true });
   if (!s) return;
@@ -538,84 +534,15 @@ function* sceneHunt(player, second = false) {
   sting(player, 0.9);
   press(player.id, 'chase', now() + 60);
   try { player.playSound('brine.spotted', { volume: 1 }); } catch (e) { /* ok */ }
-  setAct(c, 'run');
-  setMode(c, 'hunt');
-  const dur = (second ? randInt(5, 7) : randInt(10, 20)) * TPS;
-  const end = now() + dur;
-  let lastLunge = now(), bestDist = 999, stuck = 0, grasped = false;
-  while (now() < end && c.isValid && player.isValid) {
-    if (!huntable(player) || player.dimension.id !== c.dimension.id) break;
-    const d = flat(player.location, c.location);
-    press(player.id, 'chase', now() + 40);
-    const v = c.getVelocity();
-    setAct(c, c.isInWater ? 'swim' : Math.hypot(v.x, v.z) > 0.04 ? 'run' : 'hunting_stance');
-    if (d > 40) break;                                        // too far: an impossible pursuit is abandoned
-    stuck = d < bestDist - 0.5 ? 0 : stuck + 4;
-    bestDist = Math.min(bestDist, d);
-    if (stuck > 6 * TPS && !inSight(player, c.getHeadLocation())) break;
-    // the lunge: a long reaching strike, 7 damage, then a pause
-    if (d > 2.4 && d < 5.5 && now() - lastLunge > randInt(80, 140) && inSight(player, c.getHeadLocation(), 8)) {
-      lastLunge = now();
-      try { c.playAnimation('animation.brinesleeper.lunge', { blendOutTime: 0.2 }); } catch (e) { /* ok */ }
-      sound(c.dimension, 'mob.brinesleeper.lunge', c.location, 1, rand(0.95, 1.1));
-      yield 7;
-      if (c.isValid && player.isValid && flat(player.location, c.location) < 3.6 && preset().damage > 0) {
-        player.applyDamage(Math.round(threat().lunge * preset().damage), { cause: EntityDamageCause.entityAttack, damagingEntity: c });
-        const k = norm(sub(player.location, c.location));
-        try { player.applyKnockback({ x: k.x * 0.6, z: k.z * 0.6 }, 0.25); } catch (e) { /* ok */ }
-      }
-      continue;
-    }
-    // the drowning grasp: only in water, only once, only if the player has health to spare
-    if (!grasped && config.grasp && preset().damage > 0 && player.isInWater && d < 2.6 && health(player) > 8) {
-      grasped = true;
-      yield* drowningGrasp(player, c);
-      if (!c.isValid) return;
-    }
-    yield 4;
-  }
-  press(player.id, 'near', now() + 120);                      // the chase is over; it is still near
-  if (!c.isValid) return;
-  setAct(c, 'retreat');
-  // withdrawal; sometimes a false retreat: it leaves, the water goes still, and it comes back once from behind
-  setMode(c, 'withdraw');
-  const falseRetreat = !second && w.tension > 60 && chance(0.35) && preset().hunt > 0;
-  yield* waitUntil(() => !c.isValid || c.isInWater || (player.isValid && !inSight(player, c.getHeadLocation())), 15 * TPS, 4);
-  if (c.isValid && c.isInWater) { setMode(c, 'hold'); yield* sinkAway(c, c.location); }
-  else if (c.isValid) removeQuietly(c);
-  wetTrail(player.dimension, s, player.location);
-  if (falseRetreat && player.isValid) {
-    silence = { x: player.location.x, z: player.location.z, until: now() + 10 * TPS };
-    yield randInt(8, 14) * TPS;
-    if (player.isValid && huntable(player)) yield* sceneHunt(player, true);
-  }
+  // from here the creature's own mind (brain.js) hunts you down: it is no longer staged, and it does not go away after
+  handoff.set(c.id, { state: 'chase', target: player.id });
+  c.removeTag(STAGED);
+  scene.creature = undefined;
+  const w = watchOf(player);
+  w.tension = Math.max(0, w.tension - 40);
 }
 function health(p) {
   try { return p.getComponent('minecraft:health')?.currentValue ?? 20; } catch (e) { return 20; }
-}
-function* drowningGrasp(player, c) {
-  debug('drowning grasp');
-  grasp = { playerId: player.id, until: now() + 2 * TPS, broken: false };
-  try { c.playAnimation('animation.brinesleeper.grasp'); } catch (e) { /* ok */ }
-  sound(c.dimension, 'mob.brinesleeper.grasp', player.location, 1, 1);
-  let hurt = false;
-  while (now() < grasp.until && !grasp.broken && player.isValid && c.isValid) {
-    const k = norm(sub(c.location, player.location));
-    try { player.applyKnockback({ x: k.x * 0.08, z: k.z * 0.08 }, -0.28); } catch (e) { /* ok */ }
-    player.addEffect('slowness', 20, { amplifier: 2, showParticles: false });
-    particle(player.dimension, 'brine:bubbles', player.location);
-    if (!hurt && now() > grasp.until - 30) {
-      hurt = true;
-      player.applyDamage(Math.round(threat().grasp * preset().damage), { cause: EntityDamageCause.entityAttack, damagingEntity: c });
-    }
-    if (player.isJumping && chance(0.25)) grasp.broken = true;   // kicking upward can break the hold
-    yield 4;
-  }
-  grasp = null;
-  if (c.isValid && player.isValid) {
-    const k = norm(sub(c.location, player.location));
-    try { c.applyKnockback({ x: k.x * 1.2, z: k.z * 1.2 }, 0.1); } catch (e) { /* ok */ }
-  }
 }
 const huntable = (p) => { try { const m = p.getGameMode(); return m === GameMode.Survival || m === GameMode.Adventure; } catch (e) { return false; } };
 
@@ -949,7 +876,12 @@ function tickDirector() {
   for (const c of creatures()) {
     if (!pendingWithdraw.has(c.id)) continue;
     const seen = world.getAllPlayers().some((p) => inSight(p, c.getHeadLocation(), 64));
-    if (!seen || c.isInWater) { pendingWithdraw.delete(c.id); removeQuietly(c); }
+    const long = now() - (pendingWithdraw.get(c.id) ?? now()) > 15 * TPS;          // stared at for too long: smoke
+    if (!seen || c.isInWater || long) {
+      if (long && seen) particle(c.dimension, 'brine:smoke', add(c.location, { x: 0, y: 2, z: 0 }));
+      pendingWithdraw.delete(c.id);
+      removeQuietly(c);
+    }
   }
   for (let i = territories.length - 1; i >= 0; i--) if (territories[i].until < now()) territories.splice(i, 1);
 }
@@ -979,7 +911,6 @@ world.afterEvents.entityHurt.subscribe(({ hurtEntity, damageSource }) => {
   if (hurtEntity.typeId !== CREATURE) return;
   const attacker = damageSource.damagingEntity;
   if (!attacker || attacker.typeId !== 'minecraft:player') return;
-  if (grasp && grasp.playerId === attacker.id) grasp.broken = true;   // hit it and it lets go
   const w = watches.get(attacker.id);
   if (w) w.tension = Math.min(100, w.tension + 10);
   // a held creature that is struck flinches away into the water; it is not automatically provoked into a chase

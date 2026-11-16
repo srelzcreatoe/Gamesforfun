@@ -152,7 +152,7 @@ def biome_files(RP, BP):
                 'minecraft:lighting_identifier': {'lighting_identifier': 'minecraft:default_lighting'},
                 'minecraft:water_identifier': {'water_identifier': 'minecraft:default_water'},
                 'minecraft:ambient_sounds': {
-                    'addition': {'asset': AMBIENT, 'chance': 0.006},
+                    'addition': {'asset': AMBIENT, 'chance': 0.0045},
                     'mood': 'ambient.cave',
                     'underwater_addition': {'asset': 'ambient.underwater.additions', 'chance': 0.01},
                     'underwater_loop': 'ambient.underwater.loop',
@@ -1007,43 +1007,36 @@ def _cave_reverb(x, seconds=2.6, seed=1):
 
 
 def ambient_sounds(RP, audio=AUDIO):
+    """what the Stillwater Caves play now and then, far away: drops of water, a splash, the rock groaning, a voice"""
+    import dread
     out = f'{RP}/sounds/ambient/{NS}'
     os.makedirs(out, exist_ok=True)
-    clips = {}
     splash_path = os.path.join(audio, 'splash.wav')
-    rng = np.random.default_rng(9)
     if not os.path.exists(splash_path):
         raise FileNotFoundError(f'{splash_path} is needed for the ambient splashes (the repository assets/audio folder)')
     s = _load_wav(splash_path)
-    for i, (pitch, cutoff) in enumerate(((0.78, 900.0), (0.92, 1300.0))):
-        v = np.interp(np.arange(0, len(s) - 1, pitch), np.arange(len(s)), s)
-        clips[f'stillwater_splash{i + 1}'] = _cave_reverb(_lowpass(v, cutoff), 2.8, seed=i + 1)
-    for i, f0 in enumerate((1500.0, 1150.0)):          # single drops falling into still water
-        n = int(0.09 * SR)
-        t = np.arange(n) / SR
-        f = f0 * np.exp(-t / 0.03) + 420
-        drop = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.025)
-        drop += 0.15 * rng.normal(0, 1, n) * np.exp(-t / 0.004)
-        clips[f'stillwater_drip{i + 1}'] = _cave_reverb(drop, 2.2, seed=10 + i)
-    names = []
+    s = np.interp(np.arange(0, len(s) - 1, SR / dread.SR), np.arange(len(s)), s)
+    clips = dread.ambient_oneshots(s)
     for name, x in clips.items():
-        x = x / (np.max(np.abs(x)) or 1.0) * 0.8
-        fade = np.minimum(1.0, (len(x) - np.arange(len(x))) / (0.4 * SR))
+        x = x / (np.max(np.abs(x)) or 1.0) * 0.85
+        fade = np.minimum(1.0, (len(x) - np.arange(len(x))) / (0.4 * dread.SR))
         pcm = (x * fade * 32767).astype(np.int16)
         with tempfile.TemporaryDirectory() as tmp:
             wav_path = os.path.join(tmp, 'a.wav')
             with wave.open(wav_path, 'w') as w:
-                w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR); w.writeframes(pcm.tobytes())
+                w.setnchannels(1); w.setsampwidth(2); w.setframerate(dread.SR); w.writeframes(pcm.tobytes())
             subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', wav_path, '-c:a', 'libvorbis', '-q:a', '4',
                             f'{out}/{name}.ogg'], check=True)
-        names.append(name)
+    # mostly water; now and then the rock, rarely a voice
+    weight = lambda n: 6 if 'drip' in n else 3 if 'splash' in n else 2 if 'groan' in n else 1
+    volume = lambda n: 0.45 if 'drip' in n else 0.55 if 'splash' in n else 0.7 if 'groan' in n else 0.5
     write(f'{RP}/sounds/sound_definitions.json', {
         'format_version': '1.20.20',
         'sound_definitions': {AMBIENT: {'category': 'ambient', 'sounds': [
-            {'name': f'sounds/ambient/{NS}/{n}', 'volume': 0.55 if 'splash' in n else 0.4, 'load_on_low_memory': True} for n in names]}},
+            {'name': f'sounds/ambient/{NS}/{n}', 'volume': volume(n), 'weight': weight(n), 'load_on_low_memory': True} for n in clips]}},
     })
     write(f'{RP}/sounds.json', {
-        'individual_named_sounds': {'sounds': {AMBIENT: {'sound': AMBIENT, 'volume': 0.8, 'pitch': [0.85, 1.05]}}},
+        'individual_named_sounds': {'sounds': {AMBIENT: {'sound': AMBIENT, 'volume': 0.8, 'pitch': [0.85, 1.0]}}},
     })
 
 

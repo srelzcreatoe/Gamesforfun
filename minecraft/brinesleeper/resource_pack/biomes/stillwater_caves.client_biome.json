@@ -30,7 +30,7 @@
       "minecraft:ambient_sounds": {
         "addition": {
           "asset": "ambient.brine.stillwater.additions",
-          "chance": 0.006
+          "chance": 0.0045
         },
         "mood": "ambient.cave",
         "underwater_addition": {

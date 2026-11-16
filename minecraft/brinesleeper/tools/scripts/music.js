@@ -7,7 +7,7 @@ import { world, system } from '@minecraft/server';
 import { config } from './config.js';
 import { inStillwater, pressure } from './areas.js';
 
-const CALM_TICKS = 90 * 20;
+const CALM_TICKS = 80 * 20;
 const state = new Map();
 
 function want(p, t) {

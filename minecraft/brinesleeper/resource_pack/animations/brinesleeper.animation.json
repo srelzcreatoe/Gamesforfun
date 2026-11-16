@@ -173248,6 +173248,348 @@
           ]
         }
       }
+    },
+    "animation.brinesleeper.crawl_still": {
+      "loop": true,
+      "animation_length": 6.0,
+      "bones": {
+        "body": {
+          "position": [
+            0,
+            -16,
+            3
+          ]
+        },
+        "pelvis": {
+          "rotation": [
+            48,
+            0,
+            0
+          ]
+        },
+        "waist": {
+          "rotation": [
+            14,
+            2.823,
+            0
+          ]
+        },
+        "chest": {
+          "rotation": [
+            14,
+            5.592,
+            0
+          ]
+        },
+        "neck_lower": {
+          "rotation": [
+            -24,
+            0,
+            0
+          ]
+        },
+        "neck_mid": {
+          "rotation": [
+            -18,
+            0,
+            0
+          ]
+        },
+        "neck_upper": {
+          "rotation": [
+            -14,
+            0,
+            0
+          ]
+        },
+        "head": {
+          "rotation": [
+            "-15.398 + math.sin(query.anim_time * 40) * 4",
+            "-8.206 + math.sin(query.anim_time * 23) * 9",
+            -3.281
+          ]
+        },
+        "jaw": {
+          "rotation": [
+            0.478,
+            0,
+            0
+          ]
+        },
+        "drip_right": {
+          "rotation": [
+            35,
+            0,
+            0
+          ]
+        },
+        "drip_right_end": {
+          "rotation": [
+            17.007,
+            0,
+            -2.852
+          ]
+        },
+        "drip_left": {
+          "rotation": [
+            40.487,
+            0,
+            3.274
+          ]
+        },
+        "drip_left_end": {
+          "rotation": [
+            22.195,
+            0,
+            -0.45
+          ]
+        },
+        "drip_mouth": {
+          "rotation": [
+            37.189,
+            0,
+            3.761
+          ]
+        },
+        "drip_cheek_right": {
+          "rotation": [
+            30.386,
+            0,
+            1.046
+          ]
+        },
+        "drip_cheek_left": {
+          "rotation": [
+            30.97,
+            0,
+            -2.56
+          ]
+        },
+        "right_arm": {
+          "rotation": [
+            41.629,
+            36.53,
+            64.555
+          ]
+        },
+        "right_forearm": {
+          "rotation": [
+            -88.918,
+            0,
+            0
+          ]
+        },
+        "right_hand": {
+          "rotation": [
+            -68,
+            55,
+            0
+          ]
+        },
+        "right_finger1": {
+          "rotation": [
+            -24,
+            0,
+            0
+          ]
+        },
+        "right_finger1_tip": {
+          "rotation": [
+            -3.2,
+            0,
+            0
+          ]
+        },
+        "right_finger2": {
+          "rotation": [
+            -24,
+            0,
+            0
+          ]
+        },
+        "right_finger2_tip": {
+          "rotation": [
+            -3.2,
+            0,
+            0
+          ]
+        },
+        "right_finger3": {
+          "rotation": [
+            -24,
+            0,
+            0
+          ]
+        },
+        "right_finger3_tip": {
+          "rotation": [
+            -12.6,
+            0,
+            0
+          ]
+        },
+        "right_finger4": {
+          "rotation": [
+            -24,
+            0,
+            0
+          ]
+        },
+        "right_finger4_tip": {
+          "rotation": [
+            -12.6,
+            0,
+            0
+          ]
+        },
+        "right_thumb": {
+          "rotation": [
+            -0.571,
+            0,
+            0
+          ]
+        },
+        "right_thumb_tip": {
+          "rotation": [
+            -12.6,
+            0,
+            0
+          ]
+        },
+        "left_arm": {
+          "rotation": [
+            53.302,
+            -81.336,
+            -80.94
+          ]
+        },
+        "left_forearm": {
+          "rotation": [
+            -77.877,
+            0,
+            0
+          ]
+        },
+        "left_hand": {
+          "rotation": [
+            -27,
+            -45.5,
+            0
+          ]
+        },
+        "left_finger1": {
+          "rotation": [
+            -24,
+            0,
+            0
+          ]
+        },
+        "left_finger1_tip": {
+          "rotation": [
+            -12.6,
+            0,
+            0
+          ]
+        },
+        "left_finger2": {
+          "rotation": [
+            -24,
+            0,
+            0
+          ]
+        },
+        "left_finger2_tip": {
+          "rotation": [
+            -12.6,
+            0,
+            0
+          ]
+        },
+        "left_finger3": {
+          "rotation": [
+            -24,
+            0,
+            0
+          ]
+        },
+        "left_finger3_tip": {
+          "rotation": [
+            -3.2,
+            0,
+            0
+          ]
+        },
+        "left_finger4": {
+          "rotation": [
+            -24,
+            0,
+            0
+          ]
+        },
+        "left_finger4_tip": {
+          "rotation": [
+            6.2,
+            0,
+            0
+          ]
+        },
+        "left_thumb": {
+          "rotation": [
+            -4,
+            0,
+            0
+          ]
+        },
+        "left_thumb_tip": {
+          "rotation": [
+            -12.6,
+            0,
+            0
+          ]
+        },
+        "right_leg": {
+          "rotation": [
+            -17.206,
+            48.719,
+            60.192
+          ]
+        },
+        "right_shin": {
+          "rotation": [
+            36.181,
+            0,
+            0
+          ]
+        },
+        "right_foot": {
+          "rotation": [
+            41.023,
+            -63.82,
+            -45.765
+          ]
+        },
+        "left_leg": {
+          "rotation": [
+            22.179,
+            -22.113,
+            -73.637
+          ]
+        },
+        "left_shin": {
+          "rotation": [
+            22.72,
+            0,
+            0
+          ]
+        },
+        "left_foot": {
+          "rotation": [
+            -0.909,
+            73.662,
+            35.217
+          ]
+        }
+      }
     }
   }
 }

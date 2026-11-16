@@ -48,73 +48,72 @@
       },
       "brine:ai_roam_land": {
         "minecraft:movement": {
-          "value": 0.28
+          "value": 0
         },
         "minecraft:underwater_movement": {
-          "value": 0.27
+          "value": 0
         },
         "minecraft:physics": {},
-        "minecraft:behavior.hurt_by_target": {
-          "priority": 1
-        },
-        "minecraft:behavior.melee_attack": {
-          "priority": 3,
-          "speed_multiplier": 1.5,
-          "track_target": true
-        },
-        "minecraft:behavior.move_to_land": {
-          "priority": 4,
-          "search_range": 16,
-          "search_height": 5,
-          "goal_radius": 0.5
-        },
-        "minecraft:behavior.random_stroll": {
-          "priority": 6,
-          "speed_multiplier": 0.8
-        },
         "minecraft:behavior.look_at_player": {
-          "priority": 8,
-          "look_distance": 24,
-          "probability": 0.08
-        },
-        "minecraft:behavior.random_look_around": {
-          "priority": 9
+          "priority": 1,
+          "look_distance": 64,
+          "probability": 1.0
         }
       },
       "brine:ai_roam_water": {
         "minecraft:movement": {
-          "value": 0.28
+          "value": 0
         },
         "minecraft:underwater_movement": {
-          "value": 0.27
+          "value": 0
         },
         "minecraft:physics": {},
-        "minecraft:behavior.hurt_by_target": {
-          "priority": 1
-        },
-        "minecraft:behavior.melee_attack": {
-          "priority": 3,
-          "speed_multiplier": 1.5,
-          "track_target": true
-        },
-        "minecraft:behavior.move_to_water": {
-          "priority": 4,
-          "search_range": 24,
-          "search_height": 8,
-          "search_count": 1,
-          "goal_radius": 1.5,
-          "speed_multiplier": 1.2
-        },
-        "minecraft:behavior.random_swim": {
-          "priority": 6,
-          "speed_multiplier": 1.2,
-          "xz_dist": 12,
-          "y_dist": 6
-        },
         "minecraft:behavior.look_at_player": {
-          "priority": 8,
-          "look_distance": 24,
-          "probability": 0.08
+          "priority": 1,
+          "look_distance": 64,
+          "probability": 1.0
+        }
+      },
+      "brine:ai_stalk": {
+        "minecraft:movement": {
+          "value": 0
+        },
+        "minecraft:underwater_movement": {
+          "value": 0
+        },
+        "minecraft:physics": {},
+        "minecraft:behavior.look_at_player": {
+          "priority": 1,
+          "look_distance": 64,
+          "probability": 1.0
+        }
+      },
+      "brine:ai_hunt": {
+        "minecraft:movement": {
+          "value": 0
+        },
+        "minecraft:underwater_movement": {
+          "value": 0
+        },
+        "minecraft:physics": {},
+        "minecraft:behavior.look_at_player": {
+          "priority": 1,
+          "look_distance": 64,
+          "probability": 1.0
+        }
+      },
+      "brine:ai_withdraw": {
+        "minecraft:movement": {
+          "value": 0
+        },
+        "minecraft:underwater_movement": {
+          "value": 0
+        },
+        "minecraft:physics": {},
+        "minecraft:behavior.look_at_player": {
+          "priority": 1,
+          "look_distance": 64,
+          "probability": 1.0
         }
       },
       "brine:ai_hold": {
@@ -143,130 +142,19 @@
           "probability": 1.0
         }
       },
-      "brine:ai_stalk": {
-        "minecraft:movement": {
-          "value": 0.24
-        },
-        "minecraft:underwater_movement": {
-          "value": 0.3
-        },
-        "minecraft:physics": {},
-        "minecraft:behavior.nearest_attackable_target": {
-          "priority": 2,
-          "must_see": false,
-          "reselect_targets": true,
-          "within_radius": 64,
-          "entity_types": [
-            {
-              "filters": {
-                "test": "is_family",
-                "subject": "other",
-                "value": "player"
-              },
-              "max_dist": 64
-            }
-          ]
-        },
-        "minecraft:behavior.move_towards_target": {
-          "priority": 3,
-          "speed_multiplier": 1.0,
-          "within_radius": 64
-        },
-        "minecraft:behavior.look_at_player": {
-          "priority": 4,
-          "look_distance": 64,
-          "probability": 1.0
-        }
-      },
-      "brine:ai_hunt": {
-        "minecraft:movement": {
-          "value": 0.36
-        },
-        "minecraft:underwater_movement": {
-          "value": 0.38
-        },
-        "minecraft:physics": {},
-        "minecraft:behavior.hurt_by_target": {
-          "priority": 1
-        },
-        "minecraft:behavior.nearest_attackable_target": {
-          "priority": 2,
-          "must_see": false,
-          "reselect_targets": true,
-          "within_radius": 48,
-          "entity_types": [
-            {
-              "filters": {
-                "test": "is_family",
-                "subject": "other",
-                "value": "player"
-              },
-              "max_dist": 48
-            }
-          ]
-        },
-        "minecraft:behavior.leap_at_target": {
-          "priority": 3,
-          "yd": 0.45,
-          "must_be_on_ground": false
-        },
-        "minecraft:behavior.melee_attack": {
-          "priority": 4,
-          "speed_multiplier": 1.55,
-          "track_target": true
-        }
-      },
-      "brine:ai_withdraw": {
-        "minecraft:movement": {
-          "value": 0.4
-        },
-        "minecraft:underwater_movement": {
-          "value": 0.36
-        },
-        "minecraft:physics": {},
-        "minecraft:behavior.move_to_water": {
-          "priority": 1,
-          "search_range": 32,
-          "search_height": 8,
-          "search_count": 1,
-          "goal_radius": 1.5,
-          "speed_multiplier": 1.6
-        },
-        "minecraft:behavior.avoid_mob_type": {
-          "priority": 2,
-          "entity_types": [
-            {
-              "filters": {
-                "test": "is_family",
-                "subject": "other",
-                "value": "player"
-              },
-              "max_dist": 32,
-              "walk_speed_multiplier": 1.4,
-              "sprint_speed_multiplier": 1.8
-            }
-          ]
-        },
-        "minecraft:behavior.random_swim": {
-          "priority": 6,
-          "speed_multiplier": 1.3,
-          "xz_dist": 14,
-          "y_dist": 6
-        }
-      },
       "brine:vanish": {
         "minecraft:instant_despawn": {}
       },
       "brine:standing": {
         "minecraft:collision_box": {
-          "width": 1.15,
-          "height": 3.91
+          "width": 1.0,
+          "height": 3.4
         }
       },
       "brine:crawling": {
         "minecraft:collision_box": {
-          "width": 1.15,
-          "height": 1.6
+          "width": 1.0,
+          "height": 1.4
         }
       }
     },
@@ -289,8 +177,8 @@
         "value": 1.15
       },
       "minecraft:collision_box": {
-        "width": 1.15,
-        "height": 3.91
+        "width": 1.0,
+        "height": 3.4
       },
       "minecraft:loot": {
         "table": "loot_tables/entities/brinesleeper.json"
@@ -334,7 +222,7 @@
         "is_pushable_by_piston": true
       },
       "minecraft:knockback_resistance": {
-        "value": 0.75
+        "value": 1.0
       },
       "minecraft:nameable": {},
       "minecraft:persistent": {},
@@ -368,7 +256,7 @@
       "minecraft:entity_spawned": {
         "add": {
           "component_groups": [
-            "brine:ai_roam_water",
+            "brine:ai_hold",
             "brine:threat_2",
             "brine:standing"
           ]

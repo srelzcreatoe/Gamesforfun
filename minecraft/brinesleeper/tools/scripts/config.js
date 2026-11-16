@@ -18,9 +18,9 @@ export const PRESET_KEYS = Object.keys(PRESETS);
 
 // how dangerous the creature itself is: health and melee come from its entity file (brine:threat_N), the rest from here
 export const THREATS = {
-  1: { label: 'Dangerous', lunge: 10, grasp: 3, speed: 1.0, chaseSeconds: [12, 18] },
-  2: { label: 'Deadly', lunge: 12, grasp: 4, speed: 1.08, chaseSeconds: [14, 22] },
-  3: { label: 'Apex', lunge: 15, grasp: 6, speed: 1.16, chaseSeconds: [16, 26] },
+  1: { label: 'Dangerous', melee: 6, lunge: 10, grasp: 3, speed: 1.0, chaseSeconds: [12, 18] },
+  2: { label: 'Deadly', melee: 8, lunge: 12, grasp: 4, speed: 1.08, chaseSeconds: [14, 22] },
+  3: { label: 'Apex', melee: 11, lunge: 15, grasp: 6, speed: 1.16, chaseSeconds: [16, 26] },
 };
 
 export const DEFAULTS = {

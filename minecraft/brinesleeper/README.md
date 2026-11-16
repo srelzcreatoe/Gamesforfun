@@ -8,7 +8,25 @@ and arms long enough to drag its clawed hands on the ground.
 It comes with its own cave biome, the [Stillwater Caves](#stillwater-caves-biome), where it is
 the only hostile mob that spawns.
 
-**Version 5.0, "It Follows"** (details in [ADDON_REPORT.md](ADDON_REPORT.md)):
+**Version 6.0, "Dread"** (details in [ADDON_REPORT.md](ADDON_REPORT.md); listen to
+`preview/brinesleeper_sounds_preview.mp3`):
+* **New sounds, all of them.**
+  * Calm tracks of sinking drones, howling cave air, bowed metal gliding over the water, and
+    voices that aren't words.
+  * A "near" loop that falls forever.
+  * A chase in an uneven 7/8 with strings screaming upward without end.
+  * A real shriek when it spots you, and a throat for every sound it makes.
+  * Built so the dread survives phone speakers. Before, the dark parts were too low for them to
+    play, and only the pretty parts came through.
+* **It no longer gets stuck.**
+  * Its hitbox was accidentally 4.5 blocks tall; it is now 3.9 standing and 1.6 crawling.
+  * The game's pathfinder is gone: the script walks it along your own trail, crawls only under
+    low roofs, steps onto blocks and off edges cleanly, and hauls itself out of the water
+    beside the bank, never through it.
+  * The swim, crawl and run animations play only while it is actually moving.
+* **One more step than yours:** when you stop, it takes one last wet step behind you.
+
+**Version 5.0, "It Follows"**:
 * **There is only ever one**, and nothing else lives in its caves: no bats, no fish, no
   zombies.
 * **It learns you.** It notices whether you look behind you, carry light, run, swim or fight,
@@ -339,7 +357,7 @@ You can also import `resource_pack/models/entity/brinesleeper.geo.json` and the
    water is (or the old well near spawn that leads down to a great hall). You can also use
    `/locate biome brine:stillwater_caves`.
 
-The packs are version 5.0.0, so they import over older versions. They need Minecraft Bedrock **1.26.40 or
+The packs are version 6.0.0, so they import over older versions. They need Minecraft Bedrock **1.26.40 or
 newer**, for the stable `@minecraft/server` 2.9.0 and `@minecraft/server-ui` 2.1.0 script
 modules. The director has not been play-tested in-game yet; ADDON_REPORT.md lists what to check.
 

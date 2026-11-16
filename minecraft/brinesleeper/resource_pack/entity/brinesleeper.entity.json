@@ -43,6 +43,7 @@
         "behind_cover": "animation.brinesleeper.behind_cover",
         "ledge_watch": "animation.brinesleeper.ledge_watch",
         "retreat": "animation.brinesleeper.retreat",
+        "crawl_still": "animation.brinesleeper.crawl_still",
         "move": "controller.animation.brinesleeper.move",
         "attack": "controller.animation.brinesleeper.attack",
         "look": "controller.animation.brinesleeper.look",
