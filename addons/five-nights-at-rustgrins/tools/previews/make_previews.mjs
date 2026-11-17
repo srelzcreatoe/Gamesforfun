@@ -344,6 +344,60 @@ export const SCENES = [
       extra_lights: [{ type: 'ambient', color: '#1a2238', intensity: 2.2 }, point([50.2, 1.9, 24.5], '#ffb867', 4, 8)],
     },
   },
+  // ---- the night shift (1.0.12-1.0.13): hollow eyes and the door scares
+  {
+    name: '34_door_stare', voxels: 'hall_l', caption: 'Caught in the light: the pupils are gone, the head follows you, and it leans in closer',
+    scene: {
+      camera: { pos: [36.5, 1.62, 63.5], target: [30.2, 1.75, 66.0], fov: 48 }, exposure: 0.62, lights: { intensity: 5 }, lighting: { block: 0.5 },
+      entities: [at('rustgrin', 'DOOR_L', 'lean', { eyes: true, hollow: true, t: 1.1, eyeIntensity: 10, headYaw: 22, headPitch: -6, pos: [31 - 1.61 + 0.35, 0, NODES.DOOR_L.z] })],
+      extra_lights: [
+        spot([29.2, 5.6, 64.2], [29.9, 0.6, 66.2], { color: '#e4ecff', intensity: 10, angle: 34, distance: 14 }),
+        point([36.5, 3.8, 64.5], '#ffd9a0', 1.6, 12),
+      ],
+    },
+  },
+  {
+    name: '35_dark_doorway', voxels: 'night', caption: 'Light off: nothing in the doorway but two cold pinpricks',
+    scene: {
+      camera: { pos: [36.5, 1.62, 63.5], target: [30.2, 1.75, 66.0], fov: 48 }, exposure: 1.2,
+      entities: [at('mirehop', 'DOOR_L', 'lean', { eyes: true, hollow: true, t: 0.6, eyeIntensity: 14, headYaw: 22, headPitch: -6, pos: [31 - 1.49, 0, NODES.DOOR_L.z] })],
+      extra_lights: [{ type: 'ambient', color: '#0c1018', intensity: 0.9 }, point([36.5, 3.8, 64.5], '#ffd9a0', 0.5, 6)],
+    },
+  },
+  {
+    name: '36_cam_band_stare', voxels: 'lit', style: 'camera_feed', caption: 'CAM 1A at 3 AM: every face snaps to the lens, the pupils gone',
+    hud: { cam: '1A', lines: ['§fCAM 1A · SHOW STAGE', '§7Night 4 §8| §43 AM §8| §fPOWER 38% §8| §7USAGE §e▮▮▮§8▯▯▯▯'] },
+    scene: {
+      camera: { pos: [38.5, 3.3, 16.0], target: [38.5, 2.9, 6.5], fov: 74 }, exposure: 1.55,
+      entities: [
+        at('rustgrin', 'ST_R', 'pose_1', { t: 0.3, eyes: true, hollow: true, eyeIntensity: 22, headPitch: 12 }),
+        at('mirehop', 'ST_M', 'pose_1', { t: 0.3, eyes: true, hollow: true, eyeIntensity: 22, headYaw: -14, headPitch: 12 }),
+        at('noxbriar', 'ST_N', 'pose_1', { t: 0.3, eyes: true, hollow: true, eyeIntensity: 22, headYaw: 14, headPitch: 12 }),
+      ],
+      extra_lights: [irLight('1A', 12), spot([38.5, 5.6, 13], [38.5, 1.6, 6.0], { intensity: 420 }), point([41.5, 3.2, 9.5], '#e8ffe8', 18, 12)],
+    },
+  },
+  {
+    name: '37_window_stare', voxels: 'hall_r', caption: 'The right window: Noxbriar stares in, her eyes empty',
+    scene: {
+      camera: { pos: [36.9, 1.62, 61.9], target: [42.7, 1.95, 62.7], fov: 52 }, exposure: 0.8, lights: { intensity: 4 }, lighting: { block: 0.5 },
+      entities: [at('noxbriar', 'WIN_R', 'lean', { eyes: true, hollow: true, t: 0.7, eyeIntensity: 12, headYaw: -10, pos: [42 + 1.61 - 0.35, 0, NODES.WIN_R.z] })],
+      extra_lights: [
+        spot([43.6, 5.4, 61.2], [42.7, 1.2, 62.6], { color: '#e4ecff', intensity: 16, angle: 30, distance: 10 }),
+        point([41.8, 2.4, 61.4], '#dfe8ff', 1.6, 4),
+        point([36.5, 3.8, 64.5], '#ffd9a0', 1.6, 12),
+      ],
+    },
+  },
+  {
+    name: '38_jumpscare_hollow', voxels: 'night', caption: 'Some of them come at you with empty eyes',
+    scene: {
+      camera: { pos: [36.5, 1.62, 63.0], target: [36.5, 1.52, 61.85], fov: 70 }, exposure: 1.1,
+      entities: [{ id: 'fnar:cat', pos: [36.5, 1.62 - 2.13, 63.0 - 1.65], yaw: 0, anim: 'jumpscare', t: 1.19, eyes: true, hollow: true, eyeIntensity: 10 }],
+      extra_lights: [point([36.5, 3.6, 62.7], '#ffd9a0', 4, 8), point([35.6, 1.0, 62.9], '#7aa8ff', 1.0, 4)],
+      bloom: { strength: 0.6, radius: 0.5, threshold: 0.85 },
+    },
+  },
   {
     name: '29_party_room', voxels: 'day', caption: 'The Party Room between the halls: a birthday table set for children who never came',
     scene: { camera: { pos: [36.5, 2.4, 39.6], target: [36.5, 0.8, 54], fov: 70 }, exposure: 1.0 },

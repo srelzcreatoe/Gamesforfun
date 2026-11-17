@@ -189,6 +189,21 @@ function resolveEntity(spec, root, packs, urlFor) {
     if (t.emiFile && spec.eyes !== false && !res.eyesFile) out.emissive = urlFor(t.emiFile);
   }
   if (!out.emissive && spec.eyes !== false) { const e = eyesEmissive(res); if (e) out.emissive = urlFor(e); }
+  // spec.hollow: the game's fnar:hollow look - the emptied-socket texture (and its MER) with the cold
+  // pinprick layer as the eyes (rusted wears Rustgrin's pinpricks)
+  if (spec.hollow) {
+    const hollowTex = res.texFile.replace(/\.png$/, '_hollow.png');
+    if (fs.existsSync(hollowTex)) {
+      out.texture = urlFor(hollowTex);
+      delete out.pbr;
+      delete out.emissive;
+      const hm = res.texFile.replace(/\.png$/, '_hollow_mer.png');
+      if (fs.existsSync(hm)) { const t = processTexture({ file: hollowTex, frames: 1, mers: hm, mersKind: 'mer' }); if (t.pbrFile) out.pbr = urlFor(t.pbrFile); }
+      const short = res.identifier.split(':')[1];
+      const pp = [short, 'rustgrin'].map((n) => path.join(path.dirname(res.texFile), `${n}_pinprick.png`)).find((f) => fs.existsSync(f));
+      if (pp && spec.eyes !== false) out.emissive = urlFor(pp);
+    } else console.warn(`[render_world] entity ${spec.id}: no hollow texture ${hollowTex}`);
+  }
   return out;
 }
 

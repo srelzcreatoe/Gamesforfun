@@ -588,6 +588,11 @@ async function buildEntity(E, W, style, U, scene) {
   const a = anim?.animations?.[E.animName];
   if (E.animName && !a) log(`entity ${E.id}: animation ${E.animName} not found`);
   applyAnimation(model, a, E.t ?? 0);
+  // the game's fnar:look_yaw / fnar:look_pitch head turn, on top of the animation
+  if (E.headYaw || E.headPitch) {
+    const h = model.bones.get('head');
+    if (h) { h.node.rotation.y += (E.headYaw ?? 0) * Math.PI / 180; h.node.rotation.x += (E.headPitch ?? 0) * Math.PI / 180; }
+  }
   const holder = new THREE.Group();
   holder.add(model.root);
   holder.position.set(...E.pos);
