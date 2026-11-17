@@ -210,7 +210,7 @@ export const PICTURES = Object.freeze({
   sign_welcome: [9, 2], sign_mascot: [6, 6], height_chart: [1, 3], token_prices: [2, 2],
 });
 /** Variant counts for 1x1 pictures that use fnar:tile as a variant index (wall_writing: several pictures in one block). */
-export const PICTURE_VARIANTS = Object.freeze({ drawing: 6, sign_staff: 4, lot_tag: 6, wall_writing: 16, neon_sign: 35, play_net: 2 });
+export const PICTURE_VARIANTS = Object.freeze({ drawing: 8, sign_staff: 4, lot_tag: 6, wall_writing: 16, neon_sign: 35, play_net: 2 });
 /** neon_sign tiles: the first tile of each sign and its size. */
 export const NEON = Object.freeze({
   funzone: [0, 3, 1], prizes: [3, 3, 1], party: [6, 2, 1], pizza: [8, 2, 1], games: [10, 2, 1], star: [12, 1, 1], slice: [13, 1, 1],

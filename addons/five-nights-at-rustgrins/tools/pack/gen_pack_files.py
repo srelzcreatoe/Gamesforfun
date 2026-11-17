@@ -12,7 +12,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 BP = os.path.join(ROOT, 'packs', 'BP')
 RP = os.path.join(ROOT, 'packs', 'RP')
-VERSION = [1, 0, 13]
+VERSION = [1, 0, 14]
 ENGINE = [1, 26, 50]
 UUID = {
     'bp_header': '02b67251-1ef0-43ba-8b73-411d54a1b730',
@@ -150,6 +150,8 @@ def fog(ident, start, end, color, density, scatter=0.0):
 
 def fogs():
     write_json(os.path.join(RP, 'fogs', 'fnar_night.json'), fog('fnar:night', 4, 40, '#060509', 0.05, 0.03))
+    # pushed at 4 AM (mc/nightset.js): the fog thickens and darkens for the last hours
+    write_json(os.path.join(RP, 'fogs', 'fnar_night_late.json'), fog('fnar:night_late', 2, 30, '#040306', 0.085, 0.03))
     write_json(os.path.join(RP, 'fogs', 'fnar_camera_feed.json'), fog('fnar:camera_feed', 18, 90, '#0e1612', 0.02, 0.02))
     write_json(os.path.join(RP, 'fogs', 'fnar_power_out.json'), fog('fnar:power_out', 0, 7, '#000000', 0.12))
 

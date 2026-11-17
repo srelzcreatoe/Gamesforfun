@@ -22,6 +22,7 @@ import { Builder } from './builder.js';
 import { Puppets, yawToward } from './puppets.js';
 import { Dread } from './dread.js';
 import { LEAN_NODES, leanSpot } from './lean.js';
+import { NightSet } from './nightset.js';
 import { Actuators } from './actuators.js';
 import { Audio } from './audio.js';
 import { Hud, mapTitle, MAP_OFF, FX_ON, JS_ON, hourLabel, spotlightReady } from './hud.js';
@@ -120,6 +121,7 @@ export class Game {
     this.puppets = new Puppets();
     this.dread = new Dread(this);
     this.act = new Actuators(this.plan.meta);
+    this.nightset = new NightSet(this);
     this.audio = new Audio();
     this.hud = new Hud();
     this.cams = new CameraView();
@@ -556,6 +558,7 @@ export class Game {
     runCmd(FOG.nightPop);
     runCmd(FOG.darkPop);
     this.act.lobby();
+    this.nightset.restore(false);
     this.puppets.removeAll();
     // the gallery: every animatronic on its pedestal
     for (const id of CAST) {
@@ -845,6 +848,7 @@ export class Game {
     }
     runCmd(FOG.nightPop);
     this.act.daytime();
+    this.nightset.restore(true); // by day the walls are clean
     this.puppets.removeAll();
     for (const id of CAST) {
       this.puppets.spawn(id, SHOW_SPOTS[id], 'pose');
@@ -1149,6 +1153,7 @@ export class Game {
     this.audio.stopAll();
     this.puppets.removeAll();
     this.act.nightStart();
+    this.nightset.begin(n);
     runCmd(FOG.darkPop);
     runCmd(FOG.nightPush);
     this.stare = Object.create(null);
@@ -1287,6 +1292,7 @@ export class Game {
     this.tickBooth(g, now);
     this.tickStare(g);
     this.dread.tick(g, now);
+    this.nightset.tick(now);
     if (now % 200 === 0) this.sweepMobs();
     if (this.cams.active) this.cams.tick(this.camCover());
     if (now % 10 === 0) this.keepInOffice(g);
@@ -1488,6 +1494,7 @@ export class Game {
       case 'hour':
         this.audio.play('fnar.clock.chime', null, g, { vol: 0.5 });
         this.dread.onHour(e.hour, g);
+        this.nightset.onHour(e.hour);
         // from 3 AM the hour comes up blood red
         if (!this.cams.active) g.onScreenDisplay.setTitle(' ', { fadeInDuration: 0, stayDuration: 40, fadeOutDuration: 10, subtitle: `${e.hour >= 3 ? '§4' : '§f'}${hourLabel(e.hour)}` });
         return;

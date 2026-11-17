@@ -306,6 +306,45 @@ DRAWINGS = [
         "................",
     ],
     None,  # 5 is composed in _group_drawing()
+    # 6 (night only) the office from above: a tiny guard in the box, two faces at the doors, their eyes
+    # black with a white dot, smiles too wide, red scribbles on the floor
+    [
+        ".tt..........tt.",
+        ".pppppppppppppp.",
+        ".pppppppppppppp.",
+        ".pppppppppppppp.",
+        ".eeeekkkkkkgggg.",
+        ".eekwkppppkwkgg.",
+        ".eeeekppppkgggg.",
+        ".errrkpccpkrrrg.",
+        ".eeeekpbbpkgggg.",
+        ".eeepkpbbpkpggg.",
+        ".ppppkpbbpkpppp.",
+        ".ppppkkkkkkpppp.",
+        ".prpppppppppprp.",
+        ".pprprrpprrprpp.",
+        ".pppppppppppppp.",
+        "................",
+    ],
+    # 7 (night only) Rustgrin up close: the hat, black eyes with a white pinprick, a smile far too wide
+    [
+        ".tt..........tt.",
+        ".ppppprrrrppppp.",
+        ".ppppprrrrppppp.",
+        ".ppprrrrrrrrppp.",
+        ".peeeeeeeeeeeep.",
+        ".peekkkeekkkeep.",
+        ".peekwkeekwkeep.",
+        ".peekkkeekkkeep.",
+        ".peeeeekkeeeeep.",
+        ".prrrrrrrrrrrrp.",
+        ".perwrwrwrwrwep.",
+        ".peerrrrrrrreep.",
+        ".ppeeeeeeeeeepp.",
+        ".pkpkpkppkpkpkp.",
+        ".pppppppppppppp.",
+        "................",
+    ],
 ]
 
 
@@ -1111,7 +1150,7 @@ PANELS = {
     'poster_torn': (poster_torn, 2, 2),
 }
 VARIANTS = {
-    'drawing': (drawing, 6),
+    'drawing': (drawing, 8),  # 6 and 7 only appear at night (mc/nightset.js)
     'sign_staff': (sign_staff, 4),
     'lot_tag': (lot_tag, 6),
     'play_net': (play_net, 2),

@@ -316,6 +316,35 @@ check(P.music === 'fnar.music.bgm' && game().save.settings.bgm === true, 'and ba
     await steps(12);
     check(mock.sounds.slice(n2).some((x) => x.startsWith('fnar.night.')), 'the empty building makes its own sounds');
   }
+  // the pizzeria at night: writing only at night, a chalk tally per night, drawings that change, the
+  // backstage heads turning to CAM 5 while nobody watches, dying lights, the 4 AM fog
+  {
+    const ns = game().nightset;
+    const CARD = { n: 'north', s: 'south', e: 'east', w: 'west' };
+    const facing = (h) => blockAt(h.x, h.y, h.z).permutation.getState('minecraft:cardinal_direction');
+    const W0 = ns.writing[0];
+    ns.restore(true);
+    check(ns.writing.length > 0 && blockAt(W0.x, W0.y, W0.z).typeId === 'minecraft:air', 'by day the writing is gone from the walls');
+    ns.begin(4);
+    check(blockAt(W0.x, W0.y, W0.z).typeId === 'fnar:wall_writing', 'at night it is back');
+    check(ns.tallies.length === 4, `a chalk tally mark outside the left door for every night (${ns.tallies.length} on night 4)`);
+    const office = ns.drawings.filter((d) => d.office);
+    check(office.length === 2 && office.every((d) => [6, 7].includes(blockAt(d.x, d.y, d.z).permutation.getState('fnar:tile'))), 'from night 4 the drawings in the office are different at night');
+    check(ns.heads.length >= 8 && ns.heads.every((h) => facing(h) !== CARD[h.dir]), `the ${ns.heads.length} heads backstage face away when the night starts`);
+    const s = game().session;
+    const t = s.t;
+    s.t = 4 * s.def.ticksPerHour;
+    for (let i = 0; i < 40; i++) ns.tickHeads(s, game().rng);
+    s.t = t;
+    check(ns.heads.every((h) => facing(h) === CARD[h.dir]), 'by 4 AM, with nobody on CAM 5, every head backstage looks at the camera');
+    check(ns.dying.length >= 3, `dying lights: a footlight, marquee bulbs (${ns.dying.length})`);
+    const c0 = mock.commands.length;
+    ns.onHour(4);
+    check(mock.commands.slice(c0).some((c) => c.includes('fnar:night_late')), 'at 4 AM the fog thickens');
+    ns.restore(false);
+    check(ns.heads.every((h) => facing(h) === CARD[h.dir]) && office.every((d) => blockAt(d.x, d.y, d.z).permutation.getState('fnar:tile') !== 6 && blockAt(d.x, d.y, d.z).permutation.getState('fnar:tile') !== 7), 'and it all goes back as built');
+    ns.begin(s.night);
+  }
   // 3-block animatronics: they stoop through the 3-tall doorways (not the 4-tall hall-to-corner link) and
   // lean in at the office door
   const { inLowDoorway } = await import(path.join(ROOT, 'packs/BP/scripts/mc/puppets.js'));

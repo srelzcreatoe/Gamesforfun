@@ -13,7 +13,9 @@
           2,
           3,
           4,
-          5
+          5,
+          6,
+          7
         ]
       },
       "traits": {
@@ -162,6 +164,28 @@
           "minecraft:material_instances": {
             "*": {
               "texture": "fnar_drawing_5",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:tile') == 6",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_drawing_6",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:tile') == 7",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_drawing_7",
               "render_method": "alpha_test"
             }
           }

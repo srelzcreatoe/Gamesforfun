@@ -60,7 +60,7 @@ CUBES = {
 # picture panels: name -> number of tiles (or variants)
 PANELS = {
     'poster_revue': 6, 'poster_party': 4, 'poster_cabaret': 6, 'poster_midway': 6, 'poster_rules': 4,
-    'poster_missing': 2, 'drawing': 6, 'sign_cabaret': 3, 'sign_out_of_order': 2, 'sign_midway': 4,
+    'poster_missing': 2, 'drawing': 8, 'sign_cabaret': 3, 'sign_out_of_order': 2, 'sign_midway': 4,
     'sign_revue': 12, 'sign_staff': 4,
     'poster_auction': 6, 'poster_torn': 4, 'lot_tag': 6, 'wall_writing': 16,
     'neon_sign': 35, 'play_net': 2,

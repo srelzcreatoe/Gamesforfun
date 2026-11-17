@@ -559,6 +559,12 @@
     "fnar_drawing_5": {
       "textures": "textures/blocks/fnar/drawing_5"
     },
+    "fnar_drawing_6": {
+      "textures": "textures/blocks/fnar/drawing_6"
+    },
+    "fnar_drawing_7": {
+      "textures": "textures/blocks/fnar/drawing_7"
+    },
     "fnar_sign_cabaret_0": {
       "textures": "textures/blocks/fnar/sign_cabaret_0"
     },
