@@ -73,7 +73,7 @@ export function buildVoxels(seed = 1991, opts = {}) {
     }
   }
   applyMode(opts.mode ?? 'night', { data, idx, palette, meta });
-  applyVariants(opts, { data, idx, palette, meta });
+  applyVariants(opts, { data, idx, palette, meta, ops });
   return { snapshot: { format: 'fnar-voxels-1', origin: [x0, y0, z0], size: [sx, sy, sz], palette, data: Buffer.from(data.buffer).toString('base64'), signs }, meta, outOfBounds, grid: { data, x0, y0, z0, sx, sy, sz, palette } };
 }
 
@@ -84,8 +84,12 @@ export function buildVoxels(seed = 1991, opts = {}) {
  *   powerOut: true   the office lamp, monitor and buttons dark
  *   cutaway: y       remove every block above y inside the building (floor-plan shot)
  *   doors: ['L','R'] shutters closed
+ *   cleanWalls: true the wall writing washed off (by day: packs/BP/scripts/mc/nightset.js)
+ *   nightSet: { night, heads: 'away'|'lens', dying }  the pizzeria at night (mc/nightset.js): chalk
+ *                    tallies outside the left door, the night drawings (from night 3, the office's from
+ *                    4), the backstage heads facing the wall, one footlight and a few marquee bulbs lit
  */
-function applyVariants(o, { data, idx, palette, meta }) {
+function applyVariants(o, { data, idx, palette, meta, ops }) {
   const pid = (name, states) => {
     let id = palette.findIndex((p) => p.name === name && JSON.stringify(p.states ?? {}) === JSON.stringify(states ?? {}));
     if (id < 0) { id = palette.length; palette.push(states ? { name, states } : { name }); }
@@ -117,6 +121,51 @@ function applyVariants(o, { data, idx, palette, meta }) {
     const m = LAYOUT.OFFICE.monitor;
     const i = idx(m.x, m.y, m.z);
     if (i >= 0 && palette[data[i]].name === 'fnar:crt_monitor') data[i] = pid('fnar:crt_monitor', { ...palette[data[i]].states, 'fnar:on': false });
+  }
+  if (o.cleanWalls || o.nightSet) {
+    const HEAD = /^(head_(?:rustgrin|mirehop|noxbriar|cat|rat)|endo_skull)_([nsew])$/;
+    const OPP = { n: 's', s: 'n', e: 'w', w: 'e' };
+    const keyId = (key) => {
+      if (key.startsWith('pic:')) {
+        const [, name, tile, dir] = key.split(':');
+        const b = pictureBlock(name, Number(tile), dir);
+        return pid(b.name, b.states);
+      }
+      const b = PALETTE[key];
+      return pid(b.name, b.states);
+    };
+    const ns = o.nightSet;
+    for (const list of Object.values(ops)) for (const op of list) {
+      if (op[0] !== 'L') continue;
+      const [, key, cells] = op;
+      for (let k = 0; k < cells.length; k += 3) {
+        const x = cells[k], y = cells[k + 1], z = cells[k + 2];
+        if (o.cleanWalls && key.startsWith('pic:wall_writing:')) put(x, y, z, 0);
+        if (!ns) continue;
+        const h = HEAD.exec(key);
+        if (h && ns.heads === 'away' && x >= 1 && x <= 13 && z >= 1 && z <= 13) put(x, y, z, keyId(`${h[1]}_${OPP[h[2]]}`));
+        if (key.startsWith('pic:drawing:') && ns.night >= 3) {
+          const dir = key.split(':')[3];
+          const office = y === 3 && z === 61 && (x === 32 || x === 40);
+          if (office ? ns.night >= 4 : (x * 7 + z * 13) % 10 < 3) put(x, y, z, keyId(`pic:drawing:${office ? (x === 32 ? 6 : 7) : (x + z) % 2 ? 6 : 7}:${dir}`));
+        }
+      }
+    }
+    if (ns) {
+      for (let i = 0; i < Math.min(5, ns.night); i++) {
+        const j = idx(26, 2, 60 + i);
+        if (j >= 0 && data[j] === 0) data[j] = keyId('pic:wall_writing:14:e');
+      }
+      if (ns.dying) {
+        const feet = meta.spots.filter((sp) => sp.group === 'stage' && sp.y === 0);
+        const mid = feet[Math.floor(feet.length / 2)];
+        if (mid) setLit(mid.x, mid.y, mid.z, true);
+        const bulbs = meta.hanging.filter((hg) => hg.group === 'foyer' && hg.x === 64);
+        for (let i = 0; i < bulbs.length; i += 5) setLit(bulbs[i].x, bulbs[i].y, bulbs[i].z, true);
+        const pend = meta.hanging.filter((hg) => hg.group === 'dining');
+        if (pend[3]) setLit(pend[3].x, pend[3].y, pend[3].z, true);
+      }
+    }
   }
   if (o.cutaway !== undefined) {
     const B = LAYOUT.BUILDING;

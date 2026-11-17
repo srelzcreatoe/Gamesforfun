@@ -35,6 +35,11 @@ const VARIANTS = {
   hall_r: { mode: 'night', hall: ['R'] },
   power_out: { mode: 'night', powerOut: true },
   cutaway: { mode: 'day', cutaway: 4 },
+  // the pizzeria at night (mc/nightset.js): night 4, the heads backstage turned to the wall, dying lights
+  ns_midnight: { mode: 'night', nightSet: { night: 4, heads: 'away', dying: true } },
+  ns_late: { mode: 'night', nightSet: { night: 4, heads: 'lens', dying: true } },
+  ns_hall_l: { mode: 'night', hall: ['L'], nightSet: { night: 4, heads: 'lens', dying: true } },
+  day_clean: { mode: 'day', cleanWalls: true },
 };
 
 /** An animatronic standing on a route node (node yaw unless overridden). */
@@ -397,6 +402,58 @@ export const SCENES = [
       extra_lights: [point([36.5, 3.6, 62.7], '#ffd9a0', 4, 8), point([35.6, 1.0, 62.9], '#7aa8ff', 1.0, 4)],
       bloom: { strength: 0.6, radius: 0.5, threshold: 0.85 },
     },
+  },
+  // ---- the pizzeria at night (1.0.14)
+  {
+    name: '39_cam5_midnight', voxels: 'ns_midnight', style: 'camera_feed', caption: 'CAM 5 at midnight: the heads on the shelves face the wall',
+    hud: { cam: '5', lines: ['§fCAM 5 · BACKSTAGE', '§7Night 4 §8| §f12 AM §8| §fPOWER 99% §8| §7USAGE §a▮§8▯▯▯▯▯▯'] },
+    scene: { camera: { pos: [12.5, 5.35, 13.0], target: [6.5, 1.3, 1.5], fov: 26 }, exposure: 1.7, extra_lights: [irLight('5', 9), point([6.5, 3.4, 4.5], '#e8ffe8', 8, 9)] },
+  },
+  {
+    name: '40_cam5_4am', voxels: 'ns_late', style: 'camera_feed', caption: 'CAM 5 at 4 AM: while you were not watching, every face turned to the lens',
+    hud: { cam: '5', lines: ['§fCAM 5 · BACKSTAGE', '§7Night 4 §8| §44 AM §8| §ePOWER 27% §8| §7USAGE §e▮▮▮§8▯▯▯▯'] },
+    scene: { camera: { pos: [12.5, 5.35, 13.0], target: [6.5, 1.3, 1.5], fov: 26 }, exposure: 1.7, fog: { density: 0.045 }, extra_lights: [irLight('5', 9), point([6.5, 3.4, 4.5], '#e8ffe8', 8, 9)] },
+  },
+  {
+    name: '41_office_drawing_west', voxels: 'ns_late', caption: 'Night 4: the drawing pinned up by the desk has changed - faces at both doors',
+    scene: { camera: { pos: [35.2, 2.6, 62.6], target: [32.0, 3.5, 61.5], fov: 34 }, exposure: 1.2, extra_lights: [point([34.5, 3.6, 62.4], '#ffd9a0', 1.6, 6)] },
+  },
+  {
+    name: '42_office_drawing_east', voxels: 'ns_late', caption: 'And the other one: Rustgrin, his eyes black, his smile far too wide',
+    scene: { camera: { pos: [37.8, 2.6, 62.6], target: [41.0, 3.5, 61.5], fov: 34 }, exposure: 1.2, extra_lights: [point([38.5, 3.6, 62.4], '#ffd9a0', 1.6, 6)] },
+  },
+  {
+    name: '43_tally_marks', voxels: 'ns_hall_l', caption: 'Outside the left door, in chalk: one mark for every night you came back. HE KNOWS YOUR NAME',
+    scene: {
+      camera: { pos: [30.4, 2.0, 61.8], target: [26.0, 2.6, 64.0], fov: 66 }, exposure: 0.5, lights: { intensity: 4 }, lighting: { block: 0.45 },
+      extra_lights: [spot([29.2, 5.6, 64.2], [27.0, 1.2, 63.0], { color: '#e4ecff', intensity: 6, angle: 40, distance: 14 })],
+    },
+  },
+  {
+    name: '44_stage_footlight', voxels: 'ns_late', caption: 'One footlight still works. It sputters under the band in the dark',
+    scene: {
+      camera: { pos: [38.5, 1.8, 17.0], target: [38.5, 2.4, 6.5], fov: 58 }, exposure: 1.5,
+      entities: [
+        at('rustgrin', 'ST_R', 'pose_1', { t: 0.3, eyes: true }),
+        at('mirehop', 'ST_M', 'pose_1', { t: 0.3, eyes: true }),
+        at('noxbriar', 'ST_N', 'pose_1', { t: 0.3, eyes: true }),
+      ],
+      // the one footlight that still works (40, 0, 11), lighting them from below
+      extra_lights: [{ type: 'ambient', color: '#0c1018', intensity: 0.7 }, point([40.5, 1.0, 10.2], '#ffd29a', 34, 14)],
+    },
+  },
+  {
+    name: '45_welcome_night', voxels: 'ns_late', caption: 'The WELCOME arch at night: a few bulbs still stutter in the dark',
+    scene: { camera: { pos: [78.5, 2.0, 38.5], target: [64.5, 2.4, 31.0], fov: 68 }, exposure: 1.9, extra_lights: [{ type: 'ambient', color: '#0c1018', intensity: 0.9 }] },
+  },
+  {
+    name: '46_hall_writing_day', voxels: 'day_clean', caption: 'The West Hall by day: clean walls',
+    scene: { camera: { pos: [28.4, 2.2, 46.5], target: [26.0, 3.2, 53.5], fov: 62 }, exposure: 1.0 },
+  },
+  {
+    name: '47_hall_writing_night', voxels: 'ns_late', style: 'camera_feed', caption: 'The same wall at night: THE SHOW MUST GO ON',
+    hud: { cam: '2A', lines: ['§fCAM 2A · WEST HALL', '§7Night 4 §8| §43 AM §8| §ePOWER 38% §8| §7USAGE §e▮▮▮§8▯▯▯▯'] },
+    scene: { camera: { pos: [28.4, 2.2, 46.5], target: [26.0, 3.2, 53.5], fov: 62 }, exposure: 1.6, extra_lights: [irLight('2A', 9), point([27.5, 3.4, 50.2], '#e8ffe8', 9, 8)] },
   },
   {
     name: '29_party_room', voxels: 'day', caption: 'The Party Room between the halls: a birthday table set for children who never came',
