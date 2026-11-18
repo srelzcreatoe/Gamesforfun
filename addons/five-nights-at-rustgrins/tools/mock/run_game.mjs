@@ -325,6 +325,45 @@ check(P.inventory[4]?.typeId === 'fnar:time_card', 'Free Roam hands out the Time
   await waitFor(() => game().roam.phase === 'stare', 200, 'the curtain call');
   await waitFor(() => game().roam.phase === 'idle', 200, 'the show to end');
   check(game().audio.loops.has('crowd_dining') && mock.sounds.includes('fnar.day.crowd'), 'the room murmurs while there are guests in it');
+  {
+    // between shows one of the band steps off the stage, walks among the tables, waves to a child and goes back
+    const { NODES } = await import(path.join(ROOT, 'packs/BP/scripts/data/nodes.js'));
+    const local = (e) => ({ x: e.location.x - origin.x, y: e.location.y - origin.y, z: e.location.z - origin.z });
+    check(game().roam.strollAt > mock.tick + 200 && game().roam.strollAt < mock.tick + 700, 'after a show one of the band is due for a walk among the tables');
+    {
+      // (a group sits by the middle aisle for this, wherever the day happened to put it: a family with a child if there is one)
+      const still = gs.groups.filter((grp) => !grp.leaving && grp.members.every((q) => q.place && !q.walk && !q.slide));
+      const fam = still.find((grp) => grp.members.some((q) => q.kind === 'child')) ?? still[0];
+      const seats = gs.places.filter((pl) => pl.kind === 'seat' && (pl.bx === 34 || pl.bx === 43) && !pl.by);
+      check(!!fam && seats.length >= (fam?.members.length ?? 99), `there is a group to seat by the middle aisle, and room for it (${seats.length} free seats)`);
+      if (fam && seats.length >= fam.members.length) {
+        fam.members.forEach((q, i) => { gs.take(q, seats[i]); gs.settleAt(q, mock.tick); });
+        fam.leaveAt = fam.until = mock.tick + 4000;
+        fam.phase = 'stay';
+        fam.stops = [{ kind: 'seats' }];
+        fam.at = 0;
+      }
+    }
+    game().roam.strollAt = mock.tick + 5;
+    await waitFor(() => !!game().roam.stroll, 40, 'a band member to step off the stage');
+    const who = game().roam.stroll.id;
+    const ent = [...mock.entities.values()].find((e) => e.typeId === `fnar:${who}`);
+    const mark = { ST_R: 'rustgrin', ST_M: 'mirehop', ST_N: 'noxbriar' };
+    const home = NODES[Object.keys(mark).find((k) => mark[k] === who)];
+    check(ent.props['fnar:anim'] === 'walk', `${who} walks off the stage`);
+    let watched = 0;
+    await waitFor(() => { watched = Math.max(watched, gs.list.filter((q) => mock.tick < q.glanceUntil).length); return game().roam.stroll?.phase === 'greet'; }, 600, 'it to stop among the tables');
+    await steps(2);
+    const at = local(ent);
+    check(at.y < 0.1 && at.z > 18 && Math.abs(at.x - 38.5) < 2, `it stands in the middle aisle among the tables (${at.x.toFixed(1)}, ${at.y.toFixed(1)}, ${at.z.toFixed(1)})`);
+    check(ent.props['fnar:anim'] === 'wave', 'and waves');
+    check(gs.list.some((q) => /wave/.test(q.props['fnar:anim'] ?? '')), 'a guest waves back');
+    check(watched > 0, `guests near it turn to watch (${watched} at once)`);
+    await waitFor(() => !game().roam.stroll, 700, 'it to go back to the stage');
+    const back = local(ent);
+    check(Math.hypot(back.x - home.x, back.z - home.z) < 0.01 && Math.abs(back.y - home.y) < 0.01 && ent.props['fnar:anim'] === 'pose', `${who} is back on its mark`);
+    check(mock.tick < game().roam.nextShow - 400, 'before the next show is announced');
+  }
   // walk up to Rustgrin and look at him: he talks
   const rg = [...mock.entities.values()].find((e) => e.typeId === 'fnar:rustgrin');
   P.teleport({ x: rg.location.x, y: rg.location.y, z: rg.location.z + 3 }, { rotation: { x: -20, y: 180 } });
@@ -430,6 +469,7 @@ await steps(5);
 
 // 6b. nothing lives in the pizzeria but the cast --------------------------------------------------
 {
+  while (mock.tick % 200 > 190) await steps(1); // (not while a sweep is due: the third mob below is to outlive these two ticks)
   const inside = driver.spawnMob('minecraft:zombie', Wl(36.5, 0, 30.5));
   const outside = driver.spawnMob('minecraft:zombie', Wl(400, 0, 400));
   const already = driver.spawnMob('minecraft:creeper', Wl(60.5, 0, 40.5), { silent: true }); // there before the build

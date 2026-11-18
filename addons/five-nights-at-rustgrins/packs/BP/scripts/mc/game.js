@@ -14,7 +14,7 @@ import { CONFIG, CAST, CAST_NAMES, LAST_NIGHT, CUSTOM_NIGHT, ENCORE_NIGHT, CHALL
 import { Rng } from '../core/rng.js';
 import { generatePlan } from '../data/build_plan.js';
 import { OFFICE, LOBBY, SPAWN_OUTSIDE, LOT, ROOM_BY_ID } from '../data/layout.js';
-import { NODES } from '../data/nodes.js';
+import { NODES, pathBetween } from '../data/nodes.js';
 import { CAMERA_BY_ID, CAMERA_ORDER, CAMS_FOR_NODE } from '../data/cameras.js';
 import { LOBBY_BUTTON_AT, STAR_SLOTS } from '../data/lobby.js';
 import { CALLS, HUNG_UP, TAKEOVER, FINAL, ENDINGS, TUTORIAL_HINTS, KILL_TIPS, DAY_TALK, CREEPY_TALK, SHOW_PA, CLOSING_PA, ENCORE } from '../data/story.js';
@@ -61,6 +61,8 @@ const SHOW_SPOTS = Object.freeze({ rustgrin: 'ST_R', mirehop: 'ST_M', noxbriar: 
 const POSE_ANIM = Object.freeze({ idle: 'idle', pose: 'pose', perform: 'perform', stand: 'stand', peek: 'peek', crawl: 'crawl', walk: 'walk', run: 'run', scurry: 'scurry', slump: 'slump' });
 /** Free Roam schedule (ticks): a live show every few minutes, announced on the PA. */
 const SHOW = Object.freeze({ firstIn: 500, every: 2800, announce: 400, length: 960, bow: 70, stare: 90, adEvery: 1300 });
+/** Free Roam, between shows: one of the band walks among the tables (ticks after a show; blocks per tick; who, how often). */
+const STROLL = Object.freeze({ after: Object.freeze([300, 600]), speed: 0.085, greet: 90, cast: Object.freeze([['rustgrin', 2], ['mirehop', 1], ['noxbriar', 1]]) });
 /** Where the Rusted one waits in the Gallery once the Final Act is beaten (the way into the Encore). */
 const ENCORE_SPOT = Object.freeze({ x: 1.8, y: 0, z: 45.5, yaw: -90 });
 /** Storms on these nights: rain on the roof, thunder, lightning through the halls, power flickers. */
@@ -859,7 +861,7 @@ export class Game {
     this.audio.stopAll();
     const now = system.currentTick;
     /** Free Roam: the show schedule and who has talked to whom (cooldowns by tick). */
-    this.roam = { phase: 'idle', at: 0, nextShow: now + SHOW.firstIn, announced: false, nextAd: now + 260, talkCd: Object.create(null), sayUntil: Object.create(null), say: Object.create(null), lastLine: Object.create(null) };
+    this.roam = { phase: 'idle', at: 0, nextShow: now + SHOW.firstIn, announced: false, nextAd: now + 260, talkCd: Object.create(null), sayUntil: Object.create(null), say: Object.create(null), lastLine: Object.create(null), stroll: null, strollAt: Infinity };
     for (const p of this.players()) this.toFreeRoam(p);
     this.stopBgm();
     this.sweepMobs();
@@ -914,6 +916,7 @@ export class Game {
           if (now < r.nextShow - SHOW.announce - 200) this.roamPa(this.pickLine('show_ads', SHOW_PA.ads));
         }
         if (now % 8 === 0) this.tickTalk(now);
+        this.tickStroll(now);
         break;
       case 'show':
         // the band trades moves every few seconds, the troupe dances, the Ringmaster conducts
@@ -951,6 +954,7 @@ export class Game {
           this.dread.clearHollow();
           this.act.lampGroup('dining', true);
           this.guests.showEnd();
+          r.strollAt = now + this.rng.int(STROLL.after[0], STROLL.after[1]); // and later one of the band takes a walk
         }
         break;
       default:
@@ -965,8 +969,80 @@ export class Game {
     }
   }
 
+  /**
+   * Between shows one of the band steps off the stage, walks down the middle aisle among the tables, stops, waves
+   * to a child, and is back on its mark well before the next show is announced. The guests near it turn to watch.
+   */
+  tickStroll(now) {
+    const r = this.roam;
+    const st = r.stroll;
+    if (!st) {
+      if (now < r.strollAt || now > r.nextShow - SHOW.announce - 900) return; // (only with time for the whole walk)
+      r.strollAt = Infinity;
+      const id = this.rng.weighted(STROLL.cast);
+      const down = pathBetween(SHOW_SPOTS[id], 'DIN_FRONT');
+      const aisle = pathBetween('DIN_FRONT', 'DIN_C');
+      if (!down || !aisle || !this.puppets.get(id)) return;
+      const out = [...down, ...aisle.slice(1)];
+      r.stroll = { id, phase: 'out', out, until: now + this.strollWalk(id, out, 0) };
+      this.audio.play('fnar.servo.move', out[0] && { x: out[0][0], y: out[0][1], z: out[0][2] }, null, { vol: 0.6 });
+      return;
+    }
+    const world = this.puppets.positionOf(st.id);
+    if (!world) {
+      r.stroll = null;
+      this.guests.attraction(null);
+      return;
+    }
+    const at = L(world);
+    if (now % 10 === 0) this.guests.attraction(at); // the guests near it turn to watch, the ones walking let it pass
+    if (st.phase !== 'greet' && now % 13 === 0) this.audio.play('fnar.step.heavy', at, null, { vol: 0.4 });
+    if (now < st.until) return;
+    if (st.phase === 'out') {
+      // among the tables: it turns to the nearest child (or whoever is nearest) and waves
+      st.phase = 'greet';
+      st.until = now + STROLL.greet;
+      let who = this.guests.greet(at);
+      if (!who) {
+        const p = this.players().map((q) => L(q.getHeadLocation())).sort((a, b) => Math.hypot(a.x - at.x, a.z - at.z) - Math.hypot(b.x - at.x, b.z - at.z))[0];
+        if (p && Math.hypot(p.x - at.x, p.z - at.z) < 12) who = p;
+      }
+      if (who) this.puppets.teleport(st.id, at, yawToward(who.x - at.x, who.z - at.z));
+      this.puppets.anim(st.id, 'wave');
+      if (who) this.puppets.lookAt(st.id, Wv(who));
+      this.audio.play(VOICE[st.id], at, null, { vol: 0.7 });
+    } else if (st.phase === 'greet') {
+      st.phase = 'back';
+      st.until = now + this.strollWalk(st.id, [...st.out].reverse(), NODES[SHOW_SPOTS[st.id]].yaw);
+    } else {
+      this.stopStroll(true);
+    }
+  }
+
+  /** Walk a band member along a path at its strolling pace; returns how long it takes (ticks). */
+  strollWalk(id, path, yaw) {
+    let len = 0;
+    for (let i = 1; i < path.length; i++) len += Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1], path[i][2] - path[i - 1][2]);
+    const dur = Math.max(20, Math.round(len / STROLL.speed));
+    this.puppets.walk(id, path, dur, 'walk', yaw);
+    return dur;
+  }
+
+  /** The walk is over: back on its mark (`home`), or cut short where it stands (closing time). */
+  stopStroll(home) {
+    const st = this.roam?.stroll;
+    if (!st) return;
+    this.roam.stroll = null;
+    this.guests.attraction(null);
+    if (home) {
+      this.puppets.placeNode(st.id, SHOW_SPOTS[st.id], 'pose');
+      this.puppets.eyes(st.id, false);
+    } else delete this.puppets.walks[st.id];
+  }
+
   startShow(now) {
     const r = this.roam;
+    this.stopStroll(true);
     r.phase = 'show';
     r.at = now + SHOW.length;
     // house lights down, stage lights up
@@ -1020,7 +1096,7 @@ export class Game {
         continue;
       }
       for (const id of CAST) {
-        if (now < (r.talkCd[id] ?? 0)) continue;
+        if (now < (r.talkCd[id] ?? 0) || r.stroll?.id === id) continue; // (the one out walking has its own business)
         const pos = this.puppets.positionOf(id);
         const e = this.puppets.get(id);
         if (!pos || !e) continue;
@@ -1060,6 +1136,7 @@ export class Game {
     this.audio.stopAll();
     // the guests stop where they are, look at the stage, then get up and file out through the front doors
     this.guests.closing();
+    this.stopStroll(false); // a band member out among the tables stops where it stands
     try {
       this.audio.play('fnar.tophat.tape_out', 'stage', p, { vol: 1 });
       for (const id of CAST) {

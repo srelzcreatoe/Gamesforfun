@@ -115,6 +115,8 @@ export class Guests {
     this.doorChecked = false;
     /** closing time: the child who looks back from the doorway */
     this.lastChild = null;
+    /** a band member walking among the tables between shows (local position), or null */
+    this.star = null;
   }
 
   // ================================================================ the day
@@ -154,6 +156,7 @@ export class Guests {
     this.show = 'off';
     this.pace = PACE.day;
     this.lastChild = null;
+    this.star = null;
     for (const p of this.places) p.by = null;
     this.list = [];
     this.groups = [];
@@ -258,6 +261,58 @@ export class Guests {
     for (const g of this.list) if (g.place && !g.walk) g.next = Math.min(g.next, now + 10 + (g.n % 30));
   }
 
+  // ================================================================ a band member among the tables (called by the game)
+  /**
+   * Between shows one of the band walks among the tables. Called every few ticks with where it is (local), and
+   * with null when it is back on stage: the guests near it turn to watch (a child may wave), and the ones walking
+   * let it pass.
+   */
+  attraction(pos) {
+    this.star = pos ? { x: pos.x, y: pos.y, z: pos.z } : null;
+    if (!pos || this.state !== 'open') return;
+    const now = system.currentTick;
+    const face = { x: pos.x, y: pos.y + 2.4, z: pos.z };
+    for (const g of this.list) {
+      if (g.walk || g.slide || !g.place || now < g.busyUntil) continue;
+      if (Math.abs(g.x - pos.x) > 7.5 || Math.hypot(g.x - pos.x, g.z - pos.z) > 7.5) continue;
+      this.faceTo(g, face, g.seated ? 40 : -1);
+      g.glanceUntil = now + 24;
+      if (g.kind === 'child' && now >= g.waveAt && this.game.rng.chance(0.12)) {
+        g.waveAt = now + 400;
+        this.anim(g, g.seated ? 'sit_wave' : 'wave');
+        g.busyUntil = now + 40;
+      }
+      g.next = Math.max(g.next, now + 24);
+    }
+  }
+
+  /**
+   * The band member stops to wave: the nearest child at its place (or, with no child near, the nearest guest)
+   * waves back. Returns that guest's head (local), for the animatronic to look at, or null.
+   */
+  greet(pos) {
+    if (this.state !== 'open') return null;
+    const now = system.currentTick;
+    let best = null;
+    let bd = Infinity;
+    for (const g of this.list) {
+      if (g.walk || g.slide || !g.place) continue;
+      const d = Math.hypot(g.x - pos.x, g.z - pos.z) + (g.kind === 'child' ? 0 : 6); // a child first
+      if (d < bd && d < 15) {
+        bd = d;
+        best = g;
+      }
+    }
+    if (!best) return null;
+    this.faceTo(best, { x: pos.x, y: pos.y + 2.4, z: pos.z }, best.seated ? 45 : 0);
+    this.anim(best, best.seated ? 'sit_wave' : 'wave');
+    best.waveAt = now + 400;
+    best.busyUntil = now + 70;
+    best.glanceUntil = now + 80;
+    best.next = Math.max(best.next, now + 80);
+    return { x: best.x, y: best.y + EYE * best.s, z: best.z };
+  }
+
   // ================================================================ closing time (called by the game)
   /**
    * Closing time: the music has died. Everyone stops and looks at the stage, then gets up and files out
@@ -268,6 +323,7 @@ export class Guests {
     this.state = 'closing';
     this.show = 'off';
     this.pace = PACE.closing;
+    this.star = null;
     for (const m of MURMUR) this.game.audio.stop(m.key);
     const now = system.currentTick;
     const rng = this.game.rng;
@@ -1016,6 +1072,18 @@ export class Guests {
       if (same > 0.2) g.yield = 5;
     }
     if (this.state !== 'open' || now < g.blockUntil + 60) return;
+    // a band member walking among the tables: stand back and let it pass
+    if (this.star) {
+      const dx = this.star.x - g.x;
+      const dz = this.star.z - g.z;
+      const d = Math.hypot(dx, dz);
+      if (d < 1.9 && d > 1e-3 && (dx * hx + dz * hz) / d > 0.45) {
+        g.blockUntil = now + 24;
+        this.anim(g, 'idle');
+        this.faceTo(g, { x: this.star.x, y: this.star.y + 2.4, z: this.star.z }, -1);
+        return;
+      }
+    }
     for (const p of this.game.players()) {
       let l;
       try {
