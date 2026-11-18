@@ -1400,6 +1400,63 @@
     -2.99
    ]
   },
+  "fnar.day.crowd": {
+   "files": [
+    "sounds/fnar/day/crowd.ogg"
+   ],
+   "duration": 14.0,
+   "source": "synthesised",
+   "channels": 1,
+   "loop": true,
+   "positional": true,
+   "category": "neutral",
+   "max_distance": 44,
+   "note": "",
+   "peaks_db": [
+    -11.23
+   ],
+   "seam_prefade": {
+    "step": 3.191,
+    "hf": 1.517,
+    "hf_p99": 1.734
+   }
+  },
+  "fnar.day.cheer": {
+   "files": [
+    "sounds/fnar/day/cheer1.ogg",
+    "sounds/fnar/day/cheer2.ogg",
+    "sounds/fnar/day/cheer3.ogg"
+   ],
+   "duration": 3.2,
+   "source": "synthesised",
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "neutral",
+   "max_distance": 44,
+   "note": "",
+   "peaks_db": [
+    -2.03,
+    -1.93,
+    -2.02
+   ]
+  },
+  "fnar.day.door_chime": {
+   "files": [
+    "sounds/fnar/day/door_chime.ogg"
+   ],
+   "duration": 1.8,
+   "source": "synthesised",
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "block",
+   "max_distance": 30,
+   "note": "",
+   "peaks_db": [
+    -5.12
+   ]
+  },
   "fnar.hall.whisper": {
    "files": [
     "sounds/fnar/hall/whisper.ogg"

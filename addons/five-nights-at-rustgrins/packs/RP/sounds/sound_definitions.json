@@ -883,6 +883,42 @@
         }
       ]
     },
+    "fnar.day.crowd": {
+      "category": "neutral",
+      "min_distance": 10.0,
+      "max_distance": 44.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/day/crowd"
+        }
+      ]
+    },
+    "fnar.day.cheer": {
+      "category": "neutral",
+      "min_distance": 8.0,
+      "max_distance": 44.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/day/cheer1"
+        },
+        {
+          "name": "sounds/fnar/day/cheer2"
+        },
+        {
+          "name": "sounds/fnar/day/cheer3"
+        }
+      ]
+    },
+    "fnar.day.door_chime": {
+      "category": "block",
+      "min_distance": 4.0,
+      "max_distance": 30.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/day/door_chime"
+        }
+      ]
+    },
     "fnar.hall.whisper": {
       "category": "hostile",
       "sounds": [
