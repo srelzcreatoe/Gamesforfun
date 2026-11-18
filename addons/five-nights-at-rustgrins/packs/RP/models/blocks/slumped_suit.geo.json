@@ -682,11 +682,6 @@
             0,
             -4
           ],
-          "rotation": [
-            0,
-            22.5,
-            0
-          ],
           "cubes": [
             {
               "origin": [
@@ -776,11 +771,6 @@
             5
           ],
           "parent": "head",
-          "rotation": [
-            0,
-            0,
-            22.5
-          ],
           "cubes": [
             {
               "origin": [
@@ -1774,11 +1764,6 @@
             0,
             -4
           ],
-          "rotation": [
-            0,
-            22.5,
-            0
-          ],
           "cubes": [
             {
               "origin": [
@@ -1868,11 +1853,6 @@
             5
           ],
           "parent": "head",
-          "rotation": [
-            0,
-            0,
-            22.5
-          ],
           "cubes": [
             {
               "origin": [
