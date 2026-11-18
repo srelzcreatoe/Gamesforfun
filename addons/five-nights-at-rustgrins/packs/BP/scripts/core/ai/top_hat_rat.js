@@ -2,6 +2,12 @@
 //
 //   booth   nights 1-5: he stands on his stage, the Grand Marquee (once Kitty's Cabaret, CAM 1C), and never
 //           moves. He calls the office every night instead of the day manager.
+//           But he already directs. "Places!": once a night (from night 3) he raps his cane and
+//           calls two of the band back to the stage (the 'places' cue; CAM 1A shows them
+//           there again - a breather), holds them, and sends them out again together (the
+//           'places_go' cue), both eager and straight for their doors. They step off the stage
+//           the moment nobody watches it, so a guard who keeps CAM 1A on them while the cue
+//           lasts wastes it; and the two never reach the office less than `duoGap` apart.
 //   final   night 6, the Final Act. The other five are his marionettes and move only on
 //           his cue, in three acts of two hours:
 //             I   Meet the Performers - he sends one performer at a time to a door or vent
@@ -25,6 +31,8 @@ import { NODES } from '../../data/nodes.js';
 import { CAMERA_BY_ID } from '../../data/cameras.js';
 
 const PERFORMERS = Object.freeze(['mirehop', 'noxbriar', 'rustgrin', 'cat', 'purple_rat']);
+/** The band he calls back to the stage from his booth: the two door stalkers first. */
+const BAND = Object.freeze(['mirehop', 'noxbriar', 'rustgrin']);
 
 /** Where each performer goes when he calls it: the route from its spot, and what stops it. */
 function summonPlan(who, rng) {
@@ -80,6 +88,12 @@ export class TopHatRat extends Animatronic {
     this.lastSummonSide = null;
     this.spotHits = { L: 0, R: 0 }; // SPOTLIGHT hits by the side he was walking
     this.lastWalkSide = null;
+    // "places!" from the booth: when, and the two he is holding on the stage { who, goAt }
+    const P = this.cfg.places;
+    const directs = this.mode === 'booth' && s.tricks && s.night >= P.fromNight;
+    /** @type {number} */
+    this.placesAt = directs ? Math.round(s.ticksPerHour * (P.hours[0] + s.rng.next() * (P.hours[1] - P.hours[0]))) : Infinity;
+    this.places = null;
   }
 
   /** The side for a new walk: where the guard's spotlight caught him less. */
@@ -110,8 +124,40 @@ export class TopHatRat extends Animatronic {
     return this.mode === 'final' || super.active;
   }
 
+  /** In his booth he does not move, but once a night he directs: "Places!" */
+  tickBooth() {
+    const s = this.s;
+    const P = this.cfg.places;
+    const pl = this.places;
+    if (pl) {
+      if (s.t < pl.goAt) return;
+      this.places = null;
+      for (const id of pl.who) s.chars[id].sendOut(P.eager);
+      s.director.duoUntil = s.t + P.eager;
+      s.emit({ fx: 'cue', kind: 'places_go', who: pl.who });
+      return;
+    }
+    if (s.t < this.placesAt) return;
+    if (s.hour >= 5) {
+      this.placesAt = Infinity; // too late for tonight
+      return;
+    }
+    // two of the band who are out and about (not at a door, not on their way in), and never
+    // while the guard is short of power
+    const pair = BAND.map((id) => s.chars[id]).filter((c) => c.loose).slice(0, 2);
+    if (pair.length < 2 || s.director.gentle() || pair.every((c) => c.node === c.cfg.start)) {
+      this.placesAt = s.t + P.retry;
+      return;
+    }
+    this.placesAt = Infinity;
+    const goAt = s.t + P.hold;
+    for (const c of pair) c.callBack(goAt);
+    this.places = { who: pair.map((c) => c.id), goAt };
+    s.emit({ fx: 'cue', kind: 'places', who: this.places.who, hold: P.hold });
+  }
+
   tick() {
-    if (this.mode === 'booth') return;
+    if (this.mode === 'booth') return this.tickBooth();
     const s = this.s;
     if (this.state === 'inside') {
       if (s.t >= this.killAt) s.kill(this.id);

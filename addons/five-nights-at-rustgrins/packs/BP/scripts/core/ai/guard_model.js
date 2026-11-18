@@ -25,7 +25,7 @@ export class GuardModel {
   constructor(s) {
     this.s = s;
     this.cfg = CONFIG.brain;
-    const light = () => ({ on: false, onAt: -1e9, offAt: -1e9, gap: this.cfg.gapStart, checks: 0 });
+    const light = () => ({ on: false, onAt: -1e9, offAt: -1e9, gap: this.cfg.gapStart, checks: 0, known: false });
     const shut = () => ({ ratio: 0 });
     this.light = { L: light(), R: light() };
     this.door = { L: shut(), R: shut() };
@@ -33,6 +33,22 @@ export class GuardModel {
     this.camsOpen = false;
     /** camId -> { v, t }: attention that fades with time */
     this.heat = Object.create(null);
+    /** the whole night in numbers (ticks each thing was shut / up): what they will remember of it */
+    this.total = { ticks: 0, door: { L: 0, R: 0 }, vent: { L: 0, R: 0 }, cams: 0 };
+  }
+
+  /**
+   * Start from what they remember of earlier nights (core/ai/memory.js): the rhythm of the
+   * guard's light checks is known before the first check of the night.
+   * @param {ReturnType<import('./memory.js').beliefsFor>} b
+   */
+  adopt(b) {
+    for (const side of SIDES) {
+      const L = this.light[side];
+      const known = !!b && b.conf >= 0.5 && b.gap[side] < this.cfg.gapStart;
+      L.known = known;
+      if (L.checks < 2) L.gap = known ? b.gap[side] : this.cfg.gapStart;
+    }
   }
 
   tick() {
@@ -41,7 +57,11 @@ export class GuardModel {
     const t = s.t;
     const cfg = this.cfg;
     const k = 1 / cfg.campWindow;
+    const T = this.total;
+    T.ticks++;
     for (const side of SIDES) {
+      if (s.doorClosed(side)) T.door[side]++;
+      if (s.ventClosed(side)) T.vent[side]++;
       const L = this.light[side];
       const on = side === 'L' ? d.lightL : d.lightR;
       if (on && !L.on) {
@@ -58,6 +78,7 @@ export class GuardModel {
     }
     const open = d.cams.open && !s.powerOut;
     this.camsOpen = open;
+    if (open) T.cams++;
     if (open && s.camWorking(d.cams.cam)) {
       const h = (this.heat[d.cams.cam] ??= { v: 0, t });
       h.v = this.camHeat(d.cams.cam) + 1;
@@ -97,7 +118,7 @@ export class GuardModel {
     const L = this.light[side];
     if (L.on) return false;
     const since = this.s.t - L.offAt;
-    if (L.checks < 2) return since > this.cfg.quietTicks;
+    if (L.checks < 2 && !L.known) return since > this.cfg.quietTicks;
     return since < L.gap * this.cfg.afterCheck || since > L.gap * this.cfg.overdue;
   }
 

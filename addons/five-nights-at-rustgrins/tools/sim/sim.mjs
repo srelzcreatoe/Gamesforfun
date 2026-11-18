@@ -1,6 +1,10 @@
 // Headless night simulator with a bot guard, for balance and crash testing.
 //
 //   node tools/sim/sim.mjs [nights=1-6] [runs=200] [--bot=good|medium|idle|sloppy] [--ai=m,n,r,c,p,t] [--mods=lightsOut,tapeRot,doorJam]
+//   node tools/sim/sim.mjs --campaign [runs=200] [--bot=...]   the week with the cast's memory (core/ai/memory.js):
+//       nights 1-5 in order, every night retried until it is won (4 tries at most), the memory carried along
+//       the way the game does. Printed against the same nights played blank.
+//   --cues   also count the tricks' cues per night
 //
 // The bot (tools/sim/bot.mjs) only acts on what a player could perceive.
 import path from 'node:path';
@@ -10,6 +14,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const { NightSession } = await import(path.join(ROOT, 'packs/BP/scripts/core/session.js'));
 const { Bot } = await import('./bot.mjs');
 const { CAST } = await import(path.join(ROOT, 'packs/BP/scripts/core/config.js'));
+const { remember } = await import(path.join(ROOT, 'packs/BP/scripts/core/ai/memory.js'));
 
 const args = process.argv.slice(2);
 const opt = Object.fromEntries(args.filter((a) => a.startsWith('--')).map((a) => { const [k, v] = a.slice(2).split('='); return [k, v ?? true]; }));
@@ -20,8 +25,9 @@ const botKind = opt.bot ?? 'good';
 const customAi = opt.ai ? Object.fromEntries(String(opt.ai).split(',').map((v, i) => [CAST[i], Number(v)])) : null;
 const mods = opt.mods ? Object.fromEntries(String(opt.mods).split(',').map((m) => [m, true])) : undefined;
 
-function runNight(night, seed) {
-  const s = new NightSession(night, { seed, ai: customAi ?? undefined, mods });
+const cueCount = {};
+function runNight(night, seed, memory = null) {
+  const s = new NightSession(night, { seed, ai: customAi ?? undefined, mods, memory });
   const bot = new Bot(s, botKind, seed * 31 + 7);
   let ticks = 0;
   const trace = opt.trace && seed === 1000 + night ? [] : null;
@@ -43,6 +49,7 @@ function runNight(night, seed) {
     s.tick();
     for (const e of s.drain()) {
       bot.hear(e);
+      if (opt.cues && e.fx === 'cue' && !e.again) (cueCount[night] ??= {})[e.kind] = (cueCount[night]?.[e.kind] ?? 0) + 1;
       if (trace && ['pa', 'event', 'act', 'spotlight', 'jumpscare', 'power_out', 'door', 'vent', 'hour'].includes(e.fx)) trace.push(`${s.t} h${s.hour} p${Math.round(s.power / 1000)} ${JSON.stringify(e).slice(0, 120)}`);
     }
     if (!s.result) bot.tick();
@@ -50,7 +57,44 @@ function runNight(night, seed) {
   }
   if (trace) console.log(trace.slice(-60).join('\n'));
   if (opt.power && seed === 1000 + night) console.log('power use (%):', Object.fromEntries(Object.entries(s.powerAcc).map(([k, v]) => [k, Math.round(v / 1000)])), 'hour', s.hour);
-  return { result: s.result, killer: s.killer, hour: s.hour, power: Math.round(s.power / 1000) };
+  return { result: s.result, killer: s.killer, hour: s.hour, power: Math.round(s.power / 1000), summary: s.summary() };
+}
+
+if (opt.campaign) {
+  // the week, with and without the cast's memory
+  const N = Number(pos[0] ?? 200);
+  const TRIES = 4;
+  const won = (r) => r.result === 'win' || r.result === 'takeover';
+  const row = () => ({ first: 0, firstN: 0, retry: 0, retryN: 0, blank: 0, blankRetry: 0, grudgeKills: 0, sameKiller: 0 });
+  const stat = Object.fromEntries([1, 2, 3, 4, 5].map((n) => [n, row()]));
+  let weeks = 0;
+  for (let i = 0; i < N; i++) {
+    let mem = null;
+    let cleared = true;
+    for (let n = 1; n <= 5 && cleared; n++) {
+      let last = null;
+      for (let k = 0; k < TRIES; k++) {
+        const seed = 1000 + i * 7919 + n + k * 104729;
+        if (n === 1) mem = null; // night 1 always starts blank
+        const r = runNight(n, seed, mem);
+        const b = runNight(n, seed, null);
+        const st = stat[n];
+        if (k === 0) { st.firstN++; if (won(r)) st.first++; if (won(b)) st.blank++; } else { st.retryN++; if (won(r)) st.retry++; if (won(b)) st.blankRetry++; if (!won(r) && r.killer === last) st.sameKiller++; }
+        mem = remember(mem, r.summary);
+        last = r.killer;
+        if (won(r)) break;
+        if (k === TRIES - 1) cleared = false;
+      }
+    }
+    if (cleared) weeks++;
+  }
+  console.log(`the week with memory, bot=${botKind}, ${N} weeks (up to ${TRIES} tries a night): ${(100 * weeks / N).toFixed(0)}% of weeks cleared`);
+  for (const n of [1, 2, 3, 4, 5]) {
+    const st = stat[n];
+    const p = (a, b) => (b ? `${(100 * a / b).toFixed(0)}%` : '-');
+    console.log(`night ${n}: first try ${p(st.first, st.firstN)} (blank ${p(st.blank, st.firstN)}, ${st.firstN} nights)   retries after a death ${p(st.retry, st.retryN)} (blank ${p(st.blankRetry, st.retryN)}, ${st.retryN} retries; ${st.sameKiller} lost to the same one again)`);
+  }
+  process.exit(0);
 }
 
 for (let n = n1; n <= (n2 || n1); n++) {
@@ -62,4 +106,5 @@ for (let n = n1; n <= (n2 || n1); n++) {
     if (r.power === 0) powerOuts++;
   }
   console.log(`night ${n}${customAi ? ' (custom)' : ''} bot=${botKind}: win ${(100 * wins / runs).toFixed(0)}%  avg power left ${(wins ? powerSum / wins : 0).toFixed(0)}%  power-outs ${powerOuts}  deaths ${JSON.stringify(killers)}`);
+  if (opt.cues) console.log(`   cues per night: ${Object.entries(cueCount[n] ?? {}).sort().map(([k, v]) => `${k} ${(v / runs).toFixed(2)}`).join(', ') || 'none'}`);
 }

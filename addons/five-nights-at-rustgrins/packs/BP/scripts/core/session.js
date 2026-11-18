@@ -16,13 +16,16 @@ import { TopHatRat } from './ai/top_hat_rat.js';
 import { ShowTape } from './show_tape.js';
 import { GuardModel } from './ai/guard_model.js';
 import { Director } from './ai/director.js';
+import { beliefsFor, summarize } from './ai/memory.js';
+import { Liveliness } from './ai/liveliness.js';
 
 const AI_CLASSES = { mirehop: DoorStalker, noxbriar: DoorStalker, rustgrin: Rustgrin, cat: Cat, purple_rat: PurpleRat, top_hat_rat: TopHatRat };
 
 export class NightSession {
   /**
    * @param {number} night 0..7
-   * @param {{ seed?: number, ai?: Record<string, number>, ticksPerHour?: number, label?: string, mods?: Record<string, boolean> }} [opts]
+   * @param {{ seed?: number, ai?: Record<string, number>, ticksPerHour?: number, label?: string, mods?: Record<string, boolean>, memory?: any }} [opts]
+   *   `memory`: what they remember of the guard from earlier nights (core/ai/memory.js), or call recall() before the night gets going
    */
   constructor(night, opts = {}) {
     this.night = night;
@@ -31,7 +34,8 @@ export class NightSession {
     const base = nightDef(night, { ai: opts.ai, ticksPerHour: opts.ticksPerHour });
     this.def = this.mods.fast ? { ...base, ticksPerHour: Math.round(base.ticksPerHour * CONFIG.mods.fast) } : base;
     this.cfg = CONFIG;
-    this.rng = new Rng(opts.seed ?? ((Date.now() ^ (night * 7919)) >>> 0));
+    const seed = opts.seed ?? ((Date.now() ^ (night * 7919)) >>> 0);
+    this.rng = new Rng(seed);
     this.t = 0;
     this.ticksPerHour = this.def.ticksPerHour;
     this.hour = 0;
@@ -40,6 +44,11 @@ export class NightSession {
     this.fx = [];
     this.result = null; // 'win' | 'lose' | 'takeover' (night 5 at 4 AM: the Ringmaster takes the night)
     this.killer = null;
+    /** how the killer got in: 'L' | 'R' (a door), 'VL' | 'VR' (a vent), 'power' (the blackout) or null */
+    this.killWay = null;
+    this.lastBreach = null;
+    /** what they believe about the guard from earlier nights (null: they do not know the guard) */
+    this.beliefs = null;
     this.inputs = 0; // successful guard actions (the Final Act's "touch nothing" game counts them)
     this.devices = {
       doorL: false, doorR: false, lightL: false, lightR: false, ventL: false, ventR: false,
@@ -59,6 +68,43 @@ export class NightSession {
     this.director = new Director(this);
     this.chars = {};
     for (const id of CAST) this.chars[id] = new AI_CLASSES[id](this, id);
+    /** small signs of life while they stand about: cosmetic, on a random stream of its own */
+    this.life = new Liveliness(this, seed);
+    if (opts.memory) this.recall(opts.memory);
+  }
+
+  /**
+   * The cast's tricks (signature abilities, group tactics) are off on the training night and
+   * in the Final Act, where the others only move on the Ringmaster's cue.
+   */
+  get tricks() {
+    return !this.final && this.night !== 0;
+  }
+
+  /**
+   * Start the night from what they remember of the guard (the save's memory; see
+   * core/ai/memory.js). Call it before the night gets going (the game layer does on the
+   * 'start' effect); it draws no random numbers, so the night stays the same night.
+   */
+  recall(memory) {
+    const b = beliefsFor(memory, this.night);
+    this.beliefs = b;
+    this.habits.adopt(b);
+    this.director.adopt(b);
+    for (const c of Object.values(this.chars)) c.adopt(b);
+    return b;
+  }
+
+  /** How much tonight's beliefs still count (0..1): they fade as the cast sees what the guard does tonight. */
+  trust() {
+    const b = this.beliefs;
+    if (!b) return 0;
+    return b.conf * Math.max(0, 1 - this.t / (CONFIG.memory.hours * this.ticksPerHour));
+  }
+
+  /** This night as they will remember it (for memory.js remember()). */
+  summary() {
+    return summarize(this);
   }
 
   emit(e) {
@@ -107,6 +153,7 @@ export class NightSession {
   /** An animatronic got past a door/vent: that side's controls die. */
   breach(side, who, forced = false) {
     this.devices.broken[side] = true;
+    this.lastBreach = { side, who };
     if (side === 'L' || side === 'R') {
       if (forced && this.doorClosed(side)) this.setDoor(side, false, true);
       this.emit({ fx: 'breach', side, who });
@@ -119,6 +166,7 @@ export class NightSession {
     if (this.result) return;
     this.result = 'lose';
     this.killer = who;
+    this.killWay = this.powerOut ? 'power' : this.lastBreach?.who === who ? this.lastBreach.side : null;
     this.closeCams('jumpscare');
     this.emit({ fx: 'jumpscare', who });
   }
@@ -189,6 +237,11 @@ export class NightSession {
     c.cam = camId;
     this.emit({ fx: 'cams', open: c.open, cam: camId, reason: 'switch' });
     return true;
+  }
+
+  /** How many hours this night really lasts: night 5 ends at 4 AM, when the Ringmaster takes it. */
+  get hours() {
+    return this.night === 5 ? CONFIG.finale.takeoverHour : CONFIG.clock.hours;
   }
 
   /** Night 6: the band and the troupe only move on the Ringmaster's cue. */
@@ -353,6 +406,7 @@ export class NightSession {
       c.tick();
       if (this.result) return;
     }
+    this.life.tick();
     // the rusted one
     if (this.rusted && this.t >= this.rusted.until) {
       this.rusted = null;

@@ -5,6 +5,13 @@
 // run, maracas at a vent, the guitar at the left door, humming at the right window,
 // footsteps and soft cues near the office). `earP` is the chance a cue is noticed;
 // it has reaction delays and a cyclic routine.
+//
+// The cast's tricks are answered the way a player who has read the Shift Guide would: a
+// knock on the wall is looked at twice, a hum that is too clean sends it to the OTHER hall,
+// a racket in the kitchen or the Ringmaster's "places!" means a look down both halls, a
+// squealing feed is looked away from, a warbling tape is rewound. `wiseP` is the chance it
+// sees through a trick it heard (otherwise it takes the bait, like a player who has not
+// learnt it yet). Sounds carry the side they come from (`door`), never who it is.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -26,8 +33,44 @@ export class Bot {
     this.sloppy = kind === 'sloppy';
     this.earP = kind === 'good' ? 1 : kind === 'medium' ? 0.6 : 0.25; // chance an audio tell is noticed
     this.slow = kind === 'good' ? 0 : kind === 'medium' ? 15 : 25; // extra reaction ticks
+    this.wiseP = kind === 'good' ? 1 : kind === 'medium' ? 0.5 : 0.2; // chance a trick it heard is seen through
   }
   heard() { return this.rand() < this.earP; }
+  wise() { return this.rand() < this.wiseP; }
+  /** The cast's tricks (every one has a tell; see the header). */
+  hearCue(e) {
+    const other = { L: 'R', R: 'L' };
+    switch (e.kind) {
+      case 'linger': // a soft twang / hum just outside after a door held: they are lingering, keep it shut a while
+        this.lingerUntil[e.side] = this.s.t + 150;
+        return;
+      case 'knock': // bait for a light check: look, and (knowing the trick) look again a moment later
+        this.at(this.react(10, 40), 'peek', e.side);
+        if (this.wise()) this.at(this.react(75, 105), 'peek', e.side);
+        return;
+      case 'decoy': // a hum that is too clean comes from the wrong hall: she is at the other one
+        this.at(this.react(10, 40), 'peek', this.wise() ? other[e.side] : e.side);
+        return;
+      case 'clatter': // a racket in the kitchen: someone else is stepping up to a door
+        this.at(this.react(10, 30), 'peek', 'L');
+        this.at(this.react(50, 75), 'peek', 'R');
+        return;
+      case 'places_go': // two of them left the stage together: both halls, in turn
+        this.at(this.react(70, 120), 'peek', 'L');
+        this.at(this.react(140, 200), 'peek', 'R');
+        return;
+      case 'grudge': // whoever got in last time is coming the same way first
+        if (e.way === 'L' || e.way === 'R') this.at(this.react(60, 110), 'peek', e.way);
+        return;
+      case 'squeal': // the feed whines: look away before it burns out
+        this.at(this.react(4, 20), 'look_away', e.cam);
+        return;
+      case 'pull': // the music warbles: she is at the tape deck
+        if (!e.again || this.s.devices.cams.cam !== '8') this.at(this.react(10, 40), 'go_wind');
+        return;
+      default:
+    }
+  }
   rand() { this.r = (this.r * 1664525 + 1013904223) >>> 0; return this.r / 4294967296; }
   react(min, max) { return this.s.t + min + this.slow + Math.floor(this.rand() * (max - min + 1 + this.slow)); }
   at(tick, action, arg) { this.queue.push([tick, action, arg]); }
@@ -40,17 +83,16 @@ export class Bot {
     // footsteps / a hum coming down a hall: take a look down that hall soon
     if (e.fx === 'sound' && e.approach && !e.kitchen && e.id !== 'fnar.cat.growl') { this.at(this.react(10, 40), 'peek', e.approach); return; }
     // the whirr of a servo in a doorway: somebody is stepping in - slam that door
-    if (e.fx === 'sound' && e.id === 'fnar.servo.move' && (e.at === 'mirehop' || e.at === 'noxbriar')) { this.at(this.react(4, 20), e.at === 'mirehop' ? 'want_door_l' : 'want_door_r'); return; }
-    // a soft twang / hum just outside after a door held: they are lingering, keep it shut a while
-    if (e.fx === 'cue' && e.kind === 'linger') { this.lingerUntil[e.side] = this.s.t + 150; return; }
+    if (e.fx === 'sound' && e.id === 'fnar.servo.move' && e.door) { this.at(this.react(4, 20), e.door === 'L' ? 'want_door_l' : 'want_door_r'); return; }
+    if (e.fx === 'cue') return this.hearCue(e);
     if (e.fx === 'at_nook') { this.rustAtNook = true; this.at(this.react(8, 30), 'want_door_r'); }
     if (e.fx === 'sound' && e.id === 'fnar.cat.run') { const side = e.at === 'door_l' ? 'L' : 'R'; this.need[side] = true; this.at(this.react(10, 30), side === 'L' ? 'want_door_l' : 'want_door_r'); }
     if (e.fx === 'cat_bang') { this.need[e.side] = false; }
     if (e.fx === 'sound' && e.id === 'fnar.rat.maracas' && (e.near || e.vent)) { const side = e.near || e.vent; this.need['V' + side] = true; this.at(this.react(8, 28), 'want_vent_' + side.toLowerCase()); }
     if (e.fx === 'at_vent') { this.need['V' + e.side] = true; this.at(this.react(8, 28), 'want_vent_' + e.side.toLowerCase()); }
     if (e.fx === 'vent_bang') { this.need['V' + e.side] = false; this.at(this.react(10, 40), 'release_vent_' + e.side.toLowerCase()); }
-    if (e.fx === 'sound' && e.id === 'fnar.mirehop.strum') { this.need.L = true; this.at(this.react(10, 30), 'want_door_l'); }
-    if (e.fx === 'sound' && e.id === 'fnar.noxbriar.hum' && !e.kitchen) { this.need.R = true; this.at(this.react(10, 30), 'want_door_r'); }
+    // a twang or a hum at a door: shut the door it comes from (their own, or the other after a trade)
+    if (e.fx === 'sound' && (e.id === 'fnar.mirehop.strum' || e.id === 'fnar.noxbriar.hum') && e.door) { this.need[e.door] = true; this.at(this.react(10, 30), e.door === 'L' ? 'want_door_l' : 'want_door_r'); }
     if (e.fx === 'left_door') { this.need[e.side] = false; if (!e.linger) this.lingerUntil[e.side] = 0; }
     if (e.fx === 'rusted' && e.on) this.at(this.react(8, 30), 'cams_open');
     if (e.fx === 'ringmaster' && e.state === 'leaving') this.at(this.react(10, 40), 'go_wind');
@@ -165,6 +207,11 @@ export class Bot {
     if (a === 'want_vent_l' && !d.ventL) s.input('vent_l');
     if (a === 'want_vent_r' && !d.ventR) s.input('vent_r');
     if (a === 'spot') { s.input('spotlight'); return; }
+    if (a === 'look_away') {
+      // a squealing feed: on to the next camera of the sweep
+      if (d.cams.open && d.cams.cam === arg) { s.input('cam_select', arg === '1B' ? '2A' : '1B'); this.busyUntil = Math.max(this.busyUntil, s.t + 8); }
+      return;
+    }
     if (a === 'peek') {
       // a quick look down one hall: monitor down, light on, look, shut the door if someone is there
       // on the cameras: cut the sweep short and go straight to the light checks

@@ -13,6 +13,14 @@
 // prefers the hall whose door the guard leaves open and that nobody else is working, and a
 // low growl down that hall tells which one. Her sprint waits a moment if another strike
 // just started (director spacing).
+// Her signature trick, the tape deck: while she is still dancing and nobody has looked at CAM 8
+// for a long while, she slips behind the curtain and pulls the show tape through the deck
+// (the 'pull' cue: the music warbles, and CAM 8 shows the ring without her). The tape runs
+// down more than twice as fast until the guard rewinds it on CAM 8 (she is back on the ring
+// at once, and sulks for a while), watches the empty ring for a moment, or she tires of it.
+// An empty ring with the music still playing is her at the tape deck, not a sprint.
+// She also remembers (memory.js): the hall the guard watched least, and the door that let
+// her in last time (the 'grudge' cue).
 
 import { Animatronic } from './base.js';
 import { CONFIG } from '../config.js';
@@ -27,6 +35,10 @@ export class Cat extends Animatronic {
     this.bangs = 0;
     this.camsWereOpen = false;
     this.sawStop = false;
+    /** at the tape deck: { until, seen, nextTell } */
+    this.pulling = null;
+    this.pullReady = this.cfg.pull.cooldown;
+    this.seenAt = 0; // the last tick the guard had her ring on a working camera
   }
 
   bonus() {
@@ -51,6 +63,7 @@ export class Cat extends Animatronic {
     else if (n === 3) {
       this.placeAt('DIN_W', 'stand');
       s.emit({ fx: 'hide', who: this.id });
+      this.grudgeCue();
       this.side = this.chooseSide();
       this.waitUntil = s.t + this.cfg.waitAtStage3(this.ai);
       if (s.night >= this.cfg.eastFromNight) s.emit({ fx: 'sound', id: 'fnar.cat.growl', at: this.side === 'L' ? 'door_l' : 'door_r', vol: 0.4, approach: this.side });
@@ -61,13 +74,59 @@ export class Cat extends Animatronic {
   /** West before night 4; then mostly west, but away from a camped door or one someone else is working. */
   chooseSide() {
     const s = this.s;
+    const grudge = this.grudge;
+    this.grudge = null;
     if (s.night < this.cfg.eastFromNight) return 'L';
+    if (grudge === 'L' || grudge === 'R') return grudge; // the door that let her in last time
     const w = { L: 1 - this.cfg.eastChance, R: this.cfg.eastChance };
     for (const side of ['L', 'R']) {
       if (s.habits.camped(side)) w[side] *= 0.45;
       if (s.director.holder(side)) w[side] *= 0.4;
     }
+    // what she remembers: the hall the guard watched least on earlier nights
+    const b = s.beliefs;
+    if (b?.soft) w[b.soft] *= 1 + CONFIG.memory.sideBias * b.softBy * s.trust();
     return s.rng.weighted([['L', w.L], ['R', w.R]]);
+  }
+
+  /** Nobody has looked at the ring for a long while: behind the curtain, to the tape deck. */
+  maybePull() {
+    const s = this.s;
+    const c = this.cfg.pull;
+    if (!s.tricks || this.stage !== 0 || this.ai < c.fromAi || s.t < this.pullReady || s.director.gentle()) return;
+    if (s.t - this.seenAt < c.ignored(this.ai)) return;
+    this.pulling = { until: s.t + c.lasts, seen: 0, nextTell: s.t + c.tell };
+    s.emit({ fx: 'hide', who: this.id });
+    s.staticOn(['8'], 20);
+    s.emit({ fx: 'cue', kind: 'pull', who: this.id });
+  }
+
+  tickPull() {
+    const s = this.s;
+    const c = this.cfg.pull;
+    const p = this.pulling;
+    if (s.isWatchingNode(this.cfg.start)) p.seen++;
+    // the music slowed or stopped (her usual cue), she was caught looking, or she tires of it
+    if (!this.dancing() || s.t >= p.until || p.seen >= c.stare) return this.endPull(false);
+    if (s.t >= p.nextTell) {
+      p.nextTell = s.t + c.tell;
+      s.emit({ fx: 'cue', kind: 'pull', who: this.id, again: true });
+    }
+  }
+
+  /** Back onto the ring (PLAY SHOW on CAM 8 sends her there at once: `rewound`). */
+  endPull(rewound) {
+    const s = this.s;
+    this.pulling = null;
+    this.pullReady = s.t + this.cfg.pull.cooldown * (rewound ? 1.5 : 1);
+    this.seenAt = s.t;
+    this.setStage(0);
+    s.emit({ fx: 'cue', kind: 'pull_end', who: this.id, rewound });
+  }
+
+  /** PLAY SHOW was pressed (show_tape.js). */
+  rewound() {
+    if (this.pulling) this.endPull(true);
   }
 
   /** The tape was rewound above 60 %: back to the ring, if she has not run yet. */
@@ -92,6 +151,8 @@ export class Cat extends Animatronic {
       return;
     }
     if (!this.active) return;
+    if (s.isWatchingNode(this.cfg.start)) this.seenAt = s.t;
+    if (this.pulling) return this.tickPull();
     // the music stopped: she walks off the ring at once
     if (s.tape.stopped && !this.sawStop) {
       this.sawStop = true;
@@ -101,6 +162,7 @@ export class Cat extends Animatronic {
     if (this.stage < 3) {
       if (this.dancing()) {
         if (s.t >= this.nextMo) this.nextMo = s.t + this.cfg.mo; // she is busy dancing
+        this.maybePull();
         return;
       }
       if (open || s.t < this.lockUntil) {

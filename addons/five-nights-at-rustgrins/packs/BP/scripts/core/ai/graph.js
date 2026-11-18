@@ -59,6 +59,12 @@ export function isDark(n) {
 
 export const isCrawl = (n) => !!NODES[n]?.crawl;
 
+/** A room the guard can only listen to: every camera on it is audio-only (the kitchen). */
+export function heardOnly(n) {
+  const cams = CAMS_FOR_NODE[n] ?? [];
+  return cams.length > 0 && cams.every((id) => !!CAMERA_BY_ID[id]?.audioOnly);
+}
+
 /** Every door / window node of the office, by side. */
 export const DOOR_NODES = Object.freeze({
   L: Object.freeze(Object.keys(NODES).filter((n) => NODES[n].door === 'L')),

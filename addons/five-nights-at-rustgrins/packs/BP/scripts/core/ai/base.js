@@ -57,6 +57,11 @@ export class Animatronic {
     this.staredFor = 0; // how long that last stare lasted
     /** uses the director's pincer bonus (a side stalker) */
     this.pincer = false;
+    /** @type {string | null} the way it got to the guard last time ('L', 'R', 'VL', 'VR'): it tries that first */
+    this.grudge = null;
+    this.grudgeTold = false;
+    /** the move opportunityUnseen() just granted had been held back while the guard watched */
+    this.wasHeld = false;
   }
 
   /** Current AI level (0..20) including the hourly ramp. */
@@ -132,13 +137,16 @@ export class Animatronic {
       if (s.t < p.go) return false;
       this.pending = null;
       this.nextMo = s.t + (this.cfg.mo ?? 100);
+      this.wasHeld = true;
       return 'move';
     }
     if (!this.opportunity()) return false;
     if (this.watched()) {
       this.pending = { until: s.t + CONFIG.brain.freezeMax, go: 0 };
+      this.onFreeze();
       return false;
     }
+    this.wasHeld = false;
     return 'move';
   }
 
@@ -154,9 +162,35 @@ export class Animatronic {
     this.s.emit({ fx: 'sound', id, at: this.id, vol, approach: sideOf(node), fast: fast || undefined });
   }
 
+  /** An opportunity won while watched was just put aside (see opportunityUnseen). */
+  onFreeze() {}
+
   /** Is this character working that way into the office (director slots)? */
   holds(_slot) {
     return false;
+  }
+
+  /**
+   * The night starts from what they remember of the guard (core/ai/memory.js beliefsFor), or
+   * from nothing (null). `grudge`: this one caught the guard last time and comes back first,
+   * the very same way.
+   * @param {ReturnType<import('./memory.js').beliefsFor>} b
+   */
+  adopt(b) {
+    this.grudge = !!b?.encore && b.encore.who === this.id ? b.encore.way : null;
+    this.grudgeTold = false;
+  }
+
+  /** May the director or the Ringmaster move this one about right now (a trade, "places!")? */
+  get loose() {
+    return false;
+  }
+
+  /** The grudge's tell, once, as its owner sets out: its own sound, far off (and a caption). */
+  grudgeCue() {
+    if (!this.grudge || this.grudgeTold) return;
+    this.grudgeTold = true;
+    this.s.emit({ fx: 'cue', kind: 'grudge', who: this.id, way: this.grudge });
   }
 
   /** Is the guard looking at this animatronic on a working camera right now? */

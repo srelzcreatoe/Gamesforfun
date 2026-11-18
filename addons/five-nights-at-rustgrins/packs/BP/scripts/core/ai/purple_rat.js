@@ -16,6 +16,13 @@
 //     turned him away counts against it) and may give this one up for the other: his
 //     maracas fade back towards the Midway;
 //   - he waits a section back rather than reach a vent right after another strike.
+// His signature trick, playing dead: a move he wins while a duct camera is on him is held
+// back - the maracas stop dead (the 'playdead' cue) - and if the guard looks away before he
+// squeaks, he spends it as a bolt of up to two sections at nearly twice his speed (the 'burst'
+// cue: a frantic rattle). A glance makes him faster; a stare makes him back off. The bolt
+// obeys every rule of an ordinary move: at the vent the maracas and the usual grace come first.
+// He also remembers (memory.js): the vent the guard sealed least on earlier nights is tried
+// first, and the vent that let him in last time first of all (the 'grudge' cue).
 
 import { Animatronic } from './base.js';
 import { CONFIG } from '../config.js';
@@ -55,7 +62,26 @@ export class PurpleRat extends Animatronic {
       if (g.camped(side) || d.holder(side)) x *= 0.45;
       w[side] = Math.max(0.05, x);
     }
+    // what he remembers: the vent the guard sealed least (or the hall the guard watched least)
+    const b = s.beliefs;
+    const soft = b?.ventSoft ?? b?.soft;
+    if (soft) w[soft] *= 1 + CONFIG.memory.sideBias * s.trust();
     return s.rng.weighted([['L', w.L], ['R', w.R]]);
+  }
+
+  /** The vent that let him in last time: the first trip of the night goes there (and says so). */
+  takeGrudge() {
+    const side = this.grudge === 'VR' ? 'R' : 'L';
+    this.grudgeCue();
+    this.grudge = null;
+    return side;
+  }
+
+  /** A move held back while a duct camera is on him: the maracas stop dead. */
+  onFreeze() {
+    const s = this.s;
+    if (!s.tricks || !NODES[this.node]?.crawl || this.ai < this.cfg.burst.fromAi) return;
+    s.emit({ fx: 'cue', kind: 'playdead', who: this.id, side: this.side });
   }
 
   /** Stared at in a duct: a squeak, and he backs off one section (once per stare). */
@@ -64,6 +90,7 @@ export class PurpleRat extends Animatronic {
     if (this.nervousDone || this.stared < this.cfg.nervousAfter || !NODES[this.node]?.crawl || this.idx <= this.cfg.retreatIndex) return false;
     const s = this.s;
     this.nervousDone = true;
+    this.pending = null; // stared down: the move he was holding back is gone
     this.idx--;
     s.emit({ fx: 'sound', id: 'fnar.rat.squeak', at: this.id, vol: 0.9 });
     s.emit({ fx: 'cue', kind: 'nervous', who: this.id, side: this.side });
@@ -130,14 +157,17 @@ export class PurpleRat extends Animatronic {
     }
     if (this.nervous()) return;
     // in the ducts he is skittish: an opportunity won on camera waits for the guard to look away
-    if (NODES[this.node]?.crawl ? this.opportunityUnseen() !== 'move' : !this.opportunity()) return;
+    const inDuct = !!NODES[this.node]?.crawl;
+    if (inDuct ? this.opportunityUnseen() !== 'move' : !this.opportunity()) return;
     if (this.idx === 0) {
-      this.side = this.chooseSide();
+      this.side = this.grudge ? this.takeGrudge() : this.chooseSide();
       this.state = 'out';
     }
     const r = this.route();
-    let next = this.idx + 1;
-    if (this.idx > 2 && s.rng.chance(this.cfg.twitch)) next = this.idx - 1; // twitchy: backs off
+    // playing dead: a move held back under the camera is spent as a bolt of two sections
+    const bolt = inDuct && this.wasHeld && s.tricks && this.ai >= this.cfg.burst.fromAi;
+    let next = this.idx + (bolt ? 2 : 1);
+    if (!bolt && this.idx > 2 && s.rng.chance(this.cfg.twitch)) next = this.idx - 1; // twitchy: backs off
     next = Math.max(0, Math.min(r.length - 1, next));
     if (next === this.idx) return;
     const target = r[next];
@@ -148,9 +178,10 @@ export class PurpleRat extends Animatronic {
       s.director.struck(this.id, slot);
     }
     const crawl = !!NODES[target].crawl;
-    const ok = this.crawlTo(target, crawl ? this.cfg.crawlSpeed : this.cfg.walkSpeed, crawl ? 'crawl' : 'scurry');
+    const ok = this.crawlTo(target, (crawl ? this.cfg.crawlSpeed : this.cfg.walkSpeed) * (bolt ? this.cfg.burst.speed : 1), crawl ? 'crawl' : 'scurry');
     if (!ok) return;
     this.idx = next;
+    if (bolt) s.emit({ fx: 'cue', kind: 'burst', who: this.id, side: this.side });
     if (crawl) {
       s.emit({ fx: 'sound', id: 'fnar.rat.maracas', at: this.id, vol: 1, follow: true, near: next >= r.length - 3 ? this.side : null });
       if (s.rng.chance(0.5)) s.emit({ fx: 'sound', id: 'fnar.rat.crawl', at: this.id, vol: 0.9, follow: true });

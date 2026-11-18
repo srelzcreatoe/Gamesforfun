@@ -82,6 +82,10 @@ export const CONFIG = Object.freeze({
       busyBonus: (a) => Math.round(a * 0.35), // entry-roll bonus while the guard is on the cameras
       wary: (a) => Math.max(40, 130 - 5 * a), // ticks after a light check on his side that he waits it out (bolder at higher AI)
       entryGrace: 70, // ticks from his arrival in the doorway (and its tell) to his first try at an open door
+      // the knock: `after` ticks at the corner with no good moment in sight, he may rap on the wall
+      // (bait for a light check: he steps in as that light goes off, within `window`).
+      // `bold`: entry-roll bonus on his first try after a bait the guard took
+      bait: Object.freeze({ kind: 'knock', fromAi: 5, after: 20, window: 200, cooldown: 500, bold: 4, chance: (a) => Math.min(0.9, 0.4 + a * 0.03) }),
     }),
     noxbriar: Object.freeze({
       mo: 100, start: 'ST_N', side: 'R',
@@ -108,6 +112,8 @@ export const CONFIG = Object.freeze({
       linger: (a) => Math.min(0.45, 0.05 + a * 0.025), lingerMax: 320, stalkMax: 360, eagerFor: 900,
       busyBonus: (a) => Math.round(a * 0.35), wary: (a) => Math.max(60, 170 - 6 * a), entryGrace: 70,
       hallHum: 0.55, // chance she hums softly as she comes down the East Hall
+      // the thrown voice: a hum from the WRONG hall; if the guard lights that hall she steps up to her window
+      bait: Object.freeze({ kind: 'decoy', fromAi: 6, after: 20, window: 200, cooldown: 600, bold: 4, chance: (a) => Math.min(0.9, 0.35 + a * 0.03) }),
     }),
     rustgrin: Object.freeze({
       mo: 60, start: 'ST_R', side: 'R',
@@ -123,6 +129,9 @@ export const CONFIG = Object.freeze({
       hotStop: 0.55, // a route stop the guard watches this much is skipped when a darker way exists
       patience: (a) => Math.max(100, 400 - 25 * a), // after the door turns him away he waits this long before coming again
       litPatience: 200, // a right hall light on this long no longer keeps him out of the nook
+      // the burnt feed: watched this many ticks in all (it fades at `fade` a tick while unwatched), his
+      // microphone squeals through the monitor; still watched `warn` ticks later, that camera is dead for `lasts`
+      burn: Object.freeze({ fromAi: 2, after: (a) => Math.max(140, 300 - 8 * a), warn: 50, lasts: (a) => 300 + 15 * a, cooldown: 900, fade: 0.5 }),
     }),
     cat: Object.freeze({
       // Dances on the Midway ring with the Purple Rat while the show tape plays. Stage 0 dancing,
@@ -137,6 +146,10 @@ export const CONFIG = Object.freeze({
       }),
       eastFromNight: 4, eastChance: 0.4,
       bangReset: (rng) => rng.int(0, 1), // stage after banging on a shut door
+      // at the tape deck: CAM 8 unwatched this long while she dances, she slips behind the curtain and
+      // pulls the tape (it runs `drain` times as fast) until the guard rewinds it on CAM 8, watches
+      // the empty ring for `stare` ticks, or `lasts` pass
+      pull: Object.freeze({ fromAi: 4, ignored: (a) => Math.max(360, 800 - 20 * a), drain: 2.2, lasts: 360, stare: 40, cooldown: 900, tell: 100 }),
     }),
     purple_rat: Object.freeze({
       mo: 80, start: 'MW_P',
@@ -150,6 +163,9 @@ export const CONFIG = Object.freeze({
       retreatIndex: 2, // after banging on a shut vent he crawls back to this index of his route
       nervousAfter: 50, // stared at this long in a duct, he squeaks and backs off a section
       turnedAway: 0.6, // each time a vent turned him away, that duct weighs this much less
+      // playing dead: a move he held back while a duct camera was on him is spent as a bolt of up to
+      // two sections at this many times his crawl speed, if the guard looks away before he squeaks
+      burst: Object.freeze({ fromAi: 5, speed: 1.9 }),
     }),
     top_hat_rat: Object.freeze({
       // The Ringmaster. Nights 1-5: stands on his stage, the Grand Marquee (CAM 1C), and never moves.
@@ -166,6 +182,9 @@ export const CONFIG = Object.freeze({
       finalPause: Object.freeze([200, 150]),
       doorGrace: 90, // ticks at the office door before he steps in (a spotlight from CAM 2B / 4B still works)
       vanishChance: 0.5, // leaving the booth, he skips straight to the dining room behind a burst of static
+      // "Places!": from his booth (from this night on), once a night between these hours, he calls two of
+      // the band back to the stage, holds them there, and sends them out again together (eager for a while)
+      places: Object.freeze({ fromNight: 3, hours: Object.freeze([1.6, 3.8]), hold: 220, eager: 900, retry: 100 }),
     }),
   }),
 
@@ -266,7 +285,45 @@ export const CONFIG = Object.freeze({
     minGap: 50, // ticks between two strikes
     breather: 120, // ticks nobody strikes after a close call
     pincer: 2, // roll bonus for a side stalker while the other side is worked or camped
+    // group tactics on the later nights (never on the training night or in the Final Act)
+    tactics: Object.freeze({
+      fromNight: 4,
+      // a racket in a room the guard can only listen to (the kitchen, CAM 6) while a stalker
+      // at its corner steps up to the door
+      clatter: Object.freeze({ window: 120, cooldown: 900 }),
+      // Mirehop and Noxbriar trade halls for one trip (once a night, both at this AI or more)
+      trade: Object.freeze({ minAi: 12, hours: Object.freeze([1.4, 4.4]), lasts: 1800 }),
+      duoGap: 140, // after the Ringmaster's "places!": the two he sent arrive at least this far apart
+    }),
   }),
+
+  // What they remember of the guard from one night of the week to the next (core/ai/memory.js).
+  memory: Object.freeze({
+    nights: Object.freeze([1, 2, 3, 4, 5]), // the week; night 1 always starts blank
+    keep: 0.5, // each new night, everything before it counts half as much
+    fullAfter: 3, // hours of a night that tell them all one night can (a night cut short tells less)
+    maxNights: 3, // cap on how much they can know
+    hours: 3, // tonight's beliefs fade over this many hours: after that, only what they see tonight
+    maxChecks: 60, // cap on remembered light checks per hour
+    minChecks: 2, // a hall counts as neglected only if the guard checks lights at all (per hour)
+    neglect: 0.6, // ...and checks it (or seals that vent) this much less than the other
+    minVent: 0.03, // a vent sealed at least this share of the night counts as used
+    minGap: 100, // the shortest light rhythm they will believe (ticks)
+    camp: 0.45, // a door shut this share of the night was camped
+    monitor: 0.6, // the monitor up this share of the night: a camera watcher
+    shy: 0.2, // ...or this little: a guard who hardly uses the cameras
+    probe: 0.3, // hunt-chance bonus for the stalker on the soft side (x how soft, x trust)
+    probeOther: 0.1, // ...and this much less for the other one: the pressure moves, it does not grow
+    sideBias: 0.8, // the Purple Rat's and the Cat's lean towards the soft vent / hall (x trust)
+    watcher: 0.25, // against a camera watcher: Rustgrin's patience is this much shorter (x trust)
+    ease: 1, // the director's highest bonus drops by this per death in a row...
+    maxEase: 2, // ...at most this much (and from the second death in a row it takes one more step off)
+    maxDeaths: 3,
+  }),
+
+  // Small signs of life while they stand about (core/ai/liveliness.js): cosmetic effects only,
+  // one every `every` ticks for the whole cast; a shuffle is this many blocks out and back.
+  idle: Object.freeze({ first: 240, every: Object.freeze([150, 330]), shuffle: 1.3 }),
 
   hallucination: Object.freeze({ cooldown: 400 }),
   // Rare "Rusted Rustgrin" event: when the monitor goes down there is this chance (nights >= 2)

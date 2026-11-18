@@ -53,6 +53,7 @@ export class ShowTape {
       this.stopped = false;
       s.emit({ fx: 'sound', id: 'fnar.tophat.fanfare', at: 'cam8', vol: 0.8 });
     }
+    s.chars.cat?.rewound?.(); // caught at the tape deck: back to the ring
     if (this.level >= this.cfg.recall) s.chars.cat?.recall?.();
     this.update();
     return true;
@@ -64,7 +65,8 @@ export class ShowTape {
     const troupe = Math.max(s.chars.cat?.active ? s.chars.cat.ai : 0, s.chars.purple_rat?.active ? s.chars.purple_rat.ai : 0);
     if (!this.stopped && troupe > 0) {
       const drain = Math.max(this.cfg.minDrain, Math.round((this.cfg.drainAt20 * troupe) / 20)) * (s.mods?.tapeRot ? CONFIG.mods.tapeRot : 1);
-      this.level = Math.max(0, this.level - drain);
+      // the Cat at the tape deck pulls it through faster (see cat.js)
+      this.level = Math.max(0, this.level - Math.round(drain * (s.chars.cat?.pulling ? CONFIG.characters.cat.pull.drain : 1)));
       if (this.level === 0) {
         this.stopped = true;
         s.emit({ fx: 'sound', id: 'fnar.tophat.tape_out', at: 'cam8', vol: 1 });
