@@ -12,6 +12,7 @@ const { PALETTE, pictureBlock } = await import(path.join(DATA, 'palette.js'));
 const LAYOUT = await import(path.join(DATA, 'layout.js'));
 const { LOT, DAY_LIGHTS } = LAYOUT;
 const { PHASES } = await import(path.join(DATA, 'plan.js'));
+const { DAY_OPEN } = await import(path.join(DATA, 'guests.js'));
 
 export function buildVoxels(seed = 1991, opts = {}) {
   const { ops, meta } = generatePlan(seed);
@@ -88,6 +89,9 @@ export function buildVoxels(seed = 1991, opts = {}) {
  *   nightSet: { night, heads: 'away'|'lens', dying }  the pizzeria at night (mc/nightset.js): chalk
  *                    tallies outside the left door, the night drawings (from night 3, the office's from
  *                    4), the backstage heads facing the wall, one footlight and a few marquee bulbs lit
+ *   dayDoors: true   the front doors as they stand by day, open down to the floor (mc/guests.js)
+ *   closing: ['foyer']  closing time (with mode 'day'): every room dark (lamps, pendants, daytime fill
+ *                    lights) but the listed lamp groups; the stage spotlights are still on
  */
 function applyVariants(o, { data, idx, palette, meta, ops }) {
   const pid = (name, states) => {
@@ -165,6 +169,17 @@ function applyVariants(o, { data, idx, palette, meta, ops }) {
         const pend = meta.hanging.filter((hg) => hg.group === 'dining');
         if (pend[3]) setLit(pend[3].x, pend[3].y, pend[3].z, true);
       }
+    }
+  }
+  if (o.dayDoors) for (const [x, y, z] of DAY_OPEN) put(x, y, z, 0);
+  if (o.closing) {
+    const dark = new Set();
+    for (const l of meta.lamps) if (!o.closing.includes(l.group)) { setLit(l.x, l.y, l.z, false); dark.add(l.room); }
+    for (const h of meta.hanging) if (!o.closing.includes(h.group)) setLit(h.x, h.y, h.z, false);
+    for (const [x, y, z] of LAYOUT.DAY_LIGHTS) {
+      const room = LAYOUT.ROOMS.find((r) => x >= r.box[0] && x <= r.box[2] && z >= r.box[1] && z <= r.box[3])?.id;
+      const i = idx(x, y, z);
+      if (dark.has(room) && i >= 0 && /^minecraft:light_block/.test(palette[data[i]].name)) data[i] = 0;
     }
   }
   if (o.cutaway !== undefined) {

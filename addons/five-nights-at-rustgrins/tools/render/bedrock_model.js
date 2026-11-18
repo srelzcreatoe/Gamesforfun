@@ -124,13 +124,18 @@ export function buildModel(geoJson, material, { identifier } = {}) {
 }
 
 // ---------------------------------------------------------------- animation sampling
+/** Molang variables for the animation being sampled (applyAnimation's opts.vars): variable.x / v.x read from here, 0 if unset. */
+let VARS = null;
+const MOLANG = { clamp: (x, a, b) => Math.min(Math.max(x, a), b), lerp: (a, b, f) => a + (b - a) * f };
 function evalValue(v, t) {
   if (typeof v === 'number') return v;
   if (typeof v === 'string') {
     const s = v.toLowerCase().replace(/query\.anim_time|q\.anim_time/g, String(t)).replace(/query\.life_time|q\.life_time/g, String(t))
+      .replace(/\b(?:variable|v)\.(\w+)/g, (m, k) => `(${Number(VARS?.[k] ?? 0)})`)
       .replace(/math\.sin\(/g, 'Math.sin((Math.PI/180)*').replace(/math\.cos\(/g, 'Math.cos((Math.PI/180)*')
+      .replace(/math\.(clamp|lerp)\(/g, '__m.$1(')
       .replace(/math\./g, 'Math.');
-    try { return Number(Function(`return (${s});`)()) || 0; } catch { return 0; }
+    try { return Number(Function('__m', `return (${s});`)(MOLANG)) || 0; } catch { return 0; }
   }
   return 0;
 }
@@ -158,23 +163,39 @@ function sampleChannel(ch, t) {
   return pa.map((x, j) => x + (pb[j] - x) * f);
 }
 
-/** Apply an animation (bedrock JSON object) at time t (seconds) on top of the rest pose. */
-export function applyAnimation(model, anim, t) {
-  for (const { node, base } of model.bones.values()) {
-    node.position.copy(base.pos); node.rotation.copy(base.rot); node.scale.set(1, 1, 1);
+/**
+ * Apply an animation (bedrock JSON object) at time t (seconds) on top of the rest pose.
+ * opts.vars: Molang variables the animation reads (variable.x / v.x; unset ones are 0).
+ * opts.additive: layer it on the pose already applied, like a second animation playing in the game
+ * (rotations and positions add, scales multiply) instead of starting from the rest pose.
+ */
+export function applyAnimation(model, anim, t, opts = {}) {
+  if (!opts.additive) {
+    for (const { node, base } of model.bones.values()) {
+      node.position.copy(base.pos); node.rotation.copy(base.rot); node.scale.set(1, 1, 1);
+    }
   }
   if (!anim) return;
   const len = anim.animation_length ?? 0;
   if (anim.loop === true && len > 0) t = t % len;
   else if (len > 0) t = Math.min(t, len);
-  for (const [name, chans] of Object.entries(anim.bones || {})) {
-    const b = model.bones.get(name);
-    if (!b) continue;
-    const r = sampleChannel(chans.rotation, t);
-    if (r) b.node.rotation.set(b.base.rot.x - r[0] * D2R, b.base.rot.y - r[1] * D2R, b.base.rot.z + r[2] * D2R, 'ZYX');
-    const p = sampleChannel(chans.position, t);
-    if (p) b.node.position.set(b.base.pos.x - p[0] / 16, b.base.pos.y + p[1] / 16, b.base.pos.z + p[2] / 16);
-    const s = sampleChannel(chans.scale, t);
-    if (s) b.node.scale.set(s[0] || 1e-4, s[1] || 1e-4, s[2] || 1e-4);
+  VARS = opts.vars ?? null;
+  try {
+    for (const [name, chans] of Object.entries(anim.bones || {})) {
+      const b = model.bones.get(name);
+      if (!b) continue;
+      const from = opts.additive ? { rot: b.node.rotation, pos: b.node.position } : b.base;
+      const r = sampleChannel(chans.rotation, t);
+      if (r) b.node.rotation.set(from.rot.x - r[0] * D2R, from.rot.y - r[1] * D2R, from.rot.z + r[2] * D2R, 'ZYX');
+      const p = sampleChannel(chans.position, t);
+      if (p) b.node.position.set(from.pos.x - p[0] / 16, from.pos.y + p[1] / 16, from.pos.z + p[2] / 16);
+      const s = sampleChannel(chans.scale, t);
+      if (s) {
+        if (opts.additive) b.node.scale.set(b.node.scale.x * (s[0] || 1e-4), b.node.scale.y * (s[1] || 1e-4), b.node.scale.z * (s[2] || 1e-4));
+        else b.node.scale.set(s[0] || 1e-4, s[1] || 1e-4, s[2] || 1e-4);
+      }
+    }
+  } finally {
+    VARS = null;
   }
 }

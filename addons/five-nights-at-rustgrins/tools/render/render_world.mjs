@@ -107,7 +107,7 @@ export function resolveEntityResources(id, root = ROOT, packs = []) {
   if (!texFile) throw new Error(`entity ${id}: texture ${texRel} not found`);
   const eyesRel = Object.entries(d.textures ?? {}).find(([k]) => /eye|glow|emissive/i.test(k))?.[1];
   const animFiles = walk(path.join(R.rp, 'animations'), (p) => p.endsWith('.json'));
-  const res = { id, identifier: d.identifier, rp: R.rp, geoId, geoFile, texFile, texRel, eyesFile: eyesRel ? findImage(path.join(R.rp, eyesRel)) : null, animations: d.animations ?? {}, animFiles, scale: entityScale(d) };
+  const res = { id, identifier: d.identifier, rp: R.rp, geoId, geoFile, texFile, texRel, eyesFile: eyesRel ? findImage(path.join(R.rp, eyesRel)) : null, animations: d.animations ?? {}, textures: d.textures ?? {}, animFiles, scale: entityScale(d) };
   // texture set (MER) for the entity texture
   const setFile = path.join(R.rp, texRel + '.texture_set.json');
   if (fs.existsSync(setFile)) {
@@ -183,6 +183,17 @@ function resolveEntity(spec, root, packs, urlFor) {
   }
   // spec.scale (scene field) multiplies the client entity's own scaleX/Y/Z
   const out = { ...spec, geo: urlFor(res.geoFile), texture: urlFor(res.texFile), anim: animFile ? urlFor(animFile) : null, animName, scaleXYZ: res.scale.map((v) => v * (spec.scale ?? 1)) };
+  // spec.textureKey: another entry of the client entity's textures (what a render controller's texture array
+  // picks in game, e.g. a guest's skin); spec.layers: animations of the same file layered on the main one
+  if (spec.textureKey) {
+    const rel = res.textures[spec.textureKey];
+    const f = rel ? findImage(path.join(res.rp, rel)) : null;
+    if (f) out.texture = urlFor(f); else console.warn(`[render_world] entity ${spec.id}: no texture '${spec.textureKey}'`);
+  }
+  if (spec.layers && animFile) {
+    const names = Object.keys(readJ(animFile)?.animations ?? {});
+    out.layerNames = spec.layers.map((l) => names.find((k) => k === l || k.endsWith('.' + l))).filter(Boolean);
+  }
   if (res.merFile) {
     const t = processTexture({ file: res.texFile, frames: 1, mers: res.merFile, mersKind: 'mer' });
     if (t.pbrFile) out.pbr = urlFor(t.pbrFile);

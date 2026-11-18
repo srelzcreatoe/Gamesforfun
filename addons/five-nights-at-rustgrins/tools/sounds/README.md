@@ -29,6 +29,7 @@ Vorbis decoding) and Pillow (spectrograms) are optional extras for the checker.
 | `recipes_anim.py` | footsteps, servos, Mirehop / Noxbriar / Rustgrin / Cat / Purple Rat / Ringmaster sounds |
 | `recipes_final.py` | the Final Act: PA chime, applause, spotlight |
 | `recipes_night.py` | the night shift: the drone and heartbeat beds, breathing, children's voices, the far music box, building noises, knocks, the radio, stingers, the midnight cue |
+| `recipes_day.py` | the pizzeria by day: the guests' murmur, their clapping and cheering, the bell over the front doors |
 | `recipes_music.py` | instruments and the compositions (music box, calliope, 80s band) |
 | `check_sounds.py` | self-check: duration, channels, peak, RMS, DC, edges, loop seams, size, spectrograms |
 | `sound_manifest.json` | generated: exact durations, channels, loop flags, max distance, peaks, pre-fade seam metrics |
@@ -285,6 +286,23 @@ plate) and `pipe_modes` (a loose steel pipe).
   in the far hall; five lub-dubs getting faster and louder; and a breath of static
   shaped by a mouth (noise through "uh→o→u" formants) with mains hum.
 
+**The pizzeria by day** (`recipes_day.py`). The guests of Free Roam. The voices are
+the same formant babble as the phone (speech-like, no words) and the child voices
+of the night shift, here played straight and bright instead of slowed and far away.
+* `day.crowd` (14 s loop, 280 ticks) is a room full of people: thirteen grown-ups,
+  each talking in short turns about half the time (three near and clear, the rest
+  duller and quieter, the way voices are across a room), five children chattering,
+  four laughs and a "yay", forks and plates and glasses (small-metal mode hits), a
+  chair pushed back, and a little room tone. Everything is placed with wrap-around
+  and the dining-hall reverb runs circularly, so it loops without a seam. The
+  script plays it from the middle of the room and sets the level by head count.
+* `day.cheer`: every clapper has their own pace (3.4-4.6 claps a second), brightness
+  and loudness; a clap is a short band of noise with a hollow thump under it. On top
+  a "woo!" (one breath, the pitch sweeping up and tailing off) and a child's "yay!"
+  (i -> e -> a), then the room.
+* `day.door_chime`: two glockenspiel bars, E5 then C5, each with the tick of its
+  little hammer, and the thud of the door closer.
+
 **Hallucinations, UI, showtime.**
 * `hall.whisper` is unvoiced formant noise with sibilants, convolved with a
   hall and reversed, so it swells in and sweeps right to left.
@@ -381,6 +399,9 @@ nameN.ogg`, and the definition lists them all, so Minecraft picks one at random.
 | `fnar.night.twitch` | 3 | 0.4 s | mono |  | hostile | 16 |
 | `fnar.night.stinger` | 2 | 3 s | stereo |  | hostile | - |
 | `fnar.night.midnight` | 1 | 6 s | stereo |  | ui | - |
+| `fnar.day.crowd` | 1 | 14 s | mono | loop | neutral | 44 |
+| `fnar.day.cheer` | 3 | 3.2 s | mono |  | neutral | 44 |
+| `fnar.day.door_chime` | 1 | 1.8 s | mono |  | block | 30 |
 | `fnar.hall.whisper` | 1 | 2 s | stereo |  | hostile | - |
 | `fnar.hall.sting` | 1 | 1.5 s | stereo |  | hostile | - |
 | `fnar.ui.click` | 1 | 0.1 s | stereo |  | ui | - |

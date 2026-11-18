@@ -7,6 +7,7 @@ entity.fnar:purple_rat.name=Purple Rat
 entity.fnar:cat.name=The Cat
 entity.fnar:top_hat_rat.name=The Ringmaster
 entity.fnar:rusted.name=Rustgrin?
+entity.fnar:guest.name=Guest
 item.fnar:tablet.name=Camera Tablet
 item.fnar:remote.name=Office Remote
 item.fnar:guide.name=Shift Guide

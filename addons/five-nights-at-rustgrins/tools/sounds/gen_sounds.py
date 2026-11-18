@@ -43,6 +43,7 @@ sys.path.insert(0, HERE)
 from fnar_dsp import (N, SR, ampdb, bq, dbamp, dc_block, eq, fade_edges, fit, limiter,  # noqa: E402
                       norm_peak, norm_rms, rng)
 import recipes_anim as ra  # noqa: E402
+import recipes_day as rd  # noqa: E402
 import recipes_final as rf  # noqa: E402
 import recipes_music as rm  # noqa: E402
 import recipes_night as rn  # noqa: E402
@@ -200,6 +201,11 @@ EVENTS = [
     Ev('night.stinger', rn.night_stinger, 3.0, variants=2, stereo=True, cat='hostile', level=('peak', -3.0),
        fout=0.3),
     Ev('night.midnight', rn.night_midnight, 6.0, stereo=True, cat='ui', level=('peak', -3.0), fout=0.3),
+    # --- the pizzeria by day: the guests (recipes_day) --------------------------------
+    # the murmur is a positional bed (280 ticks), restarted by the script at a level set by how many are there
+    Ev('day.crowd', rd.day_crowd, 14.0, loop=True, cat='neutral', dist=(10, 44), level=('lufs', -27)),
+    Ev('day.cheer', rd.day_cheer, 3.2, variants=3, cat='neutral', dist=(8, 44), level=('lufs', -21), fout=0.25),
+    Ev('day.door_chime', rd.day_door_chime, 1.8, cat='block', dist=(4, 30), level=('peak', -5.0), fout=0.3),
     # --- hallucinations / UI / music ---------------------------------------------
     Ev('hall.whisper', ro.hall_whisper, 2.0, stereo=True, cat='hostile', level=('peak', -4.0)),
     Ev('hall.sting', ro.hall_sting, 1.5, stereo=True, cat='hostile', level=('peak', -1.5), fout=0.15),

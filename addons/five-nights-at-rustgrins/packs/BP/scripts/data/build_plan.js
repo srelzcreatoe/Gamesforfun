@@ -279,7 +279,10 @@ function facade(p) {
   const top = BUILDING.roofY + 1; // the coping
   // the main body: a dark plinth, the checker band, warm yellow wall, a red trim line, teal cladding, the coping
   const band = (z1, z2, y1, y2, key) => p.fill(X, y1, z1, X, y2, z2, key);
-  band(-1, 72, 0, 0, 'blackstone_bricks');
+  // the plinth stops at the doorway (it used to run across it: a one-block sill in the entrance), and the two
+  // fixed glass leaves reach the floor
+  for (const [z1, z2] of [[-1, 33], [38, 72]]) band(z1, z2, 0, 0, 'blackstone_bricks');
+  for (const z of [34, 37]) band(z, z, 0, 0, 'window');
   for (const [z1, z2] of [[-1, 32], [39, 72]]) band(z1, z2, 1, 1, 'wall_checker');
   for (const [z1, z2] of [[-1, 32], [39, 72]]) band(z1, z2, 2, 4, 'wall_yellow');
   band(-1, 72, 5, 5, 'wall_yellow');

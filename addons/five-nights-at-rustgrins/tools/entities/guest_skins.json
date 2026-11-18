@@ -1,0 +1,118 @@
+{
+ "scale": 0.9375,
+ "anims": [
+  "idle",
+  "walk",
+  "hurry",
+  "clap",
+  "cheer",
+  "wave",
+  "point",
+  "play",
+  "talk",
+  "sit",
+  "eat",
+  "sit_clap",
+  "sit_talk",
+  "sit_wave",
+  "sit_cheer"
+ ],
+ "skins": [
+  {
+   "name": "dad_flannel",
+   "kind": "adult"
+  },
+  {
+   "name": "mom_windbreaker",
+   "kind": "adult"
+  },
+  {
+   "name": "grandpa",
+   "kind": "adult"
+  },
+  {
+   "name": "grandma",
+   "kind": "adult"
+  },
+  {
+   "name": "dad_polo",
+   "kind": "adult"
+  },
+  {
+   "name": "mom_denim",
+   "kind": "adult"
+  },
+  {
+   "name": "teen_metalhead",
+   "kind": "teen"
+  },
+  {
+   "name": "teen_scrunchie",
+   "kind": "teen"
+  },
+  {
+   "name": "trucker",
+   "kind": "adult"
+  },
+  {
+   "name": "office_mom",
+   "kind": "adult"
+  },
+  {
+   "name": "jock",
+   "kind": "teen"
+  },
+  {
+   "name": "aunt_floral",
+   "kind": "adult"
+  },
+  {
+   "name": "uncle_hawaiian",
+   "kind": "adult"
+  },
+  {
+   "name": "mom_turtleneck",
+   "kind": "adult"
+  },
+  {
+   "name": "dad_sweater",
+   "kind": "adult"
+  },
+  {
+   "name": "skater",
+   "kind": "teen"
+  },
+  {
+   "name": "boy_stripes",
+   "kind": "child"
+  },
+  {
+   "name": "girl_pigtails",
+   "kind": "child"
+  },
+  {
+   "name": "boy_overalls",
+   "kind": "child"
+  },
+  {
+   "name": "girl_braids",
+   "kind": "child"
+  },
+  {
+   "name": "boy_cap",
+   "kind": "child"
+  },
+  {
+   "name": "birthday_girl",
+   "kind": "child"
+  },
+  {
+   "name": "boy_ginger",
+   "kind": "child"
+  },
+  {
+   "name": "girl_souvenir",
+   "kind": "child"
+  }
+ ]
+}

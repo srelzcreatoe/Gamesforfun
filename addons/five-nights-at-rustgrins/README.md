@@ -37,12 +37,15 @@ You start in the **Staff Room** at the time clock. Press a button on the wall:
 `CUSTOM NIGHT` (after the Final Act), `FREE ROAM` (the pizzeria by day),
 `GALLERY`, `CLIPPINGS`, `SETTINGS`, `EXTRAS`, `ERASE PROGRESS`.
 
-**Free Roam** is the pizzeria open for business: a live show every few minutes
-(the band on the Show Stage, the Cat and the Purple Rat on the Midway ring, the
-Ringmaster conducting from the Grand Marquee, announced on the PA), and the
+**Free Roam** is the pizzeria open for business, and full of people: families
+come in from the street through the front doors, sit down to eat, play the arcade
+cabinets, look at the prizes and the ball pit, and go home again. There is a live
+show every few minutes (the band on the Show Stage, the Cat and the Purple Rat on
+the Midway ring, the Ringmaster conducting from the Grand Marquee, announced on
+the PA): everyone in the Dining Hall turns to watch, and they clap and cheer. The
 animatronics talk to you when you walk up and look at them. The **Time Card**
-clocks you in: the music dies, the lights go out room by room, and the night
-shift begins.
+clocks you in: the music dies, everybody gets up and leaves, the children by the
+hand, the lights go out room by room, and the night shift begins.
 
 **Extras:** replay the jumpscares you have seen, pose the cast, a Sound Test,
 cheats (after the Final Act) and four challenges with trophies (after Night 5).
@@ -128,11 +131,12 @@ Night at 20/20/20/20/20/20.
 
 `python3 tools/build_addon.py` regenerates the generated assets, runs every
 check (Mojang JSON schemas, the load rules and the no-experiments rule, block states against the 1.26.50 block data,
-camera sight lines and routes on the built map, a typecheck against the
+camera sight lines and routes on the built map, the daytime guests' walkways, seats and spots on it, a typecheck against the
 `@minecraft/server` 2.10 typings, a night-balance simulation, and a scripted
 play session against a strict API mock) and writes `dist/*.mcaddon`.
 See `docs/` for the design, block, sound and renderer specs.
 
 `node tools/previews/make_previews.mjs` re-renders `previews/` from the build
 plan (headless Chromium + three.js; camera shots get the in-game camera HUD
-composited on top).
+composited on top). `node tools/render/guest_sheet.mjs skins` draws the sheet of
+all the daytime guests (`previews/guest_skins.png`).

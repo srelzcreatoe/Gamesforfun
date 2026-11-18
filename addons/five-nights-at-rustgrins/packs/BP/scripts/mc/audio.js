@@ -45,6 +45,7 @@ export const LOOPS = Object.freeze({
   'fnar.amb.duct': 120,
   'fnar.night.drone': 240,
   'fnar.night.heartbeat': 40,
+  'fnar.day.crowd': 280,
 });
 
 export class Audio {

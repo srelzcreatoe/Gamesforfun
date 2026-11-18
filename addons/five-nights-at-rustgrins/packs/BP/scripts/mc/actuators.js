@@ -7,7 +7,7 @@
 // building to its night-start state.
 
 import { system } from '@minecraft/server';
-import { OFFICE, CABARET, SHOW_TAPE, DAY_LIGHTS } from '../data/layout.js';
+import { OFFICE, CABARET, SHOW_TAPE, DAY_LIGHTS, ROOM_BY_ID } from '../data/layout.js';
 import { CAMERA_BY_ID } from '../data/cameras.js';
 import { NODES } from '../data/nodes.js';
 import { CONFIG } from '../core/config.js';
@@ -106,6 +106,27 @@ export class Actuators {
   /** Switch every lamp in a group (see build_plan lights(): office, dining, hall_w, hall_e, door_l, door_r, kitchen, ...). */
   lampGroup(group, on) {
     for (const l of this.meta.lamps) if (l.group === group) setStateLocal(l.x, l.y, l.z, 'fnar:lit', !!on);
+  }
+
+  /**
+   * Closing time: one room goes dark. Its ceiling lamps, its pendants and its daytime fill lights all go
+   * out together, so the room really is dark while the next one is still lit.
+   */
+  roomDark(group) {
+    const rooms = new Set();
+    for (const l of this.meta.lamps) {
+      if (l.group !== group) continue;
+      setStateLocal(l.x, l.y, l.z, 'fnar:lit', false);
+      if (l.room) rooms.add(l.room);
+    }
+    for (const h of this.meta.hanging) if (h.group === group) setStateLocal(h.x, h.y, h.z, 'fnar:lit', false);
+    for (const [x, y, z] of DAY_LIGHTS) {
+      const inside = [...rooms].some((id) => {
+        const b = ROOM_BY_ID[id]?.box;
+        return b && x >= b[0] && x <= b[2] && z >= b[1] && z <= b[3];
+      });
+      if (inside && typeAtLocal(x, y, z)?.startsWith('minecraft:light_block')) setLocal(x, y, z, 'air');
+    }
   }
 
   allLamps(on, except = []) {

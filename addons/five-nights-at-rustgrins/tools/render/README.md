@@ -14,6 +14,11 @@ headless Chromium (Playwright, WebGL2 via SwiftShader). Three looks:
 
 Spec: `docs/RENDERER.md`. Examples of output: `tools/render/test/*.png`.
 
+`guest_sheet.mjs` draws contact sheets of the daytime guests (`fnar:guest`):
+`skins` (every skin, front and back, at its own size: `previews/guest_skins.png`),
+`anims` (every animation at four moments) and `lineup` (a family next to a 3-block
+animatronic).
+
 ## Usage
 
 ```sh
@@ -50,7 +55,7 @@ Everything in `docs/RENDERER.md` plus a few optional extras. Coordinates are wor
 | `style` | `vibrant` \| `classic` \| `camera_feed` |
 | `time` | `night` (default) \| `day` (bright sky light + shadowed sun; minimal) |
 | `exposure` | multiplier on the style's exposure (1) |
-| `entities` | `[{ id, pos, yaw, anim, t, eyes, scale, eyeIntensity? }]` - `yaw` 0 = facing south (Minecraft yaw); `anim` = short name (`idle`, `perform_1`/`perform`, `pose_1`/`pose`...) or full `animation.*` id; `scale` multiplies the client entity's own render scale (below) |
+| `entities` | `[{ id, pos, yaw, anim, t, eyes, scale, eyeIntensity? }]` - `yaw` 0 = facing south (Minecraft yaw); `anim` = short name (`idle`, `perform_1`/`perform`, `pose_1`/`pose`...) or full `animation.*` id; `scale` multiplies the client entity's own render scale (below). For entities driven by properties (the daytime guests): `textureKey` picks another entry of the client entity's `textures` (what a render controller's texture array picks in game), `vars` gives the Molang variables the animations read (`variable.x` / `v.x`; unset = 0), `layers` plays more animations of the same file on top of `anim` (rotations and positions add, scales multiply), `hide` lists bones a render controller's `part_visibility` switches off |
 | `extra_lights` | `[{ type: point\|spot\|dir\|ambient, pos, target, color, intensity, distance, angle, penumbra, decay, shadow, shadowExtent }]` |
 | `fog` | `{ color, density }` (style default `#07080c` / 0.03); `null` disables |
 | `bloom` | `{ strength, radius, threshold }` (vibrant 0.45 / 0.45 / 0.9); `null` disables |

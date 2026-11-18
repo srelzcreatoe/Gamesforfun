@@ -1,0 +1,86 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "fnar:guest",
+   "materials": {
+    "default": "entity_alphatest"
+   },
+   "textures": {
+    "s0": "textures/entity/fnar/guest_00",
+    "s1": "textures/entity/fnar/guest_01",
+    "s2": "textures/entity/fnar/guest_02",
+    "s3": "textures/entity/fnar/guest_03",
+    "s4": "textures/entity/fnar/guest_04",
+    "s5": "textures/entity/fnar/guest_05",
+    "s6": "textures/entity/fnar/guest_06",
+    "s7": "textures/entity/fnar/guest_07",
+    "s8": "textures/entity/fnar/guest_08",
+    "s9": "textures/entity/fnar/guest_09",
+    "s10": "textures/entity/fnar/guest_10",
+    "s11": "textures/entity/fnar/guest_11",
+    "s12": "textures/entity/fnar/guest_12",
+    "s13": "textures/entity/fnar/guest_13",
+    "s14": "textures/entity/fnar/guest_14",
+    "s15": "textures/entity/fnar/guest_15",
+    "s16": "textures/entity/fnar/guest_16",
+    "s17": "textures/entity/fnar/guest_17",
+    "s18": "textures/entity/fnar/guest_18",
+    "s19": "textures/entity/fnar/guest_19",
+    "s20": "textures/entity/fnar/guest_20",
+    "s21": "textures/entity/fnar/guest_21",
+    "s22": "textures/entity/fnar/guest_22",
+    "s23": "textures/entity/fnar/guest_23",
+    "default": "textures/entity/fnar/guest_00"
+   },
+   "geometry": {
+    "default": "geometry.fnar.guest"
+   },
+   "scripts": {
+    "scale": "0.9375",
+    "pre_animation": [
+     "variable.fnar_anim = query.property('fnar:anim');",
+     "variable.fnar_size = query.property('fnar:size') * 0.01;",
+     "variable.fnar_head = 1.0 + math.clamp(0.92 - variable.fnar_size, 0.0, 0.45) * 0.8;",
+     "variable.fnar_t = query.life_time + query.property('fnar:skin') * 0.73;",
+     "variable.fnar_w = variable.fnar_t * 700.0 / variable.fnar_size;",
+     "variable.fnar_hold = query.property('fnar:hold');",
+     "variable.fnar_hl = variable.fnar_hold == 1 || variable.fnar_hold == 3;",
+     "variable.fnar_hr = variable.fnar_hold >= 2;",
+     "variable.fnar_ha = variable.fnar_size < 0.8 ? 98.0 : 34.0;",
+     "variable.fnar_ly = math.lerp(variable.fnar_ly ?? 0, query.property('fnar:look_yaw'), 0.12);",
+     "variable.fnar_lp = math.lerp(variable.fnar_lp ?? 0, query.property('fnar:look_pitch'), 0.12);"
+    ],
+    "animate": [
+     "ctrl",
+     "look",
+     "size"
+    ]
+   },
+   "animations": {
+    "idle": "animation.fnar.guest.idle",
+    "walk": "animation.fnar.guest.walk",
+    "hurry": "animation.fnar.guest.hurry",
+    "clap": "animation.fnar.guest.clap",
+    "cheer": "animation.fnar.guest.cheer",
+    "wave": "animation.fnar.guest.wave",
+    "point": "animation.fnar.guest.point",
+    "play": "animation.fnar.guest.play",
+    "talk": "animation.fnar.guest.talk",
+    "sit": "animation.fnar.guest.sit",
+    "eat": "animation.fnar.guest.eat",
+    "sit_clap": "animation.fnar.guest.sit_clap",
+    "sit_talk": "animation.fnar.guest.sit_talk",
+    "sit_wave": "animation.fnar.guest.sit_wave",
+    "sit_cheer": "animation.fnar.guest.sit_cheer",
+    "look": "animation.fnar.guest.look",
+    "size": "animation.fnar.guest.size",
+    "ctrl": "controller.animation.fnar.guest"
+   },
+   "render_controllers": [
+    "controller.render.fnar.guest"
+   ],
+   "enable_attachables": false
+  }
+ }
+}
