@@ -6,7 +6,7 @@
 
 Steps: entities, guests, camera UI, pack files (manifests, items, fogs, lang, icons),
 fragment merge, JSON schema validation, block-state validation (strict),
-map validation (camera sight lines, routes), script typecheck against the
+map validation (camera sight lines, routes, the daytime guests' walkways), script typecheck against the
 @minecraft/server typings, night-balance smoke run, and the scripted play
 session against the strict API mock. Any failure stops the build.
 """
@@ -64,6 +64,7 @@ def main():
     run('block states (strict)', ['node', 'tools/validate_blocks.mjs', '--strict'])
     run('voxel export', ['node', 'tools/map/export_voxels.mjs'])
     run('map: cameras + routes', ['node', 'tools/map/validate_map.mjs'])
+    run('map: the guests\' walkways, seats and spots', ['node', 'tools/map/validate_guests.mjs'])
     run('script typecheck', ['node', 'node_modules/typescript/bin/tsc', '-p', 'tsconfig.scripts.json'], cwd=os.path.join(ROOT, 'tools'))
     run('night balance smoke', ['node', 'tools/sim/sim.mjs', '1-7', '40', '--bot=good'])
     run('animatronic AI checks', ['node', 'tools/sim/ai_checks.mjs'])
