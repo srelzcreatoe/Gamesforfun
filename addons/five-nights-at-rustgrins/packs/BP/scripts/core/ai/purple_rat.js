@@ -39,6 +39,7 @@ export class PurpleRat extends Animatronic {
     this.graceUntil = 0;
     this.turned = { L: 0, R: 0 }; // times each vent turned him away (since he last switched to it)
     this.nervousDone = false;
+    this.frozeAt = -1; // tick he last held a move back under the camera (playing dead)
     // where the two duct routes part (the grate): switching ducts starts again from here
     const { L, R } = this.cfg.routes;
     let fork = 0;
@@ -80,6 +81,7 @@ export class PurpleRat extends Animatronic {
   /** A move held back while a duct camera is on him: the maracas stop dead. */
   onFreeze() {
     const s = this.s;
+    this.frozeAt = s.t;
     if (!s.tricks || !NODES[this.node]?.crawl || this.ai < this.cfg.burst.fromAi) return;
     s.emit({ fx: 'cue', kind: 'playdead', who: this.id, side: this.side });
   }
@@ -87,10 +89,14 @@ export class PurpleRat extends Animatronic {
   /** Stared at in a duct: a squeak, and he backs off one section (once per stare). */
   nervous() {
     if (this.seenSince < 0) this.nervousDone = false;
-    if (this.nervousDone || this.stared < this.cfg.nervousAfter || !NODES[this.node]?.crawl || this.idx <= this.cfg.retreatIndex) return false;
     const s = this.s;
+    // ...and again when he is stared down while playing dead (the move he held back is gone)
+    const held = this.pending && this.frozeAt >= 0 ? s.t - this.frozeAt : -1;
+    const due = (!this.nervousDone && this.stared >= this.cfg.nervousAfter) || held >= this.cfg.nervousAfter;
+    if (!due || !NODES[this.node]?.crawl || this.idx <= this.cfg.retreatIndex) return false;
     this.nervousDone = true;
     this.pending = null; // stared down: the move he was holding back is gone
+    this.frozeAt = -1;
     this.idx--;
     s.emit({ fx: 'sound', id: 'fnar.rat.squeak', at: this.id, vol: 0.9 });
     s.emit({ fx: 'cue', kind: 'nervous', who: this.id, side: this.side });

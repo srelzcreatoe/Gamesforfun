@@ -242,7 +242,7 @@ export class Rustgrin extends Animatronic {
     if (this.onCams >= this.cfg.enterAfter) {
       this.state = 'inside';
       this.inside = true;
-      s.breach('R', this.id);
+      s.breach('R', this.id, false, cam && this.burnt(cam.id) ? 'burnt' : null);
       s.emit({ fx: 'hide', who: this.id });
       s.emit({ fx: 'sound', id: 'fnar.rustgrin.laugh', at: 'office', vol: 0.6 });
       this.killAt = s.t + 10;

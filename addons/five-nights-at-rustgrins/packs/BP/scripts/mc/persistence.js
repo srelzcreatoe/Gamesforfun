@@ -8,6 +8,7 @@
 // closed mid-night the next load resets to the lobby and the night is replayed.
 
 import { world } from '@minecraft/server';
+import { cleanMemory } from '../core/ai/memory.js';
 import { log } from './log.js';
 
 const SAVE = 'fnar:save';
@@ -32,6 +33,9 @@ export function defaultSave() {
     trophies: [], // challenges beaten
     cheats: { fast: false, infinitePower: false, radar: false, noRusted: false },
     custom: { mirehop: 5, noxbriar: 5, rustgrin: 5, cat: 5, purple_rat: 5, top_hat_rat: 5 },
+    // what the cast remembers of the guard from one night of the week to the next (core/ai/memory.js):
+    // a few clamped numbers, or null (they do not know the guard: a fresh save, and every night 1)
+    memory: null,
     settings: defaultSettings(),
   };
 }
@@ -67,6 +71,7 @@ export function loadSave() {
     seenJs: Array.isArray(s.seenJs) ? s.seenJs : [],
     endings: Array.isArray(s.endings) ? s.endings : [],
     trophies: Array.isArray(s.trophies) ? s.trophies : [],
+    memory: cleanMemory(s.memory),
     settings: { ...d.settings, ...(s.settings || {}) },
   };
 }

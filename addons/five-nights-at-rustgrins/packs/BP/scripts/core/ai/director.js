@@ -13,10 +13,14 @@
 //             on the other side gets a bonus: one draws attention while the other sneaks.
 //   memory    after deaths on earlier tries (core/ai/memory.js) the pressure never goes as high.
 //   tactics   on the later nights the cast works together, always with a tell:
-//               the racket   a stalker has waited at its corner and somebody else stands in a
-//                            room the guard can only listen to (the kitchen): pots crash there
-//                            (the 'clatter' cue) and the stalker steps up to its door. The one
-//                            making the noise is never the one coming.
+//               the racket   pots crash in a room the guard can only listen to (the kitchen;
+//                            the 'clatter' cue) to cover somebody else: a stalker closing in
+//                            on its door has its partner step into that room on the way past
+//                            (the errand), and for a few seconds its own footsteps drown in the
+//                            noise and it steps up to the door, good moment or not, a little
+//                            bolder for it. The same when a stalker reaches its corner while
+//                            somebody happens to stand in that room. The one making the noise
+//                            is never the one coming.
 //               the trade    once a night, Mirehop and Noxbriar swap halls for one trip (the
 //                            'trade' cue: a twang and a hum together in the dining room).
 //               the duo      after the Ringmaster's "places!" the two he sends out arrive at
@@ -24,7 +28,7 @@
 // Pure (no @minecraft imports).
 
 import { CONFIG } from '../config.js';
-import { heardOnly } from './graph.js';
+import { heardOnly, neighbors, distToDoor, edgeLength } from './graph.js';
 
 export const SLOTS = Object.freeze(['L', 'R', 'VL', 'VR']);
 const OTHER = Object.freeze({ L: 'R', R: 'L' });
@@ -64,7 +68,7 @@ export class Director {
   /** @param {ReturnType<import('./memory.js').beliefsFor>} b what they remember of the guard */
   adopt(b) {
     this.ease = b?.ease ?? 0;
-    this.mercy = (b?.deaths ?? 0) >= 2 ? 1 : 0;
+    this.mercy = this.ease;
   }
 
   tick() {
@@ -80,23 +84,13 @@ export class Director {
     }
   }
 
-  /** The racket and the trade (see the header). Never while the guard is short of power. */
+  /** The trade (see the header). Never while the director goes easy on the guard. */
   tickTactics() {
     const s = this.s;
     const T = this.cfg.tactics;
     const t = s.t;
     if (this.gentle()) return;
     const cast = Object.values(s.chars);
-    if (t >= this.clatterReady) {
-      const waiting = cast.find((c) => c.state === 'stalk' && c.pincer && this.free(c.side, c.id) && !s.doorClosed(c.side) && !s.habits.lit(c.side) && !c.watched());
-      const helper = waiting && cast.find((c) => c !== waiting && c.pincer && c.active && !c.inside && !c.walk && !!c.node && heardOnly(c.node));
-      if (helper) {
-        this.clatterUntil = t + T.clatter.window;
-        this.clatterFor = waiting.id;
-        this.clatterReady = t + T.clatter.cooldown;
-        s.emit({ fx: 'cue', kind: 'clatter', who: helper.id, node: helper.node });
-      }
-    }
     if (!this.tradeDone && t >= this.tradeAt) {
       if (t > s.ticksPerHour * (T.trade.hours[1] + 0.8)) this.tradeDone = true; // too late in the night
       const pair = cast.filter((c) => typeof c.trade === 'function');
@@ -116,9 +110,64 @@ export class Director {
     return this.enabled && (this.pressure <= this.cfg.minBonus || this.s.t < this.breatherUntil);
   }
 
-  /** Somebody is making a racket for this stalker right now: a good moment to step up. */
-  distraction(c) {
+  /** Is this stalker closing in on its door (hunting, in its hall, the door open)? */
+  closing(p) {
+    const at = p.node ?? p.walk?.to;
+    return p.active && !p.inside && p.mode === 'hunt' && at !== p.door && !this.s.doorClosed(p.side) && distToDoor(at, p.side) <= this.cfg.tactics.clatter.near;
+  }
+
+  /** The other door stalker. */
+  partnerOf(c) {
+    return Object.values(this.s.chars).find((o) => o !== c && typeof o.trade === 'function') ?? null;
+  }
+
+  /**
+   * The errand for a racket: a stalker passing a room the guard can only listen to steps in
+   * there while its partner closes in on the other door. Returns that room's node, or null.
+   */
+  errand(c) {
+    const s = this.s;
+    const T = this.cfg.tactics.clatter;
+    if (!this.tactics || this.gentle() || s.t < this.clatterReady - T.lead || c.traded || c.opening || !c.node) return null;
+    const partner = this.partnerOf(c);
+    if (!partner || partner.traded || !this.closing(partner)) return null;
+    return neighbors(c.node).find((n) => heardOnly(n) && edgeLength(c.node, n) <= T.reach) ?? null;
+  }
+
+  /** The errand is run: `helper` stands in the room. The racket, to cover its partner's way to the door. */
+  cover(helper) {
+    const partner = this.partnerOf(helper);
+    if (!partner || !this.closing(partner)) return false;
+    return this.startRacket(partner, helper);
+  }
+
+  /** Is this one covered by a racket right now (its footsteps down the hall drown in it)? */
+  covered(c) {
     return this.s.t < this.clatterUntil && this.clatterFor === c.id;
+  }
+
+  startRacket(c, helper) {
+    const s = this.s;
+    const T = this.cfg.tactics.clatter;
+    if (!this.tactics || s.t < this.clatterReady || this.gentle()) return false;
+    this.clatterUntil = s.t + T.window;
+    this.clatterFor = c.id;
+    this.clatterReady = s.t + T.cooldown;
+    s.emit({ fx: 'cue', kind: 'clatter', who: helper.id, node: helper.node });
+    return true;
+  }
+
+  /**
+   * A racket for this stalker, about to step up to its door: true while one is on for it, or
+   * when one can start right now - somebody else stands in a room the guard can only listen
+   * to, and makes a noise there (the 'clatter' cue).
+   */
+  racket(c) {
+    const s = this.s;
+    if (this.covered(c)) return true;
+    if (!this.tactics || s.t < this.clatterReady || this.gentle() || s.doorClosed(c.side)) return false;
+    const helper = Object.values(s.chars).find((h) => h !== c && h.pincer && h.active && !h.inside && !h.walk && !!h.node && heardOnly(h.node));
+    return !!helper && this.startRacket(c, helper);
   }
 
   /** The pressure the guard can take right now (an AI bonus for movement rolls). */
@@ -148,7 +197,7 @@ export class Director {
     }
     this.closeCalls = this.closeCalls.filter((t) => s.t - t < c.closeCallWindow);
     if (this.closeCalls.length >= c.closeCallsEase) b = Math.min(b, -1);
-    // the guard died last time (again): never harder for it, a step easier from the second time
+    // the guard died last time (again): a step easier per death in a row, and never as high
     const top = Math.max(0, (c.maxBonus[s.night] ?? c.maxBonus.default) - this.ease);
     return Math.max(c.minBonus, Math.min(top, b - this.mercy));
   }

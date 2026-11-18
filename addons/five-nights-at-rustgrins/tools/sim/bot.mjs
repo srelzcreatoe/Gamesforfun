@@ -52,8 +52,10 @@ export class Bot {
         this.at(this.react(10, 40), 'peek', this.wise() ? other[e.side] : e.side);
         return;
       case 'clatter': // a racket in the kitchen: someone else is stepping up to a door
-        this.at(this.react(10, 30), 'peek', 'L');
-        this.at(this.react(50, 75), 'peek', 'R');
+        if (this.wise()) {
+          this.at(this.react(10, 30), 'peek', 'L');
+          this.at(this.react(50, 75), 'peek', 'R');
+        } else this.at(this.react(10, 30), 'listen', '6'); // distracted: up with the monitor, to the kitchen feed
         return;
       case 'places_go': // two of them left the stage together: both halls, in turn
         this.at(this.react(70, 120), 'peek', 'L');
@@ -207,6 +209,14 @@ export class Bot {
     if (a === 'want_vent_l' && !d.ventL) s.input('vent_l');
     if (a === 'want_vent_r' && !d.ventR) s.input('vent_r');
     if (a === 'spot') { s.input('spotlight'); return; }
+    if (a === 'listen') {
+      // the kitchen camera (audio only), for a couple of seconds
+      if (!d.cams.open) s.input('cams_open', arg);
+      else s.input('cam_select', arg);
+      this.phase = 2; // then back to the lights
+      this.busyUntil = Math.max(this.busyUntil, s.t + 40);
+      return;
+    }
     if (a === 'look_away') {
       // a squealing feed: on to the next camera of the sweep
       if (d.cams.open && d.cams.cam === arg) { s.input('cam_select', arg === '1B' ? '2A' : '1B'); this.busyUntil = Math.max(this.busyUntil, s.t + 8); }

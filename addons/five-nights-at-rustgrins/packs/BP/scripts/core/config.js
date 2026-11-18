@@ -184,7 +184,8 @@ export const CONFIG = Object.freeze({
       vanishChance: 0.5, // leaving the booth, he skips straight to the dining room behind a burst of static
       // "Places!": from his booth (from this night on), once a night between these hours, he calls two of
       // the band back to the stage, holds them there, and sends them out again together (eager for a while)
-      places: Object.freeze({ fromNight: 3, hours: Object.freeze([1.6, 3.8]), hold: 220, eager: 900, retry: 100 }),
+      // (`keen`: AI steps keener while eager)
+      places: Object.freeze({ fromNight: 3, hours: Object.freeze([1.6, 3.8]), hold: 180, eager: 900, keen: 3, retry: 100 }),
     }),
   }),
 
@@ -230,8 +231,8 @@ export const CONFIG = Object.freeze({
     1: Object.freeze({ title: 'Night 1', ai: { mirehop: 3, noxbriar: 2, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 1000, noxbriar: 2400 }, ramp: true, phone: 1, tape: false, hallucinations: 0 }),
     2: Object.freeze({ title: 'Night 2', ai: { mirehop: 4, noxbriar: 3, rustgrin: 0, cat: 2, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 400, noxbriar: 800, cat: 600 }, ramp: true, phone: 2, tape: true, hallucinations: 0.001 }),
     3: Object.freeze({ title: 'Night 3', ai: { mirehop: 6, noxbriar: 5, rustgrin: 1, cat: 5, purple_rat: 4, top_hat_rat: 0 }, activation: { purple_rat: 800, rustgrin: 1600 }, ramp: true, phone: 3, tape: true, hallucinations: 0.002 }),
-    4: Object.freeze({ title: 'Night 4', ai: { mirehop: 8, noxbriar: 8, rustgrin: 3, cat: 7, purple_rat: 7, top_hat_rat: 0 }, activation: {}, ramp: true, phone: 4, tape: true, hallucinations: 0.004 }),
-    5: Object.freeze({ title: 'Night 5', ai: { mirehop: 15, noxbriar: 15, rustgrin: 7, cat: 13, purple_rat: 13, top_hat_rat: 0 }, activation: {}, ramp: true, phone: 5, tape: true, hallucinations: 0.006 }),
+    4: Object.freeze({ title: 'Night 4', ai: { mirehop: 10, noxbriar: 10, rustgrin: 3, cat: 7, purple_rat: 7, top_hat_rat: 0 }, activation: {}, ramp: true, phone: 4, tape: true, hallucinations: 0.004 }),
+    5: Object.freeze({ title: 'Night 5', ai: { mirehop: 17, noxbriar: 17, rustgrin: 8, cat: 14, purple_rat: 14, top_hat_rat: 0 }, activation: {}, ramp: true, phone: 5, tape: true, hallucinations: 0.006 }),
     // The Final Act: the Ringmaster runs the night; the others are his marionettes (they only move on his cue).
     6: Object.freeze({ title: 'The Final Act', ai: { mirehop: 0, noxbriar: 0, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 20 }, activation: {}, ramp: false, phone: 0, tape: false, final: true, hallucinations: 0.006 }),
     7: Object.freeze({ title: 'Custom Night', ai: { mirehop: 5, noxbriar: 5, rustgrin: 5, cat: 5, purple_rat: 5, top_hat_rat: 5 }, activation: { top_hat_rat: 1200 }, ramp: false, phone: 0, tape: true, hallucinations: 0.004 }),
@@ -288,11 +289,13 @@ export const CONFIG = Object.freeze({
     // group tactics on the later nights (never on the training night or in the Final Act)
     tactics: Object.freeze({
       fromNight: 4,
-      // a racket in a room the guard can only listen to (the kitchen, CAM 6) while a stalker
-      // at its corner steps up to the door
-      clatter: Object.freeze({ window: 120, cooldown: 900 }),
+      // a racket in a room the guard can only listen to (the kitchen, CAM 6): for `window` ticks it
+      // covers a stalker's way down its hall and its step up to the door. The errand: the other
+      // stalker, within `reach` blocks of that room while its partner is within `near` blocks of
+      // its door, steps in there to make the noise
+      clatter: Object.freeze({ window: 200, cooldown: 900, lead: 300, near: 40, reach: 30 }),
       // Mirehop and Noxbriar trade halls for one trip (once a night, both at this AI or more)
-      trade: Object.freeze({ minAi: 12, hours: Object.freeze([1.4, 4.4]), lasts: 1800 }),
+      trade: Object.freeze({ minAi: 13, hours: Object.freeze([1.4, 4.4]), lasts: 1800 }),
       duoGap: 140, // after the Ringmaster's "places!": the two he sent arrive at least this far apart
     }),
   }),
@@ -312,12 +315,16 @@ export const CONFIG = Object.freeze({
     camp: 0.45, // a door shut this share of the night was camped
     monitor: 0.6, // the monitor up this share of the night: a camera watcher
     shy: 0.2, // ...or this little: a guard who hardly uses the cameras
-    probe: 0.3, // hunt-chance bonus for the stalker on the soft side (x how soft, x trust)
-    probeOther: 0.1, // ...and this much less for the other one: the pressure moves, it does not grow
+    // the opener: the stalker whose hall is the soft one (or who caught the guard last time) heads
+    // straight for its door, `keen` AI steps keener (x trust), until its first visit there
+    keen: 4,
+    probeOther: 0.1, // hunt chance the other stalker loses (x how soft, x trust): the pressure moves, it does not grow
+    afterYou: 0.7, // ...and while the opener has not been to its door yet, the others hunt this much less (x trust)
+    afterYouUntil: 0.4, // ...and do not step into a doorway at all while trust is above this (the first two hours or so)
     sideBias: 0.8, // the Purple Rat's and the Cat's lean towards the soft vent / hall (x trust)
     watcher: 0.25, // against a camera watcher: Rustgrin's patience is this much shorter (x trust)
-    ease: 1, // the director's highest bonus drops by this per death in a row...
-    maxEase: 2, // ...at most this much (and from the second death in a row it takes one more step off)
+    ease: 1, // per death in a row the director takes this much off its pressure, and off the highest it may go...
+    maxEase: 2, // ...at most this much
     maxDeaths: 3,
   }),
 

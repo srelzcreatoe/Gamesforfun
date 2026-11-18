@@ -47,7 +47,7 @@
 import { Animatronic, pickFrom } from './base.js';
 import { NODES } from '../../data/nodes.js';
 import { CONFIG } from '../config.js';
-import { neighbors, adjacent, planPath, sideOf, distToDoor, DOOR_NODES } from './graph.js';
+import { neighbors, adjacent, planPath, sideOf, distToDoor, DOOR_NODES, heardOnly } from './graph.js';
 
 const OTHER = Object.freeze({ L: 'R', R: 'L' });
 /** Rustgrin's hideout (the last stop of his route): never a door stalker's way. */
@@ -64,9 +64,14 @@ export class DoorStalker extends Animatronic {
     this.door = this.cfg.door;
     this.traded = false;
     this.tradeUntil = 0;
+    this.probing = false;
+    this.errandUntil = 0; // on the way to a room the guard can only listen to, to make a racket there (the director)
+    this.sentUntil = 0; // sent out by the Ringmaster ("places!"): keen until then
     /** a bait in the air: { kind: 'knock' | 'decoy', at, until }; `bold`: the guard took it */
     this.bait = null;
     this.bold = false;
+    /** @type {string | null} the bait the guard took before this visit to the door */
+    this.took = null;
     this.baitReady = 0;
     this.baitTried = false;
     this.pincer = true;
@@ -135,15 +140,44 @@ export class DoorStalker extends Animatronic {
     let p = 0.1 + this.ai * 0.025;
     if (s.t < this.eagerUntil) p += 0.4;
     if (s.director.pincerOn(this)) p += 0.25;
-    // what they remember: the hall the guard neglected is tried sooner, the other one later
+    // what they remember: the hall the guard neglected is tried first, the other one later
     const b = s.beliefs;
-    if (b?.soft) p += (b.soft === this.side ? CONFIG.memory.probe : -CONFIG.memory.probeOther) * b.softBy * s.trust();
+    const M = CONFIG.memory;
+    if (this.probing) p = Math.max(p, b.softBy * s.trust());
+    else if (b?.soft) p -= M.probeOther * b.softBy * s.trust();
+    // somebody else opens tonight (it caught the guard last time, or its hall is the soft one): after you
+    if (s.openerPending(this)) p *= 1 - M.afterYou * s.trust();
     return Math.max(0.02, Math.min(0.95, p));
   }
 
   adopt(b) {
     super.adopt(b);
     if (this.grudge) this.grudge = this.side; // a stalker's way in is its own door
+    /** opens the night at the hall the guard neglected on earlier nights (until the first visit to its door) */
+    this.probing = !!b && !b.encore && b.soft === this.home && b.conf >= 0.5;
+  }
+
+  /** Opening the night: the one with a grudge, or the one whose hall is the soft one. */
+  get opening() {
+    return !!this.grudge || this.probing;
+  }
+
+  /**
+   * A little keener on the opening trip (it fades with the night's trust in what they
+   * remember), for a while after the Ringmaster sent them out, and on a trip to the other hall.
+   */
+  bonus() {
+    const s = this.s;
+    const P = CONFIG.characters.top_hat_rat.places;
+    return (this.opening ? Math.round(CONFIG.memory.keen * s.trust()) : 0) + (s.t < this.sentUntil || this.traded ? P.keen : 0);
+  }
+
+  /** The errand is run (the racket is made, or there was nobody to cover any more): off to their own door, in a hurry. */
+  afterErrand() {
+    this.errandUntil = 0;
+    this.mode = 'hunt';
+    this.eagerUntil = this.s.t + this.cfg.eagerFor;
+    this.nextMo = Math.min(this.nextMo, this.s.t + 20);
   }
 
   /** Work the other hall (a trade) or their own again. */
@@ -191,6 +225,7 @@ export class DoorStalker extends Animatronic {
     const s = this.s;
     this.mode = 'hunt';
     this.eagerUntil = s.t + eagerFor;
+    this.sentUntil = s.t + eagerFor;
     this.pending = { until: s.t + CONFIG.brain.freezeMax, go: 0 };
   }
 
@@ -220,7 +255,7 @@ export class DoorStalker extends Animatronic {
       if (s.t >= this.enterAt) {
         this.state = 'inside';
         this.inside = true;
-        s.breach(this.side, this.id);
+        s.breach(this.side, this.id, false, this.traded ? 'traded' : this.took);
         this.killAt = s.t + (s.devices.cams.open ? 10 : s.rng.int(40, 100));
         s.emit({ fx: 'hide', who: this.id });
       }
@@ -243,6 +278,12 @@ export class DoorStalker extends Animatronic {
   /** Pick the next hop: their haunts while roaming, the planned path while hunting. */
   chooseNext() {
     const s = this.s;
+    // the racket's errand (the director): into the kitchen, to make a noise for the other one
+    const errand = s.director.errand(this);
+    if (errand) {
+      this.errandUntil = s.t + 600;
+      return errand;
+    }
     if (this.mode === 'roam' && s.rng.chance(this.huntChance())) this.mode = 'hunt';
     if (this.mode === 'roam') {
       const row = this.cfg.table[this.node];
@@ -253,7 +294,8 @@ export class DoorStalker extends Animatronic {
     const path = this.plan(this.node);
     if (!path || path.length < 2) return null;
     let next = path[1];
-    if (next !== this.door && this.cfg.erratic && s.rng.chance(this.cfg.erratic)) {
+    // (no odd hops on the opening trip: straight for the door)
+    if (next !== this.door && this.cfg.erratic && !this.opening && !this.traded && s.t >= this.sentUntil && s.rng.chance(this.cfg.erratic)) {
       const odd = neighbors(this.node).filter((n) => !this.offLimits(n) && n !== this.door && sideOf(n) !== OTHER[this.side] && !s.isWatchingNode(n));
       if (odd.length) next = s.rng.pick(odd);
     }
@@ -299,18 +341,26 @@ export class DoorStalker extends Animatronic {
       return;
     }
     if (!d.mayStrike(this.id)) return; // spacing
+    // somebody else opens tonight (see memory.js): after you, for the first part of the night
+    if (s.openerPending(this) && s.trust() > CONFIG.memory.afterYouUntil) return;
     // a good moment: not into a lit hall, not on camera, and by the learned rhythm of the
     // guard's checks - or the guard took the bait, or somebody is making a racket elsewhere.
     // After `stalkMax` they come anyway (a light left on does not stop them).
     const patient = waited < this.cfg.stalkMax;
     if (patient) {
       if (g.lit(this.side) || this.watched()) return;
-      if (this.baited()) this.bold = true; // the guard bit: they think the hall is empty
-      else if (!g.safeWindow(this.side) && !d.distraction(this)) {
+      this.took = null;
+      if (this.baited()) {
+        // the guard bit: they think the hall is empty
+        this.bold = true;
+        this.took = this.bait.kind;
+      } else if (!g.safeWindow(this.side) && !d.racket(this)) {
         // no good moment in sight: after a little while, make one
         if (!this.baitTried && waited >= (this.cfg.bait?.after ?? 0)) this.tryBait();
         return;
       }
+      // stepping up: if somebody can make a racket elsewhere, they do (the guard is listening to that)
+      if (d.racket(this)) this.bold = true;
     }
     d.struck(this.id, this.side);
     this.state = this.mode;
@@ -370,6 +420,7 @@ export class DoorStalker extends Animatronic {
     if (node === this.door) {
       this.state = 'door';
       this.grudge = null; // made his point: from here on it is an ordinary night
+      this.probing = false;
       this.holdLeft = this.patience();
       // fair warning: the tell plays now, and the first try at the door comes no sooner than
       // `entryGrace` later (a wait at the corner must not let them walk straight in)
@@ -380,12 +431,20 @@ export class DoorStalker extends Animatronic {
       return;
     }
     if (this.state === 'linger') return; // quietly, just out of the light
+    if (this.errandUntil > s.t && heardOnly(node)) {
+      // the errand: a racket in here, to cover the partner on its way to the other door
+      s.director.cover(this);
+      this.afterErrand();
+      return;
+    }
     if (node === 'KIT' && this.id === 'noxbriar' && s.rng.chance(this.cfg.kitchenHum)) {
       s.emit({ fx: 'sound', id: 'fnar.noxbriar.hum', at: this.id, vol: 0.7, kitchen: true });
       return;
     }
-    // coming closer: Noxbriar hums softly down the hall, Mirehop's steps thud
+    // coming closer: Noxbriar hums softly down the hall, Mirehop's steps thud - unless a
+    // racket elsewhere drowns it (the director's cover)
     if (distToDoor(node, this.side) <= CONFIG.brain.hearSteps) {
+      if (s.director.covered(this)) return;
       if (this.cfg.hallHum) {
         if (s.rng.chance(this.cfg.hallHum)) s.emit({ fx: 'sound', id: 'fnar.noxbriar.hum', at: this.id, vol: 0.4, approach: this.side });
       } else this.stepCue(node);
@@ -472,6 +531,7 @@ export class DoorStalker extends Animatronic {
     this.state = 'roam';
     this.mode = 'roam';
     this.bold = false;
+    this.took = null;
     s.emit({ fx: 'left_door', who: this.id, side: this.side });
     s.emit({ fx: 'sound', id: 'fnar.step.heavy', at: this.id, vol: 0.9 });
     this.tradeBack(); // a trade is one trip: back to their own hall

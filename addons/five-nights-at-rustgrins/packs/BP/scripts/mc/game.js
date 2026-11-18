@@ -32,6 +32,7 @@ import { W, Wv, L, dim, origin, refreshOrigin, setOrigin, runCmd, setLocal, type
 import { loadSave, storeSave, storeOrigin, defaultSave, loadBuild } from './persistence.js';
 import { log } from './log.js';
 import { VERSION } from '../data/version.js';
+import * as tricks from './tricks.js';
 
 const wait = (ticks) => new Promise((res) => system.runTimeout(() => res(undefined), ticks));
 
@@ -1370,7 +1371,11 @@ export class Game {
     const cap = (t) => this.save.settings.captions && this.hud.setCaption(t, system.currentTick);
     switch (e.fx) {
       case 'start':
+        // the week's nights start from what the cast remembers of the guard (night 1: nothing)
+        tricks.memoryStart(this, s);
         return;
+      case 'idle':
+        return tricks.renderIdle(this, e, g);
       case 'place':
         // the session picks the pose: the band posed on its stage, the troupe dancing while its
         // music plays, the Ringmaster in his booth (conducting on his own night)
@@ -1437,7 +1442,7 @@ export class Game {
       case 'cue':
         return this.renderCue(e, g);
       case 'at_door':
-        cap(e.who === 'mirehop' ? 'a guitar string twangs - left door' : 'soft humming - right window');
+        cap(tricks.doorCaption(e));
         return;
       case 'at_vent':
         cap(`maracas right above you - ${e.side === 'L' ? 'left' : 'right'} vent`);
@@ -1490,6 +1495,7 @@ export class Game {
         } else this.hud.setMessage('Nothing there. The spotlight still cost power.', system.currentTick, 50);
         return;
       case 'takeover':
+        tricks.memoryEnd(this, s);
         return void this.takeover(g);
       case 'hour':
         this.audio.play('fnar.clock.chime', null, g, { vol: 0.5 });
@@ -1512,6 +1518,9 @@ export class Game {
           return;
         }
         const lines = [...(CALLS[e.night] ?? [])];
+        // what they remember of the guard: he cannot help hinting at it, right after his greeting
+        const hint = lines.length ? tricks.memoryLine(this, s.night) : null;
+        if (hint) lines.splice(1, 0, hint);
         if (this.save.hungUp && lines.length) lines.unshift(this.rng.pick(HUNG_UP));
         this.phoneSeq = { lines, i: -2, next: system.currentTick + 60 };
         return;
@@ -1523,8 +1532,11 @@ export class Game {
       case 'power_out':
         return this.renderPowerOut(e.stage, g);
       case 'jumpscare':
+        tricks.memoryEnd(this, s);
+        tricks.killNote(e, g);
         return void this.jumpscare(e.who, g);
       case 'win':
+        tricks.memoryEnd(this, s);
         return void this.sixAm(g);
       default:
         return;
@@ -1564,6 +1576,8 @@ export class Game {
         cap('maracas fading back towards the Midway - he is trying the other duct');
         return;
       default:
+        // the signature tricks, the group tactics and the grudge (mc/tricks.js)
+        tricks.renderTrick(this, e, g);
         return;
     }
   }

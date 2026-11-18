@@ -181,6 +181,11 @@ export class Animatronic {
     this.grudgeTold = false;
   }
 
+  /** Does this one open the night (memory.js: a grudge to settle, or the guard's soft side to try)? */
+  get opening() {
+    return !!this.grudge;
+  }
+
   /** May the director or the Ringmaster move this one about right now (a trade, "places!")? */
   get loose() {
     return false;

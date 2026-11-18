@@ -46,6 +46,8 @@ export class NightSession {
     this.killer = null;
     /** how the killer got in: 'L' | 'R' (a door), 'VL' | 'VR' (a vent), 'power' (the blackout) or null */
     this.killWay = null;
+    /** the trick that was part of the catch, if any: 'knock' | 'decoy' | 'traded' | 'burnt' */
+    this.killNote = null;
     this.lastBreach = null;
     /** what they believe about the guard from earlier nights (null: they do not know the guard) */
     this.beliefs = null;
@@ -93,6 +95,16 @@ export class NightSession {
     this.director.adopt(b);
     for (const c of Object.values(this.chars)) c.adopt(b);
     return b;
+  }
+
+  /**
+   * Has somebody other than `c` still to open the night (it caught the guard last time, or
+   * the guard's soft side is its own: see memory.js)? The door stalkers let it go first.
+   */
+  openerPending(c) {
+    if (!this.beliefs) return false;
+    for (const id in this.chars) if (this.chars[id] !== c && this.chars[id].opening) return true;
+    return false;
   }
 
   /** How much tonight's beliefs still count (0..1): they fade as the cast sees what the guard does tonight. */
@@ -150,10 +162,13 @@ export class NightSession {
     this.power = Math.max(0, this.power - units);
   }
 
-  /** An animatronic got past a door/vent: that side's controls die. */
-  breach(side, who, forced = false) {
+  /**
+   * An animatronic got past a door/vent: that side's controls die. `note`: the trick that got
+   * it there, if any ('knock', 'decoy', 'traded', 'burnt'), for the game-over tip.
+   */
+  breach(side, who, forced = false, note = null) {
     this.devices.broken[side] = true;
-    this.lastBreach = { side, who };
+    this.lastBreach = { side, who, note };
     if (side === 'L' || side === 'R') {
       if (forced && this.doorClosed(side)) this.setDoor(side, false, true);
       this.emit({ fx: 'breach', side, who });
@@ -167,8 +182,9 @@ export class NightSession {
     this.result = 'lose';
     this.killer = who;
     this.killWay = this.powerOut ? 'power' : this.lastBreach?.who === who ? this.lastBreach.side : null;
+    this.killNote = (this.lastBreach?.who === who && this.lastBreach.note) || null;
     this.closeCams('jumpscare');
-    this.emit({ fx: 'jumpscare', who });
+    this.emit({ fx: 'jumpscare', who, way: this.killWay, note: this.killNote });
   }
 
   // ------------------------------------------------------------ devices

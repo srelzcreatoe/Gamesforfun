@@ -63,6 +63,59 @@ export const HUNG_UP = Object.freeze([
   'Once again from the top, since someone walked out of the last rehearsal.',
 ]);
 
+/**
+ * The cast remembers the guard from one night of the week to the next (core/ai/memory.js), and
+ * the Ringmaster cannot help hinting at it: one of these lines is slipped into the night's
+ * call, right after his greeting. Keys: memory.js memoryHints().
+ */
+export const MEMORY_CALLS = Object.freeze({
+  // the hall whose light the guard checked least
+  soft: Object.freeze({
+    L: Object.freeze([
+      'A note from the band, {name}: you hardly looked down the West Hall last night. They do talk, you know. Expect company on your left.',
+      'Mirehop tells me the West Hall was so very dark last night. Nobody shone a light for him. He would like to try that hall again, early.',
+    ]),
+    R: Object.freeze([
+      'A note from the band, {name}: you hardly looked down the East Hall last night. They do talk, you know. Expect company on your right.',
+      'Noxbriar says nobody lit the East Hall for her last night. She took it as an invitation. She will be early.',
+    ]),
+  }),
+  // a door the guard kept shut for much of the night
+  camp: Object.freeze({
+    L: Object.freeze(['You kept your left door shut for half the night. Such an expensive habit. The others have agreed to use the right one.']),
+    R: Object.freeze(['You kept your right door shut for half the night. Such an expensive habit. The others have agreed to use the left one.']),
+  }),
+  watcher: Object.freeze(['You do love that monitor, {name}. They have noticed how long your eyes stay on the little screens, and how seldom on your doors.']),
+  shy: Object.freeze(['You hardly touched the cameras last night. The troupe is hurt, {name}. The Cat most of all. She does not like to be ignored.']),
+  // whoever caught the guard last time comes back first, by the same way
+  encore: Object.freeze({
+    mirehop: Object.freeze(['Mirehop is so pleased with last night. He means to play it again, note for note: the same door, first thing. Performers are creatures of habit.']),
+    noxbriar: Object.freeze(['Noxbriar did enjoy your company last night. She will come by the very same way, first thing. She never changes a song that worked.']),
+    rustgrin: Object.freeze(['Rustgrin took his bow last night, at your expense. A star never changes an act that worked, {name}. Same corner. Same door.']),
+    cat: Object.freeze(['The Cat is still purring about last night. The same hall, the same door. She does not improvise.']),
+    purple_rat: Object.freeze(['The Purple Rat found his way in last night. He will try the very same vent again, first thing. He is not an imaginative rat.']),
+  }),
+  power: Object.freeze(['The lights went out on you last night. Do mind the meter, {name}. A dark theatre is such a waste of a good audience.']),
+  rusted: Object.freeze(['About the old suit you saw in your office, {name}. Raise the monitor. Do not look at it twice.']),
+});
+
+/**
+ * Before his own night the Ringmaster already directs from his booth, over the PA: once a night
+ * he calls two of the band back to the stage ({a}, {b}) and sends them out again together.
+ */
+export const DIRECTS = Object.freeze({
+  places: Object.freeze([
+    'Places, everyone! {a}, {b}: back to the stage, if you please.',
+    'No, no, no. From the top. {a}, {b}: places!',
+    '{a}. {b}. You missed your cue. Back to your marks.',
+  ]),
+  go: Object.freeze([
+    'And again. Together, this time.',
+    'Now. Both of you. Show {name} how it is done.',
+    'From the top, and do try to arrive at the same time.',
+  ]),
+});
+
 /** Night 5, 4 AM: the fake ending, then the Ringmaster takes the night. [title, subtitle] steps. */
 export const TAKEOVER = Object.freeze({
   fake: Object.freeze([
@@ -221,14 +274,15 @@ export const ENDINGS = Object.freeze({
 export const GUIDE = Object.freeze([
   ['Controls', 'You sit at the office desk. Each side wall has a RED door button and a WHITE light button. Right-click or tap them.\nClick the CRT monitor (or use the Camera Tablet in your hand) to raise the monitor. On the cameras, click a camera on the map; press LOWER or Esc to put the monitor down. Without the map: scroll the hotbar to change cameras, and sneak or use the tablet to lower.\nThe Office Remote opens every control in one menu, including the two ceiling VENTS.'],
   ['Power', 'Power drains all night. Every closed door, lit hall light, sealed vent and the raised monitor uses more (see USAGE). At 0 % the doors open, the lights die... and someone comes to sing for you.'],
-  ['Mirehop', 'The green rabbit. He comes down the WEST hall to your LEFT door: heavy footsteps in the hall, then a guitar twang means he is there. Check with the left light, and keep the left door shut until he leaves.\nHe is erratic and he learns: he steps in right after you check the light, or while you are on the cameras. When he gives up he may only step back to the corner (a soft twang, CAM 2B) and come straight back once the door opens. Listen for his footsteps.'],
-  ['Noxbriar', 'The black bear. She comes down the EAST hall to your RIGHT window: quiet humming in the hall means she is coming, humming at the window means she is there. On dark cameras you will mostly see her eyes.\nShe is patient: she waits in the corner (CAM 4B) for you to look away, and never comes while Rustgrin holds the right side.'],
-  ['Rustgrin', 'The grey bear. He only moves while nobody watches him, and never into a room you are watching. Microphone feedback outside the RIGHT door means he is in the corner nook, which only CAM 4B can see. Keep the right door shut while you are on the cameras.\nStare at him and look away, and he may move at once (a low laugh). He avoids the cameras you watch most, and waits in the dark while the right hall light is on.'],
-  ['The Cat', 'Dances on the Midway ring (CAM 8) while the show tape plays. When the music slows she gets restless; when it stops she leaves the ring. Checking CAM 8 holds her in place. If she runs, she sprints down a hall: shut that door. Each bang costs more power.\nFrom night 4 she picks the hall whose door you leave open, and a low growl down that hall tells you which.'],
-  ['Purple Rat', 'Shares the Midway ring with the Cat and loves the crawl ducts. Listen for his maracas above the ceiling, left or right. CAM 9 and CAM 10 show the ducts. Seal that VENT when he is right above you, and open it after he bangs on it.\nIn a duct he only moves while you look away; stare at him on CAM 9 or 10 and he squeaks and backs off. He picks the duct on the side you are busy with least, and a vent you keep sealing sends him to the other one.'],
+  ['Mirehop', 'The green rabbit. He comes down the WEST hall to your LEFT door: heavy footsteps in the hall, then a guitar twang means he is there. Check with the left light, and keep the left door shut until he leaves.\nHe is erratic and he learns: he steps in right after you check the light, or while you are on the cameras. When he gives up he may only step back to the corner (a soft twang, CAM 2B) and come straight back once the door opens. Listen for his footsteps.\nHis trick, the KNOCK: three quick knocks on the wall, and nobody in the light. It is bait. He is waiting at the corner (CAM 2B) and steps into the doorway the moment your light goes off. Look again a few seconds later.'],
+  ['Noxbriar', 'The black bear. She comes down the EAST hall to your RIGHT window: quiet humming in the hall means she is coming, humming at the window means she is there. On dark cameras you will mostly see her eyes.\nShe is patient: she waits in the corner (CAM 4B) for you to look away, and never comes while Rustgrin holds the right side.\nHer trick, the THROWN VOICE: humming from the WRONG hall, too clear and too close to be real. Light that hall and she steps up to her window behind your back. When a hum sounds too clean, check the other side, and check it twice.'],
+  ['Rustgrin', 'The grey bear. He only moves while nobody watches him, and never into a room you are watching. Microphone feedback outside the RIGHT door means he is in the corner nook, which only CAM 4B can see. Keep the right door shut while you are on the cameras.\nStare at him and look away, and he may move at once (a low laugh). He avoids the cameras you watch most, and waits in the dark while the right hall light is on.\nHis trick, the BURNT FEED: watch him for too long and his microphone squeals through the monitor. Look away at once. Keep watching and that camera burns out for half a minute, and a dead camera does not hold him, not even in the nook.'],
+  ['The Cat', 'Dances on the Midway ring (CAM 8) while the show tape plays. When the music slows she gets restless; when it stops she leaves the ring. Checking CAM 8 holds her in place. If she runs, she sprints down a hall: shut that door. Each bang costs more power.\nFrom night 4 she picks the hall whose door you leave open, and a low growl down that hall tells you which.\nHer trick, the TAPE DECK: leave CAM 8 alone for too long and she slips behind the curtain to pull the tape through. The music warbles and the tape runs down twice as fast. An empty ring while the music still plays means she is at the tape deck, not in a hall: press PLAY SHOW and she is back on the ring.'],
+  ['Purple Rat', 'Shares the Midway ring with the Cat and loves the crawl ducts. Listen for his maracas above the ceiling, left or right. CAM 9 and CAM 10 show the ducts. Seal that VENT when he is right above you, and open it after he bangs on it.\nIn a duct he only moves while you look away; stare at him on CAM 9 or 10 and he squeaks and backs off. He picks the duct on the side you are busy with least, and a vent you keep sealing sends him to the other one.\nHis trick, PLAYING DEAD: caught by the duct camera with a move in hand, his maracas stop dead. Look away now and he bolts two sections with a frantic rattle. Keep the camera on him until he squeaks.'],
   ['The Show Tape', 'The troupe dances to a tape deck on CAM 8. Press PLAY SHOW there to rewind it. Below 30 % the Cat and the Purple Rat grow bolder; at 0 % the music stops and both come for you. Rewind above 60 % to call the Cat back to the ring.'],
-  ['The Ringmaster', 'He stands on his own stage, the Grand Marquee (CAM 1C, once Kitty\'s Cabaret), and calls the office every night. He does not move. Not yet.'],
-  ['How They Think', 'They are not random. They notice what you do: which cameras you watch, how often you check each light, which door you keep shut. Check a light like clockwork and they learn the rhythm; camp one door and the other side gets busier. Only one of them works a door at a time, and they give you a moment between one threat and the next.\nEvery trick has a tell: footsteps or humming in a hall, a soft twang, a low laugh, a growl, a squeak in a duct, a camera feed that tears. Listen, and look where they do not expect.'],
+  ['The Ringmaster', 'He stands on his own stage, the Grand Marquee (CAM 1C, once Kitty\'s Cabaret), and calls the office every night. He does not move. Not yet.\nBut he directs. Once a night, from night 3, his cane raps over the PA: "Places!" Two of the band go back to the stage, which is a breather for you, and a few seconds later he sends them out again, together. They only step off the stage while nobody watches it: keep CAM 1A on them and his cue is wasted. After that, expect both halls, one after the other.'],
+  ['How They Think', 'They are not random. They notice what you do: which cameras you watch, how often you check each light, which door you keep shut. Check a light like clockwork and they learn the rhythm; camp one door and the other side gets busier. Only one of them works a door at a time, and they give you a moment between one threat and the next.\nEvery trick has a tell: footsteps or humming in a hall, a soft twang, a low laugh, a growl, a squeak in a duct, a camera feed that tears. Listen, and look where they do not expect.\nOn the later nights they work together. A crash of pots in the kitchen (CAM 6, where you can only listen) is a distraction: somebody else is stepping up to a door right now, so check both halls. On the last nights Mirehop and Noxbriar may trade halls for one trip: a twang and a hum together, far off. At your doors, trust the side you hear it from, not who you hear.\nAnd they are never just parked: heads tilt, poses change, and they shuffle about while nobody watches.'],
+  ['They Remember', 'They remember you from one night of the week to the next: which hall light you checked least, which door you kept shut, which vent you sealed least, how long you sat on the cameras. The next night opens with them trying the side you neglected, and the Ringmaster cannot help hinting at it in his call.\nIt fades. Each night counts as much as all the nights before it together, and by 3 AM they go by what you do tonight. Night 1 always starts fresh.\nIf one of them catches you, it comes back first and by the very same way on your next try. You will hear it coming: its own sound, far off and slow. The others give you a little more room after a death, never less.'],
   ['The Night Shift', 'The building is not empty, and it is not quiet. Some sounds are only the pizzeria: a music box far away, children laughing in rooms nobody is in, a radio in a back room, the frame groaning. Others are them, right outside: breathing at an open, dark door means something is standing there; knocking or a rattle on a shut door means it is waiting for you to open it; breathing or knocking in a vent means the same up there. When you hear your own heartbeat, something is at the office.\nAnd if their eyes are ever empty when you look at them, keep looking. They are looking back.'],
   ['The Final Act', 'Night 6 belongs to the Ringmaster. ACT I: he sends one performer at a time with a 10-second warning, so shut the right door or vent in time. ACT II: do what he asks before his timer runs out. ACT III: he walks to your office and no door stops him. Find him on a camera and press SPOTLIGHT to drive him back a step. He remembers which side you caught him on.'],
   ['Custom Night', 'After the Final Act: set each animatronic from 0 to 20. With the Ringmaster above 0, he walks to your office all night long; keep the SPOTLIGHT ready. Beat all six at 20 for the third star.'],
@@ -242,9 +296,9 @@ export const GUIDE = Object.freeze([
 export const TUTORIAL_HINTS = Object.freeze({
   1: 'Tip: check the hall lights every few seconds. Footsteps in a hall mean someone is close. Shut a door only while someone is standing there.',
   2: 'Tip: keep the show tape on CAM 8 above 30 %, and glance at the Cat often.',
-  3: 'Tip: maracas mean the Purple Rat is in a duct. Seal that VENT when the sound is right above you.',
-  4: 'Tip: microphone feedback at the right door means Rustgrin. Shut the right door before you raise the monitor.',
-  5: 'Tip: power is tight tonight. Open doors and vents as soon as the threat has gone, but a soft twang or hum means they only stepped back.',
+  3: 'Tip: maracas mean the Purple Rat is in a duct. Seal that VENT when the sound is right above you. Three knocks and nobody in the light? It is bait: look again.',
+  4: 'Tip: microphone feedback at the right door means Rustgrin. Shut the right door before you raise the monitor. If a feed squeals while you watch him, look away.',
+  5: 'Tip: power is tight tonight. Open doors and vents as soon as the threat has gone, but a soft twang or hum means they only stepped back. A crash in the kitchen is a distraction: check both halls.',
   6: 'Tip: listen to the Ringmaster. Every act starts with a 10-second warning.',
   7: 'Tip: rewind the tape early, and save power for the SPOTLIGHT.',
 });
@@ -259,6 +313,11 @@ export const KILL_TIPS = Object.freeze({
   top_hat_rat: 'Doors do not stop the Ringmaster. Find him on the cameras and press SPOTLIGHT.',
   rusted: 'He was never there. Raise the monitor the moment you see him.',
   encore: 'The Rusted one plays Rustgrin\'s part: he moves only when nobody is watching. Keep the right door shut while you are on the cameras.',
+  // the cast's tricks (core/ai): shown as an extra line when a trick was part of the catch
+  knock: 'Those three knocks were bait: he stepped into the doorway the moment your light went off. After a knock, look again a few seconds later.',
+  decoy: 'That hum came from the wrong hall on purpose. She stepped up to the other side while you looked. When a hum sounds too clean, check the other hall.',
+  traded: 'They had traded halls: a twang and a hum together, far off, means the next one at each door is the other one. Trust the side you hear it from.',
+  burnt: 'He burnt out the camera you were watching him on. A dead feed does not hold him: look away when the feed squeals, and keep the right door shut.',
 });
 
 /** The secret Encore night: offered by the Rusted one in the Gallery once the Final Act is beaten. */
