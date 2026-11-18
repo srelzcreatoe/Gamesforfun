@@ -583,6 +583,25 @@ export const SCENES = [
       ],
     },
   },
+  // ---- the cast's tricks (core/ai, mc/tricks.js)
+  {
+    name: '53_places', voxels: 'lit', style: 'camera_feed', caption: '"Places!" From his stage the Ringmaster calls two of the band back, then sends them out together',
+    hud: { cam: '1C', lines: ['§fCAM 1C · GRAND MARQUEE', '§d[PA] The Ringmaster§7: §fNo, no, no. From the top. Mirehop, Noxbriar: places!', '§7a cane raps twice over the PA - Mirehop and Noxbriar go back to the stage', '§7Night 3 §8| §f2 AM §8| §fPOWER 64% §8| §7USAGE §a▮▮§8▯▯▯▯▯'] },
+    scene: {
+      camera: camShot('1C', 64), exposure: 1.55,
+      entities: [at('top_hat_rat', 'CAB', 'perform_1', { eyes: true, t: 0.6 })],
+      extra_lights: [irLight('1C', 8), point([15.6, 2.6, 33.2], '#e8ffe8', 9, 7)],
+    },
+  },
+  {
+    name: '54_tape_pull', voxels: 'lit', style: 'camera_feed', caption: 'CAM 8, ignored too long: the Cat is gone from the ring and the show tape is running down fast',
+    hud: { cam: '8', lines: ['§fCAM 8 · MIDNIGHT MIDWAY', '§6SHOW TAPE 38% §c§lREWIND', '§7the show music warbles - someone is pulling at the tape (CAM 8)', '§7Night 4 §8| §f2 AM §8| §ePOWER 47% §8| §7USAGE §e▮▮▮§8▯▯▯▯'] },
+    scene: {
+      camera: camShot('8'), exposure: 1.55,
+      entities: [at('purple_rat', 'MW_P', 'perform_1', { t: 0.4, eyes: true })],
+      extra_lights: [irLight('8', 7), spot([9.5, 6.4, 18.5], [6.2, 1.0, 21.0], { intensity: 110, angle: 34 }), point([6.0, 3.2, 18.0], '#e8ffe8', 6, 7)],
+    },
+  },
   {
     name: '29_party_room', voxels: 'day', caption: 'The Party Room between the halls: a birthday table set for children who never came',
     scene: { camera: { pos: [36.5, 2.4, 39.6], target: [36.5, 0.8, 54], fov: 70 }, exposure: 1.0 },

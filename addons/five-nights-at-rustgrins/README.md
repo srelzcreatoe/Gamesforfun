@@ -107,6 +107,28 @@ its door open and the headlights on.
 | **Purple Rat** | shares the ring with the Cat; maracas in the ceiling ducts (CAM 9 / 10) | close that vent when he is above you |
 | **The Ringmaster** | stands on his stage, the Grand Marquee (CAM 1C), and calls you every night | listen. On night 6, obey him, and keep the SPOTLIGHT ready |
 
+**They have tricks.** From night 2 each of them has one of its own, and every
+trick gives itself away before it can hurt you:
+
+| | The trick | What gives it away | Do |
+|---|---|---|---|
+| **Mirehop** | knocks on the wall, then steps into the doorway when your light goes off | three quick taps, an empty hall | look again a few seconds later |
+| **Noxbriar** | throws her voice into the wrong hall | a hum that is too clear and too close | check her own side too |
+| **Rustgrin** | burns out a camera he has been stared at on for too long | the feed squeals first | look away; keep the right door shut |
+| **The Cat** | hides and pulls at the show tape when CAM 8 is ignored | the show music warbles | PLAY SHOW on CAM 8 |
+| **Purple Rat** | plays dead under the duct camera, then bolts | the maracas stop dead | keep the camera on him until he squeaks |
+| **The Ringmaster** | calls two of the band back to the stage and sends them out together | cane raps and "Places!" on the PA | watch CAM 1A so nobody steps off |
+
+Later in the week they also work together: one crashes about in the kitchen to
+cover another's footsteps, and Mirehop and Noxbriar can trade halls (a twang and
+a hum together, far off).
+
+**They remember you.** Through the week the cast learns how you play: which door
+you leave open, which hall you check less, how long you stay on the cameras. The
+next night starts from that. Whoever caught you comes back the same way, and you
+hear it coming. Night 1 and every New Game start blank; the Shift Guide has a
+page on it (*They Remember*).
+
 Stars: reach the end of night 5, survive the Final Act, and beat the Custom
 Night at 20/20/20/20/20/20.
 
