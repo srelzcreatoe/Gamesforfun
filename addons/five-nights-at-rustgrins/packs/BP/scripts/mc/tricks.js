@@ -140,7 +140,8 @@ export function renderTrick(game, e, g) {
     // ---------------------------------------------------------------- memory: the one who got in last time
     case 'grudge':
       audio.play(SIGNATURE[e.who] ?? 'fnar.hall.whisper', null, g, { vol: 0.35, pitch: 0.7 });
-      cap(`${Name(e.who)} remembers last night - ${WAY[e.way] ?? 'the same way'} again, first`);
+      // (the door stalkers also make sure they are the first at the office)
+      cap(`${Name(e.who)} remembers last night - ${WAY[e.way] ?? 'the same way'} again${e.who === 'mirehop' || e.who === 'noxbriar' ? ', first' : ''}`);
       return true;
     default:
       return false;
