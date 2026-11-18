@@ -39,7 +39,7 @@ const SEAT_DROP = 0.6;
 /** Walking speeds in blocks per tick, by build (the walk animation's steps cover about 2.7 blocks a second at most). */
 const STROLL = Object.freeze({ adult: [0.108, 0.132], teen: [0.114, 0.134], child: [0.112, 0.136] });
 /** How much faster everyone walks at closing time (a jog), and once the lights start going out (a run). */
-const PACE = Object.freeze({ day: 1, closing: 1.6, hurry: 2.5 });
+const PACE = Object.freeze({ day: 1, closing: 1.8, hurry: 2.8 });
 /** How long a group stays at each kind of stop (ticks). */
 const STAY = Object.freeze({ seats: [2200, 4200], arcade: [700, 1300], prize: [300, 600], pit: [400, 800], stage: [260, 480], podium: [45, 95] });
 /** The sounds of a crowd (tools/sounds/recipes_day.py). */
@@ -331,7 +331,10 @@ export class Guests {
   // ================================================================ groups
   /** Who comes together: a party that fits in `room` places. `family`: with at least one child. */
   pickParty(room, family = false) {
-    const fits = PARTIES.filter((p) => p.kinds.length <= room && (!family || p.kinds.includes('child')));
+    // nobody meets their double: a party only comes if there is an unused skin for each of its members
+    const free = { adult: SKINS.adult.length, teen: SKINS.teen.length, child: SKINS.child.length };
+    for (const grp of this.groups) for (const g of grp.members) free[g.kind]--;
+    const fits = PARTIES.filter((p) => p.kinds.length <= room && (!family || p.kinds.includes('child')) && Object.keys(free).every((k) => p.kinds.filter((x) => x === k).length <= free[k]));
     if (!fits.length) return null;
     return this.game.rng.weighted(fits.map((p) => [p.kinds, p.weight]));
   }
@@ -341,7 +344,7 @@ export class Guests {
     if (!kinds) return null;
     const rng = this.game.rng;
     const grp = { id: ++this.serial, members: [], stops: [], at: 0, until: now, phase: 'travel', leaveAt: now + rng.int(5200, 9500), leaving: false, goAt: 0, chimed: false, portal: null, since: now };
-    const used = new Set(this.list.map((g) => g.skin));
+    const used = new Set(this.groups.flatMap((gr) => gr.members.map((g) => g.skin)));
     for (const kind of kinds) {
       const free = SKINS[kind].filter((s) => !used.has(s));
       const skin = rng.pick(free.length ? free : SKINS[kind]);
@@ -1182,7 +1185,7 @@ export class Guests {
     if (now < this.nextArrival) return;
     const rng = this.game.rng;
     const n = this.list.length;
-    this.nextArrival = now + (n < CROWD.min ? rng.int(150, 330) : rng.int(420, 900));
+    this.nextArrival = now + (n < CROWD.min ? rng.int(90, 220) : rng.int(420, 900));
     if (n >= CROWD.max - 1) return;
     const grp = this.makeGroup(now, this.pickParty(CROWD.max - n, n < CROWD.min && rng.chance(0.6)));
     if (!grp) return;

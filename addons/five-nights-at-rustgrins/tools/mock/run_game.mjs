@@ -212,39 +212,196 @@ check(P.hudHidden === null, 'the HUD comes back after the jumpscare');
   check(/LEFT door/.test(over?.body ?? ''), `the game-over screen explains how Mirehop got in (got: ${over?.body})`);
 }
 // 6. free roam ------------------------------------------------------------------------------
+// The daytime guests are watched through the whole of Free Roam and closing time: every tick, nobody who is
+// walking or standing may be inside a block of the built map (tables, chairs, walls, glass, ropes).
+const GD = await import(path.join(ROOT, 'packs/BP/scripts/data/guests.js'));
+const guestWatch = { ticks: 0, samples: 0, inBlock: [], max: 0, hold: 0, lookBack: 0, anims: new Set(), outside: 0 };
+{
+  const { buildVoxels } = await import('../map/export_voxels.mjs');
+  const { grid } = buildVoxels();
+  for (const [x, y, z] of GD.DAY_OPEN) grid.data[(x - grid.x0) + grid.sx * ((z - grid.z0) + grid.sz * (y - grid.y0))] = 0; // the front doors by day
+  const PASS = /^(minecraft:(air|light_block_\d+|short_grass|.*_carpet|.*wall_sign|.*_button)|fnar:(floor_decal|poster_.*|drawing|sign_.*|wall_writing|lot_tag|neon_sign.*|menu_board|height_chart|token_prices|bunting|light_button|door_button))$/;
+  const solid = (x, y, z) => {
+    const ix = Math.floor(x) - grid.x0, iy = y - grid.y0, iz = Math.floor(z) - grid.z0;
+    return ix >= 0 && iz >= 0 && ix < grid.sx && iz < grid.sz && !PASS.test(grid.palette[grid.data[ix + grid.sx * (iz + grid.sz * iy)]].name);
+  };
+  const step0 = driver.step;
+  driver.step = () => {
+    step0.call(driver);
+    const g = game();
+    if (g?.state !== 'FREE_ROAM' && g?.state !== 'CLOSING') return;
+    guestWatch.ticks++;
+    guestWatch.max = Math.max(guestWatch.max, g.guests.list.length);
+    for (const q of g.guests.list) {
+      guestWatch.samples++;
+      guestWatch.anims.add(q.props['fnar:anim']);
+      if (q.props['fnar:hold']) guestWatch.hold++;
+      if (q.lookBack && mock.tick < q.blockUntil) guestWatch.lookBack++;
+      if (q.x > GD.DOOR.x) guestWatch.outside++;
+      if (q.seated || q.slide) continue; // on a chair, or getting on or off it
+      for (const [dx, dz] of [[0, 0], [0.25, 0], [-0.25, 0], [0, 0.25], [0, -0.25]]) {
+        if (solid(q.x + dx, 0, q.z + dz) || solid(q.x + dx, 1, q.z + dz)) { guestWatch.inBlock.push(`${q.x.toFixed(2)},${q.z.toFixed(2)}`); break; }
+      }
+    }
+  };
+}
+const guestEnts = () => [...mock.entities.values()].filter((e) => e.typeId === 'fnar:guest');
 push('free_roam');
 await waitFor(() => game().state === 'FREE_ROAM', 50, 'free roam');
 check(P.inventory[4]?.typeId === 'fnar:time_card', 'Free Roam hands out the Time Card');
 {
+  // open for business: people at the tables and the games already, a family on its way in from the lot
+  const gs = game().guests;
+  await steps(2);
+  check(gs.count() >= 9 && gs.count() <= GD.CROWD.max, `by day there are guests in the pizzeria at once (${gs.count()})`);
+  check(guestEnts().length === gs.count() && guestEnts().every((e) => e.tags.has('fnar_guest')), 'every guest is a tagged fnar:guest entity');
+  check(gs.list.filter((q) => q.seated).length >= 3 && gs.list.some((q) => q.kind === 'child') && gs.list.some((q) => q.kind === 'adult'), 'some of them sit at the tables; there are grown-ups and children');
+  check(gs.list.some((q) => q.x > GD.DOOR.x && q.walk), 'a group is crossing the lot towards the front doors');
+  check(new Set(gs.list.map((q) => q.skin)).size === gs.count(), 'no two guests wear the same skin');
+  check(blockAt(100, 0, 35).typeId === 'minecraft:air' && blockAt(100, 0, 36).typeId === 'minecraft:air', 'by day the two open door leaves are open down to the floor');
+  // the mob sweep leaves them alone, whatever families they have
+  guestEnts()[0].families = ['mob'];
+  game().sweepMobs();
+  check(guestEnts().length === gs.count() && guestEnts().every((e) => e.isValid), 'the mob sweep does not remove guests');
+  // nobody stands inside anybody
+  let close = 0;
+  for (const a of gs.list) for (const b of gs.list) if (a.n < b.n && Math.hypot(a.x - b.x, a.z - b.z) < 0.4) close++;
+  check(close === 0, `no two guests start in the same spot (${close} pairs)`);
+}
+{
   // a live show: announced, performed with music, a bow, then every head turns to the guest
   const r = game().roam;
+  const gs = game().guests;
   r.nextShow = mock.tick + 30;
   await waitFor(() => game().roam.phase === 'show', 60, 'the show to start');
-  await steps(3);
+  await steps(40);
   check(mock.sounds.includes('fnar.music.showtime'), 'the show plays the band music');
+  {
+    // everyone in the Dining Hall watches the stage: the seated ones turn on their chairs, heads towards the band
+    const watchers = gs.list.filter((q) => gs.watching(q));
+    const facing = watchers.filter((q) => {
+      const want = (Math.atan2(-(GD.STAGE_FOCUS.x - q.x), GD.STAGE_FOCUS.z - q.z) * 180) / Math.PI;
+      const head = q.yaw + (q.props['fnar:look_yaw'] ?? 0);
+      return Math.abs(((((want - head) % 360) + 540) % 360) - 180) < 50;
+    });
+    check(watchers.length >= 3 && facing.length >= watchers.length - 1, `the guests in the Dining Hall watch the stage (${facing.length} of ${watchers.length} look at it)`);
+    check(!watchers.some((q) => !q.seated && q.x > 35.5 && q.x < 41.5), 'nobody stands in the middle aisle the band looks down');
+  }
+  await steps(200);
+  check(gs.list.some((q) => /clap|cheer/.test(q.props['fnar:anim'])) || guestWatch.anims.has('sit_clap') || guestWatch.anims.has('clap'), 'they clap along during the show');
+  const cheers = mock.sounds.filter((x) => x === 'fnar.day.cheer').length;
   r.at = mock.tick + 5;
+  await waitFor(() => game().roam.phase === 'bow', 30, 'the bow');
+  await steps(4);
+  {
+    const watchers = gs.list.filter((q) => gs.watching(q));
+    const clapping = watchers.filter((q) => /clap|cheer/.test(q.props['fnar:anim']));
+    check(watchers.length >= 3 && clapping.length === watchers.length, `at the bow the whole audience claps and cheers (${clapping.length} of ${watchers.length})`);
+    check(mock.sounds.filter((x) => x === 'fnar.day.cheer').length > cheers, 'and the hall is heard cheering');
+  }
   await waitFor(() => game().roam.phase === 'stare', 200, 'the curtain call');
   await waitFor(() => game().roam.phase === 'idle', 200, 'the show to end');
+  check(game().audio.loops.has('crowd_dining') && mock.sounds.includes('fnar.day.crowd'), 'the room murmurs while there are guests in it');
   // walk up to Rustgrin and look at him: he talks
   const rg = [...mock.entities.values()].find((e) => e.typeId === 'fnar:rustgrin');
   P.teleport({ x: rg.location.x, y: rg.location.y, z: rg.location.z + 3 }, { rotation: { x: -20, y: 180 } });
   await steps(20);
   check(/Rustgrin§7: /.test(P.actionBar ?? ''), `walking up to Rustgrin, he talks (${(P.actionBar ?? '').split('\n')[0]})`);
 }
+{
+  // the guests and the player: a guest glances at someone who walks up, and sooner or later waves
+  const gs = game().guests;
+  const seat = gs.list.find((q) => q.seated && !q.walk && !q.grp.leaving);
+  check(!!seat, 'someone is sitting at a table after the show');
+  if (seat) {
+    seat.grp.leaveAt = seat.grp.until = mock.tick + 4000; // (they stay for this)
+    P.teleport(Wl(seat.place.ax, 0, seat.place.az), { rotation: { x: 0, y: 0 } });
+    let looked = false, waved = false;
+    await waitFor(() => {
+      for (const q of gs.list) {
+        if (Math.hypot(q.x - seat.place.ax, q.z - seat.place.az) > 4) continue;
+        looked ||= mock.tick < q.glanceUntil;
+        waved ||= /wave/.test(q.props['fnar:anim'] ?? '');
+      }
+      return looked && waved;
+    }, 1500, 'a guest to look at the player and wave').catch(() => {});
+    check(looked, 'a guest glances at a player who walks up');
+    check(waved, 'and one of them waves');
+    check(guestEnts().every((e) => e.isValid), 'standing among the guests breaks nothing');
+  }
+  // groups go home: two of them are sent off now, walk out through the front doors to the street and are gone
+  P.teleport(Wl(40, 0, 20), { rotation: { x: 0, y: 0 } });
+  const sent = [...gs.groups].filter((grp) => !grp.leaving && grp !== seat?.grp && grp.members.every((q) => q.x < GD.DOOR.x)).slice(0, 2);
+  for (const grp of sent) grp.leaveAt = mock.tick;
+  const sentIds = new Set(sent.flatMap((grp) => grp.members.map((q) => q.n)));
+  const outside0 = guestWatch.outside;
+  await waitFor(() => !gs.list.some((q) => sentIds.has(q.n)), 3000, 'the groups that were sent home to leave');
+  check(sentIds.size > 0 && guestWatch.outside > outside0 && guestEnts().length === gs.count(), 'guests leave over time (they walk out to the street, where their entities are removed)');
+  // and new ones come in from the street: the bell over the doors rings as the group walks in
+  const chimes = mock.sounds.filter((x) => x === 'fnar.day.door_chime').length;
+  while (gs.count() > GD.CROWD.max - 5) { // (room for a party of any size)
+    gs.dropGroup(gs.groups.find((grp) => grp !== seat?.grp));
+    await steps(2);
+  }
+  const known = new Set(gs.list.map((q) => q.n));
+  gs.nextArrival = mock.tick + 5;
+  await waitFor(() => gs.list.some((q) => !known.has(q.n)), 60, 'a new group to arrive');
+  const fresh = gs.list.filter((q) => !known.has(q.n));
+  check(fresh.every((q) => q.x > GD.DOOR.x), `new guests appear outside, at the street (x ${fresh.map((q) => q.x.toFixed(0))})`);
+  await waitFor(() => mock.sounds.filter((x) => x === 'fnar.day.door_chime').length > chimes, 1500, 'the door chime as the new group comes in');
+  await waitFor(() => fresh.every((q) => q.gone || (!q.walk && !q.slide && q.place)), 2500, 'the new group to reach its first stop');
+  check(fresh.some((q) => !q.gone && q.place), 'the new group walks in and takes its places');
+  check(gs.count() >= 3 && guestWatch.max <= GD.CROWD.max, `the crowd stays within its size (now ${gs.count()}, at most ${guestWatch.max} at once)`);
+  for (const a of ['walk', 'sit', 'eat']) check(guestWatch.anims.has(a), `guests ${a}`);
+}
 answer(titleHas('TIME CARD'), (f) => ({ canceled: false, selection: f.buttons.findIndex((b) => /time clock/.test(b)) }));
 world.afterEvents.itemUse.fire({ source: P, itemStack: { typeId: 'fnar:time_card' } });
 await waitFor(() => game().state === 'LOBBY', 100, 'lobby after free roam');
-say('free roam ok: a live show, a talking animatronic, the Time Card');
+await steps(2);
+check(guestEnts().length === 0 && game().guests.count() === 0, 'there are no guests in the lobby');
+check(blockAt(100, 0, 35).typeId !== 'minecraft:air', 'and the front doorway is as built again');
+{
+  // guests left behind by a script reload (no record of them) are cleaned up by type and tag
+  const stray = world.getDimension('overworld').spawnEntity('fnar:guest', Wl(40, 0, 33));
+  stray.addTag('fnar_guest');
+  game().enterLobby();
+  await steps(2);
+  check(!stray.isValid && guestEnts().length === 0, 'a guest left over from before a reload is removed');
+}
+say(`free roam ok: a live show, a talking animatronic, the Time Card; guests: up to ${guestWatch.max} at once, ${guestWatch.samples} samples`);
 
 // 6a. closing time: from Free Roam, the Time Card clocks in for the night
 push('free_roam');
 await waitFor(() => game().state === 'FREE_ROAM', 50, 'free roam again');
+await steps(60);
+const closingFrom = game().guests.count();
+guestWatch.hold = 0;
 answer(titleHas('TIME CARD'), () => ({ canceled: false, selection: 0 }));
 world.afterEvents.itemUse.fire({ source: P, itemStack: { typeId: 'fnar:time_card' } });
 await waitFor(() => game().state === 'CLOSING', 40, 'closing time');
-await waitFor(() => game().state === 'NIGHT', 900, 'the night after closing time');
+{
+  // everyone stops and looks at the stage, then they all get up and file out, the children by the hand
+  const gs = game().guests;
+  await steps(3);
+  check(closingFrom >= 8 && gs.list.every((q) => !q.walk) && !game().audio.loops.has('crowd_dining'), `closing time: every guest stops (${closingFrom} of them) and the murmur dies with the music`);
+  const tClose = mock.tick;
+  let insideAtDark = -1;
+  await waitFor(() => {
+    if (insideAtDark < 0 && game().guests.pace > 2) insideAtDark = gs.inside();
+    return game().state === 'NIGHT';
+  }, 1400, 'the night after closing time');
+  check(guestWatch.hold > 0, 'parents take the children by the hand on the way out');
+  check(guestWatch.lookBack > 20, `the last child stops in the doorway and looks back (${guestWatch.lookBack} ticks)`);
+  check(insideAtDark > 0, `guests are still hurrying out when the lights start going (${insideAtDark} inside)`);
+  check(guestEnts().length === 0 && gs.count() === 0, 'no guest is left when the night starts');
+  check(blockAt(100, 0, 35).typeId !== 'minecraft:air', 'the front doorway is as built for the night');
+  check(guestWatch.inBlock.length === 0, `no guest ever walked or stood inside a block (${guestWatch.inBlock.length} of ${guestWatch.samples} samples: ${guestWatch.inBlock.slice(0, 4).join(' | ')})`);
+  say(`closing time: ${closingFrom} guests out in ${mock.tick - tClose} ticks`);
+}
 check(mock.sounds.includes('fnar.tophat.tape_out'), 'closing time cuts the music');
 say(`closing time -> ${game().nightLabel}`);
+await steps(40);
+check(guestEnts().length === 0, 'there are no guests during a night');
 debug('lobby');
 await steps(5);
 

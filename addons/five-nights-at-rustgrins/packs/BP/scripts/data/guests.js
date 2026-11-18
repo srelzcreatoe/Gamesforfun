@@ -326,13 +326,14 @@ export function route(g, from, to) {
   const push = (x, z, w) => {
     const l = out[out.length - 1];
     if (l && Math.hypot(l[0] - x, l[1] - z) < 0.06) {
-      l[2] = Math.max(l[2], w);
+      l[2] = Math.min(l[2], w);
       return;
     }
     out.push([x, z, w]);
   };
+  // (a guest steps onto and off a walkway in its middle: the step to a seat or a spot is checked as a straight line)
   push(from.x, from.z, 0);
-  push(from.px, from.pz, from.pw);
+  push(from.px, from.pz, 0);
   if (from.edge !== to.edge) {
     const EA = g.edges[from.edge];
     const EB = g.edges[to.edge];
@@ -351,7 +352,7 @@ export function route(g, from, to) {
       k = g.next[k * n + best.v];
     }
   }
-  push(to.px, to.pz, to.pw);
+  push(to.px, to.pz, 0);
   push(to.x, to.z, 0);
   return out;
 }
