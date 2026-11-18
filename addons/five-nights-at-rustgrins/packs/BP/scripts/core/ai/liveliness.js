@@ -4,7 +4,7 @@
 // random stream of their own (the night is the same night with or without them), and they are
 // sparse - one effect every eight to sixteen seconds for the whole cast.
 //
-//   { fx: 'idle', kind: 'tilt',    who, node, yaw, pitch, dur }   the head turns, then back
+//   { fx: 'idle', kind: 'tilt',    who, node, yaw, pitch, dur }   the head turns (yaw + = to its right, pitch + = down), then back
 //   { fx: 'idle', kind: 'pose',    who, node, pose, dur }         another pose for a while
 //   { fx: 'idle', kind: 'shuffle', who, node, path, dur }         a few steps out and back
 //

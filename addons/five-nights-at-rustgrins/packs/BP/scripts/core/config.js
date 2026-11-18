@@ -293,7 +293,7 @@ export const CONFIG = Object.freeze({
       // covers a stalker's way down its hall and its step up to the door. The errand: the other
       // stalker, within `reach` blocks of that room while its partner is within `near` blocks of
       // its door, steps in there to make the noise
-      clatter: Object.freeze({ window: 200, cooldown: 900, lead: 300, near: 40, reach: 30 }),
+      clatter: Object.freeze({ window: 300, cooldown: 900, lead: 300, near: 30, reach: 30 }),
       // Mirehop and Noxbriar trade halls for one trip (once a night, both at this AI or more)
       trade: Object.freeze({ minAi: 13, hours: Object.freeze([1.4, 4.4]), lasts: 1800 }),
       duoGap: 140, // after the Ringmaster's "places!": the two he sent arrive at least this far apart

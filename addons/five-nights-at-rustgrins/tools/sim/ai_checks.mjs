@@ -970,6 +970,7 @@ const fxHash = (h, e) => {
 // ------------------------------------------------------------------------ 20. group tactics: the racket in the kitchen, trading places
 {
   let clatters = 0;
+  let loud = 0;
   let own = 0;
   let stepped = 0;
   let early = 0;
@@ -990,13 +991,17 @@ const fxHash = (h, e) => {
         onFx: (e, s) => {
           if (e.fx === 'cue' && e.kind === 'clatter') {
             clatters++;
+            // the one making the noise stands in a room the guard can only listen to, and covers somebody else
             if (!heardOnly(e.node) || s.chars[e.who].node !== e.node) early++;
-            clat = { who: e.who, at: s.t };
+            if (s.director.clatterFor === e.who || !s.director.covered(s.chars[s.director.clatterFor])) own++;
+            clat = { who: e.who, cover: s.director.clatterFor, until: s.t + CONFIG.director.tactics.clatter.window };
           }
-          if (clat && e.fx === 'move' && NODES[e.toNode]?.door && s.t - clat.at <= 10) {
-            if (e.who === clat.who) own++;
-            else stepped++;
-            clat = null;
+          if (clat && s.t <= clat.until) {
+            if (e.fx === 'sound' && e.approach && e.at === clat.cover) loud++; // its way down the hall drowns in the noise
+            if (e.fx === 'move' && NODES[e.toNode]?.door) {
+              if (e.who === clat.who) own++;
+              else if (e.who === clat.cover) { stepped++; clat = null; }
+            }
           }
           if (e.fx === 'cue' && e.kind === 'trade') {
             trades++;
@@ -1017,7 +1022,7 @@ const fxHash = (h, e) => {
       for (const id of ['mirehop', 'noxbriar']) if (s.result === 'win' && s.chars[id].traded && s.chars[id].state === 'roam' && s.t > s.chars[id].tradeUntil + 200) wrongSide++;
     }
   }
-  check(clatters > nights / 3 && early === 0 && own === 0 && stepped >= clatters * 0.9, 'the racket: pots crash in the kitchen as somebody else steps up to a door - the one making the noise is never the one coming', `${clatters} rackets in ${nights} nights, ${stepped} step-ins by another within half a second`);
+  check(clatters > nights / 3 && early === 0 && own === 0 && loud === 0 && stepped >= clatters * 0.5, 'the racket: pots crash in the kitchen to cover somebody else on its way to a door - the one making the noise is never the one coming', `${clatters} rackets in ${nights} nights; under ${stepped} of them the covered one stepped up to its door, its footsteps drowned`);
   check(trades > RUNS / 4 && tradeN4 === 0 && tradedVisits > 0 && wrongSide === 0, 'trading places (late nights only): Mirehop and Noxbriar swap halls for one trip, and every tell carries the side it really comes from', `${trades} trades, ${tradedVisits} visits to the other hall's door`);
   check(wins >= nights - 1, 'and the good bot, who trusts the side it hears, still survives them', `${wins}/${nights} nights`);
 }

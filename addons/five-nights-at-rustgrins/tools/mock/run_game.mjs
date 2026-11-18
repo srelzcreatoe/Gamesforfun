@@ -234,6 +234,23 @@ check(P.hudHidden === null, 'the HUD comes back after the jumpscare');
   const over = mock.forms.filter((f) => f.title.includes('GAME OVER')).at(-1);
   check(/LEFT door/.test(over?.body ?? ''), `the game-over screen explains how Mirehop got in (got: ${over?.body})`);
 }
+// 5a. the cast remembers the guard from one night of the week to the next (core/ai/memory.js, mc/tricks.js)
+{
+  const { MEMORY_CALLS, CALLS } = await import(path.join(ROOT, 'packs/BP/scripts/data/story.js'));
+  const m = game().save.memory;
+  check(m?.death?.who === 'mirehop' && m.death.way === 'L' && m.deaths === 1 && JSON.stringify(m).length < 300, `the save remembers how the guard was caught, in a few bytes (${JSON.stringify(m)})`);
+  debug('night', '2');
+  await steps(5);
+  const s = game().session;
+  check(s.beliefs?.encore?.who === 'mirehop' && s.chars.mirehop.grudge === 'L' && s.director.ease === 1, `the retry starts from that memory: Mirehop comes back the same way first, and the director eases off (${JSON.stringify(s.beliefs)})`);
+  const lines = game().phoneSeq?.lines ?? [];
+  const hint = lines.findIndex((l) => MEMORY_CALLS.encore.mirehop.includes(l));
+  check(hint >= 1 && lines[hint - 1] === CALLS[2][0], `the Ringmaster hints at it in his call, right after the greeting (got: ${lines.slice(0, 3).join(' / ')})`);
+  const mem = JSON.stringify(game().save.memory);
+  debug('lobby');
+  await steps(3);
+  check(JSON.stringify(game().save.memory) === mem, 'a night that was abandoned is not remembered');
+}
 // 6. free roam ------------------------------------------------------------------------------
 push('free_roam');
 await waitFor(() => game().state === 'FREE_ROAM', 50, 'free roam');
@@ -290,6 +307,7 @@ answer(titleHas('NEW GAME'), () => ({ canceled: false, selection: 1 }));
 push('new_game');
 await waitFor(() => game().state === 'NIGHT' && game().nightOpts.n === 1, 100, 'night 1 (new game)');
 await steps(3);
+check(game().save.memory === null && game().session.beliefs === null, 'a New Game starts blank: on night 1 the cast does not know the guard');
 check(!globalThis.__alreadyMob.isValid, 'a mob that was in the lot is swept when a night starts');
 check(P.music === 'fnar.music.bgm', `the background music plays during a shift (got ${P.music})`);
 await waitFor(() => /Ringmaster/.test(P.actionBar ?? '') && /Tester/.test(P.actionBar ?? ''), 500, 'the Ringmaster calling the guard by name');
@@ -440,6 +458,100 @@ check(P.music === 'fnar.music.bgm' && game().save.settings.bgm === true, 'and ba
       check(!sound || mock.sounds.slice(n0).includes(sound), `the ${what} tell plays ${sound}`);
       check(caption.test(P.actionBar ?? ''), `the ${what} tell has a caption (got: ${(P.actionBar ?? '').split('\n').at(-1)})`);
     }
+  }
+  // the cast's tricks (core/ai, rendered by mc/tricks.js): each tell is a sound and a caption
+  {
+    const s = game().session;
+    const tricks = await import(path.join(ROOT, 'packs/BP/scripts/mc/tricks.js'));
+    for (const c of Object.values(s.chars)) c.baseAi = 0; // (nobody moves on its own while the tells are checked)
+    const tells = [
+      [{ fx: 'cue', kind: 'squeal', who: 'rustgrin', cam: '4A' }, 'fnar.rustgrin.feedback', /feed squeals.*CAM 4A.*Look away/],
+      [{ fx: 'cue', kind: 'burn', who: 'rustgrin', cam: '4A', ticks: 400 }, 'fnar.cam.glitch', /CAM 4A burns out/],
+      [{ fx: 'cue', kind: 'knock', who: 'mirehop', side: 'L' }, 'fnar.step.light', /three quick knocks on the left wall/],
+      [{ fx: 'cue', kind: 'decoy', who: 'noxbriar', side: 'L' }, 'fnar.noxbriar.hum', /humming in the West Hall - too clear/],
+      [{ fx: 'cue', kind: 'playdead', who: 'purple_rat', side: 'L' }, 'fnar.night.twitch', /maracas stop dead in the west duct/],
+      [{ fx: 'cue', kind: 'burst', who: 'purple_rat', side: 'R' }, 'fnar.rat.maracas', /frantic rattle in the east duct/],
+      [{ fx: 'cue', kind: 'pull', who: 'cat' }, 'fnar.tophat.rewind', /show music warbles.*CAM 8/],
+      [{ fx: 'cue', kind: 'pull', who: 'cat', again: true }, 'fnar.tophat.rewind', /still warbling/],
+      [{ fx: 'cue', kind: 'pull_end', who: 'cat', rewound: true }, 'fnar.cat.bell', /back on the ring/],
+      [{ fx: 'cue', kind: 'places', who: ['mirehop', 'noxbriar'], hold: 180 }, 'fnar.tophat.cane', /Mirehop and Noxbriar go back to the stage/],
+      [{ fx: 'cue', kind: 'places_go', who: ['mirehop', 'noxbriar'] }, 'fnar.tophat.cane', /leave the stage together/],
+      [{ fx: 'cue', kind: 'clatter', who: 'noxbriar', node: 'KIT' }, 'fnar.rat.bang', /crash of pots in the kitchen/],
+      [{ fx: 'cue', kind: 'trade', who: ['mirehop', 'noxbriar'] }, 'fnar.mirehop.strum', /trading halls/],
+      [{ fx: 'cue', kind: 'grudge', who: 'mirehop', way: 'L' }, 'fnar.mirehop.strum', /Mirehop remembers last night - the left door again/],
+      [{ fx: 'cue', kind: 'grudge', who: 'purple_rat', way: 'VR' }, 'fnar.rat.maracas', /Purple Rat remembers last night - the right vent/],
+      // after a trade the tell at a door is still its owner's, on the side it comes from
+      [{ fx: 'at_door', who: 'mirehop', side: 'R', window: false }, null, /guitar string twangs - right door/],
+      [{ fx: 'at_door', who: 'noxbriar', side: 'L', window: false }, null, /soft humming - left door/],
+      [{ fx: 'at_door', who: 'noxbriar', side: 'R', window: true }, null, /soft humming - right window/],
+    ];
+    for (const [e, sound, caption] of tells) {
+      const n0 = mock.sounds.length;
+      s.emit(e);
+      await steps(10);
+      const what = `${e.kind ?? e.fx}${e.again ? ' (again)' : ''}`;
+      check(!sound || mock.sounds.slice(n0).includes(sound), `the ${what} tell plays ${sound}`);
+      check(caption.test(P.actionBar ?? ''), `the ${what} tell has a caption (got: ${(P.actionBar ?? '').split('\n').at(-1)})`);
+      if (e.kind === 'knock') check(mock.sounds.slice(n0).filter((x) => x === 'fnar.step.light').length === 3, 'the knock is three quick taps');
+      if (e.kind === 'places') {
+        check(ent('top_hat_rat')?.props['fnar:anim'] === 'perform', 'calling "places!", the Ringmaster conducts in his booth');
+        await waitFor(() => /\[PA\].*(Mirehop|marks|From the top)/.test(P.actionBar ?? ''), 120, 'the Ringmaster calling "places!" over the PA');
+      }
+      if (e.kind === 'places_go') check(ent('top_hat_rat')?.props['fnar:anim'] === 'pose', 'and stands posed again once they are sent');
+    }
+    // a trick that was part of the catch gets its own tip, in the chat (the game-over screen keeps the killer's)
+    const c0 = mock.chat.length;
+    tricks.killNote({ fx: 'jumpscare', who: 'mirehop', way: 'L', note: 'knock' }, P);
+    tricks.killNote({ fx: 'jumpscare', who: 'mirehop', way: 'L', note: null }, P);
+    await steps(55);
+    check(mock.chat.length === c0 + 1 && /knocks were bait/.test(mock.chat.at(-1)), `a catch by a trick explains the trick (${mock.chat.at(-1)})`);
+
+    // signs of life (core/ai/liveliness.js): a head tilt, a pose for a while, a shuffle out and back
+    const m = s.chars.mirehop;
+    m.baseAi = 0; // (he stays where the test puts him)
+    m.placeAt('DIN_W', 'stand');
+    await steps(2);
+    const e = ent('mirehop');
+    const { NODES } = await import(path.join(ROOT, 'packs/BP/scripts/data/nodes.js'));
+    const home = { ...e.location };
+    s.emit({ fx: 'idle', kind: 'tilt', who: 'mirehop', node: 'DIN_W', yaw: 30, pitch: 9, dur: 8 });
+    await steps(2);
+    check(e.props['fnar:look_yaw'] === 30 && e.props['fnar:look_pitch'] === 9, `an idle head tilt turns the head (yaw ${e.props['fnar:look_yaw']}, pitch ${e.props['fnar:look_pitch']})`);
+    await steps(10);
+    check(e.props['fnar:look_yaw'] === 0 && e.props['fnar:look_pitch'] === 0, 'and it comes back');
+    s.emit({ fx: 'idle', kind: 'pose', who: 'mirehop', node: 'DIN_W', pose: 'peek', dur: 8 });
+    await steps(2);
+    check(e.props['fnar:anim'] === 'peek', `an idle pose change (${e.props['fnar:anim']})`);
+    await steps(10);
+    check(e.props['fnar:anim'] === 'stand', `goes back to standing (${e.props['fnar:anim']})`);
+    const n = NODES.DIN_W;
+    s.emit({ fx: 'idle', kind: 'shuffle', who: 'mirehop', node: 'DIN_W', path: [[n.x, n.y, n.z], [n.x + 1.3, n.y, n.z], [n.x, n.y, n.z]], dur: 12 });
+    await steps(6);
+    const out = Math.hypot(e.location.x - home.x, e.location.z - home.z);
+    check(out > 0.8 && e.props['fnar:anim'] === 'walk', `an idle shuffle takes a few steps out (${out.toFixed(2)} blocks)`);
+    await steps(10);
+    check(Math.hypot(e.location.x - home.x, e.location.z - home.z) < 0.05 && e.props['fnar:anim'] === 'stand', 'and back to where it stood');
+    // never for a puppet in a pose of its own, or one that is hidden
+    m.placeAt('DOOR_L', 'stand');
+    await steps(2);
+    s.emit({ fx: 'idle', kind: 'pose', who: 'mirehop', node: 'DOOR_L', pose: 'peek', dur: 8 });
+    s.emit({ fx: 'idle', kind: 'shuffle', who: 'mirehop', node: 'DOOR_L', path: [[n.x, n.y, n.z], [n.x + 1.3, n.y, n.z], [n.x, n.y, n.z]], dur: 12 });
+    await steps(3);
+    check(e.props['fnar:anim'] === 'lean', `a sign of life never breaks a pose of its own: at the door he keeps leaning in (${e.props['fnar:anim']})`);
+    // a head on the lens (a camera stare) glances away and comes back to the lens
+    m.placeAt('DIN_W', 'stand');
+    await steps(2);
+    answer((f) => f._title.startsWith(MAP_MARK), () => new Promise(() => {})); // leave the map open
+    s.input('cams_open', '1B');
+    await steps(60);
+    const aimed = [e.props['fnar:look_yaw'], e.props['fnar:look_pitch']];
+    s.emit({ fx: 'idle', kind: 'tilt', who: 'mirehop', node: 'DIN_W', yaw: -35, pitch: 10, dur: 8 });
+    await steps(2);
+    check(e.props['fnar:look_yaw'] === -35 && game().stare.mirehop >= 40, 'watched on a camera, a tilt is a glance away from the lens');
+    await steps(10);
+    check(e.props['fnar:look_yaw'] === aimed[0] && e.props['fnar:look_pitch'] === aimed[1], `and the head comes back to the lens (${e.props['fnar:look_yaw']}, ${e.props['fnar:look_pitch']} vs ${aimed})`);
+    s.input('cams_close');
+    await steps(10);
   }
   // night 4: he is glimpsed out of place, and snaps back once watched on CAM 1C
   debug('night', '4');

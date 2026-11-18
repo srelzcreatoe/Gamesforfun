@@ -19,6 +19,7 @@ import { CAST_NAMES } from '../core/config.js';
 import { MEMORY_CALLS, DIRECTS, KILL_TIPS } from '../data/story.js';
 import { remember, memoryHints, memoryNight } from '../core/ai/memory.js';
 import { storeSave } from './persistence.js';
+import { W } from './world_io.js';
 import { log } from './log.js';
 
 const HALL = Object.freeze({ L: 'West Hall', R: 'East Hall' });
@@ -30,6 +31,8 @@ const SIGNATURE = Object.freeze({
   mirehop: 'fnar.mirehop.strum', noxbriar: 'fnar.noxbriar.hum', rustgrin: 'fnar.rustgrin.laugh',
   cat: 'fnar.cat.bell', purple_rat: 'fnar.rat.maracas', top_hat_rat: 'fnar.tophat.laugh',
 });
+/** Watched this long on a camera, a head is on the lens (game.js tickStare; the first look of the night counts too). */
+const STARE_AFTER = 40;
 /** Poses a sign of life may borrow for a moment, and only from these. */
 const AT_REST = new Set(['stand', 'idle']);
 
@@ -164,13 +167,22 @@ export function renderIdle(game, e, g) {
   const anim = props['fnar:anim'];
   switch (e.kind) {
     case 'tilt': {
+      // (yaw + = to its right, pitch + = down)
+      const feed = () => {
+        const cam = game.cams.active ? CAMERA_BY_ID[s.devices.cams.cam] : null;
+        return cam && !cam.audioOnly && cam.sees.includes(e.node) ? cam : null;
+      };
+      const cam = feed();
+      // a head already turned to the lens (a camera stare) glances away, and comes back to it
+      const staring = !!cam && (game.stare[id] ?? 0) >= STARE_AFTER;
       pup.look(id, e.yaw, e.pitch);
-      delete game.stare[id]; // (a camera stare aims the head again on its own)
       // heard only through the camera that shows it
-      const live = game.cams.active ? s.devices.cams.cam : null;
-      if (live && CAMERA_BY_ID[live]?.sees.includes(e.node)) game.audio.play('fnar.servo.head', { x: node.x, y: node.y + 2, z: node.z }, g, { vol: 0.35, relayCam: live });
+      if (cam) game.audio.play('fnar.servo.head', { x: node.x, y: node.y + 2, z: node.z }, g, { vol: 0.35, relayCam: cam.id });
       system.runTimeout(() => {
-        if (still() && !game.stare[id]) pup.look(id, 0, 0);
+        if (!still()) return;
+        const now = feed();
+        if (staring && now) pup.lookAt(id, W(now.loc[0], now.loc[1], now.loc[2]));
+        else if ((game.stare[id] ?? 0) < STARE_AFTER) pup.look(id, 0, 0);
       }, e.dur);
       return;
     }

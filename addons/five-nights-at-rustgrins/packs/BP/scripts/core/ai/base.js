@@ -159,9 +159,11 @@ export class Animatronic {
 
   /**
    * Footsteps near the office: positional, louder the closer to the doors, tagged with the
-   * side of the building they come from (a player hears which hall).
+   * side of the building they come from (a player hears which hall). Not heard while a racket
+   * in the kitchen covers this one's way to the door (director.js).
    */
   stepCue(node, { id = 'fnar.step.heavy', fast = false } = {}) {
+    if (this.s.director.covered(this)) return; // a racket elsewhere drowns them (the director's cover)
     const d = distToOffice(node);
     const reach = CONFIG.brain.hearSteps;
     if (!(d <= reach)) return;
