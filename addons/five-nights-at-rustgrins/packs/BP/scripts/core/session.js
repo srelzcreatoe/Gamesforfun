@@ -48,7 +48,8 @@ export class NightSession {
     this.killWay = null;
     /** the trick that was part of the catch, if any: 'knock' | 'decoy' | 'traded' | 'burnt' */
     this.killNote = null;
-    this.lastBreach = null;
+    /** who got past which door or vent: who -> { side, note } (more than one may be inside at once) */
+    this.breaches = Object.create(null);
     /** what they believe about the guard from earlier nights (null: they do not know the guard) */
     this.beliefs = null;
     /** tick the night's opener (memory.js) first reached its door: the others give it a moment */
@@ -174,7 +175,7 @@ export class NightSession {
    */
   breach(side, who, forced = false, note = null) {
     this.devices.broken[side] = true;
-    this.lastBreach = { side, who, note };
+    this.breaches[who] = { side, note };
     if (side === 'L' || side === 'R') {
       if (forced && this.doorClosed(side)) this.setDoor(side, false, true);
       this.emit({ fx: 'breach', side, who });
@@ -187,8 +188,9 @@ export class NightSession {
     if (this.result) return;
     this.result = 'lose';
     this.killer = who;
-    this.killWay = this.powerOut ? 'power' : this.lastBreach?.who === who ? this.lastBreach.side : null;
-    this.killNote = (this.lastBreach?.who === who && this.lastBreach.note) || null;
+    const got = this.breaches[who];
+    this.killWay = this.powerOut ? 'power' : got?.side ?? null;
+    this.killNote = (!this.powerOut && got?.note) || null;
     this.closeCams('jumpscare');
     this.emit({ fx: 'jumpscare', who, way: this.killWay, note: this.killNote });
   }

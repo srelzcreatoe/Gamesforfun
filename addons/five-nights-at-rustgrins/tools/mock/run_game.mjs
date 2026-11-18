@@ -661,6 +661,7 @@ check(P.music === 'fnar.music.bgm' && game().save.settings.bgm === true, 'and ba
     const s = game().session;
     const tricks = await import(path.join(ROOT, 'packs/BP/scripts/mc/tricks.js'));
     for (const c of Object.values(s.chars)) c.baseAi = 0; // (nobody moves on its own while the tells are checked)
+    s.life.enabled = false; // (and no sign of life but the ones the test sends)
     const tells = [
       [{ fx: 'cue', kind: 'squeal', who: 'rustgrin', cam: '4A' }, 'fnar.rustgrin.feedback', /feed squeals.*CAM 4A.*Look away/],
       [{ fx: 'cue', kind: 'burn', who: 'rustgrin', cam: '4A', ticks: 400 }, 'fnar.cam.glitch', /CAM 4A burns out/],

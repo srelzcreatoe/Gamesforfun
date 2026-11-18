@@ -325,6 +325,7 @@ export const CONFIG = Object.freeze({
     afterYouPause: 300, // ...nor for this long after the opener reached its door: one thing at a time
     sideBias: 0.8, // the Purple Rat's and the Cat's lean towards the soft vent / hall (x trust)
     watcher: 0.25, // against a camera watcher: Rustgrin's patience is this much shorter (x trust)
+    ignoredCat: 0.4, // against a guard who hardly uses the cameras: the Cat goes for the tape deck this much sooner (x trust)
     ease: 1, // per death in a row the director takes this much off its pressure, and off the highest it may go...
     maxEase: 2, // ...at most this much
     maxDeaths: 3,

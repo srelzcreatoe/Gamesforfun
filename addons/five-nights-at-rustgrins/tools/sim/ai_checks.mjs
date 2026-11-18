@@ -577,6 +577,30 @@ const fxHash = (h, e) => {
   const ms = remember(mem, short);
   check(beliefsFor(ms, 3)?.soft === 'R' && tilt(ms) > 0.6, 'a night cut short after a few minutes hardly changes what they know', `lean ${tilt(ms).toFixed(2)} after 20 minutes of the opposite habit`);
 
+  // the monitor: a guard who lived on the cameras, and one who hardly touched them
+  {
+    const watcher = remember(null, { ...even, cams: 0.8 });
+    const shy = remember(null, { ...even, cams: 0.05 });
+    const wait = (memory) => {
+      const s = night(4, 6450, { ai: ONLY({ rustgrin: 10 }), memory, mods: { infinitePower: true, noRusted: true } });
+      const r = s.chars.rustgrin;
+      r.placeAt('NOOK', 'stand');
+      let at = -1;
+      run(s, { ticks: 1500, guard: (s) => { if (!s.devices.doorR) s.input('door_r'); }, each: (s) => { if (at < 0 && r.patientUntil > 0) at = r.patientUntil - s.t; } });
+      return at;
+    };
+    const firstPull = (memory) => {
+      const s = night(3, 6400, { ai: ONLY({ cat: 8 }), memory, mods: { infinitePower: true, noRusted: true } });
+      let at = -1;
+      run(s, { ticks: 2000, onFx: (e, s) => { if (at < 0 && e.fx === 'cue' && e.kind === 'pull') at = s.t; } });
+      return at;
+    };
+    const w = [wait(watcher), wait(null)];
+    const p = [firstPull(shy), firstPull(null)];
+    check(beliefsFor(watcher, 4).monitor === 'watcher' && beliefsFor(shy, 3).monitor === 'shy' && memoryHints(shy, 3).includes('shy') && w[0] > 0 && w[0] < w[1] && p[0] > 0 && p[0] < p[1],
+      'the monitor is remembered too: Rustgrin waits less for a guard who lived on the cameras, the Cat is at the tape deck sooner for one who ignored them', `turned away, he waits ${w[0]} ticks instead of ${w[1]}; her first pull at tick ${p[0]} instead of ${p[1]}`);
+  }
+
   // caps: whatever is in the save, it comes out clamped and small
   const junk = cleanMemory({ v: 1, nights: 99, door: { L: 7, R: -3 }, vent: 'x', light: { L: 1e9, R: NaN }, cams: 'lots', death: { who: 'mirehop', way: 'roof', night: 1e6 }, deaths: 50, extra: 'x'.repeat(5000) });
   let grown = null;
@@ -622,6 +646,20 @@ const fxHash = (h, e) => {
   fresh.power = 80000;
   check(bd.encore?.who === 'mirehop' && !bd.soft && bd.ease === 1 && first >= N * 0.75 && told >= first * 0.95, 'after a death the killer comes back first, by the same way, and its grudge is heard well before it arrives', `Mirehop first at the left door in ${first}/${N} nights, announced ${told} times`);
   check(eased < fresh.director.judge() && eased <= 0 && beliefsFor(remember(died, sum), 3)?.encore === null && remember(died, sum).deaths === 0, 'a death never raises the pressure: the director eases off a step per death in a row, and a night survived wipes the grudge', `cruising guard: +${fresh.director.judge()} fresh, ${eased} after two deaths`);
+
+  // two of them inside at once: the catch is remembered by the killer's own way in
+  {
+    const s = night(3, 4400);
+    s.breach('L', 'mirehop');
+    s.breach('R', 'noxbriar', false, 'decoy');
+    s.kill('mirehop');
+    const one = s.summary();
+    const p = night(3, 4401);
+    p.power = 1;
+    run(p, { ticks: 3000 });
+    check(one.died === 'mirehop' && one.way === 'L' && s.killNote === null && p.result === 'lose' && p.summary().way === 'power' && beliefsFor(remember(null, p.summary()), 3).encore === null && memoryHints(remember(null, p.summary()), 3)[0] === 'power',
+      'the catch is remembered by the killer\'s own way in (others may be inside too); a blackout is remembered as one, with no grudge', `${one.died} by ${one.way}; ${p.summary().died} by ${p.summary().way}`);
+  }
 
   // losing does not snowball: the medium bot's retries (with the memory of its deaths) against the same nights blank
   let withM = 0;

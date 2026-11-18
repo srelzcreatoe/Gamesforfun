@@ -38,6 +38,7 @@ export class Cat extends Animatronic {
     /** at the tape deck: { until, seen, nextTell } */
     this.pulling = null;
     this.pullReady = this.cfg.pull.cooldown;
+    this.shy = false; // the guard is remembered for hardly using the cameras (memory.js)
     this.seenAt = 0; // the last tick the guard had her ring on a working camera
   }
 
@@ -89,12 +90,19 @@ export class Cat extends Animatronic {
     return s.rng.weighted([['L', w.L], ['R', w.R]]);
   }
 
+  adopt(b) {
+    super.adopt(b);
+    // a guard she remembers hardly using the cameras: she expects to be ignored, and is at the tape deck sooner
+    this.shy = !!b && b.monitor === 'shy' && b.conf >= 0.5;
+    if (this.s.t <= 1) this.pullReady = Math.round(this.cfg.pull.cooldown * (this.shy ? 1 - CONFIG.memory.ignoredCat : 1));
+  }
+
   /** Nobody has looked at the ring for a long while: behind the curtain, to the tape deck. */
   maybePull() {
     const s = this.s;
     const c = this.cfg.pull;
     if (!s.tricks || this.stage !== 0 || this.ai < c.fromAi || s.t < this.pullReady || s.director.gentle()) return;
-    if (s.t - this.seenAt < c.ignored(this.ai)) return;
+    if (s.t - this.seenAt < c.ignored(this.ai) * (this.shy ? 1 - CONFIG.memory.ignoredCat * s.trust() : 1)) return;
     this.pulling = { until: s.t + c.lasts, seen: 0, nextTell: s.t + c.tell };
     s.emit({ fx: 'hide', who: this.id });
     s.staticOn(['8'], 20);

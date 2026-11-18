@@ -15,11 +15,15 @@
 //             only what they see tonight counts.
 //   caps      every number is clamped on the way in and on the way out (`cleanMemory`), and
 //             how sure they can get is capped too.
-//   fairness  beliefs move WHERE and WHEN they try first (the hall you checked least, the vent
-//             you sealed least), never how hard: nobody gets a higher AI level out of it. A
-//             death never makes the next night harder: the director eases off a step for
-//             every death in a row, and whoever caught the guard comes back first and by the
-//             very same way, with its usual tells (the 'grudge' cue): predictable on purpose.
+//   fairness  beliefs move WHERE and WHEN they try first: the stalker whose hall you checked
+//             least opens the night (a little keener for that one trip) while the other holds
+//             back; the Purple Rat and the Cat lean towards the vent or hall you neglected;
+//             against a guard who lived on the cameras Rustgrin waits less, against one who
+//             hardly used them the Cat is at the tape deck sooner. The pressure moves, it does
+//             not grow. A death never makes the next night harder: the director eases off a
+//             step for every death in a row, and whoever caught the guard comes back first and
+//             by the very same way, with its usual tells (the 'grudge' cue): predictable on
+//             purpose.
 //   blank     night 1 always starts blank (so does a fresh save), and only the week's nights
 //             (1-5) are remembered: the Final Act, the Custom Night, the challenges and the
 //             Encore neither read nor write it.
