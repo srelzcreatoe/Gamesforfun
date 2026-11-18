@@ -595,6 +595,8 @@ export class Guests {
       const side = this.game.rng.chance(0.5) ? 1 : -1;
       const wait = (p.kids.length ? 14 : 0) + i * 6;
       this.walkWay(p.a, way, two ? 0 : side * 0.5, now, { delay: wait, then: 'gone' });
+      // (a third child on one grown-up, should a party ever have one, runs out alongside on its own)
+      p.kids.slice(2).forEach((k, j) => this.goTo(k, null, now, { to: out, lane: 0.3, delay: 10 + j * 6, then: 'gone' }));
       p.kids.slice(0, 2).forEach((k, j) => {
         // the child walks to the adult, then beside it: on the left of an adult who walks on the right, and so on
         const lane = two ? (j ? 0.95 : -0.95) : -side * 0.5;
@@ -866,9 +868,21 @@ export class Guests {
       return;
     }
     const pts = laneOf(way, lane);
-    // from where the guest is right now (off its seat's step-off spot, or mid-lane)
-    const sx = g.seated && g.place ? g.place.ax : g.x;
-    const sz = g.seated && g.place ? g.place.az : g.z;
+    // caught half-way onto a chair: it is on it now, and gets up like anyone else
+    if (g.slide?.sit) {
+      const sl = g.slide;
+      g.x = sl.x1;
+      g.y = sl.y1;
+      g.z = sl.z1;
+      g.yaw = sl.yaw1;
+      g.slide = null;
+      g.seated = true;
+      this.place(g);
+    }
+    // from where the guest is right now: its seat's step-off spot (also when it is already getting up), or mid-lane
+    const rising = g.slide && !g.slide.sit ? g.slide : null;
+    const sx = rising ? rising.x1 : g.seated && g.place ? g.place.ax : g.x;
+    const sz = rising ? rising.z1 : g.seated && g.place ? g.place.az : g.z;
     let lead = 0;
     if (Math.hypot(pts[0][0] - sx, pts[0][1] - sz) > 0.05) {
       pts.unshift([sx, sz]);
@@ -880,6 +894,7 @@ export class Guests {
     g.follow = null;
     g.waitAt = undefined;
     if (g.seated) this.standUp(g, now);
+    else if (rising) g.walk.start = Math.max(g.walk.start, now + Math.max(0, rising.n - rising.t) + 1);
     if (o.d0) {
       // already this far along (a group appears in formation, not in a heap)
       const w = g.walk;

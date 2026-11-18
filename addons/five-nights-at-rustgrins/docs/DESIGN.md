@@ -139,6 +139,11 @@ front, children in the first row, never in the middle aisle the band looks down)
 and they clap and cheer, loudest at the bow. They glance at a player who comes
 close, and some wave; a walking guest waits a moment for a player in its way.
 
+Between shows one of the band (Rustgrin, Mirehop or Noxbriar) steps off the
+stage, walks down the middle aisle among the tables, turns to the nearest child
+and waves, and is back on its mark well before the next show is announced. The
+guests near it turn to watch, a child waves back, the ones walking let it pass.
+
 At closing time (the Time Card) the murmur dies with the music, everyone stops
 and looks at the stage, then every group gets up and leaves through the front
 doors: each grown-up takes a child or two by the hand, and they run once the
