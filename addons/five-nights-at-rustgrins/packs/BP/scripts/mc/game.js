@@ -1163,7 +1163,8 @@ export class Game {
       const s = OFFICE.spawn;
       player.teleport(W(s.x, s.y, s.z), { rotation: { x: 0, y: s.yaw } });
       player.onScreenDisplay.setHudVisibility(HudVisibility.Hide, NIGHT_HUD);
-      player.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0, holdTime: 1.0, fadeOutTime: 1.5 } });
+      // three seconds of black: the doors lock, the breakers go, the clock strikes (Dread.opening)
+      player.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0, holdTime: 3.2, fadeOutTime: 2.0 } });
       if (n === ENCORE_NIGHT) player.onScreenDisplay.setTitle(ENCORE.card[0], { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 20, subtitle: ENCORE.card[1] });
       else player.onScreenDisplay.setTitle('§f12 AM', { fadeInDuration: 10, stayDuration: 60, fadeOutDuration: 20, subtitle: `${n === 6 ? '§4' : '§7'}${this.nightLabel}` });
       this.giveItems(player, 'night');
@@ -1177,7 +1178,7 @@ export class Game {
     this.audio.loop('fan', 'fnar.amb.fan', 'desk', null, 0.5);
     this.audio.loop('building', 'fnar.amb.building', null, player, 0.5);
     if (this.storm) this.audio.loop('rain', 'fnar.storm.rain', null, player, 0.7);
-    this.dread.start(player);
+    this.dread.start(player, n);
     log.info(`start ${this.nightLabel}${opts.ai ? ` ${JSON.stringify(opts.ai)}` : ''}${Object.keys(mods).length ? ` mods ${Object.keys(mods).join(',')}` : ''}`);
   }
 
@@ -1572,6 +1573,7 @@ export class Game {
       this.showCamMap(g, e.cam);
       this.startCamForm(g);
       this.stare = Object.create(null);
+      this.dread.onCamsOpen(e.cam, g);
       try {
         g.selectedSlotIndex = NEUTRAL_SLOT;
       } catch {

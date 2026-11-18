@@ -16,7 +16,7 @@ import { system } from '@minecraft/server';
 import { CAMERA_BY_ID } from '../data/cameras.js';
 import { NODES } from '../data/nodes.js';
 import { leanSpot } from './lean.js';
-import { runCmd } from './world_io.js';
+import { runCmd, W } from './world_io.js';
 import { log } from './log.js';
 
 /** Office nodes: an animatronic here is at the left door, the right door or the right window. */
@@ -57,6 +57,16 @@ const AMBIENT = Object.freeze([
 
 const HOLLOW_PROP = 'fnar:hollow';
 
+/** What flashes up, blood red, for a blink under "12 AM" as a night starts (none on the first night). */
+const OPENING_LINES = Object.freeze({
+  2: '§4YOU CAME BACK',
+  3: '§4HE KNOWS YOUR NAME',
+  4: '§4THE SHOW MUST GO ON',
+  5: '§4IT IS ALMOST TIME',
+  6: '§4CURTAIN UP',
+  7: '§4AGAIN',
+});
+
 /** Caught in the hall light with the door open, they lean in this much closer (blocks) while the guard
  *  watches: the face stops 0.2 outside the shutter, so a door shut in its face never cuts through it. */
 const CREEP_MAX = 0.35;
@@ -92,6 +102,7 @@ export class Dread {
     this.revealed = new Set(); // sides whose hall light already caught a hollow stare tonight
     /** who stands at each office opening, and what it has done there so far */
     this.door = { L: null, R: null };
+    this.firstLook = false; // the first time the monitor goes up tonight
   }
 
   get rng() {
@@ -103,16 +114,97 @@ export class Dread {
   }
 
   // ---------------------------------------------------------------- night start / end
-  /** The night shift begins: the clock, the bell, the office lamp catching. */
-  start(g) {
+  /**
+   * The night shift begins. In the dark: the front doors lock, the breakers go room by room, a clock, a bell.
+   * Then the office lamp struggles on, the hall lights flash by themselves, something whispers.
+   * @param {import('@minecraft/server').Player} g
+   * @param {number} night
+   */
+  start(g, night = 1) {
     this.reset();
     const now = system.currentTick;
-    this.nextAmbient = now + 500 + this.rng.int(0, 500);
-    this.game.audio.play('fnar.night.midnight', null, g, { vol: 0.9 });
+    this.nextAmbient = now + 600 + this.rng.int(0, 500);
     this.game.audio.loop('dread_drone', 'fnar.night.drone', null, g, 0.35);
-    // the office lamp catches, fails, catches
-    this.lampStutter([6, 10, 15, 19]);
     this.level = 0;
+    this.opening(g, night);
+  }
+
+  /** The first ten seconds of a shift (the view is black for the first three: see Game.startNight). */
+  opening(g, night) {
+    const game = this.game;
+    const s = game.session;
+    const a = game.audio;
+    const act = game.act;
+    const live = () => game.state === 'NIGHT' && game.session === s && !s.powerOut && g.isValid;
+    const at = (t, fn) =>
+      system.runTimeout(() => {
+        if (!live()) return;
+        try {
+          fn();
+        } catch (e) {
+          log.warn(`night opening: ${e?.message ?? e}`);
+        }
+      }, t);
+    // in the dark: the front doors lock behind you, something tries them, the breakers go room by room
+    a.play('fnar.door.close', null, g, { vol: 0.8, pitch: 0.6 });
+    at(10, () => a.play('fnar.night.door_rattle', null, g, { vol: 0.5, pitch: 0.8 }));
+    [18, 26, 34].forEach((t, i) => at(t, () => a.play('fnar.light.off', null, g, { vol: 0.7, pitch: 0.9 - i * 0.12 })));
+    // the clock, one far bell, the heartbeat
+    at(44, () => a.play('fnar.night.midnight', null, g, { vol: 0.9 }));
+    // under "12 AM", for a blink, something else (the camera map uses the title too: never over it)
+    const line = OPENING_LINES[night];
+    if (line) {
+      const title = (text, sub, stay) => !game.cams.active && g.onScreenDisplay.setTitle(text, { fadeInDuration: 0, stayDuration: stay, fadeOutDuration: stay > 4 ? 20 : 0, subtitle: sub });
+      at(57, () => title(line, ' ', 3));
+      at(60, () => title('§f12 AM', `§7${game.nightLabel ?? ''}`, 30));
+      at(57, () => a.play('fnar.cam.glitch', null, g, { vol: 0.5, pitch: 0.7 }));
+    }
+    // the office lamp is dead when the view comes back, then catches, fails, catches
+    this.lampStutter([0, 78, 82, 88, 91, 98]);
+    // from the fourth night: for the blink the lamp is on, there is someone slumped in the corner of the office
+    if (night >= 4 && night !== 8 && !s.mods?.noRusted) {
+      at(88, () => game.renderRusted(true));
+      at(92, () => game.renderRusted(false));
+    }
+    // the hall lights come on by themselves, one after the other, on nothing
+    for (const side of ['L', 'R']) {
+      const t = side === 'L' ? 126 : 152;
+      at(t, () => {
+        if (side === 'L' ? s.devices.lightL : s.devices.lightR) return;
+        act.hallLight(side, true);
+        a.play('fnar.light.on', side === 'L' ? 'door_l' : 'door_r', g, { vol: 0.7, pitch: 0.8 });
+        if (side === 'L') this.cap('the hall lights flicker on by themselves');
+      });
+      at(t + 9, () => act.hallLight(side, side === 'L' ? s.devices.lightL : s.devices.lightR));
+    }
+    // and from the dark, far off
+    at(180, () => a.play('fnar.hall.whisper', PLACES.dining, g, { vol: 1.0, pitch: 0.7 }));
+    if (night >= 2) at(230, () => a.play('fnar.night.musicbox_far', PLACES.stage, g, { vol: 0.8, pitch: 0.9 }));
+  }
+
+  /**
+   * The monitor goes up. The first time each night, everyone on that camera is already looking straight
+   * into the lens, eyes empty.
+   */
+  onCamsOpen(camId, g) {
+    if (this.firstLook) return;
+    this.firstLook = true;
+    const game = this.game;
+    const s = game.session;
+    const cam = CAMERA_BY_ID[camId];
+    if (!cam || cam.audioOnly) return;
+    let seen = 0;
+    for (const c of Object.values(s.chars)) {
+      if (!c.node || c.walk || !cam.sees.includes(c.node)) continue;
+      if (!game.puppets.lookAt(c.id, W(cam.loc[0], cam.loc[1], cam.loc[2]))) continue;
+      this.setHollow(c.id, true, 50 + this.rng.int(0, 30));
+      game.stare[c.id] = 1e6; // already staring: no second head turn
+      seen++;
+    }
+    if (!seen) return;
+    game.audio.play('fnar.night.twitch', null, g, { vol: 0.8 });
+    game.audio.play('fnar.hall.sting', null, g, { vol: 0.55, pitch: 0.8 });
+    this.cap('they were already looking at the camera');
   }
 
   /** The office lamp goes off and on at these tick offsets (off, on, off, on...), unless the night moved on. */

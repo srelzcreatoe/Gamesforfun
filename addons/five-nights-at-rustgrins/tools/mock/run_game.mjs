@@ -127,6 +127,10 @@ check(P.effects.has('night_vision'), 'the camera feed has night vision');
   check(lit.length === 3, `CAM 1A lights the band on the stage (${lit.length}/3 lit)`);
 }
 check(cams().cam === '1A', `the monitor opens on CAM 1A (got ${cams().cam}; the hotbar reset must not count as a scroll)`);
+{
+  const band = ['rustgrin', 'mirehop', 'noxbriar'].map((id) => [...mock.entities.values()].find((e) => e.typeId === `fnar:${id}`));
+  check(band.every((e) => e?.props['fnar:hollow'] === true && e.props['fnar:look_pitch'] < 0), 'the first look of the night: the band is already staring up into the lens, eyes empty');
+}
 await steps(40);
 check(cams().open, 'a busy player (UserBusy) does not lower the monitor');
 {
@@ -309,6 +313,24 @@ check(P.music === 'fnar.music.bgm' && game().save.settings.bgm === true, 'and ba
     const dr = game().dread;
     const now = () => system.currentTick;
     check(mock.sounds.includes('fnar.night.midnight') && game().audio.loops.has('dread_drone'), 'the night shift starts with the midnight sting and the drone under it');
+    // the opening of this night (night 2, started 5 ticks ago): black, the doors lock, the lamp is dead; then
+    // the breakers, the clock, a red line under 12 AM, the lamp catching, the hall lights by themselves
+    {
+      const lampLit = () => blockAt(OFFICE.lamp.x, OFFICE.lamp.y, OFFICE.lamp.z).permutation.getState('fnar:lit');
+      const hallLamp = (side) => { const h = OFFICE.hallLights[side].lamp; return blockAt(h.x, h.y, h.z).permutation.getState('fnar:lit'); };
+      check(lampLit() === false, 'the shift opens in the dark: the office lamp is dead');
+      const n0 = mock.sounds.length - 8;
+      const t0 = mock.titles.length;
+      await steps(60);
+      const heard = mock.sounds.slice(Math.max(0, n0));
+      check(heard.includes('fnar.light.off') && heard.includes('fnar.night.midnight'), 'in the dark: the breakers go, then the clock and the bell');
+      check(mock.titles.slice(t0).some(([t]) => /YOU CAME BACK/.test(t)), 'night 2: for a blink, YOU CAME BACK under 12 AM');
+      await steps(45);
+      check(lampLit() === true, 'then the office lamp catches');
+      let selfLit = false;
+      await steps(40, () => { selfLit ||= hallLamp('L') === true; });
+      check(selfLit && hallLamp('L') === false && game().session.devices.lightL === false, 'the left hall light comes on by itself for a moment, on nothing');
+    }
     const d = { ...game().session.snapshot().devices, doorL: true, lightL: false };
     const fake = { id: 'mirehop', node: 'DOOR_L' };
     dr.tell(fake, d, P, now()); // the first tell waits a few seconds after the arrival
