@@ -1076,21 +1076,22 @@ export class Game {
         p.onScreenDisplay.setActionBar(`§5[PA] §dThe Ringmaster§7: §f${fill(line, { name: p.name })}`);
         await wait(70);
       }
-      // the lights go out, room by room: the Entrance Hall last, once the last guest is out of the front doors
-      // (the last child stops in the doorway and looks back)
+      // the lights go out, room by room: the Entrance Hall last, when the last guest is at the front doors. The
+      // last child stops there and looks back at the stage: that is when its lights go, and the child is a small
+      // shape against the daylight. The night does not start before it has gone too.
       const groups = [...new Set(this.act.meta.lamps.map((l) => l.group))].filter((g) => g !== 'office' && g !== 'staff');
-      const lastOut = async () => {
-        for (let i = 0; i < 64 && alive() && this.guests.inside() > 0; i++) await wait(5);
+      const lastOut = async (untilLookBack) => {
+        for (let i = 0; i < 64 && alive() && this.guests.inside() > 0 && !(untilLookBack && this.guests.lookingBack()); i++) await wait(5);
       };
       this.guests.hurry(); // ...and whoever is still inside runs
       for (const g of [...groups.filter((x) => x !== 'foyer'), ...groups.filter((x) => x === 'foyer')]) {
         if (!alive()) return;
-        if (g === 'foyer') await lastOut();
-        this.act.lampGroup(g, false);
+        if (g === 'foyer') await lastOut(true);
+        this.act.roomDark(g);
         this.audio.play('fnar.light.off', null, p, { vol: 0.5, pitch: 0.8 });
         await wait(9);
       }
-      await lastOut();
+      await lastOut(false);
       if (!alive()) return;
       this.act.spots(null, false);
       this.act.dayLights(false);

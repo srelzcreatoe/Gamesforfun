@@ -200,6 +200,12 @@ export class Guests {
     return this.list.reduce((n, g) => n + (g.x < DOOR.x ? 1 : 0), 0);
   }
 
+  /** Closing time: is the last child standing in the doorway right now, looking back? */
+  lookingBack() {
+    const g = this.lastChild;
+    return !!g && !g.gone && !!g.lookBack && system.currentTick < g.blockUntil;
+  }
+
   // ================================================================ the show (called by the game)
   /** The show is announced: whoever is wandering heads for the Dining Hall. */
   showSoon() {

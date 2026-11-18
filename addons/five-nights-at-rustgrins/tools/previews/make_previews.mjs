@@ -16,6 +16,8 @@ import { buildVoxels } from '../map/export_voxels.mjs';
 import { renderWorld } from '../render/render_world.mjs';
 import { CAMERA_BY_ID } from '../../packs/BP/scripts/data/cameras.js';
 import { NODES } from '../../packs/BP/scripts/data/nodes.js';
+import { scanPlan, STAGE_FOCUS } from '../../packs/BP/scripts/data/guests.js';
+import { generatePlan } from '../../packs/BP/scripts/data/build_plan.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const CACHE = path.join(ROOT, 'tools/.cache/previews');
@@ -40,6 +42,10 @@ const VARIANTS = {
   ns_late: { mode: 'night', nightSet: { night: 4, heads: 'lens', dying: true } },
   ns_hall_l: { mode: 'night', hall: ['L'], nightSet: { night: 4, heads: 'lens', dying: true } },
   day_clean: { mode: 'day', cleanWalls: true },
+  // the pizzeria by day with guests (mc/guests.js): the front doors open to the floor; and closing time,
+  // every room dark, the stage lights still on, daylight in the doorway
+  day_open: { mode: 'day', cleanWalls: true, dayDoors: true },
+  closing: { mode: 'day', cleanWalls: true, dayDoors: true, closing: [] },
 };
 
 /** An animatronic standing on a route node (node yaw unless overridden). */
@@ -47,6 +53,64 @@ const at = (id, node, anim = 'idle', extra = {}) => {
   const n = NODES[node];
   if (!n) throw new Error(`unknown node ${node}`);
   return { id: `fnar:${id}`, pos: [n.x, n.y, n.z], yaw: n.yaw, anim, t: 0.4, eyes: false, ...extra };
+};
+
+// ---- the daytime guests (fnar:guest), placed the way mc/guests.js places them
+const GUEST_INFO = JSON.parse(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '../entities/guest_skins.json'), 'utf8'));
+const GUEST_SEATS = scanPlan(generatePlan()).seats;
+const GUEST_SIZE = { adult: 98, teen: 90, child: 62 };
+const angleDiff = (a, b) => ((((b - a) % 360) + 540) % 360) - 180;
+const yawTo = (dx, dz) => (Math.atan2(-dx, dz) * 180) / Math.PI;
+/**
+ * A guest: its skin (index), where it stands (feet), which way it faces, what it does.
+ * o: size (percent), t (seconds into the animation), look [yaw, pitch] (the game's fnar:look_yaw / _pitch),
+ *    hold (fnar:hold: 1 left hand out, 2 right, 3 both)
+ */
+const guest = (skin, pos, yaw, anim = 'idle', o = {}) => {
+  const s = (o.size ?? GUEST_SIZE[GUEST_INFO.skins[skin].kind]) / 100;
+  const t = (o.t ?? 0.4) + skin * 0.73;
+  return {
+    id: 'fnar:guest', pos, yaw, anim, t: 0, eyes: false, textureKey: `s${skin}`, layers: ['size', 'look'], hide: anim === 'eat' ? [] : ['slice'],
+    vars: {
+      fnar_size: s, fnar_head: 1 + Math.min(Math.max(0.92 - s, 0), 0.45) * 0.8, fnar_t: t, fnar_w: (t * 700) / s,
+      fnar_hl: o.hold === 1 || o.hold === 3 ? 1 : 0, fnar_hr: o.hold >= 2 ? 1 : 0, fnar_ha: s < 0.8 ? 98 : 34,
+      fnar_ly: o.look?.[0] ?? 0, fnar_lp: o.look?.[1] ?? 0,
+    },
+    _s: s,
+  };
+};
+/** The head turn that looks from a guest at a point (as Guests.faceTo does). */
+const lookAtFrom = (g, target) => {
+  const dx = target.x - g.pos[0], dz = target.z - g.pos[2];
+  const eye = g.pos[1] + 1.64 * g._s;
+  return [Math.max(-85, Math.min(85, angleDiff(g.yaw, yawTo(dx, dz)))), (-Math.atan2(target.y - eye, Math.hypot(dx, dz)) * 180) / Math.PI];
+};
+/** A guest standing somewhere, turned to look at a point. */
+const watcher = (skin, x, z, anim, target = STAGE_FOCUS, o = {}) => {
+  const g = guest(skin, [x, 0, z], yawTo(target.x - x, target.z - z), anim, o);
+  const [ly, lp] = lookAtFrom(g, target);
+  g.vars.fnar_ly = ly;
+  g.vars.fnar_lp = lp;
+  return g;
+};
+/**
+ * A guest on a real seat of the build plan (the chair's block cell). With `target` it watches that point: the
+ * body twists on the chair by up to 48 degrees, the head turns the rest.
+ */
+const seated = (skin, bx, bz, anim = 'sit', target = null, o = {}) => {
+  const seat = GUEST_SEATS.find((q) => q.bx === bx && q.bz === bz);
+  if (!seat) throw new Error(`no seat at ${bx},${bz}`);
+  const g = guest(skin, [seat.x, 0, seat.z], seat.yaw, anim, o);
+  g.pos[1] = seat.top - 0.6 * g._s;
+  if (target) {
+    const rel = angleDiff(seat.yaw, yawTo(target.x - seat.x, target.z - seat.z));
+    const twist = Math.max(-48, Math.min(48, rel * 0.5));
+    g.yaw = seat.yaw + twist;
+    const [ly, lp] = lookAtFrom(g, target);
+    g.vars.fnar_ly = ly;
+    g.vars.fnar_lp = lp;
+  }
+  return g;
 };
 
 /** A security-camera shot: the camera's own lens position and aim. */
@@ -462,6 +526,62 @@ export const SCENES = [
   {
     name: '49_parts_shelves', voxels: 'day', caption: 'The spare heads stand square on full-depth shelves',
     scene: { camera: { pos: [68.0, 1.8, 67.6], target: [68.0, 1.0, 64.0], fov: 74 }, exposure: 1.3, extra_lights: [{ type: 'ambient', color: '#ffffff', intensity: 1.6 }] },
+  },
+  // ---- the pizzeria by day: the guests (mc/guests.js)
+  {
+    name: '48_day_show', voxels: 'day_open', caption: 'Free Roam, showtime: a full house watches the band - families at the tables, children cheering at the front',
+    scene: {
+      camera: { pos: [48.3, 2.05, 22.6], target: [39.2, 2.5, 6.5], fov: 70 }, exposure: 1.25,
+      entities: [
+        at('rustgrin', 'ST_R', 'perform_1', { t: 0.8 }), at('mirehop', 'ST_M', 'perform_1', { t: 0.4 }), at('noxbriar', 'ST_N', 'perform_2', { t: 1.1 }),
+        // at the long tables
+        seated(4, 51, 26, 'sit_clap', STAGE_FOCUS, { t: 0.2 }), seated(18, 51, 28, 'sit_cheer', STAGE_FOCUS, { t: 0.5 }), seated(5, 49, 26, 'sit', STAGE_FOCUS), seated(19, 49, 28, 'sit_clap', STAGE_FOCUS, { t: 0.7 }),
+        seated(0, 43, 20, 'sit', STAGE_FOCUS), seated(16, 43, 18, 'sit_cheer', STAGE_FOCUS, { t: 0.1 }), seated(1, 45, 22, 'sit_clap', STAGE_FOCUS, { t: 0.4 }),
+        seated(2, 49, 20, 'sit', STAGE_FOCUS), seated(3, 49, 18, 'sit_clap', STAGE_FOCUS, { t: 0.9 }),
+        seated(10, 34, 22, 'sit', STAGE_FOCUS), seated(7, 34, 24, 'sit_clap', STAGE_FOCUS, { t: 0.3 }), seated(6, 34, 20, 'sit', STAGE_FOCUS),
+        seated(13, 28, 22, 'eat', null), seated(22, 28, 24, 'sit_cheer', STAGE_FOCUS, { t: 0.6 }),
+        // at the little tables on the right
+        seated(11, 56, 24, 'sit_clap', STAGE_FOCUS, { t: 0.5 }), seated(21, 55, 23, 'sit_cheer', STAGE_FOCUS, { t: 0.3 }), seated(12, 57, 23, 'sit', STAGE_FOCUS),
+        seated(9, 55, 28, 'sit', STAGE_FOCUS), seated(23, 57, 28, 'sit_clap', STAGE_FOCUS, { t: 0.2 }),
+        // standing in front of the stage, either side of the middle aisle: children in the front row
+        watcher(17, 43.6, 13.95, 'cheer', STAGE_FOCUS, { t: 0.15 }), watcher(20, 44.7, 13.95, 'point'), watcher(14, 43.6, 15.1, 'clap', STAGE_FOCUS, { t: 0.4 }), watcher(8, 45.8, 15.1, 'idle'),
+        watcher(15, 33.9, 15.1, 'clap', STAGE_FOCUS, { t: 0.1 }), watcher(1, 31.7, 15.1, 'idle', STAGE_FOCUS, { size: 96 }),
+      ],
+      extra_lights: [
+        { type: 'ambient', color: '#fff4e0', intensity: 0.5 },
+        spot([38.5, 6.4, 13.5], [38.5, 1.6, 6.0], { intensity: 240 }), spot([32.5, 6.4, 13.5], [32.5, 1.6, 7.0], { color: '#ffc2d6', intensity: 180 }),
+        spot([44.5, 6.4, 13.5], [44.5, 1.6, 7.0], { color: '#c6d6ff', intensity: 180 }),
+        point([50, 3.8, 24], '#ffe7c0', 22, 16), point([43, 3.8, 18], '#ffe7c0', 18, 14), point([33, 3.8, 20], '#ffe7c0', 14, 14), point([54, 3.2, 16], '#ffe7c0', 8, 9),
+      ],
+    },
+  },
+  {
+    name: '49_family_at_the_doors', voxels: 'day_open', caption: 'Free Roam: a family comes in through the front doors; by day the pizzeria is full of people',
+    scene: {
+      time: 'day', camera: { pos: [91.4, 1.7, 32.9], target: [99.6, 1.15, 36.1], fov: 60 }, exposure: 1.0,
+      entities: [
+        // dad and the two children on the checker walk, mum in the doorway behind them
+        guest(0, [97.2, 0, 36.2], 96, 'walk', { t: 0.2, hold: 1, look: [-12, 4] }), guest(16, [97.05, 0, 37.25], 96, 'walk', { t: 0.36, hold: 2, look: [20, -14] }),
+        guest(21, [96.3, 0, 35.1], 78, 'cheer', { t: 0.2, look: [0, -10] }),
+        guest(1, [99.9, 0, 36.0], 92, 'walk', { t: 0.62, look: [10, 2] }),
+        // more on their way across the lot; someone getting a hand stamp at the podium
+        guest(10, [104.2, 0, 36.3], 96, 'walk', { t: 0.3 }), guest(7, [103.3, 0, 36.9], 92, 'walk', { t: 0.55, look: [-20, 0] }),
+        guest(11, [96.5, 0, 32.55], 180, 'talk', { t: 0.5 }), guest(19, [95.35, 0, 31.6], -90, 'idle', { look: [-20, -8] }),
+      ],
+      extra_lights: [{ type: 'ambient', color: '#fff4e0', intensity: 0.7 }, point([96.5, 3.4, 34.5], '#ffe7c0', 14, 12)],
+    },
+  },
+  {
+    name: '50_closing_last_child', voxels: 'closing', caption: 'Closing time: the lights are out, everyone has gone. In the doorway the last child stops, and looks back at the stage',
+    scene: {
+      time: 'day', camera: { pos: [90.6, 1.45, 34.5], target: [99.6, 1.0, 36.0], fov: 44 }, exposure: 0.85,
+      lighting: { skyIntensity: 0.75 },
+      entities: [
+        // the child in the doorway, turned to the stage far behind the camera; its mother just outside, looking round for it
+        watcher(17, 99.3, 36.0, 'idle', { x: STAGE_FOCUS.x, y: 1.0, z: STAGE_FOCUS.z }, { t: 0.3 }),
+        guest(13, [102.4, 0, 35.4], 22, 'idle', { t: 0.7, look: [56, 6] }),
+      ],
+    },
   },
   {
     name: '29_party_room', voxels: 'day', caption: 'The Party Room between the halls: a birthday table set for children who never came',
