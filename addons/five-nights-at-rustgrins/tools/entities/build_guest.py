@@ -19,7 +19,7 @@ Entity properties (scripts: packs/BP/scripts/mc/guests.js):
   fnar:size    int   percent of adult height (children are small: the root bone scales, the head a
                      little less, so a child's head is bigger for its body)
   fnar:hold    int   0 no, 1 left hand out, 2 right hand out, 3 both (walking hand in hand)
-  fnar:look_yaw / fnar:look_pitch  int  head turn in degrees, smoothed client side
+  fnar:look_yaw / fnar:look_pitch  int  head turn in degrees (yaw + = to its right, pitch - = up), smoothed client side
 
 Run:  python3 tools/entities/build_guest.py     (also writes tools/entities/guest_skins.json for the tools)
 """
@@ -849,8 +849,9 @@ def animations():
     A['sit_wave'] = merge(breathe(), SIT_LEGS, SIT_ARMS, WAVE_ARM)
     A['sit_cheer'] = merge(SIT_LEGS, CHEER_ARMS, {'body': {'rotation': [-4, f'math.sin({T} * 260) * 5', 0]}, 'head': {'rotation': [-6, 0, 0]}})
     out = {f'animation.fnar.{ID}.{k}': {'loop': True, 'bones': v} for k, v in A.items()}
-    # layers that always play: the head look (smoothed property values), and the size
-    out[f'animation.fnar.{ID}.look'] = {'loop': True, 'bones': {'head': {'rotation': ['-variable.fnar_lp', 'variable.fnar_ly', 0]}}}
+    # layers that always play: the head look (smoothed property values; the pitch is a Minecraft pitch, negative =
+    # up, like the animatronics' and the vanilla look-at-target animation), and the size
+    out[f'animation.fnar.{ID}.look'] = {'loop': True, 'bones': {'head': {'rotation': ['variable.fnar_lp', 'variable.fnar_ly', 0]}}}
     out[f'animation.fnar.{ID}.size'] = {'loop': True, 'bones': {
         'root': {'scale': ['variable.fnar_size', 'variable.fnar_size', 'variable.fnar_size']},
         'head': {'scale': ['variable.fnar_head', 'variable.fnar_head', 'variable.fnar_head']},

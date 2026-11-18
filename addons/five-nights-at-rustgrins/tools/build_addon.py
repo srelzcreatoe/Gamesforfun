@@ -55,6 +55,7 @@ def zip_packs():
 def main():
     py = sys.executable
     run('entities', [py, '-I', 'tools/entities/build_entities.py'])
+    run('head aim table', ['node', 'tools/entities/head_aim.mjs'])
     run('guests', [py, '-I', 'tools/entities/build_guest.py'])
     run('camera UI', [py, '-I', 'tools/ui/gen_ui.py'])
     run('pack files', [py, '-I', 'tools/pack/gen_pack_files.py'])

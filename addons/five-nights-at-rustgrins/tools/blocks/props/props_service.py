@@ -317,29 +317,31 @@ def parts_shelf(out):
         else:
             r.hline(0, 1, r.w, RED, 3)
 
+    # A full-depth unit (z -8..8): the spare heads standing on it are almost a block deep, and on the old
+    # half-depth shelf they hung over the front edge.
     for x in (-8, 7):
-        for z in (0, 7):
+        for z in (-8, 7):
             g.box('frame', (x, 0, z), (x + 1, 16, z + 1), {'sides': Face(post, 'post')})
     for y in (1, 8, 15):
-        g.box('frame', (-7, y, 0), (7, y + 1, 8), {'up': Face(board, 'bu'), 'down': Face(board, 'bd'), 'north': Face(board, 'bn')})
-    g.box('stuff', (-6, 2, 1), (0, 7, 7), {'north': cardbox(True), 'east': Face(cardbox(False), 'cb'), 'west': Face(cardbox(False), 'cb'), 'up': cardbox(False)})
-    g.box('stuff', (1, 2, 2), (6, 4, 7), {'sides': Face(coil, 'coil'), 'up': Face(coil, 'coilu')})
-    g.box('stuff', (2, 4, 3), (5, 5, 6), {'sides': Face(coil, 'coil2'), 'up': Face(coil, 'coil2u')})
-    g.box('stuff', (2, 9, 2), (7, 13, 7), {'north': cardbox(True), 'east': Face(cardbox(False), 'cb2'), 'west': Face(cardbox(False), 'cb2'),
-                                          'up': Face(cardbox(False), 'cb2u')}, rotation=(0, -22.5, 0), pivot=(4.5, 9, 4.5))
-    g.box('stuff', (-1.5, 9, 4), (0.5, 11, 6), {'sides': Face(can, 'can'), 'up': Face(can, 'canu')})
-    # spare endoskeleton hand: palm + four fingers hanging over the shelf edge + thumb
-    g.box('hand', (-6, 9, 1), (-2.5, 10, 4), {'sides': Face(endo, 'palm'), 'up': Face(endo, 'palmu')})
+        g.box('frame', (-7, y, -8), (7, y + 1, 8), {'up': Face(board, 'bu'), 'down': Face(board, 'bd'), 'north': Face(board, 'bn')})
+    g.box('stuff', (-6, 2, -6), (0, 7, 0), {'north': cardbox(True), 'east': Face(cardbox(False), 'cb'), 'west': Face(cardbox(False), 'cb'), 'up': cardbox(False)})
+    g.box('stuff', (1, 2, -6), (6, 4, -1), {'sides': Face(coil, 'coil'), 'up': Face(coil, 'coilu')})
+    g.box('stuff', (2, 4, -5), (5, 5, -2), {'sides': Face(coil, 'coil2'), 'up': Face(coil, 'coil2u')})
+    g.box('stuff', (1, 9, -6), (6, 13, -1), {'north': cardbox(True), 'east': Face(cardbox(False), 'cb2'), 'west': Face(cardbox(False), 'cb2'),
+                                           'up': Face(cardbox(False), 'cb2u')})
+    g.box('stuff', (-1.5, 9, -3), (0.5, 11, -1), {'sides': Face(can, 'can'), 'up': Face(can, 'canu')})
+    # spare endoskeleton hand: palm + four fingers reaching the shelf edge + thumb
+    g.box('hand', (-6, 9, -5), (-2.5, 10, -2), {'sides': Face(endo, 'palm'), 'up': Face(endo, 'palmu')})
     for k in range(4):
         x = -6 + k * 0.9
-        g.box('hand', (x, 9.25, -2 + (k % 2) * 0.5), (x + 0.6, 9.85, 1), {'sides': Face(finger, 'f'), 'up': Face(finger, 'fu'), 'north': Face(endo, 'ft')})
-    g.box('hand', (-2.5, 9.2, 1.5), (-0.5, 9.8, 2.1), {'sides': Face(finger, 'th'), 'up': Face(finger, 'thu')})
-    g.box('hand', (-5.5, 9, 4), (-3, 10, 6.5), {'sides': Face(endo, 'wrist'), 'up': Face(endo, 'wristu')})
-    g.box('wires', (3, 3, -0.25), (6, 8, -0.25), {'north': wires})
+        g.box('hand', (x, 9.25, -8), (x + 0.6, 9.85, -5), {'sides': Face(finger, 'f'), 'up': Face(finger, 'fu'), 'north': Face(endo, 'ft')})
+    g.box('hand', (-2.5, 9.2, -4.5), (-0.5, 9.8, -3.9), {'sides': Face(finger, 'th'), 'up': Face(finger, 'thu')})
+    g.box('hand', (-5.5, 9, -2), (-3, 10, 0.5), {'sides': Face(endo, 'wrist'), 'up': Face(endo, 'wristu')})
+    g.box('wires', (3, 3, -6.25), (6, 8, -6.25), {'north': wires})
     out.geo(g)
     out.tex('parts_shelf', g.paint())
     blk = block_json('parts_shelf', geometry='geometry.fnar.parts_shelf', materials=mi_set('parts_shelf'),
-                     collision=box(-8, 0, 0, 8, 16, 8), selection=box(-8, 0, -2, 8, 16, 8), map_color='#626970', destroy=2.0)
+                     collision=box(-8, 0, -8, 8, 16, 8), selection=box(-8, 0, -8, 8, 16, 8), map_color='#626970', destroy=2.0)
     out.block('parts_shelf', blk)
     f = {'focus': [0, 0.5, 0.2], 'dist': 2.5, 'dir': [0.45, 0.35, -1]}
     out.views('parts_shelf', [{'label': 'north', 'env': 'wall', **f}, {'label': 'facing east', 'env': 'wall', 'states': {'minecraft:cardinal_direction': 'east'},

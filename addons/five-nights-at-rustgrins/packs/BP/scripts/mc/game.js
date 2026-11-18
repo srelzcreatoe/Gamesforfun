@@ -1001,21 +1001,9 @@ export class Game {
     this.headToward(id, e, pos, best.getHeadLocation());
   }
 
-  headToward(id, e, pos, target) {
-    let bodyYaw = 0;
-    try {
-      bodyYaw = e.getRotation().y;
-    } catch {
-      return;
-    }
-    const dx = target.x - pos.x;
-    const dz = target.z - pos.z;
-    let rel = yawToward(dx, dz) - bodyYaw;
-    while (rel > 180) rel -= 360;
-    while (rel < -180) rel += 360;
-    const dy = target.y - (pos.y + (HEAD_Y[id] ?? 3));
-    const pitch = (-Math.atan2(dy, Math.hypot(dx, dz)) * 180) / Math.PI;
-    this.puppets.look(id, rel, pitch);
+  /** Turn a puppet's head at a point (world coordinates): its eyes, in its current pose, on the target. */
+  headToward(id, _e, _pos, target) {
+    this.puppets.lookAt(id, target);
   }
 
   /** Free Roam: walk up to an animatronic and look at it, and it waves and talks to you. */
@@ -1193,7 +1181,8 @@ export class Game {
       const s = OFFICE.spawn;
       player.teleport(W(s.x, s.y, s.z), { rotation: { x: 0, y: s.yaw } });
       player.onScreenDisplay.setHudVisibility(HudVisibility.Hide, NIGHT_HUD);
-      player.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0, holdTime: 1.0, fadeOutTime: 1.5 } });
+      // three seconds of black: the doors lock, the breakers go, the clock strikes (Dread.opening)
+      player.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0, holdTime: 3.2, fadeOutTime: 2.0 } });
       if (n === ENCORE_NIGHT) player.onScreenDisplay.setTitle(ENCORE.card[0], { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 20, subtitle: ENCORE.card[1] });
       else player.onScreenDisplay.setTitle('§f12 AM', { fadeInDuration: 10, stayDuration: 60, fadeOutDuration: 20, subtitle: `${n === 6 ? '§4' : '§7'}${this.nightLabel}` });
       this.giveItems(player, 'night');
@@ -1207,7 +1196,7 @@ export class Game {
     this.audio.loop('fan', 'fnar.amb.fan', 'desk', null, 0.5);
     this.audio.loop('building', 'fnar.amb.building', null, player, 0.5);
     if (this.storm) this.audio.loop('rain', 'fnar.storm.rain', null, player, 0.7);
-    this.dread.start(player);
+    this.dread.start(player, n);
     log.info(`start ${this.nightLabel}${opts.ai ? ` ${JSON.stringify(opts.ai)}` : ''}${Object.keys(mods).length ? ` mods ${Object.keys(mods).join(',')}` : ''}`);
   }
 
@@ -1603,6 +1592,7 @@ export class Game {
       this.showCamMap(g, e.cam);
       this.startCamForm(g);
       this.stare = Object.create(null);
+      this.dread.onCamsOpen(e.cam, g);
       try {
         g.selectedSlotIndex = NEUTRAL_SLOT;
       } catch {
@@ -1775,6 +1765,12 @@ export class Game {
     if (this.lastControl?.key === key && now - this.lastControl.tick <= 4) return; // the same click, reported twice
     this.lastControl = { key, tick: now };
     if (t === 'fnar:crt_monitor') {
+      // only the monitor on the desk: the bank of dead CRTs on the wall above it is scenery
+      const m = L(block.location);
+      if (m.x !== OFFICE.monitor.x || m.y !== OFFICE.monitor.y || m.z !== OFFICE.monitor.z) {
+        this.hud.setMessage('Dead. Only the monitor on the desk still works.', now, 50);
+        return;
+      }
       this.feedback(this.session.input('cams_toggle'));
       return;
     }
@@ -2010,14 +2006,8 @@ export class Game {
       const n = (this.stare[c.id] = (this.stare[c.id] ?? 0) + 1);
       if (n !== STARE_AFTER) continue;
       const node = NODES[at];
-      const dx = cam.loc[0] - node.x;
-      const dz = cam.loc[2] - node.z;
-      const dy = cam.loc[1] - (node.y + (HEAD_Y[c.id] ?? 2));
-      let rel = yawToward(dx, dz) - node.yaw;
-      while (rel > 180) rel -= 360;
-      while (rel < -180) rel += 360;
-      const pitch = (-Math.atan2(dy, Math.hypot(dx, dz)) * 180) / Math.PI;
-      this.puppets.look(c.id, rel, pitch);
+      // eyes on the lens, whatever pose they are in
+      this.puppets.lookAt(c.id, W(cam.loc[0], cam.loc[1], cam.loc[2]));
       this.audio.play('fnar.servo.head', { x: node.x, y: node.y + 2, z: node.z }, g, { vol: 0.6, relayCam: cam.id });
       this.dread.onStare(c.id, cam.id, { x: node.x, y: node.y + 2, z: node.z }, g);
     }

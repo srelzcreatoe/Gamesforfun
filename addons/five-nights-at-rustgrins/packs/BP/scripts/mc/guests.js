@@ -10,7 +10,8 @@
 //   fnar:skin   int   which of the skins
 //   fnar:size   int   percent of adult height (children are small)
 //   fnar:hold   int   0 no, 1 left hand out, 2 right hand out, 3 both (walking hand in hand)
-//   fnar:look_yaw / fnar:look_pitch  int  head turn (degrees, smoothed client side)
+//   fnar:look_yaw / fnar:look_pitch  int  head turn (degrees; yaw + = to its right, pitch - = up, a Minecraft
+//                     pitch like the animatronics'; smoothed client side)
 //
 // A day, in short: groups (a parent with a child or two, couples, teenagers) arrive every so often
 // while there is room, stop at the hand-stamp podium, then go round a few stops of their own: a table

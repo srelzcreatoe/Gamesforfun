@@ -1124,12 +1124,14 @@ function parts(p, _rng) {
   // Parts & Service (x 49-78, z 64-70, behind the Game Room's STAFF ONLY door): the workshop that kept the
   // band running, and six crates waiting for the auction.
   const top = ROOM_BY_ID.PARTS.h - 1;
-  // shelves of spares along the north wall (the door from the Game Room is at x 60-61)
-  const north = [[49, 'head_rustgrin_s'], [51, 'endo_skull_s'], [53, 'head_cat_s'], [55, null], [57, 'head_noxbriar_s'],
-    [63, 'head_mirehop_s'], [65, null], [67, 'head_rat_s'], [69, 'head_rustgrin_s'], [71, 'endo_skull_s'], [73, 'head_mirehop_s'], [75, null], [77, 'head_cat_s']];
+  // shelves of spares along the north wall, one every other block, every one with a head or a skull standing
+  // square on it (the door from the Game Room is at x 60-61)
+  const north = [[49, 'head_rustgrin_s'], [51, 'head_mirehop_s'], [53, 'head_noxbriar_s'], [55, 'head_cat_s'], [57, 'head_rat_s'],
+    [63, 'endo_skull_s'], [65, 'head_rustgrin_s'], [67, 'head_mirehop_s'], [69, 'head_noxbriar_s'], [71, 'head_cat_s'], [73, 'head_rat_s'],
+    [75, 'endo_skull_s'], [77, 'head_rustgrin_s']];
   for (const [x, head] of north) {
     p.set(x, 0, 64, 'shelf_s');
-    if (head) p.set(x, 1, 64, head);
+    p.set(x, 1, 64, head);
   }
   // six upright shipping crates against the south wall, LOT 1 to LOT 6: open, empty, chains hanging inside.
   // LOT 4 is nailed shut.
@@ -1146,12 +1148,13 @@ function parts(p, _rng) {
     p.picture('lot_tag', a, 2, 67, 'n', 1, 1, i);
     if (i === 3) for (const y of [0, 1, 2]) p.set(a + 1, y, 67, `boards_${y === 1 ? 'x' : 'across'}_n`);
   }
-  // endoskeletons on their stands down the middle, a head on the floor, two empty costumes
-  p.set(57, 0, 66, 'endo_stand_s');
-  p.set(70, 0, 66, 'endo_stand_w');
-  p.set(64, 0, 65, 'head_rustgrin_n');
+  // two endoskeletons on their stands, the same distance either side of the middle and both facing the door; a
+  // head on the floor between them; an empty costume slumped against each end wall, opposite each other
+  p.set(57, 0, 66, 'endo_stand_n');
+  p.set(70, 0, 66, 'endo_stand_n');
+  p.set(64, 0, 66, 'head_rustgrin_n');
   p.set(49, 0, 66, 'suit_rustgrin_e');
-  p.set(78, 0, 65, 'suit_mirehop_w');
+  p.set(78, 0, 66, 'suit_mirehop_w');
   // the crates' lids against the west wall, a tarp over something in the east corner
   p.fill(49, 0, 69, 49, 2, 70, 'spruce');
   p.set(50, 0, 70, 'barrel_n');
@@ -1159,14 +1162,14 @@ function parts(p, _rng) {
   p.fill(76, 0, 68, 78, 0, 70, 'black_wool');
   p.fill(77, 1, 69, 77, 1, 69, 'black_carpet');
   // light: two red emergency lights, one flickering troffer, the work lamps (off at night)
-  fixture(p, 49, 3, 65, 'emerg_true_e', 'PARTS');
-  fixture(p, 78, 3, 67, 'emerg_true_w', 'PARTS');
+  fixture(p, 49, 3, 66, 'emerg_true_e', 'PARTS');
+  fixture(p, 78, 3, 66, 'emerg_true_w', 'PARTS');
   fixture(p, 64, top + 1, 66, 'lamp_broken', 'PARTS');
-  for (const x of [56, 70]) {
+  for (const x of [57, 70]) { // a work lamp over each stand
     p.set(x, top, 66, 'hanging_off');
     p.meta.hanging.push({ x, y: top, z: 66, group: 'parts' });
   }
-  for (const [x, z] of [[61, 65], [73, 66]]) p.fill(x, top - 1, z, x, top, z, 'chain_y');
+  for (const x of [61, 66]) p.fill(x, top - 1, 66, x, top, 66, 'chain_y');
   // faint footprints from the crates to the door; drag marks; dust
   for (const [x, z] of [[65, 66], [63, 66], [61, 65]]) p.set(x, 0, z, 'decal_prints_faint_n');
   p.set(59, 0, 66, 'decal_drag_e');
