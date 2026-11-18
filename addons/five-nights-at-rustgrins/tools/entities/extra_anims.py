@@ -164,11 +164,14 @@ def peek_anim(cid=None, skel=None):
 
 
 def look_anim():
-    # additive head turn; the client smooths the property values into variables
+    # additive head turn; the client smooths the property values into variables. fnar:look_pitch is a
+    # Minecraft pitch (negative = up), and a positive x rotation of the head bone looks down, as in the
+    # vanilla look_at_target animation: so the pitch goes in as it is. (It used to be negated: watched on
+    # a camera above them, they turned to the lens and looked at the floor.)
     return {
         "loop": True,
         "bones": {
-            "head": {"rotation": ["-variable.fnar_lp", "variable.fnar_ly", 0]},
+            "head": {"rotation": ["variable.fnar_lp", "variable.fnar_ly", 0]},
         },
     }
 

@@ -129,6 +129,20 @@ check(P.effects.has('night_vision'), 'the camera feed has night vision');
 check(cams().cam === '1A', `the monitor opens on CAM 1A (got ${cams().cam}; the hotbar reset must not count as a scroll)`);
 await steps(40);
 check(cams().open, 'a busy player (UserBusy) does not lower the monitor');
+{
+  // watched on CAM 1A (up under the ceiling), the band turn their heads UP to the lens, eyes on it
+  const { HEAD_AIM } = await import(path.join(ROOT, 'packs/BP/scripts/data/head_aim.js'));
+  const { CAMERA_BY_ID } = await import(path.join(ROOT, 'packs/BP/scripts/data/cameras.js'));
+  const r = [...mock.entities.values()].find((e) => e.typeId === 'fnar:rustgrin');
+  const lp = r?.props['fnar:look_pitch'];
+  const [, p0, , up, fwd] = HEAD_AIM.rustgrin[r?.props['fnar:anim'] ?? 'pose'];
+  const cam = CAMERA_BY_ID['1A'].loc;
+  const n = (await import(path.join(ROOT, 'packs/BP/scripts/data/nodes.js'))).NODES.ST_R;
+  // the true pitch from his eyes to the lens (Minecraft pitch: negative = up); he faces south, +z
+  const want = (-Math.atan2(cam[1] - (n.y + up), Math.hypot(cam[0] - n.x, cam[2] - (n.z + fwd))) * 180) / Math.PI;
+  check(typeof lp === 'number' && lp < -5, `stared at from a camera above, Rustgrin looks up, not down (look_pitch ${lp})`);
+  check(Math.abs(p0 + lp - want) < 2.5, `and his eyes are on the lens: pose ${p0} + look ${lp} = ${(p0 + lp).toFixed(1)}, the lens is at ${want.toFixed(1)}`);
+}
 check(!!held, 'the camera map is shown again after UserBusy');
 world.afterEvents.playerHotbarSelectedSlotChange.fire({ player: P, previousSlotSelected: 4, newSlotSelected: 5 });
 await steps(6);

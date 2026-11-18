@@ -993,21 +993,9 @@ export class Game {
     this.headToward(id, e, pos, best.getHeadLocation());
   }
 
-  headToward(id, e, pos, target) {
-    let bodyYaw = 0;
-    try {
-      bodyYaw = e.getRotation().y;
-    } catch {
-      return;
-    }
-    const dx = target.x - pos.x;
-    const dz = target.z - pos.z;
-    let rel = yawToward(dx, dz) - bodyYaw;
-    while (rel > 180) rel -= 360;
-    while (rel < -180) rel += 360;
-    const dy = target.y - (pos.y + (HEAD_Y[id] ?? 3));
-    const pitch = (-Math.atan2(dy, Math.hypot(dx, dz)) * 180) / Math.PI;
-    this.puppets.look(id, rel, pitch);
+  /** Turn a puppet's head at a point (world coordinates): its eyes, in its current pose, on the target. */
+  headToward(id, _e, _pos, target) {
+    this.puppets.lookAt(id, target);
   }
 
   /** Free Roam: walk up to an animatronic and look at it, and it waves and talks to you. */
@@ -1991,14 +1979,8 @@ export class Game {
       const n = (this.stare[c.id] = (this.stare[c.id] ?? 0) + 1);
       if (n !== STARE_AFTER) continue;
       const node = NODES[at];
-      const dx = cam.loc[0] - node.x;
-      const dz = cam.loc[2] - node.z;
-      const dy = cam.loc[1] - (node.y + (HEAD_Y[c.id] ?? 2));
-      let rel = yawToward(dx, dz) - node.yaw;
-      while (rel > 180) rel -= 360;
-      while (rel < -180) rel += 360;
-      const pitch = (-Math.atan2(dy, Math.hypot(dx, dz)) * 180) / Math.PI;
-      this.puppets.look(c.id, rel, pitch);
+      // eyes on the lens, whatever pose they are in
+      this.puppets.lookAt(c.id, W(cam.loc[0], cam.loc[1], cam.loc[2]));
       this.audio.play('fnar.servo.head', { x: node.x, y: node.y + 2, z: node.z }, g, { vol: 0.6, relayCam: cam.id });
       this.dread.onStare(c.id, cam.id, { x: node.x, y: node.y + 2, z: node.z }, g);
     }

@@ -16,7 +16,6 @@ import { system } from '@minecraft/server';
 import { CAMERA_BY_ID } from '../data/cameras.js';
 import { NODES } from '../data/nodes.js';
 import { leanSpot } from './lean.js';
-import { yawToward } from './puppets.js';
 import { runCmd } from './world_io.js';
 import { log } from './log.js';
 
@@ -236,24 +235,10 @@ export class Dread {
     }
   }
 
-  /** Turn the head of whoever is at a door toward the guard's eyes. */
+  /** Turn the head of whoever is at a door at the guard's eyes. */
   trackGuard(st, g) {
-    const e = this.game.puppets.get(st.id);
-    if (!e) return;
     try {
-      const loc = e.location;
-      const yaw = e.getRotation().y;
-      const r = (yaw * Math.PI) / 180;
-      // the head of the lean: about a block in front of the feet, 1.85 up
-      const head = { x: loc.x - Math.sin(r), y: loc.y + 1.85, z: loc.z + Math.cos(r) };
-      const eye = g.getHeadLocation();
-      const dx = eye.x - head.x;
-      const dz = eye.z - head.z;
-      let rel = yawToward(dx, dz) - yaw;
-      while (rel > 180) rel -= 360;
-      while (rel < -180) rel += 360;
-      const pitch = (-Math.atan2(eye.y - head.y, Math.hypot(dx, dz)) * 180) / Math.PI;
-      this.game.puppets.look(st.id, rel, pitch);
+      this.game.puppets.lookAt(st.id, g.getHeadLocation());
     } catch {
       // ignore
     }

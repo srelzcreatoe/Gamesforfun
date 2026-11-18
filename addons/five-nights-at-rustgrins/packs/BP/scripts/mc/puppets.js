@@ -18,6 +18,7 @@ import { OPENINGS, OFFICE } from '../data/layout.js';
 import { CAST } from '../core/config.js';
 import { dim, W, Wv } from './world_io.js';
 import { log } from './log.js';
+import { aimHead } from './aim.js';
 
 export const ENTITY_ID = Object.freeze({ ...Object.fromEntries(CAST.map((id) => [id, `fnar:${id}`])), rusted: 'fnar:rusted' });
 const TAG = 'fnar_puppet';
@@ -174,9 +175,28 @@ export class Puppets {
     this.setProp(id, 'fnar:variant', v);
   }
 
+  /** Turn the head on top of the pose: yaw + = to its right, pitch + = down (degrees). */
   look(id, yaw, pitch) {
-    this.setProp(id, 'fnar:look_yaw', Math.round(Math.max(-80, Math.min(80, yaw))));
-    this.setProp(id, 'fnar:look_pitch', Math.round(Math.max(-40, Math.min(40, pitch))));
+    this.setProp(id, 'fnar:look_yaw', Math.round(Math.max(-85, Math.min(85, yaw))));
+    this.setProp(id, 'fnar:look_pitch', Math.round(Math.max(-45, Math.min(45, pitch))));
+  }
+
+  /**
+   * Turn a puppet's head AT a point (world coordinates), whatever pose it is in.
+   * @returns {boolean} false if the puppet is not there
+   */
+  lookAt(id, target) {
+    const e = this.get(id);
+    if (!e) return false;
+    try {
+      const anim = this.props[id]?.['fnar:anim'] ?? 'idle';
+      const a = aimHead(this.skin[id] ?? id, anim, e.location, e.getRotation().y, target);
+      this.look(id, a.yaw, a.pitch);
+      return true;
+    } catch (err) {
+      log.warn(`lookAt ${id}: ${err?.message ?? err}`);
+      return false;
+    }
   }
 
   teleport(id, local, yaw) {
