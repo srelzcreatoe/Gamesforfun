@@ -32,7 +32,7 @@ const SIGNATURE = Object.freeze({
   cat: 'fnar.cat.bell', purple_rat: 'fnar.rat.maracas', top_hat_rat: 'fnar.tophat.laugh',
 });
 /** Watched this long on a camera, a head is on the lens (game.js tickStare; the first look of the night counts too). */
-const STARE_AFTER = 40;
+export const STARE_AFTER = 40;
 /** Poses a sign of life may borrow for a moment, and only from these. */
 const AT_REST = new Set(['stand', 'idle']);
 
@@ -254,8 +254,8 @@ export function memoryLine(game, night) {
 }
 
 /**
- * A trick was part of the catch: its tip goes to the chat, where it is still there after the
- * game-over screen (which shows the killer's own tip).
+ * A trick was part of the catch: its tip is the one on the game-over screen, and it goes to the
+ * chat too, where it is still there afterwards.
  * @param {any} e the 'jumpscare' effect
  * @param {import('@minecraft/server').Player} g the guard
  */

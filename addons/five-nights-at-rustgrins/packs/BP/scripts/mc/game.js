@@ -50,7 +50,8 @@ const NIGHT_HUD = [HudElement.Health, HudElement.Hunger, HudElement.Armor, HudEl
 const NEUTRAL_SLOT = 4;
 /** Blocks the guard clicks (they carry the fnar:control custom component). */
 const CONTROL_BLOCKS = new Set(['fnar:door_button', 'fnar:light_button', 'fnar:crt_monitor', 'fnar:desk_phone']);
-const STARE_AFTER = 40;
+/** Watched this long on a camera, a head turns to the lens. */
+const STARE_AFTER = tricks.STARE_AFTER;
 const GALLERY = Object.freeze({
   rustgrin: { x: 3.5, y: 1, z: 42.5, yaw: 0 }, mirehop: { x: 8.5, y: 1, z: 42.5, yaw: 0 }, noxbriar: { x: 13.5, y: 1, z: 42.5, yaw: 0 },
   purple_rat: { x: 3.5, y: 1, z: 48.5, yaw: 180 }, cat: { x: 8.5, y: 1, z: 48.5, yaw: 180 }, top_hat_rat: { x: 13.5, y: 1, z: 48.5, yaw: 180 },
@@ -1620,7 +1621,7 @@ export class Game {
       case 'jumpscare':
         tricks.memoryEnd(this, s);
         tricks.killNote(e, g);
-        return void this.jumpscare(e.who, g);
+        return void this.jumpscare(e.who, g, e.note);
       case 'win':
         tricks.memoryEnd(this, s);
         return void this.sixAm(g);
@@ -2206,8 +2207,12 @@ export class Game {
   }
 
   // ---------------------------------------------------------------- endings
-  /** @param {import('@minecraft/server').Player} g */
-  async jumpscare(who, g) {
+  /**
+   * @param {string} who
+   * @param {import('@minecraft/server').Player} g
+   * @param {string} [note] the trick that was part of the catch (a KILL_TIPS key), if any
+   */
+  async jumpscare(who, g, note) {
     this.state = 'JUMPSCARE';
     if (this.flashEyes !== undefined) system.clearRun(this.flashEyes);
     this.flashEyes = undefined;
@@ -2251,7 +2256,9 @@ export class Game {
     const res = await ui.resultForm(g, {
       won: false,
       label: this.nightLabel,
-      tip: (n === ENCORE_NIGHT && who === 'rustgrin' ? KILL_TIPS.encore : KILL_TIPS[who]) ?? TUTORIAL_HINTS[Math.min(7, Math.max(1, n))],
+      // a trick that was part of the catch explains it better than the killer's usual tip (after a
+      // trade, the usual tip would even name the wrong door)
+      tip: (note && KILL_TIPS[note]) || ((n === ENCORE_NIGHT && who === 'rustgrin' ? KILL_TIPS.encore : KILL_TIPS[who]) ?? TUTORIAL_HINTS[Math.min(7, Math.max(1, n))]),
     });
     this.afterResult(res, g, false);
   }

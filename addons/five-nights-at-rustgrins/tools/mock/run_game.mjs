@@ -250,6 +250,16 @@ check(P.hudHidden === null, 'the HUD comes back after the jumpscare');
   debug('lobby');
   await steps(3);
   check(JSON.stringify(game().save.memory) === mem, 'a night that was abandoned is not remembered');
+  // a catch a trick was part of: the game-over screen explains the trick (after a trade, the killer's
+  // usual tip would name the wrong door)
+  debug('night', '2');
+  await steps(5);
+  answer(titleHas('GAME OVER'), () => ({ canceled: false, selection: 1 }));
+  game().render({ fx: 'jumpscare', who: 'noxbriar', way: 'L', note: 'traded' }, P);
+  await waitFor(() => game().state === 'LOBBY', 600, 'back to the lobby after a catch by a trade');
+  const over = mock.forms.filter((f) => f.title.includes('GAME OVER')).at(-1);
+  check(/traded halls/.test(over?.body ?? '') && !/RIGHT side/.test(over?.body ?? ''), `after a trade the game-over screen explains the trade, not the usual door (got: ${over?.body})`);
+  game().save.memory = JSON.parse(mem); // (the rest of the session goes on from the memory checked above)
 }
 // 6. free roam ------------------------------------------------------------------------------
 // The daytime guests are watched through the whole of Free Roam and closing time: every tick, nobody who is
@@ -697,7 +707,7 @@ check(P.music === 'fnar.music.bgm' && game().save.settings.bgm === true, 'and ba
       }
       if (e.kind === 'places_go') check(ent('top_hat_rat')?.props['fnar:anim'] === 'pose', 'and stands posed again once they are sent');
     }
-    // a trick that was part of the catch gets its own tip, in the chat (the game-over screen keeps the killer's)
+    // a trick that was part of the catch gets its own tip: on the game-over screen, and in the chat
     const c0 = mock.chat.length;
     tricks.killNote({ fx: 'jumpscare', who: 'mirehop', way: 'L', note: 'knock' }, P);
     tricks.killNote({ fx: 'jumpscare', who: 'mirehop', way: 'L', note: null }, P);
