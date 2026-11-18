@@ -11,7 +11,8 @@
 // a racket in the kitchen or the Ringmaster's "places!" means a look down both halls, a
 // squealing feed is looked away from, a warbling tape is rewound. `wiseP` is the chance it
 // sees through a trick it heard (otherwise it takes the bait, like a player who has not
-// learnt it yet). Sounds carry the side they come from (`door`), never who it is.
+// learnt it yet). Sounds carry the side they come from (`door`), never who it is. After a
+// 'grudge' cue (the one who got in last time comes back the same way) it listens for that way.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -30,12 +31,28 @@ export class Bot {
     this.need = { L: false, R: false, VL: false, VR: false };
     this.rustAtNook = false;
     this.lingerUntil = { L: 0, R: 0 }; // heard a fake-out twang / hum just outside that door
+    this.alert = null; // told which way somebody will come first (the grudge cue): { way, until }
     this.sloppy = kind === 'sloppy';
-    this.earP = kind === 'good' ? 1 : kind === 'medium' ? 0.6 : 0.25; // chance an audio tell is noticed
-    this.slow = kind === 'good' ? 0 : kind === 'medium' ? 15 : 25; // extra reaction ticks
-    this.wiseP = kind === 'good' ? 1 : kind === 'medium' ? 0.5 : 0.2; // chance a trick it heard is seen through
+    // 'listener' and 'gullible': a guard who saves power - good ears, the monitor only every other
+    // round, long rests in between (so the cast finds lulls to bait). They differ in one thing:
+    // the listener sees through every trick it hears, the gullible one takes every bait.
+    const quiet = kind === 'listener' || kind === 'gullible';
+    this.earP = kind === 'good' || quiet ? 1 : kind === 'medium' ? 0.6 : 0.25; // chance an audio tell is noticed
+    this.slow = kind === 'good' ? 0 : quiet ? 5 : kind === 'medium' ? 15 : 25; // extra reaction ticks
+    this.wiseP = kind === 'good' || kind === 'listener' ? 1 : kind === 'gullible' ? 0 : kind === 'medium' ? 0.5 : 0.2; // chance a trick it heard is seen through
+    this.rest = quiet ? [70, 150] : this.sloppy ? [40, 40] : [20, 50]; // ticks of rest after a round
+    this.camEvery = quiet ? 2 : 1; // the monitor every n-th round
+    this.round = 0;
   }
   heard() { return this.rand() < this.earP; }
+  /** A tell from the way the bot was told to expect somebody (the grudge): it is listening for that one. */
+  expected(e) {
+    const a = this.alert;
+    if (!a || this.s.t > a.until || e.fx === 'cue') return false;
+    if (a.way === 'L' || a.way === 'R') return e.door === a.way || e.approach === a.way;
+    const side = a.way === 'VL' ? 'L' : 'R';
+    return (e.fx === 'at_vent' && e.side === side) || e.near === side || e.vent === side;
+  }
   wise() { return this.rand() < this.wiseP; }
   /** The cast's tricks (every one has a tell; see the header). */
   hearCue(e) {
@@ -61,7 +78,8 @@ export class Bot {
         this.at(this.react(70, 120), 'peek', 'L');
         this.at(this.react(140, 200), 'peek', 'R');
         return;
-      case 'grudge': // whoever got in last time is coming the same way first
+      case 'grudge': // whoever got in last time is coming the same way first: listen for it there
+        this.alert = { way: e.way, until: this.s.t + 1600 };
         if (e.way === 'L' || e.way === 'R') this.at(this.react(60, 110), 'peek', e.way);
         return;
       case 'squeal': // the feed whines: look away before it burns out
@@ -81,7 +99,7 @@ export class Bot {
     if (this.kind === 'idle') return;
     if (this.s.final) return this.hearFinal(e);
     const cue = ['at_nook', 'at_vent', 'ringmaster', 'cue'].includes(e.fx) || (e.fx === 'sound' && ['fnar.cat.run', 'fnar.mirehop.strum', 'fnar.noxbriar.hum', 'fnar.rat.maracas', 'fnar.servo.move', 'fnar.step.heavy', 'fnar.cat.growl'].includes(e.id));
-    if (cue && !this.heard()) return;
+    if (cue && !this.expected(e) && !this.heard()) return;
     // footsteps / a hum coming down a hall: take a look down that hall soon
     if (e.fx === 'sound' && e.approach && !e.kitchen && e.id !== 'fnar.cat.growl') { this.at(this.react(10, 40), 'peek', e.approach); return; }
     // the whirr of a servo in a doorway: somebody is stepping in - slam that door
@@ -128,6 +146,7 @@ export class Bot {
     // the routine: cams sweep, then lights, then rest
     const camsSweep = ['4B', '8', '2A', '4A'];
     if (this.phase === 0) { // raise cams
+      if (this.round++ % this.camEvery) { this.phase = 3; return; } // (a power saver: lights only this round)
       if (!d.cams.open) s.input('cams_open', '4B');
       this.sweepIdx = 0; this.phase = 1; this.busyUntil = s.t + 12;
     } else if (this.phase === 1) {
@@ -168,7 +187,7 @@ export class Bot {
       if (keep && !d.doorR) s.input('door_r');
       if (!keep && d.doorR) s.input('door_r');
       if (d.lightR) s.input('light_r');
-      this.phase = 7; this.busyUntil = s.t + (this.sloppy ? 40 : 20 + Math.floor(this.rand() * 30));
+      this.phase = 7; this.busyUntil = s.t + this.rest[0] + Math.floor(this.rand() * (this.rest[1] - this.rest[0]));
     } else {
       this.phase = 0;
     }

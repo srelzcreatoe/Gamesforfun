@@ -51,6 +51,8 @@ export class NightSession {
     this.lastBreach = null;
     /** what they believe about the guard from earlier nights (null: they do not know the guard) */
     this.beliefs = null;
+    /** tick the night's opener (memory.js) first reached its door: the others give it a moment */
+    this.openedAt = -1e9;
     this.inputs = 0; // successful guard actions (the Final Act's "touch nothing" game counts them)
     this.devices = {
       doorL: false, doorR: false, lightL: false, lightR: false, ventL: false, ventR: false,

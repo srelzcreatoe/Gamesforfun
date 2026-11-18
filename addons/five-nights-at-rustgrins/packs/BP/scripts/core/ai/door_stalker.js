@@ -169,7 +169,8 @@ export class DoorStalker extends Animatronic {
   bonus() {
     const s = this.s;
     const P = CONFIG.characters.top_hat_rat.places;
-    return (this.opening ? Math.round(CONFIG.memory.keen * s.trust()) : 0) + (s.t < this.sentUntil || this.traded ? P.keen : 0);
+    const M = CONFIG.memory;
+    return (this.opening ? Math.round((this.grudge ? M.grudgeKeen : M.keen) * s.trust()) : 0) + (s.t < this.sentUntil || this.traded ? P.keen : 0);
   }
 
   /** The errand is run (the racket is made, or there was nobody to cover any more): off to their own door, in a hurry. */
@@ -343,6 +344,7 @@ export class DoorStalker extends Animatronic {
     if (!d.mayStrike(this.id)) return; // spacing
     // somebody else opens tonight (see memory.js): after you, for the first part of the night
     if (s.openerPending(this) && s.trust() > CONFIG.memory.afterYouUntil) return;
+    if (s.t < s.openedAt + CONFIG.memory.afterYouPause) return;
     // a good moment: not into a lit hall, not on camera, and by the learned rhythm of the
     // guard's checks - or the guard took the bait, or somebody is making a racket elsewhere.
     // After `stalkMax` they come anyway (a light left on does not stop them).
@@ -419,7 +421,8 @@ export class DoorStalker extends Animatronic {
     const s = this.s;
     if (node === this.door) {
       this.state = 'door';
-      this.grudge = null; // made his point: from here on it is an ordinary night
+      if (this.opening) s.openedAt = s.t; // the night is opened: from here on it is an ordinary one
+      this.grudge = null;
       this.probing = false;
       this.holdLeft = this.patience();
       // fair warning: the tell plays now, and the first try at the door comes no sooner than

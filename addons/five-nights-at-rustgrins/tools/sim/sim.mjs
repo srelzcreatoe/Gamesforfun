@@ -1,6 +1,6 @@
 // Headless night simulator with a bot guard, for balance and crash testing.
 //
-//   node tools/sim/sim.mjs [nights=1-6] [runs=200] [--bot=good|medium|idle|sloppy] [--ai=m,n,r,c,p,t] [--mods=lightsOut,tapeRot,doorJam]
+//   node tools/sim/sim.mjs [nights=1-6] [runs=200] [--bot=good|medium|idle|sloppy|listener|gullible] [--ai=m,n,r,c,p,t] [--mods=lightsOut,tapeRot,doorJam]
 //   node tools/sim/sim.mjs --campaign [runs=200] [--bot=...]   the week with the cast's memory (core/ai/memory.js):
 //       nights 1-5 in order, every night retried until it is won (4 tries at most), the memory carried along
 //       the way the game does. Printed against the same nights played blank.

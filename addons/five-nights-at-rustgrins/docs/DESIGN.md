@@ -106,15 +106,60 @@ until 6 AM or be caught.
 | Night | Mirehop | Noxbriar | Rustgrin | Cat | Purple Rat | Top-Hat Rat | New |
 |---|---|---|---|---|---|---|---|
 | 1 | 3 | 2 | 0 | 0 | 0 | booth | doors, lights, cams, power |
-| 2 | 5 | 4 | 0 | 2 | 0 | booth | the Midway ring and its show tape |
-| 3 | 7 | 6 | 1 | 5 | 4 | booth | vents, Purple Rat, Rustgrin |
-| 4 | 8 | 8 | 3 | 7 | 7 | booth | everyone restless, the Rusted one |
-| 5 | 15 | 15 | 7 | 13 | 13 | booth | until 4 AM: the takeover |
+| 2 | 4 | 3 | 0 | 2 | 0 | booth | the Midway ring and its show tape; Mirehop's knock |
+| 3 | 6 | 5 | 1 | 5 | 4 | booth, "places!" | vents, Purple Rat, Rustgrin; the thrown voice, the tape deck, playing dead |
+| 4 | 9 | 9 | 3 | 7 | 7 | booth, "places!" | everyone restless, the Rusted one; the burnt feed, the racket |
+| 5 | 17 | 17 | 8 | 14 | 14 | booth, "places!" | until 4 AM: the takeover; trading places |
 | 6 | cue | cue | cue | cue | cue | 20 | The Final Act |
 | 7 | custom | custom | custom | custom | custom | custom | Custom Night (0–20 sliders, presets) |
 
 Stars on the time clock: the end of night 5 (the takeover), the Final Act,
 Custom Night "20/20/20/20/20/20".
+
+**How they think** (`scripts/core/ai/`, all pure and deterministic; checked by
+`tools/sim/ai_checks.mjs`). They notice what the guard does tonight
+(`guard_model.js`: light rhythm, camped doors, watched cameras, monitor up), plan
+their way over the route graph (`graph.js`) and are kept fair by the director
+(`director.js`: one animatronic per way in, strikes spaced apart, a breather after
+a close call, less pressure when power runs short). On top of that:
+
+*Memory across the week* (`memory.js`, `save.memory`). When a night of the week
+(1-5) ends, a summary of it is folded into a few clamped numbers in the save: the
+share of the night each door and each vent was shut, light checks per hour for
+each hall, the share of the night the monitor was up, and how the guard was caught
+last time (who, which door or vent) with the deaths in a row. Each new night
+counts as much as everything before it together, a night cut short counts for
+less, and tonight's beliefs fade to nothing by 3 AM. Night 1 (and so a New Game,
+and a fresh save) starts blank; the Final Act, the Custom Night, the challenges and
+the Encore neither read nor write it. The next night opens with the stalker on the
+neglected side heading straight for its door while the other holds back; the
+Purple Rat and the Cat lean towards the neglected vent or hall; the Ringmaster
+hints at it in his call (`story.js` `MEMORY_CALLS`). A death never makes the retry
+harder: the director takes a step off per death in a row, and whoever caught the
+guard comes back first, by the same way, announced by its own sound (the `grudge`
+cue).
+
+*One signature trick each*, never on the training night or in the Final Act, each
+with a tell and a counter:
+
+| Who | Trick | Tell | Counter |
+|---|---|---|---|
+| Rustgrin | **the burnt feed**: stared at too long in all, he burns out the camera he is watched on; a dead feed does not hold him, not even in the nook | feedback squeal through the monitor 2.5 s before | look away when it squeals; the right door for the nook |
+| Mirehop | **the knock**: at the corner with no good moment in sight he raps on the wall; when the guard's light goes off again he steps into the doorway | three quick knocks, no twang, nobody in the light | look again a few seconds later (or CAM 2B); the twang and the grace still come first |
+| Noxbriar | **the thrown voice**: a hum from the wrong hall; if the guard lights that hall she steps up to her window | a hum too clear and too close | check her side instead, twice |
+| Purple Rat | **playing dead**: a move won under the duct camera is held back, then spent as a bolt of up to two sections | the maracas stop dead; a frantic rattle when he bolts | keep the camera on him until he squeaks; seal the vent at the rattle |
+| The Cat | **the tape deck**: CAM 8 ignored for long, she slips behind the curtain and pulls the tape (it runs down 2.2x as fast) | the show music warbles; CAM 8 shows the ring without her | PLAY SHOW on CAM 8 puts her back at once |
+| The Ringmaster | **"places!"** (booth, from night 3): once a night he calls two of the band back to the stage and sends them out together | two cane raps and his voice over the PA, twice | they only step off the stage unwatched: keep CAM 1A on them; then expect both halls, never at the same moment |
+
+*Group tactics* from night 4: **the racket** (pots crash in the kitchen, audio-only
+CAM 6, made by one stalker on its way past to cover the other one's footsteps down
+its hall and its step up to the door) and, on night 5 and hard custom nights,
+**trading places** (Mirehop and Noxbriar swap halls for one trip: a twang and a
+hum together, far off; every tell at a door carries the side it really comes from).
+
+*Signs of life* (`liveliness.js`): sparse cosmetic `idle` effects (a head tilt, a
+pose for a while, a shuffle out and back while nobody watches) on a random stream
+of their own, so the night is the same night with or without them.
 
 Unique extras: hallucination flashes (posters that change, the Ringmaster's
 face over the monitor, "SHOWTIME" text), animatronics turning their heads to

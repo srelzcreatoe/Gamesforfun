@@ -231,7 +231,7 @@ export const CONFIG = Object.freeze({
     1: Object.freeze({ title: 'Night 1', ai: { mirehop: 3, noxbriar: 2, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 1000, noxbriar: 2400 }, ramp: true, phone: 1, tape: false, hallucinations: 0 }),
     2: Object.freeze({ title: 'Night 2', ai: { mirehop: 4, noxbriar: 3, rustgrin: 0, cat: 2, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 400, noxbriar: 800, cat: 600 }, ramp: true, phone: 2, tape: true, hallucinations: 0.001 }),
     3: Object.freeze({ title: 'Night 3', ai: { mirehop: 6, noxbriar: 5, rustgrin: 1, cat: 5, purple_rat: 4, top_hat_rat: 0 }, activation: { purple_rat: 800, rustgrin: 1600 }, ramp: true, phone: 3, tape: true, hallucinations: 0.002 }),
-    4: Object.freeze({ title: 'Night 4', ai: { mirehop: 10, noxbriar: 10, rustgrin: 3, cat: 7, purple_rat: 7, top_hat_rat: 0 }, activation: {}, ramp: true, phone: 4, tape: true, hallucinations: 0.004 }),
+    4: Object.freeze({ title: 'Night 4', ai: { mirehop: 9, noxbriar: 9, rustgrin: 3, cat: 7, purple_rat: 7, top_hat_rat: 0 }, activation: {}, ramp: true, phone: 4, tape: true, hallucinations: 0.004 }),
     5: Object.freeze({ title: 'Night 5', ai: { mirehop: 17, noxbriar: 17, rustgrin: 8, cat: 14, purple_rat: 14, top_hat_rat: 0 }, activation: {}, ramp: true, phone: 5, tape: true, hallucinations: 0.006 }),
     // The Final Act: the Ringmaster runs the night; the others are his marionettes (they only move on his cue).
     6: Object.freeze({ title: 'The Final Act', ai: { mirehop: 0, noxbriar: 0, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 20 }, activation: {}, ramp: false, phone: 0, tape: false, final: true, hallucinations: 0.006 }),
@@ -318,9 +318,11 @@ export const CONFIG = Object.freeze({
     // the opener: the stalker whose hall is the soft one (or who caught the guard last time) heads
     // straight for its door, `keen` AI steps keener (x trust), until its first visit there
     keen: 4,
+    grudgeKeen: 2, // (the one with a grudge is less keen than that: a death never makes the retry harder)
     probeOther: 0.1, // hunt chance the other stalker loses (x how soft, x trust): the pressure moves, it does not grow
     afterYou: 0.7, // ...and while the opener has not been to its door yet, the others hunt this much less (x trust)
     afterYouUntil: 0.4, // ...and do not step into a doorway at all while trust is above this (the first two hours or so)
+    afterYouPause: 300, // ...nor for this long after the opener reached its door: one thing at a time
     sideBias: 0.8, // the Purple Rat's and the Cat's lean towards the soft vent / hall (x trust)
     watcher: 0.25, // against a camera watcher: Rustgrin's patience is this much shorter (x trust)
     ease: 1, // per death in a row the director takes this much off its pressure, and off the highest it may go...
