@@ -45,9 +45,9 @@ export const PARTIES = Object.freeze([
 ]);
 
 /**
- * The front doors by day. The street facade's plinth runs across the doorway at foot level (a block
- * high at x 100), so the two open leaves are opened down to the floor while guests are about and put
- * back as built for the night: [x, y, z] cells.
+ * The cells of the front doorway the guests walk through: [x, y, z]. The build plan leaves them open (the
+ * facade's plinth used to run across the doorway as a one-block sill, and Guests.frontDoors() opened
+ * them by day; with the plan fixed that is a no-op kept as a safety net for worlds built before 1.0.15).
  */
 export const DAY_OPEN = Object.freeze([Object.freeze([100, 0, 35]), Object.freeze([100, 0, 36])]);
 

@@ -421,7 +421,7 @@ world.afterEvents.itemUse.fire({ source: P, itemStack: { typeId: 'fnar:time_card
 await waitFor(() => game().state === 'LOBBY', 100, 'lobby after free roam');
 await steps(2);
 check(guestEnts().length === 0 && game().guests.count() === 0, 'there are no guests in the lobby');
-check(blockAt(100, 0, 35).typeId !== 'minecraft:air', 'and the front doorway is as built again');
+check(blockAt(100, 0, 35).typeId === 'minecraft:air' && blockAt(100, 0, 34).typeId === 'minecraft:glass_pane', 'and the front doorway is as built: open down to the floor between the two glass leaves, no sill');
 {
   // guests left behind by a script reload (no record of them) are cleaned up by type and tag
   const stray = world.getDimension('overworld').spawnEntity('fnar:guest', Wl(40, 0, 33));
@@ -456,7 +456,7 @@ await waitFor(() => game().state === 'CLOSING', 40, 'closing time');
   check(guestWatch.lookBack > 20, `the last child stops in the doorway and looks back (${guestWatch.lookBack} ticks)`);
   check(insideAtDark > 0, `guests are still hurrying out when the lights start going (${insideAtDark} inside)`);
   check(guestEnts().length === 0 && gs.count() === 0, 'no guest is left when the night starts');
-  check(blockAt(100, 0, 35).typeId !== 'minecraft:air', 'the front doorway is as built for the night');
+  check(blockAt(100, 0, 35).typeId === 'minecraft:air', 'the front doorway is as built for the night (no sill to jump)');
   check(guestWatch.inBlock.length === 0, `no guest ever walked or stood inside a block (${guestWatch.inBlock.length} of ${guestWatch.samples} samples: ${guestWatch.inBlock.slice(0, 4).join(' | ')})`);
   say(`closing time: ${closingFrom} guests out in ${mock.tick - tClose} ticks`);
 }

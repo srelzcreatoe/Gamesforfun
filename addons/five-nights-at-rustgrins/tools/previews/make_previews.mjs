@@ -520,11 +520,11 @@ export const SCENES = [
     scene: { camera: { pos: [28.4, 2.2, 46.5], target: [26.0, 3.2, 53.5], fov: 62 }, exposure: 1.6, extra_lights: [irLight('2A', 9), point([27.5, 3.4, 50.2], '#e8ffe8', 9, 8)] },
   },
   {
-    name: '48_parts_room', voxels: 'day', caption: 'Parts & Service, evened out: a head on every shelf, the two stands facing the door',
+    name: '51_parts_room', voxels: 'day', caption: 'Parts & Service, evened out: a head on every shelf, the two stands facing the door',
     scene: { camera: { pos: [50.6, 2.5, 66.6], target: [70, 1.0, 66.0], fov: 78 }, exposure: 1.3, extra_lights: [{ type: 'ambient', color: '#ffffff', intensity: 1.4 }] },
   },
   {
-    name: '49_parts_shelves', voxels: 'day', caption: 'The spare heads stand square on full-depth shelves',
+    name: '52_parts_shelves', voxels: 'day', caption: 'The spare heads stand square on full-depth shelves',
     scene: { camera: { pos: [68.0, 1.8, 67.6], target: [68.0, 1.0, 64.0], fov: 74 }, exposure: 1.3, extra_lights: [{ type: 'ambient', color: '#ffffff', intensity: 1.6 }] },
   },
   // ---- the pizzeria by day: the guests (mc/guests.js)
