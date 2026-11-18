@@ -4,7 +4,7 @@
   python3 tools/build_addon.py            # full build + every check + dist/*.mcaddon
   python3 tools/build_addon.py --no-zip   # checks only
 
-Steps: entities, camera UI, pack files (manifests, items, fogs, lang, icons),
+Steps: entities, guests, camera UI, pack files (manifests, items, fogs, lang, icons),
 fragment merge, JSON schema validation, block-state validation (strict),
 map validation (camera sight lines, routes), script typecheck against the
 @minecraft/server typings, night-balance smoke run, and the scripted play
@@ -55,6 +55,7 @@ def zip_packs():
 def main():
     py = sys.executable
     run('entities', [py, '-I', 'tools/entities/build_entities.py'])
+    run('guests', [py, '-I', 'tools/entities/build_guest.py'])
     run('camera UI', [py, '-I', 'tools/ui/gen_ui.py'])
     run('pack files', [py, '-I', 'tools/pack/gen_pack_files.py'])
     run('merge fragments', ['node', 'tools/merge_fragments.mjs'])

@@ -587,7 +587,15 @@ async function buildEntity(E, W, style, U, scene) {
   const model = buildModel(geo, mat);
   const a = anim?.animations?.[E.animName];
   if (E.animName && !a) log(`entity ${E.id}: animation ${E.animName} not found`);
-  applyAnimation(model, a, E.t ?? 0);
+  applyAnimation(model, a, E.t ?? 0, { vars: E.vars });
+  // more animations of the same file playing on top (E.layerNames: e.g. the guests' size layer, driven by E.vars)
+  for (const name of E.layerNames ?? []) {
+    const layer = anim?.animations?.[name];
+    if (layer) applyAnimation(model, layer, E.t ?? 0, { vars: E.vars, additive: true });
+    else log(`entity ${E.id}: layer animation ${name} not found`);
+  }
+  // E.hide: bones a render controller's part_visibility switches off (the guests' pizza slice unless eating)
+  for (const b of E.hide ?? []) { const n = model.bones.get(b); if (n) n.node.visible = false; }
   // the game's fnar:look_yaw / fnar:look_pitch head turn, on top of the animation
   if (E.headYaw || E.headPitch) {
     const h = model.bones.get('head');

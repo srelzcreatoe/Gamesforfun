@@ -1,0 +1,1081 @@
+{
+ "format_version": "1.8.0",
+ "animations": {
+  "animation.fnar.guest.idle": {
+   "loop": true,
+   "bones": {
+    "body": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 95) * 0.9",
+      0,
+      "math.sin(variable.fnar_t * 41) * 1.6"
+     ]
+    },
+    "head": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 37) * 1.20 - math.sin(variable.fnar_t * 95 + 60) * 0.90",
+      "math.sin(variable.fnar_t * 23) * 2.00",
+      0
+     ]
+    },
+    "root": {
+     "position": [
+      "math.sin(variable.fnar_t * 41) * 0.35",
+      0,
+      0
+     ]
+    },
+    "right_arm": {
+     "rotation": [
+      "(1 - variable.fnar_hr) * (math.sin(variable.fnar_t * 63) * 3)",
+      0,
+      "(1 - variable.fnar_hr) * (3 + math.sin(variable.fnar_t * 95) * 1.2) + variable.fnar_hr * variable.fnar_ha"
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      "(1 - variable.fnar_hl) * (math.sin(variable.fnar_t * 63 + 140) * 3)",
+      0,
+      "(1 - variable.fnar_hl) * (-3 - math.sin(variable.fnar_t * 95) * 1.2) - variable.fnar_hl * variable.fnar_ha"
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      -6,
+      0,
+      0
+     ]
+    },
+    "left_forearm": {
+     "rotation": [
+      -6,
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.walk": {
+   "loop": true,
+   "bones": {
+    "root": {
+     "position": [
+      0,
+      "math.abs(math.sin(variable.fnar_w)) * 0.45",
+      0
+     ]
+    },
+    "body": {
+     "rotation": [
+      1.5,
+      "math.sin(variable.fnar_w) * 4",
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      -1.05,
+      "0 - math.sin(variable.fnar_w) * 3",
+      0
+     ]
+    },
+    "right_leg": {
+     "rotation": [
+      "math.sin(variable.fnar_w) * 27",
+      0,
+      0
+     ]
+    },
+    "left_leg": {
+     "rotation": [
+      "0 - math.sin(variable.fnar_w) * 27",
+      0,
+      0
+     ]
+    },
+    "right_shin": {
+     "rotation": [
+      "math.max(0, 0 - math.cos(variable.fnar_w)) * 42",
+      0,
+      0
+     ]
+    },
+    "left_shin": {
+     "rotation": [
+      "math.max(0, math.cos(variable.fnar_w)) * 42",
+      0,
+      0
+     ]
+    },
+    "right_arm": {
+     "rotation": [
+      "(1 - variable.fnar_hr) * (0 - math.sin(variable.fnar_w) * 22)",
+      0,
+      "(1 - variable.fnar_hr) * (2) + variable.fnar_hr * variable.fnar_ha"
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      "(1 - variable.fnar_hl) * (math.sin(variable.fnar_w) * 22)",
+      0,
+      "(1 - variable.fnar_hl) * (-2) - variable.fnar_hl * variable.fnar_ha"
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      "-10 - math.max(0, math.sin(variable.fnar_w)) * 14 - variable.fnar_hr * 4",
+      0,
+      0
+     ]
+    },
+    "left_forearm": {
+     "rotation": [
+      "-10 - math.max(0, 0 - math.sin(variable.fnar_w)) * 14 - variable.fnar_hl * 4",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.hurry": {
+   "loop": true,
+   "bones": {
+    "root": {
+     "position": [
+      0,
+      "math.abs(math.sin(variable.fnar_w * 1.55)) * 0.9",
+      0
+     ]
+    },
+    "body": {
+     "rotation": [
+      9,
+      "math.sin(variable.fnar_w * 1.55) * 4",
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      -6.3,
+      "0 - math.sin(variable.fnar_w * 1.55) * 3",
+      0
+     ]
+    },
+    "right_leg": {
+     "rotation": [
+      "math.sin(variable.fnar_w * 1.55) * 40",
+      0,
+      0
+     ]
+    },
+    "left_leg": {
+     "rotation": [
+      "0 - math.sin(variable.fnar_w * 1.55) * 40",
+      0,
+      0
+     ]
+    },
+    "right_shin": {
+     "rotation": [
+      "math.max(0, 0 - math.cos(variable.fnar_w * 1.55)) * 62",
+      0,
+      0
+     ]
+    },
+    "left_shin": {
+     "rotation": [
+      "math.max(0, math.cos(variable.fnar_w * 1.55)) * 62",
+      0,
+      0
+     ]
+    },
+    "right_arm": {
+     "rotation": [
+      "(1 - variable.fnar_hr) * (0 - math.sin(variable.fnar_w * 1.55) * 34)",
+      0,
+      "(1 - variable.fnar_hr) * (2) + variable.fnar_hr * variable.fnar_ha"
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      "(1 - variable.fnar_hl) * (math.sin(variable.fnar_w * 1.55) * 34)",
+      0,
+      "(1 - variable.fnar_hl) * (-2) - variable.fnar_hl * variable.fnar_ha"
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      "-58 * (1 - variable.fnar_hr) - 6",
+      0,
+      0
+     ]
+    },
+    "left_forearm": {
+     "rotation": [
+      "-58 * (1 - variable.fnar_hl) - 6",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.clap": {
+   "loop": true,
+   "bones": {
+    "body": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 95) * 1.26",
+      0,
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 37) * 1.68 - math.sin(variable.fnar_t * 95 + 60) * 1.26",
+      "math.sin(variable.fnar_t * 23) * 2.80",
+      0
+     ]
+    },
+    "right_arm": {
+     "rotation": [
+      -58,
+      "-22 + math.sin(variable.fnar_t * 1500) * 9",
+      0
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      -62,
+      0,
+      0
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      -58,
+      "22 - math.sin(variable.fnar_t * 1500) * 9",
+      0
+     ]
+    },
+    "left_forearm": {
+     "rotation": [
+      -62,
+      0,
+      0
+     ]
+    },
+    "root": {
+     "position": [
+      0,
+      "math.abs(math.sin(variable.fnar_t * 330)) * 0.35",
+      0
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.cheer": {
+   "loop": true,
+   "bones": {
+    "right_arm": {
+     "rotation": [
+      "-172 + math.sin(variable.fnar_t * 700) * 7",
+      0,
+      "-34 + math.sin(variable.fnar_t * 350) * 7"
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      "-10 + math.sin(variable.fnar_t * 700) * 6",
+      0,
+      0
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      "-172 + math.sin(variable.fnar_t * 700 + 90) * 7",
+      0,
+      "34 - math.sin(variable.fnar_t * 350) * 7"
+     ]
+    },
+    "left_forearm": {
+     "rotation": [
+      "-10 + math.sin(variable.fnar_t * 700 + 90) * 6",
+      0,
+      0
+     ]
+    },
+    "root": {
+     "position": [
+      0,
+      "math.abs(math.sin(variable.fnar_t * 520)) * 1.6",
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      "-8 + math.sin(variable.fnar_t * 520) * 3",
+      0,
+      0
+     ]
+    },
+    "right_leg": {
+     "rotation": [
+      0,
+      0,
+      3
+     ]
+    },
+    "left_leg": {
+     "rotation": [
+      0,
+      0,
+      -3
+     ]
+    },
+    "right_shin": {
+     "rotation": [
+      "math.abs(math.cos(variable.fnar_t * 520)) * 10",
+      0,
+      0
+     ]
+    },
+    "left_shin": {
+     "rotation": [
+      "math.abs(math.cos(variable.fnar_t * 520)) * 10",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.wave": {
+   "loop": true,
+   "bones": {
+    "body": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 95) * 0.90",
+      0,
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      0,
+      0,
+      4
+     ]
+    },
+    "right_arm": {
+     "rotation": [
+      "-164 + math.sin(variable.fnar_t * 300) * 4",
+      0,
+      -32
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      -8,
+      0,
+      "math.sin(variable.fnar_t * 1000) * 26"
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      0,
+      0,
+      -3
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.point": {
+   "loop": true,
+   "bones": {
+    "body": {
+     "rotation": [
+      2,
+      -6,
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 37) * 1.20 - math.sin(variable.fnar_t * 95 + 60) * 0.90",
+      "math.sin(variable.fnar_t * 23) * 2.00",
+      0
+     ]
+    },
+    "right_arm": {
+     "rotation": [
+      "-104 + math.sin(variable.fnar_t * 140) * 3",
+      8,
+      0
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      -4,
+      0,
+      0
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      0,
+      0,
+      -3
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.play": {
+   "loop": true,
+   "bones": {
+    "body": {
+     "rotation": [
+      "6 + math.sin(variable.fnar_t * 210) * 1.5",
+      "math.sin(variable.fnar_t * 130) * 3",
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      "-4 + math.sin(variable.fnar_t * 170) * 2",
+      0,
+      0
+     ]
+    },
+    "right_arm": {
+     "rotation": [
+      "-46 + math.sin(variable.fnar_t * 900) * 4",
+      -8,
+      0
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      "-46 + math.sin(variable.fnar_t * 1300) * 7",
+      0,
+      0
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      "-46 + math.sin(variable.fnar_t * 640 + 70) * 5",
+      8,
+      0
+     ]
+    },
+    "left_forearm": {
+     "rotation": [
+      "-46 + math.sin(variable.fnar_t * 1100 + 30) * 6",
+      0,
+      0
+     ]
+    },
+    "right_leg": {
+     "rotation": [
+      0,
+      0,
+      2
+     ]
+    },
+    "left_leg": {
+     "rotation": [
+      0,
+      0,
+      -2
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.talk": {
+   "loop": true,
+   "bones": {
+    "body": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 95) * 1.08",
+      0,
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 240) * 3",
+      "math.sin(variable.fnar_t * 67) * 5",
+      0
+     ]
+    },
+    "right_arm": {
+     "rotation": [
+      "-24 + math.sin(variable.fnar_t * 170) * 8",
+      0,
+      6
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      "-62 + math.sin(variable.fnar_t * 310) * 22",
+      0,
+      0
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      0,
+      0,
+      -3
+     ]
+    },
+    "left_forearm": {
+     "rotation": [
+      -8,
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.sit": {
+   "loop": true,
+   "bones": {
+    "body": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 95) * 0.90",
+      0,
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 37) * 1.20 - math.sin(variable.fnar_t * 95 + 60) * 0.90",
+      "math.sin(variable.fnar_t * 23) * 2.00",
+      0
+     ]
+    },
+    "right_leg": {
+     "rotation": [
+      -84,
+      7,
+      0
+     ]
+    },
+    "left_leg": {
+     "rotation": [
+      -84,
+      -7,
+      0
+     ]
+    },
+    "right_shin": {
+     "rotation": [
+      "82 + math.sin(variable.fnar_t * 61) * 3",
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1.4,
+      1
+     ]
+    },
+    "left_shin": {
+     "rotation": [
+      "82 + math.sin(variable.fnar_t * 53 + 40) * 3",
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1.4,
+      1
+     ]
+    },
+    "right_arm": {
+     "rotation": [
+      -34,
+      0,
+      4
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      -48,
+      0,
+      0
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      -34,
+      0,
+      -4
+     ]
+    },
+    "left_forearm": {
+     "rotation": [
+      -48,
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.eat": {
+   "loop": true,
+   "bones": {
+    "right_leg": {
+     "rotation": [
+      -84,
+      7,
+      0
+     ]
+    },
+    "left_leg": {
+     "rotation": [
+      -84,
+      -7,
+      0
+     ]
+    },
+    "right_shin": {
+     "rotation": [
+      "82 + math.sin(variable.fnar_t * 61) * 3",
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1.4,
+      1
+     ]
+    },
+    "left_shin": {
+     "rotation": [
+      "82 + math.sin(variable.fnar_t * 53 + 40) * 3",
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1.4,
+      1
+     ]
+    },
+    "right_arm": {
+     "rotation": [
+      "-34 - math.clamp(math.sin(variable.fnar_t * 120) * 3, 0, 1) * 38",
+      "0 - math.clamp(math.sin(variable.fnar_t * 120) * 3, 0, 1) * 14",
+      4
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      "-48 - math.clamp(math.sin(variable.fnar_t * 120) * 3, 0, 1) * 74",
+      0,
+      0
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      -34,
+      0,
+      -4
+     ]
+    },
+    "left_forearm": {
+     "rotation": [
+      -48,
+      0,
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      "math.clamp(math.sin(variable.fnar_t * 120) * 3, 0, 1) * 9 + math.sin(variable.fnar_t * 900) * math.clamp(math.sin(variable.fnar_t * 120 + 180) * 3, 0, 1) * 1.5",
+      0,
+      0
+     ]
+    },
+    "body": {
+     "rotation": [
+      "3 + math.clamp(math.sin(variable.fnar_t * 120) * 3, 0, 1) * 4",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.sit_clap": {
+   "loop": true,
+   "bones": {
+    "body": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 95) * 1.26",
+      0,
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 37) * 1.68 - math.sin(variable.fnar_t * 95 + 60) * 1.26",
+      "math.sin(variable.fnar_t * 23) * 2.80",
+      0
+     ]
+    },
+    "right_leg": {
+     "rotation": [
+      -84,
+      7,
+      0
+     ]
+    },
+    "left_leg": {
+     "rotation": [
+      -84,
+      -7,
+      0
+     ]
+    },
+    "right_shin": {
+     "rotation": [
+      "82 + math.sin(variable.fnar_t * 61) * 3",
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1.4,
+      1
+     ]
+    },
+    "left_shin": {
+     "rotation": [
+      "82 + math.sin(variable.fnar_t * 53 + 40) * 3",
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1.4,
+      1
+     ]
+    },
+    "right_arm": {
+     "rotation": [
+      -58,
+      "-22 + math.sin(variable.fnar_t * 1500) * 9",
+      0
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      -62,
+      0,
+      0
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      -58,
+      "22 - math.sin(variable.fnar_t * 1500) * 9",
+      0
+     ]
+    },
+    "left_forearm": {
+     "rotation": [
+      -62,
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.sit_talk": {
+   "loop": true,
+   "bones": {
+    "body": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 95) * 1.08",
+      0,
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 240) * 3",
+      "math.sin(variable.fnar_t * 67) * 5",
+      0
+     ]
+    },
+    "right_leg": {
+     "rotation": [
+      -84,
+      7,
+      0
+     ]
+    },
+    "left_leg": {
+     "rotation": [
+      -84,
+      -7,
+      0
+     ]
+    },
+    "right_shin": {
+     "rotation": [
+      "82 + math.sin(variable.fnar_t * 61) * 3",
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1.4,
+      1
+     ]
+    },
+    "left_shin": {
+     "rotation": [
+      "82 + math.sin(variable.fnar_t * 53 + 40) * 3",
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1.4,
+      1
+     ]
+    },
+    "right_arm": {
+     "rotation": [
+      "-24 + math.sin(variable.fnar_t * 170) * 8",
+      0,
+      6
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      "-62 + math.sin(variable.fnar_t * 310) * 22",
+      0,
+      0
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      -34,
+      0,
+      -4
+     ]
+    },
+    "left_forearm": {
+     "rotation": [
+      -48,
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.sit_wave": {
+   "loop": true,
+   "bones": {
+    "body": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 95) * 0.90",
+      0,
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      "math.sin(variable.fnar_t * 37) * 1.20 - math.sin(variable.fnar_t * 95 + 60) * 0.90",
+      "math.sin(variable.fnar_t * 23) * 2.00",
+      0
+     ]
+    },
+    "right_leg": {
+     "rotation": [
+      -84,
+      7,
+      0
+     ]
+    },
+    "left_leg": {
+     "rotation": [
+      -84,
+      -7,
+      0
+     ]
+    },
+    "right_shin": {
+     "rotation": [
+      "82 + math.sin(variable.fnar_t * 61) * 3",
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1.4,
+      1
+     ]
+    },
+    "left_shin": {
+     "rotation": [
+      "82 + math.sin(variable.fnar_t * 53 + 40) * 3",
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1.4,
+      1
+     ]
+    },
+    "right_arm": {
+     "rotation": [
+      "-164 + math.sin(variable.fnar_t * 300) * 4",
+      0,
+      -32
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      -8,
+      0,
+      "math.sin(variable.fnar_t * 1000) * 26"
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      -34,
+      0,
+      -4
+     ]
+    },
+    "left_forearm": {
+     "rotation": [
+      -48,
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.sit_cheer": {
+   "loop": true,
+   "bones": {
+    "right_leg": {
+     "rotation": [
+      -84,
+      7,
+      0
+     ]
+    },
+    "left_leg": {
+     "rotation": [
+      -84,
+      -7,
+      0
+     ]
+    },
+    "right_shin": {
+     "rotation": [
+      "82 + math.sin(variable.fnar_t * 61) * 3",
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1.4,
+      1
+     ]
+    },
+    "left_shin": {
+     "rotation": [
+      "82 + math.sin(variable.fnar_t * 53 + 40) * 3",
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1.4,
+      1
+     ]
+    },
+    "right_arm": {
+     "rotation": [
+      "-172 + math.sin(variable.fnar_t * 700) * 7",
+      0,
+      "-34 + math.sin(variable.fnar_t * 350) * 7"
+     ]
+    },
+    "right_forearm": {
+     "rotation": [
+      "-10 + math.sin(variable.fnar_t * 700) * 6",
+      0,
+      0
+     ]
+    },
+    "left_arm": {
+     "rotation": [
+      "-172 + math.sin(variable.fnar_t * 700 + 90) * 7",
+      0,
+      "34 - math.sin(variable.fnar_t * 350) * 7"
+     ]
+    },
+    "left_forearm": {
+     "rotation": [
+      "-10 + math.sin(variable.fnar_t * 700 + 90) * 6",
+      0,
+      0
+     ]
+    },
+    "body": {
+     "rotation": [
+      -4,
+      "math.sin(variable.fnar_t * 260) * 5",
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      -6,
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.look": {
+   "loop": true,
+   "bones": {
+    "head": {
+     "rotation": [
+      "-variable.fnar_lp",
+      "variable.fnar_ly",
+      0
+     ]
+    }
+   }
+  },
+  "animation.fnar.guest.size": {
+   "loop": true,
+   "bones": {
+    "root": {
+     "scale": [
+      "variable.fnar_size",
+      "variable.fnar_size",
+      "variable.fnar_size"
+     ]
+    },
+    "head": {
+     "scale": [
+      "variable.fnar_head",
+      "variable.fnar_head",
+      "variable.fnar_head"
+     ]
+    }
+   }
+  }
+ }
+}

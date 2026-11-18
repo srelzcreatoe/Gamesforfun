@@ -34,7 +34,14 @@ async function buildScene(S) {
     const model = buildModel(geo, mat);
     // M.animation: an inline animation object (e.g. a candidate pose); M.anim + M.animName: from a file
     const animObj = M.animation ?? (M.anim ? (await json(M.anim)).animations[M.animName] : null);
-    if (animObj) applyAnimation(model, animObj, M.t ?? 0);
+    if (animObj) applyAnimation(model, animObj, M.t ?? 0, { vars: M.vars });
+    // M.layers: more animations of the same file playing on top (e.g. a size or head-look layer driven by M.vars)
+    for (const name of M.layers ?? []) {
+      const layer = M.anim ? (await json(M.anim)).animations[name] : null;
+      if (layer) applyAnimation(model, layer, M.t ?? 0, { vars: M.vars, additive: true });
+    }
+    // M.hide: bones a render controller's part_visibility switches off
+    for (const b of M.hide ?? []) { const n = model.bones.get(b); if (n) n.node.visible = false; }
     const holder = new THREE.Group();
     holder.add(model.root);
     if (M.eyes) {

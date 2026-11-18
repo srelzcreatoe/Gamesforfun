@@ -1,0 +1,54 @@
+{
+ "format_version": "1.10.0",
+ "render_controllers": {
+  "controller.render.fnar.guest": {
+   "arrays": {
+    "textures": {
+     "Array.skin": [
+      "Texture.s0",
+      "Texture.s1",
+      "Texture.s2",
+      "Texture.s3",
+      "Texture.s4",
+      "Texture.s5",
+      "Texture.s6",
+      "Texture.s7",
+      "Texture.s8",
+      "Texture.s9",
+      "Texture.s10",
+      "Texture.s11",
+      "Texture.s12",
+      "Texture.s13",
+      "Texture.s14",
+      "Texture.s15",
+      "Texture.s16",
+      "Texture.s17",
+      "Texture.s18",
+      "Texture.s19",
+      "Texture.s20",
+      "Texture.s21",
+      "Texture.s22",
+      "Texture.s23"
+     ]
+    }
+   },
+   "geometry": "Geometry.default",
+   "materials": [
+    {
+     "*": "Material.default"
+    }
+   ],
+   "textures": [
+    "Array.skin[query.property('fnar:skin')]"
+   ],
+   "part_visibility": [
+    {
+     "*": true
+    },
+    {
+     "slice": "variable.fnar_anim == 'eat'"
+    }
+   ]
+  }
+ }
+}

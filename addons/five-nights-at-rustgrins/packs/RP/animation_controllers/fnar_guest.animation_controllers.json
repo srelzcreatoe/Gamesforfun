@@ -1,0 +1,760 @@
+{
+ "format_version": "1.10.0",
+ "animation_controllers": {
+  "controller.animation.fnar.guest": {
+   "initial_state": "idle",
+   "states": {
+    "idle": {
+     "animations": [
+      "idle"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "hurry": "variable.fnar_anim == 'hurry'"
+      },
+      {
+       "clap": "variable.fnar_anim == 'clap'"
+      },
+      {
+       "cheer": "variable.fnar_anim == 'cheer'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "point": "variable.fnar_anim == 'point'"
+      },
+      {
+       "play": "variable.fnar_anim == 'play'"
+      },
+      {
+       "talk": "variable.fnar_anim == 'talk'"
+      },
+      {
+       "sit": "variable.fnar_anim == 'sit'"
+      },
+      {
+       "eat": "variable.fnar_anim == 'eat'"
+      },
+      {
+       "sit_clap": "variable.fnar_anim == 'sit_clap'"
+      },
+      {
+       "sit_talk": "variable.fnar_anim == 'sit_talk'"
+      },
+      {
+       "sit_wave": "variable.fnar_anim == 'sit_wave'"
+      },
+      {
+       "sit_cheer": "variable.fnar_anim == 'sit_cheer'"
+      }
+     ]
+    },
+    "walk": {
+     "animations": [
+      "walk"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "hurry": "variable.fnar_anim == 'hurry'"
+      },
+      {
+       "clap": "variable.fnar_anim == 'clap'"
+      },
+      {
+       "cheer": "variable.fnar_anim == 'cheer'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "point": "variable.fnar_anim == 'point'"
+      },
+      {
+       "play": "variable.fnar_anim == 'play'"
+      },
+      {
+       "talk": "variable.fnar_anim == 'talk'"
+      },
+      {
+       "sit": "variable.fnar_anim == 'sit'"
+      },
+      {
+       "eat": "variable.fnar_anim == 'eat'"
+      },
+      {
+       "sit_clap": "variable.fnar_anim == 'sit_clap'"
+      },
+      {
+       "sit_talk": "variable.fnar_anim == 'sit_talk'"
+      },
+      {
+       "sit_wave": "variable.fnar_anim == 'sit_wave'"
+      },
+      {
+       "sit_cheer": "variable.fnar_anim == 'sit_cheer'"
+      }
+     ]
+    },
+    "hurry": {
+     "animations": [
+      "hurry"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "clap": "variable.fnar_anim == 'clap'"
+      },
+      {
+       "cheer": "variable.fnar_anim == 'cheer'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "point": "variable.fnar_anim == 'point'"
+      },
+      {
+       "play": "variable.fnar_anim == 'play'"
+      },
+      {
+       "talk": "variable.fnar_anim == 'talk'"
+      },
+      {
+       "sit": "variable.fnar_anim == 'sit'"
+      },
+      {
+       "eat": "variable.fnar_anim == 'eat'"
+      },
+      {
+       "sit_clap": "variable.fnar_anim == 'sit_clap'"
+      },
+      {
+       "sit_talk": "variable.fnar_anim == 'sit_talk'"
+      },
+      {
+       "sit_wave": "variable.fnar_anim == 'sit_wave'"
+      },
+      {
+       "sit_cheer": "variable.fnar_anim == 'sit_cheer'"
+      }
+     ]
+    },
+    "clap": {
+     "animations": [
+      "clap"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "hurry": "variable.fnar_anim == 'hurry'"
+      },
+      {
+       "cheer": "variable.fnar_anim == 'cheer'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "point": "variable.fnar_anim == 'point'"
+      },
+      {
+       "play": "variable.fnar_anim == 'play'"
+      },
+      {
+       "talk": "variable.fnar_anim == 'talk'"
+      },
+      {
+       "sit": "variable.fnar_anim == 'sit'"
+      },
+      {
+       "eat": "variable.fnar_anim == 'eat'"
+      },
+      {
+       "sit_clap": "variable.fnar_anim == 'sit_clap'"
+      },
+      {
+       "sit_talk": "variable.fnar_anim == 'sit_talk'"
+      },
+      {
+       "sit_wave": "variable.fnar_anim == 'sit_wave'"
+      },
+      {
+       "sit_cheer": "variable.fnar_anim == 'sit_cheer'"
+      }
+     ]
+    },
+    "cheer": {
+     "animations": [
+      "cheer"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "hurry": "variable.fnar_anim == 'hurry'"
+      },
+      {
+       "clap": "variable.fnar_anim == 'clap'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "point": "variable.fnar_anim == 'point'"
+      },
+      {
+       "play": "variable.fnar_anim == 'play'"
+      },
+      {
+       "talk": "variable.fnar_anim == 'talk'"
+      },
+      {
+       "sit": "variable.fnar_anim == 'sit'"
+      },
+      {
+       "eat": "variable.fnar_anim == 'eat'"
+      },
+      {
+       "sit_clap": "variable.fnar_anim == 'sit_clap'"
+      },
+      {
+       "sit_talk": "variable.fnar_anim == 'sit_talk'"
+      },
+      {
+       "sit_wave": "variable.fnar_anim == 'sit_wave'"
+      },
+      {
+       "sit_cheer": "variable.fnar_anim == 'sit_cheer'"
+      }
+     ]
+    },
+    "wave": {
+     "animations": [
+      "wave"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "hurry": "variable.fnar_anim == 'hurry'"
+      },
+      {
+       "clap": "variable.fnar_anim == 'clap'"
+      },
+      {
+       "cheer": "variable.fnar_anim == 'cheer'"
+      },
+      {
+       "point": "variable.fnar_anim == 'point'"
+      },
+      {
+       "play": "variable.fnar_anim == 'play'"
+      },
+      {
+       "talk": "variable.fnar_anim == 'talk'"
+      },
+      {
+       "sit": "variable.fnar_anim == 'sit'"
+      },
+      {
+       "eat": "variable.fnar_anim == 'eat'"
+      },
+      {
+       "sit_clap": "variable.fnar_anim == 'sit_clap'"
+      },
+      {
+       "sit_talk": "variable.fnar_anim == 'sit_talk'"
+      },
+      {
+       "sit_wave": "variable.fnar_anim == 'sit_wave'"
+      },
+      {
+       "sit_cheer": "variable.fnar_anim == 'sit_cheer'"
+      }
+     ]
+    },
+    "point": {
+     "animations": [
+      "point"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "hurry": "variable.fnar_anim == 'hurry'"
+      },
+      {
+       "clap": "variable.fnar_anim == 'clap'"
+      },
+      {
+       "cheer": "variable.fnar_anim == 'cheer'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "play": "variable.fnar_anim == 'play'"
+      },
+      {
+       "talk": "variable.fnar_anim == 'talk'"
+      },
+      {
+       "sit": "variable.fnar_anim == 'sit'"
+      },
+      {
+       "eat": "variable.fnar_anim == 'eat'"
+      },
+      {
+       "sit_clap": "variable.fnar_anim == 'sit_clap'"
+      },
+      {
+       "sit_talk": "variable.fnar_anim == 'sit_talk'"
+      },
+      {
+       "sit_wave": "variable.fnar_anim == 'sit_wave'"
+      },
+      {
+       "sit_cheer": "variable.fnar_anim == 'sit_cheer'"
+      }
+     ]
+    },
+    "play": {
+     "animations": [
+      "play"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "hurry": "variable.fnar_anim == 'hurry'"
+      },
+      {
+       "clap": "variable.fnar_anim == 'clap'"
+      },
+      {
+       "cheer": "variable.fnar_anim == 'cheer'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "point": "variable.fnar_anim == 'point'"
+      },
+      {
+       "talk": "variable.fnar_anim == 'talk'"
+      },
+      {
+       "sit": "variable.fnar_anim == 'sit'"
+      },
+      {
+       "eat": "variable.fnar_anim == 'eat'"
+      },
+      {
+       "sit_clap": "variable.fnar_anim == 'sit_clap'"
+      },
+      {
+       "sit_talk": "variable.fnar_anim == 'sit_talk'"
+      },
+      {
+       "sit_wave": "variable.fnar_anim == 'sit_wave'"
+      },
+      {
+       "sit_cheer": "variable.fnar_anim == 'sit_cheer'"
+      }
+     ]
+    },
+    "talk": {
+     "animations": [
+      "talk"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "hurry": "variable.fnar_anim == 'hurry'"
+      },
+      {
+       "clap": "variable.fnar_anim == 'clap'"
+      },
+      {
+       "cheer": "variable.fnar_anim == 'cheer'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "point": "variable.fnar_anim == 'point'"
+      },
+      {
+       "play": "variable.fnar_anim == 'play'"
+      },
+      {
+       "sit": "variable.fnar_anim == 'sit'"
+      },
+      {
+       "eat": "variable.fnar_anim == 'eat'"
+      },
+      {
+       "sit_clap": "variable.fnar_anim == 'sit_clap'"
+      },
+      {
+       "sit_talk": "variable.fnar_anim == 'sit_talk'"
+      },
+      {
+       "sit_wave": "variable.fnar_anim == 'sit_wave'"
+      },
+      {
+       "sit_cheer": "variable.fnar_anim == 'sit_cheer'"
+      }
+     ]
+    },
+    "sit": {
+     "animations": [
+      "sit"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "hurry": "variable.fnar_anim == 'hurry'"
+      },
+      {
+       "clap": "variable.fnar_anim == 'clap'"
+      },
+      {
+       "cheer": "variable.fnar_anim == 'cheer'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "point": "variable.fnar_anim == 'point'"
+      },
+      {
+       "play": "variable.fnar_anim == 'play'"
+      },
+      {
+       "talk": "variable.fnar_anim == 'talk'"
+      },
+      {
+       "eat": "variable.fnar_anim == 'eat'"
+      },
+      {
+       "sit_clap": "variable.fnar_anim == 'sit_clap'"
+      },
+      {
+       "sit_talk": "variable.fnar_anim == 'sit_talk'"
+      },
+      {
+       "sit_wave": "variable.fnar_anim == 'sit_wave'"
+      },
+      {
+       "sit_cheer": "variable.fnar_anim == 'sit_cheer'"
+      }
+     ]
+    },
+    "eat": {
+     "animations": [
+      "eat"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "hurry": "variable.fnar_anim == 'hurry'"
+      },
+      {
+       "clap": "variable.fnar_anim == 'clap'"
+      },
+      {
+       "cheer": "variable.fnar_anim == 'cheer'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "point": "variable.fnar_anim == 'point'"
+      },
+      {
+       "play": "variable.fnar_anim == 'play'"
+      },
+      {
+       "talk": "variable.fnar_anim == 'talk'"
+      },
+      {
+       "sit": "variable.fnar_anim == 'sit'"
+      },
+      {
+       "sit_clap": "variable.fnar_anim == 'sit_clap'"
+      },
+      {
+       "sit_talk": "variable.fnar_anim == 'sit_talk'"
+      },
+      {
+       "sit_wave": "variable.fnar_anim == 'sit_wave'"
+      },
+      {
+       "sit_cheer": "variable.fnar_anim == 'sit_cheer'"
+      }
+     ]
+    },
+    "sit_clap": {
+     "animations": [
+      "sit_clap"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "hurry": "variable.fnar_anim == 'hurry'"
+      },
+      {
+       "clap": "variable.fnar_anim == 'clap'"
+      },
+      {
+       "cheer": "variable.fnar_anim == 'cheer'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "point": "variable.fnar_anim == 'point'"
+      },
+      {
+       "play": "variable.fnar_anim == 'play'"
+      },
+      {
+       "talk": "variable.fnar_anim == 'talk'"
+      },
+      {
+       "sit": "variable.fnar_anim == 'sit'"
+      },
+      {
+       "eat": "variable.fnar_anim == 'eat'"
+      },
+      {
+       "sit_talk": "variable.fnar_anim == 'sit_talk'"
+      },
+      {
+       "sit_wave": "variable.fnar_anim == 'sit_wave'"
+      },
+      {
+       "sit_cheer": "variable.fnar_anim == 'sit_cheer'"
+      }
+     ]
+    },
+    "sit_talk": {
+     "animations": [
+      "sit_talk"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "hurry": "variable.fnar_anim == 'hurry'"
+      },
+      {
+       "clap": "variable.fnar_anim == 'clap'"
+      },
+      {
+       "cheer": "variable.fnar_anim == 'cheer'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "point": "variable.fnar_anim == 'point'"
+      },
+      {
+       "play": "variable.fnar_anim == 'play'"
+      },
+      {
+       "talk": "variable.fnar_anim == 'talk'"
+      },
+      {
+       "sit": "variable.fnar_anim == 'sit'"
+      },
+      {
+       "eat": "variable.fnar_anim == 'eat'"
+      },
+      {
+       "sit_clap": "variable.fnar_anim == 'sit_clap'"
+      },
+      {
+       "sit_wave": "variable.fnar_anim == 'sit_wave'"
+      },
+      {
+       "sit_cheer": "variable.fnar_anim == 'sit_cheer'"
+      }
+     ]
+    },
+    "sit_wave": {
+     "animations": [
+      "sit_wave"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "hurry": "variable.fnar_anim == 'hurry'"
+      },
+      {
+       "clap": "variable.fnar_anim == 'clap'"
+      },
+      {
+       "cheer": "variable.fnar_anim == 'cheer'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "point": "variable.fnar_anim == 'point'"
+      },
+      {
+       "play": "variable.fnar_anim == 'play'"
+      },
+      {
+       "talk": "variable.fnar_anim == 'talk'"
+      },
+      {
+       "sit": "variable.fnar_anim == 'sit'"
+      },
+      {
+       "eat": "variable.fnar_anim == 'eat'"
+      },
+      {
+       "sit_clap": "variable.fnar_anim == 'sit_clap'"
+      },
+      {
+       "sit_talk": "variable.fnar_anim == 'sit_talk'"
+      },
+      {
+       "sit_cheer": "variable.fnar_anim == 'sit_cheer'"
+      }
+     ]
+    },
+    "sit_cheer": {
+     "animations": [
+      "sit_cheer"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "hurry": "variable.fnar_anim == 'hurry'"
+      },
+      {
+       "clap": "variable.fnar_anim == 'clap'"
+      },
+      {
+       "cheer": "variable.fnar_anim == 'cheer'"
+      },
+      {
+       "wave": "variable.fnar_anim == 'wave'"
+      },
+      {
+       "point": "variable.fnar_anim == 'point'"
+      },
+      {
+       "play": "variable.fnar_anim == 'play'"
+      },
+      {
+       "talk": "variable.fnar_anim == 'talk'"
+      },
+      {
+       "sit": "variable.fnar_anim == 'sit'"
+      },
+      {
+       "eat": "variable.fnar_anim == 'eat'"
+      },
+      {
+       "sit_clap": "variable.fnar_anim == 'sit_clap'"
+      },
+      {
+       "sit_talk": "variable.fnar_anim == 'sit_talk'"
+      },
+      {
+       "sit_wave": "variable.fnar_anim == 'sit_wave'"
+      }
+     ]
+    }
+   }
+  }
+ }
+}
