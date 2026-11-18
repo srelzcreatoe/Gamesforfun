@@ -119,8 +119,59 @@ Custom Night "20/20/20/20/20/20".
 Unique extras: hallucination flashes (posters that change, the Ringmaster's
 face over the monitor, "SHOWTIME" text), animatronics turning their heads to
 the camera when watched, a rare *Rusted Rustgrin* sighting, Free Roam daytime
-mode with the band performing, an Animatronic Gallery, clippings board,
-accessibility remote and captions.
+mode with the band performing and the pizzeria full of guests, an Animatronic
+Gallery, clippings board, accessibility remote and captions.
+
+### Free Roam by day: the guests
+
+By day the pizzeria is open and people are in it (`mc/guests.js`, data in
+`data/guests.js`): 14 to 20 at a time, in small groups (a parent with a child or
+two, couples, teenagers). A group appears across the street or at the far end of
+the front walk, where no player is looking, walks in through the front doors (the
+bell over them rings), stops at the hand-stamp podium, and then goes round a few
+stops of its own: a table in the Dining Hall (they sit, eat, talk), the arcade
+cabinets and the skee-ball lanes, the Prize Corner's counter, the edge of the
+ball pit, the front of the stage. After a few minutes it walks out to the street
+and is gone; new groups keep coming while there is room. When a show is announced
+the ones who are wandering head for the Dining Hall; during the show everyone
+there watches the stage (seated guests turn on their chairs, the others stand in
+front, children in the first row, never in the middle aisle the band looks down)
+and they clap and cheer, loudest at the bow. They glance at a player who comes
+close, and some wave; a walking guest waits a moment for a player in its way.
+
+At closing time (the Time Card) the murmur dies with the music, everyone stops
+and looks at the stage, then every group gets up and leaves through the front
+doors: each grown-up takes a child or two by the hand, and they run once the
+lights start going out. Every room goes dark in turn, the Entrance Hall last, at
+the moment the last child stops in the doorway and looks back at the stage. The
+night does not start until it has gone too. Guests exist only in Free Roam and
+during closing time: the lobby, a night, a rebuild and a script reload remove
+them (by type and tag).
+
+* **Entity** `fnar:guest` (built by `tools/entities/build_guest.py`, nothing
+  borrowed): a humanoid geometry of our own with elbows and knees; 24 painted
+  64 x 64 skins (16 adults and teenagers, 8 children; `previews/guest_skins.png`)
+  picked by `fnar:skin` through a render-controller texture array; `fnar:size`
+  (percent of adult height: the root bone scales, a child's head a little less);
+  `fnar:anim` (idle, walk, hurry, clap, cheer, wave, point, play, talk, sit, eat,
+  sit_clap, sit_talk, sit_wave, sit_cheer: all looping Molang animations, offset
+  per guest so a crowd is never in step); `fnar:hold` (a hand held out, for
+  walking hand in hand); `fnar:look_yaw` / `fnar:look_pitch` (head turn, like the
+  animatronics'). No gravity, no collision, no damage, not pushable, persistent:
+  it is moved by teleport, like the animatronics.
+* **Walkways**: a graph of waypoints with a half-width at each one. A guest keeps
+  a lane of its own, right of the middle, so a crowd is never a parade and people
+  going opposite ways pass each other. Seats and arcade cabinets are found in the
+  build plan; each has the spot where a guest steps off the walkway.
+  `tools/map/validate_guests.mjs` (run by the build) clears every corridor, every
+  step and every slide onto a seat in the built voxel model, from the feet to the
+  top of the head: no guest walks through a table, a wall, a rope or a closed door
+  leaf. `--plot out.png` draws the whole map.
+* **The front doors**: the facade's plinth runs across the doorway at foot level
+  in the build plan, so the two open leaves are opened down to the floor while
+  guests are about (two blocks, `DAY_OPEN`) and put back as built for the night.
+* **Cost**: only walking guests are moved every tick; the others are looked at
+  every second or two, staggered.
 
 ## 4. Map
 

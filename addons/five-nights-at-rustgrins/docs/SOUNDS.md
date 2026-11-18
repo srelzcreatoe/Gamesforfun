@@ -10,7 +10,8 @@ No samples from FNAF or anywhere else.
   Every event lists its file(s) as `"sounds/fnar/<group>/<name>"` (no
   extension); several variants per event where noted (Minecraft picks one at
   random). Set `"category"` (`ambient`, `block`, `hostile`, `ui`, `music`; also
-  `weather` for the storms and `player` for the guard's own heartbeat) and,
+  `weather` for the storms, `player` for the guard's own heartbeat and `neutral`
+  for the daytime guests) and,
   for positional sounds, `"min_distance"`/`"max_distance"`.
 * **Positional sounds must be mono** (stereo is not spatialised). Music and UI
   stingers may be stereo.
@@ -126,6 +127,14 @@ distances given. The stereo ones play at the player.
 | `fnar.night.twitch` | mono, `hostile` | 0.4 s ×3 | 1/16 | a sudden glitchy servo jerk, an animatronic head snapping round toward you |
 | `fnar.night.stinger` | stereo, `hostile` | 3 s ×2 | - | big scare sting: a reversed swell into a sub-bass hit with a dissonant metal cluster and a brass-like stab on top, ending in a ringing tail (and a ringing in the ears). Quieter than the jumpscares |
 | `fnar.night.midnight` | stereo, `ui` | 6 s | - | the start of the night shift: a wall clock ticking, one low distant bell toll, a heartbeat swelling under it, a breath of static at the end |
+
+**The pizzeria by day** (the guests in Free Roam; `recipes_day.py`). All mono and
+positional, category `neutral` (people) or `block` (the door bell).
+| event | channels | dur | dist (min/max) | description |
+|---|---|---|---|---|
+| `fnar.day.crowd` | mono, `neutral` | 14 s loop (280 ticks) | 10/44 | a family restaurant on a busy afternoon, heard from inside the room: two dozen people talking over each other, children chattering and laughing, cutlery on plates, a chair pushed back. Formant voices, no words. Played from the middle of the Dining Hall and of the Game Room at a level set by how many guests are there; stops when closing time starts |
+| `fnar.day.cheer` | mono, `neutral` | 3.2 s ×3 | 8/44 | the audience at a show for a few seconds: a dozen people clapping, each at their own pace, a "woo!", children's "yay!" (v2: the children louder; v3: a short polite round). During the show now and then, and at the bow on top of `fnar.final.applause` |
+| `fnar.day.door_chime` | mono, `block` | 1.8 s | 4/30 | the bell over the front doors as a group comes in: two warm notes, ding... dong, and the door settling |
 
 **Hallucinations / UI / music**
 | event | stereo | dur | description |
