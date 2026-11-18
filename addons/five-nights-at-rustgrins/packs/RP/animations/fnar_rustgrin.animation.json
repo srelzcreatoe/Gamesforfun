@@ -18372,7 +18372,7 @@
    "bones": {
     "head": {
      "rotation": [
-      "-variable.fnar_lp",
+      "variable.fnar_lp",
       "variable.fnar_ly",
       0
      ]

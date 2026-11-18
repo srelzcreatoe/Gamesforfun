@@ -96,6 +96,8 @@ const click = (x, y, z, strict = true) => {
   components['fnar:control'].onPlayerInteract({ player: P, block: b });
 };
 const clickMonitor = (strict = true) => click(OFFICE.monitor.x, OFFICE.monitor.y, OFFICE.monitor.z, strict);
+// the dead CRTs on the wall above the desk are scenery: clicking one must not raise the cameras
+const clickDeadCrt = () => click(OFFICE.monitor.x, OFFICE.monitor.y + 1, OFFICE.monitor.z, false);
 
 // 3a. the cameras, the way a player first uses them ----------------------------------
 const { CAMERAS } = await import(path.join(ROOT, 'packs/BP/scripts/data/cameras.js'));
@@ -116,6 +118,9 @@ for (const [action, b] of Object.entries(OFFICE.buttons)) {
   const d = Math.hypot(P.getHeadLocation().x - w.x, P.getHeadLocation().y - w.y, P.getHeadLocation().z - w.z);
   check(d <= GAME_REACH, `${action} button within reach of the seat (${d.toFixed(1)} blocks)`);
 }
+clickDeadCrt();
+await steps(4);
+check(!game().session.devices.cams.open, 'a dead CRT on the wall does not raise the cameras');
 camScript = ['busy', 'busy'];
 clickMonitor();
 await steps(6);
@@ -127,8 +132,26 @@ check(P.effects.has('night_vision'), 'the camera feed has night vision');
   check(lit.length === 3, `CAM 1A lights the band on the stage (${lit.length}/3 lit)`);
 }
 check(cams().cam === '1A', `the monitor opens on CAM 1A (got ${cams().cam}; the hotbar reset must not count as a scroll)`);
+{
+  const band = ['rustgrin', 'mirehop', 'noxbriar'].map((id) => [...mock.entities.values()].find((e) => e.typeId === `fnar:${id}`));
+  check(band.every((e) => e?.props['fnar:hollow'] === true && e.props['fnar:look_pitch'] < 0), 'the first look of the night: the band is already staring up into the lens, eyes empty');
+}
 await steps(40);
 check(cams().open, 'a busy player (UserBusy) does not lower the monitor');
+{
+  // watched on CAM 1A (up under the ceiling), the band turn their heads UP to the lens, eyes on it
+  const { HEAD_AIM } = await import(path.join(ROOT, 'packs/BP/scripts/data/head_aim.js'));
+  const { CAMERA_BY_ID } = await import(path.join(ROOT, 'packs/BP/scripts/data/cameras.js'));
+  const r = [...mock.entities.values()].find((e) => e.typeId === 'fnar:rustgrin');
+  const lp = r?.props['fnar:look_pitch'];
+  const [, p0, , up, fwd] = HEAD_AIM.rustgrin[r?.props['fnar:anim'] ?? 'pose'];
+  const cam = CAMERA_BY_ID['1A'].loc;
+  const n = (await import(path.join(ROOT, 'packs/BP/scripts/data/nodes.js'))).NODES.ST_R;
+  // the true pitch from his eyes to the lens (Minecraft pitch: negative = up); he faces south, +z
+  const want = (-Math.atan2(cam[1] - (n.y + up), Math.hypot(cam[0] - n.x, cam[2] - (n.z + fwd))) * 180) / Math.PI;
+  check(typeof lp === 'number' && lp < -5, `stared at from a camera above, Rustgrin looks up, not down (look_pitch ${lp})`);
+  check(Math.abs(p0 + lp - want) < 2.5, `and his eyes are on the lens: pose ${p0} + look ${lp} = ${(p0 + lp).toFixed(1)}, the lens is at ${want.toFixed(1)}`);
+}
 check(!!held, 'the camera map is shown again after UserBusy');
 world.afterEvents.playerHotbarSelectedSlotChange.fire({ player: P, previousSlotSelected: 4, newSlotSelected: 5 });
 await steps(6);
@@ -295,6 +318,24 @@ check(P.music === 'fnar.music.bgm' && game().save.settings.bgm === true, 'and ba
     const dr = game().dread;
     const now = () => system.currentTick;
     check(mock.sounds.includes('fnar.night.midnight') && game().audio.loops.has('dread_drone'), 'the night shift starts with the midnight sting and the drone under it');
+    // the opening of this night (night 2, started 5 ticks ago): black, the doors lock, the lamp is dead; then
+    // the breakers, the clock, a red line under 12 AM, the lamp catching, the hall lights by themselves
+    {
+      const lampLit = () => blockAt(OFFICE.lamp.x, OFFICE.lamp.y, OFFICE.lamp.z).permutation.getState('fnar:lit');
+      const hallLamp = (side) => { const h = OFFICE.hallLights[side].lamp; return blockAt(h.x, h.y, h.z).permutation.getState('fnar:lit'); };
+      check(lampLit() === false, 'the shift opens in the dark: the office lamp is dead');
+      const n0 = mock.sounds.length - 8;
+      const t0 = mock.titles.length;
+      await steps(60);
+      const heard = mock.sounds.slice(Math.max(0, n0));
+      check(heard.includes('fnar.light.off') && heard.includes('fnar.night.midnight'), 'in the dark: the breakers go, then the clock and the bell');
+      check(mock.titles.slice(t0).some(([t]) => /YOU CAME BACK/.test(t)), 'night 2: for a blink, YOU CAME BACK under 12 AM');
+      await steps(45);
+      check(lampLit() === true, 'then the office lamp catches');
+      let selfLit = false;
+      await steps(40, () => { selfLit ||= hallLamp('L') === true; });
+      check(selfLit && hallLamp('L') === false && game().session.devices.lightL === false, 'the left hall light comes on by itself for a moment, on nothing');
+    }
     const d = { ...game().session.snapshot().devices, doorL: true, lightL: false };
     const fake = { id: 'mirehop', node: 'DOOR_L' };
     dr.tell(fake, d, P, now()); // the first tell waits a few seconds after the arrival

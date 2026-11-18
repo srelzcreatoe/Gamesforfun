@@ -198,12 +198,13 @@ def _head_parts(g, bone, x0=0.0, y0=0.0, z0=1.0, ears=True, hats=True, rat_teeth
                 c0 += 0.0 if k == 0 else (0.5 * k if sx < 0 else -0.5 * k)
                 g.box(f'{bone}_cat', o(c0, y, 0), o(c0 + w, y + h, 1.5), {'north': Face(ear, f'ec{k}'), 'south': Face(ear, f'ecb{k}'),
                                                                          'sides': Face(ear, f'ecs{k}'), 'ends': Face(ear, f'ect{k}')})
-        # rabbit: one ear torn off to a stub, the other bent over at the base
+        # rabbit: two upright ears, the same height (they used to be one torn stub and one bent over: on a
+        # shelf next to the others it just looked crooked)
         g.box(f'{bone}_rabbit', o(-4, 9.5, 0.5), o(-1.5, 12.5, 2), {'north': Face(ear, 'ea'), 'south': Face(ear, 'eab'), 'sides': Face(ear, 'eas'),
-                                                                   'ends': Face(torn_end, 'eat')})
-        g.bone(f'{bone}_rabbit_bent', pivot=o(2.75, 9.5, 1.25), rotation=(0, 0, -45))
-        g.box(f'{bone}_rabbit_bent', o(1.5, 9.5, 0.5), o(3.75, 12.5, 2), {'north': Face(ear, 'ea2'), 'south': Face(ear, 'eab2'), 'sides': Face(ear, 'eas2'),
-                                                                      'ends': Face(ear, 'eat2')})
+                                                                   'ends': Face(ear, 'eat')})
+        g.bone(f'{bone}_rabbit_bent', pivot=o(2.75, 9.5, 1.25))
+        g.box(f'{bone}_rabbit_bent', o(1.5, 9.5, 0.5), o(4, 12.5, 2), {'north': Face(ear, 'ea'), 'south': Face(ear, 'eab'), 'sides': Face(ear, 'eas'),
+                                                                   'ends': Face(ear, 'eat')})
     if hats:
         g.box(f'{bone}_hat_rustgrin', o(-2.5, 10, -1.5), o(2.5, 10.5, 2.5), {'sides': Face(hat, 'hb1'), 'ends': Face(hat, 'hb1t')})
         g.box(f'{bone}_hat_rustgrin', o(-1.5, 10.5, -0.5), o(1.5, 12.75, 1.5), {'sides': Face(hat, 'hc1'), 'ends': Face(hat, 'hc1t')})
@@ -345,7 +346,7 @@ def endo_parts(out):
     g.box('skull', (0.5, 0, 3.5), (1, 0.5, 6), {'sides': Face(wire(WIRE_YEL), 'sw2'), 'up': Face(wire(WIRE_YEL), 'sw2u')})
 
     # ---- 1: a forearm and hand lying on the bench, fingers half curled
-    g.bone('arm', pivot=(0, 0, 0), rotation=(0, 22.5, 0))
+    g.bone('arm', pivot=(0, 0, 0))  # laid straight along the bench
     g.box('arm', (-0.5, 0.5, 1), (0.5, 1.5, 7.5), {'sides': Face(rod(), 'ar1'), 'ends': Face(rod(), 'ar1e')})
     g.box('arm', (-2, 0.5, 1.5), (-1.25, 1.25, 7), {'sides': Face(rod(CHROME, 3), 'ar2'), 'ends': Face(rod(CHROME), 'ar2e')})
     g.box('arm', (-1.5, 0, 6.5), (1.5, 2, 8), {'sides': Face(joint, 'elb'), 'ends': Face(joint, 'elbe')})
@@ -378,7 +379,7 @@ def endo_parts(out):
         g.box('stand', (x0, 4, -0.25), (x0 + 1.5, 7.5, 0.75), {'sides': Face(rod(STEEL, 2), 'ua'), 'ends': Face(joint, 'uae')})
     g.box('stand', (-1.5, 6, 1.75), (-1, 6.5, 2.5), {'sides': Face(wire(WIRE_RED), 'cw1')})
     g.box('stand', (0.5, 4.5, 1.75), (1, 8, 2.25), {'sides': Face(wire(WIRE_YEL), 'cw2')})
-    _endo_skull(g, 'stand_head', 0, 7.75, -0.5, tilt=(0, 0, 22.5))
+    _endo_skull(g, 'stand_head', 0, 7.75, -0.5)  # level on its neck
     out.geo(g, {'geometry.fnar.endo_parts': (['skull'], (0, 0, 0)), 'geometry.fnar.endo_parts_arm': (['arm'], (0, 0, 0)),
                 'geometry.fnar.endo_parts_stand': (['stand', 'stand_head'], (0, 0, 0))})
     out.tex('endo_parts', g.paint())
@@ -468,7 +469,7 @@ def slumped_suit(out):
         g.box('body', (x0, 0, -4), (x0 + 4, 3.5, 1), {'sides': Face(fur(3), 'thigh'), 'up': Face(fur(4), 'thighu'), 'north': Face(fur(2), 'thighn')})
     # feet, toes up; the right one fallen outward
     g.box('body', (-4.5, 0, -7), (-0.5, 4.5, -4), {'north': Face(paw, 'pawn'), 'sides': Face(fur(3), 'paws'), 'up': Face(fur(3), 'pawu')})
-    g.bone('foot_r', pivot=(2.5, 0, -4), rotation=(0, -22.5, 0))
+    g.bone('foot_r', pivot=(2.5, 0, -4))
     g.box('foot_r', (0.5, 0, -7), (4.5, 4.5, -4), {'north': Face(paw, 'pawn'), 'sides': Face(fur(3), 'paws'), 'up': Face(fur(3), 'pawu')})
     # arms hanging down, paws on the floor
     for sx in (-1, 1):
@@ -476,9 +477,9 @@ def slumped_suit(out):
         g.box('body', (x0, 1.5, 3), (x0 + 2, 8.5, 6), {'sides': Face(fur(3), 'arm'), 'up': Face(fur(4), 'armu')})
         g.box('body', (x0, 0, 1.5), (x0 + 2, 1.5, 5.5), {'north': Face(paw, 'hpn'), 'sides': Face(fur(2), 'hps'),
                                                                                           'up': Face(fur(3), 'hpu')})
-    # the head has dropped forward and to one side
+    # the head has dropped forward (straight: no roll to one side)
     g.bone('head', pivot=(0, 9, 5), rotation=(-22.5, 0, 0))
-    g.bone('headroll', pivot=(0, 9, 5), rotation=(0, 0, 22.5), parent='head')
+    g.bone('headroll', pivot=(0, 9, 5), parent='head')
     g.box('headroll', (-4, 9, 1.5), (4, 14.5, 7), {'north': head_face, 'east': Face(fur(3), 'hs'), 'west': Face(fur(3), 'hs'), 'up': Face(fur(4), 'hu'),
                                                 'south': Face(fur(2), 'hb'), 'down': Face(collar, 'hd')})
     g.box('headroll', (-2.5, 9.5, -0.5), (2.5, 12, 1.5), {'north': Face(snout, 'mn'), 'sides': Face(snout, 'ms'), 'up': Face(snout, 'mu'), 'down': Face(snout, 'md')})
