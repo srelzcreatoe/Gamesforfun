@@ -96,6 +96,8 @@ const click = (x, y, z, strict = true) => {
   components['fnar:control'].onPlayerInteract({ player: P, block: b });
 };
 const clickMonitor = (strict = true) => click(OFFICE.monitor.x, OFFICE.monitor.y, OFFICE.monitor.z, strict);
+// the dead CRTs on the wall above the desk are scenery: clicking one must not raise the cameras
+const clickDeadCrt = () => click(OFFICE.monitor.x, OFFICE.monitor.y + 1, OFFICE.monitor.z, false);
 
 // 3a. the cameras, the way a player first uses them ----------------------------------
 const { CAMERAS } = await import(path.join(ROOT, 'packs/BP/scripts/data/cameras.js'));
@@ -116,6 +118,9 @@ for (const [action, b] of Object.entries(OFFICE.buttons)) {
   const d = Math.hypot(P.getHeadLocation().x - w.x, P.getHeadLocation().y - w.y, P.getHeadLocation().z - w.z);
   check(d <= GAME_REACH, `${action} button within reach of the seat (${d.toFixed(1)} blocks)`);
 }
+clickDeadCrt();
+await steps(4);
+check(!game().session.devices.cams.open, 'a dead CRT on the wall does not raise the cameras');
 camScript = ['busy', 'busy'];
 clickMonitor();
 await steps(6);

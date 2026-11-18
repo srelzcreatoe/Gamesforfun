@@ -1746,6 +1746,12 @@ export class Game {
     if (this.lastControl?.key === key && now - this.lastControl.tick <= 4) return; // the same click, reported twice
     this.lastControl = { key, tick: now };
     if (t === 'fnar:crt_monitor') {
+      // only the monitor on the desk: the bank of dead CRTs on the wall above it is scenery
+      const m = L(block.location);
+      if (m.x !== OFFICE.monitor.x || m.y !== OFFICE.monitor.y || m.z !== OFFICE.monitor.z) {
+        this.hud.setMessage('Dead. Only the monitor on the desk still works.', now, 50);
+        return;
+      }
       this.feedback(this.session.input('cams_toggle'));
       return;
     }
