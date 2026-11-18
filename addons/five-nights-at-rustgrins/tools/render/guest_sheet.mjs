@@ -28,7 +28,7 @@ function guest(skin, { anim = 'idle', t = 0.4, yaw = 0, pos = [0, 0, 0], size, h
   return {
     geo: GEO, texture: tex(skin), anim: ANIM, animName: `animation.fnar.guest.${anim}`, t: 0, yaw, pos, scale: INFO.scale,
     layers: ['animation.fnar.guest.size'], hide: anim === 'eat' ? [] : ['slice'],
-    vars: { fnar_size: s, fnar_head: 1 + Math.min(Math.max(0.92 - s, 0), 0.45) * 0.8, fnar_t: time, fnar_w: (time * 560) / s, fnar_hl: hold === 1 ? 1 : 0, fnar_hr: hold === 2 ? 1 : 0, fnar_ha: s < 0.8 ? 98 : 34 },
+    vars: { fnar_size: s, fnar_head: 1 + Math.min(Math.max(0.92 - s, 0), 0.45) * 0.8, fnar_t: time, fnar_w: (time * 700) / s, fnar_hl: hold === 1 ? 1 : 0, fnar_hr: hold === 2 ? 1 : 0, fnar_ha: s < 0.8 ? 98 : 34 },
   };
 }
 

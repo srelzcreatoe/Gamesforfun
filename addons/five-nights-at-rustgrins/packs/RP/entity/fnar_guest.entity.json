@@ -43,9 +43,10 @@
      "variable.fnar_size = query.property('fnar:size') * 0.01;",
      "variable.fnar_head = 1.0 + math.clamp(0.92 - variable.fnar_size, 0.0, 0.45) * 0.8;",
      "variable.fnar_t = query.life_time + query.property('fnar:skin') * 0.73;",
-     "variable.fnar_w = variable.fnar_t * 560.0 / variable.fnar_size;",
-     "variable.fnar_hl = query.property('fnar:hold') == 1;",
-     "variable.fnar_hr = query.property('fnar:hold') == 2;",
+     "variable.fnar_w = variable.fnar_t * 700.0 / variable.fnar_size;",
+     "variable.fnar_hold = query.property('fnar:hold');",
+     "variable.fnar_hl = variable.fnar_hold == 1 || variable.fnar_hold == 3;",
+     "variable.fnar_hr = variable.fnar_hold >= 2;",
      "variable.fnar_ha = variable.fnar_size < 0.8 ? 98.0 : 34.0;",
      "variable.fnar_ly = math.lerp(variable.fnar_ly ?? 0, query.property('fnar:look_yaw'), 0.12);",
      "variable.fnar_lp = math.lerp(variable.fnar_lp ?? 0, query.property('fnar:look_pitch'), 0.12);"

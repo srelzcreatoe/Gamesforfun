@@ -81,42 +81,42 @@
     },
     "right_leg": {
      "rotation": [
-      "math.sin(variable.fnar_w) * 27",
+      "math.sin(variable.fnar_w) * 30",
       0,
       0
      ]
     },
     "left_leg": {
      "rotation": [
-      "0 - math.sin(variable.fnar_w) * 27",
+      "0 - math.sin(variable.fnar_w) * 30",
       0,
       0
      ]
     },
     "right_shin": {
      "rotation": [
-      "math.max(0, 0 - math.cos(variable.fnar_w)) * 42",
+      "math.max(0, 0 - math.cos(variable.fnar_w)) * 44",
       0,
       0
      ]
     },
     "left_shin": {
      "rotation": [
-      "math.max(0, math.cos(variable.fnar_w)) * 42",
+      "math.max(0, math.cos(variable.fnar_w)) * 44",
       0,
       0
      ]
     },
     "right_arm": {
      "rotation": [
-      "(1 - variable.fnar_hr) * (0 - math.sin(variable.fnar_w) * 22)",
+      "(1 - variable.fnar_hr) * (0 - math.sin(variable.fnar_w) * 24)",
       0,
       "(1 - variable.fnar_hr) * (2) + variable.fnar_hr * variable.fnar_ha"
      ]
     },
     "left_arm": {
      "rotation": [
-      "(1 - variable.fnar_hl) * (math.sin(variable.fnar_w) * 22)",
+      "(1 - variable.fnar_hl) * (math.sin(variable.fnar_w) * 24)",
       0,
       "(1 - variable.fnar_hl) * (-2) - variable.fnar_hl * variable.fnar_ha"
      ]

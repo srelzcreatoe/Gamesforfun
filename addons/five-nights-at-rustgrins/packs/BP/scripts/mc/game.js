@@ -20,6 +20,7 @@ import { LOBBY_BUTTON_AT, STAR_SLOTS } from '../data/lobby.js';
 import { CALLS, HUNG_UP, TAKEOVER, FINAL, ENDINGS, TUTORIAL_HINTS, KILL_TIPS, DAY_TALK, CREEPY_TALK, SHOW_PA, CLOSING_PA, ENCORE } from '../data/story.js';
 import { Builder } from './builder.js';
 import { Puppets, yawToward } from './puppets.js';
+import { Guests } from './guests.js';
 import { Dread } from './dread.js';
 import { LEAN_NODES, leanSpot } from './lean.js';
 import { NightSet } from './nightset.js';
@@ -122,6 +123,7 @@ export class Game {
     this.dread = new Dread(this);
     this.act = new Actuators(this.plan.meta);
     this.nightset = new NightSet(this);
+    this.guests = new Guests(this);
     this.audio = new Audio();
     this.hud = new Hud();
     this.cams = new CameraView();
@@ -861,6 +863,8 @@ export class Game {
     for (const p of this.players()) this.toFreeRoam(p);
     this.stopBgm();
     this.sweepMobs();
+    // open for business: guests at the tables and the games, a family on its way in, more to come
+    this.guests.open();
   }
 
   /** @param {import('@minecraft/server').Player} p */
@@ -902,6 +906,7 @@ export class Game {
         if (!r.announced && now >= r.nextShow - SHOW.announce) {
           r.announced = true;
           this.roamPa(this.pickLine('show_soon', SHOW_PA.soon));
+          this.guests.showSoon(); // whoever is wandering finds a seat
         }
         if (now >= r.nextShow) this.startShow(now);
         else if (now >= r.nextAd) {
@@ -920,6 +925,7 @@ export class Game {
           this.audio.stop('show_midway');
           for (const id of CAST) this.puppets.anim(id, 'bow');
           for (const p of this.players()) this.audio.play('fnar.final.applause', null, p, { vol: 0.7 });
+          this.guests.showBow(); // and the audience in the hall claps and cheers
           this.roamPa(this.pickLine('show_end', SHOW_PA.end));
         }
         break;
@@ -944,6 +950,7 @@ export class Game {
           for (const id of CAST) this.puppets.look(id, 0, 0);
           this.dread.clearHollow();
           this.act.lampGroup('dining', true);
+          this.guests.showEnd();
         }
         break;
       default:
@@ -973,6 +980,7 @@ export class Game {
     this.audio.loop('show_band', 'fnar.music.showtime', 'stage', null, 1.0);
     this.audio.loop('show_midway', 'fnar.tophat.show', 'midway', null, 0.7);
     this.roamPa(this.pickLine('show_start', SHOW_PA.start));
+    this.guests.showStart(); // everyone in the Dining Hall turns to the stage
   }
 
   /** Turn an animatronic's head to the nearest player (Free Roam). */
@@ -1062,6 +1070,8 @@ export class Game {
     this.state = 'CLOSING';
     const alive = () => p.isValid && this.state === 'CLOSING';
     this.audio.stopAll();
+    // the guests stop where they are, look at the stage, then get up and file out through the front doors
+    this.guests.closing();
     try {
       this.audio.play('fnar.tophat.tape_out', 'stage', p, { vol: 1 });
       for (const id of CAST) {
@@ -1078,14 +1088,22 @@ export class Game {
         p.onScreenDisplay.setActionBar(`§5[PA] §dThe Ringmaster§7: §f${fill(line, { name: p.name })}`);
         await wait(70);
       }
-      // the lights go out, room by room
+      // the lights go out, room by room: the Entrance Hall last, once the last guest is out of the front doors
+      // (the last child stops in the doorway and looks back)
       const groups = [...new Set(this.act.meta.lamps.map((l) => l.group))].filter((g) => g !== 'office' && g !== 'staff');
-      for (const g of groups) {
+      const lastOut = async () => {
+        for (let i = 0; i < 64 && alive() && this.guests.inside() > 0; i++) await wait(5);
+      };
+      this.guests.hurry(); // ...and whoever is still inside runs
+      for (const g of [...groups.filter((x) => x !== 'foyer'), ...groups.filter((x) => x === 'foyer')]) {
         if (!alive()) return;
+        if (g === 'foyer') await lastOut();
         this.act.lampGroup(g, false);
         this.audio.play('fnar.light.off', null, p, { vol: 0.5, pitch: 0.8 });
         await wait(9);
       }
+      await lastOut();
+      if (!alive()) return;
       this.act.spots(null, false);
       this.act.dayLights(false);
       this.act.allLamps(false);
@@ -1211,6 +1229,7 @@ export class Game {
     this.act.clearCamLight();
     this.audio.stopAll();
     this.stopBgm();
+    this.guests.clear(); // guests are only there by day (Free Roam and closing time)
     this.session = null;
     this.phoneSeq = null;
     this.paQueue = [];

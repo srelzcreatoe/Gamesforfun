@@ -18,7 +18,7 @@ Entity properties (scripts: packs/BP/scripts/mc/guests.js):
   fnar:skin    int   index into SKINS
   fnar:size    int   percent of adult height (children are small: the root bone scales, the head a
                      little less, so a child's head is bigger for its body)
-  fnar:hold    int   0 no, 1 left hand out, 2 right hand out (walking hand in hand)
+  fnar:hold    int   0 no, 1 left hand out, 2 right hand out, 3 both (walking hand in hand)
   fnar:look_yaw / fnar:look_pitch  int  head turn in degrees, smoothed client side
 
 Run:  python3 tools/entities/build_guest.py     (also writes tools/entities/guest_skins.json for the tools)
@@ -808,7 +808,7 @@ def animations():
             'left_forearm': {'rotation': [f'-10 - math.max(0, 0 - math.sin({w})) * 14 - {HL} * 4', 0, 0]},
         }
 
-    A['walk'] = walk(27, 42, 22, 1.5, 0.45, 1)
+    A['walk'] = walk(30, 44, 24, 1.5, 0.45, 1)
     A['hurry'] = merge(walk(40, 62, 34, 9, 0.9, 1.55), {
         'right_forearm': {'rotation': [f'-58 * (1 - {HR}) - 6', 0, 0]}, 'left_forearm': {'rotation': [f'-58 * (1 - {HL}) - 6', 0, 0]},
     })
@@ -888,9 +888,11 @@ def client_entity():
                         # a child's head is bigger for its body
                         'variable.fnar_head = 1.0 + math.clamp(0.92 - variable.fnar_size, 0.0, 0.45) * 0.8;',
                         "variable.fnar_t = query.life_time + query.property('fnar:skin') * 0.73;",
-                        'variable.fnar_w = variable.fnar_t * 560.0 / variable.fnar_size;',
-                        "variable.fnar_hl = query.property('fnar:hold') == 1;",
-                        "variable.fnar_hr = query.property('fnar:hold') == 2;",
+                        # two strides a second for an adult, quicker little steps for short legs
+                        'variable.fnar_w = variable.fnar_t * 700.0 / variable.fnar_size;',
+                        "variable.fnar_hold = query.property('fnar:hold');",
+                        'variable.fnar_hl = variable.fnar_hold == 1 || variable.fnar_hold == 3;',
+                        'variable.fnar_hr = variable.fnar_hold >= 2;',
                         'variable.fnar_ha = variable.fnar_size < 0.8 ? 98.0 : 34.0;',
                         "variable.fnar_ly = math.lerp(variable.fnar_ly ?? 0, query.property('fnar:look_yaw'), 0.12);",
                         "variable.fnar_lp = math.lerp(variable.fnar_lp ?? 0, query.property('fnar:look_pitch'), 0.12);",
@@ -935,7 +937,7 @@ def behavior_entity():
                     'fnar:anim': {'type': 'enum', 'values': ANIMS, 'default': 'idle', 'client_sync': True},
                     'fnar:skin': {'type': 'int', 'range': [0, len(SKINS) - 1], 'default': 0, 'client_sync': True},
                     'fnar:size': {'type': 'int', 'range': list(SIZE_RANGE), 'default': 100, 'client_sync': True},
-                    'fnar:hold': {'type': 'int', 'range': [0, 2], 'default': 0, 'client_sync': True},
+                    'fnar:hold': {'type': 'int', 'range': [0, 3], 'default': 0, 'client_sync': True},
                     'fnar:look_yaw': {'type': 'int', 'range': [-90, 90], 'default': 0, 'client_sync': True},
                     'fnar:look_pitch': {'type': 'int', 'range': [-45, 45], 'default': 0, 'client_sync': True},
                 },

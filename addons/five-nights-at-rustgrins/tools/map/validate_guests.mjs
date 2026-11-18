@@ -102,6 +102,22 @@ for (const E of g.edges) {
   for (const k of ['outside', 'sill', 'inside']) if (!G.WAYPOINTS[G.DOOR[k]]) report(`the door's ${k} waypoint ${G.DOOR[k]} does not exist`);
 }
 
+{
+  // the skin list the scripts pick from is the one the entity was built with
+  const info = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/entities/guest_skins.json'), 'utf8'));
+  const ent = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities/guest.json'), 'utf8'))['minecraft:entity'].description.properties;
+  const seen = new Set();
+  for (const [kind, list] of Object.entries(G.SKINS)) {
+    for (const i of list) {
+      if (info.skins[i]?.kind !== kind) report(`skin ${i} is listed as ${kind}; the entity's skin ${i} is ${info.skins[i]?.kind ?? 'missing'}`);
+      seen.add(i);
+    }
+    const [lo, hi] = G.SIZES[kind];
+    if (lo < ent['fnar:size'].range[0] || hi > ent['fnar:size'].range[1]) report(`${kind} sizes ${lo}..${hi} are outside fnar:size ${ent['fnar:size'].range}`);
+  }
+  if (seen.size !== info.skins.length || ent['fnar:skin'].range[1] !== info.skins.length - 1) report(`the scripts know ${seen.size} skins, the entity has ${info.skins.length} (fnar:skin up to ${ent['fnar:skin'].range[1]})`);
+}
+
 console.log(`seats (${seats.length} found in the build plan):`);
 const SEAT_BLOCK = { chair: 'fnar:party_chair', starchair: 'fnar:star_chair', booth: 'fnar:booth_seat' };
 const CARD = { n: 'north', s: 'south', e: 'east', w: 'west' };

@@ -23,8 +23,26 @@ import { ROOM_BY_ID } from './layout.js';
 /** A guest's body for the walkway checks: an adult is about 1.85 tall. */
 export const GUEST_BODY = Object.freeze({ radius: 0.3, height: 1.9 });
 
-/** How many guests the pizzeria holds by day, and how big the groups are. */
+/** How many guests the pizzeria holds by day: new groups keep coming while there are fewer than `min`, none above `max`. */
 export const CROWD = Object.freeze({ min: 14, max: 20, open: 13 });
+
+/**
+ * The skins of fnar:guest by build: indices into the entity's skin list (tools/entities/build_guest.py
+ * SKINS; tools/map/validate_guests.mjs checks the two agree), and each build's fnar:size range in
+ * percent of adult height.
+ */
+export const SKINS = Object.freeze({
+  adult: Object.freeze([0, 1, 2, 3, 4, 5, 8, 9, 11, 12, 13, 14]),
+  teen: Object.freeze([6, 7, 10, 15]),
+  child: Object.freeze([16, 17, 18, 19, 20, 21, 22, 23]),
+});
+export const SIZES = Object.freeze({ adult: Object.freeze([94, 102]), teen: Object.freeze([86, 93]), child: Object.freeze([54, 72]) });
+const PARTY = (weight, ...kinds) => Object.freeze({ weight, kinds: Object.freeze(kinds) });
+/** Who comes together, and how often. */
+export const PARTIES = Object.freeze([
+  PARTY(3, 'adult', 'child'), PARTY(3, 'adult', 'child', 'child'), PARTY(2, 'adult', 'adult', 'child'), PARTY(2, 'adult', 'adult', 'child', 'child'),
+  PARTY(1, 'adult', 'adult'), PARTY(1.5, 'teen', 'teen'), PARTY(0.5, 'teen', 'teen', 'teen'), PARTY(0.7, 'adult'), PARTY(0.6, 'adult', 'teen', 'child'),
+]);
 
 /**
  * The front doors by day. The street facade's plinth runs across the doorway at foot level (a block
