@@ -64,7 +64,14 @@ export class Animatronic {
     this.wasHeld = false;
   }
 
-  /** Current AI level (0..20) including the hourly ramp. */
+  /** The night's AI level for this hour (0..20): the base level and the hourly ramp, no passing bonus. */
+  get level() {
+    let a = this.baseAi;
+    if (a > 0 && this.s.def.ramp) a += CONFIG.hourlyRamp[this.id]?.[this.s.hour] ?? 0;
+    return Math.max(0, Math.min(20, a));
+  }
+
+  /** Current AI level (0..20) including the hourly ramp and any passing bonus. */
   get ai() {
     let a = this.baseAi;
     if (a > 0 && this.s.def.ramp) a += CONFIG.hourlyRamp[this.id]?.[this.s.hour] ?? 0;

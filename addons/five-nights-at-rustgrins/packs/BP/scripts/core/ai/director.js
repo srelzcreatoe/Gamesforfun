@@ -94,7 +94,7 @@ export class Director {
     if (!this.tradeDone && t >= this.tradeAt) {
       if (t > s.ticksPerHour * (T.trade.hours[1] + 0.8)) this.tradeDone = true; // too late in the night
       const pair = cast.filter((c) => typeof c.trade === 'function');
-      if (pair.length === 2 && pair[0].home !== pair[1].home && pair.every((c) => c.loose && c.ai >= T.trade.minAi && !c.watched() && this.free(c.side, c.id))) {
+      if (pair.length === 2 && pair[0].home !== pair[1].home && pair.every((c) => c.loose && c.level >= T.trade.minAi && !c.watched() && this.free(c.side, c.id))) {
         this.tradeDone = true;
         for (const c of pair) c.trade(t + T.trade.lasts);
         s.emit({ fx: 'cue', kind: 'trade', who: pair.map((c) => c.id) });
