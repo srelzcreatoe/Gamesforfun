@@ -200,6 +200,7 @@ export class DoorStalker extends Animatronic {
     this.tradeUntil = until;
     this.mode = 'hunt';
     this.pending = null;
+    this.errandUntil = 0;
   }
 
   tradeBack() {
@@ -217,6 +218,8 @@ export class DoorStalker extends Animatronic {
     this.mode = 'roam';
     this.pending = null;
     this.bait = null;
+    this.bold = false;
+    this.errandUntil = 0;
     this.placeAt(this.cfg.start, 'pose');
     this.nextMo = until + (this.cfg.mo ?? 100);
   }
@@ -316,8 +319,9 @@ export class DoorStalker extends Animatronic {
       this.tickStalk(true);
       return;
     }
-    // erratic: a quick double hop while the guard is busy on the cameras (never into the doorway)
-    if (this.mode === 'hunt' && this.cfg.dash && s.habits.busy() && s.rng.chance(this.cfg.dash)) {
+    // erratic: a quick double hop while the guard is busy on the cameras (never into the doorway,
+    // and not on an errand: that one stops where it is going)
+    if (this.mode === 'hunt' && this.cfg.dash && !(this.errandUntil > s.t) && s.habits.busy() && s.rng.chance(this.cfg.dash)) {
       const after = this.plan(next)?.[1];
       if (after && after !== this.door && after !== this.node && !s.isWatchingNode(next) && !s.isWatchingNode(after)) {
         if (this.goTo(after, { via: [this.node, next, after], speed: (this.cfg.walkSpeed ?? 0.12) * 1.7, anim: 'run' })) {
@@ -342,8 +346,8 @@ export class DoorStalker extends Animatronic {
       return;
     }
     if (!d.mayStrike(this.id)) return; // spacing
-    // somebody else opens tonight (see memory.js): after you, for the first part of the night
-    if (s.openerPending(this) && s.trust() > CONFIG.memory.afterYouUntil) return;
+    // the other stalker opens tonight (see memory.js): after you, for the first part of the night
+    if (s.openerPending(this, true) && s.trust() > CONFIG.memory.afterYouUntil) return;
     if (s.t < s.openedAt + CONFIG.memory.afterYouPause) return;
     // a good moment: not into a lit hall, not on camera, and by the learned rhythm of the
     // guard's checks - or the guard took the bait, or somebody is making a racket elsewhere.

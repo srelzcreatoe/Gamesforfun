@@ -102,10 +102,14 @@ export class NightSession {
   /**
    * Has somebody other than `c` still to open the night (it caught the guard last time, or
    * the guard's soft side is its own: see memory.js)? The door stalkers let it go first.
+   * `stalkersOnly`: only the other door stalker counts (it is sure to come; the troupe may not).
    */
-  openerPending(c) {
+  openerPending(c, stalkersOnly = false) {
     if (!this.beliefs) return false;
-    for (const id in this.chars) if (this.chars[id] !== c && this.chars[id].opening) return true;
+    for (const id in this.chars) {
+      const o = this.chars[id];
+      if (o !== c && o.opening && (!stalkersOnly || typeof o.trade === 'function')) return true;
+    }
     return false;
   }
 
