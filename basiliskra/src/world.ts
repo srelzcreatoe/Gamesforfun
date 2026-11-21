@@ -107,7 +107,7 @@ const SCORCH: Record<string, string> = {
   "minecraft:granite": "minecraft:smooth_basalt", "minecraft:tuff": "minecraft:smooth_basalt", "minecraft:deepslate": "minecraft:smooth_basalt",
   "minecraft:calcite": "minecraft:smooth_basalt", "minecraft:dirt": "minecraft:coarse_dirt", "minecraft:grass_block": "minecraft:coarse_dirt",
   "minecraft:podzol": "minecraft:coarse_dirt", "minecraft:mycelium": "minecraft:coarse_dirt", "minecraft:moss_block": "minecraft:coarse_dirt",
-  "minecraft:mud": "minecraft:packed_mud", "minecraft:clay": "minecraft:terracotta", "minecraft:snow": "minecraft:coarse_dirt",
+  "minecraft:mud": "minecraft:packed_mud", "minecraft:clay": "minecraft:hardened_clay", "minecraft:snow": "minecraft:coarse_dirt",
 };
 const BREAKABLE = new Set<string>([...Object.keys(SCORCH), "minecraft:smooth_basalt", "minecraft:coarse_dirt", "minecraft:sand", "minecraft:red_sand", "minecraft:gravel"]);
 

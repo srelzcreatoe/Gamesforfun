@@ -140,11 +140,12 @@
       "basiliskra:unbound": {
         "minecraft:timer": {
           "looping": false,
-          "time": 2.0,
+          "time": 2,
           "time_down_event": {
             "event": "basiliskra:expire",
             "target": "self"
-          }
+          },
+          "randomInterval": false
         }
       },
       "basiliskra:gone": {

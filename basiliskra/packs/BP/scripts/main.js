@@ -232,7 +232,7 @@ var SCORCH = {
   "minecraft:mycelium": "minecraft:coarse_dirt",
   "minecraft:moss_block": "minecraft:coarse_dirt",
   "minecraft:mud": "minecraft:packed_mud",
-  "minecraft:clay": "minecraft:terracotta",
+  "minecraft:clay": "minecraft:hardened_clay",
   "minecraft:snow": "minecraft:coarse_dirt"
 };
 var BREAKABLE = /* @__PURE__ */ new Set([...Object.keys(SCORCH), "minecraft:smooth_basalt", "minecraft:coarse_dirt", "minecraft:sand", "minecraft:red_sand", "minecraft:gravel"]);
