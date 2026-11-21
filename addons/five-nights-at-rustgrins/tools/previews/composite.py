@@ -21,7 +21,7 @@ UI = os.path.join(ROOT, 'packs', 'RP', 'textures', 'ui', 'fnar')
 FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf'
 FONT_LABEL = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
 
-CAM_ORDER = ['1A', '1B', '1C', '2A', '2B', '3', '4A', '4B', '5', '6', '7', '8', '9', '10']
+CAM_ORDER = ['1A', '1B', '1C', '2A', '2B', '3', '4A', '4B', '5', '6', '7', '8', '9', '10', '11']
 
 # Minecraft formatting colours
 MC = {'0': (0, 0, 0), '1': (0, 0, 170), '2': (0, 170, 0), '3': (0, 170, 170), '4': (170, 0, 0), '5': (170, 0, 170),

@@ -39,6 +39,7 @@ CAM_POS = {               # camera box centres (blocks) on the map
     '1A': (38.5, 5.5), '1B': (50, 25), '1C': (9, 33), '2A': (30, 44), '2B': (28, 64), '3': (20, 49),
     '4A': (44, 44), '4B': (45, 64), '5': (7, 7), '6': (72, 7.5), '7': (73, 20), '8': (7, 21),
     '9': (31, 54), '10': (41, 54),
+    '11': (60, 67),     # the cellar (data/cellar.js): shown where its stairs go down, in Parts & Service
 }
 cams = data['cams']
 assert set(CAM_POS) == {c['id'] for c in cams}, 'CAM_POS must cover every camera'

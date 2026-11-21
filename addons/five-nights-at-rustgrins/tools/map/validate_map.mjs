@@ -21,6 +21,7 @@ const { buildVoxels } = await import('./export_voxels.mjs');
 const { CAMERAS } = await import(path.join(ROOT, 'packs/BP/scripts/data/cameras.js'));
 const { NODES, EDGES, pathBetween } = await import(path.join(ROOT, 'packs/BP/scripts/data/nodes.js'));
 const { OFFICE, REACH, OPENINGS } = await import(path.join(ROOT, 'packs/BP/scripts/data/layout.js'));
+const { CELLAR_BUILT } = await import(path.join(ROOT, 'packs/BP/scripts/data/cellar.js'));
 
 // Head room by pose (blocks above the feet).
 const STAND = 5.1, STOOP = 2.9, CRAWL = 1.9, NEAR_OPENING = 0.8;
@@ -108,6 +109,7 @@ function inView(c, p) {
 
 console.log('cameras:');
 for (const c of CAMERAS) {
+  if (c.room === 'CELLAR' && !CELLAR_BUILT) continue; // (data/cellar.js: the cellar is not built yet)
   const lens = nameAt(...c.loc);
   if (blocksSight(lens)) report(`${c.id}: lens inside ${lens} at ${c.loc.map(Math.floor)}`);
   for (const id of c.sees) {
@@ -121,6 +123,7 @@ for (const c of CAMERAS) {
 
 console.log('nodes:');
 for (const n of Object.values(NODES)) {
+  if (n.cellar && !CELLAR_BUILT) continue;
   // they lean at the office doors and the right window, and anywhere right at an opening
   const lean = !!(n.door || n.window) || nearOpening(n.x, n.z);
   const h = n.crawl ? CRAWL : lean ? STOOP : STAND;

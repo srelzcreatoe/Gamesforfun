@@ -64,7 +64,7 @@ function botNight(n, seed, kind, hooks = {}) {
   let ok = true;
   for (const side of ['L', 'R']) {
     for (const n of Object.keys(NODES)) {
-      if (isCrawl(n) || NODES[n].door) continue;
+      if (isCrawl(n) || NODES[n].door || NODES[n].cellar || NODES[n].office) continue; // (the Golden Dog's own spots are not on the cast's routes)
       if (!planPath(n, DOOR_NODES[side][0], { blocked: (m) => isCrawl(m) })) ok = false;
     }
   }

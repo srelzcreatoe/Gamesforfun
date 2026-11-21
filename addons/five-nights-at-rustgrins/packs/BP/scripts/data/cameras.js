@@ -34,6 +34,8 @@ export const CAMERAS = Object.freeze([
   C('8', 'CAM 8 · MIDNIGHT MIDWAY', 'MIDWAY', [13.5, 6.35, 16.0], [6.0, 0.8, 22.0], ['MW_T', 'MW_P', 'MW_GRATE', 'MW_EDGE'], { mount: [13, 6, 15, 's'] }),
   C('9', 'CAM 9 · WEST DUCT', 'DUCT_W', [33.95, 10.45, 49.4], [33.95, 9.3, 62.0], ['WD_4', 'WD_5', 'WD_END']),
   C('10', 'CAM 10 · EAST DUCT', 'DUCT_E', [39.05, 10.45, 49.4], [39.05, 9.3, 62.0], ['ED_4', 'ED_5', 'ED_END']),
+  // the cellar (data/cellar.js): the old Gold Room under the Dining Hall, from its south-east corner at the stage
+  C('11', 'CAM 11 · THE CELLAR', 'CELLAR', [41.5, -3.65, 36.0], [36.5, -5.6, 19.0], ['CEL_STAGE', 'CEL_PIT']),
 ]);
 
 export const CAMERA_BY_ID = Object.freeze(Object.fromEntries(CAMERAS.map((c) => [c.id, c])));

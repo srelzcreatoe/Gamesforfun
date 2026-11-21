@@ -69,6 +69,18 @@ export const NODES = Object.freeze(Object.fromEntries([
   N('ED_4', 39.4, 9, 51.0, 0, { crawl: true }),
   N('ED_5', 39.4, 9, 55.5, 0, { crawl: true }),
   N('ED_END', 39.4, 9, 61.4, 0, { crawl: true, vent: 'R' }),
+  // the cellar (data/cellar.js): the Golden Dog's stage in the Gold Room, and the middle aisle he walks from it,
+  // down the Long Hall, to the desk of the Other Office. No edges: he is the only one down here, and he walks
+  // the straight line CELLAR.walk. (`cellar`: tools/map/validate_map.mjs skips these until the cellar is built.)
+  N('CEL_STAGE', 36.5, -7, 18.5, 0, { pose: 'stage', cellar: true }),
+  N('CEL_PIT', 36.5, -7, 30.0, 0, { cellar: true }),
+  N('CEL_HALL_N', 36.5, -7, 42.0, 0, { cellar: true }),
+  N('CEL_HALL_M', 36.5, -7, 49.0, 0, { cellar: true }),
+  N('CEL_HALL_S', 36.5, -7, 56.0, 0, { cellar: true }),
+  N('CEL_DESK', 36.5, -7, 59.0, 0, { cellar: true }),
+  // where the Golden Dog stands when he visits the real office: in the middle of the floor BEHIND the seat,
+  // between the two doors, facing the guard's back (the guard sits at z 63.5 facing north)
+  N('OFF_GOLD', 36.5, 0, 67.5, 180, { office: true }),
 ].map((n) => [n.id, n])));
 
 // Edges: [a, b, waypoints between a and b (excluding the endpoints)]. Bidirectional.

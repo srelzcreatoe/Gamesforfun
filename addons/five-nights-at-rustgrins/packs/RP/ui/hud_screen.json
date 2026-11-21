@@ -523,6 +523,32 @@
          }
         ]
        }
+      },
+      {
+       "fnar_cam_live_14": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_14",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "keep_ratio": false,
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§4')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
       }
      ],
      "bindings": [

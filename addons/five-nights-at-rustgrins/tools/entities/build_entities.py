@@ -488,6 +488,10 @@ def main():
             write_hollow(tex_dir, 'rustgrin_rusted', rusted, sock, depth, metal_boost=60)
             write_json(os.path.join(RP, 'entity', 'fnar_rusted.entity.json'), client_entity('rusted', 'rustgrin', 'rustgrin_rusted', 'rustgrin'))
             write_json(os.path.join(BP, 'entities', 'rusted.json'), behavior_entity('rusted'))
+    if 'golden_dog' not in PACK_OF:
+        # PLACEHOLDER until the Golden Dog's model is built (docs/GOLDEN_DOG.md): the server-side entity only,
+        # so the game and its tests can already spawn fnar:golden_dog. Remove this once he is in PACK_OF.
+        write_json(os.path.join(BP, 'entities', 'golden_dog.json'), behavior_entity('golden_dog'))
     write_json(os.path.join(RP, 'render_controllers', 'fnar.render_controllers.json'), RENDER)
     print('entities built')
 
