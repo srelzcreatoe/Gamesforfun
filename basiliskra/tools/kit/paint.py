@@ -163,6 +163,24 @@ def m_skin(ctx: Ctx):
 def _belly(ctx: Ctx):
     bw, bh = ctx.p.get("belly_scale", (11, 6))
     a, b = ctx.sa, ctx.sb
+    if ctx.p.get("belly_style") == "striae":
+        # long shallow plates running the length of the body, as on an eel's flank
+        ia = np.floor(a).astype(np.int64)
+        ib = np.floor(b).astype(np.int64)
+        row = np.floor_divide(ib, bh)
+        stag = np.floor(hash01(row, seed=ctx.seed + 45) * bw).astype(np.int64)
+        seg = np.floor_divide(ia + stag, bw)
+        gap = ((ib - row * bh) == bh - 1) | (((ia + stag) - seg * bw) == bw - 1)
+        top = (ib - row * bh) == 0
+        r = hash01(row, seg, seed=ctx.seed + 41)
+        n = value_noise(ctx.P, 34.0, ctx.seed + 43)
+        tone = 0.5 * n + 0.5 * r
+        grp = np.where(tone < 0.4, 0, np.where(tone < 0.72, 1, 2))
+        cols = np.stack([PAL["belly_dark"], PAL["belly_mid"], PAL["belly_light"]])
+        rgb = cols[grp]
+        rgb = np.where(top[..., None] & ~gap[..., None], lerp(rgb, cols[np.clip(grp + 1, 0, 2)], 0.5), rgb)
+        rgb = np.where(gap[..., None], PAL["dark"], rgb)
+        return rgb, gap, np.where(gap, 0.0, 1.0)
     if ctx.face in ("up", "down"):
         band = np.floor(a / bh).astype(np.int64)
         la = a - band * bh
@@ -382,7 +400,7 @@ def m_rock(ctx: Ctx):
     n = value_noise(ctx.P, 9.0, ctx.seed + 121)
     n2 = value_noise(ctx.P, 23.0, ctx.seed + 123)
     crack = (np.abs(n - 0.5) < 0.045) | (gap & (n2 > 0.5))
-    rgb = np.where(crack[..., None], lerp(PAL["crim_deep"], PAL["crim_dark"], n2), rgb)
+    rgb = np.where(crack[..., None], lerp(PAL["crevice"], PAL["crim_deep"], 0.35 + 0.5 * n2), rgb)
     g = lerp(PAL["g_red"], PAL["g_orange"], n2)
     alpha = np.where(crack, 0.92, 0.07)
     glow = np.concatenate([g, alpha[..., None]], -1)
@@ -477,6 +495,14 @@ def paint(model: Model, ao_strength: float = 1.0):
             mers[v0:v0 + h, u0:u0 + w, 1] = 0.0
             mers[v0:v0 + h, u0:u0 + w, 2] = np.broadcast_to(np.asarray(rough, dtype=np.float64), (h, w))
             mers[v0:v0 + h, u0:u0 + w, 3] = np.broadcast_to(np.asarray(sss, dtype=np.float64), (h, w))
+
+    # fill the gutters round cut-out faces with the face's own edge texels
+    for (u0, v0, w, h) in model.gutters:
+        for img in (color, glow, mers):
+            img[v0 - 1, u0:u0 + w] = img[v0, u0:u0 + w]
+            img[v0 + h, u0:u0 + w] = img[v0 + h - 1, u0:u0 + w]
+            img[v0 - 1:v0 + h + 1, u0 - 1] = img[v0 - 1:v0 + h + 1, u0]
+            img[v0 - 1:v0 + h + 1, u0 + w] = img[v0 - 1:v0 + h + 1, u0 + w - 1]
 
     wet = model.meta.get("wetness", 0.0)
     if wet:

@@ -34,6 +34,7 @@ import numpy as np
 from PIL import Image
 
 FACES = ("north", "south", "east", "west", "up", "down")
+PADDED_MATERIALS = ("fin", "web")
 
 
 # ----------------------------------------------------------------------------- math
@@ -191,6 +192,7 @@ class Model:
         self.bones: dict[str, Bone] = {}
         self.cubes: list[Cube] = []
         self.tex_w = self.tex_h = 0
+        self.gutters: list = []
         self.meta: dict = {}
 
     def bone(self, name, parent=None, pivot=(0, 0, 0), rot=(0, 0, 0), zone=None) -> Bone:
@@ -272,13 +274,16 @@ class Model:
                     continue
                 w = max(1, int(math.ceil(fw * ts - 1e-6)))
                 h = max(1, int(math.ceil(fh * ts - 1e-6)))
-                items.append((h, w, c, f))
+                # cut-out faces get a one-texel gutter, later filled with their own edge, so a
+                # neighbouring rectangle can never bleed a hairline onto a transparent edge
+                pad = 1 if c.mat in PADDED_MATERIALS else 0
+                items.append((h + 2 * pad, w + 2 * pad, c, f, pad))
         items.sort(key=lambda t: (-t[0], -t[1], t[2].idx, t[3]))
         for W, H in sizes:
             x = y = row_h = 0
             ok = True
             placed = []
-            for h, w, c, f in items:
+            for h, w, c, f, pad in items:
                 if w > W:
                     ok = False
                     break
@@ -289,14 +294,17 @@ class Model:
                 if y + h > H:
                     ok = False
                     break
-                placed.append((c, f, x, y, w, h))
+                placed.append((c, f, x + pad, y + pad, w - 2 * pad, h - 2 * pad, pad))
                 x += w
                 row_h = max(row_h, h)
             if ok:
-                for c, f, x, y, w, h in placed:
+                self.gutters = []
+                for c, f, x, y, w, h, pad in placed:
                     c.rects[f] = (x, y, w, h)
+                    if pad:
+                        self.gutters.append((x, y, w, h))
                 self.tex_w, self.tex_h = W, H
-                used = sum(w * h for *_, w, h in placed)
+                used = sum((w + 2 * pad) * (h + 2 * pad) for *_, w, h, pad in placed)
                 return used / (W * H)
         raise RuntimeError("model does not fit the largest atlas")
 
