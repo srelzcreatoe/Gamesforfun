@@ -295,6 +295,27 @@ def _neighbours(model):
     return out
 
 
+def largest_rect(free):
+    """The largest all-True rectangle of a bool array: (area, x, y, w, h)."""
+    h, w = free.shape
+    heights = [0] * w
+    best = (0, 0, 0, 0, 0)
+    for y in range(h):
+        row = free[y]
+        heights = [heights[x] + 1 if row[x] else 0 for x in range(w)]
+        stack = []
+        for x in range(w + 1):
+            cur = heights[x] if x < w else 0
+            start = x
+            while stack and stack[-1][1] >= cur:
+                sx, sh = stack.pop()
+                if sh * (x - sx) > best[0]:
+                    best = (sh * (x - sx), sx, y - sh + 1, x - sx, sh)
+                start = sx
+            stack.append((start, cur))
+    return best
+
+
 def analyse(model, crease=0.55, crease_dark=0.34):
     """Visibility of every face. Sets on each cube:
        cube.vis[face]   fraction of the face that is not buried in other cubes of its bone
@@ -305,7 +326,7 @@ def analyse(model, crease=0.55, crease_dark=0.34):
     for b in model.bones:
         info = [(c, *c.centre_radius()) for c in b.cubes]
         for c, cc, cr in info:
-            c.vis, c.grid, c.ao, c.seen = {}, {}, {}, {}
+            c.vis, c.grid, c.ao, c.holes = {}, {}, {}, {}
             base = c.dens or model.dens
             same = [o for o, oc, orad in info if o is not c and np.linalg.norm(oc - cc) < cr + orad + 1.0]
             for f in FACES:
@@ -326,6 +347,7 @@ def analyse(model, crease=0.55, crease_dark=0.34):
                     d = base if vis >= 0.34 else (base / 2 if vis >= 0.12 else base / 4)
                     w, h = max(1, int(math.ceil(fw * d - 1e-6))), max(1, int(math.ceil(fh * d - 1e-6)))
                 c.grid[f] = (w, h, d)
+                c.holes[f] = []
                 if d == 0:
                     continue
                 # creases: probes above the surface, counted when they fall inside another box
@@ -334,7 +356,6 @@ def analyse(model, crease=0.55, crease_dark=0.34):
                 tang = [np.array(v, float) for v in ((1, 0, 0), (0, 1, 0), (0, 0, 1)) if abs(np.dot(v, n)) < 0.5]
                 probes = [L + n * crease * 0.45] + [L + n * crease * 0.5 + t * s * crease for t in tang for s in (1, -1)]
                 occ = np.zeros((h, w))
-                seen = np.zeros((h, w), bool)
                 for k, Lp in enumerate(probes):
                     Pb = c.to_bone(Lp)
                     inside = np.zeros((h, w), bool)
@@ -343,11 +364,28 @@ def analyse(model, crease=0.55, crease_dark=0.34):
                     for o, conv in near[b.name]:
                         inside |= o.contains(conv(Pb))
                     occ += inside * (1.6 if k == 0 else 1.0)
-                Pb = c.to_bone(c.face_points(f, w, h, lift=0.03))
-                for o in same:
-                    seen |= o.contains(Pb)
-                c.seen[f] = ~seen
                 c.ao[f] = 1.0 - crease_dark * np.clip(occ / 3.2, 0, 1)
+                # which texels can be seen at all (any of 2 x 2 samples in the open), for the packer: a large
+                # buried rectangle inside a face is room for other faces
+                c.holes[f] = []
+                if vis < 0.8 and w * h >= 160 and c.share is None:
+                    Pb = c.to_bone(c.face_points(f, 2 * w, 2 * h, lift=0.03))
+                    hid = np.zeros((2 * h, 2 * w), bool)
+                    for o in same:
+                        hid |= o.contains(Pb)
+                    seen = ~hid.reshape(h, 2, w, 2).all(axis=(1, 3))
+                    pad = np.pad(seen, 1)
+                    grown = np.zeros_like(seen)
+                    for dy in (0, 1, 2):
+                        for dx in (0, 1, 2):
+                            grown |= pad[dy:dy + h, dx:dx + w]
+                    free = ~grown
+                    for _ in range(2):
+                        area, hx, hy, hw, hh = largest_rect(free)
+                        if area < 96 or min(hw, hh) < 6:
+                            break
+                        c.holes[f].append((hx, hy, hw, hh))
+                        free[hy:hy + hh, hx:hx + hw] = False
     return model
 
 
@@ -425,9 +463,23 @@ def pack(model, width=512, swatch=(34, 30, 30)):
                     continue
                 shared[key] = [(c, f)]
             items.append((h, w, len(items), c, f))
+    holes = []                           # buried rectangles inside faces already placed: [x, y, w, h]
     for h, w, _, c, f in sorted(items, key=lambda t: (-t[0], -t[1], t[2])):
-        x, y = sky.place(w, h)
+        spot = None
+        fits = [k for k, (hx, hy, hw, hh) in enumerate(holes) if hw >= w and hh >= h]
+        if fits:
+            k = min(fits, key=lambda k: holes[k][2] * holes[k][3])
+            hx, hy, hw, hh = holes.pop(k)
+            spot = (hx, hy)
+            # what is left of the hole: a strip to the right and a strip below
+            if hw - w >= 2:
+                holes.append([hx + w, hy, hw - w, h])
+            if hh - h >= 2:
+                holes.append([hx, hy + h, hw, hh - h])
+        x, y = spot or sky.place(w, h)
         c.rect[f] = (x, y, w, h)
+        for hx, hy, hw, hh in c.holes.get(f, []):
+            holes.append([x + hx, y + hy, hw, hh])
     for key, lst in shared.items():
         c0, f0 = lst[0]
         for c, f in lst[1:]:
@@ -481,12 +533,17 @@ def paint(model, width, height, ao=True):
             if ao and k is not False:
                 s = 1.0 if k is True else float(k)
                 rgb = rgb * (1.0 - s * (1.0 - c.ao[f]))[..., None]
-            col[y:y + h, x:x + w, :3] = np.clip(np.round(rgb), 0, 255).astype(np.uint8)
-            col[y:y + h, x:x + w, 3] = 255 if alpha is None else np.clip(alpha, 0, 255).astype(np.uint8)
-            mer[y:y + h, x:x + w, 0] = np.clip(res.get('metal', 0), 0, 255)
-            mer[y:y + h, x:x + w, 2] = np.clip(res.get('rough', 215), 0, 255)
+            keep = np.ones((h, w), bool)         # (the buried rectangles of this face hold other faces)
+            for hx, hy, hw, hh in c.holes.get(f, []):
+                keep[hy:hy + hh, hx:hx + hw] = False
+            a = np.full((h, w), 255.0) if alpha is None else alpha
+            full = lambda v: np.broadcast_to(np.asarray(v, float), (h, w))
+            col[y:y + h, x:x + w, :3][keep] = np.clip(np.round(rgb), 0, 255).astype(np.uint8)[keep]
+            col[y:y + h, x:x + w, 3][keep] = np.clip(a, 0, 255).astype(np.uint8)[keep]
+            mer[y:y + h, x:x + w, 0][keep] = np.clip(full(res.get('metal', 0)), 0, 255).astype(np.uint8)[keep]
+            mer[y:y + h, x:x + w, 2][keep] = np.clip(full(res.get('rough', 215)), 0, 255).astype(np.uint8)[keep]
             if 'glow' in res:
-                glow[y:y + h, x:x + w] = res['glow']
+                glow[y:y + h, x:x + w][keep] = np.asarray(res['glow'], bool)[keep]
     return {'color': Image.fromarray(col, 'RGBA'), 'mer': Image.fromarray(mer, 'RGB'), 'glow': glow}
 
 
