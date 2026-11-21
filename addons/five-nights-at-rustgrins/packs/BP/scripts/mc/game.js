@@ -273,6 +273,7 @@ export class Game {
       storeOrigin({ x: origin.x, y: origin.y, z: origin.z });
     }
     if (!origin.set) return;
+    this.liftForCellar();
     this.stopNight();
     this.puppets.removeAll();
     this.state = 'BUILDING';
@@ -285,6 +286,25 @@ export class Game {
     }
     this.applyRules();
     this.builder.start({ rebuild });
+  }
+
+  /**
+   * The lot reaches LOT.baseY blocks below the origin (the cellar). Where the world has no room for that
+   * under the chosen spot (a flat world is 4 layers deep), the whole lot is built that much higher: for a
+   * first build, and for a pizzeria placed by an older version when it is rebuilt.
+   */
+  liftForCellar() {
+    let min = -64;
+    try {
+      min = dim().heightRange.min;
+    } catch {
+      // keep the overworld's default
+    }
+    const lowest = min + 1 - LOT.baseY; // the deepest layer stays above the world's bottom layer
+    if (origin.y >= lowest) return;
+    log.info(`no room for the cellar under y ${origin.y}: the lot is built ${lowest - origin.y} higher`);
+    setOrigin({ x: origin.x, y: lowest, z: origin.z });
+    storeOrigin({ x: origin.x, y: origin.y, z: origin.z });
   }
 
   onBuildProgress(msg, frac, report) {
