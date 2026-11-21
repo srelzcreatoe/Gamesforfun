@@ -11,5 +11,5 @@ export const STANCE_III = 5.25;
 export const BODY_DROP_III = 9.0;
 export const TAIL_LIFT_III = 4.0;
 export const WINDOW_NECK = [32, 28, 20, 0, -24];
-export const WINDOW_HEAD = [-52.7, 21.8, -51.8];
+export const WINDOW_HEAD = [-62.7, 21.8, -51.8];
 export const GAIT_TICKS = [12, 18, 22];

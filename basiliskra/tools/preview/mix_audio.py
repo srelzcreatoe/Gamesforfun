@@ -105,7 +105,9 @@ def main():
     silent = os.path.join(ROOT, "build", "previews", f"{name}_silent.mp4")
     final = os.path.join(ROOT, "previews", f"{name}.mp4")
     os.makedirs(os.path.dirname(final), exist_ok=True)
-    subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", silent, "-i", wav, "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart", final], check=True)
+    # the frames were stored near-lossless; the published file is a normal web-sized encode of them
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", silent, "-i", wav, "-c:v", "libx264", "-preset", "slow", "-crf", "23", "-pix_fmt", "yuv420p",
+                    "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", final], check=True)
     print(f"{final}: {dur:.1f} s, sounds placed {used}" + (f", vanilla sounds left out {skipped}" if skipped else ""))
 
 

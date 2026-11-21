@@ -337,7 +337,7 @@ var STANCE_III = 5.25;
 var BODY_DROP_III = 9;
 var TAIL_LIFT_III = 4;
 var WINDOW_NECK = [32, 28, 20, 0, -24];
-var WINDOW_HEAD = [-52.7, 21.8, -51.8];
+var WINDOW_HEAD = [-62.7, 21.8, -51.8];
 var GAIT_TICKS = [12, 18, 22];
 
 // src/rig.ts

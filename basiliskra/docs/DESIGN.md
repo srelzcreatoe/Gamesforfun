@@ -77,9 +77,9 @@ Counted in the simulated world as calls into the engine per tick (`node test/per
 | Arrival | 27 | 667 | 0.3 |
 | Form I | 35 to 43 | 63 | 0.3 |
 | Form II in a village | 44 | 631 | 0.3 |
-| Form III in a village, fighting | 98 | 414 | 0.3 |
-| Form III at the window | 108 | 249 | 0.3 |
-| The last crossing being called | 209 | 757 | 0.3 |
+| Form III in a village, fighting | 90 | 414 | 0.3 |
+| Form III at the window | 91 | 249 | 0.3 |
+| The last crossing being called | 210 | 757 | 0.3 |
 
 No world-wide scans, no chunk loading, no recurring chat. Harm history is capped at 40 regions and 24 kill sites. Particles are sent per witness with a budget of 96 packets a tick. Sounds and particles go only to players within range of the event.
 

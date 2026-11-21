@@ -740,7 +740,7 @@
     },
     "head": {
      "rotation": [
-      "(v.lp_head * 0.4 - 4 * v.w_chargew - 24 * v.w_roar + 14 * v.w_ground + 1.2 * v.w_fire * math.sin(q.life_time * 2400 + 0) + -52.7 * v.w_window)",
+      "(v.lp_head * 0.4 - 4 * v.w_chargew - 24 * v.w_roar + 14 * v.w_ground + 1.2 * v.w_fire * math.sin(q.life_time * 2400 + 0) + -62.7 * v.w_window)",
       "(v.ly_head * 0.35 + 21.8 * v.w_window)",
       "(-51.8 * v.w_window)"
      ],

@@ -45,8 +45,7 @@ BETA_III = 0.75          # part of the cycle each foot is on the ground: three f
 DROP_III = 9.0           # units the body rides below the bind pose, so that a planted leg can reach both ends of its stance
 LIFT_III = 16.0          # units an ankle rises in mid-swing
 TAIL_LIFT_III = 4.0      # degrees at the tail root that keep the club's lowest spike off the ground
-# upper length, lower length, rest rotations (upper, lower, foot) of the fore and hind legs: from forms/form3.py
-LEGS_III = {"f": (50.0, 47.0, (20.0, -35.0, 15.0)), "r": (52.0, 46.0, (-22.0, 40.0, -18.0))}
+
 # share of a look angle taken by each link, eye first (see pre_animation smoothing rates)
 LOOK = {
     "i": {"yaw": {"head": 0.6, "chest": 0.4}, "pitch": {"head": 0.6, "chest": 0.4}},
@@ -177,9 +176,17 @@ def pre_animation():
 # The window pose (degrees added per neck bone, then head x/y/z).  The server poses its skeleton with
 # the same numbers (generated/rig.ts), and stands him so that the eye ends a stride from the glass.
 WINDOW_NECK = [32, 28, 20, 0, -24]
-WINDOW_HEAD = [-52.7, 21.8, -51.8]      # solved so that, at the end of that neck, the skull is turned 55 degrees about the vertical and tipped 18 down
+WINDOW_HEAD = [-62.7, 21.8, -51.8]      # solved so that, at the end of that neck, the skull is turned 55 degrees about the vertical and tipped 8 down
 
 SHUDDER = lambda f, i=0: f"math.sin(q.life_time * {f} + {i * 71})"
+
+
+def leg_iii(rig, tag):
+    """Upper length, lower length and rest pitches (upper, lower, foot) of one of Form III's legs, read from the rig
+    the design file produced: change the legs in forms/form3.py and the walk follows."""
+    B = rig["bones"]
+    up, lo, ft = B[f"leg_{tag}"], B[f"leg_{tag}_lower"], B[f"foot_{tag}"]
+    return float(up["pivot"][1] - lo["pivot"][1]), float(lo["pivot"][1] - ft["pivot"][1]), (float(up["rot"][0]), float(lo["rot"][0]), float(ft["rot"][0]))
 
 
 # ---- Form I ----------------------------------------------------------------------------
@@ -310,7 +317,7 @@ def pose_iii(rig):
     # and the two joints are solved for it.  This runs in every phase, so a breath, a crouch or a stop never
     # drags a sole.
     for tag in ("fl", "fr", "bl", "br"):
-        la, lb, rest = LEGS_III["f" if tag[0] == "f" else "r"]
+        la, lb, rest = leg_iii(rig, tag)
         fu, fl = -rest[0], -(rest[0] + rest[1])                       # rest angles from straight down, forward positive
         xm = la * math.sin(math.radians(fu)) + lb * math.sin(math.radians(fl))
         h0 = la * math.cos(math.radians(fu)) + lb * math.cos(math.radians(fl))
@@ -347,7 +354,7 @@ def pose_iii(rig):
     p.rot("jaw", x="2.2 * v.breath + v.w_chargew * v.charge * 0.9 + 16 * v.w_fire + 30 * v.w_roar + 6 * v.w_vent + 8 * v.w_ground")
     for tag in ("fl", "fr", "bl", "br"):
         front = tag[0] == "f"
-        rest = LEGS_III["f" if front else "r"][2]
+        rest = leg_iii(rig, tag)[2]
         # the chest breathes and turns with a look; the fore legs hang from it, so they give that back
         undo_x = " + 1.0 * v.breath + 1.5 * v.w_fire" if front else ""
         undo_y = f"-v.ly_chest * {L['yaw']['chest']}" if front else "v.bend * 0.3"
