@@ -4,7 +4,7 @@
 //   node test/perf.mjs            (after `node tools/bundle.mjs`)
 import fs from 'node:fs';
 import path from 'node:path';
-import { Sim } from './mock.mjs';
+import { Sim, UI } from './mock.mjs';
 import { TERRAINS } from '../tools/preview/scenes/terrain.mjs';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
@@ -15,8 +15,8 @@ const rows = [];
 function world(terrain) {
   const sim = new Sim();
   if (terrain) sim.terrainFn = TERRAINS[terrain];
-  globalThis.__MC__ = sim.api; delete globalThis.__BK__; new Function(CODE)(); const bk = globalThis.__BK__;
-  sim.ev.worldLoad.fire({}); sim.flush();
+  globalThis.__MC__ = sim.api; globalThis.__MC_UI__ = UI; delete globalThis.__BK__; new Function(CODE)(); const bk = globalThis.__BK__;
+  sim.startup(); sim.ev.worldLoad.fire({}); sim.flush();
   return { sim, bk };
 }
 function stand(w, form, at, yaw, extra = {}) {

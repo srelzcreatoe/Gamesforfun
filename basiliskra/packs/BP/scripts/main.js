@@ -1,8 +1,8 @@
-// Basiliskra behaviour script. Built from src/*.ts (see the repository). Stable @minecraft/server 2.11.0 only.
+// Basiliskra behaviour script. Built from src/*.ts (see the repository). Stable @minecraft/server 2.11.0 and @minecraft/server-ui 2.3.0 only.
 
 
 // src/main.ts
-import { EntityDamageCause as EntityDamageCause3, system as system5, world as world9 } from "@minecraft/server";
+import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause3, system as system6, world as world11 } from "@minecraft/server";
 
 // src/config.ts
 var CONFIG = {
@@ -23,12 +23,24 @@ var CONFIG = {
   /** On Peaceful he still appears and behaves, but deals no damage. */
   harmlessOnPeaceful: true,
   /** Operator test hooks via /scriptevent basiliskra:debug ... (needs cheats; off for survival). */
-  debug: false
+  debug: false,
+  /** A spawn egg, /summon or /basiliskra:spawn brings the one Basiliskra to that place (false: they are removed). */
+  allowSummon: true,
+  /** What a spawn egg or /summon makes: 0 = his stage in the story (a new world: I in water, III on land), 1-3 = that form. */
+  spawnForm: 0,
+  /** Every player gets the journal the first time they join with the pack on. */
+  giveJournal: true,
+  /** Operators (and the only player of a single-player world) also get the config wheel on first join. */
+  giveWheel: true
 };
+var SETTINGS = ["pacing", "terrain", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug"];
+var SETTINGS_KEY = "bk:cfg";
 var NS = "basiliskra";
 var TYPE = `${NS}:basiliskra`;
 var HITBOX = `${NS}:hitbox`;
 var FIN_ITEM = `${NS}:shed_fin`;
+var JOURNAL_ITEM = `${NS}:journal`;
+var WHEEL_ITEM = `${NS}:config_wheel`;
 var PROP = {
   form: `${NS}:form`,
   bound: `${NS}:bound`,
@@ -81,14 +93,72 @@ var TICKS = { second: 20, minute: 1200, day: 24e3 };
 var KNOCK_GAP_TICKS = 18;
 var OVERWORLD = "minecraft:overworld";
 
-// src/controller.ts
-import { ItemStack, system as system4, world as world8 } from "@minecraft/server";
+// src/settings.ts
+import { world } from "@minecraft/server";
+var DEFAULTS = { ...CONFIG };
+function clean(k, v) {
+  switch (k) {
+    case "pacing":
+      return typeof v === "number" && v >= 0.25 && v <= 4 ? v : void 0;
+    case "damage":
+      return typeof v === "number" && v >= 0 && v <= 4 ? v : void 0;
+    case "terrain":
+      return v === "none" || v === "scorch" || v === "break" ? v : void 0;
+    case "spawnForm":
+      return v === 0 || v === 1 || v === 2 || v === 3 ? v : void 0;
+    default:
+      return typeof v === "boolean" ? v : void 0;
+  }
+}
+function loadSettings() {
+  let raw;
+  try {
+    raw = world.getDynamicProperty(SETTINGS_KEY);
+  } catch {
+    raw = void 0;
+  }
+  if (typeof raw !== "string") return;
+  let saved;
+  try {
+    saved = JSON.parse(raw);
+  } catch {
+    return;
+  }
+  for (const k of SETTINGS) {
+    const v = clean(k, saved[k]);
+    if (v !== void 0) CONFIG[k] = v;
+  }
+}
+function saveSettings(change) {
+  for (const [k, v] of Object.entries(change)) {
+    if (!SETTINGS.includes(k)) continue;
+    const c = clean(k, v);
+    if (c !== void 0) CONFIG[k] = c;
+  }
+  const out = {};
+  for (const k of SETTINGS) out[k] = CONFIG[k];
+  try {
+    world.setDynamicProperty(SETTINGS_KEY, JSON.stringify(out));
+  } catch {
+  }
+}
+function resetSettings() {
+  for (const k of SETTINGS) CONFIG[k] = DEFAULTS[k];
+  try {
+    world.setDynamicProperty(SETTINGS_KEY, void 0);
+  } catch {
+  }
+}
+
+// src/ui.ts
+import { ItemStack, PlayerPermissionLevel, system as system2, world as world6 } from "@minecraft/server";
+import { ActionFormData, FormCancelationReason, MessageFormData, ModalFormData } from "@minecraft/server-ui";
 
 // src/creature.ts
-import { EntityDamageCause, GameMode, world as world4 } from "@minecraft/server";
+import { EntityDamageCause, GameMode, world as world5 } from "@minecraft/server";
 
 // src/fx.ts
-import { MolangVariableMap, world as world2 } from "@minecraft/server";
+import { MolangVariableMap, world as world3 } from "@minecraft/server";
 
 // src/vec.ts
 var add = (a, b) => ({ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z });
@@ -128,8 +198,8 @@ function hash(...n) {
 }
 
 // src/world.ts
-import { world } from "@minecraft/server";
-var overworld = () => world.getDimension(OVERWORLD);
+import { world as world2 } from "@minecraft/server";
+var overworld = () => world2.getDimension(OVERWORLD);
 function isLoaded(dim, p) {
   try {
     return dim.isChunkLoaded(p);
@@ -157,10 +227,10 @@ var PLANT = /^minecraft:(?!stripped_)(.*_log|.*_wood|.*_stem|.*_hyphae|.*leaves.
 var NATURAL = /^minecraft:(stone|granite|diorite|andesite|deepslate|tuff|calcite|dirt|coarse_dirt|grass_block|podzol|mycelium|dirt_with_roots|mud|clay|sand|red_sand|gravel|suspicious_sand|suspicious_gravel|sandstone|red_sandstone|snow|ice|packed_ice|blue_ice|powder_snow|moss_block|pale_moss_block|hardened_clay|.*_terracotta|netherrack|basalt|smooth_basalt|blackstone|end_stone|dripstone_block|.*_ore|bedrock|obsidian|magma|soul_sand|soul_soil|muddy_mangrove_roots|amethyst_block|budding_amethyst|.*coral_block|cobbled_deepslate|packed_mud)$/;
 var isPlantBlock = (id) => PLANT.test(id);
 var isNaturalGround = (id) => NATURAL.test(id) && !id.includes("glazed");
-function trunkBlocked(dim, at, feetY, radius, built, cliff, full) {
+function trunkBlocked(dim, at2, feetY, radius, built, cliff, full) {
   const ring = full ? [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [0.72, 0.72], [-0.72, 0.72], [0.72, -0.72], [-0.72, -0.72]] : [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
   for (const [dx, dz] of ring) {
-    const x = at.x + dx * radius, z = at.z + dz * radius;
+    const x = at2.x + dx * radius, z = at2.z + dz * radius;
     const top = blockAt(dim, { x, y: feetY + cliff, z });
     if (top && isSolidBlock(top) && !isPlantBlock(top.typeId)) return true;
     for (const h of built) {
@@ -192,11 +262,11 @@ function groundY(dim, x, z, yTop, depth) {
   }
   return NONE;
 }
-function footprintY(dim, at, radius, yTop, depth, floatY = null) {
+function footprintY(dim, at2, radius, yTop, depth, floatY = null) {
   const ys = [];
   let unloaded = 0;
   for (const dx of [-radius, 0, radius]) for (const dz of [-radius, 0, radius]) {
-    const x = at.x + dx, z = at.z + dz;
+    const x = at2.x + dx, z = at2.z + dz;
     let g = groundY(dim, x, z, yTop, depth);
     if (floatY !== null && g !== UNLOADED && (g === NONE || g < floatY) && isWaterId(idAt(dim, { x, y: floatY, z }))) g = floatY;
     if (g === UNLOADED) unloaded++;
@@ -262,14 +332,14 @@ var PRINT = { "minecraft:grass_block": "minecraft:mud", "minecraft:dirt": "minec
 var furrowOf = (id) => MARK[id];
 var printOf = (id) => PRINT[id];
 var WILD = /^minecraft:(air|short_grass|tall_grass|fern|large_fern|deadbush|snow_layer|dandelion|poppy|.*tulip|.*_orchid|allium|azure_bluet|oxeye_daisy|cornflower|lily_of_the_valley|leaf_litter|bush|firefly_bush|wildflowers|pink_petals)$/;
-function takesMark(dim, at) {
-  const b = blockAt(dim, at);
+function takesMark(dim, at2) {
+  const b = blockAt(dim, at2);
   if (!b) return void 0;
-  const above = blockAt(dim, { x: at.x, y: at.y + 1, z: at.z });
+  const above = blockAt(dim, { x: at2.x, y: at2.y + 1, z: at2.z });
   if (!above || !WILD.test(above.typeId)) return void 0;
   for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
     for (const dy of [0, 1]) {
-      const n = blockAt(dim, { x: at.x + dx, y: at.y + dy, z: at.z + dz });
+      const n = blockAt(dim, { x: at2.x + dx, y: at2.y + dy, z: at2.z + dz });
       if (n && isSolidBlock(n) && !isNaturalGround(n.typeId) && !isPlantBlock(n.typeId)) return void 0;
     }
   }
@@ -284,38 +354,38 @@ var cacheTick = -1;
 function beginTick(tick) {
   spent = 0;
   if (tick !== cacheTick) {
-    playerCache = world2.getAllPlayers();
+    playerCache = world3.getAllPlayers();
     cacheTick = tick;
   }
 }
 function players() {
   return playerCache;
 }
-function witnesses(dim, at, range) {
+function witnesses(dim, at2, range) {
   const out = [];
   for (const p of playerCache) {
     try {
-      if (p.isValid && p.dimension.id === dim.id && dist(p.location, at) <= range) out.push(p);
+      if (p.isValid && p.dimension.id === dim.id && dist(p.location, at2) <= range) out.push(p);
     } catch {
     }
   }
   return out;
 }
-function sound(dim, id, at, range = 48, volume = 1, pitch = 1) {
-  for (const p of witnesses(dim, at, range)) {
+function sound(dim, id, at2, range = 48, volume = 1, pitch = 1) {
+  for (const p of witnesses(dim, at2, range)) {
     try {
-      p.playSound(id, { location: at, volume, pitch });
+      p.playSound(id, { location: at2, volume, pitch });
     } catch {
     }
   }
 }
-function particle(dim, id, at, range = 48, vars) {
-  if (!isLoaded(dim, at)) return;
-  for (const p of witnesses(dim, at, range)) {
+function particle(dim, id, at2, range = 48, vars) {
+  if (!isLoaded(dim, at2)) return;
+  for (const p of witnesses(dim, at2, range)) {
     if (spent >= PARTICLE_BUDGET) return;
     spent++;
     try {
-      p.spawnParticle(id, at, vars);
+      p.spawnParticle(id, at2, vars);
     } catch {
     }
   }
@@ -454,14 +524,14 @@ var Skeleton = class {
     return apply(this.bone(bone), RIGS[this.form].bones[bone].pivot);
   }
 };
-function toWorld(at, yaw, m) {
+function toWorld(at2, yaw, m) {
   const l = leftOf(yaw), f = forwardOf(yaw);
   const x = m[0] / 16, y = m[1] / 16, z = -m[2] / 16;
-  return { x: at.x + l.x * x + f.x * z, y: at.y + y, z: at.z + l.z * x + f.z * z };
+  return { x: at2.x + l.x * x + f.x * z, y: at2.y + y, z: at2.z + l.z * x + f.z * z };
 }
 
 // src/store.ts
-import { world as world3 } from "@minecraft/server";
+import { world as world4 } from "@minecraft/server";
 var SCHEMA = 2;
 var KEY = "bk:rec";
 var HARM_KEY = "bk:harm";
@@ -511,13 +581,13 @@ function migrate(raw) {
   return rec;
 }
 function readChunks(key) {
-  const head = world3.getDynamicProperty(key);
+  const head = world4.getDynamicProperty(key);
   if (typeof head !== "string") return void 0;
   if (!head.startsWith("#")) return head;
   const n = parseInt(head.slice(1), 10);
   let s = "";
   for (let i = 0; i < n; i++) {
-    const part = world3.getDynamicProperty(`${key}:${i}`);
+    const part = world4.getDynamicProperty(`${key}:${i}`);
     if (typeof part !== "string") return void 0;
     s += part;
   }
@@ -525,12 +595,12 @@ function readChunks(key) {
 }
 function writeChunks(key, s) {
   if (s.length <= CHUNK) {
-    world3.setDynamicProperty(key, s);
+    world4.setDynamicProperty(key, s);
     return;
   }
   const n = Math.ceil(s.length / CHUNK);
-  for (let i = 0; i < n; i++) world3.setDynamicProperty(`${key}:${i}`, s.slice(i * CHUNK, (i + 1) * CHUNK));
-  world3.setDynamicProperty(key, `#${n}`);
+  for (let i = 0; i < n; i++) world4.setDynamicProperty(`${key}:${i}`, s.slice(i * CHUNK, (i + 1) * CHUNK));
+  world4.setDynamicProperty(key, `#${n}`);
 }
 var Store = class {
   constructor() {
@@ -756,8 +826,8 @@ var Creature = class {
   anchor(locator) {
     return toWorld(this.pos, this.yaw, this.skeleton().locator(locator));
   }
-  point(bone, at) {
-    return toWorld(this.pos, this.yaw, this.skeleton().point(bone, at));
+  point(bone, at2) {
+    return toWorld(this.pos, this.yaw, this.skeleton().point(bone, at2));
   }
   get forward() {
     return forwardOf(this.yaw);
@@ -827,23 +897,23 @@ var Creature = class {
     return !this.goal || distXZ(this.pos, this.goal) <= this.arriveDist;
   }
   // ---- walls -----------------------------------------------------------------------------------
-  walled(at, full) {
+  walled(at2, full) {
     const b = BODY[this.form];
     const feet = this.afloat && this.surfY != null ? Math.max(this.pos.y, this.surfY - 1.2) : this.pos.y;
-    return trunkBlocked(this.dim, at, feet, MOVE[this.form].radius, b.built, b.cliff, full);
+    return trunkBlocked(this.dim, at2, feet, MOVE[this.form].radius, b.built, b.cliff, full);
   }
   /** Is there room for his middle here (used by the few moves that carry him without stepping)? */
-  roomAt(at) {
+  roomAt(at2) {
     for (const dy of [1, 3]) {
-      const b = blockAt(this.dim, { x: at.x, y: at.y + dy, z: at.z });
+      const b = blockAt(this.dim, { x: at2.x, y: at2.y + dy, z: at2.z });
       if (b && isSolidBlock(b)) return false;
     }
     return true;
   }
   /** Water deeper than this form wades: Form II drags through shallows, Form III stands belly-deep. */
-  tooDeep(at, floorY) {
+  tooDeep(at2, floorY) {
     if (this.wade || this.form === 1) return false;
-    return waterOver(this.dim, at.x, at.z, floorY, this.form === 3 ? 5 : 2);
+    return waterOver(this.dim, at2.x, at2.z, floorY, this.form === 3 ? 5 : 2);
   }
   /** Already in water over his depth (swimming, or sunk to the bed): then every way is a way out. */
   inDeep() {
@@ -853,11 +923,11 @@ var Creature = class {
     const f = forwardOf(yaw);
     for (const s of BODY[this.form].look) {
       if (s > reach) break;
-      const at = add(this.pos, mul(f, s));
-      if (this.walled(at, false)) return false;
-      const floor = groundY(this.dim, at.x, at.z, this.pos.y + 6, DROP + 6);
+      const at2 = add(this.pos, mul(f, s));
+      if (this.walled(at2, false)) return false;
+      const floor = groundY(this.dim, at2.x, at2.z, this.pos.y + 6, DROP + 6);
       if (floor === NONE) return false;
-      if (typeof floor === "number" && !this.inDeep() && this.tooDeep(at, floor)) return false;
+      if (typeof floor === "number" && !this.inDeep() && this.tooDeep(at2, floor)) return false;
     }
     return true;
   }
@@ -1059,7 +1129,7 @@ var Creature = class {
       const d = defs[i];
       const c = this.point(d.bone, d.at);
       const s = SIZES[d.size];
-      const at = { x: c.x, y: c.y - s / 2, z: c.z };
+      const at2 = { x: c.x, y: c.y - s / 2, z: c.z };
       let part = this.parts[i];
       let ok = false;
       try {
@@ -1072,24 +1142,24 @@ var Creature = class {
           partOwner.delete(this.partIds[i]);
           this.partIds[i] = void 0;
         }
-        if (!isLoaded(this.dim, at)) continue;
+        if (!isLoaded(this.dim, at2)) continue;
         try {
-          part = this.dim.spawnEntity(HITBOX, at);
+          part = this.dim.spawnEntity(HITBOX, at2);
           part.triggerEvent(`basiliskra:size_${d.size}`);
           partOwner.set(part.id, { creature: this, tag: d.tag });
           this.parts[i] = part;
           this.partIds[i] = part.id;
-          this.partPos[i] = at;
+          this.partPos[i] = at2;
         } catch {
           this.parts[i] = void 0;
         }
         continue;
       }
       const last = this.partPos[i];
-      if (!last || dist(last, at) > 0.2) {
+      if (!last || dist(last, at2) > 0.2) {
         try {
-          part.teleport(at);
-          this.partPos[i] = at;
+          part.teleport(at2);
+          this.partPos[i] = at2;
         } catch {
           this.parts[i] = void 0;
         }
@@ -1178,16 +1248,16 @@ var Creature = class {
     }
     return moved;
   }
-  say(id, at, range = 56, volume = 1, pitch = 1) {
-    sound(this.dim, id, at ?? this.pos, range, volume, pitch);
+  say(id, at2, range = 56, volume = 1, pitch = 1) {
+    sound(this.dim, id, at2 ?? this.pos, range, volume, pitch);
   }
-  emit(id, at, range = 56) {
-    particle(this.dim, id, at, range);
+  emit(id, at2, range = 56) {
+    particle(this.dim, id, at2, range);
   }
   /** Damage a player from him (never on Peaceful when configured so; never Creative/Spectator). */
   hurt(p, amount, cause = EntityDamageCause.entityAttack) {
     if (!targetable(p)) return false;
-    if (CONFIG.harmlessOnPeaceful && String(world4.getDifficulty()).toLowerCase() === "peaceful") return false;
+    if (CONFIG.harmlessOnPeaceful && String(world5.getDifficulty()).toLowerCase() === "peaceful") return false;
     try {
       return p.applyDamage(amount * CONFIG.damage, { cause, damagingEntity: this.entity });
     } catch {
@@ -1340,11 +1410,511 @@ var Brain = class {
   }
 };
 
+// src/harm.ts
+var REGION = 64;
+var MAX_REGIONS = 40;
+var MAX_SITES = 4;
+var MAX_PLAYERS = 8;
+var MAX_GLOBAL_SITES = 24;
+var HALF_LIFE = 2 * TICKS.day;
+var RECENT_HALF_LIFE = TICKS.day / 2;
+var ANIMALS = {
+  "minecraft:cow": "mob.cow.say",
+  "minecraft:mooshroom": "mob.cow.say",
+  "minecraft:sheep": "mob.sheep.say",
+  "minecraft:pig": "mob.pig.say",
+  "minecraft:chicken": "mob.chicken.say",
+  "minecraft:rabbit": "mob.rabbit.idle",
+  "minecraft:horse": "mob.horse.idle",
+  "minecraft:donkey": "mob.horse.donkey.idle",
+  "minecraft:mule": "mob.horse.donkey.idle",
+  "minecraft:llama": "mob.llama.idle",
+  "minecraft:goat": "mob.goat.ambient",
+  "minecraft:fox": "mob.fox.ambient",
+  "minecraft:turtle": "mob.turtle.ambient",
+  "minecraft:cod": "mob.fish.flop",
+  "minecraft:salmon": "mob.fish.flop",
+  "minecraft:tropicalfish": "mob.fish.flop",
+  "minecraft:squid": "mob.squid.ambient",
+  "minecraft:glow_squid": "mob.glow_squid.ambient",
+  "minecraft:dolphin": "mob.dolphin.idle",
+  "minecraft:axolotl": "mob.axolotl.idle",
+  "minecraft:frog": "mob.frog.ambient",
+  "minecraft:camel": "mob.camel.ambient",
+  "minecraft:panda": "mob.panda.idle",
+  "minecraft:parrot": "mob.parrot.idle",
+  "minecraft:bee": "mob.bee.loop",
+  "minecraft:armadillo": "mob.armadillo.ambient",
+  "minecraft:sniffer": "mob.sniffer.idle",
+  "minecraft:polar_bear": "mob.polarbear.idle",
+  "minecraft:ocelot": "mob.ocelot.idle",
+  "minecraft:bat": "mob.bat.idle"
+};
+function habitatWeight(typeId) {
+  const id = typeId.replace("minecraft:", "");
+  if (id.endsWith("_log") || id.endsWith("_stem") || id === "mangrove_roots") return 0.3;
+  if (id === "reeds" || id === "sugar_cane") return 0.4;
+  if (id === "waterlily" || id === "lily_pad") return 0.4;
+  if (id === "kelp" || id === "seagrass" || id === "sea_pickle") return 0.25;
+  if (id === "bamboo" || id === "mangrove_propagule") return 0.2;
+  if (id.includes("coral")) return 0.4;
+  if (id.endsWith("_leaves") || id.endsWith("leaves")) return 0.04;
+  if (id === "tall_grass" || id === "short_grass" || id === "fern" || id === "large_fern") return 0.03;
+  return 0;
+}
+function keyOf(p) {
+  return `${Math.floor(p.x / REGION)},${Math.floor(p.z / REGION)}`;
+}
+function decay(r, now) {
+  const dt = Math.max(0, now - r.t);
+  if (dt <= 0) return;
+  const k = Math.pow(0.5, dt * CONFIG.pacing / HALF_LIFE);
+  const kr = Math.pow(0.5, dt / RECENT_HALF_LIFE);
+  r.a *= k;
+  r.h *= k;
+  r.ra *= kr;
+  r.rh *= kr;
+  for (const id of Object.keys(r.by)) {
+    r.by[id] *= k;
+    if (r.by[id] < 0.05) {
+      delete r.by[id];
+      delete r.names[id];
+    }
+  }
+  r.t = now;
+}
+function region(p, now) {
+  const regs = store.harm.regions;
+  const k = keyOf(p);
+  let r = regs[k];
+  if (!r) {
+    const keys = Object.keys(regs);
+    if (keys.length >= MAX_REGIONS) {
+      let worst = keys[0], low = Infinity;
+      for (const kk of keys) {
+        decay(regs[kk], now);
+        const s = regs[kk].a + regs[kk].h;
+        if (s < low) {
+          low = s;
+          worst = kk;
+        }
+      }
+      delete regs[worst];
+    }
+    r = regs[k] = { a: 0, h: 0, ra: 0, rh: 0, t: now, by: {}, names: {}, sites: [] };
+  }
+  decay(r, now);
+  return r;
+}
+function credit(r, playerId, name, w) {
+  if (!(playerId in r.by) && Object.keys(r.by).length >= MAX_PLAYERS) {
+    let least = "", low = Infinity;
+    for (const [id, s] of Object.entries(r.by)) if (s < low) {
+      low = s;
+      least = id;
+    }
+    delete r.by[least];
+    delete r.names[least];
+  }
+  r.by[playerId] = (r.by[playerId] ?? 0) + w;
+  r.names[playerId] = name;
+}
+var THRESHOLD = { animals: 8, habitat: 6, total: 18 };
+function check(r, key, at2) {
+  const p = CONFIG.pacing;
+  if (r.a * p < THRESHOLD.animals || r.h * p < THRESHOLD.habitat || (r.a + r.h) * p < THRESHOLD.total) return null;
+  let guilty = null, top = 0;
+  for (const [id, s] of Object.entries(r.by)) if (s > top) {
+    top = s;
+    guilty = id;
+  }
+  let site = at2;
+  if (r.sites.length) {
+    const n = r.sites.length;
+    site = { x: r.sites.reduce((s, q) => s + q.x, 0) / n, y: r.sites.reduce((s, q) => s + q.y, 0) / n, z: r.sites.reduce((s, q) => s + q.z, 0) / n };
+  }
+  return { region: key, site, guilty, guiltyName: guilty ? r.names[guilty] ?? null : null };
+}
+function recordKill(at2, typeId, playerId, playerName, now) {
+  const call = ANIMALS[typeId];
+  if (!call) return null;
+  const r = region(at2, now);
+  const w = Math.min(1, Math.max(0.15, r.ra / 2));
+  r.ra += 1;
+  r.a += w;
+  credit(r, playerId, playerName, w);
+  const site = { x: Math.floor(at2.x), y: Math.floor(at2.y), z: Math.floor(at2.z), s: call, t: now };
+  r.sites.push(site);
+  if (r.sites.length > MAX_SITES) r.sites.shift();
+  const all = store.rec.sites;
+  all.push(site);
+  if (all.length > MAX_GLOBAL_SITES) all.shift();
+  store.touch();
+  store.touchHarm();
+  return check(r, keyOf(at2), at2);
+}
+function recordHabitat(at2, typeId, playerId, playerName, now) {
+  const base = habitatWeight(typeId);
+  if (base <= 0) return null;
+  const r = region(at2, now);
+  const w = base * Math.min(1, Math.max(0.3, r.rh / 2));
+  r.rh += base * 2.2;
+  r.h += w;
+  credit(r, playerId, playerName, w);
+  store.touchHarm();
+  return check(r, keyOf(at2), at2);
+}
+function peek(r, now) {
+  const c = { ...r, by: { ...r.by }, names: { ...r.names }, sites: [...r.sites] };
+  decay(c, now);
+  return c;
+}
+function report(key, r) {
+  const [ix, iz] = key.split(",").map(Number);
+  const center = { x: ix * REGION + REGION / 2, y: 64, z: iz * REGION + REGION / 2 };
+  const a = r?.a ?? 0, h = r?.h ?? 0, p = CONFIG.pacing;
+  const animals = Math.min(1, a * p / THRESHOLD.animals);
+  const habitat = Math.min(1, h * p / THRESHOLD.habitat);
+  const total = Math.min(1, (a + h) * p / THRESHOLD.total);
+  const needA = Math.max(0, THRESHOLD.animals / p - a), needH = Math.max(0, THRESHOLD.habitat / p - h);
+  const rest = Math.max(0, THRESHOLD.total / p - (a + needA) - (h + needH));
+  return {
+    center,
+    key,
+    animals,
+    habitat,
+    total,
+    pct: Math.min(animals, habitat, total),
+    moreKills: Math.ceil(needA + rest),
+    moreLogs: Math.ceil(needH / 0.3),
+    by: { ...r?.by ?? {} },
+    names: { ...r?.names ?? {} },
+    fired: !!r?.fired
+  };
+}
+function angerAt(at2, now) {
+  const k = keyOf(at2);
+  const r = store.harm.regions[k];
+  return report(k, r ? peek(r, now) : void 0);
+}
+function angriest(now) {
+  let best = null;
+  for (const [k, r] of Object.entries(store.harm.regions)) {
+    const a = report(k, peek(r, now));
+    if (!best || a.pct > best.pct || a.pct === best.pct && a.total > best.total) best = a;
+  }
+  return best && best.total > 1e-3 ? best : null;
+}
+var halfLifeDays = () => HALF_LIFE / TICKS.day / CONFIG.pacing;
+function clearHarm() {
+  store.harm = { regions: {} };
+  store.touchHarm();
+}
+
+// src/ui.ts
+var ROMAN = ["", "I", "II", "III"];
+var DUSK = 11800;
+function canAdmin(p) {
+  try {
+    if (p.playerPermissionLevel === PlayerPermissionLevel.Operator) return true;
+  } catch {
+  }
+  try {
+    return world6.getAllPlayers().length <= 1;
+  } catch {
+    return false;
+  }
+}
+var pct = (f) => `${Math.floor(Math.max(0, Math.min(1, f)) * 100)}%`;
+function bar(f, colour = "§c") {
+  const n = Math.round(Math.max(0, Math.min(1, f)) * 20);
+  return `${colour}${"|".repeat(n)}§8${"|".repeat(20 - n)}§r`;
+}
+function mins(ticks) {
+  const m = Math.max(0, ticks) / TICKS.minute;
+  if (m < 1) return "less than a minute";
+  if (m < 90) return `about ${Math.round(m)} minute${Math.round(m) === 1 ? "" : "s"}`;
+  return `about ${(m / 60).toFixed(1)} hours`;
+}
+function compass(from, to) {
+  const dx = to.x - from.x, dz = to.z - from.z;
+  if (Math.hypot(dx, dz) < 4) return "right here";
+  const names = ["south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"];
+  const a = Math.atan2(-dx, dz) * 180 / Math.PI;
+  return `${Math.round(Math.hypot(dx, dz))} blocks ${names[(Math.round(a / 45) % 8 + 8) % 8]}`;
+}
+var at = (v) => `${Math.floor(v.x)}, ${Math.floor(v.y)}, ${Math.floor(v.z)}`;
+async function present(p, show) {
+  for (let i = 0; i < 20; i++) {
+    let r;
+    try {
+      r = await show();
+    } catch {
+      return void 0;
+    }
+    if (r.canceled && r.cancelationReason === FormCancelationReason.UserBusy) {
+      await new Promise((res) => system2.runTimeout(() => res(), 8));
+      continue;
+    }
+    return r;
+  }
+  return void 0;
+}
+function angerLines(p, a, here) {
+  const L = [];
+  L.push(`${here ? "§fWhere you stand" : `§fThe angriest place: around ${Math.floor(a.center.x)}, ${Math.floor(a.center.z)} §7(${compass(p.location, a.center)})`}§r`);
+  L.push(`  ${bar(a.pct)} §l${pct(a.pct)}§r`);
+  L.push(`  §7Animals killed by players: §f${pct(a.animals)}§7   Trees, reeds, shore plants cut: §f${pct(a.habitat)}§7   Together: §f${pct(a.total)}`);
+  if (a.fired) L.push("  §7He has already been called from here.");
+  else if (a.pct < 1) L.push(`  §7To call him from here: about §f${a.moreKills}§7 more animal${a.moreKills === 1 ? "" : "s"} killed and §f${a.moreLogs}§7 more logs (or reeds and shore plants) cut.`);
+  const total = Object.values(a.by).reduce((s, v) => s + v, 0);
+  const mine = a.by[p.id] ?? 0;
+  if (total > 0) L.push(`  §7Your share of it: §f${pct(mine / total)}`);
+  return L;
+}
+function evolveLines() {
+  const rec = store.rec, now = rec.clock, L = [];
+  const days = Math.min(1, (now - rec.mut.formSince) / pace(2 * TICKS.day));
+  if (rec.evolve) {
+    L.push("§cHe is changing right now.");
+    return L;
+  }
+  if (rec.form === 1) {
+    const s = Math.min(1, rec.mut.surfacings / 6), e = Math.min(1, rec.mut.episodes / 3), f = Math.min(days, s, e);
+    L.push(`§fBecoming Basiliskra II: ${bar(f, "§6")} §l${pct(f)}§r`);
+    L.push(`  §7Days in the water ${pct(days)} · seen at the surface ${Math.min(rec.mut.surfacings, 6)} of 6 · spasms ${Math.min(rec.mut.episodes, 3)} of 3`);
+    L.push("  §7He surfaces near boats and swimmers; the spasms come near piers and in open water at dusk. Then he beaches on a sand or gravel shore with someone near.");
+  } else if (rec.form === 2) {
+    const o = Math.min(1, rec.mut.overland * CONFIG.pacing / 220), f = Math.min(days, o);
+    L.push(`§fBecoming Basiliskra III: ${bar(f, "§6")} §l${pct(f)}§r`);
+    L.push(`  §7Days on the shore ${pct(days)} · dragged overland ${Math.floor(Math.min(220, rec.mut.overland * CONFIG.pacing))} of 220 blocks`);
+    L.push("  §7The change comes at night or in rain, with someone near.");
+  } else {
+    L.push("§fThe last crossing");
+    L.push("  §7Carry his shed fin to the seam; play his three knocks on note blocks near it and keep playing; lead his charge into a lightning rod near the seam.");
+  }
+  return L;
+}
+function comingLines(p, ctl2) {
+  const rec = store.rec, now = rec.clock, L = [];
+  const tod = world6.getTimeOfDay();
+  const toDusk = tod >= DUSK && tod < 13800 ? 0 : (DUSK - tod + 24e3) % 24e3;
+  switch (rec.stage) {
+    case "dormant":
+      L.push("§7Not yet. When one place reaches §f100%§7 he is called through deep water near it.");
+      L.push("§7He needs open water about §f6 blocks deep§7 with a clear run of about §f45 blocks§7 within ~90 blocks of that place. Harm far inland calls no one.");
+      break;
+    case "pending": {
+      const pd = rec.pending;
+      L.push(`§eHe has been called§7, by what was done near §f${Math.floor(pd.site.x)}, ${Math.floor(pd.site.z)}§7 (${compass(p.location, pd.site)}).`);
+      L.push(`§7He is looking for deep, open water there (search ${Math.min(12, (pd.passes ?? 0) + 1)} of 12). Someone must be within 128 blocks of that place.`);
+      if ((pd.passes ?? 0) >= 4) L.push("§7No water has been deep and open enough so far. Harm nearer a coast or a big lake will call him there instead.");
+      break;
+    }
+    case "arriving": {
+      const a = rec.arrival;
+      if (a.step === 0) {
+        L.push(`§eHe is coming§7, through the water at §f${at(a.water)}§7 (${compass(p.location, a.water)}).`);
+        L.push(toDusk === 0 ? "§7At dusk, which is now: someone must be within 96 blocks of that water." : `§7At the next dusk, in §f${mins(toDusk)}§7, while someone is within 96 blocks of that water.`);
+      } else L.push(`§cHe is coming through now§7, at §f${at(a.water)}§7 (${compass(p.location, a.water)}).`);
+      break;
+    }
+    case "alive": {
+      const c = ctl2.creature;
+      if (c && c.valid) {
+        let hp = "";
+        try {
+          const h = c.entity.getComponent("minecraft:health");
+          if (h) hp = ` §7Health §f${Math.ceil(h.currentValue)}/${h.effectiveMax}`;
+        } catch {
+        }
+        L.push(`§cBasiliskra ${ROMAN[rec.form]} is here§7, ${compass(p.location, c.pos)}.${hp}`);
+      } else if (rec.entityId === null && rec.down !== null) {
+        const left = pace(TICKS.day) - (now - rec.down);
+        L.push(`§7Driven off. He comes back through the seam at §f${rec.rift ? at(rec.rift) : "the old place"}§7 in §f${mins(left)}§7, when someone is near it.`);
+      } else if (rec.last) {
+        L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach. Last seen near §f${at(rec.last)}§7 (${compass(p.location, rec.last)}), ${mins(now - rec.last.t)} ago.`);
+      } else L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach.`);
+      if (rec.guiltyName) L.push(`§7He remembers §f${rec.guiltyName}§7.`);
+      break;
+    }
+    case "departed":
+      L.push("§7He has gone home. The story in this world is over; nothing calls another.");
+      break;
+  }
+  return L;
+}
+function journalText(p, ctl2) {
+  const now = store.rec.clock, L = [];
+  L.push("§l§4HIS ANGER§r");
+  let here = null;
+  try {
+    if (p.dimension.id === OVERWORLD) here = angerAt(p.location, now);
+  } catch {
+    here = null;
+  }
+  if (here) L.push(...angerLines(p, here, true));
+  else L.push("§7Only what is done in the Overworld counts.");
+  const top = angriest(now);
+  if (top && (!here || top.key !== here.key)) {
+    L.push("");
+    L.push(...angerLines(p, top, false));
+  }
+  L.push(`§8Left alone, anger halves every ${halfLifeDays().toFixed(1)} in-game days. One meal or one tree counts for almost nothing.`);
+  L.push("");
+  L.push("§l§4WHEN HE COMES§r");
+  L.push(...comingLines(p, ctl2));
+  if (store.rec.stage === "alive" || store.rec.stage === "arriving") {
+    L.push("");
+    L.push("§l§4HIM§r");
+    L.push(...evolveLines());
+  }
+  return L.join("\n");
+}
+async function openJournal(p, ctl2) {
+  for (; ; ) {
+    const f = new ActionFormData().title("Basiliskra Journal").body(journalText(p, ctl2)).button("Read again").button("Close");
+    if (canAdmin(p)) f.button("Config wheel");
+    const r = await present(p, () => f.show(p));
+    if (!r || r.canceled) return;
+    if (r.selection === 0) continue;
+    if (r.selection === 2) await openWheel(p, ctl2);
+    return;
+  }
+}
+function placeFor(p, form) {
+  const v = p.getViewDirection();
+  const n = Math.hypot(v.x, v.z) || 1;
+  const d = [0, 15, 19, 27][form] ?? 24;
+  const pl = p.location;
+  const pos = { x: pl.x + v.x / n * d, y: pl.y, z: pl.z + v.z / n * d };
+  const g = groundY(overworld(), pos.x, pos.z, pl.y + 24, 48);
+  if (g !== UNLOADED && g !== NONE) pos.y = g;
+  const yaw = Math.atan2(-(pl.x - pos.x), pl.z - pos.z) * 180 / Math.PI;
+  return { at: pos, yaw };
+}
+function formOf(rec = store.rec) {
+  return rec.born > 0 ? rec.form : 0;
+}
+async function settingsForm(p) {
+  const terrain = ["none", "scorch", "break"];
+  const f = new ModalFormData().title("Basiliskra Settings").slider("Story speed (x)", 0.25, 4, { valueStep: 0.25, defaultValue: CONFIG.pacing, tooltip: "2 halves every wait and threshold; 0.5 doubles them." }).dropdown("What his beam does to the ground", ["Nothing (light only)", "Scorches natural ground", "Scorches and breaks natural ground"], { defaultValueIndex: terrain.indexOf(CONFIG.terrain) }).toggle("Footprints and furrows in natural ground", { defaultValue: CONFIG.marks }).slider("Damage to players (x)", 0, 3, { valueStep: 0.25, defaultValue: CONFIG.damage }).toggle("Harmless on Peaceful", { defaultValue: CONFIG.harmlessOnPeaceful }).toggle("Spawn eggs and /summon bring him to you", { defaultValue: CONFIG.allowSummon }).dropdown("A spawn egg makes", ["His stage in the story", "Basiliskra I", "Basiliskra II", "Basiliskra III"], { defaultValueIndex: CONFIG.spawnForm }).toggle("Give new players the journal", { defaultValue: CONFIG.giveJournal }).toggle("Give operators the config wheel", { defaultValue: CONFIG.giveWheel }).toggle("Debug messages in the content log", { defaultValue: CONFIG.debug }).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
+  const r = await present(p, () => f.show(p));
+  if (!r || r.canceled || !r.formValues) return;
+  const v = r.formValues;
+  if (v[10] === true) {
+    resetSettings();
+    p.sendMessage("§7[Basiliskra] Settings restored to the defaults.");
+    return;
+  }
+  saveSettings({
+    pacing: Number(v[0]),
+    terrain: terrain[Number(v[1])] ?? "scorch",
+    marks: v[2] === true,
+    damage: Number(v[3]),
+    harmlessOnPeaceful: v[4] === true,
+    allowSummon: v[5] === true,
+    spawnForm: Number(v[6]),
+    giveJournal: v[7] === true,
+    giveWheel: v[8] === true,
+    debug: v[9] === true
+  });
+  p.sendMessage("§7[Basiliskra] Settings saved with this world.");
+}
+async function bringForm(p, ctl2) {
+  const f = new ActionFormData().title("Bring him here").body(`§7The one Basiliskra comes to you: moved here if he is about, made here if he is not. There is never more than one.
+§7Now: ${store.rec.born > 0 ? `Basiliskra ${ROMAN[store.rec.form]}` : "he has never come"}.`).button("As he is in the story").button("Basiliskra I (the water)").button("Basiliskra II (the shore)").button("Basiliskra III (four footfalls)");
+  const r = await present(p, () => f.show(p));
+  if (!r || r.canceled || r.selection === void 0) return;
+  if (p.dimension.id !== OVERWORLD) {
+    p.sendMessage("§7[Basiliskra] He only lives in the Overworld.");
+    return;
+  }
+  const want = r.selection;
+  const place = placeFor(p, want || formOf() || 3);
+  p.sendMessage(`§7[Basiliskra] ${ctl2.bringHere(place.at, place.yaw, want)}`);
+}
+async function confirm(p, title, body) {
+  const f = new MessageFormData().title(title).body(body).button1("Yes").button2("No");
+  const r = await present(p, () => f.show(p));
+  return !!r && !r.canceled && r.selection === 0;
+}
+async function openWheel(p, ctl2) {
+  if (!canAdmin(p)) {
+    p.sendMessage("§7[Basiliskra] Only an operator can use the config wheel.");
+    return;
+  }
+  const f = new ActionFormData().title("Basiliskra Config Wheel").body(`§7Stage: §f${store.rec.stage}§7 · Form: §f${store.rec.born > 0 ? ROMAN[store.rec.form] : "-"}§7 · Story speed §fx${CONFIG.pacing}§7 · Damage §fx${CONFIG.damage}`).button("Settings").button("Bring him here").button("Call him (opens the rift at the next dusk)").button("Skip to dusk").button("Send him back through the seam").button("Journal").button("§cReset the story");
+  const r = await present(p, () => f.show(p));
+  if (!r || r.canceled) return;
+  switch (r.selection) {
+    case 0:
+      await settingsForm(p);
+      break;
+    case 1:
+      await bringForm(p, ctl2);
+      break;
+    case 2:
+      if (p.dimension.id !== OVERWORLD) {
+        p.sendMessage("§7[Basiliskra] He only lives in the Overworld.");
+        break;
+      }
+      p.sendMessage(`§7[Basiliskra] ${ctl2.callNow(p.location, p)}`);
+      break;
+    case 3:
+      world6.setTimeOfDay(DUSK + 100);
+      p.sendMessage("§7[Basiliskra] Dusk.");
+      break;
+    case 4:
+      if (!ctl2.creature) {
+        p.sendMessage("§7[Basiliskra] He is not about to send anywhere.");
+        break;
+      }
+      ctl2.driveOff(true);
+      p.sendMessage("§7[Basiliskra] He has gone back through a seam. He returns in a day, when someone is near.");
+      break;
+    case 5:
+      await openJournal(p, ctl2);
+      break;
+    case 6:
+      if (await confirm(p, "Reset the story", "Forget him, his form, everything he has learned and all the anger on record, as if the pack had just been added. He is removed from the world.")) {
+        ctl2.resetStory();
+        p.sendMessage("§7[Basiliskra] The story has been reset.");
+      }
+      break;
+  }
+}
+function giveStarterItems(p) {
+  try {
+    if (p.getDynamicProperty("bk:given") === true) return;
+  } catch {
+    return;
+  }
+  const items = [];
+  if (CONFIG.giveJournal) items.push(JOURNAL_ITEM);
+  if (CONFIG.giveWheel && canAdmin(p)) items.push(WHEEL_ITEM);
+  for (const id of items) {
+    try {
+      const left = p.getComponent("minecraft:inventory")?.container?.addItem(new ItemStack(id, 1));
+      if (left) p.dimension.spawnItem(left, p.location);
+    } catch {
+    }
+  }
+  try {
+    p.setDynamicProperty("bk:given", true);
+  } catch {
+  }
+  if (items.length) p.sendMessage(`§7[Basiliskra] ${items.length > 1 ? "A journal and a config wheel are" : "A journal is"} in your inventory. Use the journal to see how angry he is, and when he will come.`);
+}
+
+// src/controller.ts
+import { ItemStack as ItemStack2, system as system5, world as world10 } from "@minecraft/server";
+
 // src/ending.ts
 import { EquipmentSlot } from "@minecraft/server";
 
 // src/forms/three.ts
-import { EntityDamageCause as EntityDamageCause2, world as world5 } from "@minecraft/server";
+import { EntityDamageCause as EntityDamageCause2, world as world7 } from "@minecraft/server";
 var TIERS = {
   1: { range: 28, radius: 1.4, damage: 4, ticks: 40, sfx: "basiliskra.iii.beam_raw", width: 1.5 },
   2: { range: 48, radius: 0.95, damage: 6, ticks: 60, sfx: "basiliskra.iii.beam", width: 0.9 },
@@ -1386,7 +1956,7 @@ var BrainThree = class extends Brain {
   }
   choose() {
     const c = this.c, rec = this.rec, now = this.now;
-    const tod = world5.getTimeOfDay();
+    const tod = world7.getTimeOfDay();
     if (this.wantCharge) {
       this.wantCharge = false;
       return { name: "charge", run: this.beam(null), limit: 30 * TICKS.second };
@@ -1470,8 +2040,8 @@ var BrainThree = class extends Brain {
     }
     if (!CONFIG.marks) return;
     for (const [dx, dz] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const at = { x: Math.floor(foot.x) + dx, y: Math.floor(c.pos.y - 0.5), z: Math.floor(foot.z) + dz };
-      const b = takesMark(c.dim, at);
+      const at2 = { x: Math.floor(foot.x) + dx, y: Math.floor(c.pos.y - 0.5), z: Math.floor(foot.z) + dz };
+      const b = takesMark(c.dim, at2);
       const to = b ? printOf(b.typeId) : void 0;
       if (b && to) {
         try {
@@ -1527,7 +2097,7 @@ var BrainThree = class extends Brain {
     let best = toHim, score = -2, reach = 3, pane = add(head, mul(toHim, 3));
     for (let i = 0; i < 16; i++) {
       const a = i * Math.PI / 8, d = { x: Math.cos(a), y: 0, z: Math.sin(a) };
-      let open = false, at = 3, mid = add(head, mul(d, 3));
+      let open = false, at2 = 3, mid = add(head, mul(d, 3));
       for (let r = 1; r <= 9; r++) {
         const q = { x: head.x + d.x * r, y: head.y, z: head.z + d.z * r };
         const b = blockAt(c.dim, q);
@@ -1540,7 +2110,7 @@ var BrainThree = class extends Brain {
           while (hi < 3 && glassy(bx + along.x * (hi + 1), by, bz + along.z * (hi + 1))) hi++;
           mid = { x: bx + 0.5 + along.x * (lo + hi) / 2, y: head.y, z: bz + 0.5 + along.z * (lo + hi) / 2 };
           open = true;
-          at = r;
+          at2 = r;
           break;
         }
         if (isSolidBlock(b)) break;
@@ -1549,7 +2119,7 @@ var BrainThree = class extends Brain {
       if (open && dot(d, toHim) > score) {
         score = dot(d, toHim);
         best = d;
-        reach = at;
+        reach = at2;
         pane = mid;
       }
     }
@@ -1670,18 +2240,18 @@ var BrainThree = class extends Brain {
   *pursue(g) {
     const c = this.c;
     for (let t = 0; t < 300; t++) {
-      let at;
+      let at2;
       try {
         if (!g.isValid || g.dimension.id !== c.dim.id) return;
-        at = g.location;
+        at2 = g.location;
       } catch {
         return;
       }
       c.setPhase("move");
-      c.goTo(at, 0.16, 16);
-      c.lookAt(at, 60, 25);
+      c.goTo(at2, 0.16, 16);
+      c.lookAt(at2, 60, 25);
       this.footfalls();
-      if (dist(at, c.pos) < 17) break;
+      if (dist(at2, c.pos) < 17) break;
       yield;
     }
     c.halt();
@@ -1903,10 +2473,10 @@ var BrainThree = class extends Brain {
     yield* wait(50);
   }
   /** Mark what the beam touched.  Natural ground only; never a block with an inventory, a bed, a portal or redstone. */
-  scorch(at) {
+  scorch(at2) {
     if (CONFIG.terrain === "none") return;
     const c = this.c;
-    const hit = blockAt(c.dim, at);
+    const hit = blockAt(c.dim, at2);
     if (!hit || !isNaturalGround(hit.typeId)) return;
     const free = (x, y, z) => {
       const b = blockAt(c.dim, { x, y, z });
@@ -1918,7 +2488,7 @@ var BrainThree = class extends Brain {
     };
     for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
       if (Math.abs(dx) + Math.abs(dy) + Math.abs(dz) > 2) continue;
-      const x = Math.floor(at.x) + dx, y = Math.floor(at.y) + dy, z = Math.floor(at.z) + dz;
+      const x = Math.floor(at2.x) + dx, y = Math.floor(at2.y) + dy, z = Math.floor(at2.z) + dz;
       const b = blockAt(c.dim, { x, y, z });
       if (!b) continue;
       const id = b.typeId;
@@ -2040,11 +2610,11 @@ var Ending = class {
     }
   }
   /** A note sounded near the seam (a player's hand or a redstone pulse). */
-  onNote(at) {
+  onNote(at2) {
     const rift = store.rec.rift;
-    if (!rift || distXZ(at, rift) > NOTE_REACH) return;
-    const k = `${Math.floor(at.x)},${Math.floor(at.y)},${Math.floor(at.z)}`;
-    if (!this.blocks.has(k) && this.blocks.size < 32) this.blocks.set(k, { x: Math.floor(at.x), y: Math.floor(at.y), z: Math.floor(at.z) });
+    if (!rift || distXZ(at2, rift) > NOTE_REACH) return;
+    const k = `${Math.floor(at2.x)},${Math.floor(at2.y)},${Math.floor(at2.z)}`;
+    if (!this.blocks.has(k) && this.blocks.size < 32) this.blocks.set(k, { x: Math.floor(at2.x), y: Math.floor(at2.y), z: Math.floor(at2.z) });
     const now = store.rec.clock;
     const gap = now - this.lastNote;
     if (gap < 4) return;
@@ -2344,7 +2914,7 @@ var Ending = class {
 };
 
 // src/forms/one.ts
-import { world as world6 } from "@minecraft/server";
+import { world as world8 } from "@minecraft/server";
 function boatOf(p) {
   try {
     const r = p.getComponent("minecraft:riding");
@@ -2367,15 +2937,15 @@ var BrainOne = class extends Brain {
   }
   interrupt() {
     if (this.lure && this.actName !== "lure" && this.actName !== "beach") {
-      const at = this.lure;
+      const at2 = this.lure;
       this.lure = null;
-      return { name: "lure", run: this.investigate(at), limit: 30 * TICKS.second };
+      return { name: "lure", run: this.investigate(at2), limit: 30 * TICKS.second };
     }
     return null;
   }
   choose() {
     const c = this.c, now = this.now, rec = this.rec;
-    const tod = world6.getTimeOfDay();
+    const tod = world8.getTimeOfDay();
     const p = Math.max(0.25, 1 / Math.max(0.1, 1));
     if (!rec.evolve && rec.mut.surfacings >= 6 && rec.mut.episodes >= 3 && now - rec.mut.formSince >= pace(2 * TICKS.day) && anyoneNear(c, 96) && this.ready("beach")) {
       this.rest("beach", 2 * TICKS.minute);
@@ -2416,10 +2986,10 @@ var BrainOne = class extends Brain {
     }
     if (near.length && this.ready("harbor") && (isNight(tod) || tod > 11500)) {
       const pier = this.findPier(near[0].location);
-      const at = pier ?? this.openWater(near[0].location, 10, 24, 5);
-      if (at) {
+      const at2 = pier ?? this.openWater(near[0].location, 10, 24, 5);
+      if (at2) {
         this.rest("harbor", (pier ? 4 : 6) * TICKS.minute);
-        return { name: "harbor", run: this.underHarbor(pier ?? { x: at.x, y: at.y + 1, z: at.z }), limit: 2 * TICKS.minute };
+        return { name: "harbor", run: this.underHarbor(pier ?? { x: at2.x, y: at2.y + 1, z: at2.z }), limit: 2 * TICKS.minute };
       }
     }
     return { name: "patrol", run: this.patrol(), limit: 40 * TICKS.second };
@@ -2604,9 +3174,9 @@ var BrainOne = class extends Brain {
             pull = false;
           }
           if (!pull) continue;
-          const at = e.typeId === "minecraft:player" ? e.getHeadLocation() : e.location;
-          if (!clearLine(c.dim, g, at)) continue;
-          const d = norm(sub(g, at));
+          const at2 = e.typeId === "minecraft:player" ? e.getHeadLocation() : e.location;
+          if (!clearLine(c.dim, g, at2)) continue;
+          const d = norm(sub(g, at2));
           try {
             if (e.typeId === "minecraft:player") e.applyKnockback({ x: d.x * 0.42, z: d.z * 0.42 }, d.y * 0.2);
             else e.applyImpulse(mul(d, 0.14));
@@ -2624,61 +3194,61 @@ var BrainOne = class extends Brain {
   *drownedEcho(site) {
     const c = this.c;
     const col = waterColumn(c.dim, site.x, site.z, site.y, 8);
-    let at = col !== NONE && col !== UNLOADED ? { x: site.x + 0.5, y: col.surface - 1, z: site.z + 0.5 } : null;
-    if (!at) {
+    let at2 = col !== NONE && col !== UNLOADED ? { x: site.x + 0.5, y: col.surface - 1, z: site.z + 0.5 } : null;
+    if (!at2) {
       for (const [dx, dz] of [[4, 0], [-4, 0], [0, 4], [0, -4], [6, 6], [-6, -6], [6, -6], [-6, 6]]) {
         const cc = waterColumn(c.dim, site.x + dx, site.z + dz, site.y, 8);
         if (cc !== NONE && cc !== UNLOADED) {
-          at = { x: site.x + dx, y: cc.surface - 1, z: site.z + dz };
+          at2 = { x: site.x + dx, y: cc.surface - 1, z: site.z + dz };
           break;
         }
       }
     }
-    if (!at) return;
+    if (!at2) return;
     for (const p of nearbyPlayers(c, 64)) {
       try {
-        const ear = p.getHeadLocation(), d = dist(ear, at);
+        const ear = p.getHeadLocation(), d = dist(ear, at2);
         if (d > 48) continue;
-        const from = d <= 10 ? at : add(ear, mul(norm(sub(at, ear)), 10));
+        const from = d <= 10 ? at2 : add(ear, mul(norm(sub(at2, ear)), 10));
         p.playSound(site.s, { location: from, volume: clamp(1.1 - d / 60, 0.35, 0.9), pitch: 0.72 });
       } catch {
       }
     }
     c.halt();
     for (let t = 0; t < 46; t++) {
-      c.lookAt(at, 70, 25);
+      c.lookAt(at2, 70, 25);
       yield;
     }
     c.setPhase("move");
     c.swimDepth = 5;
-    yield* travel(c, at, 0.24, 5, 700);
+    yield* travel(c, at2, 0.24, 5, 700);
     c.lookAhead();
     c.setPhase("idle");
     yield* wait(70);
-    sound(c.dim, site.s, at, 24, 0.45, 0.66);
+    sound(c.dim, site.s, at2, 24, 0.45, 0.66);
     yield* wait(80);
   }
   // ---- the second splash ----------------------------------------------------------------------------
-  onSplash(at, _by) {
+  onSplash(at2, _by) {
     const c = this.c;
-    if (dist(at, c.pos) > 56) return;
+    if (dist(at2, c.pos) > 56) return;
     const prev = this.splash;
-    if (prev && this.now - prev.t <= 80 && dist(prev.at, at) <= 6 && this.rec.learned.lureUntil <= this.now) {
-      this.lure = at;
+    if (prev && this.now - prev.t <= 80 && dist(prev.at, at2) <= 6 && this.rec.learned.lureUntil <= this.now) {
+      this.lure = at2;
       this.rec.learned.lures++;
       this.rec.learned.lureUntil = this.now + pace(30 * TICKS.second + Math.min(this.rec.learned.lures, 8) * 15 * TICKS.second);
       this.splash = null;
     } else {
-      this.splash = { at, t: this.now };
-      if (this.actName === "patrol" || this.actName === "none") c.lookAt(at, 60, 20);
+      this.splash = { at: at2, t: this.now };
+      if (this.actName === "patrol" || this.actName === "none") c.lookAt(at2, 60, 20);
     }
   }
-  *investigate(at) {
+  *investigate(at2) {
     const c = this.c;
     c.setPhase("move");
     c.swimDepth = 5;
-    c.lookAt(at, 60, 20);
-    yield* travel(c, at, 0.3, 7, 500);
+    c.lookAt(at2, 60, 20);
+    yield* travel(c, at2, 0.3, 7, 500);
     c.lookAhead();
     c.setPhase("sweep");
     c.say("basiliskra.i.sweep", c.anchor("tail_tip"), 56);
@@ -2759,7 +3329,7 @@ var BrainOne = class extends Brain {
     c.bendHold = 19;
     c.setPhase("sleep");
     let t = 0;
-    while (isNight(world6.getTimeOfDay()) && t++ < 9e3) {
+    while (isNight(world8.getTimeOfDay()) && t++ < 9e3) {
       const head = c.anchor("muzzle");
       let woke = this.now - this.hurtAt < 40;
       for (const p of nearbyPlayers(c, 40)) if (dist(p.location, head) < 7) woke = true;
@@ -2829,7 +3399,7 @@ var BrainOne = class extends Brain {
 };
 
 // src/forms/two.ts
-import { world as world7 } from "@minecraft/server";
+import { world as world9 } from "@minecraft/server";
 var LAMP = /^minecraft:((lit_)?redstone_lamp|(soul_)?lantern|.*copper_lantern|sea_lantern|glowstone|.*copper_bulb|(soul_|redstone_|copper_)?torch|shroomlight|.*froglight)$/;
 var STONE = /^minecraft:(stone|cobblestone|mossy_cobblestone|stone_bricks|andesite|diorite|granite|deepslate|tuff|.*_slab|stone_.*|polished_.*|smooth_stone|gravel)$/;
 var BrainTwo = class extends Brain {
@@ -2853,15 +3423,15 @@ var BrainTwo = class extends Brain {
       return { name: "flinch", run: this.flinch(from), limit: 20 * TICKS.second };
     }
     if (this.lure && (this.actName === "well" || this.actName === "wander" || this.actName === "pin")) {
-      const at = this.lure;
+      const at2 = this.lure;
       this.lure = null;
-      return { name: "lure", run: this.toLure(at), limit: 50 * TICKS.second };
+      return { name: "lure", run: this.toLure(at2), limit: 50 * TICKS.second };
     }
     return null;
   }
   choose() {
     const c = this.c, rec = this.rec, now = this.now;
-    const tod = world7.getTimeOfDay();
+    const tod = world9.getTimeOfDay();
     if (!rec.evolve && rec.mut.overland >= 220 / CONFIG.pacing && now - rec.mut.formSince >= pace(2 * TICKS.day) && (isNight(tod) || rec.weather !== "clear") && anyoneNear(c, 96)) {
       rec.evolve = { to: 3, step: 0, t0: now, at: { ...c.pos } };
       return { name: "evolve", run: wait(900), limit: 900 };
@@ -2936,8 +3506,8 @@ var BrainTwo = class extends Brain {
     const c = this.c;
     for (const side of ["hip_l", "hip_r"]) {
       const p = c.anchor(side);
-      const at = { x: Math.floor(p.x), y: Math.floor(c.pos.y - 0.5), z: Math.floor(p.z) };
-      const b = takesMark(c.dim, at);
+      const at2 = { x: Math.floor(p.x), y: Math.floor(c.pos.y - 0.5), z: Math.floor(p.z) };
+      const b = takesMark(c.dim, at2);
       const to = b ? furrowOf(b.typeId) : void 0;
       if (b && to) {
         try {
@@ -3022,39 +3592,39 @@ var BrainTwo = class extends Brain {
     }
     return well ?? (pd < 48 ? pond : null);
   }
-  *well(at) {
+  *well(at2) {
     const c = this.c;
-    if (!(yield* this.drag(at, 8.5, 1800))) return;
-    c.yaw = yawTo(c.pos, at);
+    if (!(yield* this.drag(at2, 8.5, 1800))) return;
+    c.yaw = yawTo(c.pos, at2);
     c.setPhase("drink");
     for (let t = 0; t < 700; t++) {
       if (t % 52 === 0) c.say("basiliskra.ii.drink", c.anchor("muzzle"), 32);
       yield;
     }
   }
-  *toLure(at) {
+  *toLure(at2) {
     const c = this.c;
     c.setPhase("idle");
     for (let t = 0; t < 24; t++) {
-      c.lookAt(at, 70, 20);
+      c.lookAt(at2, 70, 20);
       yield;
     }
     c.lookAhead();
-    yield* this.drag(at, 6, 900);
+    yield* this.drag(at2, 6, 900);
     c.setPhase("idle");
     yield* wait(100);
   }
-  onSplash(at, _by) {
+  onSplash(at2, _by) {
     const c = this.c;
-    if (dist(at, c.pos) > 40) return;
+    if (dist(at2, c.pos) > 40) return;
     this.otherSound = this.now;
     const prev = this.splash;
-    if (prev && this.now - prev.t <= 100 && dist(prev.at, at) <= 6 && this.rec.learned.lureUntil <= this.now) {
-      this.lure = at;
+    if (prev && this.now - prev.t <= 100 && dist(prev.at, at2) <= 6 && this.rec.learned.lureUntil <= this.now) {
+      this.lure = at2;
       this.rec.learned.lures++;
       this.rec.learned.lureUntil = this.now + pace(40 * TICKS.second);
       this.splash = null;
-    } else this.splash = { at, t: this.now };
+    } else this.splash = { at: at2, t: this.now };
   }
   // ---- the first discharge -----------------------------------------------------------------------------
   *discharge() {
@@ -3105,24 +3675,24 @@ var BrainTwo = class extends Brain {
     }
   }
   // ---- the bell ---------------------------------------------------------------------------------------------
-  onBell(at, _by) {
+  onBell(at2, _by) {
     const c = this.c, rec = this.rec;
-    if (dist(at, c.pos) > 48) return;
+    if (dist(at2, c.pos) > 48) return;
     if (this.actName === "pin") {
-      const same = rec.learned.bell && dist(rec.learned.bell, at) < 2;
+      const same = rec.learned.bell && dist(rec.learned.bell, at2) < 2;
       if (same) {
-        sound(c.dim, "basiliskra.bell_pin", at, 32);
-        particle(c.dim, "basiliskra:grit", { x: at.x + 0.5, y: at.y + 0.5, z: at.z + 0.5 }, 24);
+        sound(c.dim, "basiliskra.bell_pin", at2, 32);
+        particle(c.dim, "basiliskra:grit", { x: at2.x + 0.5, y: at2.y + 0.5, z: at2.z + 0.5 }, 24);
       } else this.otherSound = this.now;
       return;
     }
     if (rec.learned.bellUses < 3) {
       rec.learned.bellUses++;
-      rec.learned.bell = { x: Math.floor(at.x), y: Math.floor(at.y), z: Math.floor(at.z) };
-      this.startle = at;
+      rec.learned.bell = { x: Math.floor(at2.x), y: Math.floor(at2.y), z: Math.floor(at2.z) };
+      this.startle = at2;
     } else if (rec.learned.bellUses === 3) {
       rec.learned.bellUses = 4;
-      rec.learned.bell = { x: Math.floor(at.x), y: Math.floor(at.y), z: Math.floor(at.z) };
+      rec.learned.bell = { x: Math.floor(at2.x), y: Math.floor(at2.y), z: Math.floor(at2.z) };
     }
   }
   onNote(_at) {
@@ -3181,6 +3751,15 @@ var BrainTwo = class extends Brain {
 
 // src/controller.ts
 var TOKEN = "bk:token";
+var ROMAN2 = ["", "I", "II", "III"];
+function tellNear(dimId, at2, msg) {
+  for (const p of players()) {
+    try {
+      if (p.dimension.id === dimId && dist(p.location, at2) < 64) p.sendMessage(msg);
+    } catch {
+    }
+  }
+}
 var SPAWN_STEP = 3;
 var WATER_CANDIDATES = 60;
 var Controller = class {
@@ -3232,13 +3811,13 @@ var Controller = class {
       return;
     }
     if (mayExist && rec.entityId === null && rec.token && !this.creature) {
-      let token;
+      let token2;
       try {
-        token = e.getDynamicProperty(TOKEN);
+        token2 = e.getDynamicProperty(TOKEN);
       } catch {
-        token = void 0;
+        token2 = void 0;
       }
-      if (token === rec.token) {
+      if (token2 === rec.token) {
         rec.entityId = id;
         rec.down = null;
         store.save();
@@ -3246,7 +3825,195 @@ var Controller = class {
         return;
       }
     }
+    let token;
+    try {
+      token = e.getDynamicProperty(TOKEN);
+    } catch {
+      token = void 0;
+    }
+    if (token === void 0 && CONFIG.allowSummon) {
+      this.summoned(e);
+      return;
+    }
     this.quarantine(e);
+  }
+  // ---- called on purpose: spawn egg, /summon, /basiliskra:spawn, the config wheel ----------------------------
+  /** A Basiliskra nobody reserved has appeared.  The one Basiliskra comes to that place instead. */
+  summoned(e) {
+    let at2, yaw = 0, dimId = "";
+    try {
+      at2 = { ...e.location };
+      yaw = e.getRotation().y;
+      dimId = e.dimension.id;
+    } catch {
+      return;
+    }
+    if (dimId !== OVERWORLD) {
+      this.quarantine(e);
+      tellNear(dimId, at2, "§7Basiliskra lives in the Overworld. He cannot be called here.");
+      return;
+    }
+    const said = this.bringHere(at2, yaw, CONFIG.spawnForm, e);
+    tellNear(dimId, at2, `§7${said}`);
+  }
+  /**
+   * Bring the one Basiliskra to `at`, in `want` form (0 = his stage in the story).  If he is loaded he is moved
+   * here; otherwise a body here becomes him and the old one, wherever it lies, is removed when its chunk loads.
+   * Never more than one.  Returns what happened, in words.
+   */
+  bringHere(at2, yaw, want, body) {
+    const rec = store.rec, dim = overworld();
+    const form = this.formFor(want, at2);
+    if (form === 1) {
+      const w = this.waterNear(at2, 48);
+      if (w) at2 = w;
+    }
+    const c = this.creature;
+    if (c && c.valid) {
+      if (body) this.quarantine(body);
+      this.runner = null;
+      this.ending.reset();
+      if (rec.stage !== "alive") {
+        rec.stage = "alive";
+        rec.arrival = null;
+        rec.pending = null;
+      }
+      rec.evolve = null;
+      rec.down = null;
+      if (!rec.born) {
+        rec.born = this.now;
+        rec.mut.formSince = this.now;
+      }
+      if (!rec.rift) rec.rift = { ...this.waterNear(at2, 64) ?? at2, yaw };
+      if (c.form !== form) this.setForm(c, form);
+      this.brain?.finish();
+      c.halt();
+      c.pos = { ...at2 };
+      c.yaw = yaw;
+      try {
+        c.entity.teleport(at2, { rotation: { x: 0, y: yaw } });
+      } catch {
+      }
+      store.save();
+      return `Basiliskra ${ROMAN2[form]} has come.`;
+    }
+    let made = false;
+    if (!body) {
+      if (!isLoaded(dim, at2)) return "That place is not loaded.";
+      try {
+        body = dim.spawnEntity(TYPE, at2, { initialRotation: yaw });
+        made = true;
+      } catch {
+        return "He could not come there.";
+      }
+    }
+    this.ticket = body;
+    try {
+      rec.stage = "alive";
+      if (!rec.token) rec.token = newToken();
+      rec.entityId = body.id;
+      rec.form = form;
+      rec.pending = null;
+      rec.arrival = null;
+      rec.evolve = null;
+      rec.ending = null;
+      rec.down = null;
+      if (!rec.born) {
+        rec.born = this.now;
+        rec.mut.formSince = this.now;
+      }
+      if (!rec.rift) rec.rift = { ...this.waterNear(at2, 64) ?? at2, yaw };
+      if (!rec.origin) rec.origin = { ...at2 };
+      store.save();
+      try {
+        body.setDynamicProperty(TOKEN, rec.token);
+      } catch {
+      }
+      this.adopt(body);
+      try {
+        const h = body.getComponent("minecraft:health");
+        if (h) h.setCurrentValue(Math.max(1, Math.min(rec.health || h.effectiveMax, h.effectiveMax)));
+      } catch {
+      }
+    } finally {
+      this.ticket = null;
+    }
+    if (!this.creature && made) {
+      try {
+        body.remove();
+      } catch {
+      }
+    }
+    return this.creature ? `Basiliskra ${ROMAN2[form]} has come.` : "He could not come there.";
+  }
+  /** Which form a call makes. */
+  formFor(want, at2) {
+    if (want) return want;
+    const rec = store.rec;
+    if (rec.born > 0) return rec.form;
+    return this.waterNear(at2, 6) ? 1 : 3;
+  }
+  /** The nearest loaded column of open water at least five deep, at his swimming depth; null if none within reach. */
+  waterNear(at2, reach) {
+    const dim = overworld();
+    for (let r = 0; r <= reach; r += 4) {
+      const n = r === 0 ? 1 : Math.max(8, Math.round(r * 1.5));
+      for (let i = 0; i < n; i++) {
+        const a = i / n * Math.PI * 2;
+        const x = at2.x + Math.cos(a) * r, z = at2.z + Math.sin(a) * r;
+        const col = waterColumn(dim, x, z, at2.y, 12, 12);
+        if (col === UNLOADED || col === NONE || col.surface - col.floor < 5) continue;
+        return { x, y: col.surface - 5.5, z };
+      }
+    }
+    return null;
+  }
+  /** Change his form now, keeping him (the config wheel, /basiliskra:spawn with a form). */
+  setForm(c, form) {
+    const rec = store.rec;
+    rec.form = form;
+    rec.mut.formSince = this.now;
+    rec.evolve = null;
+    c.form = form;
+    try {
+      c.entity.triggerEvent(`basiliskra:bind_${form}`);
+    } catch {
+    }
+    this.nameHim(c.entity);
+    c.dropParts();
+    c.resync();
+    this.brain = this.makeBrain(c);
+  }
+  /** The config wheel: open the rift for him now, at the deep water nearest to `site`. */
+  callNow(site, by) {
+    const rec = store.rec;
+    if (rec.stage === "alive" || rec.stage === "arriving") return "He is already here, or on his way.";
+    if (rec.stage === "departed") return "He has gone home. Use the spawn egg or Bring him here to call him back.";
+    rec.stage = "dormant";
+    this.requestArrival({ region: "wheel", site, guilty: by.id, guiltyName: by.name });
+    return "Called. He comes through the nearest deep, open water at the next dusk, while someone is near.";
+  }
+  /** The config wheel: forget everything, as if the pack had just been added. */
+  resetStory() {
+    const c = this.creature;
+    this.creature = null;
+    this.brain = null;
+    this.runner = null;
+    this.ending.reset();
+    if (c) {
+      c.dropParts();
+      try {
+        c.entity.setProperty(PROP.bound, false);
+        c.entity.remove();
+      } catch {
+      }
+    }
+    const clock = store.rec.clock;
+    store.rec = freshRecord();
+    store.rec.clock = clock;
+    clearHarm();
+    store.save();
+    store.flush();
   }
   /** A copy, a stray summon, or anything after his departure: gone before it can act. */
   quarantine(e) {
@@ -3293,14 +4060,14 @@ var Controller = class {
     return c.form === 1 ? new BrainOne(c) : c.form === 2 ? new BrainTwo(c) : new BrainThree(c);
   }
   /** The only place the entity is ever created.  The reservation is already saved when this runs. */
-  create(dim, at, yaw) {
+  create(dim, at2, yaw) {
     const rec = store.rec;
     if (this.creature || rec.entityId !== null || !rec.token) return false;
     if (rec.stage !== "arriving" && rec.stage !== "alive") return false;
-    if (!isLoaded(dim, at)) return false;
+    if (!isLoaded(dim, at2)) return false;
     let e;
     try {
-      e = dim.spawnEntity(TYPE, at, { initialRotation: yaw });
+      e = dim.spawnEntity(TYPE, at2, { initialRotation: yaw });
     } catch {
       return false;
     }
@@ -3321,7 +4088,7 @@ var Controller = class {
     for (const id of [OVERWORLD, "minecraft:nether", "minecraft:the_end"]) {
       let dim;
       try {
-        dim = world8.getDimension(id);
+        dim = world10.getDimension(id);
       } catch {
         continue;
       }
@@ -3382,14 +4149,14 @@ var Controller = class {
     if (this.brain) {
       const b = this.brain;
       this.brain = null;
-      system4.run(() => {
+      system5.run(() => {
         try {
           b.finish();
         } catch {
         }
       });
     }
-    system4.run(() => {
+    system5.run(() => {
       parts.dropParts();
       store.touch();
     });
@@ -3412,15 +4179,20 @@ var Controller = class {
    * Worn down to his last breath he is not killed: a seam takes him where he stands, and he comes
    * back through the first one a day later, whole, in the form he had.  The reservation never lapses.
    */
-  driveOff() {
+  driveOff(force = false) {
     const c = this.creature, rec = store.rec;
-    if (!c || !c.valid || rec.stage !== "alive" || rec.evolve || rec.ending?.step) return;
-    const at = { x: c.pos.x, y: c.pos.y + 3, z: c.pos.z };
+    if (!c || !c.valid || rec.stage !== "alive") return;
+    if (!force && (rec.evolve || rec.ending?.step)) return;
+    if (force) {
+      this.ending.reset();
+      rec.evolve = null;
+    }
+    const at2 = { x: c.pos.x, y: c.pos.y + 3, z: c.pos.z };
     if (c.form === 1) c.say("basiliskra.roar_under", c.anchor("nose"), 96);
     else c.say("basiliskra.roar_short", c.anchor("nose"), 128, 1, c.form === 2 ? 1.18 : 1);
-    sound(c.dim, "basiliskra.rift.open", at, 72, 1, 1.3);
-    sound(c.dim, "basiliskra.rift.close", at, 72);
-    for (const p of [at, c.anchor("nose"), c.anchor("tail_notch")]) particle(c.dim, "basiliskra:seam_close", p, 72);
+    sound(c.dim, "basiliskra.rift.open", at2, 72, 1, 1.3);
+    sound(c.dim, "basiliskra.rift.close", at2, 72);
+    for (const p of [at2, c.anchor("nose"), c.anchor("tail_notch")]) particle(c.dim, "basiliskra:seam_close", p, 72);
     this.brain?.finish();
     rec.last = { x: c.pos.x, y: c.pos.y, z: c.pos.z, t: this.now };
     rec.entityId = null;
@@ -3600,13 +4372,13 @@ var Controller = class {
             }
           }
         }
-        const tod = world8.getTimeOfDay();
+        const tod = world10.getTimeOfDay();
         if (near && (isDusk(tod) || t > pace(1.2 * TICKS.day))) this.setStep(1);
         break;
       }
       case 1: {
         if (t % KNOCK_GAP_TICKS === 2 && t < KNOCK_GAP_TICKS * 3) {
-          let at = add(a.water, { x: 0, y: 5.5, z: 0 });
+          let at2 = add(a.water, { x: 0, y: 5.5, z: 0 });
           try {
             const boat = dim.getEntities({ location: a.water, maxDistance: 40, families: ["boat"] }).find((b) => {
               try {
@@ -3616,12 +4388,12 @@ var Controller = class {
               }
             });
             if (boat) {
-              at = boat.location;
+              at2 = boat.location;
               boat.applyImpulse({ x: (hash(now, 1) - 0.5) * 0.2, y: 0.02, z: (hash(now, 2) - 0.5) * 0.2 });
             }
           } catch {
           }
-          sound(dim, "basiliskra.boat_knock", at, 32);
+          sound(dim, "basiliskra.boat_knock", at2, 32);
         }
         if (t > KNOCK_GAP_TICKS * 3 + 30) {
           rec.rift = { ...a.water, yaw: a.yaw };
@@ -3640,8 +4412,8 @@ var Controller = class {
         if (t % 4 === 0) particle(dim, "basiliskra:seam", a.water, 72);
         if (!this.creature) {
           if (t % 20 !== 1) break;
-          const at = add(a.water, mul(forwardOf(a.yaw), -7));
-          if (!this.create(dim, at, a.yaw)) break;
+          const at2 = add(a.water, mul(forwardOf(a.yaw), -7));
+          if (!this.create(dim, at2, a.yaw)) break;
           const c = this.creature;
           c.set(PROP.visLo, 9);
           c.setPhase("arrive");
@@ -3671,7 +4443,7 @@ var Controller = class {
     }
   }
   /** Zones (head 8 .. tail 0) that have passed a plane through `at` facing `yaw`. */
-  passed(c, at, yaw) {
+  passed(c, at2, yaw) {
     const f = forwardOf(yaw);
     const zones = RIGS[c.form].zones;
     const out = [];
@@ -3682,7 +4454,7 @@ var Controller = class {
         continue;
       }
       const p = c.point(bones[0], RIGS[c.form].bones[bones[0]].pivot);
-      out.push(dot(sub(p, at), f) > 0);
+      out.push(dot(sub(p, at2), f) > 0);
     }
     return out;
   }
@@ -3790,7 +4562,7 @@ var Controller = class {
     const dim = overworld();
     if (rec.entityId !== null) {
       try {
-        const e = world8.getEntity(rec.entityId);
+        const e = world10.getEntity(rec.entityId);
         if (e) {
           this.inspect(e);
           return;
@@ -3832,10 +4604,10 @@ var Controller = class {
       }
     });
     if (!near) return;
-    const at = rec.form === 1 ? rec.rift : rec.beach ?? rec.rift;
-    if (!isLoaded(dim, at)) return;
+    const at2 = rec.form === 1 ? rec.rift : rec.beach ?? rec.rift;
+    if (!isLoaded(dim, at2)) return;
     sound(dim, "basiliskra.rift.open", rec.rift, 72);
-    this.create(dim, { x: at.x + 0.5, y: at.y + (rec.form === 1 ? 0 : 1), z: at.z + 0.5 }, rec.rift.yaw);
+    this.create(dim, { x: at2.x + 0.5, y: at2.y + (rec.form === 1 ? 0 : 1), z: at2.z + 0.5 }, rec.rift.yaw);
   }
   // ---- evolution: the same entity, in place, resumable ---------------------------------------------------
   evolve(c) {
@@ -3895,9 +4667,9 @@ var Controller = class {
       else if (b instanceof BrainTwo) b.forced = { name: "roar", run: b.roar(), limit: 120 };
     }
   }
-  dropFin(dim, at) {
+  dropFin(dim, at2) {
     try {
-      dim.spawnItem(new ItemStack(FIN_ITEM, 1), { x: at.x, y: at.y + 1, z: at.z });
+      dim.spawnItem(new ItemStack2(FIN_ITEM, 1), { x: at2.x, y: at2.y + 1, z: at2.z });
       store.rec.learned.fragments++;
       store.rec.learned.fragmentAt = this.now;
       store.touch();
@@ -3928,161 +4700,6 @@ var Controller = class {
   }
 };
 
-// src/harm.ts
-var REGION = 64;
-var MAX_REGIONS = 40;
-var MAX_SITES = 4;
-var MAX_PLAYERS = 8;
-var MAX_GLOBAL_SITES = 24;
-var HALF_LIFE = 2 * TICKS.day;
-var RECENT_HALF_LIFE = TICKS.day / 2;
-var ANIMALS = {
-  "minecraft:cow": "mob.cow.say",
-  "minecraft:mooshroom": "mob.cow.say",
-  "minecraft:sheep": "mob.sheep.say",
-  "minecraft:pig": "mob.pig.say",
-  "minecraft:chicken": "mob.chicken.say",
-  "minecraft:rabbit": "mob.rabbit.idle",
-  "minecraft:horse": "mob.horse.idle",
-  "minecraft:donkey": "mob.horse.donkey.idle",
-  "minecraft:mule": "mob.horse.donkey.idle",
-  "minecraft:llama": "mob.llama.idle",
-  "minecraft:goat": "mob.goat.ambient",
-  "minecraft:fox": "mob.fox.ambient",
-  "minecraft:turtle": "mob.turtle.ambient",
-  "minecraft:cod": "mob.fish.flop",
-  "minecraft:salmon": "mob.fish.flop",
-  "minecraft:tropicalfish": "mob.fish.flop",
-  "minecraft:squid": "mob.squid.ambient",
-  "minecraft:glow_squid": "mob.glow_squid.ambient",
-  "minecraft:dolphin": "mob.dolphin.idle",
-  "minecraft:axolotl": "mob.axolotl.idle",
-  "minecraft:frog": "mob.frog.ambient",
-  "minecraft:camel": "mob.camel.ambient",
-  "minecraft:panda": "mob.panda.idle",
-  "minecraft:parrot": "mob.parrot.idle",
-  "minecraft:bee": "mob.bee.loop",
-  "minecraft:armadillo": "mob.armadillo.ambient",
-  "minecraft:sniffer": "mob.sniffer.idle",
-  "minecraft:polar_bear": "mob.polarbear.idle",
-  "minecraft:ocelot": "mob.ocelot.idle",
-  "minecraft:bat": "mob.bat.idle"
-};
-function habitatWeight(typeId) {
-  const id = typeId.replace("minecraft:", "");
-  if (id.endsWith("_log") || id.endsWith("_stem") || id === "mangrove_roots") return 0.3;
-  if (id === "reeds" || id === "sugar_cane") return 0.4;
-  if (id === "waterlily" || id === "lily_pad") return 0.4;
-  if (id === "kelp" || id === "seagrass" || id === "sea_pickle") return 0.25;
-  if (id === "bamboo" || id === "mangrove_propagule") return 0.2;
-  if (id.includes("coral")) return 0.4;
-  if (id.endsWith("_leaves") || id.endsWith("leaves")) return 0.04;
-  if (id === "tall_grass" || id === "short_grass" || id === "fern" || id === "large_fern") return 0.03;
-  return 0;
-}
-function keyOf(p) {
-  return `${Math.floor(p.x / REGION)},${Math.floor(p.z / REGION)}`;
-}
-function decay(r, now) {
-  const dt = Math.max(0, now - r.t);
-  if (dt <= 0) return;
-  const k = Math.pow(0.5, dt * CONFIG.pacing / HALF_LIFE);
-  const kr = Math.pow(0.5, dt / RECENT_HALF_LIFE);
-  r.a *= k;
-  r.h *= k;
-  r.ra *= kr;
-  r.rh *= kr;
-  for (const id of Object.keys(r.by)) {
-    r.by[id] *= k;
-    if (r.by[id] < 0.05) {
-      delete r.by[id];
-      delete r.names[id];
-    }
-  }
-  r.t = now;
-}
-function region(p, now) {
-  const regs = store.harm.regions;
-  const k = keyOf(p);
-  let r = regs[k];
-  if (!r) {
-    const keys = Object.keys(regs);
-    if (keys.length >= MAX_REGIONS) {
-      let worst = keys[0], low = Infinity;
-      for (const kk of keys) {
-        decay(regs[kk], now);
-        const s = regs[kk].a + regs[kk].h;
-        if (s < low) {
-          low = s;
-          worst = kk;
-        }
-      }
-      delete regs[worst];
-    }
-    r = regs[k] = { a: 0, h: 0, ra: 0, rh: 0, t: now, by: {}, names: {}, sites: [] };
-  }
-  decay(r, now);
-  return r;
-}
-function credit(r, playerId, name, w) {
-  if (!(playerId in r.by) && Object.keys(r.by).length >= MAX_PLAYERS) {
-    let least = "", low = Infinity;
-    for (const [id, s] of Object.entries(r.by)) if (s < low) {
-      low = s;
-      least = id;
-    }
-    delete r.by[least];
-    delete r.names[least];
-  }
-  r.by[playerId] = (r.by[playerId] ?? 0) + w;
-  r.names[playerId] = name;
-}
-var THRESHOLD = { animals: 8, habitat: 6, total: 18 };
-function check(r, key, at) {
-  const p = CONFIG.pacing;
-  if (r.a * p < THRESHOLD.animals || r.h * p < THRESHOLD.habitat || (r.a + r.h) * p < THRESHOLD.total) return null;
-  let guilty = null, top = 0;
-  for (const [id, s] of Object.entries(r.by)) if (s > top) {
-    top = s;
-    guilty = id;
-  }
-  let site = at;
-  if (r.sites.length) {
-    const n = r.sites.length;
-    site = { x: r.sites.reduce((s, q) => s + q.x, 0) / n, y: r.sites.reduce((s, q) => s + q.y, 0) / n, z: r.sites.reduce((s, q) => s + q.z, 0) / n };
-  }
-  return { region: key, site, guilty, guiltyName: guilty ? r.names[guilty] ?? null : null };
-}
-function recordKill(at, typeId, playerId, playerName, now) {
-  const call = ANIMALS[typeId];
-  if (!call) return null;
-  const r = region(at, now);
-  const w = Math.min(1, Math.max(0.15, r.ra / 2));
-  r.ra += 1;
-  r.a += w;
-  credit(r, playerId, playerName, w);
-  const site = { x: Math.floor(at.x), y: Math.floor(at.y), z: Math.floor(at.z), s: call, t: now };
-  r.sites.push(site);
-  if (r.sites.length > MAX_SITES) r.sites.shift();
-  const all = store.rec.sites;
-  all.push(site);
-  if (all.length > MAX_GLOBAL_SITES) all.shift();
-  store.touch();
-  store.touchHarm();
-  return check(r, keyOf(at), at);
-}
-function recordHabitat(at, typeId, playerId, playerName, now) {
-  const base = habitatWeight(typeId);
-  if (base <= 0) return null;
-  const r = region(at, now);
-  const w = base * Math.min(1, Math.max(0.3, r.rh / 2));
-  r.rh += base * 2.2;
-  r.h += w;
-  credit(r, playerId, playerName, w);
-  store.touchHarm();
-  return check(r, keyOf(at), at);
-}
-
 // src/main.ts
 var ctl = new Controller();
 var ready = false;
@@ -4090,11 +4707,11 @@ var lastFault = "";
 var faultAt = -1e9;
 var SPLASHERS = /* @__PURE__ */ new Set(["minecraft:snowball", "minecraft:egg", "minecraft:item", "minecraft:ender_pearl"]);
 var flying = [];
-function splash(at, by) {
+function splash(at2, by) {
   const dim = overworld();
-  sound(dim, "basiliskra.splash", at, 24, 0.9);
-  particle(dim, "basiliskra:splash", at, 32);
-  ctl.brain?.onSplash(at, by);
+  sound(dim, "basiliskra.splash", at2, 24, 0.9);
+  particle(dim, "basiliskra:splash", at2, 32);
+  ctl.brain?.onSplash(at2, by);
 }
 function trackSplashes() {
   for (let i = flying.length - 1; i >= 0; i--) {
@@ -4112,10 +4729,11 @@ function trackSplashes() {
     if (done) flying.splice(i, 1);
   }
 }
-world9.afterEvents.worldLoad.subscribe(() => {
+world11.afterEvents.worldLoad.subscribe(() => {
+  loadSettings();
   ctl.init();
   ready = true;
-  system5.runInterval(() => {
+  system6.runInterval(() => {
     try {
       trackSplashes();
       ctl.tick();
@@ -4134,14 +4752,14 @@ world9.afterEvents.worldLoad.subscribe(() => {
     }
   }, 1);
 });
-system5.beforeEvents.shutdown.subscribe(() => {
+system6.beforeEvents.shutdown.subscribe(() => {
   try {
     store.flush();
     store.save();
   } catch {
   }
 });
-world9.afterEvents.entityLoad.subscribe((ev) => {
+world11.afterEvents.entityLoad.subscribe((ev) => {
   if (!ready) return;
   try {
     if (ev.entity.typeId === TYPE) ctl.inspect(ev.entity);
@@ -4149,7 +4767,7 @@ world9.afterEvents.entityLoad.subscribe((ev) => {
   } catch {
   }
 });
-world9.afterEvents.entitySpawn.subscribe((ev) => {
+world11.afterEvents.entitySpawn.subscribe((ev) => {
   if (!ready) return;
   try {
     const id = ev.entity.typeId;
@@ -4165,7 +4783,7 @@ world9.afterEvents.entitySpawn.subscribe((ev) => {
   } catch {
   }
 });
-world9.beforeEvents.entityRemove.subscribe((ev) => {
+world11.beforeEvents.entityRemove.subscribe((ev) => {
   try {
     const id = ev.removedEntity.typeId;
     if (id === TYPE) ctl.onRemoving(ev.removedEntity);
@@ -4186,7 +4804,7 @@ var PASSES = /* @__PURE__ */ new Set([
 ]);
 var forwardTick = -1;
 var forwardKey = "";
-world9.beforeEvents.entityHurt.subscribe((ev) => {
+world11.beforeEvents.entityHurt.subscribe((ev) => {
   let type;
   try {
     type = ev.hurtEntity.typeId;
@@ -4204,7 +4822,7 @@ world9.beforeEvents.entityHurt.subscribe((ev) => {
     if (forwardTick === store.rec.clock && forwardKey === key) return;
     forwardTick = store.rec.clock;
     forwardKey = key;
-    system5.run(() => {
+    system6.run(() => {
       try {
         if (owner.creature.valid) owner.creature.entity.applyDamage(amount, by ? { cause, damagingEntity: by } : { cause });
       } catch {
@@ -4225,15 +4843,15 @@ world9.beforeEvents.entityHurt.subscribe((ev) => {
   }
   if (health <= 2) {
     ev.cancel = true;
-    system5.run(() => ctl.driveOff());
+    system6.run(() => ctl.driveOff());
     return;
   }
   if (ev.damage >= health - 1) {
     ev.damage = Math.max(0, health - 1.5);
-    system5.run(() => ctl.driveOff());
+    system6.run(() => ctl.driveOff());
   }
 });
-world9.afterEvents.entityHurt.subscribe((ev) => {
+world11.afterEvents.entityHurt.subscribe((ev) => {
   try {
     if (ev.hurtEntity.typeId !== TYPE) return;
     const by = ev.damageSource.damagingEntity;
@@ -4241,7 +4859,7 @@ world9.afterEvents.entityHurt.subscribe((ev) => {
   } catch {
   }
 });
-world9.afterEvents.entityDie.subscribe((ev) => {
+world11.afterEvents.entityDie.subscribe((ev) => {
   let type;
   try {
     type = ev.deadEntity.typeId;
@@ -4262,7 +4880,7 @@ world9.afterEvents.entityDie.subscribe((ev) => {
   } catch {
   }
 });
-world9.afterEvents.playerBreakBlock.subscribe((ev) => {
+world11.afterEvents.playerBreakBlock.subscribe((ev) => {
   try {
     if (ev.dimension.id !== OVERWORLD) return;
     const t = recordHabitat(ev.block.location, ev.brokenBlockPermutation.type.id, ev.player.id, ev.player.name, store.rec.clock);
@@ -4270,18 +4888,18 @@ world9.afterEvents.playerBreakBlock.subscribe((ev) => {
   } catch {
   }
 });
-world9.afterEvents.playerInteractWithBlock.subscribe((ev) => {
+world11.afterEvents.playerInteractWithBlock.subscribe((ev) => {
   try {
-    const id = ev.block.typeId, at = ev.block.location;
-    if (id === "minecraft:bell") ctl.brain?.onBell(at, ev.player);
+    const id = ev.block.typeId, at2 = ev.block.location;
+    if (id === "minecraft:bell") ctl.brain?.onBell(at2, ev.player);
     else if (id === "minecraft:noteblock") {
-      ctl.ending.onNote(at);
-      ctl.brain?.onNote(at);
+      ctl.ending.onNote(at2);
+      ctl.brain?.onNote(at2);
     } else if (ev.beforeItemStack?.typeId === "minecraft:water_bucket") {
-      const p = { x: at.x + 0.5, y: at.y + 1, z: at.z + 0.5 };
-      system5.runTimeout(() => {
+      const p = { x: at2.x + 0.5, y: at2.y + 1, z: at2.z + 0.5 };
+      system6.runTimeout(() => {
         try {
-          if (isWaterId(idAt(ev.player.dimension, p)) || isWaterId(idAt(ev.player.dimension, at))) splash(p, ev.player);
+          if (isWaterId(idAt(ev.player.dimension, p)) || isWaterId(idAt(ev.player.dimension, at2))) splash(p, ev.player);
         } catch {
         }
       }, 4);
@@ -4289,18 +4907,102 @@ world9.afterEvents.playerInteractWithBlock.subscribe((ev) => {
   } catch {
   }
 });
-world9.afterEvents.weatherChange.subscribe((ev) => {
+world11.afterEvents.weatherChange.subscribe((ev) => {
   const w = String(ev.newWeather).toLowerCase();
   store.rec.weather = w.includes("thunder") ? "thunder" : w.includes("rain") ? "rain" : "clear";
   store.touch();
 });
-system5.afterEvents.scriptEventReceive.subscribe((ev) => {
+world11.afterEvents.itemUse.subscribe((ev) => {
+  try {
+    const id = ev.itemStack.typeId;
+    if (id === JOURNAL_ITEM) void openJournal(ev.source, ctl);
+    else if (id === WHEEL_ITEM) void openWheel(ev.source, ctl);
+  } catch {
+  }
+});
+world11.afterEvents.playerSpawn.subscribe((ev) => {
+  if (!ev.initialSpawn) return;
+  const p = ev.player;
+  system6.runTimeout(() => {
+    try {
+      if (p.isValid) giveStarterItems(p);
+    } catch {
+    }
+  }, 60);
+});
+var FORMS = ["story", "i", "ii", "iii"];
+system6.beforeEvents.startup.subscribe((ev) => {
+  const reg = ev.customCommandRegistry;
+  const who = (o) => {
+    const e = o.initiator ?? o.sourceEntity;
+    return e && e.typeId === "minecraft:player" ? e : void 0;
+  };
+  const fail = (message) => ({ status: CustomCommandStatus.Failure, message });
+  try {
+    reg.registerEnum(`${NS}:form`, FORMS);
+    reg.registerCommand({
+      name: `${NS}:spawn`,
+      description: "Bring the one Basiliskra here (form: story, i, ii or iii). Moves him if he is about.",
+      permissionLevel: CommandPermissionLevel.GameDirectors,
+      cheatsRequired: false,
+      optionalParameters: [{ name: `${NS}:form`, type: CustomCommandParamType.Enum }]
+    }, (origin, form) => {
+      const p = who(origin);
+      if (!p) return fail("Run this as a player.");
+      const want = Math.max(0, FORMS.indexOf(form ?? "story"));
+      system6.run(() => {
+        try {
+          if (p.dimension.id !== OVERWORLD) {
+            p.sendMessage("§7[Basiliskra] He only lives in the Overworld.");
+            return;
+          }
+          const rec = store.rec;
+          const place = placeFor(p, want || (rec.born > 0 ? rec.form : 3));
+          p.sendMessage(`§7[Basiliskra] ${ctl.bringHere(place.at, place.yaw, want)}`);
+        } catch (e) {
+          p.sendMessage(`§c[Basiliskra] ${e}`);
+        }
+      });
+      return { status: CustomCommandStatus.Success, message: "Calling Basiliskra..." };
+    });
+    reg.registerCommand({
+      name: `${NS}:journal`,
+      description: "Open the Basiliskra journal: how angry he is, and when he will come.",
+      permissionLevel: CommandPermissionLevel.Any,
+      cheatsRequired: false
+    }, (origin) => {
+      const p = who(origin);
+      if (!p) return fail("Run this as a player.");
+      system6.run(() => {
+        void openJournal(p, ctl);
+      });
+      return { status: CustomCommandStatus.Success };
+    });
+    reg.registerCommand({
+      name: `${NS}:config`,
+      description: "Open the Basiliskra config wheel (settings; bring, call or send him).",
+      permissionLevel: CommandPermissionLevel.GameDirectors,
+      cheatsRequired: false
+    }, (origin) => {
+      const p = who(origin);
+      if (!p) return fail("Run this as a player.");
+      system6.run(() => {
+        if (canAdmin(p)) void openWheel(p, ctl);
+        else p.sendMessage("§7[Basiliskra] Only an operator can use the config wheel.");
+      });
+      return { status: CustomCommandStatus.Success };
+    });
+  } catch (e) {
+    console.warn(`[${NS}] commands: ${e}`);
+  }
+});
+system6.afterEvents.scriptEventReceive.subscribe((ev) => {
   if (!CONFIG.debug || ev.id !== `${NS}:debug`) return;
   const [cmd, arg] = ev.message.split(" ");
   const rec = store.rec;
   const src = ev.sourceEntity;
   if (cmd === "status") {
-    world9.sendMessage(`[${NS}] stage=${rec.stage} form=${rec.form} id=${rec.entityId} loaded=${!!ctl.creature} act=${ctl.brain?.actName} quarantined=${ctl.quarantined}`);
+    world11.sendMessage(`[${NS}] stage=${rec.stage} form=${rec.form} id=${rec.entityId} loaded=${!!ctl.creature} act=${ctl.brain?.actName} quarantined=${ctl.quarantined}`);
   } else if (cmd === "arrive" && src) {
     ctl.requestArrival({ region: "debug", site: src.location, guilty: src.id, guiltyName: src.name ?? null });
   } else if (cmd === "stats") {
@@ -4311,7 +5013,7 @@ system5.afterEvents.scriptEventReceive.subscribe((ev) => {
     rec.mut.beams = Number(arg ?? rec.mut.beams);
     store.save();
   } else if (cmd === "dusk") {
-    world9.setTimeOfDay(12200);
+    world11.setTimeOfDay(12200);
   }
 }, { namespaces: [NS] });
 export {

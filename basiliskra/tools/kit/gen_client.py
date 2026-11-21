@@ -429,7 +429,7 @@ def particle_controller(tag):
     def st(effects, transitions):
         d = {"transitions": transitions}
         if effects:
-            d["particle_effects"] = [{"effect": e, "locator": l} for e, l in effects]
+            d["particle_effects"] = [{"effect": e, "locator": f"{l}_{tag}"} for e, l in effects]      # per-form locator names (kit.Model.geo_locator)
         return d
 
     if tag == "iii":
@@ -540,6 +540,7 @@ def main():
             "render_controllers": glow_list,
             "enable_attachables": False,
             "hide_armor": True,
+            "spawn_egg": {"base_color": "#17161b", "overlay_color": "#b3121e"},
         }}}
     os.makedirs(os.path.join(RP, "entity"), exist_ok=True)
     kit.write_json(os.path.join(RP, "entity", f"{NS}.entity.json"), entity)

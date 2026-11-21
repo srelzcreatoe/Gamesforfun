@@ -154,3 +154,68 @@ export function regionScore(at: V3, now: number): { a: number; h: number; by: Re
   const r = region(at, now);
   return { a: r.a, h: r.h, by: { ...r.by } };
 }
+
+// ---- reading it back (the journal).  Nothing here changes the stored history. ------------------------------------
+export interface Anger {
+  /** The region's centre (blocks) and its key. */
+  center: V3;
+  key: string;
+  /** Each requirement as a fraction of what calls him (1 = met), and the overall figure (the least of them). */
+  animals: number;
+  habitat: number;
+  total: number;
+  pct: number;
+  /** Roughly how much more it takes: animal kills, and logs (or reeds and shore plants, which count a little more). */
+  moreKills: number;
+  moreLogs: number;
+  /** Share of the harm here per player id, and their names. */
+  by: Record<string, number>;
+  names: Record<string, string>;
+  /** He has already been called from here. */
+  fired: boolean;
+}
+
+function peek(r: Region, now: number): Region {
+  const c: Region = { ...r, by: { ...r.by }, names: { ...r.names }, sites: [...r.sites] };
+  decay(c, now);
+  return c;
+}
+
+function report(key: string, r: Region | undefined): Anger {
+  const [ix, iz] = key.split(",").map(Number);
+  const center = { x: ix * REGION + REGION / 2, y: 64, z: iz * REGION + REGION / 2 };
+  const a = r?.a ?? 0, h = r?.h ?? 0, p = CONFIG.pacing;
+  const animals = Math.min(1, (a * p) / THRESHOLD.animals);
+  const habitat = Math.min(1, (h * p) / THRESHOLD.habitat);
+  const total = Math.min(1, ((a + h) * p) / THRESHOLD.total);
+  const needA = Math.max(0, THRESHOLD.animals / p - a), needH = Math.max(0, THRESHOLD.habitat / p - h);
+  const rest = Math.max(0, THRESHOLD.total / p - (a + needA) - (h + needH));
+  return {
+    center, key, animals, habitat, total, pct: Math.min(animals, habitat, total),
+    moreKills: Math.ceil(needA + rest), moreLogs: Math.ceil(needH / 0.3),
+    by: { ...(r?.by ?? {}) }, names: { ...(r?.names ?? {}) }, fired: !!r?.fired,
+  };
+}
+
+/** How angry the stretch of country round `at` has made him, without touching the record. */
+export function angerAt(at: V3, now: number): Anger {
+  const k = keyOf(at);
+  const r = (store.harm.regions as Record<string, Region>)[k];
+  return report(k, r ? peek(r, now) : undefined);
+}
+
+/** The angriest place in the world, if anywhere has any harm on record. */
+export function angriest(now: number): Anger | null {
+  let best: Anger | null = null;
+  for (const [k, r] of Object.entries(store.harm.regions as Record<string, Region>)) {
+    const a = report(k, peek(r, now));
+    if (!best || a.pct > best.pct || (a.pct === best.pct && a.total > best.total)) best = a;
+  }
+  return best && best.total > 0.001 ? best : null;
+}
+
+/** Days for the harm in an untouched place to halve, at the current pacing. */
+export const halfLifeDays = (): number => HALF_LIFE / TICKS.day / CONFIG.pacing;
+
+/** Forget every region (the config wheel's "reset the story"). */
+export function clearHarm(): void { store.harm = { regions: {} }; store.touchHarm(); }

@@ -19,6 +19,43 @@ export const GameMode = { Survival: 'Survival', Creative: 'Creative', Adventure:
 export const EquipmentSlot = { Mainhand: 'Mainhand', Offhand: 'Offhand' };
 export class MolangVariableMap { constructor() { this.v = {}; } setFloat(k, v) { this.v[k] = v; } setVector3(k, v) { this.v[k] = v; } setColorRGB(k, v) { this.v[k] = v; } }
 export class ItemStack { constructor(typeId, amount = 1) { this.typeId = typeId; this.amount = amount; } }
+export const CommandPermissionLevel = { Any: 0, GameDirectors: 1, Admin: 2, Host: 3, Owner: 4 };
+export const CustomCommandParamType = { BlockType: 'BlockType', Boolean: 'Boolean', EntitySelector: 'EntitySelector', EntityType: 'EntityType', Enum: 'Enum', Float: 'Float', Integer: 'Integer', Location: 'Location', PlayerSelector: 'PlayerSelector', String: 'String' };
+export const CustomCommandStatus = { Success: 0, Failure: 1 };
+export const PlayerPermissionLevel = { Visitor: 0, Member: 1, Operator: 2, Custom: 3 };
+export const EntityInitializationCause = { Born: 'Born', Event: 'Event', Loaded: 'Loaded', Spawned: 'Spawned', Transformed: 'Transformed' };
+
+// ---- @minecraft/server-ui: forms record what they would show, and answer from the player's queue ----------------
+export const FormCancelationReason = { UserBusy: 'UserBusy', UserClosed: 'UserClosed' };
+class MockForm {
+  constructor(kind) { this.kind = kind; this.spec = { kind, title: '', body: '', buttons: [], controls: [] }; }
+  title(t) { this.spec.title = t; return this; }
+  body(t) { this.spec.body = t; return this; }
+  button(t) { this.spec.buttons.push(t); return this; }
+  button1(t) { this.spec.buttons[0] = t; return this; }
+  button2(t) { this.spec.buttons[1] = t; return this; }
+  slider(label, min, max, o = {}) { this.spec.controls.push({ type: 'slider', label, min, max, value: o.defaultValue ?? min }); return this; }
+  dropdown(label, items, o = {}) { this.spec.controls.push({ type: 'dropdown', label, items, value: o.defaultValueIndex ?? 0 }); return this; }
+  toggle(label, o = {}) { this.spec.controls.push({ type: 'toggle', label, value: o.defaultValue ?? false }); return this; }
+  textField(label) { this.spec.controls.push({ type: 'text', label, value: '' }); return this; }
+  submitButton() { return this; }
+  divider() { return this; } header() { return this; } label() { return this; }
+  show(player) {
+    player.forms.push(this.spec);
+    const a = player.answers.shift();
+    if (a === undefined) return Promise.resolve({ canceled: true, cancelationReason: 'UserClosed' });
+    if (a === 'busy') return Promise.resolve({ canceled: true, cancelationReason: 'UserBusy' });
+    if (this.kind === 'modal') {
+      const values = this.spec.controls.map((c, i) => (a && i in a ? a[i] : c.value));
+      return Promise.resolve({ canceled: false, formValues: values });
+    }
+    return Promise.resolve({ canceled: false, selection: a });
+  }
+}
+export class ActionFormData extends MockForm { constructor() { super('action'); } }
+export class ModalFormData extends MockForm { constructor() { super('modal'); } }
+export class MessageFormData extends MockForm { constructor() { super('message'); } }
+export const UI = { ActionFormData, ModalFormData, MessageFormData, FormCancelationReason };
 
 class Signal {
   constructor() { this.subs = []; }
@@ -81,11 +118,15 @@ export class Sim {
     this.ev = {
       worldLoad: after(), entityLoad: after(), entitySpawn: after(), entityHurt: after(), entityDie: after(), playerBreakBlock: after(),
       playerInteractWithBlock: after(), weatherChange: after(), bEntityRemove: after(), bEntityHurt: after(), shutdown: after(), scriptEvent: after(),
+      itemUse: after(), playerSpawn: after(), startup: after(),
     };
+    this.commands = new Map();          // custom commands the script registered at start-up
+    this.enums = new Map();
     this.dims = new Map();
     for (const id of ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end']) this.dims.set(id, new MockDimension(this, id));
     this.api = {
       EntityDamageCause, GameMode, EquipmentSlot, MolangVariableMap, ItemStack, Player: MockPlayer, Entity: MockEntity,
+      CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, PlayerPermissionLevel, EntityInitializationCause,
       world: {
         getDynamicProperty: (k) => sim.save.worldProps.get(k),
         setDynamicProperty: (k, v) => {
@@ -100,7 +141,8 @@ export class Sim {
         getEntity: (id) => sim.loaded.get(id),
         sendMessage: (m) => sim.log.commands.push(String(m)),
         afterEvents: { worldLoad: this.ev.worldLoad, entityLoad: this.ev.entityLoad, entitySpawn: this.ev.entitySpawn, entityHurt: this.ev.entityHurt,
-          entityDie: this.ev.entityDie, playerBreakBlock: this.ev.playerBreakBlock, playerInteractWithBlock: this.ev.playerInteractWithBlock, weatherChange: this.ev.weatherChange },
+          entityDie: this.ev.entityDie, playerBreakBlock: this.ev.playerBreakBlock, playerInteractWithBlock: this.ev.playerInteractWithBlock, weatherChange: this.ev.weatherChange,
+          itemUse: this.ev.itemUse, playerSpawn: this.ev.playerSpawn },
         beforeEvents: { entityRemove: this.ev.bEntityRemove, entityHurt: this.ev.bEntityHurt },
       },
       system: {
@@ -108,7 +150,7 @@ export class Sim {
         run: (fn) => { sim.runs.push(fn); return 0; },
         runTimeout: (fn, t = 1) => { sim.timeouts.push({ fn, at: sim.save.tick + t }); return 0; },
         runInterval: (fn, t = 1) => { sim.intervals.push({ fn, t }); return 0; },
-        beforeEvents: { shutdown: this.ev.shutdown },
+        beforeEvents: { shutdown: this.ev.shutdown, startup: this.ev.startup },
         afterEvents: { scriptEventReceive: { subscribe: (fn) => this.ev.scriptEvent.subscribe(fn) } },
       },
     };
@@ -139,7 +181,7 @@ export class Sim {
   attach(rec, cause) {
     const e = new MockEntity(this, rec);
     this.loaded.set(rec.id, e);
-    this.queue.push(() => this.ev[cause].fire({ entity: e, cause }));
+    this.queue.push(() => this.ev[cause].fire({ entity: e, cause: cause === 'entitySpawn' ? 'Spawned' : 'Loaded' }));
     return e;
   }
   /** What /summon, a spawn egg or a structure block would do: an entity the controller did not make. */
@@ -162,6 +204,12 @@ export class Sim {
   addPlayer(name, loc, dim = 'minecraft:overworld') {
     const p = new MockPlayer(this, name, loc, this.dims.get(dim));
     this.players.push(p);
+    return p;
+  }
+  /** A player joining the world for real: they spawn, and the engine says so. */
+  join(name, loc, dim = 'minecraft:overworld') {
+    const p = this.addPlayer(name, loc, dim);
+    this.queue.push(() => this.ev.playerSpawn.fire({ player: p, initialSpawn: true }));
     return p;
   }
 
@@ -200,15 +248,42 @@ export class Sim {
     }
   }
 
+  /** The engine's start-up: scripts register custom commands here, before the world loads. */
+  startup() {
+    const sim = this;
+    this.ev.startup.fire({ customCommandRegistry: {
+      registerEnum(name, values) { if (!name.includes(':')) throw new Error('enum needs a namespace'); sim.enums.set(name, values); },
+      registerCommand(def, cb) {
+        if (!def.name.includes(':')) throw new Error('command needs a namespace');
+        for (const prm of [...(def.mandatoryParameters ?? []), ...(def.optionalParameters ?? [])]) {
+          if (prm.type === 'Enum' && !sim.enums.has(prm.name)) throw new Error(`enum ${prm.name} is not registered`);
+        }
+        sim.commands.set(def.name, { def, cb });
+      },
+    } });
+  }
+
+  /** A player types /name args: permission and cheats checked as the engine does; the callback runs restricted. */
+  runCommand(name, player, ...args) {
+    const c = this.commands.get(name);
+    if (!c) return { status: 1, message: `unknown command ${name}` };
+    if (c.def.cheatsRequired !== false && !this.cheats) return { status: 1, message: 'cheats are required' };
+    const level = player.playerPermissionLevel >= 2 ? 1 : 0;
+    if (c.def.permissionLevel > level) return { status: 1, message: 'permission denied' };
+    if (c.def.optionalParameters?.[0]?.type === 'Enum' && args[0] !== undefined && !this.enums.get(c.def.optionalParameters[0].name).includes(args[0])) return { status: 1, message: 'bad enum value' };
+    return c.cb({ sourceEntity: player, initiator: player, sourceType: 'Entity' }, ...args);
+  }
+
   /** Close the world and open it again: nothing script-side survives, the save does. */
   restart(bootScript) {
     this.ev.shutdown.fire({});
     for (const r of [...this.save.entities.values()]) if (r.typeId === 'basiliskra:hitbox') this.save.entities.delete(r.id);
-    const online = this.players.filter((p) => p.online).map((p) => ({ name: p.name, loc: { ...p.location }, dim: p.dimension.id, id: p.id }));
+    const online = this.players.filter((p) => p.online).map((p) => ({ name: p.name, loc: { ...p.location }, dim: p.dimension.id, id: p.id, dyn: p.dyn, level: p.playerPermissionLevel }));
     this.players = [];
     this.boot();
     bootScript(this.api);
-    for (const o of online) { const p = this.addPlayer(o.name, o.loc, o.dim); p.id = o.id; }
+    for (const o of online) { const p = this.addPlayer(o.name, o.loc, o.dim); p.id = o.id; p.dyn = o.dyn; p.playerPermissionLevel = o.level; }
+    this.startup();
     this.ev.worldLoad.fire({});
     for (const r of this.save.entities.values()) if (this.chunkLoaded(r.dim, r.loc)) this.attach(r, 'entityLoad');
     this.flush();
@@ -345,8 +420,16 @@ class MockPlayer {
     this.sim = sim; this.name = name; this.id = 'p' + (playerSeq++); this.typeId = 'minecraft:player'; this.online = true;
     this.loc = { ...loc }; this.dim = dim; this.mode = GameMode.Survival; this.health = 20; this.hand = null; this.inv = []; this.vehicle = null; this.heard = []; this.seen = [];
     this.vel = { x: 0, y: 0, z: 0 };
+    this.playerPermissionLevel = 2; this.messages = []; this.forms = []; this.answers = []; this.dyn = {}; this.view = { x: 0, y: 0, z: 1 };
+    this.onScreenDisplay = { setActionBar: (t) => this.messages.push('[actionbar] ' + t) };
   }
   get isValid() { return this.online; }
+  sendMessage(m) { this.messages.push(String(m)); }
+  getViewDirection() { return { ...this.view }; }
+  getDynamicProperty(k) { return this.dyn[k]; }
+  setDynamicProperty(k, v) { this.dyn[k] = v; }
+  /** The player uses the item in hand (right click / long press). */
+  use(typeId) { this.sim.queue.push(() => this.sim.ev.itemUse.fire({ itemStack: { typeId }, source: this })); }
   get location() { return { ...this.loc }; }
   get dimension() { return this.dim; }
   get isInWater() { return this.sim.blockId(this.dim.id, this.loc.x, this.loc.y, this.loc.z) === 'minecraft:water'; }
@@ -362,7 +445,7 @@ class MockPlayer {
     const self = this;
     if (id === 'minecraft:riding') return this.vehicle ? { entityRidingOn: this.vehicle } : undefined;
     if (id === 'minecraft:equippable') return { getEquipment: () => self.hand };
-    if (id === 'minecraft:inventory') return { container: { size: self.inv.length, getItem: (i) => self.inv[i] } };
+    if (id === 'minecraft:inventory') return { container: { size: self.inv.length, getItem: (i) => self.inv[i], addItem: (it) => { self.inv.push(it); return undefined; } } };
     return undefined;
   }
   moveTo(loc, dimId) { this.loc = { ...loc }; if (dimId) this.dim = this.sim.dims.get(dimId); }

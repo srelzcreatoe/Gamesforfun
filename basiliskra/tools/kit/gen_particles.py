@@ -233,6 +233,33 @@ def draw_fin_icon() -> np.ndarray:
     return a
 
 
+def draw_rows(rows, col) -> np.ndarray:
+    a = np.zeros((16, 16, 4), dtype=np.uint8)
+    for y, row in enumerate(rows):
+        for x, ch in enumerate(row):
+            if ch in col:
+                a[y, x] = col[ch]
+    return a
+
+
+def draw_journal_icon() -> np.ndarray:
+    """16x16: a dark leather book, a crimson ridge of plates down its spine, one pale eye on the cover."""
+    rows = ["................", "..kkkkkkkkkkk...", "..krpppppppppk..", "..rrpppppppppk..", "..krpppppppppk..",
+            "..rrpppkkkpppk..", "..krppkweekppk..", "..rrppkeekkppk..", "..krpppkkkpppk..", "..rrpppppppppk..",
+            "..krpppppppppk..", "..rrpppppppppk..", "..krpppppppppk..", "..kkwwwwwwwwwk..", "...kkkkkkkkkkk..", "................"]
+    col = {"k": (20, 17, 19, 255), "p": (54, 46, 44, 255), "r": (176, 28, 36, 255), "w": (226, 218, 196, 255), "e": (14, 10, 10, 255)}
+    return draw_rows(rows, col)
+
+
+def draw_wheel_icon() -> np.ndarray:
+    """16x16: a copper gear wheel with a crimson hub."""
+    rows = ["................", ".......cc.......", "...c..cCCc..c...", "..cCccCddCccCc..", "...cCdddddddCc..",
+            "...cddddddddc...", ".ccCddcrrcddCcc.", ".cCCddrRRrddCCc.", ".cCCddrRRrddCCc.", ".ccCddcrrcddCcc.",
+            "...cddddddddc...", "...cCdddddddCc..", "..cCccCddCccCc..", "...c..cCCc..c...", ".......cc.......", "................"]
+    col = {"c": (122, 62, 40, 255), "C": (196, 112, 76, 255), "d": (150, 82, 54, 255), "r": (120, 14, 22, 255), "R": (214, 40, 46, 255)}
+    return draw_rows(rows, col)
+
+
 def draw_pack_icon(seed=5) -> np.ndarray:
     """256x256: one small pale eye under a brow, in the dark, a crimson ridge behind it."""
     n = 32
@@ -264,6 +291,8 @@ def main():
     os.makedirs(os.path.join(RP, "particles"), exist_ok=True)
     Image.fromarray(draw_sheet(), "RGBA").save(os.path.join(RP, TEX + ".png"))
     Image.fromarray(draw_fin_icon(), "RGBA").save(os.path.join(RP, "textures", "items", f"{NS}_shed_fin.png"))
+    Image.fromarray(draw_journal_icon(), "RGBA").save(os.path.join(RP, "textures", "items", f"{NS}_journal.png"))
+    Image.fromarray(draw_wheel_icon(), "RGBA").save(os.path.join(RP, "textures", "items", f"{NS}_config_wheel.png"))
     icon = Image.fromarray(draw_pack_icon(), "RGBA")
     icon.save(os.path.join(RP, "pack_icon.png"))
     icon.save(os.path.join(ROOT, "packs", "BP", "pack_icon.png"))

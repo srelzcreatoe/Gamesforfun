@@ -11,7 +11,7 @@
       "basiliskra:life": {
         "minecraft:timer": {
           "looping": false,
-          "time": 20,
+          "time": { "min": 20, "max": 20 },
           "time_down_event": {
             "event": "basiliskra:expire",
             "target": "self"

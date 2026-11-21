@@ -2,8 +2,10 @@
  * Basiliskra -- entry point.  Wires stable @minecraft/server events to the one controller.
  * No experiments, no beta APIs, no commands a survival player needs to type.
  */
-import { EntityDamageCause, Player, system, world } from "@minecraft/server";
-import { CONFIG, HITBOX, NS, OVERWORLD, TYPE } from "./config";
+import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause, Player, system, world } from "@minecraft/server";
+import { CONFIG, HITBOX, JOURNAL_ITEM, NS, OVERWORLD, TYPE, WHEEL_ITEM } from "./config";
+import { loadSettings } from "./settings";
+import { canAdmin, giveStarterItems, openJournal, openWheel, placeFor } from "./ui";
 import { Controller } from "./controller";
 import { partOwner } from "./creature";
 import { particle, sound } from "./fx";
@@ -41,6 +43,7 @@ function trackSplashes(): void {
 
 // ---- start-up -----------------------------------------------------------------------------------
 world.afterEvents.worldLoad.subscribe(() => {
+  loadSettings();
   ctl.init();
   ready = true;
   system.runInterval(() => {
@@ -173,6 +176,70 @@ world.afterEvents.weatherChange.subscribe((ev) => {
   const w = String(ev.newWeather).toLowerCase();
   store.rec.weather = w.includes("thunder") ? "thunder" : w.includes("rain") ? "rain" : "clear";
   store.touch();
+});
+
+// ---- the journal, the config wheel, and the commands --------------------------------------------------------
+world.afterEvents.itemUse.subscribe((ev) => {
+  try {
+    const id = ev.itemStack.typeId;
+    if (id === JOURNAL_ITEM) void openJournal(ev.source, ctl);
+    else if (id === WHEEL_ITEM) void openWheel(ev.source, ctl);
+  } catch { /* left */ }
+});
+
+world.afterEvents.playerSpawn.subscribe((ev) => {
+  if (!ev.initialSpawn) return;
+  const p = ev.player;
+  system.runTimeout(() => { try { if (p.isValid) giveStarterItems(p); } catch { /* left */ } }, 60);
+});
+
+const FORMS = ["story", "i", "ii", "iii"];
+system.beforeEvents.startup.subscribe((ev) => {
+  const reg = ev.customCommandRegistry;
+  const who = (o: { sourceEntity?: unknown; initiator?: unknown }): Player | undefined => {
+    const e = (o.initiator ?? o.sourceEntity) as Player | undefined;
+    return e && (e as Player).typeId === "minecraft:player" ? e : undefined;
+  };
+  const fail = (message: string) => ({ status: CustomCommandStatus.Failure, message });
+  try {
+    reg.registerEnum(`${NS}:form`, FORMS);
+    reg.registerCommand({
+      name: `${NS}:spawn`, description: "Bring the one Basiliskra here (form: story, i, ii or iii). Moves him if he is about.",
+      permissionLevel: CommandPermissionLevel.GameDirectors, cheatsRequired: false,
+      optionalParameters: [{ name: `${NS}:form`, type: CustomCommandParamType.Enum }],
+    }, (origin, form?: string) => {
+      const p = who(origin);
+      if (!p) return fail("Run this as a player.");
+      const want = Math.max(0, FORMS.indexOf(form ?? "story")) as 0 | 1 | 2 | 3;
+      system.run(() => {
+        try {
+          if (p.dimension.id !== OVERWORLD) { p.sendMessage("§7[Basiliskra] He only lives in the Overworld."); return; }
+          const rec = store.rec;
+          const place = placeFor(p, want || (rec.born > 0 ? rec.form : 3));
+          p.sendMessage(`§7[Basiliskra] ${ctl.bringHere(place.at, place.yaw, want)}`);
+        } catch (e) { p.sendMessage(`§c[Basiliskra] ${e}`); }
+      });
+      return { status: CustomCommandStatus.Success, message: "Calling Basiliskra..." };
+    });
+    reg.registerCommand({
+      name: `${NS}:journal`, description: "Open the Basiliskra journal: how angry he is, and when he will come.",
+      permissionLevel: CommandPermissionLevel.Any, cheatsRequired: false,
+    }, (origin) => {
+      const p = who(origin);
+      if (!p) return fail("Run this as a player.");
+      system.run(() => { void openJournal(p, ctl); });
+      return { status: CustomCommandStatus.Success };
+    });
+    reg.registerCommand({
+      name: `${NS}:config`, description: "Open the Basiliskra config wheel (settings; bring, call or send him).",
+      permissionLevel: CommandPermissionLevel.GameDirectors, cheatsRequired: false,
+    }, (origin) => {
+      const p = who(origin);
+      if (!p) return fail("Run this as a player.");
+      system.run(() => { if (canAdmin(p)) void openWheel(p, ctl); else p.sendMessage("§7[Basiliskra] Only an operator can use the config wheel."); });
+      return { status: CustomCommandStatus.Success };
+    });
+  } catch (e) { console.warn(`[${NS}] commands: ${e}`); }
 });
 
 // ---- operator test hooks (off unless CONFIG.debug) --------------------------------------------------

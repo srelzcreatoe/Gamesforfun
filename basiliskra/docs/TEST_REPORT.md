@@ -2,16 +2,21 @@
 
 ## Devices and game builds tested
 
-**None.** The add-on has not been loaded in Minecraft. The environment it was built in has no Bedrock client, and the Bedrock Dedicated Server download (minecraft.net) is blocked there.
+**By the project owner, once: Android (the content log paths are `/data/user/0/com.mojang.minecraftpe/...`), an existing world.** That first load showed two faults, both in files I had marked as checked:
 
-So nothing below is an in-game result. It is everything that could be checked without the game, done as carefully as possible, against Mojang's own published material for **1.26.60**:
+| Content log | Cause | Fix |
+|---|---|---|
+| `minecraft:timer -> time: expected an object`, then both entities *failed to load from JSON* | The two timers were written `"time": 2`. The 1.26.60 schema wants `{ "min", "max" }`; my validator flagged it and I waived it because vanilla files do it (they are all on format 1.26.50 or older). With the entity not loading, **he could never appear**. | `"time": { "min": 2, "max": 2 }` (and 20 for the hit volumes). The waiver is gone from the validator. |
+| `model already has a locator mouth that doesn't exactly match ... skipping new definition in ii` (11 names, forms I and II) | The game merges the locators of all three geometries of one entity and keeps the first of each name, so forms I and II would have emitted their particles from Form III's mouth, gills, eyes and notch. | Every locator carries its form (`mouth_i`, `mouth_ii`, `mouth_iii`); the animation controllers use those names. `armor_offset.default_neck`, which the engine derives per geometry, is declared identically in all three. The validator now fails on any locator name defined differently by two geometries of one entity. |
+
+The fixes have **not** been seen in game yet. Everything else below is what could be checked without the game, against Mojang's own published material for **1.26.60**: It is everything that could be checked without the game, done as carefully as possible, against Mojang's own published material for **1.26.60**:
 
 * the JSON schemas, vanilla packs and vanilla id lists in `Mojang/bedrock-samples` v1.26.60.5,
-* the `@minecraft/server` **2.11.0** typings from npm (the stable module for 1.26.60).
+* the `@minecraft/server` **2.11.0** and `@minecraft/server-ui` **2.3.0** typings from npm (the stable modules for 1.26.60).
 
 The first thing to do with this add-on is an import and a play session on a real 1.26.60 build. The list at the end says what to look at first.
 
-`tools/bds/smoke.py` is ready for a first check without a client: given an unpacked Bedrock Dedicated Server it applies both packs to a fresh world, runs the server for a minute, summons a Basiliskra (which the script must remove) and collects every error line from the server and content logs. **It has not been run**, for the reason above.
+`tools/bds/smoke.py` can load both packs into a Bedrock Dedicated Server you point it at and collect every error line from the logs. It has not been run; in-game testing is done by the project owner.
 
 ## What was run
 
@@ -22,7 +27,7 @@ All of it is reproducible with `python3 tools/build.py` (which runs the first fo
 | Type-check of the script against the 2.11.0 typings (strict) | `npx tsc --noEmit -p .` | clean |
 | Bundle | `node tools/bundle.mjs` | 166 KiB, one import: `@minecraft/server` |
 | Pack validation | `python3 tools/validate/validate.py` | no problems (three notes, below) |
-| Scenario suite in a simulated world | `node test/run.mjs` | **91 of 91 checks pass** |
+| Scenario suite in a simulated world | `node test/run.mjs` | **119 of 119 checks pass** |
 | Engine calls per tick | `node test/perf.mjs` | see DESIGN.md, "Bounded work" |
 | Foot and claw contact on the shipped animation | `node tools/preview/contact.cjs` | below |
 | Independent code review (a second reviewer with no access to my reasoning) | | 20 findings; all acted on, the reviewer's four probe scripts re-run clean and kept as regression scenarios |
@@ -52,6 +57,7 @@ The script bundle that ships is run unmodified against `test/mock.mjs`: persiste
 | Pack upgrade | 10 | an older record is migrated in place; a retired save stays retired |
 | Walls and lanes | 11 | he walks round a cottage (no part of his trunk inside it); a goal inside a building is given up; the seam opens where he has a lane; three real rams; the lane misses the pier |
 | Review findings | 12 | canopy is not ground; cover stops the beam; a call with no water lapses or gives way; redstone-clocked note blocks hold the rhythm; scorch rules; deep water; an unload mid-arrival |
+| Spawn egg, spawn command, journal, config wheel | 13 | the journal and wheel are handed out once; the egg on land in a new world makes Basiliskra III and he stays; a second egg moves the same animal; the egg in the Nether makes nothing; an egg far from an unloaded Basiliskra takes over his identity and the old body is removed when it loads; the three commands register without cheats and refuse non-operators where they should; the journal shows the anger percentage, what more it takes, your share, when and where he comes, and changes nothing; settings change and survive a reload; bring, send back and reset work; busy screens are retried |
 
 Counting him: the suite counts loaded and saved entities of his type after every scenario above. It is 0 before arrival and after departure and 1 otherwise, in every case.
 
@@ -87,4 +93,4 @@ Counting him: the suite counts loaded and saved entities of his type after every
 
 ## First session checklist
 
-Import on 1.26.60 → new survival world, no experiments → content log on. Then, with cheats on a *copy* of the world and `debug: true` in the config: `/scriptevent basiliskra:debug arrive` at a coast, `/scriptevent basiliskra:debug dusk`, and watch one arrival; `/scriptevent basiliskra:debug stats` to walk through both evolutions; look at each form from far away, at the screen edge, and under Vibrant Visuals; hit head and tail; stand behind cover during a beam; put a rod by the club; finish the ending; reload the world at each stage; then try `/summon basiliskra:basiliskra` and a structure-block copy.
+Import on 1.26.60 → content log on → check the two errors above are gone. Use the journal; then, on a *copy* of the world: the config wheel's **Call him** at a coast and **Skip to dusk**, and watch one arrival; **Bring him here** as I, II and III (or `/basiliskra:spawn i|ii|iii`) to see each form; look at each form from far away, at the screen edge, and under Vibrant Visuals; hit head and tail; stand behind cover during a beam; put a rod by the club; finish the ending; reload the world at each stage; then try the spawn egg twice and a structure-block copy, and count: there should only ever be one.

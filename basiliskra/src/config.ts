@@ -21,12 +21,26 @@ export const CONFIG = {
   harmlessOnPeaceful: true,
   /** Operator test hooks via /scriptevent basiliskra:debug ... (needs cheats; off for survival). */
   debug: false,
+  /** A spawn egg, /summon or /basiliskra:spawn brings the one Basiliskra to that place (false: they are removed). */
+  allowSummon: true,
+  /** What a spawn egg or /summon makes: 0 = his stage in the story (a new world: I in water, III on land), 1-3 = that form. */
+  spawnForm: 0 as 0 | 1 | 2 | 3,
+  /** Every player gets the journal the first time they join with the pack on. */
+  giveJournal: true,
+  /** Operators (and the only player of a single-player world) also get the config wheel on first join. */
+  giveWheel: true,
 };
+
+/** The settings a player may change in game (the config wheel); saved with the world, over the defaults above. */
+export const SETTINGS = ["pacing", "terrain", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug"] as const;
+export const SETTINGS_KEY = "bk:cfg";
 
 export const NS = "basiliskra";
 export const TYPE = `${NS}:basiliskra`;
 export const HITBOX = `${NS}:hitbox`;
 export const FIN_ITEM = `${NS}:shed_fin`;
+export const JOURNAL_ITEM = `${NS}:journal`;
+export const WHEEL_ITEM = `${NS}:config_wheel`;
 export const PROP = {
   form: `${NS}:form`, bound: `${NS}:bound`, phase: `${NS}:phase`, charge: `${NS}:charge`, lookYaw: `${NS}:look_yaw`,
   lookPitch: `${NS}:look_pitch`, bend: `${NS}:bend`, pitch: `${NS}:pitch`, gait: `${NS}:gait`, gill: `${NS}:gill`,

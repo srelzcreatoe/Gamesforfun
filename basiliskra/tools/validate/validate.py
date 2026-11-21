@@ -84,13 +84,9 @@ if have_schemas:
                 return
             v = Draft7Validator(sch, registry=reg)
             bad = sorted(v.iter_errors(value), key=lambda e: list(e.absolute_path))
-            # Known gap in the published schema, not in the pack: minecraft:timer "time" is typed as a
-            # {min,max} object there, but the vanilla 1.26.60 entities themselves write a bare number
-            # ("time": 4 in armadillo.json, "time": 3 in allay.json).  The pack uses the vanilla form.
-            waived = [e for e in bad if list(e.absolute_path)[-2:] == ["minecraft:timer", "time"] and isinstance(e.instance, (int, float))]
-            if waived:
-                notes.append(f"{doc_key}: minecraft:timer time written as a bare number, as vanilla does (published schema only lists the object form)")
-            bad = [e for e in bad if e not in waived]
+            # No waivers.  The game parses a file by the schema of the format_version it declares: a timer
+            # written as a bare number passed here once as 'what vanilla does' and failed to load in game
+            # (vanilla files that do it are on older format versions).
             for e in bad[:8]:
                 err(f"{doc_key}: schema {schema_id}: /{'/'.join(str(x) for x in e.absolute_path)}: {e.message[:200]}")
             if not bad:
@@ -145,6 +141,22 @@ for short, gid in ent.get("geometry", {}).items():
     if gid not in geos:
         err(f"client entity: geometry {gid} not found")
     form_geo[short] = gid
+
+# The game merges the locators of every geometry one client entity uses into a single set and keeps only the
+# first definition of each name ("model already has a locator ... skipping new definition").  A name used by two
+# of an entity's geometries must therefore be identical in both: same bone, same offset.
+seen_loc = {}
+for short, gid in ent.get("geometry", {}).items():
+    g = geos.get(gid)
+    if not g:
+        continue
+    for b in g["bones"].values():
+        for ln, off in (b.get("locators") or {}).items():
+            here = (b["name"], json.dumps(off if isinstance(off, list) else off.get("offset")))
+            if ln in seen_loc and seen_loc[ln][1] != here:
+                err(f"client entity: locator {ln} is defined differently in {seen_loc[ln][0]} and {gid}; the game keeps only the first")
+            seen_loc.setdefault(ln, (gid, here))
+            ok("locators (unique across the entity's geometries)")
 for short, t in ent.get("textures", {}).items():
     if not tex_exists(t):
         err(f"client entity: texture {t} missing")
@@ -267,9 +279,9 @@ if not os.path.exists(bundle):
 else:
     js = open(bundle, encoding="utf-8").read()
     imports = set(re.findall(r'from\s+"([^"]+)"', js))
-    if imports != {"@minecraft/server"}:
-        err(f"bundle imports {sorted(imports)}: only @minecraft/server is allowed")
-    if re.search(r"@minecraft/server-(gametest|net|admin|editor)|server-ui", js):
+    if imports != {"@minecraft/server", "@minecraft/server-ui"}:
+        err(f"bundle imports {sorted(imports)}: only @minecraft/server and @minecraft/server-ui are allowed")
+    if re.search(r"@minecraft/server-(gametest|net|admin|editor)", js):
         err("bundle references a module the manifest does not declare")
     ok("script bundle (KiB)", os.path.getsize(bundle) // 1024)
 
@@ -313,9 +325,11 @@ if vanilla_blocks:
             continue
         err(f"script names {bid}: not a block or entity id in 1.26.60")
 # properties and events the script uses
+item_ids = {d["minecraft:item"]["description"]["identifier"] for d in docs.values() if isinstance(d, dict) and "minecraft:item" in d}
+commands = set(re.findall(r'name: `\$\{NS\}:([a-z_]+)`', src)) | set(re.findall(r'registerEnum\(`\$\{NS\}:([a-z_]+)`', src))
 for name in re.findall(r'`\$\{NS\}:([a-z_]+)`', src):
     pid = f"{NS}:{name}"
-    if name in ("basiliskra", "hitbox", "shed_fin", "debug"):
+    if name in ("basiliskra", "hitbox", "debug") or pid in item_ids or name in commands:
         continue
     if pid not in props:
         err(f"script property {pid} is not defined on the entity")
@@ -340,8 +354,12 @@ for pack in ("BP", "RP"):
         err(f"{pack}: pack_icon.png missing")
 bm = docs.get("packs/BP/manifest.json", {})
 deps = [d for d in bm.get("dependencies", []) if "module_name" in d]
-if [(d["module_name"], d["version"]) for d in deps] != [("@minecraft/server", "2.11.0")]:
-    err(f"BP manifest script dependencies are {deps}: expected exactly @minecraft/server 2.11.0 (stable)")
+# the stable pair for 1.26.60 (bedrock-samples metadata: server_2.11.0, server-ui_2.3.0; the next of each is beta)
+if sorted((d["module_name"], d["version"]) for d in deps) != [("@minecraft/server", "2.11.0"), ("@minecraft/server-ui", "2.3.0")]:
+    err(f"BP manifest script dependencies are {deps}: expected @minecraft/server 2.11.0 and @minecraft/server-ui 2.3.0 (stable)")
+for m, v in (("server", "2.11.0"), ("server-ui", "2.3.0")):
+    if SAMPLES and not os.path.exists(os.path.join(SAMPLES, "metadata", "script_modules", "@minecraft", f"{m}_{v}.json")):
+        err(f"@minecraft/{m} {v} is not a stable module of this game version")
 if any("beta" in str(d.get("version", "")) for d in bm.get("dependencies", [])):
     err("BP manifest depends on a beta module")
 if "pbr" not in docs.get("packs/RP/manifest.json", {}).get("capabilities", []):
@@ -350,8 +368,48 @@ if any(d.get("is_experimental") for d in [bp_ent.get("description", {})]):
     err("entity is marked experimental")
 if os.path.isdir(os.path.join(BP, "spawn_rules")):
     err("the pack must not ship spawn rules")
-if bp_ent.get("description", {}).get("is_spawnable") is not False:
-    err("entity must not be spawnable (no spawn egg)")
+# A spawn egg is wanted (it brings the one Basiliskra; the script keeps it to one), natural spawning is not:
+# no spawn rules (checked above), and the hit volumes never get an egg.
+if bp_ent.get("description", {}).get("is_spawnable") is True and "spawn_egg" not in ent:
+    err("entity has a spawn egg but the client entity gives it no spawn_egg colours or texture")
+hb = docs.get("packs/BP/entities/basiliskra_hitbox.json", {}).get("minecraft:entity", {}).get("description", {})
+if hb.get("is_spawnable") is not False:
+    err("the hit volume entity must not be spawnable")
+
+# items: icon in the atlas with a texture behind it, a name in the language file
+itex = docs.get("packs/RP/textures/item_texture.json", {}).get("texture_data", {})
+rp_lang = open(os.path.join(RP, "texts", "en_US.lang"), encoding="utf-8").read()
+for k, d in docs.items():
+    if not (isinstance(d, dict) and "minecraft:item" in d):
+        continue
+    comps = d["minecraft:item"].get("components", {})
+    icon = comps.get("minecraft:icon", {}).get("textures", {}).get("default")
+    if icon not in itex:
+        err(f"{k}: icon {icon} is not in item_texture.json")
+    elif not tex_exists(itex[icon]["textures"]):
+        err(f"{k}: icon texture {itex[icon]['textures']} missing")
+    name_key = comps.get("minecraft:display_name", {}).get("value", "")
+    if name_key and f"{name_key}=" not in rp_lang:
+        err(f"{k}: display name {name_key} missing from RP en_US.lang")
+    ok("items")
+if "spawn_egg" in ent and f"item.spawn_egg.entity.{NS}:{NS}.name=" not in rp_lang:
+    err("spawn egg name missing from RP en_US.lang")
+
+# recipes: the vanilla 1.20.10 shapeless shape, and every item they name exists
+vanilla_items = set()
+if SAMPLES and os.path.exists(os.path.join(SAMPLES, "metadata/vanilladata_modules/mojang-items.json")):
+    vi = json.load(open(os.path.join(SAMPLES, "metadata/vanilladata_modules/mojang-items.json")))
+    vanilla_items = {i["name"] for i in vi.get("data_items", vi.get("items", []))}
+for k, d in docs.items():
+    if not (isinstance(d, dict) and "minecraft:recipe_shapeless" in d):
+        continue
+    r = d["minecraft:recipe_shapeless"]
+    if d.get("format_version") != "1.20.10" or r.get("tags") != ["crafting_table"] or not r.get("unlock"):
+        err(f"{k}: not in the vanilla 1.20.10 shapeless form (format_version, crafting_table tag, unlock)")
+    for it in [i["item"] for i in r.get("ingredients", [])] + [r.get("result", {}).get("item", "")]:
+        if it not in item_ids and vanilla_items and it not in vanilla_items:
+            err(f"{k}: unknown item {it}")
+    ok("recipes")
 
 # ---- report ----------------------------------------------------------------------------------------
 print("Basiliskra pack validation")

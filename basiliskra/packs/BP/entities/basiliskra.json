@@ -3,7 +3,7 @@
   "minecraft:entity": {
     "description": {
       "identifier": "basiliskra:basiliskra",
-      "is_spawnable": false,
+      "is_spawnable": true,
       "is_summonable": true,
       "spawn_category": "misc",
       "properties": {
@@ -140,7 +140,7 @@
       "basiliskra:unbound": {
         "minecraft:timer": {
           "looping": false,
-          "time": 2,
+          "time": { "min": 2, "max": 2 },
           "time_down_event": {
             "event": "basiliskra:expire",
             "target": "self"

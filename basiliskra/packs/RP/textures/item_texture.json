@@ -4,6 +4,12 @@
   "texture_data": {
     "basiliskra_shed_fin": {
       "textures": "textures/items/basiliskra_shed_fin"
+    },
+    "basiliskra_journal": {
+      "textures": "textures/items/basiliskra_journal"
+    },
+    "basiliskra_config_wheel": {
+      "textures": "textures/items/basiliskra_config_wheel"
     }
   }
 }

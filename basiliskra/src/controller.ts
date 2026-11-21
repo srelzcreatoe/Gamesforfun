@@ -14,12 +14,20 @@ import { BrainThree } from "./forms/three";
 import { BrainTwo } from "./forms/two";
 import { beginTick, particle, players, sound } from "./fx";
 import { RIGS } from "./generated/rig";
-import type { Trigger } from "./harm";
-import { newToken, store } from "./store";
+import { clearHarm, type Trigger } from "./harm";
+import { freshRecord, newToken, store } from "./store";
 import { add, dist, distXZ, dot, forwardOf, hash, mul, norm, sub, wrapDeg, yawTo, type V3 } from "./vec";
 import { NONE, UNLOADED, blockAt, deepHere, isLoaded, isWaterId, overworld, waterColumn } from "./world";
 
 const TOKEN = "bk:token";
+const ROMAN = ["", "I", "II", "III"];
+
+/** A line for the players near something that just happened (an explicit action, never recurring). */
+function tellNear(dimId: string, at: V3, msg: string): void {
+  for (const p of players()) {
+    try { if (p.dimension.id === dimId && dist(p.location, at) < 64) p.sendMessage(msg); } catch { /* left */ }
+  }
+}
 const SPAWN_STEP = 3;
 
 /** Places tried round a site in one full search for water (six a call, a call every five seconds). */
@@ -66,7 +74,140 @@ export class Controller {
         return;
       }
     }
+    // No token at all: nobody reserved it.  That is a spawn egg, /summon or /basiliskra:spawn, and it means
+    // "bring him here".  (A copy made with a structure block carries his token and is removed above/below.)
+    let token: unknown;
+    try { token = e.getDynamicProperty(TOKEN); } catch { token = undefined; }
+    if (token === undefined && CONFIG.allowSummon) { this.summoned(e); return; }
     this.quarantine(e);
+  }
+
+  // ---- called on purpose: spawn egg, /summon, /basiliskra:spawn, the config wheel ----------------------------
+  /** A Basiliskra nobody reserved has appeared.  The one Basiliskra comes to that place instead. */
+  summoned(e: Entity): void {
+    let at: V3, yaw = 0, dimId = "";
+    try { at = { ...e.location }; yaw = e.getRotation().y; dimId = e.dimension.id; } catch { return; }
+    if (dimId !== OVERWORLD) {
+      this.quarantine(e);
+      tellNear(dimId, at, "§7Basiliskra lives in the Overworld. He cannot be called here.");
+      return;
+    }
+    const said = this.bringHere(at, yaw, CONFIG.spawnForm, e);
+    tellNear(dimId, at, `§7${said}`);
+  }
+
+  /**
+   * Bring the one Basiliskra to `at`, in `want` form (0 = his stage in the story).  If he is loaded he is moved
+   * here; otherwise a body here becomes him and the old one, wherever it lies, is removed when its chunk loads.
+   * Never more than one.  Returns what happened, in words.
+   */
+  bringHere(at: V3, yaw: number, want: 0 | 1 | 2 | 3, body?: Entity): string {
+    const rec = store.rec, dim = overworld();
+    const form = this.formFor(want, at);
+    if (form === 1) { const w = this.waterNear(at, 48); if (w) at = w; }       // the water form goes to the nearest deep water
+    const c = this.creature;
+    if (c && c.valid) {
+      if (body) this.quarantine(body);
+      this.runner = null;
+      this.ending.reset();
+      if (rec.stage !== "alive") { rec.stage = "alive"; rec.arrival = null; rec.pending = null; }
+      rec.evolve = null; rec.down = null;
+      if (!rec.born) { rec.born = this.now; rec.mut.formSince = this.now; }
+      if (!rec.rift) rec.rift = { ...(this.waterNear(at, 64) ?? at), yaw };
+      if (c.form !== form) this.setForm(c, form);
+      this.brain?.finish();
+      c.halt();
+      c.pos = { ...at }; c.yaw = yaw;
+      try { c.entity.teleport(at, { rotation: { x: 0, y: yaw } }); } catch { /* unloading */ }
+      store.save();
+      return `Basiliskra ${ROMAN[form]} has come.`;
+    }
+    let made = false;
+    if (!body) {
+      if (!isLoaded(dim, at)) return "That place is not loaded.";
+      try { body = dim.spawnEntity(TYPE, at, { initialRotation: yaw }); made = true; } catch { return "He could not come there."; }
+    }
+    this.ticket = body;
+    try {
+      // the record first: from this line it is this body that is him
+      rec.stage = "alive";
+      if (!rec.token) rec.token = newToken();
+      rec.entityId = body.id;
+      rec.form = form;
+      rec.pending = null; rec.arrival = null; rec.evolve = null; rec.ending = null; rec.down = null;
+      if (!rec.born) { rec.born = this.now; rec.mut.formSince = this.now; }
+      if (!rec.rift) rec.rift = { ...(this.waterNear(at, 64) ?? at), yaw };
+      if (!rec.origin) rec.origin = { ...at };
+      store.save();
+      try { body.setDynamicProperty(TOKEN, rec.token); } catch { /* gone */ }
+      this.adopt(body);
+      try {
+        const h = body.getComponent("minecraft:health");
+        if (h) h.setCurrentValue(Math.max(1, Math.min(rec.health || h.effectiveMax, h.effectiveMax)));
+      } catch { /* no health */ }
+    } finally { this.ticket = null; }
+    if (!this.creature && made) { try { body.remove(); } catch { /* gone */ } }
+    return this.creature ? `Basiliskra ${ROMAN[form]} has come.` : "He could not come there.";
+  }
+
+  /** Which form a call makes. */
+  private formFor(want: 0 | 1 | 2 | 3, at: V3): 1 | 2 | 3 {
+    if (want) return want;
+    const rec = store.rec;
+    if (rec.born > 0) return rec.form;                 // he has been here: as he is in the story
+    return this.waterNear(at, 6) ? 1 : 3;              // a new world: in the water as he begins, on land as he ends
+  }
+
+  /** The nearest loaded column of open water at least five deep, at his swimming depth; null if none within reach. */
+  waterNear(at: V3, reach: number): V3 | null {
+    const dim = overworld();
+    for (let r = 0; r <= reach; r += 4) {
+      const n = r === 0 ? 1 : Math.max(8, Math.round(r * 1.5));
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2;
+        const x = at.x + Math.cos(a) * r, z = at.z + Math.sin(a) * r;
+        const col = waterColumn(dim, x, z, at.y, 12, 12);
+        if (col === UNLOADED || col === NONE || col.surface - col.floor < 5) continue;
+        return { x, y: col.surface - 5.5, z };
+      }
+    }
+    return null;
+  }
+
+  /** Change his form now, keeping him (the config wheel, /basiliskra:spawn with a form). */
+  private setForm(c: Creature, form: 1 | 2 | 3): void {
+    const rec = store.rec;
+    rec.form = form; rec.mut.formSince = this.now; rec.evolve = null;
+    c.form = form;
+    try { c.entity.triggerEvent(`basiliskra:bind_${form}`); } catch { /* unloading */ }
+    this.nameHim(c.entity);
+    c.dropParts();
+    c.resync();
+    this.brain = this.makeBrain(c);
+  }
+
+  /** The config wheel: open the rift for him now, at the deep water nearest to `site`. */
+  callNow(site: V3, by: Player): string {
+    const rec = store.rec;
+    if (rec.stage === "alive" || rec.stage === "arriving") return "He is already here, or on his way.";
+    if (rec.stage === "departed") return "He has gone home. Use the spawn egg or Bring him here to call him back.";
+    rec.stage = "dormant";
+    this.requestArrival({ region: "wheel", site, guilty: by.id, guiltyName: by.name });
+    return "Called. He comes through the nearest deep, open water at the next dusk, while someone is near.";
+  }
+
+  /** The config wheel: forget everything, as if the pack had just been added. */
+  resetStory(): void {
+    const c = this.creature;
+    this.creature = null; this.brain = null; this.runner = null;
+    this.ending.reset();
+    if (c) { c.dropParts(); try { c.entity.setProperty(PROP.bound, false); c.entity.remove(); } catch { /* gone */ } }
+    const clock = store.rec.clock;
+    store.rec = freshRecord();
+    store.rec.clock = clock;
+    clearHarm();
+    store.save();
+    store.flush();
   }
 
   /** A copy, a stray summon, or anything after his departure: gone before it can act. */
@@ -186,9 +327,11 @@ export class Controller {
    * Worn down to his last breath he is not killed: a seam takes him where he stands, and he comes
    * back through the first one a day later, whole, in the form he had.  The reservation never lapses.
    */
-  driveOff(): void {
+  driveOff(force = false): void {
     const c = this.creature, rec = store.rec;
-    if (!c || !c.valid || rec.stage !== "alive" || rec.evolve || rec.ending?.step) return;
+    if (!c || !c.valid || rec.stage !== "alive") return;
+    if (!force && (rec.evolve || rec.ending?.step)) return;
+    if (force) { this.ending.reset(); rec.evolve = null; }
     const at = { x: c.pos.x, y: c.pos.y + 3, z: c.pos.z };
     // the same voice at every age: through water, pitched up, or as it is
     if (c.form === 1) c.say("basiliskra.roar_under", c.anchor("nose"), 96);

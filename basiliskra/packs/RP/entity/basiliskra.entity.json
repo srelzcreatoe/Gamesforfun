@@ -294,7 +294,11 @@
     }
    ],
    "enable_attachables": false,
-   "hide_armor": true
+   "hide_armor": true,
+   "spawn_egg": {
+    "base_color": "#17161b",
+    "overlay_color": "#b3121e"
+   }
   }
  }
 }

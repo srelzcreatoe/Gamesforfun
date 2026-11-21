@@ -5,9 +5,11 @@ No experiments, no Beta APIs, no cheats, no commands. It can be added to a survi
 
 ## Install
 
-1. Open `Basiliskra-1.0.0.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
+1. Open `Basiliskra-1.1.0.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
 2. Edit your world → **Behavior Packs** → activate **Basiliskra**. The resource pack is pulled in with it. Leave every toggle under **Experiments** off.
-3. Play. Nothing happens straight away, and nothing is announced in chat. The story is found by playing.
+3. Play. Nothing happens straight away. The story is found by playing; the journal tells you how close it is.
+
+**Updating from 1.0.0** (whose creature could not load): open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.1.0 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself.
 
 Realms and multiplayer: apply both packs to the world; players download the resource pack on joining. Consoles can use the add-on only through a Realm or a world transferred from another device.
 
@@ -56,20 +58,58 @@ It needs Form III, a **shed fin**, **note blocks**, and a **lightning rod**.
 4. He comes to the bank nearest the seam and charges with his tail towards it. **Ground that charge with a lightning rod that stands within 48 blocks of the seam.** That opens it.
 5. He tests it with the notched tip of his tail, turns, and goes through headfirst. **Keep the rhythm going until his tail is through.** If it stops for more than three seconds he backs out, the seam closes, and you can try again after half a minute.
 
-Only when he is wholly across is the story over for that world. After that nothing calls another one, and a summoned one is removed.
+Only when he is wholly across is the story over for that world. After that nothing in the world calls another one. (A spawn egg or the spawn command still brings him back, if you choose to.)
+
+## The journal
+
+Every player gets a **Basiliskra Journal** the first time they join with the pack on (craft another from a book and kelp). Use it (right-click, or press and hold) or type `/basiliskra:journal`. It shows:
+
+* **His anger** where you stand, as a percentage, split into animals killed by players and habitat cut, with your own share of it and roughly how many more kills and logs it would take. It also shows the angriest place in the world and which way it is.
+* **When he comes**: not yet; called and looking for deep water (and where); coming at the next dusk (and how many minutes that is, and which water); here now (and how far away); driven off (and when he returns); or gone home.
+* **Him**, once he is here: how close he is to changing, and what it takes.
+
+Reading it never changes anything.
+
+## The config wheel
+
+Operators (and the player of a single-player world) also get a **Basiliskra Config Wheel** (craft one from a copper ingot, redstone and kelp). Use it, or type `/basiliskra:config`:
+
+| Button | What it does |
+|---|---|
+| Settings | Everything in the table below. Saved with the world, so it survives reloads and pack updates. |
+| Bring him here | The one Basiliskra comes to you, as he is in the story or as I, II or III. |
+| Call him | Opens the rift for him at the nearest deep, open water, at the next dusk. |
+| Skip to dusk | Sets the time to dusk. |
+| Send him back through the seam | He leaves and comes back a day later, as when he is worn down. |
+| Journal | Opens the journal. |
+| Reset the story | Forgets him, his form, what he learned and all the anger on record, as if the pack had just been added. Asks first. |
+
+## Spawning him yourself
+
+There is still only ever one Basiliskra. Calling him on purpose brings **that one** to you: if he is about he is moved to you, and if he is not, the new body becomes him and the old one is removed when its chunk next loads.
+
+* **Spawn egg**: "Spawn Basiliskra", in the Creative inventory with the other spawn eggs (or `/give @s basiliskra:basiliskra_spawn_egg`, which needs cheats). In a world he has never come to, the egg makes Basiliskra I on deep water and Basiliskra III on land. After that it brings him as he is in the story, unless the Settings say otherwise.
+* **`/basiliskra:spawn [story|i|ii|iii]`**: operators, **no cheats needed**. He appears a short way in front of you, facing you. Basiliskra I goes to the nearest deep water instead.
+* `/summon basiliskra:basiliskra` (needs cheats) works like the egg.
+
+Turn "Spawn eggs and /summon bring him to you" off in the Settings to have them removed instead.
 
 ## Settings
 
-Open `scripts/main.js` in the behaviour pack, find `BASILISKRA CONFIG` near the top, edit, reload the world.
+In game: the config wheel's **Settings**. The defaults below are in `scripts/main.js` (search for `BASILISKRA CONFIG`); what you choose in game is saved with the world over them.
 
 | Setting | Default | Meaning |
 |---|---|---|
-| `pacing` | `1.0` | Story speed. `2` halves every wait and threshold. |
-| `terrain` | `"scorch"` | `"none"`: particles and sound only. `"scorch"`: the beam chars the world's own ground where it lands (stone to smooth basalt, grass and dirt to coarse dirt). `"break"`: also breaks the one natural block it hits. |
-| `marks` | `true` | Furrows (II) and footprints (III) on open, unbuilt ground. |
-| `damage` | `1.0` | Multiplier on everything he does to players. |
-| `harmlessOnPeaceful` | `true` | On Peaceful he appears and behaves but hurts nobody. |
-| `debug` | `false` | Operator hooks through `/scriptevent` (needs cheats). |
+| Story speed (`pacing`) | `1.0` | `2` halves every wait and threshold. |
+| His beam on the ground (`terrain`) | scorch | Nothing: light and sound only. Scorch: the beam chars the world's own ground where it lands (stone to smooth basalt, grass and dirt to coarse dirt). Break: also breaks the one natural block it hits. |
+| Footprints and furrows (`marks`) | on | Furrows (II) and footprints (III) on open, unbuilt ground. |
+| Damage to players (`damage`) | `1.0` | Multiplier on everything he does to players. |
+| Harmless on Peaceful | on | On Peaceful he appears and behaves but hurts nobody. |
+| Spawn eggs and /summon bring him (`allowSummon`) | on | Off: they are removed instead. |
+| A spawn egg makes (`spawnForm`) | his stage in the story | Or always I, II or III. |
+| Give new players the journal | on | |
+| Give operators the config wheel | on | |
+| Debug messages | off | Fault messages in the content log, and operator hooks through `/scriptevent basiliskra:debug` (needs cheats). |
 
 What is never changed in any mode: anything with an inventory, beds, portals, redstone, glass, planks, bricks or any other built block; a raised wall or pillar even of raw stone; ground a building stands against; and ground only silk touch can move (podzol, mycelium, moss, mud, clay, snow). If the beam lands on a building, nothing around it is touched either. He uses no real lightning.
 

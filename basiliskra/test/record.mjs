@@ -4,7 +4,7 @@
 // particle definitions and sounds.     node test/record.mjs [arrival|window|beam]
 import fs from 'node:fs';
 import path from 'node:path';
-import { Sim } from './mock.mjs';
+import { Sim, UI } from './mock.mjs';
 import { TERRAINS, PROPS } from '../tools/preview/scenes/terrain.mjs';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
@@ -16,8 +16,8 @@ function world(terrainName) {
   const sim = new Sim();
   sim.terrainFn = TERRAINS[terrainName];
   for (const p of PROPS[terrainName]) sim.save.edits.set(`${OW}|${p.x},${p.y},${p.z}`, p.id);
-  globalThis.__MC__ = sim.api; new Function(CODE)(); const bk = globalThis.__BK__;
-  sim.ev.worldLoad.fire({}); sim.flush();
+  globalThis.__MC__ = sim.api; globalThis.__MC_UI__ = UI; new Function(CODE)(); const bk = globalThis.__BK__;
+  sim.startup(); sim.ev.worldLoad.fire({}); sim.flush();
   return { sim, bk, terrainName };
 }
 

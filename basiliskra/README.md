@@ -3,17 +3,19 @@
 An original survival-horror add-on for Minecraft Bedrock. One creature per save. Basiliskra I, II and III are three stages of the life of one animal, and the story is found by playing an ordinary survival world.
 
 * **Game:** retail Minecraft Bedrock **1.26.60**
-* **Script module:** stable `@minecraft/server` **2.11.0** (no Beta APIs)
+* **Script modules:** stable `@minecraft/server` **2.11.0** and `@minecraft/server-ui` **2.3.0** (no Beta APIs)
 * **Experiments:** none. **Cheats:** none. **Commands:** none needed.
 * **Graphics:** standard Bedrock rendering; Vibrant Visuals supported (PBR texture sets with emissive glow).
 
-> **Not yet run in the game.** Everything here was built and checked without access to a Bedrock client or server: against Mojang's published JSON schemas and typings, in a simulated world, and in an offline viewer. The first in-game run is still to be done. [docs/TEST_REPORT.md](docs/TEST_REPORT.md) says exactly what was and was not verified.
+> **First in-game load (Android) found two faults, now fixed but not yet seen in game:** the entity files did not load because of the timer format, and forms I and II lost their locators to Form III's. Everything else was checked without the game: Mojang's published schemas and typings, a simulated world, an offline viewer. [docs/TEST_REPORT.md](docs/TEST_REPORT.md) says exactly what was and was not verified.
+
+In game: a **journal** (how angry he is, as a percentage, and when he will come), a **config wheel** for operators (settings saved with the world; bring, call, send back, reset), a **spawn egg**, and `/basiliskra:spawn`, `/basiliskra:journal`, `/basiliskra:config` (no cheats needed). See the [survival guide](docs/SURVIVAL_GUIDE.md).
 
 ## Get it
 
 | File | What it is |
 |---|---|
-| `dist/Basiliskra-1.0.0.mcaddon` | behaviour pack + resource pack, ready to import |
+| `dist/Basiliskra-1.1.0.mcaddon` | behaviour pack + resource pack, ready to import |
 | `models/basiliskra_i.bbmodel`, `_ii`, `_iii` | the three editable Blockbench models, textures and animations embedded |
 | `docs/SURVIVAL_GUIDE.md` | install, what calls him, the three stages, the ending, settings |
 | `previews/*.mp4` | reference videos (see below) |

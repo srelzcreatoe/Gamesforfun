@@ -106,6 +106,9 @@ export function buildGeometry(geoJson) {
       group.add(o);
       bone.locators[ln] = o;
       locators.set(ln, o);
+      // the game files carry a form tag on every locator (mouth_iii); scenes and tools ask for the plain name
+      const plain = ln.replace(/_(i|ii|iii)$/, '');
+      if (!locators.has(plain)) locators.set(plain, o);
     }
     bones.set(jb.name, bone);
   }

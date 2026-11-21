@@ -4,3 +4,6 @@ entity.basiliskra:basiliskra.name=Basiliskra
 entity.basiliskra:hitbox.name=Basiliskra
 item.basiliskra:shed_fin.name=Shed Fin
 item.basiliskra:shed_fin=Shed Fin
+item.basiliskra:journal.name=Basiliskra Journal
+item.basiliskra:config_wheel.name=Basiliskra Config Wheel
+item.spawn_egg.entity.basiliskra:basiliskra.name=Spawn Basiliskra

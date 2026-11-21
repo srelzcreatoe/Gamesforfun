@@ -1,0 +1,22 @@
+{
+  "format_version": "1.26.30",
+  "minecraft:item": {
+    "description": {
+      "identifier": "basiliskra:journal",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:display_name": {
+        "value": "item.basiliskra:journal.name"
+      },
+      "minecraft:icon": {
+        "textures": {
+          "default": "basiliskra_journal"
+        }
+      },
+      "minecraft:max_stack_size": 1
+    }
+  }
+}

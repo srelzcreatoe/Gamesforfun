@@ -19,11 +19,11 @@
      "particle_effects": [
       {
        "effect": "gill_bubbles",
-       "locator": "gill_l"
+       "locator": "gill_l_i"
       },
       {
        "effect": "gill_bubbles",
-       "locator": "gill_r"
+       "locator": "gill_r_i"
       }
      ]
     },
@@ -42,7 +42,7 @@
      "particle_effects": [
       {
        "effect": "gill_silt",
-       "locator": "gill_l"
+       "locator": "gill_l_i"
       }
      ]
     },
@@ -61,23 +61,23 @@
      "particle_effects": [
       {
        "effect": "fin_splash",
-       "locator": "spine_1"
+       "locator": "spine_1_i"
       },
       {
        "effect": "fin_splash",
-       "locator": "spine_3"
+       "locator": "spine_3_i"
       },
       {
        "effect": "fin_splash",
-       "locator": "spine_5"
+       "locator": "spine_5_i"
       },
       {
        "effect": "fin_splash",
-       "locator": "spine_7"
+       "locator": "spine_7_i"
       },
       {
        "effect": "fin_splash",
-       "locator": "spine_9"
+       "locator": "spine_9_i"
       }
      ]
     },
@@ -96,7 +96,7 @@
      "particle_effects": [
       {
        "effect": "shed_flakes",
-       "locator": "back"
+       "locator": "back_i"
       }
      ]
     }
@@ -120,7 +120,7 @@
      "particle_effects": [
       {
        "effect": "horn_arc",
-       "locator": "horn_l"
+       "locator": "horn_l_ii"
       }
      ]
     },
@@ -139,15 +139,15 @@
      "particle_effects": [
       {
        "effect": "horn_arc_big",
-       "locator": "horn_l"
+       "locator": "horn_l_ii"
       },
       {
        "effect": "horn_arc_big",
-       "locator": "horn_r"
+       "locator": "horn_r_ii"
       },
       {
        "effect": "club_crackle",
-       "locator": "knob_core"
+       "locator": "knob_core_ii"
       }
      ]
     },
@@ -166,7 +166,7 @@
      "particle_effects": [
       {
        "effect": "drip",
-       "locator": "muzzle"
+       "locator": "muzzle_ii"
       }
      ]
     },
@@ -185,7 +185,7 @@
      "particle_effects": [
       {
        "effect": "shed_flakes",
-       "locator": "heart"
+       "locator": "heart_ii"
       }
      ]
     }
@@ -215,15 +215,15 @@
      "particle_effects": [
       {
        "effect": "club_crackle",
-       "locator": "spike_tip_1"
+       "locator": "spike_tip_1_iii"
       },
       {
        "effect": "club_crackle",
-       "locator": "spike_tip_4"
+       "locator": "spike_tip_4_iii"
       },
       {
        "effect": "club_crackle",
-       "locator": "spike_tip_11"
+       "locator": "spike_tip_11_iii"
       }
      ]
     },
@@ -248,31 +248,31 @@
      "particle_effects": [
       {
        "effect": "charge_spark",
-       "locator": "club_core"
+       "locator": "club_core_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_1"
+       "locator": "plate_tip_1_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_3"
+       "locator": "plate_tip_3_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_5"
+       "locator": "plate_tip_5_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_7"
+       "locator": "plate_tip_7_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_9"
+       "locator": "plate_tip_9_iii"
       },
       {
        "effect": "throat_glow",
-       "locator": "mouth"
+       "locator": "mouth_iii"
       }
      ]
     },
@@ -297,31 +297,31 @@
      "particle_effects": [
       {
        "effect": "mouth_flare",
-       "locator": "muzzle"
+       "locator": "muzzle_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_0"
+       "locator": "plate_tip_0_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_2"
+       "locator": "plate_tip_2_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_4"
+       "locator": "plate_tip_4_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_6"
+       "locator": "plate_tip_6_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_8"
+       "locator": "plate_tip_8_iii"
       },
       {
        "effect": "charge_spark",
-       "locator": "club_core"
+       "locator": "club_core_iii"
       }
      ]
     },
@@ -346,11 +346,11 @@
      "particle_effects": [
       {
        "effect": "gill_steam",
-       "locator": "gill_l"
+       "locator": "gill_l_iii"
       },
       {
        "effect": "gill_steam",
-       "locator": "gill_r"
+       "locator": "gill_r_iii"
       }
      ]
     },
@@ -375,15 +375,15 @@
      "particle_effects": [
       {
        "effect": "club_arc",
-       "locator": "spike_tip_0"
+       "locator": "spike_tip_0_iii"
       },
       {
        "effect": "club_arc",
-       "locator": "spike_tip_3"
+       "locator": "spike_tip_3_iii"
       },
       {
        "effect": "club_arc",
-       "locator": "spike_tip_8"
+       "locator": "spike_tip_8_iii"
       }
      ]
     },
@@ -408,43 +408,43 @@
      "particle_effects": [
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_0"
+       "locator": "plate_tip_0_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_1"
+       "locator": "plate_tip_1_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_2"
+       "locator": "plate_tip_2_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_3"
+       "locator": "plate_tip_3_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_4"
+       "locator": "plate_tip_4_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_5"
+       "locator": "plate_tip_5_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_6"
+       "locator": "plate_tip_6_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_7"
+       "locator": "plate_tip_7_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_8"
+       "locator": "plate_tip_8_iii"
       },
       {
        "effect": "plate_ember",
-       "locator": "plate_tip_9"
+       "locator": "plate_tip_9_iii"
       }
      ]
     }

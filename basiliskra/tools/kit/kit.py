@@ -98,6 +98,11 @@ def value_noise(p: np.ndarray, period: float, seed: int = 0) -> np.ndarray:
 
 
 # ----------------------------------------------------------------------------- model
+# Locators the engine otherwise derives from each geometry by itself (and then reports as conflicting
+# between the three forms).  Declared identically, on the root bone, in every form.
+SHARED_LOCATORS = {"armor_offset.default_neck": [0.0, 0.0, 0.0]}
+
+
 @dataclass
 class Cube:
     origin: tuple
@@ -352,10 +357,19 @@ class Model:
                 cubes.append(jc)
             if cubes:
                 jb["cubes"] = cubes
-            if b.locators:
-                jb["locators"] = {k: [r4(x) for x in v] for k, v in b.locators.items()}
+            locs = {self.geo_locator(k): [r4(x) for x in v] for k, v in b.locators.items()}
+            if b.parent is None:
+                locs.update(SHARED_LOCATORS)
+            if locs:
+                jb["locators"] = locs
             bones.append(jb)
         return {"format_version": "1.21.0", "minecraft:geometry": [{"description": desc, "bones": bones}]}
+
+    def geo_locator(self, name: str) -> str:
+        """The name a locator has in the game files.  The game merges the locators of every geometry an entity
+        uses into one set and keeps only the first of any name, so each form's locators carry the form's tag
+        (mouth_i, mouth_ii, mouth_iii).  The rig table for the script keeps the plain names."""
+        return f"{name}_{self.name.rsplit('_', 1)[-1]}"
 
     def rig_json(self) -> dict:
         """Compact skeleton for the server script and the animation generator."""
@@ -424,7 +438,10 @@ class Model:
                 "faces": faces, "type": "cube", "uuid": uid})
         loc_uuid = {}
         for b in self.bones.values():
-            for k, v in b.locators.items():
+            items = [(self.geo_locator(k), v) for k, v in b.locators.items()]
+            if b.parent is None:
+                items += list(SHARED_LOCATORS.items())
+            for k, v in items:
                 uid = stable_uuid(n, "locator", k)
                 loc_uuid[(b.name, k)] = uid
                 elements.append({"name": k, "locked": False, "position": [r4(-v[0]), r4(v[1]), r4(v[2])],
@@ -432,7 +449,9 @@ class Model:
 
         def group(b: Bone):
             children = [cube_uuid[c.idx] for c in b.cubes if c.idx in cube_uuid]
-            children += [loc_uuid[(b.name, k)] for k in b.locators]
+            children += [loc_uuid[(b.name, self.geo_locator(k))] for k in b.locators]
+            if b.parent is None:
+                children += [loc_uuid[(b.name, k)] for k in SHARED_LOCATORS]
             children += [group(ch) for ch in self.bones.values() if ch.parent is b]
             return {"name": b.name, "origin": [r4(-b.pivot[0]), r4(b.pivot[1]), r4(b.pivot[2])],
                     "rotation": [r4(-b.rot[0]), r4(-b.rot[1]), r4(b.rot[2])], "bedrock_binding": "",

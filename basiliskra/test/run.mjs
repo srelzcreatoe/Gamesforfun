@@ -2,7 +2,7 @@
 //   node test/run.mjs            (after `node tools/bundle.mjs`)
 import fs from 'node:fs';
 import path from 'node:path';
-import { Sim, Save } from './mock.mjs';
+import { Sim, Save, UI } from './mock.mjs';
 import { TERRAINS, PROPS } from '../tools/preview/scenes/terrain.mjs';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
@@ -12,6 +12,7 @@ const P = (n) => 'basiliskra:' + n;
 
 function bootScript(api) {
   globalThis.__MC__ = api;
+  globalThis.__MC_UI__ = UI;
   delete globalThis.__BK__;
   new Function(CODE)();
   return globalThis.__BK__;
@@ -22,7 +23,7 @@ function start(save) {
   const w = { sim, get bk() { return bk; }, restart() { sim.restart((api) => { bk = bootScript(api); }); } };
   return w;
 }
-function open(w) { w.sim.ev.worldLoad.fire({}); w.sim.flush(); }
+function open(w) { w.sim.startup(); w.sim.ev.worldLoad.fire({}); w.sim.flush(); }
 
 const results = [];
 let failures = 0;
@@ -117,9 +118,12 @@ console.log('\n== 3. A duplicate, a stray summon and a copied creature');
   const w = world, rec = w.bk.store.rec, id = rec.entityId;
   check('a second trigger after arrival is refused', w.bk.ctl.requestArrival({ region: 'x', site: SITE, guilty: null, guiltyName: null }) === false);
   const q0 = w.bk.ctl.quarantined;
+  const id0 = w.bk.ctl.creature.entity.id;
   const stray = w.sim.summon(TYPE, 'minecraft:overworld', { x: 5, y: 50, z: 60 });
   w.sim.flush();
-  check('a direct summon is removed before it ticks, and was never visible', !stray.attached && stray.rec.props[P('bound')] === false && w.sim.count(TYPE) === 1);
+  const him = w.bk.ctl.creature;
+  check('a spawn egg or /summon while he is about brings HIM there: the extra body is removed before it ticks', !stray.attached && stray.rec.props[P('bound')] === false
+    && w.sim.count(TYPE) === 1 && him.entity.id === id0 && Math.hypot(him.pos.x - 5, him.pos.z - 60) < 0.5, `he is at ${him.pos.x.toFixed(1)}, ${him.pos.z.toFixed(1)}`);
   const copy = w.sim.copyEntity(w.bk.ctl.creature.entity);
   w.sim.flush();
   check('a copied creature (same token, new id) is quarantined', !copy.attached && w.sim.count(TYPE) === 1 && w.bk.ctl.quarantined === q0 + 2);
@@ -353,8 +357,10 @@ console.log('\n== 9. The last crossing, and a rift that stays quiet');
   ruin(w, ana, { x: 500, y: 64, z: 12 }, 40, 80);
   w.sim.save.timeOfDay = 12000; w.sim.step(3000);
   check('no amount of new harm calls another', rec().stage === 'departed' && w.sim.count(TYPE) === 0 && w.bk.ctl.requestArrival({ region: 'z', site: SITE, guilty: null, guiltyName: null }) === false);
+  w.bk.CONFIG.allowSummon = false;
   const stray = w.sim.summon(TYPE, 'minecraft:overworld', SITE); w.sim.step(2);
-  check('and a summoned one is removed', !stray.attached && w.sim.count(TYPE) === 0);
+  check('and with spawn eggs turned off in the settings, a summoned one is removed', !stray.attached && w.sim.count(TYPE) === 0 && rec().stage === 'departed');
+  w.bk.CONFIG.allowSummon = true;
   check('the old token would not be honoured either', (() => { const r = w.sim.newRecord(TYPE, 'minecraft:overworld', SITE); r.dyn['bk:token'] = rec().token; const e2 = w.sim.attach(r, 'entityLoad'); w.sim.step(2); return !e2.attached; })());
 }
 
@@ -569,6 +575,115 @@ function force(w, make) {
   const h0 = a.heard.length;
   const t = until(w, () => w.bk.store.rec.stage === 'alive', 600);
   check('an arrival interrupted by an unload finishes on the animal that came back', gone && t > 0 && w.sim.count(TYPE) === 1 && !a.heard.slice(h0).some((s) => s.id === 'basiliskra.ram'), `${t} ticks`);
+}
+
+console.log('\n== 13. Spawn egg, the spawn command, the journal and the config wheel');
+{
+  // a new world: the egg used on dry land
+  const w = start(); open(w);
+  const ana = w.sim.join('Ana', { x: 0, y: 64, z: -20 });
+  w.sim.step(80);
+  check('a player joining gets the journal, and (as operator) the config wheel', ana.inv.some((i) => i.typeId === 'basiliskra:journal') && ana.inv.some((i) => i.typeId === 'basiliskra:config_wheel') && ana.messages.some((m) => /journal/.test(m)));
+  const n0 = ana.inv.length;
+  w.restart(); w.sim.step(5);
+  const back = w.sim.players.find((p) => p.name === 'Ana');
+  w.sim.queue.push(() => w.sim.ev.playerSpawn.fire({ player: back, initialSpawn: true })); w.sim.step(80);
+  check('but only once: joining again gives nothing new', n0 === 2 && back.inv.length === 0, `${back.inv.length} items`);
+  const egg = w.sim.summon(TYPE, 'minecraft:overworld', { x: 0, y: 64, z: -40 });
+  w.sim.step(3);
+  const c1 = w.bk.ctl.creature, rec = w.bk.store.rec;
+  check('the spawn egg in a new world, on land: Basiliskra III stands there, bound, the one and only', !!c1 && c1.entity.id === egg.id && egg.attached && rec.stage === 'alive' && rec.form === 3
+    && egg.rec.props[P('bound')] === true && egg.rec.props[P('form')] === 3 && w.sim.count(TYPE) === 1 && egg.rec.dyn['bk:token'] === rec.token && egg.nameTag === 'Basiliskra III');
+  w.sim.step(600);
+  check('and he stays: the two-second despawn timer for unbound bodies never takes him', w.sim.count(TYPE) === 1 && egg.attached && w.bk.ctl.creature?.entity.id === egg.id);
+  // a second egg while he is here: he is brought, nothing is added
+  const egg2 = w.sim.summon(TYPE, 'minecraft:overworld', { x: 30, y: 64, z: -40 });
+  w.sim.step(3);
+  check('a second egg brings the same animal to the new place', !egg2.attached && w.sim.count(TYPE) === 1 && w.bk.ctl.creature.entity.id === egg.id && Math.abs(w.bk.ctl.creature.pos.x - 30) < 0.5);
+  // the egg in the Nether
+  const nell = w.sim.addPlayer('Nell', { x: 0, y: 40, z: 0 }, 'minecraft:nether');
+  const ne = w.sim.summon(TYPE, 'minecraft:nether', { x: 2, y: 40, z: 0 });
+  w.sim.step(3);
+  check('in the Nether the egg makes nothing, and says why', !ne.attached && w.sim.count(TYPE) === 1 && nell.messages.some((m) => /Overworld/.test(m)));
+  // unloaded elsewhere: the egg's body becomes him, and the old one is removed when its chunk loads
+  const old = w.bk.ctl.creature.entity.id;
+  back.moveTo({ x: 2000, y: 64, z: 2000 }); w.sim.step(40);
+  check('(he is unloaded with his chunk)', w.bk.ctl.creature === null && w.sim.count(TYPE) === 1);
+  const far = w.sim.summon(TYPE, 'minecraft:overworld', { x: 2000, y: 64, z: 2030 });
+  w.sim.step(3);
+  check('the egg far away: its body becomes him, carrying his token and his form', w.bk.ctl.creature?.entity.id === far.id && w.bk.store.rec.entityId === far.id && far.rec.dyn['bk:token'] === w.bk.store.rec.token && far.rec.props[P('form')] === 3);
+  back.moveTo({ x: 10, y: 64, z: -30 }); w.sim.step(40);
+  check('and the old body is removed the moment its chunk loads: still one', w.sim.count(TYPE) === 1 && !w.sim.save.entities.has(old) && w.sim.save.entities.has(far.id), `${w.sim.count(TYPE)} in the save`);
+
+  // the spawn command
+  const w2 = start(); open(w2);
+  const bo = w2.sim.addPlayer('Bo', { x: 0, y: 64, z: 0 }); bo.view = { x: 0, y: 0, z: 1 };
+  check('three commands are registered: spawn, journal, config', ['basiliskra:spawn', 'basiliskra:journal', 'basiliskra:config'].every((n) => w2.sim.commands.has(n)) && w2.sim.enums.get('basiliskra:form').join() === 'story,i,ii,iii');
+  check('none of them needs cheats', [...w2.sim.commands.values()].every((c) => c.def.cheatsRequired === false));
+  const r1 = w2.sim.runCommand('basiliskra:spawn', bo, 'ii'); w2.sim.step(3);
+  const c2 = w2.bk.ctl.creature;
+  const wrap = (a) => ((a % 360) + 540) % 360 - 180;
+  check('/basiliskra:spawn ii: Basiliskra II, in front of the player, facing them', r1.status === 0 && !!c2 && c2.form === 2 && w2.sim.count(TYPE) === 1 && c2.pos.z > 15 && c2.pos.z < 23 && Math.abs(Math.abs(wrap(c2.yaw)) - 180) < 5, `at ${c2?.pos.z.toFixed(1)}, yaw ${c2?.yaw.toFixed(0)}`);
+  const r2 = w2.sim.runCommand('basiliskra:spawn', bo, 'iii'); w2.sim.step(3);
+  check('/basiliskra:spawn iii: the same animal, now Basiliskra III', r2.status === 0 && w2.bk.ctl.creature.entity.id === c2.entity.id && w2.bk.ctl.creature.form === 3 && w2.bk.store.rec.form === 3 && w2.sim.count(TYPE) === 1 && w2.sim.count('basiliskra:hitbox') === 18, `${w2.sim.count('basiliskra:hitbox')} hit volumes`);
+  const visitor = w2.sim.addPlayer('Vi', { x: 4, y: 64, z: 0 }); visitor.playerPermissionLevel = 1;
+  check('a player who is not an operator cannot use the spawn command', w2.sim.runCommand('basiliskra:spawn', visitor).status === 1);
+
+  // the journal
+  const w3 = start(); open(w3);
+  const jo = w3.sim.addPlayer('Jo', { x: 0, y: 64, z: 12 });
+  const bea = w3.sim.addPlayer('Bea', { x: 4, y: 64, z: 12 });
+  const page = () => { const f = jo.forms[jo.forms.length - 1]; return f ? f.body : ''; };
+  jo.use('basiliskra:journal'); w3.sim.step(2);
+  check('the journal opens on use, and says nothing has called him yet', jo.forms.length === 1 && /HIS ANGER/.test(page()) && /Not yet/.test(page()) && /0%/.test(page()));
+  ruin(w3, jo, SITE, 6, 12);
+  for (let i = 0; i < 2; i++) kill(w3, bea, 'minecraft:cow', SITE);
+  jo.use('basiliskra:journal'); w3.sim.step(2);
+  const t = page();
+  const m = t.match(/§l(\d+)%/);
+  check('it shows how angry this place has made him, as a percentage', !!m && Number(m[1]) > 0 && Number(m[1]) < 100, m ? `${m[1]}%` : t.slice(0, 200));
+  check('and what more it would take, and your own share of it', /more animal/.test(t) && /Your share of it: §f(7\d|8\d)%/.test(t), (t.match(/Your share[^\n]*/) || [''])[0]);
+  ruin(w3, jo, SITE, 14, 40);
+  jo.use('basiliskra:journal'); w3.sim.step(2);
+  check('when it reaches 100% it says he has been called, and where', /He has been called/.test(page()) && /100%/.test(page()));
+  w3.sim.save.timeOfDay = 1000;
+  until(w3, () => w3.bk.store.rec.stage === 'arriving', 4000);
+  jo.use('basiliskra:journal'); w3.sim.step(2);
+  check('then when he will come: the water, and the time to dusk', /He is coming/.test(page()) && /next dusk, in §fabout \d+ minutes/.test(page()), (page().match(/At the next dusk[^\n]*/) || [''])[0]);
+  w3.sim.save.timeOfDay = 11700;
+  until(w3, () => w3.bk.store.rec.stage === 'alive', 4000);
+  jo.use('basiliskra:journal'); w3.sim.step(2);
+  check('and once he is here, where he is and how close he is to changing', /Basiliskra I is here/.test(page()) && /Becoming Basiliskra II/.test(page()));
+  const before = JSON.stringify(w3.bk.store.harm);
+  jo.loc = { x: 9000, y: 64, z: 9000 }; jo.use('basiliskra:journal'); w3.sim.step(2);
+  check('reading it changes nothing on record (no region is made where you stand)', JSON.stringify(w3.bk.store.harm) === before);
+
+  // the config wheel
+  const w4 = start(); open(w4);
+  const op = w4.sim.addPlayer('Op', { x: 0, y: 64, z: 0 });
+  const guest = w4.sim.addPlayer('Guest', { x: 3, y: 64, z: 0 }); guest.playerPermissionLevel = 1;
+  guest.use('basiliskra:config_wheel'); w4.sim.step(2);
+  check('only an operator can use the config wheel', guest.forms.length === 0 && guest.messages.some((m) => /operator/.test(m)));
+  op.answers.push(0, { 0: 2.5, 1: 0, 3: 0.5, 6: 3 });                       // Settings; pacing 2.5, beam does nothing, damage x0.5, egg makes III
+  op.use('basiliskra:config_wheel'); w4.sim.step(3); w4.sim.flush(); await new Promise((r) => setTimeout(r, 0)); w4.sim.step(2);
+  const cfg = w4.bk.CONFIG;
+  check('settings are changed from the wheel', cfg.pacing === 2.5 && cfg.terrain === 'none' && cfg.damage === 0.5 && cfg.spawnForm === 3, JSON.stringify({ p: cfg.pacing, t: cfg.terrain, d: cfg.damage, f: cfg.spawnForm }));
+  w4.restart(); w4.sim.step(2);
+  check('and kept with the world across a reload', w4.bk.CONFIG.pacing === 2.5 && w4.bk.CONFIG.terrain === 'none' && w4.bk.CONFIG.spawnForm === 3);
+  const op2 = w4.sim.players.find((p) => p.name === 'Op');
+  op2.answers.push(1, 3);                                                     // Bring him here -> Basiliskra III
+  op2.use('basiliskra:config_wheel'); w4.sim.step(2); await new Promise((r) => setTimeout(r, 0)); await new Promise((r) => setTimeout(r, 0)); w4.sim.step(3);
+  check('Bring him here makes Basiliskra III in front of the operator', w4.bk.ctl.creature?.form === 3 && w4.sim.count(TYPE) === 1, op2.messages.slice(-2).join(' | '));
+  op2.answers.push(4);                                                        // Send him back through the seam
+  op2.use('basiliskra:config_wheel'); w4.sim.step(2); await new Promise((r) => setTimeout(r, 0)); w4.sim.step(3);
+  check('Send him back: he leaves through a seam and is owed back', w4.sim.count(TYPE) === 0 && w4.bk.store.rec.stage === 'alive' && w4.bk.store.rec.down !== null);
+  op2.answers.push(6, 0);                                                     // Reset the story -> Yes
+  op2.use('basiliskra:config_wheel'); w4.sim.step(2); for (let i = 0; i < 4; i++) await new Promise((r) => setTimeout(r, 0)); w4.sim.step(3);
+  check('Reset the story: as if the pack had just been added', w4.bk.store.rec.stage === 'dormant' && w4.bk.store.rec.born === 0 && Object.keys(w4.bk.store.harm.regions).length === 0 && w4.sim.count(TYPE) === 0);
+  op2.answers.push('busy', 'busy', 5);                                        // the screen is busy (chat open) twice, then the journal
+  op2.use('basiliskra:config_wheel'); w4.sim.step(2);
+  for (let i = 0; i < 40; i++) { await new Promise((r) => setTimeout(r, 0)); w4.sim.step(1); }
+  check('a form that cannot open yet (chat open) is tried again', op2.forms.filter((f) => f.title === 'Basiliskra Config Wheel').length >= 3 && op2.forms.some((f) => f.title === 'Basiliskra Journal'));
 }
 
 console.log(`\n${results.length - failures}/${results.length} checks passed`);

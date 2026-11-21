@@ -11,7 +11,7 @@ The script owns a single world record (a world dynamic property, chunked JSON, s
 
 | Field | Purpose |
 |---|---|
-| `stage` | `dormant → pending → arriving → alive → departed` |
+| `stage` | `dormant → pending → arriving → alive → departed` (an explicit call can set `alive` from any stage) |
 | `token`, `entityId` | his identity: a random token also written on the entity, and the engine's persistent entity id |
 | `pending`, `arrival`, `evolve`, `ending` | every multi-step sequence, with its step, so each can be resumed |
 | `form`, `health`, `rift`, `beach`, `last` | the stage of his life, where the seam is, where he was last seen |
@@ -20,12 +20,13 @@ The script owns a single world record (a world dynamic property, chunked JSON, s
 
 Rules that keep it to one:
 
-* **Reserve, then create.** The record is saved as "arriving, token X, no entity yet" before anything is spawned. There is exactly one function that spawns him.
+* **Reserve, then create.** The record is saved as "arriving, token X, no entity yet" before anything is spawned. Two functions can spawn him: `create()` for the story, and `bringHere()` for an explicit call; both write the record first and adopt the body in the same tick.
 * **Reconcile before creating.** After a restart, an entity carrying the saved token is adopted; a reservation with no entity is completed once. Creation is never retried while an entity id is on record.
 * **Unloaded is not gone.** An empty entity query means nothing. He is only presumed lost if every chunk round his last position is loaded and watched for a full minute.
-* **Everything else is removed.** A stray summon, a structure-block copy (same token, different id), anything after `departed`: unbound and removed in the tick it loads, in every dimension, before it can act. A second line of defence is in the entity file: without the script's `bound` property the entity despawns itself after two seconds. Natural spawning is off and there is no spawn egg.
+* **A call on purpose brings the one.** A body with no token at all can only come from the spawn egg, `/summon` or `/basiliskra:spawn`. That is read as "bring him here": if he is loaded he is moved there and the new body is removed; if not, the record is rewritten to name the new body (same token, his form and health) before anything else, and the old body is removed whenever its chunk loads. Outside the Overworld, or with the setting off, the body is simply removed.
+* **Everything else is removed.** A structure-block copy (his token, a different id), or any body the record does not name: unbound and removed in the tick it loads, in every dimension, before it can act. A second line of defence is in the entity file: without the script's `bound` property the entity despawns itself after two seconds. Natural spawning is off (there are no spawn rules); the spawn egg exists only for the calls above.
 * **Evolution writes the record first**, then brings the entity into line; a reload between the two writes is detected and finished.
-* **Departure is the only end.** `departed` is terminal: nothing calls another, and the old token is not honoured.
+* **Departure ends the story.** After `departed` nothing in the world calls another and the old token is not honoured. Only an explicit call (egg, command, the wheel) brings him back.
 
 ## What stable Bedrock does not give, and what stands in
 
@@ -43,6 +44,13 @@ Rules that keep it to one:
 | Lightning between spikes | Real lightning burns and transforms | Scarlet particle arcs only. |
 | Hearing a note block | No note event | A hand on a note block is an interaction event; a redstone-clocked one is found by a rolling scan near the seam and watched for rising power. |
 | Knowing a body of water is deep and clear | No region queries on the stable path he can rely on | Every block of the lane is read, a few hundred per tick, only in loaded chunks. |
+
+## Players' tools
+
+* **Journal** (`basiliskra:journal`, `/basiliskra:journal`): a server-ui form built from the record and a read-only copy of the harm history (`harm.angerAt`, `harm.angriest`), so reading it never creates or evicts a region.
+* **Config wheel** (`basiliskra:config_wheel`, `/basiliskra:config`): operators only. Settings are one world dynamic property (`bk:cfg`) applied over the defaults in `config.ts` at load; unknown or out-of-range values are ignored.
+* **Commands** are registered at start-up with the stable custom-command registry (`cheatsRequired: false`); callbacks only schedule work (`system.run`), as the API requires.
+* Forms that cannot open yet (chat still open) are retried for a few seconds.
 
 ## Where things are
 
