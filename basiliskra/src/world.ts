@@ -150,22 +150,31 @@ const SCORCH: Record<string, string> = {
   "minecraft:stone": "minecraft:smooth_basalt", "minecraft:andesite": "minecraft:smooth_basalt", "minecraft:diorite": "minecraft:smooth_basalt",
   "minecraft:granite": "minecraft:smooth_basalt", "minecraft:tuff": "minecraft:smooth_basalt", "minecraft:deepslate": "minecraft:smooth_basalt",
   "minecraft:calcite": "minecraft:smooth_basalt", "minecraft:dirt": "minecraft:coarse_dirt", "minecraft:grass_block": "minecraft:coarse_dirt",
-  "minecraft:podzol": "minecraft:coarse_dirt", "minecraft:mycelium": "minecraft:coarse_dirt", "minecraft:moss_block": "minecraft:coarse_dirt",
-  "minecraft:mud": "minecraft:packed_mud", "minecraft:clay": "minecraft:hardened_clay", "minecraft:snow": "minecraft:coarse_dirt",
 };
+// (podzol, mycelium, moss, mud, clay and snow are left alone: a player can only bring those home with silk touch)
 const BREAKABLE = new Set<string>([...Object.keys(SCORCH), "minecraft:smooth_basalt", "minecraft:coarse_dirt", "minecraft:sand", "minecraft:red_sand", "minecraft:gravel"]);
 
 export const scorchOf = (id: string): string | undefined => SCORCH[id];
 export const isBreakableNatural = (id: string): boolean => BREAKABLE.has(id);
 
 /** Ground that takes a furrow or a footprint, and what it becomes. */
-const MARK: Record<string, string> = {
-  "minecraft:grass_block": "minecraft:dirt", "minecraft:podzol": "minecraft:dirt", "minecraft:mycelium": "minecraft:dirt",
-  "minecraft:moss_block": "minecraft:dirt", "minecraft:dirt": "minecraft:coarse_dirt",
-};
-const PRINT: Record<string, string> = {
-  "minecraft:grass_block": "minecraft:mud", "minecraft:dirt": "minecraft:mud", "minecraft:podzol": "minecraft:mud",
-  "minecraft:coarse_dirt": "minecraft:mud", "minecraft:mycelium": "minecraft:mud", "minecraft:moss_block": "minecraft:mud",
-};
+const MARK: Record<string, string> = { "minecraft:grass_block": "minecraft:dirt", "minecraft:dirt": "minecraft:coarse_dirt" };
+const PRINT: Record<string, string> = { "minecraft:grass_block": "minecraft:mud", "minecraft:dirt": "minecraft:mud", "minecraft:coarse_dirt": "minecraft:mud" };
 export const furrowOf = (id: string): string | undefined => MARK[id];
 export const printOf = (id: string): string | undefined => PRINT[id];
+/** What may lie on ground that takes a mark: nothing, or wild growth.  A carpet, a rail, a crop or redstone means somebody's floor. */
+const WILD = /^minecraft:(air|short_grass|tall_grass|fern|large_fern|deadbush|snow_layer|dandelion|poppy|.*tulip|.*_orchid|allium|azure_bluet|oxeye_daisy|cornflower|lily_of_the_valley|leaf_litter|bush|firefly_bush|wildflowers|pink_petals)$/;
+/** Open, unbuilt ground: the block above is empty or wild, and nothing built touches it on any side. */
+export function takesMark(dim: Dimension, at: V3): Block | undefined {
+  const b = blockAt(dim, at);
+  if (!b) return undefined;
+  const above = blockAt(dim, { x: at.x, y: at.y + 1, z: at.z });
+  if (!above || !WILD.test(above.typeId)) return undefined;
+  for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    for (const dy of [0, 1]) {
+      const n = blockAt(dim, { x: at.x + dx, y: at.y + dy, z: at.z + dz });
+      if (n && isSolidBlock(n) && !isNaturalGround(n.typeId) && !isPlantBlock(n.typeId)) return undefined;
+    }
+  }
+  return b;
+}

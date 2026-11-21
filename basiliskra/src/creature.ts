@@ -236,6 +236,9 @@ export class Creature {
     return waterOver(this.dim, at.x, at.z, floorY, this.form === 3 ? 5 : 2);
   }
 
+  /** Already in water over his depth (swimming, or sunk to the bed): then every way is a way out. */
+  private inDeep(): boolean { return this.afloat || this.tooDeep(this.pos, this.pos.y); }
+
   private clearAlong(yaw: number, reach: number): boolean {
     const f = forwardOf(yaw);
     for (const s of BODY[this.form as 2 | 3].look) {
@@ -245,7 +248,7 @@ export class Creature {
       // a drop with no floor in reach is a wall too: he walks the brink, not off it; and so is water over his depth
       const floor = groundY(this.dim, at.x, at.z, this.pos.y + 6, DROP + 6);
       if (floor === NONE) return false;
-      if (typeof floor === "number" && !this.afloat && this.tooDeep(at, floor)) return false;
+      if (typeof floor === "number" && !this.inDeep() && this.tooDeep(at, floor)) return false;
     }
     return true;
   }
@@ -288,7 +291,7 @@ export class Creature {
     const top = this.form === 3 ? 6 : 3;
     const yTop = this.pos.y + top + (this.afloat ? lim + 2 : 0);
     const mid = groundY(this.dim, next.x, next.z, yTop, DROP + top);                     // the ground under his middle
-    if (moving && !this.wade && !this.afloat && typeof mid === "number" && this.tooDeep(next, mid)) { this.blockedWhy = "deep"; return null; }
+    if (moving && !this.wade && !this.inDeep() && typeof mid === "number" && this.tooDeep(next, mid)) { this.blockedWhy = "deep"; return null; }
     let g = footprintY(this.dim, next, r, yTop, DROP + top, floatY);
     if (g === UNLOADED) { this.blockedWhy = "unloaded"; return null; }
     if (g === NONE) { this.blockedWhy = "edge"; return null; }

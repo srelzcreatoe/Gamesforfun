@@ -15,14 +15,15 @@ import { beamVars, particle, players, sound, witnesses } from "../fx";
 import { STRIDE_III } from "../generated/rig";
 import { store } from "../store";
 import { add, clamp, dist, distXZ, dot, hash, leftOf, mul, norm, sub, turnTowards, wrapDeg, yawTo, type V3 } from "../vec";
-import { blockAt, clearLine, idAt, isBreakableNatural, isLoaded, isSolidBlock, printOf, scorchOf } from "../world";
+import { blockAt, clearLine, idAt, isBreakableNatural, isLoaded, isNaturalGround, isPlantBlock, isSolidBlock, printOf, scorchOf, takesMark } from "../world";
 
 const TIERS = {
   1: { range: 28, radius: 1.4, damage: 4, ticks: 40, sfx: "basiliskra.iii.beam_raw", width: 1.5 },
   2: { range: 48, radius: 0.95, damage: 6, ticks: 60, sfx: "basiliskra.iii.beam", width: 0.9 },
   3: { range: 64, radius: 0.8, damage: 8, ticks: 70, sfx: "basiliskra.iii.beam", width: 0.6 },
 } as const;
-const ROD = "minecraft:lightning_rod";
+/** Copper weathers and players wax it: all eight are the same rod to him. */
+const ROD = /^minecraft:(waxed_)?(exposed_|weathered_|oxidized_)?lightning_rod$/;
 const ROD_REACH = 10;
 const FEET = ["foot_bl", "foot_fl", "foot_br", "foot_fr"];
 
@@ -129,11 +130,9 @@ export class BrainThree extends Brain {
     // a print pressed into natural ground: never into a floor
     for (const [dx, dz] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
       const at = { x: Math.floor(foot.x) + dx, y: Math.floor(c.pos.y - 0.5), z: Math.floor(foot.z) + dz };
-      const b = blockAt(c.dim, at);
-      const above = blockAt(c.dim, { x: at.x, y: at.y + 1, z: at.z });
-      if (!b || !above) continue;
-      const to = printOf(b.typeId);
-      if (to && (above.isAir || !isSolidBlock(above))) { try { b.setType(to); } catch { /* protected */ } }
+      const b = takesMark(c.dim, at);
+      const to = b ? printOf(b.typeId) : undefined;
+      if (b && to) { try { b.setType(to); } catch { /* protected */ } }
     }
   }
 
@@ -284,21 +283,36 @@ export class BrainThree extends Brain {
     return { x: k.x, y: Math.max(k.y, this.c.pos.y + 1.6), z: k.z };
   }
 
-  private findRod(): V3 | null {
+  /** Rods seen near the club during this charge, by layer: the whole reach is read once every twelve ticks. */
+  private rodSeen = new Map<string, V3>();
+  private rodLayer = 0;
+  private scanRods(layers = 1): void {
     const c = this.c;
     const club = c.anchor("club_core");
-    let best: V3 | null = null, bd = 1e9;
-    const y0 = Math.floor(c.pos.y);
-    for (let dx = -ROD_REACH; dx <= ROD_REACH; dx++) for (let dz = -ROD_REACH; dz <= ROD_REACH; dz++) {
-      if (dx * dx + dz * dz > ROD_REACH * ROD_REACH) continue;
-      for (let dy = -3; dy <= 8; dy++) {
-        const p = { x: Math.floor(club.x) + dx, y: y0 + dy, z: Math.floor(club.z) + dz };
-        if (idAt(c.dim, p) !== ROD) continue;
+    const y0 = Math.floor(c.pos.y), cx = Math.floor(club.x), cz = Math.floor(club.z);
+    for (let n = 0; n < layers; n++) {
+      const y = y0 - 3 + (this.rodLayer++ % 12);
+      for (let dx = -ROD_REACH; dx <= ROD_REACH; dx++) for (let dz = -ROD_REACH; dz <= ROD_REACH; dz++) {
+        if (dx * dx + dz * dz > ROD_REACH * ROD_REACH) continue;
+        const p = { x: cx + dx, y, z: cz + dz };
+        const id = idAt(c.dim, p);
         const key = `${p.x},${p.y},${p.z}`;
-        if ((rodReady.get(key) ?? 0) > this.now) continue;      // still recovering from the last strike
-        const d = Math.hypot(dx, dz);
-        if (d < bd) { bd = d; best = p; }
+        if (id && ROD.test(id)) this.rodSeen.set(key, p); else this.rodSeen.delete(key);
       }
+    }
+  }
+  /** The nearest usable rod among those seen (still a rod, not recovering from the last strike). */
+  private findRod(scanAll = false): V3 | null {
+    const c = this.c;
+    if (scanAll) { this.rodSeen.clear(); this.rodLayer = 0; this.scanRods(12); }
+    const club = c.anchor("club_core");
+    let best: V3 | null = null, bd = 1e9;
+    for (const [key, p] of this.rodSeen) {
+      const id = idAt(c.dim, p);
+      if (!id || !ROD.test(id)) { this.rodSeen.delete(key); continue; }
+      if ((rodReady.get(key) ?? 0) > this.now) continue;      // still recovering from the last strike
+      const d = Math.hypot(p.x + 0.5 - club.x, p.z + 0.5 - club.z);
+      if (d <= ROD_REACH && d < bd) { bd = d; best = p; }
     }
     return best;
   }
@@ -360,7 +374,8 @@ export class BrainThree extends Brain {
     c.setPhase("charge");
     c.say("basiliskra.iii.club_plant", c.anchor("club_core"), 96);
     c.say("basiliskra.iii.charge", c.pos, 96);
-    for (let t = 0; t < 14; t++) { c.setCharge(t / 7); if (ok()) c.aimAt(aimAt(), 80, 40); yield; }
+    this.rodSeen.clear(); this.rodLayer = 0;
+    for (let t = 0; t < 14; t++) { c.setCharge(t / 7); if (ok()) c.aimAt(aimAt(), 80, 40); this.scanRods(); yield; }
     // 2. the ridge lights, tail to shoulders, and the whole hide with it
     let rod: V3 | null = null;
     let lit = 1;
@@ -375,11 +390,11 @@ export class BrainThree extends Brain {
         lit = zone;
         sound(c.dim, "basiliskra.iii.charge_tick", c.anchor(zone >= 6 ? "throat" : zone >= 3 ? "plate_tip_5" : "club_core"), 72, 0.9, 0.75 + zone * 0.09);
       }
-      if (t === 20) rod = this.findRod();
+      this.scanRods();
       yield;
     }
     // 3. the eye stops following.  From here the aim is fixed: step sideways and it misses.
-    if (!rod) rod = this.findRod();
+    rod = this.findRod();
     if (rod && clearLine(c.dim, this.clubTop(), { x: rod.x + 0.5, y: rod.y + 1.2, z: rod.z + 0.5 })) {
       yield* this.ground(rod);
       yield* wait(30);
@@ -439,7 +454,11 @@ export class BrainThree extends Brain {
             try {
               if (p.dimension.id !== c.dim.id || !targetable(p)) continue;
               const body = add(p.location, { x: 0, y: 0.9, z: 0 });
-              if (segDist(body, from, dir, length) <= T.radius + 0.4) c.hurt(p, T.damage, EntityDamageCause.entityAttack);
+              if (segDist(body, from, dir, length) > T.radius + 0.4) continue;
+              // the nearest point of the beam must see the player: a wall he hugs from behind still shelters him
+              const along = clamp(dot(sub(body, from), dir), 0, Math.max(0, length - 0.6));
+              if (!clearLine(c.dim, add(from, mul(dir, along)), body)) continue;
+              c.hurt(p, T.damage, EntityDamageCause.entityAttack);
             } catch { /* left */ }
           }
         }
@@ -457,14 +476,26 @@ export class BrainThree extends Brain {
   private scorch(at: V3): void {
     if (CONFIG.terrain === "none") return;
     const c = this.c;
+    // if what the beam met is not the world's own ground (glass, planks, a chest, anything built), nothing is touched
+    const hit = blockAt(c.dim, at);
+    if (!hit || !isNaturalGround(hit.typeId)) return;
+    const free = (x: number, y: number, z: number) => { const b = blockAt(c.dim, { x, y, z }); return !!b && !isSolidBlock(b); };
+    const built = (x: number, y: number, z: number) => { const b = blockAt(c.dim, { x, y, z }); return !!b && isSolidBlock(b) && !isNaturalGround(b.typeId) && !isPlantBlock(b.typeId); };
     for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
       if (Math.abs(dx) + Math.abs(dy) + Math.abs(dz) > 2) continue;
-      const b = blockAt(c.dim, { x: at.x + dx, y: at.y + dy, z: at.z + dz });
+      const x = Math.floor(at.x) + dx, y = Math.floor(at.y) + dy, z = Math.floor(at.z) + dz;
+      const b = blockAt(c.dim, { x, y, z });
       if (!b) continue;
       const id = b.typeId;
+      const to = scorchOf(id);
+      if (!to && !(CONFIG.terrain === "break" && isBreakableNatural(id))) continue;
+      // ground is backed by ground: a block open on two opposite sides is a wall or a pillar somebody raised,
+      // and a block touching anything built is part of the build
+      if ((free(x + 1, y, z) && free(x - 1, y, z)) || (free(x, y, z + 1) && free(x, y, z - 1))) continue;
+      if (built(x + 1, y, z) || built(x - 1, y, z) || built(x, y, z + 1) || built(x, y, z - 1) || built(x, y + 1, z) || built(x, y - 1, z)) continue;
       try {
         if (CONFIG.terrain === "break" && dx === 0 && dy === 0 && dz === 0 && isBreakableNatural(id)) b.setType("minecraft:air");
-        else { const to = scorchOf(id); if (to) b.setType(to); }
+        else if (to) b.setType(to);
       } catch { /* protected area */ }
     }
   }
@@ -476,7 +507,7 @@ export class BrainThree extends Brain {
     c.setPhase("scatter");
     c.say("basiliskra.iii.club_plant", c.anchor("club_core"), 96);
     for (let t = 0; t < 34; t++) { c.setCharge((t / 34) * 18); if (t % 5 === 0) sound(c.dim, "basiliskra.iii.charge_tick", c.anchor("plate_tip_4"), 64, 0.8, 1.5 - t * 0.02); yield; }
-    const rod = this.findRod();
+    const rod = this.findRod(true);
     if (rod && clearLine(c.dim, this.clubTop(), { x: rod.x + 0.5, y: rod.y + 1.2, z: rod.z + 0.5 })) { yield* this.ground(rod); return; }
     c.setCharge(20);
     c.say("basiliskra.iii.scatter", c.anchor("plate_tip_5"), 112);

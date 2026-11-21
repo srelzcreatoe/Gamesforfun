@@ -8,7 +8,10 @@ import { Creature } from "../creature";
 import { particle, sound, witnesses } from "../fx";
 import { GAIT_TICKS } from "../generated/rig";
 import { add, clamp, dist, distXZ, hash, mul, norm, sub, wrapDeg, yawTo, type V3 } from "../vec";
-import { blockAt, furrowOf, idAt, isLoaded, isSolidBlock, isWaterId } from "../world";
+import { blockAt, furrowOf, idAt, isLoaded, isSolidBlock, isWaterId, takesMark } from "../world";
+
+/** What a street is lit with: redstone lamps first, and every lantern, bulb and torch a village hangs out. */
+const LAMP = /^minecraft:((lit_)?redstone_lamp|(soul_)?lantern|.*copper_lantern|sea_lantern|glowstone|.*copper_bulb|(soul_|redstone_|copper_)?torch|shroomlight|.*froglight)$/;
 
 const STONE = /^minecraft:(stone|cobblestone|mossy_cobblestone|stone_bricks|andesite|diorite|granite|deepslate|tuff|.*_slab|stone_.*|polished_.*|smooth_stone|gravel)$/;
 
@@ -66,17 +69,17 @@ export class BrainTwo extends Brain {
   private *drag(target: V3, arrive: number, timeout: number): Generator<void, boolean, void> {
     const c = this.c;
     const [reach, pull, rest] = GAIT_TICKS;
-    let t = 0;
+    let t = 0, stuck = 0;
     c.setPhase("move");
     while (distXZ(c.pos, target) > arrive) {
-      if (t > timeout || c.blocked > 40) { c.halt(); return false; }
+      if (t > timeout || stuck >= 3) { c.halt(); return false; }      // three pulls that gained nothing: he cannot get there
       const left = this.gaitStep === 5 || this.gaitStep === 2 ? (this.gaitStep === 5) : true;
       const base = this.gaitStep === 5 ? 0 : 3;
       // reach
       this.gaitStep = base; c.set(PROP.gait, base);
       c.halt();
       for (let i = 0; i < reach; i++, t++) {
-        c.yaw = c.yaw + clamp(wrapDeg(yawTo(c.pos, target) - c.yaw), -0.9, 0.9);
+        c.yaw = wrapDeg(c.yaw + clamp(wrapDeg(yawTo(c.pos, target) - c.yaw), -0.9, 0.9));
         yield;
       }
       const claw = c.anchor(base === 0 ? "claw_l" : "claw_r");
@@ -92,6 +95,7 @@ export class BrainTwo extends Brain {
         yield;
       }
       c.halt();
+      stuck = c.travelled - before < 0.25 ? stuck + 1 : 0;
       this.rec.mut.overland += c.travelled - before;
       // rest
       this.gaitStep = base + 2; c.set(PROP.gait, base + 2);
@@ -111,11 +115,9 @@ export class BrainTwo extends Brain {
     for (const side of ["hip_l", "hip_r"]) {
       const p = c.anchor(side);
       const at = { x: Math.floor(p.x), y: Math.floor(c.pos.y - 0.5), z: Math.floor(p.z) };
-      const b = blockAt(c.dim, at);
-      if (!b) continue;
-      const to = furrowOf(b.typeId);
-      const above = blockAt(c.dim, { x: at.x, y: at.y + 1, z: at.z });
-      if (to && above && (above.isAir || !isSolidBlock(above))) {
+      const b = takesMark(c.dim, at);
+      const to = b ? furrowOf(b.typeId) : undefined;
+      if (b && to) {
         try { b.setType(to); } catch { /* protected */ }
       } else if (c.tick % 8 === 0) particle(c.dim, "basiliskra:grit", { x: p.x, y: c.pos.y + 0.1, z: p.z }, 32);
     }
@@ -233,7 +235,11 @@ export class BrainTwo extends Brain {
     c.halt();
     c.setPhase("arc");
     this.rec.mut.episodes++;
-    if (this.now - this.lampsAt > 30 * TICKS.second) { this.lamps = this.scanLamps(); this.lampsAt = this.now; }
+    if (this.now - this.lampsAt > 30 * TICKS.second) {
+      // the street's lamps, a layer a tick while the arc gathers
+      this.lamps = []; this.lampsAt = this.now;
+      for (let dy = -1; dy <= 4; dy++) { this.scanLamps(dy); yield; }
+    }
     const from = c.anchor("knob_core");
     const lit = this.lamps.map((l) => ({ l, d: dist(l, from) })).sort((a, b) => a.d - b.d);
     for (let t = 0; t < 60; t++) {
@@ -247,18 +253,16 @@ export class BrainTwo extends Brain {
     c.setPhase("idle");
   }
 
-  /** Redstone lamps along the street: a bounded box round the knob, looked at once per half minute. */
-  private scanLamps(): V3[] {
+  /** Lamps along the street (anything a village lights itself with): one layer of a bounded box round the knob. */
+  private scanLamps(dy: number): void {
     const c = this.c;
     const k = c.anchor("knob_core");
-    const out: V3[] = [];
-    const y0 = Math.floor(c.pos.y);
-    for (let dx = -14; dx <= 14; dx += 1) for (let dz = -14; dz <= 14; dz += 1) for (let dy = -1; dy <= 4; dy++) {
-      const id = idAt(c.dim, { x: k.x + dx, y: y0 + dy, z: k.z + dz });
-      if (id === "minecraft:redstone_lamp" || id === "minecraft:lit_redstone_lamp") out.push({ x: Math.floor(k.x + dx), y: y0 + dy, z: Math.floor(k.z + dz) });
-      if (out.length >= 24) return out;
+    const y = Math.floor(c.pos.y) + dy;
+    for (let dx = -14; dx <= 14; dx += 1) for (let dz = -14; dz <= 14; dz += 1) {
+      if (this.lamps.length >= 24) return;
+      const id = idAt(c.dim, { x: k.x + dx, y, z: k.z + dz });
+      if (id && LAMP.test(id)) this.lamps.push({ x: Math.floor(k.x + dx), y, z: Math.floor(k.z + dz) });
     }
-    return out;
   }
 
   // ---- the bell ---------------------------------------------------------------------------------------------
@@ -297,13 +301,17 @@ export class BrainTwo extends Brain {
     yield* this.drag(away, 3, 400);
   }
 
-  private nearestDoor(around: V3): V3 | null {
+  /** The nearest door to a place, read a layer a tick. */
+  private *nearestDoor(around: V3): Generator<void, V3 | null, void> {
     const c = this.c;
     let best: V3 | null = null, bd = 1e9;
-    for (let dx = -12; dx <= 12; dx++) for (let dz = -12; dz <= 12; dz++) for (let dy = -2; dy <= 2; dy++) {
-      const p = { x: around.x + dx, y: around.y + dy, z: around.z + dz };
-      const id = idAt(c.dim, p);
-      if (id && id.endsWith("_door")) { const d = Math.hypot(dx, dz); if (d < bd) { bd = d; best = { x: p.x + 0.5, y: p.y + 0.5, z: p.z + 0.5 }; } }
+    for (let dy = -2; dy <= 2; dy++) {
+      for (let dx = -12; dx <= 12; dx++) for (let dz = -12; dz <= 12; dz++) {
+        const p = { x: around.x + dx, y: around.y + dy, z: around.z + dz };
+        const id = idAt(c.dim, p);
+        if (id && id.endsWith("_door")) { const d = Math.hypot(dx, dz); if (d < bd) { bd = d; best = { x: p.x + 0.5, y: p.y + 0.5, z: p.z + 0.5 }; } }
+      }
+      yield;
     }
     return best;
   }
@@ -316,7 +324,7 @@ export class BrainTwo extends Brain {
     // one claw rests against the frame, and he waits with his eye on the nearest door
     c.setPhase("pin");
     c.say("basiliskra.ii.claw", { x: bell.x + 0.5, y: bell.y, z: bell.z + 0.5 }, 40);
-    const door = this.nearestDoor(bell);
+    const door = yield* this.nearestDoor(bell);
     const began = this.now;
     for (let t = 0; t < 1200; t++) {
       const watch = door ?? nearbyPlayers(c, 40)[0]?.location;

@@ -557,14 +557,14 @@
     },
     "neck": {
      "rotation": [
-      "(0.9 * v.breath + v.lp_neck * 0.4 + 22 * v.w_drink - 9 * v.w_roar)",
+      "(0.9 * v.breath + v.lp_neck * 0.4 + 22 * v.w_drink - 9 * v.w_roar - 13 * v.w_flinch)",
       "(v.ly_neck * 0.4)",
       0
      ]
     },
     "head": {
      "rotation": [
-      "(v.lp_head * 0.5 + 16 * v.w_drink - 12 * v.w_roar - 8 * v.w_bite * math.clamp(1 - math.abs(v.pt - 0.22) * 6, 0, 1))",
+      "(v.lp_head * 0.5 + 16 * v.w_drink - 12 * v.w_roar - 9 * v.w_flinch - 8 * v.w_bite * math.clamp(1 - math.abs(v.pt - 0.22) * 6, 0, 1))",
       "(v.ly_head * 0.45)",
       0
      ]
@@ -741,8 +741,8 @@
     "head": {
      "rotation": [
       "(v.lp_head * 0.4 - 4 * v.w_chargew - 24 * v.w_roar + 14 * v.w_ground + 1.2 * v.w_fire * math.sin(q.life_time * 2400 + 0))",
-      "(v.ly_head * 0.35)",
-      0
+      "(v.ly_head * 0.35 + 30 * v.w_window)",
+      "(-9 * v.w_window)"
      ],
      "position": [
       0,

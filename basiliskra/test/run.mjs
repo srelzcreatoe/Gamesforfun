@@ -277,7 +277,7 @@ console.log('\n== 8. Grounding the charge');
   const t = until(w, () => {
     if (e().getProperty(P('phase')) === 21) return true;
     if (c().phase !== 'charge') { ana.moveTo(stand()); return false; }
-    if (!rod) { const k = c().anchor('club_core'); rod = { x: Math.floor(k.x) + 4, y: Math.floor(c().pos.y), z: Math.floor(k.z) }; w.sim.setBlock('minecraft:overworld', rod.x, rod.y, rod.z, 'minecraft:lightning_rod'); }
+    if (!rod) { const k = c().anchor('club_core'); rod = { x: Math.floor(k.x) + 4, y: Math.floor(c().pos.y), z: Math.floor(k.z) }; w.sim.setBlock('minecraft:overworld', rod.x, rod.y, rod.z, 'minecraft:waxed_weathered_lightning_rod'); }      // weathered and waxed: still a rod
     return e().getProperty(P('phase')) === 21;
   }, 4000);
   check('a copper lightning rod near the club takes the discharge', t > 0 && w.bk.ctl.brain.groundedAt !== null);
@@ -417,6 +417,146 @@ console.log('\n== 11. Walls, piers and the way round');
   check('the seam is opened where he has room: he swims clear of it', far > 22, `${far.toFixed(1)} blocks out`);
   check('each of the three rams is a real run at the place he came through', rams === 3 && ramRun > 10, `${rams} rams, shortest ${ramRun.toFixed(1)} blocks`);
   check('and his lane misses the pier', !post);
+}
+
+console.log('\n== 12. Findings from the independent review');
+/** Stand a ready-made Form III in a world through the door a reload uses: a saved entity the record names. */
+function standThree(w, at, yaw, beams = 0, rift = { x: 400, y: 56, z: 400, yaw: 0 }) {
+  const rec = w.bk.store.rec;
+  Object.assign(rec, { stage: 'alive', token: 'reviewtoken000000000000000000000', form: 3, born: 1, rift, origin: { x: 400, y: 64, z: 380 } });
+  rec.mut.beams = beams; rec.mut.formSince = rec.clock;
+  const r = w.sim.newRecord(TYPE, 'minecraft:overworld', at, yaw);
+  r.dyn['bk:token'] = rec.token; rec.entityId = r.id; w.bk.store.save();
+  w.sim.attach(r, 'entityLoad'); w.sim.flush(); w.sim.step(3);
+  return w.bk.ctl.creature;
+}
+const forever = function* () { for (;;) yield; };
+function force(w, make) {
+  const brain = w.bk.ctl.brain; let out = { done: false, value: undefined };
+  brain.forced = { name: 'test', run: (function* () { out.value = yield* make(brain); out.done = true; yield* forever(); })(), limit: 1e9 };
+  return out;
+}
+{
+  // a wood: trunks every five blocks under an unbroken canopy
+  const w = start();
+  w.sim.terrainFn = (dim, x, y, z) => {
+    if (dim !== 'minecraft:overworld') return 'minecraft:air';
+    if (y <= 62) return 'minecraft:stone';
+    if (y === 63) return 'minecraft:grass_block';
+    const tree = ((x % 5) + 5) % 5 === 2 && ((z % 5) + 5) % 5 === 2;
+    if (tree && y <= 68) return 'minecraft:oak_log';
+    if (y === 67 || y === 68) return 'minecraft:oak_leaves';
+    return 'minecraft:air';
+  };
+  open(w);
+  const ana = w.sim.addPlayer('Ana', { x: 20, y: 64, z: -30 }); ana.mode = 'Creative';
+  const c = standThree(w, { x: 0, y: 64, z: -60 }, 0);
+  const r = force(w, (b) => b.walk({ x: 0, y: 64, z: -10 }, 0.14, 4, 2000));
+  let climbs = 0; for (let i = 0; i < 2000 && !r.done; i++) { w.sim.step(1); if (c.blockedWhy === 'climb') climbs++; }
+  check('canopy is not ground: he walks through a wood on the forest floor', r.done && r.value === true && Math.abs(c.pos.y - 64) < 0.01 && climbs === 0, `ended z=${c.pos.z.toFixed(1)} y=${c.pos.y.toFixed(1)}, ${climbs} ticks blocked by a climb`);
+}
+{
+  // cover: a player hugging the far side of a one-block wall
+  const hit = (wall) => {
+    const w = start(); open(w);
+    const a = w.sim.addPlayer('Ana', { x: 25.31, y: 64, z: -79.5 }); a.health = 1000;
+    const c = standThree(w, { x: 0, y: 64, z: -80 }, -90, 0);
+    if (wall) for (let y = 64; y <= 72; y++) for (let z = -86; z <= -74; z++) w.sim.setBlock('minecraft:overworld', 24, y, z, 'minecraft:planks');
+    w.sim.step(5);
+    w.bk.ctl.brain.forced = { name: 'beam', run: w.bk.ctl.brain.beam(a), limit: 1200 };
+    let fired = false;
+    for (let i = 0; i < 400; i++) { w.sim.step(1); if (c.phase === 'fire') fired = true; if (fired && c.phase !== 'fire') break; }
+    return { fired, lost: 1000 - a.health };
+  };
+  const open1 = hit(false), behind = hit(true);
+  check('the raw beam hurts a player in the open', open1.fired && open1.lost > 0, `lost ${open1.lost}`);
+  check('and does not reach one sheltering close behind a wall', behind.fired && behind.lost === 0, `lost ${behind.lost}`);
+}
+{
+  // a call with no deep water in reach must not hold the save hostage
+  const w = start(); open(w);
+  const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: -400 });
+  const rec = w.bk.store.rec;
+  check('an inland call is accepted and waits', w.bk.ctl.requestArrival({ region: 'inland', site: { x: 0, y: 64, z: -400 }, guilty: ana.id, guiltyName: 'Ana' }) === true && rec.stage === 'pending');
+  until(w, () => (rec.pending?.passes ?? 0) >= 1, 2000);
+  check('after one fruitless search it gives way to a call from a real coast', (rec.pending?.passes ?? 0) >= 1
+    && w.bk.ctl.requestArrival({ region: 'coast', site: SITE, guilty: ana.id, guiltyName: 'Ana' }) === true && rec.pending.region === 'coast' && !rec.pending.passes);
+  ana.moveTo(SITE); w.sim.save.timeOfDay = 12000;
+  check('which is then answered', until(w, () => rec.stage === 'arriving', 3000) > 0);
+  const w2 = start(); open(w2);
+  const b = w2.sim.addPlayer('Ben', { x: 0, y: 64, z: -400 });
+  w2.bk.ctl.requestArrival({ region: 'inland', site: { x: 0, y: 64, z: -400 }, guilty: b.id, guiltyName: 'Ben' });
+  const t = until(w2, () => w2.bk.store.rec.stage === 'dormant', 12000, 5);
+  check('left alone, a call that cannot be answered lapses and the world can call again', t > 0 && w2.bk.store.rec.pending === null
+    && w2.bk.ctl.requestArrival({ region: 'coast', site: SITE, guilty: b.id, guiltyName: 'Ben' }) === true, `${t} ticks`);
+}
+{
+  // a repeater clock on a note block, never touched by hand this session
+  const w = start(); open(w);
+  const ana = w.sim.addPlayer('Ana', { x: 10, y: 64, z: 60 }); ana.mode = 'Creative';
+  const rift = { x: 0.5, y: 57.5, z: 60.5, yaw: 0 };
+  standThree(w, { x: 60, y: 64, z: -120 }, 0, 0, rift);          // far away: only the listening is under test
+  const held = [];
+  for (const layer of [0, 6, 12]) {
+    const nb = { x: 3, y: 57 + layer, z: 60 };
+    w.sim.setBlock('minecraft:overworld', nb.x, nb.y, nb.z, 'minecraft:noteblock');
+    let on = 0, total = 0;
+    for (let i = 0; i < 2600; i++) {
+      w.sim.save.edits.set(`power|${nb.x},${nb.y},${nb.z}`, (w.sim.save.tick % 18) < 2 ? 15 : 0);
+      w.sim.step(1);
+      if (i >= 1000) { total++; if (w.bk.ctl.ending.rhythm) on++; }
+    }
+    held.push(Math.round(100 * on / total));
+    w.sim.setBlock('minecraft:overworld', nb.x, nb.y, nb.z, 'minecraft:air');
+    w.sim.save.edits.delete(`power|${nb.x},${nb.y},${nb.z}`);
+    w.sim.step(400);
+  }
+  check('a redstone-clocked note block holds his rhythm, low or high', held.every((h) => h >= 97), `held ${held.join('% / ')}% of the time`);
+}
+{
+  // what the beam may mark
+  const w = start(); w.sim.terrainFn = TERRAINS.village; open(w);
+  const ana = w.sim.addPlayer('Ana', { x: 40, y: 64, z: 20 }); ana.mode = 'Creative';
+  standThree(w, { x: 60, y: 64, z: 20 }, 90);
+  const id = (x, y, z) => w.sim.blockId('minecraft:overworld', x, y, z), brain = w.bk.ctl.brain;
+  for (let y = 64; y <= 67; y++) for (let z = 28; z <= 34; z++) w.sim.setBlock('minecraft:overworld', 30, y, z, 'minecraft:stone');   // a wall somebody raised, of raw stone
+  brain.scorch({ x: 30, y: 65, z: 31 });
+  check('a free-standing wall of raw stone is not scorched', id(30, 65, 31) === 'minecraft:stone' && id(30, 66, 31) === 'minecraft:stone' && id(30, 64, 31) === 'minecraft:stone');
+  brain.scorch({ x: 3, y: 65, z: 0 });                                    // the cottage's window glass
+  check('a beam that meets a building changes nothing, not even the lawn at its foot', id(4, 63, 0) === 'minecraft:grass_block' && id(3, 64, 0) === 'minecraft:cobblestone');
+  brain.scorch({ x: 40, y: 63, z: 30 });
+  check('open ground is scorched', id(40, 63, 30) === 'minecraft:coarse_dirt');
+  brain.scorch({ x: 4, y: 63, z: 2 });                                    // grass right against the cottage wall
+  check('but not the ground a building stands against', id(4, 63, 2) === 'minecraft:grass_block', id(4, 63, 2));
+}
+{
+  // deep water is not a road
+  const w = start(); open(w);
+  const ana = w.sim.addPlayer('Ana', { x: 20, y: 64, z: 0 }); ana.mode = 'Creative';
+  const c = standThree(w, { x: 0, y: 64, z: 4 }, 0);
+  const r = force(w, (b) => b.walk({ x: 0, y: 64, z: 70 }, 0.14, 4, 1500));
+  let deepest = 64; for (let i = 0; i < 1500 && !r.done; i++) { w.sim.step(1); deepest = Math.min(deepest, c.pos.y); }
+  check('Form III does not walk off into water over his depth', r.done && r.value === false && c.pos.z < 22 && deepest > 60 && !c.afloat, `stopped at z=${c.pos.z.toFixed(1)}, lowest y ${deepest.toFixed(1)}`);
+  // but put there, he swims at his depth and hauls out over the bank
+  c.pos = { x: 0, y: 45, z: 40 }; c.entity.teleport(c.pos);
+  const r2 = force(w, (b) => b.walk({ x: 0, y: 64, z: 0 }, 0.14, 4, 2500));
+  let rose = false; for (let i = 0; i < 2500 && !r2.done; i++) { w.sim.step(1); if (c.afloat && Math.abs(c.pos.y - 58) < 0.2) rose = true; }
+  check('left in deep water he rises to his swimming depth and hauls himself out', r2.done && r2.value === true && rose && Math.abs(c.pos.y - 64) < 0.01 && c.pos.z < 8, `ended ${c.pos.z.toFixed(1)}, y ${c.pos.y.toFixed(1)}`);
+}
+{
+  // unloaded and reloaded in the middle of the arrival: the sequence belongs to the new handle
+  const w = start(); open(w);
+  const a = w.sim.addPlayer('Ana', SITE);
+  ruin(w, a, SITE);
+  w.sim.save.timeOfDay = 12000;
+  until(w, () => w.bk.store.rec.arrival?.step === 4 && w.bk.ctl.creature, 4000);
+  w.sim.step(40);
+  a.moveTo({ x: 0, y: 40, z: 0 }, 'minecraft:nether'); w.sim.step(40);
+  const gone = w.bk.ctl.creature === null;
+  a.moveTo(SITE, 'minecraft:overworld'); w.sim.step(5);
+  const h0 = a.heard.length;
+  const t = until(w, () => w.bk.store.rec.stage === 'alive', 600);
+  check('an arrival interrupted by an unload finishes on the animal that came back', gone && t > 0 && w.sim.count(TYPE) === 1 && !a.heard.slice(h0).some((s) => s.id === 'basiliskra.ram'), `${t} ticks`);
 }
 
 console.log(`\n${results.length - failures}/${results.length} checks passed`);

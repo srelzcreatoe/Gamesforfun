@@ -22,7 +22,7 @@
    },
    "scripts": {
     "initialize": [
-     "v.pt = 0; v.phase_prev = -1; v.gait_prev = -1; v.ts = 0; v.tsv = 0; v.charge = 0; v.walk = 0; v.fx_prev = 0;"
+     "v.dt = 0; v.form = 0; v.phase = 0; v.k1 = 0; v.k2 = 0; v.k3 = 0; v.k4 = 0; v.pt = 0; v.phase_prev = -1; v.left_move = 0; v.ly_t = 0; v.lp_t = 0; v.ly_eye = 0; v.ly_head = 0; v.ly_neck = 0; v.ly_chest = 0; v.lp_head = 0; v.lp_neck = 0; v.eye_lead = 0; v.bend_t = 0; v.bend = 0; v.pitch = 0; v.tsv = 0; v.ts = 0; v.charge = 0; v.flick = 0; v.over = 0; v.spasm = 0; v.kn = 0; v.knock = 0; v.gill_open = 0; v.breath = 0; v.walk = 0; v.gait = 0; v.gt = 0; v.gait_prev = -1; v.fx_kind = 0; v.fxp = 0; v.fx_prev = 0; v.g0 = 0; v.g1 = 0; v.g2 = 0; v.g3 = 0; v.g4 = 0; v.g5 = 0; v.g6 = 0; v.g7 = 0; v.g8 = 0; v.w_ram = 0; v.w_knockp = 0; v.w_rise = 0; v.w_bite = 0; v.w_sweep = 0; v.w_jam = 0; v.w_spasmw = 0; v.w_sleep = 0; v.w_evolve = 0; v.w_drink = 0; v.w_arc = 0; v.w_pin = 0; v.w_chargew = 0; v.w_fire = 0; v.w_vent = 0; v.w_ground = 0; v.w_scatter = 0; v.w_roar = 0; v.w_window = 0; v.w_flinch = 0; v.swp = 0; v.swa = 0; v.catch = 0; v.swg = 0; v.gl = 0; v.gr = 0; v.gd = 0; v.c = 0; v.cr = 0; v.pulling = 0; v.resting = 0; v.wp = 0; v.p_bl = 0; v.p_fl = 0; v.p_br = 0; v.p_fr = 0; v.kopen = 0;"
     ],
     "pre_animation": [
      "v.dt = math.min(q.delta_time, 0.1);",
@@ -62,18 +62,17 @@
      "v.gt = (v.gait != v.gait_prev) ? 0 : v.gt + v.dt;",
      "v.gait_prev = v.gait;",
      "v.fx_kind = q.property('basiliskra:fx_kind');",
-     "v.fx_new = (q.property('basiliskra:fx_seq') != v.fx_prev) ? 1 : 0;",
+     "v.fxp = (q.property('basiliskra:fx_seq') != v.fx_prev) ? 1 : math.max(0, v.fxp - v.dt * 3.2);",
      "v.fx_prev = q.property('basiliskra:fx_seq');",
-     "v.g0 = math.clamp((math.clamp(v.charge * 0.5 - 0, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 8 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
-     "v.g1 = math.clamp((math.clamp(v.charge * 0.5 - 1, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 7 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
-     "v.g2 = math.clamp((math.clamp(v.charge * 0.5 - 2, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 6 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
-     "v.g3 = math.clamp((math.clamp(v.charge * 0.5 - 3, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 5 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
-     "v.g4 = math.clamp((math.clamp(v.charge * 0.5 - 4, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 4 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
-     "v.g5 = math.clamp((math.clamp(v.charge * 0.5 - 5, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 3 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
-     "v.g6 = math.clamp((math.clamp(v.charge * 0.5 - 6, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 2 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
-     "v.g7 = math.clamp((math.clamp(v.charge * 0.5 - 7, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 1 * 0.42 - 0.3) * 1.5, 0, 1) + v.knock, 0, 1);",
-     "v.g8 = math.clamp((math.clamp(v.charge * 0.5 - 8, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 0 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
-     "v.w_arrive = v.w_arrive + (((v.phase == 2) ? 1 : 0) - v.w_arrive) * v.k2;",
+     "v.g0 = math.clamp((math.clamp(v.charge * 0.5 - 0, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 8 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0.9 : 0.4)), 0, 1);",
+     "v.g1 = math.clamp((math.clamp(v.charge * 0.5 - 1, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 7 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0.9 : 0.4)), 0, 1);",
+     "v.g2 = math.clamp((math.clamp(v.charge * 0.5 - 2, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 6 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0 : 0.4)), 0, 1);",
+     "v.g3 = math.clamp((math.clamp(v.charge * 0.5 - 3, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 5 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0 : 0.4)), 0, 1);",
+     "v.g4 = math.clamp((math.clamp(v.charge * 0.5 - 4, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 4 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0 : 0.4)), 0, 1);",
+     "v.g5 = math.clamp((math.clamp(v.charge * 0.5 - 5, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 3 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0 : 0.4)), 0, 1);",
+     "v.g6 = math.clamp((math.clamp(v.charge * 0.5 - 6, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 2 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0 : 0.4)), 0, 1);",
+     "v.g7 = math.clamp((math.clamp(v.charge * 0.5 - 7, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 1 * 0.42 - 0.3) * 1.5, 0, 1) + v.knock + v.fxp * (v.fx_kind == 1 ? 1 : (v.fx_kind == 2 ? 0 : 0.4)), 0, 1);",
+     "v.g8 = math.clamp((math.clamp(v.charge * 0.5 - 8, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 0 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0 : 0.4)), 0, 1);",
      "v.w_ram = v.w_ram + (((v.phase == 3) ? 1 : 0) - v.w_ram) * v.k2;",
      "v.w_knockp = v.w_knockp + (((v.phase == 4 || v.phase == 11) ? 1 : 0) - v.w_knockp) * v.k2;",
      "v.w_rise = v.w_rise + (((v.phase == 5) ? 1 : 0) - v.w_rise) * v.k2;",
@@ -133,8 +132,8 @@
       "fx_iii": "v.form == 3 && q.property('basiliskra:bound')"
      }
     ],
-    "should_update_bones_and_effects_offscreen": true,
-    "should_update_effects_offscreen": true
+    "should_update_bones_and_effects_offscreen": "1.0",
+    "should_update_effects_offscreen": "1.0"
    },
    "animations": {
     "pose_i": "animation.basiliskra.i.pose",

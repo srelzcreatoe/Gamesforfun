@@ -251,34 +251,29 @@ var SCORCH = {
   "minecraft:deepslate": "minecraft:smooth_basalt",
   "minecraft:calcite": "minecraft:smooth_basalt",
   "minecraft:dirt": "minecraft:coarse_dirt",
-  "minecraft:grass_block": "minecraft:coarse_dirt",
-  "minecraft:podzol": "minecraft:coarse_dirt",
-  "minecraft:mycelium": "minecraft:coarse_dirt",
-  "minecraft:moss_block": "minecraft:coarse_dirt",
-  "minecraft:mud": "minecraft:packed_mud",
-  "minecraft:clay": "minecraft:hardened_clay",
-  "minecraft:snow": "minecraft:coarse_dirt"
+  "minecraft:grass_block": "minecraft:coarse_dirt"
 };
 var BREAKABLE = /* @__PURE__ */ new Set([...Object.keys(SCORCH), "minecraft:smooth_basalt", "minecraft:coarse_dirt", "minecraft:sand", "minecraft:red_sand", "minecraft:gravel"]);
 var scorchOf = (id) => SCORCH[id];
 var isBreakableNatural = (id) => BREAKABLE.has(id);
-var MARK = {
-  "minecraft:grass_block": "minecraft:dirt",
-  "minecraft:podzol": "minecraft:dirt",
-  "minecraft:mycelium": "minecraft:dirt",
-  "minecraft:moss_block": "minecraft:dirt",
-  "minecraft:dirt": "minecraft:coarse_dirt"
-};
-var PRINT = {
-  "minecraft:grass_block": "minecraft:mud",
-  "minecraft:dirt": "minecraft:mud",
-  "minecraft:podzol": "minecraft:mud",
-  "minecraft:coarse_dirt": "minecraft:mud",
-  "minecraft:mycelium": "minecraft:mud",
-  "minecraft:moss_block": "minecraft:mud"
-};
+var MARK = { "minecraft:grass_block": "minecraft:dirt", "minecraft:dirt": "minecraft:coarse_dirt" };
+var PRINT = { "minecraft:grass_block": "minecraft:mud", "minecraft:dirt": "minecraft:mud", "minecraft:coarse_dirt": "minecraft:mud" };
 var furrowOf = (id) => MARK[id];
 var printOf = (id) => PRINT[id];
+var WILD = /^minecraft:(air|short_grass|tall_grass|fern|large_fern|deadbush|snow_layer|dandelion|poppy|.*tulip|.*_orchid|allium|azure_bluet|oxeye_daisy|cornflower|lily_of_the_valley|leaf_litter|bush|firefly_bush|wildflowers|pink_petals)$/;
+function takesMark(dim, at) {
+  const b = blockAt(dim, at);
+  if (!b) return void 0;
+  const above = blockAt(dim, { x: at.x, y: at.y + 1, z: at.z });
+  if (!above || !WILD.test(above.typeId)) return void 0;
+  for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    for (const dy of [0, 1]) {
+      const n = blockAt(dim, { x: at.x + dx, y: at.y + dy, z: at.z + dz });
+      if (n && isSolidBlock(n) && !isNaturalGround(n.typeId) && !isPlantBlock(n.typeId)) return void 0;
+    }
+  }
+  return b;
+}
 
 // src/fx.ts
 var PARTICLE_BUDGET = 96;
@@ -841,6 +836,10 @@ var Creature = class {
     if (this.wade || this.form === 1) return false;
     return waterOver(this.dim, at.x, at.z, floorY, this.form === 3 ? 5 : 2);
   }
+  /** Already in water over his depth (swimming, or sunk to the bed): then every way is a way out. */
+  inDeep() {
+    return this.afloat || this.tooDeep(this.pos, this.pos.y);
+  }
   clearAlong(yaw, reach) {
     const f = forwardOf(yaw);
     for (const s of BODY[this.form].look) {
@@ -849,7 +848,7 @@ var Creature = class {
       if (this.walled(at, false)) return false;
       const floor = groundY(this.dim, at.x, at.z, this.pos.y + 6, DROP + 6);
       if (floor === NONE) return false;
-      if (typeof floor === "number" && !this.afloat && this.tooDeep(at, floor)) return false;
+      if (typeof floor === "number" && !this.inDeep() && this.tooDeep(at, floor)) return false;
     }
     return true;
   }
@@ -894,7 +893,7 @@ var Creature = class {
     const top = this.form === 3 ? 6 : 3;
     const yTop = this.pos.y + top + (this.afloat ? lim + 2 : 0);
     const mid = groundY(this.dim, next.x, next.z, yTop, DROP + top);
-    if (moving && !this.wade && !this.afloat && typeof mid === "number" && this.tooDeep(next, mid)) {
+    if (moving && !this.wade && !this.inDeep() && typeof mid === "number" && this.tooDeep(next, mid)) {
       this.blockedWhy = "deep";
       return null;
     }
@@ -1342,7 +1341,7 @@ var TIERS = {
   2: { range: 48, radius: 0.95, damage: 6, ticks: 60, sfx: "basiliskra.iii.beam", width: 0.9 },
   3: { range: 64, radius: 0.8, damage: 8, ticks: 70, sfx: "basiliskra.iii.beam", width: 0.6 }
 };
-var ROD = "minecraft:lightning_rod";
+var ROD = /^minecraft:(waxed_)?(exposed_|weathered_|oxidized_)?lightning_rod$/;
 var ROD_REACH = 10;
 var FEET = ["foot_bl", "foot_fl", "foot_br", "foot_fr"];
 var rodReady = /* @__PURE__ */ new Map();
@@ -1363,6 +1362,9 @@ var BrainThree = class extends Brain {
     this.groundedAt = null;
     /** The ending asks for a charge aimed at nothing in particular, beside the seam. */
     this.wantCharge = false;
+    /** Rods seen near the club during this charge, by layer: the whole reach is read once every twelve ticks. */
+    this.rodSeen = /* @__PURE__ */ new Map();
+    this.rodLayer = 0;
   }
   onFinish() {
     this.c.set(PROP.tier, this.tier());
@@ -1456,11 +1458,9 @@ var BrainThree = class extends Brain {
     if (!CONFIG.marks) return;
     for (const [dx, dz] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
       const at = { x: Math.floor(foot.x) + dx, y: Math.floor(c.pos.y - 0.5), z: Math.floor(foot.z) + dz };
-      const b = blockAt(c.dim, at);
-      const above = blockAt(c.dim, { x: at.x, y: at.y + 1, z: at.z });
-      if (!b || !above) continue;
-      const to = printOf(b.typeId);
-      if (to && (above.isAir || !isSolidBlock(above))) {
+      const b = takesMark(c.dim, at);
+      const to = b ? printOf(b.typeId) : void 0;
+      if (b && to) {
         try {
           b.setType(to);
         } catch {
@@ -1636,23 +1636,43 @@ var BrainThree = class extends Brain {
     const k = this.c.anchor("club_core");
     return { x: k.x, y: Math.max(k.y, this.c.pos.y + 1.6), z: k.z };
   }
-  findRod() {
+  scanRods(layers = 1) {
     const c = this.c;
     const club = c.anchor("club_core");
-    let best = null, bd = 1e9;
-    const y0 = Math.floor(c.pos.y);
-    for (let dx = -ROD_REACH; dx <= ROD_REACH; dx++) for (let dz = -ROD_REACH; dz <= ROD_REACH; dz++) {
-      if (dx * dx + dz * dz > ROD_REACH * ROD_REACH) continue;
-      for (let dy = -3; dy <= 8; dy++) {
-        const p = { x: Math.floor(club.x) + dx, y: y0 + dy, z: Math.floor(club.z) + dz };
-        if (idAt(c.dim, p) !== ROD) continue;
+    const y0 = Math.floor(c.pos.y), cx = Math.floor(club.x), cz = Math.floor(club.z);
+    for (let n = 0; n < layers; n++) {
+      const y = y0 - 3 + this.rodLayer++ % 12;
+      for (let dx = -ROD_REACH; dx <= ROD_REACH; dx++) for (let dz = -ROD_REACH; dz <= ROD_REACH; dz++) {
+        if (dx * dx + dz * dz > ROD_REACH * ROD_REACH) continue;
+        const p = { x: cx + dx, y, z: cz + dz };
+        const id = idAt(c.dim, p);
         const key = `${p.x},${p.y},${p.z}`;
-        if ((rodReady.get(key) ?? 0) > this.now) continue;
-        const d = Math.hypot(dx, dz);
-        if (d < bd) {
-          bd = d;
-          best = p;
-        }
+        if (id && ROD.test(id)) this.rodSeen.set(key, p);
+        else this.rodSeen.delete(key);
+      }
+    }
+  }
+  /** The nearest usable rod among those seen (still a rod, not recovering from the last strike). */
+  findRod(scanAll = false) {
+    const c = this.c;
+    if (scanAll) {
+      this.rodSeen.clear();
+      this.rodLayer = 0;
+      this.scanRods(12);
+    }
+    const club = c.anchor("club_core");
+    let best = null, bd = 1e9;
+    for (const [key, p] of this.rodSeen) {
+      const id = idAt(c.dim, p);
+      if (!id || !ROD.test(id)) {
+        this.rodSeen.delete(key);
+        continue;
+      }
+      if ((rodReady.get(key) ?? 0) > this.now) continue;
+      const d = Math.hypot(p.x + 0.5 - club.x, p.z + 0.5 - club.z);
+      if (d <= ROD_REACH && d < bd) {
+        bd = d;
+        best = p;
       }
     }
     return best;
@@ -1726,9 +1746,12 @@ var BrainThree = class extends Brain {
     c.setPhase("charge");
     c.say("basiliskra.iii.club_plant", c.anchor("club_core"), 96);
     c.say("basiliskra.iii.charge", c.pos, 96);
+    this.rodSeen.clear();
+    this.rodLayer = 0;
     for (let t = 0; t < 14; t++) {
       c.setCharge(t / 7);
       if (ok()) c.aimAt(aimAt(), 80, 40);
+      this.scanRods();
       yield;
     }
     let rod = null;
@@ -1744,10 +1767,10 @@ var BrainThree = class extends Brain {
         lit = zone;
         sound(c.dim, "basiliskra.iii.charge_tick", c.anchor(zone >= 6 ? "throat" : zone >= 3 ? "plate_tip_5" : "club_core"), 72, 0.9, 0.75 + zone * 0.09);
       }
-      if (t === 20) rod = this.findRod();
+      this.scanRods();
       yield;
     }
-    if (!rod) rod = this.findRod();
+    rod = this.findRod();
     if (rod && clearLine(c.dim, this.clubTop(), { x: rod.x + 0.5, y: rod.y + 1.2, z: rod.z + 0.5 })) {
       yield* this.ground(rod);
       yield* wait(30);
@@ -1810,7 +1833,10 @@ var BrainThree = class extends Brain {
             try {
               if (p.dimension.id !== c.dim.id || !targetable(p)) continue;
               const body = add(p.location, { x: 0, y: 0.9, z: 0 });
-              if (segDist(body, from, dir, length) <= T.radius + 0.4) c.hurt(p, T.damage, EntityDamageCause2.entityAttack);
+              if (segDist(body, from, dir, length) > T.radius + 0.4) continue;
+              const along = clamp(dot(sub(body, from), dir), 0, Math.max(0, length - 0.6));
+              if (!clearLine(c.dim, add(from, mul(dir, along)), body)) continue;
+              c.hurt(p, T.damage, EntityDamageCause2.entityAttack);
             } catch {
             }
           }
@@ -1827,17 +1853,29 @@ var BrainThree = class extends Brain {
   scorch(at) {
     if (CONFIG.terrain === "none") return;
     const c = this.c;
+    const hit = blockAt(c.dim, at);
+    if (!hit || !isNaturalGround(hit.typeId)) return;
+    const free = (x, y, z) => {
+      const b = blockAt(c.dim, { x, y, z });
+      return !!b && !isSolidBlock(b);
+    };
+    const built = (x, y, z) => {
+      const b = blockAt(c.dim, { x, y, z });
+      return !!b && isSolidBlock(b) && !isNaturalGround(b.typeId) && !isPlantBlock(b.typeId);
+    };
     for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
       if (Math.abs(dx) + Math.abs(dy) + Math.abs(dz) > 2) continue;
-      const b = blockAt(c.dim, { x: at.x + dx, y: at.y + dy, z: at.z + dz });
+      const x = Math.floor(at.x) + dx, y = Math.floor(at.y) + dy, z = Math.floor(at.z) + dz;
+      const b = blockAt(c.dim, { x, y, z });
       if (!b) continue;
       const id = b.typeId;
+      const to = scorchOf(id);
+      if (!to && !(CONFIG.terrain === "break" && isBreakableNatural(id))) continue;
+      if (free(x + 1, y, z) && free(x - 1, y, z) || free(x, y, z + 1) && free(x, y, z - 1)) continue;
+      if (built(x + 1, y, z) || built(x - 1, y, z) || built(x, y, z + 1) || built(x, y, z - 1) || built(x, y + 1, z) || built(x, y - 1, z)) continue;
       try {
         if (CONFIG.terrain === "break" && dx === 0 && dy === 0 && dz === 0 && isBreakableNatural(id)) b.setType("minecraft:air");
-        else {
-          const to = scorchOf(id);
-          if (to) b.setType(to);
-        }
+        else if (to) b.setType(to);
       } catch {
       }
     }
@@ -1853,7 +1891,7 @@ var BrainThree = class extends Brain {
       if (t % 5 === 0) sound(c.dim, "basiliskra.iii.charge_tick", c.anchor("plate_tip_4"), 64, 0.8, 1.5 - t * 0.02);
       yield;
     }
-    const rod = this.findRod();
+    const rod = this.findRod(true);
     if (rod && clearLine(c.dim, this.clubTop(), { x: rod.x + 0.5, y: rod.y + 1.2, z: rod.z + 0.5 })) {
       yield* this.ground(rod);
       return;
@@ -2024,8 +2062,8 @@ var Ending = class {
       particle(dim, "basiliskra:seam_pulse", { x: rift.x, y: rift.y + 5, z: rift.z }, 40);
       if (!this.rhythm) sound(dim, "basiliskra.knock.gill", rift, 24, 0.35);
     }
-    const SIDE = NOTE_REACH * 2 + 1, LAYERS = 15, y0 = Math.floor(rift.y) + 3;
-    for (let n = 0; n < 150; n++) {
+    const SIDE = NOTE_REACH * 2 + 1, LAYERS = 19, y0 = Math.floor(rift.y) - 1;
+    for (let n = 0; n < 60; n++) {
       const i = this.scanAt++ % (SIDE * SIDE * LAYERS);
       const x = Math.floor(rift.x) - NOTE_REACH + i % SIDE, z = Math.floor(rift.z) - NOTE_REACH + Math.floor(i / SIDE) % SIDE, y = y0 + Math.floor(i / (SIDE * SIDE));
       if (this.blocks.size < 32 && idAt(dim, { x, y, z }) === NOTE) this.blocks.set(`${x},${y},${z}`, { x, y, z });
@@ -2322,9 +2360,10 @@ var BrainOne = class extends Brain {
     }
     if (near.length && this.ready("harbor") && (isNight(tod) || tod > 11500)) {
       const pier = this.findPier(near[0].location);
-      if (pier) {
-        this.rest("harbor", 4 * TICKS.minute);
-        return { name: "harbor", run: this.underHarbor(pier), limit: 2 * TICKS.minute };
+      const at = pier ?? this.openWater(near[0].location, 10, 24, 5);
+      if (at) {
+        this.rest("harbor", (pier ? 4 : 6) * TICKS.minute);
+        return { name: "harbor", run: this.underHarbor(pier ?? { x: at.x, y: at.y + 1, z: at.z }), limit: 2 * TICKS.minute };
       }
     }
     return { name: "patrol", run: this.patrol(), limit: 40 * TICKS.second };
@@ -2540,7 +2579,15 @@ var BrainOne = class extends Brain {
       }
     }
     if (!at) return;
-    sound(c.dim, site.s, at, 40, 0.9, 0.72);
+    for (const p of nearbyPlayers(c, 64)) {
+      try {
+        const ear = p.getHeadLocation(), d = dist(ear, at);
+        if (d > 48) continue;
+        const from = d <= 10 ? at : add(ear, mul(norm(sub(at, ear)), 10));
+        p.playSound(site.s, { location: from, volume: clamp(1.1 - d / 60, 0.35, 0.9), pitch: 0.72 });
+      } catch {
+      }
+    }
     c.halt();
     for (let t = 0; t < 46; t++) {
       c.lookAt(at, 70, 25);
@@ -2584,8 +2631,7 @@ var BrainOne = class extends Brain {
         const tail = c.anchor("tail_tip");
         particle(c.dim, "basiliskra:fin_break", tail, 40);
         for (const p of nearbyPlayers(c, 48)) {
-          if (dist(p.location, tail) < 4.6) {
-            c.hurt(p, 5);
+          if (dist(p.location, tail) < 4.6 && clearLine(c.dim, tail, add(p.location, { x: 0, y: 0.9, z: 0 })) && c.hurt(p, 5)) {
             const d = norm(sub(p.location, tail));
             try {
               p.applyKnockback({ x: d.x * 1.4, z: d.z * 1.4 }, 0.5);
@@ -2728,6 +2774,7 @@ var BrainOne = class extends Brain {
 
 // src/forms/two.ts
 import { world as world7 } from "@minecraft/server";
+var LAMP = /^minecraft:((lit_)?redstone_lamp|(soul_)?lantern|.*copper_lantern|sea_lantern|glowstone|.*copper_bulb|(soul_|redstone_|copper_)?torch|shroomlight|.*froglight)$/;
 var STONE = /^minecraft:(stone|cobblestone|mossy_cobblestone|stone_bricks|andesite|diorite|granite|deepslate|tuff|.*_slab|stone_.*|polished_.*|smooth_stone|gravel)$/;
 var BrainTwo = class extends Brain {
   constructor() {
@@ -2786,10 +2833,10 @@ var BrainTwo = class extends Brain {
   *drag(target, arrive, timeout) {
     const c = this.c;
     const [reach, pull, rest] = GAIT_TICKS;
-    let t = 0;
+    let t = 0, stuck = 0;
     c.setPhase("move");
     while (distXZ(c.pos, target) > arrive) {
-      if (t > timeout || c.blocked > 40) {
+      if (t > timeout || stuck >= 3) {
         c.halt();
         return false;
       }
@@ -2799,7 +2846,7 @@ var BrainTwo = class extends Brain {
       c.set(PROP.gait, base);
       c.halt();
       for (let i = 0; i < reach; i++, t++) {
-        c.yaw = c.yaw + clamp(wrapDeg(yawTo(c.pos, target) - c.yaw), -0.9, 0.9);
+        c.yaw = wrapDeg(c.yaw + clamp(wrapDeg(yawTo(c.pos, target) - c.yaw), -0.9, 0.9));
         yield;
       }
       const claw = c.anchor(base === 0 ? "claw_l" : "claw_r");
@@ -2815,6 +2862,7 @@ var BrainTwo = class extends Brain {
         yield;
       }
       c.halt();
+      stuck = c.travelled - before < 0.25 ? stuck + 1 : 0;
       this.rec.mut.overland += c.travelled - before;
       this.gaitStep = base + 2;
       c.set(PROP.gait, base + 2);
@@ -2833,11 +2881,9 @@ var BrainTwo = class extends Brain {
     for (const side of ["hip_l", "hip_r"]) {
       const p = c.anchor(side);
       const at = { x: Math.floor(p.x), y: Math.floor(c.pos.y - 0.5), z: Math.floor(p.z) };
-      const b = blockAt(c.dim, at);
-      if (!b) continue;
-      const to = furrowOf(b.typeId);
-      const above = blockAt(c.dim, { x: at.x, y: at.y + 1, z: at.z });
-      if (to && above && (above.isAir || !isSolidBlock(above))) {
+      const b = takesMark(c.dim, at);
+      const to = b ? furrowOf(b.typeId) : void 0;
+      if (b && to) {
         try {
           b.setType(to);
         } catch {
@@ -2961,8 +3007,12 @@ var BrainTwo = class extends Brain {
     c.setPhase("arc");
     this.rec.mut.episodes++;
     if (this.now - this.lampsAt > 30 * TICKS.second) {
-      this.lamps = this.scanLamps();
+      this.lamps = [];
       this.lampsAt = this.now;
+      for (let dy = -1; dy <= 4; dy++) {
+        this.scanLamps(dy);
+        yield;
+      }
     }
     const from = c.anchor("knob_core");
     const lit = this.lamps.map((l) => ({ l, d: dist(l, from) })).sort((a, b) => a.d - b.d);
@@ -2978,18 +3028,16 @@ var BrainTwo = class extends Brain {
     }
     c.setPhase("idle");
   }
-  /** Redstone lamps along the street: a bounded box round the knob, looked at once per half minute. */
-  scanLamps() {
+  /** Lamps along the street (anything a village lights itself with): one layer of a bounded box round the knob. */
+  scanLamps(dy) {
     const c = this.c;
     const k = c.anchor("knob_core");
-    const out = [];
-    const y0 = Math.floor(c.pos.y);
-    for (let dx = -14; dx <= 14; dx += 1) for (let dz = -14; dz <= 14; dz += 1) for (let dy = -1; dy <= 4; dy++) {
-      const id = idAt(c.dim, { x: k.x + dx, y: y0 + dy, z: k.z + dz });
-      if (id === "minecraft:redstone_lamp" || id === "minecraft:lit_redstone_lamp") out.push({ x: Math.floor(k.x + dx), y: y0 + dy, z: Math.floor(k.z + dz) });
-      if (out.length >= 24) return out;
+    const y = Math.floor(c.pos.y) + dy;
+    for (let dx = -14; dx <= 14; dx += 1) for (let dz = -14; dz <= 14; dz += 1) {
+      if (this.lamps.length >= 24) return;
+      const id = idAt(c.dim, { x: k.x + dx, y, z: k.z + dz });
+      if (id && LAMP.test(id)) this.lamps.push({ x: Math.floor(k.x + dx), y, z: Math.floor(k.z + dz) });
     }
-    return out;
   }
   // ---- the bell ---------------------------------------------------------------------------------------------
   onBell(at, _by) {
@@ -3024,19 +3072,23 @@ var BrainTwo = class extends Brain {
     const away = add(c.pos, mul(norm({ x: c.pos.x - from.x, y: 0, z: c.pos.z - from.z }), 12));
     yield* this.drag(away, 3, 400);
   }
-  nearestDoor(around) {
+  /** The nearest door to a place, read a layer a tick. */
+  *nearestDoor(around) {
     const c = this.c;
     let best = null, bd = 1e9;
-    for (let dx = -12; dx <= 12; dx++) for (let dz = -12; dz <= 12; dz++) for (let dy = -2; dy <= 2; dy++) {
-      const p = { x: around.x + dx, y: around.y + dy, z: around.z + dz };
-      const id = idAt(c.dim, p);
-      if (id && id.endsWith("_door")) {
-        const d = Math.hypot(dx, dz);
-        if (d < bd) {
-          bd = d;
-          best = { x: p.x + 0.5, y: p.y + 0.5, z: p.z + 0.5 };
+    for (let dy = -2; dy <= 2; dy++) {
+      for (let dx = -12; dx <= 12; dx++) for (let dz = -12; dz <= 12; dz++) {
+        const p = { x: around.x + dx, y: around.y + dy, z: around.z + dz };
+        const id = idAt(c.dim, p);
+        if (id && id.endsWith("_door")) {
+          const d = Math.hypot(dx, dz);
+          if (d < bd) {
+            bd = d;
+            best = { x: p.x + 0.5, y: p.y + 0.5, z: p.z + 0.5 };
+          }
         }
       }
+      yield;
     }
     return best;
   }
@@ -3050,7 +3102,7 @@ var BrainTwo = class extends Brain {
     c.yaw = yawTo(c.pos, bell);
     c.setPhase("pin");
     c.say("basiliskra.ii.claw", { x: bell.x + 0.5, y: bell.y, z: bell.z + 0.5 }, 40);
-    const door = this.nearestDoor(bell);
+    const door = yield* this.nearestDoor(bell);
     const began = this.now;
     for (let t = 0; t < 1200; t++) {
       const watch = door ?? nearbyPlayers(c, 40)[0]?.location;

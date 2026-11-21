@@ -76,10 +76,12 @@ export class BrainOne extends Brain {
       return { name: "sleep", run: this.sleepAtSeam(), limit: 10 * TICKS.minute };
     }
     if (near.length && this.ready("harbor") && (isNight(tod) || tod > 11500)) {
+      // under a pier if there is one; if not, in open water where the same player can see the fins break the surface
       const pier = this.findPier(near[0].location);
-      if (pier) {
-        this.rest("harbor", 4 * TICKS.minute);
-        return { name: "harbor", run: this.underHarbor(pier), limit: 2 * TICKS.minute };
+      const at = pier ?? this.openWater(near[0].location, 10, 24, 5);
+      if (at) {
+        this.rest("harbor", (pier ? 4 : 6) * TICKS.minute);
+        return { name: "harbor", run: this.underHarbor(pier ?? { x: at.x, y: at.y + 1, z: at.z }), limit: 2 * TICKS.minute };
       }
     }
     return { name: "patrol", run: this.patrol(), limit: 40 * TICKS.second };
@@ -290,7 +292,14 @@ export class BrainOne extends Brain {
     }
     if (!at) return;
     // one remembered call, from under the dock
-    sound(c.dim, site.s, at, 40, 0.9, 0.72);
+    for (const p of nearbyPlayers(c, 64)) {
+      try {
+        const ear = p.getHeadLocation(), d = dist(ear, at);
+        if (d > 48) continue;
+        const from = d <= 10 ? at : add(ear, mul(norm(sub(at, ear)), 10));
+        p.playSound(site.s, { location: from, volume: clamp(1.1 - d / 60, 0.35, 0.9), pitch: 0.72 });
+      } catch { /* left */ }
+    }
     c.halt();
     // his head turns before the rest of him follows
     for (let t = 0; t < 46; t++) { c.lookAt(at, 70, 25); yield; }
@@ -337,8 +346,8 @@ export class BrainOne extends Brain {
         const tail = c.anchor("tail_tip");
         particle(c.dim, "basiliskra:fin_break", tail, 40);
         for (const p of nearbyPlayers(c, 48)) {
-          if (dist(p.location, tail) < 4.6) {
-            c.hurt(p, 5);
+          // the fin has to reach them: through dock planks or a wall it is only noise
+          if (dist(p.location, tail) < 4.6 && clearLine(c.dim, tail, add(p.location, { x: 0, y: 0.9, z: 0 })) && c.hurt(p, 5)) {
             const d = norm(sub(p.location, tail));
             try { p.applyKnockback({ x: d.x * 1.4, z: d.z * 1.4 }, 0.5); } catch { /* riding */ }
           }

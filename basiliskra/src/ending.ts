@@ -122,10 +122,10 @@ export class Ending {
       particle(dim, "basiliskra:seam_pulse", { x: rift.x, y: rift.y + 5, z: rift.z }, 40);
       if (!this.rhythm) sound(dim, "basiliskra.knock.gill", rift, 24, 0.35);
     }
-    // note blocks near the seam: a rolling scan (a hundred and fifty blocks a tick) finds the ones no hand
+    // note blocks near the seam: a rolling scan (sixty blocks a tick, the whole reach in under a minute) finds the ones no hand
     // has touched this session, e.g. a repeater loop built yesterday
-    const SIDE = NOTE_REACH * 2 + 1, LAYERS = 15, y0 = Math.floor(rift.y) + 3;
-    for (let n = 0; n < 150; n++) {
+    const SIDE = NOTE_REACH * 2 + 1, LAYERS = 19, y0 = Math.floor(rift.y) - 1;
+    for (let n = 0; n < 60; n++) {
       const i = this.scanAt++ % (SIDE * SIDE * LAYERS);
       const x = Math.floor(rift.x) - NOTE_REACH + (i % SIDE), z = Math.floor(rift.z) - NOTE_REACH + Math.floor(i / SIDE) % SIDE, y = y0 + Math.floor(i / (SIDE * SIDE));
       if (this.blocks.size < 32 && idAt(dim, { x, y, z }) === NOTE) this.blocks.set(`${x},${y},${z}`, { x, y, z });

@@ -17,6 +17,7 @@ client-side state machine to fall out of step with the server.
 from __future__ import annotations
 
 import json
+import re
 import os
 import sys
 
@@ -141,16 +142,18 @@ def pre_animation():
         f"v.gait = {P('gait')};",
         "v.gt = (v.gait != v.gait_prev) ? 0 : v.gt + v.dt;",
         "v.gait_prev = v.gait;",
+        # a one-shot pulse from the server (1 gills, 2 tail knob, 3 the whole hide): a brief flash where it says
         f"v.fx_kind = {P('fx_kind')};",
-        f"v.fx_new = ({P('fx_seq')} != v.fx_prev) ? 1 : 0;",
+        f"v.fxp = ({P('fx_seq')} != v.fx_prev) ? 1 : math.max(0, v.fxp - v.dt * 3.2);",
         f"v.fx_prev = {P('fx_seq')};",
     ]
     for k in range(9):
         wave = f"0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - {8 - k} * 0.42 - 0.3) * 1.5, 0, 1)"
         gill = " + v.knock" if k == 7 else ""
-        s.append(f"v.g{k} = math.clamp((math.clamp(v.charge * 0.5 - {k}, 0, 1) + v.over * 0.25) * v.flick + {wave}{gill}, 0, 1);")
+        flash = f" + v.fxp * (v.fx_kind == 1 ? {1 if k == 7 else 0} : (v.fx_kind == 2 ? {0.9 if k <= 1 else 0} : 0.4))"
+        s.append(f"v.g{k} = math.clamp((math.clamp(v.charge * 0.5 - {k}, 0, 1) + v.over * 0.25) * v.flick + {wave}{gill}{flash}, 0, 1);")
     weights = {
-        "arrive": ("arrive",), "ram": ("ram",), "knockp": ("knock", "wake"), "rise": ("rise",), "bite": ("bite",),
+        "ram": ("ram",), "knockp": ("knock", "wake"), "rise": ("rise",), "bite": ("bite",),
         "sweep": ("sweep",), "jam": ("jam",), "spasmw": ("spasm",), "sleep": ("sleep",), "evolve": ("evolve", "beach"),
         "drink": ("drink",), "arc": ("arc",), "pin": ("pin",), "chargew": ("charge", "fire"), "fire": ("fire",),
         "vent": ("vent",), "ground": ("grounded",), "scatter": ("scatter",), "roar": ("roar",), "window": ("window",),
@@ -247,8 +250,8 @@ def pose_ii(rig):
     p.rot("chest", x=f"-1.3 * v.breath + 3 * v.pulling + v.lp_neck * {L['pitch']['chest']} + 6 * v.w_drink - 8 * v.w_evolve - 4 * v.w_roar"
                      f" + 1.8 * v.w_evolve * {SHUDDER(1000)}",
           y=f"v.ly_chest * {L['yaw']['chest']}", z=f"1.5 * v.w_evolve * {SHUDDER(1250, 2)}")
-    p.rot("neck", x=f"0.9 * v.breath + v.lp_neck * {L['pitch']['neck']} + 22 * v.w_drink - 9 * v.w_roar", y=f"v.ly_neck * {L['yaw']['neck']}")
-    p.rot("head", x=f"v.lp_head * {L['pitch']['head']} + 16 * v.w_drink - 12 * v.w_roar - 8 * v.w_bite * math.clamp(1 - math.abs(v.pt - 0.22) * 6, 0, 1)",
+    p.rot("neck", x=f"0.9 * v.breath + v.lp_neck * {L['pitch']['neck']} + 22 * v.w_drink - 9 * v.w_roar - 13 * v.w_flinch", y=f"v.ly_neck * {L['yaw']['neck']}")
+    p.rot("head", x=f"v.lp_head * {L['pitch']['head']} + 16 * v.w_drink - 12 * v.w_roar - 9 * v.w_flinch - 8 * v.w_bite * math.clamp(1 - math.abs(v.pt - 0.22) * 6, 0, 1)",
           y=f"v.ly_head * {L['yaw']['head']}")
     p.rot("jaw", x="2.5 * v.breath + (5 + 4 * math.sin(q.life_time * 520)) * v.w_drink + 26 * v.w_roar"
                    " + 30 * v.w_bite * math.clamp(1 - math.abs(v.pt - 0.22) * 6, 0, 1) + 9 * v.w_evolve")
@@ -285,8 +288,9 @@ def pose_iii(rig):
         p.rot(f"neck{i}", y=f"v.ly_neck * {L['yaw'][f'neck{i}']}",
               x=f"v.lp_neck * {L['pitch'][f'neck{i}']} + 0.5 * v.breath - 1.5 * v.w_chargew - 4 * v.w_roar + 3 * v.w_ground"
                 f" + 0.8 * v.walk * math.sin(v.wp * 2 - {i * 30})")
-    p.rot("head", y=f"v.ly_head * {L['yaw']['head']}",
-          x=f"v.lp_head * {L['pitch']['head']} - 4 * v.w_chargew - 24 * v.w_roar + 14 * v.w_ground + 1.2 * v.w_fire * {SHUDDER(2400)}")
+    p.rot("head", y=f"v.ly_head * {L['yaw']['head']} + 30 * v.w_window",
+          x=f"v.lp_head * {L['pitch']['head']} - 4 * v.w_chargew - 24 * v.w_roar + 14 * v.w_ground + 1.2 * v.w_fire * {SHUDDER(2400)}",
+          z="-9 * v.w_window")
     p.pos("head", z=f"1.6 * v.w_fire * {SHUDDER(2700, 1)}", y="2.2 * v.knock")
     p.rot("jaw", x="2.2 * v.breath + v.w_chargew * v.charge * 0.9 + 16 * v.w_fire + 30 * v.w_roar + 6 * v.w_vent + 8 * v.w_ground")
     for tag, var, front in (("fl", "v.p_fl", True), ("fr", "v.p_fr", True), ("bl", "v.p_bl", False), ("br", "v.p_br", False)):
@@ -442,6 +446,13 @@ def main():
         pre, bones = fn(rigs[tag])
         pre_form += pre
         anims[f"animation.{NS}.{tag}.pose"] = {"loop": True, "bones": bones}
+    names = []
+    for text in pre_all + pre_form + [json.dumps(anims)]:
+        for n in re.findall(r"\bv\.([a-z_0-9]+)", text):
+            if n not in names:
+                names.append(n)
+    special = {"phase_prev": -1, "gait_prev": -1}
+    init_all = " ".join(f"v.{n} = {special.get(n, 0)};" for n in names)
     entity = {
         "format_version": "1.10.0",
         "minecraft:client_entity": {"description": {
@@ -451,12 +462,12 @@ def main():
                          **{f"{t}_glow": f"textures/entity/{NS}/{NS}_{t}_glow" for t in ("i", "ii", "iii")}},
             "geometry": {t: f"geometry.{NS}.{t}" for t in ("i", "ii", "iii")},
             "scripts": {
-                "initialize": ["v.pt = 0; v.phase_prev = -1; v.gait_prev = -1; v.ts = 0; v.tsv = 0; v.charge = 0; v.walk = 0; v.fx_prev = 0;"],
+                "initialize": [init_all],
                 "pre_animation": pre_all + pre_form,
                 "animate": [{f"pose_{t}": f"v.form == {i}"} for i, t in enumerate(("i", "ii", "iii"), start=1)]
                            + [{f"fx_{t}": f"v.form == {i} && {P('bound')}"} for i, t in enumerate(("i", "ii", "iii"), start=1)],
-                "should_update_bones_and_effects_offscreen": True,
-                "should_update_effects_offscreen": True,
+                "should_update_bones_and_effects_offscreen": "1.0",
+                "should_update_effects_offscreen": "1.0",
             },
             "animations": {**{f"pose_{t}": f"animation.{NS}.{t}.pose" for t in ("i", "ii", "iii")},
                            **{f"fx_{t}": f"controller.animation.{NS}.{t}.fx" for t in ("i", "ii", "iii")}},

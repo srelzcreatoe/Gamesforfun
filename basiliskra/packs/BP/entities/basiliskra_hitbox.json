@@ -86,6 +86,7 @@
       },
       "minecraft:transient": {},
       "minecraft:fire_immune": {},
+      "minecraft:dimension_bound": {},
       "minecraft:knockback_resistance": {
         "value": 1.0
       },
