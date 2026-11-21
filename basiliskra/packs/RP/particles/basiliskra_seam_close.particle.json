@@ -13,12 +13,17 @@
     "active_time": 0.05
    },
    "minecraft:emitter_rate_instant": {
-    "num_particles": 26
+    "num_particles": 34
    },
    "minecraft:emitter_shape_box": {
+    "offset": [
+     0,
+     2.6,
+     0
+    ],
     "half_dimensions": [
      0.2,
-     4.2,
+     7.0,
      0.2
     ],
     "direction": "outwards"

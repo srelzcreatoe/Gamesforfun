@@ -14,6 +14,7 @@ import { idAt, isWaterId, overworld } from "./world";
 
 export const ctl = new Controller();
 let ready = false;
+let lastFault = "", faultAt = -1e9;
 
 // ---- things that splash ----------------------------------------------------------------------
 const SPLASHERS = new Set(["minecraft:snowball", "minecraft:egg", "minecraft:item", "minecraft:ender_pearl"]);
@@ -29,7 +30,7 @@ function splash(at: V3, by?: Player): void {
 function trackSplashes(): void {
   for (let i = flying.length - 1; i >= 0; i--) {
     const f = flying[i];
-    let done = system.currentTick - f.born > 100;
+    let done = store.rec.clock - f.born > 100;
     try {
       if (!f.e.isValid) done = true;
       else if (isWaterId(idAt(f.e.dimension, f.e.location))) { splash(f.e.location, f.by); done = true; }
@@ -43,7 +44,16 @@ world.afterEvents.worldLoad.subscribe(() => {
   ctl.init();
   ready = true;
   system.runInterval(() => {
-    try { trackSplashes(); ctl.tick(); } catch (e) { if (CONFIG.debug) console.warn(`[${NS}] tick: ${e}`); }
+    try { trackSplashes(); ctl.tick(); } catch (e) {
+      // say so (once per distinct fault, and again at most once a minute), and never let a fault cost the save
+      const m = String(e);
+      if (m !== lastFault || store.rec.clock - faultAt > 1200) {
+        lastFault = m; faultAt = store.rec.clock;
+        const where = String((e as Error)?.stack ?? "").split("\n").slice(0, 4).join(" | ");
+        console.warn(`[${NS}] tick: ${m} ${where}`);
+      }
+      try { if (store.rec.clock % 40 === 0) store.flush(); } catch { /* closing */ }
+    }
   }, 1);
 });
 
@@ -65,18 +75,24 @@ world.afterEvents.entitySpawn.subscribe((ev) => {
     if (id === TYPE) { ctl.inspect(ev.entity); return; }
     if (id === HITBOX) { if (!partOwner.has(ev.entity.id)) ev.entity.remove(); return; }
     if (SPLASHERS.has(id) && ev.entity.dimension.id === OVERWORLD && ctl.creature && flying.length < 16
-      && dist(ev.entity.location, ctl.creature.pos) < 64) flying.push({ e: ev.entity, born: system.currentTick });
+      && dist(ev.entity.location, ctl.creature.pos) < 64) flying.push({ e: ev.entity, born: store.rec.clock });
   } catch { /* gone */ }
 });
 
 world.beforeEvents.entityRemove.subscribe((ev) => {
-  try { if (ev.removedEntity.typeId === TYPE) ctl.onRemoving(ev.removedEntity); } catch { /* gone */ }
+  try {
+    const id = ev.removedEntity.typeId;
+    if (id === TYPE) ctl.onRemoving(ev.removedEntity);
+    else if (id === HITBOX) partOwner.delete(ev.removedEntity.id);
+  } catch { /* gone */ }
 });
 
 // ---- damage ----------------------------------------------------------------------------------------
 const PASSES = new Set<string>([EntityDamageCause.entityAttack, EntityDamageCause.projectile, EntityDamageCause.entityExplosion,
   EntityDamageCause.blockExplosion, EntityDamageCause.magic, EntityDamageCause.thorns, EntityDamageCause.sonicBoom,
   EntityDamageCause.maceSmash, EntityDamageCause.override]);
+
+let forwardTick = -1, forwardKey = "";
 
 world.beforeEvents.entityHurt.subscribe((ev) => {
   let type: string;
@@ -89,6 +105,10 @@ world.beforeEvents.entityHurt.subscribe((ev) => {
     const amount = ev.damage * (owner.tag === "head" ? 1.25 : owner.tag === "tail" ? 0.6 : 1);
     const cause = ev.damageSource.cause, by = ev.damageSource.damagingEntity;
     if (!PASSES.has(cause) || amount <= 0) return;
+    // one blast or one sweep reaches several volumes in the same tick: it is still one blow
+    const key = `${cause}|${by?.id ?? ""}`;
+    if (forwardTick === store.rec.clock && forwardKey === key) return;
+    forwardTick = store.rec.clock; forwardKey = key;
     system.run(() => {
       try { if (owner.creature.valid) owner.creature.entity.applyDamage(amount, by ? { cause, damagingEntity: by } : { cause }); } catch { /* gone */ }
     });
@@ -99,8 +119,8 @@ world.beforeEvents.entityHurt.subscribe((ev) => {
   // he cannot be killed here, only driven off: the blow is trimmed so he keeps his last breath
   let health = 1;
   try { health = ev.hurtEntity.getComponent("minecraft:health")?.currentValue ?? 1; } catch { health = 1; }
-  if (health <= 2) { ev.cancel = true; return; }
-  if (ev.damage >= health - 1) ev.damage = Math.max(0, health - 1.5);
+  if (health <= 2) { ev.cancel = true; system.run(() => ctl.driveOff()); return; }
+  if (ev.damage >= health - 1) { ev.damage = Math.max(0, health - 1.5); system.run(() => ctl.driveOff()); }
 });
 
 world.afterEvents.entityHurt.subscribe((ev) => {
@@ -122,7 +142,7 @@ world.afterEvents.entityDie.subscribe((ev) => {
     // only deaths a player caused count; lava, falls, wolves and the weather weigh nothing
     if (!killer || killer.typeId !== "minecraft:player" || ev.deadEntity.dimension.id !== OVERWORLD) return;
     const p = killer as Player;
-    const t = recordKill(ev.deadEntity.location, type, p.id, p.name, system.currentTick);
+    const t = recordKill(ev.deadEntity.location, type, p.id, p.name, store.rec.clock);
     if (t) ctl.requestArrival(t);
   } catch { /* unloaded */ }
 });
@@ -130,7 +150,7 @@ world.afterEvents.entityDie.subscribe((ev) => {
 world.afterEvents.playerBreakBlock.subscribe((ev) => {
   try {
     if (ev.dimension.id !== OVERWORLD) return;
-    const t = recordHabitat(ev.block.location, ev.brokenBlockPermutation.type.id, ev.player.id, ev.player.name, system.currentTick);
+    const t = recordHabitat(ev.block.location, ev.brokenBlockPermutation.type.id, ev.player.id, ev.player.name, store.rec.clock);
     if (t) ctl.requestArrival(t);
   } catch { /* unloaded */ }
 });
@@ -141,7 +161,7 @@ world.afterEvents.playerInteractWithBlock.subscribe((ev) => {
     const id = ev.block.typeId, at = ev.block.location;
     if (id === "minecraft:bell") ctl.brain?.onBell(at, ev.player);
     else if (id === "minecraft:noteblock") { ctl.ending.onNote(at); ctl.brain?.onNote(at); }
-    else if (ev.itemStack?.typeId === "minecraft:water_bucket") {
+    else if (ev.beforeItemStack?.typeId === "minecraft:water_bucket") {      // the stack as it was: afterwards the bucket is empty
       // water poured into a channel is a splash like any other
       const p = { x: at.x + 0.5, y: at.y + 1, z: at.z + 0.5 };
       system.runTimeout(() => { try { if (isWaterId(idAt(ev.player.dimension, p)) || isWaterId(idAt(ev.player.dimension, at))) splash(p, ev.player); } catch { /* left */ } }, 4);

@@ -63,21 +63,21 @@ console.log('\n== 1. What opens the rift');
   const a = w.sim.addPlayer('Ana', SITE);
   kill(w, a, 'minecraft:cow', SITE);                      // one meal
   for (let i = 0; i < 6; i++) chop(w, a, 'minecraft:oak_log', SITE);   // one felled tree
-  const s1 = w.bk.harm.regionScore(SITE, w.sim.save.tick);
+  const s1 = w.bk.harm.regionScore(SITE, w.bk.store.rec.clock);
   check('one meal and one felled tree weigh almost nothing', s1.a < 0.5 && s1.h < 1.5 && w.bk.store.rec.stage === 'dormant', `animals ${s1.a.toFixed(2)} habitat ${s1.h.toFixed(2)}`);
   for (let i = 0; i < 40; i++) naturalDeath(w, 'minecraft:cow', SITE);
-  const s2 = w.bk.harm.regionScore(SITE, w.sim.save.tick);
+  const s2 = w.bk.harm.regionScore(SITE, w.bk.store.rec.clock);
   check('naturally caused deaths weigh nothing', Math.abs(s2.a - s1.a) < 1e-9 && w.bk.store.rec.stage === 'dormant');
   ruin(w, a, SITE);
   check('repeated killing together with stripped habitat crosses the threshold', w.bk.store.rec.stage === 'pending');
   const b = w.sim.addPlayer('Late friend', SITE);
-  check('a friend who has just joined inherits no blame', w.bk.store.rec.guilty === a.id && !(b.id in w.bk.harm.regionScore(SITE, w.sim.save.tick).by));
+  check('a friend who has just joined inherits no blame', w.bk.store.rec.guilty === a.id && !(b.id in w.bk.harm.regionScore(SITE, w.bk.store.rec.clock).by));
   const w2 = start(); open(w2);
   const c = w2.sim.addPlayer('Cy', SITE);
   ruin(w2, c, SITE, 6, 14);
-  const before = w2.bk.harm.regionScore(SITE, w2.sim.save.tick);
-  w2.sim.save.tick += 24000 * 6;
-  const after = w2.bk.harm.regionScore(SITE, w2.sim.save.tick);
+  const before = w2.bk.harm.regionScore(SITE, w2.bk.store.rec.clock);
+  w2.bk.store.rec.clock += 24000 * 6;
+  const after = w2.bk.harm.regionScore(SITE, w2.bk.store.rec.clock);
   check('an undisturbed region recovers', after.a < before.a * 0.2 && after.h < before.h * 0.2, `animals ${before.a.toFixed(1)} -> ${after.a.toFixed(2)}`);
   for (let i = 0; i < 120; i++) kill(w2, c, 'minecraft:pig', { x: i * 70, y: 64, z: -4000 - i * 70 });
   const regs = Object.keys(w2.bk.store.harm.regions).length;
@@ -133,11 +133,25 @@ console.log('\n== 3. A duplicate, a stray summon and a copied creature');
   part.applyDamage(20, { cause: 'entityAttack', damagingEntity: w.sim.players[0] });
   w.sim.step(2);
   check('a hit on any part of his body is a hit on him', w.bk.ctl.creature.entity.rec.health < hp && part.rec.health === 1000, `${hp} -> ${w.bk.ctl.creature.entity.rec.health}`);
-  w.bk.ctl.creature.entity.applyDamage(100000, { cause: 'entityAttack', damagingEntity: w.sim.players[0] });
-  w.sim.step(2);
-  check('he cannot be killed outright, only worn down', w.sim.count(TYPE) === 1 && w.bk.ctl.creature.entity.rec.health >= 1);
   const fell = w.bk.ctl.creature.entity.applyDamage(50, { cause: 'fall' });
   check('the world itself (falls, lava, suffocation) does not hurt him', fell === false);
+  // one blast that reaches several hit volumes at once is one blow, not eight
+  const hp2 = w.bk.ctl.creature.entity.rec.health;
+  for (const h of [...w.sim.loaded.values()].filter((x) => x.typeId === 'basiliskra:hitbox')) h.applyDamage(10, { cause: 'entityExplosion' });
+  w.sim.step(2);
+  const lost = hp2 - w.bk.ctl.creature.entity.rec.health;
+  check('a blast that touches every hit volume counts once', lost > 0 && lost <= 12.5, `lost ${lost}`);
+  // worn down to nothing he is not killed: he is driven off, and owed back
+  const token = rec.token, form = rec.form;
+  w.bk.ctl.creature.entity.applyDamage(100000, { cause: 'entityAttack', damagingEntity: w.sim.players[0] });
+  w.sim.step(3);
+  check('worn down to his last breath he is driven off, not killed', w.sim.count(TYPE) === 0 && w.sim.count('basiliskra:hitbox') === 0 && rec.stage === 'alive' && rec.entityId === null && rec.down !== null && w.bk.ctl.creature === null);
+  w.sim.step(600);
+  check('nothing takes his place while he is away', w.sim.count(TYPE) === 0);
+  rec.clock += 24000;                                                // a day later, with someone at the coast
+  until(w, () => w.sim.count(TYPE) === 1 && w.bk.ctl.creature, 400);
+  const back = w.bk.ctl.creature?.entity;
+  check('a day later the same animal comes back through the seam, whole', !!back && rec.token === token && rec.form === form && back.rec.dyn['bk:token'] === token && rec.entityId === back.id && back.rec.health === 600 && w.sim.count(TYPE) === 1);
 }
 
 console.log('\n== 4. An interrupted arrival');

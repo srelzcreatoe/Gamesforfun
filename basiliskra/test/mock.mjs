@@ -69,6 +69,7 @@ export class Sim {
 
   /** Throw away every script-side object and build a fresh API over the same saved world. */
   boot() {
+    this.session0 = this.save.tick;
     this.loaded = new Map();       // id -> MockEntity wrapper
     this.queue = [];               // after-events to fire at the end of the tick
     this.runs = [];
@@ -102,7 +103,7 @@ export class Sim {
         beforeEvents: { entityRemove: this.ev.bEntityRemove, entityHurt: this.ev.bEntityHurt },
       },
       system: {
-        get currentTick() { return sim.save.tick; },
+        get currentTick() { return sim.save.tick - sim.session0; },      // the engine's counter starts again every session
         run: (fn) => { sim.runs.push(fn); return 0; },
         runTimeout: (fn, t = 1) => { sim.timeouts.push({ fn, at: sim.save.tick + t }); return 0; },
         runInterval: (fn, t = 1) => { sim.intervals.push({ fn, t }); return 0; },

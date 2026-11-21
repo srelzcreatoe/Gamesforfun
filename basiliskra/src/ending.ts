@@ -16,9 +16,10 @@ import { particle, players, sound } from "./fx";
 import { RIGS } from "./generated/rig";
 import { store } from "./store";
 import { add, clamp, dist, distXZ, dot, forwardOf, mul, norm, sub, yawTo, type V3 } from "./vec";
-import { blockAt, groundY, idAt, isLoaded, overworld } from "./world";
+import { blockAt, idAt, isLoaded, isPlantBlock, isSolidBlock, overworld } from "./world";
 
 const NOTE = "minecraft:noteblock";
+const NOTE_REACH = 24;                   // how far from the seam a note still reaches him
 const GAP_MIN = 11, GAP_MAX = 26;        // 0.55 s .. 1.3 s between knocks counts as his rhythm
 const ROD_NEAR_SEAM = 48;
 const GRACE = 60;                        // ticks the rhythm may falter before he notices
@@ -37,9 +38,10 @@ function carriesFin(p: Player): boolean {
 }
 
 export class Ending {
-  private blocks: V3[] = [];
+  /** Note blocks near the seam, by position.  Entries stay until the block is seen to be gone. */
+  private blocks = new Map<string, V3>();
   private powered = new Map<string, boolean>();
-  private scanY = 99;
+  private scanAt = 0;
   private lastNote = -9999;
   private streak = 0;
   private aliveUntil = -9999;
@@ -49,19 +51,23 @@ export class Ending {
 
   constructor(private ctl: Controller) {}
 
-  get rhythm(): boolean { return system.currentTick <= this.aliveUntil; }
+  get rhythm(): boolean { return store.rec.clock <= this.aliveUntil; }
 
   reset(): void {
     if (this.act) { try { this.act.return(); } catch { /* cleanup */ } }
     this.act = null;
+    if (this.ctl.creature) this.ctl.creature.wade = false;
     if (store.rec.ending) { store.rec.ending = null; store.touch(); }
   }
 
   /** A note sounded near the seam (a player's hand or a redstone pulse). */
   onNote(at: V3): void {
     const rift = store.rec.rift;
-    if (!rift || distXZ(at, rift) > 24) return;
-    const now = system.currentTick;
+    if (!rift || distXZ(at, rift) > NOTE_REACH) return;
+    // a block a hand has played is one to watch for redstone too
+    const k = `${Math.floor(at.x)},${Math.floor(at.y)},${Math.floor(at.z)}`;
+    if (!this.blocks.has(k) && this.blocks.size < 32) this.blocks.set(k, { x: Math.floor(at.x), y: Math.floor(at.y), z: Math.floor(at.z) });
+    const now = store.rec.clock;
     const gap = now - this.lastNote;
     if (gap < 4) return;                             // one strike, heard twice
     this.streak = gap >= GAP_MIN && gap <= GAP_MAX ? this.streak + 1 : 1;
@@ -71,7 +77,7 @@ export class Ending {
 
   // ---- every tick, whether or not he is loaded ----------------------------------------------
   tick(c: Creature | null): void {
-    const rec = store.rec, now = system.currentTick;
+    const rec = store.rec, now = store.rec.clock;
     const rift = rec.rift;
     if (rec.stage !== "alive" || !rift) return;
     const dim = overworld();
@@ -116,22 +122,20 @@ export class Ending {
       particle(dim, "basiliskra:seam_pulse", { x: rift.x, y: rift.y + 5, z: rift.z }, 40);
       if (!this.rhythm) sound(dim, "basiliskra.knock.gill", rift, 24, 0.35);
     }
-    // note blocks near the seam: found a layer at a time, then watched for a redstone edge
-    if (now % 4 === 0) {
-      if (this.scanY > 8) { if (now % 120 === 0) { this.scanY = -4; this.blocks = []; } }
-      else {
-        const y = Math.floor(rift.y) + 4 + this.scanY;
-        for (let dx = -14; dx <= 14; dx++) for (let dz = -14; dz <= 14; dz++) {
-          if (this.blocks.length >= 24) break;
-          if (idAt(dim, { x: rift.x + dx, y, z: rift.z + dz }) === NOTE) this.blocks.push({ x: Math.floor(rift.x + dx), y, z: Math.floor(rift.z + dz) });
-        }
-        this.scanY++;
-      }
+    // note blocks near the seam: a rolling scan (a hundred and fifty blocks a tick) finds the ones no hand
+    // has touched this session, e.g. a repeater loop built yesterday
+    const SIDE = NOTE_REACH * 2 + 1, LAYERS = 15, y0 = Math.floor(rift.y) + 3;
+    for (let n = 0; n < 150; n++) {
+      const i = this.scanAt++ % (SIDE * SIDE * LAYERS);
+      const x = Math.floor(rift.x) - NOTE_REACH + (i % SIDE), z = Math.floor(rift.z) - NOTE_REACH + Math.floor(i / SIDE) % SIDE, y = y0 + Math.floor(i / (SIDE * SIDE));
+      if (this.blocks.size < 32 && idAt(dim, { x, y, z }) === NOTE) this.blocks.set(`${x},${y},${z}`, { x, y, z });
     }
-    for (const b of this.blocks) {
-      const k = `${b.x},${b.y},${b.z}`;
+    for (const [k, b] of this.blocks) {
+      const blk = blockAt(dim, b);
+      if (!blk) continue;                                       // unloaded: keep it, ask again later
+      if (blk.typeId !== NOTE) { this.blocks.delete(k); this.powered.delete(k); continue; }
       let on = false;
-      try { on = (blockAt(dim, b)?.getRedstonePower() ?? 0) > 0; } catch { on = false; }
+      try { on = (blk.getRedstonePower() ?? 0) > 0; } catch { on = false; }
       if (on && !this.powered.get(k)) this.onNote(b);
       this.powered.set(k, on);
     }
@@ -140,7 +144,7 @@ export class Ending {
   // ---- taking over the animal ------------------------------------------------------------------
   /** Returns true while the ending is driving him (the ordinary encounters are suspended). */
   drive(c: Creature): boolean {
-    const rec = store.rec, now = system.currentTick;
+    const rec = store.rec, now = store.rec.clock;
     if (rec.form !== 3 || !rec.rift) return false;
     if (!this.act) {
       if (!this.rhythm || now < this.coolUntil || distXZ(c.pos, rec.rift) > 130) return false;
@@ -151,10 +155,12 @@ export class Ending {
       store.touch();
       this.act = this.sequence(c, brain);
     }
+    c.wade = true;                       // called to the seam he walks the sea bed, however deep
     let done = true;
-    try { done = this.act.next().done === true; } catch { done = true; }
+    try { done = this.act.next().done === true; } catch (e) { done = true; console.warn(`[basiliskra] crossing: ${e}`); }
     if (done) {
       this.act = null;
+      c.wade = false;
       if (store.rec.stage === "alive") {
         c.set(PROP.visHi, 8);
         c.setPhase("idle");
@@ -185,8 +191,9 @@ export class Ending {
     for (let i = 0; i < 16; i++) {
       const a = i * Math.PI / 8, d0 = { x: Math.cos(a), y: 0, z: Math.sin(a) };
       for (let d = 8; d <= 64 && d < found + 6; d += 2) {
-        const g = groundY(dim, rift.x + d0.x * d, rift.z + d0.z * d, surface + 10, 40);
-        if (typeof g !== "number" || g < surface - 4) continue;
+        // ground that comes to within a few blocks of the surface: somewhere he can stand
+        const g = blockAt(dim, { x: rift.x + d0.x * d, y: surface - 4.5, z: rift.z + d0.z * d });
+        if (!g || !isSolidBlock(g) || isPlantBlock(g.typeId)) continue;
         // nearest bank; between banks about as near, the one on his side
         const cost = d - 5 * dot(d0, toHim);
         if (cost < found) { found = cost; shore = d; u = d0; }
@@ -205,10 +212,10 @@ export class Ending {
     for (;;) { this.holding(); if (charge.next().done) break; yield; }
     const g = brain.groundedAt as { tick: number; rod: V3 } | null;
     // the rod has to stand by the seam: within 48 blocks of it
-    if (!g || distXZ(g.rod, rift) > ROD_NEAR_SEAM || !this.holding()) { this.coolUntil = system.currentTick + 20 * TICKS.second; return; }
+    if (!g || distXZ(g.rod, rift) > ROD_NEAR_SEAM || !this.holding()) { this.coolUntil = store.rec.clock + 20 * TICKS.second; return; }
 
     // 3. the rift opens.  He tests it with the notched tip of his tail.
-    rec.ending = { step: 3, t0: system.currentTick, tries: rec.ending?.tries ?? 0 };
+    rec.ending = { step: 3, t0: store.rec.clock, tries: rec.ending?.tries ?? 0 };
     store.save();
     sound(dim, "basiliskra.rift.open", rift, 96);
     let t = 0;
@@ -244,6 +251,8 @@ export class Ending {
       if (hi < 8) { c.pos = add(c.pos, mul(travel, 0.13)); c.yaw = yaw; c.halt(); }
       yield;
     }
+    // only an animal that is wholly through has left.  Anything else (a wall, a chunk that would not load) is a failed attempt.
+    if (this.visibleUpTo(c, rift, travel) >= 0) { yield* this.backAway(c, travel); return; }
 
     // 6. fully across
     sound(dim, "basiliskra.crossing", rift, 96);
@@ -271,7 +280,9 @@ export class Ending {
     c.halt();
     if (travel) {
       for (let i = 0; i < 220; i++) {
-        c.pos = add(c.pos, mul(travel, -0.12));
+        const to = add(c.pos, mul(travel, -0.12));
+        if (!c.roomAt(to)) break;                       // backed up against something: far enough
+        c.pos = to;
         const hi = this.visibleUpTo(c, rift, travel);
         c.set(PROP.visHi, hi);
         if (hi >= 8 && i > 20) break;
@@ -281,8 +292,8 @@ export class Ending {
     c.set(PROP.visHi, 8);
     sound(c.dim, "basiliskra.rift.close", rift, 96);
     particle(c.dim, "basiliskra:seam_close", rift, 96);
-    this.coolUntil = system.currentTick + 30 * TICKS.second;
-    rec.ending = { step: 0, t0: system.currentTick, tries: (rec.ending?.tries ?? 0) + 1 };
+    this.coolUntil = store.rec.clock + 30 * TICKS.second;
+    rec.ending = { step: 0, t0: store.rec.clock, tries: (rec.ending?.tries ?? 0) + 1 };
     store.save();
     this.aliveUntil = -9999;
     this.streak = 0;

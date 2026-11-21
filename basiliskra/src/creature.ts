@@ -13,7 +13,7 @@ import { particle, sound, witnesses } from "./fx";
 import { Skeleton, poseOf, toWorld, type Form, type PoseAdd } from "./rig";
 import { store } from "./store";
 import { add, clamp, dist, distXZ, forwardOf, leftOf, len, mul, norm, sub, turnTowards, wrapDeg, yawTo, type V3 } from "./vec";
-import { NONE, UNLOADED, blockAt, footprintY, groundY, isLoaded, isSolidBlock, isWaterId, trunkBlocked, waterColumn } from "./world";
+import { NONE, UNLOADED, blockAt, clearLine, footprintY, groundY, isLoaded, isSolidBlock, isWaterId, trunkBlocked, waterColumn, waterOver } from "./world";
 
 interface PartDef { bone: string; at: [number, number, number]; size: number; tag: "head" | "tail" | "limb" | "body" }
 const SIZES = [1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5];
@@ -78,11 +78,17 @@ export class Creature {
   /** Form I: wanted depth below the surface for the entity origin (belly). */
   swimDepth = 7;
   blocked = 0;
-  blockedWhy: "none" | "edge" | "climb" | "shallow" | "unloaded" | "wall" = "none";
+  blockedWhy: "none" | "edge" | "climb" | "shallow" | "unloaded" | "wall" | "deep" = "none";
   private steerOff = 0;
   private steerSide = 0;
   private steerAt = -99;
   private goalWalled = false;
+  /** Land forms keep out of water deeper than they can stand in, unless something (the last crossing) sends them in. */
+  wade = false;
+  /** Swimming: in water over his depth, held at that depth instead of walking the bed. */
+  afloat = false;
+  private surfY: number | null | undefined = undefined;
+  private partIds: (string | undefined)[] = [];
   lookYaw = 0;
   lookPitch = 0;
   bend = 0;
@@ -210,7 +216,24 @@ export class Creature {
   // ---- walls -----------------------------------------------------------------------------------
   private walled(at: V3, full: boolean): boolean {
     const b = BODY[this.form as 2 | 3];
-    return trunkBlocked(this.dim, at, this.pos.y, MOVE[this.form].radius, b.built, b.cliff, full);
+    // afloat, a bank is judged from the water line, not from the depth he hangs at: he can haul out over a low one
+    const feet = this.afloat && this.surfY != null ? Math.max(this.pos.y, this.surfY - 1.2) : this.pos.y;
+    return trunkBlocked(this.dim, at, feet, MOVE[this.form].radius, b.built, b.cliff, full);
+  }
+
+  /** Is there room for his middle here (used by the few moves that carry him without stepping)? */
+  roomAt(at: V3): boolean {
+    for (const dy of [1, 3]) {
+      const b = blockAt(this.dim, { x: at.x, y: at.y + dy, z: at.z });
+      if (b && isSolidBlock(b)) return false;
+    }
+    return true;
+  }
+
+  /** Water deeper than this form wades: Form II drags through shallows, Form III stands belly-deep. */
+  private tooDeep(at: V3, floorY: number): boolean {
+    if (this.wade || this.form === 1) return false;
+    return waterOver(this.dim, at.x, at.z, floorY, this.form === 3 ? 5 : 2);
   }
 
   private clearAlong(yaw: number, reach: number): boolean {
@@ -219,8 +242,10 @@ export class Creature {
       if (s > reach) break;
       const at = add(this.pos, mul(f, s));
       if (this.walled(at, false)) return false;
-      // a drop with no floor in reach is a wall too: he walks the brink, not off it
-      if (groundY(this.dim, at.x, at.z, this.pos.y + 6, DROP + 6) === NONE) return false;
+      // a drop with no floor in reach is a wall too: he walks the brink, not off it; and so is water over his depth
+      const floor = groundY(this.dim, at.x, at.z, this.pos.y + 6, DROP + 6);
+      if (floor === NONE) return false;
+      if (typeof floor === "number" && !this.afloat && this.tooDeep(at, floor)) return false;
     }
     return true;
   }
@@ -247,34 +272,52 @@ export class Creature {
     return want + this.steerOff;
   }
 
-  private stepLand(next: V3): V3 | null {
+  private stepLand(next: V3, moving = true): V3 | null {
     const r = MOVE[this.form].radius;
     // never into a wall, a cliff face or a building (unless he already stands in one: then any way out)
     const front = mul(this.forward, BODY[this.form as 2 | 3].front);
-    if ((this.walled(add(next, front), true) || this.walled(next, false)) && !this.walled(this.pos, false)) { this.blockedWhy = "wall"; return null; }
-    const g = footprintY(this.dim, next, r, this.pos.y + (this.form === 3 ? 6 : 3), DROP + (this.form === 3 ? 6 : 3));
+    if (moving && (this.walled(add(next, front), true) || this.walled(next, false)) && !this.walled(this.pos, false)) { this.blockedWhy = "wall"; return null; }
+    // water: found from where he is, a few times a second.  Deeper than he stands in, he swims at his depth
+    // rather than sink to the bed, and a bank he could not step up he can haul himself out over.
+    const lim = this.form === 3 ? 5 : 2;
+    if (this.tick % 5 === 0 || this.surfY === undefined) {
+      const wc = waterColumn(this.dim, next.x, next.z, this.pos.y + lim, 8, 2);
+      this.surfY = wc === NONE || wc === UNLOADED ? null : wc.surface;
+    }
+    const floatY = this.surfY !== null && this.surfY !== undefined ? this.surfY - lim : null;
+    const top = this.form === 3 ? 6 : 3;
+    const yTop = this.pos.y + top + (this.afloat ? lim + 2 : 0);
+    const mid = groundY(this.dim, next.x, next.z, yTop, DROP + top);                     // the ground under his middle
+    if (moving && !this.wade && !this.afloat && typeof mid === "number" && this.tooDeep(next, mid)) { this.blockedWhy = "deep"; return null; }
+    let g = footprintY(this.dim, next, r, yTop, DROP + top, floatY);
     if (g === UNLOADED) { this.blockedWhy = "unloaded"; return null; }
     if (g === NONE) { this.blockedWhy = "edge"; return null; }
+    // leaving the water, the bank under his middle is where he stands, whatever the water round it says
+    if (floatY !== null && (g as number) <= floatY + 0.01 && typeof mid === "number" && mid > floatY) g = mid;
     const rise = (g as number) - this.pos.y;
-    if (rise > (this.form === 3 ? 3.2 : 1.6)) { this.blockedWhy = "climb"; return null; }
+    const swims = floatY !== null && (g as number) <= floatY + 0.01 && isWaterId(blockAt(this.dim, { x: next.x, y: floatY, z: next.z })?.typeId);
+    if (!swims && rise > (this.afloat ? lim + 1.6 : this.form === 3 ? 3.2 : 1.6)) { this.blockedWhy = "climb"; return null; }
+    this.afloat = swims || (this.afloat && rise > 0.5);          // still hauling himself up the bank
     // never more than 0.45 up or 0.9 down in a tick: no jolts
     return { x: next.x, y: this.pos.y + clamp(rise, -0.9, 0.45), z: next.z };
   }
 
-  private stepWater(next: V3): V3 | null {
-    const col = waterColumn(this.dim, next.x, next.z, this.pos.y + 2, 10);
+  private stepWater(next: V3, moving = true): V3 | null {
+    const col = waterColumn(this.dim, next.x, next.z, this.pos.y + 2, 10, 28);
     if (col === UNLOADED) { this.blockedWhy = "unloaded"; return null; }
     if (col === NONE) { this.blockedWhy = "edge"; return null; }
     const depth = col.surface - col.floor;
     if (depth < 3.5) { this.blockedWhy = "shallow"; return null; }
-    // the head must have water too
-    const head = add(next, mul(this.forward, 7));
-    const hc = waterColumn(this.dim, head.x, head.z, this.pos.y + 2, 10);
-    if (hc === NONE) { this.blockedWhy = "edge"; return null; }
-    // the shoulders: a pier post, a bridge footing, a wall in the water stops him where the head found room
-    const l = leftOf(this.yaw), sh = add(next, mul(this.forward, 3));
-    for (const side of [-2.6, 2.6]) for (const dy of [0.8, 2.8]) {
-      if (isSolidBlock(blockAt(this.dim, { x: sh.x + l.x * side, y: next.y + dy, z: sh.z + l.z * side }))) { this.blockedWhy = "wall"; return null; }
+    if (moving) {
+      // the head must have water too
+      const head = add(next, mul(this.forward, 7));
+      const hb = blockAt(this.dim, { x: head.x, y: this.pos.y + 1.5, z: head.z });
+      if (hb && !isWaterId(hb.typeId)) { this.blockedWhy = "edge"; return null; }
+      // the shoulders: a pier post, a bridge footing, a wall in the water stops him where the head found room
+      const l = leftOf(this.yaw), sh = add(next, mul(this.forward, 3));
+      for (const side of [-2.6, 2.6]) for (const dy of [0.8, 2.8]) {
+        if (isSolidBlock(blockAt(this.dim, { x: sh.x + l.x * side, y: next.y + dy, z: sh.z + l.z * side }))) { this.blockedWhy = "wall"; return null; }
+      }
     }
     const want = clamp(col.surface - this.swimDepth, col.floor + 0.2, Math.max(col.floor + 0.2, col.surface - 2.6));
     return { x: next.x, y: this.pos.y + clamp(want - this.pos.y, -0.18, 0.18), z: next.z };
@@ -284,6 +327,7 @@ export class Creature {
    * Form I out of water (the pond was drained, ice closed over, something carried him): look for the
    * nearest deep column in loaded chunks and slide back into it.  He is never left lying in rock.
    */
+  private unsettled = true;
   private dry = 0;
   private keepWet(): void {
     const here = blockAt(this.dim, { x: this.pos.x, y: this.pos.y + 1, z: this.pos.z });
@@ -323,9 +367,13 @@ export class Creature {
       if (settled) { moved = distXZ(this.pos, settled); this.pos = settled; if (!this.goalWalled) this.blocked = 0; }
       else { this.blocked++; this.speed *= 0.5; }
     } else {
-      // standing: still settle onto the ground / into the water
-      const settled = this.form === 1 ? this.stepWater(this.pos) : this.stepLand(this.pos);
-      if (settled) this.pos = settled;
+      // standing: still settle onto the ground (a few times a second is plenty) / into the water
+      if (this.form === 1) { const settled = this.stepWater(this.pos, false); if (settled) this.pos = settled; }
+      else if (this.tick % 5 === 0 || this.unsettled) {
+        const settled = this.stepLand(this.pos, false);
+        this.unsettled = !!settled && Math.abs(settled.y - this.pos.y) > 0.01;
+        if (settled) this.pos = settled;
+      }
     }
     if (this.form === 1) this.keepWet();
     return moved;
@@ -334,7 +382,12 @@ export class Creature {
   /** Hand the result to the engine: velocity for smooth client motion, a teleport only to recover. */
   private apply(): void {
     const e = this.entity;
-    const loc = e.location;
+    // carried through a portal (the entity is dimension-bound, but nothing here relies on that): bring him back
+    if (this.tick % 10 === 0) {
+      try { if (e.dimension.id !== this.dim.id) { e.teleport(this.pos, { dimension: this.dim, rotation: { x: 0, y: this.yaw } }); return; } } catch { /* unloading */ }
+    }
+    let loc: V3;
+    try { loc = e.location; } catch { return; }       // removed or unloading this very tick
     const want = sub(this.pos, loc);
     try {
       if (len(want) > 8) e.teleport(this.pos, { rotation: { x: 0, y: this.yaw } });
@@ -360,12 +413,14 @@ export class Creature {
       let ok = false;
       try { ok = !!part && part.isValid; } catch { ok = false; }
       if (!ok) {
+        if (this.partIds[i]) { partOwner.delete(this.partIds[i]!); this.partIds[i] = undefined; }
         if (!isLoaded(this.dim, at)) continue;
         try {
           part = this.dim.spawnEntity(HITBOX, at);
           part.triggerEvent(`basiliskra:size_${d.size}`);
           partOwner.set(part.id, { creature: this, tag: d.tag });
           this.parts[i] = part;
+          this.partIds[i] = part.id;
           this.partPos[i] = at;
         } catch { this.parts[i] = undefined; }
         continue;
@@ -382,8 +437,9 @@ export class Creature {
 
   private dropPart(i: number): void {
     const p = this.parts[i];
+    if (this.partIds[i]) { partOwner.delete(this.partIds[i]!); this.partIds[i] = undefined; }
     if (!p) return;
-    try { partOwner.delete(p.id); if (p.isValid) p.remove(); } catch { /* gone */ }
+    try { if (p.isValid) p.remove(); } catch { /* gone */ }
     this.parts[i] = undefined;
   }
 
@@ -414,6 +470,7 @@ export class Creature {
       for (const v of vols) {
         const d = dist(c, v.at);
         if (d < v.r + 0.35) {
+          if (!clearLine(this.dim, v.at, c)) continue;
           const away = norm({ x: c.x - v.at.x, y: 0, z: c.z - v.at.z });
           try { p.applyKnockback({ x: (away.x || 0.01) * 0.55, z: (away.z || 0.01) * 0.55 }, 0.08); } catch { /* riding */ }
           this.pushAt.set(p.id, this.tick);

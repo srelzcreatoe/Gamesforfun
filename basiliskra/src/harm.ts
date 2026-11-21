@@ -102,9 +102,9 @@ export const THRESHOLD = { animals: 8, habitat: 6, total: 18 };
 
 function check(r: Region, key: string, at: V3): Trigger | null {
   const p = CONFIG.pacing;
-  if (r.fired) return null;
+  // over the line: say so every time.  Whether anything comes of it is the controller's decision, so a
+  // call that could not be answered (no deep water near, or one already owed) is never used up here.
   if (r.a * p < THRESHOLD.animals || r.h * p < THRESHOLD.habitat || (r.a + r.h) * p < THRESHOLD.total) return null;
-  r.fired = true;
   let guilty: string | null = null, top = 0;
   for (const [id, s] of Object.entries(r.by)) if (s > top) { top = s; guilty = id; }
   let site = at;

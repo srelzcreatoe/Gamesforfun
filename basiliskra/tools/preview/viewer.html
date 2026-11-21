@@ -12,6 +12,10 @@ import * as THREE from 'three';
 import { buildGeometry, loadTexture, skin, makeEnv, resetPose, addPose } from './lib/bedrock.js';
 import { Animator } from './lib/animator.js';
 import * as Stage from './lib/stage.js';
+import { makeWorldEnv } from './lib/world.js';
+import { ScenePlayer } from './lib/scene.js';
+import { TERRAINS } from './scenes/terrain.mjs';
+import { SHOTS } from './scenes/shots.mjs';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: false });
 renderer.setPixelRatio(1);
@@ -94,6 +98,49 @@ const BK = {
     renderer.render(BK.scene, c);
     return renderer.domElement.toDataURL('image/png');
   },
+};
+makeWorldEnv(BK.env);
+
+// ---- encounter previews: a recording of the script, replayed with the pack's own client files ----
+const overlay = document.createElement('canvas');
+BK.openScene = async (name, particleFiles, files) => {
+  const shot = SHOTS[name];
+  if (!shot) throw new Error('no shot list for ' + name);
+  const replay = await json(`/build/replays/${shot.replay ?? name}.json`);
+  const defs = {};
+  for (const f of particleFiles) { const d = (await json(f)).particle_effect; defs[d.description.identifier] = d; }
+  const sprite = await loadTexture('/packs/RP/textures/particle/basiliskra_particles.png');
+  const player = new ScenePlayer(BK, replay, TERRAINS[replay.terrain], shot);
+  await player.init({ form: (k) => ({ geo: files.geo.replace('%', k), tex: files.tex.replace('%', k), glow: files.glow.replace('%', k) }), client: files.client }, defs, sprite);
+  BK.player = player;
+  return { duration: player.duration, title: shot.title, missing: [...player.A.missing] };
+};
+/** Advance by dt and draw one frame; returns a JPEG data URL and where the camera was. */
+BK.sceneFrame = (dt, w, h, draw = true, format = 'image/jpeg') => {
+  const P = BK.player, shot = P.shot;
+  P.step(dt);
+  if (!draw) return null;
+  if (shot.fog) { /* applied after the sky is chosen, inside render */ }
+  const cam = P.render(w, h);
+  overlay.width = w; overlay.height = h;
+  const g = overlay.getContext('2d');
+  g.drawImage(renderer.domElement, 0, 0, w, h);
+  const s = h / 720;
+  g.textBaseline = 'alphabetic';
+  const fade = Math.min(1, Math.max(0, 1 - (P.time - 4.2) / 0.8)) * Math.min(1, P.time / 0.5);
+  if (fade > 0 && shot.title) {
+    g.globalAlpha = fade;
+    g.font = `600 ${Math.round(34 * s)}px Georgia, 'DejaVu Serif', serif`;
+    g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillText(shot.title, 42 * s + 2, 70 * s + 2);
+    g.fillStyle = '#f2ece4'; g.fillText(shot.title, 42 * s, 70 * s);
+    if (shot.sub) { g.font = `${Math.round(17 * s)}px 'DejaVu Sans', sans-serif`; g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillText(shot.sub, 43 * s + 1, 98 * s + 1); g.fillStyle = '#e0d8cf'; g.fillText(shot.sub, 43 * s, 98 * s); }
+    g.globalAlpha = 1;
+  }
+  g.font = `${Math.round(12.5 * s)}px 'DejaVu Sans', sans-serif`;
+  const note = 'Offline reference render of the shipped models, animations and particles, driven by the add-on script in a simulated world. Not in-game capture.';
+  g.fillStyle = 'rgba(0,0,0,0.45)'; g.fillRect(0, h - 24 * s, w, 24 * s);
+  g.fillStyle = 'rgba(255,255,255,0.78)'; g.fillText(note, 12 * s, h - 8 * s);
+  return { url: overlay.toDataURL(format, 0.93), cam, time: P.time };
 };
 window.BK = BK;
 window.ready = true;

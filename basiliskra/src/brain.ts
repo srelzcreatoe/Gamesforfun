@@ -62,7 +62,7 @@ export abstract class Brain {
 
   constructor(readonly c: Creature) {}
   get rec(): Rec { return store.rec; }
-  get now(): number { return system.currentTick; }
+  get now(): number { return store.rec.clock; }
 
   ready(key: string): boolean { return (this.cooldown.get(key) ?? -1e9) <= this.now; }
   rest(key: string, ticks: number): void { this.cooldown.set(key, this.now + pace(ticks)); }

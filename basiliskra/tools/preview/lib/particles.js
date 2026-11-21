@@ -39,7 +39,7 @@ export class Particles {
     this.group.add(this.layers.blend, this.layers.add);
   }
 
-  _emit(def, origin, vars) {
+  _emit(def, origin, vars, em = null) {
     const c = def.components;
     const V = { ...vars, particle_random_1: Math.random(), particle_random_2: Math.random(), particle_random_3: Math.random(), particle_random_4: Math.random(), particle_age: 0, particle_lifetime: 1 };
     const pos = origin.clone();
@@ -57,6 +57,7 @@ export class Particles {
     } else if (c['minecraft:emitter_shape_box']) {
       const s = c['minecraft:emitter_shape_box'], h = s.half_dimensions;
       const off = new THREE.Vector3((Math.random() * 2 - 1) * num(h[0], V), (Math.random() * 2 - 1) * num(h[1], V), (Math.random() * 2 - 1) * num(h[2], V));
+      if (s.offset) pos.add(new THREE.Vector3(num(s.offset[0], V), num(s.offset[1], V), num(s.offset[2], V)));
       pos.add(off); dir = dirOf(s.direction ?? 'outwards', off);
     } else if (c['minecraft:emitter_shape_disc']) {
       const s = c['minecraft:emitter_shape_disc'];
@@ -75,8 +76,9 @@ export class Particles {
     const u = bb.uv, tw = u.texture_width ?? 1, th = u.texture_height ?? 1;
     V.particle_lifetime = life;
     if (this.live.length >= MAX) return;
+    const local = em && em.object && c['minecraft:emitter_local_space'] ? em : null;
     this.live.push({
-      def, V, p: pos, v: dir.clone().multiplyScalar(speed), dir, age: 0, life,
+      def, V, p: pos, rel: local ? pos.clone().sub(origin) : null, em: local, v: dir.clone().multiplyScalar(speed), dir, age: 0, life,
       acc: md.linear_acceleration || [0, 0, 0], drag: md.linear_drag_coefficient || 0,
       size: bb.size, facing: bb.facing_camera_mode,
       uv: [u.uv[0] / tw, u.uv[1] / th, (u.uv[0] + u.uv_size[0]) / tw, (u.uv[1] + u.uv_size[1]) / th],
@@ -104,7 +106,7 @@ export class Particles {
     if (!def) throw new Error('no particle definition for ' + id);
     const c = def.components;
     const em = { def, V: {}, origin: new THREE.Vector3(), object, t: 0, carry: 0, once: c['minecraft:emitter_lifetime_once']?.active_time ?? null, dead: false };
-    if (c['minecraft:emitter_rate_instant']) { object.getWorldPosition(em.origin); const n = num(c['minecraft:emitter_rate_instant'].num_particles, {}); for (let i = 0; i < n; i++) this._emit(def, em.origin, {}); em.dead = true; }
+    if (c['minecraft:emitter_rate_instant']) { object.getWorldPosition(em.origin); const n = num(c['minecraft:emitter_rate_instant'].num_particles, {}); for (let i = 0; i < n; i++) this._emit(def, em.origin, {}, em); em.dead = true; }
     else this.emitters.push(em);
     return em;
   }
@@ -118,7 +120,7 @@ export class Particles {
       const st = em.def.components['minecraft:emitter_rate_steady'];
       if (!st) continue;
       em.carry += num(st.spawn_rate, em.V) * dt;
-      while (em.carry >= 1) { em.carry -= 1; this._emit(em.def, em.origin, em.V); }
+      while (em.carry >= 1) { em.carry -= 1; this._emit(em.def, em.origin, em.V, em); }
     }
     this.emitters = this.emitters.filter((e) => !e.dead);
     const cr = new THREE.Vector3(), cu = new THREE.Vector3(), cf = new THREE.Vector3();
@@ -129,7 +131,7 @@ export class Particles {
       p.age += dt;
       if (p.age >= p.life) continue;
       p.v.x += (p.acc[0] - p.drag * p.v.x) * dt; p.v.y += (p.acc[1] - p.drag * p.v.y) * dt; p.v.z += (p.acc[2] - p.drag * p.v.z) * dt;
-      p.p.addScaledVector(p.v, dt);
+      if (p.em) { p.rel.addScaledVector(p.v, dt); p.p.copy(p.em.origin).add(p.rel); } else p.p.addScaledVector(p.v, dt);
       out.push(p);
       p.V.particle_age = p.age;
       const sx = num(p.size[0], p.V), sy = num(p.size[1], p.V);

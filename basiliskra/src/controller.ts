@@ -17,10 +17,13 @@ import { RIGS } from "./generated/rig";
 import type { Trigger } from "./harm";
 import { newToken, store } from "./store";
 import { add, dist, distXZ, dot, forwardOf, hash, mul, norm, sub, wrapDeg, yawTo, type V3 } from "./vec";
-import { NONE, UNLOADED, deepHere, isLoaded, overworld, waterColumn } from "./world";
+import { NONE, UNLOADED, blockAt, deepHere, isLoaded, isWaterId, overworld, waterColumn } from "./world";
 
 const TOKEN = "bk:token";
 const SPAWN_STEP = 3;
+
+/** Places tried round a site in one full search for water (six a call, a call every five seconds). */
+const WATER_CANDIDATES = 60;
 
 export class Controller {
   creature: Creature | null = null;
@@ -39,7 +42,7 @@ export class Controller {
     this.sweep();
   }
 
-  get now(): number { return system.currentTick; }
+  get now(): number { return store.rec.clock; }
 
   // ---- identity ------------------------------------------------------------------------------
   /** Decide what an entity of our type is: the one Basiliskra, or something to remove at once. */
@@ -87,6 +90,7 @@ export class Controller {
     this.creature = c;
     this.brain = this.makeBrain(c);
     this.missing = 0;
+    this.runner = null;            // a sequence that was running belonged to the handle we no longer have
     // an encounter that was running when the world closed is over; saved sequences resume from the record
     this.ending.reset();
   }
@@ -131,7 +135,10 @@ export class Controller {
   /** A region crossed the threshold.  Only the first request ever becomes a reservation. */
   requestArrival(t: Trigger): boolean {
     const rec = store.rec;
-    if (rec.stage !== "dormant") return false;
+    // one call at a time; but a call that has already searched its own surroundings in vain gives way to a new one
+    const stale = rec.stage === "pending" && rec.pending !== null && (rec.pending.passes ?? 0) >= 1 && rec.pending.region !== t.region;
+    if (rec.stage !== "dormant" && !stale) return false;
+    this.waterSearch = null; this.waterWait = 0;
     rec.stage = "pending";
     rec.pending = { site: { x: Math.floor(t.site.x), y: Math.floor(t.site.y), z: Math.floor(t.site.z) }, since: this.now, region: t.region };
     rec.origin = rec.pending.site;
@@ -150,6 +157,7 @@ export class Controller {
     try { const l = e.location; rec.last = { x: l.x, y: l.y, z: l.z, t: this.now }; } catch { /* keep the older fix */ }
     const parts = c;
     this.creature = null;
+    this.runner = null;
     if (this.brain) { const b = this.brain; this.brain = null; system.run(() => { try { b.finish(); } catch { /* entity gone */ } }); }
     system.run(() => { parts.dropParts(); store.touch(); });
   }
@@ -162,8 +170,31 @@ export class Controller {
     // he is not killed, he is driven back through the seam.  The reservation stays; he returns.
     rec.entityId = null;
     rec.down = this.now;
-    rec.health = 300;
+    rec.health = 600;
     store.save();
+  }
+
+  /**
+   * Worn down to his last breath he is not killed: a seam takes him where he stands, and he comes
+   * back through the first one a day later, whole, in the form he had.  The reservation never lapses.
+   */
+  driveOff(): void {
+    const c = this.creature, rec = store.rec;
+    if (!c || !c.valid || rec.stage !== "alive" || rec.evolve || rec.ending?.step) return;
+    const at = { x: c.pos.x, y: c.pos.y + 3, z: c.pos.z };
+    c.say(c.form === 3 ? "basiliskra.iii.roar" : "basiliskra.hurt", c.anchor("nose"), 96);
+    sound(c.dim, "basiliskra.rift.open", at, 72, 1, 1.3);
+    sound(c.dim, "basiliskra.rift.close", at, 72);
+    for (const p of [at, c.anchor("nose"), c.anchor("tail_notch")]) particle(c.dim, "basiliskra:seam_close", p, 72);
+    this.brain?.finish();
+    rec.last = { x: c.pos.x, y: c.pos.y, z: c.pos.z, t: this.now };
+    rec.entityId = null;
+    rec.down = this.now;
+    rec.health = 600;
+    store.save();                                   // the record first: from here he is owed, not present
+    this.creature = null; this.brain = null; this.runner = null;
+    c.dropParts();
+    try { c.entity.setProperty(PROP.bound, false); c.entity.remove(); } catch { /* already unloading */ }
   }
 
   onHurt(by: Player | undefined, amount: number): void {
@@ -175,13 +206,14 @@ export class Controller {
 
   // ---- tick ----------------------------------------------------------------------------------------
   tick(): void {
-    const now = this.now;
-    beginTick(now);
     const rec = store.rec;
-    if (this.creature && !this.creature.valid) { this.creature.dropParts(); this.creature = null; this.brain = null; }
+    const now = ++rec.clock;
+    if (now % 600 === 0) store.touch();          // the clock itself is worth saving twice a minute
+    beginTick(now);
+    if (this.creature && !this.creature.valid) { this.creature.dropParts(); this.creature = null; this.brain = null; this.runner = null; }
     if (now % 20 === 0) this.sweep();
     switch (rec.stage) {
-      case "pending": if (now % 100 === 0) this.tryReserve(); break;
+      case "pending": this.tryReserve(); break;
       case "arriving": this.arrive(); break;
       case "alive": this.live(); break;
       default: break;
@@ -190,49 +222,68 @@ export class Controller {
   }
 
   // ---- pending -> reservation ------------------------------------------------------------------------
-  /** A stretch of deep, loaded water near the damaged coast with room for a thirty-block body. */
   /**
    * Deep water near the site with a clear lane to swim out of the seam and to turn and ram it:
-   * LANE blocks of open water ahead, three abreast.  A few candidates are read per call (the
-   * search continues on the next call), nearest first, and never through an unloaded chunk.
+   * every block of a box LANE long, seven wide and his own height deep, from behind where he is
+   * created to beyond where he turns.  Nearest places first; the four compass headings, the one
+   * facing the shore he was called to before the others.  The reading is spread over ticks (a few
+   * hundred blocks at a time) and never goes through an unloaded chunk.
    */
-  private waterTry = 0;
-  private findWater(site: V3): { at: V3; yaw: number } | null {
+  private waterSearch: Generator<void, { at: V3; yaw: number } | null, void> | null = null;
+  private waterWait = 0;
+  private *searchWater(site: V3): Generator<void, { at: V3; yaw: number } | null, void> {
     const dim = overworld();
-    const LANE = 44, DEEP = 6;
-    for (let n = 0; n < 6; n++) {
-      const i = this.waterTry++ % 60;
-      const a = hash(this.now, i, 1) * Math.PI * 2;
-      const r = 6 + (i / 60) * 70;
+    const LANE = 44, BACK = 9, DEEP = 6, seed = this.now;
+    let reads = 0;
+    for (let i = 0; i < WATER_CANDIDATES; i++) {
+      const a = hash(seed, i, 1) * Math.PI * 2;
+      const r = 6 + (i / WATER_CANDIDATES) * 90;
       const x = Math.floor(site.x + Math.cos(a) * r), z = Math.floor(site.z + Math.sin(a) * r);
-      const col = waterColumn(dim, x, z, site.y, 16);
+      const col = waterColumn(dim, x, z, site.y, 16, 12);
+      yield;
       if (col === UNLOADED || col === NONE || col.surface - col.floor < DEEP) continue;
       const toward = yawTo({ x, y: 0, z }, site);
-      // he comes through facing the shore he was called to if there is room; if not, along it; if not, out to sea
-      const yaws = [0, 45, 90, 135, 180, 225, 270, 315].sort((p, q) => Math.cos((toward - q) * Math.PI / 180) - Math.cos((toward - p) * Math.PI / 180));
+      const yaws = [0, 90, 180, 270].sort((p, q) => Math.cos((toward - q) * Math.PI / 180) - Math.cos((toward - p) * Math.PI / 180));
       for (const yaw of yaws) {
         const f = forwardOf(yaw), l = { x: f.z, y: 0, z: -f.x };
         let ok = true;
-        for (const side of [0, -3, 3]) {
-          for (let s = side ? 2 : 4; s <= LANE && ok; s += side ? 3 : 4) {
-            if (deepHere(dim, x + f.x * s + l.x * side, z + f.z * s + l.z * side, col.surface, DEEP) !== true) ok = false;
+        lane: for (let s = -BACK; s <= LANE; s++) {
+          for (let side = -3; side <= 3; side++) for (const d of [2, 4, 6]) {
+            const b = blockAt(dim, { x: x + f.x * s + l.x * side, y: col.surface - d, z: z + f.z * s + l.z * side });
+            if (!b || !isWaterId(b.typeId)) { ok = false; break lane; }
           }
-          if (!ok) break;
+          if ((reads += 21) >= 252) { reads = 0; yield; }
         }
         if (ok) return { at: { x: x + 0.5, y: col.surface - 5.5, z: z + 0.5 }, yaw };
       }
     }
     return null;
   }
+
   private tryReserve(): void {
     const rec = store.rec;
     if (rec.stage !== "pending" || !rec.pending) return;
+    if (this.now < this.waterWait) return;
     const site = rec.pending.site;
     const dim = overworld();
     // the coast has to be loaded: if nobody is near, the event simply waits
-    if (!players().some((p) => { try { return p.dimension.id === dim.id && distXZ(p.location, site) < 128; } catch { return false; } })) return;
-    const w = this.findWater(site);
-    if (!w) return;
+    if (!this.waterSearch || this.now % 20 === 0) {
+      if (!players().some((p) => { try { return p.dimension.id === dim.id && distXZ(p.location, site) < 128; } catch { return false; } })) { this.waterSearch = null; this.waterWait = this.now + 100; return; }
+    }
+    if (!this.waterSearch) this.waterSearch = this.searchWater(site);
+    const step = this.waterSearch.next();
+    if (!step.done) return;
+    this.waterSearch = null;
+    const w = step.value;
+    if (!w) {
+      // a whole round of candidates with the site loaded and nothing deep and clear enough: remember it
+      rec.pending.passes = (rec.pending.passes ?? 0) + 1;
+      this.waterWait = this.now + 200;
+      // after a dozen rounds the call lapses.  The harm is still on record and can call again.
+      if (rec.pending.passes >= 12) { rec.stage = "dormant"; rec.pending = null; rec.origin = null; rec.guilty = null; rec.guiltyName = null; }
+      store.save();
+      return;
+    }
     // RESERVE FIRST.  From this line on exactly one Basiliskra is owed to this world.
     rec.stage = "arriving";
     rec.token = newToken();
@@ -261,7 +312,7 @@ export class Controller {
       if (!this.creature) {
         if (rec.entityId !== null) return;               // he exists but is not loaded: wait for him
         if (!isLoaded(dim, a.water)) return;
-        this.sweep();                                    // adopts a matching token if one is loaded
+        if (now % 10 === 0) this.sweep();                // adopts a matching token if one is loaded
         if (this.creature) { this.runner = null; }
         else if (++this.missing > 200) { this.missing = 0; this.runner = null; this.setStep(SPAWN_STEP); }
         else if (a.step > SPAWN_STEP) return;
@@ -291,16 +342,15 @@ export class Controller {
           } catch { /* no boat: the sound alone */ }
           sound(dim, "basiliskra.boat_knock", at, 32);
         }
-        if (t > KNOCK_GAP_TICKS * 3 + 30) this.setStep(2);
+        if (t > KNOCK_GAP_TICKS * 3 + 30) {
+          rec.rift = { ...a.water, yaw: a.yaw };       // saved with the step, so a restart cannot lose where the seam is
+          this.setStep(2);
+        }
         break;
       }
       case 2: {
         // at dusk a vertical red seam opens below the surface
-        if (t === 1) {
-          rec.rift = { ...a.water, yaw: a.yaw };
-          store.save();
-          sound(dim, "basiliskra.rift.open", a.water, 72);
-        }
+        if (t === 1) sound(dim, "basiliskra.rift.open", a.water, 72);
         if (t % 4 === 0) particle(dim, "basiliskra:seam", a.water, 72);
         if (t % 60 === 30) sound(dim, "basiliskra.rift.hum", a.water, 48);
         if (t > 90 && near) this.setStep(SPAWN_STEP);
@@ -434,6 +484,7 @@ export class Controller {
     if (!c) { this.absent(); return; }
     if (rec.evolve) this.evolve(c);
     else if (!this.ending.drive(c)) this.brain?.tick();
+    if (this.creature !== c) return;                 // retired, driven off or unloaded by what just ran
     c.update();
     this.ending.tick(c);
     if (now % 20 === 0) {

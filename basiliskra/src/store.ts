@@ -22,6 +22,11 @@ export interface Site { x: number; y: number; z: number; s: string; t: number }
 
 export interface Rec {
   v: number;
+  /**
+   * The pack's own clock: ticks this world has run with the pack, saved with the record.  Every
+   * saved time is measured on it; the engine's tick counter is only good for one session.
+   */
+  clock: number;
   stage: Stage;
   /** Identity: a random token written on the entity as well, and the engine's persistent entity id. */
   token: string;
@@ -39,7 +44,8 @@ export interface Rec {
   last: (V3 & { t: number }) | null;
   /** Set by a death we observed; cleared when he comes back through the seam. */
   down: number | null;
-  pending: { site: V3; since: number; region: string } | null;
+  /** A call waiting for water it can be answered in.  `passes` counts complete, fruitless searches round the site. */
+  pending: { site: V3; since: number; region: string; passes?: number } | null;
   arrival: { step: number; t0: number; water: V3; yaw: number } | null;
   evolve: { to: 2 | 3; step: number; t0: number; at: V3 | null } | null;
   ending: { step: number; t0: number; tries: number } | null;
@@ -55,7 +61,7 @@ export interface Rec {
 
 export function freshRecord(): Rec {
   return {
-    v: SCHEMA, stage: "dormant", token: "", entityId: null, form: 1, health: 600, born: 0, rift: null, origin: null,
+    v: SCHEMA, clock: 0, stage: "dormant", token: "", entityId: null, form: 1, health: 600, born: 0, rift: null, origin: null,
     guilty: null, guiltyName: null, beach: null, last: null, down: null, pending: null, arrival: null, evolve: null,
     ending: null,
     mut: { surfacings: 0, episodes: 0, overland: 0, formSince: 0, lastEncounter: 0, beams: 0 },
@@ -77,6 +83,10 @@ export function migrate(raw: any): Rec {
   if (!stages.includes(rec.stage)) rec.stage = rec.entityId ? "alive" : "dormant";
   // v1 kept the retired flag separately
   if (raw.v === 1 && raw.quiet === true) rec.stage = "departed";
+  // records from before the pack kept its own clock: start it at the latest time they mention
+  if (typeof raw.clock !== "number") {
+    rec.clock = Math.max(0, rec.born || 0, rec.mut.formSince || 0, rec.down ?? 0, rec.arrival?.t0 ?? 0, rec.evolve?.t0 ?? 0, rec.last?.t ?? 0, rec.pending?.since ?? 0);
+  }
   rec.v = SCHEMA;
   return rec;
 }
@@ -138,6 +148,8 @@ export class Store {
 }
 
 export const store = new Store();
+/** Now, on the pack's saved clock. */
+export const clockNow = (): number => store.rec.clock;
 
 export function newToken(): string {
   let s = "";

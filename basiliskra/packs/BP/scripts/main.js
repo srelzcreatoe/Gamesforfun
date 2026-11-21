@@ -2,7 +2,7 @@
 
 
 // src/main.ts
-import { EntityDamageCause as EntityDamageCause3, system as system6, world as world9 } from "@minecraft/server";
+import { EntityDamageCause as EntityDamageCause3, system as system5, world as world9 } from "@minecraft/server";
 
 // src/config.ts
 var CONFIG = {
@@ -81,10 +81,7 @@ var KNOCK_GAP_TICKS = 18;
 var OVERWORLD = "minecraft:overworld";
 
 // src/controller.ts
-import { ItemStack, system as system5, world as world8 } from "@minecraft/server";
-
-// src/brain.ts
-import { system as system2 } from "@minecraft/server";
+import { ItemStack, system as system4, world as world8 } from "@minecraft/server";
 
 // src/creature.ts
 import { EntityDamageCause, GameMode, world as world4 } from "@minecraft/server";
@@ -149,7 +146,7 @@ function blockAt(dim, p) {
 }
 var idAt = (dim, p) => blockAt(dim, p)?.typeId;
 var isWaterId = (id) => id === "minecraft:water" || id === "minecraft:flowing_water";
-var SOFT = /(^minecraft:(air|light_block.*|structure_void|short_grass|tall_grass|fern|large_fern|deadbush|seagrass|kelp|vine|.*_vines.*|snow_layer|.*carpet|.*torch|redstone_wire|.*_button|lever|.*rail|.*sapling|.*_flower|dandelion|poppy|.*tulip|.*_orchid|allium|azure_bluet|oxeye_daisy|cornflower|lily_of_the_valley|sunflower|lilac|rose_bush|peony|wheat|carrots|potatoes|beetroot|reeds|sugar_cane|bamboo_sapling|waterlily|.*sign|.*banner|.*pressure_plate|tripwire.*|ladder|scaffolding|fire|soul_fire|cobweb|web|.*mushroom|nether_wart|sweet_berry_bush|.*coral_fan.*|sea_pickle|frog_spawn|leaf_litter|bush|firefly_bush|cactus_flower|wildflowers|pink_petals)$)/;
+var SOFT = /(^minecraft:(air|light_block.*|structure_void|short_grass|tall_grass|fern|large_fern|deadbush|seagrass|kelp|vine|.*_vines.*|snow_layer|.*carpet|.*torch|redstone_wire|.*_button|lever|.*rail|.*sapling|.*_flower|dandelion|poppy|.*tulip|.*_orchid|allium|azure_bluet|oxeye_daisy|cornflower|lily_of_the_valley|sunflower|lilac|rose_bush|peony|wheat|carrots|potatoes|beetroot|reeds|sugar_cane|bamboo_sapling|waterlily|.*sign|.*banner|.*pressure_plate|trip_?wire.*|ladder|scaffolding|fire|soul_fire|cobweb|web|.*mushroom|nether_wart|sweet_berry_bush|.*coral_fan.*|sea_pickle|frog_spawn|leaf_litter|bush|firefly_bush|cactus_flower|wildflowers|pink_petals)$)/;
 function isSolidBlock(b) {
   if (!b) return false;
   if (b.isAir || b.isLiquid) return false;
@@ -172,6 +169,9 @@ function trunkBlocked(dim, at, feetY, radius, built, cliff, full) {
   }
   return false;
 }
+function waterOver(dim, x, z, floorY, depth) {
+  return isWaterId(idAt(dim, { x, y: floorY + depth, z }));
+}
 function deepHere(dim, x, z, surface, need) {
   if (!isLoaded(dim, { x, y: surface, z })) return UNLOADED;
   for (let d = 1; d <= need; d++) if (!isWaterId(idAt(dim, { x, y: surface - d, z }))) return false;
@@ -187,15 +187,17 @@ function groundY(dim, x, z, yTop, depth) {
   for (; y >= stop; y--) {
     const b = blockAt(dim, { x, y, z });
     if (!b) return UNLOADED;
-    if (isSolidBlock(b)) return y + 1;
+    if (isSolidBlock(b) && !PLANT.test(b.typeId)) return y + 1;
   }
   return NONE;
 }
-function footprintY(dim, at, radius, yTop, depth) {
+function footprintY(dim, at, radius, yTop, depth, floatY = null) {
   const ys = [];
   let unloaded = 0;
   for (const dx of [-radius, 0, radius]) for (const dz of [-radius, 0, radius]) {
-    const g = groundY(dim, at.x + dx, at.z + dz, yTop, depth);
+    const x = at.x + dx, z = at.z + dz;
+    let g = groundY(dim, x, z, yTop, depth);
+    if (floatY !== null && g !== UNLOADED && (g === NONE || g < floatY) && isWaterId(idAt(dim, { x, y: floatY, z }))) g = floatY;
     if (g === UNLOADED) unloaded++;
     else if (g !== NONE) ys.push(g);
   }
@@ -204,7 +206,7 @@ function footprintY(dim, at, radius, yTop, depth) {
   ys.sort((a, b) => a - b);
   return ys[Math.floor((ys.length - 1) / 2)];
 }
-function waterColumn(dim, x, z, y, reach = 24) {
+function waterColumn(dim, x, z, y, reach = 24, deep = 64) {
   if (!isLoaded(dim, { x, y, z })) return UNLOADED;
   let top = Math.floor(y);
   let b = blockAt(dim, { x, y: top, z });
@@ -224,7 +226,7 @@ function waterColumn(dim, x, z, y, reach = 24) {
   }
   while (isWaterId(idAt(dim, { x, y: top + 1, z })) && top < dim.heightRange.max - 2) top++;
   let bottom = top;
-  while (bottom > dim.heightRange.min + 1 && bottom > top - 64 && isWaterId(idAt(dim, { x, y: bottom - 1, z }))) bottom--;
+  while (bottom > dim.heightRange.min + 1 && bottom > top - deep && isWaterId(idAt(dim, { x, y: bottom - 1, z }))) bottom--;
   return { surface: top + 1, floor: bottom };
 }
 function clearLine(dim, a, b) {
@@ -464,6 +466,7 @@ var CHUNK = 3e4;
 function freshRecord() {
   return {
     v: SCHEMA,
+    clock: 0,
     stage: "dormant",
     token: "",
     entityId: null,
@@ -498,6 +501,9 @@ function migrate(raw) {
   const stages = ["dormant", "pending", "arriving", "alive", "departed"];
   if (!stages.includes(rec.stage)) rec.stage = rec.entityId ? "alive" : "dormant";
   if (raw.v === 1 && raw.quiet === true) rec.stage = "departed";
+  if (typeof raw.clock !== "number") {
+    rec.clock = Math.max(0, rec.born || 0, rec.mut.formSince || 0, rec.down ?? 0, rec.arrival?.t0 ?? 0, rec.evolve?.t0 ?? 0, rec.last?.t ?? 0, rec.pending?.since ?? 0);
+  }
   rec.v = SCHEMA;
   return rec;
 }
@@ -647,6 +653,12 @@ var Creature = class {
     this.steerSide = 0;
     this.steerAt = -99;
     this.goalWalled = false;
+    /** Land forms keep out of water deeper than they can stand in, unless something (the last crossing) sends them in. */
+    this.wade = false;
+    /** Swimming: in water over his depth, held at that depth instead of walking the bed. */
+    this.afloat = false;
+    this.surfY = void 0;
+    this.partIds = [];
     this.lookYaw = 0;
     this.lookPitch = 0;
     this.bend = 0;
@@ -666,6 +678,7 @@ var Creature = class {
      * Form I out of water (the pond was drained, ice closed over, something carried him): look for the
      * nearest deep column in loaded chunks and slide back into it.  He is never left lying in rock.
      */
+    this.unsettled = true;
     this.dry = 0;
     /** Curl held while not moving (sleeping at the seam). */
     this.bendHold = 0;
@@ -812,7 +825,21 @@ var Creature = class {
   // ---- walls -----------------------------------------------------------------------------------
   walled(at, full) {
     const b = BODY[this.form];
-    return trunkBlocked(this.dim, at, this.pos.y, MOVE[this.form].radius, b.built, b.cliff, full);
+    const feet = this.afloat && this.surfY != null ? Math.max(this.pos.y, this.surfY - 1.2) : this.pos.y;
+    return trunkBlocked(this.dim, at, feet, MOVE[this.form].radius, b.built, b.cliff, full);
+  }
+  /** Is there room for his middle here (used by the few moves that carry him without stepping)? */
+  roomAt(at) {
+    for (const dy of [1, 3]) {
+      const b = blockAt(this.dim, { x: at.x, y: at.y + dy, z: at.z });
+      if (b && isSolidBlock(b)) return false;
+    }
+    return true;
+  }
+  /** Water deeper than this form wades: Form II drags through shallows, Form III stands belly-deep. */
+  tooDeep(at, floorY) {
+    if (this.wade || this.form === 1) return false;
+    return waterOver(this.dim, at.x, at.z, floorY, this.form === 3 ? 5 : 2);
   }
   clearAlong(yaw, reach) {
     const f = forwardOf(yaw);
@@ -820,7 +847,9 @@ var Creature = class {
       if (s > reach) break;
       const at = add(this.pos, mul(f, s));
       if (this.walled(at, false)) return false;
-      if (groundY(this.dim, at.x, at.z, this.pos.y + 6, DROP + 6) === NONE) return false;
+      const floor = groundY(this.dim, at.x, at.z, this.pos.y + 6, DROP + 6);
+      if (floor === NONE) return false;
+      if (typeof floor === "number" && !this.afloat && this.tooDeep(at, floor)) return false;
     }
     return true;
   }
@@ -849,14 +878,27 @@ var Creature = class {
     }
     return want + this.steerOff;
   }
-  stepLand(next) {
+  stepLand(next, moving = true) {
     const r = MOVE[this.form].radius;
     const front = mul(this.forward, BODY[this.form].front);
-    if ((this.walled(add(next, front), true) || this.walled(next, false)) && !this.walled(this.pos, false)) {
+    if (moving && (this.walled(add(next, front), true) || this.walled(next, false)) && !this.walled(this.pos, false)) {
       this.blockedWhy = "wall";
       return null;
     }
-    const g = footprintY(this.dim, next, r, this.pos.y + (this.form === 3 ? 6 : 3), DROP + (this.form === 3 ? 6 : 3));
+    const lim = this.form === 3 ? 5 : 2;
+    if (this.tick % 5 === 0 || this.surfY === void 0) {
+      const wc = waterColumn(this.dim, next.x, next.z, this.pos.y + lim, 8, 2);
+      this.surfY = wc === NONE || wc === UNLOADED ? null : wc.surface;
+    }
+    const floatY = this.surfY !== null && this.surfY !== void 0 ? this.surfY - lim : null;
+    const top = this.form === 3 ? 6 : 3;
+    const yTop = this.pos.y + top + (this.afloat ? lim + 2 : 0);
+    const mid = groundY(this.dim, next.x, next.z, yTop, DROP + top);
+    if (moving && !this.wade && !this.afloat && typeof mid === "number" && this.tooDeep(next, mid)) {
+      this.blockedWhy = "deep";
+      return null;
+    }
+    let g = footprintY(this.dim, next, r, yTop, DROP + top, floatY);
     if (g === UNLOADED) {
       this.blockedWhy = "unloaded";
       return null;
@@ -865,15 +907,18 @@ var Creature = class {
       this.blockedWhy = "edge";
       return null;
     }
+    if (floatY !== null && g <= floatY + 0.01 && typeof mid === "number" && mid > floatY) g = mid;
     const rise = g - this.pos.y;
-    if (rise > (this.form === 3 ? 3.2 : 1.6)) {
+    const swims = floatY !== null && g <= floatY + 0.01 && isWaterId(blockAt(this.dim, { x: next.x, y: floatY, z: next.z })?.typeId);
+    if (!swims && rise > (this.afloat ? lim + 1.6 : this.form === 3 ? 3.2 : 1.6)) {
       this.blockedWhy = "climb";
       return null;
     }
+    this.afloat = swims || this.afloat && rise > 0.5;
     return { x: next.x, y: this.pos.y + clamp(rise, -0.9, 0.45), z: next.z };
   }
-  stepWater(next) {
-    const col = waterColumn(this.dim, next.x, next.z, this.pos.y + 2, 10);
+  stepWater(next, moving = true) {
+    const col = waterColumn(this.dim, next.x, next.z, this.pos.y + 2, 10, 28);
     if (col === UNLOADED) {
       this.blockedWhy = "unloaded";
       return null;
@@ -887,17 +932,19 @@ var Creature = class {
       this.blockedWhy = "shallow";
       return null;
     }
-    const head = add(next, mul(this.forward, 7));
-    const hc = waterColumn(this.dim, head.x, head.z, this.pos.y + 2, 10);
-    if (hc === NONE) {
-      this.blockedWhy = "edge";
-      return null;
-    }
-    const l = leftOf(this.yaw), sh = add(next, mul(this.forward, 3));
-    for (const side of [-2.6, 2.6]) for (const dy of [0.8, 2.8]) {
-      if (isSolidBlock(blockAt(this.dim, { x: sh.x + l.x * side, y: next.y + dy, z: sh.z + l.z * side }))) {
-        this.blockedWhy = "wall";
+    if (moving) {
+      const head = add(next, mul(this.forward, 7));
+      const hb = blockAt(this.dim, { x: head.x, y: this.pos.y + 1.5, z: head.z });
+      if (hb && !isWaterId(hb.typeId)) {
+        this.blockedWhy = "edge";
         return null;
+      }
+      const l = leftOf(this.yaw), sh = add(next, mul(this.forward, 3));
+      for (const side of [-2.6, 2.6]) for (const dy of [0.8, 2.8]) {
+        if (isSolidBlock(blockAt(this.dim, { x: sh.x + l.x * side, y: next.y + dy, z: sh.z + l.z * side }))) {
+          this.blockedWhy = "wall";
+          return null;
+        }
       }
     }
     const want = clamp(col.surface - this.swimDepth, col.floor + 0.2, Math.max(col.floor + 0.2, col.surface - 2.6));
@@ -952,8 +999,14 @@ var Creature = class {
         this.speed *= 0.5;
       }
     } else {
-      const settled = this.form === 1 ? this.stepWater(this.pos) : this.stepLand(this.pos);
-      if (settled) this.pos = settled;
+      if (this.form === 1) {
+        const settled = this.stepWater(this.pos, false);
+        if (settled) this.pos = settled;
+      } else if (this.tick % 5 === 0 || this.unsettled) {
+        const settled = this.stepLand(this.pos, false);
+        this.unsettled = !!settled && Math.abs(settled.y - this.pos.y) > 0.01;
+        if (settled) this.pos = settled;
+      }
     }
     if (this.form === 1) this.keepWet();
     return moved;
@@ -961,7 +1014,21 @@ var Creature = class {
   /** Hand the result to the engine: velocity for smooth client motion, a teleport only to recover. */
   apply() {
     const e = this.entity;
-    const loc = e.location;
+    if (this.tick % 10 === 0) {
+      try {
+        if (e.dimension.id !== this.dim.id) {
+          e.teleport(this.pos, { dimension: this.dim, rotation: { x: 0, y: this.yaw } });
+          return;
+        }
+      } catch {
+      }
+    }
+    let loc;
+    try {
+      loc = e.location;
+    } catch {
+      return;
+    }
     const want = sub(this.pos, loc);
     try {
       if (len(want) > 8) e.teleport(this.pos, { rotation: { x: 0, y: this.yaw } });
@@ -993,12 +1060,17 @@ var Creature = class {
         ok = false;
       }
       if (!ok) {
+        if (this.partIds[i]) {
+          partOwner.delete(this.partIds[i]);
+          this.partIds[i] = void 0;
+        }
         if (!isLoaded(this.dim, at)) continue;
         try {
           part = this.dim.spawnEntity(HITBOX, at);
           part.triggerEvent(`basiliskra:size_${d.size}`);
           partOwner.set(part.id, { creature: this, tag: d.tag });
           this.parts[i] = part;
+          this.partIds[i] = part.id;
           this.partPos[i] = at;
         } catch {
           this.parts[i] = void 0;
@@ -1026,9 +1098,12 @@ var Creature = class {
   }
   dropPart(i) {
     const p = this.parts[i];
+    if (this.partIds[i]) {
+      partOwner.delete(this.partIds[i]);
+      this.partIds[i] = void 0;
+    }
     if (!p) return;
     try {
-      partOwner.delete(p.id);
       if (p.isValid) p.remove();
     } catch {
     }
@@ -1059,6 +1134,7 @@ var Creature = class {
       for (const v of vols) {
         const d = dist(c, v.at);
         if (d < v.r + 0.35) {
+          if (!clearLine(this.dim, v.at, c)) continue;
           const away = norm({ x: c.x - v.at.x, y: 0, z: c.z - v.at.z });
           try {
             p.applyKnockback({ x: (away.x || 0.01) * 0.55, z: (away.z || 0.01) * 0.55 }, 0.08);
@@ -1182,7 +1258,7 @@ var Brain = class {
     return store.rec;
   }
   get now() {
-    return system2.currentTick;
+    return store.rec.clock;
   }
   ready(key) {
     return (this.cooldown.get(key) ?? -1e9) <= this.now;
@@ -1257,7 +1333,7 @@ var Brain = class {
 };
 
 // src/ending.ts
-import { EquipmentSlot, system as system3 } from "@minecraft/server";
+import { EquipmentSlot } from "@minecraft/server";
 
 // src/forms/three.ts
 import { EntityDamageCause as EntityDamageCause2, world as world5 } from "@minecraft/server";
@@ -1816,6 +1892,7 @@ var BrainThree = class extends Brain {
 
 // src/ending.ts
 var NOTE = "minecraft:noteblock";
+var NOTE_REACH = 24;
 var GAP_MIN = 11;
 var GAP_MAX = 26;
 var ROD_NEAR_SEAM = 48;
@@ -1839,9 +1916,10 @@ function carriesFin(p) {
 var Ending = class {
   constructor(ctl2) {
     this.ctl = ctl2;
-    this.blocks = [];
+    /** Note blocks near the seam, by position.  Entries stay until the block is seen to be gone. */
+    this.blocks = /* @__PURE__ */ new Map();
     this.powered = /* @__PURE__ */ new Map();
-    this.scanY = 99;
+    this.scanAt = 0;
     this.lastNote = -9999;
     this.streak = 0;
     this.aliveUntil = -9999;
@@ -1851,7 +1929,7 @@ var Ending = class {
     this.faltered = 0;
   }
   get rhythm() {
-    return system3.currentTick <= this.aliveUntil;
+    return store.rec.clock <= this.aliveUntil;
   }
   reset() {
     if (this.act) {
@@ -1861,6 +1939,7 @@ var Ending = class {
       }
     }
     this.act = null;
+    if (this.ctl.creature) this.ctl.creature.wade = false;
     if (store.rec.ending) {
       store.rec.ending = null;
       store.touch();
@@ -1869,8 +1948,10 @@ var Ending = class {
   /** A note sounded near the seam (a player's hand or a redstone pulse). */
   onNote(at) {
     const rift = store.rec.rift;
-    if (!rift || distXZ(at, rift) > 24) return;
-    const now = system3.currentTick;
+    if (!rift || distXZ(at, rift) > NOTE_REACH) return;
+    const k = `${Math.floor(at.x)},${Math.floor(at.y)},${Math.floor(at.z)}`;
+    if (!this.blocks.has(k) && this.blocks.size < 32) this.blocks.set(k, { x: Math.floor(at.x), y: Math.floor(at.y), z: Math.floor(at.z) });
+    const now = store.rec.clock;
     const gap = now - this.lastNote;
     if (gap < 4) return;
     this.streak = gap >= GAP_MIN && gap <= GAP_MAX ? this.streak + 1 : 1;
@@ -1879,7 +1960,7 @@ var Ending = class {
   }
   // ---- every tick, whether or not he is loaded ----------------------------------------------
   tick(c) {
-    const rec = store.rec, now = system3.currentTick;
+    const rec = store.rec, now = store.rec.clock;
     const rift = rec.rift;
     if (rec.stage !== "alive" || !rift) return;
     const dim = overworld();
@@ -1943,26 +2024,23 @@ var Ending = class {
       particle(dim, "basiliskra:seam_pulse", { x: rift.x, y: rift.y + 5, z: rift.z }, 40);
       if (!this.rhythm) sound(dim, "basiliskra.knock.gill", rift, 24, 0.35);
     }
-    if (now % 4 === 0) {
-      if (this.scanY > 8) {
-        if (now % 120 === 0) {
-          this.scanY = -4;
-          this.blocks = [];
-        }
-      } else {
-        const y = Math.floor(rift.y) + 4 + this.scanY;
-        for (let dx = -14; dx <= 14; dx++) for (let dz = -14; dz <= 14; dz++) {
-          if (this.blocks.length >= 24) break;
-          if (idAt(dim, { x: rift.x + dx, y, z: rift.z + dz }) === NOTE) this.blocks.push({ x: Math.floor(rift.x + dx), y, z: Math.floor(rift.z + dz) });
-        }
-        this.scanY++;
-      }
+    const SIDE = NOTE_REACH * 2 + 1, LAYERS = 15, y0 = Math.floor(rift.y) + 3;
+    for (let n = 0; n < 150; n++) {
+      const i = this.scanAt++ % (SIDE * SIDE * LAYERS);
+      const x = Math.floor(rift.x) - NOTE_REACH + i % SIDE, z = Math.floor(rift.z) - NOTE_REACH + Math.floor(i / SIDE) % SIDE, y = y0 + Math.floor(i / (SIDE * SIDE));
+      if (this.blocks.size < 32 && idAt(dim, { x, y, z }) === NOTE) this.blocks.set(`${x},${y},${z}`, { x, y, z });
     }
-    for (const b of this.blocks) {
-      const k = `${b.x},${b.y},${b.z}`;
+    for (const [k, b] of this.blocks) {
+      const blk = blockAt(dim, b);
+      if (!blk) continue;
+      if (blk.typeId !== NOTE) {
+        this.blocks.delete(k);
+        this.powered.delete(k);
+        continue;
+      }
       let on = false;
       try {
-        on = (blockAt(dim, b)?.getRedstonePower() ?? 0) > 0;
+        on = (blk.getRedstonePower() ?? 0) > 0;
       } catch {
         on = false;
       }
@@ -1973,7 +2051,7 @@ var Ending = class {
   // ---- taking over the animal ------------------------------------------------------------------
   /** Returns true while the ending is driving him (the ordinary encounters are suspended). */
   drive(c) {
-    const rec = store.rec, now = system3.currentTick;
+    const rec = store.rec, now = store.rec.clock;
     if (rec.form !== 3 || !rec.rift) return false;
     if (!this.act) {
       if (!this.rhythm || now < this.coolUntil || distXZ(c.pos, rec.rift) > 130) return false;
@@ -1984,14 +2062,17 @@ var Ending = class {
       store.touch();
       this.act = this.sequence(c, brain);
     }
+    c.wade = true;
     let done = true;
     try {
       done = this.act.next().done === true;
-    } catch {
+    } catch (e) {
       done = true;
+      console.warn(`[basiliskra] crossing: ${e}`);
     }
     if (done) {
       this.act = null;
+      c.wade = false;
       if (store.rec.stage === "alive") {
         c.set(PROP.visHi, 8);
         c.setPhase("idle");
@@ -2023,8 +2104,8 @@ var Ending = class {
     for (let i = 0; i < 16; i++) {
       const a = i * Math.PI / 8, d0 = { x: Math.cos(a), y: 0, z: Math.sin(a) };
       for (let d = 8; d <= 64 && d < found + 6; d += 2) {
-        const g2 = groundY(dim, rift.x + d0.x * d, rift.z + d0.z * d, surface + 10, 40);
-        if (typeof g2 !== "number" || g2 < surface - 4) continue;
+        const g2 = blockAt(dim, { x: rift.x + d0.x * d, y: surface - 4.5, z: rift.z + d0.z * d });
+        if (!g2 || !isSolidBlock(g2) || isPlantBlock(g2.typeId)) continue;
         const cost = d - 5 * dot(d0, toHim);
         if (cost < found) {
           found = cost;
@@ -2052,10 +2133,10 @@ var Ending = class {
     }
     const g = brain.groundedAt;
     if (!g || distXZ(g.rod, rift) > ROD_NEAR_SEAM || !this.holding()) {
-      this.coolUntil = system3.currentTick + 20 * TICKS.second;
+      this.coolUntil = store.rec.clock + 20 * TICKS.second;
       return;
     }
-    rec.ending = { step: 3, t0: system3.currentTick, tries: rec.ending?.tries ?? 0 };
+    rec.ending = { step: 3, t0: store.rec.clock, tries: rec.ending?.tries ?? 0 };
     store.save();
     sound(dim, "basiliskra.rift.open", rift, 96);
     let t = 0;
@@ -2120,6 +2201,10 @@ var Ending = class {
       }
       yield;
     }
+    if (this.visibleUpTo(c, rift, travel3) >= 0) {
+      yield* this.backAway(c, travel3);
+      return;
+    }
     sound(dim, "basiliskra.crossing", rift, 96);
     sound(dim, "basiliskra.rift.close", rift, 96);
     particle(dim, "basiliskra:seam_close", rift, 96);
@@ -2144,7 +2229,9 @@ var Ending = class {
     c.halt();
     if (travel3) {
       for (let i = 0; i < 220; i++) {
-        c.pos = add(c.pos, mul(travel3, -0.12));
+        const to = add(c.pos, mul(travel3, -0.12));
+        if (!c.roomAt(to)) break;
+        c.pos = to;
         const hi = this.visibleUpTo(c, rift, travel3);
         c.set(PROP.visHi, hi);
         if (hi >= 8 && i > 20) break;
@@ -2154,8 +2241,8 @@ var Ending = class {
     c.set(PROP.visHi, 8);
     sound(c.dim, "basiliskra.rift.close", rift, 96);
     particle(c.dim, "basiliskra:seam_close", rift, 96);
-    this.coolUntil = system3.currentTick + 30 * TICKS.second;
-    rec.ending = { step: 0, t0: system3.currentTick, tries: (rec.ending?.tries ?? 0) + 1 };
+    this.coolUntil = store.rec.clock + 30 * TICKS.second;
+    rec.ending = { step: 0, t0: store.rec.clock, tries: (rec.ending?.tries ?? 0) + 1 };
     store.save();
     this.aliveUntil = -9999;
     this.streak = 0;
@@ -2978,6 +3065,7 @@ var BrainTwo = class extends Brain {
 // src/controller.ts
 var TOKEN = "bk:token";
 var SPAWN_STEP = 3;
+var WATER_CANDIDATES = 60;
 var Controller = class {
   constructor() {
     this.creature = null;
@@ -2990,13 +3078,15 @@ var Controller = class {
     this.missing = 0;
     this.hurtCryAt = -999;
     // ---- pending -> reservation ------------------------------------------------------------------------
-    /** A stretch of deep, loaded water near the damaged coast with room for a thirty-block body. */
     /**
      * Deep water near the site with a clear lane to swim out of the seam and to turn and ram it:
-     * LANE blocks of open water ahead, three abreast.  A few candidates are read per call (the
-     * search continues on the next call), nearest first, and never through an unloaded chunk.
+     * every block of a box LANE long, seven wide and his own height deep, from behind where he is
+     * created to beyond where he turns.  Nearest places first; the four compass headings, the one
+     * facing the shore he was called to before the others.  The reading is spread over ticks (a few
+     * hundred blocks at a time) and never goes through an unloaded chunk.
      */
-    this.waterTry = 0;
+    this.waterSearch = null;
+    this.waterWait = 0;
   }
   // ---- start-up ------------------------------------------------------------------------------
   init() {
@@ -3004,7 +3094,7 @@ var Controller = class {
     this.sweep();
   }
   get now() {
-    return system5.currentTick;
+    return store.rec.clock;
   }
   // ---- identity ------------------------------------------------------------------------------
   /** Decide what an entity of our type is: the one Basiliskra, or something to remove at once. */
@@ -3070,6 +3160,7 @@ var Controller = class {
     this.creature = c;
     this.brain = this.makeBrain(c);
     this.missing = 0;
+    this.runner = null;
     this.ending.reset();
   }
   makeBrain(c) {
@@ -3132,7 +3223,10 @@ var Controller = class {
   /** A region crossed the threshold.  Only the first request ever becomes a reservation. */
   requestArrival(t) {
     const rec = store.rec;
-    if (rec.stage !== "dormant") return false;
+    const stale = rec.stage === "pending" && rec.pending !== null && (rec.pending.passes ?? 0) >= 1 && rec.pending.region !== t.region;
+    if (rec.stage !== "dormant" && !stale) return false;
+    this.waterSearch = null;
+    this.waterWait = 0;
     rec.stage = "pending";
     rec.pending = { site: { x: Math.floor(t.site.x), y: Math.floor(t.site.y), z: Math.floor(t.site.z) }, since: this.now, region: t.region };
     rec.origin = rec.pending.site;
@@ -3158,17 +3252,18 @@ var Controller = class {
     }
     const parts = c;
     this.creature = null;
+    this.runner = null;
     if (this.brain) {
       const b = this.brain;
       this.brain = null;
-      system5.run(() => {
+      system4.run(() => {
         try {
           b.finish();
         } catch {
         }
       });
     }
-    system5.run(() => {
+    system4.run(() => {
       parts.dropParts();
       store.touch();
     });
@@ -3184,8 +3279,36 @@ var Controller = class {
     if (rec.entityId !== id) return;
     rec.entityId = null;
     rec.down = this.now;
-    rec.health = 300;
+    rec.health = 600;
     store.save();
+  }
+  /**
+   * Worn down to his last breath he is not killed: a seam takes him where he stands, and he comes
+   * back through the first one a day later, whole, in the form he had.  The reservation never lapses.
+   */
+  driveOff() {
+    const c = this.creature, rec = store.rec;
+    if (!c || !c.valid || rec.stage !== "alive" || rec.evolve || rec.ending?.step) return;
+    const at = { x: c.pos.x, y: c.pos.y + 3, z: c.pos.z };
+    c.say(c.form === 3 ? "basiliskra.iii.roar" : "basiliskra.hurt", c.anchor("nose"), 96);
+    sound(c.dim, "basiliskra.rift.open", at, 72, 1, 1.3);
+    sound(c.dim, "basiliskra.rift.close", at, 72);
+    for (const p of [at, c.anchor("nose"), c.anchor("tail_notch")]) particle(c.dim, "basiliskra:seam_close", p, 72);
+    this.brain?.finish();
+    rec.last = { x: c.pos.x, y: c.pos.y, z: c.pos.z, t: this.now };
+    rec.entityId = null;
+    rec.down = this.now;
+    rec.health = 600;
+    store.save();
+    this.creature = null;
+    this.brain = null;
+    this.runner = null;
+    c.dropParts();
+    try {
+      c.entity.setProperty(PROP.bound, false);
+      c.entity.remove();
+    } catch {
+    }
   }
   onHurt(by, amount) {
     const c = this.creature;
@@ -3198,18 +3321,20 @@ var Controller = class {
   }
   // ---- tick ----------------------------------------------------------------------------------------
   tick() {
-    const now = this.now;
-    beginTick(now);
     const rec = store.rec;
+    const now = ++rec.clock;
+    if (now % 600 === 0) store.touch();
+    beginTick(now);
     if (this.creature && !this.creature.valid) {
       this.creature.dropParts();
       this.creature = null;
       this.brain = null;
+      this.runner = null;
     }
     if (now % 20 === 0) this.sweep();
     switch (rec.stage) {
       case "pending":
-        if (now % 100 === 0) this.tryReserve();
+        this.tryReserve();
         break;
       case "arriving":
         this.arrive();
@@ -3222,26 +3347,34 @@ var Controller = class {
     }
     if (now % 40 === 0) store.flush();
   }
-  findWater(site) {
+  *searchWater(site) {
     const dim = overworld();
-    const LANE = 44, DEEP = 6;
-    for (let n = 0; n < 6; n++) {
-      const i = this.waterTry++ % 60;
-      const a = hash(this.now, i, 1) * Math.PI * 2;
-      const r = 6 + i / 60 * 70;
+    const LANE = 44, BACK = 9, DEEP = 6, seed = this.now;
+    let reads = 0;
+    for (let i = 0; i < WATER_CANDIDATES; i++) {
+      const a = hash(seed, i, 1) * Math.PI * 2;
+      const r = 6 + i / WATER_CANDIDATES * 90;
       const x = Math.floor(site.x + Math.cos(a) * r), z = Math.floor(site.z + Math.sin(a) * r);
-      const col = waterColumn(dim, x, z, site.y, 16);
+      const col = waterColumn(dim, x, z, site.y, 16, 12);
+      yield;
       if (col === UNLOADED || col === NONE || col.surface - col.floor < DEEP) continue;
       const toward = yawTo({ x, y: 0, z }, site);
-      const yaws = [0, 45, 90, 135, 180, 225, 270, 315].sort((p, q) => Math.cos((toward - q) * Math.PI / 180) - Math.cos((toward - p) * Math.PI / 180));
+      const yaws = [0, 90, 180, 270].sort((p, q) => Math.cos((toward - q) * Math.PI / 180) - Math.cos((toward - p) * Math.PI / 180));
       for (const yaw of yaws) {
         const f = forwardOf(yaw), l = { x: f.z, y: 0, z: -f.x };
         let ok = true;
-        for (const side of [0, -3, 3]) {
-          for (let s = side ? 2 : 4; s <= LANE && ok; s += side ? 3 : 4) {
-            if (deepHere(dim, x + f.x * s + l.x * side, z + f.z * s + l.z * side, col.surface, DEEP) !== true) ok = false;
+        lane: for (let s = -BACK; s <= LANE; s++) {
+          for (let side = -3; side <= 3; side++) for (const d of [2, 4, 6]) {
+            const b = blockAt(dim, { x: x + f.x * s + l.x * side, y: col.surface - d, z: z + f.z * s + l.z * side });
+            if (!b || !isWaterId(b.typeId)) {
+              ok = false;
+              break lane;
+            }
           }
-          if (!ok) break;
+          if ((reads += 21) >= 252) {
+            reads = 0;
+            yield;
+          }
         }
         if (ok) return { at: { x: x + 0.5, y: col.surface - 5.5, z: z + 0.5 }, yaw };
       }
@@ -3251,17 +3384,40 @@ var Controller = class {
   tryReserve() {
     const rec = store.rec;
     if (rec.stage !== "pending" || !rec.pending) return;
+    if (this.now < this.waterWait) return;
     const site = rec.pending.site;
     const dim = overworld();
-    if (!players().some((p) => {
-      try {
-        return p.dimension.id === dim.id && distXZ(p.location, site) < 128;
-      } catch {
-        return false;
+    if (!this.waterSearch || this.now % 20 === 0) {
+      if (!players().some((p) => {
+        try {
+          return p.dimension.id === dim.id && distXZ(p.location, site) < 128;
+        } catch {
+          return false;
+        }
+      })) {
+        this.waterSearch = null;
+        this.waterWait = this.now + 100;
+        return;
       }
-    })) return;
-    const w = this.findWater(site);
-    if (!w) return;
+    }
+    if (!this.waterSearch) this.waterSearch = this.searchWater(site);
+    const step = this.waterSearch.next();
+    if (!step.done) return;
+    this.waterSearch = null;
+    const w = step.value;
+    if (!w) {
+      rec.pending.passes = (rec.pending.passes ?? 0) + 1;
+      this.waterWait = this.now + 200;
+      if (rec.pending.passes >= 12) {
+        rec.stage = "dormant";
+        rec.pending = null;
+        rec.origin = null;
+        rec.guilty = null;
+        rec.guiltyName = null;
+      }
+      store.save();
+      return;
+    }
     rec.stage = "arriving";
     rec.token = newToken();
     rec.entityId = null;
@@ -3297,7 +3453,7 @@ var Controller = class {
       if (!this.creature) {
         if (rec.entityId !== null) return;
         if (!isLoaded(dim, a.water)) return;
-        this.sweep();
+        if (now % 10 === 0) this.sweep();
         if (this.creature) {
           this.runner = null;
         } else if (++this.missing > 200) {
@@ -3340,15 +3496,14 @@ var Controller = class {
           }
           sound(dim, "basiliskra.boat_knock", at, 32);
         }
-        if (t > KNOCK_GAP_TICKS * 3 + 30) this.setStep(2);
+        if (t > KNOCK_GAP_TICKS * 3 + 30) {
+          rec.rift = { ...a.water, yaw: a.yaw };
+          this.setStep(2);
+        }
         break;
       }
       case 2: {
-        if (t === 1) {
-          rec.rift = { ...a.water, yaw: a.yaw };
-          store.save();
-          sound(dim, "basiliskra.rift.open", a.water, 72);
-        }
+        if (t === 1) sound(dim, "basiliskra.rift.open", a.water, 72);
         if (t % 4 === 0) particle(dim, "basiliskra:seam", a.water, 72);
         if (t % 60 === 30) sound(dim, "basiliskra.rift.hum", a.water, 48);
         if (t > 90 && near) this.setStep(SPAWN_STEP);
@@ -3486,6 +3641,7 @@ var Controller = class {
     }
     if (rec.evolve) this.evolve(c);
     else if (!this.ending.drive(c)) this.brain?.tick();
+    if (this.creature !== c) return;
     c.update();
     this.ending.tick(c);
     if (now % 20 === 0) {
@@ -3753,9 +3909,7 @@ function credit(r, playerId, name, w) {
 var THRESHOLD = { animals: 8, habitat: 6, total: 18 };
 function check(r, key, at) {
   const p = CONFIG.pacing;
-  if (r.fired) return null;
   if (r.a * p < THRESHOLD.animals || r.h * p < THRESHOLD.habitat || (r.a + r.h) * p < THRESHOLD.total) return null;
-  r.fired = true;
   let guilty = null, top = 0;
   for (const [id, s] of Object.entries(r.by)) if (s > top) {
     top = s;
@@ -3801,6 +3955,8 @@ function recordHabitat(at, typeId, playerId, playerName, now) {
 // src/main.ts
 var ctl = new Controller();
 var ready = false;
+var lastFault = "";
+var faultAt = -1e9;
 var SPLASHERS = /* @__PURE__ */ new Set(["minecraft:snowball", "minecraft:egg", "minecraft:item", "minecraft:ender_pearl"]);
 var flying = [];
 function splash(at, by) {
@@ -3812,7 +3968,7 @@ function splash(at, by) {
 function trackSplashes() {
   for (let i = flying.length - 1; i >= 0; i--) {
     const f = flying[i];
-    let done = system6.currentTick - f.born > 100;
+    let done = store.rec.clock - f.born > 100;
     try {
       if (!f.e.isValid) done = true;
       else if (isWaterId(idAt(f.e.dimension, f.e.location))) {
@@ -3828,16 +3984,26 @@ function trackSplashes() {
 world9.afterEvents.worldLoad.subscribe(() => {
   ctl.init();
   ready = true;
-  system6.runInterval(() => {
+  system5.runInterval(() => {
     try {
       trackSplashes();
       ctl.tick();
     } catch (e) {
-      if (CONFIG.debug) console.warn(`[${NS}] tick: ${e}`);
+      const m = String(e);
+      if (m !== lastFault || store.rec.clock - faultAt > 1200) {
+        lastFault = m;
+        faultAt = store.rec.clock;
+        const where = String(e?.stack ?? "").split("\n").slice(0, 4).join(" | ");
+        console.warn(`[${NS}] tick: ${m} ${where}`);
+      }
+      try {
+        if (store.rec.clock % 40 === 0) store.flush();
+      } catch {
+      }
     }
   }, 1);
 });
-system6.beforeEvents.shutdown.subscribe(() => {
+system5.beforeEvents.shutdown.subscribe(() => {
   try {
     store.flush();
     store.save();
@@ -3864,13 +4030,15 @@ world9.afterEvents.entitySpawn.subscribe((ev) => {
       if (!partOwner.has(ev.entity.id)) ev.entity.remove();
       return;
     }
-    if (SPLASHERS.has(id) && ev.entity.dimension.id === OVERWORLD && ctl.creature && flying.length < 16 && dist(ev.entity.location, ctl.creature.pos) < 64) flying.push({ e: ev.entity, born: system6.currentTick });
+    if (SPLASHERS.has(id) && ev.entity.dimension.id === OVERWORLD && ctl.creature && flying.length < 16 && dist(ev.entity.location, ctl.creature.pos) < 64) flying.push({ e: ev.entity, born: store.rec.clock });
   } catch {
   }
 });
 world9.beforeEvents.entityRemove.subscribe((ev) => {
   try {
-    if (ev.removedEntity.typeId === TYPE) ctl.onRemoving(ev.removedEntity);
+    const id = ev.removedEntity.typeId;
+    if (id === TYPE) ctl.onRemoving(ev.removedEntity);
+    else if (id === HITBOX) partOwner.delete(ev.removedEntity.id);
   } catch {
   }
 });
@@ -3885,6 +4053,8 @@ var PASSES = /* @__PURE__ */ new Set([
   EntityDamageCause3.maceSmash,
   EntityDamageCause3.override
 ]);
+var forwardTick = -1;
+var forwardKey = "";
 world9.beforeEvents.entityHurt.subscribe((ev) => {
   let type;
   try {
@@ -3899,7 +4069,11 @@ world9.beforeEvents.entityHurt.subscribe((ev) => {
     const amount = ev.damage * (owner.tag === "head" ? 1.25 : owner.tag === "tail" ? 0.6 : 1);
     const cause = ev.damageSource.cause, by = ev.damageSource.damagingEntity;
     if (!PASSES.has(cause) || amount <= 0) return;
-    system6.run(() => {
+    const key = `${cause}|${by?.id ?? ""}`;
+    if (forwardTick === store.rec.clock && forwardKey === key) return;
+    forwardTick = store.rec.clock;
+    forwardKey = key;
+    system5.run(() => {
       try {
         if (owner.creature.valid) owner.creature.entity.applyDamage(amount, by ? { cause, damagingEntity: by } : { cause });
       } catch {
@@ -3920,9 +4094,13 @@ world9.beforeEvents.entityHurt.subscribe((ev) => {
   }
   if (health <= 2) {
     ev.cancel = true;
+    system5.run(() => ctl.driveOff());
     return;
   }
-  if (ev.damage >= health - 1) ev.damage = Math.max(0, health - 1.5);
+  if (ev.damage >= health - 1) {
+    ev.damage = Math.max(0, health - 1.5);
+    system5.run(() => ctl.driveOff());
+  }
 });
 world9.afterEvents.entityHurt.subscribe((ev) => {
   try {
@@ -3948,7 +4126,7 @@ world9.afterEvents.entityDie.subscribe((ev) => {
     const killer = ev.damageSource.damagingEntity;
     if (!killer || killer.typeId !== "minecraft:player" || ev.deadEntity.dimension.id !== OVERWORLD) return;
     const p = killer;
-    const t = recordKill(ev.deadEntity.location, type, p.id, p.name, system6.currentTick);
+    const t = recordKill(ev.deadEntity.location, type, p.id, p.name, store.rec.clock);
     if (t) ctl.requestArrival(t);
   } catch {
   }
@@ -3956,7 +4134,7 @@ world9.afterEvents.entityDie.subscribe((ev) => {
 world9.afterEvents.playerBreakBlock.subscribe((ev) => {
   try {
     if (ev.dimension.id !== OVERWORLD) return;
-    const t = recordHabitat(ev.block.location, ev.brokenBlockPermutation.type.id, ev.player.id, ev.player.name, system6.currentTick);
+    const t = recordHabitat(ev.block.location, ev.brokenBlockPermutation.type.id, ev.player.id, ev.player.name, store.rec.clock);
     if (t) ctl.requestArrival(t);
   } catch {
   }
@@ -3968,9 +4146,9 @@ world9.afterEvents.playerInteractWithBlock.subscribe((ev) => {
     else if (id === "minecraft:noteblock") {
       ctl.ending.onNote(at);
       ctl.brain?.onNote(at);
-    } else if (ev.itemStack?.typeId === "minecraft:water_bucket") {
+    } else if (ev.beforeItemStack?.typeId === "minecraft:water_bucket") {
       const p = { x: at.x + 0.5, y: at.y + 1, z: at.z + 0.5 };
-      system6.runTimeout(() => {
+      system5.runTimeout(() => {
         try {
           if (isWaterId(idAt(ev.player.dimension, p)) || isWaterId(idAt(ev.player.dimension, at))) splash(p, ev.player);
         } catch {
@@ -3985,7 +4163,7 @@ world9.afterEvents.weatherChange.subscribe((ev) => {
   store.rec.weather = w.includes("thunder") ? "thunder" : w.includes("rain") ? "rain" : "clear";
   store.touch();
 });
-system6.afterEvents.scriptEventReceive.subscribe((ev) => {
+system5.afterEvents.scriptEventReceive.subscribe((ev) => {
   if (!CONFIG.debug || ev.id !== `${NS}:debug`) return;
   const [cmd, arg] = ev.message.split(" ");
   const rec = store.rec;

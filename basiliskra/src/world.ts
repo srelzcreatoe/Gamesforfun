@@ -20,7 +20,7 @@ export function blockAt(dim: Dimension, p: V3): Block | undefined {
 export const idAt = (dim: Dimension, p: V3): string | undefined => blockAt(dim, p)?.typeId;
 export const isWaterId = (id: string | undefined): boolean => id === "minecraft:water" || id === "minecraft:flowing_water";
 
-const SOFT = /(^minecraft:(air|light_block.*|structure_void|short_grass|tall_grass|fern|large_fern|deadbush|seagrass|kelp|vine|.*_vines.*|snow_layer|.*carpet|.*torch|redstone_wire|.*_button|lever|.*rail|.*sapling|.*_flower|dandelion|poppy|.*tulip|.*_orchid|allium|azure_bluet|oxeye_daisy|cornflower|lily_of_the_valley|sunflower|lilac|rose_bush|peony|wheat|carrots|potatoes|beetroot|reeds|sugar_cane|bamboo_sapling|waterlily|.*sign|.*banner|.*pressure_plate|tripwire.*|ladder|scaffolding|fire|soul_fire|cobweb|web|.*mushroom|nether_wart|sweet_berry_bush|.*coral_fan.*|sea_pickle|frog_spawn|leaf_litter|bush|firefly_bush|cactus_flower|wildflowers|pink_petals)$)/;
+const SOFT = /(^minecraft:(air|light_block.*|structure_void|short_grass|tall_grass|fern|large_fern|deadbush|seagrass|kelp|vine|.*_vines.*|snow_layer|.*carpet|.*torch|redstone_wire|.*_button|lever|.*rail|.*sapling|.*_flower|dandelion|poppy|.*tulip|.*_orchid|allium|azure_bluet|oxeye_daisy|cornflower|lily_of_the_valley|sunflower|lilac|rose_bush|peony|wheat|carrots|potatoes|beetroot|reeds|sugar_cane|bamboo_sapling|waterlily|.*sign|.*banner|.*pressure_plate|trip_?wire.*|ladder|scaffolding|fire|soul_fire|cobweb|web|.*mushroom|nether_wart|sweet_berry_bush|.*coral_fan.*|sea_pickle|frog_spawn|leaf_litter|bush|firefly_bush|cactus_flower|wildflowers|pink_petals)$)/;
 
 /** Does this block hold up a giant's foot or stop a body?  Liquids and small plants do not. */
 export function isSolidBlock(b: Block | undefined): boolean {
@@ -57,6 +57,11 @@ export function trunkBlocked(dim: Dimension, at: V3, feetY: number, radius: numb
   return false;
 }
 
+/** Is there water standing `depth` blocks above the floor at x,z?  One read. */
+export function waterOver(dim: Dimension, x: number, z: number, floorY: number, depth: number): boolean {
+  return isWaterId(idAt(dim, { x, y: floorY + depth, z }));
+}
+
 /** Is the water at x,z open from just under `surface` down `need` blocks?  A handful of reads. */
 export function deepHere(dim: Dimension, x: number, z: number, surface: number, need: number): boolean | typeof UNLOADED {
   if (!isLoaded(dim, { x, y: surface, z })) return UNLOADED;
@@ -77,7 +82,8 @@ export function groundY(dim: Dimension, x: number, z: number, yTop: number, dept
   for (; y >= stop; y--) {
     const b = blockAt(dim, { x, y, z });
     if (!b) return UNLOADED;
-    if (isSolidBlock(b)) return y + 1;
+    // a canopy is not a floor: trunks and leaves are passed through, the ground is what is under them
+    if (isSolidBlock(b) && !PLANT.test(b.typeId)) return y + 1;
   }
   return NONE;         // "no ground" is its own answer, never the bottom of the search
 }
@@ -86,11 +92,14 @@ export function groundY(dim: Dimension, x: number, z: number, yTop: number, dept
  * Ground under a wide footprint: the lower median of nine column floors, so one tree or one
  * pit under a foot does not jolt the body.
  */
-export function footprintY(dim: Dimension, at: V3, radius: number, yTop: number, depth: number): Probe {
+export function footprintY(dim: Dimension, at: V3, radius: number, yTop: number, depth: number, floatY: number | null = null): Probe {
   const ys: number[] = [];
   let unloaded = 0;
   for (const dx of [-radius, 0, radius]) for (const dz of [-radius, 0, radius]) {
-    const g = groundY(dim, at.x + dx, at.z + dz, yTop, depth);
+    const x = at.x + dx, z = at.z + dz;
+    let g = groundY(dim, x, z, yTop, depth);
+    // over water deeper than he stands in, the level he swims at is his floor
+    if (floatY !== null && g !== UNLOADED && (g === NONE || (g as number) < floatY) && isWaterId(idAt(dim, { x, y: floatY, z }))) g = floatY;
     if (g === UNLOADED) unloaded++;
     else if (g !== NONE) ys.push(g as number);
   }
@@ -101,7 +110,7 @@ export function footprintY(dim: Dimension, at: V3, radius: number, yTop: number,
 }
 
 /** Water column at x,z near y: surface (top of the top water block) and floor, or why not. */
-export function waterColumn(dim: Dimension, x: number, z: number, y: number, reach = 24): { surface: number; floor: number } | typeof UNLOADED | typeof NONE {
+export function waterColumn(dim: Dimension, x: number, z: number, y: number, reach = 24, deep = 64): { surface: number; floor: number } | typeof UNLOADED | typeof NONE {
   if (!isLoaded(dim, { x, y, z })) return UNLOADED;
   let top = Math.floor(y);
   let b = blockAt(dim, { x, y: top, z });
@@ -118,7 +127,7 @@ export function waterColumn(dim: Dimension, x: number, z: number, y: number, rea
   }
   while (isWaterId(idAt(dim, { x, y: top + 1, z })) && top < dim.heightRange.max - 2) top++;
   let bottom = top;
-  while (bottom > dim.heightRange.min + 1 && bottom > top - 64 && isWaterId(idAt(dim, { x, y: bottom - 1, z }))) bottom--;
+  while (bottom > dim.heightRange.min + 1 && bottom > top - deep && isWaterId(idAt(dim, { x, y: bottom - 1, z }))) bottom--;
   return { surface: top + 1, floor: bottom };
 }
 
