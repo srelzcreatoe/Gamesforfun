@@ -11,6 +11,8 @@ So nothing below is an in-game result. It is everything that could be checked wi
 
 The first thing to do with this add-on is an import and a play session on a real 1.26.60 build. The list at the end says what to look at first.
 
+`tools/bds/smoke.py` is ready for a first check without a client: given an unpacked Bedrock Dedicated Server it applies both packs to a fresh world, runs the server for a minute, summons a Basiliskra (which the script must remove) and collects every error line from the server and content logs. **It has not been run**, for the reason above.
+
 ## What was run
 
 All of it is reproducible with `python3 tools/build.py` (which runs the first four) and the commands shown.
