@@ -79,7 +79,7 @@ export function poseOf(form: Form, s: PoseState): PoseAdd {
     set("hips", 0, -s.bend * 0.3);
     for (let i = 1; i <= 5; i++) set(`neck${i}`, -1.5 * charge, 0);
     set("head", -4 * charge, 0);
-    for (let i = 1; i <= 8; i++) set(`tail${i}`, -4.4 * charge, -s.bend * (0.35 + 0.09 * i));
+    for (let i = 1; i <= 8; i++) set(`tail${i}`, -1.7 * charge, -s.bend * (0.35 + 0.09 * i));
   }
   return p;
 }

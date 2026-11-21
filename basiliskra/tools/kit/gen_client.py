@@ -302,7 +302,7 @@ def pose_iii(rig):
     for i in range(1, 9):
         p.rot(f"tail{i}", y=f"-v.ts * {0.35 + 0.09 * i:.2f} + 2.4 * v.walk * math.sin(v.wp - {i * 50}) + 1.2 * math.sin(q.life_time * 30 - {i * 35})"
                              f" + {1.5 * i} * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5)",
-              x=f"-4.4 * v.w_chargew + 0.6 * v.breath")
+              x=f"-1.7 * v.w_chargew + 0.6 * v.breath")
     p.rot("club", z="4 * v.w_chargew * math.sin(q.life_time * 2100)")
     for s, sgn in (("l", 1), ("r", -1)):
         for i in (1, 2, 3):

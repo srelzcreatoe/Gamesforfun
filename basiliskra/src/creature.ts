@@ -133,8 +133,9 @@ export class Creature {
 
   // ---- skeleton -----------------------------------------------------------------------------
   private pose(): PoseAdd {
+    // the client only ever sees whole degrees: pose the server skeleton from the same numbers
     return poseOf(this.form, {
-      lookYaw: this.lookYaw, lookPitch: this.lookPitch, bend: this.bend, pitch: this.pitch,
+      lookYaw: Math.round(this.lookYaw), lookPitch: Math.round(this.lookPitch), bend: Math.round(this.bend), pitch: Math.round(this.pitch),
       charge: this.phase === "charge" || this.phase === "fire" ? 1 : 0, drink: this.phase === "drink" ? 1 : 0,
     });
   }
@@ -160,9 +161,35 @@ export class Creature {
   }
   lookAhead(): void { this.lookYaw = 0; this.lookPitch = 0; }
 
+  /**
+   * Point the muzzle itself at a target: look, measure where the skeleton actually aims in its
+   * current pose, and correct.  Returns the remaining error in degrees.
+   */
+  aimAt(target: V3, maxYaw = 80, maxPitch = 40): number {
+    let reach = this.lookAt(target, maxYaw, maxPitch);
+    let err = 0;
+    for (let i = 0; i < 3; i++) {
+      this.skel = null;
+      const { from, dir } = this.aim();
+      const want = norm(sub(target, from));
+      const dy = wrapDeg(Math.atan2(-want.x, want.z) * 180 / Math.PI - Math.atan2(-dir.x, dir.z) * 180 / Math.PI);
+      const dp = (-Math.asin(clamp(want.y, -1, 1)) + Math.asin(clamp(dir.y, -1, 1))) * 180 / Math.PI;
+      err = Math.hypot(dy, dp);
+      if (Math.abs(this.lookYaw + dy) > maxYaw) reach = Math.max(reach, Math.abs(this.lookYaw + dy) - maxYaw);
+      this.lookYaw = clamp(this.lookYaw + dy, -maxYaw, maxYaw);
+      this.lookPitch = clamp(this.lookPitch + dp, -maxPitch, maxPitch);
+    }
+    this.skel = null;
+    return reach > 0 ? reach : -err;
+  }
+
   // ---- movement -----------------------------------------------------------------------------
-  goTo(target: V3, speed: number, arrive = 2): void { this.goal = target; this.goalSpeed = speed; this.arriveDist = arrive; }
-  halt(): void { this.goal = null; this.goalSpeed = 0; }
+  goTo(target: V3, speed: number, arrive = 2): void {
+    // a new destination starts with a clean slate: being stuck on the way to the last one says nothing about this one
+    if (!this.goal || distXZ(this.goal, target) > 1.5) this.blocked = 0;
+    this.goal = target; this.goalSpeed = speed; this.arriveDist = arrive;
+  }
+  halt(): void { this.goal = null; this.goalSpeed = 0; this.blocked = 0; }
   arrived(): boolean { return !this.goal || distXZ(this.pos, this.goal) <= this.arriveDist; }
 
   private stepLand(next: V3): V3 | null {

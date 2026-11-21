@@ -15,3 +15,4 @@ basiliskra/tools/preview/node_modules/
 basiliskra/**/__pycache__/
 basiliskra/node_modules/
 basiliskra/build/
+basiliskra/build/run_dbg.mjs
