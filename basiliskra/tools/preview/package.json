@@ -1,0 +1,6 @@
+{
+  "name": "basiliskra-preview",
+  "private": true,
+  "description": "Offline reference renderer for the Basiliskra pack files (not part of the add-on).",
+  "dependencies": { "three": "0.170.0" }
+}

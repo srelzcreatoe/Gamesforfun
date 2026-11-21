@@ -9,3 +9,9 @@ captures/
 out/
 assets/worlds/
 CubicWorld_Source.zip
+
+# Basiliskra add-on tooling
+basiliskra/tools/preview/node_modules/
+basiliskra/**/__pycache__/
+basiliskra/node_modules/
+basiliskra/build/

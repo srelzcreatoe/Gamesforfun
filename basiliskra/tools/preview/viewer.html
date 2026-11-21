@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Basiliskra reference viewer</title>
+<style>html,body{margin:0;background:#111;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/tools/preview/node_modules/three/build/three.module.js"}}</script>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { buildGeometry, loadTexture, skin, makeEnv, resetPose, addPose } from './lib/bedrock.js';
+import { Animator } from './lib/animator.js';
+import * as Stage from './lib/stage.js';
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: false });
+renderer.setPixelRatio(1);
+document.body.appendChild(renderer.domElement);
+
+async function json(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(url + ' -> ' + r.status);
+  const t = await r.text();
+  return JSON.parse(t.replace(/^\s*\/\/.*$/gm, ''));
+}
+
+const BK = {
+  THREE, renderer, Stage, env: makeEnv(), scene: new THREE.Scene(), models: {},
+  async loadForm(key, { geo, tex, glow }) {
+    const g = buildGeometry(await json(geo));
+    const t = await loadTexture(tex);
+    const gt = glow ? await loadTexture(glow) : null;
+    skin(g, t, gt, BK.env);
+    g.holder = new THREE.Group();
+    g.holder.add(g.root);
+    g.root.scale.setScalar(1 / 16);      // model units -> blocks
+    BK.scene.add(g.holder);
+    BK.models[key] = g;
+    return { cubes: g.cubeCount, quads: g.quadCount, bones: g.bones.size, desc: g.description };
+  },
+  async makeAnimator(key, files) {
+    const f = {
+      entity: await json(files.entity),
+      animations: await Promise.all(files.animations.map(json)),
+      controllers: await Promise.all(files.controllers.map(json)),
+      renderControllers: await Promise.all((files.renderControllers || []).map(json)),
+    };
+    const m = BK.models[key];
+    m.animator = new Animator(m, f, files.hooks || {});
+    return [...m.animator.clips.keys()].length;
+  },
+  show(key) { for (const [k, m] of Object.entries(BK.models)) m.holder.visible = k === key; },
+  setGlow(key, a) {
+    for (const b of BK.models[key].bones.values()) if (b.glow) { b.glow.visible = a > 0; b.glow.material.uniforms.uAlpha.value = a; }
+  },
+  setPose(key, pose) {
+    const m = BK.models[key];
+    resetPose(m);
+    for (const [name, p] of Object.entries(pose || {})) {
+      const b = m.bones.get(name);
+      if (!b) throw new Error('pose: no bone ' + name);
+      addPose(b, p.rot, p.pos, p.scl);
+    }
+  },
+  bounds(key) {
+    const box = new THREE.Box3().setFromObject(BK.models[key].holder);
+    return { min: box.min.toArray(), max: box.max.toArray() };
+  },
+  bonePos(key, name) {
+    const m = BK.models[key];
+    const o = m.bones.get(name)?.group || m.locators.get(name);
+    if (!o) throw new Error('no bone/locator ' + name);
+    m.holder.updateMatrixWorld(true);
+    return o.getWorldPosition(new THREE.Vector3()).toArray();
+  },
+  /** One still. cam: {pos, target, fov} or {ortho: halfHeight, dir, target} */
+  shot(w, h, cam, bg) {
+    renderer.setSize(w, h, false);
+    renderer.setClearColor(new THREE.Color(bg ?? '#8fb4e8'), 1);
+    let c;
+    if (cam.ortho) {
+      const hh = cam.ortho, hw = hh * w / h;
+      c = new THREE.OrthographicCamera(-hw, hw, hh, -hh, -2000, 4000);
+      const t = new THREE.Vector3(...cam.target);
+      const d = new THREE.Vector3(...cam.dir).normalize();
+      c.position.copy(t).addScaledVector(d, 500);
+      c.lookAt(t);
+    } else {
+      c = new THREE.PerspectiveCamera(cam.fov ?? 60, w / h, 0.05, 2000);
+      c.position.set(...cam.pos);
+      c.lookAt(new THREE.Vector3(...cam.target));
+    }
+    BK.camera = c;
+    renderer.render(BK.scene, c);
+    return renderer.domElement.toDataURL('image/png');
+  },
+};
+window.BK = BK;
+window.ready = true;
+</script>
+</body>
+</html>
