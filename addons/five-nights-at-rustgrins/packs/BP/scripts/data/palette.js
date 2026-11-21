@@ -197,6 +197,14 @@ export const PALETTE = Object.freeze({
   headlight: M('ochre_froglight', { pillar_axis: 'y' }), car_body: M('weathered_cut_copper'),
   car_slab: M('weathered_cut_copper_slab', { 'minecraft:vertical_half': 'bottom' }), car_tail: M('red_stained_glass'),
   car_door: M('weathered_copper_trapdoor', { direction: 1, open_bit: true, upside_down_bit: false }),
+  // ---- cellar (data/cellar_plan.js): the raw cellar is vanilla brick, stone and timber
+  brick: M('brick_block'), cobble: M('cobblestone'), mossy_cobble: M('mossy_cobblestone'), mossy_bricks: M('mossy_stone_bricks'),
+  mud: M('mud'), packed_mud: M('packed_mud'), coal: M('coal_block'), copper_old: M('weathered_copper'), copper_green: M('oxidized_copper'),
+  spruce_log_x: M('spruce_log', { pillar_axis: 'x' }), spruce_log_z: M('spruce_log', { pillar_axis: 'z' }),
+  ...stairs('stone_brick', 'stone_brick'), ...stairs('spruce', 'spruce'), ...slabs('stone_brick', 'stone_brick'),
+  // a railing of iron bars along x / along z (the connections are set, so it does not depend on neighbour updates)
+  rail_x: M('iron_bars', { 'minecraft:connection_east': true, 'minecraft:connection_west': true, 'minecraft:connection_north': false, 'minecraft:connection_south': false }),
+  rail_z: M('iron_bars', { 'minecraft:connection_east': false, 'minecraft:connection_west': false, 'minecraft:connection_north': true, 'minecraft:connection_south': true }),
 });
 
 /** Picture panels (docs/BLOCKS.md A): name -> [tiles wide, tiles high]. Keys are generated as `${name}_${tile}_${dir}`. */

@@ -19,6 +19,7 @@ import { BUILDING, LOT, ROOMS, ROOM_BY_ID, OPENINGS, OFFICE, DUCTS, STAGE, DRUM,
 import { WRITING, NEON } from './palette.js';
 import { CAMERAS } from './cameras.js';
 import { LOBBY_BUTTONS } from './lobby.js';
+import { cellar } from './cellar_plan.js';
 
 // ---------------------------------------------------------------- room styles
 // bands: list of [fromY, toY, key | key[] (random pick)] for the walls (relative to the floor).
@@ -1152,11 +1153,12 @@ function parts(p, _rng) {
     if (i === 3) for (const y of [0, 1, 2]) p.set(a + 1, y, 67, `boards_${y === 1 ? 'x' : 'across'}_n`);
   }
   // two endoskeletons on their stands, the same distance either side of the middle and both facing the door; a
-  // head on the floor between them; an empty costume slumped against each end wall, opposite each other
+  // head on the floor between them; an empty costume slumped against the east wall. (The west half of the
+  // aisle, x 49..56, is the stairwell down to the cellar: data/cellar_plan.js cuts it, rails it and puts the
+  // other costume at the foot of the stairs.)
   p.set(57, 0, 66, 'endo_stand_n');
   p.set(70, 0, 66, 'endo_stand_n');
   p.set(64, 0, 66, 'head_rustgrin_n');
-  p.set(49, 0, 66, 'suit_rustgrin_e');
   p.set(78, 0, 66, 'suit_mirehop_w');
   // the crates' lids against the west wall, a tarp over something in the east corner
   p.fill(49, 0, 69, 49, 2, 70, 'spruce');
@@ -1495,6 +1497,7 @@ export function generatePlan(seed = 1991) {
   lights(p);
   controls(p);
   signs(p);
+  cellar(p); // the Golden Dog's cellar, carved out under all of the above (data/cellar_plan.js)
   return p.finish();
 }
 

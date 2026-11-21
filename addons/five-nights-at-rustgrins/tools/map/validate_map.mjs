@@ -10,7 +10,13 @@
 //   3. every node stands on a floor with head room (5.1; 2.9 for the nodes that lean
 //      at a door or window or stand within 0.8 blocks of an opening; 1.9 crawling);
 //   4. camera lenses and the office spawn are not inside blocks;
-//   5. every office control is within reach of the guard's seat, in plain sight.
+//   5. every office control is within reach of the guard's seat, in plain sight;
+//   6. at night the halls by the office are dark;
+//   7. the cellar (data/cellar.js, once CELLAR_BUILT): the Golden Dog's nodes and his walk are clear for a body
+//      3 wide and 4 tall, the aisle is empty floor to ceiling, the guard in the Other Office's seat sees his head
+//      and chest on the stage, the Other Office has the real office's shape, a player can walk from the Parts &
+//      Service door down the stairs to the Gold Room and into the Other Office, the stage lamp lights him at
+//      night, and by day the cellar is gloomy but never pitch black.
 // Usage: node tools/map/validate_map.mjs   (exit 1 on problems)
 import fs from 'node:fs';
 import path from 'node:path';
@@ -123,7 +129,7 @@ for (const c of CAMERAS) {
 
 console.log('nodes:');
 for (const n of Object.values(NODES)) {
-  if (n.cellar && !CELLAR_BUILT) continue;
+  if (n.cellar) continue; // the Golden Dog's nodes: his own checks are in the cellar section below (7)
   // they lean at the office doors and the right window, and anywhere right at an opening
   const lean = !!(n.door || n.window) || nearOpening(n.x, n.z);
   const h = n.crawl ? CRAWL : lean ? STOOP : STAND;
@@ -235,6 +241,268 @@ console.log('darkness:');
     }
     console.log(`  ${id}${zMin ? ` (z >= ${zMin})` : ''}: brightest block light ${worst}${at ? ` at ${at}` : ''}`);
     if (worst > DARK_MAX) report(`${id} is lit at night (block light ${worst} at ${at}); the halls by the office must stay at ${DARK_MAX} or darker`);
+  }
+}
+
+// ================================================================ 7. the cellar (data/cellar.js, data/cellar_plan.js)
+if (CELLAR_BUILT) {
+  console.log('cellar:');
+  const { CELLAR } = await import(path.join(ROOT, 'packs/BP/scripts/data/cellar.js'));
+  const { CELLAR_PLAN } = await import(path.join(ROOT, 'packs/BP/scripts/data/cellar_plan.js'));
+  const isAir = (n) => /^minecraft:(air|light_block_\d+)$/.test(n);
+  const cellAt = (x, y, z) => nameAt(x + 0.5, y + 0.5, z + 0.5);
+  const A = CELLAR.aisle;
+  const walk = CELLAR.walk.map((id) => NODES[id]);
+
+  // 7a. his body: 3 wide (the aisle's width), 4 tall, at every node and along the straight line between them
+  const BODY_H = 4;
+  const bodyAt = (x, y, z) => {
+    for (let cx = Math.floor(x - 1.49); cx <= Math.floor(x + 1.49); cx++) {
+      const floor = cellAt(cx, Math.floor(y) - 1, Math.floor(z));
+      if (isAir(floor)) return `no floor under him at ${cx},${Math.floor(y) - 1},${Math.floor(z)}`;
+      for (let cy = Math.floor(y); cy < Math.floor(y) + BODY_H; cy++) {
+        for (const cz of new Set([Math.floor(z - 0.45), Math.floor(z + 0.45)])) {
+          const n = cellAt(cx, cy, cz);
+          if (!isAir(n)) return `${n} at ${cx},${cy},${cz}`;
+        }
+      }
+    }
+    return null;
+  };
+  for (const n of walk) {
+    const bad = bodyAt(n.x, n.y, n.z);
+    if (bad) report(`${n.id}: not clear for a body 3 wide and ${BODY_H} tall: ${bad}`);
+  }
+  for (let i = 1; i < walk.length; i++) {
+    const a = walk[i - 1], b = walk[i];
+    const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 0.25));
+    for (let k = 0; k <= steps; k++) {
+      const t = k / steps;
+      const bad = bodyAt(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t);
+      if (bad) { report(`${a.id} -> ${b.id}: his walk is blocked: ${bad}`); break; }
+    }
+  }
+  if (walk[0].id !== CELLAR.stage) report(`CELLAR.walk must start on his stage (${CELLAR.stage})`);
+
+  // 7b. the aisle: nothing in it at all, floor to ceiling, and a floor under every cell
+  {
+    let bad = null;
+    for (let x = A.x1; x <= A.x2 && !bad; x++) for (let z = A.z1; z <= A.z2 && !bad; z++) {
+      if (isAir(cellAt(x, CELLAR.floorY, z))) bad = `no floor at ${x},${CELLAR.floorY},${z}`;
+      for (let y = CELLAR.standY; y < CELLAR.ceilY && !bad; y++) if (!isAir(cellAt(x, y, z))) bad = `${cellAt(x, y, z)} at ${x},${y},${z}`;
+      if (!bad && isAir(cellAt(x, CELLAR.ceilY, z))) bad = `no ceiling at ${x},${CELLAR.ceilY},${z}`;
+    }
+    if (bad) report(`the aisle (x ${A.x1}..${A.x2}, z ${A.z1}..${A.z2}) is not clear: ${bad}`);
+  }
+  // the two openings of the contract are open
+  for (const [id, [x1, y1, z1, x2, y2, z2]] of Object.entries(CELLAR.openings)) {
+    for (let x = x1; x <= x2; x++) for (let y = y1; y <= y2; y++) for (let z = z1; z <= z2; z++) {
+      if (!isAir(cellAt(x, y, z))) report(`opening ${id}: ${cellAt(x, y, z)} at ${x},${y},${z}`);
+    }
+  }
+
+  // 7c. from the Other Office's seat the guard sees him on his stage, and at every node of his walk, over the desk.
+  // Flat things (papers, the wreck of the monitor) only hide what is lower than they are tall.
+  const LOW = [[/^fnar:(desk_clutter|plate_set|floor_decal)/, 0.2], [/^fnar:dead_monitor/, 0.45], [/^fnar:desk_phone/, 0.3]];
+  const seat = CELLAR.otherOffice.spawn;
+  const eyeC = [seat.x, seat.y + 1.62, seat.z];
+  const seen = (to) => {
+    const d = Math.hypot(to[0] - eyeC[0], to[1] - eyeC[1], to[2] - eyeC[2]);
+    const steps = Math.ceil(d / 0.05);
+    for (let i = 1; i < steps; i++) {
+      const q = eyeC.map((v, k) => v + (to[k] - v) * (i / steps));
+      const n = nameAt(...q);
+      if (isAir(n)) continue;
+      const low = LOW.find(([re]) => re.test(n));
+      if (low && q[1] - Math.floor(q[1]) > low[1]) continue;
+      return `${n} at ${q.map(Math.floor)}`;
+    }
+    return null;
+  };
+  {
+    const st = NODES[CELLAR.stage];
+    const dist = Math.hypot(st.x - seat.x, st.z - seat.z);
+    for (const [part, dy] of [['head', 3.1], ['chest', 2.2]]) {
+      for (const dx of [-0.6, 0, 0.6]) {
+        const bad = seen([st.x + dx, st.y + dy, st.z]);
+        if (bad) report(`the Other Office's seat cannot see his ${part} on the stage (${dist.toFixed(1)} blocks away): ${bad}`);
+      }
+    }
+    for (const n of walk.slice(1)) {
+      const bad = seen([n.x, n.y + 3.1, n.z]);
+      if (bad) report(`the Other Office's seat cannot see his head at ${n.id}: ${bad}`);
+    }
+    console.log(`  the seat sees the stage: ${dist.toFixed(1)} blocks`);
+  }
+
+  // 7d. the Other Office is the real office, moved: air where the office has air (so no more furniture than
+  // upstairs), the same walls, doors and windows. The listed difference: the gap behind the desk.
+  {
+    const o = CELLAR.otherOffice.offset;
+    const [x1, z1, x2, z2] = OFFICE.box;
+    const gap = CELLAR.openings.desk_gap;
+    const inGap = (x, y, z) => x >= gap[0] && x <= gap[3] && y >= gap[1] && y <= gap[4] && z >= gap[2] && z <= gap[5];
+    const kind = (n) => (isAir(n) ? 'air' : /glass_pane|iron_bars/.test(n) ? 'window' : 'solid');
+    let diffs = 0;
+    for (let x = x1 - 1; x <= x2 + 1; x++) for (let z = z1 - 1; z <= z2 + 1; z++) for (let y = -1; y <= 5; y++) {
+      const X = x + o.x, Y = y + o.y, Z = z + o.z;
+      if (inGap(X, Y, Z)) continue;
+      const real = cellAt(x, y, z), other = cellAt(X, Y, Z);
+      const ring = x < x1 || x > x2 || z < z1 || z > z2 || y < 0 || y > 4;
+      const bad = ring ? kind(real) !== kind(other) : isAir(real) && !isAir(other);
+      if (bad && diffs++ < 8) report(`the Other Office differs from the office at ${X},${Y},${Z}: ${other} (the office has ${real} at ${x},${y},${z})`);
+    }
+    // the desk phone is the real block, in its own cell (the way back); nothing else down here is one of the
+    // guard's controls (a block with the fnar:control component: the buttons, the monitor)
+    const ph = CELLAR.otherOffice.phone;
+    if (cellAt(ph.x, ph.y, ph.z) !== 'fnar:desk_phone') report(`the Other Office's phone cell ${ph.x},${ph.y},${ph.z} holds ${cellAt(ph.x, ph.y, ph.z)}, not fnar:desk_phone`);
+    const controls = new Set();
+    for (const f of fs.readdirSync(BDIR).filter((q) => q.endsWith('.json'))) {
+      const b = JSON.parse(fs.readFileSync(path.join(BDIR, f), 'utf8'))['minecraft:block'];
+      if (b.components?.['fnar:control']) controls.add(b.description.identifier);
+    }
+    for (let x = x1 - 1; x <= x2 + 1; x++) for (let z = z1 - 1; z <= z2 + 1; z++) for (let y = -1; y <= 5; y++) {
+      const X = x + o.x, Y = y + o.y, Z = z + o.z;
+      const n = cellAt(X, Y, Z);
+      if (controls.has(n) && !(X === ph.x && Y === ph.y && Z === ph.z)) report(`the Other Office holds a working control (${n}) at ${X},${Y},${Z}`);
+    }
+    const s2 = CELLAR.otherOffice.spawn;
+    for (const dy of [0.2, 1.2]) if (!isAir(nameAt(s2.x, s2.y + dy, s2.z))) report(`the Other Office's seat is blocked at y+${dy}`);
+  }
+
+  // 7e. a player (0.6 wide, 1.8 tall: one cell, two cells of body) can walk from the Parts & Service door down the
+  // stairs to the Gold Room and into the Other Office, and back. Steps: one block up (a jump), up to three down.
+  {
+    const collides = new Map();
+    for (const f of fs.readdirSync(BDIR).filter((q) => q.endsWith('.json'))) {
+      const b = JSON.parse(fs.readFileSync(path.join(BDIR, f), 'utf8'))['minecraft:block'];
+      collides.set(b.description.identifier, b.components?.['minecraft:collision_box'] !== false);
+    }
+    const PASS = /^minecraft:(air|light_block_\d+|.*_carpet|.*_button|.*wall_sign|web|short_grass|deadbush)$/;
+    const TALL = /fence|_wall$|iron_bars|glass_pane/; // cannot be stepped onto
+    const solid = (n) => (n.startsWith('fnar:') ? collides.get(n) ?? true : !PASS.test(n));
+    const free = (x, y, z) => !solid(cellAt(x, y, z)) && !solid(cellAt(x, y + 1, z));
+    const stand = (x, y, z) => free(x, y, z) && solid(cellAt(x, y - 1, z)) && !TALL.test(cellAt(x, y - 1, z));
+    const minY = CELLAR.baseY, maxY = 2;
+    const key = (x, y, z) => `${x},${y},${z}`;
+    /** Every cell a player can walk to from `from`: Map("x,y,z" -> steps). */
+    const reach = (from) => {
+      const dist = new Map([[key(...from), 0]]);
+      const queue = [from];
+      while (queue.length) {
+        const [x, y, z] = queue.shift();
+        const d = dist.get(key(x, y, z));
+        for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = x + dx, nz = z + dz;
+          for (let ny = y + 1; ny >= Math.max(minY, y - 3); ny--) {
+            if (ny > maxY || !stand(nx, ny, nz)) continue;
+            if (ny === y + 1 && solid(cellAt(x, y + 2, z))) continue; // no head room to jump
+            if (ny < y && ![...Array(y - ny).keys()].every((k) => free(nx, ny + 1 + k, nz))) continue; // the drop is open
+            const k2 = key(nx, ny, nz);
+            if (!dist.has(k2)) { dist.set(k2, d + 1); queue.push([nx, ny, nz]); }
+            break;
+          }
+        }
+      }
+      return dist;
+    };
+    const door = OPENINGS.find((q) => q.id === 'parts_door').box;
+    const start = [door[0], 0, door[5] + 1];
+    if (!stand(...start)) report(`the cellar walk cannot start inside the Parts & Service door at ${start}`);
+    const dist = reach(start);
+    const S = CELLAR_PLAN.stairs;
+    const seatCell = [Math.floor(seat.x), seat.y, Math.floor(seat.z)];
+    const goals = {
+      'the head of the stairs': [S.head, 0, S.z],
+      'the landing at their foot': [S.x1 - 1, CELLAR.standY, S.z],
+      'the Gold Room (its south tier)': [CELLAR.rooms.GOLD_ROOM[2] - 1, CELLAR.standY, CELLAR.rooms.GOLD_ROOM[3]],
+      "the Gold Room's pit": [CELLAR.rooms.GOLD_ROOM[0] + 3, CELLAR_PLAN.gold.pitY, 30],
+      'his stage': [Math.floor(NODES[CELLAR.stage].x), CELLAR.standY, Math.floor(NODES[CELLAR.stage].z)],
+      'the Long Hall': [A.x1 + 1, CELLAR.standY, 50],
+      "the Other Office's seat": seatCell,
+      'the boiler room': [CELLAR_PLAN.rooms.BOILER[0] + 1, CELLAR.standY, CELLAR_PLAN.rooms.BOILER[1] + 4],
+      'the store': [CELLAR_PLAN.rooms.STORE[2] - 1, CELLAR.standY, CELLAR_PLAN.rooms.STORE[1] + 4],
+    };
+    const got = [];
+    for (const [what, c] of Object.entries(goals)) {
+      const d = dist.get(key(...c));
+      if (d === undefined) report(`a player cannot walk from the Parts & Service door to ${what} (${c})`);
+      else got.push(`${what} ${d}`);
+    }
+    console.log(`  on foot from the Parts & Service door (steps): ${got.join(', ')}`);
+    if (!reach(seatCell).has(key(...start))) report('a player in the Other Office cannot walk back up to the Parts & Service door');
+  }
+
+  // 7f. light. At night (as built) the stage lamp lights him on his stage; by day (every lamp the game switches
+  // on) the rooms are gloomy, never pitch black and never bright.
+  {
+    const emitDefs = new Map();
+    for (const f of fs.readdirSync(BDIR).filter((q) => q.endsWith('.json'))) {
+      const b = JSON.parse(fs.readFileSync(path.join(BDIR, f), 'utf8'))['minecraft:block'];
+      const c = b.components ?? {};
+      const g = c['minecraft:geometry'];
+      const gid = typeof g === 'string' ? g : g?.identifier;
+      const parse = (cond) => (cond ?? '').split('&&').map((t) => t.match(/q\.block_state\('([^']+)'\)\s*==\s*'?([^')\s]+)'?/)).filter(Boolean).map((m) => [m[1], m[2]]);
+      const perms = (b.permutations ?? []).filter((q) => q.components?.['minecraft:light_emission'] !== undefined).map((q) => ({ cond: parse(q.condition), level: q.components['minecraft:light_emission'] }));
+      emitDefs.set(b.description.identifier, { base: c['minecraft:light_emission'] ?? 0, perms, clear: c['minecraft:light_dampening'] === 0 || (!!gid && gid !== 'minecraft:geometry.full_block') });
+    }
+    const VAN = { 'minecraft:lantern': 15, 'minecraft:sea_lantern': 15, 'minecraft:ochre_froglight': 15 };
+    const VCLEAR = /^minecraft:(air|light_block_\d+|.*glass.*|.*_bars|.*chain|.*carpet|.*_slab|.*_stairs|.*fence.*|.*_wall|.*door|.*trapdoor|.*sign|.*button|.*lantern|web|ladder|.*_rod|lectern|.*anvil|cauldron|hopper)$/;
+    /** Block light inside the cellar's volume (a flood fill like the game's), for a voxel grid. */
+    const lightOf = (g) => {
+      const bx1 = 14, bx2 = 62, bz1 = 12, bz2 = 74, by1 = CELLAR.baseY, by2 = CELLAR.ceilY;
+      const w = bx2 - bx1 + 1, dpt = bz2 - bz1 + 1, h = by2 - by1 + 1;
+      const lv = new Uint8Array(w * dpt * h);
+      const ent = (x, y, z) => g.palette[g.data[(x - g.x0) + g.sx * ((z - g.z0) + g.sz * (y - g.y0))]];
+      const emit = (e) => {
+        const m = /^minecraft:light_block_(\d+)$/.exec(e.name);
+        if (m) return Number(m[1]);
+        if (VAN[e.name]) return VAN[e.name];
+        const d = emitDefs.get(e.name);
+        if (!d) return 0;
+        let l = d.base;
+        for (const q of d.perms) if (q.cond.every(([k, v]) => String(e.states?.[k]) === v)) l = q.level;
+        return l;
+      };
+      const clear = (e) => (e.name.startsWith('fnar:') ? emitDefs.get(e.name)?.clear ?? false : VCLEAR.test(e.name));
+      const at = (x, y, z) => (x - bx1) + w * ((z - bz1) + dpt * (y - by1));
+      const buckets = Array.from({ length: 16 }, () => []);
+      for (let x = bx1; x <= bx2; x++) for (let y = by1; y <= by2; y++) for (let z = bz1; z <= bz2; z++) {
+        const l = emit(ent(x, y, z));
+        if (l) { lv[at(x, y, z)] = l; buckets[l].push([x, y, z]); }
+      }
+      for (let l = 15; l > 1; l--) for (const [x, y, z] of buckets[l]) {
+        if (lv[at(x, y, z)] !== l) continue;
+        for (const [dx, dy, dz] of [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]) {
+          const nx = x + dx, ny = y + dy, nz = z + dz;
+          if (nx < bx1 || nx > bx2 || ny < by1 || ny > by2 || nz < bz1 || nz > bz2) continue;
+          if (!clear(ent(nx, ny, nz)) || lv[at(nx, ny, nz)] >= l - 1) continue;
+          lv[at(nx, ny, nz)] = l - 1;
+          buckets[l - 1].push([nx, ny, nz]);
+        }
+      }
+      return (x, y, z) => lv[at(x, y, z)];
+    };
+    const night = lightOf(grid);
+    const st = NODES[CELLAR.stage];
+    const onStage = Math.max(...[0, 1, 2, 3].map((dy) => night(Math.floor(st.x), st.y + dy, Math.floor(st.z))));
+    console.log(`  at night: block light ${onStage} on him on the stage, ${night(A.x1 + 1, CELLAR.standY + 1, 50)} in the Long Hall, ${night(Math.floor(seat.x), seat.y + 1, Math.floor(seat.z))} at the Other Office's seat`);
+    if (onStage < 7) report(`the stage lamp does not light him on his stage at night (block light ${onStage}, want 7+)`);
+    const day = lightOf(buildVoxels(1991, { mode: 'day' }).grid);
+    const R = { ...CELLAR.rooms, ...CELLAR_PLAN.rooms };
+    const spots = [];
+    for (const [id, [x1, z1, x2, z2]] of Object.entries(R)) {
+      let best = 0, worst = 15;
+      for (let x = x1; x <= x2; x++) for (let z = z1; z <= z2; z++) {
+        const l = Math.max(day(x, CELLAR.standY, z), day(x, CELLAR.standY + 1, z));
+        best = Math.max(best, l);
+        worst = Math.min(worst, l);
+      }
+      spots.push(`${id} ${worst}-${best}`);
+      if (best < 4) report(`by day ${id} is pitch black (brightest block light ${best}): a player cannot find the way`);
+      if (best > 13) report(`by day ${id} is brightly lit (block light ${best}): the cellar should be gloomy`);
+    }
+    console.log(`  by day (block light, darkest-brightest): ${spots.join(', ')}`);
   }
 }
 

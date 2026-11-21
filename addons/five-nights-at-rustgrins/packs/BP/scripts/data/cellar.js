@@ -19,8 +19,8 @@
 
 import { OFFICE } from './layout.js';
 
-/** false until the build plan really builds the cellar: tools/map/validate_map.mjs skips its camera and nodes till then. */
-export const CELLAR_BUILT = false;
+/** true since data/cellar_plan.js builds the cellar (map version 13): tools/map/validate_map.mjs checks its camera, nodes, aisle, sight line and walkways. */
+export const CELLAR_BUILT = true;
 
 const OFFSET = Object.freeze({ x: 0, y: -7, z: 0 });
 const down = (p) => Object.freeze({ ...p, x: p.x + OFFSET.x, y: p.y + OFFSET.y, z: p.z + OFFSET.z });
