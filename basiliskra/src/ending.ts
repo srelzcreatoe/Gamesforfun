@@ -240,7 +240,7 @@ export class Ending {
     const yaw = yawTo({ x: 0, y: 0, z: 0 }, travel);
     c.setPhase("depart");
     c.goTo(out(-70), 0.13, 2);
-    sound(dim, "basiliskra.iii.growl", c.anchor("nose"), 72);
+    sound(dim, "basiliskra.roar", c.anchor("mouth"), 160);          // the whole roar, once more, as he goes home
     for (let i = 0; i < 3000; i++) {
       seam(t++);
       const hi = this.visibleUpTo(c, rift, travel);

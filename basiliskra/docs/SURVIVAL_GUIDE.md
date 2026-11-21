@@ -39,6 +39,7 @@ There is never more than one. He keeps his health across stages and across savin
 Things worth knowing, without spoiling how you find them:
 
 * **Three knocks, 0.9 seconds apart**, mean something every time you hear them. In the water they are a warning to get behind a solid block.
+* He has one voice. You first hear it through the water, the night he arrives; younger and higher on the shore; whole when he stands up as Basiliskra III. He roars when he knows you, when a lightning rod robs him of his charge, and once more as he goes home.
 * He hears splashes. Two close together bring him; he learns, and the trick has a cooldown.
 * A narrow gap in the water stops him: head through, shoulders not.
 * Form II's drag has a rest in it. That rest is your gap.

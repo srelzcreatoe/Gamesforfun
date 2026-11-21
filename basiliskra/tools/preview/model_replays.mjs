@@ -9,7 +9,7 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../.
 const P = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [`basiliskra:${k}`, v]));
 const BASE = { bound: true, phase: 0, charge: 0, look_yaw: 0, look_pitch: 0, bend: 0, pitch: 0, gait: 2, gill: true, fx_kind: 0, fx_seq: 0, tier: 1, vis_lo: 0, vis_hi: 8 };
 
-function build(name, terrain, form, seconds, at, script, initialEdits = []) {
+function build(name, terrain, form, seconds, at, script, initialEdits = [], sounds = []) {
   const frames = [];
   let pos = [...at], last = {}, state = { ...BASE, form }, speed = 0, tod = 6000, rain = false;
   for (let t = 1; t <= seconds * 20; t++) {
@@ -28,7 +28,9 @@ function build(name, terrain, form, seconds, at, script, initialEdits = []) {
   }
   const out = path.join(ROOT, 'build/replays');
   fs.mkdirSync(out, { recursive: true });
-  fs.writeFileSync(path.join(out, name + '.json'), JSON.stringify({ name, terrain, ticks: frames.length, initialEdits, frames, particles: [], sounds: [], blocks: [] }));
+  fs.writeFileSync(path.join(out, name + '.json'), JSON.stringify({ name, terrain, ticks: frames.length, initialEdits, frames, particles: [], blocks: [],
+    // a sound is placed where he is at that moment (his mouth is a few blocks ahead and up)
+    sounds: sounds.map((q) => { const f = frames[Math.round(q.s * 20) - 1]; return { t: f.t, id: q.id, pos: [f.pos[0], f.pos[1] + (form === 3 ? 7 : 4), f.pos[2] + (form === 3 ? 17 : 9)], volume: q.volume ?? 1, pitch: q.pitch ?? 1 }; }) }));
   console.log(`${name}: ${seconds} s`);
 }
 
@@ -45,7 +47,7 @@ build('model_i', 'tank', 1, 23, [0, 52, 0], (s) => {
 
 // Form II: the dragging gait (reach, pull, rest; one side then the other), then the first discharge.
 const G = [12, 18, 22];
-build('model_ii', 'shore', 2, 23, [0, 64, 0], (s, t) => {
+build('model_ii', 'shore', 2, 26, [0, 64, 0], (s, t) => {
   if (s < 12.2) {
     const cyc = (t - 1) % ((G[0] + G[1] + G[2]) * 2), half = cyc >= G[0] + G[1] + G[2], k = half ? cyc - (G[0] + G[1] + G[2]) : cyc;
     const step = k < G[0] ? 0 : k < G[0] + G[1] ? 1 : 2;
@@ -53,11 +55,13 @@ build('model_ii', 'shore', 2, 23, [0, 64, 0], (s, t) => {
   }
   if (s < 16) return { phase: 0, gait: 2, speed: 0, tod: 12900, look_yaw: s > 14 ? -35 : 0, look_pitch: s > 14 ? 8 : 0 };
   if (s < 19.2) return { phase: 15, tod: 14500, look_yaw: 0, look_pitch: 0, fx_kind: 2, fx_seq: s < 16.7 ? 1 : s < 17.4 ? 2 : 3 };
+  if (s < 20.0) return { phase: 0 };
+  if (s < 22.8) return { phase: 23 };            // the roar: the short bellow, pitched up (the same voice, younger)
   return { phase: 0 };
-});
+}, [], [{ s: 20.0, id: 'basiliskra.roar_short', volume: 0.9, pitch: 1.18 }]);
 
 // Form III: walks (four footfalls), looks round, stands against a rainy sky, then charges, fires and vents.
-build('model_iii', 'flat', 3, 27, [0, 64, 0], (s) => {
+build('model_iii', 'flat', 3, 39, [0, 64, 0], (s) => {
   if (s < 10) return { phase: 1, speed: 0.14, gait: (Math.floor((s * 20 * 0.14 - 0.14) / 1.75) + 3) % 4 };      // the foot that landed last, as the script reports it
   if (s < 11) return { phase: 0, speed: 0 };
   if (s < 15) return { tod: 14500, look_yaw: s > 12.5 ? 50 : 0, look_pitch: s > 12.5 ? 14 : 0 };
@@ -65,5 +69,7 @@ build('model_iii', 'flat', 3, 27, [0, 64, 0], (s) => {
   if (s < 22.2) return { tod: 15000, rain: false, phase: 18, charge: ramp(s, 17.6, 21.9, 0, 18) };
   if (s < 23.6) return { phase: 19, charge: 20 };
   if (s < 26.4) return { phase: 20, charge: ramp(s, 23.6, 26.2, 18, 0) };
-  return { phase: 0, charge: 0 };
-});
+  if (s < 27.6) return { phase: 0, charge: 0 };
+  if (s < 35.0) return { phase: 23 };            // the roar, whole
+  return { phase: 0 };
+}, [], [{ s: 27.6, id: 'basiliskra.roar' }]);

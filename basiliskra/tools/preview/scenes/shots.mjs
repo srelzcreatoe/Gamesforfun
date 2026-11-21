@@ -39,7 +39,7 @@ export const SHOTS = {
     ],
   },
   beam: {
-    title: 'Basiliskra III — the red beam, and the charge grounded', sub: 'the hide lights tail to head; the second charge is led into a lightning rod',
+    title: 'Basiliskra III — the red beam, and the charge grounded', sub: 'the hide lights tail to head; the second charge is led into a lightning rod, and he roars',
     bounds: { x0: -24, x1: 116, y0: 59, y1: 70, z0: -70, z1: 40 }, fog: [40, 135], home: [62, 64, -8],
     keys: [
       { t: 0, pos: [34, 68.6, -30], tgt: [62, 69, -8], fov: 62 },
@@ -49,9 +49,11 @@ export const SHOTS = {
       { t: 8.6, pos: [35, 70.5, -20], tgt: { at: 'head' }, fov: 50 },
       { t: 11.6, pos: [35, 70.5, -20], tgt: { at: 'head' }, fov: 50 },
       { t: 13.6, pos: [97, 68.5, -31], tgt: { at: 'club' }, fov: 56 },
-      { t: 20.0, pos: [96, 68, -30], tgt: [86, 66.5, -10], fov: 56 },
-      { t: 21.8, pos: [70, 73, -50], tgt: [64, 68, -8], fov: 62 },
-      { t: 25.7, pos: [66, 73, -52], tgt: { at: 'chest' }, fov: 62 },
+      { t: 19.3, pos: [96, 68, -30], tgt: [86, 66.5, -10], fov: 56 },
+      // robbed of the charge, he roars
+      { t: 19.5, cut: true, pos: [36, 67.6, -25], tgt: { at: 'head' }, fov: 48 },
+      { t: 22.9, pos: [33, 68.2, -29], tgt: { at: 'head' }, fov: 52 },
+      { t: 25.0, pos: [30, 70, -38], tgt: { at: 'chest' }, fov: 60 },
     ],
   },
   // ---- model views: front, side, back and eye detail of each form (scripted properties, see model_replays.mjs) ----
@@ -87,6 +89,7 @@ export const SHOTS = {
     labels: [
       { from: 0.3, to: 3.4, text: 'left side: the dragging gait (reach, pull, rest)' }, { from: 3.8, to: 6.4, text: 'front' }, { from: 6.8, to: 9.4, text: 'right side' }, { from: 9.8, to: 12.1, text: 'back' },
       { from: 12.4, to: 15.9, text: 'eye detail, by the light of a torch held three blocks off' }, { from: 16.1, to: 19.2, text: 'the first discharge: the knob and horn buds flash three times' },
+      { from: 20.0, to: 23.0, text: 'the roar (the same voice, younger)' },
     ],
     keys: [
       { t: 0, pos: { rel: [28, 5, -5] }, tgt: { rel: [0, 3.5, -5] }, fov: 50 },
@@ -101,7 +104,9 @@ export const SHOTS = {
       { t: 15.9, pos: { at: 'eye_l', off: [2.6, 0.3, 2.6] }, tgt: { at: 'eye_l' }, fov: 26 },
       { t: 16.0, cut: true, pos: { rel: [16, 6, -34] }, tgt: { at: 'knob' }, fov: 45 },
       { t: 19.2, pos: { rel: [16, 6, -34] }, tgt: { at: 'knob' }, fov: 45 },
-      { t: 23.1, pos: { rel: [30, 7, -10] }, tgt: { rel: [0, 3.5, -5] }, fov: 50 },
+      { t: 19.9, cut: true, pos: { rel: [13, 3.2, 24] }, tgt: { at: 'head' }, fov: 44 },
+      { t: 23.0, pos: { rel: [14, 3.4, 26] }, tgt: { at: 'head' }, fov: 46 },
+      { t: 26.1, pos: { rel: [30, 7, -6] }, tgt: { rel: [0, 3.5, -5] }, fov: 50 },
     ],
   },
   model_iii: {
@@ -111,7 +116,7 @@ export const SHOTS = {
     labels: [
       { from: 0.3, to: 3.0, text: 'left side: each foot plants before the next lifts' }, { from: 3.4, to: 6.0, text: 'front' }, { from: 6.4, to: 8.4, text: 'right side' }, { from: 8.8, to: 10.8, text: 'back' },
       { from: 11.1, to: 14.9, text: 'eye detail by torchlight: the look travels eye, skull, neck, shoulders' }, { from: 15.1, to: 17.5, text: 'silhouette against a rainy sky' },
-      { from: 17.7, to: 22.2, text: 'charge: the hide lights from the tail club to the head' }, { from: 22.3, to: 23.6, text: 'fire' }, { from: 23.7, to: 26.4, text: 'vent: three knocks at the old gill slits' },
+      { from: 17.7, to: 22.2, text: 'charge: the hide lights from the tail club to the head' }, { from: 22.3, to: 23.6, text: 'fire' }, { from: 23.7, to: 26.4, text: 'vent: three knocks at the old gill slits' }, { from: 27.6, to: 35.0, text: 'the roar' },
     ],
     keys: [
       { t: 0, pos: { rel: [40, 8, -2] }, tgt: { rel: [0, 6.5, -3] }, fov: 50 },
@@ -129,7 +134,10 @@ export const SHOTS = {
       { t: 17.6, cut: true, pos: { rel: [42, 9, 2] }, tgt: { rel: [0, 7, -3] }, fov: 52 },
       { t: 22.2, pos: { rel: [42, 9, 2] }, tgt: { rel: [0, 7, -3] }, fov: 52 },
       { t: 23.6, pos: { rel: [30, 8, 24] }, tgt: { at: 'head' }, fov: 50 },
-      { t: 27.1, pos: { rel: [30, 8, 24] }, tgt: { at: 'head' }, fov: 50 },
+      { t: 27.2, pos: { rel: [30, 8, 24] }, tgt: { at: 'head' }, fov: 50 },
+      { t: 28.6, pos: { rel: [17, 2.6, 36] }, tgt: { at: 'head' }, fov: 46 },
+      { t: 34.6, pos: { rel: [19, 2.8, 39] }, tgt: { at: 'head' }, fov: 48 },
+      { t: 39.1, pos: { rel: [40, 8, 10] }, tgt: { rel: [0, 7, -3] }, fov: 52 },
     ],
   },
 };

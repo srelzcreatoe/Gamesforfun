@@ -250,6 +250,16 @@ export class BrainTwo extends Brain {
       }
       yield;
     }
+    yield* this.roar();
+  }
+
+  /** The same voice, younger: the short bellow, pitched up. */
+  *roar(): Act {
+    const c = this.c;
+    c.halt();
+    c.setPhase("roar");
+    c.say("basiliskra.roar_short", c.anchor("mouth"), 112, 0.9, 1.18);
+    yield* wait(56);
     c.setPhase("idle");
   }
 

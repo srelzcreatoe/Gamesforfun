@@ -18,16 +18,16 @@ All of it is reproducible with `python3 tools/build.py` (which runs the first fo
 | Check | Command | Result |
 |---|---|---|
 | Type-check of the script against the 2.11.0 typings (strict) | `npx tsc --noEmit -p .` | clean |
-| Bundle | `node tools/bundle.mjs` | 164 KiB, one import: `@minecraft/server` |
+| Bundle | `node tools/bundle.mjs` | 166 KiB, one import: `@minecraft/server` |
 | Pack validation | `python3 tools/validate/validate.py` | no problems (three notes, below) |
-| Scenario suite in a simulated world | `node test/run.mjs` | **88 of 88 checks pass** |
+| Scenario suite in a simulated world | `node test/run.mjs` | **91 of 91 checks pass** |
 | Engine calls per tick | `node test/perf.mjs` | see DESIGN.md, "Bounded work" |
 | Foot and claw contact on the shipped animation | `node tools/preview/contact.cjs` | below |
 | Independent code review (a second reviewer with no access to my reasoning) | | 20 findings; all acted on, the reviewer's four probe scripts re-run clean and kept as regression scenarios |
 
 ### Pack validation
 
-Strict JSON for 57 files; 36 documents checked against Mojang's schemas (entity 1.26.60, item 1.26.50, particle 1.21.10 and others); every reference resolved: textures and their six PBR texture sets, four geometries, 135 animated bones, 47 locator-bound particle hooks, 33 particle effects, 46 sound events over 69 files, 15 synchronised properties (all `client_sync`), 55 vanilla block and entity ids and 26 vanilla sound ids used by the script (checked against the 1.26.60 lists), manifest UUIDs and versions, `@minecraft/server` 2.11.0 as the only module, the `pbr` capability.
+Strict JSON for 57 files; 36 documents checked against Mojang's schemas (entity 1.26.60, item 1.26.50, particle 1.21.10 and others); every reference resolved: textures and their six PBR texture sets, four geometries, 135 animated bones, 47 locator-bound particle hooks, 33 particle effects, 48 sound events over 71 files, 15 synchronised properties (all `client_sync`), 55 vanilla block and entity ids and 26 vanilla sound ids used by the script (checked against the 1.26.60 lists), manifest UUIDs and versions, `@minecraft/server` 2.11.0 as the only module, the `pbr` capability.
 
 Notes it prints, none of them a failure: `minecraft:timer` uses a bare number for `time` (vanilla does; the published schema lists only the object form); one sound id is built from two literals at run time (both exist).
 
@@ -79,7 +79,7 @@ Counting him: the suite counts loaded and saved entities of his type after every
 6. **The beam billboard.** `lookat_direction` with a direction derived from velocity is vanilla-proven, but which axis the game stretches is assumed from documentation.
 7. **Hit volumes.** That a cancelled hit on a helper entity re-applied to the main one behaves like a normal hit (knockback resistance, invulnerability frames, enchantment effects), and that the 20-second keep-alive timer resets as intended.
 8. **`minecraft:dimension_bound` with no collision**, name tags on a nameable entity set from script, and `beforeEvents.entityHurt` damage rewriting, as used here.
-9. **Sounds.** All 69 files are synthesised and pass automatic checks (format, length, peak, silence, clipping). **Nobody has listened to them.** Their in-game range follows the `max_distance` values in the definitions; not heard.
+9. **Sounds.** 68 files are synthesised and three are cuts of the roar recording supplied by the project owner; all 71 pass automatic checks (format, mono, length, peak, DC, clean edges). **Nobody has listened to the synthesised ones**, and I have not heard the roar either: I measured it (seven seconds at full level, then a tail) and cut it on those measurements. Their in-game range follows the `max_distance` values in the definitions; not heard.
 10. **Vibrant Visuals.** Texture sets are well-formed and the emissive level was calibrated against vanilla sets; not seen under the deferred renderer.
 11. **Realms, consoles, split-screen, low simulation distance, and anything multiplayer beyond what the simulation models.**
 

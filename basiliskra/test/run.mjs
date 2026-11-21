@@ -108,6 +108,7 @@ let world;
   const e = w.bk.ctl.creature.entity;
   check('he is bound, Form I, fully through the seam, left gill stuck open', e.getProperty(P('bound')) === true && e.getProperty(P('form')) === 1 && e.getProperty(P('vis_lo')) === 0 && e.getProperty(P('gill')) === true);
   check('the three knocks and the rams were heard by the players who were there', a.heard.filter((s) => s.id === 'basiliskra.boat_knock').length === 3 && a.heard.filter((s) => s.id === 'basiliskra.ram').length === 3);
+  check('and on the third ram his roar, through the water', a.heard.some((q) => q.id === 'basiliskra.roar_under') && b.heard.some((q) => q.id === 'basiliskra.roar_under'));
   check('hit volumes cover his whole body', w.sim.count('basiliskra:hitbox') === 8, `${w.sim.count('basiliskra:hitbox')} volumes`);
 }
 
@@ -228,6 +229,12 @@ console.log('\n== 6. Evolution during a save and reload');
   check('a reload between the two writes brings the entity into line with the record', w.bk.ctl.creature?.entity.id === id && w.bk.ctl.creature.entity.getProperty(P('form')) === 3 && w.sim.count(TYPE) === 1);
   until(w, () => rec().evolve === null, 600);
   check('Form III, the same individual', rec().form === 3 && rec().entityId === id && w.bk.ctl.creature.form === 3 && w.sim.count('basiliskra:hitbox') === 18, `${w.sim.count('basiliskra:hitbox')} hit volumes`);
+  {
+    const ana3 = w.sim.players.find((p) => p.online);
+    const h3 = ana3.heard.length; let posed = false;
+    for (let i = 0; i < 60; i++) { w.sim.step(1); if (w.bk.ctl.creature.entity.getProperty(P('phase')) === 23) posed = true; }
+    check('standing up as Basiliskra III he roars: the whole roar, head up', posed && ana3.heard.slice(h3 - 4).some((q) => q.id === 'basiliskra.roar'));
+  }
 }
 
 console.log('\n== 7. A player joining during a beam charge');
@@ -284,6 +291,11 @@ console.log('\n== 8. Grounding the charge');
   until(w, () => e().getProperty(P('charge')) === 0, 200);
   check('the light on his back collapses, the throat goes dark, and nothing is fired', e().getProperty(P('charge')) === 0 && w.bk.store.rec.mut.beams === beams && ana.heard.some((s) => s.id === 'basiliskra.iii.ground'));
   check('the arc is particles, not real lightning', ana.seen.some((s) => s.id === 'basiliskra:arc_seg') && ![...w.sim.save.entities.values()].some((r) => r.typeId === 'minecraft:lightning_bolt'));
+  {
+    const h8 = ana.heard.length; let posed = false;
+    for (let i = 0; i < 140; i++) { w.sim.step(1); if (e().getProperty(P('phase')) === 23) posed = true; }
+    check('robbed of the charge, he roars', posed && ana.heard.slice(h8 - 2).some((q) => q.id === 'basiliskra.roar_short'));
+  }
   w.sim.setBlock('minecraft:overworld', rod.x, rod.y, rod.z, 'minecraft:air');
 }
 

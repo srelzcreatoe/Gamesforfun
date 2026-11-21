@@ -1422,51 +1422,6 @@ def s_iii_growl(v, rng):
     return np.tanh(0.5 * y) * 2.0
 
 
-def s_iii_roar(v, rng):
-    """
-    Original design, built from first principles (no reference recording was imitated):
-      A  low FM growl, carrier 55-90 Hz with a half-frequency modulator (period-doubling body)
-      B  mid "scream": additive voice ~150-335 Hz through three sweeping formants, sub-harmonic breaks
-      C  rasping metallic edge: comb-filtered noise gated by the growl pulses + ring-modulated scream
-      D  air
-    Shape: fast attack, sustain with deepening vibrato/tremolo, long falling tail.
-    """
-    d = 4.5
-    n = N(d)
-    amp = env(d, [(0, 0), (0.06, 0.5), (0.3, 1.0), (0.8, 0.92), (2.7, 0.85), (3.4, 0.45), (4.1, 0.15), (d, 0)], sm=0.01)
-    vdep = env(d, [(0, 0), (0.5, 0.0), (1.0, 0.025), (2.7, 0.04), (3.5, 0.02), (d, 0)])
-    vph = phase(env(d, [(0, 5.6), (d, 6.4)]))
-    vib = 1.0 + vdep * np.sin(vph)
-    trem = 1.0 + 1.5 * vdep * np.sin(vph + 1.1)
-    # A ------------------------------------------------------------------------------
-    fl = env(d, [(0, 58), (0.3, 88), (0.9, 82), (2.7, 78), (3.6, 62), (d, 55)], 'exp', sm=0.03) * (1.0 + 0.5 * (vib - 1.0))
-    idx = 1.5 + 3.5 * amp
-    A = np.sin(phase(fl) + idx * (np.sin(phase(0.5 * fl)) + 0.5 * np.sin(phase(1.003 * fl))))
-    A = np.tanh(2.0 * A * (0.7 + 0.3 * ulfo(n, 9.0, rng)))
-    A = filt(A, LP(1100.0, 2), PK(140.0, 1.2, 4.0))
-    G = voice(d, fl, [(210.0, 120.0, 1.0), (520.0, 220.0, 0.7), (1050.0, 400.0, 0.3)], rng,
-              tilt=1.0, jitter=0.05, jit_fc=24.0, sub=0.5, fmax=3500.0)
-    # B ------------------------------------------------------------------------------
-    fs = env(d, [(0, 180), (0.28, 335), (0.8, 310), (2.7, 292), (3.4, 220), (4.2, 150), (d, 140)], 'exp', sm=0.03) * vib
-    F1 = env(d, [(0, 520), (0.4, 1150), (1.5, 980), (2.7, 880), (d, 560)], 'exp', sm=0.03)
-    F2 = env(d, [(0, 1350), (0.4, 2500), (1.5, 2250), (2.7, 1900), (d, 1300)], 'exp', sm=0.03)
-    F3 = env(d, [(0, 2900), (0.4, 3900), (2.7, 3500), (d, 2800)], 'exp', sm=0.03)
-    subc = env(d, [(0, 0.7), (0.4, 0.25), (2.2, 0.35), (2.9, 0.8), (d, 0.9)])
-    B = voice(d, fs, [(F1, 220.0, 1.0), (F2, 320.0, 0.9), (F3, 500.0, 0.5)], rng, tilt=0.85, jitter=0.025, sub=subc, fmax=9000.0)
-    bamp = env(d, [(0, 0.6), (0.3, 1.0), (2.8, 1.0), (3.6, 0.4), (d, 0.1)])
-    # C ------------------------------------------------------------------------------
-    ge = pulse_env(d, pulse_times(d, fl, rng, jitter=0.25), 0.004)
-    nz = filt(white(n, rng), COMB(1.0 / 740.0, 0.86), COMB(1.0 / 1190.0, 0.8), HP(1800.0, 2), LP(7500.0, 2))
-    ring = filt(B * np.sin(phase(1370.0 * vib)), HP(2000.0, 2))
-    C = nr(nz) * ge + 0.6 * nr(ring)
-    # D ------------------------------------------------------------------------------
-    D = formant_noise(d, rng, [(F1, 400.0, 1.0), (F2, 600.0, 0.7), (F3, 900.0, 0.5)])
-    y = (1.0 * nr(A) + 0.8 * nr(G)) * amp + 0.9 * nr(B) * amp * bamp + 0.3 * nr(C) * amp + 0.25 * D * amp ** 0.7
-    y = y * trem
-    y = np.tanh(0.45 * y) / 0.45
-    return reverb(y, rng, t60=1.1, wet=0.12, lp=5000.0, hp=200.0, pre=0.02)
-
-
 def s_iii_neck_turn(v, rng):
     d = 1.5
     n = N(d)
@@ -1824,8 +1779,6 @@ SPEC = [
      'Close, airy inhale/exhale (formants up to 6 kHz, 18 Hz nostril flutter), faint 12-19 Hz throat rattle, 34 Hz chest tone, moist ticks, proximity low shelf'),
     ('basiliskra.iii.growl', 1, 3.0, 'hostile', 8, 72, -13.0, s_iii_growl, {'fo': 0.03},
      'Additive voice f0 48-52 Hz rising to 68 Hz in the last 0.4 s with formants opening, sub-harmonics, chest sine, rattle, soft saturation'),
-    ('basiliskra.iii.roar', 1, 4.5, 'hostile', 16, 128, -11.0, s_iii_roar, {'fo': 0.05},
-     'A: FM growl 55-90 Hz with half-frequency modulator; B: additive scream 150-335 Hz through 3 sweeping formants with sub-harmonic breaks; C: comb-filtered rasp + 1370 Hz ring-mod edge; D: air. Vibrato 5.6-6.4 Hz, falling tail'),
     ('basiliskra.iii.neck_turn', 1, 1.5, 'hostile', 4, 40, -18.0, s_iii_neck_turn, {'fo': 0.03},
      'Leather creak: stick-slip pulses (8-42 Hz, two strain peaks) through two cross-faded resonator banks, friction noise, low body movement'),
     ('basiliskra.iii.club_plant', 1, 1.2, 'hostile', 8, 96, -14.0, s_iii_club_plant, {'fo': 0.03},
@@ -1856,6 +1809,21 @@ SPEC = [
 ]
 
 ALLOWED_CATEGORIES = {'hostile', 'neutral', 'ambient', 'block', 'weather', 'player'}
+
+# Recordings supplied by the project owner (kept in tools/sound/source/).  They are not synthesised: the same
+# run converts them (mono mix, cut, fades, optional filter, peak-matched) and lists them in the definitions.
+#   event, file base, source file, start s, length s, fade in s, fade out s, low-pass Hz or None, category,
+#   min distance, max distance, what it is
+SOURCE_DIR = os.path.join(HERE, 'source')
+IMPORTED = [
+    ('basiliskra.roar', 'roar', 'basiliskra_roar_1.mp3', 0.0, 10.0, 0.004, 2.2, None, 'hostile', 16, 160,
+     'His roar, whole: seven seconds of it and the tail that follows'),
+    ('basiliskra.roar_short', 'roar_short', 'basiliskra_roar_1.mp3', 4.4, 4.4, 0.30, 1.3, None, 'hostile', 12, 128,
+     'The last two and a half seconds of the same roar and its fall, swelled in: a bellow for moments that come more often'),
+    ('basiliskra.roar_under', 'roar_under', 'basiliskra_roar_1.mp3', 0.0, 9.0, 0.05, 2.5, 360.0, 'hostile', 10, 96,
+     'The same roar heard through water (two cascaded low-passes at 360 Hz)'),
+]
+IMPORT_PEAK_DB = -1.5
 
 # Review status per event.  Nobody has listened to any of these files yet.
 DEFAULT_REVIEW = 'Unheard. Machine-checked only (decode, mono, duration, peak, RMS, DC, spectrum).'
@@ -1983,6 +1951,48 @@ def verify_ogg(ogg, dur):
     return res
 
 
+def import_recording(row, work):
+    """Convert one supplied recording to the pack's format; returns the same kind of result row as render_job."""
+    event, base, src, start, length, fin, fout, lowpass, cat, dmin, dmax, how = row
+    path = os.path.join(SOURCE_DIR, src)
+    if not os.path.isfile(path):
+        raise RuntimeError('%s: source recording %s is missing' % (event, path))
+    raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', '%.3f' % start, '-t', '%.3f' % length, '-i', path,
+                          '-f', 'f32le', '-ac', '2', '-ar', str(SR), 'pipe:1'], capture_output=True, check=True).stdout
+    st = np.frombuffer(raw, dtype='<f4').astype(float).reshape(-1, 2)
+    x = st.mean(axis=1)                                        # mono, so the game can place it in the world
+    n = int(round(length * SR))
+    x = np.pad(x, (0, max(0, n - len(x))))[:n]
+    x -= x.mean()
+    if lowpass:
+        for _ in range(2):                                     # two one-pole low-passes, run forward
+            k = 1.0 - math.exp(-2.0 * math.pi * lowpass / SR)
+            y = np.empty_like(x)
+            acc = 0.0
+            for i in range(len(x)):
+                acc += k * (x[i] - acc)
+                y[i] = acc
+            x = y
+    ni, no = max(1, int(fin * SR)), max(1, int(fout * SR))
+    x[:ni] *= np.linspace(0.0, 1.0, ni) ** 2
+    x[-no:] *= np.linspace(1.0, 0.0, no) ** 2
+    x *= dbg(IMPORT_PEAK_DB) / max(1e-9, np.abs(x).max())
+    wav = os.path.join(work, base + '.wav')
+    ogg = os.path.join(OGG_DIR, base + '.ogg')
+    gain = 1.0
+    for _ in range(10):
+        write_wav(wav, x * gain)
+        encode_ogg(wav, ogg)
+        res = verify_ogg(ogg, length)
+        if res['peak_db'] <= PEAK_LIMIT_DB:
+            break
+        gain *= dbg(-0.5)
+    else:
+        raise RuntimeError('%s: cannot get the decoded peak under %.1f dBFS' % (base, PEAK_LIMIT_DB))
+    res.update(event=event, base=base, target=float('nan'), gr_db=0.0, seam=None, trim_db=todb(gain), want=length, imported=True)
+    return res
+
+
 def render_job(job):
     event, v, base, dur, rms_db, opts, work, spectro = job
     x = FUNCS[event](v, rng_for('%s#%d' % (event, v)))
@@ -2025,6 +2035,11 @@ def build_definitions():
             'sounds': [{'name': 'sounds/basiliskra/' + b, 'volume': 1.0, 'load_on_low_memory': True}
                        for b in file_bases(event, nvar)],
         }
+    for event, base, src, start, length, fin, fout, lowpass, cat, dmin, dmax, how in IMPORTED:
+        if cat not in ALLOWED_CATEGORIES:
+            raise RuntimeError('%s: category %r is not allowed' % (event, cat))
+        defs[event] = {'category': cat, 'min_distance': float(dmin), 'max_distance': float(dmax),
+                       'sounds': [{'name': 'sounds/basiliskra/' + base, 'volume': 1.0, 'load_on_low_memory': True}]}
     return {'format_version': '1.20.20', 'sound_definitions': defs}
 
 
@@ -2099,6 +2114,20 @@ def write_doc(results):
     L.append('- `basiliskra.scrape_far` and `basiliskra.fin_pulse` are deliberately quieter than the rest.')
     L.append('- All "through water" sounds have the muffling baked in; do not add another low-pass.')
     L.append('')
+    L.append('## Recordings supplied by the project owner')
+    L.append('')
+    L.append('These are not synthesised. The source file is kept in `tools/sound/source/` and converted by the same run:')
+    L.append('mixed to mono (so the game can place the sound in the world), cut, faded, peak-matched and encoded like')
+    L.append('everything else. Where the recording came from is for the project owner to state; this tool only converts it.')
+    L.append('')
+    L.append('| Event | File | Source | Cut (s) | Fades in / out (s) | Category | Min / max distance | What it is | Decoded: dur s, peak dBFS, RMS dBFS, kB |')
+    L.append('|---|---|---|---|---|---|---|---|---|')
+    for event, base, src, start, length, fin, fout, lowpass, cat, dmin, dmax, how in IMPORTED:
+        r = by_base[base]
+        L.append('| `%s` | `%s.ogg` | `%s` | %.1f to %.1f | %g / %g | %s | %g / %g | %s | %.2f, %.1f, %.1f, %.0f |' % (
+            event, base, src, start, start + length, fin, fout, cat, dmin, dmax, how,
+            r['dur'], r['peak_db'], r['rms_db'], r['bytes'] / 1024.0))
+    L.append('')
     with open(DOC_PATH, 'w', encoding='utf-8') as fh:
         fh.write('\n'.join(L))
 
@@ -2136,7 +2165,8 @@ def main():
             continue
         for i, b in enumerate(file_bases(event, nvar)):
             jobs.append((event, i + 1, b, dur, rms_db, opts, work, args.spectro))
-    if not jobs:
+    imports = [row for row in IMPORTED if not args.only or args.only in row[0]]
+    if not jobs and not imports:
         sys.exit('nothing matches --only %r' % args.only)
 
     try:
@@ -2145,13 +2175,14 @@ def main():
                 results = pool.map(render_job, jobs, chunksize=1)
         else:
             results = [render_job(j) for j in jobs]
+        results += [import_recording(row, work) for row in imports]
     finally:
         if tmp:
             shutil.rmtree(tmp, ignore_errors=True)
 
     full = args.only is None
     if full:
-        expected = {b + '.ogg' for s in SPEC for b in file_bases(s[0], s[1])}
+        expected = {b + '.ogg' for s in SPEC for b in file_bases(s[0], s[1])} | {row[1] + '.ogg' for row in IMPORTED}
         for fn_ in sorted(os.listdir(OGG_DIR)):
             if fn_.endswith('.ogg') and fn_ not in expected:
                 os.remove(os.path.join(OGG_DIR, fn_))            # stale file from an older table

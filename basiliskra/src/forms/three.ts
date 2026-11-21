@@ -272,6 +272,28 @@ export class BrainThree extends Brain {
     yield* this.walk(add(c.pos, mul(out, 24)), 0.13, 5, 700);
   }
 
+  // ---- the roar ----------------------------------------------------------------------------------------
+  /**
+   * His roar: head up, jaw open, the ground carrying it.  The whole of it for the things that happen once
+   * (the last change, the last crossing); the short bellow for the things that happen again.
+   */
+  *roar(whole: boolean): Act {
+    const c = this.c;
+    c.halt();
+    c.setPhase("roar");
+    c.say(whole ? "basiliskra.roar" : "basiliskra.roar_short", c.anchor("mouth"), whole ? 160 : 128);
+    const ticks = whole ? 150 : 64;
+    for (let t = 0; t < ticks; t++) {
+      if (t % 14 === 2) {
+        for (const p of witnesses(c.dim, c.pos, whole ? 48 : 32)) {
+          try { p.runCommand("camerashake add @s 0.05 0.7 positional"); } catch { /* commands unavailable: the sound carries it */ }
+        }
+      }
+      yield;
+    }
+    c.setPhase("idle");
+  }
+
   // ---- he remembers you --------------------------------------------------------------------------------
   private *remember(g: Player): Act {
     const c = this.c;
@@ -285,6 +307,8 @@ export class BrainThree extends Brain {
       if (t === 36) c.say("basiliskra.iii.growl", c.anchor("nose"), 72);
       yield;
     }
+    if (!ok()) return;
+    yield* this.roar(false);
     if (!ok()) return;
     // from now it is that player he follows: lead him into the open and everyone else has a way out
     this.prey = g.id;
@@ -377,6 +401,9 @@ export class BrainThree extends Brain {
       yield;
     }
     c.setCharge(0);
+    // robbed of it, he roars
+    yield* wait(14);
+    yield* this.roar(false);
   }
 
   // ---- the red beam -----------------------------------------------------------------------------------------

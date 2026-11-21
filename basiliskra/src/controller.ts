@@ -190,7 +190,9 @@ export class Controller {
     const c = this.creature, rec = store.rec;
     if (!c || !c.valid || rec.stage !== "alive" || rec.evolve || rec.ending?.step) return;
     const at = { x: c.pos.x, y: c.pos.y + 3, z: c.pos.z };
-    c.say(c.form === 3 ? "basiliskra.iii.roar" : "basiliskra.hurt", c.anchor("nose"), 96);
+    // the same voice at every age: through water, pitched up, or as it is
+    if (c.form === 1) c.say("basiliskra.roar_under", c.anchor("nose"), 96);
+    else c.say("basiliskra.roar_short", c.anchor("nose"), 128, 1, c.form === 2 ? 1.18 : 1);
     sound(c.dim, "basiliskra.rift.open", at, 72, 1, 1.3);
     sound(c.dim, "basiliskra.rift.close", at, 72);
     for (const p of [at, c.anchor("nose"), c.anchor("tail_notch")]) particle(c.dim, "basiliskra:seam_close", p, 72);
@@ -456,6 +458,8 @@ export class Controller {
           // on the third his left gill sticks open, and a boat overhead rocks sideways
           c.set(PROP.gill, true);
           sound(dim, "basiliskra.i.gill_catch", c.anchor("gill_l"), 32);
+          // and for the first time he is heard: the roar, through the water
+          sound(dim, "basiliskra.roar_under", nose, 96, 0.9);
           try {
             for (const b of dim.getEntities({ location: nose, maxDistance: 32, families: ["boat"] })) b.applyImpulse(mul({ x: -f.z, y: 0.12, z: f.x }, 0.35));
           } catch { /* no boats */ }
@@ -575,7 +579,10 @@ export class Controller {
       rec.evolve = null;
       store.save();
       this.brain?.finish();
-      if (rec.form === 3) c.say("basiliskra.iii.roar", c.anchor("nose"), 128);
+      // the change is over, and he says so: the whole roar as Basiliskra III, the short one, younger, as II
+      const b = this.brain;
+      if (b instanceof BrainThree) b.forced = { name: "roar", run: b.roar(true), limit: 220 };
+      else if (b instanceof BrainTwo) b.forced = { name: "roar", run: b.roar(), limit: 120 };
     }
   }
 

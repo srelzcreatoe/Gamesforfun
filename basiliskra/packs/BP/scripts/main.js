@@ -1618,6 +1618,30 @@ var BrainThree = class extends Brain {
     yield* wait(50);
     yield* this.walk(add(c.pos, mul(out, 24)), 0.13, 5, 700);
   }
+  // ---- the roar ----------------------------------------------------------------------------------------
+  /**
+   * His roar: head up, jaw open, the ground carrying it.  The whole of it for the things that happen once
+   * (the last change, the last crossing); the short bellow for the things that happen again.
+   */
+  *roar(whole) {
+    const c = this.c;
+    c.halt();
+    c.setPhase("roar");
+    c.say(whole ? "basiliskra.roar" : "basiliskra.roar_short", c.anchor("mouth"), whole ? 160 : 128);
+    const ticks = whole ? 150 : 64;
+    for (let t = 0; t < ticks; t++) {
+      if (t % 14 === 2) {
+        for (const p of witnesses(c.dim, c.pos, whole ? 48 : 32)) {
+          try {
+            p.runCommand("camerashake add @s 0.05 0.7 positional");
+          } catch {
+          }
+        }
+      }
+      yield;
+    }
+    c.setPhase("idle");
+  }
   // ---- he remembers you --------------------------------------------------------------------------------
   *remember(g) {
     const c = this.c;
@@ -1636,6 +1660,8 @@ var BrainThree = class extends Brain {
       if (t === 36) c.say("basiliskra.iii.growl", c.anchor("nose"), 72);
       yield;
     }
+    if (!ok()) return;
+    yield* this.roar(false);
     if (!ok()) return;
     this.prey = g.id;
     this.preyUntil = this.now + 70 * TICKS.second;
@@ -1739,6 +1765,8 @@ var BrainThree = class extends Brain {
       yield;
     }
     c.setCharge(0);
+    yield* wait(14);
+    yield* this.roar(false);
   }
   // ---- the red beam -----------------------------------------------------------------------------------------
   *vent() {
@@ -2250,7 +2278,7 @@ var Ending = class {
     const yaw = yawTo({ x: 0, y: 0, z: 0 }, travel3);
     c.setPhase("depart");
     c.goTo(out(-70), 0.13, 2);
-    sound(dim, "basiliskra.iii.growl", c.anchor("nose"), 72);
+    sound(dim, "basiliskra.roar", c.anchor("mouth"), 160);
     for (let i = 0; i < 3e3; i++) {
       seam(t++);
       const hi = this.visibleUpTo(c, rift, travel3);
@@ -3054,6 +3082,15 @@ var BrainTwo = class extends Brain {
       }
       yield;
     }
+    yield* this.roar();
+  }
+  /** The same voice, younger: the short bellow, pitched up. */
+  *roar() {
+    const c = this.c;
+    c.halt();
+    c.setPhase("roar");
+    c.say("basiliskra.roar_short", c.anchor("mouth"), 112, 0.9, 1.18);
+    yield* wait(56);
     c.setPhase("idle");
   }
   /** Lamps along the street (anything a village lights itself with): one layer of a bounded box round the knob. */
@@ -3379,7 +3416,8 @@ var Controller = class {
     const c = this.creature, rec = store.rec;
     if (!c || !c.valid || rec.stage !== "alive" || rec.evolve || rec.ending?.step) return;
     const at = { x: c.pos.x, y: c.pos.y + 3, z: c.pos.z };
-    c.say(c.form === 3 ? "basiliskra.iii.roar" : "basiliskra.hurt", c.anchor("nose"), 96);
+    if (c.form === 1) c.say("basiliskra.roar_under", c.anchor("nose"), 96);
+    else c.say("basiliskra.roar_short", c.anchor("nose"), 128, 1, c.form === 2 ? 1.18 : 1);
     sound(c.dim, "basiliskra.rift.open", at, 72, 1, 1.3);
     sound(c.dim, "basiliskra.rift.close", at, 72);
     for (const p of [at, c.anchor("nose"), c.anchor("tail_notch")]) particle(c.dim, "basiliskra:seam_close", p, 72);
@@ -3693,6 +3731,7 @@ var Controller = class {
         if (k === 2) {
           c.set(PROP.gill, true);
           sound(dim, "basiliskra.i.gill_catch", c.anchor("gill_l"), 32);
+          sound(dim, "basiliskra.roar_under", nose, 96, 0.9);
           try {
             for (const b of dim.getEntities({ location: nose, maxDistance: 32, families: ["boat"] })) b.applyImpulse(mul({ x: -f.z, y: 0.12, z: f.x }, 0.35));
           } catch {
@@ -3851,7 +3890,9 @@ var Controller = class {
       rec.evolve = null;
       store.save();
       this.brain?.finish();
-      if (rec.form === 3) c.say("basiliskra.iii.roar", c.anchor("nose"), 128);
+      const b = this.brain;
+      if (b instanceof BrainThree) b.forced = { name: "roar", run: b.roar(true), limit: 220 };
+      else if (b instanceof BrainTwo) b.forced = { name: "roar", run: b.roar(), limit: 120 };
     }
   }
   dropFin(dim, at) {
