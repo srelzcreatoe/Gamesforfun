@@ -1475,6 +1475,28 @@ def s_iii_club_swing(v, rng):
     return nr(wh) + 0.8 * nr(hv) + 0.15 * nr(wst) + 0.45 * nr(ck) + 0.3 * nr(bz)
 
 
+def geiger(v, rng, rate):
+    """A Geiger counter: sharp, dry clicks at random (Poisson) times, each a 0.3 ms tick through the counter's
+    small speaker (resonant near 3.2 kHz, a little body near 900 Hz).  0.5 s; the script replays it every 10 ticks."""
+    d = 0.5
+    n = N(d)
+    ts = poisson_times(d - 0.01, rate, rng) + 0.004
+    amps = 0.75 + 0.25 * rng.random(len(ts))
+    imp = impulses(n, ts, amps)
+    k = N(0.006)
+    tk = np.arange(k) / SR
+    click = (np.sin(TAU * 3200.0 * tk) * np.exp(-tk / 0.0006) + 0.35 * np.sin(TAU * 900.0 * tk) * np.exp(-tk / 0.0016)
+             + 0.6 * np.exp(-tk / 0.00025))
+    y = conv(imp, click)[:n]
+    return filt(y, HP(400.0, 2))
+
+
+def s_geiger_1(v, rng): return geiger(v, rng, 5.0)
+def s_geiger_2(v, rng): return geiger(v, rng, 14.0)
+def s_geiger_3(v, rng): return geiger(v, rng, 34.0)
+def s_geiger_4(v, rng): return geiger(v, rng, 80.0)
+
+
 def s_iii_charge_tick(v, rng):
     """Pitch-neutral 'tink' at A4 = 440 Hz with harmonic partials, so the game can re-pitch it cleanly."""
     d = 0.5
@@ -1785,6 +1807,15 @@ SPEC = [
      'Saturated 135->50 Hz thud + rock crack (noise + 4 modes) + debris grains, with electric snap, sputtering 2x118 Hz buzz and decaying crackle'),
     ('basiliskra.iii.club_swing', 1, 1.0, 'hostile', 6, 64, -15.0, s_iii_club_swing, {},
      'Moving-band whoosh 220->950->260 Hz + low weight band + narrow spike whistle, crackle following the swing, doppler-shifted 2x118 Hz buzz'),
+    # ---- fallout ------------------------------------------------------------------------------------
+    ('basiliskra.geiger.1', 3, 0.5, 'player', 1, 8, -30.0, s_geiger_1, {'fo': 0.004},
+     'Geiger counter, low: Poisson clicks at ~5/s (0.3 ms tick through a 3.2 kHz speaker resonance + 900 Hz body)'),
+    ('basiliskra.geiger.2', 3, 0.5, 'player', 1, 8, -26.0, s_geiger_2, {'fo': 0.004},
+     'Geiger counter, rising: Poisson clicks at ~14/s'),
+    ('basiliskra.geiger.3', 3, 0.5, 'player', 1, 8, -23.0, s_geiger_3, {'fo': 0.004},
+     'Geiger counter, high: Poisson clicks at ~34/s'),
+    ('basiliskra.geiger.4', 3, 0.5, 'player', 1, 8, -21.0, s_geiger_4, {'fo': 0.004},
+     'Geiger counter, extreme: Poisson clicks at ~80/s, almost a buzz'),
     ('basiliskra.iii.charge_tick', 1, 0.5, 'hostile', 6, 72, -18.0, s_iii_charge_tick, {},
      'Harmonic modal "tink" exactly on 440 Hz (partials 1,2,3,5,8,12; slow detune beat), 55 Hz hum modulation, 1 ms ignition snap, faint 3.5 kHz glow hiss'),
     ('basiliskra.iii.charge', 1, 5.0, 'hostile', 8, 96, -15.0, s_iii_charge, {'fo': 0.004},

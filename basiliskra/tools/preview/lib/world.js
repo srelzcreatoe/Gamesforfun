@@ -11,13 +11,22 @@ const PALETTE = {
   'minecraft:sand': C('#d9cf9c'), 'minecraft:smooth_basalt': C('#3a3a3f'), 'minecraft:copper_block': C('#c06c4f'),
   'minecraft:oak_planks': C('#a8854f'), 'minecraft:spruce_planks': C('#6b4f2e'), 'minecraft:oak_log': { top: C('#b39355'), side: C('#5e4a2c'), bottom: C('#b39355') },
   'minecraft:oak_door': C('#8f6f3f'), 'minecraft:oak_fence': C('#a8854f'), 'minecraft:netherrack': C('#6f3535'),
+  'minecraft:oak_leaves': C('#3f7a2a'), 'minecraft:short_grass': C('#5d9a3c'), 'minecraft:poppy': C('#c0282c'),
+  'minecraft:mud': C('#3b3330'),
+  // his fallout (colours from the pack's own block textures)
+  'basiliskra:irradiated_soil': { top: C('#6a4a44'), side: C('#5c4433'), bottom: C('#54402e') },
+  'basiliskra:scarlet_trinitite': C('#c0283a'),
 };
+/** How much a block glows by itself (0..1): the fallout blocks carry light. */
+const GLOW = { 'basiliskra:scarlet_trinitite': 0.9, 'basiliskra:irradiated_soil': 0.18 };
 const SMALL = {     // blocks drawn smaller than a full cube: [half x, y0, y1, half z]
   'minecraft:oak_fence': [0.13, 0, 1, 0.13], 'minecraft:lantern': [0.19, 0.0, 0.5, 0.19], 'minecraft:torch': [0.07, 0, 0.62, 0.07],
   'minecraft:lightning_rod': [0.09, 0, 1, 0.09],
+  'minecraft:short_grass': [0.32, 0, 0.45, 0.32], 'minecraft:poppy': [0.1, 0, 0.6, 0.1],
 };
 const EMISSIVE = { 'minecraft:lantern': C('#ffd27a'), 'minecraft:torch': C('#ffcf70') };
-const SPECIAL_COLOR = { 'minecraft:lantern': C('#ffd27a'), 'minecraft:torch': C('#e8b860'), 'minecraft:lightning_rod': C('#c7714f'), 'minecraft:glass': C('#cfe8f0') };
+const SPECIAL_COLOR = { 'minecraft:lantern': C('#ffd27a'), 'minecraft:torch': C('#e8b860'), 'minecraft:lightning_rod': C('#c7714f'), 'minecraft:glass': C('#cfe8f0'),
+  'minecraft:short_grass': C('#6aa845'), 'minecraft:poppy': C('#c0282c') };
 
 function hash3(x, y, z) {
   let h = (x * 374761393 + y * 668265263 + z * 2147483647) | 0;
@@ -149,7 +158,8 @@ export class VoxelWorld {
       const p = PALETTE[id] ?? C('#8a8a8a');
       const cs = p.isColor ? { top: p, side: p, bottom: p } : p;
       const colors = { top: cs.top.clone().multiplyScalar(tint), side: cs.side.clone().multiplyScalar(tint), bottom: cs.bottom.clone().multiplyScalar(tint) };
-      box(pos, nor, uv, col, glow, idx, [x, y, z], [x + 1, y + 1, z + 1], colors, 0, (n) => solid(this.id(x + n[0], y + n[1], z + n[2])));
+      box(pos, nor, uv, col, glow, idx, [x, y, z], [x + 1, y + 1, z + 1], colors, GLOW[id] ?? 0, (n) => solid(this.id(x + n[0], y + n[1], z + n[2])));
+      if (id === 'basiliskra:scarlet_trinitite' && this.lights.length < 40) this.lights.push({ pos: new THREE.Vector3(x + 0.5, y + 1.4, z + 0.5), color: new THREE.Color(1, 0.18, 0.14), range: 4.5, power: 0.3 });
     }
     const mk = (P, N, U, Cc, G, I, mat, order = 0) => {
       if (!P.length) return;

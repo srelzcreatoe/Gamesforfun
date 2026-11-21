@@ -148,6 +148,14 @@
       {
        "effect": "club_crackle",
        "locator": "knob_core_ii"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "knob_core_ii"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "heart_ii"
       }
      ]
     },
@@ -224,6 +232,14 @@
       {
        "effect": "club_crackle",
        "locator": "spike_tip_11_iii"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_2_iii"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_6_iii"
       }
      ]
     },
@@ -273,6 +289,18 @@
       {
        "effect": "throat_glow",
        "locator": "mouth_iii"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_0_iii"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_4_iii"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_8_iii"
       }
      ]
     },
@@ -322,6 +350,18 @@
       {
        "effect": "charge_spark",
        "locator": "club_core_iii"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_1_iii"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_5_iii"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_9_iii"
       }
      ]
     },
@@ -351,6 +391,22 @@
       {
        "effect": "gill_steam",
        "locator": "gill_r_iii"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "gill_l_iii"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "gill_r_iii"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_3_iii"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_7_iii"
       }
      ]
     },

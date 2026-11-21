@@ -10,6 +10,9 @@
     },
     "basiliskra_config_wheel": {
       "textures": "textures/items/basiliskra_config_wheel"
+    },
+    "basiliskra_geiger_counter": {
+      "textures": "textures/items/basiliskra_geiger_counter"
     }
   }
 }

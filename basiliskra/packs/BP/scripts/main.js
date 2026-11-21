@@ -2,7 +2,7 @@
 
 
 // src/main.ts
-import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause3, system as system6, world as world11 } from "@minecraft/server";
+import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause3, system as system6, world as world12 } from "@minecraft/server";
 
 // src/config.ts
 var CONFIG = {
@@ -31,9 +31,17 @@ var CONFIG = {
   /** Every player gets the journal the first time they join with the pack on. */
   giveJournal: true,
   /** Operators (and the only player of a single-player world) also get the config wheel on first join. */
-  giveWheel: true
+  giveWheel: true,
+  /**
+   * His fallout.  "land" (default): glowing motes, Geiger clicks, and in natural ground only, soil turns to
+   * irradiated soil, plants wither and wild leaves fall, healing as it fades.  "visual": motes and clicks only.
+   * "off": none of it.
+   */
+  fallout: "land",
+  /** Players standing in strong fallout get hungry, weak and sick (vanilla effects; milk clears them). */
+  sickness: true
 };
-var SETTINGS = ["pacing", "terrain", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug"];
+var SETTINGS = ["pacing", "terrain", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness"];
 var SETTINGS_KEY = "bk:cfg";
 var NS = "basiliskra";
 var TYPE = `${NS}:basiliskra`;
@@ -41,6 +49,9 @@ var HITBOX = `${NS}:hitbox`;
 var FIN_ITEM = `${NS}:shed_fin`;
 var JOURNAL_ITEM = `${NS}:journal`;
 var WHEEL_ITEM = `${NS}:config_wheel`;
+var COUNTER_ITEM = `${NS}:geiger_counter`;
+var SOIL_BLOCK = `${NS}:irradiated_soil`;
+var TRINITITE_BLOCK = `${NS}:scarlet_trinitite`;
 var PROP = {
   form: `${NS}:form`,
   bound: `${NS}:bound`,
@@ -106,6 +117,8 @@ function clean(k, v) {
       return v === "none" || v === "scorch" || v === "break" ? v : void 0;
     case "spawnForm":
       return v === 0 || v === 1 || v === 2 || v === 3 ? v : void 0;
+    case "fallout":
+      return v === "off" || v === "visual" || v === "land" ? v : void 0;
     default:
       return typeof v === "boolean" ? v : void 0;
   }
@@ -151,7 +164,7 @@ function resetSettings() {
 }
 
 // src/ui.ts
-import { ItemStack, PlayerPermissionLevel, system as system2, world as world6 } from "@minecraft/server";
+import { ItemStack, PlayerPermissionLevel, system as system2, world as world7 } from "@minecraft/server";
 import { ActionFormData, FormCancelationReason, MessageFormData, ModalFormData } from "@minecraft/server-ui";
 
 // src/creature.ts
@@ -226,7 +239,7 @@ function isSolidBlock(b) {
 var PLANT = /^minecraft:(?!stripped_)(.*_log|.*_wood|.*_stem|.*_hyphae|.*leaves.*|azalea|flowering_azalea|bamboo|cactus|melon_block|pumpkin|.*mushroom_block|mushroom_stem|mangrove_roots|bee_nest|chorus_plant|chorus_flower|pointed_dripstone|big_dripleaf|hanging_roots)$/;
 var NATURAL = /^minecraft:(stone|granite|diorite|andesite|deepslate|tuff|calcite|dirt|coarse_dirt|grass_block|podzol|mycelium|dirt_with_roots|mud|clay|sand|red_sand|gravel|suspicious_sand|suspicious_gravel|sandstone|red_sandstone|snow|ice|packed_ice|blue_ice|powder_snow|moss_block|pale_moss_block|hardened_clay|.*_terracotta|netherrack|basalt|smooth_basalt|blackstone|end_stone|dripstone_block|.*_ore|bedrock|obsidian|magma|soul_sand|soul_soil|muddy_mangrove_roots|amethyst_block|budding_amethyst|.*coral_block|cobbled_deepslate|packed_mud)$/;
 var isPlantBlock = (id) => PLANT.test(id);
-var isNaturalGround = (id) => NATURAL.test(id) && !id.includes("glazed");
+var isNaturalGround = (id) => NATURAL.test(id) && !id.includes("glazed") || id === "basiliskra:irradiated_soil" || id === "basiliskra:scarlet_trinitite";
 function trunkBlocked(dim, at2, feetY, radius, built, cliff, full) {
   const ring = full ? [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [0.72, 0.72], [-0.72, 0.72], [0.72, -0.72], [-0.72, -0.72]] : [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
   for (const [dx, dz] of ring) {
@@ -560,7 +573,8 @@ function freshRecord() {
     mut: { surfacings: 0, episodes: 0, overland: 0, formSince: 0, lastEncounter: 0, beams: 0 },
     learned: { bell: null, bellUses: 0, lures: 0, lureUntil: 0, echoes: {}, rods: 0, fragments: 0, fragmentAt: 0 },
     sites: [],
-    weather: "clear"
+    weather: "clear",
+    fallout: []
   };
 }
 function migrate(raw) {
@@ -570,6 +584,7 @@ function migrate(raw) {
   rec.mut = { ...base.mut, ...raw.mut ?? {} };
   rec.learned = { ...base.learned, ...raw.learned ?? {} };
   if (!Array.isArray(rec.sites)) rec.sites = [];
+  if (!Array.isArray(rec.fallout)) rec.fallout = [];
   if (rec.form !== 1 && rec.form !== 2 && rec.form !== 3) rec.form = 1;
   const stages = ["dormant", "pending", "arriving", "alive", "departed"];
   if (!stages.includes(rec.stage)) rec.stage = rec.entityId ? "alive" : "dormant";
@@ -1611,8 +1626,313 @@ function clearHarm() {
   store.touchHarm();
 }
 
+// src/fallout.ts
+import { EquipmentSlot, world as world6 } from "@minecraft/server";
+var MAX_ZONES = 32;
+var HALF_LIFE2 = 3 * TICKS.day;
+var GONE = 0.02;
+var HEALING = 0.2;
+var NEAR = 96;
+var SAMPLES_PER_TICK = 6;
+var SOIL_FROM = /* @__PURE__ */ new Set(["minecraft:grass_block", "minecraft:dirt", "minecraft:podzol", "minecraft:mycelium", "minecraft:moss_block", "minecraft:coarse_dirt", "minecraft:dirt_with_roots"]);
+var WITHERS = /^minecraft:(short_grass|fern|dandelion|poppy|.*tulip|.*_orchid|allium|azure_bluet|oxeye_daisy|cornflower|lily_of_the_valley|.*sapling|sweet_berry_bush|wildflowers|pink_petals|leaf_litter|bush|firefly_bush)$/;
+var WITHERS_TALL = /^minecraft:(tall_grass|large_fern|sunflower|lilac|rose_bush|peony|tall_dry_grass)$/;
+var refused = /* @__PURE__ */ new Set();
+function setTypeOr(b, id, fallback) {
+  if (!refused.has(id)) {
+    try {
+      b.setType(id);
+      return true;
+    } catch {
+      refused.add(id);
+    }
+  }
+  try {
+    b.setType(fallback);
+    return true;
+  } catch {
+    return false;
+  }
+}
+var zones = () => store.rec.fallout;
+function decayed(z, now) {
+  return z.s * Math.pow(0.5, Math.max(0, now - z.t) * CONFIG.pacing / HALF_LIFE2);
+}
+function addFallout(at2, r, s) {
+  if (CONFIG.fallout === "off") return;
+  const now = store.rec.clock, list = zones();
+  for (const z of list) {
+    if (dist(z, at2) <= Math.max(z.r, r) * 0.75) {
+      z.s = Math.min(1.5, decayed(z, now) + s);
+      z.t = now;
+      z.r = Math.min(9, Math.max(z.r, r));
+      store.touch();
+      return;
+    }
+  }
+  let wet = false;
+  try {
+    const b = blockAt(overworld(), { x: at2.x, y: at2.y + 1, z: at2.z });
+    wet = !!b && (b.typeId === "minecraft:water" || b.typeId === "minecraft:flowing_water");
+  } catch {
+    wet = false;
+  }
+  list.push({ x: Math.floor(at2.x) + 0.5, y: Math.floor(at2.y), z: Math.floor(at2.z) + 0.5, r, s: Math.min(1.5, s), t: now, w: wet });
+  if (list.length > MAX_ZONES) {
+    let weakest = 0;
+    for (let i = 1; i < list.length; i++) if (decayed(list[i], now) < decayed(list[weakest], now)) weakest = i;
+    list.splice(weakest, 1);
+  }
+  store.touch();
+}
+function doseAt(p, now = store.rec.clock) {
+  let d = 0;
+  for (const z of zones()) {
+    const k = dist(p, z);
+    if (k < z.r + 1.5) d += decayed(z, now) * Math.max(0, 1 - k / (z.r + 1.5));
+  }
+  return d;
+}
+function nearestFallout(p, now = store.rec.clock) {
+  let best = null;
+  for (const z of zones()) {
+    const s = decayed(z, now);
+    if (s < 0.05) continue;
+    const d = distXZ(p, z);
+    if (!best || d < best.distance) best = { zone: z, strength: s, distance: d };
+  }
+  return best;
+}
+var falloutCount = (now = store.rec.clock) => zones().filter((z) => decayed(z, now) >= 0.05).length;
+function clearFallout() {
+  store.rec.fallout = [];
+  store.touch();
+}
+function touchesBuilt(dim, x, y, z) {
+  for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    for (const dy of [0, 1]) {
+      const n = blockAt(dim, { x: x + dx, y: y + dy, z: z + dz });
+      if (n && isSolidBlock(n) && !isNaturalGround(n.typeId) && !isPlantBlock(n.typeId) && n.typeId !== SOIL_BLOCK && n.typeId !== TRINITITE_BLOCK) return true;
+    }
+  }
+  return false;
+}
+function naturalLeaves(b) {
+  if (!/leaves/.test(b.typeId)) return false;
+  try {
+    return b.permutation.getState("persistent_bit") !== true;
+  } catch {
+    return false;
+  }
+}
+function puff(dim, x, y, z, what) {
+  particle(dim, what === "ash" ? "basiliskra:fallout_ash" : "basiliskra:rad_glint", { x: x + 0.5, y: y + 0.6, z: z + 0.5 }, 40);
+}
+function sample(dim, z, s, salt) {
+  const a = hash(salt, 1) * Math.PI * 2, rr = Math.sqrt(hash(salt, 2)) * z.r;
+  const x = Math.floor(z.x + Math.cos(a) * rr), zz = Math.floor(z.z + Math.sin(a) * rr);
+  const local = s * Math.max(0, 1 - rr / (z.r + 1.5));
+  if (!isLoaded(dim, { x, y: z.y, z: zz })) return;
+  for (let y = Math.floor(z.y) + 10; y >= Math.floor(z.y) - 6; y--) {
+    const b = blockAt(dim, { x, y, z: zz });
+    if (!b) return;
+    const id = b.typeId;
+    if (id === "minecraft:air" || /^minecraft:light_block_\d+$/.test(id)) continue;
+    if (id === "minecraft:water" || id === "minecraft:flowing_water" || id === "minecraft:lava") return;
+    if (s < HEALING) {
+      if (id === SOIL_BLOCK && hash(salt, 3) < 0.5) {
+        try {
+          b.setType("minecraft:dirt");
+        } catch {
+        }
+      }
+      if (isPlantBlock(id) || WITHERS.test(id) || WITHERS_TALL.test(id) || !isSolidBlock(b)) continue;
+      return;
+    }
+    if (hash(salt, 4) > local * 0.6) return;
+    if (naturalLeaves(b)) {
+      if (local > 0.35) {
+        try {
+          b.setType("minecraft:air");
+          puff(dim, x, y, zz, "ash");
+        } catch {
+        }
+      }
+      return;
+    }
+    if (isPlantBlock(id)) continue;
+    if (WITHERS_TALL.test(id)) {
+      try {
+        blockAt(dim, { x, y: y + 1, z: zz })?.setType("minecraft:air");
+        b.setType("minecraft:air");
+        puff(dim, x, y, zz, "ash");
+      } catch {
+      }
+      return;
+    }
+    if (WITHERS.test(id) || id === "minecraft:snow_layer") {
+      try {
+        b.setType("minecraft:air");
+        puff(dim, x, y, zz, "ash");
+      } catch {
+      }
+      return;
+    }
+    if (!isSolidBlock(b)) continue;
+    if (SOIL_FROM.has(id) && !touchesBuilt(dim, x, y, zz)) {
+      const above = blockAt(dim, { x, y: y + 1, z: zz });
+      if (above && !isSolidBlock(above) && setTypeOr(b, SOIL_BLOCK, "minecraft:coarse_dirt")) puff(dim, x, y, zz, "glint");
+    }
+    return;
+  }
+}
+function fuse(b) {
+  if (CONFIG.fallout !== "land") return false;
+  if (b.typeId !== "minecraft:sand" && b.typeId !== "minecraft:red_sand") return false;
+  try {
+    if (touchesBuilt(b.dimension, b.location.x, b.location.y, b.location.z)) return false;
+  } catch {
+    return false;
+  }
+  return setTypeOr(b, TRINITITE_BLOCK, "minecraft:smooth_basalt");
+}
+var cursor = 0;
+var doseOf = /* @__PURE__ */ new Map();
+function falloutTick(now) {
+  const list = zones();
+  if (CONFIG.fallout === "off" || !list.length) {
+    if (now % 10 === 0) counterTick(now);
+    return;
+  }
+  if (now % 200 === 0) {
+    const keep = list.filter((z) => decayed(z, now) >= GONE);
+    if (keep.length !== list.length) {
+      store.rec.fallout = keep;
+      store.touch();
+    }
+  }
+  const dim = overworld(), ps = players().filter((p) => {
+    try {
+      return p.dimension.id === OVERWORLD;
+    } catch {
+      return false;
+    }
+  });
+  if (!ps.length) return;
+  const live = list.filter((z) => ps.some((p) => distXZ(p.location, z) < NEAR));
+  if (!live.length) {
+    if (now % 10 === 0) counterTick(now);
+    return;
+  }
+  const land = live.filter((z) => !z.w);
+  if (CONFIG.fallout === "land" && land.length) {
+    for (let i = 0; i < SAMPLES_PER_TICK; i++) {
+      const z = land[cursor++ % land.length];
+      sample(dim, z, decayed(z, now), now * 13 + i * 7 + cursor);
+    }
+  }
+  if (now % 3 === 0) {
+    for (const z of live) {
+      const s = decayed(z, now);
+      if (s < 0.05 || hash(now, z.x, z.z) > Math.min(1, s * 1.4)) continue;
+      const a = hash(now, z.x, 2) * Math.PI * 2, rr = Math.sqrt(hash(now, z.z, 3)) * z.r;
+      const at2 = { x: z.x + Math.cos(a) * rr, y: z.y + 1 + hash(now, 5) * 2, z: z.z + Math.sin(a) * rr };
+      particle(dim, "basiliskra:rad_mote", at2, 48);
+      if (s > 0.4 && now % 9 === 0) particle(dim, "basiliskra:rad_shimmer", { x: at2.x, y: z.y + 0.6, z: at2.z }, 40);
+    }
+  }
+  if (now % 10 === 0) counterTick(now);
+  if (now % 40 === 0) sicken(dim, live, now, ps);
+}
+function counterTick(now) {
+  for (const p of players()) {
+    let at2;
+    try {
+      if (p.dimension.id !== OVERWORLD) continue;
+      at2 = p.location;
+    } catch {
+      continue;
+    }
+    const d = CONFIG.fallout === "off" ? 0 : doseAt(at2, now);
+    doseOf.set(p.id, d);
+    const holding = holdsCounter(p);
+    const level = d < 0.03 ? 0 : d < 0.2 ? 1 : d < 0.45 ? 2 : d < 0.75 ? 3 : 4;
+    if (level > 0 || holding && d > 5e-3) {
+      try {
+        p.playSound(`basiliskra.geiger.${Math.max(1, level)}`, { volume: holding ? 0.9 : 0.6 });
+      } catch {
+      }
+    }
+    if (holding) {
+      const n = nearestFallout(at2, now);
+      const where = n && n.distance > 2 ? `  §7nearest fallout §f${Math.round(n.distance)}§7 blocks ${direction(at2, n.zone)}` : "";
+      const colour = level >= 3 ? "§c" : level >= 1 ? "§6" : "§a";
+      try {
+        p.onScreenDisplay.setActionBar(`${colour}Radiation ${Math.round(Math.min(1, d) * 100)}%${where}`);
+      } catch {
+      }
+    }
+  }
+}
+function holdsCounter(p) {
+  try {
+    return p.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand)?.typeId === COUNTER_ITEM;
+  } catch {
+    return false;
+  }
+}
+function direction(from, to) {
+  const a = Math.atan2(-(to.x - from.x), to.z - from.z) * 180 / Math.PI;
+  return ["south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"][(Math.round(a / 45) % 8 + 8) % 8];
+}
+function sicken(dim, live, now, ps) {
+  if (!CONFIG.sickness) return;
+  let peaceful = false;
+  try {
+    peaceful = CONFIG.harmlessOnPeaceful && String(world6.getDifficulty()).toLowerCase() === "peaceful";
+  } catch {
+    peaceful = false;
+  }
+  for (const p of ps) {
+    const d = doseOf.get(p.id) ?? 0;
+    if (d < 0.15 || peaceful) continue;
+    let gm = "";
+    try {
+      gm = String(p.getGameMode());
+    } catch {
+      continue;
+    }
+    if (gm === "Creative" || gm === "creative" || gm === "Spectator" || gm === "spectator") continue;
+    try {
+      p.addEffect("hunger", 80, { amplifier: d > 0.6 ? 1 : 0, showParticles: false });
+      if (d > 0.45) {
+        p.addEffect("weakness", 80, { amplifier: 0, showParticles: false });
+        p.addEffect("nausea", 60, { amplifier: 0, showParticles: false });
+      }
+      if (d > 0.8) p.addEffect("poison", 50, { amplifier: 0, showParticles: false });
+    } catch {
+    }
+  }
+  let q = 0;
+  for (const z of live) {
+    const s = decayed(z, now);
+    if (s < 0.35 || q++ >= 4) continue;
+    try {
+      for (const e of dim.getEntities({ location: z, maxDistance: z.r + 1, excludeTypes: ["minecraft:player", "minecraft:item", TYPE, HITBOX] })) {
+        try {
+          e.addEffect("slowness", 80, { amplifier: 0, showParticles: false });
+          e.addEffect("weakness", 80, { amplifier: 0, showParticles: false });
+        } catch {
+        }
+      }
+    } catch {
+    }
+  }
+}
+
 // src/ui.ts
 var ROMAN = ["", "I", "II", "III"];
+var FALLOUT = ["off", "visual", "land"];
 var DUSK = 11800;
 function canAdmin(p) {
   try {
@@ -1620,7 +1940,7 @@ function canAdmin(p) {
   } catch {
   }
   try {
-    return world6.getAllPlayers().length <= 1;
+    return world7.getAllPlayers().length <= 1;
   } catch {
     return false;
   }
@@ -1697,7 +2017,7 @@ function evolveLines() {
 }
 function comingLines(p, ctl2) {
   const rec = store.rec, now = rec.clock, L = [];
-  const tod = world6.getTimeOfDay();
+  const tod = world7.getTimeOfDay();
   const toDusk = tod >= DUSK && tod < 13800 ? 0 : (DUSK - tod + 24e3) % 24e3;
   switch (rec.stage) {
     case "dormant":
@@ -1744,6 +2064,27 @@ function comingLines(p, ctl2) {
   }
   return L;
 }
+function falloutLines(p) {
+  const L = [], now = store.rec.clock;
+  let at2;
+  try {
+    if (p.dimension.id !== OVERWORLD) return ["§7Only the Overworld carries his fallout."];
+    at2 = p.location;
+  } catch {
+    return L;
+  }
+  const d = doseAt(at2, now);
+  const word = d < 0.03 ? "§anone to speak of" : d < 0.2 ? "§6low" : d < 0.45 ? "§6rising" : d < 0.75 ? "§chigh" : "§4deadly";
+  L.push(`§fRadiation where you stand: ${bar(Math.min(1, d))} §l${pct(d)}§r  ${word}`);
+  const n = nearestFallout(at2, now), count = falloutCount(now);
+  if (!n) L.push("§7No fallout on record. His beam, his changes and his seam leave it where they touch the world.");
+  else {
+    L.push(`§7Fallout in §f${count}§7 place${count === 1 ? "" : "s"}. The nearest is ${compass(at2, n.zone)}, at §f${pct(n.strength)}§7.`);
+    if (CONFIG.fallout === "land") L.push("§7In it, grass and dirt turn to irradiated soil, plants wither and wild leaves fall. Sand his beam touches becomes scarlet trinitite. As it fades, the soil heals.");
+    if (CONFIG.sickness) L.push("§7Strong fallout makes you hungry, then weak and sick. Milk clears it. A Geiger counter (trinitite, copper ingot, redstone) reads it.");
+  }
+  return L;
+}
 function journalText(p, ctl2) {
   const now = store.rec.clock, L = [];
   L.push("§l§4HIS ANGER§r");
@@ -1768,6 +2109,11 @@ function journalText(p, ctl2) {
     L.push("");
     L.push("§l§4HIM§r");
     L.push(...evolveLines());
+  }
+  if (CONFIG.fallout !== "off") {
+    L.push("");
+    L.push("§l§4FALLOUT§r");
+    L.push(...falloutLines(p));
   }
   return L.join("\n");
 }
@@ -1798,11 +2144,11 @@ function formOf(rec = store.rec) {
 }
 async function settingsForm(p) {
   const terrain = ["none", "scorch", "break"];
-  const f = new ModalFormData().title("Basiliskra Settings").slider("Story speed (x)", 0.25, 4, { valueStep: 0.25, defaultValue: CONFIG.pacing, tooltip: "2 halves every wait and threshold; 0.5 doubles them." }).dropdown("What his beam does to the ground", ["Nothing (light only)", "Scorches natural ground", "Scorches and breaks natural ground"], { defaultValueIndex: terrain.indexOf(CONFIG.terrain) }).toggle("Footprints and furrows in natural ground", { defaultValue: CONFIG.marks }).slider("Damage to players (x)", 0, 3, { valueStep: 0.25, defaultValue: CONFIG.damage }).toggle("Harmless on Peaceful", { defaultValue: CONFIG.harmlessOnPeaceful }).toggle("Spawn eggs and /summon bring him to you", { defaultValue: CONFIG.allowSummon }).dropdown("A spawn egg makes", ["His stage in the story", "Basiliskra I", "Basiliskra II", "Basiliskra III"], { defaultValueIndex: CONFIG.spawnForm }).toggle("Give new players the journal", { defaultValue: CONFIG.giveJournal }).toggle("Give operators the config wheel", { defaultValue: CONFIG.giveWheel }).toggle("Debug messages in the content log", { defaultValue: CONFIG.debug }).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
+  const f = new ModalFormData().title("Basiliskra Settings").slider("Story speed (x)", 0.25, 4, { valueStep: 0.25, defaultValue: CONFIG.pacing, tooltip: "2 halves every wait and threshold; 0.5 doubles them." }).dropdown("What his beam does to the ground", ["Nothing (light only)", "Scorches natural ground", "Scorches and breaks natural ground"], { defaultValueIndex: terrain.indexOf(CONFIG.terrain) }).toggle("Footprints and furrows in natural ground", { defaultValue: CONFIG.marks }).slider("Damage to players (x)", 0, 3, { valueStep: 0.25, defaultValue: CONFIG.damage }).toggle("Harmless on Peaceful", { defaultValue: CONFIG.harmlessOnPeaceful }).toggle("Spawn eggs and /summon bring him to you", { defaultValue: CONFIG.allowSummon }).dropdown("A spawn egg makes", ["His stage in the story", "Basiliskra I", "Basiliskra II", "Basiliskra III"], { defaultValueIndex: CONFIG.spawnForm }).toggle("Give new players the journal", { defaultValue: CONFIG.giveJournal }).toggle("Give operators the config wheel", { defaultValue: CONFIG.giveWheel }).toggle("Debug messages in the content log", { defaultValue: CONFIG.debug }).dropdown("His fallout", ["Off", "Glowing motes and Geiger clicks only", "Also changes the land (natural ground only)"], { defaultValueIndex: FALLOUT.indexOf(CONFIG.fallout) }).toggle("Radiation sickness for players", { defaultValue: CONFIG.sickness }).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || !r.formValues) return;
   const v = r.formValues;
-  if (v[10] === true) {
+  if (v[12] === true) {
     resetSettings();
     p.sendMessage("§7[Basiliskra] Settings restored to the defaults.");
     return;
@@ -1817,7 +2163,9 @@ async function settingsForm(p) {
     spawnForm: Number(v[6]),
     giveJournal: v[7] === true,
     giveWheel: v[8] === true,
-    debug: v[9] === true
+    debug: v[9] === true,
+    fallout: FALLOUT[Number(v[10])] ?? "land",
+    sickness: v[11] === true
   });
   p.sendMessage("§7[Basiliskra] Settings saved with this world.");
 }
@@ -1862,7 +2210,7 @@ async function openWheel(p, ctl2) {
       p.sendMessage(`§7[Basiliskra] ${ctl2.callNow(p.location, p)}`);
       break;
     case 3:
-      world6.setTimeOfDay(DUSK + 100);
+      world7.setTimeOfDay(DUSK + 100);
       p.sendMessage("§7[Basiliskra] Dusk.");
       break;
     case 4:
@@ -1908,13 +2256,13 @@ function giveStarterItems(p) {
 }
 
 // src/controller.ts
-import { ItemStack as ItemStack2, system as system5, world as world10 } from "@minecraft/server";
+import { ItemStack as ItemStack2, system as system5, world as world11 } from "@minecraft/server";
 
 // src/ending.ts
-import { EquipmentSlot } from "@minecraft/server";
+import { EquipmentSlot as EquipmentSlot2 } from "@minecraft/server";
 
 // src/forms/three.ts
-import { EntityDamageCause as EntityDamageCause2, world as world7 } from "@minecraft/server";
+import { EntityDamageCause as EntityDamageCause2, world as world8 } from "@minecraft/server";
 var TIERS = {
   1: { range: 28, radius: 1.4, damage: 4, ticks: 40, sfx: "basiliskra.iii.beam_raw", width: 1.5 },
   2: { range: 48, radius: 0.95, damage: 6, ticks: 60, sfx: "basiliskra.iii.beam", width: 0.9 },
@@ -1956,7 +2304,7 @@ var BrainThree = class extends Brain {
   }
   choose() {
     const c = this.c, rec = this.rec, now = this.now;
-    const tod = world7.getTimeOfDay();
+    const tod = world8.getTimeOfDay();
     if (this.wantCharge) {
       this.wantCharge = false;
       return { name: "charge", run: this.beam(null), limit: 30 * TICKS.second };
@@ -2315,6 +2663,7 @@ var BrainThree = class extends Brain {
     if (rodReady.size > 64) rodReady.clear();
     this.rec.learned.rods++;
     this.groundedAt = { tick: this.now, rod };
+    addFallout(rod, 2.5, 0.5);
     c.setPhase("grounded");
     sound(c.dim, "basiliskra.iii.ground", top, 96);
     const steps = Math.max(4, Math.ceil(dist(tip, top) * 1.6));
@@ -2448,7 +2797,11 @@ var BrainThree = class extends Brain {
         if (hitBlock) {
           if (t % 3 === 0) particle(c.dim, "basiliskra:beam_impact", end, 96);
           if (t % 10 === 0) sound(c.dim, "basiliskra.iii.beam_impact", end, 96);
-          if (t % 6 === 0) this.scorch(hitBlock);
+          if (t % 6 === 0) {
+            this.scorch(hitBlock);
+            addFallout(hitBlock, [0, 3, 4, 5][tier], 0.13);
+            if (CONFIG.fallout !== "off") particle(c.dim, "basiliskra:fallout_ash", end, 64);
+          }
           lastHit = end;
         }
         if (t % 4 === 0) {
@@ -2492,6 +2845,7 @@ var BrainThree = class extends Brain {
       const b = blockAt(c.dim, { x, y, z });
       if (!b) continue;
       const id = b.typeId;
+      if (Math.abs(dx) + Math.abs(dz) <= 1 && fuse(b)) continue;
       const to = scorchOf(id);
       if (!to && !(CONFIG.terrain === "break" && isBreakableNatural(id))) continue;
       if (free(x + 1, y, z) && free(x - 1, y, z) || free(x, y, z + 1) && free(x, y, z - 1)) continue;
@@ -2535,7 +2889,10 @@ var BrainThree = class extends Brain {
         let length = 26;
         try {
           const hit = c.dim.getBlockFromRay(from, dir, { maxDistance: 26, includeLiquidBlocks: false, includePassableBlocks: false });
-          if (hit) length = Math.max(0.5, dist(from, add(hit.block.location, { x: 0.5, y: 0.5, z: 0.5 })));
+          if (hit) {
+            length = Math.max(0.5, dist(from, add(hit.block.location, { x: 0.5, y: 0.5, z: 0.5 })));
+            if (t % 10 === 0) addFallout(hit.block.location, 2, 0.05);
+          }
         } catch {
           length = 4;
         }
@@ -2563,7 +2920,7 @@ var ROD_NEAR_SEAM = 48;
 var GRACE = 60;
 function holdsFin(p) {
   try {
-    return p.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand)?.typeId === FIN_ITEM;
+    return p.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot2.Mainhand)?.typeId === FIN_ITEM;
   } catch {
     return false;
   }
@@ -2803,6 +3160,7 @@ var Ending = class {
     rec.ending = { step: 3, t0: store.rec.clock, tries: rec.ending?.tries ?? 0 };
     store.save();
     sound(dim, "basiliskra.rift.open", rift, 96);
+    addFallout(rift, 4, 0.3);
     let t = 0;
     const near = brain.walk(out(3), 0.14, 4, 1400);
     for (; ; ) {
@@ -2876,10 +3234,10 @@ var Ending = class {
   }
   /** Highest zone still on this side of the seam (-1: the tail has cleared). */
   visibleUpTo(c, rift, travel3) {
-    const zones = RIGS[c.form].zones;
+    const zones2 = RIGS[c.form].zones;
     let hi = 8;
     for (let z = 8; z >= 0; z--) {
-      const bones = zones[String(z)];
+      const bones = zones2[String(z)];
       if (!bones || !bones.length) continue;
       const p = c.point(bones[0], RIGS[c.form].bones[bones[0]].pivot);
       if (dot(sub(p, rift), travel3) > 0) hi = z - 1;
@@ -2914,7 +3272,7 @@ var Ending = class {
 };
 
 // src/forms/one.ts
-import { world as world8 } from "@minecraft/server";
+import { world as world9 } from "@minecraft/server";
 function boatOf(p) {
   try {
     const r = p.getComponent("minecraft:riding");
@@ -2945,7 +3303,7 @@ var BrainOne = class extends Brain {
   }
   choose() {
     const c = this.c, now = this.now, rec = this.rec;
-    const tod = world8.getTimeOfDay();
+    const tod = world9.getTimeOfDay();
     const p = Math.max(0.25, 1 / Math.max(0.1, 1));
     if (!rec.evolve && rec.mut.surfacings >= 6 && rec.mut.episodes >= 3 && now - rec.mut.formSince >= pace(2 * TICKS.day) && anyoneNear(c, 96) && this.ready("beach")) {
       this.rest("beach", 2 * TICKS.minute);
@@ -3329,7 +3687,7 @@ var BrainOne = class extends Brain {
     c.bendHold = 19;
     c.setPhase("sleep");
     let t = 0;
-    while (isNight(world8.getTimeOfDay()) && t++ < 9e3) {
+    while (isNight(world9.getTimeOfDay()) && t++ < 9e3) {
       const head = c.anchor("muzzle");
       let woke = this.now - this.hurtAt < 40;
       for (const p of nearbyPlayers(c, 40)) if (dist(p.location, head) < 7) woke = true;
@@ -3399,7 +3757,7 @@ var BrainOne = class extends Brain {
 };
 
 // src/forms/two.ts
-import { world as world9 } from "@minecraft/server";
+import { world as world10 } from "@minecraft/server";
 var LAMP = /^minecraft:((lit_)?redstone_lamp|(soul_)?lantern|.*copper_lantern|sea_lantern|glowstone|.*copper_bulb|(soul_|redstone_|copper_)?torch|shroomlight|.*froglight)$/;
 var STONE = /^minecraft:(stone|cobblestone|mossy_cobblestone|stone_bricks|andesite|diorite|granite|deepslate|tuff|.*_slab|stone_.*|polished_.*|smooth_stone|gravel)$/;
 var BrainTwo = class extends Brain {
@@ -3431,7 +3789,7 @@ var BrainTwo = class extends Brain {
   }
   choose() {
     const c = this.c, rec = this.rec, now = this.now;
-    const tod = world9.getTimeOfDay();
+    const tod = world10.getTimeOfDay();
     if (!rec.evolve && rec.mut.overland >= 220 / CONFIG.pacing && now - rec.mut.formSince >= pace(2 * TICKS.day) && (isNight(tod) || rec.weather !== "clear") && anyoneNear(c, 96)) {
       rec.evolve = { to: 3, step: 0, t0: now, at: { ...c.pos } };
       return { name: "evolve", run: wait(900), limit: 900 };
@@ -4012,6 +4370,7 @@ var Controller = class {
     store.rec = freshRecord();
     store.rec.clock = clock;
     clearHarm();
+    clearFallout();
     store.save();
     store.flush();
   }
@@ -4088,7 +4447,7 @@ var Controller = class {
     for (const id of [OVERWORLD, "minecraft:nether", "minecraft:the_end"]) {
       let dim;
       try {
-        dim = world10.getDimension(id);
+        dim = world11.getDimension(id);
       } catch {
         continue;
       }
@@ -4224,6 +4583,7 @@ var Controller = class {
     const now = ++rec.clock;
     if (now % 600 === 0) store.touch();
     beginTick(now);
+    falloutTick(now);
     if (this.creature && !this.creature.valid) {
       this.creature.dropParts();
       this.creature = null;
@@ -4372,7 +4732,7 @@ var Controller = class {
             }
           }
         }
-        const tod = world10.getTimeOfDay();
+        const tod = world11.getTimeOfDay();
         if (near && (isDusk(tod) || t > pace(1.2 * TICKS.day))) this.setStep(1);
         break;
       }
@@ -4402,7 +4762,10 @@ var Controller = class {
         break;
       }
       case 2: {
-        if (t === 1) sound(dim, "basiliskra.rift.open", a.water, 72);
+        if (t === 1) {
+          sound(dim, "basiliskra.rift.open", a.water, 72);
+          addFallout(a.water, 4, 0.4);
+        }
         if (t % 4 === 0) particle(dim, "basiliskra:seam", a.water, 72);
         if (t % 60 === 30) sound(dim, "basiliskra.rift.hum", a.water, 48);
         if (t > 90 && near) this.setStep(SPAWN_STEP);
@@ -4445,10 +4808,10 @@ var Controller = class {
   /** Zones (head 8 .. tail 0) that have passed a plane through `at` facing `yaw`. */
   passed(c, at2, yaw) {
     const f = forwardOf(yaw);
-    const zones = RIGS[c.form].zones;
+    const zones2 = RIGS[c.form].zones;
     const out = [];
     for (let z = 0; z <= 8; z++) {
-      const bones = zones[String(z)];
+      const bones = zones2[String(z)];
       if (!bones || !bones.length) {
         out.push(out.length ? out[out.length - 1] : false);
         continue;
@@ -4562,7 +4925,7 @@ var Controller = class {
     const dim = overworld();
     if (rec.entityId !== null) {
       try {
-        const e = world10.getEntity(rec.entityId);
+        const e = world11.getEntity(rec.entityId);
         if (e) {
           this.inspect(e);
           return;
@@ -4643,6 +5006,7 @@ var Controller = class {
         this.brain = this.makeBrain(c);
         c.setPhase("beach");
         c.say("basiliskra.mutate", c.pos, 72, 1, 0.9);
+        addFallout(c.pos, rec.form === 3 ? 7 : 4, rec.form === 3 ? 0.9 : 0.45);
         if (rec.form === 2) {
           this.dropFin(c.dim, c.pos);
           rec.beach = { x: Math.floor(c.pos.x), y: Math.floor(c.pos.y), z: Math.floor(c.pos.z) };
@@ -4729,7 +5093,7 @@ function trackSplashes() {
     if (done) flying.splice(i, 1);
   }
 }
-world11.afterEvents.worldLoad.subscribe(() => {
+world12.afterEvents.worldLoad.subscribe(() => {
   loadSettings();
   ctl.init();
   ready = true;
@@ -4759,7 +5123,7 @@ system6.beforeEvents.shutdown.subscribe(() => {
   } catch {
   }
 });
-world11.afterEvents.entityLoad.subscribe((ev) => {
+world12.afterEvents.entityLoad.subscribe((ev) => {
   if (!ready) return;
   try {
     if (ev.entity.typeId === TYPE) ctl.inspect(ev.entity);
@@ -4767,7 +5131,7 @@ world11.afterEvents.entityLoad.subscribe((ev) => {
   } catch {
   }
 });
-world11.afterEvents.entitySpawn.subscribe((ev) => {
+world12.afterEvents.entitySpawn.subscribe((ev) => {
   if (!ready) return;
   try {
     const id = ev.entity.typeId;
@@ -4783,7 +5147,7 @@ world11.afterEvents.entitySpawn.subscribe((ev) => {
   } catch {
   }
 });
-world11.beforeEvents.entityRemove.subscribe((ev) => {
+world12.beforeEvents.entityRemove.subscribe((ev) => {
   try {
     const id = ev.removedEntity.typeId;
     if (id === TYPE) ctl.onRemoving(ev.removedEntity);
@@ -4804,7 +5168,7 @@ var PASSES = /* @__PURE__ */ new Set([
 ]);
 var forwardTick = -1;
 var forwardKey = "";
-world11.beforeEvents.entityHurt.subscribe((ev) => {
+world12.beforeEvents.entityHurt.subscribe((ev) => {
   let type;
   try {
     type = ev.hurtEntity.typeId;
@@ -4851,7 +5215,7 @@ world11.beforeEvents.entityHurt.subscribe((ev) => {
     system6.run(() => ctl.driveOff());
   }
 });
-world11.afterEvents.entityHurt.subscribe((ev) => {
+world12.afterEvents.entityHurt.subscribe((ev) => {
   try {
     if (ev.hurtEntity.typeId !== TYPE) return;
     const by = ev.damageSource.damagingEntity;
@@ -4859,7 +5223,7 @@ world11.afterEvents.entityHurt.subscribe((ev) => {
   } catch {
   }
 });
-world11.afterEvents.entityDie.subscribe((ev) => {
+world12.afterEvents.entityDie.subscribe((ev) => {
   let type;
   try {
     type = ev.deadEntity.typeId;
@@ -4880,7 +5244,7 @@ world11.afterEvents.entityDie.subscribe((ev) => {
   } catch {
   }
 });
-world11.afterEvents.playerBreakBlock.subscribe((ev) => {
+world12.afterEvents.playerBreakBlock.subscribe((ev) => {
   try {
     if (ev.dimension.id !== OVERWORLD) return;
     const t = recordHabitat(ev.block.location, ev.brokenBlockPermutation.type.id, ev.player.id, ev.player.name, store.rec.clock);
@@ -4888,7 +5252,7 @@ world11.afterEvents.playerBreakBlock.subscribe((ev) => {
   } catch {
   }
 });
-world11.afterEvents.playerInteractWithBlock.subscribe((ev) => {
+world12.afterEvents.playerInteractWithBlock.subscribe((ev) => {
   try {
     const id = ev.block.typeId, at2 = ev.block.location;
     if (id === "minecraft:bell") ctl.brain?.onBell(at2, ev.player);
@@ -4907,12 +5271,12 @@ world11.afterEvents.playerInteractWithBlock.subscribe((ev) => {
   } catch {
   }
 });
-world11.afterEvents.weatherChange.subscribe((ev) => {
+world12.afterEvents.weatherChange.subscribe((ev) => {
   const w = String(ev.newWeather).toLowerCase();
   store.rec.weather = w.includes("thunder") ? "thunder" : w.includes("rain") ? "rain" : "clear";
   store.touch();
 });
-world11.afterEvents.itemUse.subscribe((ev) => {
+world12.afterEvents.itemUse.subscribe((ev) => {
   try {
     const id = ev.itemStack.typeId;
     if (id === JOURNAL_ITEM) void openJournal(ev.source, ctl);
@@ -4920,7 +5284,7 @@ world11.afterEvents.itemUse.subscribe((ev) => {
   } catch {
   }
 });
-world11.afterEvents.playerSpawn.subscribe((ev) => {
+world12.afterEvents.playerSpawn.subscribe((ev) => {
   if (!ev.initialSpawn) return;
   const p = ev.player;
   system6.runTimeout(() => {
@@ -5002,7 +5366,7 @@ system6.afterEvents.scriptEventReceive.subscribe((ev) => {
   const rec = store.rec;
   const src = ev.sourceEntity;
   if (cmd === "status") {
-    world11.sendMessage(`[${NS}] stage=${rec.stage} form=${rec.form} id=${rec.entityId} loaded=${!!ctl.creature} act=${ctl.brain?.actName} quarantined=${ctl.quarantined}`);
+    world12.sendMessage(`[${NS}] stage=${rec.stage} form=${rec.form} id=${rec.entityId} loaded=${!!ctl.creature} act=${ctl.brain?.actName} quarantined=${ctl.quarantined}`);
   } else if (cmd === "arrive" && src) {
     ctl.requestArrival({ region: "debug", site: src.location, guilty: src.id, guiltyName: src.name ?? null });
   } else if (cmd === "stats") {
@@ -5013,7 +5377,7 @@ system6.afterEvents.scriptEventReceive.subscribe((ev) => {
     rec.mut.beams = Number(arg ?? rec.mut.beams);
     store.save();
   } else if (cmd === "dusk") {
-    world11.setTimeOfDay(12200);
+    world12.setTimeOfDay(12200);
   }
 }, { namespaces: [NS] });
 export {

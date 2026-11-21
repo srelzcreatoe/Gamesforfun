@@ -297,7 +297,13 @@ class MockBlock {
   get isAir() { return this.typeId === 'minecraft:air'; }
   get isLiquid() { return this.typeId === 'minecraft:water' || this.typeId === 'minecraft:lava'; }
   get isValid() { return true; }
-  setType(id) { this.sim.setBlock(this.dimension.id, this.x, this.y, this.z, id); }
+  setType(id) {
+    // the game refuses an id it does not know; the pack's own blocks are known unless a test says otherwise
+    if (this.sim.refuseBlocks?.has(id)) throw new Error(`unknown block ${id}`);
+    this.sim.setBlock(this.dimension.id, this.x, this.y, this.z, id);
+  }
+  /** Leaves a player placed carry persistent_bit; everything else here is as the world made it. */
+  get permutation() { const self = this; return { getState: (k) => (k === 'persistent_bit' ? self.sim.save.edits.get(`placed|${self.x},${self.y},${self.z}`) === true : undefined) }; }
   getRedstonePower() { return this.sim.save.edits.get(`power|${this.x},${this.y},${this.z}`) ?? 0; }
 }
 
@@ -336,6 +342,9 @@ class MockDimension {
       const p = { x: from.x + dir.x * d, y: from.y + dir.y * d, z: from.z + dir.z * d };
       if (!this.isChunkLoaded(p)) return undefined;
       const id = this.sim.blockId(this.id, p.x, p.y, p.z);
+      // passable blocks (grass, flowers, torches, snow layers...) are skipped unless asked for, as in the game
+      const passable = /short_grass|tall_grass|fern|poppy|dandelion|tulip|orchid|allium|bluet|daisy|cornflower|lily_of_the_valley|sapling|torch|snow_layer|deadbush/.test(id);
+      if (passable && o.includePassableBlocks === false) continue;
       if (id !== 'minecraft:air' && id !== 'minecraft:water') return { block: new MockBlock(this.sim, this, Math.floor(p.x), Math.floor(p.y), Math.floor(p.z)), faceLocation: p };
     }
     return undefined;
@@ -354,6 +363,7 @@ class MockDimension {
 
 class MockEntity {
   constructor(sim, rec) { this.sim = sim; this.rec = rec; this.attached = true; }
+  addEffect(id, duration, o = {}) { (this.rec.effects ??= []).push({ id, duration, amplifier: o.amplifier ?? 0 }); return {}; }
   get id() { return this.rec.id; }
   get typeId() { return this.rec.typeId; }
   get isValid() { return this.attached; }
@@ -425,6 +435,7 @@ class MockPlayer {
   }
   get isValid() { return this.online; }
   sendMessage(m) { this.messages.push(String(m)); }
+  addEffect(id, duration, o = {}) { (this.effects ??= []).push({ id, duration, amplifier: o.amplifier ?? 0, tick: this.sim.save.tick }); return {}; }
   getViewDirection() { return { ...this.view }; }
   getDynamicProperty(k) { return this.dyn[k]; }
   setDynamicProperty(k, v) { this.dyn[k] = v; }
@@ -444,7 +455,7 @@ class MockPlayer {
   getComponent(id) {
     const self = this;
     if (id === 'minecraft:riding') return this.vehicle ? { entityRidingOn: this.vehicle } : undefined;
-    if (id === 'minecraft:equippable') return { getEquipment: () => self.hand };
+    if (id === 'minecraft:equippable') return { getEquipment: (slot) => (slot === undefined || slot === 'Mainhand' ? self.hand : null) };
     if (id === 'minecraft:inventory') return { container: { size: self.inv.length, getItem: (i) => self.inv[i], addItem: (it) => { self.inv.push(it); return undefined; } } };
     return undefined;
   }

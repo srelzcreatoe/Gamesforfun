@@ -98,5 +98,26 @@ export function tank(dim, x, y, z) {
   return 'minecraft:stone';
 }
 
-export const TERRAINS = { bay, village, flat, shore, tank };
-export const PROPS = { bay: bayProps, village: [] };
+// a meadow at the edge of the village: grass, flowers, two wild trees and a sandy pond, for the fallout
+export function meadow(dim, x, y, z) {
+  if (dim !== 'minecraft:overworld') return y <= 30 ? 'minecraft:netherrack' : 'minecraft:air';
+  const pond = Math.hypot(x - 14, z + 2) < 5.5;
+  if (y <= 60) return 'minecraft:stone';
+  if (y <= 62) return pond ? (y === 62 ? 'minecraft:water' : 'minecraft:sand') : 'minecraft:dirt';
+  const patch = Math.hypot(x + 13, z) < 2.6;                   // a dry, sandy patch in the grass
+  if (y === 63) return pond ? 'minecraft:water' : (Math.hypot(x - 14, z + 2) < 7 || patch ? 'minecraft:sand' : 'minecraft:grass_block');
+  const trees = [[4, 10], [24, -14], [-6, -12]];
+  for (const [tx, tz] of trees) {
+    if (x === tx && z === tz && y <= 68) return 'minecraft:oak_log';
+    if (Math.abs(x - tx) <= 2 && Math.abs(z - tz) <= 2 && (y === 67 || y === 68)) return 'minecraft:oak_leaves';
+    if (Math.abs(x - tx) <= 1 && Math.abs(z - tz) <= 1 && y === 69) return 'minecraft:oak_leaves';
+  }
+  if (y === 64 && Math.hypot(x - 14, z + 2) >= 7 && !patch) {
+    if (((x * 7 + z * 13) % 5 + 5) % 5 === 0) return 'minecraft:short_grass';
+    if (((x * 3 + z * 11) % 17 + 17) % 17 === 0) return 'minecraft:poppy';
+  }
+  return 'minecraft:air';
+}
+
+export const TERRAINS = { bay, village, flat, shore, tank, meadow };
+export const PROPS = { bay: bayProps, village: [], meadow: [] };

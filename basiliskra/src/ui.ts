@@ -9,12 +9,14 @@ import { pace } from "./brain";
 import { CONFIG, JOURNAL_ITEM, OVERWORLD, TICKS, WHEEL_ITEM } from "./config";
 import type { Controller } from "./controller";
 import { angerAt, angriest, halfLifeDays, type Anger } from "./harm";
+import { doseAt, falloutCount, nearestFallout } from "./fallout";
 import { saveSettings, resetSettings } from "./settings";
 import { store } from "./store";
 import type { V3 } from "./vec";
 import { NONE, UNLOADED, groundY, overworld } from "./world";
 
 const ROMAN = ["", "I", "II", "III"];
+const FALLOUT = ["off", "visual", "land"] as const;
 const DUSK = 11800;
 
 // ---- small helpers -------------------------------------------------------------------------------------------
@@ -139,6 +141,23 @@ function comingLines(p: Player, ctl: Controller): string[] {
   return L;
 }
 
+function falloutLines(p: Player): string[] {
+  const L: string[] = [], now = store.rec.clock;
+  let at: V3;
+  try { if (p.dimension.id !== OVERWORLD) return ["§7Only the Overworld carries his fallout."]; at = p.location; } catch { return L; }
+  const d = doseAt(at, now);
+  const word = d < 0.03 ? "§anone to speak of" : d < 0.2 ? "§6low" : d < 0.45 ? "§6rising" : d < 0.75 ? "§chigh" : "§4deadly";
+  L.push(`§fRadiation where you stand: ${bar(Math.min(1, d))} §l${pct(d)}§r  ${word}`);
+  const n = nearestFallout(at, now), count = falloutCount(now);
+  if (!n) L.push("§7No fallout on record. His beam, his changes and his seam leave it where they touch the world.");
+  else {
+    L.push(`§7Fallout in §f${count}§7 place${count === 1 ? "" : "s"}. The nearest is ${compass(at, n.zone)}, at §f${pct(n.strength)}§7.`);
+    if (CONFIG.fallout === "land") L.push("§7In it, grass and dirt turn to irradiated soil, plants wither and wild leaves fall. Sand his beam touches becomes scarlet trinitite. As it fades, the soil heals.");
+    if (CONFIG.sickness) L.push("§7Strong fallout makes you hungry, then weak and sick. Milk clears it. A Geiger counter (trinitite, copper ingot, redstone) reads it.");
+  }
+  return L;
+}
+
 export function journalText(p: Player, ctl: Controller): string {
   const now = store.rec.clock, L: string[] = [];
   L.push("§l§4HIS ANGER§r");
@@ -153,6 +172,7 @@ export function journalText(p: Player, ctl: Controller): string {
   L.push("§l§4WHEN HE COMES§r");
   L.push(...comingLines(p, ctl));
   if (store.rec.stage === "alive" || store.rec.stage === "arriving") { L.push(""); L.push("§l§4HIM§r"); L.push(...evolveLines()); }
+  if (CONFIG.fallout !== "off") { L.push(""); L.push("§l§4FALLOUT§r"); L.push(...falloutLines(p)); }
   return L.join("\n");
 }
 
@@ -197,16 +217,18 @@ async function settingsForm(p: Player): Promise<void> {
     .toggle("Give new players the journal", { defaultValue: CONFIG.giveJournal })
     .toggle("Give operators the config wheel", { defaultValue: CONFIG.giveWheel })
     .toggle("Debug messages in the content log", { defaultValue: CONFIG.debug })
+    .dropdown("His fallout", ["Off", "Glowing motes and Geiger clicks only", "Also changes the land (natural ground only)"], { defaultValueIndex: FALLOUT.indexOf(CONFIG.fallout) })
+    .toggle("Radiation sickness for players", { defaultValue: CONFIG.sickness })
     .toggle("§cRestore every default", { defaultValue: false })
     .submitButton("Save");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || !r.formValues) return;
   const v = r.formValues;
-  if (v[10] === true) { resetSettings(); p.sendMessage("§7[Basiliskra] Settings restored to the defaults."); return; }
+  if (v[12] === true) { resetSettings(); p.sendMessage("§7[Basiliskra] Settings restored to the defaults."); return; }
   saveSettings({
     pacing: Number(v[0]), terrain: terrain[Number(v[1])] ?? "scorch", marks: v[2] === true, damage: Number(v[3]),
     harmlessOnPeaceful: v[4] === true, allowSummon: v[5] === true, spawnForm: (Number(v[6]) as 0 | 1 | 2 | 3), giveJournal: v[7] === true,
-    giveWheel: v[8] === true, debug: v[9] === true,
+    giveWheel: v[8] === true, debug: v[9] === true, fallout: FALLOUT[Number(v[10])] ?? "land", sickness: v[11] === true,
   });
   p.sendMessage("§7[Basiliskra] Settings saved with this world.");
 }

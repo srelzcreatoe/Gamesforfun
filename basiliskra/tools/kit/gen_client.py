@@ -433,17 +433,19 @@ def particle_controller(tag):
         return d
 
     if tag == "iii":
-        charge = [("charge_spark", "club_core")] + [("plate_ember", f"plate_tip_{k}") for k in (1, 3, 5, 7, 9)] + [("throat_glow", "mouth")]
-        fire = [("mouth_flare", "muzzle")] + [("plate_ember", f"plate_tip_{k}") for k in (0, 2, 4, 6, 8)] + [("charge_spark", "club_core")]
-        vent = [("gill_steam", "gill_l"), ("gill_steam", "gill_r")]
+        # radiation drifts off the plates all the time, faintly; thickly while he charges, fires and vents
+        rad = lambda ks: [("rad_drift", f"plate_tip_{k}") for k in ks]
+        charge = [("charge_spark", "club_core")] + [("plate_ember", f"plate_tip_{k}") for k in (1, 3, 5, 7, 9)] + [("throat_glow", "mouth")] + rad((0, 4, 8))
+        fire = [("mouth_flare", "muzzle")] + [("plate_ember", f"plate_tip_{k}") for k in (0, 2, 4, 6, 8)] + [("charge_spark", "club_core")] + rad((1, 5, 9))
+        vent = [("gill_steam", "gill_l"), ("gill_steam", "gill_r"), ("rad_drift", "gill_l"), ("rad_drift", "gill_r")] + rad((3, 7))
         ground = [("club_arc", "spike_tip_0"), ("club_arc", "spike_tip_3"), ("club_arc", "spike_tip_8")]
         scatter = [("plate_ember", f"plate_tip_{k}") for k in range(10)]
-        idle = [("club_crackle", "spike_tip_1"), ("club_crackle", "spike_tip_4"), ("club_crackle", "spike_tip_11")]
+        idle = [("club_crackle", "spike_tip_1"), ("club_crackle", "spike_tip_4"), ("club_crackle", "spike_tip_11")] + rad((2, 6))
         states = {"idle": idle, "charge": charge, "fire": fire, "vent": vent, "grounded": ground, "scatter": scatter}
         cond = {"charge": ph("charge"), "fire": ph("fire"), "vent": ph("vent"), "grounded": ph("grounded"), "scatter": ph("scatter")}
     elif tag == "ii":
         idle = [("horn_arc", "horn_l")]
-        arc = [("horn_arc_big", "horn_l"), ("horn_arc_big", "horn_r"), ("club_crackle", "knob_core")]
+        arc = [("horn_arc_big", "horn_l"), ("horn_arc_big", "horn_r"), ("club_crackle", "knob_core"), ("rad_drift", "knob_core"), ("rad_drift", "heart")]
         drink = [("drip", "muzzle")]
         states = {"idle": idle, "arc": arc, "drink": drink, "evolve": [("shed_flakes", "heart")]}
         cond = {"arc": ph("arc"), "drink": ph("drink"), "evolve": ph("evolve", "beach")}
@@ -466,7 +468,7 @@ def particle_controller(tag):
 
 
 PARTICLES = ["charge_spark", "plate_ember", "throat_glow", "mouth_flare", "gill_steam", "club_arc", "club_crackle",
-             "horn_arc", "horn_arc_big", "drip", "shed_flakes", "gill_bubbles", "gill_silt", "fin_splash"]
+             "horn_arc", "horn_arc_big", "drip", "shed_flakes", "gill_bubbles", "gill_silt", "fin_splash", "rad_drift"]
 
 
 def write_rig_ts(rigs):

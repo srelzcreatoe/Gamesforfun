@@ -5,11 +5,11 @@ No experiments, no Beta APIs, no cheats, no commands. It can be added to a survi
 
 ## Install
 
-1. Open `Basiliskra-1.1.0.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
+1. Open `Basiliskra-1.2.0.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
 2. Edit your world → **Behavior Packs** → activate **Basiliskra**. The resource pack is pulled in with it. Leave every toggle under **Experiments** off.
 3. Play. Nothing happens straight away. The story is found by playing; the journal tells you how close it is.
 
-**Updating from 1.0.0** (whose creature could not load): open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.1.0 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself.
+**Updating from an earlier version**: open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.2.0 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself.
 
 Realms and multiplayer: apply both packs to the world; players download the resource pack on joining. Consoles can use the add-on only through a Realm or a world transferred from another device.
 
@@ -59,6 +59,20 @@ It needs Form III, a **shed fin**, **note blocks**, and a **lightning rod**.
 5. He tests it with the notched tip of his tail, turns, and goes through headfirst. **Keep the rhythm going until his tail is through.** If it stops for more than three seconds he backs out, the seam closes, and you can try again after half a minute.
 
 Only when he is wholly across is the story over for that world. After that nothing in the world calls another one. (A spawn egg or the spawn command still brings him back, if you choose to.)
+
+## Fallout
+
+His light poisons what it touches. Where his beam lands, where the ridge scatter strikes, where a lightning rod takes his charge, where he changes from one stage to the next, and where the seam opens, he leaves **fallout**. It fades by half every three in-game days.
+
+* **In the air:** crimson motes rise and shimmer over it, and you hear **Geiger clicks**, faster the closer you are to its heart. Radiation drifts off his plates all the time, thickly while he charges and fires.
+* **On the land** (natural ground only, never anything built or farmed):
+  * grass and dirt turn to **Irradiated Soil**, ashen and specked with crimson that glows faintly;
+  * plants wither, wild leaves fall (leaves you placed stay), and snow melts;
+  * sand his beam touches fuses into **Scarlet Trinitite**, a glassy crimson block that glows. Trinitite stays; the soil heals back to dirt as the fallout fades.
+* **On you:** strong fallout makes you hungry, then weak and queasy, then sick. These are ordinary effects, so **milk clears them**. Creative players and (by default) Peaceful worlds are spared. Creatures in it slow down.
+* **Geiger Counter:** craft one from scarlet trinitite, a copper ingot and redstone. Held, it shows the radiation where you stand and the way to the nearest fallout.
+
+The journal has a Fallout section too. In the config wheel's Settings, fallout can be turned down to motes and clicks only, or off, and the sickness can be turned off.
 
 ## The journal
 
@@ -110,6 +124,8 @@ In game: the config wheel's **Settings**. The defaults below are in `scripts/mai
 | Give new players the journal | on | |
 | Give operators the config wheel | on | |
 | Debug messages | off | Fault messages in the content log, and operator hooks through `/scriptevent basiliskra:debug` (needs cheats). |
+| His fallout (`fallout`) | changes the land | Off; or glowing motes and Geiger clicks only; or also changes the land (natural ground only). |
+| Radiation sickness (`sickness`) | on | Players in strong fallout get hungry, weak and sick. |
 
 What is never changed in any mode: anything with an inventory, beds, portals, redstone, glass, planks, bricks or any other built block; a raised wall or pillar even of raw stone; ground a building stands against; and ground only silk touch can move (podzol, mycelium, moss, mud, clay, snow). If the beam lands on a building, nothing around it is touched either. He uses no real lightning.
 

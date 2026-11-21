@@ -57,6 +57,8 @@ export interface Rec {
   /** Remembered kills near water: what called, and where. */
   sites: Site[];
   weather: "clear" | "rain" | "thunder";
+  /** Fallout: places his light has poisoned, each fading with time (see fallout.ts). Bounded. */
+  fallout: { x: number; y: number; z: number; r: number; s: number; t: number; w?: boolean }[];
 }
 
 export function freshRecord(): Rec {
@@ -66,7 +68,7 @@ export function freshRecord(): Rec {
     ending: null,
     mut: { surfacings: 0, episodes: 0, overland: 0, formSince: 0, lastEncounter: 0, beams: 0 },
     learned: { bell: null, bellUses: 0, lures: 0, lureUntil: 0, echoes: {}, rods: 0, fragments: 0, fragmentAt: 0 },
-    sites: [], weather: "clear",
+    sites: [], weather: "clear", fallout: [],
   };
 }
 
@@ -78,6 +80,7 @@ export function migrate(raw: any): Rec {
   rec.mut = { ...base.mut, ...(raw.mut ?? {}) };
   rec.learned = { ...base.learned, ...(raw.learned ?? {}) };
   if (!Array.isArray(rec.sites)) rec.sites = [];
+  if (!Array.isArray(rec.fallout)) rec.fallout = [];
   if (rec.form !== 1 && rec.form !== 2 && rec.form !== 3) rec.form = 1;
   const stages: Stage[] = ["dormant", "pending", "arriving", "alive", "departed"];
   if (!stages.includes(rec.stage)) rec.stage = rec.entityId ? "alive" : "dormant";

@@ -45,6 +45,19 @@ Rules that keep it to one:
 | Hearing a note block | No note event | A hand on a note block is an interaction event; a redstone-clocked one is found by a rolling scan near the seam and watched for rising power. |
 | Knowing a body of water is deep and clear | No region queries on the stable path he can rely on | Every block of the lane is read, a few hundred per tick, only in loaded chunks. |
 
+## Fallout
+
+`src/fallout.ts`. A zone is `{x, y, z, r, s, t}` in the world record (at most 32; nearby zones merge; the weakest goes first), with strength halving every three days at pacing 1. Sources: each beam impact (tier radius 3, 4 or 5), ridge-scatter hits, a grounded charge, each transformation, the seam opening.
+
+| Each tick, near players only | |
+|---|---|
+| Land (mode "land") | 6 columns, spread over the zones in turn. Grass/dirt/podzol/mycelium/moss/coarse dirt to `basiliskra:irradiated_soil` (only open to the sky above, nothing built beside it); plants withered; natural leaves (no `persistent_bit`) dropped; snow layers melted. Below a fifth of full strength the zone heals instead: soil back to dirt. Zones in water skip this. |
+| Air, every 3 ticks | a mote per zone (more likely the stronger it is), shimmer over strong ones |
+| Every 10 ticks | dose per player (sum over zones, strongest at the centre), Geiger click level 1 to 4 played to that player alone, the counter's action bar |
+| Every 40 ticks | sickness: hunger above 0.15, weakness and nausea above 0.45, poison above 0.8; slowness and weakness on mobs in zones above 0.35 |
+
+Sand at the beam's own impact fuses into `basiliskra:scarlet_trinitite`. Both blocks are plain 1.26.60 data-driven blocks (schema-checked); if the game ever refuses one, the script uses a vanilla block in its place (coarse dirt, smooth basalt) and carries on. Measured cost: about 75 block reads a tick at the 32-zone cap.
+
 ## Players' tools
 
 * **Journal** (`basiliskra:journal`, `/basiliskra:journal`): a server-ui form built from the record and a read-only copy of the harm history (`harm.angerAt`, `harm.angriest`), so reading it never creates or evicts a region.

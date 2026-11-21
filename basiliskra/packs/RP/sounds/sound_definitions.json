@@ -526,6 +526,94 @@
         }
       ]
     },
+    "basiliskra.geiger.1": {
+      "category": "player",
+      "min_distance": 1.0,
+      "max_distance": 8.0,
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/geiger_1_1",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/basiliskra/geiger_1_2",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/basiliskra/geiger_1_3",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "basiliskra.geiger.2": {
+      "category": "player",
+      "min_distance": 1.0,
+      "max_distance": 8.0,
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/geiger_2_1",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/basiliskra/geiger_2_2",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/basiliskra/geiger_2_3",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "basiliskra.geiger.3": {
+      "category": "player",
+      "min_distance": 1.0,
+      "max_distance": 8.0,
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/geiger_3_1",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/basiliskra/geiger_3_2",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/basiliskra/geiger_3_3",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "basiliskra.geiger.4": {
+      "category": "player",
+      "min_distance": 1.0,
+      "max_distance": 8.0,
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/geiger_4_1",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/basiliskra/geiger_4_2",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/basiliskra/geiger_4_3",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
     "basiliskra.iii.charge_tick": {
       "category": "hostile",
       "min_distance": 6.0,

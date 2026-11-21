@@ -30,7 +30,8 @@ import { CONFIG } from "../src/config";
 import * as harm from "../src/harm";
 import { partOwner } from "../src/creature";
 import * as rig from "../src/rig";
-(globalThis as any).__BK__ = { ctl, store, CONFIG, harm, partOwner, rig };
+import * as fallout from "../src/fallout";
+(globalThis as any).__BK__ = { ctl, store, CONFIG, harm, partOwner, rig, fallout };
 `);
 await build({
   entryPoints: [path.join(root, 'build/test-entry.ts')], bundle: true, format: 'iife', target: 'es2021',

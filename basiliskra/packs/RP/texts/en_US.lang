@@ -7,3 +7,6 @@ item.basiliskra:shed_fin=Shed Fin
 item.basiliskra:journal.name=Basiliskra Journal
 item.basiliskra:config_wheel.name=Basiliskra Config Wheel
 item.spawn_egg.entity.basiliskra:basiliskra.name=Spawn Basiliskra
+tile.basiliskra:irradiated_soil.name=Irradiated Soil
+tile.basiliskra:scarlet_trinitite.name=Scarlet Trinitite
+item.basiliskra:geiger_counter.name=Geiger Counter

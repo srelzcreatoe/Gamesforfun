@@ -99,6 +99,10 @@ if have_schemas:
                 check(k, "/server/entity/1.26.60/ActorDocument.json", d["minecraft:entity"])
             elif "minecraft:item" in d:
                 check(k, "/server/item/1.26.50/ItemDocument.json", d["minecraft:item"])
+            elif "minecraft:block" in d:
+                if d.get("format_version") != "1.26.60":
+                    err(f"{k}: block format_version {d.get('format_version')}: write 1.26.60, the schema it is checked against")
+                check(k, "/server/block/1.26.60/Blocks.json", d["minecraft:block"])
             elif "particle_effect" in d:
                 check(k, "/client/particles/1.21.10/Particle%20Effect%20Data.json", d["particle_effect"])
     except ImportError:
@@ -307,6 +311,8 @@ for pid in sorted(set(re.findall(r'"(basiliskra:[a-z_]+)"', src))):
         continue
     if pid in props or pid in events:
         continue
+    if any(isinstance(d, dict) and ("minecraft:block" in d or "minecraft:item" in d) and d[("minecraft:block" if "minecraft:block" in d else "minecraft:item")]["description"]["identifier"] == pid for d in docs.values()):
+        continue                                        # one of the pack's own blocks or items
     if pid not in particle_ids:
         err(f"script uses {pid}: not a particle, property or event of this pack")
     ok("script particle references")
@@ -326,10 +332,12 @@ if vanilla_blocks:
         err(f"script names {bid}: not a block or entity id in 1.26.60")
 # properties and events the script uses
 item_ids = {d["minecraft:item"]["description"]["identifier"] for d in docs.values() if isinstance(d, dict) and "minecraft:item" in d}
+block_ids = {d["minecraft:block"]["description"]["identifier"] for d in docs.values() if isinstance(d, dict) and "minecraft:block" in d}
+item_ids |= block_ids                                   # every block has its own item
 commands = set(re.findall(r'name: `\$\{NS\}:([a-z_]+)`', src)) | set(re.findall(r'registerEnum\(`\$\{NS\}:([a-z_]+)`', src))
 for name in re.findall(r'`\$\{NS\}:([a-z_]+)`', src):
     pid = f"{NS}:{name}"
-    if name in ("basiliskra", "hitbox", "debug") or pid in item_ids or name in commands:
+    if name in ("basiliskra", "hitbox", "debug") or pid in item_ids or pid in block_ids or name in commands:
         continue
     if pid not in props:
         err(f"script property {pid} is not defined on the entity")
@@ -394,6 +402,35 @@ for k, d in docs.items():
     ok("items")
 if "spawn_egg" in ent and f"item.spawn_egg.entity.{NS}:{NS}.name=" not in rp_lang:
     err("spawn egg name missing from RP en_US.lang")
+
+# blocks: every material's texture is in the terrain atlas with a file and a Vibrant Visuals texture set behind it,
+# a sound in blocks.json, a name in the language file, and the loot table it names exists
+ttex = docs.get("packs/RP/textures/terrain_texture.json", {}).get("texture_data", {})
+rp_blocks = docs.get("packs/RP/blocks.json", {})
+for k, d in docs.items():
+    if not (isinstance(d, dict) and "minecraft:block" in d):
+        continue
+    ident = d["minecraft:block"]["description"]["identifier"]
+    comps = d["minecraft:block"].get("components", {})
+    for face, mi in comps.get("minecraft:material_instances", {}).items():
+        tex = mi if isinstance(mi, str) else mi.get("texture")
+        if tex not in ttex:
+            err(f"{k}: {face} texture {tex} is not in terrain_texture.json")
+            continue
+        path = ttex[tex]["textures"]
+        if not tex_exists(path):
+            err(f"{k}: texture {path} missing")
+        if not os.path.exists(os.path.join(RP, path + ".texture_set.json")):
+            err(f"{k}: no texture_set for {path} (Vibrant Visuals)")
+    if ident not in rp_blocks or "sound" not in rp_blocks[ident]:
+        err(f"{k}: {ident} has no sound in RP blocks.json")
+    name_key = comps.get("minecraft:display_name", f"tile.{ident}.name")
+    if f"{name_key}=" not in rp_lang:
+        err(f"{k}: name {name_key} missing from RP en_US.lang")
+    loot = comps.get("minecraft:loot")
+    if loot and not os.path.exists(os.path.join(BP, loot)):
+        err(f"{k}: loot table {loot} missing")
+    ok("blocks")
 
 # recipes: the vanilla 1.20.10 shapeless shape, and every item they name exists
 vanilla_items = set()

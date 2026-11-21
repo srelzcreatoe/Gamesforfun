@@ -29,10 +29,18 @@ export const CONFIG = {
   giveJournal: true,
   /** Operators (and the only player of a single-player world) also get the config wheel on first join. */
   giveWheel: true,
+  /**
+   * His fallout.  "land" (default): glowing motes, Geiger clicks, and in natural ground only, soil turns to
+   * irradiated soil, plants wither and wild leaves fall, healing as it fades.  "visual": motes and clicks only.
+   * "off": none of it.
+   */
+  fallout: "land" as "off" | "visual" | "land",
+  /** Players standing in strong fallout get hungry, weak and sick (vanilla effects; milk clears them). */
+  sickness: true,
 };
 
 /** The settings a player may change in game (the config wheel); saved with the world, over the defaults above. */
-export const SETTINGS = ["pacing", "terrain", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug"] as const;
+export const SETTINGS = ["pacing", "terrain", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness"] as const;
 export const SETTINGS_KEY = "bk:cfg";
 
 export const NS = "basiliskra";
@@ -41,6 +49,9 @@ export const HITBOX = `${NS}:hitbox`;
 export const FIN_ITEM = `${NS}:shed_fin`;
 export const JOURNAL_ITEM = `${NS}:journal`;
 export const WHEEL_ITEM = `${NS}:config_wheel`;
+export const COUNTER_ITEM = `${NS}:geiger_counter`;
+export const SOIL_BLOCK = `${NS}:irradiated_soil`;
+export const TRINITITE_BLOCK = `${NS}:scarlet_trinitite`;
 export const PROP = {
   form: `${NS}:form`, bound: `${NS}:bound`, phase: `${NS}:phase`, charge: `${NS}:charge`, lookYaw: `${NS}:look_yaw`,
   lookPitch: `${NS}:look_pitch`, bend: `${NS}:bend`, pitch: `${NS}:pitch`, gait: `${NS}:gait`, gill: `${NS}:gill`,

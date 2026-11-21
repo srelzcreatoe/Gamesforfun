@@ -199,7 +199,8 @@
     "shed_flakes": "basiliskra:shed_flakes",
     "gill_bubbles": "basiliskra:gill_bubbles",
     "gill_silt": "basiliskra:gill_silt",
-    "fin_splash": "basiliskra:fin_splash"
+    "fin_splash": "basiliskra:fin_splash",
+    "rad_drift": "basiliskra:rad_drift"
    },
    "render_controllers": [
     {

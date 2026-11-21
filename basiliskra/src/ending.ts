@@ -15,6 +15,7 @@ import { BrainThree } from "./forms/three";
 import { particle, players, sound } from "./fx";
 import { RIGS } from "./generated/rig";
 import { store } from "./store";
+import { addFallout } from "./fallout";
 import { add, clamp, dist, distXZ, dot, forwardOf, mul, norm, sub, yawTo, type V3 } from "./vec";
 import { blockAt, idAt, isLoaded, isPlantBlock, isSolidBlock, overworld } from "./world";
 
@@ -218,6 +219,7 @@ export class Ending {
     rec.ending = { step: 3, t0: store.rec.clock, tries: rec.ending?.tries ?? 0 };
     store.save();
     sound(dim, "basiliskra.rift.open", rift, 96);
+    addFallout(rift, 4, 0.3);
     let t = 0;
     const near = brain.walk(out(3), 0.14, 4, 1400);
     for (;;) { seam(t++); if (!this.holding()) { yield* this.backAway(c, null); return; } if (near.next().done) break; yield; }

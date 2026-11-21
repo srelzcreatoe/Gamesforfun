@@ -686,6 +686,115 @@ console.log('\n== 13. Spawn egg, the spawn command, the journal and the config w
   check('a form that cannot open yet (chat open) is tried again', op2.forms.filter((f) => f.title === 'Basiliskra Config Wheel').length >= 3 && op2.forms.some((f) => f.title === 'Basiliskra Journal'));
 }
 
+console.log('\n== 14. Fallout: radiation that changes the land');
+{
+  // a meadow: grass, flowers, a few wild trees, sand by a pond; and a cottage with a lawn and a planted hedge
+  const meadow = (dim, x, y, z) => {
+    if (dim !== 'minecraft:overworld') return 'minecraft:air';
+    const pond = Math.hypot(x - 30, z - 30) < 6;
+    if (y <= 60) return 'minecraft:stone';
+    if (y <= 62) return pond ? 'minecraft:sand' : 'minecraft:dirt';
+    if (y === 63) return pond ? 'minecraft:sand' : 'minecraft:grass_block';
+    const tree = (x === 8 && z === 8) || (x === -8 && z === 6);
+    if (tree && y <= 67) return 'minecraft:oak_log';
+    if ((Math.abs(x - 8) <= 2 && Math.abs(z - 8) <= 2) || (Math.abs(x + 8) <= 2 && Math.abs(z - 6) <= 2)) { if (y === 67 || y === 68) return 'minecraft:oak_leaves'; }
+    if (y === 64 && !pond && ((x * 7 + z * 13) % 5 === 0)) return 'minecraft:short_grass';
+    if (y === 64 && !pond && ((x * 3 + z * 11) % 17 === 0)) return 'minecraft:poppy';
+    // the cottage at x 12..16, z -4..0: planks walls, glass, and a lawn against its wall
+    if (x >= 12 && x <= 16 && z >= -4 && z <= 0 && y >= 64 && y <= 66 && (x === 12 || x === 16 || z === -4 || z === 0)) return y === 65 ? 'minecraft:glass' : 'minecraft:oak_planks';
+    return 'minecraft:air';
+  };
+  const w = start(); w.sim.terrainFn = meadow; open(w);
+  const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: -20 });
+  const hedge = { x: -3, y: 64, z: 3 };
+  w.sim.setBlock('minecraft:overworld', hedge.x, hedge.y, hedge.z, 'minecraft:oak_leaves'); w.sim.save.edits.set(`placed|${hedge.x},${hedge.y},${hedge.z}`, true);
+  const fallout = w.bk.fallout;
+  const id = (x, y, z) => w.sim.blockId('minecraft:overworld', x, y, z);
+  // the beam: a Basiliskra III fires into the meadow at a player standing there
+  const rec = w.bk.store.rec;
+  Object.assign(rec, { stage: 'alive', token: 'fallouttoken000000000000000000000', form: 3, born: 1, rift: { x: 400, y: 56, z: 400, yaw: 0 }, origin: { x: 400, y: 64, z: 380 } });
+  rec.mut.beams = 3;
+  const r = w.sim.newRecord(TYPE, 'minecraft:overworld', { x: 0, y: 64, z: -40 }, 0);
+  r.dyn['bk:token'] = rec.token; rec.entityId = r.id; w.bk.store.save();
+  w.sim.attach(r, 'entityLoad'); w.sim.flush(); w.sim.step(3);
+  const target = w.sim.addPlayer('Target', { x: 0, y: 64, z: 2 }); target.health = 1000;
+  w.bk.ctl.brain.forced = { name: 'beam', run: w.bk.ctl.brain.beam(target), limit: 1200 };
+  let fired = false; for (let i = 0; i < 500; i++) { w.sim.step(1); if (w.bk.ctl.creature.phase === 'fire') fired = true; if (fired && w.bk.ctl.creature.phase !== 'fire') break; }
+  const zones = rec.fallout;
+  check('his beam leaves fallout where it lands', fired && zones.length >= 1 && zones.some((z) => z.s > 0.5), JSON.stringify(zones.map((z) => [Math.round(z.x), Math.round(z.z), z.r, +z.s.toFixed(2)])));
+  check('ash falls at the impact, and the air there carries glowing motes', target.seen.some((q) => q.id === 'basiliskra:fallout_ash'));
+  // now leave it to the fallout, with nobody hunted: everyone creative, he is sent away
+  w.bk.ctl.driveOff(true);
+  ana.mode = 'Creative'; target.mode = 'Creative';
+  const z0 = zones.slice().sort((a, b) => b.s - a.s)[0];
+  ana.moveTo({ x: z0.x + 1, y: 64, z: z0.z + 1 });
+  for (let i = 0; i < 1600; i++) w.sim.step(1);
+  let soil = 0, grass = 0, withered = 0, lawn = 0;
+  for (let x = Math.floor(z0.x) - z0.r; x <= z0.x + z0.r; x++) for (let z = Math.floor(z0.z) - z0.r; z <= z0.z + z0.r; z++) {
+    const top = id(x, 63, z);
+    if (top === 'basiliskra:irradiated_soil') soil++;
+    if (top === 'minecraft:grass_block') grass++;
+  }
+  check('inside it, grass turns to irradiated soil, a little at a time', soil >= 4, `${soil} irradiated, ${grass} grass left`);
+  let plants0 = 0, plants1 = 0;
+  for (let x = Math.floor(z0.x) - z0.r; x <= z0.x + z0.r; x++) for (let z = Math.floor(z0.z) - z0.r; z <= z0.z + z0.r; z++) {
+    if (/short_grass|poppy/.test(meadow('minecraft:overworld', x, 64, z))) plants0++;
+    if (/short_grass|poppy/.test(id(x, 64, z))) plants1++;
+  }
+  check('plants wither in it', plants0 > 0 && plants1 < plants0 / 2, `${plants0} -> ${plants1}`);
+  check('clicks for everyone standing in it, quicker the closer they are', ana.heard.some((q) => /^basiliskra\.geiger\.[1-4]$/.test(q.id)));
+  ana.mode = 'Survival';
+  for (let i = 0; i < 120; i++) w.sim.step(1);
+  check('a player standing in strong fallout gets sick (hunger first)', (ana.effects ?? []).some((e) => e.id === 'hunger'), JSON.stringify((ana.effects ?? []).map((e) => e.id).slice(0, 6)));
+  ana.mode = 'Creative';
+  check('never anything built: the cottage, its lawn against the wall, a planted hedge', id(12, 64, -2) === 'minecraft:oak_planks' && id(12, 65, -2) === 'minecraft:glass' && id(hedge.x, hedge.y, hedge.z) === 'minecraft:oak_leaves');
+  // a strong zone over the trees, the pond and the lawn by the cottage: what changes and what does not
+  fallout.addFallout({ x: 8, y: 64, z: 8 }, 4, 1.2);
+  fallout.addFallout({ x: -8, y: 64, z: 6 }, 4, 1.2);
+  fallout.addFallout({ x: 14, y: 63, z: 2 }, 3, 1.2);
+  ana.moveTo({ x: 4, y: 64, z: 6 });
+  for (let i = 0; i < 2400; i++) w.sim.step(1);
+  let leaves = 0; for (let x = 6; x <= 10; x++) for (let z = 6; z <= 10; z++) for (const y of [67, 68]) if (id(x, y, z) === 'minecraft:oak_leaves') leaves++;
+  check('wild leaves fall in strong fallout; trunks stay', leaves < 40 && id(8, 64, 8) === 'minecraft:oak_log', `${leaves} of 50 leaves left`);
+  check('the lawn against the cottage wall is never changed', id(13, 63, 1) === 'minecraft:grass_block' && id(12, 63, 1) === 'minecraft:grass_block', id(13, 63, 1));
+  // sand the beam touches fuses (he is brought back for it: the scorch is his)
+  w.bk.ctl.bringHere({ x: 0, y: 64, z: -40 }, 0, 3); w.sim.step(2);
+  w.sim.setBlock('minecraft:overworld', 30, 63, 30, 'minecraft:sand');
+  w.bk.ctl.brain.scorch({ x: 30, y: 63, z: 30 });
+  check('sand his beam touches fuses into scarlet trinitite', id(30, 63, 30) === 'basiliskra:scarlet_trinitite' && id(31, 63, 30) === 'basiliskra:scarlet_trinitite');
+  // if the game ever refused the custom blocks, the land still changes, in vanilla blocks
+  w.sim.refuseBlocks = new Set(['basiliskra:irradiated_soil', 'basiliskra:scarlet_trinitite']);
+  w.sim.setBlock('minecraft:overworld', 32, 63, 30, 'minecraft:sand');
+  w.bk.ctl.brain.scorch({ x: 33, y: 63, z: 30 });
+  check('without the custom blocks it falls back to vanilla ones, without an error', id(32, 63, 30) === 'minecraft:smooth_basalt');
+  w.sim.refuseBlocks = null;
+  // the journal reads it
+  ana.moveTo({ x: z0.x, y: 64, z: z0.z });
+  ana.use('basiliskra:journal'); w.sim.step(2);
+  const page = ana.forms[ana.forms.length - 1]?.body ?? '';
+  check('the journal shows the radiation where you stand and the nearest fallout', /FALLOUT/.test(page) && /Radiation where you stand: .*§l\d+%/.test(page) && /Fallout in §f\d+§7 place/.test(page), (page.match(/Radiation where[^\n]*/) || [''])[0]);
+  // the counter
+  ana.hand = { typeId: 'basiliskra:geiger_counter' }; ana.messages.length = 0;
+  w.sim.step(12);
+  check('the Geiger counter shows the dose and the way to the nearest fallout', ana.messages.some((m) => /^\[actionbar\] .*Radiation \d+%/.test(m)), ana.messages.slice(-1)[0]);
+  // time: it fades, and the soil heals
+  const healed0 = soil;
+  w.bk.store.rec.clock += 24000 * 9;                         // nine days: a third of a full zone left, the land heals below a fifth
+  for (let i = 0; i < 200; i++) w.sim.step(1);
+  w.bk.store.rec.clock += 24000 * 6;
+  for (let i = 0; i < 3000; i++) w.sim.step(1);
+  let left = 0;
+  for (let x = Math.floor(z0.x) - z0.r; x <= z0.x + z0.r; x++) for (let z = Math.floor(z0.z) - z0.r; z <= z0.z + z0.r; z++) if (id(x, 63, z) === 'basiliskra:irradiated_soil') left++;
+  check('as it fades the soil heals back to dirt', left < healed0 / 3, `${healed0} -> ${left}`);
+  check('and once faded the fallout is forgotten (the record stays bounded)', w.bk.store.rec.fallout.length <= 32 && w.bk.store.rec.fallout.every((z) => z.s < 2));
+  // settings
+  w.bk.CONFIG.fallout = 'off';
+  const n0 = w.bk.store.rec.fallout.length;
+  fallout.addFallout({ x: 50, y: 64, z: 50 }, 4, 1);
+  check('with fallout off, nothing is left anywhere', w.bk.store.rec.fallout.length === n0);
+  w.bk.CONFIG.fallout = 'land';
+}
+
 console.log(`\n${results.length - failures}/${results.length} checks passed`);
 fs.mkdirSync(path.join(ROOT, 'build'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, 'build/test-results.json'), JSON.stringify({ when: new Date().toISOString(), passed: results.length - failures, total: results.length, results }, null, 1));

@@ -1,0 +1,31 @@
+{
+  "format_version": "1.26.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "basiliskra:scarlet_trinitite",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.basiliskra:scarlet_trinitite.name",
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.2
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 1.2
+      },
+      "minecraft:light_emission": 6,
+      "minecraft:map_color": "#5a1018",
+      "minecraft:tags": [
+        "minecraft:is_pickaxe_item_destructible"
+      ],
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "basiliskra_scarlet_trinitite",
+          "render_method": "opaque"
+        }
+      }
+    }
+  }
+}

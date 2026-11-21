@@ -1,0 +1,40 @@
+{
+  "format_version": "1.26.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "basiliskra:irradiated_soil",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.basiliskra:irradiated_soil.name",
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.6
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0.6
+      },
+      "minecraft:light_emission": 3,
+      "minecraft:map_color": "#4a3a36",
+      "minecraft:tags": [
+        "minecraft:is_shovel_item_destructible"
+      ],
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "basiliskra_irradiated_soil_side",
+          "render_method": "opaque"
+        },
+        "up": {
+          "texture": "basiliskra_irradiated_soil_top",
+          "render_method": "opaque"
+        },
+        "down": {
+          "texture": "basiliskra_irradiated_soil_bottom",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:loot": "loot_tables/blocks/basiliskra_irradiated_soil.json"
+    }
+  }
+}

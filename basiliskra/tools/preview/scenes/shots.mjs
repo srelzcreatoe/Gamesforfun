@@ -140,4 +140,27 @@ export const SHOTS = {
       { t: 39.1, pos: { rel: [40, 8, 10] }, tgt: { rel: [0, 7, -3] }, fov: 52 },
     ],
   },
+  fallout: {
+    title: 'Fallout', sub: 'where his light lands, the land is poisoned: soil, withering, ash, and a Geiger counter that will not stop',
+    bounds: { x0: -40, x1: 70, y0: 59, y1: 72, z0: -40, z1: 40 }, fog: [40, 120], home: [52, 64, 0],
+    labels: [
+      { from: 12.5, to: 18, text: 'fallout: crimson motes and shimmer over the ground he hit' },
+      { from: 22, to: 28, text: 'grass turns to irradiated soil, plants wither' },
+      { from: 32, to: 38, text: 'sand his beam touched has fused into scarlet trinitite' },
+      { from: 46, to: 54, text: 'it fades over days, and the soil heals; your Geiger counter reads it' },
+    ],
+    keys: [
+      { t: 0, pos: [22, 70.5, -30], tgt: [26, 67, 0], fov: 62 },
+      { t: 4.4, pos: [20, 70.5, -31], tgt: [24, 67, 0], fov: 62 },
+      { t: 4.6, cut: true, pos: [4, 67.5, -17], tgt: [-11, 65, 0], fov: 62 },
+      { t: 8.2, pos: [2, 67.5, -17], tgt: [-11, 65, 0], fov: 62 },
+      { t: 12.0, pos: [-3, 67, -12], tgt: [-13, 64.5, 0], fov: 58 },
+      { t: 20, pos: [-5, 66.4, -6], tgt: [-13, 64, 0], fov: 60 },
+      { t: 30, pos: [-8, 66.2, 6], tgt: [-13, 63.6, 0], fov: 60 },
+      { t: 38, pos: [-15, 65.6, 5], tgt: [-13, 63.3, 0], fov: 54 },
+      { t: 48, pos: [-21, 66.6, 1], tgt: [-13, 63.8, 0], fov: 60 },
+      { t: 58, pos: [-20, 67.4, -8], tgt: [-12, 64, 0], fov: 62 },
+      { t: 68.3, pos: [-13, 68.5, -14], tgt: [-12, 64, 1], fov: 64 },
+    ],
+  },
 };

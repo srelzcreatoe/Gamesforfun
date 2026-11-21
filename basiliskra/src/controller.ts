@@ -15,6 +15,7 @@ import { BrainTwo } from "./forms/two";
 import { beginTick, particle, players, sound } from "./fx";
 import { RIGS } from "./generated/rig";
 import { clearHarm, type Trigger } from "./harm";
+import { addFallout, clearFallout, falloutTick } from "./fallout";
 import { freshRecord, newToken, store } from "./store";
 import { add, dist, distXZ, dot, forwardOf, hash, mul, norm, sub, wrapDeg, yawTo, type V3 } from "./vec";
 import { NONE, UNLOADED, blockAt, deepHere, isLoaded, isWaterId, overworld, waterColumn } from "./world";
@@ -206,6 +207,7 @@ export class Controller {
     store.rec = freshRecord();
     store.rec.clock = clock;
     clearHarm();
+    clearFallout();
     store.save();
     store.flush();
   }
@@ -363,6 +365,7 @@ export class Controller {
     const now = ++rec.clock;
     if (now % 600 === 0) store.touch();          // the clock itself is worth saving twice a minute
     beginTick(now);
+    falloutTick(now);
     if (this.creature && !this.creature.valid) { this.creature.dropParts(); this.creature = null; this.brain = null; this.runner = null; }
     if (now % 20 === 0) this.sweep();
     switch (rec.stage) {
@@ -503,7 +506,7 @@ export class Controller {
       }
       case 2: {
         // at dusk a vertical red seam opens below the surface
-        if (t === 1) sound(dim, "basiliskra.rift.open", a.water, 72);
+        if (t === 1) { sound(dim, "basiliskra.rift.open", a.water, 72); addFallout(a.water, 4, 0.4); }
         if (t % 4 === 0) particle(dim, "basiliskra:seam", a.water, 72);
         if (t % 60 === 30) sound(dim, "basiliskra.rift.hum", a.water, 48);
         if (t > 90 && near) this.setStep(SPAWN_STEP);
@@ -706,6 +709,7 @@ export class Controller {
         this.brain = this.makeBrain(c);
         c.setPhase("beach");
         c.say("basiliskra.mutate", c.pos, 72, 1, 0.9);
+        addFallout(c.pos, rec.form === 3 ? 7 : 4, rec.form === 3 ? 0.9 : 0.45);     // the change poisons the ground it happens on
         if (rec.form === 2) {
           // a crimson strip of shed fin lies where he struggled
           this.dropFin(c.dim, c.pos);

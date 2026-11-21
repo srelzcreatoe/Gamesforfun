@@ -27,7 +27,7 @@ All of it is reproducible with `python3 tools/build.py` (which runs the first fo
 | Type-check of the script against the 2.11.0 typings (strict) | `npx tsc --noEmit -p .` | clean |
 | Bundle | `node tools/bundle.mjs` | 166 KiB, one import: `@minecraft/server` |
 | Pack validation | `python3 tools/validate/validate.py` | no problems (three notes, below) |
-| Scenario suite in a simulated world | `node test/run.mjs` | **119 of 119 checks pass** |
+| Scenario suite in a simulated world | `node test/run.mjs` | **135 of 135 checks pass** |
 | Engine calls per tick | `node test/perf.mjs` | see DESIGN.md, "Bounded work" |
 | Foot and claw contact on the shipped animation | `node tools/preview/contact.cjs` | below |
 | Independent code review (a second reviewer with no access to my reasoning) | | 20 findings; all acted on, the reviewer's four probe scripts re-run clean and kept as regression scenarios |
@@ -58,6 +58,7 @@ The script bundle that ships is run unmodified against `test/mock.mjs`: persiste
 | Walls and lanes | 11 | he walks round a cottage (no part of his trunk inside it); a goal inside a building is given up; the seam opens where he has a lane; three real rams; the lane misses the pier |
 | Review findings | 12 | canopy is not ground; cover stops the beam; a call with no water lapses or gives way; redstone-clocked note blocks hold the rhythm; scorch rules; deep water; an unload mid-arrival |
 | Spawn egg, spawn command, journal, config wheel | 13 | the journal and wheel are handed out once; the egg on land in a new world makes Basiliskra III and he stays; a second egg moves the same animal; the egg in the Nether makes nothing; an egg far from an unloaded Basiliskra takes over his identity and the old body is removed when it loads; the three commands register without cheats and refuse non-operators where they should; the journal shows the anger percentage, what more it takes, your share, when and where he comes, and changes nothing; settings change and survive a reload; bring, send back and reset work; busy screens are retried |
+| Fallout | 14 | his beam leaves fallout; ash and motes reach witnesses; grass turns to irradiated soil and plants wither inside it; Geiger clicks; hunger, weakness and nausea in strong fallout; the cottage, a lawn against its wall and a planted hedge are never touched; wild leaves fall, trunks stay; sand the beam touches fuses into trinitite; with the custom blocks refused it falls back to vanilla blocks without an error; the journal and the counter read it; it fades and the soil heals; the record stays bounded; off means off |
 
 Counting him: the suite counts loaded and saved entities of his type after every scenario above. It is 0 before arrival and after departure and 1 otherwise, in every case.
 
@@ -87,9 +88,10 @@ Counting him: the suite counts loaded and saved entities of his type after every
 6. **The beam billboard.** `lookat_direction` with a direction derived from velocity is vanilla-proven, but which axis the game stretches is assumed from documentation.
 7. **Hit volumes.** That a cancelled hit on a helper entity re-applied to the main one behaves like a normal hit (knockback resistance, invulnerability frames, enchantment effects), and that the 20-second keep-alive timer resets as intended.
 8. **`minecraft:dimension_bound` with no collision**, name tags on a nameable entity set from script, and `beforeEvents.entityHurt` damage rewriting, as used here.
-9. **Sounds.** 68 files are synthesised and three are cuts of the roar recording supplied by the project owner; all 71 pass automatic checks (format, mono, length, peak, DC, clean edges). **Nobody has listened to the synthesised ones**, and I have not heard the roar either: I measured it (seven seconds at full level, then a tail) and cut it on those measurements. Their in-game range follows the `max_distance` values in the definitions; not heard.
-10. **Vibrant Visuals.** Texture sets are well-formed and the emissive level was calibrated against vanilla sets; not seen under the deferred renderer.
-11. **Realms, consoles, split-screen, low simulation distance, and anything multiplayer beyond what the simulation models.**
+9. **The two new blocks** (irradiated soil, scarlet trinitite) are schema-valid against the 1.26.60 block schema, with Vibrant Visuals texture sets, but have never been placed in game. If the game refuses one, the content log will say so and the script falls back to coarse dirt or smooth basalt.
+10. **Sounds.** 80 files are synthesised and three are cuts of the roar recording supplied by the project owner; all 83 pass automatic checks (format, mono, length, peak, DC, clean edges). **Nobody has listened to the synthesised ones**, and I have not heard the roar either: I measured it (seven seconds at full level, then a tail) and cut it on those measurements. Their in-game range follows the `max_distance` values in the definitions; not heard.
+11. **Vibrant Visuals.** Texture sets are well-formed and the emissive level was calibrated against vanilla sets; not seen under the deferred renderer.
+12. **Realms, consoles, split-screen, low simulation distance, and anything multiplayer beyond what the simulation models.**
 
 ## First session checklist
 

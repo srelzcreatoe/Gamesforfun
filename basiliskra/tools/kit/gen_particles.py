@@ -166,6 +166,9 @@ SPH = lambda r: {"minecraft:emitter_shape_sphere": {"radius": r, "direction": "o
 SHRINK = lambda s: [f"{s} * (1 - v.particle_age / v.particle_lifetime)"] * 2
 RAND = lambda a, b: f"math.random({a}, {b})"          # evaluated once: speed, lifetime, direction
 PR = lambda a, b, k=1: f"({a} + {round(b - a, 4)} * v.particle_random_{k})"   # per-particle constant: sizes
+# radiation: a mote that flickers (each at its own phase) and dims as it rises
+FLICKER = lambda s: f"({s} + {round(s * 0.5, 4)} * math.sin(v.particle_age * 720 + v.particle_random_2 * 360)) * (1 - 0.6 * v.particle_age / v.particle_lifetime)"
+RAD = ((0, WHITE), (0.25, (1.0, 0.36, 0.30, 1.0)), (0.7, RED), (1, DEEP))
 
 EFFECTS = [
     # ---- the beam ---------------------------------------------------------------------------
@@ -200,7 +203,16 @@ EFFECTS = [
     scatter("step_dust", "puff", 12, 1.6, RAND(0.6, 2.2), RAND(0.7, 1.5), [PR(0.3, 0.7)] * 2, grad((0, (0.45, 0.4, 0.34, 0.7)), (1, (0.4, 0.36, 0.3, 0))),
             accel=[0, 0.4, 0], drag=2.2, shape={"minecraft:emitter_shape_disc": {"radius": 1.8, "plane_normal": "y", "direction": "outwards"}}),
     scatter("lamp_flare", "flare", 3, 0.35, 0.05, RAND(0.25, 0.45), SHRINK(0.9), grad((0, (1, 0.9, 0.6, 1)), (0.5, HOT), (1, DEEP)), material="particles_add"),
+    # ---- fallout: his radiation, in the air over poisoned ground (sent by the script) -------------
+    scatter("rad_mote", "ember", 2, 0.6, RAND(0.05, 0.3), RAND(1.6, 3.0), [FLICKER(0.07)] * 2, grad(*RAD), accel=[0, 0.18, 0], drag=0.8, material="particles_add"),
+    scatter("rad_glint", "spark", 4, 0.3, RAND(0.6, 1.6), RAND(0.25, 0.5), SHRINK(0.14), grad((0, WHITE), (0.5, RED), (1, DEEP)), accel=[0, -2, 0], drag=1.0, material="particles_add"),
+    scatter("rad_shimmer", "wisp", 1, 0.4, RAND(0.1, 0.3), RAND(1.0, 1.6), [PR(0.4, 0.7), PR(0.7, 1.2, 2)],
+            grad((0, (1, 0.25, 0.2, 0.0)), (0.3, (1, 0.25, 0.2, 0.22)), (1, (0.6, 0.05, 0.05, 0))), accel=[0, 0.6, 0], drag=0.5),
+    scatter("fallout_ash", "flake", 10, 0, RAND(0.05, 0.3), RAND(2.5, 4.0), [PR(0.06, 0.13)] * 2,
+            grad((0, (0.3, 0.28, 0.27, 0.0)), (0.15, (0.3, 0.28, 0.27, 0.9)), (1, (0.2, 0.18, 0.18, 0))), accel=[0, -1.0, 0], drag=1.4,
+            shape={"minecraft:emitter_shape_box": {"offset": [0, 2.5, 0], "half_dimensions": [2.5, 1.0, 2.5], "direction": "outwards"}}),
     # ---- bound to his own body (started by the client animation controller at locators) ----------
+    looping("rad_drift", "ember", 3, 10, SPH(0.6), RAND(0.05, 0.3), RAND(1.4, 2.6), [FLICKER(0.08)] * 2, grad(*RAD), accel=[0, 0.25, 0], drag=0.8, material="particles_add"),
     looping("charge_spark", "spark", 26, 40, SPH(1.9), RAND(0.5, 2.5), RAND(0.15, 0.4), SHRINK(0.3), grad((0, WHITE), (0.4, RED), (1, DEEP)), drag=1.0, material="particles_add"),
     looping("plate_ember", "ember", 7, 14, SPH(0.5), RAND(0.2, 1.0), RAND(0.4, 0.9), SHRINK(0.16), grad((0, HOT), (0.5, RED), (1, DEEP)), accel=[0, 1.6, 0]),
     looping("throat_glow", "soft", 9, 12, SPH(0.4), RAND(0.0, 0.3), RAND(0.2, 0.35), SHRINK(0.9), grad((0, (1, 0.85, 0.7, 0.55)), (1, (1, 0.2, 0.1, 0))), material="particles_add"),

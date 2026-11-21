@@ -151,5 +151,27 @@ const SCENES = {
   },
 };
 
+SCENES.fallout = function () {
+  // one white lance into a meadow at night, then a minute of what it leaves behind
+  const w = world('meadow'), { sim, bk } = w;
+  const cam = sim.addPlayer('Cam', { x: -11, y: 64, z: 3 }); cam.mode = 'Creative';
+  const ana = sim.addPlayer('Ana', { x: 6, y: 64, z: 0 });
+  sim.save.timeOfDay = 12500;
+  formThree(w, { x: 52, y: 64, z: 0 }, 90, 6);
+  const rec = new Recorder(w, cam); rec.initial = snapshotEdits(w);
+  const brain = () => bk.ctl.brain;
+  brain().forced = { name: 'beam', run: brain().beam(ana), limit: 1200 };
+  let fired = false, gone = false, after = 0;
+  for (let i = 0; i < 2600; i++) {
+    sim.step(1);
+    const cr = bk.ctl.creature;
+    if (cr?.phase === 'fire') fired = true;
+    if (fired && !gone && cr && cr.phase === 'idle') { ana.mode = 'Creative'; bk.ctl.driveOff(true); gone = true; }
+    rec.tick({ act: brain()?.actName });
+    if (gone && ++after > 1150) break;
+  }
+  rec.save('fallout', { title: 'Fallout' });
+};
+
 const which = process.argv.slice(2);
 for (const n of (which.length ? which : Object.keys(SCENES))) SCENES[n]();

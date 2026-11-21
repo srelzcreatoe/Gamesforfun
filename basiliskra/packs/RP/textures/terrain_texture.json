@@ -1,0 +1,20 @@
+{
+  "resource_pack_name": "basiliskra",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "basiliskra_irradiated_soil_top": {
+      "textures": "textures/blocks/basiliskra_irradiated_soil_top"
+    },
+    "basiliskra_irradiated_soil_side": {
+      "textures": "textures/blocks/basiliskra_irradiated_soil_side"
+    },
+    "basiliskra_irradiated_soil_bottom": {
+      "textures": "textures/blocks/basiliskra_irradiated_soil_bottom"
+    },
+    "basiliskra_scarlet_trinitite": {
+      "textures": "textures/blocks/basiliskra_scarlet_trinitite"
+    }
+  }
+}

@@ -14,6 +14,7 @@ import { Creature, targetable } from "../creature";
 import { beamVars, particle, players, sound, witnesses } from "../fx";
 import { STANCE_III, STRIDE_III } from "../generated/rig";
 import { store } from "../store";
+import { addFallout, fuse } from "../fallout";
 import { add, clamp, dist, distXZ, dot, hash, leftOf, mul, norm, sub, turnTowards, wrapDeg, yawTo, type V3 } from "../vec";
 import { blockAt, clearLine, idAt, isBreakableNatural, isLoaded, isNaturalGround, isPlantBlock, isSolidBlock, printOf, scorchOf, takesMark } from "../world";
 
@@ -381,6 +382,7 @@ export class BrainThree extends Brain {
     if (rodReady.size > 64) rodReady.clear();
     this.rec.learned.rods++;
     this.groundedAt = { tick: this.now, rod };
+    addFallout(rod, 2.5, 0.5);                                         // the charge goes to ground there
     c.setPhase("grounded");
     sound(c.dim, "basiliskra.iii.ground", top, 96);
     const steps = Math.max(4, Math.ceil(dist(tip, top) * 1.6));
@@ -503,7 +505,11 @@ export class BrainThree extends Brain {
         if (hitBlock) {
           if (t % 3 === 0) particle(c.dim, "basiliskra:beam_impact", end, 96);
           if (t % 10 === 0) sound(c.dim, "basiliskra.iii.beam_impact", end, 96);
-          if (t % 6 === 0) this.scorch(hitBlock);
+          if (t % 6 === 0) {
+            this.scorch(hitBlock);
+            addFallout(hitBlock, [0, 3, 4, 5][tier], 0.13);          // where his light lands, the ground is poisoned
+            if (CONFIG.fallout !== "off") particle(c.dim, "basiliskra:fallout_ash", end, 64);
+          }
           lastHit = end;
         }
         if (t % 4 === 0) {
@@ -544,6 +550,7 @@ export class BrainThree extends Brain {
       const b = blockAt(c.dim, { x, y, z });
       if (!b) continue;
       const id = b.typeId;
+      if (Math.abs(dx) + Math.abs(dz) <= 1 && fuse(b)) continue;            // sand the beam touches fuses into scarlet trinitite
       const to = scorchOf(id);
       if (!to && !(CONFIG.terrain === "break" && isBreakableNatural(id))) continue;
       // ground is backed by ground: a block open on two opposite sides is a wall or a pillar somebody raised,
@@ -581,7 +588,10 @@ export class BrainThree extends Brain {
         let length = 26;
         try {
           const hit = c.dim.getBlockFromRay(from, dir, { maxDistance: 26, includeLiquidBlocks: false, includePassableBlocks: false });
-          if (hit) length = Math.max(0.5, dist(from, add(hit.block.location, { x: 0.5, y: 0.5, z: 0.5 })));
+          if (hit) {
+            length = Math.max(0.5, dist(from, add(hit.block.location, { x: 0.5, y: 0.5, z: 0.5 })));
+            if (t % 10 === 0) addFallout(hit.block.location, 2, 0.05);
+          }
         } catch { length = 4; }
         particle(c.dim, "basiliskra:beam_core", from, 96, beamVars(dir, length, 0.22));
         if (t % 5 === 0) {

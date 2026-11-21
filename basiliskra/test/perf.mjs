@@ -83,6 +83,17 @@ function measure(name, w, ticks, each) {
   measure('Form III, the last crossing being called (note rhythm held)', w, 3000, (i) => { if (i % 18 === 0) w.bk.ctl.ending.onNote(note); });
 }
 
+{ // six strong fallout zones round a player, nobody else about: the land changing
+  const w = world(); const a = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 0 }); a.mode = 'Creative';
+  for (let i = 0; i < 6; i++) w.bk.fallout.addFallout({ x: Math.cos(i) * 30, y: 63, z: Math.sin(i) * 30 }, 5, 1.2);
+  measure('six strong fallout zones round a player (land changing)', w, 1200);
+}
+{ // the cap: thirty-two zones near a player
+  const w = world(); const a = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 0 }); a.mode = 'Creative';
+  for (let i = 0; i < 40; i++) w.bk.fallout.addFallout({ x: (i % 8) * 20 - 70, y: 63, z: Math.floor(i / 8) * 20 - 40 }, 5, 1.2);
+  measure('fallout at its cap of 32 zones round a player', w, 1200);
+}
+
 const pad = (s, n) => String(s).padEnd(n);
 console.log(pad('situation', 62) + pad('blocks/tick avg', 17) + pad('max', 8) + pad('queries avg', 13) + pad('max', 6) + 'rays max');
 for (const r of rows) console.log(pad(r.name, 62) + pad(r.avgBlocks, 17) + pad(r.maxBlocks, 8) + pad(r.avgQueries, 13) + pad(r.maxQueries, 6) + r.maxRays + `    [${r.acts}]`);
