@@ -1,0 +1,123 @@
+/**
+ * One rig everywhere.  The model kit writes the same skeleton it built the geometry from into
+ * generated/rig.ts; the server poses it with the same weights the client animation uses, so
+ * the mouth, gills, feet, club and hit volumes are measured on the skeleton the player sees.
+ *
+ * Model ("file") space: 1/16 block, +Y up, -Z is the animal's front, +X its left.
+ *   v' = Rz(-rz) Ry(ry) Rx(-rx) (v - pivot) + pivot
+ */
+import { RIGS, LOOK } from "./generated/rig";
+import { D2R, forwardOf, leftOf, type V3 } from "./vec";
+
+export type Form = 1 | 2 | 3;
+export type PoseAdd = Record<string, [number, number, number]>;
+type Mat = number[];   // 3x4, row-major
+
+function rotation(rx: number, ry: number, rz: number): number[] {
+  const ax = -rx * D2R, ay = ry * D2R, az = -rz * D2R;
+  const cx = Math.cos(ax), sx = Math.sin(ax), cy = Math.cos(ay), sy = Math.sin(ay), cz = Math.cos(az), sz = Math.sin(az);
+  // Rz * Ry * Rx
+  return [
+    cz * cy, cz * sy * sx - sz * cx, cz * sy * cx + sz * sx,
+    sz * cy, sz * sy * sx + cz * cx, sz * sy * cx - cz * sx,
+    -sy, cy * sx, cy * cx,
+  ];
+}
+
+function about(R: number[], p: number[]): Mat {
+  return [
+    R[0], R[1], R[2], p[0] - (R[0] * p[0] + R[1] * p[1] + R[2] * p[2]),
+    R[3], R[4], R[5], p[1] - (R[3] * p[0] + R[4] * p[1] + R[5] * p[2]),
+    R[6], R[7], R[8], p[2] - (R[6] * p[0] + R[7] * p[1] + R[8] * p[2]),
+  ];
+}
+
+function mulM(a: Mat, b: Mat): Mat {
+  const o = new Array<number>(12);
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) o[r * 4 + c] = a[r * 4] * b[c] + a[r * 4 + 1] * b[4 + c] + a[r * 4 + 2] * b[8 + c];
+    o[r * 4 + 3] = a[r * 4] * b[3] + a[r * 4 + 1] * b[7] + a[r * 4 + 2] * b[11] + a[r * 4 + 3];
+  }
+  return o;
+}
+
+function apply(m: Mat, p: number[]): number[] {
+  return [
+    m[0] * p[0] + m[1] * p[1] + m[2] * p[2] + m[3],
+    m[4] * p[0] + m[5] * p[1] + m[6] * p[2] + m[7],
+    m[8] * p[0] + m[9] * p[1] + m[10] * p[2] + m[11],
+  ];
+}
+
+export interface PoseState { lookYaw: number; lookPitch: number; bend: number; pitch: number; charge?: number; drink?: number }
+
+/** The steady-state pose the client settles into for these synchronised values. */
+export function poseOf(form: Form, s: PoseState): PoseAdd {
+  const p: PoseAdd = {};
+  const L = LOOK[form];
+  const yawW = L.yaw as Record<string, number>, pitchW = L.pitch as Record<string, number>;
+  const set = (b: string, x: number, y: number, z = 0) => {
+    const c = p[b] ?? (p[b] = [0, 0, 0]);
+    c[0] += x; c[1] += y; c[2] += z;
+  };
+  for (const [b, w] of Object.entries(yawW)) set(b, 0, s.lookYaw * w);
+  for (const [b, w] of Object.entries(pitchW)) set(b, s.lookPitch * w, 0);
+  set("body", s.pitch, 0);
+  const charge = s.charge ?? 0, drink = s.drink ?? 0;
+  if (form === 1) {
+    set("head", 0, s.bend * 0.6);
+    for (let i = 1; i <= 10; i++) set(`seg${i}`, 0, -s.bend);
+    set("tailfin", 0, -s.bend);
+  } else if (form === 2) {
+    set("neck", 22 * drink, 0);
+    set("head", 16 * drink, 0);
+    set("chest", 6 * drink, 0);
+    set("mid", 0, -s.bend * 0.5);
+    set("hips", 0, -s.bend * 0.8);
+    for (let i = 1; i <= 6; i++) set(`tail${i}`, 0, -s.bend * (0.5 + 0.1 * i));
+  } else {
+    set("hips", 0, -s.bend * 0.3);
+    for (let i = 1; i <= 5; i++) set(`neck${i}`, -1.5 * charge, 0);
+    set("head", -4 * charge, 0);
+    for (let i = 1; i <= 8; i++) set(`tail${i}`, -4.4 * charge, -s.bend * (0.35 + 0.09 * i));
+  }
+  return p;
+}
+
+export class Skeleton {
+  private cache = new Map<string, Mat>();
+  constructor(readonly form: Form, private pose: PoseAdd) {}
+
+  private bone(name: string): Mat {
+    const hit = this.cache.get(name);
+    if (hit) return hit;
+    const b = RIGS[this.form].bones[name];
+    if (!b) throw new Error(`rig ${this.form}: no bone ${name}`);
+    const add = this.pose[name];
+    const R = rotation(b.rot[0] + (add ? add[0] : 0), b.rot[1] + (add ? add[1] : 0), b.rot[2] + (add ? add[2] : 0));
+    const local = about(R, b.pivot);
+    const m = b.parent ? mulM(this.bone(b.parent), local) : local;
+    this.cache.set(name, m);
+    return m;
+  }
+
+  /** Model-space position of a locator. */
+  locator(name: string): number[] {
+    const l = RIGS[this.form].locators[name];
+    if (!l) throw new Error(`rig ${this.form}: no locator ${name}`);
+    return apply(this.bone(l.bone), l.pos);
+  }
+
+  /** Model-space position of a point given in a bone's rest coordinates. */
+  point(bone: string, p: number[]): number[] { return apply(this.bone(bone), p); }
+  pivot(bone: string): number[] { return apply(this.bone(bone), RIGS[this.form].bones[bone].pivot); }
+}
+
+/** Model space -> world, for an entity standing at `at` with Minecraft yaw `yaw`. */
+export function toWorld(at: V3, yaw: number, m: number[]): V3 {
+  const l = leftOf(yaw), f = forwardOf(yaw);
+  const x = m[0] / 16, y = m[1] / 16, z = -m[2] / 16;
+  return { x: at.x + l.x * x + f.x * z, y: at.y + y, z: at.z + l.z * x + f.z * z };
+}
+
+export function rigMeta(form: Form) { return RIGS[form].meta; }

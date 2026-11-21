@@ -1,0 +1,17 @@
+{
+  "name": "basiliskra-addon",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Basiliskra - an original Minecraft Bedrock survival-horror creature add-on (build tooling).",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "bundle": "esbuild src/main.ts --bundle --format=esm --target=es2021 --external:@minecraft/server --outfile=packs/BP/scripts/main.js --legal-comments=none",
+    "test": "node test/run.mjs",
+    "build": "python3 tools/build.py"
+  },
+  "devDependencies": {
+    "@minecraft/server": "2.11.0",
+    "esbuild": "0.24.0",
+    "typescript": "5.6.3"
+  }
+}

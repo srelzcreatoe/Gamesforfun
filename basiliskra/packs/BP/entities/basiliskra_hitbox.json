@@ -1,0 +1,370 @@
+{
+  "format_version": "1.26.60",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "basiliskra:hitbox",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "spawn_category": "misc"
+    },
+    "component_groups": {
+      "basiliskra:life": {
+        "minecraft:timer": {
+          "looping": false,
+          "time": 20.0,
+          "time_down_event": {
+            "event": "basiliskra:expire",
+            "target": "self"
+          }
+        }
+      },
+      "basiliskra:gone": {
+        "minecraft:instant_despawn": {}
+      },
+      "basiliskra:size_0": {
+        "minecraft:collision_box": {
+          "width": 1.5,
+          "height": 1.5
+        }
+      },
+      "basiliskra:size_1": {
+        "minecraft:collision_box": {
+          "width": 2.5,
+          "height": 2.5
+        }
+      },
+      "basiliskra:size_2": {
+        "minecraft:collision_box": {
+          "width": 3.5,
+          "height": 3.5
+        }
+      },
+      "basiliskra:size_3": {
+        "minecraft:collision_box": {
+          "width": 4.5,
+          "height": 4.5
+        }
+      },
+      "basiliskra:size_4": {
+        "minecraft:collision_box": {
+          "width": 5.5,
+          "height": 5.5
+        }
+      },
+      "basiliskra:size_5": {
+        "minecraft:collision_box": {
+          "width": 6.5,
+          "height": 6.5
+        }
+      },
+      "basiliskra:size_6": {
+        "minecraft:collision_box": {
+          "width": 7.5,
+          "height": 7.5
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "basiliskra_part",
+          "inanimate"
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 2.5,
+        "height": 2.5
+      },
+      "minecraft:health": {
+        "value": 1000,
+        "max": 1000
+      },
+      "minecraft:physics": {
+        "has_gravity": false,
+        "has_collision": false
+      },
+      "minecraft:transient": {},
+      "minecraft:fire_immune": {},
+      "minecraft:knockback_resistance": {
+        "value": 1.0
+      },
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0,
+        "breathes_air": true,
+        "breathes_water": true,
+        "generates_bubbles": false
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "suffocation",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "drowning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "lava",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire_tick",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "freezing",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "contact",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "magma",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "stalactite",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "stalagmite",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fly_into_wall",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "campfire",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "soul_campfire",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "lightning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "void",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:conditional_bandwidth_optimization": {
+        "default_values": {
+          "max_optimized_distance": 60.0,
+          "max_dropped_ticks": 6,
+          "use_motion_prediction_hints": false
+        }
+      }
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": {
+          "component_groups": [
+            "basiliskra:life"
+          ]
+        }
+      },
+      "basiliskra:keep": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:life"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:life"
+              ]
+            }
+          }
+        ]
+      },
+      "basiliskra:expire": {
+        "add": {
+          "component_groups": [
+            "basiliskra:gone"
+          ]
+        }
+      },
+      "basiliskra:size_0": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:size_1",
+                "basiliskra:size_2",
+                "basiliskra:size_3",
+                "basiliskra:size_4",
+                "basiliskra:size_5",
+                "basiliskra:size_6"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:size_0"
+              ]
+            }
+          }
+        ]
+      },
+      "basiliskra:size_1": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:size_0",
+                "basiliskra:size_2",
+                "basiliskra:size_3",
+                "basiliskra:size_4",
+                "basiliskra:size_5",
+                "basiliskra:size_6"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:size_1"
+              ]
+            }
+          }
+        ]
+      },
+      "basiliskra:size_2": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:size_0",
+                "basiliskra:size_1",
+                "basiliskra:size_3",
+                "basiliskra:size_4",
+                "basiliskra:size_5",
+                "basiliskra:size_6"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:size_2"
+              ]
+            }
+          }
+        ]
+      },
+      "basiliskra:size_3": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:size_0",
+                "basiliskra:size_1",
+                "basiliskra:size_2",
+                "basiliskra:size_4",
+                "basiliskra:size_5",
+                "basiliskra:size_6"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:size_3"
+              ]
+            }
+          }
+        ]
+      },
+      "basiliskra:size_4": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:size_0",
+                "basiliskra:size_1",
+                "basiliskra:size_2",
+                "basiliskra:size_3",
+                "basiliskra:size_5",
+                "basiliskra:size_6"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:size_4"
+              ]
+            }
+          }
+        ]
+      },
+      "basiliskra:size_5": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:size_0",
+                "basiliskra:size_1",
+                "basiliskra:size_2",
+                "basiliskra:size_3",
+                "basiliskra:size_4",
+                "basiliskra:size_6"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:size_5"
+              ]
+            }
+          }
+        ]
+      },
+      "basiliskra:size_6": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:size_0",
+                "basiliskra:size_1",
+                "basiliskra:size_2",
+                "basiliskra:size_3",
+                "basiliskra:size_4",
+                "basiliskra:size_5"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:size_6"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

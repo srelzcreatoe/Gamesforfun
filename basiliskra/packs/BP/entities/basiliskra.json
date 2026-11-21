@@ -1,0 +1,354 @@
+{
+  "format_version": "1.26.60",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "basiliskra:basiliskra",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "spawn_category": "misc",
+      "properties": {
+        "basiliskra:form": {
+          "type": "int",
+          "range": [
+            1,
+            3
+          ],
+          "default": 1,
+          "client_sync": true
+        },
+        "basiliskra:bound": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        },
+        "basiliskra:phase": {
+          "type": "int",
+          "range": [
+            0,
+            40
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "basiliskra:charge": {
+          "type": "int",
+          "range": [
+            0,
+            20
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "basiliskra:look_yaw": {
+          "type": "int",
+          "range": [
+            -90,
+            90
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "basiliskra:look_pitch": {
+          "type": "int",
+          "range": [
+            -60,
+            60
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "basiliskra:bend": {
+          "type": "int",
+          "range": [
+            -30,
+            30
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "basiliskra:pitch": {
+          "type": "int",
+          "range": [
+            -45,
+            45
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "basiliskra:gait": {
+          "type": "int",
+          "range": [
+            0,
+            5
+          ],
+          "default": 2,
+          "client_sync": true
+        },
+        "basiliskra:gill": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        },
+        "basiliskra:fx_kind": {
+          "type": "int",
+          "range": [
+            0,
+            15
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "basiliskra:fx_seq": {
+          "type": "int",
+          "range": [
+            0,
+            15
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "basiliskra:tier": {
+          "type": "int",
+          "range": [
+            0,
+            3
+          ],
+          "default": 1,
+          "client_sync": true
+        },
+        "basiliskra:vis_lo": {
+          "type": "int",
+          "range": [
+            0,
+            9
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "basiliskra:vis_hi": {
+          "type": "int",
+          "range": [
+            -1,
+            8
+          ],
+          "default": 8,
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "basiliskra:unbound": {
+        "minecraft:timer": {
+          "looping": false,
+          "time": 2.0,
+          "time_down_event": {
+            "event": "basiliskra:expire",
+            "target": "self"
+          }
+        }
+      },
+      "basiliskra:gone": {
+        "minecraft:instant_despawn": {}
+      },
+      "basiliskra:form_1": {
+        "minecraft:collision_box": {
+          "width": 6.0,
+          "height": 4.4
+        }
+      },
+      "basiliskra:form_2": {
+        "minecraft:collision_box": {
+          "width": 6.6,
+          "height": 7.2
+        }
+      },
+      "basiliskra:form_3": {
+        "minecraft:collision_box": {
+          "width": 8.6,
+          "height": 9.6
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "basiliskra",
+          "mob"
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 0.6,
+        "height": 0.6
+      },
+      "minecraft:health": {
+        "value": 600,
+        "max": 600
+      },
+      "minecraft:physics": {
+        "has_gravity": false,
+        "has_collision": false
+      },
+      "minecraft:persistent": {},
+      "minecraft:fire_immune": {},
+      "minecraft:knockback_resistance": {
+        "value": 1.0
+      },
+      "minecraft:body_rotation_always_follows_head": {},
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0,
+        "breathes_air": true,
+        "breathes_water": true,
+        "generates_bubbles": false
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "suffocation",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "drowning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "lava",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire_tick",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "freezing",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "contact",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "magma",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "stalactite",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "stalagmite",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fly_into_wall",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "campfire",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "soul_campfire",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "lightning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "void",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:nameable": {
+        "allow_name_tag_renaming": false,
+        "always_show": false
+      }
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": {
+          "component_groups": [
+            "basiliskra:unbound"
+          ]
+        }
+      },
+      "basiliskra:expire": {
+        "add": {
+          "component_groups": [
+            "basiliskra:gone"
+          ]
+        }
+      },
+      "basiliskra:bind_1": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:unbound",
+                "basiliskra:form_2",
+                "basiliskra:form_3"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:form_1"
+              ]
+            }
+          }
+        ]
+      },
+      "basiliskra:bind_2": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:unbound",
+                "basiliskra:form_1",
+                "basiliskra:form_3"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:form_2"
+              ]
+            }
+          }
+        ]
+      },
+      "basiliskra:bind_3": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:unbound",
+                "basiliskra:form_1",
+                "basiliskra:form_2"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:form_3"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

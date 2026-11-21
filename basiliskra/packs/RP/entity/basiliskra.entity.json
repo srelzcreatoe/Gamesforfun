@@ -1,0 +1,259 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "basiliskra:basiliskra",
+   "materials": {
+    "default": "entity_alphatest",
+    "glow": "warden_bioluminescent_layer"
+   },
+   "textures": {
+    "i": "textures/entity/basiliskra/basiliskra_i",
+    "ii": "textures/entity/basiliskra/basiliskra_ii",
+    "iii": "textures/entity/basiliskra/basiliskra_iii",
+    "i_glow": "textures/entity/basiliskra/basiliskra_i_glow",
+    "ii_glow": "textures/entity/basiliskra/basiliskra_ii_glow",
+    "iii_glow": "textures/entity/basiliskra/basiliskra_iii_glow"
+   },
+   "geometry": {
+    "i": "geometry.basiliskra.i",
+    "ii": "geometry.basiliskra.ii",
+    "iii": "geometry.basiliskra.iii"
+   },
+   "scripts": {
+    "initialize": [
+     "v.pt = 0; v.phase_prev = -1; v.gait_prev = -1; v.ts = 0; v.tsv = 0; v.charge = 0; v.walk = 0; v.fx_prev = 0;"
+    ],
+    "pre_animation": [
+     "v.dt = math.min(q.delta_time, 0.1);",
+     "v.form = q.property('basiliskra:form');",
+     "v.phase = q.property('basiliskra:phase');",
+     "v.k1 = math.min(1, v.dt * 14);",
+     "v.k2 = math.min(1, v.dt * 6);",
+     "v.k3 = math.min(1, v.dt * 3);",
+     "v.k4 = math.min(1, v.dt * 1.5);",
+     "v.pt = (v.phase != v.phase_prev) ? 0 : v.pt + v.dt;",
+     "v.left_move = (v.phase_prev == 1 && v.phase != 1) ? 1 : 0;",
+     "v.phase_prev = v.phase;",
+     "v.ly_t = q.property('basiliskra:look_yaw');",
+     "v.lp_t = q.property('basiliskra:look_pitch');",
+     "v.ly_eye = v.ly_eye + (v.ly_t - v.ly_eye) * v.k1;",
+     "v.ly_head = v.ly_head + (v.ly_t - v.ly_head) * v.k2;",
+     "v.ly_neck = v.ly_neck + (v.ly_t - v.ly_neck) * v.k3;",
+     "v.ly_chest = v.ly_chest + (v.ly_t - v.ly_chest) * v.k4;",
+     "v.lp_head = v.lp_head + (v.lp_t - v.lp_head) * v.k2;",
+     "v.lp_neck = v.lp_neck + (v.lp_t - v.lp_neck) * v.k3;",
+     "v.eye_lead = math.clamp((v.ly_eye - v.ly_head) * 0.05, -0.9, 0.9);",
+     "v.bend_t = q.property('basiliskra:bend');",
+     "v.bend = v.bend + (v.bend_t - v.bend) * v.k3;",
+     "v.pitch = v.pitch + (q.property('basiliskra:pitch') - v.pitch) * v.k3;",
+     "v.tsv = v.tsv + ((v.bend_t - v.ts) * 55 - v.tsv * 4.6) * v.dt + v.left_move * 26;",
+     "v.ts = math.clamp(v.ts + v.tsv * v.dt, -40, 40);",
+     "v.charge = v.charge + (q.property('basiliskra:charge') - v.charge) * math.min(1, v.dt * 12);",
+     "v.flick = 0.86 + 0.14 * math.sin(q.life_time * 1900) * math.cos(q.life_time * 523);",
+     "v.over = math.clamp(v.charge - 18, 0, 2) * 0.5;",
+     "v.spasm = (v.phase == 9 || v.phase == 12 || v.phase == 13) ? 1 : 0;",
+     "v.kn = (v.pt < 2.6) ? math.clamp(1 - math.abs(math.mod(v.pt, 0.9) - 0.08) * 9, 0, 1) : 0;",
+     "v.knock = (v.phase == 4 || v.phase == 11 || v.phase == 20) ? v.kn : 0;",
+     "v.gill_open = q.property('basiliskra:gill') ? 1 : 0;",
+     "v.breath = math.sin(q.life_time * 72);",
+     "v.walk = v.walk + (((v.phase == 1 || v.phase == 24 || v.phase == 25) ? 1 : 0) - v.walk) * v.k3;",
+     "v.gait = q.property('basiliskra:gait');",
+     "v.gt = (v.gait != v.gait_prev) ? 0 : v.gt + v.dt;",
+     "v.gait_prev = v.gait;",
+     "v.fx_kind = q.property('basiliskra:fx_kind');",
+     "v.fx_new = (q.property('basiliskra:fx_seq') != v.fx_prev) ? 1 : 0;",
+     "v.fx_prev = q.property('basiliskra:fx_seq');",
+     "v.g0 = math.clamp((math.clamp(v.charge * 0.5 - 0, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 8 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
+     "v.g1 = math.clamp((math.clamp(v.charge * 0.5 - 1, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 7 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
+     "v.g2 = math.clamp((math.clamp(v.charge * 0.5 - 2, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 6 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
+     "v.g3 = math.clamp((math.clamp(v.charge * 0.5 - 3, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 5 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
+     "v.g4 = math.clamp((math.clamp(v.charge * 0.5 - 4, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 4 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
+     "v.g5 = math.clamp((math.clamp(v.charge * 0.5 - 5, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 3 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
+     "v.g6 = math.clamp((math.clamp(v.charge * 0.5 - 6, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 2 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
+     "v.g7 = math.clamp((math.clamp(v.charge * 0.5 - 7, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 1 * 0.42 - 0.3) * 1.5, 0, 1) + v.knock, 0, 1);",
+     "v.g8 = math.clamp((math.clamp(v.charge * 0.5 - 8, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 0 * 0.42 - 0.3) * 1.5, 0, 1), 0, 1);",
+     "v.w_arrive = v.w_arrive + (((v.phase == 2) ? 1 : 0) - v.w_arrive) * v.k2;",
+     "v.w_ram = v.w_ram + (((v.phase == 3) ? 1 : 0) - v.w_ram) * v.k2;",
+     "v.w_knockp = v.w_knockp + (((v.phase == 4 || v.phase == 11) ? 1 : 0) - v.w_knockp) * v.k2;",
+     "v.w_rise = v.w_rise + (((v.phase == 5) ? 1 : 0) - v.w_rise) * v.k2;",
+     "v.w_bite = v.w_bite + (((v.phase == 6) ? 1 : 0) - v.w_bite) * v.k2;",
+     "v.w_sweep = v.w_sweep + (((v.phase == 7) ? 1 : 0) - v.w_sweep) * v.k2;",
+     "v.w_jam = v.w_jam + (((v.phase == 8) ? 1 : 0) - v.w_jam) * v.k2;",
+     "v.w_spasmw = v.w_spasmw + (((v.phase == 9) ? 1 : 0) - v.w_spasmw) * v.k2;",
+     "v.w_sleep = v.w_sleep + (((v.phase == 10) ? 1 : 0) - v.w_sleep) * v.k2;",
+     "v.w_evolve = v.w_evolve + (((v.phase == 12 || v.phase == 13) ? 1 : 0) - v.w_evolve) * v.k2;",
+     "v.w_drink = v.w_drink + (((v.phase == 14) ? 1 : 0) - v.w_drink) * v.k2;",
+     "v.w_arc = v.w_arc + (((v.phase == 15) ? 1 : 0) - v.w_arc) * v.k2;",
+     "v.w_pin = v.w_pin + (((v.phase == 16) ? 1 : 0) - v.w_pin) * v.k2;",
+     "v.w_chargew = v.w_chargew + (((v.phase == 18 || v.phase == 19) ? 1 : 0) - v.w_chargew) * v.k2;",
+     "v.w_fire = v.w_fire + (((v.phase == 19) ? 1 : 0) - v.w_fire) * v.k2;",
+     "v.w_vent = v.w_vent + (((v.phase == 20) ? 1 : 0) - v.w_vent) * v.k2;",
+     "v.w_ground = v.w_ground + (((v.phase == 21) ? 1 : 0) - v.w_ground) * v.k2;",
+     "v.w_scatter = v.w_scatter + (((v.phase == 22) ? 1 : 0) - v.w_scatter) * v.k2;",
+     "v.w_roar = v.w_roar + (((v.phase == 23) ? 1 : 0) - v.w_roar) * v.k2;",
+     "v.w_window = v.w_window + (((v.phase == 27) ? 1 : 0) - v.w_window) * v.k2;",
+     "v.w_flinch = v.w_flinch + (((v.phase == 26) ? 1 : 0) - v.w_flinch) * v.k2;",
+     "v.swp = q.modified_distance_moved * 34 + q.life_time * 38;",
+     "v.swa = 1.1 + math.min(q.ground_speed, 8) * 0.5;",
+     "v.catch = math.clamp(1 - math.abs(math.mod(v.swp / 360, 7) - 6.5) * 2.4, 0, 1);",
+     "v.swg = (1 - 0.55 * v.catch) * (1 - 0.8 * v.w_sleep) * (1 - 0.7 * v.w_knockp);",
+     "v.gl = math.max(v.gill_open, math.max(v.catch, v.knock));",
+     "v.gr = 0.14 + 0.12 * math.sin(q.life_time * 95);",
+     "v.gd = (v.gait == 0 || v.gait == 3) ? 0.6 : ((v.gait == 1 || v.gait == 4) ? 0.9 : 1.1);",
+     "v.c = v.gait + math.clamp(v.gt / v.gd, 0, 1);",
+     "v.cr = math.mod(v.c + 3, 6);",
+     "v.pulling = (v.gait == 1 || v.gait == 4) ? math.sin(math.clamp(v.gt / v.gd, 0, 1) * 180) : 0;",
+     "v.resting = (v.gait == 2 || v.gait == 5) ? math.sin(math.clamp(v.gt / v.gd, 0, 1) * 180) : 0;",
+     "v.gl = math.max(v.gill_open, v.knock);",
+     "v.wp = q.modified_distance_moved * 32.7273;",
+     "v.p_bl = math.mod(v.wp, 360) / 360;",
+     "v.p_fl = math.mod(v.wp + 270, 360) / 360;",
+     "v.p_br = math.mod(v.wp + 180, 360) / 360;",
+     "v.p_fr = math.mod(v.wp + 90, 360) / 360;",
+     "v.kopen = v.w_vent;"
+    ],
+    "animate": [
+     {
+      "pose_i": "v.form == 1"
+     },
+     {
+      "pose_ii": "v.form == 2"
+     },
+     {
+      "pose_iii": "v.form == 3"
+     },
+     {
+      "fx_i": "v.form == 1 && q.property('basiliskra:bound')"
+     },
+     {
+      "fx_ii": "v.form == 2 && q.property('basiliskra:bound')"
+     },
+     {
+      "fx_iii": "v.form == 3 && q.property('basiliskra:bound')"
+     }
+    ],
+    "should_update_bones_and_effects_offscreen": true,
+    "should_update_effects_offscreen": true
+   },
+   "animations": {
+    "pose_i": "animation.basiliskra.i.pose",
+    "pose_ii": "animation.basiliskra.ii.pose",
+    "pose_iii": "animation.basiliskra.iii.pose",
+    "fx_i": "controller.animation.basiliskra.i.fx",
+    "fx_ii": "controller.animation.basiliskra.ii.fx",
+    "fx_iii": "controller.animation.basiliskra.iii.fx"
+   },
+   "particle_effects": {
+    "charge_spark": "basiliskra:charge_spark",
+    "plate_ember": "basiliskra:plate_ember",
+    "throat_glow": "basiliskra:throat_glow",
+    "mouth_flare": "basiliskra:mouth_flare",
+    "gill_steam": "basiliskra:gill_steam",
+    "club_arc": "basiliskra:club_arc",
+    "club_crackle": "basiliskra:club_crackle",
+    "horn_arc": "basiliskra:horn_arc",
+    "horn_arc_big": "basiliskra:horn_arc_big",
+    "drip": "basiliskra:drip",
+    "shed_flakes": "basiliskra:shed_flakes",
+    "gill_bubbles": "basiliskra:gill_bubbles",
+    "gill_silt": "basiliskra:gill_silt",
+    "fin_splash": "basiliskra:fin_splash"
+   },
+   "render_controllers": [
+    {
+     "controller.render.basiliskra.i.base": "v.form == 1"
+    },
+    {
+     "controller.render.basiliskra.ii.base": "v.form == 2"
+    },
+    {
+     "controller.render.basiliskra.iii.base": "v.form == 3"
+    },
+    {
+     "controller.render.basiliskra.i.glow0": "q.property('basiliskra:bound') && v.form == 1 && v.g0 > 0.01 && 0 >= q.property('basiliskra:vis_lo') && 0 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.i.glow1": "q.property('basiliskra:bound') && v.form == 1 && v.g1 > 0.01 && 1 >= q.property('basiliskra:vis_lo') && 1 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.i.glow2": "q.property('basiliskra:bound') && v.form == 1 && v.g2 > 0.01 && 2 >= q.property('basiliskra:vis_lo') && 2 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.i.glow3": "q.property('basiliskra:bound') && v.form == 1 && v.g3 > 0.01 && 3 >= q.property('basiliskra:vis_lo') && 3 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.i.glow4": "q.property('basiliskra:bound') && v.form == 1 && v.g4 > 0.01 && 4 >= q.property('basiliskra:vis_lo') && 4 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.i.glow5": "q.property('basiliskra:bound') && v.form == 1 && v.g5 > 0.01 && 5 >= q.property('basiliskra:vis_lo') && 5 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.i.glow6": "q.property('basiliskra:bound') && v.form == 1 && v.g6 > 0.01 && 6 >= q.property('basiliskra:vis_lo') && 6 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.i.glow7": "q.property('basiliskra:bound') && v.form == 1 && v.g7 > 0.01 && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.i.glow8": "q.property('basiliskra:bound') && v.form == 1 && v.g8 > 0.01 && 8 >= q.property('basiliskra:vis_lo') && 8 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.ii.glow0": "q.property('basiliskra:bound') && v.form == 2 && v.g0 > 0.01 && 0 >= q.property('basiliskra:vis_lo') && 0 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.ii.glow1": "q.property('basiliskra:bound') && v.form == 2 && v.g1 > 0.01 && 1 >= q.property('basiliskra:vis_lo') && 1 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.ii.glow2": "q.property('basiliskra:bound') && v.form == 2 && v.g2 > 0.01 && 2 >= q.property('basiliskra:vis_lo') && 2 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.ii.glow3": "q.property('basiliskra:bound') && v.form == 2 && v.g3 > 0.01 && 3 >= q.property('basiliskra:vis_lo') && 3 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.ii.glow4": "q.property('basiliskra:bound') && v.form == 2 && v.g4 > 0.01 && 4 >= q.property('basiliskra:vis_lo') && 4 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.ii.glow5": "q.property('basiliskra:bound') && v.form == 2 && v.g5 > 0.01 && 5 >= q.property('basiliskra:vis_lo') && 5 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.ii.glow6": "q.property('basiliskra:bound') && v.form == 2 && v.g6 > 0.01 && 6 >= q.property('basiliskra:vis_lo') && 6 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.ii.glow7": "q.property('basiliskra:bound') && v.form == 2 && v.g7 > 0.01 && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.ii.glow8": "q.property('basiliskra:bound') && v.form == 2 && v.g8 > 0.01 && 8 >= q.property('basiliskra:vis_lo') && 8 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.iii.glow0": "q.property('basiliskra:bound') && v.form == 3 && v.g0 > 0.01 && 0 >= q.property('basiliskra:vis_lo') && 0 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.iii.glow1": "q.property('basiliskra:bound') && v.form == 3 && v.g1 > 0.01 && 1 >= q.property('basiliskra:vis_lo') && 1 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.iii.glow2": "q.property('basiliskra:bound') && v.form == 3 && v.g2 > 0.01 && 2 >= q.property('basiliskra:vis_lo') && 2 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.iii.glow3": "q.property('basiliskra:bound') && v.form == 3 && v.g3 > 0.01 && 3 >= q.property('basiliskra:vis_lo') && 3 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.iii.glow4": "q.property('basiliskra:bound') && v.form == 3 && v.g4 > 0.01 && 4 >= q.property('basiliskra:vis_lo') && 4 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.iii.glow5": "q.property('basiliskra:bound') && v.form == 3 && v.g5 > 0.01 && 5 >= q.property('basiliskra:vis_lo') && 5 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.iii.glow6": "q.property('basiliskra:bound') && v.form == 3 && v.g6 > 0.01 && 6 >= q.property('basiliskra:vis_lo') && 6 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.iii.glow7": "q.property('basiliskra:bound') && v.form == 3 && v.g7 > 0.01 && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.iii.glow8": "q.property('basiliskra:bound') && v.form == 3 && v.g8 > 0.01 && 8 >= q.property('basiliskra:vis_lo') && 8 <= q.property('basiliskra:vis_hi')"
+    }
+   ],
+   "enable_attachables": false,
+   "hide_armor": true
+  }
+ }
+}

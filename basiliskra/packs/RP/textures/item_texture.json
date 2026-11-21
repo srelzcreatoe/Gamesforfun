@@ -1,0 +1,9 @@
+{
+  "resource_pack_name": "basiliskra",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "basiliskra_shed_fin": {
+      "textures": "textures/items/basiliskra_shed_fin"
+    }
+  }
+}

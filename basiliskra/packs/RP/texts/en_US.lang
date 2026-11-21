@@ -1,0 +1,6 @@
+pack.name=Basiliskra
+pack.description=One creature. Three stages of one life. He comes for what was done to the shore.
+entity.basiliskra:basiliskra.name=Basiliskra
+entity.basiliskra:hitbox.name=Basiliskra
+item.basiliskra:shed_fin.name=Shed Fin
+item.basiliskra:shed_fin=Shed Fin

@@ -1,0 +1,454 @@
+{
+ "format_version": "1.10.0",
+ "animation_controllers": {
+  "controller.animation.basiliskra.i.fx": {
+   "initial_state": "idle",
+   "states": {
+    "idle": {
+     "transitions": [
+      {
+       "knock": "(v.phase == 4 || v.phase == 11)"
+      },
+      {
+       "spasm": "(v.phase == 9)"
+      },
+      {
+       "evolve": "(v.phase == 12 || v.phase == 13)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "gill_bubbles",
+       "locator": "gill_l"
+      },
+      {
+       "effect": "gill_bubbles",
+       "locator": "gill_r"
+      }
+     ]
+    },
+    "knock": {
+     "transitions": [
+      {
+       "spasm": "(v.phase == 9)"
+      },
+      {
+       "evolve": "(v.phase == 12 || v.phase == 13)"
+      },
+      {
+       "idle": "!(v.phase == 4 || v.phase == 11)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "gill_silt",
+       "locator": "gill_l"
+      }
+     ]
+    },
+    "spasm": {
+     "transitions": [
+      {
+       "knock": "(v.phase == 4 || v.phase == 11)"
+      },
+      {
+       "evolve": "(v.phase == 12 || v.phase == 13)"
+      },
+      {
+       "idle": "!(v.phase == 9)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "fin_splash",
+       "locator": "spine_1"
+      },
+      {
+       "effect": "fin_splash",
+       "locator": "spine_3"
+      },
+      {
+       "effect": "fin_splash",
+       "locator": "spine_5"
+      },
+      {
+       "effect": "fin_splash",
+       "locator": "spine_7"
+      },
+      {
+       "effect": "fin_splash",
+       "locator": "spine_9"
+      }
+     ]
+    },
+    "evolve": {
+     "transitions": [
+      {
+       "knock": "(v.phase == 4 || v.phase == 11)"
+      },
+      {
+       "spasm": "(v.phase == 9)"
+      },
+      {
+       "idle": "!(v.phase == 12 || v.phase == 13)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "shed_flakes",
+       "locator": "back"
+      }
+     ]
+    }
+   }
+  },
+  "controller.animation.basiliskra.ii.fx": {
+   "initial_state": "idle",
+   "states": {
+    "idle": {
+     "transitions": [
+      {
+       "arc": "(v.phase == 15)"
+      },
+      {
+       "drink": "(v.phase == 14)"
+      },
+      {
+       "evolve": "(v.phase == 12 || v.phase == 13)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "horn_arc",
+       "locator": "horn_l"
+      }
+     ]
+    },
+    "arc": {
+     "transitions": [
+      {
+       "drink": "(v.phase == 14)"
+      },
+      {
+       "evolve": "(v.phase == 12 || v.phase == 13)"
+      },
+      {
+       "idle": "!(v.phase == 15)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "horn_arc_big",
+       "locator": "horn_l"
+      },
+      {
+       "effect": "horn_arc_big",
+       "locator": "horn_r"
+      },
+      {
+       "effect": "club_crackle",
+       "locator": "knob_core"
+      }
+     ]
+    },
+    "drink": {
+     "transitions": [
+      {
+       "arc": "(v.phase == 15)"
+      },
+      {
+       "evolve": "(v.phase == 12 || v.phase == 13)"
+      },
+      {
+       "idle": "!(v.phase == 14)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "drip",
+       "locator": "muzzle"
+      }
+     ]
+    },
+    "evolve": {
+     "transitions": [
+      {
+       "arc": "(v.phase == 15)"
+      },
+      {
+       "drink": "(v.phase == 14)"
+      },
+      {
+       "idle": "!(v.phase == 12 || v.phase == 13)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "shed_flakes",
+       "locator": "heart"
+      }
+     ]
+    }
+   }
+  },
+  "controller.animation.basiliskra.iii.fx": {
+   "initial_state": "idle",
+   "states": {
+    "idle": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "grounded": "(v.phase == 21)"
+      },
+      {
+       "scatter": "(v.phase == 22)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "club_crackle",
+       "locator": "spike_tip_1"
+      },
+      {
+       "effect": "club_crackle",
+       "locator": "spike_tip_4"
+      },
+      {
+       "effect": "club_crackle",
+       "locator": "spike_tip_11"
+      }
+     ]
+    },
+    "charge": {
+     "transitions": [
+      {
+       "fire": "(v.phase == 19)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "grounded": "(v.phase == 21)"
+      },
+      {
+       "scatter": "(v.phase == 22)"
+      },
+      {
+       "idle": "!(v.phase == 18)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "charge_spark",
+       "locator": "club_core"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_1"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_3"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_5"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_7"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_9"
+      },
+      {
+       "effect": "throat_glow",
+       "locator": "mouth"
+      }
+     ]
+    },
+    "fire": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "grounded": "(v.phase == 21)"
+      },
+      {
+       "scatter": "(v.phase == 22)"
+      },
+      {
+       "idle": "!(v.phase == 19)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "mouth_flare",
+       "locator": "muzzle"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_0"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_2"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_4"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_6"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_8"
+      },
+      {
+       "effect": "charge_spark",
+       "locator": "club_core"
+      }
+     ]
+    },
+    "vent": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19)"
+      },
+      {
+       "grounded": "(v.phase == 21)"
+      },
+      {
+       "scatter": "(v.phase == 22)"
+      },
+      {
+       "idle": "!(v.phase == 20)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "gill_steam",
+       "locator": "gill_l"
+      },
+      {
+       "effect": "gill_steam",
+       "locator": "gill_r"
+      }
+     ]
+    },
+    "grounded": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "scatter": "(v.phase == 22)"
+      },
+      {
+       "idle": "!(v.phase == 21)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "club_arc",
+       "locator": "spike_tip_0"
+      },
+      {
+       "effect": "club_arc",
+       "locator": "spike_tip_3"
+      },
+      {
+       "effect": "club_arc",
+       "locator": "spike_tip_8"
+      }
+     ]
+    },
+    "scatter": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "grounded": "(v.phase == 21)"
+      },
+      {
+       "idle": "!(v.phase == 22)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_0"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_1"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_2"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_3"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_4"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_5"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_6"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_7"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_8"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_9"
+      }
+     ]
+    }
+   }
+  }
+ }
+}

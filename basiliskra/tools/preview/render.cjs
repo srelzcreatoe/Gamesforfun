@@ -148,11 +148,83 @@ async function view(args) {
   await s.close();
 }
 
-module.exports = { open, FORM_FILES, ROOT, arg };
+const CLIENT_FILES = {
+  entity: '/packs/RP/entity/basiliskra.entity.json',
+  animations: ['/packs/RP/animations/basiliskra.animation.json'],
+  controllers: ['/packs/RP/animation_controllers/basiliskra.animation_controllers.json'],
+  renderControllers: ['/packs/RP/render_controllers/basiliskra.render_controllers.json'],
+};
+
+// A filmstrip of the real client files running:  --script '[[t, {prop: value, ...}], ...]'
+// (properties without the namespace; "speed" in blocks/s moves the animal), --times 0.5,1,2
+async function strip(args) {
+  const form = args[0];
+  const out = arg(args, 'out', path.join(ROOT, 'previews', `strip_${form}.png`));
+  const o = {
+    form, files: FORM_FILES(form), client: CLIENT_FILES,
+    script: JSON.parse(arg(args, 'script', '[[0,{}]]')), times: arg(args, 'times', '0.5,1,2,3').split(',').map(Number),
+    yaw: parseFloat(arg(args, 'yaw', '20')), pitch: parseFloat(arg(args, 'pitch', '8')), dist: parseFloat(arg(args, 'dist', '0')),
+    fov: parseFloat(arg(args, 'fov', '36')), target: arg(args, 'target', null), at: arg(args, 'at', null),
+    night: args.includes('--night'), cols: parseInt(arg(args, 'cols', '2'), 10), W: parseInt(arg(args, 'w', '1000'), 10), H: parseInt(arg(args, 'h', '460'), 10),
+  };
+  const s = await open();
+  const res = await s.page.evaluate(async (o) => {
+    const BK = window.BK;
+    await BK.loadForm(o.form, o.files);
+    await BK.makeAnimator(o.form, o.client);
+    const m = BK.models[o.form], A = m.animator;
+    const formNo = { i: 1, ii: 2, iii: 3 }[o.form];
+    Object.assign(A.props, { 'basiliskra:form': formNo, 'basiliskra:bound': true, 'basiliskra:phase': 0, 'basiliskra:charge': 0, 'basiliskra:look_yaw': 0,
+      'basiliskra:look_pitch': 0, 'basiliskra:bend': 0, 'basiliskra:pitch': 0, 'basiliskra:gait': 2, 'basiliskra:gill': false, 'basiliskra:fx_kind': 0, 'basiliskra:fx_seq': 0, 'basiliskra:tier': 1 });
+    if (o.night) { BK.env.uLight.value.set(0.30, 0.34, 0.5); BK.env.uAmbient.value.set(0.16, 0.17, 0.25); }
+    const b0 = BK.bounds(o.form);
+    const cols = o.cols, rows = Math.ceil(o.times.length / cols);
+    const cv = document.createElement('canvas');
+    cv.width = o.W * cols; cv.height = o.H * rows;
+    const g = cv.getContext('2d');
+    let speed = 0, t = 0, ki = 0, shot = 0;
+    const dt = 1 / 30;
+    const tEnd = Math.max(...o.times) + 1e-6;
+    while (t <= tEnd && shot < o.times.length) {
+      while (ki < o.script.length && o.script[ki][0] <= t + 1e-9) {
+        for (const [k, v] of Object.entries(o.script[ki][1])) {
+          if (k === 'speed') speed = v; else A.props['basiliskra:' + k] = v;
+        }
+        ki++;
+      }
+      A.state.speed = speed / 20; A.state.distance += speed * dt;
+      A.update(dt);
+      t += dt;
+      if (t >= o.times[shot] - 1e-9) {
+        let tg = [(b0.min[0] + b0.max[0]) / 2, (b0.min[1] + b0.max[1]) / 2, (b0.min[2] + b0.max[2]) / 2];
+        if (o.at) tg = BK.bonePos(o.form, o.at);
+        if (o.target) tg = o.target.split(',').map(Number);
+        const R = Math.max(b0.max[0] - b0.min[0], b0.max[1] - b0.min[1], b0.max[2] - b0.min[2]);
+        const dist = o.dist || R * 1.1;
+        const y = o.yaw * Math.PI / 180, p = o.pitch * Math.PI / 180;
+        const dir = [-Math.cos(y) * Math.cos(p), Math.sin(p), -Math.sin(y) * Math.cos(p)];
+        const url = BK.shot(o.W, o.H, { pos: [tg[0] + dir[0] * dist, tg[1] + dir[1] * dist, tg[2] + dir[2] * dist], target: tg, fov: o.fov }, o.night ? '#0b1020' : '#9db9e6');
+        const img = new Image();
+        await new Promise((r) => { img.onload = r; img.src = url; });
+        const x = (shot % cols) * o.W, yy = Math.floor(shot / cols) * o.H;
+        g.drawImage(img, x, yy);
+        g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillRect(x, yy, 150, 26); g.fillStyle = '#fff'; g.font = '18px monospace'; g.fillText('t=' + o.times[shot].toFixed(2) + 's', x + 8, yy + 19);
+        shot++;
+      }
+    }
+    return { url: cv.toDataURL('image/png'), missing: [...A.missing] };
+  }, o);
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  fs.writeFileSync(out, Buffer.from(res.url.split(',')[1], 'base64'));
+  console.log(JSON.stringify({ out, missingBones: res.missing }));
+  await s.close();
+}
+
+module.exports = { open, FORM_FILES, CLIENT_FILES, ROOT, arg };
 
 if (require.main === module) {
   const [cmd, ...args] = process.argv.slice(2);
-  const run = { sheet, view }[cmd];
+  const run = { sheet, view, strip }[cmd];
   if (!run) { console.error('usage: render.cjs sheet|view <i|ii|iii> [--glow a] [--out f] [--pose f] [--zoom bone] [--night] (view: --yaw --pitch --dist --at --fov --size)'); process.exit(2); }
   run(args).catch((e) => { console.error(e); process.exit(1); });
 }

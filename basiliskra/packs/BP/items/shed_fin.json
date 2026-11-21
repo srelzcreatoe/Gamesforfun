@@ -1,0 +1,22 @@
+{
+  "format_version": "1.26.30",
+  "minecraft:item": {
+    "description": {
+      "identifier": "basiliskra:shed_fin",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:display_name": {
+        "value": "item.basiliskra:shed_fin.name"
+      },
+      "minecraft:icon": {
+        "textures": {
+          "default": "basiliskra_shed_fin"
+        }
+      },
+      "minecraft:max_stack_size": 1
+    }
+  }
+}
