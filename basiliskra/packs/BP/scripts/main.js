@@ -155,6 +155,28 @@ function isSolidBlock(b) {
   if (b.isAir || b.isLiquid) return false;
   return !SOFT.test(b.typeId);
 }
+var PLANT = /^minecraft:(?!stripped_)(.*_log|.*_wood|.*_stem|.*_hyphae|.*leaves.*|azalea|flowering_azalea|bamboo|cactus|melon_block|pumpkin|.*mushroom_block|mushroom_stem|mangrove_roots|bee_nest|chorus_plant|chorus_flower|pointed_dripstone|big_dripleaf|hanging_roots)$/;
+var NATURAL = /^minecraft:(stone|granite|diorite|andesite|deepslate|tuff|calcite|dirt|coarse_dirt|grass_block|podzol|mycelium|dirt_with_roots|mud|clay|sand|red_sand|gravel|suspicious_sand|suspicious_gravel|sandstone|red_sandstone|snow|ice|packed_ice|blue_ice|powder_snow|moss_block|pale_moss_block|hardened_clay|.*_terracotta|netherrack|basalt|smooth_basalt|blackstone|end_stone|dripstone_block|.*_ore|bedrock|obsidian|magma|soul_sand|soul_soil|muddy_mangrove_roots|amethyst_block|budding_amethyst|.*coral_block|cobbled_deepslate|packed_mud)$/;
+var isPlantBlock = (id) => PLANT.test(id);
+var isNaturalGround = (id) => NATURAL.test(id) && !id.includes("glazed");
+function trunkBlocked(dim, at, feetY, radius, built, cliff, full) {
+  const ring = full ? [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [0.72, 0.72], [-0.72, 0.72], [0.72, -0.72], [-0.72, -0.72]] : [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
+  for (const [dx, dz] of ring) {
+    const x = at.x + dx * radius, z = at.z + dz * radius;
+    const top = blockAt(dim, { x, y: feetY + cliff, z });
+    if (top && isSolidBlock(top) && !isPlantBlock(top.typeId)) return true;
+    for (const h of built) {
+      const b = blockAt(dim, { x, y: feetY + h, z });
+      if (b && isSolidBlock(b) && !isPlantBlock(b.typeId) && !isNaturalGround(b.typeId)) return true;
+    }
+  }
+  return false;
+}
+function deepHere(dim, x, z, surface, need) {
+  if (!isLoaded(dim, { x, y: surface, z })) return UNLOADED;
+  for (let d = 1; d <= need; d++) if (!isWaterId(idAt(dim, { x, y: surface - d, z }))) return false;
+  return true;
+}
 var UNLOADED = Symbol("unloaded");
 var NONE = Symbol("none");
 function groundY(dim, x, z, yTop, depth) {
@@ -604,6 +626,11 @@ var MOVE = {
   2: { turn: 1.5, accel: 0.03, radius: 2.5 },
   3: { turn: 1.25, accel: 0.012, radius: 3.5 }
 };
+var DROP = 30;
+var BODY = {
+  2: { built: [1.5, 2.6], cliff: 3.6, front: 3.5, look: [4, 7, 10] },
+  3: { built: [2.5, 3.6], cliff: 4.8, front: 5.5, look: [6, 10, 14] }
+};
 var Creature = class {
   constructor(entity) {
     this.entity = entity;
@@ -616,6 +643,10 @@ var Creature = class {
     this.swimDepth = 7;
     this.blocked = 0;
     this.blockedWhy = "none";
+    this.steerOff = 0;
+    this.steerSide = 0;
+    this.steerAt = -99;
+    this.goalWalled = false;
     this.lookYaw = 0;
     this.lookPitch = 0;
     this.bend = 0;
@@ -631,6 +662,11 @@ var Creature = class {
     this.fxSeq = 0;
     this.pushAt = /* @__PURE__ */ new Map();
     this.tick = 0;
+    /**
+     * Form I out of water (the pond was drained, ice closed over, something carried him): look for the
+     * nearest deep column in loaded chunks and slide back into it.  He is never left lying in rock.
+     */
+    this.dry = 0;
     /** Curl held while not moving (sleeping at the seam). */
     this.bendHold = 0;
     this.dim = entity.dimension;
@@ -751,7 +787,13 @@ var Creature = class {
   }
   // ---- movement -----------------------------------------------------------------------------
   goTo(target, speed, arrive = 2) {
-    if (!this.goal || distXZ(this.goal, target) > 1.5) this.blocked = 0;
+    if (!this.goal || distXZ(this.goal, target) > 1.5) {
+      this.blocked = 0;
+      this.steerOff = 0;
+      this.steerSide = 0;
+      this.steerAt = -99;
+      this.goalWalled = false;
+    }
     this.goal = target;
     this.goalSpeed = speed;
     this.arriveDist = arrive;
@@ -760,13 +802,61 @@ var Creature = class {
     this.goal = null;
     this.goalSpeed = 0;
     this.blocked = 0;
+    this.steerOff = 0;
+    this.steerSide = 0;
+    this.goalWalled = false;
   }
   arrived() {
     return !this.goal || distXZ(this.pos, this.goal) <= this.arriveDist;
   }
+  // ---- walls -----------------------------------------------------------------------------------
+  walled(at, full) {
+    const b = BODY[this.form];
+    return trunkBlocked(this.dim, at, this.pos.y, MOVE[this.form].radius, b.built, b.cliff, full);
+  }
+  clearAlong(yaw, reach) {
+    const f = forwardOf(yaw);
+    for (const s of BODY[this.form].look) {
+      if (s > reach) break;
+      const at = add(this.pos, mul(f, s));
+      if (this.walled(at, false)) return false;
+      if (groundY(this.dim, at.x, at.z, this.pos.y + 6, DROP + 6) === NONE) return false;
+    }
+    return true;
+  }
+  /**
+   * The heading to hold on the way to the goal.  Straight at it when the way is clear; otherwise the
+   * smallest turn that clears the wall, and the same way round until the wall is behind him.
+   */
+  steer(want, d) {
+    if (this.form === 1) return want;
+    if (this.tick - this.steerAt >= 4) {
+      this.steerAt = this.tick;
+      let off = 0;
+      if (this.clearAlong(want, d + 1)) this.steerSide = 0;
+      else if (d < 16 && this.walled(this.goal, false)) this.goalWalled = true;
+      else {
+        const sides = this.steerSide ? [this.steerSide, -this.steerSide] : wrapDeg(this.yaw - want) >= 0 ? [1, -1] : [-1, 1];
+        search: for (const a of [25, 50, 75, 100, 130]) for (const s of sides) {
+          if (this.clearAlong(want + s * a, 1e9)) {
+            off = s * a;
+            this.steerSide = s;
+            break search;
+          }
+        }
+      }
+      this.steerOff = off;
+    }
+    return want + this.steerOff;
+  }
   stepLand(next) {
     const r = MOVE[this.form].radius;
-    const g = footprintY(this.dim, next, r, this.pos.y + (this.form === 3 ? 6 : 3), 24);
+    const front = mul(this.forward, BODY[this.form].front);
+    if ((this.walled(add(next, front), true) || this.walled(next, false)) && !this.walled(this.pos, false)) {
+      this.blockedWhy = "wall";
+      return null;
+    }
+    const g = footprintY(this.dim, next, r, this.pos.y + (this.form === 3 ? 6 : 3), DROP + (this.form === 3 ? 6 : 3));
     if (g === UNLOADED) {
       this.blockedWhy = "unloaded";
       return null;
@@ -803,8 +893,31 @@ var Creature = class {
       this.blockedWhy = "edge";
       return null;
     }
+    const l = leftOf(this.yaw), sh = add(next, mul(this.forward, 3));
+    for (const side of [-2.6, 2.6]) for (const dy of [0.8, 2.8]) {
+      if (isSolidBlock(blockAt(this.dim, { x: sh.x + l.x * side, y: next.y + dy, z: sh.z + l.z * side }))) {
+        this.blockedWhy = "wall";
+        return null;
+      }
+    }
     const want = clamp(col.surface - this.swimDepth, col.floor + 0.2, Math.max(col.floor + 0.2, col.surface - 2.6));
     return { x: next.x, y: this.pos.y + clamp(want - this.pos.y, -0.18, 0.18), z: next.z };
+  }
+  keepWet() {
+    const here = blockAt(this.dim, { x: this.pos.x, y: this.pos.y + 1, z: this.pos.z });
+    if (!here || isWaterId(here.typeId)) {
+      this.dry = 0;
+      return;
+    }
+    if (++this.dry < 40 || this.dry % 10) return;
+    for (let r = 4; r <= 36; r += 4) for (let i = 0; i < 12; i++) {
+      const a = i * Math.PI / 6, x = this.pos.x + Math.cos(a) * r, z = this.pos.z + Math.sin(a) * r;
+      const col = waterColumn(this.dim, x, z, this.pos.y + 2, 12);
+      if (col === UNLOADED || col === NONE || col.surface - col.floor < 4) continue;
+      const to = { x, y: clamp(this.pos.y, col.floor + 0.2, col.surface - 3), z };
+      this.pos = add(this.pos, mul(norm(sub(to, this.pos)), Math.min(2.5, dist(to, this.pos))));
+      return;
+    }
   }
   /** One tick of locomotion.  Returns the distance covered. */
   locomote() {
@@ -813,22 +926,27 @@ var Creature = class {
     if (this.goal) {
       const d = distXZ(this.pos, this.goal);
       if (d > this.arriveDist) {
-        const want = yawTo(this.pos, this.goal);
+        const want = this.steer(yawTo(this.pos, this.goal), d);
         const off = Math.abs(wrapDeg(want - this.yaw));
         this.yaw = turnTowards(this.yaw, want, m.turn);
         wantSpeed = this.goalSpeed * (off > 70 ? 0.35 : off > 35 ? 0.7 : 1) * Math.min(1, d / 3 + 0.25);
+        if (this.goalWalled) {
+          wantSpeed = 0;
+          this.blocked++;
+          this.blockedWhy = "wall";
+        }
       }
     }
     this.speed += clamp(wantSpeed - this.speed, -m.accel * 2, m.accel);
     let moved = 0;
-    this.blockedWhy = "none";
+    if (!this.goalWalled) this.blockedWhy = "none";
     if (this.speed > 2e-3) {
       const next = add(this.pos, mul(this.forward, this.speed));
       const settled = this.form === 1 ? this.stepWater(next) : this.stepLand(next);
       if (settled) {
         moved = distXZ(this.pos, settled);
         this.pos = settled;
-        this.blocked = 0;
+        if (!this.goalWalled) this.blocked = 0;
       } else {
         this.blocked++;
         this.speed *= 0.5;
@@ -837,6 +955,7 @@ var Creature = class {
       const settled = this.form === 1 ? this.stepWater(this.pos) : this.stepLand(this.pos);
       if (settled) this.pos = settled;
     }
+    if (this.form === 1) this.keepWet();
     return moved;
   }
   /** Hand the result to the engine: velocity for smooth client motion, a teleport only to recover. */
@@ -1308,6 +1427,46 @@ var BrainThree = class extends Brain {
     }
     return walls >= 3;
   }
+  /** Which way out of the room is there glass or an opening?  The one nearest to where he already is. */
+  windowDir(p) {
+    const c = this.c, head = p.getHeadLocation();
+    const toHim = norm({ x: c.pos.x - head.x, y: 0, z: c.pos.z - head.z });
+    let best = toHim, score = -2;
+    for (let i = 0; i < 16; i++) {
+      const a = i * Math.PI / 8, d = { x: Math.cos(a), y: 0, z: Math.sin(a) };
+      let open = false;
+      for (let r = 1; r <= 9; r++) {
+        const b = blockAt(c.dim, { x: head.x + d.x * r, y: head.y, z: head.z + d.z * r });
+        if (!b) break;
+        if (/glass|iron_bars|fence_gate/.test(b.typeId)) {
+          open = true;
+          break;
+        }
+        if (isSolidBlock(b)) break;
+        if (r === 9) open = true;
+      }
+      if (open && dot(d, toHim) > score) {
+        score = dot(d, toHim);
+        best = d;
+      }
+    }
+    return best;
+  }
+  /** Turn where he stands: the feet shuffle round, one planted at a time. */
+  *face(target, limit = 400) {
+    const c = this.c;
+    c.setPhase("move");
+    for (let t = 0; t < limit; t++) {
+      const want = yawTo(c.pos, target);
+      if (Math.abs(wrapDeg(want - c.yaw)) < 2) break;
+      c.yaw = turnTowards(c.yaw, want, 1.1);
+      if (t % 18 === 9) {
+        const foot = c.anchor(FEET[this.beat++ & 3]);
+        sound(c.dim, "basiliskra.iii.step", foot, 72, 0.7, 0.98);
+      }
+      yield;
+    }
+  }
   *window(p) {
     const c = this.c;
     const ok = () => {
@@ -1318,11 +1477,25 @@ var BrainThree = class extends Brain {
       }
     };
     const pl = p.location;
-    const out = norm({ x: c.pos.x - pl.x, y: 0, z: c.pos.z - pl.z });
-    const stand = add(pl, mul(out, 17));
-    if (!(yield* this.walk(stand, STRIDE_III / 4 / 18, 4, 1800))) return;
+    const out = this.windowDir(p);
+    const STAND = 24, RUN = STRIDE_III;
+    if (!(yield* this.walk(add(pl, mul(out, STAND + RUN)), 0.14, 2.5, 1800))) return;
     if (!ok()) return;
-    c.yaw = turnTowards(c.yaw, yawTo(c.pos, p.location), 30);
+    yield* this.face(pl);
+    c.setPhase("idle");
+    yield* wait(50);
+    if (!ok()) return;
+    c.setPhase("move");
+    const pace4 = STRIDE_III / 4 / 18;
+    c.goTo(add(pl, mul(out, STAND - 8)), pace4, 0.5);
+    const first = this.beat;
+    this.stepAt = c.travelled - 0.9;
+    for (let t = 0; t < 200 && this.beat - first < 4 && c.blocked < 20; t++) {
+      this.footfalls();
+      yield;
+    }
+    c.halt();
+    if (!ok()) return;
     c.setPhase("window");
     for (let t = 0; t < 260 && ok(); t++) {
       c.lookAt(p.getHeadLocation(), 75, 50);
@@ -1842,18 +2015,26 @@ var Ending = class {
       if (t2 % 60 === 0) sound(dim, "basiliskra.rift.hum", rift, 64);
     };
     this.faltered = 0;
+    const surface = rift.y + 5.5;
     let u = norm({ x: c.pos.x - rift.x, y: 0, z: c.pos.z - rift.z });
     if (!u.x && !u.z) u = { x: 1, y: 0, z: 0 };
-    const out = (d) => ({ x: rift.x + u.x * d, y: c.pos.y, z: rift.z + u.z * d });
-    const surface = rift.y + 5.5;
-    let shore = 8;
-    for (let d = 8; d <= 64; d += 2) {
-      const g2 = groundY(dim, out(d).x, out(d).z, surface + 10, 40);
-      if (typeof g2 === "number" && g2 >= surface - 4) {
-        shore = d;
+    let shore = 8, found = 1e9;
+    const toHim = u;
+    for (let i = 0; i < 16; i++) {
+      const a = i * Math.PI / 8, d0 = { x: Math.cos(a), y: 0, z: Math.sin(a) };
+      for (let d = 8; d <= 64 && d < found + 6; d += 2) {
+        const g2 = groundY(dim, rift.x + d0.x * d, rift.z + d0.z * d, surface + 10, 40);
+        if (typeof g2 !== "number" || g2 < surface - 4) continue;
+        const cost = d - 5 * dot(d0, toHim);
+        if (cost < found) {
+          found = cost;
+          shore = d;
+          u = d0;
+        }
         break;
       }
     }
+    const out = (d) => ({ x: rift.x + u.x * d, y: c.pos.y, z: rift.z + u.z * d });
     for (const [d, arrive] of [[shore + 2, 5], [shore + 24, 2.5]]) {
       const walk = brain.walk(out(d), 0.15, arrive, 2400);
       for (; ; ) {
@@ -2121,9 +2302,11 @@ var BrainOne = class extends Brain {
       if (i % 8 === 0) particle(c.dim, "basiliskra:silt_puff", c.anchor(i % 16 === 0 ? "gill_l" : "gill_r"), 32);
       yield;
     }
-    const back = add(c.pos, mul(c.forward, -9));
+    const step = mul(c.forward, -0.15);
     for (let i = 0; i < 60; i++) {
-      c.pos = add(c.pos, mul(sub(back, c.pos), 0.05));
+      const to = add(c.pos, step), tail = add(to, mul(c.forward, -6));
+      if (!isWaterId(idAt(c.dim, { x: to.x, y: to.y + 1, z: to.z })) || !isWaterId(idAt(c.dim, { x: tail.x, y: to.y + 1, z: tail.z }))) break;
+      c.pos = to;
       yield;
     }
     c.blocked = 0;
@@ -2806,6 +2989,14 @@ var Controller = class {
     this.runner = null;
     this.missing = 0;
     this.hurtCryAt = -999;
+    // ---- pending -> reservation ------------------------------------------------------------------------
+    /** A stretch of deep, loaded water near the damaged coast with room for a thirty-block body. */
+    /**
+     * Deep water near the site with a clear lane to swim out of the seam and to turn and ram it:
+     * LANE blocks of open water ahead, three abreast.  A few candidates are read per call (the
+     * search continues on the next call), nearest first, and never through an unloaded chunk.
+     */
+    this.waterTry = 0;
   }
   // ---- start-up ------------------------------------------------------------------------------
   init() {
@@ -3031,34 +3222,31 @@ var Controller = class {
     }
     if (now % 40 === 0) store.flush();
   }
-  // ---- pending -> reservation ------------------------------------------------------------------------
-  /** A stretch of deep, loaded water near the damaged coast with room for a thirty-block body. */
   findWater(site) {
     const dim = overworld();
-    let best = null, bd = 1e9;
-    for (let i = 0; i < 48; i++) {
+    const LANE = 44, DEEP = 6;
+    for (let n = 0; n < 6; n++) {
+      const i = this.waterTry++ % 60;
       const a = hash(this.now, i, 1) * Math.PI * 2;
-      const r = 6 + hash(this.now, i, 2) * 70;
+      const r = 6 + i / 60 * 70;
       const x = Math.floor(site.x + Math.cos(a) * r), z = Math.floor(site.z + Math.sin(a) * r);
       const col = waterColumn(dim, x, z, site.y, 16);
-      if (col === UNLOADED || col === NONE || col.surface - col.floor < 6) continue;
-      for (const yaw of [0, 45, 90, 135]) {
-        const f = forwardOf(yaw);
-        let run = 0;
-        for (const dir of [1, -1]) for (let s = 4; s <= 40; s += 4) {
-          const c2 = waterColumn(dim, x + f.x * s * dir, z + f.z * s * dir, col.surface - 1, 4);
-          if (c2 === UNLOADED || c2 === NONE || c2.surface - c2.floor < 4.5) break;
-          run += 4;
+      if (col === UNLOADED || col === NONE || col.surface - col.floor < DEEP) continue;
+      const toward = yawTo({ x, y: 0, z }, site);
+      const yaws = [0, 45, 90, 135, 180, 225, 270, 315].sort((p, q) => Math.cos((toward - q) * Math.PI / 180) - Math.cos((toward - p) * Math.PI / 180));
+      for (const yaw of yaws) {
+        const f = forwardOf(yaw), l = { x: f.z, y: 0, z: -f.x };
+        let ok = true;
+        for (const side of [0, -3, 3]) {
+          for (let s = side ? 2 : 4; s <= LANE && ok; s += side ? 3 : 4) {
+            if (deepHere(dim, x + f.x * s + l.x * side, z + f.z * s + l.z * side, col.surface, DEEP) !== true) ok = false;
+          }
+          if (!ok) break;
         }
-        if (run >= 36 && r < bd) {
-          bd = r;
-          const toward = yawTo({ x, y: 0, z }, site);
-          const pick = Math.abs(Math.cos((toward - yaw) * Math.PI / 180)) > 0.5 ? Math.cos((toward - yaw) * Math.PI / 180) > 0 ? yaw : yaw + 180 : yaw;
-          best = { at: { x: x + 0.5, y: col.surface - 5.5, z: z + 0.5 }, yaw: pick };
-        }
+        if (ok) return { at: { x: x + 0.5, y: col.surface - 5.5, z: z + 0.5 }, yaw };
       }
     }
-    return best;
+    return null;
   }
   tryReserve() {
     const rec = store.rec;
@@ -3241,15 +3429,20 @@ var Controller = class {
       this.setStep(5);
       c.halt();
       for (let t = 0; t < 30; t++) yield;
+      const door = add(a.water, mul(f, 5));
+      c.setPhase("move");
+      c.goTo(door, 0.1, 5);
+      for (let t = 0; t < 130 && Math.abs(wrapDeg(yawTo(c.pos, door) - c.yaw)) > 10; t++) {
+        if (!this.creature) return;
+        yield;
+      }
       for (let k = 0; k < 3; k++) {
         if (!this.creature) return;
-        c.setPhase("move");
-        c.goTo(add(a.water, mul(f, 30 + k * 2)), 0.26, 3);
-        for (let t = 0; t < 110 && !c.arrived(); t++) yield;
-        c.goTo(add(a.water, mul(f, 4)), 0.62, 6);
         c.setPhase("ram");
-        for (let t = 0; t < 70 && !c.arrived() && c.blocked < 6; t++) yield;
+        c.goTo(door, 0.62, 5);
+        for (let t = 0; t < 90 && !c.arrived() && c.blocked < 6; t++) yield;
         c.halt();
+        c.speed = 0;
         const nose = c.anchor("muzzle");
         sound(dim, "basiliskra.ram", nose, 80, 1, k === 2 ? 0.86 : 1);
         particle(dim, "basiliskra:shock_ring", nose, 72);
@@ -3261,7 +3454,17 @@ var Controller = class {
           } catch {
           }
         }
-        for (let t = 0; t < 26; t++) yield;
+        for (let t = 0; t < 22; t++) yield;
+        if (k === 2) break;
+        c.setPhase("move");
+        for (let t = 0; t < 64; t++) {
+          if (!this.creature) return;
+          const to = add(c.pos, mul(c.forward, -0.24)), tail = add(to, mul(c.forward, -20));
+          const wet = (p) => deepHere(dim, p.x, p.z, Math.floor(c.pos.y) + 3, 3) === true;
+          if (!wet(to) || !wet(tail)) break;
+          c.pos = to;
+          yield;
+        }
       }
       this.setStep(6);
     }

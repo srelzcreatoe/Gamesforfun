@@ -12,8 +12,8 @@ import { CONFIG, HITBOX, PHASE, PROP, type PhaseName } from "./config";
 import { particle, sound, witnesses } from "./fx";
 import { Skeleton, poseOf, toWorld, type Form, type PoseAdd } from "./rig";
 import { store } from "./store";
-import { add, clamp, dist, distXZ, forwardOf, len, mul, norm, sub, turnTowards, wrapDeg, yawTo, type V3 } from "./vec";
-import { NONE, UNLOADED, blockAt, footprintY, isLoaded, isSolidBlock, isWaterId, waterColumn } from "./world";
+import { add, clamp, dist, distXZ, forwardOf, leftOf, len, mul, norm, sub, turnTowards, wrapDeg, yawTo, type V3 } from "./vec";
+import { NONE, UNLOADED, blockAt, footprintY, groundY, isLoaded, isSolidBlock, isWaterId, trunkBlocked, waterColumn } from "./world";
 
 interface PartDef { bone: string; at: [number, number, number]; size: number; tag: "head" | "tail" | "limb" | "body" }
 const SIZES = [1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5];
@@ -53,6 +53,17 @@ const MOVE = {
   2: { turn: 1.5, accel: 0.03, radius: 2.5 },
   3: { turn: 1.25, accel: 0.012, radius: 3.5 },
 } as const;
+/**
+ * What stops a body on land.  `built` and `cliff` are heights above his feet (see trunkBlocked);
+ * `front` is how far ahead of his middle the shoulders are; `look` is how far ahead he reads the
+ * ground when he chooses a heading (his turning circle is wide: he has to decide early).
+ */
+/** How far below his feet he will still find a floor to step down to (a sea bed, a ravine side). */
+const DROP = 30;
+const BODY = {
+  2: { built: [1.5, 2.6], cliff: 3.6, front: 3.5, look: [4, 7, 10] },
+  3: { built: [2.5, 3.6], cliff: 4.8, front: 5.5, look: [6, 10, 14] },
+} as const;
 
 export class Creature {
   readonly dim: Dimension;
@@ -67,7 +78,11 @@ export class Creature {
   /** Form I: wanted depth below the surface for the entity origin (belly). */
   swimDepth = 7;
   blocked = 0;
-  blockedWhy: "none" | "edge" | "climb" | "shallow" | "unloaded" = "none";
+  blockedWhy: "none" | "edge" | "climb" | "shallow" | "unloaded" | "wall" = "none";
+  private steerOff = 0;
+  private steerSide = 0;
+  private steerAt = -99;
+  private goalWalled = false;
   lookYaw = 0;
   lookPitch = 0;
   bend = 0;
@@ -186,15 +201,58 @@ export class Creature {
   // ---- movement -----------------------------------------------------------------------------
   goTo(target: V3, speed: number, arrive = 2): void {
     // a new destination starts with a clean slate: being stuck on the way to the last one says nothing about this one
-    if (!this.goal || distXZ(this.goal, target) > 1.5) this.blocked = 0;
+    if (!this.goal || distXZ(this.goal, target) > 1.5) { this.blocked = 0; this.steerOff = 0; this.steerSide = 0; this.steerAt = -99; this.goalWalled = false; }
     this.goal = target; this.goalSpeed = speed; this.arriveDist = arrive;
   }
-  halt(): void { this.goal = null; this.goalSpeed = 0; this.blocked = 0; }
+  halt(): void { this.goal = null; this.goalSpeed = 0; this.blocked = 0; this.steerOff = 0; this.steerSide = 0; this.goalWalled = false; }
   arrived(): boolean { return !this.goal || distXZ(this.pos, this.goal) <= this.arriveDist; }
+
+  // ---- walls -----------------------------------------------------------------------------------
+  private walled(at: V3, full: boolean): boolean {
+    const b = BODY[this.form as 2 | 3];
+    return trunkBlocked(this.dim, at, this.pos.y, MOVE[this.form].radius, b.built, b.cliff, full);
+  }
+
+  private clearAlong(yaw: number, reach: number): boolean {
+    const f = forwardOf(yaw);
+    for (const s of BODY[this.form as 2 | 3].look) {
+      if (s > reach) break;
+      const at = add(this.pos, mul(f, s));
+      if (this.walled(at, false)) return false;
+      // a drop with no floor in reach is a wall too: he walks the brink, not off it
+      if (groundY(this.dim, at.x, at.z, this.pos.y + 6, DROP + 6) === NONE) return false;
+    }
+    return true;
+  }
+
+  /**
+   * The heading to hold on the way to the goal.  Straight at it when the way is clear; otherwise the
+   * smallest turn that clears the wall, and the same way round until the wall is behind him.
+   */
+  private steer(want: number, d: number): number {
+    if (this.form === 1) return want;
+    if (this.tick - this.steerAt >= 4) {
+      this.steerAt = this.tick;
+      let off = 0;
+      if (this.clearAlong(want, d + 1)) this.steerSide = 0;
+      else if (d < 16 && this.walled(this.goal!, false)) this.goalWalled = true;      // the goal itself is inside something
+      else {
+        const sides = this.steerSide ? [this.steerSide, -this.steerSide] : (wrapDeg(this.yaw - want) >= 0 ? [1, -1] : [-1, 1]);
+        search: for (const a of [25, 50, 75, 100, 130]) for (const s of sides) {
+          if (this.clearAlong(want + s * a, 1e9)) { off = s * a; this.steerSide = s; break search; }
+        }
+      }
+      this.steerOff = off;
+    }
+    return want + this.steerOff;
+  }
 
   private stepLand(next: V3): V3 | null {
     const r = MOVE[this.form].radius;
-    const g = footprintY(this.dim, next, r, this.pos.y + (this.form === 3 ? 6 : 3), 24);
+    // never into a wall, a cliff face or a building (unless he already stands in one: then any way out)
+    const front = mul(this.forward, BODY[this.form as 2 | 3].front);
+    if ((this.walled(add(next, front), true) || this.walled(next, false)) && !this.walled(this.pos, false)) { this.blockedWhy = "wall"; return null; }
+    const g = footprintY(this.dim, next, r, this.pos.y + (this.form === 3 ? 6 : 3), DROP + (this.form === 3 ? 6 : 3));
     if (g === UNLOADED) { this.blockedWhy = "unloaded"; return null; }
     if (g === NONE) { this.blockedWhy = "edge"; return null; }
     const rise = (g as number) - this.pos.y;
@@ -213,8 +271,32 @@ export class Creature {
     const head = add(next, mul(this.forward, 7));
     const hc = waterColumn(this.dim, head.x, head.z, this.pos.y + 2, 10);
     if (hc === NONE) { this.blockedWhy = "edge"; return null; }
+    // the shoulders: a pier post, a bridge footing, a wall in the water stops him where the head found room
+    const l = leftOf(this.yaw), sh = add(next, mul(this.forward, 3));
+    for (const side of [-2.6, 2.6]) for (const dy of [0.8, 2.8]) {
+      if (isSolidBlock(blockAt(this.dim, { x: sh.x + l.x * side, y: next.y + dy, z: sh.z + l.z * side }))) { this.blockedWhy = "wall"; return null; }
+    }
     const want = clamp(col.surface - this.swimDepth, col.floor + 0.2, Math.max(col.floor + 0.2, col.surface - 2.6));
     return { x: next.x, y: this.pos.y + clamp(want - this.pos.y, -0.18, 0.18), z: next.z };
+  }
+
+  /**
+   * Form I out of water (the pond was drained, ice closed over, something carried him): look for the
+   * nearest deep column in loaded chunks and slide back into it.  He is never left lying in rock.
+   */
+  private dry = 0;
+  private keepWet(): void {
+    const here = blockAt(this.dim, { x: this.pos.x, y: this.pos.y + 1, z: this.pos.z });
+    if (!here || isWaterId(here.typeId)) { this.dry = 0; return; }
+    if (++this.dry < 40 || this.dry % 10) return;
+    for (let r = 4; r <= 36; r += 4) for (let i = 0; i < 12; i++) {
+      const a = i * Math.PI / 6, x = this.pos.x + Math.cos(a) * r, z = this.pos.z + Math.sin(a) * r;
+      const col = waterColumn(this.dim, x, z, this.pos.y + 2, 12);
+      if (col === UNLOADED || col === NONE || col.surface - col.floor < 4) continue;
+      const to = { x, y: clamp(this.pos.y, col.floor + 0.2, col.surface - 3), z };
+      this.pos = add(this.pos, mul(norm(sub(to, this.pos)), Math.min(2.5, dist(to, this.pos))));
+      return;
+    }
   }
 
   /** One tick of locomotion.  Returns the distance covered. */
@@ -224,26 +306,28 @@ export class Creature {
     if (this.goal) {
       const d = distXZ(this.pos, this.goal);
       if (d > this.arriveDist) {
-        const want = yawTo(this.pos, this.goal);
+        const want = this.steer(yawTo(this.pos, this.goal), d);
         const off = Math.abs(wrapDeg(want - this.yaw));
         this.yaw = turnTowards(this.yaw, want, m.turn);
         // slow into a turn he cannot make: the wide turn a boat can cut inside
         wantSpeed = this.goalSpeed * (off > 70 ? 0.35 : off > 35 ? 0.7 : 1) * Math.min(1, d / 3 + 0.25);
+        if (this.goalWalled) { wantSpeed = 0; this.blocked++; this.blockedWhy = "wall"; }
       }
     }
     this.speed += clamp(wantSpeed - this.speed, -m.accel * 2, m.accel);
     let moved = 0;
-    this.blockedWhy = "none";
+    if (!this.goalWalled) this.blockedWhy = "none";
     if (this.speed > 0.002) {
       const next = add(this.pos, mul(this.forward, this.speed));
       const settled = this.form === 1 ? this.stepWater(next) : this.stepLand(next);
-      if (settled) { moved = distXZ(this.pos, settled); this.pos = settled; this.blocked = 0; }
+      if (settled) { moved = distXZ(this.pos, settled); this.pos = settled; if (!this.goalWalled) this.blocked = 0; }
       else { this.blocked++; this.speed *= 0.5; }
     } else {
       // standing: still settle onto the ground / into the water
       const settled = this.form === 1 ? this.stepWater(this.pos) : this.stepLand(this.pos);
       if (settled) this.pos = settled;
     }
+    if (this.form === 1) this.keepWet();
     return moved;
   }
 

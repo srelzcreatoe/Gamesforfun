@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { Sim, Save } from './mock.mjs';
+import { TERRAINS, PROPS } from '../tools/preview/scenes/terrain.mjs';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const CODE = fs.readFileSync(path.join(ROOT, 'build/test-bundle.js'), 'utf8');
@@ -189,6 +190,7 @@ console.log('\n== 6. Evolution during a save and reload');
   const id = rec().entityId;
   w.bk.ctl.creature.entity.rec.health = 437;
   Object.assign(rec().mut, { surfacings: 9, episodes: 4, formSince: -1e7 });
+  w.sim.save.timeOfDay = 1000;                           // morning: if he was asleep at the seam, he wakes
   const t = until(w, () => rec().evolve !== null, 9000, 5);
   check('repeated surfacings and mutation episodes send him to a shelf to beach', t > 0 && rec().evolve?.to === 2, `${t} ticks`);
   w.sim.step(30);
@@ -342,6 +344,65 @@ console.log('\n== 10. Upgrading the pack');
   s2.worldProps.set('bk:rec', JSON.stringify({ v: 1, stage: 'alive', token: 'abc', entityId: null, form: 3, quiet: true }));
   const w3 = start(s2); open(w3);
   check('a retired save from the older schema stays retired', w3.bk.store.rec.stage === 'departed');
+}
+
+console.log('\n== 11. Walls, piers and the way round');
+{
+  // a village: a cottage stands between him and where he is going
+  const w = start(); w.sim.terrainFn = TERRAINS.village; open(w);
+  const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 40 }); ana.mode = 'Creative';
+  const rec = w.bk.store.rec;
+  Object.assign(rec, { stage: 'alive', token: 'walltoken0000000000000000000000', form: 3, born: 1, rift: { x: 400, y: 56, z: 400, yaw: 0 }, origin: { x: 400, y: 64, z: 380 } });
+  const r = w.sim.newRecord(TYPE, 'minecraft:overworld', { x: 40, y: 64, z: 0.5 }, 90);
+  r.dyn['bk:token'] = rec.token; rec.entityId = r.id; w.bk.store.save();
+  w.sim.attach(r, 'entityLoad'); w.sim.flush(); w.sim.step(3);
+  const c = w.bk.ctl.creature, brain = w.bk.ctl.brain;
+  let inside = 0, nearest = 1e9, done = false, ticks = 0, widest = 0;
+  const built = (x, z) => x >= -5 && x <= 3 && z >= -4 && z <= 4;                 // the cottage's footprint
+  brain.forced = { name: 'test', run: (function* () { yield* brain.walk({ x: -40, y: 64, z: 0.5 }, 0.14, 4, 3000); done = true; yield* (function* () { for (;;) yield; })(); })(), limit: 1e9 };
+  for (; ticks < 3000 && !done; ticks++) {
+    w.sim.step(1);
+    const f = { x: -Math.sin(c.yaw * Math.PI / 180), z: Math.cos(c.yaw * Math.PI / 180) };
+    for (const s of [-5.5, 0, 5.5]) {                                               // hips, middle, shoulders
+      const x = c.pos.x + f.x * s, z = c.pos.z + f.z * s;
+      const d = Math.max(Math.max(-5 - x, x - 3, 0), Math.max(-4 - z, z - 4, 0));
+      nearest = Math.min(nearest, d);
+      if (built(Math.floor(x), Math.floor(z))) inside++;
+    }
+    widest = Math.max(widest, Math.abs(c.pos.z - 0.5));
+  }
+  check('with a cottage in the way he reaches the far side', done && Math.hypot(c.pos.x + 40, c.pos.z - 0.5) < 6, `${ticks} ticks, ended ${c.pos.x.toFixed(1)},${c.pos.z.toFixed(1)}`);
+  check('and no part of his trunk passed through it', inside === 0 && nearest > 1.5, `closest ${nearest.toFixed(1)} blocks, went ${widest.toFixed(1)} wide`);
+  // a goal inside the house is refused, not orbited
+  let t2 = 0, fin = false;
+  brain.forced = { name: 'test', run: (function* () { yield* brain.walk({ x: -1, y: 64, z: 0 }, 0.14, 2, 3000); fin = true; yield* (function* () { for (;;) yield; })(); })(), limit: 1e9 };
+  for (; t2 < 1500 && !fin; t2++) w.sim.step(1);
+  check('a place inside a building is given up, not circled for ever', fin && t2 < 1200 && !built(Math.floor(c.pos.x), Math.floor(c.pos.z)), `${t2} ticks`);
+}
+{
+  // the bay with its pier: the seam must leave him a lane to swim out of and to ram back down
+  const w = start(); w.sim.terrainFn = TERRAINS.bay; open(w);
+  for (const p of PROPS.bay) w.sim.save.edits.set(`minecraft:overworld|${p.x},${p.y},${p.z}`, p.id);
+  const ana = w.sim.addPlayer('Ana', { x: -6.5, y: 64, z: 24 });
+  w.bk.ctl.requestArrival({ region: 'bay', site: { x: 0, y: 64, z: 10 }, guilty: ana.id, guiltyName: 'Ana' });
+  w.sim.save.timeOfDay = 11700;
+  until(w, () => w.bk.store.rec.arrival?.step >= 4 && w.bk.ctl.creature, 4000);
+  const a = w.bk.store.rec.arrival, f = { x: -Math.sin(a.yaw * Math.PI / 180), z: Math.cos(a.yaw * Math.PI / 180) };
+  let far = 0, rams = 0, ramRun = 1e9, ramFrom = null, last = '', post = false;
+  for (let i = 0; i < 4000 && w.bk.store.rec.stage !== 'alive'; i++) {
+    w.sim.step(1);
+    const c = w.bk.ctl.creature; if (!c) continue;
+    const along = (c.pos.x - a.water.x) * f.x + (c.pos.z - a.water.z) * f.z;
+    far = Math.max(far, along);
+    if (c.phase === 'ram' && last !== 'ram') ramFrom = along;
+    if (c.phase !== 'ram' && last === 'ram') { rams++; ramRun = Math.min(ramRun, ramFrom - along); }
+    last = c.phase;
+    const l = { x: f.z, z: -f.x };
+    for (const side of [-2.6, 0, 2.6]) if (/log|planks/.test(w.sim.blockId('minecraft:overworld', c.pos.x + l.x * side, c.pos.y + 1, c.pos.z + l.z * side))) post = true;
+  }
+  check('the seam is opened where he has room: he swims clear of it', far > 22, `${far.toFixed(1)} blocks out`);
+  check('each of the three rams is a real run at the place he came through', rams === 3 && ramRun > 10, `${rams} rams, shortest ${ramRun.toFixed(1)} blocks`);
+  check('and his lane misses the pier', !post);
 }
 
 console.log(`\n${results.length - failures}/${results.length} checks passed`);

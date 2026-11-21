@@ -176,17 +176,24 @@ export class Ending {
     const rec = store.rec, rift = rec.rift!, dim = c.dim;
     const seam = (t: number) => { if (t % 4 === 0) particle(dim, "basiliskra:seam", rift, 96); if (t % 60 === 0) sound(dim, "basiliskra.rift.hum", rift, 64); };
     this.faltered = 0;
+    // 1. called: he comes to the water's edge nearest the seam (wherever he was) and turns his tail to it
+    const surface = rift.y + 5.5;
     let u = norm({ x: c.pos.x - rift.x, y: 0, z: c.pos.z - rift.z });
     if (!u.x && !u.z) u = { x: 1, y: 0, z: 0 };
-    const out = (d: number): V3 => ({ x: rift.x + u.x * d, y: c.pos.y, z: rift.z + u.z * d });
-
-    // 1. called: he comes to the water's edge nearest the seam and turns his tail to it
-    const surface = rift.y + 5.5;
-    let shore = 8;
-    for (let d = 8; d <= 64; d += 2) {
-      const g = groundY(dim, out(d).x, out(d).z, surface + 10, 40);
-      if (typeof g === "number" && g >= surface - 4) { shore = d; break; }
+    let shore = 8, found = 1e9;
+    const toHim = u;
+    for (let i = 0; i < 16; i++) {
+      const a = i * Math.PI / 8, d0 = { x: Math.cos(a), y: 0, z: Math.sin(a) };
+      for (let d = 8; d <= 64 && d < found + 6; d += 2) {
+        const g = groundY(dim, rift.x + d0.x * d, rift.z + d0.z * d, surface + 10, 40);
+        if (typeof g !== "number" || g < surface - 4) continue;
+        // nearest bank; between banks about as near, the one on his side
+        const cost = d - 5 * dot(d0, toHim);
+        if (cost < found) { found = cost; shore = d; u = d0; }
+        break;
+      }
     }
+    const out = (d: number): V3 => ({ x: rift.x + u.x * d, y: c.pos.y, z: rift.z + u.z * d });
     for (const [d, arrive] of [[shore + 2, 5], [shore + 24, 2.5]] as const) {
       const walk = brain.walk(out(d), 0.15, arrive, 2400);
       for (;;) { if (!this.holding()) return; if (walk.next().done) break; yield; }

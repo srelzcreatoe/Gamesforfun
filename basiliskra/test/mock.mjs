@@ -115,9 +115,12 @@ export class Sim {
   // ---- world ------------------------------------------------------------------------------
   blockId(dim, x, y, z) {
     const k = `${dim}|${Math.floor(x)},${Math.floor(y)},${Math.floor(z)}`;
-    return this.save.edits.get(k) ?? terrain(dim, Math.floor(x), Math.floor(y), Math.floor(z));
+    return this.save.edits.get(k) ?? (this.terrainFn ?? terrain)(dim, Math.floor(x), Math.floor(y), Math.floor(z));
   }
-  setBlock(dim, x, y, z, id) { this.save.edits.set(`${dim}|${Math.floor(x)},${Math.floor(y)},${Math.floor(z)}`, id); }
+  setBlock(dim, x, y, z, id) {
+    this.save.edits.set(`${dim}|${Math.floor(x)},${Math.floor(y)},${Math.floor(z)}`, id);
+    if (this.onBlock) this.onBlock(Math.floor(x), Math.floor(y), Math.floor(z), id);
+  }
   chunkLoaded(dim, p) {
     return this.players.some((pl) => pl.online && pl.dimension.id === dim && Math.max(Math.abs(pl.location.x - p.x), Math.abs(pl.location.z - p.z)) <= CHUNK_RANGE);
   }

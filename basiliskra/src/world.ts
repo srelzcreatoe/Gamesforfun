@@ -29,6 +29,41 @@ export function isSolidBlock(b: Block | undefined): boolean {
   return !SOFT.test(b.typeId);
 }
 
+/** Trees and other growth: a giant shoulders through these, he does not go round them. */
+const PLANT = /^minecraft:(?!stripped_)(.*_log|.*_wood|.*_stem|.*_hyphae|.*leaves.*|azalea|flowering_azalea|bamboo|cactus|melon_block|pumpkin|.*mushroom_block|mushroom_stem|mangrove_roots|bee_nest|chorus_plant|chorus_flower|pointed_dripstone|big_dripleaf|hanging_roots)$/;
+/** Ground the world made.  Anything solid that is not this (and not growth) is treated as built. */
+const NATURAL = /^minecraft:(stone|granite|diorite|andesite|deepslate|tuff|calcite|dirt|coarse_dirt|grass_block|podzol|mycelium|dirt_with_roots|mud|clay|sand|red_sand|gravel|suspicious_sand|suspicious_gravel|sandstone|red_sandstone|snow|ice|packed_ice|blue_ice|powder_snow|moss_block|pale_moss_block|hardened_clay|.*_terracotta|netherrack|basalt|smooth_basalt|blackstone|end_stone|dripstone_block|.*_ore|bedrock|obsidian|magma|soul_sand|soul_soil|muddy_mangrove_roots|amethyst_block|budding_amethyst|.*coral_block|cobbled_deepslate|packed_mud)$/;
+export const isPlantBlock = (id: string): boolean => PLANT.test(id);
+export const isNaturalGround = (id: string): boolean => NATURAL.test(id) && !id.includes("glazed");
+
+/**
+ * Would a trunk `radius` wide standing at `at` (feet at feetY) be inside a wall?  Built blocks stop
+ * him from `built` heights up, the world's own ground only from `cliff` up (lower rises he climbs),
+ * and trees never do.  Unloaded columns do not answer.
+ */
+export function trunkBlocked(dim: Dimension, at: V3, feetY: number, radius: number, built: readonly number[], cliff: number, full: boolean): boolean {
+  const ring = full
+    ? [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [0.72, 0.72], [-0.72, 0.72], [0.72, -0.72], [-0.72, -0.72]]
+    : [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
+  for (const [dx, dz] of ring) {
+    const x = at.x + dx * radius, z = at.z + dz * radius;
+    const top = blockAt(dim, { x, y: feetY + cliff, z });
+    if (top && isSolidBlock(top) && !isPlantBlock(top.typeId)) return true;
+    for (const h of built) {
+      const b = blockAt(dim, { x, y: feetY + h, z });
+      if (b && isSolidBlock(b) && !isPlantBlock(b.typeId) && !isNaturalGround(b.typeId)) return true;
+    }
+  }
+  return false;
+}
+
+/** Is the water at x,z open from just under `surface` down `need` blocks?  A handful of reads. */
+export function deepHere(dim: Dimension, x: number, z: number, surface: number, need: number): boolean | typeof UNLOADED {
+  if (!isLoaded(dim, { x, y: surface, z })) return UNLOADED;
+  for (let d = 1; d <= need; d++) if (!isWaterId(idAt(dim, { x, y: surface - d, z }))) return false;
+  return true;
+}
+
 export const UNLOADED = Symbol("unloaded");
 export const NONE = Symbol("none");
 export type Probe = number | typeof UNLOADED | typeof NONE;

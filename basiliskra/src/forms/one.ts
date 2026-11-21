@@ -144,10 +144,12 @@ export class BrainOne extends Brain {
       if (i % 8 === 0) particle(c.dim, "basiliskra:silt_puff", c.anchor(i % 16 === 0 ? "gill_l" : "gill_r"), 32);
       yield;
     }
-    // reverse out along his own length, then find other water
-    const back = add(c.pos, mul(c.forward, -9));
+    // reverse out along his own length, as far as there is water behind him, then find other water
+    const step = mul(c.forward, -0.15);
     for (let i = 0; i < 60; i++) {
-      c.pos = add(c.pos, mul(sub(back, c.pos), 0.05));
+      const to = add(c.pos, step), tail = add(to, mul(c.forward, -6));
+      if (!isWaterId(idAt(c.dim, { x: to.x, y: to.y + 1, z: to.z })) || !isWaterId(idAt(c.dim, { x: tail.x, y: to.y + 1, z: tail.z }))) break;
+      c.pos = to;
       yield;
     }
     c.blocked = 0;

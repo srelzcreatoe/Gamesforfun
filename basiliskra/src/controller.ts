@@ -16,8 +16,8 @@ import { beginTick, particle, players, sound } from "./fx";
 import { RIGS } from "./generated/rig";
 import type { Trigger } from "./harm";
 import { newToken, store } from "./store";
-import { add, dist, distXZ, dot, forwardOf, hash, mul, norm, sub, yawTo, type V3 } from "./vec";
-import { NONE, UNLOADED, isLoaded, overworld, waterColumn } from "./world";
+import { add, dist, distXZ, dot, forwardOf, hash, mul, norm, sub, wrapDeg, yawTo, type V3 } from "./vec";
+import { NONE, UNLOADED, deepHere, isLoaded, overworld, waterColumn } from "./world";
 
 const TOKEN = "bk:token";
 const SPAWN_STEP = 3;
@@ -191,36 +191,39 @@ export class Controller {
 
   // ---- pending -> reservation ------------------------------------------------------------------------
   /** A stretch of deep, loaded water near the damaged coast with room for a thirty-block body. */
+  /**
+   * Deep water near the site with a clear lane to swim out of the seam and to turn and ram it:
+   * LANE blocks of open water ahead, three abreast.  A few candidates are read per call (the
+   * search continues on the next call), nearest first, and never through an unloaded chunk.
+   */
+  private waterTry = 0;
   private findWater(site: V3): { at: V3; yaw: number } | null {
     const dim = overworld();
-    let best: { at: V3; yaw: number } | null = null, bd = 1e9;
-    for (let i = 0; i < 48; i++) {
+    const LANE = 44, DEEP = 6;
+    for (let n = 0; n < 6; n++) {
+      const i = this.waterTry++ % 60;
       const a = hash(this.now, i, 1) * Math.PI * 2;
-      const r = 6 + hash(this.now, i, 2) * 70;
+      const r = 6 + (i / 60) * 70;
       const x = Math.floor(site.x + Math.cos(a) * r), z = Math.floor(site.z + Math.sin(a) * r);
       const col = waterColumn(dim, x, z, site.y, 16);
-      if (col === UNLOADED || col === NONE || col.surface - col.floor < 6) continue;
-      // room to pass through and to ram: a straight run of deep water at least 36 blocks long
-      for (const yaw of [0, 45, 90, 135]) {
-        const f = forwardOf(yaw);
-        let run = 0;
-        for (const dir of [1, -1]) for (let s = 4; s <= 40; s += 4) {
-          const c2 = waterColumn(dim, x + f.x * s * dir, z + f.z * s * dir, col.surface - 1, 4);
-          if (c2 === UNLOADED || c2 === NONE || c2.surface - c2.floor < 4.5) break;
-          run += 4;
+      if (col === UNLOADED || col === NONE || col.surface - col.floor < DEEP) continue;
+      const toward = yawTo({ x, y: 0, z }, site);
+      // he comes through facing the shore he was called to if there is room; if not, along it; if not, out to sea
+      const yaws = [0, 45, 90, 135, 180, 225, 270, 315].sort((p, q) => Math.cos((toward - q) * Math.PI / 180) - Math.cos((toward - p) * Math.PI / 180));
+      for (const yaw of yaws) {
+        const f = forwardOf(yaw), l = { x: f.z, y: 0, z: -f.x };
+        let ok = true;
+        for (const side of [0, -3, 3]) {
+          for (let s = side ? 2 : 4; s <= LANE && ok; s += side ? 3 : 4) {
+            if (deepHere(dim, x + f.x * s + l.x * side, z + f.z * s + l.z * side, col.surface, DEEP) !== true) ok = false;
+          }
+          if (!ok) break;
         }
-        if (run >= 36 && r < bd) {
-          bd = r;
-          // he comes through facing the shore he was called to
-          const toward = yawTo({ x, y: 0, z }, site);
-          const pick = Math.abs(Math.cos((toward - yaw) * Math.PI / 180)) > 0.5 ? (Math.cos((toward - yaw) * Math.PI / 180) > 0 ? yaw : yaw + 180) : yaw;
-          best = { at: { x: x + 0.5, y: col.surface - 5.5, z: z + 0.5 }, yaw: pick };
-        }
+        if (ok) return { at: { x: x + 0.5, y: col.surface - 5.5, z: z + 0.5 }, yaw };
       }
     }
-    return best;
+    return null;
   }
-
   private tryReserve(): void {
     const rec = store.rec;
     if (rec.stage !== "pending" || !rec.pending) return;
@@ -378,15 +381,16 @@ export class Controller {
       c.halt();
       for (let t = 0; t < 30; t++) yield;
       // he turns on the place he came through and rams the empty water: once, twice, three times
+      const door = add(a.water, mul(f, 5));
+      c.setPhase("move");
+      c.goTo(door, 0.1, 5);                                  // slow, so the turn is tight: he swings round on himself
+      for (let t = 0; t < 130 && Math.abs(wrapDeg(yawTo(c.pos, door) - c.yaw)) > 10; t++) { if (!this.creature) return; yield; }
       for (let k = 0; k < 3; k++) {
         if (!this.creature) return;
-        c.setPhase("move");
-        c.goTo(add(a.water, mul(f, 30 + k * 2)), 0.26, 3);
-        for (let t = 0; t < 110 && !c.arrived(); t++) yield;
-        c.goTo(add(a.water, mul(f, 4)), 0.62, 6);
         c.setPhase("ram");
-        for (let t = 0; t < 70 && !c.arrived() && c.blocked < 6; t++) yield;
-        c.halt();
+        c.goTo(door, 0.62, 5);
+        for (let t = 0; t < 90 && !c.arrived() && c.blocked < 6; t++) yield;
+        c.halt(); c.speed = 0;                              // stopped dead, by nothing
         const nose = c.anchor("muzzle");
         sound(dim, "basiliskra.ram", nose, 80, 1, k === 2 ? 0.86 : 1);
         particle(dim, "basiliskra:shock_ring", nose, 72);
@@ -398,7 +402,18 @@ export class Controller {
             for (const b of dim.getEntities({ location: nose, maxDistance: 18, families: ["boat"] })) b.applyImpulse(mul({ x: -f.z, y: 0.12, z: f.x }, 0.35));
           } catch { /* no boats */ }
         }
-        for (let t = 0; t < 26; t++) yield;
+        for (let t = 0; t < 22; t++) yield;
+        if (k === 2) break;
+        // he backs off down his own length, still facing it, for another run
+        c.setPhase("move");
+        for (let t = 0; t < 64; t++) {
+          if (!this.creature) return;
+          const to = add(c.pos, mul(c.forward, -0.24)), tail = add(to, mul(c.forward, -20));
+          const wet = (p: V3) => deepHere(dim, p.x, p.z, Math.floor(c.pos.y) + 3, 3) === true;
+          if (!wet(to) || !wet(tail)) break;
+          c.pos = to;
+          yield;
+        }
       }
       this.setStep(6);
     }

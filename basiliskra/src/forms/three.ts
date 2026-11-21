@@ -171,16 +171,64 @@ export class BrainThree extends Brain {
     return walls >= 3;
   }
 
+  /** Which way out of the room is there glass or an opening?  The one nearest to where he already is. */
+  private windowDir(p: Player): V3 {
+    const c = this.c, head = p.getHeadLocation();
+    const toHim = norm({ x: c.pos.x - head.x, y: 0, z: c.pos.z - head.z });
+    let best = toHim, score = -2;
+    for (let i = 0; i < 16; i++) {
+      const a = i * Math.PI / 8, d = { x: Math.cos(a), y: 0, z: Math.sin(a) };
+      let open = false;
+      for (let r = 1; r <= 9; r++) {
+        const b = blockAt(c.dim, { x: head.x + d.x * r, y: head.y, z: head.z + d.z * r });
+        if (!b) break;
+        if (/glass|iron_bars|fence_gate/.test(b.typeId)) { open = true; break; }
+        if (isSolidBlock(b)) break;
+        if (r === 9) open = true;                 // a doorway, a missing wall
+      }
+      if (open && dot(d, toHim) > score) { score = dot(d, toHim); best = d; }
+    }
+    return best;
+  }
+
+  /** Turn where he stands: the feet shuffle round, one planted at a time. */
+  private *face(target: V3, limit = 400): Act {
+    const c = this.c;
+    c.setPhase("move");
+    for (let t = 0; t < limit; t++) {
+      const want = yawTo(c.pos, target);
+      if (Math.abs(wrapDeg(want - c.yaw)) < 2) break;
+      c.yaw = turnTowards(c.yaw, want, 1.1);
+      if (t % 18 === 9) {
+        const foot = c.anchor(FEET[this.beat++ & 3]);
+        sound(c.dim, "basiliskra.iii.step", foot, 72, 0.7, 0.98);
+      }
+      yield;
+    }
+  }
+
   private *window(p: Player): Act {
     const c = this.c;
     const ok = () => { try { return p.isValid && p.dimension.id === c.dim.id; } catch { return false; } };
     const pl = p.location;
-    const out = norm({ x: c.pos.x - pl.x, y: 0, z: c.pos.z - pl.z });
-    // four measured steps bring him to stand off the wall; then the neck comes down
-    const stand = add(pl, mul(out, 17));
-    if (!(yield* this.walk(stand, STRIDE_III / 4 / 18, 4, 1800))) return;
+    const out = this.windowDir(p);
+    // he comes round to the side with the glass and stops well short of it
+    const STAND = 24, RUN = STRIDE_III;                    // four quarter-strides
+    if (!(yield* this.walk(add(pl, mul(out, STAND + RUN)), 0.14, 2.5, 1800))) return;
     if (!ok()) return;
-    c.yaw = turnTowards(c.yaw, yawTo(c.pos, p.location), 30);
+    yield* this.face(pl);
+    c.setPhase("idle");
+    yield* wait(50);
+    if (!ok()) return;
+    // four footfalls, evenly spaced, and nothing after the fourth
+    c.setPhase("move");
+    const pace4 = STRIDE_III / 4 / 18;
+    c.goTo(add(pl, mul(out, STAND - 8)), pace4, 0.5);
+    const first = this.beat;
+    this.stepAt = c.travelled - 0.9;                        // the first lands one beat after he starts
+    for (let t = 0; t < 200 && this.beat - first < 4 && c.blocked < 20; t++) { this.footfalls(); yield; }
+    c.halt();
+    if (!ok()) return;
     c.setPhase("window");
     for (let t = 0; t < 260 && ok(); t++) {
       // one small eye, level with the window
