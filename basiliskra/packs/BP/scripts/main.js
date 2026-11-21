@@ -74,7 +74,8 @@ var PHASE = {
   crossing: 24,
   depart: 25,
   flinch: 26,
-  window: 27
+  window: 27,
+  stalk: 28
 };
 var TICKS = { second: 20, minute: 1200, day: 24e3 };
 var KNOCK_GAP_TICKS = 18;
@@ -331,7 +332,12 @@ function beamVars(dir, length, width, r = 1, g = 0.1, b = 0.1) {
 // src/generated/rig.ts
 var RIGS = { "1": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 36, 0], "rot": [0, 0, 0], "zone": 6 }, "chest": { "parent": "body", "pivot": [0, 36, 0], "rot": [0, 0, 0], "zone": 6 }, "gill_l1": { "parent": "chest", "pivot": [48, 36, -17], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "chest", "pivot": [48, 36, -7], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "chest", "pivot": [48, 36, 3], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "chest", "pivot": [-48, 36, -17], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "chest", "pivot": [-48, 36, -7], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "chest", "pivot": [-48, 36, 3], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "chest", "pivot": [0, 36, -24], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 32, -34], "rot": [4, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [27.4, 45.6, -78], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-27.4, 45.6, -78], "rot": [0, 0, 0], "zone": 8 }, "fin_l": { "parent": "chest", "pivot": [40, 13, 16], "rot": [0, -34, 30], "zone": 6 }, "fin_l_tip": { "parent": "fin_l", "pivot": [74, 13, 16], "rot": [0, 0, 0], "zone": 6 }, "fin_r": { "parent": "chest", "pivot": [-40, 13, 16], "rot": [0, 34, -30], "zone": 6 }, "fin_r_tip": { "parent": "fin_r", "pivot": [-74, 13, 16], "rot": [0, 0, 0], "zone": 6 }, "ribbon0": { "parent": "chest", "pivot": [0, 72, 6], "rot": [0, 0, 0], "zone": 6 }, "seg1": { "parent": "chest", "pivot": [0, 36, 24], "rot": [0, 0, 0], "zone": 5 }, "ribbon1": { "parent": "seg1", "pivot": [0, 72, 40], "rot": [0, 0, 0], "zone": 5 }, "seg2": { "parent": "seg1", "pivot": [0, 36, 56], "rot": [0, 0, 0], "zone": 5 }, "ribbon2": { "parent": "seg2", "pivot": [0, 71.5, 72], "rot": [0, 0, 0], "zone": 5 }, "seg3": { "parent": "seg2", "pivot": [0, 36, 88], "rot": [0, 0, 0], "zone": 5 }, "ribbon3": { "parent": "seg3", "pivot": [0, 70.5, 104], "rot": [0, 0, 0], "zone": 5 }, "seg4": { "parent": "seg3", "pivot": [0, 36, 120], "rot": [0, 0, 0], "zone": 4 }, "ribbon4": { "parent": "seg4", "pivot": [0, 69, 136], "rot": [0, 0, 0], "zone": 4 }, "seg5": { "parent": "seg4", "pivot": [0, 36, 152], "rot": [0, 0, 0], "zone": 4 }, "ribbon5": { "parent": "seg5", "pivot": [0, 67, 168], "rot": [0, 0, 0], "zone": 4 }, "seg6": { "parent": "seg5", "pivot": [0, 36, 184], "rot": [0, 0, 0], "zone": 3 }, "ribbon6": { "parent": "seg6", "pivot": [0, 64.5, 200], "rot": [0, 0, 0], "zone": 3 }, "vribbon6": { "parent": "seg6", "pivot": [0, 7.5, 200], "rot": [0, 0, 0], "zone": 3 }, "seg7": { "parent": "seg6", "pivot": [0, 36, 216], "rot": [0, 0, 0], "zone": 3 }, "ribbon7": { "parent": "seg7", "pivot": [0, 61, 232], "rot": [0, 0, 0], "zone": 3 }, "vribbon7": { "parent": "seg7", "pivot": [0, 11, 232], "rot": [0, 0, 0], "zone": 3 }, "seg8": { "parent": "seg7", "pivot": [0, 36, 248], "rot": [0, 0, 0], "zone": 2 }, "ribbon8": { "parent": "seg8", "pivot": [0, 57, 264], "rot": [0, 0, 0], "zone": 2 }, "vribbon8": { "parent": "seg8", "pivot": [0, 15, 264], "rot": [0, 0, 0], "zone": 2 }, "seg9": { "parent": "seg8", "pivot": [0, 36, 280], "rot": [0, 0, 0], "zone": 1 }, "ribbon9": { "parent": "seg9", "pivot": [0, 53, 296], "rot": [0, 0, 0], "zone": 1 }, "vribbon9": { "parent": "seg9", "pivot": [0, 19, 296], "rot": [0, 0, 0], "zone": 1 }, "seg10": { "parent": "seg9", "pivot": [0, 36, 312], "rot": [0, 0, 0], "zone": 1 }, "ribbon10": { "parent": "seg10", "pivot": [0, 49.5, 328], "rot": [0, 0, 0], "zone": 1 }, "vribbon10": { "parent": "seg10", "pivot": [0, 22.5, 328], "rot": [0, 0, 0], "zone": 1 }, "tailfin": { "parent": "seg10", "pivot": [0, 36, 344], "rot": [0, 0, 0], "zone": 0 } }, "locators": { "back": { "bone": "chest", "pos": [0, 72, 0] }, "belly": { "bone": "chest", "pos": [0, 0, 0] }, "spine_0": { "bone": "chest", "pos": [0, 72, 0] }, "gill_l": { "bone": "chest", "pos": [49, 36, -7] }, "gill_r": { "bone": "chest", "pos": [-49, 36, -7] }, "muzzle": { "bone": "head", "pos": [0, 34, -114] }, "nose": { "bone": "head", "pos": [0, 40, -112] }, "throat": { "bone": "head", "pos": [0, 28, -32] }, "mouth": { "bone": "jaw", "pos": [0, 31, -94] }, "eye_l": { "bone": "eye_l", "pos": [27.9, 45.6, -78] }, "eye_r": { "bone": "eye_r", "pos": [-27.9, 45.6, -78] }, "fin_l": { "bone": "fin_l_tip", "pos": [120, 13, 22] }, "fin_r": { "bone": "fin_r_tip", "pos": [-120, 13, 22] }, "spine_1": { "bone": "seg1", "pos": [0, 72, 40] }, "spine_2": { "bone": "seg2", "pos": [0, 71.5, 72] }, "spine_3": { "bone": "seg3", "pos": [0, 70.5, 104] }, "spine_4": { "bone": "seg4", "pos": [0, 69, 136] }, "spine_5": { "bone": "seg5", "pos": [0, 67, 168] }, "spine_6": { "bone": "seg6", "pos": [0, 64.5, 200] }, "spine_7": { "bone": "seg7", "pos": [0, 61, 232] }, "spine_8": { "bone": "seg8", "pos": [0, 57, 264] }, "spine_9": { "bone": "seg9", "pos": [0, 53, 296] }, "spine_10": { "bone": "seg10", "pos": [0, 49.5, 328] }, "knob_u": { "bone": "tailfin", "pos": [0, 100, 409] }, "knob_d": { "bone": "tailfin", "pos": [0, -28, 409] }, "tail_notch": { "bone": "tailfin", "pos": [2.5, 76, 405] }, "tail_tip": { "bone": "tailfin", "pos": [0, 36, 410] } }, "meta": { "glow_y0": 10, "glow_y1": 74, "wetness": 0.8, "bounds_margin": 6, "form": 1 }, "zones": { "6": ["body", "chest", "fin_l", "fin_l_tip", "fin_r", "fin_r_tip", "ribbon0"], "7": ["gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "jaw", "eye_l", "eye_r"], "5": ["seg1", "ribbon1", "seg2", "ribbon2", "seg3", "ribbon3"], "4": ["seg4", "ribbon4", "seg5", "ribbon5"], "3": ["seg6", "ribbon6", "vribbon6", "seg7", "ribbon7", "vribbon7"], "2": ["seg8", "ribbon8", "vribbon8"], "1": ["seg9", "ribbon9", "vribbon9", "seg10", "ribbon10", "vribbon10"], "0": ["tailfin"] } }, "2": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 44, 0], "rot": [0, 0, 0], "zone": 5 }, "chest": { "parent": "body", "pivot": [0, 78, 0], "rot": [0, 0, 0], "zone": 5 }, "plates_chest": { "parent": "chest", "pivot": [0, 122, 0], "rot": [0, 0, 0], "zone": 5 }, "neck": { "parent": "chest", "pivot": [0, 84, -32], "rot": [3, 0, 0], "zone": 6 }, "plates_neck": { "parent": "neck", "pivot": [0, 116, -46], "rot": [0, 0, 0], "zone": 6 }, "gill_l1": { "parent": "neck", "pivot": [37, 84, -56], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "neck", "pivot": [37, 84, -47], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "neck", "pivot": [37, 84, -38], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "neck", "pivot": [-37, 84, -56], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "neck", "pivot": [-37, 84, -47], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "neck", "pivot": [-37, 84, -38], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "neck", "pivot": [0, 84, -62], "rot": [4, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [28.08, 91.46, -97.7], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-28.08, 91.46, -97.7], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 71, -75], "rot": [9, 0, 0], "zone": 8 }, "arm_l": { "parent": "chest", "pivot": [54, 102, -14], "rot": [14, 0, 10], "zone": 5 }, "forearm_l": { "parent": "arm_l", "pivot": [54, 54, -14], "rot": [-38, 0, -10], "zone": 5 }, "claw_l": { "parent": "forearm_l", "pivot": [54, 4, -14], "rot": [24, 0, 0], "zone": 5 }, "arm_r": { "parent": "chest", "pivot": [-54, 102, -14], "rot": [14, 0, -10], "zone": 5 }, "forearm_r": { "parent": "arm_r", "pivot": [-54, 54, -14], "rot": [-38, 0, 10], "zone": 5 }, "claw_r": { "parent": "forearm_r", "pivot": [-54, 4, -14], "rot": [24, 0, 0], "zone": 5 }, "mid": { "parent": "body", "pivot": [0, 66, 30], "rot": [0, 0, 0], "zone": 4 }, "plates_mid": { "parent": "mid", "pivot": [0, 100, 66], "rot": [0, 0, 0], "zone": 4 }, "hips": { "parent": "mid", "pivot": [0, 36, 104], "rot": [0, 0, 0], "zone": 3 }, "plates_hips": { "parent": "hips", "pivot": [0, 72, 126], "rot": [0, 0, 0], "zone": 3 }, "leg_l": { "parent": "hips", "pivot": [40, 24, 126], "rot": [0, -40, 24], "zone": 3 }, "foot_l": { "parent": "leg_l", "pivot": [70, 20, 126], "rot": [0, 0, -24], "zone": 3 }, "leg_r": { "parent": "hips", "pivot": [-40, 24, 126], "rot": [0, 40, -24], "zone": 3 }, "foot_r": { "parent": "leg_r", "pivot": [-70, 20, 126], "rot": [0, 0, 24], "zone": 3 }, "tail1": { "parent": "hips", "pivot": [0, 32, 150], "rot": [0, 0, 0], "zone": 2 }, "plates_tail1": { "parent": "tail1", "pivot": [0, 62, 164], "rot": [0, 0, 0], "zone": 2 }, "tail2": { "parent": "tail1", "pivot": [0, 30, 178], "rot": [0, 0, 0], "zone": 2 }, "plates_tail2": { "parent": "tail2", "pivot": [0, 58, 192], "rot": [0, 0, 0], "zone": 2 }, "tail3": { "parent": "tail2", "pivot": [0, 28, 206], "rot": [0, 0, 0], "zone": 2 }, "plates_tail3": { "parent": "tail3", "pivot": [0, 54, 220], "rot": [0, 0, 0], "zone": 2 }, "tail4": { "parent": "tail3", "pivot": [0, 26, 234], "rot": [0, 0, 0], "zone": 1 }, "plates_tail4": { "parent": "tail4", "pivot": [0, 50, 248], "rot": [0, 0, 0], "zone": 1 }, "tail5": { "parent": "tail4", "pivot": [0, 24, 262], "rot": [0, 0, 0], "zone": 1 }, "plates_tail5": { "parent": "tail5", "pivot": [0, 46, 276], "rot": [0, 0, 0], "zone": 1 }, "tail6": { "parent": "tail5", "pivot": [0, 23, 290], "rot": [0, 0, 0], "zone": 1 }, "plates_tail6": { "parent": "tail6", "pivot": [0, 44, 304], "rot": [0, 0, 0], "zone": 1 }, "knob": { "parent": "tail6", "pivot": [0, 23, 318], "rot": [0, 0, 0], "zone": 0 } }, "locators": { "heart": { "bone": "chest", "pos": [0, 78, 0] }, "gill_l": { "bone": "neck", "pos": [38, 84, -47] }, "gill_r": { "bone": "neck", "pos": [-38, 84, -47] }, "muzzle": { "bone": "head", "pos": [0, 77.5, -176.4] }, "nose": { "bone": "head", "pos": [0, 90.5, -173.8] }, "throat": { "bone": "head", "pos": [0, 77.5, -69.8] }, "eye_l": { "bone": "eye_l", "pos": [28.58, 91.46, -97.7] }, "eye_r": { "bone": "eye_r", "pos": [-28.58, 91.46, -97.7] }, "mouth": { "bone": "jaw", "pos": [0, 76.2, -153] }, "claw_l": { "bone": "claw_l", "pos": [54, -6, -44] }, "claw_r": { "bone": "claw_r", "pos": [-54, -6, -44] }, "hip_l": { "bone": "hips", "pos": [30, 0, 140] }, "hip_r": { "bone": "hips", "pos": [-30, 0, 140] }, "foot_l": { "bone": "foot_l", "pos": [86, 11, 126] }, "foot_r": { "bone": "foot_r", "pos": [-86, 11, 126] }, "tail_notch": { "bone": "tail6", "pos": [29.5, 23, 305] }, "knob_core": { "bone": "knob", "pos": [0, 32, 358] }, "horn_l": { "bone": "knob", "pos": [19.3621, 76.8737, 367.5747] }, "horn_r": { "bone": "knob", "pos": [-19.3621, 76.8737, 367.5747] } }, "meta": { "glow_y0": 10, "glow_y1": 104, "wetness": 0.5, "bounds_margin": 6, "form": 2 }, "zones": { "5": ["body", "chest", "plates_chest", "arm_l", "forearm_l", "claw_l", "arm_r", "forearm_r", "claw_r"], "6": ["neck", "plates_neck"], "7": ["gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "eye_l", "eye_r", "jaw"], "4": ["mid", "plates_mid"], "3": ["hips", "plates_hips", "leg_l", "foot_l", "leg_r", "foot_r"], "2": ["tail1", "plates_tail1", "tail2", "plates_tail2", "tail3", "plates_tail3"], "1": ["tail4", "plates_tail4", "tail5", "plates_tail5", "tail6", "plates_tail6"], "0": ["knob"] } }, "3": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 112, 0], "rot": [0, 0, 0], "zone": 4 }, "plates_mid": { "parent": "body", "pivot": [0, 151, -12], "rot": [0, 0, 0], "zone": 4 }, "chest": { "parent": "body", "pivot": [0, 108, -60], "rot": [0, 0, 0], "zone": 5 }, "plates_chest": { "parent": "chest", "pivot": [0, 148, -92], "rot": [0, 0, 0], "zone": 5 }, "hips": { "parent": "body", "pivot": [0, 110, 36], "rot": [0, 0, 0], "zone": 3 }, "plates_hips": { "parent": "hips", "pivot": [0, 151, 70], "rot": [0, 0, 0], "zone": 3 }, "neck1": { "parent": "chest", "pivot": [0, 114, -126], "rot": [4, 0, 0], "zone": 6 }, "plates_neck1": { "parent": "neck1", "pivot": [0, 150, -134.5], "rot": [0, 0, 0], "zone": 6 }, "neck2": { "parent": "neck1", "pivot": [0, 114, -143], "rot": [3, 0, 0], "zone": 6 }, "plates_neck2": { "parent": "neck2", "pivot": [0, 146.5, -151.5], "rot": [0, 0, 0], "zone": 6 }, "neck3": { "parent": "neck2", "pivot": [0, 114, -160], "rot": [2, 0, 0], "zone": 7 }, "plates_neck3": { "parent": "neck3", "pivot": [0, 143, -168.5], "rot": [0, 0, 0], "zone": 7 }, "neck4": { "parent": "neck3", "pivot": [0, 114, -177], "rot": [0, 0, 0], "zone": 7 }, "plates_neck4": { "parent": "neck4", "pivot": [0, 140, -185.5], "rot": [0, 0, 0], "zone": 7 }, "neck5": { "parent": "neck4", "pivot": [0, 114, -194], "rot": [-2, 0, 0], "zone": 7 }, "plates_neck5": { "parent": "neck5", "pivot": [0, 137.5, -202.5], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "neck5", "pivot": [0, 114, -211], "rot": [-3, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [26.368, 120.608, -247.4], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-26.368, 120.608, -247.4], "rot": [0, 0, 0], "zone": 8 }, "plates_head": { "parent": "head", "pivot": [0, 133.2, -223.8], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 101.2, -223.8], "rot": [7, 0, 0], "zone": 8 }, "gill_l1": { "parent": "neck5", "pivot": [19.92, 113, -208.5], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "neck5", "pivot": [19.92, 113, -203.1], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "neck5", "pivot": [19.92, 113, -197.7], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "neck5", "pivot": [-19.92, 113, -208.5], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "neck5", "pivot": [-19.92, 113, -203.1], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "neck5", "pivot": [-19.92, 113, -197.7], "rot": [0, 0, 0], "zone": 7 }, "leg_fl": { "parent": "chest", "pivot": [40, 104, -100], "rot": [20, 0, 0], "zone": 5 }, "leg_fl_lower": { "parent": "leg_fl", "pivot": [40, 54, -100], "rot": [-35, 0, 0], "zone": 5 }, "foot_fl": { "parent": "leg_fl_lower", "pivot": [40, 7, -100], "rot": [15, 0, 0], "zone": 5 }, "leg_fr": { "parent": "chest", "pivot": [-40, 104, -100], "rot": [20, 0, 0], "zone": 5 }, "leg_fr_lower": { "parent": "leg_fr", "pivot": [-40, 54, -100], "rot": [-35, 0, 0], "zone": 5 }, "foot_fr": { "parent": "leg_fr_lower", "pivot": [-40, 7, -100], "rot": [15, 0, 0], "zone": 5 }, "leg_bl": { "parent": "hips", "pivot": [40, 104, 84], "rot": [-22, 0, 0], "zone": 3 }, "leg_bl_lower": { "parent": "leg_bl", "pivot": [40, 52, 84], "rot": [40, 0, 0], "zone": 3 }, "foot_bl": { "parent": "leg_bl_lower", "pivot": [40, 6, 84], "rot": [-18, 0, 0], "zone": 3 }, "leg_br": { "parent": "hips", "pivot": [-40, 104, 84], "rot": [-22, 0, 0], "zone": 3 }, "leg_br_lower": { "parent": "leg_br", "pivot": [-40, 52, 84], "rot": [40, 0, 0], "zone": 3 }, "foot_br": { "parent": "leg_br_lower", "pivot": [-40, 6, 84], "rot": [-18, 0, 0], "zone": 3 }, "tail1": { "parent": "hips", "pivot": [0, 112, 112], "rot": [-8, 0, 0], "zone": 2 }, "plates_tail1": { "parent": "tail1", "pivot": [0, 144, 127.5], "rot": [0, 0, 0], "zone": 2 }, "tail2": { "parent": "tail1", "pivot": [0, 112, 143], "rot": [-6, 0, 0], "zone": 2 }, "plates_tail2": { "parent": "tail2", "pivot": [0, 140, 158.5], "rot": [0, 0, 0], "zone": 2 }, "tail3": { "parent": "tail2", "pivot": [0, 112, 174], "rot": [-4, 0, 0], "zone": 2 }, "plates_tail3": { "parent": "tail3", "pivot": [0, 136, 189], "rot": [0, 0, 0], "zone": 2 }, "tail4": { "parent": "tail3", "pivot": [0, 112, 204], "rot": [-2, 0, 0], "zone": 1 }, "plates_tail4": { "parent": "tail4", "pivot": [0, 132, 219], "rot": [0, 0, 0], "zone": 1 }, "tail5": { "parent": "tail4", "pivot": [0, 112, 234], "rot": [2, 0, 0], "zone": 1 }, "plates_tail5": { "parent": "tail5", "pivot": [0, 129, 249], "rot": [0, 0, 0], "zone": 1 }, "tail6": { "parent": "tail5", "pivot": [0, 112, 264], "rot": [5, 0, 0], "zone": 1 }, "plates_tail6": { "parent": "tail6", "pivot": [0, 126.5, 278.5], "rot": [0, 0, 0], "zone": 1 }, "tail7": { "parent": "tail6", "pivot": [0, 112, 293], "rot": [7, 0, 0], "zone": 1 }, "plates_tail7": { "parent": "tail7", "pivot": [0, 124.5, 307.5], "rot": [0, 0, 0], "zone": 1 }, "tail8": { "parent": "tail7", "pivot": [0, 112, 322], "rot": [6, 0, 0], "zone": 1 }, "plates_tail8": { "parent": "tail8", "pivot": [0, 123, 336], "rot": [0, 0, 0], "zone": 1 }, "club": { "parent": "tail8", "pivot": [0, 112, 350], "rot": [0, 0, 0], "zone": 0 } }, "locators": { "heart": { "bone": "body", "pos": [0, 112, -20] }, "plate_tip_3": { "bone": "plates_mid", "pos": [0, 218.3, -21.8] }, "plate_tip_4": { "bone": "plates_mid", "pos": [0, 228.8, 7.2] }, "plate_tip_5": { "bone": "plates_mid", "pos": [0, 235.5, 35] }, "plate_tip_6": { "bone": "plates_mid", "pos": [0, 235.5, 61] }, "plate_tip_0": { "bone": "plates_chest", "pos": [0, 177.2, -105.2] }, "plate_tip_1": { "bone": "plates_chest", "pos": [0, 193.5, -79] }, "plate_tip_2": { "bone": "plates_chest", "pos": [0, 205.9, -51.4] }, "plate_tip_7": { "bone": "plates_hips", "pos": [0, 229.8, 85.2] }, "plate_tip_8": { "bone": "plates_hips", "pos": [0, 218.3, 106.2] }, "plate_tip_9": { "bone": "plates_hips", "pos": [0, 204.9, 124.6] }, "gill_l": { "bone": "neck5", "pos": [21, 113, -201.5] }, "gill_r": { "bone": "neck5", "pos": [-21, 113, -201.5] }, "muzzle": { "bone": "head", "pos": [0, 107.6, -303.16] }, "throat": { "bone": "head", "pos": [0, 107.6, -218.68] }, "nose": { "bone": "head", "pos": [0, 121.68, -300.6] }, "eye_l": { "bone": "eye_l", "pos": [26.868, 120.608, -247.4] }, "eye_r": { "bone": "eye_r", "pos": [-26.868, 120.608, -247.4] }, "mouth": { "bone": "jaw", "pos": [0, 106.32, -282.68] }, "foot_fl": { "bone": "foot_fl", "pos": [40, -5, -108] }, "foot_fr": { "bone": "foot_fr", "pos": [-40, -5, -108] }, "foot_bl": { "bone": "foot_bl", "pos": [40, -6, 76] }, "foot_br": { "bone": "foot_br", "pos": [-40, -6, 76] }, "tail_notch": { "bone": "tail7", "pos": [11.5, 112, 306] }, "club_core": { "bone": "club", "pos": [0, 112, 374] }, "spike_tip_0": { "bone": "club", "pos": [41.2571, 135.8198, 369.7336] }, "spike_tip_1": { "bone": "club", "pos": [0, 165.2182, 369.1757] }, "spike_tip_2": { "bone": "club", "pos": [-40.6907, 135.4928, 369.799] }, "spike_tip_3": { "bone": "club", "pos": [-43.335, 86.9805, 369.4936] }, "spike_tip_4": { "bone": "club", "pos": [0, 58.6562, 369.1631] }, "spike_tip_5": { "bone": "club", "pos": [46.0464, 85.4151, 369.1805] }, "spike_tip_6": { "bone": "club", "pos": [22.5857, 143.0865, 405.9264] }, "spike_tip_7": { "bone": "club", "pos": [-22.3364, 142.7435, 405.5367] }, "spike_tip_8": { "bone": "club", "pos": [-32.3061, 101.5031, 401.8313] }, "spike_tip_9": { "bone": "club", "pos": [0, 73.6781, 405.8316] }, "spike_tip_10": { "bone": "club", "pos": [32.359, 101.4859, 401.8824] }, "spike_tip_11": { "bone": "club", "pos": [0, 114.8643, 426.2925] } }, "meta": { "glow_y0": 64, "glow_y1": 156, "wetness": 0.15, "bounds_margin": 6, "form": 3 }, "zones": { "4": ["body", "plates_mid"], "5": ["chest", "plates_chest", "leg_fl", "leg_fl_lower", "foot_fl", "leg_fr", "leg_fr_lower", "foot_fr"], "3": ["hips", "plates_hips", "leg_bl", "leg_bl_lower", "foot_bl", "leg_br", "leg_br_lower", "foot_br"], "6": ["neck1", "plates_neck1", "neck2", "plates_neck2"], "7": ["neck3", "plates_neck3", "neck4", "plates_neck4", "neck5", "plates_neck5", "gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "eye_l", "eye_r", "plates_head", "jaw"], "2": ["tail1", "plates_tail1", "tail2", "plates_tail2", "tail3", "plates_tail3"], "1": ["tail4", "plates_tail4", "tail5", "plates_tail5", "tail6", "plates_tail6", "tail7", "plates_tail7", "tail8", "plates_tail8"], "0": ["club"] } } };
 var LOOK = { "1": { "yaw": { "head": 0.6, "chest": 0.4 }, "pitch": { "head": 0.6, "chest": 0.4 } }, "2": { "yaw": { "head": 0.45, "neck": 0.4, "chest": 0.15 }, "pitch": { "head": 0.5, "neck": 0.4, "chest": 0.1 } }, "3": { "yaw": { "head": 0.35, "neck1": 0.11, "neck2": 0.11, "neck3": 0.11, "neck4": 0.11, "neck5": 0.11, "chest": 0.1 }, "pitch": { "head": 0.4, "neck1": 0.12, "neck2": 0.12, "neck3": 0.12, "neck4": 0.12, "neck5": 0.12 } } };
-var STRIDE_III = 11;
+var STRIDE_III = 7;
+var STANCE_III = 5.25;
+var BODY_DROP_III = 9;
+var TAIL_LIFT_III = 4;
+var WINDOW_NECK = [32, 28, 20, 0, -24];
+var WINDOW_HEAD = [-52.7, 21.8, -51.8];
 var GAIT_TICKS = [12, 18, 22];
 
 // src/rig.ts
@@ -408,9 +414,10 @@ function poseOf(form, s) {
     for (let i = 1; i <= 6; i++) set(`tail${i}`, 0, -s.bend * (0.5 + 0.1 * i));
   } else {
     set("hips", 0, -s.bend * 0.3);
-    for (let i = 1; i <= 5; i++) set(`neck${i}`, -1.5 * charge, 0);
-    set("head", -4 * charge, 0);
-    for (let i = 1; i <= 8; i++) set(`tail${i}`, -1.7 * charge, -s.bend * (0.35 + 0.09 * i));
+    const win = s.window ?? 0;
+    for (let i = 1; i <= 5; i++) set(`neck${i}`, -1.5 * charge + WINDOW_NECK[i - 1] * win, 0);
+    set("head", -4 * charge + WINDOW_HEAD[0] * win, WINDOW_HEAD[1] * win, WINDOW_HEAD[2] * win);
+    for (let i = 1; i <= 8; i++) set(`tail${i}`, -1.7 * charge + (i === 1 ? TAIL_LIFT_III : 0), -s.bend * (0.35 + 0.09 * i));
   }
   return p;
 }
@@ -428,6 +435,7 @@ var Skeleton = class {
     const add2 = this.pose[name];
     const R = rotation(b.rot[0] + (add2 ? add2[0] : 0), b.rot[1] + (add2 ? add2[1] : 0), b.rot[2] + (add2 ? add2[2] : 0));
     const local = about(R, b.pivot);
+    if (this.form === 3 && name === "body") local[7] -= BODY_DROP_III;
     const m = b.parent ? mulM(this.bone(b.parent), local) : local;
     this.cache.set(name, m);
     return m;
@@ -738,7 +746,8 @@ var Creature = class {
       bend: Math.round(this.bend),
       pitch: Math.round(this.pitch),
       charge: this.phase === "charge" || this.phase === "fire" ? 1 : 0,
-      drink: this.phase === "drink" ? 1 : 0
+      drink: this.phase === "drink" ? 1 : 0,
+      window: this.phase === "window" || this.phase === "stalk" ? 1 : 0
     });
   }
   skeleton() {
@@ -1344,6 +1353,8 @@ var TIERS = {
 var ROD = /^minecraft:(waxed_)?(exposed_|weathered_|oxidized_)?lightning_rod$/;
 var ROD_REACH = 10;
 var FEET = ["foot_bl", "foot_fl", "foot_br", "foot_fr"];
+var WINDOW_STANDOFF = 14.9;
+var WINDOW_EYE_LEFT = 1.25;
 var rodReady = /* @__PURE__ */ new Map();
 function segDist(p, a, d, length) {
   const t = clamp(dot(sub(p, a), d), 0, length);
@@ -1424,9 +1435,9 @@ var BrainThree = class extends Brain {
   }
   // ---- four footfalls --------------------------------------------------------------------------
   /** Walk, landing one foot every quarter stride: left hind, left fore, right hind, right fore. */
-  *walk(target, speed, arrive, timeout) {
+  *walk(target, speed, arrive, timeout, phase = "move") {
     const c = this.c;
-    c.setPhase("move");
+    c.setPhase(phase);
     c.goTo(target, speed, arrive);
     let t = 0;
     while (!c.arrived()) {
@@ -1443,8 +1454,10 @@ var BrainThree = class extends Brain {
   footfalls() {
     const c = this.c;
     if (c.travelled - this.stepAt < STRIDE_III / 4) return;
-    this.stepAt = c.travelled;
-    const foot = c.anchor(FEET[this.beat & 3]);
+    this.stepAt = c.travelled - this.stepAt < STRIDE_III / 2 ? this.stepAt + STRIDE_III / 4 : c.travelled;
+    const k = this.beat & 3;
+    c.set(PROP.gait, k);
+    const foot = add(c.anchor(FEET[k]), mul(c.forward, STANCE_III / 2));
     this.beat++;
     this.rec.mut.overland += STRIDE_III / 4;
     sound(c.dim, "basiliskra.iii.step", foot, 96, 1, 0.94 + (this.beat & 3) * 0.03);
@@ -1503,19 +1516,31 @@ var BrainThree = class extends Brain {
     }
     return walls >= 3;
   }
-  /** Which way out of the room is there glass or an opening?  The one nearest to where he already is. */
+  /**
+   * Which way out of the room is there glass or an opening, how far off, and where is the middle of
+   * the pane?  Of several, the one nearest to where he already is.
+   */
   windowDir(p) {
     const c = this.c, head = p.getHeadLocation();
     const toHim = norm({ x: c.pos.x - head.x, y: 0, z: c.pos.z - head.z });
-    let best = toHim, score = -2;
+    const glassy = (x, y, z) => /glass|iron_bars/.test(idAt(c.dim, { x, y, z }) ?? "");
+    let best = toHim, score = -2, reach = 3, pane = add(head, mul(toHim, 3));
     for (let i = 0; i < 16; i++) {
       const a = i * Math.PI / 8, d = { x: Math.cos(a), y: 0, z: Math.sin(a) };
-      let open = false;
+      let open = false, at = 3, mid = add(head, mul(d, 3));
       for (let r = 1; r <= 9; r++) {
-        const b = blockAt(c.dim, { x: head.x + d.x * r, y: head.y, z: head.z + d.z * r });
+        const q = { x: head.x + d.x * r, y: head.y, z: head.z + d.z * r };
+        const b = blockAt(c.dim, q);
         if (!b) break;
         if (/glass|iron_bars|fence_gate/.test(b.typeId)) {
+          const bx = Math.floor(q.x), by = Math.floor(q.y), bz = Math.floor(q.z);
+          const along = Math.abs(d.x) >= Math.abs(d.z) ? { x: 0, z: 1 } : { x: 1, z: 0 };
+          let lo = 0, hi = 0;
+          while (lo > -3 && glassy(bx + along.x * (lo - 1), by, bz + along.z * (lo - 1))) lo--;
+          while (hi < 3 && glassy(bx + along.x * (hi + 1), by, bz + along.z * (hi + 1))) hi++;
+          mid = { x: bx + 0.5 + along.x * (lo + hi) / 2, y: head.y, z: bz + 0.5 + along.z * (lo + hi) / 2 };
           open = true;
+          at = r;
           break;
         }
         if (isSolidBlock(b)) break;
@@ -1524,9 +1549,11 @@ var BrainThree = class extends Brain {
       if (open && dot(d, toHim) > score) {
         score = dot(d, toHim);
         best = d;
+        reach = at;
+        pane = mid;
       }
     }
-    return best;
+    return { dir: best, reach, pane };
   }
   /** Turn where he stands: the feet shuffle round, one planted at a time. */
   *face(target, limit = 400) {
@@ -1537,7 +1564,7 @@ var BrainThree = class extends Brain {
       if (Math.abs(wrapDeg(want - c.yaw)) < 2) break;
       c.yaw = turnTowards(c.yaw, want, 1.1);
       if (t % 18 === 9) {
-        const foot = c.anchor(FEET[this.beat++ & 3]);
+        const foot = c.anchor(FEET[Math.floor(t / 18) & 3]);
         sound(c.dim, "basiliskra.iii.step", foot, 72, 0.7, 0.98);
       }
       yield;
@@ -1552,29 +1579,31 @@ var BrainThree = class extends Brain {
         return false;
       }
     };
-    const pl = p.location;
-    const out = this.windowDir(p);
-    const STAND = 24, RUN = STRIDE_III;
-    if (!(yield* this.walk(add(pl, mul(out, STAND + RUN)), 0.14, 2.5, 1800))) return;
+    const { dir: out, pane } = this.windowDir(p);
+    const left = leftOf(yawTo(out, { x: 0, y: 0, z: 0 }));
+    const line = (d) => add(add(pane, mul(out, d)), mul(left, WINDOW_EYE_LEFT));
+    const RUN = STRIDE_III;
+    if (!(yield* this.walk(line(WINDOW_STANDOFF + RUN), 0.14, 0.4, 1800))) return;
     if (!ok()) return;
-    yield* this.face(pl);
+    yield* this.face(line(0));
     c.setPhase("idle");
     yield* wait(50);
     if (!ok()) return;
-    c.setPhase("move");
-    const pace4 = STRIDE_III / 4 / 18;
-    c.goTo(add(pl, mul(out, STAND - 8)), pace4, 0.5);
+    c.setPhase("stalk");
+    c.goTo(line(WINDOW_STANDOFF - 6), STRIDE_III / 4 / KNOCK_GAP_TICKS, 0.3);
+    c.speed = STRIDE_III / 4 / KNOCK_GAP_TICKS;
+    this.stepAt = c.travelled;
     const first = this.beat;
-    this.stepAt = c.travelled - 0.9;
     for (let t = 0; t < 200 && this.beat - first < 4 && c.blocked < 20; t++) {
       this.footfalls();
-      yield;
+      if (this.beat - first < 4) yield;
     }
     c.halt();
+    c.speed = 0;
     if (!ok()) return;
     c.setPhase("window");
     for (let t = 0; t < 260 && ok(); t++) {
-      c.lookAt(p.getHeadLocation(), 75, 50);
+      c.lookAt(p.getHeadLocation(), 18, 0);
       if (t % 80 === 10) {
         try {
           p.playSound("basiliskra.iii.window_breath", { location: c.anchor("nose"), volume: 1 });
@@ -1584,9 +1613,10 @@ var BrainThree = class extends Brain {
       yield;
     }
     c.lookAhead();
+    yield* this.walk(line(WINDOW_STANDOFF + RUN + 3), 0.12, 2.5, 500, "stalk");
     c.setPhase("idle");
-    yield* wait(60);
-    yield* this.walk(add(c.pos, mul(out, 28)), 0.13, 5, 700);
+    yield* wait(50);
+    yield* this.walk(add(c.pos, mul(out, 24)), 0.13, 5, 700);
   }
   // ---- he remembers you --------------------------------------------------------------------------------
   *remember(g) {
@@ -1653,13 +1683,8 @@ var BrainThree = class extends Brain {
     }
   }
   /** The nearest usable rod among those seen (still a rod, not recovering from the last strike). */
-  findRod(scanAll = false) {
+  findRod() {
     const c = this.c;
-    if (scanAll) {
-      this.rodSeen.clear();
-      this.rodLayer = 0;
-      this.scanRods(12);
-    }
     const club = c.anchor("club_core");
     let best = null, bd = 1e9;
     for (const [key, p] of this.rodSeen) {
@@ -1886,12 +1911,15 @@ var BrainThree = class extends Brain {
     c.halt();
     c.setPhase("scatter");
     c.say("basiliskra.iii.club_plant", c.anchor("club_core"), 96);
+    this.rodSeen.clear();
+    this.rodLayer = 0;
     for (let t = 0; t < 34; t++) {
       c.setCharge(t / 34 * 18);
+      this.scanRods();
       if (t % 5 === 0) sound(c.dim, "basiliskra.iii.charge_tick", c.anchor("plate_tip_4"), 64, 0.8, 1.5 - t * 0.02);
       yield;
     }
-    const rod = this.findRod(true);
+    const rod = this.findRod();
     if (rod && clearLine(c.dim, this.clubTop(), { x: rod.x + 0.5, y: rod.y + 1.2, z: rod.z + 0.5 })) {
       yield* this.ground(rod);
       return;
@@ -3203,6 +3231,7 @@ var Controller = class {
     } catch {
       return;
     }
+    this.nameHim(e);
     const c = new Creature(e);
     c.form = rec.form;
     c.resync();
@@ -3215,7 +3244,15 @@ var Controller = class {
     this.runner = null;
     this.ending.reset();
   }
+  /** The stage of his life is his name: Basiliskra I, II, III.  It is what a death message says. */
+  nameHim(e) {
+    try {
+      e.nameTag = `Basiliskra ${["I", "II", "III"][store.rec.form - 1]}`;
+    } catch {
+    }
+  }
   makeBrain(c) {
+    if (c.form === 3) c.set(PROP.gait, 3);
     return c.form === 1 ? new BrainOne(c) : c.form === 2 ? new BrainTwo(c) : new BrainThree(c);
   }
   /** The only place the entity is ever created.  The reservation is already saved when this runs. */
@@ -3657,7 +3694,7 @@ var Controller = class {
           c.set(PROP.gill, true);
           sound(dim, "basiliskra.i.gill_catch", c.anchor("gill_l"), 32);
           try {
-            for (const b of dim.getEntities({ location: nose, maxDistance: 18, families: ["boat"] })) b.applyImpulse(mul({ x: -f.z, y: 0.12, z: f.x }, 0.35));
+            for (const b of dim.getEntities({ location: nose, maxDistance: 32, families: ["boat"] })) b.applyImpulse(mul({ x: -f.z, y: 0.12, z: f.x }, 0.35));
           } catch {
           }
         }
@@ -3789,6 +3826,7 @@ var Controller = class {
         } catch {
           return;
         }
+        this.nameHim(c.entity);
         c.dropParts();
         c.resync();
         this.brain = this.makeBrain(c);

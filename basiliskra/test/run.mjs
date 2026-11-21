@@ -214,7 +214,7 @@ console.log('\n== 6. Evolution during a save and reload');
   check('after the reload it is still the same entity, still mid-evolution', w.bk.ctl.creature?.entity.id === id && rec().evolve !== null && w.sim.count(TYPE) === 1);
   until(w, () => rec().evolve === null, 600);
   const e = w.bk.ctl.creature.entity;
-  check('he finishes as Form II in place', rec().form === 2 && e.id === id && e.getProperty(P('form')) === 2 && e.rec.events.includes('basiliskra:bind_2'));
+  check('he finishes as Form II in place, and is called Basiliskra II', rec().form === 2 && e.id === id && e.getProperty(P('form')) === 2 && e.rec.events.includes('basiliskra:bind_2') && e.nameTag === 'Basiliskra II', `name ${e.nameTag}`);
   check('health and ownership survived the evolution', Math.abs(e.rec.health - 437) < 1e-6 && rec().entityId === id && e.rec.dyn['bk:token'] === rec().token);
   check('a shed fin lies where he struggled', [...w.sim.save.entities.values()].some((r) => r.item?.typeId === 'basiliskra:shed_fin') && rec().beach !== null);
   // the worst moment: the record already says Form III, the entity has not been touched yet

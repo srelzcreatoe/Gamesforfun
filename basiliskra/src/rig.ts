@@ -6,7 +6,7 @@
  * Model ("file") space: 1/16 block, +Y up, -Z is the animal's front, +X its left.
  *   v' = Rz(-rz) Ry(ry) Rx(-rx) (v - pivot) + pivot
  */
-import { RIGS, LOOK } from "./generated/rig";
+import { BODY_DROP_III, RIGS, LOOK, TAIL_LIFT_III, WINDOW_HEAD, WINDOW_NECK } from "./generated/rig";
 import { D2R, forwardOf, leftOf, type V3 } from "./vec";
 
 export type Form = 1 | 2 | 3;
@@ -49,7 +49,7 @@ function apply(m: Mat, p: number[]): number[] {
   ];
 }
 
-export interface PoseState { lookYaw: number; lookPitch: number; bend: number; pitch: number; charge?: number; drink?: number }
+export interface PoseState { lookYaw: number; lookPitch: number; bend: number; pitch: number; charge?: number; drink?: number; window?: number }
 
 /** The steady-state pose the client settles into for these synchronised values. */
 export function poseOf(form: Form, s: PoseState): PoseAdd {
@@ -77,9 +77,10 @@ export function poseOf(form: Form, s: PoseState): PoseAdd {
     for (let i = 1; i <= 6; i++) set(`tail${i}`, 0, -s.bend * (0.5 + 0.1 * i));
   } else {
     set("hips", 0, -s.bend * 0.3);
-    for (let i = 1; i <= 5; i++) set(`neck${i}`, -1.5 * charge, 0);
-    set("head", -4 * charge, 0);
-    for (let i = 1; i <= 8; i++) set(`tail${i}`, -1.7 * charge, -s.bend * (0.35 + 0.09 * i));
+    const win = s.window ?? 0;
+    for (let i = 1; i <= 5; i++) set(`neck${i}`, -1.5 * charge + WINDOW_NECK[i - 1] * win, 0);
+    set("head", -4 * charge + WINDOW_HEAD[0] * win, WINDOW_HEAD[1] * win, WINDOW_HEAD[2] * win);
+    for (let i = 1; i <= 8; i++) set(`tail${i}`, -1.7 * charge + (i === 1 ? TAIL_LIFT_III : 0), -s.bend * (0.35 + 0.09 * i));
   }
   return p;
 }
@@ -96,6 +97,7 @@ export class Skeleton {
     const add = this.pose[name];
     const R = rotation(b.rot[0] + (add ? add[0] : 0), b.rot[1] + (add ? add[1] : 0), b.rot[2] + (add ? add[2] : 0));
     const local = about(R, b.pivot);
+    if (this.form === 3 && name === "body") local[7] -= BODY_DROP_III;      // he rides this far below the bind pose (see gen_client.py)
     const m = b.parent ? mulM(this.bone(b.parent), local) : local;
     this.cache.set(name, m);
     return m;

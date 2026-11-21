@@ -140,7 +140,7 @@ void main(){
   vec3 lit = uAmbient + uLight * d;
   float pd = length(uPoint - vW);
   float pa = clamp(1.0 - pd / uPointRange, 0.0, 1.0);
-  lit += uPointColor * pa * pa * (0.45 + 0.55*max(dot(n, normalize(uPoint - vW)), 0.0));
+  lit += uPointColor * pow(pa, 1.4) * (0.45 + 0.55*max(dot(n, normalize(uPoint - vW)), 0.0));   // light falls off about as block light does
   vec3 c = t.rgb * uTint * min(lit, vec3(1.25));
   // anything below the water line is seen through water
   float sub = clamp((uWaterY - vW.y) * 0.22, 0.0, 1.0) * (1.0 - uUnderwater);

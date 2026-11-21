@@ -178,7 +178,7 @@ EFFECTS = [
     # ---- the seam -----------------------------------------------------------------------------
     # spawned at his swimming depth; the cut itself stands from the sea bed side to well clear of the surface,
     # so it is seen from a pier at dusk as well as from under water
-    scatter("seam", "seam", 12, 0, RAND(0.02, 0.2), RAND(0.25, 0.45), [PR(0.09, 0.15, 2), PR(0.5, 1.1)], grad((0, WHITE), (0.25, RED), (1, DEEP)),
+    scatter("seam", "seam", 12, 0, RAND(0.02, 0.2), RAND(0.25, 0.45), [PR(0.2, 0.42, 2), PR(0.6, 1.3)], grad((0, WHITE), (0.25, RED), (1, DEEP)),
             shape={"minecraft:emitter_shape_box": {"offset": [0, 2.6, 0], "half_dimensions": [0.14, 7.0, 0.14], "direction": [0, 1, 0]}}, facing="lookat_y"),
     scatter("seam_close", "spark", 34, 0, RAND(0.5, 2.5), RAND(0.4, 0.9), SHRINK(0.3), grad((0, WHITE), (0.4, RED), (1, DEEP)),
             shape={"minecraft:emitter_shape_box": {"offset": [0, 2.6, 0], "half_dimensions": [0.2, 7.0, 0.2], "direction": "outwards"}}, drag=2.0),

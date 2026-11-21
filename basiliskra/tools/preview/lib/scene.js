@@ -71,7 +71,7 @@ export class ScenePlayer {
     await BK.makeAnimator(this.key, { ...files.client, hooks });
     this.A = this.model.animator;
     this.model.holder.visible = false;
-    if (this.r.weather === 'rain') this._makeRain();
+    if (this.r.weather === 'rain' || this.r.frames.some((f) => f.rain)) this._makeRain();
   }
 
   _makeRain() {
@@ -141,6 +141,7 @@ export class ScenePlayer {
       for (const [short, rt] of this.A.ctrl) live.add(`${this.A.short[short]}:${rt.state}`);
       for (const em of this.particles.emitters) if (em.tag && !live.has(em.tag)) em.dead = true;
     }
+    this.particles.advance(dt);
     // the stand-ins
     for (const p of a?.players || []) {
       let g = this.players.get(p.name);
@@ -160,15 +161,25 @@ export class ScenePlayer {
     });
   }
 
+  /** A world point from a shot description: [x,y,z], {rift}, {rel} or {at, up, off}. */
+  point(v) {
+    {
+      if (Array.isArray(v)) return new THREE.Vector3(v[0], v[1], v[2]);
+      if (v && v.rift) {
+        const r = this.r.rift, a = r.yaw * Math.PI / 180;
+        const f = [-Math.sin(a), Math.cos(a)], l = [Math.cos(a), Math.sin(a)];       // forward and left of the way he came through
+        return new THREE.Vector3(r.x + f[0] * v.rift[0] + l[0] * v.rift[2], r.y + v.rift[1], r.z + f[1] * v.rift[0] + l[1] * v.rift[2]);
+      }
+      if (v && v.rel) { const o = this.present ? this.pos : new THREE.Vector3(...(this.shot.home || [0, 64, 0])); return new THREE.Vector3(o.x + v.rel[0], o.y + v.rel[1], o.z + v.rel[2]); }
+      if (v && v.at) { if (!this.present) return new THREE.Vector3(...(v.or || this.shot.home || [0, 64, 0])); const p = this.loc(v.at); if (v.up) p.y += v.up; if (v.off) p.add(new THREE.Vector3(v.off[0], v.off[1], v.off[2])); return p; }
+      throw new Error('bad camera point ' + JSON.stringify(v));
+    }
+  }
+
   /** Camera for the current time from the shot's keyframes. */
   cameraAt(t) {
     const K = this.shot.keys;
-    const point = (v) => {
-      if (Array.isArray(v)) return new THREE.Vector3(v[0], v[1], v[2]);
-      if (v && v.rel) { const o = this.present ? this.pos : new THREE.Vector3(...(this.shot.home || [0, 64, 0])); return new THREE.Vector3(o.x + v.rel[0], o.y + v.rel[1], o.z + v.rel[2]); }
-      if (v && v.at) { if (!this.present) return new THREE.Vector3(...(v.or || this.shot.home || [0, 64, 0])); const p = this.loc(v.at); if (v.up) p.y += v.up; return p; }
-      throw new Error('bad camera point ' + JSON.stringify(v));
-    };
+    const point = (v) => this.point(v);
     let i = 0;
     while (i < K.length - 1 && t >= K[i + 1].t) i++;
     const A = K[i], B = K[Math.min(i + 1, K.length - 1)];
@@ -185,7 +196,8 @@ export class ScenePlayer {
     const cam = new THREE.PerspectiveCamera(c.fov, w / h, 0.08, 700);
     cam.position.copy(c.pos); cam.lookAt(c.tgt); cam.updateMatrixWorld(true);
     const under = this.shot.waterY != null && c.pos.y < this.shot.waterY;
-    const sky = applySky(env, BK.renderer, this.frame?.tod ?? 6000, { rain: this.r.weather === 'rain', underwater: under });
+    const raining = this.frame?.rain ?? (this.r.weather === 'rain');
+    const sky = applySky(env, BK.renderer, this.frame?.tod ?? 6000, { rain: raining, underwater: under });
     if (!under && this.shot.fog) { env.uFogNear.value = this.shot.fog[0]; env.uFogFar.value = this.shot.fog[1]; }
     // lights the animal makes
     const dyn = [];
@@ -203,13 +215,17 @@ export class ScenePlayer {
     }
     if (this.time - this.seamAt < 0.5) dyn.push({ pos: new THREE.Vector3(this.seamPos[0], this.seamPos[1] + 3, this.seamPos[2]), color: new THREE.Color(1, 0.1, 0.08), power: 1.5, range: 24 });
     if (this.arcPos && this.time - this.arcAt < 0.25) dyn.push({ pos: new THREE.Vector3(this.arcPos[0], this.arcPos[1] + 1, this.arcPos[2]), color: new THREE.Color(1, 0.3, 0.25), power: 1.6, range: 18 });
+    // a light the shot brings with it (a torch held up to him for the close-up)
+    for (const L of this.shot.lights || []) {
+      if (this.time >= L.from && this.time < L.to) dyn.unshift({ pos: this.point(L.pos), color: new THREE.Color(L.color[0], L.color[1], L.color[2]), power: L.power ?? 1, range: L.range ?? 14 });
+    }
     setLights(env, this.world.lights, dyn, c.tgt);
     // stand-ins are unlit materials: follow the scene's brightness
     const lum = Math.min(1, 0.22 + sky.bright * 0.8) * (under ? 0.8 : 1);
     for (const g of [...this.players.values(), ...this.boats]) for (const m of g.userData.mats) m.color.copy(m.userData.base).multiplyScalar(lum);
     this.world.waterMat.uniforms.uTime.value = this.time;
-    if (this.rain) { this.rain.visible = !under; this._updateRain(c.pos); }
-    this.particles.update(this.dt || 0, cam);
+    if (this.rain) { this.rain.visible = !under && raining; this._updateRain(c.pos); }
+    this.particles.draw(cam);
     BK.renderer.setSize(w, h, false);
     BK.renderer.render(BK.scene, cam);
     const fwd = c.tgt.clone().sub(c.pos).normalize();

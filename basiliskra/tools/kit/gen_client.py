@@ -17,6 +17,7 @@ client-side state machine to fall out of step with the server.
 from __future__ import annotations
 
 import json
+import math
 import re
 import os
 import sys
@@ -36,10 +37,16 @@ P = lambda n: f"q.property('{NS}:{n}')"
 # ---- phases (must match src/phases.ts) --------------------------------------------------
 PHASE = dict(idle=0, move=1, arrive=2, ram=3, knock=4, rise=5, bite=6, sweep=7, jam=8, spasm=9, sleep=10, wake=11,
              evolve=12, beach=13, drink=14, arc=15, pin=16, look=17, charge=18, fire=19, vent=20, grounded=21,
-             scatter=22, roar=23, crossing=24, depart=25, flinch=26, window=27)
+             scatter=22, roar=23, crossing=24, depart=25, flinch=26, window=27, stalk=28)
 KNOCK_GAP = 0.9          # seconds between the three knocks, everywhere they occur
 GAIT_DUR = (0.6, 0.9, 1.1)      # Form II: reach, pull, rest
-STRIDE_III = 11.0        # blocks per full four-beat cycle
+STRIDE_III = 7.0         # blocks per full four-beat cycle
+BETA_III = 0.75          # part of the cycle each foot is on the ground: three feet down at any moment, four at each footfall
+DROP_III = 9.0           # units the body rides below the bind pose, so that a planted leg can reach both ends of its stance
+LIFT_III = 16.0          # units an ankle rises in mid-swing
+TAIL_LIFT_III = 4.0      # degrees at the tail root that keep the club's lowest spike off the ground
+# upper length, lower length, rest rotations (upper, lower, foot) of the fore and hind legs: from forms/form3.py
+LEGS_III = {"f": (50.0, 47.0, (20.0, -35.0, 15.0)), "r": (52.0, 46.0, (-22.0, 40.0, -18.0))}
 # share of a look angle taken by each link, eye first (see pre_animation smoothing rates)
 LOOK = {
     "i": {"yaw": {"head": 0.6, "chest": 0.4}, "pitch": {"head": 0.6, "chest": 0.4}},
@@ -138,9 +145,11 @@ def pre_animation():
         f"v.knock = {ph('knock', 'wake', 'vent')} ? v.kn : 0;",
         f"v.gill_open = {P('gill')} ? 1 : 0;",
         "v.breath = math.sin(q.life_time * 72);",
-        f"v.walk = v.walk + (({ph('move', 'crossing', 'depart')} ? 1 : 0) - v.walk) * v.k3;",
+        f"v.walk = v.walk + (({ph('move', 'crossing', 'depart', 'stalk')} ? 1 : 0) - v.walk) * v.k3;",
         f"v.gait = {P('gait')};",
         "v.gt = (v.gait != v.gait_prev) ? 0 : v.gt + v.dt;",
+        # the landing is reported a tick or two after the ground was covered: keep what was covered since (Form III)
+        f"v.gd0 = (v.gait != v.gait_prev) ? q.modified_distance_moved - math.clamp(q.modified_distance_moved - v.gd0 - {STRIDE_III / 4}, 0, {STRIDE_III / 8}) : v.gd0;",
         "v.gait_prev = v.gait;",
         # a one-shot pulse from the server (1 gills, 2 tail knob, 3 the whole hide): a brief flash where it says
         f"v.fx_kind = {P('fx_kind')};",
@@ -156,13 +165,19 @@ def pre_animation():
         "ram": ("ram",), "knockp": ("knock", "wake"), "rise": ("rise",), "bite": ("bite",),
         "sweep": ("sweep",), "jam": ("jam",), "spasmw": ("spasm",), "sleep": ("sleep",), "evolve": ("evolve", "beach"),
         "drink": ("drink",), "arc": ("arc",), "pin": ("pin",), "chargew": ("charge", "fire"), "fire": ("fire",),
-        "vent": ("vent",), "ground": ("grounded",), "scatter": ("scatter",), "roar": ("roar",), "window": ("window",),
+        "vent": ("vent",), "ground": ("grounded",), "scatter": ("scatter",), "roar": ("roar",), "window": ("window", "stalk"),
         "flinch": ("flinch",),
     }
     for name, phases in weights.items():
-        s.append(f"v.w_{name} = v.w_{name} + (({ph(*phases)} ? 1 : 0) - v.w_{name}) * v.k2;")
+        rate = "v.k4" if name == "window" else "v.k2"        # the head comes down to the window slowly
+        s.append(f"v.w_{name} = v.w_{name} + (({ph(*phases)} ? 1 : 0) - v.w_{name}) * {rate};")
     return s
 
+
+# The window pose (degrees added per neck bone, then head x/y/z).  The server poses its skeleton with
+# the same numbers (generated/rig.ts), and stands him so that the eye ends a stride from the glass.
+WINDOW_NECK = [32, 28, 20, 0, -24]
+WINDOW_HEAD = [-52.7, 21.8, -51.8]      # solved so that, at the end of that neck, the skull is turned 55 degrees about the vertical and tipped 18 down
 
 SHUDDER = lambda f, i=0: f"math.sin(q.life_time * {f} + {i * 71})"
 
@@ -271,42 +286,79 @@ def pose_ii(rig):
 # ---- Form III --------------------------------------------------------------------------
 def pose_iii(rig):
     p = Pose()
+    quarter = STRIDE_III / 4
+    stance = STRIDE_III * BETA_III * 16
     pre = [
-        f"v.wp = q.modified_distance_moved * {360.0 / STRIDE_III:.4f};",
-        # a lateral-sequence walk: left hind, left fore, right hind, right fore -- four even beats
+        # The server names the foot that landed last (gait 0..3: left hind, left fore, right hind, right fore) at the
+        # moment it lands; between landings the cycle advances with the ground he covers.  Every client is therefore
+        # in step with the footfall it hears, and with every other client.
+        # The cycle itself runs on the ground this client has seen him cover, and is drawn gently towards the server's
+        # count while he walks: a report that arrives a tick or two late never makes a planted foot jump.
+        f"v.wt = (v.gait + math.clamp((q.modified_distance_moved - v.gd0) / {quarter}, 0, 1.15)) * 90;",
+        "v.dd = math.clamp(q.modified_distance_moved - v.dprev, 0, 0.6);",
+        "v.dprev = q.modified_distance_moved;",
+        "v.werr = math.mod(math.mod(v.wt - v.wp, 360) + 540, 360) - 180;",
+        f"v.wp = math.mod(v.wp + v.dd * {90 / quarter:.4f} + math.clamp(v.werr, -40 * v.dt, 40 * v.dt) * math.clamp(v.dd / (v.dt + 0.0001) / 0.8, 0, 1) + 360, 360);",
         "v.p_bl = math.mod(v.wp, 360) / 360;", "v.p_fl = math.mod(v.wp + 270, 360) / 360;",
         "v.p_br = math.mod(v.wp + 180, 360) / 360;", "v.p_fr = math.mod(v.wp + 90, 360) / 360;",
         "v.kopen = v.w_vent;",
+        # how far the body rides below the bind pose (units): the legs are solved against this every frame
+        f"v.by = -{DROP_III} + 1.4 * v.breath * (1 - v.walk) - 1.3 * v.walk * math.abs(math.sin(v.wp * 2)) - 3 * v.w_chargew;",
     ]
+    # Planted feet stay where they are planted.  For each leg the ankle's place under the hip follows from the
+    # cycle (stance: carried straight back at the speed the body goes forward; swing: lifted and brought forward),
+    # and the two joints are solved for it.  This runs in every phase, so a breath, a crouch or a stop never
+    # drags a sole.
+    for tag in ("fl", "fr", "bl", "br"):
+        la, lb, rest = LEGS_III["f" if tag[0] == "f" else "r"]
+        fu, fl = -rest[0], -(rest[0] + rest[1])                       # rest angles from straight down, forward positive
+        xm = la * math.sin(math.radians(fu)) + lb * math.sin(math.radians(fl))
+        h0 = la * math.cos(math.radians(fu)) + lb * math.cos(math.radians(fl))
+        P_ = f"v.p_{tag}"
+        pre += [
+            f"v.su_{tag} = ({P_} > {BETA_III}) ? ({P_} - {BETA_III}) / {1 - BETA_III} : 0;",
+            f"v.lx_{tag} = ({P_} < {BETA_III}) ? {xm:.3f} + {stance} * (0.5 - {P_} / {BETA_III}) : {xm - stance / 2:.3f} + {stance} * v.su_{tag} * v.su_{tag} * (3 - 2 * v.su_{tag});",
+            f"v.lh_{tag} = {h0 - 1.2:.3f} + v.by - {LIFT_III} * math.sin(180 * v.su_{tag}) * v.walk;",      # (1.2: the sole clears the ground through the body's small roll)
+            f"v.ld_{tag} = math.min(math.sqrt(v.lx_{tag} * v.lx_{tag} + v.lh_{tag} * v.lh_{tag}), {la + lb - 0.5});",
+            f"v.lg_{tag} = math.atan2(v.lx_{tag}, v.lh_{tag});",
+            f"v.la_{tag} = math.acos(math.clamp(({la * la - lb * lb} + v.ld_{tag} * v.ld_{tag}) / ({2 * la} * v.ld_{tag}), -1, 1));",
+            f"v.lk_{tag} = math.acos(math.clamp(({la * la + lb * lb} - v.ld_{tag} * v.ld_{tag}) / {2 * la * lb}, -1, 1));",
+        ]
+        if tag[0] == "f":       # the elbow points back
+            pre += [f"v.lu_{tag} = v.lg_{tag} - v.la_{tag};", f"v.ll_{tag} = v.lu_{tag} + 180 - v.lk_{tag};"]
+        else:                   # the stifle points forward
+            pre += [f"v.lu_{tag} = v.lg_{tag} + v.la_{tag};", f"v.ll_{tag} = v.lu_{tag} - 180 + v.lk_{tag};"]
     L = LOOK["iii"]
     # weight moves over the legs that stay down just before the opposite foot lifts
-    p.pos("body", x="3.0 * v.walk * math.cos(v.wp - 110)", y="1.4 * v.breath * (1 - v.walk) - 1.3 * v.walk * math.abs(math.sin(v.wp * 2)) - 3 * v.w_chargew")
-    p.rot("body", z="1.5 * v.walk * math.cos(v.wp - 110)", x=f"v.pitch - 2 * v.w_roar + 1.2 * v.w_ground * {SHUDDER(1400)}")
+    p.pos("body", x="1.5 * v.walk * math.cos(v.wp - 110)", y="v.by")
+    p.rot("body", z="0.8 * v.walk * math.cos(v.wp - 110)", x=f"v.pitch - 2 * v.w_roar + 1.2 * v.w_ground * {SHUDDER(1400)}")
     p.rot("chest", y=f"v.ly_chest * {L['yaw']['chest']}", x=f"-1.0 * v.breath - 1.5 * v.w_fire")
     p.rot("hips", y="-v.bend * 0.3")
     for i in range(1, 6):
         p.rot(f"neck{i}", y=f"v.ly_neck * {L['yaw'][f'neck{i}']}",
               x=f"v.lp_neck * {L['pitch'][f'neck{i}']} + 0.5 * v.breath - 1.5 * v.w_chargew - 4 * v.w_roar + 3 * v.w_ground"
-                f" + 0.8 * v.walk * math.sin(v.wp * 2 - {i * 30})")
-    p.rot("head", y=f"v.ly_head * {L['yaw']['head']} + 30 * v.w_window",
-          x=f"v.lp_head * {L['pitch']['head']} - 4 * v.w_chargew - 24 * v.w_roar + 14 * v.w_ground + 1.2 * v.w_fire * {SHUDDER(2400)}",
-          z="-9 * v.w_window")
+                f" + 0.8 * v.walk * math.sin(v.wp * 2 - {i * 30}) + {WINDOW_NECK[i - 1]} * v.w_window")
+    # at the window the neck goes down steeply from the shoulders and levels out again, and the skull
+    # turns and rolls until one small eye is square to the glass
+    p.rot("head", y=f"v.ly_head * {L['yaw']['head']} + {WINDOW_HEAD[1]} * v.w_window",
+          x=f"v.lp_head * {L['pitch']['head']} - 4 * v.w_chargew - 24 * v.w_roar + 14 * v.w_ground + 1.2 * v.w_fire * {SHUDDER(2400)} + {WINDOW_HEAD[0]} * v.w_window",
+          z=f"{WINDOW_HEAD[2]} * v.w_window")
     p.pos("head", z=f"1.6 * v.w_fire * {SHUDDER(2700, 1)}", y="2.2 * v.knock")
     p.rot("jaw", x="2.2 * v.breath + v.w_chargew * v.charge * 0.9 + 16 * v.w_fire + 30 * v.w_roar + 6 * v.w_vent + 8 * v.w_ground")
-    for tag, var, front in (("fl", "v.p_fl", True), ("fr", "v.p_fr", True), ("bl", "v.p_bl", False), ("br", "v.p_br", False)):
-        # stance (0 .. 0.75): the foot is planted and the leg sweeps back under the body; swing: lift and return
-        swing = f"(({var} > 0.75) ? ({var} - 0.75) * 4 : 0)"
-        upper = f"(({var} < 0.75) ? math.lerp(-13, 13, {var} / 0.75) : math.lerp(13, -13, ({var} - 0.75) * 4))"
-        bend = f"math.sin({swing} * 180)"
-        k = -20 if front else 20
-        p.rot(f"leg_{tag}", x=f"v.walk * {upper}")
-        p.rot(f"leg_{tag}_lower", x=f"v.walk * {k} * {bend}")
-        p.rot(f"foot_{tag}", x=f"-v.walk * ({upper} + {k} * {bend}) + v.walk * 12 * {bend}")
-        p.pos(f"leg_{tag}", y=f"v.walk * 6 * {bend}")
+    for tag in ("fl", "fr", "bl", "br"):
+        front = tag[0] == "f"
+        rest = LEGS_III["f" if front else "r"][2]
+        # the chest breathes and turns with a look; the fore legs hang from it, so they give that back
+        undo_x = " + 1.0 * v.breath + 1.5 * v.w_fire" if front else ""
+        undo_y = f"-v.ly_chest * {L['yaw']['chest']}" if front else "v.bend * 0.3"
+        p.rot(f"leg_{tag}", x=f"-v.lu_{tag} - {rest[0]}{undo_x}", y=undo_y)
+        p.rot(f"leg_{tag}_lower", x=f"v.lu_{tag} - v.ll_{tag} - {rest[1]}")
+        # the sole stays level on the ground and tips toe-down as it leaves it
+        p.rot(f"foot_{tag}", x=f"v.ll_{tag} - {rest[2]} + 14 * math.sin(180 * v.su_{tag}) * v.walk")
     for i in range(1, 9):
         p.rot(f"tail{i}", y=f"-v.ts * {0.35 + 0.09 * i:.2f} + 2.4 * v.walk * math.sin(v.wp - {i * 50}) + 1.2 * math.sin(q.life_time * 30 - {i * 35})"
                              f" + {1.5 * i} * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5)",
-              x=f"-1.7 * v.w_chargew + 0.6 * v.breath")
+              x=f"-1.7 * v.w_chargew + 0.25 * v.breath" + (f" + {TAIL_LIFT_III}" if i == 1 else ""))
     p.rot("club", z="4 * v.w_chargew * math.sin(q.life_time * 2100)")
     for s, sgn in (("l", 1), ("r", -1)):
         for i in (1, 2, 3):
@@ -428,6 +480,12 @@ def write_rig_ts(rigs):
     look = {n: LOOK[t] for n, t in enumerate(("i", "ii", "iii"), start=1)}
     out.append("export const LOOK: Record<1 | 2 | 3, { yaw: Record<string, number>; pitch: Record<string, number> }> = " + json.dumps(look, separators=(",", ":")) + ";")
     out.append(f"export const STRIDE_III = {STRIDE_III};")
+    out.append(f"/** Blocks a planted sole travels under the body; a foot lands half of this ahead of where it stands at rest. */")
+    out.append(f"export const STANCE_III = {STRIDE_III * BETA_III};")
+    out.append(f"export const BODY_DROP_III = {DROP_III};")
+    out.append(f"export const TAIL_LIFT_III = {TAIL_LIFT_III};")
+    out.append(f"export const WINDOW_NECK = {json.dumps(WINDOW_NECK)};")
+    out.append(f"export const WINDOW_HEAD = {json.dumps(WINDOW_HEAD)};")
     out.append(f"export const GAIT_TICKS = {json.dumps([int(round(d * 20)) for d in GAIT_DUR])};")
     os.makedirs(os.path.join(ROOT, "src", "generated"), exist_ok=True)
     with open(os.path.join(ROOT, "src", "generated", "rig.ts"), "w") as f:

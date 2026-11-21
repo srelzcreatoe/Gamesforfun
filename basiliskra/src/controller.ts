@@ -81,6 +81,7 @@ export class Controller {
       e.setDynamicProperty(TOKEN, rec.token);
       e.triggerEvent(`basiliskra:bind_${rec.form}`);
     } catch { return; }
+    this.nameHim(e);
     const c = new Creature(e);
     c.form = rec.form;
     c.resync();
@@ -95,7 +96,14 @@ export class Controller {
     this.ending.reset();
   }
 
+  /** The stage of his life is his name: Basiliskra I, II, III.  It is what a death message says. */
+  private nameHim(e: Entity): void {
+    try { e.nameTag = `Basiliskra ${["I", "II", "III"][store.rec.form - 1]}`; } catch { /* unloading */ }
+  }
+
   private makeBrain(c: Creature): Brain {
+    // Form III's walk cycle is counted from the foot that landed last; a fresh brain starts one beat before the first
+    if (c.form === 3) c.set(PROP.gait, 3);
     return c.form === 1 ? new BrainOne(c) : c.form === 2 ? new BrainTwo(c) : new BrainThree(c);
   }
 
@@ -449,7 +457,7 @@ export class Controller {
           c.set(PROP.gill, true);
           sound(dim, "basiliskra.i.gill_catch", c.anchor("gill_l"), 32);
           try {
-            for (const b of dim.getEntities({ location: nose, maxDistance: 18, families: ["boat"] })) b.applyImpulse(mul({ x: -f.z, y: 0.12, z: f.x }, 0.35));
+            for (const b of dim.getEntities({ location: nose, maxDistance: 32, families: ["boat"] })) b.applyImpulse(mul({ x: -f.z, y: 0.12, z: f.x }, 0.35));
           } catch { /* no boats */ }
         }
         for (let t = 0; t < 22; t++) yield;
@@ -545,6 +553,7 @@ export class Controller {
       if (c.form !== rec.form) {
         c.form = rec.form;
         try { c.entity.triggerEvent(`basiliskra:bind_${rec.form}`); } catch { return; }
+        this.nameHim(c.entity);
         c.dropParts();
         c.resync();
         this.brain = this.makeBrain(c);

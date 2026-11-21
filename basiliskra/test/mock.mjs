@@ -61,6 +61,7 @@ export function terrain(dim, x, y, z) {
 
 export class Sim {
   constructor(save = new Save()) {
+    this.work = { blocks: 0, queries: 0, rays: 0 };
     this.save = save;
     this.players = [];
     this.log = { particles: [], sounds: [], commands: [], damage: [] };
@@ -229,10 +230,12 @@ class MockDimension {
   constructor(sim, id) { this.sim = sim; this.id = id; this.heightRange = { min: -64, max: 320 }; }
   isChunkLoaded(p) { return this.sim.chunkLoaded(this.id, p); }
   getBlock(p) {
+    this.sim.work.blocks++;                       // work counters for test/perf.mjs: calls into the engine, not time
     if (!this.isChunkLoaded(p)) throw new Error('LocationInUnloadedChunkError');
     return new MockBlock(this.sim, this, Math.floor(p.x), Math.floor(p.y), Math.floor(p.z));
   }
   getEntities(o = {}) {
+    this.sim.work.queries++;
     const out = [];
     for (const e of this.sim.loaded.values()) {
       const r = e.rec;
@@ -252,6 +255,7 @@ class MockDimension {
     return out;
   }
   getBlockFromRay(from, dir, o = {}) {
+    this.sim.work.rays++;
     const max = o.maxDistance ?? 64;
     for (let d = 0; d <= max; d += 0.2) {
       const p = { x: from.x + dir.x * d, y: from.y + dir.y * d, z: from.z + dir.z * d };

@@ -50,7 +50,7 @@ void main(){
   vec3 lit = uAmbient + uLight * face;
   for (int i = 0; i < 10; i++) {
     vec3 d = uPts[i] - vW; float a = clamp(1.0 - length(d) / uPtr[i], 0.0, 1.0);
-    lit += uPtc[i] * a * a * (0.35 + 0.65 * max(dot(n, normalize(d)), 0.0));
+    lit += uPtc[i] * pow(a, 1.4) * (0.35 + 0.65 * max(dot(n, normalize(d)), 0.0));
   }
   vec3 c = vC * texture2D(map, vUv).rgb * mix(min(lit, vec3(1.3)), vec3(1.2), vGlow);
   float sub = clamp((uWaterY - vW.y) * 0.16, 0.0, 1.0) * (1.0 - uUnderwater);
@@ -138,7 +138,7 @@ export class VoxelWorld {
         const c = (SPECIAL_COLOR[id] ?? PALETTE[id] ?? C('#888')).clone();
         const yoff = id === 'minecraft:lantern' && this.id(x, y - 1, z) === 'minecraft:air' ? 0.45 : 0;
         box(pos, nor, uv, col, glow, idx, [x + 0.5 - hx, y + a + yoff, z + 0.5 - hz], [x + 0.5 + hx, y + b + yoff, z + 0.5 + hz], { top: c, side: c, bottom: c }, id in EMISSIVE ? 1 : 0, null);
-        if (id in EMISSIVE) this.lights.push({ pos: new THREE.Vector3(x + 0.5, y + 0.6, z + 0.5), color: EMISSIVE[id], range: id === 'minecraft:torch' ? 10 : 13 });
+        if (id in EMISSIVE) this.lights.push({ pos: new THREE.Vector3(x + 0.5, y + 0.6, z + 0.5), color: EMISSIVE[id], range: id === 'minecraft:torch' ? 14 : 15 });
         continue;
       }
       if (id === 'minecraft:glass') {
@@ -178,7 +178,7 @@ export function applySky(env, renderer, tod, opts = {}) {
   const t = ((tod % 24000) + 24000) % 24000;
   const key = [
     [0, '#f6b47a', '#ffd9a8', 0.86], [1500, '#8fb7ef', '#fff7e6', 1.0], [10500, '#8fb7ef', '#fff7e6', 1.0], [11800, '#f09a5c', '#ffc98f', 0.8],
-    [12600, '#a2506a', '#c97c6a', 0.5], [13400, '#1c2244', '#5a6ea8', 0.26], [18000, '#0a0e1f', '#46578c', 0.2], [22600, '#1c2244', '#5a6ea8', 0.26], [24000, '#f6b47a', '#ffd9a8', 0.86],
+    [12600, '#a2506a', '#c97c6a', 0.52], [13400, '#1f2750', '#8496d6', 0.4], [18000, '#111833', '#7486c6', 0.34], [22600, '#1f2750', '#8496d6', 0.4], [24000, '#f6b47a', '#ffd9a8', 0.86],
   ];
   let i = 0;
   while (i < key.length - 2 && t >= key[i + 1][0]) i++;
@@ -187,15 +187,20 @@ export function applySky(env, renderer, tod, opts = {}) {
   const sky = new THREE.Color(s0).lerp(new THREE.Color(s1), k);
   const light = new THREE.Color(l0).lerp(new THREE.Color(l1), k);
   let bright = b0 + (b1 - b0) * k;
-  if (opts.rain) { sky.lerp(new THREE.Color('#1a1e2a'), 0.55); bright *= 0.75; }
+  if (opts.rain) { sky.lerp(new THREE.Color('#2a3040'), 0.5); bright *= 0.85; }
   env.uLight.value.copy(light).multiplyScalar(bright * 0.62);
   env.uAmbient.value.copy(sky).multiplyScalar(0.34).add(new THREE.Color(0.06, 0.065, 0.085));
   const under = opts.underwater ? 1 : 0;
   env.uUnderwater.value = under;
-  const fog = under ? new THREE.Color('#0b2a44').multiplyScalar(0.35 + bright * 0.9) : sky;
+  const fog = under ? new THREE.Color('#15486f').multiplyScalar(0.45 + bright * 0.8) : sky;
+  if (under) {
+    // under water everything is lit by the water itself: blue, soft, from everywhere
+    env.uAmbient.value.set(0.30, 0.44, 0.60).multiplyScalar(0.55 + bright * 0.6);
+    env.uLight.value.set(0.55, 0.75, 0.95).multiplyScalar(0.35 + bright * 0.5);
+  }
   env.uFogColor.value.copy(fog);
   env.uFogNear.value = under ? 4 : (opts.rain ? 30 : 60);
-  env.uFogFar.value = under ? 52 : (opts.rain ? 110 : 190);
+  env.uFogFar.value = under ? 58 : (opts.rain ? 110 : 190);
   renderer.setClearColor(fog, 1);
   return { sky, bright };
 }

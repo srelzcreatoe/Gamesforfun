@@ -57,6 +57,8 @@ export function village(dim, x, y, z) {
     if (y === 66 && x === c.x0 + 1 && z === c.z1 - 1) return 'minecraft:lantern';
     return y <= 62 ? (y > 59 ? 'minecraft:dirt' : 'minecraft:stone') : 'minecraft:air';
   }
+  // a lantern on the wall outside, beside the window that matters
+  if (x === 4 && z === 3 && y === 66) return 'minecraft:lantern';
   // a second house and a well, so it reads as a village
   if (x >= -22 && x <= -15 && z >= 10 && z <= 17) {
     const wall = x === -22 || x === -15 || z === 10 || z === 17;
@@ -78,5 +80,23 @@ export function village(dim, x, y, z) {
   return y > 59 ? 'minecraft:dirt' : 'minecraft:stone';
 }
 
-export const TERRAINS = { bay, village };
+// two bare stages for the model views
+export function flat(dim, x, y, z) {
+  if (y > 63) return 'minecraft:air';
+  if (y === 63) return 'minecraft:grass_block';
+  return y > 59 ? 'minecraft:dirt' : 'minecraft:stone';
+}
+export function shore(dim, x, y, z) {
+  if (y > 63) return 'minecraft:air';
+  if (y === 63) return (x * 3 + z * 5) % 7 === 0 ? 'minecraft:gravel' : 'minecraft:sand';
+  return y > 59 ? 'minecraft:sand' : 'minecraft:stone';
+}
+export function tank(dim, x, y, z) {
+  if (y > 62) return 'minecraft:air';
+  if (y >= 40) return 'minecraft:water';
+  if (y === 39) return (x * 7 + z * 13) % 5 === 0 ? 'minecraft:stone' : 'minecraft:gravel';
+  return 'minecraft:stone';
+}
+
+export const TERRAINS = { bay, village, flat, shore, tank };
 export const PROPS = { bay: bayProps, village: [] };

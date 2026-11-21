@@ -12,7 +12,7 @@ import { CONFIG, KNOCK_GAP_TICKS, PROP, TICKS } from "../config";
 import { Act, Brain, Choice, isNight, nearbyPlayers, pace, travel, wait } from "../brain";
 import { Creature, targetable } from "../creature";
 import { beamVars, particle, players, sound, witnesses } from "../fx";
-import { STRIDE_III } from "../generated/rig";
+import { STANCE_III, STRIDE_III } from "../generated/rig";
 import { store } from "../store";
 import { add, clamp, dist, distXZ, dot, hash, leftOf, mul, norm, sub, turnTowards, wrapDeg, yawTo, type V3 } from "../vec";
 import { blockAt, clearLine, idAt, isBreakableNatural, isLoaded, isNaturalGround, isPlantBlock, isSolidBlock, printOf, scorchOf, takesMark } from "../world";
@@ -26,6 +26,8 @@ const TIERS = {
 const ROD = /^minecraft:(waxed_)?(exposed_|weathered_|oxidized_)?lightning_rod$/;
 const ROD_REACH = 10;
 const FEET = ["foot_bl", "foot_fl", "foot_br", "foot_fr"];
+/** From the pane to his middle when the lowered head puts one eye two blocks and a bit outside it; and the eye's offset from his line. */
+const WINDOW_STANDOFF = 14.9, WINDOW_EYE_LEFT = 1.25;
 
 /** Rods that have just taken a charge need time before they can take another. */
 const rodReady = new Map<string, number>();
@@ -100,9 +102,9 @@ export class BrainThree extends Brain {
 
   // ---- four footfalls --------------------------------------------------------------------------
   /** Walk, landing one foot every quarter stride: left hind, left fore, right hind, right fore. */
-  *walk(target: V3, speed: number, arrive: number, timeout: number): Generator<void, boolean, void> {
+  *walk(target: V3, speed: number, arrive: number, timeout: number, phase: "move" | "stalk" = "move"): Generator<void, boolean, void> {
     const c = this.c;
-    c.setPhase("move");
+    c.setPhase(phase);
     c.goTo(target, speed, arrive);
     let t = 0;
     while (!c.arrived()) {
@@ -117,8 +119,12 @@ export class BrainThree extends Brain {
   private footfalls(): void {
     const c = this.c;
     if (c.travelled - this.stepAt < STRIDE_III / 4) return;
-    this.stepAt = c.travelled;
-    const foot = c.anchor(FEET[this.beat & 3]);
+    // exactly a quarter stride on from the last one (what he overshot within the tick is not lost), unless he has been far
+    this.stepAt = c.travelled - this.stepAt < STRIDE_III / 2 ? this.stepAt + STRIDE_III / 4 : c.travelled;
+    // name the foot that lands: every client's walk cycle is locked to this, so the sound and the sole agree
+    const k = this.beat & 3;
+    c.set(PROP.gait, k);
+    const foot = add(c.anchor(FEET[k]), mul(c.forward, STANCE_III / 2));       // it lands half a stance ahead of the hip
     this.beat++;
     this.rec.mut.overland += STRIDE_III / 4;
     sound(c.dim, "basiliskra.iii.step", foot, 96, 1, 0.94 + (this.beat & 3) * 0.03);
@@ -170,24 +176,38 @@ export class BrainThree extends Brain {
     return walls >= 3;
   }
 
-  /** Which way out of the room is there glass or an opening?  The one nearest to where he already is. */
-  private windowDir(p: Player): V3 {
+  /**
+   * Which way out of the room is there glass or an opening, how far off, and where is the middle of
+   * the pane?  Of several, the one nearest to where he already is.
+   */
+  private windowDir(p: Player): { dir: V3; reach: number; pane: V3 } {
     const c = this.c, head = p.getHeadLocation();
     const toHim = norm({ x: c.pos.x - head.x, y: 0, z: c.pos.z - head.z });
-    let best = toHim, score = -2;
+    const glassy = (x: number, y: number, z: number) => /glass|iron_bars/.test(idAt(c.dim, { x, y, z }) ?? "");
+    let best = toHim, score = -2, reach = 3, pane = add(head, mul(toHim, 3));
     for (let i = 0; i < 16; i++) {
       const a = i * Math.PI / 8, d = { x: Math.cos(a), y: 0, z: Math.sin(a) };
-      let open = false;
+      let open = false, at = 3, mid = add(head, mul(d, 3));
       for (let r = 1; r <= 9; r++) {
-        const b = blockAt(c.dim, { x: head.x + d.x * r, y: head.y, z: head.z + d.z * r });
+        const q = { x: head.x + d.x * r, y: head.y, z: head.z + d.z * r };
+        const b = blockAt(c.dim, q);
         if (!b) break;
-        if (/glass|iron_bars|fence_gate/.test(b.typeId)) { open = true; break; }
+        if (/glass|iron_bars|fence_gate/.test(b.typeId)) {
+          // the pane runs along the wall: find both ends of it, and aim at the middle
+          const bx = Math.floor(q.x), by = Math.floor(q.y), bz = Math.floor(q.z);
+          const along = Math.abs(d.x) >= Math.abs(d.z) ? { x: 0, z: 1 } : { x: 1, z: 0 };
+          let lo = 0, hi = 0;
+          while (lo > -3 && glassy(bx + along.x * (lo - 1), by, bz + along.z * (lo - 1))) lo--;
+          while (hi < 3 && glassy(bx + along.x * (hi + 1), by, bz + along.z * (hi + 1))) hi++;
+          mid = { x: bx + 0.5 + along.x * (lo + hi) / 2, y: head.y, z: bz + 0.5 + along.z * (lo + hi) / 2 };
+          open = true; at = r; break;
+        }
         if (isSolidBlock(b)) break;
-        if (r === 9) open = true;                 // a doorway, a missing wall
+        if (r === 9) open = true;                 // a doorway, a missing wall: he comes as near as to a wall three blocks off
       }
-      if (open && dot(d, toHim) > score) { score = dot(d, toHim); best = d; }
+      if (open && dot(d, toHim) > score) { score = dot(d, toHim); best = d; reach = at; pane = mid; }
     }
-    return best;
+    return { dir: best, reach, pane };
   }
 
   /** Turn where he stands: the feet shuffle round, one planted at a time. */
@@ -199,7 +219,8 @@ export class BrainThree extends Brain {
       if (Math.abs(wrapDeg(want - c.yaw)) < 2) break;
       c.yaw = turnTowards(c.yaw, want, 1.1);
       if (t % 18 === 9) {
-        const foot = c.anchor(FEET[this.beat++ & 3]);
+        // a shuffle on the spot: heard, but it is not a stride (the walk cycle is left where it stood)
+        const foot = c.anchor(FEET[Math.floor(t / 18) & 3]);
         sound(c.dim, "basiliskra.iii.step", foot, 72, 0.7, 0.98);
       }
       yield;
@@ -209,36 +230,46 @@ export class BrainThree extends Brain {
   private *window(p: Player): Act {
     const c = this.c;
     const ok = () => { try { return p.isValid && p.dimension.id === c.dim.id; } catch { return false; } };
-    const pl = p.location;
-    const out = this.windowDir(p);
-    // he comes round to the side with the glass and stops well short of it
-    const STAND = 24, RUN = STRIDE_III;                    // four quarter-strides
-    if (!(yield* this.walk(add(pl, mul(out, STAND + RUN)), 0.14, 2.5, 1800))) return;
+    const { dir: out, pane } = this.windowDir(p);
+    // He comes round to the side with the glass and stops well short of it.  Where he ends is measured from
+    // the pane, not from the player: with the neck brought down, his left eye hangs a stride outside the
+    // middle of it (the eye sits a little to the right of his line once the skull has turned).
+    const left = leftOf(yawTo(out, { x: 0, y: 0, z: 0 }));
+    const line = (d: number): V3 => add(add(pane, mul(out, d)), mul(left, WINDOW_EYE_LEFT));
+    const RUN = STRIDE_III;                                 // four quarter-strides
+    if (!(yield* this.walk(line(WINDOW_STANDOFF + RUN), 0.14, 0.4, 1800))) return;
     if (!ok()) return;
-    yield* this.face(pl);
+    yield* this.face(line(0));
     c.setPhase("idle");
     yield* wait(50);
     if (!ok()) return;
-    // four footfalls, evenly spaced, and nothing after the fourth
-    c.setPhase("move");
-    const pace4 = STRIDE_III / 4 / 18;
-    c.goTo(add(pl, mul(out, STAND - 8)), pace4, 0.5);
+    // four footfalls, evenly spaced, and nothing after the fourth: he stops dead on the last one, exactly
+    // where the lowered head reaches the glass.  The neck comes down as he walks them (there is no room
+    // to bring that head down once he stands at the wall), so the eye arrives at the pane with the last step.
+    c.setPhase("stalk");
+    c.goTo(line(WINDOW_STANDOFF - 6), STRIDE_III / 4 / KNOCK_GAP_TICKS, 0.3);
+    c.speed = STRIDE_III / 4 / KNOCK_GAP_TICKS;             // from the first tick: four equal intervals, one beat each
+    this.stepAt = c.travelled;
     const first = this.beat;
-    this.stepAt = c.travelled - 0.9;                        // the first lands one beat after he starts
-    for (let t = 0; t < 200 && this.beat - first < 4 && c.blocked < 20; t++) { this.footfalls(); yield; }
-    c.halt();
+    for (let t = 0; t < 200 && this.beat - first < 4 && c.blocked < 20; t++) {
+      this.footfalls();
+      if (this.beat - first < 4) yield;
+    }
+    c.halt(); c.speed = 0;
     if (!ok()) return;
     c.setPhase("window");
     for (let t = 0; t < 260 && ok(); t++) {
-      // one small eye, level with the window
-      c.lookAt(p.getHeadLocation(), 75, 50);
+      // one small eye, level with the window.  The pose brings the head down; only its turn follows the player.
+      c.lookAt(p.getHeadLocation(), 18, 0);
       if (t % 80 === 10) { try { p.playSound("basiliskra.iii.window_breath", { location: c.anchor("nose"), volume: 1 }); } catch { /* gone */ } }
       yield;
     }
     c.lookAhead();
+    // he leaves as he came, head still down, and only lifts it once he is clear of the house
+    yield* this.walk(line(WINDOW_STANDOFF + RUN + 3), 0.12, 2.5, 500, "stalk");
     c.setPhase("idle");
-    yield* wait(60);
-    yield* this.walk(add(c.pos, mul(out, 28)), 0.13, 5, 700);
+    yield* wait(50);
+    yield* this.walk(add(c.pos, mul(out, 24)), 0.13, 5, 700);
   }
 
   // ---- he remembers you --------------------------------------------------------------------------------
@@ -302,9 +333,8 @@ export class BrainThree extends Brain {
     }
   }
   /** The nearest usable rod among those seen (still a rod, not recovering from the last strike). */
-  private findRod(scanAll = false): V3 | null {
+  private findRod(): V3 | null {
     const c = this.c;
-    if (scanAll) { this.rodSeen.clear(); this.rodLayer = 0; this.scanRods(12); }
     const club = c.anchor("club_core");
     let best: V3 | null = null, bd = 1e9;
     for (const [key, p] of this.rodSeen) {
@@ -506,8 +536,9 @@ export class BrainThree extends Brain {
     c.halt();
     c.setPhase("scatter");
     c.say("basiliskra.iii.club_plant", c.anchor("club_core"), 96);
-    for (let t = 0; t < 34; t++) { c.setCharge((t / 34) * 18); if (t % 5 === 0) sound(c.dim, "basiliskra.iii.charge_tick", c.anchor("plate_tip_4"), 64, 0.8, 1.5 - t * 0.02); yield; }
-    const rod = this.findRod(true);
+    this.rodSeen.clear(); this.rodLayer = 0;
+    for (let t = 0; t < 34; t++) { c.setCharge((t / 34) * 18); this.scanRods(); if (t % 5 === 0) sound(c.dim, "basiliskra.iii.charge_tick", c.anchor("plate_tip_4"), 64, 0.8, 1.5 - t * 0.02); yield; }
+    const rod = this.findRod();
     if (rod && clearLine(c.dim, this.clubTop(), { x: rod.x + 0.5, y: rod.y + 1.2, z: rod.z + 0.5 })) { yield* this.ground(rod); return; }
     c.setCharge(20);
     c.say("basiliskra.iii.scatter", c.anchor("plate_tip_5"), 112);

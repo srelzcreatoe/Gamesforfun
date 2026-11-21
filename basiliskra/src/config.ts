@@ -37,7 +37,7 @@ export const PROP = {
 export const PHASE = {
   idle: 0, move: 1, arrive: 2, ram: 3, knock: 4, rise: 5, bite: 6, sweep: 7, jam: 8, spasm: 9, sleep: 10, wake: 11,
   evolve: 12, beach: 13, drink: 14, arc: 15, pin: 16, look: 17, charge: 18, fire: 19, vent: 20, grounded: 21,
-  scatter: 22, roar: 23, crossing: 24, depart: 25, flinch: 26, window: 27,
+  scatter: 22, roar: 23, crossing: 24, depart: 25, flinch: 26, window: 27, stalk: 28,
 } as const;
 export type PhaseName = keyof typeof PHASE;
 

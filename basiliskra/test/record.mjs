@@ -45,7 +45,17 @@ class Recorder {
     Object.assign(f, extra);
     this.frames.push(f);
     for (; this.seenAt < this.cam.seen.length; this.seenAt++) { const s = this.cam.seen[this.seenAt]; this.particles.push({ t, id: s.id, pos: [s.loc.x, s.loc.y, s.loc.z], vars: s.vars }); }
+    const before = this.sounds.length;
     for (; this.heardAt < this.cam.heard.length; this.heardAt++) { const s = this.cam.heard[this.heardAt]; this.sounds.push({ t, id: s.id, pos: s.location ? [s.location.x, s.location.y, s.location.z] : null, volume: s.volume ?? 1, pitch: s.pitch ?? 1 }); }
+    // sounds played only to the player in the scene (his breath at the window): the camera stands beside them
+    for (const ear of this.ears || []) {
+      ear.at = ear.at ?? ear.p.heard.length;
+      for (; ear.at < ear.p.heard.length; ear.at++) {
+        const s = ear.p.heard[ear.at];
+        if (this.sounds.slice(before).some((q) => q.id === s.id)) continue;
+        this.sounds.push({ t, id: s.id, pos: s.location ? [s.location.x, s.location.y, s.location.z] : null, volume: s.volume ?? 1, pitch: s.pitch ?? 1 });
+      }
+    }
   }
   save(name, meta) {
     const out = path.join(ROOT, 'build/replays');
@@ -75,7 +85,7 @@ const SCENES = {
   arrival() {
     const w = world('bay'), { sim, bk } = w;
     const cam = sim.addPlayer('Cam', { x: -6, y: 64, z: 26 }); cam.mode = 'Creative';
-    const ana = sim.addPlayer('Ana', { x: -6.5, y: 64, z: 24 });
+    const ana = sim.addPlayer('Ana', { x: -6.2, y: 64, z: 28.6 });
     const boat = sim.summon('minecraft:boat', OW, { x: -9.7, y: 62.6, z: 27 }); boat.rec.family = ['boat'];
     for (let i = 0; i < 8; i++) { const f = sim.summon('minecraft:cod', OW, { x: -30 + i * 9, y: 55 + (i % 3), z: 50 + (i * 7) % 20 }); f.rec.family = ['fish']; }
     bk.ctl.requestArrival({ region: 'preview', site: { x: 0, y: 64, z: 10 }, guilty: ana.id, guiltyName: 'Ana' });
@@ -94,7 +104,7 @@ const SCENES = {
     sim.save.timeOfDay = 15000;
     bk.store.rec.weather = 'rain';
     const c = formThree(w, { x: 68, y: 64, z: 6 }, 90);
-    const rec = new Recorder(w, cam); rec.initial = snapshotEdits(w);
+    const rec = new Recorder(w, cam); rec.initial = snapshotEdits(w); rec.ears = [{ p: ana, at: ana.heard.length }];
     let seen = false, after = 0;
     for (let i = 0; i < 3200; i++) {
       sim.step(1);

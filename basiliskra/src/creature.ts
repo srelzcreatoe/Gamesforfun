@@ -158,6 +158,7 @@ export class Creature {
     return poseOf(this.form, {
       lookYaw: Math.round(this.lookYaw), lookPitch: Math.round(this.lookPitch), bend: Math.round(this.bend), pitch: Math.round(this.pitch),
       charge: this.phase === "charge" || this.phase === "fire" ? 1 : 0, drink: this.phase === "drink" ? 1 : 0,
+      window: this.phase === "window" || this.phase === "stalk" ? 1 : 0,
     });
   }
   skeleton(): Skeleton { return this.skel ?? (this.skel = new Skeleton(this.form, this.pose())); }

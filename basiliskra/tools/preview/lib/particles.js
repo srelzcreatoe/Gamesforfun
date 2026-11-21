@@ -111,7 +111,8 @@ export class Particles {
     return em;
   }
 
-  update(dt, camera) {
+  /** Age and move everything (call once per simulated frame, drawn or not). */
+  advance(dt) {
     for (const em of this.emitters) {
       if (em.dead) continue;
       em.t += dt;
@@ -123,17 +124,24 @@ export class Particles {
       while (em.carry >= 1) { em.carry -= 1; this._emit(em.def, em.origin, em.V, em); }
     }
     this.emitters = this.emitters.filter((e) => !e.dead);
-    const cr = new THREE.Vector3(), cu = new THREE.Vector3(), cf = new THREE.Vector3();
-    camera.matrixWorld.extractBasis(cr, cu, cf);
-    const count = { blend: 0, add: 0 };
     const out = [];
     for (const p of this.live) {
       p.age += dt;
       if (p.age >= p.life) continue;
       p.v.x += (p.acc[0] - p.drag * p.v.x) * dt; p.v.y += (p.acc[1] - p.drag * p.v.y) * dt; p.v.z += (p.acc[2] - p.drag * p.v.z) * dt;
       if (p.em) { p.rel.addScaledVector(p.v, dt); p.p.copy(p.em.origin).add(p.rel); } else p.p.addScaledVector(p.v, dt);
-      out.push(p);
       p.V.particle_age = p.age;
+      out.push(p);
+    }
+    this.live = out;
+  }
+
+  /** Build the quads for this camera. */
+  draw(camera) {
+    const cr = new THREE.Vector3(), cu = new THREE.Vector3(), cf = new THREE.Vector3();
+    camera.matrixWorld.extractBasis(cr, cu, cf);
+    const count = { blend: 0, add: 0 };
+    for (const p of this.live) {
       const sx = num(p.size[0], p.V), sy = num(p.size[1], p.V);
       let ax, ay;
       if (p.facing === 'lookat_direction') {
@@ -166,7 +174,6 @@ export class Particles {
         Cc.set(col, n * 16 + k * 4);
       }
     }
-    this.live = out;
     for (const key of ['blend', 'add']) {
       const g = this.layers[key].geometry;
       g.setDrawRange(0, count[key] * 6);

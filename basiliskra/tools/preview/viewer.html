@@ -136,8 +136,17 @@ BK.sceneFrame = (dt, w, h, draw = true, format = 'image/jpeg') => {
     if (shot.sub) { g.font = `${Math.round(17 * s)}px 'DejaVu Sans', sans-serif`; g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillText(shot.sub, 43 * s + 1, 98 * s + 1); g.fillStyle = '#e0d8cf'; g.fillText(shot.sub, 43 * s, 98 * s); }
     g.globalAlpha = 1;
   }
+  for (const L of shot.labels || []) {
+    if (P.time < L.from || P.time >= L.to) continue;
+    const a = Math.min(1, (P.time - L.from) / 0.3, (L.to - P.time) / 0.3);
+    g.globalAlpha = Math.max(0, a);
+    g.font = `600 ${Math.round(22 * s)}px 'DejaVu Sans', sans-serif`;
+    g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillText(L.text, 42 * s + 1, h - 44 * s + 1);
+    g.fillStyle = '#f2ece4'; g.fillText(L.text, 42 * s, h - 44 * s);
+    g.globalAlpha = 1;
+  }
   g.font = `${Math.round(12.5 * s)}px 'DejaVu Sans', sans-serif`;
-  const note = 'Offline reference render of the shipped models, animations and particles, driven by the add-on script in a simulated world. Not in-game capture.';
+  const note = shot.note ?? 'Offline reference render of the shipped models, animations and particles, driven by the add-on script in a simulated world. Not in-game capture.';
   g.fillStyle = 'rgba(0,0,0,0.45)'; g.fillRect(0, h - 24 * s, w, 24 * s);
   g.fillStyle = 'rgba(255,255,255,0.78)'; g.fillText(note, 12 * s, h - 8 * s);
   return { url: overlay.toDataURL(format, 0.93), cam, time: P.time };
