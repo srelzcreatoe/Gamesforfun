@@ -162,7 +162,7 @@ def looping(name, sprite, rate, cap, shape, speed, life, size, color, accel=None
     return fx(name, sprite, material, **comps)
 
 
-def streak_along(name, sprite, n, drag, life, size, color, accel=None, material="particles_blend", spread=0.08, facing="lookat_xyz"):
+def streak_along(name, sprite, n, drag, life, size, color, accel=None, material="particles_blend", spread=0.08, facing="lookat_xyz", direction=None):
     """Particles thrown from the mouth along the beam the server measured (variable.dir, variable.len); each one is
     slowed by drag so it comes to rest at a random point of the beam, then drifts (smoke rises, embers fall)."""
     comps = {**ONCE, **burst(n)}
@@ -171,9 +171,22 @@ def streak_along(name, sprite, n, drag, life, size, color, accel=None, material=
     comps["minecraft:particle_initial_speed"] = f"math.random(0.03, 1.0) * v.len * {drag}"
     comps["minecraft:particle_lifetime_expression"] = {"max_lifetime": life}
     comps["minecraft:particle_motion_dynamic"] = {"linear_acceleration": accel or [0, 0, 0], "linear_drag_coefficient": drag}
-    comps["minecraft:particle_appearance_billboard"] = bb(sprite, size, facing)
+    comps["minecraft:particle_appearance_billboard"] = bb(sprite, size, facing, direction)
     comps["minecraft:particle_appearance_tinting"] = {"color": color}
     return fx(name, sprite, material, **comps)
+
+
+def beam_ring(name, sprite, speed, size, color, life=None, material="particles_add"):
+    """A ring standing square to the beam (variable.dir), growing as it goes.  `speed` blocks a second along the beam;
+    it dies where the beam ends (variable.len) unless a lifetime is given (the muzzle shock: it stays at the mouth)."""
+    return fx(name, sprite, material, **ONCE, **burst(1), **{
+        "minecraft:emitter_shape_point": {"direction": ["v.dir.x", "v.dir.y", "v.dir.z"]},
+        "minecraft:particle_initial_speed": speed,
+        "minecraft:particle_lifetime_expression": {"max_lifetime": life if life is not None else f"math.max(0.1, v.len / {speed})"},
+        "minecraft:particle_motion_dynamic": {},
+        "minecraft:particle_appearance_billboard": bb(sprite, size, "direction_z", ALONG),
+        "minecraft:particle_appearance_tinting": {"color": color},
+    })
 
 
 def wave(name, sprite, n, speed, size, color, accel=None):
@@ -202,6 +215,7 @@ def flat_ring(name, sprite, speed, color):
     })
 
 
+AGE = "v.particle_age / v.particle_lifetime"
 SPH = lambda r: {"minecraft:emitter_shape_sphere": {"radius": r, "direction": "outwards"}}
 SHRINK = lambda s: [f"{s} * (1 - v.particle_age / v.particle_lifetime)"] * 2
 RAND = lambda a, b: f"math.random({a}, {b})"          # evaluated once: speed, lifetime, direction
@@ -223,6 +237,15 @@ EFFECTS = [
     beam("beam_glow", "halo", "particles_blend", (0.95, 0.08, 0.06, 0.38)),
     streak_along("beam_smoke", "puff", 12, 4.0, RAND(1.8, 3.2), GROW(0.5, 2.4), SMOKE, accel=[0, 1.6, 0], spread=0.12),
     streak_along("beam_embers", "ember", 10, 3.0, RAND(0.5, 1.1), SHRINK(0.22), FIRE, accel=[0, -3, 0], material="particles_add", spread=0.2),
+    # before it: a thin line down the path it is about to take (from the moment his eye stops following)
+    beam("beam_aim", "streak", "particles_add", (1.0, 0.16, 0.12, 0.55)),
+    # as it fires: a white flare and a shock ring at the mouth; then rings racing down it and lightning crawling along it
+    scatter("muzzle_flash", "flare", 3, 0.2, 0.0, RAND(0.16, 0.3), [f"(5 + 6 * v.particle_random_1) * (1 - {AGE})"] * 2,
+            grad((0, WHITE), (0.5, HOT), (1, (1, 0.15, 0.1, 0))), material="particles_add"),
+    beam_ring("muzzle_shock", "ring", 0.6, [f"1 + 15 * {AGE}"] * 2, grad((0, WHITE), (0.3, (1, 0.5, 0.4, 0.8)), (1, (1, 0.1, 0.08, 0))), life=0.55),
+    beam_ring("beam_ring", "ring", 46, [f"v.width * (0.9 + 1.6 * {AGE})"] * 2, grad((0, (1, 0.9, 0.8, 0.9)), (0.5, (1, 0.3, 0.22, 0.7)), (1, (0.9, 0.08, 0.06, 0)))),
+    streak_along("beam_arc", "zigzag", 7, 5.0, RAND(0.08, 0.2), [PR(0.5, 1.3), PR(0.25, 0.6, 2)], grad((0, WHITE), (0.4, (1, 0.4, 0.35, 1)), (1, DEEP)),
+                 material="particles_add", spread=0.045, facing="rotate_xyz"),
     # where it lands: a white flash, fire, a column of smoke, and the ground thrown into the air
     scatter("impact_blast", "flare", 5, 0.8, RAND(1, 4), RAND(0.35, 0.6), GROW(1.6, 4.2), FIRE, drag=2.0, material="particles_add"),
     scatter("impact_fire", "wisp", 9, 1.4, RAND(0.5, 2.5), RAND(0.6, 1.3), [PR(0.5, 1.1), PR(0.8, 1.6, 2)], FIRE, accel=[0, 3.5, 0], drag=1.2, material="particles_add"),
@@ -231,6 +254,12 @@ EFFECTS = [
     scatter("impact_debris", "square_ring", 14, 0.8, RAND(5, 13), RAND(0.9, 1.8), [PR(0.12, 0.32)] * 2,
             grad((0, (0.36, 0.33, 0.31, 1)), (0.8, (0.30, 0.27, 0.25, 1)), (1, (0.25, 0.22, 0.2, 0))), accel=[0, -20, 0], drag=0.3,
             shape={"minecraft:emitter_shape_sphere": {"radius": 0.8, "direction": [RAND(-0.8, 0.8), 1, RAND(-0.8, 0.8)]}}, facing="rotate_xyz"),
+    # ... a glare too bright to look at, a ring of fire across the ground and a fountain of sparks
+    scatter("impact_glare", "soft", 1, 0.05, 0.0, 0.2, [f"7 + 4 * v.particle_random_1"] * 2, grad((0, (1, 0.9, 0.8, 0.75)), (1, (1, 0.2, 0.12, 0))), material="particles_add"),
+    ring("impact_ring", "ring", 1.0, 11.0, 0.5, grad((0, (1, 0.9, 0.8, 0.85)), (0.4, (1, 0.35, 0.25, 0.6)), (1, (0.9, 0.1, 0.08, 0)))),
+    scatter("impact_fountain", "spark", 14, 0.4, RAND(9, 22), RAND(0.6, 1.3), SHRINK(0.34), grad((0, WHITE), (0.3, HOT), (0.7, RED), (1, DEEP)),
+            accel=[0, -18, 0], drag=0.4, material="particles_add",
+            shape={"minecraft:emitter_shape_sphere": {"radius": 0.4, "direction": [RAND(-0.45, 0.45), 1, RAND(-0.45, 0.45)]}}),
     # the roar: a ring of dust thrown out along the ground at the speed of the shockwave, and the ring itself
     wave("roar_wave", "puff", 110, 40, GROW(0.8, 2.6), DUST, accel=[0, 1.2, 0]),
     flat_ring("roar_ring", "ring", 40, grad((0, (1, 0.92, 0.86, 0.55)), (0.6, (1, 0.6, 0.5, 0.3)), (1, (0.8, 0.3, 0.25, 0)))),
@@ -307,6 +336,9 @@ EFFECTS = [
     # ---- bound to his own body (started by the client animation controller at locators) ----------
     looping("rad_drift", "ember", 3, 10, SPH(0.6), RAND(0.05, 0.3), RAND(1.4, 2.6), [FLICKER(0.08)] * 2, grad(*RAD), accel=[0, 0.25, 0], drag=0.8, material="particles_add"),
     looping("charge_spark", "spark", 26, 40, SPH(1.9), RAND(0.5, 2.5), RAND(0.15, 0.4), SHRINK(0.3), grad((0, WHITE), (0.4, RED), (1, DEEP)), drag=1.0, material="particles_add"),
+    # charging, light is drawn out of the air into his mouth
+    looping("charge_gather", "spark", 34, 44, {"minecraft:emitter_shape_sphere": {"radius": 6.5, "surface_only": True, "direction": "inwards"}},
+            RAND(8, 12), RAND(0.45, 0.62), SHRINK(0.34), grad((0, (1, 0.2, 0.15, 0)), (0.3, RED), (0.8, HOT), (1, WHITE)), material="particles_add"),
     looping("plate_ember", "ember", 7, 14, SPH(0.5), RAND(0.2, 1.0), RAND(0.4, 0.9), SHRINK(0.16), grad((0, HOT), (0.5, RED), (1, DEEP)), accel=[0, 1.6, 0]),
     looping("throat_glow", "soft", 9, 12, SPH(0.4), RAND(0.0, 0.3), RAND(0.2, 0.35), SHRINK(0.9), grad((0, (1, 0.85, 0.7, 0.55)), (1, (1, 0.2, 0.1, 0))), material="particles_add"),
     looping("mouth_flare", "flare", 18, 12, SPH(0.3), 0.0, RAND(0.1, 0.16), [PR(2.4, 3.6)] * 2, grad((0, WHITE), (1, (1, 0.3, 0.2, 0))), material="particles_add"),

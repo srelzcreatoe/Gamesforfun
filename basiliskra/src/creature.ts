@@ -11,7 +11,7 @@ import { Dimension, Entity, EntityDamageCause, GameMode, Player, system, world }
 import { CONFIG, PHASE, PROP, hitboxId, type PhaseName } from "./config";
 import { particle, sound, witnesses } from "./fx";
 import { Skeleton, drawScale, poseOf, toWorld, type Form, type PoseAdd } from "./rig";
-import { BETA_III, LIFT_III, RIGS, STANCE_MODEL_III } from "./generated/rig";
+import { BETA_III, LIFT_III, RIGS, STANCE_MODEL_III, VOICE_KIND } from "./generated/rig";
 import { crush, wither } from "./havoc";
 import { Planner } from "./path";
 import { store } from "./store";
@@ -719,7 +719,12 @@ export class Creature {
   /** Curl held while not moving (sleeping at the seam). */
   bendHold = 0;
 
-  say(id: string, at?: V3, range = 56, volume = 1, pitch = 1): void { sound(this.dim, id, at ?? this.pos, range, volume, pitch); }
+  /** A sound from him.  If it is his voice, his mouth moves with it (the client times the jaw to the recording). */
+  say(id: string, at?: V3, range = 56, volume = 1, pitch = 1): void {
+    sound(this.dim, id, at ?? this.pos, range, volume, pitch);
+    const m = /^basiliskra\.(?:[a-z]+\.)?(grunt|growl|breath|hurt|roar|roar_short|roar_under)$/.exec(id);
+    if (m) this.pulse(VOICE_KIND[m[1] as keyof typeof VOICE_KIND]);
+  }
   emit(id: string, at: V3, range = 56): void { particle(this.dim, id, at, range); }
 
   /** Damage a player from him (never on Peaceful when configured so; never Creative/Spectator). */

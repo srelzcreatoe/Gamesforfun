@@ -331,6 +331,10 @@
        "locator": "mouth_iii"
       },
       {
+       "effect": "charge_gather",
+       "locator": "muzzle_iii"
+      },
+      {
        "effect": "rad_drift",
        "locator": "plate_tip_0_iii"
       },

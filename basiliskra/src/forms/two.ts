@@ -267,7 +267,7 @@ export class BrainTwo extends Brain {
     c.setPhase("roar");
     c.say("basiliskra.roar_short", c.anchor("mouth"), 128, 1, 1.18);
     // younger and smaller than he will be, but the ground still takes it
-    const fx = new RoarFx(c, false, 20, 3);
+    const fx = new RoarFx(c, false, 20, 3, true, 1.18);
     for (let t = 0; t < 76; t++) { fx.tick(); yield; }       // 4.4 s of bellow, played 1.18 times as fast
     c.setPhase("idle");
   }

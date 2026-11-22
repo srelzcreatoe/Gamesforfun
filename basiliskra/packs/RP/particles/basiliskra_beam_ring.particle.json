@@ -1,0 +1,80 @@
+{
+ "format_version": "1.26.10",
+ "particle_effect": {
+  "description": {
+   "identifier": "basiliskra:beam_ring",
+   "basic_render_parameters": {
+    "material": "particles_add",
+    "texture": "textures/particle/basiliskra_particles"
+   }
+  },
+  "components": {
+   "minecraft:emitter_lifetime_once": {
+    "active_time": 0.05
+   },
+   "minecraft:emitter_rate_instant": {
+    "num_particles": 1
+   },
+   "minecraft:emitter_shape_point": {
+    "direction": [
+     "v.dir.x",
+     "v.dir.y",
+     "v.dir.z"
+    ]
+   },
+   "minecraft:particle_initial_speed": 46,
+   "minecraft:particle_lifetime_expression": {
+    "max_lifetime": "math.max(0.1, v.len / 46)"
+   },
+   "minecraft:particle_motion_dynamic": {},
+   "minecraft:particle_appearance_billboard": {
+    "size": [
+     "v.width * (0.9 + 1.6 * v.particle_age / v.particle_lifetime)",
+     "v.width * (0.9 + 1.6 * v.particle_age / v.particle_lifetime)"
+    ],
+    "facing_camera_mode": "direction_z",
+    "uv": {
+     "texture_width": 64,
+     "texture_height": 64,
+     "uv": [
+      0,
+      48
+     ],
+     "uv_size": [
+      16,
+      16
+     ]
+    },
+    "direction": {
+     "mode": "derive_from_velocity",
+     "min_speed_threshold": 0.001
+    }
+   },
+   "minecraft:particle_appearance_tinting": {
+    "color": {
+     "gradient": {
+      "0.00": [
+       1,
+       0.9,
+       0.8,
+       0.9
+      ],
+      "0.50": [
+       1,
+       0.3,
+       0.22,
+       0.7
+      ],
+      "1.00": [
+       0.9,
+       0.08,
+       0.06,
+       0
+      ]
+     },
+     "interpolant": "v.particle_age / v.particle_lifetime"
+    }
+   }
+  }
+ }
+}

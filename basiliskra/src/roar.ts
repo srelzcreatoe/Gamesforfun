@@ -8,6 +8,7 @@ import { Entity, EntityDamageCause, MolangVariableMap } from "@minecraft/server"
 import type { Creature } from "./creature";
 import { particle, sound, witnesses } from "./fx";
 import { brittleAround, mobsNear, shatter, shatterRing } from "./havoc";
+import { ROAR_ENV } from "./generated/rig";
 import { clamp, distXZ, norm, type V3 } from "./vec";
 
 /** Blocks the ring travels each tick (40 a second). */
@@ -101,11 +102,18 @@ export class Shockwave {
 export class RoarFx {
   private t = 0;
   private waves: Shockwave[] = [];
-  constructor(private readonly c: Creature, private readonly big: boolean, private readonly reach: number, private readonly power: number, private readonly ground = true) {}
+  /** `rate`: how much faster than recorded the roar is being played (Basiliskra II's is pitched up). */
+  constructor(private readonly c: Creature, private readonly big: boolean, private readonly reach: number, private readonly power: number, private readonly ground = true,
+              private readonly rate = 1) {}
 
   tick(): void {
     const c = this.c, t = this.t++;
-    if (t % 10 === 0) shake(c, this.big ? 140 : 110, this.big ? 0.7 : 0.6);
+    // the shaking is as strong as the roar is loud at that moment (read from the recording)
+    if (t % 5 === 0) {
+      const env = ROAR_ENV[this.big ? "long" : "short"];
+      const loud = env[Math.min(env.length - 1, Math.floor((t * this.rate) / 2))] ?? 0;
+      if (loud > 0.08) shake(c, this.big ? 140 : 110, (this.big ? 0.7 : 0.6) * (0.3 + 0.7 * loud), 0.45);
+    }
     if (this.ground && (t === 14 || (this.big && t === 64))) this.waves.push(new Shockwave(c, { ...c.pos }, this.reach * (t === 64 ? 1.25 : 1), this.power));
     for (const w of this.waves) w.step();
     this.waves = this.waves.filter((w) => !w.done);

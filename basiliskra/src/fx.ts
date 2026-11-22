@@ -88,3 +88,13 @@ export function sizeVars(size: number): MolangVariableMap {
   m.setFloat("variable.size", size);
   return m;
 }
+
+/** Every screen within `range` of a place flashes a colour for an instant (nearer is no brighter: it is a flash). */
+export function flash(dim: Dimension, at: V3, range: number, color: { red: number; green: number; blue: number }, fadeIn = 0.05, hold = 0.1, fadeOut = 0.5): void {
+  for (const p of players()) {
+    try {
+      if (p.dimension.id !== dim.id || dist(p.location, at) > range) continue;
+      p.camera.fade({ fadeColor: color, fadeTime: { fadeInTime: fadeIn, holdTime: hold, fadeOutTime: fadeOut } });
+    } catch { /* left, or no camera */ }
+  }
+}

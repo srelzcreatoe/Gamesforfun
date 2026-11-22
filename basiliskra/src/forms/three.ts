@@ -11,7 +11,7 @@ import { Entity, EntityDamageCause, Player, world } from "@minecraft/server";
 import { CONFIG, KNOCK_GAP_TICKS, PROP, TICKS } from "../config";
 import { Act, Brain, Choice, anyoneNear, isNight, nearbyPlayers, pace, travel, wait, watchersNear } from "../brain";
 import { Creature, targetable } from "../creature";
-import { beamVars, particle, players, sound, stopSound, witnesses } from "../fx";
+import { beamVars, flash, particle, players, sound, stopSound, witnesses } from "../fx";
 import { STANCE_III, STRIDE_III } from "../generated/rig";
 import { alive, blast, carve, mobsNear, segDist, wither } from "../havoc";
 import { RoarFx, shake } from "../roar";
@@ -529,7 +529,15 @@ export class BrainThree extends Brain {
       return;
     }
     const lock = CHARGE_TICKS - LIGHT_END;
-    for (let t = 0; t < lock; t++) { c.setCharge(16 + (t / lock) * 2); yield; }
+    for (let t = 0; t < lock; t++) {
+      c.setCharge(16 + (t / lock) * 2);
+      // a thin line down the path it will take: this is where not to be standing
+      if (t % 2 === 0) {
+        const { from, dir } = c.aim();
+        particle(c.dim, "basiliskra:beam_aim", from, 128, beamVars(dir, this.clearRange(from, dir, T.range), 0.22 + 0.5 * (t / lock)));
+      }
+      yield;
+    }
     // 4. fire, on the moment the recording does
     c.setPhase("fire");
     c.setCharge(20);
@@ -537,6 +545,14 @@ export class BrainThree extends Brain {
     this.rec.mut.lastEncounter = this.now;
     this.chargeSounding = false;
     c.say("basiliskra.iii.beam", c.anchor("mouth"), 160);
+    {
+      // the moment it lights: a flare and a shock ring at his mouth, and every screen near him whites out for an instant
+      const { from, dir } = c.aim();
+      particle(c.dim, "basiliskra:muzzle_flash", from, 160);
+      particle(c.dim, "basiliskra:muzzle_shock", from, 160, beamVars(dir, 1, 1));
+      flash(c.dim, from, 56, { red: 1, green: 0.5, blue: 0.42 }, 0.03, 0.04, 0.3);
+      shake(c, 96, 0.9, 0.5);
+    }
     const smash = wither();
     // where the beam is landing: it blasts out a crater there (it does not bore on for ever), the poison gathers
     // there, and when his aim moves on, so does the crater
@@ -565,7 +581,10 @@ export class BrainThree extends Brain {
       while (length > 4 && !isLoaded(c.dim, add(from, mul(dir, length)))) length -= 4;
       const end = add(from, mul(dir, length));
       if (!sputter) {
-        const w = T.width * fade * (tier === 1 ? 0.85 + hash(t) * 0.4 : 1);
+        // it throbs, about as fast as a heart racing
+        const w = T.width * fade * (tier === 1 ? 0.85 + hash(t) * 0.4 : 1) * (1 + 0.14 * Math.sin(t * 1.25));
+        if (t % 5 === 0) particle(c.dim, "basiliskra:beam_ring", from, 144, beamVars(dir, length, w * 2.2));
+        if (t % 3 === 1) particle(c.dim, "basiliskra:beam_arc", from, 128, beamVars(dir, length, w));
         if (t % 2 === 0) {
           particle(c.dim, "basiliskra:beam_core", from, 160, beamVars(dir, length, w));
           particle(c.dim, "basiliskra:beam_halo", from, 160, beamVars(dir, length, w * 2.4));
@@ -589,6 +608,9 @@ export class BrainThree extends Brain {
           if (t % 5 === 0) particle(c.dim, "basiliskra:impact_blast", end, 128);
           if (t % 6 === 3) particle(c.dim, "basiliskra:impact_smoke", end, 144);
           if (t % 7 === 0) particle(c.dim, "basiliskra:impact_fire", end, 112);
+          if (t % 4 === 2) particle(c.dim, "basiliskra:impact_glare", end, 160);
+          if (t % 10 === 5) particle(c.dim, "basiliskra:impact_ring", { x: end.x, y: end.y + 0.4, z: end.z }, 144);
+          if (t % 8 === 1) particle(c.dim, "basiliskra:impact_fountain", end, 144);
           if (t % 10 === 0) sound(c.dim, "basiliskra.iii.beam_impact", end, 112);
           if (!ground || dist(ground, hitBlock) > CRATER + 3) ground = hitBlock;
           if (smash) {
@@ -641,6 +663,20 @@ export class BrainThree extends Brain {
     this.recoverUntil = this.now + 6 * TICKS.second;
     c.setPhase("idle");
     yield* wait(40);
+  }
+
+  /** How far along a line the way is clear (up to `max`), for drawing: never into a chunk that is not loaded. */
+  private clearRange(from: V3, dir: V3, max: number): number {
+    const c = this.c;
+    let length = max;
+    if (isLoaded(c.dim, from)) {
+      try {
+        const hit = c.dim.getBlockFromRay(from, dir, { maxDistance: max, includeLiquidBlocks: false, includePassableBlocks: false });
+        if (hit) length = Math.max(1, dist(from, add(hit.block.location, { x: 0.5, y: 0.5, z: 0.5 })) - 0.4);
+      } catch { length = 6; }
+    }
+    while (length > 4 && !isLoaded(c.dim, add(from, mul(dir, length)))) length -= 4;
+    return length;
   }
 
   /** Mark what the beam touched.  Natural ground only; never a block with an inventory, a bed, a portal or redstone. */

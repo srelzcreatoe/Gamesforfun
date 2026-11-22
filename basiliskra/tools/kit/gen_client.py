@@ -115,6 +115,78 @@ class Pose:
         return out
 
 
+# ---- his voice, measured ----------------------------------------------------------------
+# The jaw and the shaking follow the recordings themselves: how loud each roar is, tenth of a second by tenth,
+# is read from the sound file and written into the pose (as a few straight lines) and into the script (as a table).
+ROARS = {"long": "basiliskra.roar", "short": "basiliskra.roar_short", "under": "basiliskra.roar_under"}
+ROAR_KIND = {"long": 8, "short": 9, "under": 10}
+# one-shot kinds 4..7: a grunt, a growl, a breath, a cry of pain (seconds the mouth is open for each, at pitch 1)
+VOICE_SECONDS = {4: 1.9, 5: 3.3, 6: 1.3, 7: 1.4}
+VOICE_JAW = {4: 11, 5: 15, 6: 5, 7: 17}
+
+
+def loudness(event, hop=0.1):
+    """Loudness of a sound event's (first) recording, 0..1, one value every `hop` seconds."""
+    import subprocess
+    import numpy as np
+    defs = json.load(open(os.path.join(RP, "sounds", "sound_definitions.json")))["sound_definitions"]
+    first = defs[event]["sounds"][0]
+    path = os.path.join(RP, (first["name"] if isinstance(first, dict) else first) + ".ogg")
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-f", "f32le", "-ac", "1", "-ar", "8000", "-"], capture_output=True, check=True).stdout
+    x = np.frombuffer(raw, dtype=np.float32)
+    n = int(8000 * hop)
+    k = len(x) // n
+    e = np.sqrt((x[:k * n].reshape(k, n) ** 2).mean(1))
+    e = e / (np.percentile(e, 95) + 1e-9)
+    e = np.clip(np.convolve(np.pad(e, 1, mode="edge"), [0.25, 0.5, 0.25], mode="valid"), 0, 1)
+    e[e < 0.06] = 0
+    return [round(float(v), 2) for v in e]
+
+
+def knots(env, hop=0.1, tol=0.07):
+    """The loudness curve as a few straight lines (Ramer-Douglas-Peucker): [(seconds, value), ...], starting and ending shut."""
+    pts = [(0.0, 0.0)] + [((i + 0.5) * hop, v) for i, v in enumerate(env)] + [((len(env) + 0.5) * hop, 0.0)]
+
+    def rdp(a, b):
+        (t0, y0), (t1, y1) = pts[a], pts[b]
+        worst, at = 0.0, -1
+        for i in range(a + 1, b):
+            y = y0 + (y1 - y0) * (pts[i][0] - t0) / (t1 - t0)
+            if abs(pts[i][1] - y) > worst:
+                worst, at = abs(pts[i][1] - y), i
+        return [a] if worst <= tol else rdp(a, at) + rdp(at, b)
+    keep = rdp(0, len(pts) - 1) + [len(pts) - 1]
+    return [pts[i] for i in keep]
+
+
+def molang_lines(ks, t):
+    """A piecewise-linear function of the Molang expression `t` through the knots."""
+    terms = []
+    for (t0, y0), (t1, y1) in zip(ks, ks[1:]):
+        if abs(y1 - y0) > 1e-6:
+            terms.append(f"{round(y1 - y0, 3)} * math.clamp(({t} - {round(t0, 2)}) * {round(1 / (t1 - t0), 3)}, 0, 1)")
+    return " + ".join(terms) if terms else "0"
+
+
+def pick(var, table):
+    """A Molang choice by value, fully bracketed: (var == a ? x : (var == b ? y : z))."""
+    items = list(table.items())
+    out = str(items[-1][1])
+    for k, v in reversed(items[:-1]):
+        out = f"({var} == {k} ? {v} : {out})"
+    return out
+
+
+ROAR_ENV = {}
+
+
+def roar_envelopes():
+    if not ROAR_ENV:
+        for name, event in ROARS.items():
+            ROAR_ENV[name] = loudness(event)
+    return ROAR_ENV
+
+
 # ---- shared pre-animation -------------------------------------------------------------
 def pre_animation():
     s = [
@@ -159,10 +231,27 @@ def pre_animation():
         f"v.gd0 = (v.gait != v.gait_prev) ? q.modified_distance_moved - math.clamp(q.modified_distance_moved - v.gd0 - {STRIDE_III / 4}, 0, {STRIDE_III / 8}) : v.gd0;",
         "v.gait_prev = v.gait;",
         # a one-shot pulse from the server (1 gills, 2 tail knob, 3 the whole hide): a brief flash where it says
-        f"v.fx_kind = {P('fx_kind')};",
-        f"v.fxp = ({P('fx_seq')} != v.fx_prev) ? 1 : math.max(0, v.fxp - v.dt * 3.2);",
+        # (4..7 are his voice and 8..10 his roars: nothing flashes, the mouth moves; see below)
+        f"v.fx_new = ({P('fx_seq')} != v.fx_prev) ? 1 : 0;",
+        f"v.fx_in = {P('fx_kind')};",
+        "v.fx_kind = (v.fx_new && v.fx_in <= 3) ? v.fx_in : v.fx_kind;",
+        "v.fxp = (v.fx_new && v.fx_in <= 3) ? 1 : math.max(0, v.fxp - v.dt * 3.2);",
         f"v.fx_prev = {P('fx_seq')};",
+        # his voice: the mouth opens for as long as the grunt, growl, breath or cry lasts (recordings play slower in the
+        # water and faster on the shore, as the script pitches them)
+        "v.vo_k = (v.fx_new && v.fx_in >= 4 && v.fx_in <= 7) ? v.fx_in : v.vo_k;",
+        "v.vo_t = (v.fx_new && v.fx_in >= 4 && v.fx_in <= 7) ? 0 : v.vo_t + v.dt;",
+        f"v.vo_d = {pick('v.vo_k', VOICE_SECONDS)} * (v.form == 1 ? 1.11 : (v.form == 2 ? 0.87 : 1.04));",
+        "v.voice = (v.vo_k > 0 && v.vo_t < v.vo_d) ? math.clamp(v.vo_t * 7, 0, 1) * math.clamp((v.vo_d - v.vo_t) * 4, 0, 1) : 0;",
+        f"v.vjaw = v.voice * {pick('v.vo_k', VOICE_JAW)} * (1 + 0.12 * math.sin(q.life_time * 2300));",
+        # his roar: the jaw follows the loudness of the recording that is playing, from the moment it starts
+        "v.ro_k = (v.fx_new && v.fx_in >= 8 && v.fx_in <= 10) ? v.fx_in : v.ro_k;",
+        "v.ro_t = (v.fx_new && v.fx_in >= 8 && v.fx_in <= 10) ? 0 : v.ro_t + v.dt * (v.form == 2 ? 1.18 : 1);",
     ]
+    env = roar_envelopes()
+    shape = {n: molang_lines(knots(e), "v.ro_t") for n, e in env.items()}
+    s.append(f"v.roar_env = (v.ro_k == 0 || v.ro_t > {max(len(e) for e in env.values()) * 0.1 + 0.3}) ? 0 : "
+             f"(v.ro_k == {ROAR_KIND['long']} ? ({shape['long']}) : (v.ro_k == {ROAR_KIND['short']} ? ({shape['short']}) : ({shape['under']})));")
     for k in range(9):
         wave = f"0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - {8 - k} * 0.42 - 0.3) * 1.5, 0, 1)"
         gill = " + v.knock" if k == 7 else ""
@@ -217,7 +306,7 @@ def pose_i(rig):
     p.rot("head", y=f"v.ly_head * {LOOK['i']['yaw']['head']} + v.bend * 0.6 + v.swa * 0.5 * v.swg * math.sin(v.swp + 50) - 4 * v.catch"
                     f" + 5 * v.w_jam * {SHUDDER(1500)}",
           x=f"v.lp_head * {LOOK['i']['pitch']['head']} - 6 * v.w_ram - 8 * v.w_bite * math.clamp(1 - math.abs(v.pt - 0.22) * 6, 0, 1)")
-    p.rot("jaw", x="2 + 1.5 * v.breath + 34 * v.w_bite * math.clamp(1 - math.abs(v.pt - 0.22) * 6, 0, 1) + 10 * v.w_ram + 7 * v.w_spasmw")
+    p.rot("jaw", x="2 + 1.5 * v.breath + 34 * v.w_bite * math.clamp(1 - math.abs(v.pt - 0.22) * 6, 0, 1) + 10 * v.w_ram + 7 * v.w_spasmw + v.vjaw + 24 * v.roar_env")
     for i in range(1, n + 1):
         f = i / n
         p.rot(f"seg{i}",
@@ -283,7 +372,7 @@ def pose_ii(rig):
     p.rot("neck", x=f"0.9 * v.breath + v.lp_neck * {L['pitch']['neck']} + 22 * v.w_drink - 9 * v.w_roar - 13 * v.w_flinch", y=f"v.ly_neck * {L['yaw']['neck']}")
     p.rot("head", x=f"v.lp_head * {L['pitch']['head']} + 16 * v.w_drink - 12 * v.w_roar - 9 * v.w_flinch - 8 * v.w_bite * math.clamp(1 - math.abs(v.pt - 0.22) * 6, 0, 1)",
           y=f"v.ly_head * {L['yaw']['head']}")
-    p.rot("jaw", x="2.5 * v.breath + (5 + 4 * math.sin(q.life_time * 520)) * v.w_drink + 26 * v.w_roar"
+    p.rot("jaw", x="2.5 * v.breath + (5 + 4 * math.sin(q.life_time * 520)) * v.w_drink + 5 * v.w_roar + v.vjaw + 23 * v.roar_env"
                    " + 30 * v.w_bite * math.clamp(1 - math.abs(v.pt - 0.22) * 6, 0, 1) + 9 * v.w_evolve")
     p.rot("mid", y="-v.bend * 0.5", x="-1.5 * v.pulling")
     # the pelvis lags the chest and catches up while he rests
@@ -356,10 +445,10 @@ def pose_iii(rig):
     # at the window the neck goes down steeply from the shoulders and levels out again, and the skull
     # turns and rolls until one small eye is square to the glass
     p.rot("head", y=f"v.ly_head * {L['yaw']['head']} + {WINDOW_HEAD[1]} * v.w_window",
-          x=f"v.lp_head * {L['pitch']['head']} - 4 * v.w_chargew - 24 * v.w_roar + 14 * v.w_ground + 1.2 * v.w_fire * {SHUDDER(2400)} + {WINDOW_HEAD[0]} * v.w_window",
+          x=f"v.lp_head * {L['pitch']['head']} - 4 * v.w_chargew - 24 * v.w_roar + 1.4 * v.roar_env * {SHUDDER(2100, 2)} - 1.5 * v.voice + 14 * v.w_ground + 1.2 * v.w_fire * {SHUDDER(2400)} + {WINDOW_HEAD[0]} * v.w_window",
           z=f"{WINDOW_HEAD[2]} * v.w_window")
     p.pos("head", z=f"1.6 * v.w_fire * {SHUDDER(2700, 1)}", y="2.2 * v.knock")
-    p.rot("jaw", x="2.2 * v.breath + v.w_chargew * v.charge * 0.9 + 16 * v.w_fire + 30 * v.w_roar + 6 * v.w_vent + 8 * v.w_ground")
+    p.rot("jaw", x=f"2.2 * v.breath + v.w_chargew * v.charge * 0.9 + 16 * v.w_fire + 5 * v.w_roar + v.vjaw + 27 * v.roar_env * (1 + 0.05 * {SHUDDER(2900)}) + 6 * v.w_vent + 8 * v.w_ground")
     for tag in ("fl", "fr", "bl", "br"):
         front = tag[0] == "f"
         rest = leg_iii(rig, tag)[2]
@@ -443,7 +532,8 @@ def particle_controller(tag):
     if tag == "iii":
         # radiation drifts off the plates all the time, faintly; thickly while he charges, fires and vents
         rad = lambda ks: [("rad_drift", f"plate_tip_{k}") for k in ks]
-        charge = [("charge_spark", "club_core")] + [("plate_ember", f"plate_tip_{k}") for k in (1, 3, 5, 7, 9)] + [("throat_glow", "mouth")] + rad((0, 4, 8))
+        charge = ([("charge_spark", "club_core")] + [("plate_ember", f"plate_tip_{k}") for k in (1, 3, 5, 7, 9)] + [("throat_glow", "mouth"), ("charge_gather", "muzzle")]
+                  + rad((0, 4, 8)))
         fire = ([("mouth_flare", "muzzle"), ("mouth_flare", "mouth"), ("throat_glow", "throat")] + [("plate_blaze", f"plate_tip_{k}") for k in range(10)]
                 + [("plate_smoke", f"plate_tip_{k}") for k in (1, 4, 7)] + [("charge_spark", "club_core")] + rad((1, 5, 9)))
         vent = ([("gill_steam", "gill_l"), ("gill_steam", "gill_r"), ("rad_drift", "gill_l"), ("rad_drift", "gill_r")]
@@ -480,7 +570,7 @@ def particle_controller(tag):
 
 PARTICLES = ["charge_spark", "plate_ember", "throat_glow", "mouth_flare", "gill_steam", "club_arc", "club_crackle",
              "horn_arc", "horn_arc_big", "drip", "shed_flakes", "gill_bubbles", "gill_silt", "fin_splash", "rad_drift",
-             "plate_blaze", "plate_smoke", "mouth_smoke", "roar_haze"]
+             "plate_blaze", "plate_smoke", "mouth_smoke", "roar_haze", "charge_gather"]
 
 
 def write_rig_ts(rigs):
@@ -516,6 +606,10 @@ def write_rig_ts(rigs):
     out.append(f"export const WINDOW_NECK = {json.dumps(WINDOW_NECK)};")
     out.append(f"export const WINDOW_HEAD = {json.dumps(WINDOW_HEAD)};")
     out.append(f"export const GAIT_TICKS = {json.dumps([int(round(d * 20)) for d in GAIT_DUR])};")
+    out.append("/** How loud each roar is, every two ticks from its start (0..1), read from the recordings: the shaking follows it. */")
+    out.append(f"export const ROAR_ENV: Record<'long' | 'short' | 'under', number[]> = {json.dumps(roar_envelopes(), separators=(',', ':'))};")
+    out.append(f"/** One-shot kinds the client reads as his voice (the mouth moves; nothing flashes). */")
+    out.append(f"export const VOICE_KIND = {{ grunt: 4, growl: 5, breath: 6, hurt: 7, roar: {ROAR_KIND['long']}, roar_short: {ROAR_KIND['short']}, roar_under: {ROAR_KIND['under']} }};")
     os.makedirs(os.path.join(ROOT, "src", "generated"), exist_ok=True)
     with open(os.path.join(ROOT, "src", "generated", "rig.ts"), "w") as f:
         f.write("\n".join(out) + "\n")

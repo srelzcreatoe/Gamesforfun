@@ -244,7 +244,7 @@ export class Ending {
     const yaw = yawTo({ x: 0, y: 0, z: 0 }, travel);
     c.setPhase("depart");
     c.goTo(out(-70 * k), 0.13, 2);
-    sound(dim, "basiliskra.roar", c.anchor("mouth"), 192);          // the whole roar, once more, as he goes home
+    c.say("basiliskra.roar", c.anchor("mouth"), 192);          // the whole roar, once more, as he goes home
     shake(c, 110, 0.6, 3);
     for (let i = 0; i < 3000; i++) {
       seam(t++);
