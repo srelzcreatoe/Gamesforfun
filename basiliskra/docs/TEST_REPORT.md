@@ -103,6 +103,10 @@ These were measured before Form III was drawn larger and have not been measured 
 
 Measured again for 1.3 with the server rig (scenario 15): at the window, with the 6.5-unit crouch, one eye ends 2.55 blocks outside the pane at 2.6 blocks above his feet, in the upper block of a two-high pane; the jaw rests on the ground. His skull is too big now to bring the eye to the middle of the pane without sinking the jaw.
 
+### The animation reel (1.5.1)
+
+`node tools/preview/anim.cjs` plays each form through its phases in the offline viewer, running the shipped client entity's own Molang with the properties the script would set (phase, charge, the foot that landed, the voice pulses), and lays the pack's recordings in at the same moments. It is the only place the poses have been watched in motion: `previews/basiliskra_animations.mp4`. It shows the model, the walk cycles against a tiled ground, the glow passes and the jaw against the roar; it does not show particles, the real beam, terrain, or anything the game's own renderer does differently.
+
 ### Previews
 
 **The previews have not been rendered again for 1.3.** They show 1.2: Form III at his old size, the narrower beam without its smoke, glow and craters, the synthesised charge and beam sounds, and no shockwave.

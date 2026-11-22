@@ -139,6 +139,7 @@ tools/kit/gen_blocks.py   the fallout's blocks and items, the crystal's model, r
 tools/kit/gen_hitbox.py   the ten hit-volume entity types
 tools/kit/gen_ids.py      vanilla block ids to spare, from the script's own patterns (for the engine's fill)
 tools/preview/pose_eval.mjs  the shipped pose evaluated for given properties (to render any phase of any form)
+tools/preview/anim.cjs    the animation reel: every form through its phases, with the pack's sounds laid in
 tools/sound/synth.py      every synthesised sound, and the cuts of the three supplied recordings (tools/sound/source/)
 tools/music/compose.py    his three themes, rendered from a written score by modelled instruments
 tools/validate/           pack validator (Mojang's published schemas + reference integrity)

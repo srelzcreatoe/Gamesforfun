@@ -21,12 +21,14 @@ In game: a **journal** (how angry he is, as a percentage, and when he will come)
 
 | File | What it is |
 |---|---|
-| `dist/Basiliskra-1.5.0.mcaddon` | behaviour pack + resource pack, ready to import |
+| `dist/Basiliskra-1.5.1.mcaddon` | behaviour pack + resource pack, ready to import |
 | `models/basiliskra_i.bbmodel`, `_ii`, `_iii`, `_iv` | the four editable Blockbench models, textures and animations embedded |
 | `docs/SURVIVAL_GUIDE.md` | install, what calls him, the three stages, the ending, settings |
 | `previews/*.mp4` | reference videos (see below) |
 
 ## Previews
+
+**`previews/basiliskra_animations.mp4`** is an animation reel of all four forms (2 min 22 s, with sound): each form is played through its phases from the shipped model, textures and client animation, and the pack's own recordings are laid in at the moments the script would play them, so the jaw can be watched against the roar. The ground, the camera, the scale figure and the drawn beam are the preview tool's (`tools/preview/anim.cjs`); particles are not drawn. It is an offline render, not in-game capture.
 
 These are **offline reference renders of 1.2, not in-game capture**, and have not been rendered again since (Form III is shown at his old size, with the old beam and no shockwave, rift or fallout glow). The encounter videos replay a recording of the real behaviour script, run in a simulated world, using the shipped geometry, textures, client animations, particle definitions and sounds. The terrain, sky, rain, stand-in player and boat are drawn by the preview tool.
 

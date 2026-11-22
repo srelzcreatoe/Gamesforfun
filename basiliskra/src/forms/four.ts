@@ -510,7 +510,7 @@ export class BrainFour extends BrainThree {
     c.setPhase("swallow");
     c.say("basiliskra.iii.fizzle", c.anchor("mouth"), 96, 1, 0.7);
     c.lookAhead();
-    for (let t = 0; t < 36; t++) { c.setCharge(Math.max(6, 16 - t * 0.4)); yield; }       // the glow goes back down his throat
+    for (let t = 0; t < 36; t++) { c.setCharge(Math.max(0, 16 - t * 0.5)); yield; }       // the glow goes back down his throat, and out everywhere but his ribs
     let last: V3 = { ...target.location };
     let pulses = 0;
     c.smash = true;

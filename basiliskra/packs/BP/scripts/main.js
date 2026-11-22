@@ -5904,7 +5904,7 @@ var BrainFour = class extends BrainThree {
     c.say("basiliskra.iii.fizzle", c.anchor("mouth"), 96, 1, 0.7);
     c.lookAhead();
     for (let t = 0; t < 36; t++) {
-      c.setCharge(Math.max(6, 16 - t * 0.4));
+      c.setCharge(Math.max(0, 16 - t * 0.5));
       yield;
     }
     let last = { ...target.location };
