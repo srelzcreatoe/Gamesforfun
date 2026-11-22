@@ -19,6 +19,7 @@ import { cutAll, film, filmTick } from "./scene";
 import { RIGS } from "./generated/rig";
 import { clearHarm, type Trigger } from "./harm";
 import { addFallout, clearFallout, falloutTick } from "./fallout";
+import { musicStop, musicTick, sceneTheme } from "./music";
 import { freshRecord, newToken, store } from "./store";
 import { add, dist, distXZ, dot, forwardOf, hash, mul, norm, sub, wrapDeg, yawTo, type V3 } from "./vec";
 import { NONE, UNLOADED, blockAt, deepHere, groundY, isLoaded, isWaterId, overworld, waterColumn } from "./world";
@@ -269,6 +270,7 @@ export class Controller {
       try { c.entity.setProperty(PROP.bound, false); c.entity.remove(); } catch { /* already unloading */ }
     }
     cutAll();
+    musicStop();
     this.creature = null; this.brain = null; this.runner = null; this.waterSearch = null;
     this.ending.reset();
     const old = store.rec;
@@ -296,6 +298,7 @@ export class Controller {
   /** The config wheel: forget everything, as if the pack had just been added. */
   resetStory(): void {
     const c = this.creature;
+    musicStop();
     this.creature = null; this.brain = null; this.runner = null;
     this.ending.reset();
     if (c) { c.dropParts(); try { c.entity.setProperty(PROP.bound, false); c.entity.remove(); } catch { /* gone */ } }
@@ -464,6 +467,7 @@ export class Controller {
     beginTick(now);
     filmTick();
     falloutTick(now);
+    musicTick(this.creature, now, this.brain?.actName ?? "", this.brain?.hurtAt ?? -1);
     if (this.creature && !this.creature.valid) { this.creature.dropParts(); this.creature = null; this.brain = null; this.runner = null; }
     if (now % 20 === 0) this.sweep();
     switch (rec.stage) {
@@ -608,6 +612,7 @@ export class Controller {
         const foot = { x: a.water.x, y: a.water.y - 2, z: a.water.z };
         if (t === 1) {
           riftOpen(dim, foot, RIFT_SIZE[1]);
+          sceneTheme("dread", 300, foot, dim.id);
           addFallout(a.water, 4, 0.4);
           const head = () => (this.creature ? this.creature.anchor("nose") : { x: a.water.x, y: a.water.y + 4, z: a.water.z });
           film(dim, head, { ticks: 330, radius: 110, dist: 30, height: 9, orbit: 50, distEnd: 22, flash: { red: 0.8, green: 0.05, blue: 0.05 } });
@@ -660,6 +665,7 @@ export class Controller {
       if (this.riftShown !== a.t0) {
         this.riftShown = a.t0;
         riftOpen(dim, at, size);
+        sceneTheme(store.rec.form >= 3 ? "wrath" : "dread", 420, at, dim.id);
         addFallout(at, 5, 0.5);
         const focus = (): V3 => (this.creature ? this.creature.anchor("nose") : { x: at.x, y: at.y + size * 0.4, z: at.z });
         film(dim, focus, { ticks: 400, radius: 120, dist: size * 1.5 + 14, height: size * 0.35 + 4, orbit: 60, distEnd: size * 1.2 + 10,

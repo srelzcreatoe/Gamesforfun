@@ -15,6 +15,21 @@
     },
     "basiliskra_scarlet_trinitite": {
       "textures": "textures/blocks/basiliskra_scarlet_trinitite"
+    },
+    "basiliskra_irradiated_rock": {
+      "textures": "textures/blocks/basiliskra_irradiated_rock"
+    },
+    "basiliskra_glowing_slag": {
+      "textures": "textures/blocks/basiliskra_glowing_slag"
+    },
+    "basiliskra_cooled_slag": {
+      "textures": "textures/blocks/basiliskra_cooled_slag"
+    },
+    "basiliskra_crimson_crystal": {
+      "textures": "textures/blocks/basiliskra_crimson_crystal"
+    },
+    "basiliskra_shard_lamp": {
+      "textures": "textures/blocks/basiliskra_shard_lamp"
     }
   }
 }

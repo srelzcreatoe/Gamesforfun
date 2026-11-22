@@ -1,0 +1,32 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "basiliskra:shard_lamp"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      " S ",
+      "SGS",
+      " S "
+    ],
+    "key": {
+      "S": {
+        "item": "basiliskra:crimson_shard"
+      },
+      "G": {
+        "item": "minecraft:glass"
+      }
+    },
+    "unlock": [
+      {
+        "item": "basiliskra:crimson_shard"
+      }
+    ],
+    "result": {
+      "item": "basiliskra:shard_lamp"
+    }
+  }
+}

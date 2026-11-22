@@ -26,7 +26,7 @@ const SOFT = /(^minecraft:(air|light_block.*|structure_void|short_grass|tall_gra
 export function isSolidBlock(b: Block | undefined): boolean {
   if (!b) return false;
   if (b.isAir || b.isLiquid) return false;
-  return !SOFT.test(b.typeId);
+  return !SOFT.test(b.typeId) && b.typeId !== "basiliskra:crimson_crystal";       // (a crystal is walked through, like a flower)
 }
 
 /** Trees and other growth: a giant shoulders through these, he does not go round them. */
@@ -34,8 +34,9 @@ const PLANT = /^minecraft:(?!stripped_)(.*_log|.*_wood|.*_stem|.*_hyphae|.*leave
 /** Ground the world made.  Anything solid that is not this (and not growth) is treated as built. */
 const NATURAL = /^minecraft:(stone|granite|diorite|andesite|deepslate|tuff|calcite|dirt|coarse_dirt|grass_block|podzol|mycelium|dirt_with_roots|mud|clay|sand|red_sand|gravel|suspicious_sand|suspicious_gravel|sandstone|red_sandstone|snow|ice|packed_ice|blue_ice|powder_snow|moss_block|pale_moss_block|hardened_clay|.*_terracotta|netherrack|basalt|smooth_basalt|blackstone|end_stone|dripstone_block|.*_ore|bedrock|obsidian|magma|soul_sand|soul_soil|muddy_mangrove_roots|amethyst_block|budding_amethyst|.*coral_block|cobbled_deepslate|packed_mud)$/;
 export const isPlantBlock = (id: string): boolean => PLANT.test(id);
-// his own marks on the world count as the world's ground (irradiated soil, scarlet trinitite)
-export const isNaturalGround = (id: string): boolean => (NATURAL.test(id) && !id.includes("glazed")) || id === "basiliskra:irradiated_soil" || id === "basiliskra:scarlet_trinitite";
+// his own marks on the world count as the world's ground (irradiated soil and rock, trinitite, slag)
+const HIS_GROUND = /^basiliskra:(irradiated_soil|irradiated_rock|scarlet_trinitite|glowing_slag|cooled_slag)$/;
+export const isNaturalGround = (id: string): boolean => (NATURAL.test(id) && !id.includes("glazed")) || HIS_GROUND.test(id);
 
 /**
  * Would a trunk `radius` wide standing at `at` (feet at feetY) be inside a wall?  Built blocks stop

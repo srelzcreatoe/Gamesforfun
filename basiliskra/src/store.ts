@@ -61,7 +61,7 @@ export interface Rec {
   sites: Site[];
   weather: "clear" | "rain" | "thunder";
   /** Fallout: places his light has poisoned, each fading with time (see fallout.ts). Bounded. */
-  fallout: { x: number; y: number; z: number; r: number; s: number; t: number; w?: boolean }[];
+  fallout: { x: number; y: number; z: number; r: number; s: number; t: number; w?: boolean; m?: number; h?: number }[];
 }
 
 export function freshRecord(): Rec {

@@ -333,6 +333,9 @@ for pid in sorted(set(re.findall(r'"(basiliskra:[a-z_]+)"', src))):
         continue
     if any(isinstance(d, dict) and ("minecraft:block" in d or "minecraft:item" in d) and d[("minecraft:block" if "minecraft:block" in d else "minecraft:item")]["description"]["identifier"] == pid for d in docs.values()):
         continue                                        # one of the pack's own blocks or items
+    if any(isinstance(d, dict) and "minecraft:block" in d and (pid in d["minecraft:block"]["description"].get("states", {}) or pid in d["minecraft:block"]["components"])
+           for d in docs.values()):
+        continue                                        # a state or a custom component of one of the pack's blocks
     if pid not in particle_ids:
         err(f"script uses {pid}: not a particle, property or event of this pack")
     ok("script particle references")
@@ -450,6 +453,21 @@ for k, d in docs.items():
 if "spawn_egg" in ent and f"item.spawn_egg.entity.{NS}:{NS}.name=" not in rp_lang:
     err("spawn egg name missing from RP en_US.lang")
 
+vanilla_items = set()
+if SAMPLES and os.path.exists(os.path.join(SAMPLES, "metadata/vanilladata_modules/mojang-items.json")):
+    _vi = json.load(open(os.path.join(SAMPLES, "metadata/vanilladata_modules/mojang-items.json")))
+    vanilla_items = {i["name"] for i in _vi.get("data_items", _vi.get("items", []))}
+block_ids = {d["minecraft:block"]["description"]["identifier"] for d in docs.values() if isinstance(d, dict) and "minecraft:block" in d}
+block_geos = set()
+for k, d in docs.items():
+    if k.startswith("packs/RP/models/blocks/") and isinstance(d, dict):
+        for g in d.get("minecraft:geometry", []):
+            block_geos.add(g["description"]["identifier"])
+            for bone in g.get("bones", []):
+                for cube in bone.get("cubes", []):
+                    o, sz = cube["origin"], cube["size"]
+                    if min(o[0], o[2]) < -15 or max(o[0] + sz[0], o[2] + sz[2]) > 15 or o[1] < -7 or o[1] + sz[1] > 23:
+                        err(f"{k}: a cube leaves the 30x30x30 box a block model must stay inside")
 # blocks: every material's texture is in the terrain atlas with a file and a Vibrant Visuals texture set behind it,
 # a sound in blocks.json, a name in the language file, and the loot table it names exists
 ttex = docs.get("packs/RP/textures/terrain_texture.json", {}).get("texture_data", {})
@@ -477,7 +495,31 @@ for k, d in docs.items():
     loot = comps.get("minecraft:loot")
     if loot and not os.path.exists(os.path.join(BP, loot)):
         err(f"{k}: loot table {loot} missing")
+    elif loot:
+        for pool in json.load(open(os.path.join(BP, loot))).get("pools", []):
+            for e in pool.get("entries", []):
+                if e.get("type") == "item" and e["name"] not in item_ids and e["name"] not in block_ids and vanilla_items and e["name"] not in vanilla_items:
+                    err(f"{loot}: unknown item {e['name']}")
+    # a model of its own must be in the resource pack; a component of the pack's own must be registered by the script
+    geo = comps.get("minecraft:geometry")
+    geo = geo.get("identifier") if isinstance(geo, dict) else geo
+    if geo and not geo.startswith("minecraft:") and geo not in block_geos:
+        err(f"{k}: geometry {geo} is not in the resource pack's models/blocks")
+    for c in comps:
+        if not c.startswith("minecraft:") and (f'"{c}"' not in js or "registerCustomComponent" not in js):
+            err(f"{k}: custom component {c} is never registered by the script")
+    for state, spec in d["minecraft:block"]["description"].get("states", {}).items():
+        v = spec.get("values") if isinstance(spec, dict) else spec
+        n = (v["max"] - v["min"] + 1) if isinstance(v, dict) else len(v)
+        if n > 16:
+            err(f"{k}: state {state} has {n} values (16 at most)")
     ok("blocks")
+
+# fogs the script pushes exist
+for fid in sorted(set(re.findall(r"fog @s push (basiliskra:[a-z_]+)", src))):
+    if not any(isinstance(d, dict) and d.get("minecraft:fog_settings", {}).get("description", {}).get("identifier") == fid for d in docs.values()):
+        err(f"script pushes fog {fid}: no such fog in the resource pack")
+    ok("fogs")
 
 # recipes: the vanilla 1.20.10 shapeless shape, and every item they name exists
 vanilla_items = set()
@@ -485,13 +527,21 @@ if SAMPLES and os.path.exists(os.path.join(SAMPLES, "metadata/vanilladata_module
     vi = json.load(open(os.path.join(SAMPLES, "metadata/vanilladata_modules/mojang-items.json")))
     vanilla_items = {i["name"] for i in vi.get("data_items", vi.get("items", []))}
 for k, d in docs.items():
-    if not (isinstance(d, dict) and "minecraft:recipe_shapeless" in d):
+    if not (isinstance(d, dict) and ("minecraft:recipe_shapeless" in d or "minecraft:recipe_shaped" in d)):
         continue
-    r = d["minecraft:recipe_shapeless"]
+    shaped = "minecraft:recipe_shaped" in d
+    r = d["minecraft:recipe_shaped" if shaped else "minecraft:recipe_shapeless"]
     if d.get("format_version") != "1.20.10" or r.get("tags") != ["crafting_table"] or not r.get("unlock"):
-        err(f"{k}: not in the vanilla 1.20.10 shapeless form (format_version, crafting_table tag, unlock)")
-    for it in [i["item"] for i in r.get("ingredients", [])] + [r.get("result", {}).get("item", "")]:
-        if it not in item_ids and vanilla_items and it not in vanilla_items:
+        err(f"{k}: not in the vanilla 1.20.10 form (format_version, crafting_table tag, unlock)")
+    if shaped:
+        used = set("".join(r.get("pattern", []))) - {" "}
+        if used != set(r.get("key", {})) or len({len(row) for row in r.get("pattern", [])}) != 1:
+            err(f"{k}: the pattern and its key do not match")
+        names = [v["item"] for v in r.get("key", {}).values()]
+    else:
+        names = [i["item"] for i in r.get("ingredients", [])]
+    for it in names + [u["item"] for u in r.get("unlock", [])] + [r.get("result", {}).get("item", "")]:
+        if it not in item_ids and it not in block_ids and vanilla_items and it not in vanilla_items:
             err(f"{k}: unknown item {it}")
     ok("recipes")
 

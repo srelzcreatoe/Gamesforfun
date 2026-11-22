@@ -16,7 +16,7 @@ import { STANCE_III, STRIDE_III } from "../generated/rig";
 import { alive, blast, carve, mobsNear, segDist, wither } from "../havoc";
 import { RoarFx, shake } from "../roar";
 import { store } from "../store";
-import { addFallout, fuse } from "../fallout";
+import { addFallout, fuse, sear } from "../fallout";
 import { add, clamp, dist, distXZ, dot, hash, leftOf, mul, norm, sub, turnTowards, wrapDeg, yawTo, type V3 } from "../vec";
 import { blockAt, clearLine, idAt, isBreakableNatural, isLoaded, isNaturalGround, isPlantBlock, isSolidBlock, printOf, scorchOf, takesMark } from "../world";
 
@@ -618,6 +618,7 @@ export class BrainThree extends Brain {
             if (t % 4 === 0 && dist(ground, hitBlock) <= CRATER) {
               const got = carve(c.dim, hitBlock, T.carve * fade + 0.5, 110, true);
               if (got.broken) particle(c.dim, "basiliskra:impact_debris", end, 128);
+              sear(c.dim, got.floor, 5);                    // rock runs to glowing slag, sand fuses
             }
             if (t % 12 === 0) {
               particle(c.dim, "minecraft:huge_explosion_emitter", end, 144);

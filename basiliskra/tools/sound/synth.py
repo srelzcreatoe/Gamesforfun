@@ -2118,6 +2118,10 @@ def build_definitions():
             raise RuntimeError('%s is both synthesised and imported' % event)
         defs[event] = {'category': cat, 'min_distance': float(dmin), 'max_distance': float(dmax),
                        'sounds': [{'name': 'sounds/basiliskra/' + b, 'volume': 1.0, 'load_on_low_memory': True} for b in bases]}
+    # his themes (tools/music/compose.py writes the recordings and this table)
+    music = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'music', 'music_definitions.json')
+    if os.path.exists(music):
+        defs.update(json.load(open(music)))
     return {'format_version': '1.20.20', 'sound_definitions': defs}
 
 

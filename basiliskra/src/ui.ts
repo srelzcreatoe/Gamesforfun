@@ -157,8 +157,9 @@ function falloutLines(p: Player): string[] {
   if (!n) L.push("§7No fallout on record. His beam, his changes and his seam leave it where they touch the world.");
   else {
     L.push(`§7Fallout in §f${count}§7 place${count === 1 ? "" : "s"}. The nearest is ${compass(at, n.zone)}, at §f${pct(n.strength)}§7.`);
-    if (CONFIG.fallout === "land") L.push("§7In it, grass and dirt turn to irradiated soil, plants wither and wild leaves fall. Sand his beam touches becomes scarlet trinitite. As it fades, the soil heals.");
-    if (CONFIG.sickness) L.push("§7Strong fallout makes you hungry, then weak and sick. Milk clears it. A Geiger counter (trinitite, copper ingot, redstone) reads it.");
+    L.push("§7It spreads for about a minute, stands a while, then fades and is gone within a few minutes.");
+    if (CONFIG.fallout === "land") L.push("§7In it the ground glows: soil and rock turn irradiated, plants wither, wild leaves fall and crimson crystals grow (break them for shards). Where his beam lands, rock runs to glowing slag and sand fuses to scarlet trinitite. As it fades the land heals back to what it was.");
+    if (CONFIG.sickness) L.push("§7It is strong: hunger, then weakness and nausea, then poison, and the heart of a fresh zone burns. Iodine tablets (2 dried kelp, sugar) keep it off for four minutes; milk clears it. A Geiger counter (trinitite or a crimson shard, copper ingot, redstone) reads it.");
   }
   return L;
 }

@@ -13,6 +13,12 @@
     },
     "basiliskra_geiger_counter": {
       "textures": "textures/items/basiliskra_geiger_counter"
+    },
+    "basiliskra_crimson_shard": {
+      "textures": "textures/items/basiliskra_crimson_shard"
+    },
+    "basiliskra_iodine_tablets": {
+      "textures": "textures/items/basiliskra_iodine_tablets"
     }
   }
 }

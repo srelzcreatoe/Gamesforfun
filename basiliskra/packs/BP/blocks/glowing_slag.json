@@ -1,0 +1,33 @@
+{
+  "format_version": "1.26.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "basiliskra:glowing_slag",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.basiliskra:glowing_slag.name",
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 2.4
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 2.4
+      },
+      "minecraft:light_emission": 13,
+      "minecraft:map_color": "#ff7838",
+      "minecraft:tags": [
+        "minecraft:is_pickaxe_item_destructible"
+      ],
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "basiliskra_glowing_slag",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:loot": "loot_tables/blocks/basiliskra_glowing_slag.json",
+      "basiliskra:fades": {}
+    }
+  }
+}

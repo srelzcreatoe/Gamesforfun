@@ -1,0 +1,31 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "basiliskra:geiger_counter_shard"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "ingredients": [
+      {
+        "item": "basiliskra:crimson_shard"
+      },
+      {
+        "item": "minecraft:copper_ingot"
+      },
+      {
+        "item": "minecraft:redstone"
+      }
+    ],
+    "unlock": [
+      {
+        "item": "basiliskra:crimson_shard"
+      }
+    ],
+    "result": {
+      "item": "basiliskra:geiger_counter",
+      "count": 1
+    }
+  }
+}

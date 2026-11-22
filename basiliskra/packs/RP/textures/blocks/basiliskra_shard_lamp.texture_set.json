@@ -1,0 +1,7 @@
+{
+ "format_version": "1.21.30",
+ "minecraft:texture_set": {
+  "color": "basiliskra_shard_lamp",
+  "metalness_emissive_roughness": "basiliskra_shard_lamp_mer"
+ }
+}

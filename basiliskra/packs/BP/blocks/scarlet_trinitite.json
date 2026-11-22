@@ -15,7 +15,7 @@
       "minecraft:destructible_by_explosion": {
         "explosion_resistance": 1.2
       },
-      "minecraft:light_emission": 6,
+      "minecraft:light_emission": 7,
       "minecraft:map_color": "#5a1018",
       "minecraft:tags": [
         "minecraft:is_pickaxe_item_destructible"

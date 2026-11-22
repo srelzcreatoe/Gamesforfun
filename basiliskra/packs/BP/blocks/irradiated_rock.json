@@ -1,0 +1,41 @@
+{
+  "format_version": "1.26.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "basiliskra:irradiated_rock",
+      "menu_category": {
+        "category": "nature"
+      },
+      "states": {
+        "basiliskra:was": {
+          "values": {
+            "min": 0,
+            "max": 15
+          }
+        }
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.basiliskra:irradiated_rock.name",
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.6
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 1.6
+      },
+      "minecraft:light_emission": 8,
+      "minecraft:map_color": "#3a3436",
+      "minecraft:tags": [
+        "minecraft:is_pickaxe_item_destructible"
+      ],
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "basiliskra_irradiated_rock",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:loot": "loot_tables/blocks/basiliskra_irradiated_rock.json",
+      "basiliskra:fades": {}
+    }
+  }
+}

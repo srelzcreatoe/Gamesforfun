@@ -65,6 +65,13 @@ export const WHEEL_ITEM = `${NS}:config_wheel`;
 export const COUNTER_ITEM = `${NS}:geiger_counter`;
 export const SOIL_BLOCK = `${NS}:irradiated_soil`;
 export const TRINITITE_BLOCK = `${NS}:scarlet_trinitite`;
+export const ROCK_BLOCK = `${NS}:irradiated_rock`;
+export const CRYSTAL_BLOCK = `${NS}:crimson_crystal`;
+export const SLAG_BLOCK = `${NS}:glowing_slag`;
+export const SLAG_COLD_BLOCK = `${NS}:cooled_slag`;
+export const LAMP_BLOCK = `${NS}:shard_lamp`;
+export const SHARD_ITEM = `${NS}:crimson_shard`;
+export const IODINE_ITEM = `${NS}:iodine_tablets`;
 export const PROP = {
   form: `${NS}:form`, bound: `${NS}:bound`, phase: `${NS}:phase`, charge: `${NS}:charge`, lookYaw: `${NS}:look_yaw`,
   lookPitch: `${NS}:look_pitch`, bend: `${NS}:bend`, pitch: `${NS}:pitch`, gait: `${NS}:gait`, gill: `${NS}:gill`,

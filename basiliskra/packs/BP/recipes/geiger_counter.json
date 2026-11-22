@@ -24,7 +24,8 @@
       }
     ],
     "result": {
-      "item": "basiliskra:geiger_counter"
+      "item": "basiliskra:geiger_counter",
+      "count": 1
     }
   }
 }

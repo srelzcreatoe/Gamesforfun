@@ -14,12 +14,18 @@ const EVENTS = Object.keys(ENTITY_JSON['minecraft:entity'].events);
 const HIT_EVENTS = Object.keys(JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities/basiliskra_hitbox_0.json'), 'utf8'))['minecraft:entity'].events);
 
 export const EntityDamageCause = { entityAttack: 'entityAttack', projectile: 'projectile', entityExplosion: 'entityExplosion', blockExplosion: 'blockExplosion',
-  magic: 'magic', thorns: 'thorns', sonicBoom: 'sonicBoom', maceSmash: 'maceSmash', override: 'override', fall: 'fall', lava: 'lava', suffocation: 'suffocation', drowning: 'drowning' };
+  magic: 'magic', fire: 'fire', thorns: 'thorns', sonicBoom: 'sonicBoom', maceSmash: 'maceSmash', override: 'override', fall: 'fall', lava: 'lava', suffocation: 'suffocation', drowning: 'drowning' };
 export const GameMode = { Survival: 'Survival', Creative: 'Creative', Adventure: 'Adventure', Spectator: 'Spectator' };
 export const EquipmentSlot = { Mainhand: 'Mainhand', Offhand: 'Offhand' };
 export const EasingType = { Linear: 'linear', InOutSine: 'in_out_sine' };
 export const EntitySwingSource = { Attack: 'Attack', Build: 'Build', Mine: 'Mine', Interact: 'Interact' };
 export class BlockVolume { constructor(from, to) { this.from = { ...from }; this.to = { ...to }; } }
+/** A block type with its states (only what the pack asks of it: resolve, and reading a state back). */
+export class BlockPermutation {
+  constructor(id, states = {}) { this.type = { id }; this.states = { ...states }; }
+  static resolve(id, states) { return new BlockPermutation(id, states); }
+  getState(k) { return this.states[k]; }
+}
 export class MolangVariableMap { constructor() { this.v = {}; } setFloat(k, v) { this.v[k] = v; } setVector3(k, v) { this.v[k] = v; } setColorRGB(k, v) { this.v[k] = v; } }
 export class ItemStack { constructor(typeId, amount = 1) { this.typeId = typeId; this.amount = amount; } }
 export const CommandPermissionLevel = { Any: 0, GameDirectors: 1, Admin: 2, Host: 3, Owner: 4 };
@@ -121,14 +127,14 @@ export class Sim {
     this.ev = {
       worldLoad: after(), entityLoad: after(), entitySpawn: after(), entityHurt: after(), entityDie: after(), playerBreakBlock: after(),
       playerInteractWithBlock: after(), weatherChange: after(), bEntityRemove: after(), bEntityHurt: after(), shutdown: after(), scriptEvent: after(),
-      itemUse: after(), playerSpawn: after(), startup: after(), playerSwingStart: after(),
+      itemUse: after(), playerSpawn: after(), startup: after(), playerSwingStart: after(), itemCompleteUse: after(),
     };
     this.commands = new Map();          // custom commands the script registered at start-up
     this.enums = new Map();
     this.dims = new Map();
     for (const id of ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end']) this.dims.set(id, new MockDimension(this, id));
     this.api = {
-      EntityDamageCause, GameMode, EquipmentSlot, MolangVariableMap, ItemStack, Player: MockPlayer, Entity: MockEntity, BlockVolume, EasingType, EntitySwingSource,
+      EntityDamageCause, GameMode, EquipmentSlot, MolangVariableMap, ItemStack, Player: MockPlayer, Entity: MockEntity, BlockVolume, BlockPermutation, EasingType, EntitySwingSource,
       CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, PlayerPermissionLevel, EntityInitializationCause,
       world: {
         getDynamicProperty: (k) => sim.save.worldProps.get(k),
@@ -145,7 +151,7 @@ export class Sim {
         sendMessage: (m) => sim.log.commands.push(String(m)),
         afterEvents: { worldLoad: this.ev.worldLoad, entityLoad: this.ev.entityLoad, entitySpawn: this.ev.entitySpawn, entityHurt: this.ev.entityHurt,
           entityDie: this.ev.entityDie, playerBreakBlock: this.ev.playerBreakBlock, playerInteractWithBlock: this.ev.playerInteractWithBlock, weatherChange: this.ev.weatherChange,
-          itemUse: this.ev.itemUse, playerSpawn: this.ev.playerSpawn, playerSwingStart: this.ev.playerSwingStart },
+          itemUse: this.ev.itemUse, playerSpawn: this.ev.playerSpawn, playerSwingStart: this.ev.playerSwingStart, itemCompleteUse: this.ev.itemCompleteUse },
         beforeEvents: { entityRemove: this.ev.bEntityRemove, entityHurt: this.ev.bEntityHurt },
       },
       system: {
@@ -255,7 +261,11 @@ export class Sim {
   /** The engine's start-up: scripts register custom commands here, before the world loads. */
   startup() {
     const sim = this;
-    this.ev.startup.fire({ customCommandRegistry: {
+    this.blockComponents = new Map();    // custom block components the script registered (name -> handlers)
+    this.ev.startup.fire({ blockComponentRegistry: { registerCustomComponent(name, handlers) {
+      if (!name.includes(':')) throw new Error('component needs a namespace');
+      sim.blockComponents.set(name, handlers);
+    } }, customCommandRegistry: {
       registerEnum(name, values) { if (!name.includes(':')) throw new Error('enum needs a namespace'); sim.enums.set(name, values); },
       registerCommand(def, cb) {
         if (!def.name.includes(':')) throw new Error('command needs a namespace');
@@ -306,8 +316,20 @@ class MockBlock {
     if (this.sim.refuseBlocks?.has(id)) throw new Error(`unknown block ${id}`);
     this.sim.setBlock(this.dimension.id, this.x, this.y, this.z, id);
   }
-  /** Leaves a player placed carry persistent_bit; everything else here is as the world made it. */
-  get permutation() { const self = this; return { getState: (k) => (k === 'persistent_bit' ? self.sim.save.edits.get(`placed|${self.x},${self.y},${self.z}`) === true : undefined) }; }
+  setPermutation(perm) {
+    this.setType(perm.type.id);
+    const key = `state|${this.x},${this.y},${this.z}`;
+    if (Object.keys(perm.states).length) this.sim.save.edits.set(key, { id: perm.type.id, states: { ...perm.states } }); else this.sim.save.edits.delete(key);
+  }
+  /** Leaves a player placed carry persistent_bit; the pack's own blocks carry the states they were set with. */
+  get permutation() {
+    const self = this;
+    return { getState: (k) => {
+      if (k === 'persistent_bit') return self.sim.save.edits.get(`placed|${self.x},${self.y},${self.z}`) === true;
+      const st = self.sim.save.edits.get(`state|${self.x},${self.y},${self.z}`);
+      return st && st.id === self.typeId ? st.states[k] : (self.typeId.startsWith('basiliskra:') && k === 'basiliskra:was' ? 0 : undefined);
+    } };
+  }
   getRedstonePower() { return this.sim.save.edits.get(`power|${this.x},${this.y},${this.z}`) ?? 0; }
 }
 
@@ -467,6 +489,10 @@ class MockPlayer {
   setDynamicProperty(k, v) { this.dyn[k] = v; }
   /** The player swings at whatever is in front of them (the game decided no entity was hit: only the swing is reported). */
   swing(held) { this.sim.queue.push(() => this.sim.ev.playerSwingStart.fire({ player: this, heldItemStack: held ? { typeId: held } : undefined, swingSource: 'Attack' })); }
+  setOnFire(seconds) { this.onFire = seconds; return true; }
+  removeEffect(id) { const n = (this.effects ?? []).length; this.effects = (this.effects ?? []).filter((e) => e.id !== id); return this.effects.length !== n; }
+  /** The player finishes eating or drinking what is in hand. */
+  consume(typeId) { this.sim.queue.push(() => this.sim.ev.itemCompleteUse.fire({ itemStack: { typeId }, source: this, useDuration: 0 })); }
   /** The player uses the item in hand (right click / long press). */
   use(typeId) { this.sim.queue.push(() => this.sim.ev.itemUse.fire({ itemStack: { typeId }, source: this })); }
   get location() { return { ...this.loc }; }
@@ -477,7 +503,9 @@ class MockPlayer {
   getVelocity() { return { ...this.vel }; }
   playSound(id, o = {}) { this.heard.push({ id, tick: this.sim.save.tick, ...o }); this.sim.log.sounds.push({ id, to: this.name, tick: this.sim.save.tick }); }
   spawnParticle(id, loc, vars) { this.seen.push({ id, loc, tick: this.sim.save.tick, vars: vars?.v }); this.sim.log.particles.push({ id, to: this.name, tick: this.sim.save.tick }); }
-  runCommand(c) { this.sim.log.commands.push(c); return { successCount: 1 }; }
+  runCommand(c) { this.sim.log.commands.push(c); if (/^music stop/.test(c)) this.music = null; return { successCount: 1 }; }
+  playMusic(id, o = {}) { this.music = { id, ...o }; (this.musicLog ??= []).push({ id, tick: this.sim.save.tick }); }
+  stopMusic() { this.music = null; }
   applyKnockback(h, v) { this.vel.x += h.x; this.vel.z += h.z; this.loc.x += h.x; this.loc.z += h.z; }
   applyDamage(amount, opts = {}) { this.health -= amount; this.sim.log.damage.push({ id: this.id, type: 'minecraft:player', name: this.name, amount, tick: this.sim.save.tick }); return true; }
   getComponent(id) {

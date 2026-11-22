@@ -755,40 +755,69 @@ console.log('\n== 14. Fallout: radiation that changes the land');
   const zones = rec.fallout;
   check('his beam leaves fallout where it lands', fired && zones.length >= 1 && zones.some((z) => z.s > 0.5), JSON.stringify(zones.map((z) => [Math.round(z.x), Math.round(z.z), z.r, +z.s.toFixed(2)])));
   check('ash falls at the impact, and the air there carries glowing motes', target.seen.some((q) => q.id === 'basiliskra:fallout_ash'));
+  check('where it lands there is a glare, a ring of fire across the ground and a fountain of sparks', ['impact_glare', 'impact_ring', 'impact_fountain'].every((n) => target.seen.some((q) => q.id === `basiliskra:${n}`)));
+  let slag = 0, glass = 0;
+  for (let x = -12; x <= 12; x++) for (let z = -10; z <= 14; z++) for (let y = 54; y <= 63; y++) { const b = id(x, y, z); if (b === 'basiliskra:glowing_slag') slag++; if (b === 'basiliskra:scarlet_trinitite') glass++; }
+  check('where his beam blows a crater, the rock under it runs to glowing slag', slag >= 3, `${slag} slag`);
   // now leave it to the fallout, with nobody hunted: everyone creative, he is sent away
   w.bk.ctl.driveOff(true);
   ana.mode = 'Creative'; target.mode = 'Creative';
   const z0 = zones.slice().sort((a, b) => b.s - a.s)[0];
+  const r0 = z0.m / 2.4;                                      // the radius the beam left it with
   ana.moveTo({ x: z0.x + 1, y: 64, z: z0.z + 1 });
-  for (let i = 0; i < 1600; i++) w.sim.step(1);
-  let soil = 0, grass = 0, withered = 0, lawn = 0;
-  for (let x = Math.floor(z0.x) - z0.r; x <= z0.x + z0.r; x++) for (let z = Math.floor(z0.z) - z0.r; z <= z0.z + z0.r; z++) {
-    const top = id(x, 63, z);
-    if (top === 'basiliskra:irradiated_soil') soil++;
-    if (top === 'minecraft:grass_block') grass++;
-  }
-  check('inside it, grass turns to irradiated soil, a little at a time', soil >= 4, `${soil} irradiated, ${grass} grass left`);
+  ana.seen.length = 0;
+  for (let i = 0; i < 1100; i++) w.sim.step(1);
+  const r1 = fallout.radiusOf(z0);
+  check('it spreads: in under a minute it is more than twice as wide as it was left', r1 > r0 * 2 && r1 <= 24, `${r0.toFixed(1)} -> ${r1.toFixed(1)} blocks`);
+  check('the air over it is thick with motes, and a ring of light marks its edge while it spreads', ana.seen.some((q) => q.id === 'basiliskra:rad_cloud') && ana.seen.some((q) => q.id === 'basiliskra:rad_front'));
+  const R = Math.ceil(r1), cx = Math.floor(z0.x), cz = Math.floor(z0.z);
+  const around = (fn) => { for (let x = cx - R; x <= cx + R; x++) for (let z = cz - R; z <= cz + R; z++) fn(x, z); };
+  let soil = 0, grass = 0;
+  const turned = [];
+  around((x, z) => { const top = id(x, 63, z); if (top === 'basiliskra:irradiated_soil') { soil++; if (meadow('minecraft:overworld', x, 63, z) === 'minecraft:grass_block') turned.push([x, z]); } if (top === 'minecraft:grass_block') grass++; });
+  check('inside it the ground glows: grass turns to irradiated soil, and plenty of it', soil >= 30, `${soil} irradiated, ${grass} grass left`);
   let plants0 = 0, plants1 = 0;
-  for (let x = Math.floor(z0.x) - z0.r; x <= z0.x + z0.r; x++) for (let z = Math.floor(z0.z) - z0.r; z <= z0.z + z0.r; z++) {
-    if (/short_grass|poppy/.test(meadow('minecraft:overworld', x, 64, z))) plants0++;
-    if (/short_grass|poppy/.test(id(x, 64, z))) plants1++;
-  }
+  around((x, z) => { if (/short_grass|poppy/.test(meadow('minecraft:overworld', x, 64, z))) plants0++; if (/short_grass|poppy/.test(id(x, 64, z))) plants1++; });
   check('plants wither in it', plants0 > 0 && plants1 < plants0 / 2, `${plants0} -> ${plants1}`);
+  let crystals = 0;
+  around((x, z) => { for (let y = 58; y <= 65; y++) if (id(x, y, z) === 'basiliskra:crimson_crystal') crystals++; });
+  check('crimson crystals grow out of the poisoned ground, here and there', crystals >= 2 && crystals < soil / 3, `${crystals} crystals on ${soil} soil`);
   check('clicks for everyone standing in it, quicker the closer they are', ana.heard.some((q) => /^basiliskra\.geiger\.[1-4]$/.test(q.id)));
-  ana.mode = 'Survival';
-  for (let i = 0; i < 120; i++) w.sim.step(1);
-  check('a player standing in strong fallout gets sick (hunger first)', (ana.effects ?? []).some((e) => e.id === 'hunger'), JSON.stringify((ana.effects ?? []).map((e) => e.id).slice(0, 6)));
+  check('in strong fallout the air itself turns red', w.sim.log.commands.some((c) => /^fog @s push basiliskra:fallout_fog/.test(c)));
+  // it is strong
+  ana.mode = 'Survival'; ana.health = 20; ana.effects = [];
+  for (let i = 0; i < 90; i++) w.sim.step(1);
+  const fx1 = (ana.effects ?? []).map((e) => e.id);
+  check('a player standing in strong fallout gets sick at once: hunger, weakness, nausea, poison', ['hunger', 'weakness', 'nausea', 'poison'].every((e) => fx1.includes(e)) && ana.health === 20, [...new Set(fx1)].join(' '));
+  for (let i = 0; i < 400; i++) w.sim.step(1);
+  check('and staying in the heart of it burns', ana.health < 20, `health ${ana.health}`);
+  // iodine
+  ana.consume('basiliskra:iodine_tablets'); w.sim.step(2);
+  const h0 = ana.health;
+  check('iodine tablets clear what it has done', (ana.effects ?? []).every((e) => !['hunger', 'weakness', 'nausea', 'poison'].includes(e.id)) && fallout.protectedFor(ana) > 4000);
+  for (let i = 0; i < 300; i++) w.sim.step(1);
+  check('and keep it off for four minutes', ana.health === h0 && (ana.effects ?? []).every((e) => !['hunger', 'weakness', 'nausea', 'poison'].includes(e.id)), `health ${h0} -> ${ana.health}`);
+  // glowing slag burns to stand on, iodine or not
+  w.sim.setBlock('minecraft:overworld', 40, 63, -30, 'basiliskra:glowing_slag');
+  ana.moveTo({ x: 40.5, y: 64, z: -29.5 }); ana.health = 20;
+  for (let i = 0; i < 30; i++) w.sim.step(1);
+  check('glowing slag burns whoever stands on it', ana.health < 20 && ana.onFire > 0, `health ${ana.health}`);
+  w.sim.setBlock('minecraft:overworld', 40, 63, -30, 'minecraft:grass_block');
   ana.mode = 'Creative';
   check('never anything built: the cottage, its lawn against the wall, a planted hedge', id(12, 64, -2) === 'minecraft:oak_planks' && id(12, 65, -2) === 'minecraft:glass' && id(hedge.x, hedge.y, hedge.z) === 'minecraft:oak_leaves');
-  // a strong zone over the trees, the pond and the lawn by the cottage: what changes and what does not
+  // strong zones over the trees and the lawn by the cottage, and one on bare rock: what changes and what does not
+  for (let x = -44; x <= -36; x++) for (let z = -4; z <= 4; z++) { w.sim.setBlock('minecraft:overworld', x, 63, z, x < -40 ? 'minecraft:stone' : 'minecraft:deepslate'); w.sim.setBlock('minecraft:overworld', x, 64, z, 'minecraft:air'); }
   fallout.addFallout({ x: 8, y: 64, z: 8 }, 4, 1.2);
   fallout.addFallout({ x: -8, y: 64, z: 6 }, 4, 1.2);
   fallout.addFallout({ x: 14, y: 63, z: 2 }, 3, 1.2);
-  ana.moveTo({ x: 4, y: 64, z: 6 });
+  fallout.addFallout({ x: -40, y: 63, z: 0 }, 3, 1.2);
+  ana.moveTo({ x: -14, y: 64, z: 4 });
   for (let i = 0; i < 2400; i++) w.sim.step(1);
   let leaves = 0; for (let x = 6; x <= 10; x++) for (let z = 6; z <= 10; z++) for (const y of [67, 68]) if (id(x, y, z) === 'minecraft:oak_leaves') leaves++;
-  check('wild leaves fall in strong fallout; trunks stay', leaves < 40 && id(8, 64, 8) === 'minecraft:oak_log', `${leaves} of 50 leaves left`);
+  check('wild leaves fall in strong fallout; trunks stay', leaves < 25 && id(8, 64, 8) === 'minecraft:oak_log', `${leaves} of 50 leaves left`);
   check('the lawn against the cottage wall is never changed', id(13, 63, 1) === 'minecraft:grass_block' && id(12, 63, 1) === 'minecraft:grass_block', id(13, 63, 1));
+  let rock = 0; for (let x = -44; x <= -36; x++) for (let z = -4; z <= 4; z++) if (id(x, 63, z) === 'basiliskra:irradiated_rock') rock++;
+  check('bare rock in it turns to irradiated rock', rock >= 20, `${rock} of 81`);
   // sand the beam touches fuses (he is brought back for it: the scorch is his)
   w.bk.ctl.bringHere({ x: 0, y: 64, z: -40 }, 0, 3); w.sim.step(2);
   w.sim.setBlock('minecraft:overworld', 30, 63, 30, 'minecraft:sand');
@@ -800,30 +829,51 @@ console.log('\n== 14. Fallout: radiation that changes the land');
   w.bk.ctl.brain.scorch({ x: 33, y: 63, z: 30 });
   check('without the custom blocks it falls back to vanilla ones, without an error', id(32, 63, 30) === 'minecraft:smooth_basalt');
   w.sim.refuseBlocks = null;
+  w.bk.ctl.driveOff(true);
   // the journal reads it
-  ana.moveTo({ x: z0.x, y: 64, z: z0.z });
+  ana.moveTo({ x: -8, y: 64, z: 6 });
   ana.use('basiliskra:journal'); w.sim.step(2);
   const page = ana.forms[ana.forms.length - 1]?.body ?? '';
   check('the journal shows the radiation where you stand and the nearest fallout', /FALLOUT/.test(page) && /Radiation where you stand: .*§l\d+%/.test(page) && /Fallout in §f\d+§7 place/.test(page), (page.match(/Radiation where[^\n]*/) || [''])[0]);
   // the counter
   ana.hand = { typeId: 'basiliskra:geiger_counter' }; ana.messages.length = 0;
   w.sim.step(12);
-  check('the Geiger counter shows the dose and the way to the nearest fallout', ana.messages.some((m) => /^\[actionbar\] .*Radiation \d+%/.test(m)), ana.messages.slice(-1)[0]);
-  // time: it fades, and the soil heals
-  const healed0 = soil;
-  w.bk.store.rec.clock += 24000 * 9;                         // nine days: a third of a full zone left, the land heals below a fifth
-  for (let i = 0; i < 200; i++) w.sim.step(1);
-  w.bk.store.rec.clock += 24000 * 6;
-  for (let i = 0; i < 3000; i++) w.sim.step(1);
-  let left = 0;
-  for (let x = Math.floor(z0.x) - z0.r; x <= z0.x + z0.r; x++) for (let z = Math.floor(z0.z) - z0.r; z <= z0.z + z0.r; z++) if (id(x, 63, z) === 'basiliskra:irradiated_soil') left++;
-  check('as it fades the soil heals back to dirt', left < healed0 / 3, `${healed0} -> ${left}`);
-  check('and once faded the fallout is forgotten (the record stays bounded)', w.bk.store.rec.fallout.length <= 32 && w.bk.store.rec.fallout.every((z) => z.s < 2));
+  check('the Geiger counter shows the dose', ana.messages.some((m) => /^\[actionbar\] .*Radiation \d+%/.test(m)), ana.messages.slice(-1)[0]);
+  ana.moveTo({ x: -8, y: 64, z: 60 }); ana.messages.length = 0; w.sim.step(12);
+  check('and, outside it, how far and which way the fallout is', ana.messages.some((m) => /fallout §f\d+§7 blocks north/.test(m)), ana.messages.slice(-1)[0]);
+  ana.hand = null;
+  // time: it fades, the land heals back to exactly what it was, and it is gone
+  ana.moveTo({ x: -14, y: 64, z: 4 });
+  const count = (what) => { let n = 0; for (let x = -70; x <= 50; x++) for (let z = -40; z <= 40; z++) for (let y = 54; y <= 66; y++) if (id(x, y, z) === what) n++; return n; };
+  const before = { soil: count('basiliskra:irradiated_soil'), rock: count('basiliskra:irradiated_rock'), crystal: count('basiliskra:crimson_crystal'), slag: count('basiliskra:glowing_slag') };
+  w.bk.store.rec.clock += 5200;                               // past the point where a full zone starts to heal
+  for (let i = 0; i < 1500; i++) w.sim.step(1);
+  const after = { soil: count('basiliskra:irradiated_soil'), rock: count('basiliskra:irradiated_rock'), crystal: count('basiliskra:crimson_crystal'), slag: count('basiliskra:glowing_slag') };
+  check('as it fades the glow goes out: soil, rock and crystals all go back, and the slag cools', before.soil > 50 && before.rock > 20 && before.slag > 0 && after.soil + after.rock + after.crystal + after.slag === 0 && count('basiliskra:cooled_slag') >= before.slag,
+    `${JSON.stringify(before)} -> ${JSON.stringify(after)}`);
+  check('grass comes back as grass, stone as stone, deepslate as deepslate', turned.length > 10 && turned.every(([x, z]) => id(x, 63, z) === 'minecraft:grass_block') && id(-43, 63, 0) === 'minecraft:stone' && id(-38, 63, 0) === 'minecraft:deepslate',
+    `${turned.filter(([x, z]) => id(x, 63, z) === 'minecraft:grass_block').length} of ${turned.length} grass; ${id(-43, 63, 0)}, ${id(-38, 63, 0)}`);
+  w.bk.store.rec.clock += 2400;
+  for (let i = 0; i < 220; i++) w.sim.step(1);
+  check('and within minutes it is gone altogether: nothing on record, the air clear again', w.bk.store.rec.fallout.length === 0 && fallout.doseAt(ana.location) === 0 && w.sim.log.commands.some((c) => /^fog @s remove/.test(c)),
+    `${w.bk.store.rec.fallout.length} zones left`);
+  // a glowing block left behind where no zone is (nobody was near when its zone ended) puts itself right
+  const fades = w.sim.blockComponents.get('basiliskra:fades');
+  const far = w.sim.dims.get('minecraft:overworld').getBlock({ x: 44, y: 63, z: 30 });
+  far.setPermutation(new (w.sim.api.BlockPermutation)('basiliskra:irradiated_soil', { 'basiliskra:was': 1 }));
+  fades?.onRandomTick({ block: far });
+  check('a glowing block with no fallout left around it goes back on its own (random tick)', !!fades && id(44, 63, 30) === 'minecraft:grass_block', id(44, 63, 30));
+  fallout.addFallout({ x: 44, y: 63, z: 30 }, 4, 1);
+  far.setPermutation(new (w.sim.api.BlockPermutation)('basiliskra:irradiated_soil', { 'basiliskra:was': 1 }));
+  fades?.onRandomTick({ block: far });
+  check('but stays lit while the fallout there is still strong', id(44, 63, 30) === 'basiliskra:irradiated_soil');
   // settings
   w.bk.CONFIG.fallout = 'off';
   const n0 = w.bk.store.rec.fallout.length;
   fallout.addFallout({ x: 50, y: 64, z: 50 }, 4, 1);
   check('with fallout off, nothing is left anywhere', w.bk.store.rec.fallout.length === n0);
+  fades?.onRandomTick({ block: far });
+  check('and what was glowing goes out', id(44, 63, 30) === 'minecraft:grass_block');
   w.bk.CONFIG.fallout = 'land';
 }
 
@@ -1215,6 +1265,45 @@ console.log('\n== 17. A way round, and a way through (1.4)');
     check('a chest in the house is left standing in the road', id(0, 64, 76) === 'minecraft:chest');
     check('beside his road the cliff still stands', id(16, 72, 45) === 'minecraft:stone');
   }
+}
+
+console.log('\n== 18. His themes, and his voice');
+{
+  const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+  const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 0 }); ana.mode = 'Creative';
+  const rec = w.bk.store.rec;
+  Object.assign(rec, { stage: 'alive', token: 'musictoken00000000000000000000000', form: 3, born: 1, rift: { x: 400, y: 56, z: 400, yaw: 0 }, origin: { x: 0, y: 64, z: -40 }, home: { x: 0, y: 64, z: -40 } });
+  const r = w.sim.newRecord(TYPE, 'minecraft:overworld', { x: 0, y: 64, z: -40 }, 0);
+  r.dyn['bk:token'] = rec.token; rec.entityId = r.id; w.bk.store.save();
+  w.sim.attach(r, 'entityLoad'); w.sim.flush(); w.sim.step(45);
+  check('while he is near and not fighting, the theme of his nearness plays (looping, faded in)', ana.music?.id === 'basiliskra.music.dread' && ana.music.loop === true && ana.music.fade > 0, JSON.stringify(ana.music));
+  const c = w.bk.ctl.creature;
+  const seq0 = r.props['basiliskra:fx_seq'];
+  ana.seen.length = 0;
+  w.bk.ctl.brain.forced = { name: 'beam', run: w.bk.ctl.brain.beam(null), limit: 1200 };
+  w.sim.step(30);
+  check('when he fights, it changes to the theme of his wrath', ana.music?.id === 'basiliskra.music.wrath', JSON.stringify(ana.music));
+  let kinds = new Set(), fired = false;
+  for (let i = 0; i < 700; i++) { w.sim.step(1); kinds.add(r.props['basiliskra:fx_kind']); if (c.phase === 'fire') fired = true; if (fired && c.phase === 'idle') break; }
+  check('his mouth is told to move with his roar (the client times the jaw to the recording)', fired && (kinds.has(8) || kinds.has(9)) && r.props['basiliskra:fx_seq'] !== seq0, [...kinds].join(','));
+  const drew = new Set(ana.seen.map((q) => q.id.replace('basiliskra:', '')));
+  const wanted = ['beam_aim', 'muzzle_flash', 'muzzle_shock', 'beam_core', 'beam_ring', 'beam_arc'];
+  check('the beam drew its aim line first, flared and shocked at the mouth, and sent rings and lightning down its length', wanted.every((n) => drew.has(n)),
+    `missing: ${wanted.filter((n) => !drew.has(n)).join(', ') || 'none'}`);
+  const aimAt = ana.seen.findIndex((q) => q.id === 'basiliskra:beam_aim'), coreAt = ana.seen.findIndex((q) => q.id === 'basiliskra:beam_core');
+  check('the aim line comes before the beam, never with it', aimAt >= 0 && aimAt < coreAt && !ana.seen.slice(coreAt).some((q) => q.id === 'basiliskra:beam_aim'));
+  for (let i = 0; i < 700 && ana.music?.id !== 'basiliskra.music.dread'; i++) w.sim.step(1);
+  check('some time after the fighting stops it goes back', ana.music?.id === 'basiliskra.music.dread', JSON.stringify(ana.music));
+  w.bk.CONFIG.music = false; w.sim.step(25);
+  check('with his themes switched off nothing of his plays', ana.music === null);
+  w.bk.CONFIG.music = true; w.sim.step(25);
+  ana.moveTo({ x: 0, y: 64, z: 400 }); w.sim.step(60);
+  check('out of earshot it plays on for a few seconds...', ana.music?.id === 'basiliskra.music.dread');
+  w.sim.step(140);
+  check('...and then fades out', ana.music === null && w.sim.log.commands.some((q) => q === 'music stop 3'));
+  ana.moveTo({ x: 0, y: 64, z: 0 }); w.sim.step(25);
+  w.bk.ctl.sendAway(); w.sim.step(25);
+  check('and when he is sent away it stops', ana.music === null);
 }
 
 console.log(`\n${results.length - failures}/${results.length} checks passed`);

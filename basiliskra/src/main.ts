@@ -8,6 +8,9 @@ import { loadSettings } from "./settings";
 import { canAdmin, giveStarterItems, openJournal, openWheel, placeFor } from "./ui";
 import { clearLine } from "./world";
 import { releaseStale } from "./scene";
+import { fadeBlock, falloutJoin, isIodine, takeIodine } from "./fallout";
+import { musicJoin } from "./music";
+import { FADES_COMPONENT } from "./generated/blocks";
 import { Controller } from "./controller";
 import { partOwner } from "./creature";
 import { particle, sound } from "./fx";
@@ -235,15 +238,25 @@ world.afterEvents.itemUse.subscribe((ev) => {
   } catch { /* left */ }
 });
 
+// iodine tablets, swallowed
+world.afterEvents.itemCompleteUse.subscribe((ev) => {
+  try { if (isIodine(ev.itemStack?.typeId)) takeIodine(ev.source); } catch { /* left */ }
+});
+
 world.afterEvents.playerSpawn.subscribe((ev) => {
   releaseStale(ev.player);                 // a camera left over from a cutscene that this player did not see the end of
   if (!ev.initialSpawn) return;
+  falloutJoin(ev.player);                  // and no red haze left over from another session
+  musicJoin(ev.player);                    // nor a theme left looping
   const p = ev.player;
   system.runTimeout(() => { try { if (p.isValid) giveStarterItems(p); } catch { /* left */ } }, 60);
 });
 
 const FORMS = ["story", "i", "ii", "iii"];
 system.beforeEvents.startup.subscribe((ev) => {
+  // his glowing blocks look after themselves: on a random tick, with no fallout left there, they go back to what they were
+  try { ev.blockComponentRegistry.registerCustomComponent(FADES_COMPONENT, { onRandomTick: (e) => fadeBlock(e.block) }); }
+  catch (e) { console.warn(`[basiliskra] the fading of his blocks could not be registered: ${e}`); }
   const reg = ev.customCommandRegistry;
   const who = (o: { sourceEntity?: unknown; initiator?: unknown }): Player | undefined => {
     const e = (o.initiator ?? o.sourceEntity) as Player | undefined;

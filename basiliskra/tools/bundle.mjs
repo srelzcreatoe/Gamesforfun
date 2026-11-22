@@ -18,7 +18,7 @@ const shim = path.join(root, 'build/mc-shim.mjs');
 fs.mkdirSync(path.dirname(shim), { recursive: true });
 fs.writeFileSync(shim, `const m = globalThis.__MC__;
 export const { world, system, EntityDamageCause, GameMode, EquipmentSlot, MolangVariableMap, ItemStack, Player, Entity,
-  CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, PlayerPermissionLevel, EntityInitializationCause, BlockVolume, EasingType, EntitySwingSource } = m;
+  CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, PlayerPermissionLevel, EntityInitializationCause, BlockVolume, BlockPermutation, EasingType, EntitySwingSource } = m;
 `);
 const uiShim = path.join(root, 'build/mc-ui-shim.mjs');
 fs.writeFileSync(uiShim, `const m = globalThis.__MC_UI__;

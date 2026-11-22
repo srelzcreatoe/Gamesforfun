@@ -2,7 +2,7 @@
 
 
 // src/main.ts
-import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause5, EntitySwingSource, GameMode as GameMode2, system as system6, world as world12 } from "@minecraft/server";
+import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause6, EntitySwingSource, GameMode as GameMode2, system as system6, world as world12 } from "@minecraft/server";
 
 // src/config.ts
 var CONFIG = {
@@ -64,6 +64,13 @@ var WHEEL_ITEM = `${NS}:config_wheel`;
 var COUNTER_ITEM = `${NS}:geiger_counter`;
 var SOIL_BLOCK = `${NS}:irradiated_soil`;
 var TRINITITE_BLOCK = `${NS}:scarlet_trinitite`;
+var ROCK_BLOCK = `${NS}:irradiated_rock`;
+var CRYSTAL_BLOCK = `${NS}:crimson_crystal`;
+var SLAG_BLOCK = `${NS}:glowing_slag`;
+var SLAG_COLD_BLOCK = `${NS}:cooled_slag`;
+var LAMP_BLOCK = `${NS}:shard_lamp`;
+var SHARD_ITEM = `${NS}:crimson_shard`;
+var IODINE_ITEM = `${NS}:iodine_tablets`;
 var PROP = {
   form: `${NS}:form`,
   bound: `${NS}:bound`,
@@ -247,12 +254,13 @@ var SOFT = /(^minecraft:(air|light_block.*|structure_void|short_grass|tall_grass
 function isSolidBlock(b) {
   if (!b) return false;
   if (b.isAir || b.isLiquid) return false;
-  return !SOFT.test(b.typeId);
+  return !SOFT.test(b.typeId) && b.typeId !== "basiliskra:crimson_crystal";
 }
 var PLANT = /^minecraft:(?!stripped_)(.*_log|.*_wood|.*_stem|.*_hyphae|.*leaves.*|azalea|flowering_azalea|bamboo|cactus|melon_block|pumpkin|.*mushroom_block|mushroom_stem|mangrove_roots|bee_nest|chorus_plant|chorus_flower|pointed_dripstone|big_dripleaf|hanging_roots)$/;
 var NATURAL = /^minecraft:(stone|granite|diorite|andesite|deepslate|tuff|calcite|dirt|coarse_dirt|grass_block|podzol|mycelium|dirt_with_roots|mud|clay|sand|red_sand|gravel|suspicious_sand|suspicious_gravel|sandstone|red_sandstone|snow|ice|packed_ice|blue_ice|powder_snow|moss_block|pale_moss_block|hardened_clay|.*_terracotta|netherrack|basalt|smooth_basalt|blackstone|end_stone|dripstone_block|.*_ore|bedrock|obsidian|magma|soul_sand|soul_soil|muddy_mangrove_roots|amethyst_block|budding_amethyst|.*coral_block|cobbled_deepslate|packed_mud)$/;
 var isPlantBlock = (id) => PLANT.test(id);
-var isNaturalGround = (id) => NATURAL.test(id) && !id.includes("glazed") || id === "basiliskra:irradiated_soil" || id === "basiliskra:scarlet_trinitite";
+var HIS_GROUND = /^basiliskra:(irradiated_soil|irradiated_rock|scarlet_trinitite|glowing_slag|cooled_slag)$/;
+var isNaturalGround = (id) => NATURAL.test(id) && !id.includes("glazed") || HIS_GROUND.test(id);
 function trunkBlocked(dim, at2, feetY, radius, built, cliff, full, smash = false) {
   const ring = full ? [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [0.72, 0.72], [-0.72, 0.72], [0.72, -0.72], [-0.72, -0.72]] : [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
   for (const [dx, dz] of ring) {
@@ -280,9 +288,9 @@ var NONE = Symbol("none");
 function groundY(dim, x, z, yTop, depth) {
   const range = dim.heightRange;
   let y = Math.min(Math.floor(yTop), range.max - 1);
-  const stop = Math.max(Math.floor(yTop - depth), range.min);
+  const stop2 = Math.max(Math.floor(yTop - depth), range.min);
   if (!isLoaded(dim, { x, y, z })) return UNLOADED;
-  for (; y >= stop; y--) {
+  for (; y >= stop2; y--) {
     const b = blockAt(dim, { x, y, z });
     if (!b) return UNLOADED;
     if (isSolidBlock(b) && !PLANT.test(b.typeId)) return y + 1;
@@ -2414,26 +2422,62 @@ function clearHarm() {
 }
 
 // src/fallout.ts
-import { EquipmentSlot, world as world6 } from "@minecraft/server";
+import { BlockPermutation, BlockVolume as BlockVolume2, EntityDamageCause as EntityDamageCause3, EquipmentSlot, world as world6 } from "@minecraft/server";
+
+// src/generated/blocks.ts
+var SOIL_WAS = ["minecraft:dirt", "minecraft:grass_block", "minecraft:podzol", "minecraft:mycelium", "minecraft:moss_block", "minecraft:coarse_dirt", "minecraft:dirt_with_roots", "minecraft:sand", "minecraft:red_sand", "minecraft:gravel", "minecraft:mud", "minecraft:clay", "minecraft:snow", "minecraft:pale_moss_block"];
+var ROCK_WAS = ["minecraft:stone", "minecraft:deepslate", "minecraft:granite", "minecraft:diorite", "minecraft:andesite", "minecraft:tuff", "minecraft:sandstone", "minecraft:red_sandstone", "minecraft:calcite", "minecraft:basalt", "minecraft:blackstone", "minecraft:netherrack", "minecraft:end_stone", "minecraft:dripstone_block", "minecraft:smooth_basalt", "minecraft:hardened_clay"];
+var FADES_COMPONENT = "basiliskra:fades";
+
+// src/fallout.ts
 var MAX_ZONES = 32;
-var HALF_LIFE2 = 3 * TICKS.day;
-var GONE = 0.02;
-var HEALING = 0.2;
+var SPREAD = 50 * TICKS.second;
+var GROWTH = 2.4;
+var R_MAX = 24;
+var FADE_FROM = 0.45;
+var HEAL_FROM = 0.72;
 var NEAR2 = 96;
-var SAMPLES_PER_TICK = 6;
-var SOIL_FROM = /* @__PURE__ */ new Set(["minecraft:grass_block", "minecraft:dirt", "minecraft:podzol", "minecraft:mycelium", "minecraft:moss_block", "minecraft:coarse_dirt", "minecraft:dirt_with_roots"]);
-var WITHERS = /^minecraft:(short_grass|fern|dandelion|poppy|.*tulip|.*_orchid|allium|azure_bluet|oxeye_daisy|cornflower|lily_of_the_valley|.*sapling|sweet_berry_bush|wildflowers|pink_petals|leaf_litter|bush|firefly_bush)$/;
+var SAMPLES_PER_TICK = 10;
+var HEALS_PER_TICK = 24;
+var WAS = "basiliskra:was";
+var lifeOf = (s) => (2.5 + 3 * Math.min(1, s)) * 60 * TICKS.second;
+var ageOf = (z, now) => Math.max(0, now - z.t);
+function radiusOf(z, now = store.rec.clock) {
+  const m = z.m ?? z.r, k = Math.min(1, ageOf(z, now) / SPREAD);
+  return z.r + (m - z.r) * (1 - (1 - k) * (1 - k));
+}
+function strengthOf(z, now = store.rec.clock) {
+  const a = ageOf(z, now) / lifeOf(z.s);
+  if (a >= 1) return 0;
+  return a <= FADE_FROM ? z.s : z.s * Math.pow(1 - (a - FADE_FROM) / (1 - FADE_FROM), 1.4);
+}
+var healing = (z, now) => ageOf(z, now) >= lifeOf(z.s) * HEAL_FROM;
+var spreading = (z, now) => ageOf(z, now) < SPREAD && (z.m ?? z.r) > z.r + 0.5;
+var SOIL_INDEX = new Map(SOIL_WAS.map((id, i) => [id, i]));
+var ROCK_INDEX = new Map(ROCK_WAS.map((id, i) => [id, i]));
+var FADING = [SOIL_BLOCK, ROCK_BLOCK, CRYSTAL_BLOCK, SLAG_BLOCK];
+var OURS = /* @__PURE__ */ new Set([...FADING, TRINITITE_BLOCK, SLAG_COLD_BLOCK]);
+var WITHERS = /^minecraft:(short_grass|fern|dandelion|poppy|.*tulip|.*_orchid|allium|azure_bluet|oxeye_daisy|cornflower|lily_of_the_valley|.*sapling|sweet_berry_bush|wildflowers|pink_petals|leaf_litter|bush|firefly_bush|deadbush|short_dry_grass)$/;
 var WITHERS_TALL = /^minecraft:(tall_grass|large_fern|sunflower|lilac|rose_bush|peony|tall_dry_grass)$/;
 var refused = /* @__PURE__ */ new Set();
-function setTypeOr(b, id, fallback) {
-  if (!refused.has(id)) {
+function place(b, id, was = 0) {
+  if (refused.has(id)) return false;
+  try {
+    if (was > 0) b.setPermutation(BlockPermutation.resolve(id, { [WAS]: was }));
+    else b.setType(id);
+    return true;
+  } catch {
     try {
       b.setType(id);
       return true;
     } catch {
       refused.add(id);
+      return false;
     }
   }
+}
+function setTypeOr(b, id, fallback, was = 0) {
+  if (place(b, id, was)) return true;
   try {
     b.setType(fallback);
     return true;
@@ -2441,18 +2485,26 @@ function setTypeOr(b, id, fallback) {
     return false;
   }
 }
-var zones = () => store.rec.fallout;
-function decayed(z, now) {
-  return z.s * Math.pow(0.5, Math.max(0, now - z.t) * CONFIG.pacing / HALF_LIFE2);
+function wasOf(b) {
+  try {
+    const v = b.permutation.getState(WAS);
+    return typeof v === "number" ? v : 0;
+  } catch {
+    return 0;
+  }
 }
+var zones = () => store.rec.fallout;
 function addFallout(at2, r, s) {
   if (CONFIG.fallout === "off") return;
   const now = store.rec.clock, list = zones();
   for (const z of list) {
-    if (dist(z, at2) <= Math.max(z.r, r) * 0.75) {
-      z.s = Math.min(1.5, decayed(z, now) + s);
+    const rad = radiusOf(z, now);
+    if (dist(z, at2) <= Math.max(r, Math.min(rad, 8)) * 0.75) {
+      z.s = Math.min(1.5, strengthOf(z, now) + s);
+      z.r = Math.min(R_MAX, Math.max(rad, r));
+      z.m = Math.min(R_MAX, Math.max(z.m ?? 0, z.r, r * GROWTH));
       z.t = now;
-      z.r = Math.min(9, Math.max(z.r, r));
+      delete z.h;
       store.touch();
       return;
     }
@@ -2464,10 +2516,10 @@ function addFallout(at2, r, s) {
   } catch {
     wet = false;
   }
-  list.push({ x: Math.floor(at2.x) + 0.5, y: Math.floor(at2.y), z: Math.floor(at2.z) + 0.5, r, s: Math.min(1.5, s), t: now, w: wet });
+  list.push({ x: Math.floor(at2.x) + 0.5, y: Math.floor(at2.y), z: Math.floor(at2.z) + 0.5, r, m: Math.min(R_MAX, r * GROWTH), s: Math.min(1.5, s), t: now, w: wet });
   if (list.length > MAX_ZONES) {
     let weakest = 0;
-    for (let i = 1; i < list.length; i++) if (decayed(list[i], now) < decayed(list[weakest], now)) weakest = i;
+    for (let i = 1; i < list.length; i++) if (strengthOf(list[i], now) < strengthOf(list[weakest], now)) weakest = i;
     list.splice(weakest, 1);
   }
   store.touch();
@@ -2475,22 +2527,26 @@ function addFallout(at2, r, s) {
 function doseAt(p, now = store.rec.clock) {
   let d = 0;
   for (const z of zones()) {
-    const k = dist(p, z);
-    if (k < z.r + 1.5) d += decayed(z, now) * Math.max(0, 1 - k / (z.r + 1.5));
+    const k = dist(p, z), R = radiusOf(z, now) + 1.5;
+    if (k < R) d += strengthOf(z, now) * (1 - k / R);
   }
-  return d;
+  return Math.min(1.5, d);
+}
+function hotAt(p, now) {
+  for (const z of zones()) if (!healing(z, now) && dist(p, z) < radiusOf(z, now) + 2.5) return true;
+  return false;
 }
 function nearestFallout(p, now = store.rec.clock) {
   let best = null;
   for (const z of zones()) {
-    const s = decayed(z, now);
+    const s = strengthOf(z, now);
     if (s < 0.05) continue;
     const d = distXZ(p, z);
-    if (!best || d < best.distance) best = { zone: z, strength: s, distance: d };
+    if (!best || d < best.distance) best = { zone: z, strength: s, distance: d, radius: radiusOf(z, now) };
   }
   return best;
 }
-var falloutCount = (now = store.rec.clock) => zones().filter((z) => decayed(z, now) >= 0.05).length;
+var falloutCount = (now = store.rec.clock) => zones().filter((z) => strengthOf(z, now) >= 0.05).length;
 function clearFallout() {
   store.rec.fallout = [];
   store.touch();
@@ -2499,7 +2555,7 @@ function touchesBuilt(dim, x, y, z) {
   for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
     for (const dy of [0, 1]) {
       const n = blockAt(dim, { x: x + dx, y: y + dy, z: z + dz });
-      if (n && isSolidBlock(n) && !isNaturalGround(n.typeId) && !isPlantBlock(n.typeId) && n.typeId !== SOIL_BLOCK && n.typeId !== TRINITITE_BLOCK) return true;
+      if (n && isSolidBlock(n) && !isNaturalGround(n.typeId) && !isPlantBlock(n.typeId)) return true;
     }
   }
   return false;
@@ -2515,30 +2571,20 @@ function naturalLeaves(b) {
 function puff(dim, x, y, z, what) {
   particle(dim, what === "ash" ? "basiliskra:fallout_ash" : "basiliskra:rad_glint", { x: x + 0.5, y: y + 0.6, z: z + 0.5 }, 40);
 }
-function sample(dim, z, s, salt) {
-  const a = hash(salt, 1) * Math.PI * 2, rr = Math.sqrt(hash(salt, 2)) * z.r;
+function sample(dim, z, s, R, salt) {
+  const a = hash(salt, 1) * Math.PI * 2, rr = Math.sqrt(hash(salt, 2)) * R;
   const x = Math.floor(z.x + Math.cos(a) * rr), zz = Math.floor(z.z + Math.sin(a) * rr);
-  const local = s * Math.max(0, 1 - rr / (z.r + 1.5));
+  const local = s * Math.max(0, 1 - rr / (R + 1.5));
   if (!isLoaded(dim, { x, y: z.y, z: zz })) return;
-  for (let y = Math.floor(z.y) + 10; y >= Math.floor(z.y) - 6; y--) {
+  if (hash(salt, 4) > 0.25 + local) return;
+  for (let y = Math.floor(z.y) + 10; y >= Math.floor(z.y) - 8; y--) {
     const b = blockAt(dim, { x, y, z: zz });
     if (!b) return;
     const id = b.typeId;
-    if (id === "minecraft:air" || /^minecraft:light_block_\d+$/.test(id)) continue;
+    if (id === "minecraft:air" || /^minecraft:light_block_\d+$/.test(id) || id === CRYSTAL_BLOCK) continue;
     if (id === "minecraft:water" || id === "minecraft:flowing_water" || id === "minecraft:lava") return;
-    if (s < HEALING) {
-      if (id === SOIL_BLOCK && hash(salt, 3) < 0.5) {
-        try {
-          b.setType("minecraft:dirt");
-        } catch {
-        }
-      }
-      if (isPlantBlock(id) || WITHERS.test(id) || WITHERS_TALL.test(id) || !isSolidBlock(b)) continue;
-      return;
-    }
-    if (hash(salt, 4) > local * 0.6) return;
     if (naturalLeaves(b)) {
-      if (local > 0.35) {
+      if (local > 0.25) {
         try {
           b.setType("minecraft:air");
           puff(dim, x, y, zz, "ash");
@@ -2566,12 +2612,76 @@ function sample(dim, z, s, salt) {
       return;
     }
     if (!isSolidBlock(b)) continue;
-    if (SOIL_FROM.has(id) && !touchesBuilt(dim, x, y, zz)) {
-      const above = blockAt(dim, { x, y: y + 1, z: zz });
-      if (above && !isSolidBlock(above) && setTypeOr(b, SOIL_BLOCK, "minecraft:coarse_dirt")) puff(dim, x, y, zz, "glint");
+    const above = blockAt(dim, { x, y: y + 1, z: zz });
+    if (!above || isSolidBlock(above)) return;
+    if (OURS.has(id)) {
+      if (id !== SLAG_BLOCK && local > 0.3 && above.isAir && hash(x, zz, 77) < 0.075 && place(above, CRYSTAL_BLOCK)) {
+        puff(dim, x, y + 1, zz, "glint");
+        sound(dim, "place.amethyst_cluster", { x: x + 0.5, y: y + 1, z: zz + 0.5 }, 24, 0.7, 0.6 + hash(salt, 9) * 0.3);
+      }
+      return;
     }
+    const soil = SOIL_INDEX.get(id), rock = ROCK_INDEX.get(id);
+    if (soil === void 0 && rock === void 0) return;
+    if (touchesBuilt(dim, x, y, zz)) return;
+    if (soil !== void 0) {
+      if (setTypeOr(b, SOIL_BLOCK, "minecraft:coarse_dirt", soil)) puff(dim, x, y, zz, "glint");
+    } else if (local > 0.2 && place(b, ROCK_BLOCK, rock)) puff(dim, x, y, zz, "glint");
     return;
   }
+}
+function revert(b) {
+  const id = b.typeId;
+  try {
+    if (id === SOIL_BLOCK) {
+      b.setType(SOIL_WAS[wasOf(b)] ?? SOIL_WAS[0]);
+      return true;
+    }
+    if (id === ROCK_BLOCK) {
+      b.setType(ROCK_WAS[wasOf(b)] ?? ROCK_WAS[0]);
+      return true;
+    }
+    if (id === SLAG_BLOCK) {
+      if (!place(b, SLAG_COLD_BLOCK)) b.setType("minecraft:blackstone");
+      return true;
+    }
+    if (id === CRYSTAL_BLOCK) {
+      b.setType("minecraft:air");
+      const at2 = b.location;
+      particle(b.dimension, "basiliskra:crystal_break", { x: at2.x + 0.5, y: at2.y + 0.4, z: at2.z + 0.5 }, 32);
+      sound(b.dimension, "break.amethyst_cluster", { x: at2.x + 0.5, y: at2.y + 0.4, z: at2.z + 0.5 }, 20, 0.5, 0.7);
+      return true;
+    }
+  } catch {
+  }
+  return false;
+}
+function fadeBlock(b) {
+  try {
+    if (b.dimension.id !== OVERWORLD) {
+      revert(b);
+      return;
+    }
+    const at2 = b.location;
+    if (CONFIG.fallout !== "land" || !hotAt({ x: at2.x + 0.5, y: at2.y + 0.5, z: at2.z + 0.5 }, store.rec.clock)) revert(b);
+  } catch {
+  }
+}
+var healQueue = [];
+function healStep(dim, z) {
+  const R = Math.ceil(z.m ?? z.r) + 3, tiles = Math.ceil((2 * R + 1) / 16), i = z.h ?? 0;
+  if (i >= tiles * tiles) return true;
+  const x0 = Math.floor(z.x) - R + i % tiles * 16, z0 = Math.floor(z.z) - R + Math.floor(i / tiles) * 16;
+  const lo = { x: x0, y: Math.floor(z.y) - 14, z: z0 }, hi = { x: Math.min(x0 + 15, Math.floor(z.x) + R), y: Math.floor(z.y) + 14, z: Math.min(z0 + 15, Math.floor(z.z) + R) };
+  if (!isLoaded(dim, lo) || !isLoaded(dim, hi)) return false;
+  try {
+    for (const p of dim.getBlocks(new BlockVolume2(lo, hi), { includeTypes: FADING }, true).getBlockLocationIterator()) healQueue.push({ x: p.x, y: p.y, z: p.z });
+  } catch {
+    return false;
+  }
+  z.h = i + 1;
+  store.touch();
+  return false;
 }
 function fuse(b) {
   if (CONFIG.fallout !== "land") return false;
@@ -2583,21 +2693,34 @@ function fuse(b) {
   }
   return setTypeOr(b, TRINITITE_BLOCK, "minecraft:smooth_basalt");
 }
+function sear(dim, floor, max) {
+  if (CONFIG.fallout !== "land") return 0;
+  let n = 0;
+  for (let i = 0; i < floor.length && n < max; i += 2) {
+    const p = floor[i];
+    const b = blockAt(dim, { x: p.x, y: p.y - 1, z: p.z });
+    if (!b || !isSolidBlock(b)) continue;
+    const id = b.typeId;
+    if (id === "minecraft:sand" || id === "minecraft:red_sand") {
+      if (fuse(b)) n++;
+      continue;
+    }
+    if (!ROCK_INDEX.has(id) && id !== ROCK_BLOCK && id !== "minecraft:cobblestone" && id !== "minecraft:gravel") continue;
+    if (touchesBuilt(dim, p.x, p.y - 1, p.z)) continue;
+    if (place(b, SLAG_BLOCK)) n++;
+  }
+  return n;
+}
 var cursor = 0;
 var doseOf = /* @__PURE__ */ new Map();
+var fogged = /* @__PURE__ */ new Set();
+var absorbed = /* @__PURE__ */ new Map();
+var BURN_AFTER = 4;
+var FOG = "bk_fallout";
 function falloutTick(now) {
   const list = zones();
-  if (CONFIG.fallout === "off" || !list.length) {
-    if (now % 10 === 0) counterTick(now);
-    return;
-  }
-  if (now % 200 === 0) {
-    const keep = list.filter((z) => decayed(z, now) >= GONE);
-    if (keep.length !== list.length) {
-      store.rec.fallout = keep;
-      store.touch();
-    }
-  }
+  if (now % 10 === 0) counterTick(now);
+  if (CONFIG.fallout === "off" || !list.length) return;
   const dim = overworld(), ps = players().filter((p) => {
     try {
       return p.dimension.id === OVERWORLD;
@@ -2605,37 +2728,65 @@ function falloutTick(now) {
       return false;
     }
   });
+  if (now % 100 === 0) {
+    const keep = list.filter((z) => {
+      const over = ageOf(z, now) - lifeOf(z.s);
+      if (over < 0) return true;
+      const R = Math.ceil(z.m ?? z.r) + 3, tiles = Math.ceil((2 * R + 1) / 16);
+      return !(z.w || CONFIG.fallout !== "land" || (z.h ?? 0) >= tiles * tiles || over > 20 * 60 * TICKS.second);
+    });
+    if (keep.length !== list.length) {
+      store.rec.fallout = keep;
+      store.touch();
+    }
+  }
   if (!ps.length) return;
   const live = list.filter((z) => ps.some((p) => distXZ(p.location, z) < NEAR2));
-  if (!live.length) {
-    if (now % 10 === 0) counterTick(now);
-    return;
-  }
-  const land = live.filter((z) => !z.w);
-  if (CONFIG.fallout === "land" && land.length) {
-    for (let i = 0; i < SAMPLES_PER_TICK; i++) {
+  if (!live.length) return;
+  if (CONFIG.fallout === "land") {
+    const land = live.filter((z) => !z.w && !healing(z, now));
+    for (let i = 0; i < SAMPLES_PER_TICK && land.length; i++) {
       const z = land[cursor++ % land.length];
-      sample(dim, z, decayed(z, now), now * 13 + i * 7 + cursor);
+      sample(dim, z, strengthOf(z, now), radiusOf(z, now), now * 13 + i * 7 + cursor);
+    }
+    for (let n = 0; n < HEALS_PER_TICK && healQueue.length; n++) {
+      const b = blockAt(dim, healQueue.pop());
+      if (b) revert(b);
+    }
+    if (!healQueue.length && now % 4 === 0) {
+      for (const q of live) {
+        if (q.w || !healing(q, now)) continue;
+        const before = q.h ?? 0;
+        healStep(dim, q);
+        if ((q.h ?? 0) !== before) break;
+      }
     }
   }
-  if (now % 3 === 0) {
+  if (now % 8 === 0) {
+    let shown = 0;
     for (const z of live) {
-      const s = decayed(z, now);
-      if (s < 0.05 || hash(now, z.x, z.z) > Math.min(1, s * 1.4)) continue;
-      const a = hash(now, z.x, 2) * Math.PI * 2, rr = Math.sqrt(hash(now, z.z, 3)) * z.r;
-      const at2 = { x: z.x + Math.cos(a) * rr, y: z.y + 1 + hash(now, 5) * 2, z: z.z + Math.sin(a) * rr };
-      particle(dim, "basiliskra:rad_mote", at2, 48);
-      if (s > 0.4 && now % 9 === 0) particle(dim, "basiliskra:rad_shimmer", { x: at2.x, y: z.y + 0.6, z: at2.z }, 40);
+      const s = strengthOf(z, now);
+      if (s < 0.05 || shown >= 8) continue;
+      shown++;
+      const R = radiusOf(z, now), at2 = { x: z.x, y: z.y + 0.6, z: z.z };
+      if (hash(now, z.x, z.z) < Math.min(1, 0.35 + s)) particle(dim, "basiliskra:rad_cloud", at2, 72, sizeVars(R));
+      if (now % 16 === 0 && spreading(z, now)) particle(dim, "basiliskra:rad_front", at2, 80, sizeVars(R));
+      if (s > 0.4 && now % 24 === 0) {
+        const a = hash(now, z.x, 2) * Math.PI * 2, rr = Math.sqrt(hash(now, z.z, 3)) * R * 0.6;
+        particle(dim, "basiliskra:rad_shimmer", { x: z.x + Math.cos(a) * rr, y: z.y + 0.6, z: z.z + Math.sin(a) * rr }, 40);
+      }
     }
   }
-  if (now % 10 === 0) counterTick(now);
   if (now % 40 === 0) sicken(dim, live, now, ps);
 }
 function counterTick(now) {
   for (const p of players()) {
     let at2;
     try {
-      if (p.dimension.id !== OVERWORLD) continue;
+      if (p.dimension.id !== OVERWORLD) {
+        clearFog(p);
+        continue;
+      }
       at2 = p.location;
     } catch {
       continue;
@@ -2650,17 +2801,77 @@ function counterTick(now) {
       } catch {
       }
     }
+    if (d >= 0.3 && !fogged.has(p.id)) {
+      try {
+        p.runCommand(`fog @s push basiliskra:fallout_fog ${FOG}`);
+        fogged.add(p.id);
+      } catch {
+      }
+    } else if (d < 0.2 && fogged.has(p.id)) clearFog(p);
     if (holding) {
       const n = nearestFallout(at2, now);
-      const where = n && n.distance > 2 ? `  §7nearest fallout §f${Math.round(n.distance)}§7 blocks ${direction(at2, n.zone)}` : "";
+      const where = n && n.distance > n.radius ? `  §7fallout §f${Math.round(n.distance - n.radius)}§7 blocks ${direction(at2, n.zone)}` : "";
       const colour = level >= 3 ? "§c" : level >= 1 ? "§6" : "§a";
+      const shield = protectedFor(p, now);
       try {
-        p.onScreenDisplay.setActionBar(`${colour}Radiation ${Math.round(Math.min(1, d) * 100)}%${where}`);
+        p.onScreenDisplay.setActionBar(`${colour}Radiation ${Math.round(Math.min(1, d) * 100)}%${shield > 0 ? `  §bIodine ${Math.ceil(shield / TICKS.second)}s` : ""}${where}`);
+      } catch {
+      }
+    } else if (level >= 3 && now % 40 === 0) {
+      try {
+        p.onScreenDisplay.setActionBar(protectedFor(p, now) > 0 ? "§6Heavy fallout §7(the iodine is holding)" : "§cHeavy fallout: get out of the red");
       } catch {
       }
     }
+    try {
+      const under = blockAt(p.dimension, { x: at2.x, y: at2.y - 0.3, z: at2.z });
+      if (under?.typeId === SLAG_BLOCK && vulnerable(p)) {
+        p.setOnFire(4, true);
+        p.applyDamage(2 * CONFIG.damage, { cause: EntityDamageCause3.fire });
+      }
+    } catch {
+    }
   }
 }
+function clearFog(p) {
+  if (!fogged.delete(p.id)) return;
+  try {
+    p.runCommand(`fog @s remove ${FOG}`);
+  } catch {
+  }
+}
+function falloutJoin(p) {
+  fogged.delete(p.id);
+  try {
+    p.runCommand(`fog @s remove ${FOG}`);
+  } catch {
+  }
+}
+var IODINE_TICKS = 4 * 60 * TICKS.second;
+var IODINE_PROP = "bk:iodine";
+function protectedFor(p, now = store.rec.clock) {
+  try {
+    const until = p.getDynamicProperty(IODINE_PROP);
+    return typeof until === "number" ? Math.max(0, Math.min(IODINE_TICKS, until - now)) : 0;
+  } catch {
+    return 0;
+  }
+}
+function takeIodine(p) {
+  try {
+    p.setDynamicProperty(IODINE_PROP, store.rec.clock + IODINE_TICKS);
+    for (const e of ["hunger", "weakness", "nausea", "poison", "wither"]) {
+      try {
+        p.removeEffect(e);
+      } catch {
+      }
+    }
+    p.onScreenDisplay.setActionBar("§bIodine: the fallout cannot make you sick for four minutes. §7(Glowing slag still burns.)");
+    p.playSound("random.orb", { volume: 0.6, pitch: 0.7 });
+  } catch {
+  }
+}
+var isIodine = (id) => id === IODINE_ITEM;
 function holdsCounter(p) {
   try {
     return p.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand)?.typeId === COUNTER_ITEM;
@@ -2672,43 +2883,46 @@ function direction(from, to) {
   const a = Math.atan2(-(to.x - from.x), to.z - from.z) * 180 / Math.PI;
   return ["south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"][(Math.round(a / 45) % 8 + 8) % 8];
 }
+function vulnerable(p) {
+  try {
+    if (CONFIG.harmlessOnPeaceful && String(world6.getDifficulty()).toLowerCase() === "peaceful") return false;
+    const gm = String(p.getGameMode()).toLowerCase();
+    return gm !== "creative" && gm !== "spectator";
+  } catch {
+    return false;
+  }
+}
 function sicken(dim, live, now, ps) {
   if (!CONFIG.sickness) return;
-  let peaceful = false;
-  try {
-    peaceful = CONFIG.harmlessOnPeaceful && String(world6.getDifficulty()).toLowerCase() === "peaceful";
-  } catch {
-    peaceful = false;
-  }
   for (const p of ps) {
     const d = doseOf.get(p.id) ?? 0;
-    if (d < 0.15 || peaceful) continue;
-    let gm = "";
+    const open = vulnerable(p) && protectedFor(p, now) <= 0;
+    const took = Math.max(0, (absorbed.get(p.id) ?? 0) + (open && d > 0.5 ? d : -0.75));
+    if (took > 0) absorbed.set(p.id, Math.min(12, took));
+    else absorbed.delete(p.id);
+    if (d < 0.1 || !open) continue;
     try {
-      gm = String(p.getGameMode());
-    } catch {
-      continue;
-    }
-    if (gm === "Creative" || gm === "creative" || gm === "Spectator" || gm === "spectator") continue;
-    try {
-      p.addEffect("hunger", 80, { amplifier: d > 0.6 ? 1 : 0, showParticles: false });
-      if (d > 0.45) {
-        p.addEffect("weakness", 80, { amplifier: 0, showParticles: false });
-        p.addEffect("nausea", 60, { amplifier: 0, showParticles: false });
+      p.addEffect("hunger", 100, { amplifier: d > 0.5 ? 2 : d > 0.3 ? 1 : 0, showParticles: false });
+      if (d > 0.3) {
+        p.addEffect("weakness", 100, { amplifier: d > 0.7 ? 1 : 0, showParticles: false });
+        p.addEffect("nausea", 140, { amplifier: 0, showParticles: false });
       }
-      if (d > 0.8) p.addEffect("poison", 50, { amplifier: 0, showParticles: false });
+      if (d > 0.5) p.addEffect("poison", 60, { amplifier: d > 0.9 ? 1 : 0, showParticles: false });
+      if (d > 0.8 && took >= BURN_AFTER) p.applyDamage(Math.max(1, Math.round(2 * CONFIG.damage)), { cause: EntityDamageCause3.magic });
     } catch {
     }
   }
   let q = 0;
   for (const z of live) {
-    const s = decayed(z, now);
-    if (s < 0.35 || q++ >= 4) continue;
+    const s = strengthOf(z, now);
+    if (s < 0.3 || q++ >= 4) continue;
     try {
-      for (const e of dim.getEntities({ location: z, maxDistance: z.r + 1, excludeTypes: ["minecraft:player", "minecraft:item", TYPE], excludeFamilies: [PART_FAMILY] })) {
+      const R = radiusOf(z, now);
+      for (const e of dim.getEntities({ location: z, maxDistance: R, excludeTypes: ["minecraft:player", "minecraft:item", TYPE], excludeFamilies: [PART_FAMILY] })) {
         try {
-          e.addEffect("slowness", 80, { amplifier: 0, showParticles: false });
-          e.addEffect("weakness", 80, { amplifier: 0, showParticles: false });
+          e.addEffect("slowness", 100, { amplifier: 0, showParticles: false });
+          e.addEffect("weakness", 100, { amplifier: 0, showParticles: false });
+          if (s * (1 - dist(e.location, z) / (R + 1.5)) > 0.45) e.addEffect("wither", 60, { amplifier: 0, showParticles: false });
         } catch {
         }
       }
@@ -2872,8 +3086,9 @@ function falloutLines(p) {
   if (!n) L.push("§7No fallout on record. His beam, his changes and his seam leave it where they touch the world.");
   else {
     L.push(`§7Fallout in §f${count}§7 place${count === 1 ? "" : "s"}. The nearest is ${compass(at2, n.zone)}, at §f${pct(n.strength)}§7.`);
-    if (CONFIG.fallout === "land") L.push("§7In it, grass and dirt turn to irradiated soil, plants wither and wild leaves fall. Sand his beam touches becomes scarlet trinitite. As it fades, the soil heals.");
-    if (CONFIG.sickness) L.push("§7Strong fallout makes you hungry, then weak and sick. Milk clears it. A Geiger counter (trinitite, copper ingot, redstone) reads it.");
+    L.push("§7It spreads for about a minute, stands a while, then fades and is gone within a few minutes.");
+    if (CONFIG.fallout === "land") L.push("§7In it the ground glows: soil and rock turn irradiated, plants wither, wild leaves fall and crimson crystals grow (break them for shards). Where his beam lands, rock runs to glowing slag and sand fuses to scarlet trinitite. As it fades the land heals back to what it was.");
+    if (CONFIG.sickness) L.push("§7It is strong: hunger, then weakness and nausea, then poison, and the heart of a fresh zone burns. Iodine tablets (2 dried kelp, sugar) keep it off for four minutes; milk clears it. A Geiger counter (trinitite or a crimson shard, copper ingot, redstone) reads it.");
   }
   return L;
 }
@@ -3013,8 +3228,8 @@ async function bringForm(p, ctl2) {
     return;
   }
   const want = r.selection;
-  const place = placeFor(p, want || formOf() || 3);
-  p.sendMessage(`§7[Basiliskra] ${ctl2.bringHere(place.at, place.yaw, want)}`);
+  const place2 = placeFor(p, want || formOf() || 3);
+  p.sendMessage(`§7[Basiliskra] ${ctl2.bringHere(place2.at, place2.yaw, want)}`);
 }
 async function confirm(p, title, body) {
   const f = new MessageFormData().title(title).body(body).button1("Yes").button2("No");
@@ -3198,6 +3413,84 @@ function cutAll() {
   films = [];
 }
 
+// src/music.ts
+var TRACK = (t) => `basiliskra.music.${t}`;
+var RANGE = { dread: 80, wrath: 128, last: 160 };
+var GRACE = 8 * TICKS.second;
+var PROP2 = "bk:music";
+var playing = /* @__PURE__ */ new Map();
+var scene = null;
+function sceneTheme(theme, ticks, at2, dim) {
+  scene = { theme, until: store.rec.clock + ticks, at: { ...at2 }, dim };
+}
+var FIGHT = /* @__PURE__ */ new Set(["charge", "beam", "remember", "scatter", "lock", "pursue", "arc", "pin", "flinch", "boat"]);
+var fightUntil = -1;
+function themeFor(c, now, doing, hurtAt) {
+  if (scene && now < scene.until) return scene.theme;
+  if (!c || !c.valid) return null;
+  if (store.rec.ending?.step || store.rec.evolve) return "last";
+  if (c.form >= 4) return "last";
+  if (FIGHT.has(doing) || hurtAt > 0 && now - hurtAt < 5 * TICKS.second) fightUntil = now + 25 * TICKS.second;
+  if (now < fightUntil) return "wrath";
+  return c.phase === "sleep" ? null : "dread";
+}
+function stop(p) {
+  try {
+    p.runCommand("music stop 3");
+  } catch {
+    try {
+      p.stopMusic();
+    } catch {
+    }
+  }
+  try {
+    p.setDynamicProperty(PROP2, void 0);
+  } catch {
+  }
+}
+function musicTick(c, now, doing = "", hurtAt = -1) {
+  if (now % 20 !== 0) return;
+  const want = CONFIG.music ? themeFor(c, now, doing, hurtAt) : null;
+  for (const p of players()) {
+    let near = false;
+    try {
+      const inScene = !!scene && now < scene.until && p.dimension.id === scene.dim && dist(p.location, scene.at) <= RANGE.last;
+      near = !!want && (inScene || !!c && c.valid && p.dimension.id === c.dim.id && dist(p.location, c.pos) <= RANGE[want]);
+    } catch {
+      continue;
+    }
+    const cur = playing.get(p.id);
+    if (near && want) {
+      if (!cur || cur.theme !== want) {
+        try {
+          p.playMusic(TRACK(want), { fade: cur ? 3 : 2, loop: true, volume: 0.85 });
+          p.setDynamicProperty(PROP2, want);
+          playing.set(p.id, { theme: want, lost: -1 });
+        } catch {
+        }
+      } else cur.lost = -1;
+    } else if (cur) {
+      if (cur.lost < 0) cur.lost = now;
+      if (!CONFIG.music || now - cur.lost >= GRACE) {
+        stop(p);
+        playing.delete(p.id);
+      }
+    }
+  }
+}
+function musicJoin(p) {
+  playing.delete(p.id);
+  try {
+    if (p.getDynamicProperty(PROP2) !== void 0) stop(p);
+  } catch {
+  }
+}
+function musicStop() {
+  scene = null;
+  fightUntil = -1;
+  for (const p of players()) if (playing.delete(p.id)) stop(p);
+}
+
 // src/controller.ts
 import { ItemStack as ItemStack2, system as system5, world as world11 } from "@minecraft/server";
 
@@ -3205,10 +3498,10 @@ import { ItemStack as ItemStack2, system as system5, world as world11 } from "@m
 import { EquipmentSlot as EquipmentSlot2 } from "@minecraft/server";
 
 // src/forms/three.ts
-import { EntityDamageCause as EntityDamageCause4, world as world8 } from "@minecraft/server";
+import { EntityDamageCause as EntityDamageCause5, world as world8 } from "@minecraft/server";
 
 // src/roar.ts
-import { EntityDamageCause as EntityDamageCause3, MolangVariableMap as MolangVariableMap2 } from "@minecraft/server";
+import { EntityDamageCause as EntityDamageCause4, MolangVariableMap as MolangVariableMap2 } from "@minecraft/server";
 var WAVE_SPEED = 2;
 function shake(c, range, peak, seconds = 0.6) {
   for (const p of witnesses(c.dim, c.pos, range)) {
@@ -3285,7 +3578,7 @@ var Shockwave = class {
         this.hit.add(e.id);
         const f = 1 - d / (this.reach + 2);
         const away = norm({ x: e.location.x - this.center.x, y: 0, z: e.location.z - this.center.z });
-        e.applyDamage(Math.max(1, Math.round(this.power * 2 * (0.35 + 0.65 * f))), { cause: EntityDamageCause3.entityAttack, damagingEntity: c.entity });
+        e.applyDamage(Math.max(1, Math.round(this.power * 2 * (0.35 + 0.65 * f))), { cause: EntityDamageCause4.entityAttack, damagingEntity: c.entity });
         e.applyKnockback({ x: (away.x || 0.01) * (0.8 + 1.6 * f), z: (away.z || 0.01) * (0.8 + 1.6 * f) }, 0.3 + 0.35 * f);
       } catch {
       }
@@ -3957,6 +4250,7 @@ var BrainThree = class extends Brain {
             if (t % 4 === 0 && dist(ground, hitBlock) <= CRATER) {
               const got = carve(c.dim, hitBlock, T.carve * fade + 0.5, 110, true);
               if (got.broken) particle(c.dim, "basiliskra:impact_debris", end, 128);
+              sear(c.dim, got.floor, 5);
             }
             if (t % 12 === 0) {
               particle(c.dim, "minecraft:huge_explosion_emitter", end, 144);
@@ -3978,7 +4272,7 @@ var BrainThree = class extends Brain {
               if (segDist(body, from, dir, length) > reach) continue;
               const along = clamp(dot(sub(body, from), dir), 0, Math.max(0, length - 0.6));
               if (!clearLine(c.dim, add(from, mul(dir, along)), body)) continue;
-              c.hurt(p, T.damage, EntityDamageCause4.entityAttack);
+              c.hurt(p, T.damage, EntityDamageCause5.entityAttack);
               try {
                 p.setOnFire(3, true);
               } catch {
@@ -3989,7 +4283,7 @@ var BrainThree = class extends Brain {
           for (const e of mobsNear(c.dim, add(from, mul(dir, length / 2)), length / 2 + 3)) {
             try {
               if (segDist(add(e.location, { x: 0, y: 0.6, z: 0 }), from, dir, length) > reach + 0.6) continue;
-              e.applyDamage(T.damage * 2, { cause: EntityDamageCause4.entityAttack, damagingEntity: c.entity });
+              e.applyDamage(T.damage * 2, { cause: EntityDamageCause5.entityAttack, damagingEntity: c.entity });
               e.setOnFire(5, true);
             } catch {
             }
@@ -4112,7 +4406,7 @@ var NOTE_REACH = 24;
 var GAP_MIN = 11;
 var GAP_MAX = 26;
 var ROD_NEAR_SEAM = 48;
-var GRACE = 60;
+var GRACE2 = 60;
 function holdsFin(p) {
   try {
     return p.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot2.Mainhand)?.typeId === FIN_ITEM;
@@ -4303,7 +4597,7 @@ var Ending = class {
   }
   holding() {
     this.faltered = this.rhythm ? 0 : this.faltered + 1;
-    return this.faltered <= GRACE;
+    return this.faltered <= GRACE2;
   }
   *sequence(c, brain) {
     const rec = store.rec, rift = rec.rift, dim = c.dim;
@@ -5606,7 +5900,7 @@ var Controller = class {
    * deep water (the story begins: he will change as he lives); once he is II or more and has been driven off,
    * the rift opens on land in front of the caller and he walks out of it as he was.
    */
-  callNow(site, by, place) {
+  callNow(site, by, place2) {
     const rec = store.rec;
     const c = this.creature;
     if (c && c.valid) return `He is already here, ${Math.round(dist(c.pos, site))} blocks away. Send him away first, or use Bring him here.`;
@@ -5634,14 +5928,14 @@ var Controller = class {
       store.save();
       return `The rift is opening in the water ${Math.round(dist(w, site))} blocks from you. Watch it.`;
     }
-    if (!place) return "He could not come there.";
+    if (!place2) return "He could not come there.";
     rec.stage = "arriving";
     rec.entityId = null;
     rec.down = null;
     rec.pending = null;
     if (!rec.token) rec.token = newToken();
-    rec.arrival = { step: 0, t0: this.now, water: { ...place.at }, yaw: place.yaw, land: true };
-    rec.home = { ...place.at };
+    rec.arrival = { step: 0, t0: this.now, water: { ...place2.at }, yaw: place2.yaw, land: true };
+    rec.home = { ...place2.at };
     store.save();
     return `The rift is opening in front of you. Basiliskra ${ROMAN2[form]} is coming through.`;
   }
@@ -5685,6 +5979,7 @@ var Controller = class {
       }
     }
     cutAll();
+    musicStop();
     this.creature = null;
     this.brain = null;
     this.runner = null;
@@ -5713,6 +6008,7 @@ var Controller = class {
   /** The config wheel: forget everything, as if the pack had just been added. */
   resetStory() {
     const c = this.creature;
+    musicStop();
     this.creature = null;
     this.brain = null;
     this.runner = null;
@@ -5945,6 +6241,7 @@ var Controller = class {
     beginTick(now);
     filmTick();
     falloutTick(now);
+    musicTick(this.creature, now, this.brain?.actName ?? "", this.brain?.hurtAt ?? -1);
     if (this.creature && !this.creature.valid) {
       this.creature.dropParts();
       this.creature = null;
@@ -6130,6 +6427,7 @@ var Controller = class {
         const foot = { x: a.water.x, y: a.water.y - 2, z: a.water.z };
         if (t === 1) {
           riftOpen(dim, foot, RIFT_SIZE[1]);
+          sceneTheme("dread", 300, foot, dim.id);
           addFallout(a.water, 4, 0.4);
           const head = () => this.creature ? this.creature.anchor("nose") : { x: a.water.x, y: a.water.y + 4, z: a.water.z };
           film(dim, head, { ticks: 330, radius: 110, dist: 30, height: 9, orbit: 50, distEnd: 22, flash: { red: 0.8, green: 0.05, blue: 0.05 } });
@@ -6181,6 +6479,7 @@ var Controller = class {
       if (this.riftShown !== a.t0) {
         this.riftShown = a.t0;
         riftOpen(dim, at2, size);
+        sceneTheme(store.rec.form >= 3 ? "wrath" : "dread", 420, at2, dim.id);
         addFallout(at2, 5, 0.5);
         const focus = () => this.creature ? this.creature.anchor("nose") : { x: at2.x, y: at2.y + size * 0.4, z: at2.z };
         film(dim, focus, {
@@ -6648,15 +6947,15 @@ world12.beforeEvents.entityRemove.subscribe((ev) => {
   }
 });
 var PASSES = /* @__PURE__ */ new Set([
-  EntityDamageCause5.entityAttack,
-  EntityDamageCause5.projectile,
-  EntityDamageCause5.entityExplosion,
-  EntityDamageCause5.blockExplosion,
-  EntityDamageCause5.magic,
-  EntityDamageCause5.thorns,
-  EntityDamageCause5.sonicBoom,
-  EntityDamageCause5.maceSmash,
-  EntityDamageCause5.override
+  EntityDamageCause6.entityAttack,
+  EntityDamageCause6.projectile,
+  EntityDamageCause6.entityExplosion,
+  EntityDamageCause6.blockExplosion,
+  EntityDamageCause6.magic,
+  EntityDamageCause6.thorns,
+  EntityDamageCause6.sonicBoom,
+  EntityDamageCause6.maceSmash,
+  EntityDamageCause6.override
 ]);
 var forwardTick = -1;
 var forwardKey = "";
@@ -6693,7 +6992,7 @@ world12.afterEvents.playerSwingStart.subscribe((ev) => {
       if (hit.dist > 0.3 && !clearLine(c.dim, from, { x: from.x + dir.x * hit.dist, y: from.y + dir.y * hit.dist, z: from.z + dir.z * hit.dist })) return;
       swungAt.set(p.id, store.rec.clock);
       const amount = meleeDamage(held) * (hit.tag === "head" ? 1.25 : hit.tag === "tail" ? 0.6 : 1);
-      c.entity.applyDamage(amount, { cause: EntityDamageCause5.entityAttack, damagingEntity: p });
+      c.entity.applyDamage(amount, { cause: EntityDamageCause6.entityAttack, damagingEntity: p });
     } catch {
     }
   }, 2);
@@ -6815,9 +7114,17 @@ world12.afterEvents.itemUse.subscribe((ev) => {
   } catch {
   }
 });
+world12.afterEvents.itemCompleteUse.subscribe((ev) => {
+  try {
+    if (isIodine(ev.itemStack?.typeId)) takeIodine(ev.source);
+  } catch {
+  }
+});
 world12.afterEvents.playerSpawn.subscribe((ev) => {
   releaseStale(ev.player);
   if (!ev.initialSpawn) return;
+  falloutJoin(ev.player);
+  musicJoin(ev.player);
   const p = ev.player;
   system6.runTimeout(() => {
     try {
@@ -6828,6 +7135,11 @@ world12.afterEvents.playerSpawn.subscribe((ev) => {
 });
 var FORMS = ["story", "i", "ii", "iii"];
 system6.beforeEvents.startup.subscribe((ev) => {
+  try {
+    ev.blockComponentRegistry.registerCustomComponent(FADES_COMPONENT, { onRandomTick: (e) => fadeBlock(e.block) });
+  } catch (e) {
+    console.warn(`[basiliskra] the fading of his blocks could not be registered: ${e}`);
+  }
   const reg = ev.customCommandRegistry;
   const who = (o) => {
     const e = o.initiator ?? o.sourceEntity;
@@ -6853,8 +7165,8 @@ system6.beforeEvents.startup.subscribe((ev) => {
             return;
           }
           const rec = store.rec;
-          const place = placeFor(p, want || (rec.born > 0 ? rec.form : 3));
-          p.sendMessage(`§7[Basiliskra] ${ctl.bringHere(place.at, place.yaw, want)}`);
+          const place2 = placeFor(p, want || (rec.born > 0 ? rec.form : 3));
+          p.sendMessage(`§7[Basiliskra] ${ctl.bringHere(place2.at, place2.yaw, want)}`);
         } catch (e) {
           p.sendMessage(`§c[Basiliskra] ${e}`);
         }

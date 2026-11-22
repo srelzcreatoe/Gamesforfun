@@ -9,5 +9,20 @@
   },
   "basiliskra:scarlet_trinitite": {
     "sound": "glass"
+  },
+  "basiliskra:irradiated_rock": {
+    "sound": "stone"
+  },
+  "basiliskra:glowing_slag": {
+    "sound": "stone"
+  },
+  "basiliskra:cooled_slag": {
+    "sound": "stone"
+  },
+  "basiliskra:crimson_crystal": {
+    "sound": "glass"
+  },
+  "basiliskra:shard_lamp": {
+    "sound": "glass"
   }
 }
