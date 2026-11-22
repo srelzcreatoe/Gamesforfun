@@ -48,7 +48,8 @@ export interface Rec {
   down: number | null;
   /** A call waiting for water it can be answered in.  `passes` counts complete, fruitless searches round the site. */
   pending: { site: V3; since: number; region: string; passes?: number } | null;
-  arrival: { step: number; t0: number; water: V3; yaw: number } | null;
+  /** `land`: he comes through a rift standing on land (a call from the config wheel), not through the water. */
+  arrival: { step: number; t0: number; water: V3; yaw: number; land?: boolean } | null;
   evolve: { to: 2 | 3; step: number; t0: number; at: V3 | null } | null;
   ending: { step: number; t0: number; tries: number } | null;
   mut: { surfacings: number; episodes: number; overland: number; formSince: number; lastEncounter: number; beams: number };

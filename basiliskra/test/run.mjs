@@ -701,16 +701,18 @@ console.log('\n== 13. Spawn egg, the spawn command, the journal and the config w
   w4.restart(); w4.sim.step(2);
   check('and kept with the world across a reload', w4.bk.CONFIG.pacing === 2.5 && w4.bk.CONFIG.terrain === 'none' && w4.bk.CONFIG.spawnForm === 3);
   const op2 = w4.sim.players.find((p) => p.name === 'Op');
-  op2.answers.push(1, 3);                                                     // Bring him here -> Basiliskra III
+  op2.answers.push(2, 3);                                                     // Bring him here -> Basiliskra III
   op2.use('basiliskra:config_wheel'); w4.sim.step(2); await new Promise((r) => setTimeout(r, 0)); await new Promise((r) => setTimeout(r, 0)); w4.sim.step(3);
   check('Bring him here makes Basiliskra III in front of the operator', w4.bk.ctl.creature?.form === 3 && w4.sim.count(TYPE) === 1, op2.messages.slice(-2).join(' | '));
-  op2.answers.push(4);                                                        // Send him back through the seam
-  op2.use('basiliskra:config_wheel'); w4.sim.step(2); await new Promise((r) => setTimeout(r, 0)); w4.sim.step(3);
-  check('Send him back: he leaves through a seam and is owed back', w4.sim.count(TYPE) === 0 && w4.bk.store.rec.stage === 'alive' && w4.bk.store.rec.down !== null);
-  op2.answers.push(6, 0);                                                     // Reset the story -> Yes
+  op2.answers.push(4, 0);                                                     // Send him away -> Yes
+  op2.use('basiliskra:config_wheel'); w4.sim.step(2); for (let i = 0; i < 4; i++) await new Promise((r) => setTimeout(r, 0)); w4.sim.step(3);
+  check('Send him away: he leaves through a seam and stays gone (the story is at its beginning again)', w4.sim.count(TYPE) === 0 && w4.bk.store.rec.stage === 'dormant' && w4.bk.store.rec.born === 0 && w4.bk.store.rec.form === 1);
+  for (let i = 0; i < 26000; i += 100) w4.sim.step(100);
+  check('and a day later he has not come back by himself', w4.sim.count(TYPE) === 0 && w4.bk.store.rec.stage === 'dormant');
+  op2.answers.push(7, 0);                                                     // Reset the story -> Yes
   op2.use('basiliskra:config_wheel'); w4.sim.step(2); for (let i = 0; i < 4; i++) await new Promise((r) => setTimeout(r, 0)); w4.sim.step(3);
   check('Reset the story: as if the pack had just been added', w4.bk.store.rec.stage === 'dormant' && w4.bk.store.rec.born === 0 && Object.keys(w4.bk.store.harm.regions).length === 0 && w4.sim.count(TYPE) === 0);
-  op2.answers.push('busy', 'busy', 5);                                        // the screen is busy (chat open) twice, then the journal
+  op2.answers.push('busy', 'busy', 6);                                        // the screen is busy (chat open) twice, then the journal
   op2.use('basiliskra:config_wheel'); w4.sim.step(2);
   for (let i = 0; i < 40; i++) { await new Promise((r) => setTimeout(r, 0)); w4.sim.step(1); }
   check('a form that cannot open yet (chat open) is tried again', op2.forms.filter((f) => f.title === 'Basiliskra Config Wheel').length >= 3 && op2.forms.some((f) => f.title === 'Basiliskra Journal'));
@@ -1012,6 +1014,88 @@ console.log('\n== 15. Bigger, louder, out of control (1.3)');
     // the window that matters: the east wall (x = 3), panes at z 0..1, y 65..66
     check('at the window one eye hangs just outside the glass, level with it', best && best.x > 4 && best.x < 7.5 && best.y >= 65 && best.y <= 67.2 && Math.abs(best.z - 1) < 1.6,
       best ? `eye at ${best.x.toFixed(2)}, ${best.y.toFixed(2)}, ${best.z.toFixed(2)}` : 'never reached the window');
+  }
+}
+
+console.log('\n== 16. Calling, sending away, changing (1.4)');
+{
+  const tick = async (w, n) => { for (let i = 0; i < n; i++) { w.sim.step(1); if (i % 10 === 0) await new Promise((r) => setTimeout(r, 0)); } };
+  // ---- Call him now: no dusk, no waiting; the rift opens in the nearest deep water and Basiliskra I comes through ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.bay; open(w);
+    w.sim.save.timeOfDay = 6000;                                       // noon: nothing in the old story happened at noon
+    const op = w.sim.addPlayer('Op', { x: -6.5, y: 64, z: 24 });
+    const msg = w.bk.ctl.callNow(op.location, op);
+    check('Call him now answers that the rift is opening, at once', /rift is opening in the water/.test(msg) && w.bk.store.rec.stage === 'arriving', msg);
+    let seenRift = false, born = -1;
+    for (let i = 0; i < 1200 && w.bk.store.rec.stage !== 'alive'; i++) {
+      w.sim.step(1);
+      if (!seenRift && op.seen.some((q) => q.id === 'basiliskra:rift_tear')) seenRift = true;
+      if (born < 0 && w.sim.count(TYPE) === 1) born = i;
+    }
+    check('the rift tears open and he comes through it within the minute, at noon', seenRift && born > 0 && born < 400 && w.bk.store.rec.stage === 'alive' && w.bk.ctl.creature?.form === 1, `rift ${seenRift}, body at tick ${born}, stage ${w.bk.store.rec.stage}`);
+    const cam = op.cam.log;
+    check('everyone near is shown it: the camera is taken, moved, and given back', cam.some((q) => q.preset === 'minecraft:free') && cam.some((q) => q.fade) && cam[cam.length - 1].clear === true && op.cam.held === false, `${cam.filter((q) => q.preset).length} camera moves`);
+    check('heard from far off: a player 180 blocks away hears the rift', (() => { const far = w.sim.addPlayer('Far', { x: 180, y: 64, z: 24 }); w.sim.step(1); const h0 = far.heard.length; w.bk.ctl.sendAway(); return far.heard.length > h0; })());
+    const again = w.bk.ctl.callNow(op.location, op);
+    check('sent away, he can be called again at once', /rift is opening/.test(again), again);
+  }
+  // ---- with no deep water near, it says so and does nothing ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const op = w.sim.addPlayer('Op', { x: 0, y: 64, z: 0 });
+    const msg = w.bk.ctl.callNow(op.location, op);
+    check('with no deep water in reach, Call him now says what it needs', /none within 96 blocks/.test(msg) && w.bk.store.rec.stage === 'dormant', msg);
+    const no = w.bk.ctl.bringHere({ x: 10, y: 64, z: 10 }, 0, 1);
+    check('and Basiliskra I cannot be brought onto dry land', /deep water/.test(no) && w.sim.count(TYPE) === 0, no);
+  }
+  // ---- driven off as Basiliskra III, called back: the rift opens on land and he walks out of it ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const op = w.sim.addPlayer('Op', { x: 0, y: 64, z: 0 }); op.mode = 'Creative'; op.view = { x: 0, y: 0, z: 1 };
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 46 }, 180, 3); w.sim.step(5);
+    const id0 = w.bk.ctl.creature.entity.id;
+    w.bk.ctl.driveOff(true); w.sim.step(3);
+    const msg = w.bk.ctl.callNow(op.location, op, w.bk.ui.placeFor(op, 3));
+    check('owed back as Basiliskra III, he is called through a rift on land', /in front of you/.test(msg) && w.bk.store.rec.arrival?.land === true, msg);
+    let hidden = false, lows = new Set();
+    for (let i = 0; i < 1500 && w.bk.store.rec.stage !== 'alive'; i++) {
+      w.sim.step(1);
+      const c = w.bk.ctl.creature;
+      if (c) { const lo = c.entity.getProperty(P('vis_lo')); lows.add(lo); if (lo === 9) hidden = true; }
+    }
+    const c = w.bk.ctl.creature;
+    check('he is made unseen behind the tear and revealed as he walks through it, head first', hidden && lows.size >= 4 && c?.entity.getProperty(P('vis_lo')) === 0, [...lows].join(','));
+    check('one Basiliskra III stands there, and then he roars', w.sim.count(TYPE) === 1 && c.form === 3 && c.entity.id !== id0 && (() => { for (let i = 0; i < 40; i++) w.sim.step(1); return c.entity.getProperty(P('phase')) === 23; })());
+    check('the camera is given back after the scene', (() => { for (let i = 0; i < 400; i++) w.sim.step(1); return op.cam.held === false && op.cam.log.some((q) => q.preset); })());
+  }
+  // ---- Make him change now: the scene, the light climbing him, the next form, the roar ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const op = w.sim.addPlayer('Op', { x: 0, y: 64, z: 0 }); op.mode = 'Creative';
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 30 }, 180, 2); w.sim.step(5);
+    const id0 = w.bk.ctl.creature.entity.id;
+    const msg = w.bk.ctl.evolveNow();
+    let maxCharge = 0, forms = new Set();
+    for (let i = 0; i < 400; i++) { w.sim.step(1); const c = w.bk.ctl.creature; maxCharge = Math.max(maxCharge, c.entity.getProperty(P('charge'))); forms.add(c.form); }
+    check('Make him change now: the same animal becomes Basiliskra III, lit from tail to head as it happens', /changing into Basiliskra III/.test(msg) && w.bk.ctl.creature.entity.id === id0 && w.bk.ctl.creature.form === 3 && maxCharge === 20 && w.bk.store.rec.evolve === null, `${msg} charge ${maxCharge}`);
+    check('the change is shown to those near, and it shakes the ground', op.cam.log.some((q) => q.preset) && op.seen.some((q) => q.id === 'basiliskra:mutate_gather') && op.seen.some((q) => q.id === 'basiliskra:mutate_burst'));
+    check('at his last form there is nothing further', /last form/.test(w.bk.ctl.evolveNow()));
+  }
+  // ---- brought by someone flying high above the ground: he is put on the ground, and still thinks ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const op = w.sim.addPlayer('Op', { x: 0, y: 140, z: 0 }); op.mode = 'Creative'; op.view = { x: 0, y: 0, z: 1 };
+    const place = w.bk.ui.placeFor(op, 3);
+    check('the place he is brought to is on the ground under it, however high the caller flies', Math.abs(place.at.y - 64) < 0.01, `y ${place.at.y}`);
+    w.bk.ctl.bringHere({ x: 0, y: 130, z: 30 }, 180, 3);               // and even if he is made in mid-air
+    for (let i = 0; i < 120; i++) w.sim.step(1);
+    const c = w.bk.ctl.creature;
+    op.moveTo({ x: 0, y: 64, z: 0 });
+    const p0 = { ...c.pos };
+    for (let i = 0; i < 600; i++) w.sim.step(1);
+    check('made in mid-air he comes down to the ground', Math.abs(c.pos.y - 64) < 0.6, `y ${c.pos.y.toFixed(1)}`);
+    check('and goes on living (he moves, he chooses what to do)', Math.hypot(c.pos.x - p0.x, c.pos.z - p0.z) > 3 && w.bk.ctl.brain.actName !== 'none', `${w.bk.ctl.brain.actName}, moved ${Math.hypot(c.pos.x - p0.x, c.pos.z - p0.z).toFixed(1)}`);
   }
 }
 

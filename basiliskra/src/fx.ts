@@ -26,9 +26,35 @@ export function witnesses(dim: Dimension, at: V3, range: number): Player[] {
   return out;
 }
 
+/** Sounds of his that stay small: instruments, things in a hand, a breath at a window pane. */
+const QUIET = /^basiliskra\.(geiger|fin_pulse|boat_knock|splash|bell_pin|scrape_far|iii\.window_breath|music)/;
+const NEAR = 40, FAR = 220;
+
 export function sound(dim: Dimension, id: string, at: V3, range = 48, volume = 1, pitch = 1): void {
+  // everything he does is heard a long way off: his steps, his voice, his breath, the rift
+  if (id.startsWith("basiliskra.") && !QUIET.test(id)) { loud(dim, id, at, volume, pitch); return; }
   for (const p of witnesses(dim, at, range)) {
     try { p.playSound(id, { location: at, volume, pitch }); } catch { /* gone */ }
+  }
+}
+
+/**
+ * A sound that carries 200 blocks and more.  Near it, it comes from where it is.  Further off the game would
+ * not play it at all, so each distant listener is sent it from a point ten blocks away in its direction,
+ * quieter the further off it really is: it still has a direction, and it still fades with distance.
+ */
+export function loud(dim: Dimension, id: string, at: V3, volume = 1, pitch = 1, far = FAR): void {
+  for (const p of playerCache) {
+    try {
+      if (!p.isValid || p.dimension.id !== dim.id) continue;
+      const l = p.location, d = dist(l, at);
+      if (d > far) continue;
+      if (d <= NEAR) { p.playSound(id, { location: at, volume, pitch }); continue; }
+      const k = 10 / d;
+      const from = { x: l.x + (at.x - l.x) * k, y: l.y + 1.6 + (at.y - l.y) * k, z: l.z + (at.z - l.z) * k };
+      const v = volume * (1 - 0.8 * Math.pow((d - NEAR) / (far - NEAR), 0.8));
+      p.playSound(id, { location: from, volume: v, pitch });
+    } catch { /* gone */ }
   }
 }
 

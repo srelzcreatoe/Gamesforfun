@@ -428,6 +428,11 @@ export class Creature {
         const settled = this.stepLand(this.pos, false);
         this.unsettled = !!settled && Math.abs(settled.y - this.pos.y) > 0.01;
         if (settled) this.pos = settled;
+        else if (this.blockedWhy === "edge" && this.pos.y > this.dim.heightRange.min + 8) {
+          // put down in mid-air (called by someone flying, or the ground under him gone): he comes down to it
+          this.pos = { x: this.pos.x, y: this.pos.y - 4.5, z: this.pos.z };
+          this.unsettled = true;
+        }
       }
     }
     if (this.form === 1) this.keepWet();

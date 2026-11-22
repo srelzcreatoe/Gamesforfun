@@ -6,6 +6,7 @@ import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, En
 import { CONFIG, HITBOX, JOURNAL_ITEM, NS, OVERWORLD, TYPE, WHEEL_ITEM } from "./config";
 import { loadSettings } from "./settings";
 import { canAdmin, giveStarterItems, openJournal, openWheel, placeFor } from "./ui";
+import { releaseStale } from "./scene";
 import { Controller } from "./controller";
 import { partOwner } from "./creature";
 import { particle, sound } from "./fx";
@@ -188,6 +189,7 @@ world.afterEvents.itemUse.subscribe((ev) => {
 });
 
 world.afterEvents.playerSpawn.subscribe((ev) => {
+  releaseStale(ev.player);                 // a camera left over from a cutscene that this player did not see the end of
   if (!ev.initialSpawn) return;
   const p = ev.player;
   system.runTimeout(() => { try { if (p.isValid) giveStarterItems(p); } catch { /* left */ } }, 60);

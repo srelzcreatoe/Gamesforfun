@@ -203,7 +203,10 @@ export function placeFor(p: Player, form: number): { at: V3; yaw: number } {
   const d = [0, 15, 24, 46][form] ?? 30;            // his head reaches this far in front of his middle (II and III are drawn larger)
   const pl = p.location;
   const pos = { x: pl.x + (v.x / n) * d, y: pl.y, z: pl.z + (v.z / n) * d };
-  const g = groundY(overworld(), pos.x, pos.z, pl.y + 24, 48);
+  // the ground there, however high above it the caller is (flying): searched all the way down
+  const dimension = overworld();
+  let g = groundY(dimension, pos.x, pos.z, pl.y + 24, 48);
+  if (g === NONE) g = groundY(dimension, pos.x, pos.z, pl.y - 24, pl.y - 24 - dimension.heightRange.min);
   if (g !== UNLOADED && g !== NONE) pos.y = g as number;
   const yaw = (Math.atan2(-(pl.x - pos.x), pl.z - pos.z) * 180) / Math.PI;
   return { at: pos, yaw };
@@ -263,12 +266,14 @@ async function settingsForm(p: Player): Promise<void> {
     .toggle("Debug messages in the content log", { defaultValue: CONFIG.debug })
     .dropdown("His fallout", ["Off", "Glowing motes and Geiger clicks only", "Also changes the land (natural ground only)"], { defaultValueIndex: FALLOUT.indexOf(CONFIG.fallout) })
     .toggle("Radiation sickness for players", { defaultValue: CONFIG.sickness })
+    .toggle("Cutscenes (the rift, each transformation)", { defaultValue: CONFIG.cutscenes })
+    .toggle("His music", { defaultValue: CONFIG.music })
     .toggle("§cRestore every default", { defaultValue: false })
     .submitButton("Save");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || !r.formValues) return;
   const v = r.formValues;
-  if (v[16] === true) { resetSettings(); p.sendMessage("§7[Basiliskra] Settings restored to the defaults."); return; }
+  if (v[18] === true) { resetSettings(); p.sendMessage("§7[Basiliskra] Settings restored to the defaults."); return; }
   const pacing = pickNumber(SPEEDS, v[0], v[1], CONFIG.pacing, 0.25, 4);
   const damage = pickNumber(DAMAGES, v[5], v[6], CONFIG.damage, 0, 4);
   const bad = typedBad(v[1], 0.25, 4) || typedBad(v[6], 0, 4);
@@ -276,6 +281,7 @@ async function settingsForm(p: Player): Promise<void> {
     pacing, terrain: TERRAIN[Number(v[2])] ?? "wither", spareStorage: v[3] === true, marks: v[4] === true, damage,
     harmlessOnPeaceful: v[7] === true, huntMobs: v[8] === true, allowSummon: v[9] === true, spawnForm: (Number(v[10]) as 0 | 1 | 2 | 3),
     giveJournal: v[11] === true, giveWheel: v[12] === true, debug: v[13] === true, fallout: FALLOUT[Number(v[14])] ?? "land", sickness: v[15] === true,
+    cutscenes: v[16] === true, music: v[17] === true,
   });
   p.sendMessage(`§7[Basiliskra] Settings saved with this world. Story speed §fx${CONFIG.pacing}§7, damage §fx${CONFIG.damage}§7.`);
   if (bad) p.sendMessage("§7[Basiliskra] A number you typed was not in range, so the choice above it was used.");
@@ -301,32 +307,40 @@ async function confirm(p: Player, title: string, body: string): Promise<boolean>
 
 export async function openWheel(p: Player, ctl: Controller): Promise<void> {
   if (!canAdmin(p)) { p.sendMessage("§7[Basiliskra] Only an operator can use the config wheel."); return; }
+  const rec = store.rec;
+  const here = ctl.creature && ctl.creature.valid;
+  const state = here ? `§cBasiliskra ${ROMAN[rec.form]} is here` : rec.stage === "arriving" ? "§ehe is coming through" : rec.stage === "alive" ? `§7Basiliskra ${ROMAN[rec.form]} is away, owed back` : "§7he is not in this world";
   const f = new ActionFormData().title("Basiliskra Config Wheel")
-    .body(`§7Stage: §f${store.rec.stage}§7 · Form: §f${store.rec.born > 0 ? ROMAN[store.rec.form] : "-"}§7 · Story speed §fx${CONFIG.pacing}§7 · Damage §fx${CONFIG.damage}`)
+    .body(`${state}§7 · Story speed §fx${CONFIG.pacing}§7 · Damage §fx${CONFIG.damage}`)
     .button("Settings")
-    .button("Bring him here")
-    .button("Call him (opens the rift at the next dusk)")
+    .button("Call him now (the rift opens)")
+    .button("Bring him here (no rift, pick a form)")
+    .button("Make him change now (next form)")
+    .button("Send him away (until he is called)")
     .button("Skip to dusk")
-    .button("Send him back through the seam")
     .button("Journal")
     .button("§cReset the story");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled) return;
   switch (r.selection) {
     case 0: await settingsForm(p); break;
-    case 1: await bringForm(p, ctl); break;
-    case 2:
+    case 1: {
       if (p.dimension.id !== OVERWORLD) { p.sendMessage("§7[Basiliskra] He only lives in the Overworld."); break; }
-      p.sendMessage(`§7[Basiliskra] ${ctl.callNow(p.location, p)}`);
+      // (a rift on land needs somewhere to stand: in front of the caller, on the ground)
+      const form = rec.stage === "alive" && rec.born > 0 ? rec.form : 1;
+      p.sendMessage(`§7[Basiliskra] ${ctl.callNow(p.location, p, form > 1 ? placeFor(p, form) : undefined)}`);
       break;
-    case 3: world.setTimeOfDay(DUSK + 100); p.sendMessage("§7[Basiliskra] Dusk."); break;
+    }
+    case 2: await bringForm(p, ctl); break;
+    case 3: p.sendMessage(`§7[Basiliskra] ${ctl.evolveNow()}`); break;
     case 4:
-      if (!ctl.creature) { p.sendMessage("§7[Basiliskra] He is not about to send anywhere."); break; }
-      ctl.driveOff(true);
-      p.sendMessage("§7[Basiliskra] He has gone back through a seam. He returns in a day, when someone is near.");
+      if (await confirm(p, "Send him away", "He leaves through a seam and stays gone until you call him again (or until the land is harmed enough to call him). The story starts again from Basiliskra I; the anger on record and his fallout stay.")) {
+        p.sendMessage(ctl.sendAway() ? "§7[Basiliskra] He is gone. Call him now opens the rift again, whenever you want it." : "§7[Basiliskra] He was not in this world.");
+      }
       break;
-    case 5: await openJournal(p, ctl); break;
-    case 6:
+    case 5: world.setTimeOfDay(DUSK + 100); p.sendMessage("§7[Basiliskra] Dusk."); break;
+    case 6: await openJournal(p, ctl); break;
+    case 7:
       if (await confirm(p, "Reset the story", "Forget him, his form, everything he has learned and all the anger on record, as if the pack had just been added. He is removed from the world.")) {
         ctl.resetStory();
         p.sendMessage("§7[Basiliskra] The story has been reset.");

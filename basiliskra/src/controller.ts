@@ -12,14 +12,16 @@ import { Ending } from "./ending";
 import { BrainOne } from "./forms/one";
 import { BrainThree } from "./forms/three";
 import { BrainTwo } from "./forms/two";
-import { beginTick, particle, players, sound } from "./fx";
+import { beginTick, particle, players, sizeVars, sound } from "./fx";
 import { shake } from "./roar";
+import { RIFT_SIZE, riftClose, riftOpen, riftTick } from "./rift";
+import { cutAll, film, filmTick } from "./scene";
 import { RIGS } from "./generated/rig";
 import { clearHarm, type Trigger } from "./harm";
 import { addFallout, clearFallout, falloutTick } from "./fallout";
 import { freshRecord, newToken, store } from "./store";
 import { add, dist, distXZ, dot, forwardOf, hash, mul, norm, sub, wrapDeg, yawTo, type V3 } from "./vec";
-import { NONE, UNLOADED, blockAt, deepHere, isLoaded, isWaterId, overworld, waterColumn } from "./world";
+import { NONE, UNLOADED, blockAt, deepHere, groundY, isLoaded, isWaterId, overworld, waterColumn } from "./world";
 
 const TOKEN = "bk:token";
 const ROMAN = ["", "I", "II", "III"];
@@ -31,6 +33,8 @@ function tellNear(dimId: string, at: V3, msg: string): void {
   }
 }
 const SPAWN_STEP = 3;
+/** The last form he can change into. */
+const MAX_FORM = 3;
 
 /** Places tried round a site in one full search for water (six a call, a call every five seconds). */
 const WATER_CANDIDATES = 60;
@@ -106,7 +110,15 @@ export class Controller {
   bringHere(at: V3, yaw: number, want: 0 | 1 | 2 | 3, body?: Entity): string {
     const rec = store.rec, dim = overworld();
     const form = this.formFor(want, at);
-    if (form === 1) { const w = this.waterNear(at, 48); if (w) at = w; }       // the water form goes to the nearest deep water
+    if (form === 1) {
+      // the water form goes to the nearest deep water; with none in reach he cannot be here at all
+      const w = this.waterNear(at, 96);
+      if (!w) {
+        if (body) this.quarantine(body);
+        return "Basiliskra I lives in deep water, and there is none within 96 blocks (it has to be 5 deep). Bring him as II or III, or go to the sea.";
+      }
+      at = w;
+    }
     const c = this.creature;
     if (c && c.valid) {
       if (body) this.quarantine(body);
@@ -114,7 +126,7 @@ export class Controller {
       this.ending.reset();
       if (rec.stage !== "alive") { rec.stage = "alive"; rec.arrival = null; rec.pending = null; }
       rec.evolve = null; rec.down = null;
-      if (!rec.born) { rec.born = this.now; rec.mut.formSince = this.now; }
+      if (!rec.born) { rec.born = Math.max(1, this.now); rec.mut.formSince = this.now; }
       if (!rec.rift) rec.rift = { ...(this.waterNear(at, 64) ?? at), yaw };
       rec.home = { ...at };                              // brought here on purpose: this is where he keeps to now
       if (c.form !== form) this.setForm(c, form);
@@ -138,7 +150,7 @@ export class Controller {
       rec.entityId = body.id;
       rec.form = form;
       rec.pending = null; rec.arrival = null; rec.evolve = null; rec.ending = null; rec.down = null;
-      if (!rec.born) { rec.born = this.now; rec.mut.formSince = this.now; }
+      if (!rec.born) { rec.born = Math.max(1, this.now); rec.mut.formSince = this.now; }
       if (!rec.rift) rec.rift = { ...(this.waterNear(at, 64) ?? at), yaw };
       if (!rec.origin) rec.origin = { ...at };
       rec.home = { ...at };
@@ -190,14 +202,95 @@ export class Controller {
     this.brain = this.makeBrain(c);
   }
 
-  /** The config wheel: open the rift for him now, at the deep water nearest to `site`. */
-  callNow(site: V3, by: Player): string {
+  /**
+   * The config wheel: open the rift for him NOW.  No dusk, no waiting.  Basiliskra I comes through the nearest
+   * deep water (the story begins: he will change as he lives); once he is II or more and has been driven off,
+   * the rift opens on land in front of the caller and he walks out of it as he was.
+   */
+  callNow(site: V3, by: Player, place?: { at: V3; yaw: number }): string {
     const rec = store.rec;
-    if (rec.stage === "alive" || rec.stage === "arriving") return "He is already here, or on his way.";
-    if (rec.stage === "departed") return "He has gone home. Use the spawn egg or Bring him here to call him back.";
-    rec.stage = "dormant";
-    this.requestArrival({ region: "wheel", site, guilty: by.id, guiltyName: by.name });
-    return "Called. He comes through the nearest deep, open water at the next dusk, while someone is near.";
+    const c = this.creature;
+    if (c && c.valid) return `He is already here, ${Math.round(dist(c.pos, site))} blocks away. Send him away first, or use Bring him here.`;
+    if (rec.stage === "arriving") return "The rift is already open: he is coming through.";
+    const returning = rec.stage === "alive" && rec.born > 0;          // driven off and owed back: as he was
+    const form = returning ? rec.form : 1;
+    const origin = { x: Math.floor(site.x), y: Math.floor(site.y), z: Math.floor(site.z) };
+    if (form === 1) {
+      const w = this.waterNear(site, 96);
+      if (!w) return "The rift opens in deep water, and there is none within 96 blocks (it has to be 5 deep). Go to the sea, a deep lake or a wide river and call him again.";
+      this.waterSearch = null;
+      rec.stage = "arriving"; rec.token = newToken(); rec.entityId = null; rec.down = null; rec.form = 1; rec.pending = null;
+      rec.arrival = { step: 1, t0: this.now, water: w, yaw: this.openHeading(w) };
+      if (!returning) { rec.origin = origin; rec.guilty = by.id; rec.guiltyName = by.name; }
+      rec.home = null;
+      store.save();
+      return `The rift is opening in the water ${Math.round(dist(w, site))} blocks from you. Watch it.`;
+    }
+    if (!place) return "He could not come there.";
+    rec.stage = "arriving"; rec.entityId = null; rec.down = null; rec.pending = null;
+    if (!rec.token) rec.token = newToken();
+    rec.arrival = { step: 0, t0: this.now, water: { ...place.at }, yaw: place.yaw, land: true };
+    rec.home = { ...place.at };
+    store.save();
+    return `The rift is opening in front of you. Basiliskra ${ROMAN[form]} is coming through.`;
+  }
+
+  /** The heading out of a seam in the water with the longest clear, deep run ahead of it (for his first swim). */
+  private openHeading(w: V3): number {
+    const dim = overworld();
+    let best = 0, run = -1;
+    for (let k = 0; k < 8; k++) {
+      const yaw = k * 45, f = forwardOf(yaw);
+      let n = 0;
+      for (let s = 4; s <= 48; s += 4) {
+        if (deepHere(dim, w.x + f.x * s, w.z + f.z * s, Math.floor(w.y + 5.5), 4) !== true) break;
+        n++;
+      }
+      if (n > run) { run = n; best = yaw; }
+    }
+    return best;
+  }
+
+  /**
+   * The config wheel: he leaves through a seam and stays gone.  The story goes back to its beginning (the anger
+   * on record, and his fallout, stay): calling him again starts it afresh.
+   */
+  sendAway(): boolean {
+    const c = this.creature;
+    const was = store.rec.stage !== "dormant";
+    if (c && c.valid) {
+      const at = { x: c.pos.x, y: c.pos.y, z: c.pos.z };
+      if (c.form === 1) c.say("basiliskra.roar_under", c.anchor("nose"), 96);
+      else c.say("basiliskra.roar_short", c.anchor("nose"), 128, 1, c.form === 2 ? 1.18 : 1);
+      riftOpen(c.dim, at, RIFT_SIZE[c.form] * 0.6);
+      riftClose(c.dim, at, RIFT_SIZE[c.form] * 0.6);
+      this.brain?.finish();
+      c.dropParts();
+      try { c.entity.setProperty(PROP.bound, false); c.entity.remove(); } catch { /* already unloading */ }
+    }
+    cutAll();
+    this.creature = null; this.brain = null; this.runner = null; this.waterSearch = null;
+    this.ending.reset();
+    const old = store.rec;
+    store.rec = freshRecord();
+    store.rec.clock = old.clock;
+    store.rec.fallout = old.fallout;
+    store.rec.sites = old.sites;
+    store.save();
+    store.flush();
+    return was;
+  }
+
+  /** The config wheel: his next change, now, where he stands (with its scene). */
+  evolveNow(): string {
+    const c = this.creature, rec = store.rec;
+    if (!c || !c.valid || rec.stage !== "alive") return "He is not here to change.";
+    if (rec.evolve) return "He is changing already.";
+    if (rec.form >= MAX_FORM) return `Basiliskra ${ROMAN[rec.form]} is his last form.`;
+    this.ending.reset();
+    rec.evolve = { to: (rec.form + 1) as 2 | 3, step: 0, t0: this.now, at: { ...c.pos } };
+    store.save();
+    return `Basiliskra ${ROMAN[rec.form]} is changing into Basiliskra ${ROMAN[rec.form + 1]}.`;
   }
 
   /** The config wheel: forget everything, as if the pack had just been added. */
@@ -369,6 +462,7 @@ export class Controller {
     const now = ++rec.clock;
     if (now % 600 === 0) store.touch();          // the clock itself is worth saving twice a minute
     beginTick(now);
+    filmTick();
     falloutTick(now);
     if (this.creature && !this.creature.valid) { this.creature.dropParts(); this.creature = null; this.brain = null; this.runner = null; }
     if (now % 20 === 0) this.sweep();
@@ -466,6 +560,7 @@ export class Controller {
     const rec = store.rec, a = rec.arrival;
     if (!a) { rec.stage = rec.entityId || rec.down !== null ? "alive" : "dormant"; store.save(); return; }
     const dim = overworld(), now = this.now, t = now - a.t0;
+    if (a.land) { this.arriveLand(); return; }
     const near = players().some((p) => { try { return p.dimension.id === dim.id && distXZ(p.location, a.water) < 96; } catch { return false; } });
     if (a.step >= SPAWN_STEP) {
       // creation has been attempted at some point: reconcile identity before anything else
@@ -509,15 +604,21 @@ export class Controller {
         break;
       }
       case 2: {
-        // at dusk a vertical red seam opens below the surface
-        if (t === 1) { sound(dim, "basiliskra.rift.open", a.water, 72); addFallout(a.water, 4, 0.4); }
+        // the rift tears open in the water, from the bed to well above the surface, and everyone near is shown it
+        const foot = { x: a.water.x, y: a.water.y - 2, z: a.water.z };
+        if (t === 1) {
+          riftOpen(dim, foot, RIFT_SIZE[1]);
+          addFallout(a.water, 4, 0.4);
+          const head = () => (this.creature ? this.creature.anchor("nose") : { x: a.water.x, y: a.water.y + 4, z: a.water.z });
+          film(dim, head, { ticks: 330, radius: 110, dist: 30, height: 9, orbit: 50, distEnd: 22, flash: { red: 0.8, green: 0.05, blue: 0.05 } });
+        }
+        riftTick(dim, foot, RIFT_SIZE[1], t, Math.min(1, t / 90));
         if (t % 4 === 0) particle(dim, "basiliskra:seam", a.water, 72);
-        if (t % 60 === 30) sound(dim, "basiliskra.rift.hum", a.water, 48);
         if (t > 90 && near) this.setStep(SPAWN_STEP);
         break;
       }
       case SPAWN_STEP: {
-        if (t % 4 === 0) particle(dim, "basiliskra:seam", a.water, 72);
+        riftTick(dim, { x: a.water.x, y: a.water.y - 2, z: a.water.z }, RIFT_SIZE[1], t, 1);
         if (!this.creature) {
           if (t % 20 !== 1) break;
           // his head is at the seam; the rest of him is still on the other side
@@ -541,13 +642,97 @@ export class Controller {
           this.runner = null;
           rec.stage = "alive";
           rec.arrival = null;
-          if (!rec.born) { rec.born = now; rec.mut.formSince = now; }
+          if (!rec.born) { rec.born = Math.max(1, now); rec.mut.formSince = now; }
           store.save();
           this.brain?.finish();
         }
         break;
       }
     }
+  }
+
+  // ---- a rift on land (a call from the wheel once he is Basiliskra II or more) -----------------------------
+  private arriveLand(): void {
+    const rec = store.rec, a = rec.arrival!, dim = overworld(), t = this.now - a.t0;
+    const form = rec.form, size = RIFT_SIZE[form], at = a.water;
+    if (a.step === 0) {
+      // the tear opens, and swells for three seconds
+      if (this.riftShown !== a.t0) {
+        this.riftShown = a.t0;
+        riftOpen(dim, at, size);
+        addFallout(at, 5, 0.5);
+        const focus = (): V3 => (this.creature ? this.creature.anchor("nose") : { x: at.x, y: at.y + size * 0.4, z: at.z });
+        film(dim, focus, { ticks: 400, radius: 120, dist: size * 1.5 + 14, height: size * 0.35 + 4, orbit: 60, distEnd: size * 1.2 + 10,
+                           flash: { red: 0.8, green: 0.05, blue: 0.05 } });
+      }
+      riftTick(dim, at, size, t, Math.min(1, t / 60));
+      if (t < 60) return;
+      // he is made behind it, unseen (the reservation simply waits if that place is not loaded yet)
+      if (!this.creature) {
+        const f = forwardOf(a.yaw);
+        const reach = [0, 14, 12, 30, 20][form];        // how far in front of his middle his nose is
+        const back = add(at, mul(f, -(reach + 2)));
+        if (!this.create(dim, { x: back.x, y: at.y + 1, z: back.z }, a.yaw)) return;
+      }
+      const c = this.creature!;
+      c.set(PROP.visLo, 9);
+      c.setPhase("move");
+      c.wade = true;
+      this.setStep(4);
+      this.runner = this.landWalk();
+      return;
+    }
+    if (!this.creature) {
+      // a restart caught him part-way through: he is simply there
+      if (rec.entityId !== null) return;                             // he exists but is not loaded: wait for him
+      if (this.create(dim, { x: at.x, y: at.y + 1, z: at.z }, a.yaw)) this.finishArrival();
+      return;
+    }
+    if (!this.runner) { this.finishArrival(); return; }
+    const done = this.runner.next().done;
+    this.creature.update();
+    if (done) { this.runner = null; this.finishArrival(); }
+  }
+  private riftShown = -1;
+
+  /** He is through: the story has him, and he says so. */
+  private finishArrival(): void {
+    const rec = store.rec, c = this.creature;
+    rec.stage = "alive";
+    rec.arrival = null;
+    if (!rec.born) { rec.born = Math.max(1, this.now); rec.mut.formSince = this.now; }
+    store.save();
+    if (c) { c.set(PROP.visLo, 0); c.set(PROP.visHi, 8); c.wade = false; }
+    this.brain?.finish();
+    const b = this.brain;
+    if (b instanceof BrainThree) b.forced = { name: "roar", run: b.roar(true), limit: 220 };
+    else if (b instanceof BrainTwo) b.forced = { name: "roar", run: b.roar(), limit: 120 };
+  }
+
+  /** He walks out through the tear: what has passed it is what is seen.  Then it closes behind him. */
+  private *landWalk(): Generator<void, void, void> {
+    const rec = store.rec, a = rec.arrival!, dim = overworld();
+    const form = rec.form, size = RIFT_SIZE[form];
+    const at = a.water, f = forwardOf(a.yaw);
+    const tail = [0, 26, 24, 42, 62][form];           // how far behind his middle his tail ends
+    const c = this.creature!;
+    c.goTo(add(at, mul(f, tail + 4)), form === 2 ? 0.1 : 0.14, 2);
+    for (let t = 0; t < 700; t++) {
+      if (!this.creature) return;
+      const pass = this.passed(c, at, a.yaw);
+      let lo = 9;
+      for (let z = 8; z >= 0 && pass[z]; z--) lo = z;
+      c.set(PROP.visLo, lo);
+      riftTick(dim, at, size, 60 + t, 1);
+      if (t % 24 === 0) { c.say(form >= 3 ? "basiliskra.iii.step" : "basiliskra.ii.drag", c.anchor("nose"), 96, 1, 0.9); shake(c, 48, 0.2, 0.3); }
+      if (lo === 0 || c.arrived() || c.blocked > 40) break;
+      yield;
+    }
+    c.wade = false;
+    c.set(PROP.visLo, 0);
+    c.halt();
+    riftClose(dim, at, size);
+    for (let t = 0; t < 20; t++) yield;
   }
 
   /** Zones (head 8 .. tail 0) that have passed a plane through `at` facing `yaw`. */
@@ -579,14 +764,13 @@ export class Controller {
         let lo = 9;
         for (let z = 8; z >= 0 && pass[z]; z--) lo = z;
         c.set(PROP.visLo, lo);
-        if (t % 4 === 0) particle(dim, "basiliskra:seam", a.water, 72);
+        riftTick(dim, { x: a.water.x, y: a.water.y - 2, z: a.water.z }, RIFT_SIZE[1], t, 1);
         if (lo === 0) break;
         yield;
       }
       // the seam closes across the tip of his tail: the pale notch he carries from now on
       c.set(PROP.visLo, 0);
-      sound(dim, "basiliskra.rift.close", a.water, 72);
-      particle(dim, "basiliskra:seam_close", a.water, 72);
+      riftClose(dim, { x: a.water.x, y: a.water.y - 2, z: a.water.z }, RIFT_SIZE[1]);
       this.setStep(5);
       c.halt();
       for (let t = 0; t < 30; t++) yield;
@@ -695,9 +879,31 @@ export class Controller {
     const rec = store.rec, ev = rec.evolve!, now = this.now;
     const t = now - ev.t0;
     c.halt();
+    // the change is a scene: light gathers on him and climbs his body, the ground shakes, and everyone near is shown it
+    const big = [0, 6, 9, 16, 26][ev.to] ?? 16;                         // roughly his size after it, in blocks
+    const heart = { x: c.pos.x, y: c.pos.y + big * 0.45, z: c.pos.z };
+    const GATHER = 150;
     if (ev.step === 0) {
-      if (c.phase !== "evolve") { this.brain?.finish(); c.setPhase("evolve"); c.say("basiliskra.mutate", c.pos, 72); }
-      if (t >= 90 || t < 0) {
+      if (c.phase !== "evolve") {
+        this.brain?.finish();
+        c.setPhase("evolve");
+        c.say("basiliskra.mutate", c.pos, 72);
+        film(c.dim, () => ({ x: c.pos.x, y: c.pos.y + big * 0.45, z: c.pos.z }),
+             { ticks: GATHER + 190, radius: 120, dist: big * 2.4 + 12, height: big * 0.5 + 3, orbit: 140, distEnd: big * 1.7 + 10 });
+      }
+      c.setCharge(Math.min(20, (t / GATHER) * 20));
+      if (t % 6 === 0) particle(c.dim, "basiliskra:mutate_gather", heart, 160, sizeVars(big));
+      if (t % 20 === 0) shake(c, 90, 0.12 + 0.4 * Math.min(1, t / GATHER), 1.0);
+      if (t === 70) c.say("basiliskra.mutate", c.pos, 72, 1, 1.12);
+      if (t >= GATHER || t < 0) {
+        particle(c.dim, "basiliskra:mutate_burst", heart, 200);
+        particle(c.dim, "basiliskra:rift_flash", { x: c.pos.x, y: c.pos.y, z: c.pos.z }, 200, sizeVars(big * 1.6));
+        sound(c.dim, "ambient.weather.thunder", heart, 128, 1, 0.55);
+        for (const p of players()) {
+          try {
+            if (p.dimension.id === c.dim.id && dist(p.location, c.pos) < 140) p.camera.fade({ fadeColor: { red: 1, green: 0.85, blue: 0.8 }, fadeTime: { fadeInTime: 0.05, holdTime: 0.12, fadeOutTime: 0.9 } });
+          } catch { /* left */ }
+        }
         // the record changes first; the entity is then brought into line with it
         rec.form = ev.to;
         rec.mut.formSince = now;
@@ -729,7 +935,10 @@ export class Controller {
     }
     if (c.form !== rec.form) { ev.step = 1; return; }       // reloaded between the two writes
     if (c.phase !== "beach") c.setPhase("beach");
-    if (t >= 70) {
+    c.setCharge(Math.max(0, 20 - t * 0.2));                  // the light drains out of him as he finds his feet
+    if (t % 10 === 0 && t < 60) particle(c.dim, "basiliskra:shed_flakes", heart, 96);
+    if (t >= 110) {
+      c.setCharge(0);
       rec.evolve = null;
       store.save();
       this.brain?.finish();

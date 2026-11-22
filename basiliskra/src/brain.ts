@@ -67,6 +67,8 @@ export function anyoneNear(c: Creature, range: number): boolean {
 /** Phases in which he may grunt (not while he roars, charges, fires, knocks, crosses or hangs at a window). */
 const VOICED = new Set(["idle", "move", "look", "drink", "pin", "flinch", "beach"]);
 
+let lastFault = "";
+
 export abstract class Brain {
   protected act: Act | null = null;
   actName = "none";
@@ -137,7 +139,12 @@ export abstract class Brain {
     if (!this.act) return;
     this.actTicks++;
     let done = false;
-    try { done = this.act.next().done === true; } catch (e) { done = true; if (CONFIG.debug) console.warn(`[basiliskra] ${this.actName}: ${e}`); }
+    try { done = this.act.next().done === true; } catch (e) {
+      done = true;
+      // always said (once per distinct fault): a brain that stops is otherwise invisible
+      const m = `${this.actName}: ${e}`;
+      if (m !== lastFault) { lastFault = m; console.warn(`[basiliskra] ${m}`); }
+    }
     if (done || this.actTicks > this.actLimit) this.finish();
   }
 

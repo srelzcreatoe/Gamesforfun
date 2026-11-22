@@ -17,6 +17,7 @@ export const EntityDamageCause = { entityAttack: 'entityAttack', projectile: 'pr
   magic: 'magic', thorns: 'thorns', sonicBoom: 'sonicBoom', maceSmash: 'maceSmash', override: 'override', fall: 'fall', lava: 'lava', suffocation: 'suffocation', drowning: 'drowning' };
 export const GameMode = { Survival: 'Survival', Creative: 'Creative', Adventure: 'Adventure', Spectator: 'Spectator' };
 export const EquipmentSlot = { Mainhand: 'Mainhand', Offhand: 'Offhand' };
+export const EasingType = { Linear: 'linear', InOutSine: 'in_out_sine' };
 export class BlockVolume { constructor(from, to) { this.from = { ...from }; this.to = { ...to }; } }
 export class MolangVariableMap { constructor() { this.v = {}; } setFloat(k, v) { this.v[k] = v; } setVector3(k, v) { this.v[k] = v; } setColorRGB(k, v) { this.v[k] = v; } }
 export class ItemStack { constructor(typeId, amount = 1) { this.typeId = typeId; this.amount = amount; } }
@@ -126,7 +127,7 @@ export class Sim {
     this.dims = new Map();
     for (const id of ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end']) this.dims.set(id, new MockDimension(this, id));
     this.api = {
-      EntityDamageCause, GameMode, EquipmentSlot, MolangVariableMap, ItemStack, Player: MockPlayer, Entity: MockEntity, BlockVolume,
+      EntityDamageCause, GameMode, EquipmentSlot, MolangVariableMap, ItemStack, Player: MockPlayer, Entity: MockEntity, BlockVolume, EasingType,
       CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, PlayerPermissionLevel, EntityInitializationCause,
       world: {
         getDynamicProperty: (k) => sim.save.worldProps.get(k),
@@ -446,6 +447,14 @@ class MockPlayer {
     this.vel = { x: 0, y: 0, z: 0 };
     this.playerPermissionLevel = 2; this.messages = []; this.forms = []; this.answers = []; this.dyn = {}; this.view = { x: 0, y: 0, z: 1 };
     this.onScreenDisplay = { setActionBar: (t) => this.messages.push('[actionbar] ' + t) };
+    // the camera: what a cutscene did to it is kept, so a test can see that it was taken and given back
+    this.cam = { log: [], held: false };
+    const cam = this.cam;
+    this.camera = {
+      setCamera: (preset, o) => { cam.held = true; cam.log.push({ preset, at: o?.location, look: o?.facingLocation, tick: sim.save.tick }); },
+      clear: () => { cam.held = false; cam.log.push({ clear: true, tick: sim.save.tick }); },
+      fade: (o) => { cam.log.push({ fade: o?.fadeColor, tick: sim.save.tick }); },
+    };
   }
   get isValid() { return this.online; }
   sendMessage(m) { this.messages.push(String(m)); }
