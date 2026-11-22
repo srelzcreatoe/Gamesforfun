@@ -3000,7 +3000,10 @@ function angerLines(p, a, here) {
 }
 function evolveLines() {
   const rec = store.rec, now = rec.clock, L = [];
-  const days = Math.min(1, (now - rec.mut.formSince) / pace(2 * TICKS.day));
+  const need = pace(2 * TICKS.day), since = now - rec.mut.formSince;
+  const days = Math.min(1, since / need);
+  const item = (done, text) => `  ${done ? "§a[x]" : "§c[ ]"} §7${text}`;
+  const wait2 = days >= 1 ? "" : ` §8(about ${Math.max(1, Math.ceil((need - since) / TICKS.minute))} min left)`;
   if (rec.evolve) {
     L.push("§cHe is changing right now.");
     return L;
@@ -3008,17 +3011,23 @@ function evolveLines() {
   if (rec.form === 1) {
     const s = Math.min(1, rec.mut.surfacings / 6), e = Math.min(1, rec.mut.episodes / 3), f = Math.min(days, s, e);
     L.push(`§fBecoming Basiliskra II: ${bar(f, "§6")} §l${pct(f)}§r`);
-    L.push(`  §7Days in the water ${pct(days)} · seen at the surface ${Math.min(rec.mut.surfacings, 6)} of 6 · spasms ${Math.min(rec.mut.episodes, 3)} of 3`);
-    L.push("  §7He surfaces near boats and swimmers; the spasms come near piers and in open water at dusk. Then he beaches on a sand or gravel shore with someone near.");
+    L.push("§7All three of these, then the last step:");
+    L.push(item(days >= 1, `Two days in the water: ${pct(days)}${wait2}`));
+    L.push(item(s >= 1, `Seen at the surface ${Math.min(rec.mut.surfacings, 6)} of 6 times §8(he comes up under boats and near swimmers)`));
+    L.push(item(e >= 1, `Spasms ${Math.min(rec.mut.episodes, 3)} of 3 §8(they take him near piers, and in open water at dusk)`));
+    L.push(`  §e->§7 Then he beaches on a sand or gravel shore with a player near, and changes there${f >= 1 ? " §a(he is ready: go and stand on a beach)" : ""}.`);
   } else if (rec.form === 2) {
     const o = Math.min(1, rec.mut.overland * CONFIG.pacing / 220), f = Math.min(days, o);
     L.push(`§fBecoming Basiliskra III: ${bar(f, "§6")} §l${pct(f)}§r`);
-    L.push(`  §7Days on the shore ${pct(days)} · dragged overland ${Math.floor(Math.min(220, rec.mut.overland * CONFIG.pacing))} of 220 blocks`);
-    L.push("  §7The change comes at night or in rain, with someone near.");
+    L.push("§7Both of these, then the last step:");
+    L.push(item(days >= 1, `Two days on the shore: ${pct(days)}${wait2}`));
+    L.push(item(o >= 1, `Dragged himself overland ${Math.floor(Math.min(220, rec.mut.overland * CONFIG.pacing))} of 220 blocks §8(he wanders while anyone is near)`));
+    L.push(`  §e->§7 Then he changes at night or in rain, with a player near${f >= 1 ? " §a(he is ready: wait for dark or rain, and stay close)" : ""}.`);
   } else {
     L.push("§fThe last crossing");
     L.push("  §7Carry his shed fin to the seam; play his three knocks on note blocks near it and keep playing; lead his charge into a lightning rod near the seam.");
   }
+  if (rec.form < 3) L.push("  §8An operator's config wheel can also make him change at once.");
   return L;
 }
 function comingLines(p, ctl2) {

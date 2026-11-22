@@ -7,11 +7,13 @@ An original survival-horror add-on for Minecraft Bedrock. One creature per save.
 * **Experiments:** none. **Cheats:** none. **Commands:** none needed.
 * **Graphics:** standard Bedrock rendering; Vibrant Visuals supported (PBR texture sets with emissive glow).
 
-> **1.3 is built from the project owner's in-game play of 1.2** (bigger forms, feet that can be hit, slower legs, settings that work on a phone, a journal that counts kills as kills, the atomic breath timed to its recording, roars with a shockwave, wither-like destruction, and an animal that hunts everything). None of 1.3 has been seen in game yet; it was checked without the game: Mojang's published schemas and typings and a simulated world. [docs/TEST_REPORT.md](docs/TEST_REPORT.md) says exactly what was and was not verified.
+> **1.4 is built from the project owner's in-game play of 1.3**: sending him away now works and calling him opens a rift at once; bringing him no longer leaves him floating; every form can be hit from snout to tail; Basiliskra III walks through whatever is in his way and every form finds its way round walls; he is heard from 200 blocks; his jaw and the screen shake follow his recordings; a bigger beam; a rift and a cutscene for his arrival and each change; fallout that spreads, glows and goes, with new blocks and items; and three themes. **None of 1.4 has been seen in game yet**: it was checked without the game, against Mojang's published schemas and typings and in a simulated world. [docs/TEST_REPORT.md](docs/TEST_REPORT.md) says exactly what was and was not verified. A fourth form is modelled (`models/basiliskra_iv.bbmodel`) and comes into the game in 1.5; the brief for it is [docs/FORM_IV_PLAN.md](docs/FORM_IV_PLAN.md).
 
 **Out of control:** Basiliskra III (now drawn 1.7 times his model, about seventy blocks long) goes after players and animals alike, treads on what is underfoot and smashes through buildings. His atomic breath charges for seven seconds and fires for seven and a half, smoking, blasting burning craters and destroying whatever it meets, like the Wither (chests, beds and portals are spared by default). He roars after every breath, at whatever he goes after, and now and then for no reason, and every roar shakes the screen and sends a shockwave across the land.
 
-**Fallout:** his beam, his changes and his seam leave radiation that changes the land (irradiated soil, withering, scarlet trinitite where sand fuses), with Geiger clicks, radiation sickness and a craftable Geiger counter.
+**Fallout:** his beam, his changes and his rift leave radiation that spreads for a minute, stands, then fades and heals within minutes. While it lasts the ground glows (irradiated soil and rock, crimson crystals, glowing slag where the beam lands, scarlet trinitite where sand fuses), the air turns red, and it is strong: sickness at once, burns in the heart of it. Iodine tablets, a Geiger counter, crimson shards and a shard lamp are craftable.
+
+**Music:** three themes of his own ("He is near", "He is fighting", "The last form"), about two and three quarter minutes each, written and rendered for this pack from code (modelled strings, brass, choir, percussion and organ in a synthetic hall; no samples, nothing borrowed).
 
 In game: a **journal** (how angry he is, as a percentage, and when he will come), a **config wheel** for operators (settings saved with the world; bring, call, send back, reset), a **spawn egg**, and `/basiliskra:spawn`, `/basiliskra:journal`, `/basiliskra:config` (no cheats needed). See the [survival guide](docs/SURVIVAL_GUIDE.md).
 
@@ -19,14 +21,14 @@ In game: a **journal** (how angry he is, as a percentage, and when he will come)
 
 | File | What it is |
 |---|---|
-| `dist/Basiliskra-1.3.1.mcaddon` | behaviour pack + resource pack, ready to import |
-| `models/basiliskra_i.bbmodel`, `_ii`, `_iii` | the three editable Blockbench models, textures and animations embedded |
+| `dist/Basiliskra-1.4.0.mcaddon` | behaviour pack + resource pack, ready to import |
+| `models/basiliskra_i.bbmodel`, `_ii`, `_iii`, `_iv` | the editable Blockbench models, textures embedded (animations for I to III; IV is not in the game yet) |
 | `docs/SURVIVAL_GUIDE.md` | install, what calls him, the three stages, the ending, settings |
 | `previews/*.mp4` | reference videos (see below) |
 
 ## Previews
 
-These are **offline reference renders of 1.2, not in-game capture**, and have not been rendered again for 1.3 (Form III is shown at his old size, with the old beam and no shockwave). The encounter videos replay a recording of the real behaviour script, run in a simulated world, using the shipped geometry, textures, client animations, particle definitions and sounds. The terrain, sky, rain, stand-in player and boat are drawn by the preview tool.
+These are **offline reference renders of 1.2, not in-game capture**, and have not been rendered again since (Form III is shown at his old size, with the old beam and no shockwave, rift or fallout glow). The encounter videos replay a recording of the real behaviour script, run in a simulated world, using the shipped geometry, textures, client animations, particle definitions and sounds. The terrain, sky, rain, stand-in player and boat are drawn by the preview tool.
 
 | Video | Shows |
 |---|---|

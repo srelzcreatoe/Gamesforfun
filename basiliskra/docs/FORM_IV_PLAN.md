@@ -5,10 +5,13 @@ model first, then stop for approval**; then everything else.
 
 ## Status
 
-**The model is built and waiting for approval** (`tools/kit/forms/form4.py`, `models/basiliskra_iv.bbmodel`,
-`packs/RP/models/entity/basiliskra_iv.geo.json` and its textures; pictures in `previews/model_iv_turnaround.png`,
-`previews/model_iv_views.png`, a turntable in `previews/model_iv.mp4`). It is **not in the game yet**: the entity
-does not use it, there are no animations for it, and the shipped add-on (1.3.1) does not contain it.
+* **1.4.0** (shipped): everything under "2. Bugs to fix" and "3. Changes asked for", and a clearer account of how
+  he changes (the journal's checklist). The three themes are in and play by what he is doing.
+* **Basiliskra IV**: the model is built and approved (`tools/kit/forms/form4.py`, `models/basiliskra_iv.bbmodel`,
+  `packs/RP/models/entity/basiliskra_iv.geo.json` and its textures; pictures in
+  `previews/model_iv_turnaround.png`, `previews/model_iv_views.png`, a turntable in `previews/model_iv.mp4`). It is
+  **not in the game in 1.4.0**: the entity does not use it yet. Bringing him into the game (his walk, his brain,
+  the stare, the six set pieces, the change from III to IV and its scene) is **1.5.0**.
 
 At model scale he is 27.5 blocks to the top of the skull (33.8 to the wing claws), 54.5 across the wings and 44.5
 from muzzle to club; 1,464 cubes, 69 bones, a 2048 x 2048 texture. `DRAW_SCALE` gives him 2.0 for now (55 blocks

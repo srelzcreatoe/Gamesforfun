@@ -1,6 +1,6 @@
 {
   "name": "basiliskra-addon",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "private": true,
   "description": "Basiliskra - an original Minecraft Bedrock survival-horror creature add-on (build tooling).",
   "scripts": {

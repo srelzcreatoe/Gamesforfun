@@ -317,6 +317,7 @@ DYNAMIC_SOUNDS = {
     "`basiliskra.${": [f"basiliskra.{f}.{k}" for f in ("ii", "iii") for k in ("grunt", "breath", "growl")] + ["basiliskra.i.grunt", "basiliskra.i.breath"],
     "`basiliskra.geiger.${": [f"basiliskra.geiger.{n}" for n in (1, 2, 3, 4)],
     "`basiliskra.i.${": ["basiliskra.i.breath", "basiliskra.i.swim"],
+    "`basiliskra.music.${": [f"basiliskra.music.{t}" for t in ("dread", "wrath", "last")],
 }
 for sid in sorted(set(re.findall(r'`basiliskra\.[a-z0-9_.]*\$\{', src))):
     if sid not in DYNAMIC_SOUNDS:
