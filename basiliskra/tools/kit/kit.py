@@ -22,6 +22,9 @@ which is exactly what Blockbench draws after its (-x, -y, z) import flip in ZYX 
 """
 from __future__ import annotations
 
+# Drawn size over modelled size, per form (the client entity's "scale"; the server rig uses the same numbers).
+DRAW_SCALE = {"i": 1.0, "ii": 1.25, "iii": 1.7}
+
 import base64
 import hashlib
 import io
@@ -316,9 +319,12 @@ class Model:
     # ---- exports -------------------------------------------------------------
     def geometry_json(self) -> dict:
         lo, hi = self.bounds()
-        ext_xz = float(max(abs(lo[0]), abs(hi[0]), abs(lo[2]), abs(hi[2]))) / 16.0
-        height = float(hi[1] - min(lo[1], 0)) / 16.0
-        margin = self.meta.get("bounds_margin", 4.0)
+        # the client draws forms II and III larger than they are modelled (client entity "scale"): so are the bounds
+        k = DRAW_SCALE.get(self.identifier.rsplit(".", 1)[-1], 1.0)
+        ext_xz = k * float(max(abs(lo[0]), abs(hi[0]), abs(lo[2]), abs(hi[2]))) / 16.0
+        height = k * float(hi[1] - min(lo[1], 0)) / 16.0
+        lo = [float(v) * k for v in lo]
+        margin = self.meta.get("bounds_margin", 4.0) * k
         desc = {
             "identifier": self.identifier,
             "texture_width": self.tex_w,

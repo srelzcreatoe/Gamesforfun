@@ -42,14 +42,16 @@ export const isNaturalGround = (id: string): boolean => (NATURAL.test(id) && !id
  * him from `built` heights up, the world's own ground only from `cliff` up (lower rises he climbs),
  * and trees never do.  Unloaded columns do not answer.
  */
-export function trunkBlocked(dim: Dimension, at: V3, feetY: number, radius: number, built: readonly number[], cliff: number, full: boolean): boolean {
+export function trunkBlocked(dim: Dimension, at: V3, feetY: number, radius: number, built: readonly number[], cliff: number, full: boolean, smash = false): boolean {
   const ring = full
     ? [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [0.72, 0.72], [-0.72, 0.72], [0.72, -0.72], [-0.72, -0.72]]
     : [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
   for (const [dx, dz] of ring) {
     const x = at.x + dx * radius, z = at.z + dz * radius;
     const top = blockAt(dim, { x, y: feetY + cliff, z });
-    if (top && isSolidBlock(top) && !isPlantBlock(top.typeId)) return true;
+    // smashing through, a built wall is not in his way however high: only the world's own rock is
+    if (top && isSolidBlock(top) && !isPlantBlock(top.typeId) && (!smash || isNaturalGround(top.typeId))) return true;
+    if (smash) continue;
     for (const h of built) {
       const b = blockAt(dim, { x, y: feetY + h, z });
       if (b && isSolidBlock(b) && !isPlantBlock(b.typeId) && !isNaturalGround(b.typeId)) return true;

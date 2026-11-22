@@ -162,6 +162,46 @@ def looping(name, sprite, rate, cap, shape, speed, life, size, color, accel=None
     return fx(name, sprite, material, **comps)
 
 
+def streak_along(name, sprite, n, drag, life, size, color, accel=None, material="particles_blend", spread=0.08, facing="lookat_xyz"):
+    """Particles thrown from the mouth along the beam the server measured (variable.dir, variable.len); each one is
+    slowed by drag so it comes to rest at a random point of the beam, then drifts (smoke rises, embers fall)."""
+    comps = {**ONCE, **burst(n)}
+    comps["minecraft:emitter_shape_point"] = {"offset": [0, 0, 0], "direction": [
+        f"v.dir.x + math.random(-{spread}, {spread})", f"v.dir.y + math.random(-{spread}, {spread})", f"v.dir.z + math.random(-{spread}, {spread})"]}
+    comps["minecraft:particle_initial_speed"] = f"math.random(0.03, 1.0) * v.len * {drag}"
+    comps["minecraft:particle_lifetime_expression"] = {"max_lifetime": life}
+    comps["minecraft:particle_motion_dynamic"] = {"linear_acceleration": accel or [0, 0, 0], "linear_drag_coefficient": drag}
+    comps["minecraft:particle_appearance_billboard"] = bb(sprite, size, facing)
+    comps["minecraft:particle_appearance_tinting"] = {"color": color}
+    return fx(name, sprite, material, **comps)
+
+
+def wave(name, sprite, n, speed, size, color, accel=None):
+    """A ring of dust thrown outward along the ground at the speed of the server's shockwave; it reaches
+    variable.reach blocks (the radius the server will carry the wave to) and dies there."""
+    comps = {**ONCE, **burst(n)}
+    comps["minecraft:emitter_shape_disc"] = {"radius": 1.5, "plane_normal": "y", "surface_only": True, "direction": "outwards"}
+    comps["minecraft:particle_initial_speed"] = speed
+    comps["minecraft:particle_lifetime_expression"] = {"max_lifetime": f"math.max(0.3, v.reach / {speed})"}
+    comps["minecraft:particle_motion_dynamic"] = {"linear_acceleration": accel or [0, 0, 0]}
+    comps["minecraft:particle_appearance_billboard"] = bb(sprite, size)
+    comps["minecraft:particle_appearance_tinting"] = {"color": color}
+    return fx(name, sprite, "particles_blend", **comps)
+
+
+def flat_ring(name, sprite, speed, color):
+    """One ring lying on the ground, growing at the wave's speed to variable.reach."""
+    grow = f"1 + {speed} * v.particle_age"
+    return fx(name, sprite, "particles_blend", **ONCE, **burst(1), **{
+        "minecraft:emitter_shape_point": {},
+        "minecraft:particle_initial_speed": 0,
+        "minecraft:particle_lifetime_expression": {"max_lifetime": f"math.max(0.3, v.reach / {speed})"},
+        "minecraft:particle_motion_dynamic": {},
+        "minecraft:particle_appearance_billboard": bb(sprite, [grow, grow], "emitter_transform_xz"),
+        "minecraft:particle_appearance_tinting": {"color": color},
+    })
+
+
 SPH = lambda r: {"minecraft:emitter_shape_sphere": {"radius": r, "direction": "outwards"}}
 SHRINK = lambda s: [f"{s} * (1 - v.particle_age / v.particle_lifetime)"] * 2
 RAND = lambda a, b: f"math.random({a}, {b})"          # evaluated once: speed, lifetime, direction
@@ -170,10 +210,30 @@ PR = lambda a, b, k=1: f"({a} + {round(b - a, 4)} * v.particle_random_{k})"   # 
 FLICKER = lambda s: f"({s} + {round(s * 0.5, 4)} * math.sin(v.particle_age * 720 + v.particle_random_2 * 360)) * (1 - 0.6 * v.particle_age / v.particle_lifetime)"
 RAD = ((0, WHITE), (0.25, (1.0, 0.36, 0.30, 1.0)), (0.7, RED), (1, DEEP))
 
+SMOKE = grad((0, (0.42, 0.09, 0.07, 0.0)), (0.08, (0.40, 0.10, 0.08, 0.8)), (0.4, (0.20, 0.17, 0.17, 0.65)), (1, (0.10, 0.09, 0.09, 0)))
+FIRE = grad((0, WHITE), (0.2, HOT), (0.55, RED), (1, DEEP))
+DUST = grad((0, (0.50, 0.45, 0.39, 0.0)), (0.1, (0.50, 0.45, 0.39, 0.8)), (1, (0.42, 0.38, 0.33, 0)))
+GROW = lambda a, b: [f"({a} + ({b} - {a}) * v.particle_age / v.particle_lifetime) * (0.8 + 0.4 * v.particle_random_1)"] * 2
+
 EFFECTS = [
     # ---- the beam ---------------------------------------------------------------------------
     beam("beam_core", "streak", "particles_add", WHITE),
     beam("beam_halo", "halo", "particles_blend", (1.0, 0.10, 0.07, 0.9)),
+    # the wide scarlet glow round the beam, and the smoke and embers it throws off along its whole length
+    beam("beam_glow", "halo", "particles_blend", (0.95, 0.08, 0.06, 0.38)),
+    streak_along("beam_smoke", "puff", 12, 4.0, RAND(1.8, 3.2), GROW(0.5, 2.4), SMOKE, accel=[0, 1.6, 0], spread=0.12),
+    streak_along("beam_embers", "ember", 10, 3.0, RAND(0.5, 1.1), SHRINK(0.22), FIRE, accel=[0, -3, 0], material="particles_add", spread=0.2),
+    # where it lands: a white flash, fire, a column of smoke, and the ground thrown into the air
+    scatter("impact_blast", "flare", 5, 0.8, RAND(1, 4), RAND(0.35, 0.6), GROW(1.6, 4.2), FIRE, drag=2.0, material="particles_add"),
+    scatter("impact_fire", "wisp", 9, 1.4, RAND(0.5, 2.5), RAND(0.6, 1.3), [PR(0.5, 1.1), PR(0.8, 1.6, 2)], FIRE, accel=[0, 3.5, 0], drag=1.2, material="particles_add"),
+    scatter("impact_smoke", "puff", 8, 1.6, RAND(0.6, 2.2), RAND(3.0, 5.0), GROW(1.2, 4.5), SMOKE, accel=[0, 1.4, 0], drag=0.7,
+            shape={"minecraft:emitter_shape_sphere": {"radius": 1.6, "direction": [RAND(-0.6, 0.6), 1, RAND(-0.6, 0.6)]}}),
+    scatter("impact_debris", "square_ring", 14, 0.8, RAND(5, 13), RAND(0.9, 1.8), [PR(0.12, 0.32)] * 2,
+            grad((0, (0.36, 0.33, 0.31, 1)), (0.8, (0.30, 0.27, 0.25, 1)), (1, (0.25, 0.22, 0.2, 0))), accel=[0, -20, 0], drag=0.3,
+            shape={"minecraft:emitter_shape_sphere": {"radius": 0.8, "direction": [RAND(-0.8, 0.8), 1, RAND(-0.8, 0.8)]}}, facing="rotate_xyz"),
+    # the roar: a ring of dust thrown out along the ground at the speed of the shockwave, and the ring itself
+    wave("roar_wave", "puff", 110, 40, GROW(0.8, 2.6), DUST, accel=[0, 1.2, 0]),
+    flat_ring("roar_ring", "ring", 40, grad((0, (1, 0.92, 0.86, 0.55)), (0.6, (1, 0.6, 0.5, 0.3)), (1, (0.8, 0.3, 0.25, 0)))),
     scatter("beam_spiral", "pixel", 1, 0.02, RAND(0.2, 0.9), 0.28, SHRINK(0.26), grad((0, RED), (0.6, RED), (1, DEEP))),
     scatter("beam_impact", "ember", 9, 0.35, RAND(3, 8), RAND(0.35, 0.8), SHRINK(0.2), grad((0, WHITE), (0.3, HOT), (0.7, RED), (1, DEEP)),
             accel=[0, -12, 0], drag=1.2, material="particles_add"),
@@ -200,8 +260,8 @@ EFFECTS = [
             accel=[0, -14, 0], shape={"minecraft:emitter_shape_sphere": {"radius": 0.2, "direction": [RAND(-0.5, 0.5), 1, RAND(-0.5, 0.5)]}}),
     # ---- land -----------------------------------------------------------------------------------
     scatter("grit", "pixel", 6, 0.4, RAND(0.5, 2), RAND(0.4, 0.9), [PR(0.05, 0.12)] * 2, grad((0, (0.5, 0.48, 0.45, 1)), (1, (0.4, 0.38, 0.36, 0))), accel=[0, -9, 0]),
-    scatter("step_dust", "puff", 12, 1.6, RAND(0.6, 2.2), RAND(0.7, 1.5), [PR(0.3, 0.7)] * 2, grad((0, (0.45, 0.4, 0.34, 0.7)), (1, (0.4, 0.36, 0.3, 0))),
-            accel=[0, 0.4, 0], drag=2.2, shape={"minecraft:emitter_shape_disc": {"radius": 1.8, "plane_normal": "y", "direction": "outwards"}}),
+    scatter("step_dust", "puff", 16, 2.6, RAND(0.8, 3.0), RAND(0.9, 1.8), [PR(0.45, 1.0)] * 2, grad((0, (0.45, 0.4, 0.34, 0.75)), (1, (0.4, 0.36, 0.3, 0))),
+            accel=[0, 0.4, 0], drag=2.2, shape={"minecraft:emitter_shape_disc": {"radius": 2.8, "plane_normal": "y", "direction": "outwards"}}),
     scatter("lamp_flare", "flare", 3, 0.35, 0.05, RAND(0.25, 0.45), SHRINK(0.9), grad((0, (1, 0.9, 0.6, 1)), (0.5, HOT), (1, DEEP)), material="particles_add"),
     # ---- fallout: his radiation, in the air over poisoned ground (sent by the script) -------------
     scatter("rad_mote", "ember", 2, 0.6, RAND(0.05, 0.3), RAND(1.6, 3.0), [FLICKER(0.07)] * 2, grad(*RAD), accel=[0, 0.18, 0], drag=0.8, material="particles_add"),
@@ -216,7 +276,13 @@ EFFECTS = [
     looping("charge_spark", "spark", 26, 40, SPH(1.9), RAND(0.5, 2.5), RAND(0.15, 0.4), SHRINK(0.3), grad((0, WHITE), (0.4, RED), (1, DEEP)), drag=1.0, material="particles_add"),
     looping("plate_ember", "ember", 7, 14, SPH(0.5), RAND(0.2, 1.0), RAND(0.4, 0.9), SHRINK(0.16), grad((0, HOT), (0.5, RED), (1, DEEP)), accel=[0, 1.6, 0]),
     looping("throat_glow", "soft", 9, 12, SPH(0.4), RAND(0.0, 0.3), RAND(0.2, 0.35), SHRINK(0.9), grad((0, (1, 0.85, 0.7, 0.55)), (1, (1, 0.2, 0.1, 0))), material="particles_add"),
-    looping("mouth_flare", "flare", 14, 10, SPH(0.2), 0.0, RAND(0.1, 0.16), [PR(1.6, 2.6)] * 2, grad((0, WHITE), (1, (1, 0.3, 0.2, 0))), material="particles_add"),
+    looping("mouth_flare", "flare", 18, 12, SPH(0.3), 0.0, RAND(0.1, 0.16), [PR(2.4, 3.6)] * 2, grad((0, WHITE), (1, (1, 0.3, 0.2, 0))), material="particles_add"),
+    # firing, every plate blazes, and smoke pours off his back and out of his mouth after
+    looping("plate_blaze", "flare", 12, 8, SPH(0.4), 0.0, RAND(0.12, 0.22), [PR(1.1, 2.0)] * 2, grad((0, WHITE), (0.4, HOT), (1, (1, 0.15, 0.1, 0))), material="particles_add"),
+    looping("plate_smoke", "puff", 6, 18, SPH(0.6), RAND(0.4, 1.2), RAND(1.6, 2.8), GROW(0.5, 1.8), SMOKE, accel=[0, 2.0, 0], drag=0.8),
+    looping("mouth_smoke", "puff", 8, 20, SPH(0.4), RAND(0.6, 1.6), RAND(1.5, 2.5), GROW(0.4, 1.6), SMOKE, accel=[0, 1.4, 0], drag=0.9),
+    looping("roar_haze", "wisp", 14, 24, SPH(0.6), RAND(2.0, 5.0), RAND(0.4, 0.8), [PR(0.6, 1.2), PR(0.9, 1.6, 2)],
+            grad((0, (1, 0.9, 0.85, 0.0)), (0.2, (1, 0.9, 0.85, 0.3)), (1, (0.9, 0.8, 0.8, 0))), drag=1.8),
     looping("gill_steam", "wisp", 16, 40, SPH(0.4), RAND(0.6, 1.8), RAND(0.6, 1.3), [PR(0.3, 0.7)] * 2, grad((0, (1, 0.8, 0.75, 0.6)), (1, (0.9, 0.9, 0.9, 0))),
             accel=[0, 1.8, 0], drag=1.0),
     looping("club_arc", "zigzag", 18, 14, SPH(1.4), 0.0, RAND(0.06, 0.12), [PR(0.5, 1.0), PR(0.3, 0.6, 2)], grad((0, WHITE), (0.5, RED), (1, DEEP)), material="particles_add"),

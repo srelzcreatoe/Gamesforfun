@@ -39,12 +39,20 @@ PHASE = dict(idle=0, move=1, arrive=2, ram=3, knock=4, rise=5, bite=6, sweep=7, 
              evolve=12, beach=13, drink=14, arc=15, pin=16, look=17, charge=18, fire=19, vent=20, grounded=21,
              scatter=22, roar=23, crossing=24, depart=25, flinch=26, window=27, stalk=28)
 KNOCK_GAP = 0.9          # seconds between the three knocks, everywhere they occur
-GAIT_DUR = (0.6, 0.9, 1.1)      # Form II: reach, pull, rest
-STRIDE_III = 7.0         # blocks per full four-beat cycle
+GAIT_DUR = (0.8, 1.25, 1.5)     # Form II: reach, pull, rest (seconds)
+# How much bigger each form is drawn than it is modelled.  The client scales the whole entity; the server rig
+# multiplies every model-space point by the same number (src/rig.ts), so hit volumes, mouth, feet and club agree.
+SCALE = kit.DRAW_SCALE
+STRIDE_III_MODEL = 7.0   # one full four-beat cycle, in model blocks
+STRIDE_III = STRIDE_III_MODEL * SCALE["iii"]   # the same cycle on the ground, in world blocks
 BETA_III = 0.75          # part of the cycle each foot is on the ground: three feet down at any moment, four at each footfall
 DROP_III = 9.0           # units the body rides below the bind pose, so that a planted leg can reach both ends of its stance
 LIFT_III = 16.0          # units an ankle rises in mid-swing
 TAIL_LIFT_III = 4.0      # degrees at the tail root that keep the club's lowest spike off the ground
+# At the window he crouches this many units more (model space): drawn 1.7 times his modelled size, the lowered
+# head would otherwise put the eye above the pane (at 6.5 the eye is 2.7 above his feet, inside a two-high pane
+# whose sill is a block up, and the jaw just rests on the ground; the skull is too big now to bring lower).
+WINDOW_CROUCH = 6.5
 
 # share of a look angle taken by each link, eye first (see pre_animation smoothing rates)
 LOOK = {
@@ -293,8 +301,8 @@ def pose_ii(rig):
 # ---- Form III --------------------------------------------------------------------------
 def pose_iii(rig):
     p = Pose()
-    quarter = STRIDE_III / 4
-    stance = STRIDE_III * BETA_III * 16
+    quarter = STRIDE_III / 4                       # world blocks covered per footfall (what the client measures)
+    stance = STRIDE_III_MODEL * BETA_III * 16      # model units a planted sole travels back under the hip
     pre = [
         # The server names the foot that landed last (gait 0..3: left hind, left fore, right hind, right fore) at the
         # moment it lands; between landings the cycle advances with the ground he covers.  Every client is therefore
@@ -310,7 +318,7 @@ def pose_iii(rig):
         "v.p_br = math.mod(v.wp + 180, 360) / 360;", "v.p_fr = math.mod(v.wp + 90, 360) / 360;",
         "v.kopen = v.w_vent;",
         # how far the body rides below the bind pose (units): the legs are solved against this every frame
-        f"v.by = -{DROP_III} + 1.4 * v.breath * (1 - v.walk) - 1.3 * v.walk * math.abs(math.sin(v.wp * 2)) - 3 * v.w_chargew;",
+        f"v.by = -{DROP_III} + 1.4 * v.breath * (1 - v.walk) - 1.3 * v.walk * math.abs(math.sin(v.wp * 2)) - 3 * v.w_chargew - {WINDOW_CROUCH} * v.w_window;",
     ]
     # Planted feet stay where they are planted.  For each leg the ankle's place under the hip follows from the
     # cycle (stance: carried straight back at the speed the body goes forward; swing: lifted and brought forward),
@@ -436,19 +444,22 @@ def particle_controller(tag):
         # radiation drifts off the plates all the time, faintly; thickly while he charges, fires and vents
         rad = lambda ks: [("rad_drift", f"plate_tip_{k}") for k in ks]
         charge = [("charge_spark", "club_core")] + [("plate_ember", f"plate_tip_{k}") for k in (1, 3, 5, 7, 9)] + [("throat_glow", "mouth")] + rad((0, 4, 8))
-        fire = [("mouth_flare", "muzzle")] + [("plate_ember", f"plate_tip_{k}") for k in (0, 2, 4, 6, 8)] + [("charge_spark", "club_core")] + rad((1, 5, 9))
-        vent = [("gill_steam", "gill_l"), ("gill_steam", "gill_r"), ("rad_drift", "gill_l"), ("rad_drift", "gill_r")] + rad((3, 7))
+        fire = ([("mouth_flare", "muzzle"), ("mouth_flare", "mouth"), ("throat_glow", "throat")] + [("plate_blaze", f"plate_tip_{k}") for k in range(10)]
+                + [("plate_smoke", f"plate_tip_{k}") for k in (1, 4, 7)] + [("charge_spark", "club_core")] + rad((1, 5, 9)))
+        vent = ([("gill_steam", "gill_l"), ("gill_steam", "gill_r"), ("rad_drift", "gill_l"), ("rad_drift", "gill_r")]
+                + [("plate_smoke", f"plate_tip_{k}") for k in (0, 3, 6, 9)] + [("mouth_smoke", "mouth")] + rad((3, 7)))
+        roar = [("roar_haze", "mouth"), ("roar_haze", "muzzle")]
         ground = [("club_arc", "spike_tip_0"), ("club_arc", "spike_tip_3"), ("club_arc", "spike_tip_8")]
         scatter = [("plate_ember", f"plate_tip_{k}") for k in range(10)]
         idle = [("club_crackle", "spike_tip_1"), ("club_crackle", "spike_tip_4"), ("club_crackle", "spike_tip_11")] + rad((2, 6))
-        states = {"idle": idle, "charge": charge, "fire": fire, "vent": vent, "grounded": ground, "scatter": scatter}
-        cond = {"charge": ph("charge"), "fire": ph("fire"), "vent": ph("vent"), "grounded": ph("grounded"), "scatter": ph("scatter")}
+        states = {"idle": idle, "charge": charge, "fire": fire, "vent": vent, "grounded": ground, "scatter": scatter, "roar": roar}
+        cond = {"charge": ph("charge"), "fire": ph("fire"), "vent": ph("vent"), "grounded": ph("grounded"), "scatter": ph("scatter"), "roar": ph("roar")}
     elif tag == "ii":
         idle = [("horn_arc", "horn_l")]
         arc = [("horn_arc_big", "horn_l"), ("horn_arc_big", "horn_r"), ("club_crackle", "knob_core"), ("rad_drift", "knob_core"), ("rad_drift", "heart")]
         drink = [("drip", "muzzle")]
-        states = {"idle": idle, "arc": arc, "drink": drink, "evolve": [("shed_flakes", "heart")]}
-        cond = {"arc": ph("arc"), "drink": ph("drink"), "evolve": ph("evolve", "beach")}
+        states = {"idle": idle, "arc": arc, "drink": drink, "evolve": [("shed_flakes", "heart")], "roar": [("roar_haze", "muzzle")]}
+        cond = {"arc": ph("arc"), "drink": ph("drink"), "evolve": ph("evolve", "beach"), "roar": ph("roar")}
     else:
         idle = [("gill_bubbles", "gill_l"), ("gill_bubbles", "gill_r")]
         knock = [("gill_silt", "gill_l")]
@@ -468,7 +479,8 @@ def particle_controller(tag):
 
 
 PARTICLES = ["charge_spark", "plate_ember", "throat_glow", "mouth_flare", "gill_steam", "club_arc", "club_crackle",
-             "horn_arc", "horn_arc_big", "drip", "shed_flakes", "gill_bubbles", "gill_silt", "fin_splash", "rad_drift"]
+             "horn_arc", "horn_arc_big", "drip", "shed_flakes", "gill_bubbles", "gill_silt", "fin_splash", "rad_drift",
+             "plate_blaze", "plate_smoke", "mouth_smoke", "roar_haze"]
 
 
 def write_rig_ts(rigs):
@@ -492,6 +504,13 @@ def write_rig_ts(rigs):
     out.append(f"/** Blocks a planted sole travels under the body; a foot lands half of this ahead of where it stands at rest. */")
     out.append(f"export const STANCE_III = {STRIDE_III * BETA_III};")
     out.append(f"export const BODY_DROP_III = {DROP_III};")
+    out.append(f"export const WINDOW_CROUCH_III = {WINDOW_CROUCH};")
+    out.append(f"/** The walk cycle in model units (Form III): duty factor, ankle lift in swing, and how far a planted sole travels. */")
+    out.append(f"export const BETA_III = {BETA_III};")
+    out.append(f"export const LIFT_III = {LIFT_III};")
+    out.append(f"export const STANCE_MODEL_III = {STRIDE_III_MODEL * BETA_III * 16};")
+    out.append(f"/** Drawn size over modelled size, per form. */")
+    out.append(f"export const SCALE: Record<1 | 2 | 3, number> = {{ 1: {SCALE['i']}, 2: {SCALE['ii']}, 3: {SCALE['iii']} }};")
     out.append(f"export const TAIL_LIFT_III = {TAIL_LIFT_III};")
     out.append(f"export const WINDOW_NECK = {json.dumps(WINDOW_NECK)};")
     out.append(f"export const WINDOW_HEAD = {json.dumps(WINDOW_HEAD)};")
@@ -533,6 +552,7 @@ def main():
                 "pre_animation": pre_all + pre_form,
                 "animate": [{f"pose_{t}": f"v.form == {i}"} for i, t in enumerate(("i", "ii", "iii"), start=1)]
                            + [{f"fx_{t}": f"v.form == {i} && {P('bound')}"} for i, t in enumerate(("i", "ii", "iii"), start=1)],
+                "scale": f"{P('form')} == 3 ? {SCALE['iii']} : ({P('form')} == 2 ? {SCALE['ii']} : {SCALE['i']})",
                 "should_update_bones_and_effects_offscreen": "1.0",
                 "should_update_effects_offscreen": "1.0",
             },
@@ -573,7 +593,7 @@ def main():
 
     # shared with the server rig and the Blockbench projects
     kit.write_json(os.path.join(OUT, "pose.json"), {"look": LOOK, "phase": PHASE, "knock_gap": KNOCK_GAP, "gait_dur": GAIT_DUR,
-                                                    "stride_iii": STRIDE_III})
+                                                    "stride_iii": STRIDE_III, "scale": SCALE})
     for tag in ("i", "ii", "iii"):
         a = anims[f"animation.{NS}.{tag}.pose"]
         kit.write_json(os.path.join(OUT, f"bb_anims_{tag}.json"), {f"animation.{NS}.{tag}.pose": a})

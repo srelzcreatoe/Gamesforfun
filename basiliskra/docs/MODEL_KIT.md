@@ -56,3 +56,11 @@ Rules that keep the pack clean:
 * Budget: <= 1500 cubes, atlas must pack within 2048x1024 (the build prints both).
 * Keep every bone and locator name in your contract EXACTLY: animation and server code are written against them.
 * Every glow zone must contain lit bones (the build writes `tools/kit/out/rig_<form>.json` with `glow_zones`).
+
+**Drawn size.** The models (and the `.bbmodel` files) are at their modelled size. In game, forms II and III are
+drawn larger than that: `DRAW_SCALE` in `tools/kit/kit.py` (II 1.25, III 1.7) becomes the client entity's Molang
+`scale`, multiplies the geometry's visible bounds, and is written to `src/generated/rig.ts` (`SCALE`) so the server
+multiplies every model-space point by it too (mouth, feet, club, hit volumes). The walk is solved in model units
+(`STRIDE_III_MODEL`) and driven by world distance (`STRIDE_III` = model stride x scale). Change the number in one
+place and rebuild with `python3 tools/build.py --assets`; then check the window pose (`WINDOW_CROUCH` in
+`gen_client.py`, `WINDOW_STANDOFF` in `src/forms/three.ts`) and the scenario suite's window check.

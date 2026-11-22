@@ -32,12 +32,16 @@ Rules that keep it to one:
 
 | Wanted | Stable-API reality | What the add-on does |
 |---|---|---|
-| A 30 to 46 block animal that walks and swims | Vanilla physics, collision and pathfinding do not work at this size | The entity has no gravity or collision. The script moves it each tick: limited turn rate, lower-median-of-nine ground settle, never more than 0.45 up or 0.9 down per tick, steering round built walls and cliff faces, a depth limit in water, a swim lane check. Motion is sent as velocity so clients interpolate; teleport is only a recovery. |
-| A hitbox the shape of the body | One axis-aligned box per entity | 8, 12 or 18 small invisible `basiliskra:hitbox` entities are kept on the skeleton from head to tail; a hit on any of them is forwarded to him (head hits count more, tail hits less, one blast counts once). Players inside a volume are pushed out. The main entity also carries a large trunk box. |
+| A 30 to 70 block animal that walks and swims | Vanilla physics, collision and pathfinding do not work at this size | The entity has no gravity or collision. The script moves it each tick: limited turn rate, lower-median-of-nine ground settle, never more than 0.45 up or 0.9 down per tick, steering round built walls and cliff faces, a depth limit in water, a swim lane check. Motion is sent as velocity so clients interpolate; teleport is only a recovery. |
+| A hitbox the shape of the body | One axis-aligned box per entity | 8, 12 or 19 small invisible `basiliskra:hitbox` entities (ten sizes, 1.5 to 13 blocks) are kept on the skeleton from head to tail; a hit on any of them is forwarded to him (head hits count more, tail hits less, one blast counts once). Form III's eight leg volumes are carried through the walk cycle exactly as the client solves it (the server skeleton stands its legs at rest), and no volume's box starts below the ground he stands on. Players inside a volume are pushed out, and hurt if he is walking. |
+| A bigger animal without new models | Geometry is in model units | The client entity's `scale` is a Molang expression of the form property (II 1.25, III 1.7); the server rig multiplies every model-space point by the same number (`SCALE` in `generated/rig.ts`), and the movement constants, stride, window stand-off and visible bounds are scaled with it. The walk cycle is solved in model units and driven by world distance, so planted feet still do not slide. |
 | Client state machine that late joiners agree on | Animation controller state is per client | The pose is a pure function of synchronised properties (form, phase, charge, look angles, bend, gait, gill, veil). There is no client state to disagree about: a player who joins mid-charge sees the same lit zones. Only particle emitters use controller states. |
 | The server knowing where his mouth, feet and club are | No bone queries server-side | The model kit writes the same skeleton it built the geometry from into the script (`src/generated/rig.ts`); the server poses it with the same numbers the client animation uses. Beam origin, footfall positions, hit volumes and the window stand-off all come from it. |
 | A body that slips through a seam | No clipping planes | Nine zones from tail to head; two synchronised properties (`vis_lo`, `vis_hi`) hide the zones that have not yet come through, or have already gone. |
-| A beam | No beam primitive | The server ray-casts, measures the length, and sends one stretched, camera-turning billboard per tick with that length, plus a scarlet spiral and impact particles. Damage is tested against the same segment and needs a clear line to the player. |
+| A beam | No beam primitive | The server ray-casts, measures the length, and sends stretched, camera-turning billboards with that length (white core, scarlet body, wide glow), particles thrown along it that come to rest at random points of it by drag (smoke, embers), a scarlet spiral, and impact particles. Damage is tested against the same segment and needs a clear line to the player. |
+| A beam timed to its recording | A played sound cannot be followed by script | The supplied recording is cut at the moment it fires (6.86 s): the charge phase lasts exactly 137 ticks from the charge sound, the fire phase starts on the tick of the second sound and lasts the 155 ticks of the shot. A charge that is grounded or cut off stops its sound (`stopsound`). |
+| Destroying like the Wither | Explosions cannot spare chests, and are stopped by blast resistance | `src/havoc.ts`: the beam blows a sphere of blocks out where it lands, every fourth tick, nearest first and within a block budget, to a crater at most six blocks deep before it moves on with his aim, and lights fires on the crater's edge. Walking, a cheap probe ahead of his shoulders finds anything built and a slab of it is cleared; natural rock still turns him. Bedrock, portals and command blocks are never broken; with `spareStorage` neither is anything that holds things. Nothing drops. |
+| A roar's shockwave | No shockwave primitive | `src/roar.ts`: one engine-side query (`getBlocks` with a type filter, 164 vanilla ids checked against 1.26.60) lists what is brittle within reach; a ring then runs out at two blocks a tick, breaking each as it is reached and throwing and hurting each player and creature once. If the engine refused the query the ring is sampled instead. Camera shake is `camerashake`, falling off linearly with distance. |
 | Body lighting up | No dynamic lights | Extra render passes on the same geometry with the vanilla bioluminescent material, one per zone, alpha driven by the charge. Under Vibrant Visuals the glow texture set is emissive as well. |
 | Lamps flaring | Changing block states would touch player redstone | A flare particle on each lamp, nearest first. No block or wire is changed. |
 | Silencing a bell | A played sound cannot be cancelled | The first three rings startle him; after that he knows which bell it is, drags himself to it and rests a claw on the frame, watching the nearest door. The vanilla ring still sounds (it cannot be suppressed), but while the claw is on it a choked, deadened ring is played over it at the bell and he does not react. A second sound source (another bell, a note block) draws the claw away. The bell block is never changed. |
@@ -58,10 +62,18 @@ Rules that keep it to one:
 
 Sand at the beam's own impact fuses into `basiliskra:scarlet_trinitite`. Both blocks are plain 1.26.60 data-driven blocks (schema-checked); if the game ever refuses one, the script uses a vanilla block in its place (coarse dirt, smooth basalt) and carries on. Measured cost: about 75 block reads a tick at the 32-zone cap.
 
+## Out of control (Form III)
+
+* **Quarry**: players first (the one he remembers, else the nearest), then any creature with the `mob` family within 72 blocks (looked up every two seconds), unless `huntMobs` is off. A new quarry gets a roar first.
+* **The beam**: at players or creatures between 14 and the tier's range from his mouth, with line of sight. Tier 1 wanders; tiers 2 and 3 follow at 0.22 and 0.3 degrees a tick, slower than a player walking sideways at the range he fires from.
+* **Footfalls** hurt and throw whatever is within 3.7 blocks of the landing foot; walking, he treads on players inside his volumes.
+* **Voice**: every 10 to 22 seconds, in the phases where he is not roaring, charging, knocking or at a window, a grunt, huff or growl cut from the supplied voice recording (pitched down through water, up as II).
+* **Random roars**: a chance every one to three minutes, with anyone (Creative included) within 110 blocks.
+
 ## Players' tools
 
-* **Journal** (`basiliskra:journal`, `/basiliskra:journal`): a server-ui form built from the record and a read-only copy of the harm history (`harm.angerAt`, `harm.angriest`), so reading it never creates or evicts a region.
-* **Config wheel** (`basiliskra:config_wheel`, `/basiliskra:config`): operators only. Settings are one world dynamic property (`bk:cfg`) applied over the defaults in `config.ts` at load; unknown or out-of-range values are ignored.
+* **Journal** (`basiliskra:journal`, `/basiliskra:journal`): a server-ui form built from the record and a read-only copy of the harm history (`harm.angerNear`, `harm.angriest`), so reading it never creates or evicts a region. Each region also keeps plain counts (animals killed, habitat blocks cut) beside its weighted, fading score, and each player a running total, so the journal shows counts as counts. "Near you" is the angriest of the nine regions round the player.
+* **Config wheel** (`basiliskra:config_wheel`, `/basiliskra:config`): operators only. Settings are one world dynamic property (`bk:cfg`) applied over the defaults in `config.ts` at load; unknown or out-of-range values are ignored. From 1.3 only values that differ from the defaults are saved (with `v: 2`); a 1.2 save that carries the old default terrain mode is read as "never chosen". Numbers are dropdowns of presets plus a text box (no sliders).
 * **Commands** are registered at start-up with the stable custom-command registry (`cheatsRequired: false`); callbacks only schedule work (`system.run`), as the API requires.
 * Forms that cannot open yet (chat still open) are retried for a few seconds.
 
@@ -77,10 +89,12 @@ src/                      the script, in TypeScript
   creature.ts             the loaded animal: movement, skeleton, hit volumes
   forms/one|two|three.ts  the encounters of each stage, written as generators with one exit
   ending.ts               the last crossing
+  havoc.ts                what he breaks: craters, smashing through, the shockwave's brittle blocks, blasts
+  roar.ts                 screen shake and the shockwave
   harm.ts                 regional harm tracking
   store.ts, world.ts, fx.ts, rig.ts, brain.ts, vec.ts, config.ts
 tools/kit/                model kit: design files per form, texture painter, client-file and particle generators
-tools/sound/synth.py      every sound, synthesised (no samples)
+tools/sound/synth.py      every synthesised sound, and the cuts of the three supplied recordings (tools/sound/source/)
 tools/validate/           pack validator (Mojang's published schemas + reference integrity)
 tools/preview/            offline viewer and encounter replays (reference renders, not the game)
 tools/build.py            type-check, bundle, validate, test, package the .mcaddon
@@ -94,13 +108,14 @@ Counted in the simulated world as calls into the engine per tick (`node test/per
 | Situation | block reads, average | worst tick | entity queries, average |
 |---|---|---|---|
 | Dormant world | 0 | 0 | 0.3 |
-| Searching for water | 5 | 265 | 0.3 |
-| Arrival | 27 | 667 | 0.3 |
+| Searching for water | 5 | 265 | 0.32 |
+| Arrival | 27 | 667 | 0.33 |
 | Form I | 35 to 43 | 63 | 0.3 |
-| Form II in a village | 44 | 631 | 0.3 |
-| Form III in a village, fighting | 90 | 414 | 0.3 |
-| Form III at the window | 91 | 249 | 0.3 |
-| The last crossing being called | 210 | 757 | 0.3 |
+| Form II in a village | 57 | 631 | 0.3 |
+| Form III in a village, fighting (beams, craters, pursuit) | 165 | 575 | 0.49 |
+| Form III at the window | 140 | 362 | 0.33 |
+| The last crossing being called | 212 | 639 | 0.35 |
+| Fallout at its cap of 32 zones | 75 | 112 | 0.4 |
 
 No world-wide scans, no chunk loading, no recurring chat. Harm history is capped at 40 regions and 24 kill sites. Particles are sent per witness with a budget of 96 packets a tick. Sounds and particles go only to players within range of the event.
 

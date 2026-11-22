@@ -13,6 +13,7 @@ import type { Controller } from "./controller";
 import type { Creature } from "./creature";
 import { BrainThree } from "./forms/three";
 import { particle, players, sound } from "./fx";
+import { shake } from "./roar";
 import { RIGS } from "./generated/rig";
 import { store } from "./store";
 import { addFallout } from "./fallout";
@@ -202,7 +203,8 @@ export class Ending {
       }
     }
     const out = (d: number): V3 => ({ x: rift.x + u.x * d, y: c.pos.y, z: rift.z + u.z * d });
-    for (const [d, arrive] of [[shore + 2, 5], [shore + 24, 2.5]] as const) {
+    const k = c.scale;          // his length on the ground: he is drawn larger than he is modelled
+    for (const [d, arrive] of [[shore + 2, 5], [shore + 24 * k, 2.5]] as const) {
       const walk = brain.walk(out(d), 0.15, arrive, 2400);
       for (;;) { if (!this.holding()) return; if (walk.next().done) break; yield; }
     }
@@ -223,7 +225,7 @@ export class Ending {
     let t = 0;
     const near = brain.walk(out(3), 0.14, 4, 1400);
     for (;;) { seam(t++); if (!this.holding()) { yield* this.backAway(c, null); return; } if (near.next().done) break; yield; }
-    const back = brain.walk(out(25.5), 0.13, 1.5, 900);       // walking outward leaves his tail at the seam
+    const back = brain.walk(out(25.5 * k), 0.13, 1.5, 1400);  // walking outward leaves his tail at the seam
     for (;;) { seam(t++); if (!this.holding()) { yield* this.backAway(c, null); return; } if (back.next().done) break; yield; }
     c.setPhase("crossing");
     for (let i = 0; i < 70; i++) {
@@ -234,15 +236,16 @@ export class Ending {
     }
 
     // 4. he turns
-    const turn = brain.walk(out(54), 0.14, 5, 1200);
+    const turn = brain.walk(out(54 * k), 0.14, 5, 2000);
     for (;;) { seam(t++); if (!this.holding()) { yield* this.backAway(c, null); return; } if (turn.next().done) break; yield; }
 
     // 5. and goes through headfirst.  Keep the rhythm going until the tail clears.
     const travel = mul(u, -1);
     const yaw = yawTo({ x: 0, y: 0, z: 0 }, travel);
     c.setPhase("depart");
-    c.goTo(out(-70), 0.13, 2);
-    sound(dim, "basiliskra.roar", c.anchor("mouth"), 160);          // the whole roar, once more, as he goes home
+    c.goTo(out(-70 * k), 0.13, 2);
+    sound(dim, "basiliskra.roar", c.anchor("mouth"), 192);          // the whole roar, once more, as he goes home
+    shake(c, 110, 0.6, 3);
     for (let i = 0; i < 3000; i++) {
       seam(t++);
       const hi = this.visibleUpTo(c, rift, travel);

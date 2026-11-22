@@ -11,7 +11,10 @@
       "basiliskra:life": {
         "minecraft:timer": {
           "looping": false,
-          "time": { "min": 20, "max": 20 },
+          "time": {
+            "min": 20,
+            "max": 20
+          },
           "time_down_event": {
             "event": "basiliskra:expire",
             "target": "self"
@@ -62,6 +65,24 @@
         "minecraft:collision_box": {
           "width": 7.5,
           "height": 7.5
+        }
+      },
+      "basiliskra:size_7": {
+        "minecraft:collision_box": {
+          "width": 9.0,
+          "height": 9.0
+        }
+      },
+      "basiliskra:size_8": {
+        "minecraft:collision_box": {
+          "width": 11.0,
+          "height": 11.0
+        }
+      },
+      "basiliskra:size_9": {
+        "minecraft:collision_box": {
+          "width": 13.0,
+          "height": 13.0
         }
       }
     },
@@ -216,7 +237,10 @@
                 "basiliskra:size_3",
                 "basiliskra:size_4",
                 "basiliskra:size_5",
-                "basiliskra:size_6"
+                "basiliskra:size_6",
+                "basiliskra:size_7",
+                "basiliskra:size_8",
+                "basiliskra:size_9"
               ]
             }
           },
@@ -239,7 +263,10 @@
                 "basiliskra:size_3",
                 "basiliskra:size_4",
                 "basiliskra:size_5",
-                "basiliskra:size_6"
+                "basiliskra:size_6",
+                "basiliskra:size_7",
+                "basiliskra:size_8",
+                "basiliskra:size_9"
               ]
             }
           },
@@ -262,7 +289,10 @@
                 "basiliskra:size_3",
                 "basiliskra:size_4",
                 "basiliskra:size_5",
-                "basiliskra:size_6"
+                "basiliskra:size_6",
+                "basiliskra:size_7",
+                "basiliskra:size_8",
+                "basiliskra:size_9"
               ]
             }
           },
@@ -285,7 +315,10 @@
                 "basiliskra:size_2",
                 "basiliskra:size_4",
                 "basiliskra:size_5",
-                "basiliskra:size_6"
+                "basiliskra:size_6",
+                "basiliskra:size_7",
+                "basiliskra:size_8",
+                "basiliskra:size_9"
               ]
             }
           },
@@ -308,7 +341,10 @@
                 "basiliskra:size_2",
                 "basiliskra:size_3",
                 "basiliskra:size_5",
-                "basiliskra:size_6"
+                "basiliskra:size_6",
+                "basiliskra:size_7",
+                "basiliskra:size_8",
+                "basiliskra:size_9"
               ]
             }
           },
@@ -331,7 +367,10 @@
                 "basiliskra:size_2",
                 "basiliskra:size_3",
                 "basiliskra:size_4",
-                "basiliskra:size_6"
+                "basiliskra:size_6",
+                "basiliskra:size_7",
+                "basiliskra:size_8",
+                "basiliskra:size_9"
               ]
             }
           },
@@ -354,7 +393,10 @@
                 "basiliskra:size_2",
                 "basiliskra:size_3",
                 "basiliskra:size_4",
-                "basiliskra:size_5"
+                "basiliskra:size_5",
+                "basiliskra:size_7",
+                "basiliskra:size_8",
+                "basiliskra:size_9"
               ]
             }
           },
@@ -362,6 +404,84 @@
             "add": {
               "component_groups": [
                 "basiliskra:size_6"
+              ]
+            }
+          }
+        ]
+      },
+      "basiliskra:size_7": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:size_0",
+                "basiliskra:size_1",
+                "basiliskra:size_2",
+                "basiliskra:size_3",
+                "basiliskra:size_4",
+                "basiliskra:size_5",
+                "basiliskra:size_6",
+                "basiliskra:size_8",
+                "basiliskra:size_9"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:size_7"
+              ]
+            }
+          }
+        ]
+      },
+      "basiliskra:size_8": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:size_0",
+                "basiliskra:size_1",
+                "basiliskra:size_2",
+                "basiliskra:size_3",
+                "basiliskra:size_4",
+                "basiliskra:size_5",
+                "basiliskra:size_6",
+                "basiliskra:size_7",
+                "basiliskra:size_9"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:size_8"
+              ]
+            }
+          }
+        ]
+      },
+      "basiliskra:size_9": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:size_0",
+                "basiliskra:size_1",
+                "basiliskra:size_2",
+                "basiliskra:size_3",
+                "basiliskra:size_4",
+                "basiliskra:size_5",
+                "basiliskra:size_6",
+                "basiliskra:size_7",
+                "basiliskra:size_8"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:size_9"
               ]
             }
           }

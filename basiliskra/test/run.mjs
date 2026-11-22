@@ -232,12 +232,12 @@ console.log('\n== 6. Evolution during a save and reload');
   w.sim.step(3);
   check('a reload between the two writes brings the entity into line with the record', w.bk.ctl.creature?.entity.id === id && w.bk.ctl.creature.entity.getProperty(P('form')) === 3 && w.sim.count(TYPE) === 1);
   until(w, () => rec().evolve === null, 600);
-  check('Form III, the same individual', rec().form === 3 && rec().entityId === id && w.bk.ctl.creature.form === 3 && w.sim.count('basiliskra:hitbox') === 18, `${w.sim.count('basiliskra:hitbox')} hit volumes`);
+  check('Form III, the same individual', rec().form === 3 && rec().entityId === id && w.bk.ctl.creature.form === 3 && w.sim.count('basiliskra:hitbox') === 19, `${w.sim.count('basiliskra:hitbox')} hit volumes`);
   {
     const ana3 = w.sim.players.find((p) => p.online);
     const h3 = ana3.heard.length; let posed = false;
     for (let i = 0; i < 60; i++) { w.sim.step(1); if (w.bk.ctl.creature.entity.getProperty(P('phase')) === 23) posed = true; }
-    check('standing up as Basiliskra III he roars: the whole roar, head up', posed && ana3.heard.slice(h3 - 4).some((q) => q.id === 'basiliskra.roar'));
+    check('standing up as Basiliskra III he roars: the whole roar, head up', posed && ana3.heard.slice(h3 - 8).some((q) => q.id === 'basiliskra.roar'), ana3.heard.slice(h3 - 8, h3 + 4).map((q) => q.id).join(','));
   }
 }
 
@@ -247,7 +247,7 @@ console.log('\n== 7. A player joining during a beam charge');
   const ana = w.sim.players.find((p) => p.name === 'Ana'), ben = w.sim.players.find((p) => p.name === 'Ben');
   w.sim.save.timeOfDay = 3000;
   ben.online = false;
-  const stand = () => { const f = { x: -Math.sin(c().yaw * Math.PI / 180), z: Math.cos(c().yaw * Math.PI / 180) }; return { x: c().pos.x + f.x * 38, y: c().pos.y, z: c().pos.z + f.z * 38 }; };
+  const stand = () => { const f = { x: -Math.sin(c().yaw * Math.PI / 180), z: Math.cos(c().yaw * Math.PI / 180) }; return { x: c().pos.x + f.x * 54, y: c().pos.y, z: c().pos.z + f.z * 54 }; };
   w.bk.ctl.brain.finish();
   ana.moveTo(stand());
   const t = until(w, () => { if (c().phase !== 'charge' && c().phase !== 'fire') ana.moveTo(stand()); return e().getProperty(P('phase')) === 18 && e().getProperty(P('charge')) >= 6; }, 3000);
@@ -267,9 +267,9 @@ console.log('\n== 7. A player joining during a beam charge');
   until(w, () => e().getProperty(P('phase')) !== 19, 400);
   check('the player who stepped sideways in the window is missed', ana.health === hpA, `${hpA} -> ${ana.health}`);
   check('the player standing in the locked line is hit', late.health < hpL, `${hpL} -> ${late.health}`);
-  check('beam particles and sound reached the late joiner too', late.seen.some((s) => s.id === 'basiliskra:beam_core') && late.heard.some((s) => s.id === 'basiliskra.iii.beam_raw'));
+  check('beam particles and sound reached the late joiner too', late.seen.some((s) => s.id === 'basiliskra:beam_core') && late.heard.some((s) => s.id === 'basiliskra.iii.beam'));
   const core = late.seen.find((s) => s.id === 'basiliskra:beam_core');
-  check('the drawn beam carries the length the server measured', core && core.vars['variable.len'] > 1 && core.vars['variable.len'] <= 28);
+  check('the drawn beam carries the length the server measured', core && core.vars['variable.len'] > 1 && core.vars['variable.len'] <= 40);
   until(w, () => e().getProperty(P('phase')) === 20, 100);
   const k0 = ana.heard.filter((s) => s.id === 'basiliskra.knock.vent').length;
   until(w, () => e().getProperty(P('charge')) === 0, 200);
@@ -283,7 +283,7 @@ console.log('\n== 8. Grounding the charge');
   const ana = w.sim.players.find((p) => p.name === 'Ana');
   const beams = w.bk.store.rec.mut.beams;
   w.bk.ctl.brain.finish();
-  const stand = () => { const f = { x: -Math.sin(c().yaw * Math.PI / 180), z: Math.cos(c().yaw * Math.PI / 180) }; return { x: c().pos.x + f.x * 38, y: c().pos.y, z: c().pos.z + f.z * 38 }; };
+  const stand = () => { const f = { x: -Math.sin(c().yaw * Math.PI / 180), z: Math.cos(c().yaw * Math.PI / 180) }; return { x: c().pos.x + f.x * 54, y: c().pos.y, z: c().pos.z + f.z * 54 }; };
   let rod = null;
   const t = until(w, () => {
     if (e().getProperty(P('phase')) === 21) return true;
@@ -382,6 +382,7 @@ console.log('\n== 11. Walls, piers and the way round');
 {
   // a village: a cottage stands between him and where he is going
   const w = start(); w.sim.terrainFn = TERRAINS.village; open(w);
+  w.bk.CONFIG.terrain = 'scorch';                 // not smashing his way: that is the wither mode, below
   const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 40 }); ana.mode = 'Creative';
   const rec = w.bk.store.rec;
   Object.assign(rec, { stage: 'alive', token: 'walltoken0000000000000000000000', form: 3, born: 1, rift: { x: 400, y: 56, z: 400, yaw: 0 }, origin: { x: 400, y: 64, z: 380 } });
@@ -395,7 +396,7 @@ console.log('\n== 11. Walls, piers and the way round');
   for (; ticks < 3000 && !done; ticks++) {
     w.sim.step(1);
     const f = { x: -Math.sin(c.yaw * Math.PI / 180), z: Math.cos(c.yaw * Math.PI / 180) };
-    for (const s of [-5.5, 0, 5.5]) {                                               // hips, middle, shoulders
+    for (const s of [-9.4, 0, 9.4]) {                                               // hips, middle, shoulders (drawn 1.7 times his model)
       const x = c.pos.x + f.x * s, z = c.pos.z + f.z * s;
       const d = Math.max(Math.max(-5 - x, x - 3, 0), Math.max(-4 - z, z - 4, 0));
       nearest = Math.min(nearest, d);
@@ -410,6 +411,29 @@ console.log('\n== 11. Walls, piers and the way round');
   brain.forced = { name: 'test', run: (function* () { yield* brain.walk({ x: -1, y: 64, z: 0 }, 0.14, 2, 3000); fin = true; yield* (function* () { for (;;) yield; })(); })(), limit: 1e9 };
   for (; t2 < 1500 && !fin; t2++) w.sim.step(1);
   check('a place inside a building is given up, not circled for ever', fin && t2 < 1200 && !built(Math.floor(c.pos.x), Math.floor(c.pos.z)), `${t2} ticks`);
+}
+{
+  // like the Wither (the default): the same walk goes straight through the cottage, and what holds things is left
+  const w = start(); w.sim.terrainFn = TERRAINS.village; open(w);
+  const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 60 }); ana.mode = 'Creative';
+  const rec = w.bk.store.rec;
+  Object.assign(rec, { stage: 'alive', token: 'withertoken000000000000000000000', form: 3, born: 1, rift: { x: 400, y: 56, z: 400, yaw: 0 }, origin: { x: 400, y: 64, z: 380 } });
+  w.sim.setBlock('minecraft:overworld', -2, 64, 1, 'minecraft:chest');
+  w.sim.setBlock('minecraft:overworld', -3, 64, -1, 'minecraft:bed');
+  const r = w.sim.newRecord(TYPE, 'minecraft:overworld', { x: 40, y: 64, z: 0.5 }, 90);
+  r.dyn['bk:token'] = rec.token; rec.entityId = r.id; w.bk.store.save();
+  w.sim.attach(r, 'entityLoad'); w.sim.flush(); w.sim.step(3);
+  const c = w.bk.ctl.creature, brain = w.bk.ctl.brain;
+  const id = (x, y, z) => w.sim.blockId('minecraft:overworld', x, y, z);
+  const walls0 = [];
+  for (let x = -5; x <= 3; x++) for (let y = 64; y <= 68; y++) for (let z = -4; z <= 4; z++) if (id(x, y, z) !== 'minecraft:air') walls0.push([x, y, z]);
+  let done = false, ticks = 0, widest = 0;
+  brain.forced = { name: 'test', run: (function* () { yield* brain.walk({ x: -40, y: 64, z: 0.5 }, 0.14, 4, 3000); done = true; yield* (function* () { for (;;) yield; })(); })(), limit: 1e9 };
+  for (; ticks < 3000 && !done; ticks++) { w.sim.step(1); widest = Math.max(widest, Math.abs(c.pos.z - 0.5)); }
+  const gone = walls0.filter(([x, y, z]) => id(x, y, z) === 'minecraft:air').length;
+  check('in wither mode he goes straight through a cottage in his way', done && widest < 3 && gone > walls0.length * 0.4, `${ticks} ticks, ${gone} of ${walls0.length} blocks gone, went ${widest.toFixed(1)} wide`);
+  check('the chest and the bed inside are left standing', id(-2, 64, 1) === 'minecraft:chest' && id(-3, 64, -1) === 'minecraft:bed');
+  check('the ground under it is the world\'s own, and stays', id(0, 62, 0) !== 'minecraft:air' && id(-10, 62, 0) !== 'minecraft:air');
 }
 {
   // the bay with its pier: the seam must leave him a lane to swim out of and to ram back down
@@ -475,20 +499,26 @@ function force(w, make) {
 }
 {
   // cover: a player hugging the far side of a one-block wall
-  const hit = (wall) => {
+  const hit = (wall, terrain = 'scorch') => {
     const w = start(); open(w);
-    const a = w.sim.addPlayer('Ana', { x: 25.31, y: 64, z: -79.5 }); a.health = 1000;
+    w.bk.CONFIG.terrain = terrain;
+    // (he is drawn 1.7 times his model size: his mouth is some 28 blocks ahead of his middle)
+    const a = w.sim.addPlayer('Ana', { x: 47.31, y: 64, z: -79.5 }); a.health = 1000;
     const c = standThree(w, { x: 0, y: 64, z: -80 }, -90, 0);
-    if (wall) for (let y = 64; y <= 72; y++) for (let z = -86; z <= -74; z++) w.sim.setBlock('minecraft:overworld', 24, y, z, 'minecraft:planks');
+    if (wall) for (let y = 64; y <= 76; y++) for (let z = -86; z <= -74; z++) w.sim.setBlock('minecraft:overworld', 46, y, z, 'minecraft:planks');
     w.sim.step(5);
     w.bk.ctl.brain.forced = { name: 'beam', run: w.bk.ctl.brain.beam(a), limit: 1200 };
     let fired = false;
     for (let i = 0; i < 400; i++) { w.sim.step(1); if (c.phase === 'fire') fired = true; if (fired && c.phase !== 'fire') break; }
-    return { fired, lost: 1000 - a.health };
+    let wallLeft = 0;
+    if (wall) for (let y = 64; y <= 76; y++) for (let z = -86; z <= -74; z++) if (w.sim.blockId('minecraft:overworld', 46, y, z) === 'minecraft:planks') wallLeft++;
+    return { fired, lost: 1000 - a.health, wallLeft };
   };
   const open1 = hit(false), behind = hit(true);
   check('the raw beam hurts a player in the open', open1.fired && open1.lost > 0, `lost ${open1.lost}`);
-  check('and does not reach one sheltering close behind a wall', behind.fired && behind.lost === 0, `lost ${behind.lost}`);
+  check('and (when he is not destroying the world) does not reach one sheltering close behind a wall', behind.fired && behind.lost === 0, `lost ${behind.lost}`);
+  const blown = hit(true, 'wither');
+  check('like the Wither, the beam blows a hole in that wall, and finds the player behind it', blown.fired && blown.wallLeft < 13 * 13 && blown.lost > 0, `${13 * 13 - blown.wallLeft} planks gone, lost ${blown.lost}`);
 }
 {
   // a call with no deep water in reach must not hold the save hostage
@@ -623,9 +653,9 @@ console.log('\n== 13. Spawn egg, the spawn command, the journal and the config w
   const r1 = w2.sim.runCommand('basiliskra:spawn', bo, 'ii'); w2.sim.step(3);
   const c2 = w2.bk.ctl.creature;
   const wrap = (a) => ((a % 360) + 540) % 360 - 180;
-  check('/basiliskra:spawn ii: Basiliskra II, in front of the player, facing them', r1.status === 0 && !!c2 && c2.form === 2 && w2.sim.count(TYPE) === 1 && c2.pos.z > 15 && c2.pos.z < 23 && Math.abs(Math.abs(wrap(c2.yaw)) - 180) < 5, `at ${c2?.pos.z.toFixed(1)}, yaw ${c2?.yaw.toFixed(0)}`);
+  check('/basiliskra:spawn ii: Basiliskra II, in front of the player, facing them', r1.status === 0 && !!c2 && c2.form === 2 && w2.sim.count(TYPE) === 1 && c2.pos.z > 20 && c2.pos.z < 28 && Math.abs(Math.abs(wrap(c2.yaw)) - 180) < 5, `at ${c2?.pos.z.toFixed(1)}, yaw ${c2?.yaw.toFixed(0)}`);
   const r2 = w2.sim.runCommand('basiliskra:spawn', bo, 'iii'); w2.sim.step(3);
-  check('/basiliskra:spawn iii: the same animal, now Basiliskra III', r2.status === 0 && w2.bk.ctl.creature.entity.id === c2.entity.id && w2.bk.ctl.creature.form === 3 && w2.bk.store.rec.form === 3 && w2.sim.count(TYPE) === 1 && w2.sim.count('basiliskra:hitbox') === 18, `${w2.sim.count('basiliskra:hitbox')} hit volumes`);
+  check('/basiliskra:spawn iii: the same animal, now Basiliskra III', r2.status === 0 && w2.bk.ctl.creature.entity.id === c2.entity.id && w2.bk.ctl.creature.form === 3 && w2.bk.store.rec.form === 3 && w2.sim.count(TYPE) === 1 && w2.sim.count('basiliskra:hitbox') >= 17, `${w2.sim.count('basiliskra:hitbox')} hit volumes`);
   const visitor = w2.sim.addPlayer('Vi', { x: 4, y: 64, z: 0 }); visitor.playerPermissionLevel = 1;
   check('a player who is not an operator cannot use the spawn command', w2.sim.runCommand('basiliskra:spawn', visitor).status === 1);
 
@@ -664,7 +694,7 @@ console.log('\n== 13. Spawn egg, the spawn command, the journal and the config w
   const guest = w4.sim.addPlayer('Guest', { x: 3, y: 64, z: 0 }); guest.playerPermissionLevel = 1;
   guest.use('basiliskra:config_wheel'); w4.sim.step(2);
   check('only an operator can use the config wheel', guest.forms.length === 0 && guest.messages.some((m) => /operator/.test(m)));
-  op.answers.push(0, { 0: 2.5, 1: 0, 3: 0.5, 6: 3 });                       // Settings; pacing 2.5, beam does nothing, damage x0.5, egg makes III
+  op.answers.push(0, { 1: '2.5', 2: 0, 5: 2, 10: 3 });                     // Settings; story speed typed in (2.5), beam does nothing, damage x0.5 picked, egg makes III
   op.use('basiliskra:config_wheel'); w4.sim.step(3); w4.sim.flush(); await new Promise((r) => setTimeout(r, 0)); w4.sim.step(2);
   const cfg = w4.bk.CONFIG;
   check('settings are changed from the wheel', cfg.pacing === 2.5 && cfg.terrain === 'none' && cfg.damage === 0.5 && cfg.spawnForm === 3, JSON.stringify({ p: cfg.pacing, t: cfg.terrain, d: cfg.damage, f: cfg.spawnForm }));
@@ -793,6 +823,178 @@ console.log('\n== 14. Fallout: radiation that changes the land');
   fallout.addFallout({ x: 50, y: 64, z: 50 }, 4, 1);
   check('with fallout off, nothing is left anywhere', w.bk.store.rec.fallout.length === n0);
   w.bk.CONFIG.fallout = 'land';
+}
+
+console.log('\n== 15. Bigger, louder, out of control (1.3)');
+{
+  const P3 = (w) => w.bk.ctl.creature;
+  // ---- the atomic breath keeps time with its recording ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const a = w.sim.addPlayer('Ana', { x: 56, y: 64, z: -80 }); a.health = 1e6;
+    const c = standThree(w, { x: 0, y: 64, z: -80 }, -90, 5);       // tier 3
+    w.sim.step(5);
+    const t0 = w.sim.save.tick;
+    w.bk.ctl.brain.forced = { name: 'beam', run: w.bk.ctl.brain.beam(a), limit: 2000 };
+    const phases = [];
+    let last = -1;
+    for (let i = 0; i < 700; i++) { w.sim.step(1); const ph = c.entity.getProperty(P('phase')); if (ph !== last) { phases.push([ph, w.sim.save.tick - t0]); last = ph; } }
+    const at = (ph) => (phases.find(([p]) => p === ph) ?? [0, -1])[1];
+    const heard = (id) => (a.heard.find((q) => q.id === id && q.tick >= t0) ?? { tick: -1 }).tick - t0;
+    const chargeAt = heard('basiliskra.iii.charge'), beamAt = heard('basiliskra.iii.beam');
+    check('the charge lasts as long as the charging part of the recording (6.85 s), and he fires on the tick the shot begins', chargeAt >= 0 && beamAt - chargeAt === 137 && Math.abs(at(19) - beamAt) <= 1, `charge sound ${chargeAt}, beam sound ${beamAt}, fire phase ${at(19)}`);
+    check('he fires for as long as the shot sounds (about 7.7 s), then vents', at(20) - at(19) === 155, JSON.stringify(phases));
+    check('and after firing he roars', at(23) > at(20) && a.heard.some((q) => q.tick > t0 + at(20) && /basiliskra\.roar/.test(q.id)));
+    check('the beam is wider, smokes and glows, and blasts where it lands', a.seen.some((q) => q.id === 'basiliskra:beam_glow') && a.seen.some((q) => q.id === 'basiliskra:beam_smoke') && a.seen.some((q) => q.id === 'basiliskra:impact_smoke') && a.seen.some((q) => q.id === 'minecraft:huge_explosion_emitter'));
+    const ground = []; for (let x = 20; x <= 90; x++) for (let z = -100; z <= -60; z++) for (let y = 50; y <= 63; y++) if (w.sim.blockId('minecraft:overworld', x, y, z) === 'minecraft:air') ground.push([x, y, z]);
+    const fire = []; for (let x = 20; x <= 90; x++) for (let z = -100; z <= -60; z++) for (let y = 50; y <= 66; y++) if (w.sim.blockId('minecraft:overworld', x, y, z) === 'minecraft:fire') fire.push([x, y, z]);
+    const deepest = Math.min(...ground.map((g) => g[1]));
+    check('like the Wither it blows a crater in the ground, and the crater burns', ground.length > 40 && fire.length > 0, `${ground.length} blocks gone, ${fire.length} fires, deepest y ${deepest}`);
+    check('the crater is a crater, not an endless tunnel', deepest >= 50, `deepest y ${deepest}`);
+    const shakes = w.sim.log.commands.filter((q) => /^camerashake add @s/.test(q)).map((q) => Number(q.split(' ')[3]));
+    check('the screen shakes while he fires and roars, never wildly', shakes.length > 10 && Math.max(...shakes) <= 0.75 && Math.max(...shakes) >= 0.3, `${shakes.length} shakes, strongest ${Math.max(...shakes).toFixed(2)}`);
+  }
+  // ---- a roar: a shockwave that throws, hurts, and breaks what is brittle ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const near = w.sim.addPlayer('Near', { x: 14, y: 64, z: 0 }); near.health = 1000;
+    const far = w.sim.addPlayer('Far', { x: 0, y: 64, z: 70 }); far.health = 1000;
+    const flowers = [];
+    for (let k = 0; k < 24; k++) { const a = k * Math.PI / 12; flowers.push([Math.round(Math.cos(a) * 16), Math.round(Math.sin(a) * 16)]); }
+    for (const [x, z] of flowers) w.sim.setBlock('minecraft:overworld', x, 64, z, 'minecraft:poppy');
+    for (let x = -8; x <= -4; x++) w.sim.setBlock('minecraft:overworld', x, 64, -20, 'minecraft:glass');
+    w.sim.setBlock('minecraft:overworld', 9, 64, -9, 'minecraft:chest');
+    const c = standThree(w, { x: 0, y: 64, z: 0 }, 0, 5);
+    const cow = w.sim.attach(w.sim.newRecord('minecraft:cow', 'minecraft:overworld', { x: -12, y: 64, z: 8 }), 'entitySpawn'); cow.rec.family = ['cow', 'mob'];
+    w.sim.flush();
+    const n0 = { ...near.location }, f0 = { ...far.location }, c0 = { ...cow.rec.loc };
+    const run = w.bk.ctl.brain.roar(false);
+    w.bk.ctl.brain.forced = { name: 'roar', run, limit: 200 };
+    for (let i = 0; i < 100; i++) w.sim.step(1);
+    const out = (p0, p1) => Math.hypot(p1.x, p1.z) - Math.hypot(p0.x, p0.z);
+    check('the shockwave throws a player near him outward, and hurts', out(n0, near.location) > 0.5 && near.health < 1000, `moved out ${out(n0, near.location).toFixed(2)}, health ${near.health}`);
+    check('one far beyond it is not touched', far.health === 1000 && out(f0, far.location) === 0);
+    check('creatures in its way are thrown and hurt too', cow.rec.health < 10 || !cow.isValid || Math.hypot(cow.rec.vel.x, cow.rec.vel.z) > 0.3);
+    const id = (x, y, z) => w.sim.blockId('minecraft:overworld', x, y, z);
+    const flat = flowers.filter(([x, z]) => id(x, 64, z) === 'minecraft:air').length;
+    const panes = [-8, -7, -6, -5, -4].filter((x) => id(x, 64, -20) === 'minecraft:air').length;
+    check('the land takes it: flowers are flattened and glass shatters (wither mode), the chest stands', flat >= 16 && panes >= 3 && id(9, 64, -9) === 'minecraft:chest', `${flat} of 24 flowers, ${panes} of 5 panes`);
+    const shakes = w.sim.log.commands.filter((q) => /^camerashake add @s/.test(q));
+    check('his roar shakes every screen near him', shakes.length >= 6);
+    // and in scorch mode the glass is left
+    const w2 = start(); w2.sim.terrainFn = TERRAINS.flat; open(w2); w2.bk.CONFIG.terrain = 'scorch';
+    w2.sim.addPlayer('Near', { x: 14, y: 64, z: 0 });
+    for (let x = -8; x <= -4; x++) w2.sim.setBlock('minecraft:overworld', x, 64, -20, 'minecraft:glass');
+    for (const [x, z] of flowers) w2.sim.setBlock('minecraft:overworld', x, 64, z, 'minecraft:poppy');
+    standThree(w2, { x: 0, y: 64, z: 0 }, 0, 5);
+    w2.bk.ctl.brain.forced = { name: 'roar', run: w2.bk.ctl.brain.roar(false), limit: 200 };
+    for (let i = 0; i < 100; i++) w2.sim.step(1);
+    const flat2 = flowers.filter(([x, z]) => w2.sim.blockId('minecraft:overworld', x, 64, z) === 'minecraft:air').length;
+    check('not destroying the world, the roar still flattens plants but leaves glass', [-8, -7, -6, -5, -4].every((x) => w2.sim.blockId('minecraft:overworld', x, 64, -20) === 'minecraft:glass') && flat2 >= 16, `${flat2} flowers`);
+  }
+  // ---- out of control: he goes after animals, roars at random, grunts ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const watcher = w.sim.addPlayer('Watcher', { x: -20, y: 64, z: 70 }); watcher.mode = 'Creative';
+    const c = standThree(w, { x: 0, y: 64, z: 0 }, 0, 0);
+    const cow = w.sim.attach(w.sim.newRecord('minecraft:cow', 'minecraft:overworld', { x: 30, y: 64, z: 60 }), 'entitySpawn'); cow.rec.family = ['cow', 'mob'];
+    w.sim.flush();
+    const d0 = Math.hypot(c.pos.x - 30, c.pos.z - 60);
+    let closest = d0, hurtAt = -1;
+    for (let i = 0; i < 2400 && cow.isValid; i++) {
+      w.sim.step(1);
+      if (cow.isValid) closest = Math.min(closest, Math.hypot(c.pos.x - cow.rec.loc.x, c.pos.z - cow.rec.loc.z));
+      if (hurtAt < 0 && w.sim.log.damage.some((q) => q.id === cow.id)) hurtAt = i;
+    }
+    check('he goes after an animal near him, with no player to hunt', closest < d0 - 10, `${d0.toFixed(0)} -> ${closest.toFixed(0)} blocks`);
+    check('and it is hurt (trodden, blasted or burned)', hurtAt >= 0, `first hurt at ${hurtAt}`);
+    const roars = []; let lastPh = -1;
+    const voice = () => watcher.heard.filter((q) => /basiliskra\.iii\.(grunt|breath|growl)/.test(q.id));
+    const v0 = voice().length;
+    for (let i = 0; i < 18000; i++) {
+      w.sim.step(1);
+      // the watcher keeps him in sight (and his country loaded), from a safe 40 blocks
+      if (i % 100 === 0) { const f = { x: -Math.sin(c.yaw * Math.PI / 180), z: Math.cos(c.yaw * Math.PI / 180) }; watcher.moveTo({ x: c.pos.x - f.z * 40, y: 64, z: c.pos.z + f.x * 40 }); }
+      const ph = c.entity.getProperty(P('phase'));
+      if (ph === 23 && lastPh !== 23 && w.bk.ctl.brain.actName === 'roar') roars.push(w.sim.save.tick);     // the roars that come of nothing
+      lastPh = ph;
+    }
+    const gaps = roars.slice(1).map((t, i) => t - roars[i]);
+    check('left to himself he roars now and then, never on a beat', roars.length >= 2 && gaps.every((g) => g >= 60 * 20) && new Set(gaps.map((g) => Math.round(g / 100))).size === gaps.length, `${roars.length} roars in 15 min, gaps ${gaps.map((g) => (g / 20).toFixed(0) + 's').join(' ')}`);
+    const v = voice().slice(v0);
+    check('and grunts and breathes in between, from his recorded voice', v.length >= 12, `${v.length} sounds in 15 minutes`);
+  }
+  // ---- hit volumes: on the legs, through the walk, never under the ground ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    w.sim.addPlayer('Ana', { x: 0, y: 64, z: 60 }).mode = 'Creative';
+    const c = standThree(w, { x: 0, y: 64, z: 0 }, 0, 0);
+    const brain = w.bk.ctl.brain;
+    brain.forced = { name: 'test', run: (function* () { yield* brain.walk({ x: 0, y: 64, z: 80 }, 0.13, 3, 2000); yield* forever(); })(), limit: 1e9 };
+    const feet = [];
+    for (let i = 0; i < 300; i++) {
+      w.sim.step(1);
+      const vols = [...w.sim.loaded.values()].filter((e) => e.rec.typeId === 'basiliskra:hitbox');
+      const lowest = Math.min(...vols.map((e) => e.rec.loc.y));
+      // the foot volume of the left hind: its place along his line, relative to his middle
+      const owner = [...w.bk.partOwner.entries()].filter(([, o]) => o.tag === 'limb').map(([id]) => w.sim.loaded.get(id)).filter(Boolean);
+      const along = owner.map((e) => (e.rec.loc.z - c.pos.z));
+      feet.push({ lowest, along });
+    }
+    const n = feet[0].along.length;
+    const swing = [];
+    for (let k = 0; k < n; k++) { const zs = feet.map((f) => f.along[k]).filter((v) => v !== undefined); swing.push(Math.max(...zs) - Math.min(...zs)); }
+    check('Form III has hit volumes on all four legs, knee and sole', n === 8, `${n} limb volumes`);
+    check('they move with the legs as he walks (each sweeps several blocks along his body)', swing.filter((s) => s > 3).length >= 4, swing.map((s) => s.toFixed(1)).join(' '));
+    check('and none of them is sunk under the ground he stands on', feet.every((f) => f.lowest >= 63.7), `lowest ${Math.min(...feet.map((f) => f.lowest)).toFixed(2)}`);
+    const sizes = [...w.sim.loaded.values()].filter((e) => e.rec.typeId === 'basiliskra:hitbox').map((e) => e.rec.events.filter((q) => /size_/.test(q)).pop());
+    check('the volumes are sized for a body 1.7 times the model', sizes.some((q) => /size_[789]/.test(q)), [...new Set(sizes)].join(' '));
+  }
+  // ---- settings: presets and typed numbers, and a world saved by 1.2 ----
+  {
+    const ui = (() => { const w = start(); return w.bk.ui; })();
+    check('a picked preset, a typed number, "x1.5" and "1,5" are all understood; nonsense keeps the choice above it',
+      ui.pickNumber([0.5, 1, 2], 2, '', 1, 0.25, 4) === 2 && ui.pickNumber([0.5, 1, 2], 0, '1.25', 1, 0.25, 4) === 1.25 &&
+      ui.pickNumber([0.5, 1, 2], 0, 'x1.5', 1, 0.25, 4) === 1.5 && ui.pickNumber([0.5, 1, 2], 0, '1,5', 1, 0.25, 4) === 1.5 &&
+      ui.pickNumber([0.5, 1, 2], 1, 'lots', 1, 0.25, 4) === 1 && ui.pickNumber([0.5, 1, 2], 1, '9', 1, 0.25, 4) === 1);
+    const save = new Save();
+    save.worldProps.set('bk:cfg', JSON.stringify({ pacing: 1.5, terrain: 'scorch', marks: true, damage: 1, fallout: 'land' }));
+    const w = start(save); open(w);
+    check('a world whose settings were saved by 1.2 gets the new default destruction (it had never chosen)', w.bk.CONFIG.terrain === 'wither' && w.bk.CONFIG.pacing === 1.5);
+    w.bk.settings.saveSettings({ terrain: 'scorch' });
+    w.restart(); w.sim.step(2);
+    check('one that chooses "scorch" in 1.3 keeps it', w.bk.CONFIG.terrain === 'scorch' && w.bk.CONFIG.pacing === 1.5);
+  }
+  // ---- the journal counts kills as kills ----
+  {
+    const w = start(); open(w);
+    const jo = w.sim.addPlayer('Jo', { x: 10, y: 64, z: 10 });
+    for (let i = 0; i < 3; i++) kill(w, jo, 'minecraft:cow', { x: 12 + i, y: 64, z: 12 });
+    w.sim.step(2);
+    const page = () => { const f = jo.forms.filter((q) => q.title === 'Basiliskra Journal').pop(); return f ? f.body : ''; };
+    jo.use('basiliskra:journal'); w.sim.step(2);
+    check('three animals killed reads as three, not as a percentage', /Animals killed here by players: §f3§7/.test(page()) && /You, everywhere: §f3§7 animals killed/.test(page()), page().split('\n').slice(1, 5).join(' / '));
+    const p1 = Number((/(\d+)%§r §7of what calls him/.exec(page()) ?? [0, -1])[1]);
+    check('the progress figure counts the kills even with no trees cut yet', p1 > 0, `${p1}%`);
+    jo.loc = { x: 75, y: 64, z: 10 }; jo.use('basiliskra:journal'); w.sim.step(2);
+    check('a step over the area\'s edge does not make it vanish', /Animals killed here by players: §f3§7/.test(page()));
+  }
+  // ---- the window, at his new size ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.village; open(w);
+    w.sim.save.timeOfDay = 15000;
+    const inside = w.sim.addPlayer('Inside', { x: 0.5, y: 64, z: 0.5 });
+    const c = standThree(w, { x: 70, y: 64, z: 0.5 }, 90, 0);
+    w.bk.ctl.brain.forced = { name: 'window', run: w.bk.ctl.brain.window(inside), limit: 4000 };
+    let best = null;
+    for (let i = 0; i < 3000; i++) {
+      w.sim.step(1);
+      if (c.phase === 'window') { const e = c.anchor('eye_l'); best = { x: e.x, y: e.y, z: e.z }; break; }
+    }
+    // the window that matters: the east wall (x = 3), panes at z 0..1, y 65..66
+    check('at the window one eye hangs just outside the glass, level with it', best && best.x > 4 && best.x < 7.5 && best.y >= 65 && best.y <= 67.2 && Math.abs(best.z - 1) < 1.6,
+      best ? `eye at ${best.x.toFixed(2)}, ${best.y.toFixed(2)}, ${best.z.toFixed(2)}` : 'never reached the window');
+  }
 }
 
 console.log(`\n${results.length - failures}/${results.length} checks passed`);

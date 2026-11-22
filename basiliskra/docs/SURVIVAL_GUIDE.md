@@ -5,11 +5,11 @@ No experiments, no Beta APIs, no cheats, no commands. It can be added to a survi
 
 ## Install
 
-1. Open `Basiliskra-1.2.0.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
+1. Open `Basiliskra-1.3.0.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
 2. Edit your world → **Behavior Packs** → activate **Basiliskra**. The resource pack is pulled in with it. Leave every toggle under **Experiments** off.
 3. Play. Nothing happens straight away. The story is found by playing; the journal tells you how close it is.
 
-**Updating from an earlier version**: open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.2.0 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself.
+**Updating from an earlier version**: open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.3.0 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself. Settings you chose are kept; a world that never chose how destructive he is gets the new default (he destroys like the Wither).
 
 Realms and multiplayer: apply both packs to the world; players download the resource pack on joining. Consoles can use the add-on only through a Realm or a world transferred from another device.
 
@@ -36,17 +36,35 @@ Then, at dusk, with someone near that coast: fish bunch, an empty boat knocks th
 | **Basiliskra II** | the shore, villages | Time (two days) and about 220 blocks dragged overland; it happens at night or in rain with a player near |
 | **Basiliskra III** | anywhere he can walk | The last crossing (below) |
 
+He grows: Basiliskra II stands a quarter bigger than Basiliskra I would, and Basiliskra III is drawn 1.7 times his model, close to seventy blocks from nose to club, his back as high as a tall tree. His body can be hit anywhere on it, his legs and feet included: the hit volumes on his legs move with them as he walks.
+
 There is never more than one. He keeps his health across stages and across saving and loading. He cannot be killed: worn down to his last breath he is taken by a seam and comes back through the first one a day later, whole, in the stage he had. `/kill` does the same.
 
 Things worth knowing, without spoiling how you find them:
 
 * **Three knocks, 0.9 seconds apart**, mean something every time you hear them. In the water they are a warning to get behind a solid block.
-* He has one voice. You first hear it through the water, the night he arrives; younger and higher on the shore; whole when he stands up as Basiliskra III. He roars when he knows you, when a lightning rod robs him of his charge, and once more as he goes home.
+* He has one voice. You first hear it through the water, the night he arrives; younger and higher on the shore; whole when he stands up as Basiliskra III. Between times he grunts, huffs and growls. He **roars**:
+  * after every atomic breath;
+  * when he picks something new to go after;
+  * now and then for no reason anyone can see (a minute to three apart, never on a beat);
+  * when he knows you, when a lightning rod robs him of his charge, when he is driven off, when he changes, and once more as he goes home.
+
+  Every roar shakes the screen (hard near him, less further off) and throws a **shockwave** out along the ground from his feet: it knocks players and animals away from him and hurts them, flattens plants, blows snow and wild leaves off and, while he is destroying like the Wither, shatters glass, lanterns and torches.
 * He hears splashes. Two close together bring him; he learns, and the trick has a cooldown.
 * A narrow gap in the water stops him: head through, shoulders not.
 * Form II's drag has a rest in it. That rest is your gap.
-* Form III's beam is aimed for most of the charge and then locked: when the eye stops following, step sideways. Solid cover works. After he fires there is a long recovery.
+* **The atomic breath** (Form III) is timed to its sound. The club plants and the charging begins; for about seven seconds the plates light from tail to head and his eye follows you. Then the eye stops following: **that is the moment to step sideways.** The shot itself lasts about seven and a half seconds. It drifts slowly after its target (never as fast as you can walk sideways), throws smoke and embers along its whole length, and blasts, burns and craters whatever it lands on. While he is destroying like the Wither it blows cover away too, so do not count on a wall; in the gentler settings solid cover still works. After it he vents with three knocks, roars, and rests a while.
 * **A lightning rod (any weathering, waxed or not) within 10 blocks of his planted tail club** takes the charge instead. The rod needs half a minute before it can do it again.
+
+## Out of control
+
+Basiliskra III does not care what is around him.
+
+* He goes after **players and animals alike** (any creature: cows, villagers, wolves), and turns his breath on them as readily as on you.
+* Whatever is under a foot when it comes down is trodden: it hurts, and throws you. Being caught under him as he walks hurts too.
+* **He smashes straight through buildings in his way** (in the default destruction setting). Only the world's own rock and cliffs still turn him.
+* The wither-like destruction never touches bedrock, portals or command blocks, and by default spares **chests, barrels, shulker boxes, beds, furnaces, hoppers and anything else that holds things**, and the obsidian a portal stands in. You may find a chest standing alone in the rubble.
+* The config wheel's Settings can make him gentler: destruction can be reduced to scorching or nothing, the storage protection turned off, and his hunting of animals turned off.
 
 ## The ending
 
@@ -78,7 +96,8 @@ The journal has a Fallout section too. In the config wheel's Settings, fallout c
 
 Every player gets a **Basiliskra Journal** the first time they join with the pack on (craft another from a book and kelp). Use it (right-click, or press and hold) or type `/basiliskra:journal`. It shows:
 
-* **His anger** where you stand, as a percentage, split into animals killed by players and habitat cut, with your own share of it and roughly how many more kills and logs it would take. It also shows the angriest place in the world and which way it is.
+* **His anger** near you: how close the area you are in is to calling him, as a percentage that only rises with harm; **how many animals have been killed there by players, and how many logs, reeds and shore plants cut**, as plain counts, with what they count for against what it takes (both are needed: animals *and* habitat); your own share; roughly how many more it would take. Anger is kept per 64-block area; the journal shows the angriest area around you, so stepping over an edge does not make it vanish. It also shows the angriest place in the world and which way it is, and your own totals everywhere.
+* The first kills of a spree and the first logs of a tree count for less, which is why three kills count as about 1.6 of the 8 needed.
 * **When he comes**: not yet; called and looking for deep water (and where); coming at the next dusk (and how many minutes that is, and which water); here now (and how far away); driven off (and when he returns); or gone home.
 * **Him**, once he is here: how close he is to changing, and what it takes.
 
@@ -114,11 +133,13 @@ In game: the config wheel's **Settings**. The defaults below are in `scripts/mai
 
 | Setting | Default | Meaning |
 |---|---|---|
-| Story speed (`pacing`) | `1.0` | `2` halves every wait and threshold. |
-| His beam on the ground (`terrain`) | scorch | Nothing: light and sound only. Scorch: the beam chars the world's own ground where it lands (stone to smooth basalt, grass and dirt to coarse dirt). Break: also breaks the one natural block it hits. |
+| Story speed (`pacing`) | `1.0` | `2` halves every wait and threshold. Pick one from the list, or type any number from 0.25 to 4 in the box under it. |
+| What his beam, roar and weight do (`terrain`) | destroy, like the Wither | **Destroy**: the beam blasts craters out of anything it meets and sets fires, the roar shatters glass, and he smashes through buildings. **Scorch and break** / **scorch**: only natural ground at the beam's impact is scorched (stone to smooth basalt, grass and dirt to coarse dirt) and, with break, the one natural block hit is broken; he walks round buildings. **Nothing**: light and sound only. |
+| Spare chests, beds, furnaces and portals (`spareStorage`) | on | In destroy mode: anything that holds things, beds, and portal obsidian are left standing. |
 | Footprints and furrows (`marks`) | on | Furrows (II) and footprints (III) on open, unbuilt ground. |
-| Damage to players (`damage`) | `1.0` | Multiplier on everything he does to players. |
+| Damage to players (`damage`) | `1.0` | Multiplier on everything he does to players. Pick one, or type any number from 0 to 4. |
 | Harmless on Peaceful | on | On Peaceful he appears and behaves but hurts nobody. |
+| He hunts animals and other creatures (`huntMobs`) | on | Off: he only goes after players (creatures in the way of his beam or his feet still suffer). |
 | Spawn eggs and /summon bring him (`allowSummon`) | on | Off: they are removed instead. |
 | A spawn egg makes (`spawnForm`) | his stage in the story | Or always I, II or III. |
 | Give new players the journal | on | |
@@ -127,11 +148,17 @@ In game: the config wheel's **Settings**. The defaults below are in `scripts/mai
 | His fallout (`fallout`) | changes the land | Off; or glowing motes and Geiger clicks only; or also changes the land (natural ground only). |
 | Radiation sickness (`sickness`) | on | Players in strong fallout get hungry, weak and sick. |
 
-What is never changed in any mode: anything with an inventory, beds, portals, redstone, glass, planks, bricks or any other built block; a raised wall or pillar even of raw stone; ground a building stands against; and ground only silk touch can move (podzol, mycelium, moss, mud, clay, snow). If the beam lands on a building, nothing around it is touched either. He uses no real lightning.
+There are no sliders (they could not be dragged on some phones): every number is a list to pick from, with a box to type your own.
+
+Never changed, in any mode: bedrock, portals, end portal frames, barriers, command and structure blocks. With storage spared (the default): anything with an inventory, beds, signs, and obsidian.
+
+In the scorch and break modes nothing built is ever touched: not redstone, glass, planks, bricks or any other built block; not a raised wall or pillar even of raw stone; not ground a building stands against; not ground only silk touch can move (podzol, mycelium, moss, mud, clay, snow). If the beam lands on a building, nothing around it is touched either.
+
+His destruction drops nothing: what his breath or his weight breaks is gone. He uses no real lightning and no real explosions (the blasts are his own, so nothing he does is stopped by blast resistance, and nothing is set off).
 
 ## Good to know
 
-* His body is covered by invisible hit volumes from nose to tail, so a hit anywhere counts and you are pushed out of him rather than through him.
-* He walks round buildings and cliff faces and shoulders through trees. He does not enter water over his depth by choice; if he ends up in it he swims.
+* His body is covered by invisible hit volumes from nose to tail, legs and feet included, so a hit anywhere counts and you are pushed out of him rather than through him.
+* In destroy mode he smashes through buildings; otherwise he walks round them. He always walks round cliff faces and shoulders through trees. He does not enter water over his depth by choice; if he ends up in it he swims.
 * If the coast he is at unloads (you go to the Nether), he is still there when you return. An empty area is never treated as "he is gone".
 * Removing the packs leaves at most one inert entity that removes itself; the world is otherwise untouched.

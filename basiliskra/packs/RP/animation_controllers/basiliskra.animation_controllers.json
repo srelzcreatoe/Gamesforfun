@@ -115,6 +115,9 @@
       },
       {
        "evolve": "(v.phase == 12 || v.phase == 13)"
+      },
+      {
+       "roar": "(v.phase == 23)"
       }
      ],
      "particle_effects": [
@@ -131,6 +134,9 @@
       },
       {
        "evolve": "(v.phase == 12 || v.phase == 13)"
+      },
+      {
+       "roar": "(v.phase == 23)"
       },
       {
        "idle": "!(v.phase == 15)"
@@ -168,6 +174,9 @@
        "evolve": "(v.phase == 12 || v.phase == 13)"
       },
       {
+       "roar": "(v.phase == 23)"
+      },
+      {
        "idle": "!(v.phase == 14)"
       }
      ],
@@ -187,6 +196,9 @@
        "drink": "(v.phase == 14)"
       },
       {
+       "roar": "(v.phase == 23)"
+      },
+      {
        "idle": "!(v.phase == 12 || v.phase == 13)"
       }
      ],
@@ -194,6 +206,28 @@
       {
        "effect": "shed_flakes",
        "locator": "heart_ii"
+      }
+     ]
+    },
+    "roar": {
+     "transitions": [
+      {
+       "arc": "(v.phase == 15)"
+      },
+      {
+       "drink": "(v.phase == 14)"
+      },
+      {
+       "evolve": "(v.phase == 12 || v.phase == 13)"
+      },
+      {
+       "idle": "!(v.phase == 23)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "roar_haze",
+       "locator": "muzzle_ii"
       }
      ]
     }
@@ -218,6 +252,9 @@
       },
       {
        "scatter": "(v.phase == 22)"
+      },
+      {
+       "roar": "(v.phase == 23)"
       }
      ],
      "particle_effects": [
@@ -256,6 +293,9 @@
       },
       {
        "scatter": "(v.phase == 22)"
+      },
+      {
+       "roar": "(v.phase == 23)"
       },
       {
        "idle": "!(v.phase == 18)"
@@ -319,6 +359,9 @@
        "scatter": "(v.phase == 22)"
       },
       {
+       "roar": "(v.phase == 23)"
+      },
+      {
        "idle": "!(v.phase == 19)"
       }
      ],
@@ -328,24 +371,64 @@
        "locator": "muzzle_iii"
       },
       {
-       "effect": "plate_ember",
+       "effect": "mouth_flare",
+       "locator": "mouth_iii"
+      },
+      {
+       "effect": "throat_glow",
+       "locator": "throat_iii"
+      },
+      {
+       "effect": "plate_blaze",
        "locator": "plate_tip_0_iii"
       },
       {
-       "effect": "plate_ember",
+       "effect": "plate_blaze",
+       "locator": "plate_tip_1_iii"
+      },
+      {
+       "effect": "plate_blaze",
        "locator": "plate_tip_2_iii"
       },
       {
-       "effect": "plate_ember",
+       "effect": "plate_blaze",
+       "locator": "plate_tip_3_iii"
+      },
+      {
+       "effect": "plate_blaze",
        "locator": "plate_tip_4_iii"
       },
       {
-       "effect": "plate_ember",
+       "effect": "plate_blaze",
+       "locator": "plate_tip_5_iii"
+      },
+      {
+       "effect": "plate_blaze",
        "locator": "plate_tip_6_iii"
       },
       {
-       "effect": "plate_ember",
+       "effect": "plate_blaze",
+       "locator": "plate_tip_7_iii"
+      },
+      {
+       "effect": "plate_blaze",
        "locator": "plate_tip_8_iii"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_9_iii"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_1_iii"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_4_iii"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_7_iii"
       },
       {
        "effect": "charge_spark",
@@ -380,6 +463,9 @@
        "scatter": "(v.phase == 22)"
       },
       {
+       "roar": "(v.phase == 23)"
+      },
+      {
        "idle": "!(v.phase == 20)"
       }
      ],
@@ -399,6 +485,26 @@
       {
        "effect": "rad_drift",
        "locator": "gill_r_iii"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_0_iii"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_3_iii"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_6_iii"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_9_iii"
+      },
+      {
+       "effect": "mouth_smoke",
+       "locator": "mouth_iii"
       },
       {
        "effect": "rad_drift",
@@ -423,6 +529,9 @@
       },
       {
        "scatter": "(v.phase == 22)"
+      },
+      {
+       "roar": "(v.phase == 23)"
       },
       {
        "idle": "!(v.phase == 21)"
@@ -456,6 +565,9 @@
       },
       {
        "grounded": "(v.phase == 21)"
+      },
+      {
+       "roar": "(v.phase == 23)"
       },
       {
        "idle": "!(v.phase == 22)"
@@ -501,6 +613,38 @@
       {
        "effect": "plate_ember",
        "locator": "plate_tip_9_iii"
+      }
+     ]
+    },
+    "roar": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "grounded": "(v.phase == 21)"
+      },
+      {
+       "scatter": "(v.phase == 22)"
+      },
+      {
+       "idle": "!(v.phase == 23)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "roar_haze",
+       "locator": "mouth_iii"
+      },
+      {
+       "effect": "roar_haze",
+       "locator": "muzzle_iii"
       }
      ]
     }

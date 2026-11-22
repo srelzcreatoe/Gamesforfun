@@ -299,13 +299,33 @@ if have_schemas:
     vanilla_entities = {e["name"] for e in ve.get("data_items", [])}
     vi = json.load(open(os.path.join(SAMPLES, "metadata/vanilladata_modules/mojang-items.json")))
     vanilla_entities |= {e["name"] for e in vi.get("data_items", [])}
+vanilla_particles = set()
+if have_schemas:
+    for fn in os.listdir(os.path.join(SAMPLES, "resource_pack/particles")):
+        try:
+            d = json.load(open(os.path.join(SAMPLES, "resource_pack/particles", fn), encoding="utf-8-sig"))
+            vanilla_particles.add(d["particle_effect"]["description"]["identifier"])
+        except (ValueError, KeyError, TypeError):
+            pass
 
 for sid in sorted(set(re.findall(r'"(basiliskra\.[a-z0-9_.]+)"', src))):
     if sid not in sdefs:
         err(f"script plays {sid}: not in sound_definitions.json")
     ok("script sound references")
+# sound ids the script builds at run time, and every id each can produce (read from the source by hand; checked here)
+DYNAMIC_SOUNDS = {
+    "`basiliskra.${": [f"basiliskra.{f}.{k}" for f in ("ii", "iii") for k in ("grunt", "breath", "growl")] + ["basiliskra.i.grunt", "basiliskra.i.breath"],
+    "`basiliskra.geiger.${": [f"basiliskra.geiger.{n}" for n in (1, 2, 3, 4)],
+    "`basiliskra.i.${": ["basiliskra.i.breath", "basiliskra.i.swim"],
+}
 for sid in sorted(set(re.findall(r'`basiliskra\.[a-z0-9_.]*\$\{', src))):
-    notes.append(f"script builds a sound id dynamically: {sid}...  (checked by hand: i.breath / i.swim)")
+    if sid not in DYNAMIC_SOUNDS:
+        err(f"script builds a sound id dynamically ({sid}...) that the validator does not know: list what it can produce")
+        continue
+    missing = [x for x in DYNAMIC_SOUNDS[sid] if x not in sdefs]
+    if missing:
+        err(f"script builds {sid}...: {', '.join(missing)} not in sound_definitions.json")
+    ok("dynamic sound ids (every value checked)", len(DYNAMIC_SOUNDS[sid]))
 for pid in sorted(set(re.findall(r'"(basiliskra:[a-z_]+)"', src))):
     if pid in (f"{NS}:{NS}", f"{NS}:hitbox", f"{NS}:keep", f"{NS}:shed_fin") or pid.startswith(f"{NS}:size_") or pid.startswith(f"{NS}:bind_"):
         continue
@@ -326,10 +346,21 @@ if vanilla_blocks:
         if bid in vanilla_blocks or bid in vanilla_entities:
             ok("vanilla block/entity ids")
             continue
+        if bid in vanilla_particles:
+            ok("vanilla particle ids")
+            continue
         if bid in ("minecraft:overworld", "minecraft:nether", "minecraft:the_end", "minecraft:player", "minecraft:item") or bid.split(":")[1] in (
                 "health", "riding", "rideable", "equippable", "inventory", "item"):
             continue
         err(f"script names {bid}: not a block or entity id in 1.26.60")
+# block id lists written without their namespace (src/havoc.ts: what the shockwave breaks): every one must exist
+if vanilla_blocks:
+    hv = open(os.path.join(ROOT, "src", "havoc.ts"), encoding="utf-8").read()
+    for name, body in re.findall(r'const ([A-Z_]+_IDS) = \[(.*?)\]\.map', hv, re.S):
+        for n in re.findall(r'"([a-z0-9_]+)"', body):
+            if "minecraft:" + n not in vanilla_blocks:
+                err(f"src/havoc.ts {name} names minecraft:{n}: not a block in 1.26.60")
+            ok("vanilla block ids in shockwave lists")
 # properties and events the script uses
 item_ids = {d["minecraft:item"]["description"]["identifier"] for d in docs.values() if isinstance(d, dict) and "minecraft:item" in d}
 block_ids = {d["minecraft:block"]["description"]["identifier"] for d in docs.values() if isinstance(d, dict) and "minecraft:block" in d}

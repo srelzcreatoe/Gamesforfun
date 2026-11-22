@@ -32,6 +32,13 @@ export function sound(dim: Dimension, id: string, at: V3, range = 48, volume = 1
   }
 }
 
+/** Cut a sound short for everyone who could be hearing it (a charge that is grounded, an encounter cut off). */
+export function stopSound(dim: Dimension, id: string, at: V3, range = 192): void {
+  for (const p of witnesses(dim, at, range)) {
+    try { p.runCommand(`stopsound @s ${id}`); } catch { /* commands unavailable: it plays out */ }
+  }
+}
+
 export function particle(dim: Dimension, id: string, at: V3, range = 48, vars?: MolangVariableMap): void {
   if (!isLoaded(dim, at)) return;
   for (const p of witnesses(dim, at, range)) {

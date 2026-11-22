@@ -2,20 +2,24 @@
 
 
 // src/main.ts
-import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause3, system as system6, world as world12 } from "@minecraft/server";
+import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause5, system as system6, world as world12 } from "@minecraft/server";
 
 // src/config.ts
 var CONFIG = {
   /** BASILISKRA CONFIG — how fast the story moves.  2 = twice as fast, 0.5 = half. */
   pacing: 1,
   /**
-   * What his beam and feet may do to the world.
-   *  "none"   only particles and sound
-   *  "scorch" (default) natural stone, dirt, sand and grass at the impact are scorched; nothing breaks
-   *  "break"  natural terrain at the impact is also broken.  Storage, beds, portals, redstone
-   *           and anything a player built from non-natural blocks are never touched in any mode.
+   * What his beam, his roar and his weight may do to the world.
+   *  "none"   only light, particles and sound
+   *  "scorch" natural stone, dirt, sand and grass at the impact are scorched; nothing breaks
+   *  "break"  natural terrain at the impact is also broken
+   *  "wither" (default) like the Wither: the beam blasts out whatever it meets, sets fires, and he smashes
+   *           through anything built in his way.  Bedrock, portals and command blocks always survive, and so do
+   *           chests, beds and other blocks that hold things while `spareStorage` is on.
    */
-  terrain: "scorch",
+  terrain: "wither",
+  /** In "wither" mode: chests, barrels, shulker boxes, beds, furnaces, hoppers and the like are never destroyed. */
+  spareStorage: true,
   /** Furrows (Form II) and footprints (Form III) pressed into natural ground. */
   marks: true,
   /** Damage multiplier for everything he does to players. */
@@ -39,9 +43,11 @@ var CONFIG = {
    */
   fallout: "land",
   /** Players standing in strong fallout get hungry, weak and sick (vanilla effects; milk clears them). */
-  sickness: true
+  sickness: true,
+  /** He hunts animals and other creatures too, not only players. */
+  huntMobs: true
 };
-var SETTINGS = ["pacing", "terrain", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness"];
+var SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs"];
 var SETTINGS_KEY = "bk:cfg";
 var NS = "basiliskra";
 var TYPE = `${NS}:basiliskra`;
@@ -114,7 +120,7 @@ function clean(k, v) {
     case "damage":
       return typeof v === "number" && v >= 0 && v <= 4 ? v : void 0;
     case "terrain":
-      return v === "none" || v === "scorch" || v === "break" ? v : void 0;
+      return v === "none" || v === "scorch" || v === "break" || v === "wither" ? v : void 0;
     case "spawnForm":
       return v === 0 || v === 1 || v === 2 || v === 3 ? v : void 0;
     case "fallout":
@@ -137,6 +143,7 @@ function loadSettings() {
   } catch {
     return;
   }
+  if (saved.v === void 0 && saved.terrain === "scorch") delete saved.terrain;
   for (const k of SETTINGS) {
     const v = clean(k, saved[k]);
     if (v !== void 0) CONFIG[k] = v;
@@ -148,8 +155,8 @@ function saveSettings(change) {
     const c = clean(k, v);
     if (c !== void 0) CONFIG[k] = c;
   }
-  const out = {};
-  for (const k of SETTINGS) out[k] = CONFIG[k];
+  const out = { v: 2 };
+  for (const k of SETTINGS) if (CONFIG[k] !== DEFAULTS[k]) out[k] = CONFIG[k];
   try {
     world.setDynamicProperty(SETTINGS_KEY, JSON.stringify(out));
   } catch {
@@ -168,7 +175,7 @@ import { ItemStack, PlayerPermissionLevel, system as system2, world as world7 } 
 import { ActionFormData, FormCancelationReason, MessageFormData, ModalFormData } from "@minecraft/server-ui";
 
 // src/creature.ts
-import { EntityDamageCause, GameMode, world as world5 } from "@minecraft/server";
+import { EntityDamageCause as EntityDamageCause2, GameMode, world as world5 } from "@minecraft/server";
 
 // src/fx.ts
 import { MolangVariableMap, world as world3 } from "@minecraft/server";
@@ -240,12 +247,13 @@ var PLANT = /^minecraft:(?!stripped_)(.*_log|.*_wood|.*_stem|.*_hyphae|.*leaves.
 var NATURAL = /^minecraft:(stone|granite|diorite|andesite|deepslate|tuff|calcite|dirt|coarse_dirt|grass_block|podzol|mycelium|dirt_with_roots|mud|clay|sand|red_sand|gravel|suspicious_sand|suspicious_gravel|sandstone|red_sandstone|snow|ice|packed_ice|blue_ice|powder_snow|moss_block|pale_moss_block|hardened_clay|.*_terracotta|netherrack|basalt|smooth_basalt|blackstone|end_stone|dripstone_block|.*_ore|bedrock|obsidian|magma|soul_sand|soul_soil|muddy_mangrove_roots|amethyst_block|budding_amethyst|.*coral_block|cobbled_deepslate|packed_mud)$/;
 var isPlantBlock = (id) => PLANT.test(id);
 var isNaturalGround = (id) => NATURAL.test(id) && !id.includes("glazed") || id === "basiliskra:irradiated_soil" || id === "basiliskra:scarlet_trinitite";
-function trunkBlocked(dim, at2, feetY, radius, built, cliff, full) {
+function trunkBlocked(dim, at2, feetY, radius, built, cliff, full, smash = false) {
   const ring = full ? [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [0.72, 0.72], [-0.72, 0.72], [0.72, -0.72], [-0.72, -0.72]] : [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
   for (const [dx, dz] of ring) {
     const x = at2.x + dx * radius, z = at2.z + dz * radius;
     const top = blockAt(dim, { x, y: feetY + cliff, z });
-    if (top && isSolidBlock(top) && !isPlantBlock(top.typeId)) return true;
+    if (top && isSolidBlock(top) && !isPlantBlock(top.typeId) && (!smash || isNaturalGround(top.typeId))) return true;
+    if (smash) continue;
     for (const h of built) {
       const b = blockAt(dim, { x, y: feetY + h, z });
       if (b && isSolidBlock(b) && !isPlantBlock(b.typeId) && !isNaturalGround(b.typeId)) return true;
@@ -392,6 +400,14 @@ function sound(dim, id, at2, range = 48, volume = 1, pitch = 1) {
     }
   }
 }
+function stopSound(dim, id, at2, range = 192) {
+  for (const p of witnesses(dim, at2, range)) {
+    try {
+      p.runCommand(`stopsound @s ${id}`);
+    } catch {
+    }
+  }
+}
 function particle(dim, id, at2, range = 48, vars) {
   if (!isLoaded(dim, at2)) return;
   for (const p of witnesses(dim, at2, range)) {
@@ -415,13 +431,18 @@ function beamVars(dir, length, width, r = 1, g = 0.1, b = 0.1) {
 // src/generated/rig.ts
 var RIGS = { "1": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 36, 0], "rot": [0, 0, 0], "zone": 6 }, "chest": { "parent": "body", "pivot": [0, 36, 0], "rot": [0, 0, 0], "zone": 6 }, "gill_l1": { "parent": "chest", "pivot": [48, 36, -17], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "chest", "pivot": [48, 36, -7], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "chest", "pivot": [48, 36, 3], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "chest", "pivot": [-48, 36, -17], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "chest", "pivot": [-48, 36, -7], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "chest", "pivot": [-48, 36, 3], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "chest", "pivot": [0, 36, -24], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 32, -34], "rot": [4, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [27.4, 45.6, -78], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-27.4, 45.6, -78], "rot": [0, 0, 0], "zone": 8 }, "fin_l": { "parent": "chest", "pivot": [40, 13, 16], "rot": [0, -34, 30], "zone": 6 }, "fin_l_tip": { "parent": "fin_l", "pivot": [74, 13, 16], "rot": [0, 0, 0], "zone": 6 }, "fin_r": { "parent": "chest", "pivot": [-40, 13, 16], "rot": [0, 34, -30], "zone": 6 }, "fin_r_tip": { "parent": "fin_r", "pivot": [-74, 13, 16], "rot": [0, 0, 0], "zone": 6 }, "ribbon0": { "parent": "chest", "pivot": [0, 72, 6], "rot": [0, 0, 0], "zone": 6 }, "seg1": { "parent": "chest", "pivot": [0, 36, 24], "rot": [0, 0, 0], "zone": 5 }, "ribbon1": { "parent": "seg1", "pivot": [0, 72, 40], "rot": [0, 0, 0], "zone": 5 }, "seg2": { "parent": "seg1", "pivot": [0, 36, 56], "rot": [0, 0, 0], "zone": 5 }, "ribbon2": { "parent": "seg2", "pivot": [0, 71.5, 72], "rot": [0, 0, 0], "zone": 5 }, "seg3": { "parent": "seg2", "pivot": [0, 36, 88], "rot": [0, 0, 0], "zone": 5 }, "ribbon3": { "parent": "seg3", "pivot": [0, 70.5, 104], "rot": [0, 0, 0], "zone": 5 }, "seg4": { "parent": "seg3", "pivot": [0, 36, 120], "rot": [0, 0, 0], "zone": 4 }, "ribbon4": { "parent": "seg4", "pivot": [0, 69, 136], "rot": [0, 0, 0], "zone": 4 }, "seg5": { "parent": "seg4", "pivot": [0, 36, 152], "rot": [0, 0, 0], "zone": 4 }, "ribbon5": { "parent": "seg5", "pivot": [0, 67, 168], "rot": [0, 0, 0], "zone": 4 }, "seg6": { "parent": "seg5", "pivot": [0, 36, 184], "rot": [0, 0, 0], "zone": 3 }, "ribbon6": { "parent": "seg6", "pivot": [0, 64.5, 200], "rot": [0, 0, 0], "zone": 3 }, "vribbon6": { "parent": "seg6", "pivot": [0, 7.5, 200], "rot": [0, 0, 0], "zone": 3 }, "seg7": { "parent": "seg6", "pivot": [0, 36, 216], "rot": [0, 0, 0], "zone": 3 }, "ribbon7": { "parent": "seg7", "pivot": [0, 61, 232], "rot": [0, 0, 0], "zone": 3 }, "vribbon7": { "parent": "seg7", "pivot": [0, 11, 232], "rot": [0, 0, 0], "zone": 3 }, "seg8": { "parent": "seg7", "pivot": [0, 36, 248], "rot": [0, 0, 0], "zone": 2 }, "ribbon8": { "parent": "seg8", "pivot": [0, 57, 264], "rot": [0, 0, 0], "zone": 2 }, "vribbon8": { "parent": "seg8", "pivot": [0, 15, 264], "rot": [0, 0, 0], "zone": 2 }, "seg9": { "parent": "seg8", "pivot": [0, 36, 280], "rot": [0, 0, 0], "zone": 1 }, "ribbon9": { "parent": "seg9", "pivot": [0, 53, 296], "rot": [0, 0, 0], "zone": 1 }, "vribbon9": { "parent": "seg9", "pivot": [0, 19, 296], "rot": [0, 0, 0], "zone": 1 }, "seg10": { "parent": "seg9", "pivot": [0, 36, 312], "rot": [0, 0, 0], "zone": 1 }, "ribbon10": { "parent": "seg10", "pivot": [0, 49.5, 328], "rot": [0, 0, 0], "zone": 1 }, "vribbon10": { "parent": "seg10", "pivot": [0, 22.5, 328], "rot": [0, 0, 0], "zone": 1 }, "tailfin": { "parent": "seg10", "pivot": [0, 36, 344], "rot": [0, 0, 0], "zone": 0 } }, "locators": { "back": { "bone": "chest", "pos": [0, 72, 0] }, "belly": { "bone": "chest", "pos": [0, 0, 0] }, "spine_0": { "bone": "chest", "pos": [0, 72, 0] }, "gill_l": { "bone": "chest", "pos": [49, 36, -7] }, "gill_r": { "bone": "chest", "pos": [-49, 36, -7] }, "muzzle": { "bone": "head", "pos": [0, 34, -114] }, "nose": { "bone": "head", "pos": [0, 40, -112] }, "throat": { "bone": "head", "pos": [0, 28, -32] }, "mouth": { "bone": "jaw", "pos": [0, 31, -94] }, "eye_l": { "bone": "eye_l", "pos": [27.9, 45.6, -78] }, "eye_r": { "bone": "eye_r", "pos": [-27.9, 45.6, -78] }, "fin_l": { "bone": "fin_l_tip", "pos": [120, 13, 22] }, "fin_r": { "bone": "fin_r_tip", "pos": [-120, 13, 22] }, "spine_1": { "bone": "seg1", "pos": [0, 72, 40] }, "spine_2": { "bone": "seg2", "pos": [0, 71.5, 72] }, "spine_3": { "bone": "seg3", "pos": [0, 70.5, 104] }, "spine_4": { "bone": "seg4", "pos": [0, 69, 136] }, "spine_5": { "bone": "seg5", "pos": [0, 67, 168] }, "spine_6": { "bone": "seg6", "pos": [0, 64.5, 200] }, "spine_7": { "bone": "seg7", "pos": [0, 61, 232] }, "spine_8": { "bone": "seg8", "pos": [0, 57, 264] }, "spine_9": { "bone": "seg9", "pos": [0, 53, 296] }, "spine_10": { "bone": "seg10", "pos": [0, 49.5, 328] }, "knob_u": { "bone": "tailfin", "pos": [0, 100, 409] }, "knob_d": { "bone": "tailfin", "pos": [0, -28, 409] }, "tail_notch": { "bone": "tailfin", "pos": [2.5, 76, 405] }, "tail_tip": { "bone": "tailfin", "pos": [0, 36, 410] } }, "meta": { "glow_y0": 10, "glow_y1": 74, "wetness": 0.8, "bounds_margin": 6, "form": 1 }, "zones": { "6": ["body", "chest", "fin_l", "fin_l_tip", "fin_r", "fin_r_tip", "ribbon0"], "7": ["gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "jaw", "eye_l", "eye_r"], "5": ["seg1", "ribbon1", "seg2", "ribbon2", "seg3", "ribbon3"], "4": ["seg4", "ribbon4", "seg5", "ribbon5"], "3": ["seg6", "ribbon6", "vribbon6", "seg7", "ribbon7", "vribbon7"], "2": ["seg8", "ribbon8", "vribbon8"], "1": ["seg9", "ribbon9", "vribbon9", "seg10", "ribbon10", "vribbon10"], "0": ["tailfin"] } }, "2": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 44, 0], "rot": [0, 0, 0], "zone": 5 }, "chest": { "parent": "body", "pivot": [0, 78, 0], "rot": [0, 0, 0], "zone": 5 }, "plates_chest": { "parent": "chest", "pivot": [0, 122, 0], "rot": [0, 0, 0], "zone": 5 }, "neck": { "parent": "chest", "pivot": [0, 84, -32], "rot": [3, 0, 0], "zone": 6 }, "plates_neck": { "parent": "neck", "pivot": [0, 116, -46], "rot": [0, 0, 0], "zone": 6 }, "gill_l1": { "parent": "neck", "pivot": [37, 84, -56], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "neck", "pivot": [37, 84, -47], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "neck", "pivot": [37, 84, -38], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "neck", "pivot": [-37, 84, -56], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "neck", "pivot": [-37, 84, -47], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "neck", "pivot": [-37, 84, -38], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "neck", "pivot": [0, 84, -62], "rot": [4, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [28.08, 91.46, -97.7], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-28.08, 91.46, -97.7], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 71, -75], "rot": [9, 0, 0], "zone": 8 }, "arm_l": { "parent": "chest", "pivot": [54, 102, -14], "rot": [14, 0, 10], "zone": 5 }, "forearm_l": { "parent": "arm_l", "pivot": [54, 54, -14], "rot": [-38, 0, -10], "zone": 5 }, "claw_l": { "parent": "forearm_l", "pivot": [54, 4, -14], "rot": [24, 0, 0], "zone": 5 }, "arm_r": { "parent": "chest", "pivot": [-54, 102, -14], "rot": [14, 0, -10], "zone": 5 }, "forearm_r": { "parent": "arm_r", "pivot": [-54, 54, -14], "rot": [-38, 0, 10], "zone": 5 }, "claw_r": { "parent": "forearm_r", "pivot": [-54, 4, -14], "rot": [24, 0, 0], "zone": 5 }, "mid": { "parent": "body", "pivot": [0, 66, 30], "rot": [0, 0, 0], "zone": 4 }, "plates_mid": { "parent": "mid", "pivot": [0, 100, 66], "rot": [0, 0, 0], "zone": 4 }, "hips": { "parent": "mid", "pivot": [0, 36, 104], "rot": [0, 0, 0], "zone": 3 }, "plates_hips": { "parent": "hips", "pivot": [0, 72, 126], "rot": [0, 0, 0], "zone": 3 }, "leg_l": { "parent": "hips", "pivot": [40, 24, 126], "rot": [0, -40, 24], "zone": 3 }, "foot_l": { "parent": "leg_l", "pivot": [70, 20, 126], "rot": [0, 0, -24], "zone": 3 }, "leg_r": { "parent": "hips", "pivot": [-40, 24, 126], "rot": [0, 40, -24], "zone": 3 }, "foot_r": { "parent": "leg_r", "pivot": [-70, 20, 126], "rot": [0, 0, 24], "zone": 3 }, "tail1": { "parent": "hips", "pivot": [0, 32, 150], "rot": [0, 0, 0], "zone": 2 }, "plates_tail1": { "parent": "tail1", "pivot": [0, 62, 164], "rot": [0, 0, 0], "zone": 2 }, "tail2": { "parent": "tail1", "pivot": [0, 30, 178], "rot": [0, 0, 0], "zone": 2 }, "plates_tail2": { "parent": "tail2", "pivot": [0, 58, 192], "rot": [0, 0, 0], "zone": 2 }, "tail3": { "parent": "tail2", "pivot": [0, 28, 206], "rot": [0, 0, 0], "zone": 2 }, "plates_tail3": { "parent": "tail3", "pivot": [0, 54, 220], "rot": [0, 0, 0], "zone": 2 }, "tail4": { "parent": "tail3", "pivot": [0, 26, 234], "rot": [0, 0, 0], "zone": 1 }, "plates_tail4": { "parent": "tail4", "pivot": [0, 50, 248], "rot": [0, 0, 0], "zone": 1 }, "tail5": { "parent": "tail4", "pivot": [0, 24, 262], "rot": [0, 0, 0], "zone": 1 }, "plates_tail5": { "parent": "tail5", "pivot": [0, 46, 276], "rot": [0, 0, 0], "zone": 1 }, "tail6": { "parent": "tail5", "pivot": [0, 23, 290], "rot": [0, 0, 0], "zone": 1 }, "plates_tail6": { "parent": "tail6", "pivot": [0, 44, 304], "rot": [0, 0, 0], "zone": 1 }, "knob": { "parent": "tail6", "pivot": [0, 23, 318], "rot": [0, 0, 0], "zone": 0 } }, "locators": { "heart": { "bone": "chest", "pos": [0, 78, 0] }, "gill_l": { "bone": "neck", "pos": [38, 84, -47] }, "gill_r": { "bone": "neck", "pos": [-38, 84, -47] }, "muzzle": { "bone": "head", "pos": [0, 77.5, -176.4] }, "nose": { "bone": "head", "pos": [0, 90.5, -173.8] }, "throat": { "bone": "head", "pos": [0, 77.5, -69.8] }, "eye_l": { "bone": "eye_l", "pos": [28.58, 91.46, -97.7] }, "eye_r": { "bone": "eye_r", "pos": [-28.58, 91.46, -97.7] }, "mouth": { "bone": "jaw", "pos": [0, 76.2, -153] }, "claw_l": { "bone": "claw_l", "pos": [54, -6, -44] }, "claw_r": { "bone": "claw_r", "pos": [-54, -6, -44] }, "hip_l": { "bone": "hips", "pos": [30, 0, 140] }, "hip_r": { "bone": "hips", "pos": [-30, 0, 140] }, "foot_l": { "bone": "foot_l", "pos": [86, 11, 126] }, "foot_r": { "bone": "foot_r", "pos": [-86, 11, 126] }, "tail_notch": { "bone": "tail6", "pos": [29.5, 23, 305] }, "knob_core": { "bone": "knob", "pos": [0, 32, 358] }, "horn_l": { "bone": "knob", "pos": [19.3621, 76.8737, 367.5747] }, "horn_r": { "bone": "knob", "pos": [-19.3621, 76.8737, 367.5747] } }, "meta": { "glow_y0": 10, "glow_y1": 104, "wetness": 0.5, "bounds_margin": 6, "form": 2 }, "zones": { "5": ["body", "chest", "plates_chest", "arm_l", "forearm_l", "claw_l", "arm_r", "forearm_r", "claw_r"], "6": ["neck", "plates_neck"], "7": ["gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "eye_l", "eye_r", "jaw"], "4": ["mid", "plates_mid"], "3": ["hips", "plates_hips", "leg_l", "foot_l", "leg_r", "foot_r"], "2": ["tail1", "plates_tail1", "tail2", "plates_tail2", "tail3", "plates_tail3"], "1": ["tail4", "plates_tail4", "tail5", "plates_tail5", "tail6", "plates_tail6"], "0": ["knob"] } }, "3": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 112, 0], "rot": [0, 0, 0], "zone": 4 }, "plates_mid": { "parent": "body", "pivot": [0, 151, -12], "rot": [0, 0, 0], "zone": 4 }, "chest": { "parent": "body", "pivot": [0, 108, -60], "rot": [0, 0, 0], "zone": 5 }, "plates_chest": { "parent": "chest", "pivot": [0, 148, -92], "rot": [0, 0, 0], "zone": 5 }, "hips": { "parent": "body", "pivot": [0, 110, 36], "rot": [0, 0, 0], "zone": 3 }, "plates_hips": { "parent": "hips", "pivot": [0, 151, 70], "rot": [0, 0, 0], "zone": 3 }, "neck1": { "parent": "chest", "pivot": [0, 114, -126], "rot": [4, 0, 0], "zone": 6 }, "plates_neck1": { "parent": "neck1", "pivot": [0, 150, -134.5], "rot": [0, 0, 0], "zone": 6 }, "neck2": { "parent": "neck1", "pivot": [0, 114, -143], "rot": [3, 0, 0], "zone": 6 }, "plates_neck2": { "parent": "neck2", "pivot": [0, 146.5, -151.5], "rot": [0, 0, 0], "zone": 6 }, "neck3": { "parent": "neck2", "pivot": [0, 114, -160], "rot": [2, 0, 0], "zone": 7 }, "plates_neck3": { "parent": "neck3", "pivot": [0, 143, -168.5], "rot": [0, 0, 0], "zone": 7 }, "neck4": { "parent": "neck3", "pivot": [0, 114, -177], "rot": [0, 0, 0], "zone": 7 }, "plates_neck4": { "parent": "neck4", "pivot": [0, 140, -185.5], "rot": [0, 0, 0], "zone": 7 }, "neck5": { "parent": "neck4", "pivot": [0, 114, -194], "rot": [-2, 0, 0], "zone": 7 }, "plates_neck5": { "parent": "neck5", "pivot": [0, 137.5, -202.5], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "neck5", "pivot": [0, 114, -211], "rot": [-3, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [26.368, 120.608, -247.4], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-26.368, 120.608, -247.4], "rot": [0, 0, 0], "zone": 8 }, "plates_head": { "parent": "head", "pivot": [0, 133.2, -223.8], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 101.2, -223.8], "rot": [7, 0, 0], "zone": 8 }, "gill_l1": { "parent": "neck5", "pivot": [19.92, 113, -208.5], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "neck5", "pivot": [19.92, 113, -203.1], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "neck5", "pivot": [19.92, 113, -197.7], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "neck5", "pivot": [-19.92, 113, -208.5], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "neck5", "pivot": [-19.92, 113, -203.1], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "neck5", "pivot": [-19.92, 113, -197.7], "rot": [0, 0, 0], "zone": 7 }, "leg_fl": { "parent": "chest", "pivot": [40, 104, -100], "rot": [20, 0, 0], "zone": 5 }, "leg_fl_lower": { "parent": "leg_fl", "pivot": [40, 54, -100], "rot": [-35, 0, 0], "zone": 5 }, "foot_fl": { "parent": "leg_fl_lower", "pivot": [40, 7, -100], "rot": [15, 0, 0], "zone": 5 }, "leg_fr": { "parent": "chest", "pivot": [-40, 104, -100], "rot": [20, 0, 0], "zone": 5 }, "leg_fr_lower": { "parent": "leg_fr", "pivot": [-40, 54, -100], "rot": [-35, 0, 0], "zone": 5 }, "foot_fr": { "parent": "leg_fr_lower", "pivot": [-40, 7, -100], "rot": [15, 0, 0], "zone": 5 }, "leg_bl": { "parent": "hips", "pivot": [40, 104, 84], "rot": [-22, 0, 0], "zone": 3 }, "leg_bl_lower": { "parent": "leg_bl", "pivot": [40, 52, 84], "rot": [40, 0, 0], "zone": 3 }, "foot_bl": { "parent": "leg_bl_lower", "pivot": [40, 6, 84], "rot": [-18, 0, 0], "zone": 3 }, "leg_br": { "parent": "hips", "pivot": [-40, 104, 84], "rot": [-22, 0, 0], "zone": 3 }, "leg_br_lower": { "parent": "leg_br", "pivot": [-40, 52, 84], "rot": [40, 0, 0], "zone": 3 }, "foot_br": { "parent": "leg_br_lower", "pivot": [-40, 6, 84], "rot": [-18, 0, 0], "zone": 3 }, "tail1": { "parent": "hips", "pivot": [0, 112, 112], "rot": [-8, 0, 0], "zone": 2 }, "plates_tail1": { "parent": "tail1", "pivot": [0, 144, 127.5], "rot": [0, 0, 0], "zone": 2 }, "tail2": { "parent": "tail1", "pivot": [0, 112, 143], "rot": [-6, 0, 0], "zone": 2 }, "plates_tail2": { "parent": "tail2", "pivot": [0, 140, 158.5], "rot": [0, 0, 0], "zone": 2 }, "tail3": { "parent": "tail2", "pivot": [0, 112, 174], "rot": [-4, 0, 0], "zone": 2 }, "plates_tail3": { "parent": "tail3", "pivot": [0, 136, 189], "rot": [0, 0, 0], "zone": 2 }, "tail4": { "parent": "tail3", "pivot": [0, 112, 204], "rot": [-2, 0, 0], "zone": 1 }, "plates_tail4": { "parent": "tail4", "pivot": [0, 132, 219], "rot": [0, 0, 0], "zone": 1 }, "tail5": { "parent": "tail4", "pivot": [0, 112, 234], "rot": [2, 0, 0], "zone": 1 }, "plates_tail5": { "parent": "tail5", "pivot": [0, 129, 249], "rot": [0, 0, 0], "zone": 1 }, "tail6": { "parent": "tail5", "pivot": [0, 112, 264], "rot": [5, 0, 0], "zone": 1 }, "plates_tail6": { "parent": "tail6", "pivot": [0, 126.5, 278.5], "rot": [0, 0, 0], "zone": 1 }, "tail7": { "parent": "tail6", "pivot": [0, 112, 293], "rot": [7, 0, 0], "zone": 1 }, "plates_tail7": { "parent": "tail7", "pivot": [0, 124.5, 307.5], "rot": [0, 0, 0], "zone": 1 }, "tail8": { "parent": "tail7", "pivot": [0, 112, 322], "rot": [6, 0, 0], "zone": 1 }, "plates_tail8": { "parent": "tail8", "pivot": [0, 123, 336], "rot": [0, 0, 0], "zone": 1 }, "club": { "parent": "tail8", "pivot": [0, 112, 350], "rot": [0, 0, 0], "zone": 0 } }, "locators": { "heart": { "bone": "body", "pos": [0, 112, -20] }, "plate_tip_3": { "bone": "plates_mid", "pos": [0, 218.3, -21.8] }, "plate_tip_4": { "bone": "plates_mid", "pos": [0, 228.8, 7.2] }, "plate_tip_5": { "bone": "plates_mid", "pos": [0, 235.5, 35] }, "plate_tip_6": { "bone": "plates_mid", "pos": [0, 235.5, 61] }, "plate_tip_0": { "bone": "plates_chest", "pos": [0, 177.2, -105.2] }, "plate_tip_1": { "bone": "plates_chest", "pos": [0, 193.5, -79] }, "plate_tip_2": { "bone": "plates_chest", "pos": [0, 205.9, -51.4] }, "plate_tip_7": { "bone": "plates_hips", "pos": [0, 229.8, 85.2] }, "plate_tip_8": { "bone": "plates_hips", "pos": [0, 218.3, 106.2] }, "plate_tip_9": { "bone": "plates_hips", "pos": [0, 204.9, 124.6] }, "gill_l": { "bone": "neck5", "pos": [21, 113, -201.5] }, "gill_r": { "bone": "neck5", "pos": [-21, 113, -201.5] }, "muzzle": { "bone": "head", "pos": [0, 107.6, -303.16] }, "throat": { "bone": "head", "pos": [0, 107.6, -218.68] }, "nose": { "bone": "head", "pos": [0, 121.68, -300.6] }, "eye_l": { "bone": "eye_l", "pos": [26.868, 120.608, -247.4] }, "eye_r": { "bone": "eye_r", "pos": [-26.868, 120.608, -247.4] }, "mouth": { "bone": "jaw", "pos": [0, 106.32, -282.68] }, "foot_fl": { "bone": "foot_fl", "pos": [40, -5, -108] }, "foot_fr": { "bone": "foot_fr", "pos": [-40, -5, -108] }, "foot_bl": { "bone": "foot_bl", "pos": [40, -6, 76] }, "foot_br": { "bone": "foot_br", "pos": [-40, -6, 76] }, "tail_notch": { "bone": "tail7", "pos": [11.5, 112, 306] }, "club_core": { "bone": "club", "pos": [0, 112, 374] }, "spike_tip_0": { "bone": "club", "pos": [41.2571, 135.8198, 369.7336] }, "spike_tip_1": { "bone": "club", "pos": [0, 165.2182, 369.1757] }, "spike_tip_2": { "bone": "club", "pos": [-40.6907, 135.4928, 369.799] }, "spike_tip_3": { "bone": "club", "pos": [-43.335, 86.9805, 369.4936] }, "spike_tip_4": { "bone": "club", "pos": [0, 58.6562, 369.1631] }, "spike_tip_5": { "bone": "club", "pos": [46.0464, 85.4151, 369.1805] }, "spike_tip_6": { "bone": "club", "pos": [22.5857, 143.0865, 405.9264] }, "spike_tip_7": { "bone": "club", "pos": [-22.3364, 142.7435, 405.5367] }, "spike_tip_8": { "bone": "club", "pos": [-32.3061, 101.5031, 401.8313] }, "spike_tip_9": { "bone": "club", "pos": [0, 73.6781, 405.8316] }, "spike_tip_10": { "bone": "club", "pos": [32.359, 101.4859, 401.8824] }, "spike_tip_11": { "bone": "club", "pos": [0, 114.8643, 426.2925] } }, "meta": { "glow_y0": 64, "glow_y1": 156, "wetness": 0.15, "bounds_margin": 6, "form": 3 }, "zones": { "4": ["body", "plates_mid"], "5": ["chest", "plates_chest", "leg_fl", "leg_fl_lower", "foot_fl", "leg_fr", "leg_fr_lower", "foot_fr"], "3": ["hips", "plates_hips", "leg_bl", "leg_bl_lower", "foot_bl", "leg_br", "leg_br_lower", "foot_br"], "6": ["neck1", "plates_neck1", "neck2", "plates_neck2"], "7": ["neck3", "plates_neck3", "neck4", "plates_neck4", "neck5", "plates_neck5", "gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "eye_l", "eye_r", "plates_head", "jaw"], "2": ["tail1", "plates_tail1", "tail2", "plates_tail2", "tail3", "plates_tail3"], "1": ["tail4", "plates_tail4", "tail5", "plates_tail5", "tail6", "plates_tail6", "tail7", "plates_tail7", "tail8", "plates_tail8"], "0": ["club"] } } };
 var LOOK = { "1": { "yaw": { "head": 0.6, "chest": 0.4 }, "pitch": { "head": 0.6, "chest": 0.4 } }, "2": { "yaw": { "head": 0.45, "neck": 0.4, "chest": 0.15 }, "pitch": { "head": 0.5, "neck": 0.4, "chest": 0.1 } }, "3": { "yaw": { "head": 0.35, "neck1": 0.11, "neck2": 0.11, "neck3": 0.11, "neck4": 0.11, "neck5": 0.11, "chest": 0.1 }, "pitch": { "head": 0.4, "neck1": 0.12, "neck2": 0.12, "neck3": 0.12, "neck4": 0.12, "neck5": 0.12 } } };
-var STRIDE_III = 7;
-var STANCE_III = 5.25;
+var STRIDE_III = 11.9;
+var STANCE_III = 8.925;
 var BODY_DROP_III = 9;
+var WINDOW_CROUCH_III = 6.5;
+var BETA_III = 0.75;
+var LIFT_III = 16;
+var STANCE_MODEL_III = 84;
+var SCALE = { 1: 1, 2: 1.25, 3: 1.7 };
 var TAIL_LIFT_III = 4;
 var WINDOW_NECK = [32, 28, 20, 0, -24];
 var WINDOW_HEAD = [-62.7, 21.8, -51.8];
-var GAIT_TICKS = [12, 18, 22];
+var GAIT_TICKS = [16, 25, 30];
 
 // src/rig.ts
 function rotation(rx, ry, rz) {
@@ -505,9 +526,11 @@ function poseOf(form, s) {
   return p;
 }
 var Skeleton = class {
-  constructor(form, pose) {
+  /** `window`: 0..1, how far into the window crouch (Form III). */
+  constructor(form, pose, window = 0) {
     this.form = form;
     this.pose = pose;
+    this.window = window;
     this.cache = /* @__PURE__ */ new Map();
   }
   bone(name) {
@@ -518,7 +541,7 @@ var Skeleton = class {
     const add2 = this.pose[name];
     const R = rotation(b.rot[0] + (add2 ? add2[0] : 0), b.rot[1] + (add2 ? add2[1] : 0), b.rot[2] + (add2 ? add2[2] : 0));
     const local = about(R, b.pivot);
-    if (this.form === 3 && name === "body") local[7] -= BODY_DROP_III;
+    if (this.form === 3 && name === "body") local[7] -= BODY_DROP_III + WINDOW_CROUCH_III * this.window;
     const m = b.parent ? mulM(this.bone(b.parent), local) : local;
     this.cache.set(name, m);
     return m;
@@ -537,10 +560,388 @@ var Skeleton = class {
     return apply(this.bone(bone), RIGS[this.form].bones[bone].pivot);
   }
 };
-function toWorld(at2, yaw, m) {
+var drawScale = (form) => SCALE[form];
+function toWorld(at2, yaw, m, scale = 1) {
   const l = leftOf(yaw), f = forwardOf(yaw);
-  const x = m[0] / 16, y = m[1] / 16, z = -m[2] / 16;
+  const k = scale / 16;
+  const x = m[0] * k, y = m[1] * k, z = -m[2] * k;
   return { x: at2.x + l.x * x + f.x * z, y: at2.y + y, z: at2.z + l.z * x + f.z * z };
+}
+
+// src/havoc.ts
+import { BlockVolume, EntityDamageCause } from "@minecraft/server";
+var NEVER = /^minecraft:(bedrock|invisible_bedrock|barrier|(chain_|repeating_)?command_block|structure_block|structure_void|jigsaw|end_portal|end_portal_frame|end_gateway|portal|reinforced_deepslate|light_block.*|border_block|allow|deny|trial_spawner|vault|mob_spawner|moving_block|(sticky_)?piston_arm_collision)$/;
+var STORAGE = /(chest|barrel|shulker_box|^minecraft:bed$|_bed$|furnace|smoker|hopper|dispenser|dropper|crafter|brewing_stand|lectern|bookshelf|decorated_pot|jukebox|beacon|respawn_anchor|lodestone|enchanting_table|anvil|frame$|flower_pot|cauldron|obsidian|_sign$|standing_sign|wall_sign|hanging_sign|banner|campfire|beehive|bee_nest|chiseled_bookshelf|vault|crafting_table)/;
+var FRAGILE = /^minecraft:(short_grass|tall_grass|short_dry_grass|tall_dry_grass|fern|large_fern|deadbush|dandelion|poppy|.*tulip|.*_orchid|allium|azure_bluet|oxeye_daisy|cornflower|lily_of_the_valley|sunflower|lilac|rose_bush|peony|snow_layer|.*sapling|wildflowers|pink_petals|leaf_litter|bush|firefly_bush|sweet_berry_bush|.*mushroom|vine|glow_lichen|.*_leaves|azalea_leaves_flowered|cactus_flower|.*eyeblossom|torchflower|pitcher_plant|wither_rose)$/;
+var GLASS = /^minecraft:(.*glass(_pane)?|.*_stained_glass.*|glass|glass_pane|tinted_glass|.*lantern|.*torch|.*candle)$/;
+var wither = () => CONFIG.terrain === "wither";
+var FRAGILE_IDS = [
+  "acacia_leaves",
+  "acacia_sapling",
+  "allium",
+  "azalea_leaves",
+  "azalea_leaves_flowered",
+  "azure_bluet",
+  "bamboo_sapling",
+  "birch_leaves",
+  "birch_sapling",
+  "blue_orchid",
+  "brown_mushroom",
+  "bush",
+  "cactus_flower",
+  "cherry_leaves",
+  "cherry_sapling",
+  "closed_eyeblossom",
+  "cornflower",
+  "dandelion",
+  "dark_oak_leaves",
+  "dark_oak_sapling",
+  "deadbush",
+  "fern",
+  "firefly_bush",
+  "glow_lichen",
+  "jungle_leaves",
+  "jungle_sapling",
+  "large_fern",
+  "leaf_litter",
+  "lilac",
+  "lily_of_the_valley",
+  "mangrove_leaves",
+  "oak_leaves",
+  "oak_sapling",
+  "open_eyeblossom",
+  "orange_poplar_leaves",
+  "orange_tulip",
+  "oxeye_daisy",
+  "pale_oak_leaves",
+  "pale_oak_sapling",
+  "peony",
+  "pink_petals",
+  "pink_tulip",
+  "pitcher_plant",
+  "poplar_sapling",
+  "poppy",
+  "red_mushroom",
+  "red_poplar_leaves",
+  "red_tulip",
+  "rose_bush",
+  "short_dry_grass",
+  "short_grass",
+  "snow_layer",
+  "spruce_leaves",
+  "spruce_sapling",
+  "sunflower",
+  "sweet_berry_bush",
+  "tall_dry_grass",
+  "tall_grass",
+  "torchflower",
+  "vine",
+  "white_tulip",
+  "wildflowers",
+  "wither_rose",
+  "yellow_poplar_leaves"
+].map((n) => "minecraft:" + n);
+var GLASS_IDS = [
+  "black_candle",
+  "black_stained_glass",
+  "black_stained_glass_pane",
+  "blue_candle",
+  "blue_stained_glass",
+  "blue_stained_glass_pane",
+  "brown_candle",
+  "brown_stained_glass",
+  "brown_stained_glass_pane",
+  "candle",
+  "copper_lantern",
+  "copper_torch",
+  "cyan_candle",
+  "cyan_stained_glass",
+  "cyan_stained_glass_pane",
+  "exposed_copper_lantern",
+  "glass",
+  "glass_pane",
+  "gray_candle",
+  "gray_stained_glass",
+  "gray_stained_glass_pane",
+  "green_candle",
+  "green_stained_glass",
+  "green_stained_glass_pane",
+  "hard_black_stained_glass",
+  "hard_black_stained_glass_pane",
+  "hard_blue_stained_glass",
+  "hard_blue_stained_glass_pane",
+  "hard_brown_stained_glass",
+  "hard_brown_stained_glass_pane",
+  "hard_cyan_stained_glass",
+  "hard_cyan_stained_glass_pane",
+  "hard_glass",
+  "hard_glass_pane",
+  "hard_gray_stained_glass",
+  "hard_gray_stained_glass_pane",
+  "hard_green_stained_glass",
+  "hard_green_stained_glass_pane",
+  "hard_light_blue_stained_glass",
+  "hard_light_blue_stained_glass_pane",
+  "hard_light_gray_stained_glass",
+  "hard_light_gray_stained_glass_pane",
+  "hard_lime_stained_glass",
+  "hard_lime_stained_glass_pane",
+  "hard_magenta_stained_glass",
+  "hard_magenta_stained_glass_pane",
+  "hard_orange_stained_glass",
+  "hard_orange_stained_glass_pane",
+  "hard_pink_stained_glass",
+  "hard_pink_stained_glass_pane",
+  "hard_purple_stained_glass",
+  "hard_purple_stained_glass_pane",
+  "hard_red_stained_glass",
+  "hard_red_stained_glass_pane",
+  "hard_white_stained_glass",
+  "hard_white_stained_glass_pane",
+  "hard_yellow_stained_glass",
+  "hard_yellow_stained_glass_pane",
+  "lantern",
+  "light_blue_candle",
+  "light_blue_stained_glass",
+  "light_blue_stained_glass_pane",
+  "light_gray_candle",
+  "light_gray_stained_glass",
+  "light_gray_stained_glass_pane",
+  "lime_candle",
+  "lime_stained_glass",
+  "lime_stained_glass_pane",
+  "magenta_candle",
+  "magenta_stained_glass",
+  "magenta_stained_glass_pane",
+  "orange_candle",
+  "orange_stained_glass",
+  "orange_stained_glass_pane",
+  "oxidized_copper_lantern",
+  "pink_candle",
+  "pink_stained_glass",
+  "pink_stained_glass_pane",
+  "purple_candle",
+  "purple_stained_glass",
+  "purple_stained_glass_pane",
+  "red_candle",
+  "red_stained_glass",
+  "red_stained_glass_pane",
+  "sea_lantern",
+  "soul_lantern",
+  "soul_torch",
+  "tinted_glass",
+  "torch",
+  "waxed_copper_lantern",
+  "waxed_exposed_copper_lantern",
+  "waxed_oxidized_copper_lantern",
+  "waxed_weathered_copper_lantern",
+  "weathered_copper_lantern",
+  "white_candle",
+  "white_stained_glass",
+  "white_stained_glass_pane",
+  "yellow_candle",
+  "yellow_stained_glass",
+  "yellow_stained_glass_pane"
+].map((n) => "minecraft:" + n);
+function brittleAround(dim, center, reach) {
+  if (CONFIG.terrain === "none") return [];
+  const types = wither() ? [...FRAGILE_IDS, ...GLASS_IDS] : FRAGILE_IDS;
+  const out = [];
+  try {
+    const lo = { x: Math.floor(center.x - reach), y: Math.floor(center.y - 3), z: Math.floor(center.z - reach) };
+    const hi = { x: Math.floor(center.x + reach), y: Math.floor(center.y + 8), z: Math.floor(center.z + reach) };
+    const found = dim.getBlocks(new BlockVolume(lo, hi), { includeTypes: types }, true);
+    for (const p of found.getBlockLocationIterator()) {
+      if (Math.hypot(p.x + 0.5 - center.x, p.z + 0.5 - center.z) > reach) continue;
+      out.push({ x: p.x, y: p.y, z: p.z });
+      if (out.length >= 4e3) break;
+    }
+  } catch {
+    return null;
+  }
+  out.sort((a, b) => Math.hypot(a.x + 0.5 - center.x, a.z + 0.5 - center.z) - Math.hypot(b.x + 0.5 - center.x, b.z + 0.5 - center.z));
+  return out;
+}
+function shatter(dim, at2) {
+  const b = blockAt(dim, at2);
+  if (!b || b.isAir) return false;
+  const id = b.typeId;
+  const isGlass = GLASS.test(id);
+  if (!FRAGILE.test(id) && !(isGlass && wither())) return false;
+  if (id.endsWith("_leaves") && b.permutation.getState("persistent_bit") === true) return false;
+  if (!breakable(id)) return false;
+  try {
+    b.setType("minecraft:air");
+  } catch {
+    return false;
+  }
+  if (isGlass) sound(dim, "random.glass", at2, 32, 0.8, 0.9 + (at2.x + at2.z & 3) * 0.05);
+  return true;
+}
+function breakable(id) {
+  if (!id || id === "minecraft:air" || id === "minecraft:fire" || id === "minecraft:soul_fire") return false;
+  if (id === "minecraft:water" || id === "minecraft:flowing_water" || id === "minecraft:lava" || id === "minecraft:flowing_lava") return false;
+  if (NEVER.test(id)) return false;
+  if (CONFIG.spareStorage && STORAGE.test(id)) return false;
+  return true;
+}
+var spheres = /* @__PURE__ */ new Map();
+function sphere(r) {
+  const key = Math.round(r * 10);
+  const hit = spheres.get(key);
+  if (hit) return hit;
+  const out = [];
+  const R = Math.ceil(r);
+  for (let x = -R; x <= R; x++) for (let y = -R; y <= R; y++) for (let z = -R; z <= R; z++) {
+    const d = Math.hypot(x, y, z);
+    if (d <= r) out.push([x, y, z, d]);
+  }
+  out.sort((a, b) => a[3] - b[3]);
+  spheres.set(key, out);
+  return out;
+}
+function carve(dim, at2, r, budget, fire = false) {
+  const out = { broken: 0, floor: [] };
+  if (!isLoaded(dim, at2)) return out;
+  const cx = Math.floor(at2.x), cy = Math.floor(at2.y), cz = Math.floor(at2.z);
+  let reads = 0;
+  for (const [dx, dy, dz] of sphere(r)) {
+    if (out.broken >= budget || reads > budget * 3) break;
+    const p = { x: cx + dx, y: cy + dy, z: cz + dz };
+    const b = blockAt(dim, p);
+    reads++;
+    if (!b || !breakable(b.typeId)) continue;
+    try {
+      b.setType("minecraft:air");
+      out.broken++;
+    } catch {
+      continue;
+    }
+    if (dy <= 0) out.floor.push(p);
+  }
+  if (fire && out.floor.length) {
+    let lit = 0;
+    for (let i = 0; i < out.floor.length && lit < 4; i += 3) {
+      const p = out.floor[i];
+      const below = blockAt(dim, { x: p.x, y: p.y - 1, z: p.z });
+      const here = blockAt(dim, p);
+      if (!below || !here || !here.isAir || !isSolidBlock(below)) continue;
+      try {
+        here.setType("minecraft:fire");
+        lit++;
+      } catch {
+      }
+    }
+  }
+  return out;
+}
+function crush(dim, pos, forward, front, halfWidth, y0, y1, depth, budget) {
+  const left = { x: -forward.z, y: 0, z: forward.x };
+  let broken = 0;
+  const debris = [];
+  for (let d = 0; d < depth && broken < budget; d++) {
+    for (let w = -halfWidth; w <= halfWidth && broken < budget; w++) {
+      const bx = pos.x + forward.x * (front + d) + left.x * w, bz = pos.z + forward.z * (front + d) + left.z * w;
+      for (let y = y0; y <= y1 && broken < budget; y++) {
+        const p = { x: bx, y: pos.y + y, z: bz };
+        const b = blockAt(dim, p);
+        if (!b || b.isAir || b.isLiquid) continue;
+        const id = b.typeId;
+        if (isNaturalGround(id) && !isPlantBlock(id)) continue;
+        if (!breakable(id)) continue;
+        try {
+          b.setType("minecraft:air");
+          broken++;
+          if (broken % 6 === 1) debris.push(p);
+        } catch {
+        }
+      }
+    }
+  }
+  if (broken) {
+    const mid = add(pos, { x: forward.x * (front + 0.5), y: (y0 + y1) / 2, z: forward.z * (front + 0.5) });
+    sound(dim, "mob.wither.break_block", mid, 64, 1, 0.7);
+    for (const p of debris.slice(0, 4)) particle(dim, "basiliskra:impact_debris", p, 72);
+  }
+  return broken;
+}
+function shatterRing(dim, center, r0, r1, samples, seed) {
+  if (CONFIG.terrain === "none") return 0;
+  const glass = wither();
+  let reads = 0;
+  for (let i = 0; i < samples; i++) {
+    const r = r0 + (r1 - r0) * (i % 2 ? 0.75 : 0.25);
+    const a = (i + seed % 7 * 0.13) * (Math.PI * 2 / samples);
+    const x = center.x + Math.cos(a) * r, z = center.z + Math.sin(a) * r;
+    if (!isLoaded(dim, { x, y: center.y, z })) continue;
+    const top = i % 4 === 0 ? 6 : 2;
+    for (let dy = -1; dy <= top; dy++) {
+      const p = { x, y: center.y + dy, z };
+      const b = blockAt(dim, p);
+      reads++;
+      if (!b || b.isAir || b.isLiquid) continue;
+      const id = b.typeId;
+      let goes = false;
+      if (FRAGILE.test(id)) {
+        goes = !id.endsWith("_leaves") || b.permutation.getState("persistent_bit") !== true;
+      } else if (glass && GLASS.test(id) && breakable(id)) goes = true;
+      if (!goes) continue;
+      try {
+        b.setType("minecraft:air");
+      } catch {
+      }
+      if (GLASS.test(id)) sound(dim, "random.glass", p, 32, 0.8, 0.9 + i % 5 * 0.05);
+    }
+  }
+  return reads;
+}
+function mobsNear(dim, at2, r) {
+  try {
+    return dim.getEntities({ location: at2, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, HITBOX, "minecraft:player"] });
+  } catch {
+    return [];
+  }
+}
+function alive(e) {
+  try {
+    return !!e && e.isValid;
+  } catch {
+    return false;
+  }
+}
+function blast(dim, at2, r, playerDamage, mobDamage, knock, hurtPlayer, source, from = at2, mobs) {
+  for (const p of witnesses(dim, at2, r)) {
+    try {
+      const d = dist(add(p.location, { x: 0, y: 0.9, z: 0 }), at2);
+      if (d > r) continue;
+      const f = 1 - d / (r + 0.5);
+      if (playerDamage > 0) hurtPlayer(p, Math.max(1, Math.round(playerDamage * f)));
+      if (knock > 0) {
+        const away = norm({ x: p.location.x - from.x, y: 0, z: p.location.z - from.z });
+        p.applyKnockback({ x: (away.x || 0.01) * knock * f, z: (away.z || 0.01) * knock * f }, 0.35 + 0.35 * f);
+      }
+    } catch {
+    }
+  }
+  for (const e of mobs ?? mobsNear(dim, at2, r)) {
+    try {
+      if (!e.isValid) continue;
+      const loc = e.location;
+      const d = dist(loc, at2);
+      if (d > r + 1) continue;
+      const f = Math.max(0.2, 1 - d / (r + 1));
+      if (mobDamage > 0) e.applyDamage(Math.round(mobDamage * f), { cause: EntityDamageCause.entityAttack, damagingEntity: source });
+      if (knock > 0) {
+        const away = norm({ x: loc.x - from.x, y: 0, z: loc.z - from.z });
+        e.applyKnockback({ x: (away.x || 0.01) * knock * f, z: (away.z || 0.01) * knock * f }, 0.3 + 0.3 * f);
+      }
+    } catch {
+    }
+  }
+}
+function segDist(p, a, d, length) {
+  const t = Math.max(0, Math.min(length, (p.x - a.x) * d.x + (p.y - a.y) * d.y + (p.z - a.z) * d.z));
+  return dist(p, { x: a.x + d.x * t, y: a.y + d.y * t, z: a.z + d.z * t });
 }
 
 // src/store.ts
@@ -668,62 +1069,70 @@ function newToken() {
 }
 
 // src/creature.ts
-var SIZES = [1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5];
+var SIZES = [1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 9, 11, 13];
+var sizeIndex = (edge) => {
+  let best = 0;
+  for (let i = 1; i < SIZES.length; i++) if (Math.abs(SIZES[i] - edge) < Math.abs(SIZES[best] - edge)) best = i;
+  return best;
+};
 var PARTS = {
   1: [
-    { bone: "head", at: [0, 36, -70], size: 2, tag: "head" },
-    { bone: "head", at: [0, 36, -40], size: 3, tag: "head" },
-    { bone: "seg2", at: [0, 36, 72], size: 4, tag: "body" },
-    { bone: "seg4", at: [0, 36, 136], size: 3, tag: "body" },
-    { bone: "seg6", at: [0, 36, 200], size: 3, tag: "body" },
-    { bone: "seg8", at: [0, 36, 264], size: 2, tag: "tail" },
-    { bone: "seg10", at: [0, 36, 328], size: 1, tag: "tail" },
-    { bone: "tailfin", at: [0, 36, 376], size: 2, tag: "tail" }
+    { bone: "head", at: [0, 36, -70], size: 3.5, tag: "head" },
+    { bone: "head", at: [0, 36, -40], size: 4.5, tag: "head" },
+    { bone: "seg2", at: [0, 36, 72], size: 5.5, tag: "body" },
+    { bone: "seg4", at: [0, 36, 136], size: 4.5, tag: "body" },
+    { bone: "seg6", at: [0, 36, 200], size: 4.5, tag: "body" },
+    { bone: "seg8", at: [0, 36, 264], size: 3.5, tag: "tail" },
+    { bone: "seg10", at: [0, 36, 328], size: 2.5, tag: "tail" },
+    { bone: "tailfin", at: [0, 36, 376], size: 3.5, tag: "tail" }
   ],
   2: [
-    { bone: "head", at: [0, 84, -125], size: 3, tag: "head" },
-    { bone: "neck", at: [0, 84, -50], size: 3, tag: "head" },
-    { bone: "claw_l", at: [54, 6, -30], size: 1, tag: "limb" },
-    { bone: "claw_r", at: [-54, 6, -30], size: 1, tag: "limb" },
-    { bone: "forearm_l", at: [54, 40, -8], size: 1, tag: "limb" },
-    { bone: "forearm_r", at: [-54, 40, -8], size: 1, tag: "limb" },
-    { bone: "mid", at: [0, 60, 66], size: 5, tag: "body" },
-    { bone: "hips", at: [0, 38, 126], size: 4, tag: "body" },
-    { bone: "tail2", at: [0, 30, 192], size: 3, tag: "tail" },
-    { bone: "tail4", at: [0, 26, 248], size: 2, tag: "tail" },
-    { bone: "tail6", at: [0, 23, 304], size: 2, tag: "tail" },
-    { bone: "knob", at: [0, 32, 358], size: 3, tag: "tail" }
+    { bone: "head", at: [0, 84, -125], size: 4.5, tag: "head" },
+    { bone: "neck", at: [0, 84, -50], size: 4.5, tag: "head" },
+    { bone: "claw_l", at: [54, 6, -30], size: 2.5, tag: "limb" },
+    { bone: "claw_r", at: [-54, 6, -30], size: 2.5, tag: "limb" },
+    { bone: "forearm_l", at: [54, 40, -8], size: 2.5, tag: "limb" },
+    { bone: "forearm_r", at: [-54, 40, -8], size: 2.5, tag: "limb" },
+    { bone: "mid", at: [0, 60, 66], size: 6.5, tag: "body" },
+    { bone: "hips", at: [0, 38, 126], size: 5.5, tag: "body" },
+    { bone: "tail2", at: [0, 30, 192], size: 4.5, tag: "tail" },
+    { bone: "tail4", at: [0, 26, 248], size: 3.5, tag: "tail" },
+    { bone: "tail6", at: [0, 23, 304], size: 3.5, tag: "tail" },
+    { bone: "knob", at: [0, 32, 358], size: 4.5, tag: "tail" }
   ],
   3: [
-    { bone: "head", at: [0, 114, -262], size: 3, tag: "head" },
-    { bone: "neck4", at: [0, 114, -186], size: 3, tag: "head" },
-    { bone: "neck2", at: [0, 114, -152], size: 3, tag: "head" },
-    { bone: "chest", at: [0, 106, -96], size: 5, tag: "body" },
-    { bone: "hips", at: [0, 110, 78], size: 5, tag: "body" },
-    { bone: "leg_fl_lower", at: [40, 40, -100], size: 2, tag: "limb" },
-    { bone: "leg_fr_lower", at: [-40, 40, -100], size: 2, tag: "limb" },
-    { bone: "leg_bl_lower", at: [40, 40, 84], size: 2, tag: "limb" },
-    { bone: "leg_br_lower", at: [-40, 40, 84], size: 2, tag: "limb" },
-    { bone: "foot_fl", at: [40, 4, -112], size: 1, tag: "limb" },
-    { bone: "foot_fr", at: [-40, 4, -112], size: 1, tag: "limb" },
-    { bone: "foot_bl", at: [40, 4, 72], size: 1, tag: "limb" },
-    { bone: "foot_br", at: [-40, 4, 72], size: 1, tag: "limb" },
-    { bone: "tail2", at: [0, 112, 158], size: 3, tag: "tail" },
-    { bone: "tail4", at: [0, 112, 219], size: 2, tag: "tail" },
-    { bone: "tail6", at: [0, 112, 278], size: 1, tag: "tail" },
-    { bone: "tail8", at: [0, 112, 336], size: 1, tag: "tail" },
-    { bone: "club", at: [0, 112, 374], size: 3, tag: "tail" }
+    { bone: "head", at: [0, 114, -262], size: 4.5, tag: "head" },
+    { bone: "neck4", at: [0, 114, -186], size: 4.5, tag: "head" },
+    { bone: "neck2", at: [0, 114, -152], size: 4.5, tag: "head" },
+    { bone: "chest", at: [0, 106, -96], size: 6.5, tag: "body" },
+    { bone: "hips", at: [0, 110, 78], size: 6.5, tag: "body" },
+    { bone: "body", at: [0, 104, -10], size: 6.5, tag: "body" },
+    // the legs: a volume at the knee and one at the sole, each carried with its own leg through the walk
+    { bone: "leg_fl_lower", at: [40, 40, -100], size: 3.5, tag: "limb", leg: "fl", swing: 0.5 },
+    { bone: "leg_fr_lower", at: [-40, 40, -100], size: 3.5, tag: "limb", leg: "fr", swing: 0.5 },
+    { bone: "leg_bl_lower", at: [40, 40, 84], size: 3.5, tag: "limb", leg: "bl", swing: 0.5 },
+    { bone: "leg_br_lower", at: [-40, 40, 84], size: 3.5, tag: "limb", leg: "br", swing: 0.5 },
+    { bone: "foot_fl", at: [40, 4, -112], size: 2.5, tag: "limb", leg: "fl", swing: 1 },
+    { bone: "foot_fr", at: [-40, 4, -112], size: 2.5, tag: "limb", leg: "fr", swing: 1 },
+    { bone: "foot_bl", at: [40, 4, 72], size: 2.5, tag: "limb", leg: "bl", swing: 1 },
+    { bone: "foot_br", at: [-40, 4, 72], size: 2.5, tag: "limb", leg: "br", swing: 1 },
+    { bone: "tail2", at: [0, 112, 158], size: 4.5, tag: "tail" },
+    { bone: "tail4", at: [0, 112, 219], size: 3.5, tag: "tail" },
+    { bone: "tail6", at: [0, 112, 278], size: 2.5, tag: "tail" },
+    { bone: "tail8", at: [0, 112, 336], size: 2.5, tag: "tail" },
+    { bone: "club", at: [0, 112, 374], size: 4.5, tag: "tail" }
   ]
 };
+var LEG_PHASE = { bl: 0, fl: 270, br: 180, fr: 90 };
 var MOVE = {
   1: { turn: 2.2, accel: 0.02, radius: 3 },
-  2: { turn: 1.5, accel: 0.03, radius: 2.5 },
-  3: { turn: 1.25, accel: 0.012, radius: 3.5 }
+  2: { turn: 1.4, accel: 0.03, radius: 3.1 },
+  3: { turn: 1, accel: 0.011, radius: 6 }
 };
 var DROP = 30;
 var BODY = {
-  2: { built: [1.5, 2.6], cliff: 3.6, front: 3.5, look: [4, 7, 10] },
-  3: { built: [2.5, 3.6], cliff: 4.8, front: 5.5, look: [6, 10, 14] }
+  2: { built: [1.8, 3.2], cliff: 4.5, front: 4.4, look: [0.6, 2, 5, 9, 13], wade: 2, climb: 2, top: 4 },
+  3: { built: [4.2, 6.1], cliff: 8.2, front: 9.4, look: [0.6, 3, 10, 17, 24], wade: 8, climb: 5.4, top: 10 }
 };
 var Creature = class {
   constructor(entity) {
@@ -747,6 +1156,12 @@ var Creature = class {
     this.afloat = false;
     this.surfY = void 0;
     this.partIds = [];
+    this.partSize = [];
+    /** Form III: where the walk cycle is, in degrees (0 = left hind landing), kept by the brain from its footfalls. */
+    this.walkPhase = 0;
+    /** Smash through what is built in his way (wither mode, Form III, set by the brain while he walks). */
+    this.smash = false;
+    this.crushAt = -99;
     this.lookYaw = 0;
     this.lookPitch = 0;
     this.bend = 0;
@@ -761,6 +1176,7 @@ var Creature = class {
     this.partPos = [];
     this.fxSeq = 0;
     this.pushAt = /* @__PURE__ */ new Map();
+    this.crushedAt = /* @__PURE__ */ new Map();
     this.tick = 0;
     /**
      * Form I out of water (the pond was drained, ice closed over, something carried him): look for the
@@ -835,14 +1251,25 @@ var Creature = class {
       window: this.phase === "window" || this.phase === "stalk" ? 1 : 0
     });
   }
+  /** How much larger than modelled he is drawn. */
+  get scale() {
+    return drawScale(this.form);
+  }
   skeleton() {
-    return this.skel ?? (this.skel = new Skeleton(this.form, this.pose()));
+    return this.skel ?? (this.skel = new Skeleton(this.form, this.pose(), this.phase === "window" || this.phase === "stalk" ? 1 : 0));
   }
   anchor(locator) {
-    return toWorld(this.pos, this.yaw, this.skeleton().locator(locator));
+    return toWorld(this.pos, this.yaw, this.skeleton().locator(locator), this.scale);
   }
   point(bone, at2) {
-    return toWorld(this.pos, this.yaw, this.skeleton().point(bone, at2));
+    return toWorld(this.pos, this.yaw, this.skeleton().point(bone, at2), this.scale);
+  }
+  /** Model-unit offset (forward, up) of a sole from its rest place, at this point of the walk (as the client solves it). */
+  legOffset(leg) {
+    const p = ((this.walkPhase + LEG_PHASE[leg]) % 360 + 360) % 360 / 360;
+    if (p < BETA_III) return [STANCE_MODEL_III * (0.5 - p / BETA_III), 0];
+    const su = (p - BETA_III) / (1 - BETA_III);
+    return [-STANCE_MODEL_III / 2 + STANCE_MODEL_III * su * su * (3 - 2 * su), LIFT_III * Math.sin(Math.PI * su) * (this.phase === "move" || this.phase === "stalk" ? 1 : 0)];
   }
   get forward() {
     return forwardOf(this.yaw);
@@ -915,7 +1342,7 @@ var Creature = class {
   walled(at2, full) {
     const b = BODY[this.form];
     const feet = this.afloat && this.surfY != null ? Math.max(this.pos.y, this.surfY - 1.2) : this.pos.y;
-    return trunkBlocked(this.dim, at2, feet, MOVE[this.form].radius, b.built, b.cliff, full);
+    return trunkBlocked(this.dim, at2, feet, MOVE[this.form].radius, b.built, b.cliff, full, this.smashing());
   }
   /** Is there room for his middle here (used by the few moves that carry him without stepping)? */
   roomAt(at2) {
@@ -925,10 +1352,23 @@ var Creature = class {
     }
     return true;
   }
+  smashing() {
+    return this.smash && this.form === 3 && wither();
+  }
+  /** Clear what is built in the slab in front of his shoulders.  Cheap probe first; the slab only when it is needed. */
+  crushAhead() {
+    if (this.tick - this.crushAt < 3) return;
+    const b = BODY[3];
+    const ahead = add(this.pos, mul(this.forward, b.front));
+    if (!trunkBlocked(this.dim, ahead, this.pos.y, MOVE[3].radius * 0.8, b.built, 99, false)) return;
+    this.crushAt = this.tick;
+    const broke = crush(this.dim, this.pos, this.forward, b.front - 1, Math.round(MOVE[3].radius * 0.85), 1, Math.round(9.6 * this.scale), 3, 96);
+    if (broke) this.speed *= 0.7;
+  }
   /** Water deeper than this form wades: Form II drags through shallows, Form III stands belly-deep. */
   tooDeep(at2, floorY) {
     if (this.wade || this.form === 1) return false;
-    return waterOver(this.dim, at2.x, at2.z, floorY, this.form === 3 ? 5 : 2);
+    return waterOver(this.dim, at2.x, at2.z, floorY, BODY[this.form].wade);
   }
   /** Already in water over his depth (swimming, or sunk to the bed): then every way is a way out. */
   inDeep() {
@@ -939,7 +1379,7 @@ var Creature = class {
     for (const s of BODY[this.form].look) {
       if (s > reach) break;
       const at2 = add(this.pos, mul(f, s));
-      if (this.walled(at2, false)) return false;
+      if (this.walled(at2, true)) return false;
       const floor = groundY(this.dim, at2.x, at2.z, this.pos.y + 6, DROP + 6);
       if (floor === NONE) return false;
       if (typeof floor === "number" && !this.inDeep() && this.tooDeep(at2, floor)) return false;
@@ -974,17 +1414,18 @@ var Creature = class {
   stepLand(next, moving = true) {
     const r = MOVE[this.form].radius;
     const front = mul(this.forward, BODY[this.form].front);
-    if (moving && (this.walled(add(next, front), true) || this.walled(next, false)) && !this.walled(this.pos, false)) {
+    const ahead = add(this.pos, mul(this.forward, Math.max(0.6, this.speed)));
+    if (moving && (this.walled(add(next, front), true) || this.walled(ahead, false)) && !this.walled(this.pos, false)) {
       this.blockedWhy = "wall";
       return null;
     }
-    const lim = this.form === 3 ? 5 : 2;
+    const lim = BODY[this.form].wade;
     if (this.tick % 5 === 0 || this.surfY === void 0) {
       const wc = waterColumn(this.dim, next.x, next.z, this.pos.y + lim, 8, 2);
       this.surfY = wc === NONE || wc === UNLOADED ? null : wc.surface;
     }
     const floatY = this.surfY !== null && this.surfY !== void 0 ? this.surfY - lim : null;
-    const top = this.form === 3 ? 6 : 3;
+    const top = BODY[this.form].top;
     const yTop = this.pos.y + top + (this.afloat ? lim + 2 : 0);
     const mid = groundY(this.dim, next.x, next.z, yTop, DROP + top);
     if (moving && !this.wade && !this.inDeep() && typeof mid === "number" && this.tooDeep(next, mid)) {
@@ -1003,7 +1444,7 @@ var Creature = class {
     if (floatY !== null && g <= floatY + 0.01 && typeof mid === "number" && mid > floatY) g = mid;
     const rise = g - this.pos.y;
     const swims = floatY !== null && g <= floatY + 0.01 && isWaterId(blockAt(this.dim, { x: next.x, y: floatY, z: next.z })?.typeId);
-    if (!swims && rise > (this.afloat ? lim + 1.6 : this.form === 3 ? 3.2 : 1.6)) {
+    if (!swims && rise > (this.afloat ? lim + 1.6 : BODY[this.form].climb)) {
       this.blockedWhy = "climb";
       return null;
     }
@@ -1081,6 +1522,7 @@ var Creature = class {
     let moved = 0;
     if (!this.goalWalled) this.blockedWhy = "none";
     if (this.speed > 2e-3) {
+      if (this.smashing()) this.crushAhead();
       const next = add(this.pos, mul(this.forward, this.speed));
       const settled = this.form === 1 ? this.stepWater(next) : this.stepLand(next);
       if (settled) {
@@ -1142,9 +1584,15 @@ var Creature = class {
     const defs = PARTS[this.form];
     for (let i = 0; i < defs.length; i++) {
       const d = defs[i];
-      const c = this.point(d.bone, d.at);
-      const s = SIZES[d.size];
-      const at2 = { x: c.x, y: c.y - s / 2, z: c.z };
+      let c = this.point(d.bone, d.at);
+      if (d.leg) {
+        const [fwd, up] = this.legOffset(d.leg);
+        const k = (d.swing ?? 1) * this.scale / 16;
+        c = add(add(c, mul(this.forward, fwd * k)), { x: 0, y: up * k, z: 0 });
+      }
+      const si = sizeIndex(d.size * this.scale);
+      const s = SIZES[si];
+      const at2 = { x: c.x, y: Math.max(c.y - s / 2, this.pos.y - 0.25), z: c.z };
       let part = this.parts[i];
       let ok = false;
       try {
@@ -1160,7 +1608,8 @@ var Creature = class {
         if (!isLoaded(this.dim, at2)) continue;
         try {
           part = this.dim.spawnEntity(HITBOX, at2);
-          part.triggerEvent(`basiliskra:size_${d.size}`);
+          part.triggerEvent(`basiliskra:size_${si}`);
+          this.partSize[i] = si;
           partOwner.set(part.id, { creature: this, tag: d.tag });
           this.parts[i] = part;
           this.partIds[i] = part.id;
@@ -1169,6 +1618,13 @@ var Creature = class {
           this.parts[i] = void 0;
         }
         continue;
+      }
+      if (this.partSize[i] !== si) {
+        try {
+          part.triggerEvent(`basiliskra:size_${si}`);
+          this.partSize[i] = si;
+        } catch {
+        }
       }
       const last = this.partPos[i];
       if (!last || dist(last, at2) > 0.2) {
@@ -1208,8 +1664,9 @@ var Creature = class {
   }
   /** Centre and radius of each body volume, for contact checks. */
   volumes() {
-    const out = PARTS[this.form].map((d) => ({ at: this.point(d.bone, d.at), r: SIZES[d.size] / 2, tag: d.tag }));
-    const trunk = this.form === 1 ? { h: 4.4, r: 3 } : this.form === 2 ? { h: 7.2, r: 3.3 } : { h: 9.6, r: 4.3 };
+    const k = this.scale;
+    const out = PARTS[this.form].map((d) => ({ at: this.point(d.bone, d.at), r: SIZES[sizeIndex(d.size * k)] / 2, tag: d.tag }));
+    const trunk = this.form === 1 ? { h: 4.4, r: 3 } : this.form === 2 ? { h: 7.2 * k, r: 3.3 * k } : { h: 9.6 * k, r: 4.3 * k };
     out.push({ at: { x: this.pos.x, y: this.pos.y + trunk.h / 2, z: this.pos.z }, r: trunk.r, tag: "body" });
     return out;
   }
@@ -1234,6 +1691,10 @@ var Creature = class {
           } catch {
           }
           this.pushAt.set(p.id, this.tick);
+          if (this.form !== 1 && this.speed > 0.04 && this.tick - (this.crushedAt.get(p.id) ?? -99) >= 12) {
+            this.crushedAt.set(p.id, this.tick);
+            this.hurt(p, this.form === 3 ? 4 : 2);
+          }
           break;
         }
       }
@@ -1270,7 +1731,7 @@ var Creature = class {
     particle(this.dim, id, at2, range);
   }
   /** Damage a player from him (never on Peaceful when configured so; never Creative/Spectator). */
-  hurt(p, amount, cause = EntityDamageCause.entityAttack) {
+  hurt(p, amount, cause = EntityDamageCause2.entityAttack) {
     if (!targetable(p)) return false;
     if (CONFIG.harmlessOnPeaceful && String(world5.getDifficulty()).toLowerCase() === "peaceful") return false;
     try {
@@ -1335,6 +1796,7 @@ function anyoneNear(c, range) {
   }
   return false;
 }
+var VOICED = /* @__PURE__ */ new Set(["idle", "move", "look", "drink", "pin", "flinch", "beach"]);
 var Brain = class {
   constructor(c) {
     this.c = c;
@@ -1346,6 +1808,8 @@ var Brain = class {
     /** Set by the controller: a forced encounter for tests and scripted scenes. */
     this.forced = null;
     this.hurtAt = -9999;
+    /** His ordinary noise: a grunt, a huff or a growl every so often, from the one recording of his voice. */
+    this.voiceAt = -1;
   }
   get rec() {
     return store.rec;
@@ -1391,7 +1855,20 @@ var Brain = class {
   }
   onFinish() {
   }
+  voice() {
+    const c = this.c, now = this.now;
+    if (this.voiceAt < 0) this.voiceAt = now + 100;
+    if (now < this.voiceAt) return;
+    this.voiceAt = now + Math.round((10 + 12 * hash(now, 71)) * 20);
+    if (!VOICED.has(c.phase) || !anyoneNear(c, 80)) return;
+    const tag = ["", "i", "ii", "iii"][c.form];
+    const r = hash(now, 72);
+    const id = c.form === 1 ? r < 0.75 ? "i.grunt" : "i.breath" : r < 0.6 ? `${tag}.grunt` : r < 0.85 ? `${tag}.breath` : `${tag}.growl`;
+    const pitch = (c.form === 1 ? 0.9 : c.form === 2 ? 1.15 : 0.96) * (0.96 + 0.08 * hash(now, 73));
+    c.say(`basiliskra.${id}`, c.anchor("nose"), c.form === 3 ? 80 : 64, 0.95, pitch);
+  }
   tick() {
+    this.voice();
     if (this.forced) {
       const f = this.forced;
       this.forced = null;
@@ -1550,6 +2027,19 @@ function check(r, key, at2) {
   }
   return { region: key, site, guilty, guiltyName: guilty ? r.names[guilty] ?? null : null };
 }
+function tally(playerId, i) {
+  const t = store.harm.tally ??= {};
+  if (!t[playerId]) {
+    const ids = Object.keys(t);
+    if (ids.length >= 32) delete t[ids[0]];
+    t[playerId] = [0, 0];
+  }
+  t[playerId][i]++;
+}
+function tallyOf(playerId) {
+  const t = store.harm.tally;
+  return t?.[playerId] ? [t[playerId][0], t[playerId][1]] : [0, 0];
+}
 function recordKill(at2, typeId, playerId, playerName, now) {
   const call = ANIMALS[typeId];
   if (!call) return null;
@@ -1557,6 +2047,8 @@ function recordKill(at2, typeId, playerId, playerName, now) {
   const w = Math.min(1, Math.max(0.15, r.ra / 2));
   r.ra += 1;
   r.a += w;
+  r.n = (r.n ?? 0) + 1;
+  tally(playerId, 0);
   credit(r, playerId, playerName, w);
   const site = { x: Math.floor(at2.x), y: Math.floor(at2.y), z: Math.floor(at2.z), s: call, t: now };
   r.sites.push(site);
@@ -1575,6 +2067,10 @@ function recordHabitat(at2, typeId, playerId, playerName, now) {
   const w = base * Math.min(1, Math.max(0.3, r.rh / 2));
   r.rh += base * 2.2;
   r.h += w;
+  if (base >= 0.2) {
+    r.l = (r.l ?? 0) + 1;
+    tally(playerId, 1);
+  }
   credit(r, playerId, playerName, w);
   store.touchHarm();
   return check(r, keyOf(at2), at2);
@@ -1593,13 +2089,21 @@ function report(key, r) {
   const total = Math.min(1, (a + h) * p / THRESHOLD.total);
   const needA = Math.max(0, THRESHOLD.animals / p - a), needH = Math.max(0, THRESHOLD.habitat / p - h);
   const rest = Math.max(0, THRESHOLD.total / p - (a + needA) - (h + needH));
+  const pct2 = Math.min(animals, habitat, total);
   return {
     center,
     key,
     animals,
     habitat,
     total,
-    pct: Math.min(animals, habitat, total),
+    pct: pct2,
+    progress: pct2 >= 1 ? 1 : Math.min(0.99, (animals + habitat + total) / 3),
+    kills: r?.n ?? 0,
+    cut: r?.l ?? 0,
+    weightA: a * p,
+    weightH: h * p,
+    needA: THRESHOLD.animals,
+    needH: THRESHOLD.habitat,
     moreKills: Math.ceil(needA + rest),
     moreLogs: Math.ceil(needH / 0.3),
     by: { ...r?.by ?? {} },
@@ -1612,17 +2116,30 @@ function angerAt(at2, now) {
   const r = store.harm.regions[k];
   return report(k, r ? peek(r, now) : void 0);
 }
+function angerNear(at2, now) {
+  const regs = store.harm.regions;
+  const ix = Math.floor(at2.x / REGION), iz = Math.floor(at2.z / REGION);
+  let best = angerAt(at2, now);
+  for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
+    const k = `${ix + dx},${iz + dz}`;
+    const r = regs[k];
+    if (!r) continue;
+    const a = report(k, peek(r, now));
+    if (a.progress > best.progress) best = a;
+  }
+  return best;
+}
 function angriest(now) {
   let best = null;
   for (const [k, r] of Object.entries(store.harm.regions)) {
     const a = report(k, peek(r, now));
-    if (!best || a.pct > best.pct || a.pct === best.pct && a.total > best.total) best = a;
+    if (!best || a.pct > best.pct || a.pct === best.pct && a.progress > best.progress) best = a;
   }
   return best && best.total > 1e-3 ? best : null;
 }
 var halfLifeDays = () => HALF_LIFE / TICKS.day / CONFIG.pacing;
 function clearHarm() {
-  store.harm = { regions: {} };
+  store.harm = { regions: {}, tally: {} };
   store.touchHarm();
 }
 
@@ -1982,11 +2499,16 @@ async function present(p, show) {
 }
 function angerLines(p, a, here) {
   const L = [];
-  L.push(`${here ? "§fWhere you stand" : `§fThe angriest place: around ${Math.floor(a.center.x)}, ${Math.floor(a.center.z)} §7(${compass(p.location, a.center)})`}§r`);
-  L.push(`  ${bar(a.pct)} §l${pct(a.pct)}§r`);
-  L.push(`  §7Animals killed by players: §f${pct(a.animals)}§7   Trees, reeds, shore plants cut: §f${pct(a.habitat)}§7   Together: §f${pct(a.total)}`);
+  const where = `around ${Math.floor(a.center.x)}, ${Math.floor(a.center.z)}`;
+  L.push(here ? `§fNear you §7(the 64-block area ${where})` : `§fThe angriest area: ${where} §7(${compass(p.location, a.center)})`);
+  L.push(`  ${bar(a.progress)} §l${pct(a.progress)}§r §7of what calls him`);
+  L.push(`  §7Animals killed here by players: §f${a.kills}§7 (they count as §f${a.weightA.toFixed(1)}§7 of the §f${a.needA}§7 it takes)`);
+  L.push(`  §7Logs, reeds and shore plants cut here: §f${a.cut}§7 (they count as §f${a.weightH.toFixed(1)}§7 of the §f${a.needH}§7 it takes)`);
   if (a.fired) L.push("  §7He has already been called from here.");
-  else if (a.pct < 1) L.push(`  §7To call him from here: about §f${a.moreKills}§7 more animal${a.moreKills === 1 ? "" : "s"} killed and §f${a.moreLogs}§7 more logs (or reeds and shore plants) cut.`);
+  else if (a.pct < 1) {
+    L.push(`  §7Both are needed. Still to go here: about §f${a.moreKills}§7 more animal${a.moreKills === 1 ? "" : "s"} and §f${a.moreLogs}§7 more logs.`);
+    L.push("  §8The first kills of a spree and the first logs of a tree count for less; repeated harm counts in full.");
+  }
   const total = Object.values(a.by).reduce((s, v) => s + v, 0);
   const mine = a.by[p.id] ?? 0;
   if (total > 0) L.push(`  §7Your share of it: §f${pct(mine / total)}`);
@@ -2090,7 +2612,7 @@ function journalText(p, ctl2) {
   L.push("§l§4HIS ANGER§r");
   let here = null;
   try {
-    if (p.dimension.id === OVERWORLD) here = angerAt(p.location, now);
+    if (p.dimension.id === OVERWORLD) here = angerNear(p.location, now);
   } catch {
     here = null;
   }
@@ -2101,7 +2623,9 @@ function journalText(p, ctl2) {
     L.push("");
     L.push(...angerLines(p, top, false));
   }
-  L.push(`§8Left alone, anger halves every ${halfLifeDays().toFixed(1)} in-game days. One meal or one tree counts for almost nothing.`);
+  const [k, c] = tallyOf(p.id);
+  L.push(`§7You, everywhere: §f${k}§7 animal${k === 1 ? "" : "s"} killed, §f${c}§7 log${c === 1 ? "" : "s"} and plants cut.`);
+  L.push(`§8Anger is kept per 64-block area. Left alone, an area's anger halves every ${halfLifeDays().toFixed(1)} in-game days.`);
   L.push("");
   L.push("§l§4WHEN HE COMES§r");
   L.push(...comingLines(p, ctl2));
@@ -2131,7 +2655,7 @@ async function openJournal(p, ctl2) {
 function placeFor(p, form) {
   const v = p.getViewDirection();
   const n = Math.hypot(v.x, v.z) || 1;
-  const d = [0, 15, 19, 27][form] ?? 24;
+  const d = [0, 15, 24, 46][form] ?? 30;
   const pl = p.location;
   const pos = { x: pl.x + v.x / n * d, y: pl.y, z: pl.z + v.z / n * d };
   const g = groundY(overworld(), pos.x, pos.z, pl.y + 24, 48);
@@ -2142,32 +2666,68 @@ function placeFor(p, form) {
 function formOf(rec = store.rec) {
   return rec.born > 0 ? rec.form : 0;
 }
+var SPEEDS = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
+var DAMAGES = [0, 0.25, 0.5, 1, 1.5, 2, 3, 4];
+var TERRAIN = ["none", "scorch", "break", "wither"];
+function presetList(values, current, def, word) {
+  const items = values.map((v) => `${word(v)}${v === def ? " (default)" : ""}`);
+  let index = values.indexOf(current);
+  items.push(index < 0 ? `Custom: x${current}` : "Custom (type it in the box below)");
+  if (index < 0) index = values.length;
+  return { items, index };
+}
+function typedNumber(typed) {
+  const t = typeof typed === "string" ? typed.trim().replace(/^x/i, "").replace(",", ".") : "";
+  return t === "" ? void 0 : Number(t);
+}
+var typedBad = (typed, lo, hi) => {
+  const n = typedNumber(typed);
+  return n !== void 0 && !(n >= lo && n <= hi);
+};
+function pickNumber(values, index, typed, current, lo, hi) {
+  const n = typedNumber(typed);
+  if (n !== void 0 && n >= lo && n <= hi) return Math.round(n * 100) / 100;
+  const i = Number(index);
+  return Number.isInteger(i) && i >= 0 && i < values.length ? values[i] : current;
+}
 async function settingsForm(p) {
-  const terrain = ["none", "scorch", "break"];
-  const f = new ModalFormData().title("Basiliskra Settings").slider("Story speed (x)", 0.25, 4, { valueStep: 0.25, defaultValue: CONFIG.pacing, tooltip: "2 halves every wait and threshold; 0.5 doubles them." }).dropdown("What his beam does to the ground", ["Nothing (light only)", "Scorches natural ground", "Scorches and breaks natural ground"], { defaultValueIndex: terrain.indexOf(CONFIG.terrain) }).toggle("Footprints and furrows in natural ground", { defaultValue: CONFIG.marks }).slider("Damage to players (x)", 0, 3, { valueStep: 0.25, defaultValue: CONFIG.damage }).toggle("Harmless on Peaceful", { defaultValue: CONFIG.harmlessOnPeaceful }).toggle("Spawn eggs and /summon bring him to you", { defaultValue: CONFIG.allowSummon }).dropdown("A spawn egg makes", ["His stage in the story", "Basiliskra I", "Basiliskra II", "Basiliskra III"], { defaultValueIndex: CONFIG.spawnForm }).toggle("Give new players the journal", { defaultValue: CONFIG.giveJournal }).toggle("Give operators the config wheel", { defaultValue: CONFIG.giveWheel }).toggle("Debug messages in the content log", { defaultValue: CONFIG.debug }).dropdown("His fallout", ["Off", "Glowing motes and Geiger clicks only", "Also changes the land (natural ground only)"], { defaultValueIndex: FALLOUT.indexOf(CONFIG.fallout) }).toggle("Radiation sickness for players", { defaultValue: CONFIG.sickness }).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
+  const speed = presetList(SPEEDS, CONFIG.pacing, 1, (v2) => `x${v2}${v2 < 1 ? " (slower)" : v2 > 1 ? " (faster)" : ""}`);
+  const dmg = presetList(DAMAGES, CONFIG.damage, 1, (v2) => v2 === 0 ? "None (x0)" : `x${v2}`);
+  const f = new ModalFormData().title("Basiliskra Settings").dropdown("Story speed", speed.items, { defaultValueIndex: speed.index, tooltip: "x2 halves every wait and threshold; x0.5 doubles them." }).textField("...or type a story speed (0.25 to 4)", "e.g. 1.25").dropdown("What his beam, roar and weight do to the world", [
+    "Nothing (light and sound only)",
+    "Scorch natural ground",
+    "Scorch and break natural ground",
+    "Destroy everything, like the Wither (default)"
+  ], { defaultValueIndex: Math.max(0, TERRAIN.indexOf(CONFIG.terrain)) }).toggle("Spare chests, beds, furnaces and portals", { defaultValue: CONFIG.spareStorage }).toggle("Footprints and furrows in natural ground", { defaultValue: CONFIG.marks }).dropdown("Damage to players", dmg.items, { defaultValueIndex: dmg.index }).textField("...or type a damage multiplier (0 to 4)", "e.g. 0.75").toggle("Harmless on Peaceful", { defaultValue: CONFIG.harmlessOnPeaceful }).toggle("He hunts animals and other creatures too", { defaultValue: CONFIG.huntMobs }).toggle("Spawn eggs and /summon bring him to you", { defaultValue: CONFIG.allowSummon }).dropdown("A spawn egg makes", ["His stage in the story", "Basiliskra I", "Basiliskra II", "Basiliskra III"], { defaultValueIndex: CONFIG.spawnForm }).toggle("Give new players the journal", { defaultValue: CONFIG.giveJournal }).toggle("Give operators the config wheel", { defaultValue: CONFIG.giveWheel }).toggle("Debug messages in the content log", { defaultValue: CONFIG.debug }).dropdown("His fallout", ["Off", "Glowing motes and Geiger clicks only", "Also changes the land (natural ground only)"], { defaultValueIndex: FALLOUT.indexOf(CONFIG.fallout) }).toggle("Radiation sickness for players", { defaultValue: CONFIG.sickness }).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || !r.formValues) return;
   const v = r.formValues;
-  if (v[12] === true) {
+  if (v[16] === true) {
     resetSettings();
     p.sendMessage("§7[Basiliskra] Settings restored to the defaults.");
     return;
   }
+  const pacing = pickNumber(SPEEDS, v[0], v[1], CONFIG.pacing, 0.25, 4);
+  const damage = pickNumber(DAMAGES, v[5], v[6], CONFIG.damage, 0, 4);
+  const bad = typedBad(v[1], 0.25, 4) || typedBad(v[6], 0, 4);
   saveSettings({
-    pacing: Number(v[0]),
-    terrain: terrain[Number(v[1])] ?? "scorch",
-    marks: v[2] === true,
-    damage: Number(v[3]),
-    harmlessOnPeaceful: v[4] === true,
-    allowSummon: v[5] === true,
-    spawnForm: Number(v[6]),
-    giveJournal: v[7] === true,
-    giveWheel: v[8] === true,
-    debug: v[9] === true,
-    fallout: FALLOUT[Number(v[10])] ?? "land",
-    sickness: v[11] === true
+    pacing,
+    terrain: TERRAIN[Number(v[2])] ?? "wither",
+    spareStorage: v[3] === true,
+    marks: v[4] === true,
+    damage,
+    harmlessOnPeaceful: v[7] === true,
+    huntMobs: v[8] === true,
+    allowSummon: v[9] === true,
+    spawnForm: Number(v[10]),
+    giveJournal: v[11] === true,
+    giveWheel: v[12] === true,
+    debug: v[13] === true,
+    fallout: FALLOUT[Number(v[14])] ?? "land",
+    sickness: v[15] === true
   });
-  p.sendMessage("§7[Basiliskra] Settings saved with this world.");
+  p.sendMessage(`§7[Basiliskra] Settings saved with this world. Story speed §fx${CONFIG.pacing}§7, damage §fx${CONFIG.damage}§7.`);
+  if (bad) p.sendMessage("§7[Basiliskra] A number you typed was not in range, so the choice above it was used.");
 }
 async function bringForm(p, ctl2) {
   const f = new ActionFormData().title("Bring him here").body(`§7The one Basiliskra comes to you: moved here if he is about, made here if he is not. There is never more than one.
@@ -2262,21 +2822,144 @@ import { ItemStack as ItemStack2, system as system5, world as world11 } from "@m
 import { EquipmentSlot as EquipmentSlot2 } from "@minecraft/server";
 
 // src/forms/three.ts
-import { EntityDamageCause as EntityDamageCause2, world as world8 } from "@minecraft/server";
-var TIERS = {
-  1: { range: 28, radius: 1.4, damage: 4, ticks: 40, sfx: "basiliskra.iii.beam_raw", width: 1.5 },
-  2: { range: 48, radius: 0.95, damage: 6, ticks: 60, sfx: "basiliskra.iii.beam", width: 0.9 },
-  3: { range: 64, radius: 0.8, damage: 8, ticks: 70, sfx: "basiliskra.iii.beam", width: 0.6 }
+import { EntityDamageCause as EntityDamageCause4, world as world8 } from "@minecraft/server";
+
+// src/roar.ts
+import { EntityDamageCause as EntityDamageCause3, MolangVariableMap as MolangVariableMap2 } from "@minecraft/server";
+var WAVE_SPEED = 2;
+function shake(c, range, peak, seconds = 0.6) {
+  for (const p of witnesses(c.dim, c.pos, range)) {
+    try {
+      const f = Math.max(0, 1 - distXZ(p.location, c.pos) / range);
+      const i = clamp(0.08 + (peak - 0.08) * f, 0.05, 4);
+      p.runCommand(`camerashake add @s ${i.toFixed(2)} ${seconds.toFixed(2)} positional`);
+    } catch {
+    }
+  }
+}
+var Shockwave = class {
+  /** `power`: damage to a player at his feet (less further out); creatures take twice that. */
+  constructor(c, center, reach, power) {
+    this.c = c;
+    this.center = center;
+    this.reach = reach;
+    this.power = power;
+    this.r = 0;
+    this.hit = /* @__PURE__ */ new Set();
+    this.n = 0;
+    this.next = 0;
+    const vars = new MolangVariableMap2();
+    vars.setFloat("variable.reach", reach);
+    const at2 = { x: center.x, y: center.y + 0.4, z: center.z };
+    particle(c.dim, "basiliskra:roar_wave", at2, reach + 64, vars);
+    particle(c.dim, "basiliskra:roar_ring", { x: center.x, y: center.y + 0.2, z: center.z }, reach + 64, vars);
+    sound(c.dim, "basiliskra.iii.club_plant", center, reach + 48, 1, 0.62);
+    this.mobs = mobsNear(c.dim, center, reach + 2);
+    this.brittle = brittleAround(c.dim, center, reach);
+  }
+  get done() {
+    return this.r >= this.reach;
+  }
+  /** Carry the ring one tick further out. */
+  step() {
+    if (this.done) return;
+    const c = this.c, r0 = this.r, r1 = Math.min(this.reach, this.r + WAVE_SPEED);
+    this.r = r1;
+    this.n++;
+    if (this.brittle) {
+      let n = 0;
+      while (this.next < this.brittle.length && n < 160) {
+        const p = this.brittle[this.next];
+        if (Math.hypot(p.x + 0.5 - this.center.x, p.z + 0.5 - this.center.z) >= r1) break;
+        shatter(c.dim, p);
+        this.next++;
+        n++;
+      }
+    } else shatterRing(c.dim, this.center, r0, r1, clamp(Math.round(2 * Math.PI * r1 / 1.6), 12, 120), this.n);
+    const reached = (loc) => {
+      const d = distXZ(loc, this.center);
+      return d >= r0 - 1.5 && d < r1 + 1.5 && Math.abs(loc.y - this.center.y) < 14 ? d : null;
+    };
+    for (const p of witnesses(c.dim, this.center, r1 + 16)) {
+      try {
+        if (this.hit.has(p.id)) continue;
+        const d = reached(p.location);
+        if (d === null) continue;
+        this.hit.add(p.id);
+        const f = 1 - d / (this.reach + 2);
+        const away = norm({ x: p.location.x - this.center.x, y: 0, z: p.location.z - this.center.z });
+        c.hurt(p, Math.max(1, Math.round(this.power * (0.35 + 0.65 * f))));
+        p.applyKnockback({ x: (away.x || 0.01) * (0.8 + 1.6 * f), z: (away.z || 0.01) * (0.8 + 1.6 * f) }, 0.3 + 0.35 * f);
+        p.runCommand(`camerashake add @s ${(0.2 + 0.4 * f).toFixed(2)} 0.35 rotational`);
+      } catch {
+      }
+    }
+    for (const e of this.mobs) {
+      try {
+        if (!e.isValid || this.hit.has(e.id)) continue;
+        const d = reached(e.location);
+        if (d === null) continue;
+        this.hit.add(e.id);
+        const f = 1 - d / (this.reach + 2);
+        const away = norm({ x: e.location.x - this.center.x, y: 0, z: e.location.z - this.center.z });
+        e.applyDamage(Math.max(1, Math.round(this.power * 2 * (0.35 + 0.65 * f))), { cause: EntityDamageCause3.entityAttack, damagingEntity: c.entity });
+        e.applyKnockback({ x: (away.x || 0.01) * (0.8 + 1.6 * f), z: (away.z || 0.01) * (0.8 + 1.6 * f) }, 0.3 + 0.35 * f);
+      } catch {
+      }
+    }
+  }
 };
+var RoarFx = class {
+  constructor(c, big, reach, power, ground = true) {
+    this.c = c;
+    this.big = big;
+    this.reach = reach;
+    this.power = power;
+    this.ground = ground;
+    this.t = 0;
+    this.waves = [];
+  }
+  tick() {
+    const c = this.c, t = this.t++;
+    if (t % 10 === 0) shake(c, this.big ? 140 : 110, this.big ? 0.7 : 0.6);
+    if (this.ground && (t === 14 || this.big && t === 64)) this.waves.push(new Shockwave(c, { ...c.pos }, this.reach * (t === 64 ? 1.25 : 1), this.power));
+    for (const w of this.waves) w.step();
+    this.waves = this.waves.filter((w) => !w.done);
+  }
+};
+
+// src/forms/three.ts
+var CHARGE_TICKS = 137;
+var PLANT_TICKS = 14;
+var LIGHT_END = 112;
+var FIRE_FULL = 141;
+var FIRE_FADE = 14;
+var TIERS = {
+  1: { range: 40, radius: 1.9, damage: 5, width: 2.4, carve: 2 },
+  2: { range: 60, radius: 1.6, damage: 7, width: 1.9, carve: 2.6 },
+  3: { range: 76, radius: 1.4, damage: 9, width: 1.6, carve: 3.1 }
+};
+var CRATER = 6;
+var BEAM_MIN = 14;
 var ROD = /^minecraft:(waxed_)?(exposed_|weathered_|oxidized_)?lightning_rod$/;
 var ROD_REACH = 10;
 var FEET = ["foot_bl", "foot_fl", "foot_br", "foot_fr"];
-var WINDOW_STANDOFF = 14.9;
-var WINDOW_EYE_LEFT = 1.25;
+var WINDOW_STANDOFF = 23.6;
+var WINDOW_EYE_LEFT = 2.1;
 var rodReady = /* @__PURE__ */ new Map();
-function segDist(p, a, d, length) {
-  const t = clamp(dot(sub(p, a), d), 0, length);
-  return dist(p, add(a, mul(d, t)));
+var isPlayer = (e) => {
+  try {
+    return e.typeId === "minecraft:player";
+  } catch {
+    return false;
+  }
+};
+function headOf(e) {
+  try {
+    return e.getHeadLocation();
+  } catch {
+    return e.location;
+  }
 }
 var BrainThree = class extends Brain {
   constructor() {
@@ -2287,16 +2970,36 @@ var BrainThree = class extends Brain {
     // the one he remembers
     this.preyUntil = 0;
     this.recoverUntil = 0;
+    /** Creatures about him, looked up every two seconds. */
+    this.mobs = [];
+    this.mobsAt = -999;
+    this.lastQuarry = null;
+    this.roarSeed = 0;
     /** Set when a charge is grounded: the ending listens for it. */
     this.groundedAt = null;
     /** The ending asks for a charge aimed at nothing in particular, beside the seam. */
     this.wantCharge = false;
+    this.chargeSounding = false;
     /** Rods seen near the club during this charge, by layer: the whole reach is read once every twelve ticks. */
     this.rodSeen = /* @__PURE__ */ new Map();
     this.rodLayer = 0;
   }
   onFinish() {
     this.c.set(PROP.tier, this.tier());
+    this.c.smash = false;
+    if (this.chargeSounding) {
+      this.chargeSounding = false;
+      stopSound(this.c.dim, "basiliskra.iii.charge", this.c.pos);
+    }
+  }
+  /** Creatures he could go after (not players): cached, the entity query runs every two seconds at most. */
+  creatures() {
+    if (!CONFIG.huntMobs) return [];
+    if (this.now - this.mobsAt >= 40) {
+      this.mobsAt = this.now;
+      this.mobs = mobsNear(this.c.dim, this.c.pos, 72);
+    }
+    return this.mobs.filter(alive);
   }
   tier() {
     const b = this.rec.mut.beams;
@@ -2307,9 +3010,9 @@ var BrainThree = class extends Brain {
     const tod = world8.getTimeOfDay();
     if (this.wantCharge) {
       this.wantCharge = false;
-      return { name: "charge", run: this.beam(null), limit: 30 * TICKS.second };
+      return { name: "charge", run: this.beam(null), limit: 40 * TICKS.second };
     }
-    const near = nearbyPlayers(c, 72);
+    const near = nearbyPlayers(c, 90);
     if (rec.origin && rec.guilty && this.ready("remember") && distXZ(rec.origin, c.pos) < 90) {
       const g = near.find((p) => p.id === rec.guilty);
       if (g) {
@@ -2317,22 +3020,31 @@ var BrainThree = class extends Brain {
         return { name: "remember", run: this.remember(g), limit: 100 * TICKS.second };
       }
     }
+    if (!this.cooldown.has("rroar")) this.rest("rroar", (30 + 60 * hash(now, 91)) * TICKS.second);
+    if (this.ready("rroar")) {
+      this.rest("rroar", (55 + 125 * hash(now, 92)) * TICKS.second);
+      if (hash(now, 93) < 0.7 && anyoneNear(c, 110)) return { name: "roar", run: this.roar(hash(now, 94) < 0.25), limit: 12 * TICKS.second };
+    }
+    const mobs = this.creatures();
     if (now >= this.recoverUntil) {
       const hunted = this.prey && now < this.preyUntil ? near.filter((p) => p.id === this.prey) : near;
       if (this.tier() === 3 && this.ready("scatter")) {
-        const flank = hunted.find((p) => dist(p.location, c.pos) < 18 && Math.abs(wrapDeg(yawTo(c.pos, p.location) - c.yaw)) > 100);
+        const flank = hunted.find((p) => dist(p.location, c.pos) < 18 * c.scale && Math.abs(wrapDeg(yawTo(c.pos, p.location) - c.yaw)) > 100);
         if (flank) {
           this.rest("scatter", 45 * TICKS.second);
           return { name: "scatter", run: this.scatter(), limit: 20 * TICKS.second };
         }
       }
       if (this.ready("beam")) {
-        for (const p of hunted) {
-          const d = dist(p.location, c.anchor("mouth"));
-          if (d < 10 || d > TIERS[this.tier()].range - 2) continue;
-          if (!clearLine(c.dim, c.anchor("mouth"), p.getHeadLocation())) continue;
-          this.rest("beam", 25 * TICKS.second);
-          return { name: "beam", run: this.beam(p), limit: 30 * TICKS.second };
+        const range = TIERS[this.tier()].range - 2;
+        const mouth = c.anchor("mouth");
+        const quarry2 = [...hunted, ...mobs.filter((m) => !this.prey || now >= this.preyUntil)];
+        for (const q of quarry2) {
+          const d = dist(q.location, mouth);
+          if (d < BEAM_MIN || d > range) continue;
+          if (!clearLine(c.dim, mouth, headOf(q))) continue;
+          this.rest("beam", 28 * TICKS.second);
+          return { name: "beam", run: this.beam(q), limit: 45 * TICKS.second };
         }
       }
     }
@@ -2345,9 +3057,22 @@ var BrainThree = class extends Brain {
         }
       }
     }
-    if (this.prey && now < this.preyUntil) {
-      const g = near.find((p) => p.id === this.prey);
-      if (g) return { name: "pursue", run: this.pursue(g), limit: 20 * TICKS.second };
+    let quarry;
+    if (this.prey && now < this.preyUntil) quarry = near.find((p) => p.id === this.prey);
+    quarry ??= near.find((p) => dist(p.location, c.pos) < 64) ?? mobs.sort((x, y) => dist(x.location, c.pos) - dist(y.location, c.pos))[0];
+    if (quarry) {
+      if (quarry.id !== this.lastQuarry && this.ready("lockroar")) {
+        this.lastQuarry = quarry.id;
+        this.rest("lockroar", 50 * TICKS.second);
+        const q = quarry;
+        return { name: "lock", run: function* (self) {
+          c.lookAt(headOf(q), 85, 35);
+          yield* self.roar(false);
+          yield* self.pursue(q);
+        }(this), limit: 30 * TICKS.second };
+      }
+      this.lastQuarry = quarry.id;
+      return { name: "pursue", run: this.pursue(quarry), limit: 20 * TICKS.second };
     }
     return { name: "roam", run: this.roam(), limit: 80 * TICKS.second };
   }
@@ -2357,20 +3082,24 @@ var BrainThree = class extends Brain {
     const c = this.c;
     c.setPhase(phase);
     c.goTo(target, speed, arrive);
+    c.smash = phase === "move";
     let t = 0;
     while (!c.arrived()) {
       if (++t > timeout || c.blocked > 50) {
         c.halt();
+        c.smash = false;
         return false;
       }
       this.footfalls();
       yield;
     }
     c.halt();
+    c.smash = false;
     return true;
   }
   footfalls() {
     const c = this.c;
+    c.walkPhase = ((this.beat - 1 & 3) + clamp((c.travelled - this.stepAt) / (STRIDE_III / 4), 0, 1.15)) * 90;
     if (c.travelled - this.stepAt < STRIDE_III / 4) return;
     this.stepAt = c.travelled - this.stepAt < STRIDE_III / 2 ? this.stepAt + STRIDE_III / 4 : c.travelled;
     const k = this.beat & 3;
@@ -2378,14 +3107,17 @@ var BrainThree = class extends Brain {
     const foot = add(c.anchor(FEET[k]), mul(c.forward, STANCE_III / 2));
     this.beat++;
     this.rec.mut.overland += STRIDE_III / 4;
-    sound(c.dim, "basiliskra.iii.step", foot, 96, 1, 0.94 + (this.beat & 3) * 0.03);
-    particle(c.dim, "basiliskra:step_dust", { x: foot.x, y: c.pos.y + 0.1, z: foot.z }, 56);
-    for (const p of witnesses(c.dim, foot, 28)) {
+    sound(c.dim, "basiliskra.iii.step", foot, 112, 1, 0.86 + (this.beat & 3) * 0.03);
+    const ground = { x: foot.x, y: c.pos.y + 0.1, z: foot.z };
+    particle(c.dim, "basiliskra:step_dust", ground, 72);
+    for (const p of witnesses(c.dim, foot, 40)) {
+      const f = 1 - dist(p.location, foot) / 40;
       try {
-        p.runCommand("camerashake add @s 0.08 0.2 positional");
+        p.runCommand(`camerashake add @s ${(0.06 + 0.16 * f).toFixed(2)} 0.25 positional`);
       } catch {
       }
     }
+    blast(c.dim, ground, 2.2 * c.scale, 6, 14, 0.9, (p, n) => c.hurt(p, n), c.entity, ground);
     if (!CONFIG.marks) return;
     for (const [dx, dz] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
       const at2 = { x: Math.floor(foot.x) + dx, y: Math.floor(c.pos.y - 0.5), z: Math.floor(foot.z) + dz };
@@ -2412,10 +3144,10 @@ var BrainThree = class extends Brain {
       const a = hash(this.now, 43) * Math.PI * 2;
       target = { x: home.x + Math.cos(a) * 40, y: c.pos.y, z: home.z + Math.sin(a) * 40 };
     }
-    yield* this.walk(target, 0.14, 6, 1300);
+    yield* this.walk(target, 0.13, 6, 1500);
     c.setPhase("idle");
     for (let t = 0; t < 140; t++) {
-      if (t % 80 === 0) c.say("basiliskra.iii.breath", c.anchor("nose"), 48, 0.8);
+      if (t === 30) c.say(hash(this.now, 17) < 0.5 ? "basiliskra.iii.breath" : "basiliskra.iii.grunt", c.anchor("nose"), 64, 0.9, 0.95);
       yield;
     }
   }
@@ -2501,7 +3233,7 @@ var BrainThree = class extends Brain {
     const left = leftOf(yawTo(out, { x: 0, y: 0, z: 0 }));
     const line = (d) => add(add(pane, mul(out, d)), mul(left, WINDOW_EYE_LEFT));
     const RUN = STRIDE_III;
-    if (!(yield* this.walk(line(WINDOW_STANDOFF + RUN), 0.14, 0.4, 1800))) return;
+    if (!(yield* this.walk(line(WINDOW_STANDOFF + RUN), 0.13, 0.4, 2400))) return;
     if (!ok()) return;
     yield* this.face(line(0));
     c.setPhase("idle");
@@ -2545,17 +3277,11 @@ var BrainThree = class extends Brain {
     const c = this.c;
     c.halt();
     c.setPhase("roar");
-    c.say(whole ? "basiliskra.roar" : "basiliskra.roar_short", c.anchor("mouth"), whole ? 160 : 128);
-    const ticks = whole ? 150 : 64;
+    c.say(whole ? "basiliskra.roar" : "basiliskra.roar_short", c.anchor("mouth"), whole ? 192 : 160);
+    const fx = new RoarFx(c, whole, whole ? 40 : 30, whole ? 7 : 5);
+    const ticks = whole ? 160 : 88;
     for (let t = 0; t < ticks; t++) {
-      if (t % 14 === 2) {
-        for (const p of witnesses(c.dim, c.pos, whole ? 48 : 32)) {
-          try {
-            p.runCommand("camerashake add @s 0.05 0.7 positional");
-          } catch {
-          }
-        }
-      }
+      fx.tick();
       yield;
     }
     c.setPhase("idle");
@@ -2585,24 +3311,29 @@ var BrainThree = class extends Brain {
     this.preyUntil = this.now + 70 * TICKS.second;
     c.lookAhead();
   }
+  /** After it: players at a walk he can keep up with, creatures until he is on them; whatever is underfoot is trodden. */
   *pursue(g) {
     const c = this.c;
-    for (let t = 0; t < 300; t++) {
+    const player = isPlayer(g);
+    c.smash = true;
+    for (let t = 0; t < 360; t++) {
       let at2;
       try {
-        if (!g.isValid || g.dimension.id !== c.dim.id) return;
+        if (!g.isValid || g.dimension.id !== c.dim.id || player && !targetable(g)) break;
         at2 = g.location;
       } catch {
-        return;
+        break;
       }
       c.setPhase("move");
-      c.goTo(at2, 0.16, 16);
+      c.goTo(at2, 0.15, player ? 17 * c.scale * 0.6 : 3);
       c.lookAt(at2, 60, 25);
       this.footfalls();
-      if (dist(at2, c.pos) < 17) break;
+      if (dist(at2, c.pos) < (player ? 17 * c.scale * 0.6 : 4)) break;
+      if (t % 100 === 50) c.say("basiliskra.iii.grunt", c.anchor("nose"), 72, 1, 0.92 + hash(t) * 0.1);
       yield;
     }
     c.halt();
+    c.smash = false;
   }
   // ---- grounding ------------------------------------------------------------------------------------------
   /** A point on the planted club that is above the ground it rests on. */
@@ -2676,7 +3407,7 @@ var BrainThree = class extends Brain {
             x: tip.x + (top.x - tip.x) * k + (hash(t, i, 1) - 0.5) * j,
             y: tip.y + (top.y - tip.y) * k + (hash(t, i, 2) - 0.5) * j,
             z: tip.z + (top.z - tip.z) * k + (hash(t, i, 3) - 0.5) * j
-          }, 64);
+          }, 128);
         }
       }
       c.setCharge(c.charge - 1.5);
@@ -2713,14 +3444,15 @@ var BrainThree = class extends Brain {
         return false;
       }
     };
-    const aimAt = () => target ? target.getHeadLocation() : add(c.anchor("mouth"), mul(c.forward, 30));
+    const aimAt = () => target ? headOf(target) : add(c.anchor("mouth"), mul(c.forward, 30));
     c.halt();
     c.setPhase("charge");
-    c.say("basiliskra.iii.club_plant", c.anchor("club_core"), 96);
-    c.say("basiliskra.iii.charge", c.pos, 96);
+    c.say("basiliskra.iii.club_plant", c.anchor("club_core"), 112);
+    c.say("basiliskra.iii.charge", c.anchor("throat"), 128);
+    this.chargeSounding = true;
     this.rodSeen.clear();
     this.rodLayer = 0;
-    for (let t = 0; t < 14; t++) {
+    for (let t = 0; t < PLANT_TICKS; t++) {
       c.setCharge(t / 7);
       if (ok()) c.aimAt(aimAt(), 80, 40);
       this.scanRods();
@@ -2728,43 +3460,52 @@ var BrainThree = class extends Brain {
     }
     let rod = null;
     let lit = 1;
-    for (let t = 0; t < 54; t++) {
+    const light = LIGHT_END - PLANT_TICKS;
+    for (let t = 0; t < light; t++) {
       if (!ok()) return;
       const aim = aimAt();
       const off = c.aimAt(aim, 80, 40);
       if (off > 0) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), 0.6);
-      c.setCharge(2 + t / 54 * 14);
+      c.setCharge(2 + t / light * 13.4);
       const zone = Math.floor(c.charge / 2);
       if (zone > lit) {
         lit = zone;
-        sound(c.dim, "basiliskra.iii.charge_tick", c.anchor(zone >= 6 ? "throat" : zone >= 3 ? "plate_tip_5" : "club_core"), 72, 0.9, 0.75 + zone * 0.09);
+        sound(c.dim, "basiliskra.iii.charge_tick", c.anchor(zone >= 6 ? "throat" : zone >= 3 ? "plate_tip_5" : "club_core"), 72, 0.55, 0.75 + zone * 0.09);
       }
+      if (t % 20 === 10) shake(c, 48, 0.12 + 0.2 * (t / light), 1);
       this.scanRods();
       yield;
     }
     rod = this.findRod();
     if (rod && clearLine(c.dim, this.clubTop(), { x: rod.x + 0.5, y: rod.y + 1.2, z: rod.z + 0.5 })) {
+      this.chargeSounding = false;
+      stopSound(c.dim, "basiliskra.iii.charge", c.pos);
       yield* this.ground(rod);
       yield* wait(30);
       this.recoverUntil = this.now + 8 * TICKS.second;
       return;
     }
-    for (let t = 0; t < 24; t++) {
-      c.setCharge(16 + t / 24 * 2);
+    const lock = CHARGE_TICKS - LIGHT_END;
+    for (let t = 0; t < lock; t++) {
+      c.setCharge(16 + t / lock * 2);
       yield;
     }
     c.setPhase("fire");
     c.setCharge(20);
     this.rec.mut.beams++;
     this.rec.mut.lastEncounter = this.now;
-    c.say(T.sfx, c.anchor("mouth"), 128);
-    let lastHit = null;
-    for (let t = 0; t < T.ticks; t++) {
-      if (tier >= 2 && target && ok() && targetable(target)) {
+    this.chargeSounding = false;
+    c.say("basiliskra.iii.beam", c.anchor("mouth"), 160);
+    const smash = wither();
+    let ground = null;
+    for (let t = 0; t < FIRE_FULL + FIRE_FADE; t++) {
+      const fade = t < FIRE_FULL ? 1 : 1 - (t - FIRE_FULL) / FIRE_FADE;
+      if (tier >= 2 && target && ok() && (!isPlayer(target) || targetable(target))) {
         const want = clamp(wrapDeg(yawTo(c.anchor("throat"), target.location) - c.yaw), -80, 80);
-        c.lookYaw += clamp(want - c.lookYaw, -0.35, 0.35);
-      }
-      const sputter = tier === 1 && (t % 13 === 9 || t % 13 === 10 || t % 13 === 11);
+        const rate = tier === 2 ? 0.22 : 0.3;
+        c.lookYaw += clamp(want - c.lookYaw, -rate, rate);
+      } else if (tier === 1) c.lookYaw = clamp(c.lookYaw + Math.sin(t * 0.09) * 0.12, -80, 80);
+      const sputter = tier === 1 && t % 17 >= 14;
       const { from, dir } = c.aim();
       let length = T.range;
       let hitBlock = null;
@@ -2782,48 +3523,81 @@ var BrainThree = class extends Brain {
       while (length > 4 && !isLoaded(c.dim, add(from, mul(dir, length)))) length -= 4;
       const end = add(from, mul(dir, length));
       if (!sputter) {
+        const w = T.width * fade * (tier === 1 ? 0.85 + hash(t) * 0.4 : 1);
         if (t % 2 === 0) {
-          particle(c.dim, "basiliskra:beam_core", from, 128, beamVars(dir, length, T.width * (tier === 1 ? 0.8 + hash(t) * 0.6 : 1)));
-          particle(c.dim, "basiliskra:beam_halo", from, 128, beamVars(dir, length, T.width * 2.6));
+          particle(c.dim, "basiliskra:beam_core", from, 160, beamVars(dir, length, w));
+          particle(c.dim, "basiliskra:beam_halo", from, 160, beamVars(dir, length, w * 2.4));
+          particle(c.dim, "basiliskra:beam_glow", from, 160, beamVars(dir, length, w * 5.2));
+        } else {
+          particle(c.dim, "basiliskra:beam_smoke", from, 128, beamVars(dir, length, w));
+          if (t % 4 === 1) particle(c.dim, "basiliskra:beam_embers", from, 128, beamVars(dir, length, w));
         }
         const side = norm({ x: -dir.z, y: 0, z: dir.x });
         const up = norm({ x: dir.y * side.z - dir.z * side.y, y: dir.z * side.x - dir.x * side.z, z: dir.x * side.y - dir.y * side.x });
-        for (let i = 0; i < 6; i++) {
-          const along = (t * 2.3 + i * (length / 6)) % length;
+        for (let i = 0; i < 4; i++) {
+          const along = (t * 2.3 + i * (length / 4)) % length;
           const a = along * 1.1 + t * 0.9;
-          const r = T.width * 0.9 + 0.25;
-          particle(c.dim, "basiliskra:beam_spiral", add(add(from, mul(dir, along)), add(mul(side, Math.cos(a) * r), mul(up, Math.sin(a) * r))), 96);
+          const r = w * 0.9 + 0.3;
+          particle(c.dim, "basiliskra:beam_spiral", add(add(from, mul(dir, along)), add(mul(side, Math.cos(a) * r), mul(up, Math.sin(a) * r))), 112);
         }
         if (hitBlock) {
-          if (t % 3 === 0) particle(c.dim, "basiliskra:beam_impact", end, 96);
-          if (t % 10 === 0) sound(c.dim, "basiliskra.iii.beam_impact", end, 96);
+          if (t % 3 === 0) particle(c.dim, "basiliskra:beam_impact", end, 112);
+          if (t % 5 === 0) particle(c.dim, "basiliskra:impact_blast", end, 128);
+          if (t % 6 === 3) particle(c.dim, "basiliskra:impact_smoke", end, 144);
+          if (t % 7 === 0) particle(c.dim, "basiliskra:impact_fire", end, 112);
+          if (t % 10 === 0) sound(c.dim, "basiliskra.iii.beam_impact", end, 112);
+          if (!ground || dist(ground, hitBlock) > CRATER + 3) ground = hitBlock;
+          if (smash) {
+            if (t % 4 === 0 && dist(ground, hitBlock) <= CRATER) {
+              const got = carve(c.dim, hitBlock, T.carve * fade + 0.5, 110, true);
+              if (got.broken) particle(c.dim, "basiliskra:impact_debris", end, 128);
+            }
+            if (t % 12 === 0) {
+              particle(c.dim, "minecraft:huge_explosion_emitter", end, 144);
+              sound(c.dim, "random.explode", end, 128, 1.4, 0.7 + hash(t, 3) * 0.2);
+            }
+            if (t % 8 === 4) blast(c.dim, end, T.carve + 3.5, 4, 12, 0.8, (p, n) => c.hurt(p, n), c.entity, end);
+          } else if (t % 6 === 0) this.scorch(hitBlock);
           if (t % 6 === 0) {
-            this.scorch(hitBlock);
-            addFallout(hitBlock, [0, 3, 4, 5][tier], 0.13);
+            addFallout(ground, [0, 3, 4, 5][tier] + (smash ? 1 : 0), 0.13);
             if (CONFIG.fallout !== "off") particle(c.dim, "basiliskra:fallout_ash", end, 64);
           }
-          lastHit = end;
         }
         if (t % 4 === 0) {
+          const reach = T.radius * Math.max(0.5, fade) + 0.4;
           for (const p of players()) {
             try {
               if (p.dimension.id !== c.dim.id || !targetable(p)) continue;
               const body = add(p.location, { x: 0, y: 0.9, z: 0 });
-              if (segDist(body, from, dir, length) > T.radius + 0.4) continue;
+              if (segDist(body, from, dir, length) > reach) continue;
               const along = clamp(dot(sub(body, from), dir), 0, Math.max(0, length - 0.6));
               if (!clearLine(c.dim, add(from, mul(dir, along)), body)) continue;
-              c.hurt(p, T.damage, EntityDamageCause2.entityAttack);
+              c.hurt(p, T.damage, EntityDamageCause4.entityAttack);
+              try {
+                p.setOnFire(3, true);
+              } catch {
+              }
+            } catch {
+            }
+          }
+          for (const e of mobsNear(c.dim, add(from, mul(dir, length / 2)), length / 2 + 3)) {
+            try {
+              if (segDist(add(e.location, { x: 0, y: 0.6, z: 0 }), from, dir, length) > reach + 0.6) continue;
+              e.applyDamage(T.damage * 2, { cause: EntityDamageCause4.entityAttack, damagingEntity: c.entity });
+              e.setOnFire(5, true);
             } catch {
             }
           }
         }
       }
+      if (t % 10 === 0) shake(c, 64, 0.32 * fade + 0.08, 0.6);
       yield;
     }
     yield* this.vent();
-    this.recoverUntil = this.now + 7 * TICKS.second;
+    yield* this.roar(tier === 3 && hash(this.now, 61) < 0.3);
+    this.recoverUntil = this.now + 6 * TICKS.second;
     c.setPhase("idle");
-    yield* wait(50);
+    yield* wait(40);
   }
   /** Mark what the beam touched.  Natural ground only; never a block with an inventory, a bed, a portal or redstone. */
   scorch(at2) {
@@ -3137,7 +3911,8 @@ var Ending = class {
       }
     }
     const out = (d) => ({ x: rift.x + u.x * d, y: c.pos.y, z: rift.z + u.z * d });
-    for (const [d, arrive] of [[shore + 2, 5], [shore + 24, 2.5]]) {
+    const k = c.scale;
+    for (const [d, arrive] of [[shore + 2, 5], [shore + 24 * k, 2.5]]) {
       const walk = brain.walk(out(d), 0.15, arrive, 2400);
       for (; ; ) {
         if (!this.holding()) return;
@@ -3172,7 +3947,7 @@ var Ending = class {
       if (near.next().done) break;
       yield;
     }
-    const back = brain.walk(out(25.5), 0.13, 1.5, 900);
+    const back = brain.walk(out(25.5 * k), 0.13, 1.5, 1400);
     for (; ; ) {
       seam(t++);
       if (!this.holding()) {
@@ -3192,7 +3967,7 @@ var Ending = class {
       if (i % 10 === 0) particle(dim, "basiliskra:arc_seg", c.anchor("tail_notch"), 64);
       yield;
     }
-    const turn = brain.walk(out(54), 0.14, 5, 1200);
+    const turn = brain.walk(out(54 * k), 0.14, 5, 2e3);
     for (; ; ) {
       seam(t++);
       if (!this.holding()) {
@@ -3205,8 +3980,9 @@ var Ending = class {
     const travel3 = mul(u, -1);
     const yaw = yawTo({ x: 0, y: 0, z: 0 }, travel3);
     c.setPhase("depart");
-    c.goTo(out(-70), 0.13, 2);
-    sound(dim, "basiliskra.roar", c.anchor("mouth"), 160);
+    c.goTo(out(-70 * k), 0.13, 2);
+    sound(dim, "basiliskra.roar", c.anchor("mouth"), 192);
+    shake(c, 110, 0.6, 3);
     for (let i = 0; i < 3e3; i++) {
       seam(t++);
       const hi = this.visibleUpTo(c, rift, travel3);
@@ -3810,6 +4586,11 @@ var BrainTwo = class extends Brain {
       this.rest("arc", TICKS.minute);
       return { name: "arc", run: this.discharge(), limit: 12 * TICKS.second };
     }
+    if (!this.cooldown.has("rroar")) this.rest("rroar", (60 + 60 * hash(now, 81)) * TICKS.second);
+    if (this.ready("rroar")) {
+      this.rest("rroar", (90 + 180 * hash(now, 82)) * TICKS.second);
+      if (hash(now, 83) < 0.5 && anyoneNear(c, 72)) return { name: "roar", run: this.roar(), limit: 8 * TICKS.second };
+    }
     return { name: "wander", run: this.wander(), limit: 90 * TICKS.second };
   }
   // ---- the dragging gait ------------------------------------------------------------------------
@@ -3840,7 +4621,7 @@ var BrainTwo = class extends Brain {
       c.set(PROP.gait, base + 1);
       c.say("basiliskra.ii.drag", c.anchor("hip_l"), 64);
       const before = c.travelled;
-      c.goTo(target, 0.095, arrive);
+      c.goTo(target, 0.085, arrive);
       for (let i = 0; i < pull; i++, t++) {
         if (i % 4 === 0) this.furrow();
         yield;
@@ -4017,8 +4798,12 @@ var BrainTwo = class extends Brain {
     const c = this.c;
     c.halt();
     c.setPhase("roar");
-    c.say("basiliskra.roar_short", c.anchor("mouth"), 112, 0.9, 1.18);
-    yield* wait(56);
+    c.say("basiliskra.roar_short", c.anchor("mouth"), 128, 1, 1.18);
+    const fx = new RoarFx(c, false, 20, 3);
+    for (let t = 0; t < 76; t++) {
+      fx.tick();
+      yield;
+    }
     c.setPhase("idle");
   }
   /** Lamps along the street (anything a village lights itself with): one layer of a bounded box round the knob. */
@@ -4549,6 +5334,7 @@ var Controller = class {
     const at2 = { x: c.pos.x, y: c.pos.y + 3, z: c.pos.z };
     if (c.form === 1) c.say("basiliskra.roar_under", c.anchor("nose"), 96);
     else c.say("basiliskra.roar_short", c.anchor("nose"), 128, 1, c.form === 2 ? 1.18 : 1);
+    shake(c, 80, c.form === 1 ? 0.3 : 0.5, 1.2);
     sound(c.dim, "basiliskra.rift.open", at2, 72, 1, 1.3);
     sound(c.dim, "basiliskra.rift.close", at2, 72);
     for (const p of [at2, c.anchor("nose"), c.anchor("tail_notch")]) particle(c.dim, "basiliskra:seam_close", p, 72);
@@ -4574,7 +5360,7 @@ var Controller = class {
     this.brain?.onHurt(by);
     if (amount >= 6 && this.now - this.hurtCryAt > 70) {
       this.hurtCryAt = this.now;
-      c.say("basiliskra.hurt", c.anchor("nose"), 64);
+      c.say("basiliskra.hurt", c.anchor("nose"), 64, 1, c.form === 1 ? 0.95 : c.form === 2 ? 1.25 : 1.05);
     }
   }
   // ---- tick ----------------------------------------------------------------------------------------
@@ -4867,6 +5653,7 @@ var Controller = class {
           c.set(PROP.gill, true);
           sound(dim, "basiliskra.i.gill_catch", c.anchor("gill_l"), 32);
           sound(dim, "basiliskra.roar_under", nose, 96, 0.9);
+          shake(c, 64, 0.35, 1.5);
           try {
             for (const b of dim.getEntities({ location: nose, maxDistance: 32, families: ["boat"] })) b.applyImpulse(mul({ x: -f.z, y: 0.12, z: f.x }, 0.35));
           } catch {
@@ -5156,15 +5943,15 @@ world12.beforeEvents.entityRemove.subscribe((ev) => {
   }
 });
 var PASSES = /* @__PURE__ */ new Set([
-  EntityDamageCause3.entityAttack,
-  EntityDamageCause3.projectile,
-  EntityDamageCause3.entityExplosion,
-  EntityDamageCause3.blockExplosion,
-  EntityDamageCause3.magic,
-  EntityDamageCause3.thorns,
-  EntityDamageCause3.sonicBoom,
-  EntityDamageCause3.maceSmash,
-  EntityDamageCause3.override
+  EntityDamageCause5.entityAttack,
+  EntityDamageCause5.projectile,
+  EntityDamageCause5.entityExplosion,
+  EntityDamageCause5.blockExplosion,
+  EntityDamageCause5.magic,
+  EntityDamageCause5.thorns,
+  EntityDamageCause5.sonicBoom,
+  EntityDamageCause5.maceSmash,
+  EntityDamageCause5.override
 ]);
 var forwardTick = -1;
 var forwardKey = "";

@@ -6,13 +6,17 @@ export const CONFIG = {
   /** BASILISKRA CONFIG — how fast the story moves.  2 = twice as fast, 0.5 = half. */
   pacing: 1.0,
   /**
-   * What his beam and feet may do to the world.
-   *  "none"   only particles and sound
-   *  "scorch" (default) natural stone, dirt, sand and grass at the impact are scorched; nothing breaks
-   *  "break"  natural terrain at the impact is also broken.  Storage, beds, portals, redstone
-   *           and anything a player built from non-natural blocks are never touched in any mode.
+   * What his beam, his roar and his weight may do to the world.
+   *  "none"   only light, particles and sound
+   *  "scorch" natural stone, dirt, sand and grass at the impact are scorched; nothing breaks
+   *  "break"  natural terrain at the impact is also broken
+   *  "wither" (default) like the Wither: the beam blasts out whatever it meets, sets fires, and he smashes
+   *           through anything built in his way.  Bedrock, portals and command blocks always survive, and so do
+   *           chests, beds and other blocks that hold things while `spareStorage` is on.
    */
-  terrain: "scorch" as "none" | "scorch" | "break",
+  terrain: "wither" as "none" | "scorch" | "break" | "wither",
+  /** In "wither" mode: chests, barrels, shulker boxes, beds, furnaces, hoppers and the like are never destroyed. */
+  spareStorage: true,
   /** Furrows (Form II) and footprints (Form III) pressed into natural ground. */
   marks: true,
   /** Damage multiplier for everything he does to players. */
@@ -37,10 +41,12 @@ export const CONFIG = {
   fallout: "land" as "off" | "visual" | "land",
   /** Players standing in strong fallout get hungry, weak and sick (vanilla effects; milk clears them). */
   sickness: true,
+  /** He hunts animals and other creatures too, not only players. */
+  huntMobs: true,
 };
 
 /** The settings a player may change in game (the config wheel); saved with the world, over the defaults above. */
-export const SETTINGS = ["pacing", "terrain", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness"] as const;
+export const SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs"] as const;
 export const SETTINGS_KEY = "bk:cfg";
 
 export const NS = "basiliskra";

@@ -8,7 +8,7 @@ import { CONFIG, TICKS } from "./config";
 import { Creature, targetable } from "./creature";
 import { players } from "./fx";
 import { store, type Rec } from "./store";
-import { dist, distXZ, type V3 } from "./vec";
+import { dist, distXZ, hash, type V3 } from "./vec";
 
 export type Act = Generator<void, void, void>;
 export interface Choice { name: string; run: Act; limit: number }
@@ -49,6 +49,9 @@ export function anyoneNear(c: Creature, range: number): boolean {
   }
   return false;
 }
+
+/** Phases in which he may grunt (not while he roars, charges, fires, knocks, crosses or hangs at a window). */
+const VOICED = new Set(["idle", "move", "look", "drink", "pin", "flinch", "beach"]);
 
 export abstract class Brain {
   protected act: Act | null = null;
@@ -92,7 +95,24 @@ export abstract class Brain {
   }
   protected onFinish(): void { /* per form */ }
 
+  /** His ordinary noise: a grunt, a huff or a growl every so often, from the one recording of his voice. */
+  private voiceAt = -1;
+  private voice(): void {
+    const c = this.c, now = this.now;
+    if (this.voiceAt < 0) this.voiceAt = now + 100;
+    if (now < this.voiceAt) return;
+    this.voiceAt = now + Math.round((10 + 12 * hash(now, 71)) * 20);
+    if (!VOICED.has(c.phase) || !anyoneNear(c, 80)) return;
+    const tag = ["", "i", "ii", "iii"][c.form];
+    const r = hash(now, 72);
+    const id = c.form === 1 ? (r < 0.75 ? "i.grunt" : "i.breath") : r < 0.6 ? `${tag}.grunt` : r < 0.85 ? `${tag}.breath` : `${tag}.growl`;
+    // one voice: deeper through the water, younger and higher on the shore, whole as Basiliskra III
+    const pitch = (c.form === 1 ? 0.9 : c.form === 2 ? 1.15 : 0.96) * (0.96 + 0.08 * hash(now, 73));
+    c.say(`basiliskra.${id}`, c.anchor("nose"), c.form === 3 ? 80 : 64, 0.95, pitch);
+  }
+
   tick(): void {
+    this.voice();
     if (this.forced) { const f = this.forced; this.forced = null; this.begin(f); }
     const pre = this.interrupt();
     if (pre) this.begin(pre);

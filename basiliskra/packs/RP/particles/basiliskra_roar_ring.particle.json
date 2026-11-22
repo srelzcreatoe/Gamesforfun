@@ -1,0 +1,70 @@
+{
+ "format_version": "1.26.10",
+ "particle_effect": {
+  "description": {
+   "identifier": "basiliskra:roar_ring",
+   "basic_render_parameters": {
+    "material": "particles_blend",
+    "texture": "textures/particle/basiliskra_particles"
+   }
+  },
+  "components": {
+   "minecraft:emitter_lifetime_once": {
+    "active_time": 0.05
+   },
+   "minecraft:emitter_rate_instant": {
+    "num_particles": 1
+   },
+   "minecraft:emitter_shape_point": {},
+   "minecraft:particle_initial_speed": 0,
+   "minecraft:particle_lifetime_expression": {
+    "max_lifetime": "math.max(0.3, v.reach / 40)"
+   },
+   "minecraft:particle_motion_dynamic": {},
+   "minecraft:particle_appearance_billboard": {
+    "size": [
+     "1 + 40 * v.particle_age",
+     "1 + 40 * v.particle_age"
+    ],
+    "facing_camera_mode": "emitter_transform_xz",
+    "uv": {
+     "texture_width": 64,
+     "texture_height": 64,
+     "uv": [
+      0,
+      48
+     ],
+     "uv_size": [
+      16,
+      16
+     ]
+    }
+   },
+   "minecraft:particle_appearance_tinting": {
+    "color": {
+     "gradient": {
+      "0.00": [
+       1,
+       0.92,
+       0.86,
+       0.55
+      ],
+      "0.60": [
+       1,
+       0.6,
+       0.5,
+       0.3
+      ],
+      "1.00": [
+       0.8,
+       0.3,
+       0.25,
+       0
+      ]
+     },
+     "interpolant": "v.particle_age / v.particle_lifetime"
+    }
+   }
+  }
+ }
+}

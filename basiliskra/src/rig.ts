@@ -6,7 +6,7 @@
  * Model ("file") space: 1/16 block, +Y up, -Z is the animal's front, +X its left.
  *   v' = Rz(-rz) Ry(ry) Rx(-rx) (v - pivot) + pivot
  */
-import { BODY_DROP_III, RIGS, LOOK, TAIL_LIFT_III, WINDOW_HEAD, WINDOW_NECK } from "./generated/rig";
+import { BODY_DROP_III, RIGS, LOOK, SCALE, TAIL_LIFT_III, WINDOW_CROUCH_III, WINDOW_HEAD, WINDOW_NECK } from "./generated/rig";
 import { D2R, forwardOf, leftOf, type V3 } from "./vec";
 
 export type Form = 1 | 2 | 3;
@@ -87,7 +87,8 @@ export function poseOf(form: Form, s: PoseState): PoseAdd {
 
 export class Skeleton {
   private cache = new Map<string, Mat>();
-  constructor(readonly form: Form, private pose: PoseAdd) {}
+  /** `window`: 0..1, how far into the window crouch (Form III). */
+  constructor(readonly form: Form, private pose: PoseAdd, private window = 0) {}
 
   private bone(name: string): Mat {
     const hit = this.cache.get(name);
@@ -97,7 +98,8 @@ export class Skeleton {
     const add = this.pose[name];
     const R = rotation(b.rot[0] + (add ? add[0] : 0), b.rot[1] + (add ? add[1] : 0), b.rot[2] + (add ? add[2] : 0));
     const local = about(R, b.pivot);
-    if (this.form === 3 && name === "body") local[7] -= BODY_DROP_III;      // he rides this far below the bind pose (see gen_client.py)
+    // he rides this far below the bind pose (see gen_client.py), and lower still at a window
+    if (this.form === 3 && name === "body") local[7] -= BODY_DROP_III + WINDOW_CROUCH_III * this.window;
     const m = b.parent ? mulM(this.bone(b.parent), local) : local;
     this.cache.set(name, m);
     return m;
@@ -115,10 +117,14 @@ export class Skeleton {
   pivot(bone: string): number[] { return apply(this.bone(bone), RIGS[this.form].bones[bone].pivot); }
 }
 
-/** Model space -> world, for an entity standing at `at` with Minecraft yaw `yaw`. */
-export function toWorld(at: V3, yaw: number, m: number[]): V3 {
+/** How much larger than modelled each form is drawn (the client entity's scale). */
+export const drawScale = (form: Form): number => SCALE[form];
+
+/** Model space -> world, for an entity standing at `at` with Minecraft yaw `yaw`, drawn `scale` times its model size. */
+export function toWorld(at: V3, yaw: number, m: number[], scale = 1): V3 {
   const l = leftOf(yaw), f = forwardOf(yaw);
-  const x = m[0] / 16, y = m[1] / 16, z = -m[2] / 16;
+  const k = scale / 16;
+  const x = m[0] * k, y = m[1] * k, z = -m[2] * k;
   return { x: at.x + l.x * x + f.x * z, y: at.y + y, z: at.z + l.z * x + f.z * z };
 }
 

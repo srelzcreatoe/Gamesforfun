@@ -60,7 +60,7 @@
      "v.walk = v.walk + (((v.phase == 1 || v.phase == 24 || v.phase == 25 || v.phase == 28) ? 1 : 0) - v.walk) * v.k3;",
      "v.gait = q.property('basiliskra:gait');",
      "v.gt = (v.gait != v.gait_prev) ? 0 : v.gt + v.dt;",
-     "v.gd0 = (v.gait != v.gait_prev) ? q.modified_distance_moved - math.clamp(q.modified_distance_moved - v.gd0 - 1.75, 0, 0.875) : v.gd0;",
+     "v.gd0 = (v.gait != v.gait_prev) ? q.modified_distance_moved - math.clamp(q.modified_distance_moved - v.gd0 - 2.975, 0, 1.4875) : v.gd0;",
      "v.gait_prev = v.gait;",
      "v.fx_kind = q.property('basiliskra:fx_kind');",
      "v.fxp = (q.property('basiliskra:fx_seq') != v.fx_prev) ? 1 : math.max(0, v.fxp - v.dt * 3.2);",
@@ -100,23 +100,23 @@
      "v.swg = (1 - 0.55 * v.catch) * (1 - 0.8 * v.w_sleep) * (1 - 0.7 * v.w_knockp);",
      "v.gl = math.max(v.gill_open, math.max(v.catch, v.knock));",
      "v.gr = 0.14 + 0.12 * math.sin(q.life_time * 95);",
-     "v.gd = (v.gait == 0 || v.gait == 3) ? 0.6 : ((v.gait == 1 || v.gait == 4) ? 0.9 : 1.1);",
+     "v.gd = (v.gait == 0 || v.gait == 3) ? 0.8 : ((v.gait == 1 || v.gait == 4) ? 1.25 : 1.5);",
      "v.c = v.gait + math.clamp(v.gt / v.gd, 0, 1);",
      "v.cr = math.mod(v.c + 3, 6);",
      "v.pulling = (v.gait == 1 || v.gait == 4) ? math.sin(math.clamp(v.gt / v.gd, 0, 1) * 180) : 0;",
      "v.resting = (v.gait == 2 || v.gait == 5) ? math.sin(math.clamp(v.gt / v.gd, 0, 1) * 180) : 0;",
      "v.gl = math.max(v.gill_open, v.knock);",
-     "v.wt = (v.gait + math.clamp((q.modified_distance_moved - v.gd0) / 1.75, 0, 1.15)) * 90;",
+     "v.wt = (v.gait + math.clamp((q.modified_distance_moved - v.gd0) / 2.975, 0, 1.15)) * 90;",
      "v.dd = math.clamp(q.modified_distance_moved - v.dprev, 0, 0.6);",
      "v.dprev = q.modified_distance_moved;",
      "v.werr = math.mod(math.mod(v.wt - v.wp, 360) + 540, 360) - 180;",
-     "v.wp = math.mod(v.wp + v.dd * 51.4286 + math.clamp(v.werr, -40 * v.dt, 40 * v.dt) * math.clamp(v.dd / (v.dt + 0.0001) / 0.8, 0, 1) + 360, 360);",
+     "v.wp = math.mod(v.wp + v.dd * 30.2521 + math.clamp(v.werr, -40 * v.dt, 40 * v.dt) * math.clamp(v.dd / (v.dt + 0.0001) / 0.8, 0, 1) + 360, 360);",
      "v.p_bl = math.mod(v.wp, 360) / 360;",
      "v.p_fl = math.mod(v.wp + 270, 360) / 360;",
      "v.p_br = math.mod(v.wp + 180, 360) / 360;",
      "v.p_fr = math.mod(v.wp + 90, 360) / 360;",
      "v.kopen = v.w_vent;",
-     "v.by = -9.0 + 1.4 * v.breath * (1 - v.walk) - 1.3 * v.walk * math.abs(math.sin(v.wp * 2)) - 3 * v.w_chargew;",
+     "v.by = -9.0 + 1.4 * v.breath * (1 - v.walk) - 1.3 * v.walk * math.abs(math.sin(v.wp * 2)) - 3 * v.w_chargew - 6.5 * v.w_window;",
      "v.su_fl = (v.p_fl > 0.75) ? (v.p_fl - 0.75) / 0.25 : 0;",
      "v.lx_fl = (v.p_fl < 0.75) ? -4.937 + 84.0 * (0.5 - v.p_fl / 0.75) : -46.937 + 84.0 * v.su_fl * v.su_fl * (3 - 2 * v.su_fl);",
      "v.lh_fl = 91.183 + v.by - 16.0 * math.sin(180 * v.su_fl) * v.walk;",
@@ -174,6 +174,7 @@
       "fx_iii": "v.form == 3 && q.property('basiliskra:bound')"
      }
     ],
+    "scale": "q.property('basiliskra:form') == 3 ? 1.7 : (q.property('basiliskra:form') == 2 ? 1.25 : 1.0)",
     "should_update_bones_and_effects_offscreen": "1.0",
     "should_update_effects_offscreen": "1.0"
    },
@@ -200,7 +201,11 @@
     "gill_bubbles": "basiliskra:gill_bubbles",
     "gill_silt": "basiliskra:gill_silt",
     "fin_splash": "basiliskra:fin_splash",
-    "rad_drift": "basiliskra:rad_drift"
+    "rad_drift": "basiliskra:rad_drift",
+    "plate_blaze": "basiliskra:plate_blaze",
+    "plate_smoke": "basiliskra:plate_smoke",
+    "mouth_smoke": "basiliskra:mouth_smoke",
+    "roar_haze": "basiliskra:roar_haze"
    },
    "render_controllers": [
     {

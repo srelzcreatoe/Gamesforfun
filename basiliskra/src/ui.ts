@@ -8,7 +8,7 @@ import { ActionFormData, FormCancelationReason, MessageFormData, ModalFormData }
 import { pace } from "./brain";
 import { CONFIG, JOURNAL_ITEM, OVERWORLD, TICKS, WHEEL_ITEM } from "./config";
 import type { Controller } from "./controller";
-import { angerAt, angriest, halfLifeDays, type Anger } from "./harm";
+import { angerNear, angriest, halfLifeDays, tallyOf, type Anger } from "./harm";
 import { doseAt, falloutCount, nearestFallout } from "./fallout";
 import { saveSettings, resetSettings } from "./settings";
 import { store } from "./store";
@@ -63,11 +63,16 @@ async function present<R extends { canceled: boolean; cancelationReason?: string
 // ---- the journal ---------------------------------------------------------------------------------------------
 function angerLines(p: Player, a: Anger, here: boolean): string[] {
   const L: string[] = [];
-  L.push(`${here ? "§fWhere you stand" : `§fThe angriest place: around ${Math.floor(a.center.x)}, ${Math.floor(a.center.z)} §7(${compass(p.location, a.center)})`}§r`);
-  L.push(`  ${bar(a.pct)} §l${pct(a.pct)}§r`);
-  L.push(`  §7Animals killed by players: §f${pct(a.animals)}§7   Trees, reeds, shore plants cut: §f${pct(a.habitat)}§7   Together: §f${pct(a.total)}`);
+  const where = `around ${Math.floor(a.center.x)}, ${Math.floor(a.center.z)}`;
+  L.push(here ? `§fNear you §7(the 64-block area ${where})` : `§fThe angriest area: ${where} §7(${compass(p.location, a.center)})`);
+  L.push(`  ${bar(a.progress)} §l${pct(a.progress)}§r §7of what calls him`);
+  L.push(`  §7Animals killed here by players: §f${a.kills}§7 (they count as §f${a.weightA.toFixed(1)}§7 of the §f${a.needA}§7 it takes)`);
+  L.push(`  §7Logs, reeds and shore plants cut here: §f${a.cut}§7 (they count as §f${a.weightH.toFixed(1)}§7 of the §f${a.needH}§7 it takes)`);
   if (a.fired) L.push("  §7He has already been called from here.");
-  else if (a.pct < 1) L.push(`  §7To call him from here: about §f${a.moreKills}§7 more animal${a.moreKills === 1 ? "" : "s"} killed and §f${a.moreLogs}§7 more logs (or reeds and shore plants) cut.`);
+  else if (a.pct < 1) {
+    L.push(`  §7Both are needed. Still to go here: about §f${a.moreKills}§7 more animal${a.moreKills === 1 ? "" : "s"} and §f${a.moreLogs}§7 more logs.`);
+    L.push("  §8The first kills of a spree and the first logs of a tree count for less; repeated harm counts in full.");
+  }
   const total = Object.values(a.by).reduce((s, v) => s + v, 0);
   const mine = a.by[p.id] ?? 0;
   if (total > 0) L.push(`  §7Your share of it: §f${pct(mine / total)}`);
@@ -162,12 +167,14 @@ export function journalText(p: Player, ctl: Controller): string {
   const now = store.rec.clock, L: string[] = [];
   L.push("§l§4HIS ANGER§r");
   let here: Anger | null = null;
-  try { if (p.dimension.id === OVERWORLD) here = angerAt(p.location, now); } catch { here = null; }
+  try { if (p.dimension.id === OVERWORLD) here = angerNear(p.location, now); } catch { here = null; }
   if (here) L.push(...angerLines(p, here, true));
   else L.push("§7Only what is done in the Overworld counts.");
   const top = angriest(now);
   if (top && (!here || top.key !== here.key)) { L.push(""); L.push(...angerLines(p, top, false)); }
-  L.push(`§8Left alone, anger halves every ${halfLifeDays().toFixed(1)} in-game days. One meal or one tree counts for almost nothing.`);
+  const [k, c] = tallyOf(p.id);
+  L.push(`§7You, everywhere: §f${k}§7 animal${k === 1 ? "" : "s"} killed, §f${c}§7 log${c === 1 ? "" : "s"} and plants cut.`);
+  L.push(`§8Anger is kept per 64-block area. Left alone, an area's anger halves every ${halfLifeDays().toFixed(1)} in-game days.`);
   L.push("");
   L.push("§l§4WHEN HE COMES§r");
   L.push(...comingLines(p, ctl));
@@ -193,7 +200,7 @@ export async function openJournal(p: Player, ctl: Controller): Promise<void> {
 export function placeFor(p: Player, form: number): { at: V3; yaw: number } {
   const v = p.getViewDirection();
   const n = Math.hypot(v.x, v.z) || 1;
-  const d = [0, 15, 19, 27][form] ?? 24;
+  const d = [0, 15, 24, 46][form] ?? 30;            // his head reaches this far in front of his middle (II and III are drawn larger)
   const pl = p.location;
   const pos = { x: pl.x + (v.x / n) * d, y: pl.y, z: pl.z + (v.z / n) * d };
   const g = groundY(overworld(), pos.x, pos.z, pl.y + 24, 48);
@@ -204,14 +211,51 @@ export function placeFor(p: Player, form: number): { at: V3; yaw: number } {
 
 function formOf(rec = store.rec): number { return rec.born > 0 ? rec.form : 0; }
 
+/** Choices offered for a number (no sliders: they cannot be dragged on every touch screen), with a box to type any other. */
+const SPEEDS = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
+const DAMAGES = [0, 0.25, 0.5, 1, 1.5, 2, 3, 4];
+const TERRAIN = ["none", "scorch", "break", "wither"] as const;
+
+function presetList(values: number[], current: number, def: number, word: (v: number) => string): { items: string[]; index: number } {
+  const items = values.map((v) => `${word(v)}${v === def ? " (default)" : ""}`);
+  let index = values.indexOf(current);
+  items.push(index < 0 ? `Custom: x${current}` : "Custom (type it in the box below)");
+  if (index < 0) index = values.length;
+  return { items, index };
+}
+
+/** The preset picked, or what was typed (typed wins when it is a number in range); otherwise the value as it was. */
+/** A number typed into a box ("1.5", "x1.5", "1,5"), or undefined if the box is empty; NaN if it is not a number. */
+function typedNumber(typed: unknown): number | undefined {
+  const t = typeof typed === "string" ? typed.trim().replace(/^x/i, "").replace(",", ".") : "";
+  return t === "" ? undefined : Number(t);
+}
+const typedBad = (typed: unknown, lo: number, hi: number): boolean => {
+  const n = typedNumber(typed);
+  return n !== undefined && !(n >= lo && n <= hi);
+};
+
+export function pickNumber(values: number[], index: unknown, typed: unknown, current: number, lo: number, hi: number): number {
+  const n = typedNumber(typed);
+  if (n !== undefined && n >= lo && n <= hi) return Math.round(n * 100) / 100;
+  const i = Number(index);
+  return Number.isInteger(i) && i >= 0 && i < values.length ? values[i] : current;
+}
+
 async function settingsForm(p: Player): Promise<void> {
-  const terrain = ["none", "scorch", "break"] as const;
+  const speed = presetList(SPEEDS, CONFIG.pacing, 1, (v) => `x${v}${v < 1 ? " (slower)" : v > 1 ? " (faster)" : ""}`);
+  const dmg = presetList(DAMAGES, CONFIG.damage, 1, (v) => (v === 0 ? "None (x0)" : `x${v}`));
   const f = new ModalFormData().title("Basiliskra Settings")
-    .slider("Story speed (x)", 0.25, 4, { valueStep: 0.25, defaultValue: CONFIG.pacing, tooltip: "2 halves every wait and threshold; 0.5 doubles them." })
-    .dropdown("What his beam does to the ground", ["Nothing (light only)", "Scorches natural ground", "Scorches and breaks natural ground"], { defaultValueIndex: terrain.indexOf(CONFIG.terrain) })
+    .dropdown("Story speed", speed.items, { defaultValueIndex: speed.index, tooltip: "x2 halves every wait and threshold; x0.5 doubles them." })
+    .textField("...or type a story speed (0.25 to 4)", "e.g. 1.25")
+    .dropdown("What his beam, roar and weight do to the world", ["Nothing (light and sound only)", "Scorch natural ground", "Scorch and break natural ground",
+      "Destroy everything, like the Wither (default)"], { defaultValueIndex: Math.max(0, TERRAIN.indexOf(CONFIG.terrain)) })
+    .toggle("Spare chests, beds, furnaces and portals", { defaultValue: CONFIG.spareStorage })
     .toggle("Footprints and furrows in natural ground", { defaultValue: CONFIG.marks })
-    .slider("Damage to players (x)", 0, 3, { valueStep: 0.25, defaultValue: CONFIG.damage })
+    .dropdown("Damage to players", dmg.items, { defaultValueIndex: dmg.index })
+    .textField("...or type a damage multiplier (0 to 4)", "e.g. 0.75")
     .toggle("Harmless on Peaceful", { defaultValue: CONFIG.harmlessOnPeaceful })
+    .toggle("He hunts animals and other creatures too", { defaultValue: CONFIG.huntMobs })
     .toggle("Spawn eggs and /summon bring him to you", { defaultValue: CONFIG.allowSummon })
     .dropdown("A spawn egg makes", ["His stage in the story", "Basiliskra I", "Basiliskra II", "Basiliskra III"], { defaultValueIndex: CONFIG.spawnForm })
     .toggle("Give new players the journal", { defaultValue: CONFIG.giveJournal })
@@ -224,13 +268,17 @@ async function settingsForm(p: Player): Promise<void> {
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || !r.formValues) return;
   const v = r.formValues;
-  if (v[12] === true) { resetSettings(); p.sendMessage("§7[Basiliskra] Settings restored to the defaults."); return; }
+  if (v[16] === true) { resetSettings(); p.sendMessage("§7[Basiliskra] Settings restored to the defaults."); return; }
+  const pacing = pickNumber(SPEEDS, v[0], v[1], CONFIG.pacing, 0.25, 4);
+  const damage = pickNumber(DAMAGES, v[5], v[6], CONFIG.damage, 0, 4);
+  const bad = typedBad(v[1], 0.25, 4) || typedBad(v[6], 0, 4);
   saveSettings({
-    pacing: Number(v[0]), terrain: terrain[Number(v[1])] ?? "scorch", marks: v[2] === true, damage: Number(v[3]),
-    harmlessOnPeaceful: v[4] === true, allowSummon: v[5] === true, spawnForm: (Number(v[6]) as 0 | 1 | 2 | 3), giveJournal: v[7] === true,
-    giveWheel: v[8] === true, debug: v[9] === true, fallout: FALLOUT[Number(v[10])] ?? "land", sickness: v[11] === true,
+    pacing, terrain: TERRAIN[Number(v[2])] ?? "wither", spareStorage: v[3] === true, marks: v[4] === true, damage,
+    harmlessOnPeaceful: v[7] === true, huntMobs: v[8] === true, allowSummon: v[9] === true, spawnForm: (Number(v[10]) as 0 | 1 | 2 | 3),
+    giveJournal: v[11] === true, giveWheel: v[12] === true, debug: v[13] === true, fallout: FALLOUT[Number(v[14])] ?? "land", sickness: v[15] === true,
   });
-  p.sendMessage("§7[Basiliskra] Settings saved with this world.");
+  p.sendMessage(`§7[Basiliskra] Settings saved with this world. Story speed §fx${CONFIG.pacing}§7, damage §fx${CONFIG.damage}§7.`);
+  if (bad) p.sendMessage("§7[Basiliskra] A number you typed was not in range, so the choice above it was used.");
 }
 
 async function bringForm(p: Player, ctl: Controller): Promise<void> {

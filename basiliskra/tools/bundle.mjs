@@ -18,7 +18,7 @@ const shim = path.join(root, 'build/mc-shim.mjs');
 fs.mkdirSync(path.dirname(shim), { recursive: true });
 fs.writeFileSync(shim, `const m = globalThis.__MC__;
 export const { world, system, EntityDamageCause, GameMode, EquipmentSlot, MolangVariableMap, ItemStack, Player, Entity,
-  CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, PlayerPermissionLevel, EntityInitializationCause } = m;
+  CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, PlayerPermissionLevel, EntityInitializationCause, BlockVolume } = m;
 `);
 const uiShim = path.join(root, 'build/mc-ui-shim.mjs');
 fs.writeFileSync(uiShim, `const m = globalThis.__MC_UI__;
@@ -31,7 +31,9 @@ import * as harm from "../src/harm";
 import { partOwner } from "../src/creature";
 import * as rig from "../src/rig";
 import * as fallout from "../src/fallout";
-(globalThis as any).__BK__ = { ctl, store, CONFIG, harm, partOwner, rig, fallout };
+import * as settings from "../src/settings";
+import * as ui from "../src/ui";
+(globalThis as any).__BK__ = { ctl, store, CONFIG, harm, partOwner, rig, fallout, settings, ui };
 `);
 await build({
   entryPoints: [path.join(root, 'build/test-entry.ts')], bundle: true, format: 'iife', target: 'es2021',

@@ -1751,8 +1751,6 @@ SPEC = [
     ('basiliskra.crossing', 1, 5.0, 'ambient', 8, 96, -15.0, s_crossing, {'fo': 0.05},
      'The rift-hum partials and whistles bent down 1.25 octaves, brown-noise surge peaking at 1.6 s, 50->34 Hz sub, release exhale + bubble plume at 3.9 s, long dark reverb'),
     # ---- Form I -------------------------------------------------------------------
-    ('basiliskra.i.breath', 2, 3.0, 'hostile', 4, 40, -19.0, s_i_breath, {'fo': 0.03},
-     'Formant-filtered noise exhale + 52/46 Hz additive body tone with sub-harmonics + bubble stream following the exhale, through water (1 kHz low-pass)'),
     ('basiliskra.i.swim', 2, 2.0, 'hostile', 4, 40, -18.0, s_i_swim, {'fo': 0.03},
      'Moving-band low whoosh (70->215->120 Hz) + sub-70 Hz rumble + eddy noise + sparse bubbles, slow undulation, through water (750 Hz low-pass)'),
     ('basiliskra.i.surface', 1, 2.0, 'hostile', 6, 56, -16.0, s_i_surface, {'fo': 0.03},
@@ -1772,8 +1770,6 @@ SPEC = [
     ('basiliskra.splash', 2, 0.6, 'neutral', 2, 24, -21.0, s_splash, {},
      'Plip noise transient + rising cavity "bloop" (330->880 Hz; v2 230->560 Hz plus a second bloop) + droplet chirps + spray hiss'),
     # ---- Form II ------------------------------------------------------------------
-    ('basiliskra.ii.breath', 2, 3.5, 'hostile', 4, 40, -19.0, s_ii_breath, {'fo': 0.03},
-     'Formant noise inhale (rasped by 55 Hz pulses) and exhale, phlegm rattle (15-24 Hz pulses through wet resonators), mucus pops, voiced distress whine 88->74 Hz, narrow wheeze; v2 inhale catches'),
     ('basiliskra.ii.claw', 2, 0.7, 'hostile', 4, 48, -17.0, s_ii_claw, {},
      'Accelerating stick-slip scrape (60->140 Hz pulses gating 1.8-8 kHz noise + squeal resonators), then hard modal clack (0.6-5.2 kHz) and scattering gravel grains'),
     ('basiliskra.ii.drag', 2, 1.6, 'hostile', 6, 64, -15.0, s_ii_drag, {'fo': 0.03},
@@ -1784,8 +1780,6 @@ SPEC = [
      '1 ms broadband snap, sputtering plasma noise amplitude-modulated at 2x 110/97/128 Hz for 0.14/0.2/0.11 s, falling 2.8->0.7 kHz zap tone, trailing crackle; v3 re-strikes'),
     ('basiliskra.ii.drink', 1, 2.5, 'hostile', 4, 32, -18.0, s_ii_drink, {'fo': 0.03},
      'Five gulps: rising slurp band (380->1700 Hz), low gurgle bubbles (160-700 Hz), rising "glug" tone, drips; small stone-well reverb with early reflections'),
-    ('basiliskra.ii.growl', 1, 2.5, 'hostile', 6, 56, -14.0, s_ii_growl, {'fo': 0.03},
-     'Additive voice f0 40-50 Hz with strong jitter and sub-harmonics through 4 formants, wet rattle pulses (0.9-2.7 kHz), pops, breath noise, soft saturation'),
     ('basiliskra.mutate', 2, 4.0, 'hostile', 8, 72, -14.0, s_mutate, {'fo': 0.03},
      'Accelerating wet stretch (10->80 Hz stick-slip through 5 resonators), squelch noise with wandering formants, 10/14 bone-crack pops, bellow f0 58->138 Hz (v2 48->112 Hz) with opening formants and growing sub-harmonics'),
     ('basiliskra.bell_pin', 1, 1.0, 'block', 2, 32, -21.0, s_bell_pin, {'fo': 0.05},
@@ -1795,12 +1789,8 @@ SPEC = [
     # ---- Form III -----------------------------------------------------------------
     ('basiliskra.iii.step', 4, 1.0, 'hostile', 8, 96, -15.0, s_iii_step, {'fo': 0.03},
      'Saturated sine thud settling on 50/56/45/61 Hz (+1.62x body mode), low noise slap, gravel crunch burst decaying over 0.35 s, sub-85 Hz ground-rumble tail'),
-    ('basiliskra.iii.breath', 2, 4.0, 'hostile', 6, 48, -17.0, s_iii_breath, {'fo': 0.03},
-     'Large-cavity formant noise inhale/exhale (formants 220-760 Hz) over a 31/27 Hz pulsed chest rumble and sub-60 Hz noise'),
     ('basiliskra.iii.window_breath', 1, 4.0, 'hostile', 2, 24, -19.0, s_iii_window_breath, {'fo': 0.03},
      'Close, airy inhale/exhale (formants up to 6 kHz, 18 Hz nostril flutter), faint 12-19 Hz throat rattle, 34 Hz chest tone, moist ticks, proximity low shelf'),
-    ('basiliskra.iii.growl', 1, 3.0, 'hostile', 8, 72, -13.0, s_iii_growl, {'fo': 0.03},
-     'Additive voice f0 48-52 Hz rising to 68 Hz in the last 0.4 s with formants opening, sub-harmonics, chest sine, rattle, soft saturation'),
     ('basiliskra.iii.neck_turn', 1, 1.5, 'hostile', 4, 40, -18.0, s_iii_neck_turn, {'fo': 0.03},
      'Leather creak: stick-slip pulses (8-42 Hz, two strain peaks) through two cross-faded resonator banks, friction noise, low body movement'),
     ('basiliskra.iii.club_plant', 1, 1.2, 'hostile', 8, 96, -14.0, s_iii_club_plant, {'fo': 0.03},
@@ -1818,12 +1808,6 @@ SPEC = [
      'Geiger counter, extreme: Poisson clicks at ~80/s, almost a buzz'),
     ('basiliskra.iii.charge_tick', 1, 0.5, 'hostile', 6, 72, -18.0, s_iii_charge_tick, {},
      'Harmonic modal "tink" exactly on 440 Hz (partials 1,2,3,5,8,12; slow detune beat), 55 Hz hum modulation, 1 ms ignition snap, faint 3.5 kHz glow hiss'),
-    ('basiliskra.iii.charge', 1, 5.0, 'hostile', 8, 96, -15.0, s_iii_charge, {'fo': 0.004},
-     'Saw hum 55->165 Hz with a low-pass opening 250 Hz->5 kHz, whine 392->1568 Hz, throb 4->20 Hz, crackle 2->300/s, level ramping +24 dB; cut dead at the peak'),
-    ('basiliskra.iii.beam_raw', 1, 2.5, 'hostile', 12, 112, -12.0, s_iii_beam_raw, {'fo': 0.02},
-     'Detuned saws + FM around a randomly wandering 300 Hz, formant plasma noise roughened by irregular 55 Hz pulses, random sputter gate whose gaps grow, crackle in the gaps, hard saturation'),
-    ('basiliskra.iii.beam', 1, 3.5, 'hostile', 12, 128, -12.0, s_iii_beam, {'fo': 0.01},
-     'Two saws 370/372.8 Hz + octave + FM layer at 555 Hz with searing EQ peaks (1.25/2.9/5.2 kHz), >4 kHz hiss, crackle, 46 Hz throb at 11.5 Hz; 4 ms hard start with onset burst, 0.3 s release'),
     ('basiliskra.iii.beam_impact', 2, 1.2, 'hostile', 8, 96, -15.0, s_iii_beam_impact, {'fo': 0.03},
      'Triple (v2 five-fold) crack + rock modes + low thump, frying sizzle band 7->4.2 kHz, 13/19 modal stone-chip pings, debris grains'),
     ('basiliskra.iii.ground', 1, 1.5, 'hostile', 8, 96, -14.0, s_iii_ground, {'fo': 0.03},
@@ -1835,8 +1819,6 @@ SPEC = [
     # ---- misc ---------------------------------------------------------------------
     ('basiliskra.fin_pulse', 1, 0.4, 'neutral', 1, 12, -24.0, s_fin_pulse, {'fo': 0.02},
      'Two soft saturated sine beats (88->58 Hz, then 92->66 Hz at 0.7 level) with low noise puffs, low-passed at 700 Hz'),
-    ('basiliskra.hurt', 2, 1.0, 'hostile', 6, 64, -14.0, s_hurt, {'fo': 0.03},
-     'Additive voiced grunt (f0 jumps 92->138->70 Hz; v2 is a double grunt), formants snapping open then closing, breath noise, sub-octave, throat thump, soft saturation'),
 ]
 
 ALLOWED_CATEGORIES = {'hostile', 'neutral', 'ambient', 'block', 'weather', 'player'}
@@ -1846,14 +1828,54 @@ ALLOWED_CATEGORIES = {'hostile', 'neutral', 'ambient', 'block', 'weather', 'play
 #   event, file base, source file, start s, length s, fade in s, fade out s, low-pass Hz or None, category,
 #   min distance, max distance, what it is
 SOURCE_DIR = os.path.join(HERE, 'source')
-IMPORTED = [
-    ('basiliskra.roar', 'roar', 'basiliskra_roar_1.mp3', 0.0, 10.0, 0.004, 2.2, None, 'hostile', 16, 160,
-     'His roar, whole: seven seconds of it and the tail that follows'),
-    ('basiliskra.roar_short', 'roar_short', 'basiliskra_roar_1.mp3', 4.4, 4.4, 0.30, 1.3, None, 'hostile', 12, 128,
-     'The last two and a half seconds of the same roar and its fall, swelled in: a bellow for moments that come more often'),
-    ('basiliskra.roar_under', 'roar_under', 'basiliskra_roar_1.mp3', 0.0, 9.0, 0.05, 2.5, 360.0, 'hostile', 10, 96,
-     'The same roar heard through water (two cascaded low-passes at 360 Hz)'),
-]
+# Each cut is one file: source, start s, length s, fade in / out s, low-pass Hz (None: dry).  `ref` names a window
+# of the source whose peak sets the gain, so cuts of one performance keep their levels relative to each other.
+ROAR, BREATH, VOICE = 'basiliskra_roar_1.mp3', 'basiliskra_atomic_breath.mp3', 'basiliskra_voice.mp3'
+CUTS = {
+    'roar':        dict(src=ROAR, start=0.0, length=10.0, fin=0.004, fout=2.2),
+    'roar_short':  dict(src=ROAR, start=4.4, length=4.4, fin=0.30, fout=1.3),
+    'roar_under':  dict(src=ROAR, start=0.0, length=9.0, fin=0.05, fout=2.5, lowpass=360.0),
+    # the atomic breath, split where the charge gives way to the shot (6.86 s: a 14 dB dip, then the low band
+    # doubles); both halves are levelled against the whole performance
+    'breath_charge': dict(src=BREATH, start=0.0, length=6.86, fin=0.004, fout=0.012, ref=(0.0, 22.2)),
+    'breath_fire':   dict(src=BREATH, start=6.86, length=15.3, fin=0.006, fout=1.5, ref=(0.0, 22.2)),
+    # his voice: one 22 s take of grunts and growls, cut at the breaths between them
+    'voice_a': dict(src=VOICE, start=0.00, length=1.85, fin=0.01, fout=0.25, ref=(0.0, 22.2)),
+    'voice_b': dict(src=VOICE, start=1.85, length=1.20, fin=0.05, fout=0.20, ref=(0.0, 22.2)),
+    'voice_c': dict(src=VOICE, start=3.05, length=3.40, fin=0.05, fout=0.35, ref=(0.0, 22.2)),
+    'voice_d': dict(src=VOICE, start=6.45, length=1.85, fin=0.05, fout=0.25, ref=(0.0, 22.2)),
+    'voice_e': dict(src=VOICE, start=8.30, length=3.35, fin=0.05, fout=0.35, ref=(0.0, 22.2)),
+    'voice_f': dict(src=VOICE, start=11.65, length=1.85, fin=0.05, fout=0.25, ref=(0.0, 22.2)),
+    'voice_g': dict(src=VOICE, start=13.50, length=2.00, fin=0.05, fout=0.25, ref=(0.0, 22.2)),
+    'voice_h': dict(src=VOICE, start=15.50, length=2.15, fin=0.05, fout=0.25, ref=(0.0, 22.2)),
+    'voice_i': dict(src=VOICE, start=17.65, length=2.95, fin=0.05, fout=0.60, ref=(0.0, 22.2)),
+    # the same voice through water (Form I)
+    'voice_a_under': dict(src=VOICE, start=0.00, length=1.85, fin=0.01, fout=0.25, lowpass=520.0, ref=(0.0, 22.2)),
+    'voice_d_under': dict(src=VOICE, start=6.45, length=1.85, fin=0.05, fout=0.25, lowpass=520.0, ref=(0.0, 22.2)),
+    'voice_g_under': dict(src=VOICE, start=13.50, length=2.00, fin=0.05, fout=0.25, lowpass=520.0, ref=(0.0, 22.2)),
+    'voice_i_under': dict(src=VOICE, start=17.65, length=2.95, fin=0.05, fout=0.60, lowpass=520.0, ref=(0.0, 22.2)),
+}
+GRUNTS = ['voice_a', 'voice_d', 'voice_f', 'voice_g', 'voice_h']
+#   event: (files, category, min distance, max distance, what it is).  Forms II and I play these at a higher and a
+#   lower pitch from the script; the files are shared.
+IMPORTED = {
+    'basiliskra.roar':       (['roar'], 'hostile', 16, 160, 'His roar, whole: seven seconds of it and the tail that follows'),
+    'basiliskra.roar_short': (['roar_short'], 'hostile', 12, 128,
+                              'The last two and a half seconds of the same roar and its fall, swelled in: a bellow for moments that come more often'),
+    'basiliskra.roar_under': (['roar_under'], 'hostile', 10, 96, 'The same roar heard through water (two cascaded low-passes at 360 Hz)'),
+    'basiliskra.iii.charge': (['breath_charge'], 'hostile', 12, 128, 'The atomic breath, first part: 6.9 s of charging. The beam charge lasts exactly this long'),
+    'basiliskra.iii.beam':   (['breath_fire'], 'hostile', 16, 160,
+                              'The atomic breath, second part: the shot (7.5 s at full level, then its fall) and the long tail the vent plays over'),
+    'basiliskra.iii.grunt':  (GRUNTS, 'hostile', 8, 72, 'Grunts, cut from his voice recording'),
+    'basiliskra.iii.growl':  (['voice_c', 'voice_e'], 'hostile', 8, 80, 'The two long growls of the same take'),
+    'basiliskra.iii.breath': (['voice_b', 'voice_i'], 'hostile', 6, 56, 'The two quiet noises of the same take: a huff and the last, falling breath'),
+    'basiliskra.ii.grunt':   (GRUNTS, 'hostile', 6, 56, 'The same grunts (played higher: he is younger)'),
+    'basiliskra.ii.growl':   (['voice_c', 'voice_e'], 'hostile', 6, 64, 'The same growls, higher'),
+    'basiliskra.ii.breath':  (['voice_b', 'voice_i'], 'hostile', 4, 44, 'The same huff and breath, higher'),
+    'basiliskra.i.grunt':    (['voice_a_under', 'voice_d_under', 'voice_g_under'], 'hostile', 6, 56, 'Grunts through water (low-passed at 520 Hz)'),
+    'basiliskra.i.breath':   (['voice_i_under'], 'hostile', 4, 40, 'The falling breath through water'),
+    'basiliskra.hurt':       (['voice_b', 'voice_d'], 'hostile', 6, 64, 'A huff and a short grunt from the voice take, played sharp'),
+}
 IMPORT_PEAK_DB = -1.5
 
 # Review status per event.  Nobody has listened to any of these files yet.
@@ -1982,32 +2004,55 @@ def verify_ogg(ogg, dur):
     return res
 
 
-def import_recording(row, work):
-    """Convert one supplied recording to the pack's format; returns the same kind of result row as render_job."""
-    event, base, src, start, length, fin, fout, lowpass, cat, dmin, dmax, how = row
+def _read_source(src, start, length):
     path = os.path.join(SOURCE_DIR, src)
     if not os.path.isfile(path):
-        raise RuntimeError('%s: source recording %s is missing' % (event, path))
+        raise RuntimeError('source recording %s is missing' % path)
     raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', '%.3f' % start, '-t', '%.3f' % length, '-i', path,
                           '-f', 'f32le', '-ac', '2', '-ar', str(SR), 'pipe:1'], capture_output=True, check=True).stdout
     st = np.frombuffer(raw, dtype='<f4').astype(float).reshape(-1, 2)
     x = st.mean(axis=1)                                        # mono, so the game can place it in the world
     n = int(round(length * SR))
-    x = np.pad(x, (0, max(0, n - len(x))))[:n]
+    return np.pad(x, (0, max(0, n - len(x))))[:n]
+
+
+def _lowpass(x, hz):
+    for _ in range(2):                                         # two one-pole low-passes, run forward
+        k = 1.0 - math.exp(-2.0 * math.pi * hz / SR)
+        y = np.empty_like(x)
+        acc = 0.0
+        for i in range(len(x)):
+            acc += k * (x[i] - acc)
+            y[i] = acc
+        x = y
+    return x
+
+
+def import_recording(base, work):
+    """Convert one cut of a supplied recording to the pack's format; returns the same kind of result row as render_job."""
+    cut = CUTS[base]
+    length = cut['length']
+    x = _read_source(cut['src'], cut['start'], length)
     x -= x.mean()
+    lowpass = cut.get('lowpass')
     if lowpass:
-        for _ in range(2):                                     # two one-pole low-passes, run forward
-            k = 1.0 - math.exp(-2.0 * math.pi * lowpass / SR)
-            y = np.empty_like(x)
-            acc = 0.0
-            for i in range(len(x)):
-                acc += k * (x[i] - acc)
-                y[i] = acc
-            x = y
-    ni, no = max(1, int(fin * SR)), max(1, int(fout * SR))
-    x[:ni] *= np.linspace(0.0, 1.0, ni) ** 2
-    x[-no:] *= np.linspace(1.0, 0.0, no) ** 2
-    x *= dbg(IMPORT_PEAK_DB) / max(1e-9, np.abs(x).max())
+        x = _lowpass(x, lowpass)
+    ni, no = max(1, int(cut['fin'] * SR)), max(1, int(cut['fout'] * SR))
+    env = np.ones_like(x)
+    env[:ni] = np.linspace(0.0, 1.0, ni) ** 2
+    env[-no:] = np.linspace(1.0, 0.0, no) ** 2
+    x *= env
+    x -= env * (x.mean() / env.mean())                          # what a short cut of low notes leaves as DC, without moving the ends
+    if 'ref' in cut:
+        # the gain that brings the whole performance (filtered the same way) to the import peak
+        r = _read_source(cut['src'], *cut['ref'])
+        r -= r.mean()
+        if lowpass:
+            r = _lowpass(r, lowpass)
+        x *= dbg(IMPORT_PEAK_DB) / max(1e-9, np.abs(r).max())
+    else:
+        x *= dbg(IMPORT_PEAK_DB) / max(1e-9, np.abs(x).max())
+    event = next((e for e, row in IMPORTED.items() if base in row[0]), base)
     wav = os.path.join(work, base + '.wav')
     ogg = os.path.join(OGG_DIR, base + '.ogg')
     gain = 1.0
@@ -2066,11 +2111,13 @@ def build_definitions():
             'sounds': [{'name': 'sounds/basiliskra/' + b, 'volume': 1.0, 'load_on_low_memory': True}
                        for b in file_bases(event, nvar)],
         }
-    for event, base, src, start, length, fin, fout, lowpass, cat, dmin, dmax, how in IMPORTED:
+    for event, (bases, cat, dmin, dmax, how) in IMPORTED.items():
         if cat not in ALLOWED_CATEGORIES:
             raise RuntimeError('%s: category %r is not allowed' % (event, cat))
+        if event in defs:
+            raise RuntimeError('%s is both synthesised and imported' % event)
         defs[event] = {'category': cat, 'min_distance': float(dmin), 'max_distance': float(dmax),
-                       'sounds': [{'name': 'sounds/basiliskra/' + base, 'volume': 1.0, 'load_on_low_memory': True}]}
+                       'sounds': [{'name': 'sounds/basiliskra/' + b, 'volume': 1.0, 'load_on_low_memory': True} for b in bases]}
     return {'format_version': '1.20.20', 'sound_definitions': defs}
 
 
@@ -2084,9 +2131,10 @@ def write_doc(results):
     L.append('')
     L.append('> Generated by `tools/sound/synth.py`. Do not edit by hand - change the script and re-run it.')
     L.append('')
-    L.append('- **%d events, %d files**, %.1f s of audio, %.0f kB.' % (len(SPEC), nfiles, total, size / 1024.0))
-    L.append('- Every sound is original procedural synthesis (numpy only: modal bodies, additive formant voices,')
-    L.append('  filtered noise, FM, granular events, synthetic-impulse-response reverbs). No samples, no downloads.')
+    L.append('- **%d events, %d files**, %.1f s of audio, %.0f kB.' % (len(SPEC) + len(IMPORTED), nfiles, total, size / 1024.0))
+    L.append('- His voice, his roar and his atomic breath are cut from three recordings supplied by the project owner (see the')
+    L.append('  last section). Everything else is original procedural synthesis (numpy only: modal bodies, additive formant')
+    L.append('  voices, filtered noise, FM, granular events, synthetic-impulse-response reverbs).')
     L.append('- Format: mono, 44100 Hz, Ogg Vorbis (`ffmpeg -c:a libvorbis -q:a 4 -ac 1`). Mono is required for')
     L.append('  Bedrock to spatialise a sound.')
     L.append('- Deterministic: every file has a fixed seed, `crc32("<event>#<variant>")`.')
@@ -2140,7 +2188,8 @@ def write_doc(results):
     L.append('- `basiliskra.rift.hum` is a seamless loop: its content is periodic over exactly 3.000 s (the wrap from')
     L.append('  the last sample to the first is continuous). A 3 ms safety fade at each end keeps a re-trigger that is')
     L.append('  a tick early or late from clicking. Re-trigger it every 60 ticks.')
-    L.append('- `basiliskra.iii.charge` stops dead at its peak (4 ms fade). Start `basiliskra.iii.beam` on the same tick.')
+    L.append('- `basiliskra.iii.charge` and `basiliskra.iii.beam` are one recording cut in two at the moment it fires: start the beam on')
+    L.append('  the tick the charge ends (137 ticks after it starts).')
     L.append('- `basiliskra.iii.charge_tick` sits exactly on 440 Hz with harmonic partials; re-pitch it freely.')
     L.append('- `basiliskra.scrape_far` and `basiliskra.fin_pulse` are deliberately quieter than the rest.')
     L.append('- All "through water" sounds have the muffling baked in; do not add another low-pass.')
@@ -2151,13 +2200,18 @@ def write_doc(results):
     L.append('mixed to mono (so the game can place the sound in the world), cut, faded, peak-matched and encoded like')
     L.append('everything else. Where the recording came from is for the project owner to state; this tool only converts it.')
     L.append('')
-    L.append('| Event | File | Source | Cut (s) | Fades in / out (s) | Category | Min / max distance | What it is | Decoded: dur s, peak dBFS, RMS dBFS, kB |')
-    L.append('|---|---|---|---|---|---|---|---|---|')
-    for event, base, src, start, length, fin, fout, lowpass, cat, dmin, dmax, how in IMPORTED:
+    L.append('| Event | Files | Category | Min / max distance | What it is |')
+    L.append('|---|---|---|---|---|')
+    for event, (bases, cat, dmin, dmax, how) in IMPORTED.items():
+        L.append('| `%s` | %s | %s | %g / %g | %s |' % (event, ', '.join('`%s.ogg`' % b for b in bases), cat, dmin, dmax, how))
+    L.append('')
+    L.append('| File | Source | Cut (s) | Fades in / out (s) | Low-pass | Decoded: dur s, peak dBFS, RMS dBFS, kB |')
+    L.append('|---|---|---|---|---|---|')
+    for base, cut in CUTS.items():
         r = by_base[base]
-        L.append('| `%s` | `%s.ogg` | `%s` | %.1f to %.1f | %g / %g | %s | %g / %g | %s | %.2f, %.1f, %.1f, %.0f |' % (
-            event, base, src, start, start + length, fin, fout, cat, dmin, dmax, how,
-            r['dur'], r['peak_db'], r['rms_db'], r['bytes'] / 1024.0))
+        L.append('| `%s.ogg` | `%s` | %.2f to %.2f | %g / %g | %s | %.2f, %.1f, %.1f, %.0f |' % (
+            base, cut['src'], cut['start'], cut['start'] + cut['length'], cut['fin'], cut['fout'],
+            '%g Hz' % cut['lowpass'] if cut.get('lowpass') else '-', r['dur'], r['peak_db'], r['rms_db'], r['bytes'] / 1024.0))
     L.append('')
     with open(DOC_PATH, 'w', encoding='utf-8') as fh:
         fh.write('\n'.join(L))
@@ -2196,7 +2250,7 @@ def main():
             continue
         for i, b in enumerate(file_bases(event, nvar)):
             jobs.append((event, i + 1, b, dur, rms_db, opts, work, args.spectro))
-    imports = [row for row in IMPORTED if not args.only or args.only in row[0]]
+    imports = [b for b in CUTS if not args.only or args.only in b or any(args.only in e and b in row[0] for e, row in IMPORTED.items())]
     if not jobs and not imports:
         sys.exit('nothing matches --only %r' % args.only)
 
@@ -2206,14 +2260,14 @@ def main():
                 results = pool.map(render_job, jobs, chunksize=1)
         else:
             results = [render_job(j) for j in jobs]
-        results += [import_recording(row, work) for row in imports]
+        results += [import_recording(b, work) for b in imports]
     finally:
         if tmp:
             shutil.rmtree(tmp, ignore_errors=True)
 
     full = args.only is None
     if full:
-        expected = {b + '.ogg' for s in SPEC for b in file_bases(s[0], s[1])} | {row[1] + '.ogg' for row in IMPORTED}
+        expected = {b + '.ogg' for s in SPEC for b in file_bases(s[0], s[1])} | {b + '.ogg' for b in CUTS}
         for fn_ in sorted(os.listdir(OGG_DIR)):
             if fn_.endswith('.ogg') and fn_ not in expected:
                 os.remove(os.path.join(OGG_DIR, fn_))            # stale file from an older table

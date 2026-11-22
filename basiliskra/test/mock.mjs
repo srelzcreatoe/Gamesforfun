@@ -17,6 +17,7 @@ export const EntityDamageCause = { entityAttack: 'entityAttack', projectile: 'pr
   magic: 'magic', thorns: 'thorns', sonicBoom: 'sonicBoom', maceSmash: 'maceSmash', override: 'override', fall: 'fall', lava: 'lava', suffocation: 'suffocation', drowning: 'drowning' };
 export const GameMode = { Survival: 'Survival', Creative: 'Creative', Adventure: 'Adventure', Spectator: 'Spectator' };
 export const EquipmentSlot = { Mainhand: 'Mainhand', Offhand: 'Offhand' };
+export class BlockVolume { constructor(from, to) { this.from = { ...from }; this.to = { ...to }; } }
 export class MolangVariableMap { constructor() { this.v = {}; } setFloat(k, v) { this.v[k] = v; } setVector3(k, v) { this.v[k] = v; } setColorRGB(k, v) { this.v[k] = v; } }
 export class ItemStack { constructor(typeId, amount = 1) { this.typeId = typeId; this.amount = amount; } }
 export const CommandPermissionLevel = { Any: 0, GameDirectors: 1, Admin: 2, Host: 3, Owner: 4 };
@@ -125,7 +126,7 @@ export class Sim {
     this.dims = new Map();
     for (const id of ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end']) this.dims.set(id, new MockDimension(this, id));
     this.api = {
-      EntityDamageCause, GameMode, EquipmentSlot, MolangVariableMap, ItemStack, Player: MockPlayer, Entity: MockEntity,
+      EntityDamageCause, GameMode, EquipmentSlot, MolangVariableMap, ItemStack, Player: MockPlayer, Entity: MockEntity, BlockVolume,
       CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, PlayerPermissionLevel, EntityInitializationCause,
       world: {
         getDynamicProperty: (k) => sim.save.worldProps.get(k),
@@ -334,6 +335,19 @@ class MockDimension {
       out.push(p);
     }
     return out;
+  }
+  /** The engine's filtered block query: every block of the listed types in the volume (loaded chunks only). */
+  getBlocks(volume, o = {}, allowUnloaded = false) {
+    this.sim.work.queries++;
+    const lo = { x: Math.min(volume.from.x, volume.to.x), y: Math.min(volume.from.y, volume.to.y), z: Math.min(volume.from.z, volume.to.z) };
+    const hi = { x: Math.max(volume.from.x, volume.to.x), y: Math.max(volume.from.y, volume.to.y), z: Math.max(volume.from.z, volume.to.z) };
+    const types = new Set(o.includeTypes ?? []);
+    const out = [];
+    for (let x = lo.x; x <= hi.x; x++) for (let z = lo.z; z <= hi.z; z++) {
+      if (!this.isChunkLoaded({ x, y: lo.y, z })) { if (!allowUnloaded) throw new Error('UnloadedChunksError'); continue; }
+      for (let y = lo.y; y <= hi.y; y++) if (types.has(this.sim.blockId(this.id, x, y, z))) out.push({ x, y, z });
+    }
+    return { getBlockLocationIterator: () => out[Symbol.iterator]() };
   }
   getBlockFromRay(from, dir, o = {}) {
     this.sim.work.rays++;

@@ -12,7 +12,7 @@ function clean(k: string, v: unknown): unknown {
   switch (k) {
     case "pacing": return typeof v === "number" && v >= 0.25 && v <= 4 ? v : undefined;
     case "damage": return typeof v === "number" && v >= 0 && v <= 4 ? v : undefined;
-    case "terrain": return v === "none" || v === "scorch" || v === "break" ? v : undefined;
+    case "terrain": return v === "none" || v === "scorch" || v === "break" || v === "wither" ? v : undefined;
     case "spawnForm": return v === 0 || v === 1 || v === 2 || v === 3 ? v : undefined;
     case "fallout": return v === "off" || v === "visual" || v === "land" ? v : undefined;
     default: return typeof v === "boolean" ? v : undefined;
@@ -25,6 +25,9 @@ export function loadSettings(): void {
   if (typeof raw !== "string") return;
   let saved: Record<string, unknown>;
   try { saved = JSON.parse(raw); } catch { return; }
+  // Before 1.3 every setting was saved, chosen or not: a world that never chose a terrain mode carries the old
+  // default, and should get the new one.  From 1.3 on only what differs from the defaults is kept.
+  if (saved.v === undefined && saved.terrain === "scorch") delete saved.terrain;
   for (const k of SETTINGS) {
     const v = clean(k, saved[k]);
     if (v !== undefined) (CONFIG as Record<string, unknown>)[k] = v;
@@ -37,8 +40,8 @@ export function saveSettings(change: Partial<Cfg>): void {
     const c = clean(k, v);
     if (c !== undefined) (CONFIG as Record<string, unknown>)[k] = c;
   }
-  const out: Record<string, unknown> = {};
-  for (const k of SETTINGS) out[k] = CONFIG[k];
+  const out: Record<string, unknown> = { v: 2 };
+  for (const k of SETTINGS) if (CONFIG[k] !== DEFAULTS[k]) out[k] = CONFIG[k];
   try { world.setDynamicProperty(SETTINGS_KEY, JSON.stringify(out)); } catch { /* closing */ }
 }
 

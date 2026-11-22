@@ -54,6 +54,9 @@ interface Region {
   names: Record<string, string>;
   sites: Site[];
   fired?: boolean;
+  /** Plain counts, never weighted or faded: animals killed here, and logs, reeds and shore plants cut here. */
+  n?: number;
+  l?: number;
 }
 
 export interface Trigger { region: string; site: V3; guilty: string | null; guiltyName: string | null }
@@ -115,6 +118,22 @@ function check(r: Region, key: string, at: V3): Trigger | null {
   return { region: key, site, guilty, guiltyName: guilty ? r.names[guilty] ?? null : null };
 }
 
+/** Per player, everywhere: animals killed and habitat blocks cut (plain counts, for the journal). */
+function tally(playerId: string, i: 0 | 1): void {
+  const t = (store.harm.tally ??= {}) as Record<string, [number, number]>;
+  if (!t[playerId]) {
+    const ids = Object.keys(t);
+    if (ids.length >= 32) delete t[ids[0]];
+    t[playerId] = [0, 0];
+  }
+  t[playerId][i]++;
+}
+
+export function tallyOf(playerId: string): [number, number] {
+  const t = store.harm.tally as Record<string, [number, number]> | undefined;
+  return t?.[playerId] ? [t[playerId][0], t[playerId][1]] : [0, 0];
+}
+
 /** A passive animal died to a player.  Natural deaths never reach here. */
 export function recordKill(at: V3, typeId: string, playerId: string, playerName: string, now: number): Trigger | null {
   const call = ANIMALS[typeId];
@@ -124,6 +143,8 @@ export function recordKill(at: V3, typeId: string, playerId: string, playerName:
   const w = Math.min(1, Math.max(0.15, r.ra / 2));
   r.ra += 1;
   r.a += w;
+  r.n = (r.n ?? 0) + 1;
+  tally(playerId, 0);
   credit(r, playerId, playerName, w);
   const site: Site = { x: Math.floor(at.x), y: Math.floor(at.y), z: Math.floor(at.z), s: call, t: now };
   r.sites.push(site);
@@ -145,6 +166,7 @@ export function recordHabitat(at: V3, typeId: string, playerId: string, playerNa
   const w = base * Math.min(1, Math.max(0.3, r.rh / 2));
   r.rh += base * 2.2;
   r.h += w;
+  if (base >= 0.2) { r.l = (r.l ?? 0) + 1; tally(playerId, 1); }
   credit(r, playerId, playerName, w);
   store.touchHarm();
   return check(r, keyOf(at), at);
@@ -160,11 +182,21 @@ export interface Anger {
   /** The region's centre (blocks) and its key. */
   center: V3;
   key: string;
-  /** Each requirement as a fraction of what calls him (1 = met), and the overall figure (the least of them). */
+  /** Each requirement as a fraction of what calls him (1 = met); `pct` is the least of them (he comes at 1). */
   animals: number;
   habitat: number;
   total: number;
   pct: number;
+  /** One figure that only ever rises with harm: the three requirements together (1 = he is called). */
+  progress: number;
+  /** Plain counts here: animals killed, logs / reeds / shore plants cut. */
+  kills: number;
+  cut: number;
+  /** What the harm here counts for, against what it takes (weighted and faded). */
+  weightA: number;
+  weightH: number;
+  needA: number;
+  needH: number;
   /** Roughly how much more it takes: animal kills, and logs (or reeds and shore plants, which count a little more). */
   moreKills: number;
   moreLogs: number;
@@ -190,8 +222,10 @@ function report(key: string, r: Region | undefined): Anger {
   const total = Math.min(1, ((a + h) * p) / THRESHOLD.total);
   const needA = Math.max(0, THRESHOLD.animals / p - a), needH = Math.max(0, THRESHOLD.habitat / p - h);
   const rest = Math.max(0, THRESHOLD.total / p - (a + needA) - (h + needH));
+  const pct = Math.min(animals, habitat, total);
   return {
-    center, key, animals, habitat, total, pct: Math.min(animals, habitat, total),
+    center, key, animals, habitat, total, pct, progress: pct >= 1 ? 1 : Math.min(0.99, (animals + habitat + total) / 3),
+    kills: r?.n ?? 0, cut: r?.l ?? 0, weightA: a * p, weightH: h * p, needA: THRESHOLD.animals, needH: THRESHOLD.habitat,
     moreKills: Math.ceil(needA + rest), moreLogs: Math.ceil(needH / 0.3),
     by: { ...(r?.by ?? {}) }, names: { ...(r?.names ?? {}) }, fired: !!r?.fired,
   };
@@ -204,12 +238,30 @@ export function angerAt(at: V3, now: number): Anger {
   return report(k, r ? peek(r, now) : undefined);
 }
 
+/**
+ * The stretch of country a player is in: of the region they stand in and the eight round it, the one with the
+ * most harm on record (so walking a few blocks over a region's edge does not make the anger "vanish").
+ */
+export function angerNear(at: V3, now: number): Anger {
+  const regs = store.harm.regions as Record<string, Region>;
+  const ix = Math.floor(at.x / REGION), iz = Math.floor(at.z / REGION);
+  let best = angerAt(at, now);
+  for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
+    const k = `${ix + dx},${iz + dz}`;
+    const r = regs[k];
+    if (!r) continue;
+    const a = report(k, peek(r, now));
+    if (a.progress > best.progress) best = a;
+  }
+  return best;
+}
+
 /** The angriest place in the world, if anywhere has any harm on record. */
 export function angriest(now: number): Anger | null {
   let best: Anger | null = null;
   for (const [k, r] of Object.entries(store.harm.regions as Record<string, Region>)) {
     const a = report(k, peek(r, now));
-    if (!best || a.pct > best.pct || (a.pct === best.pct && a.total > best.total)) best = a;
+    if (!best || a.pct > best.pct || (a.pct === best.pct && a.progress > best.progress)) best = a;
   }
   return best && best.total > 0.001 ? best : null;
 }
@@ -218,4 +270,4 @@ export function angriest(now: number): Anger | null {
 export const halfLifeDays = (): number => HALF_LIFE / TICKS.day / CONFIG.pacing;
 
 /** Forget every region (the config wheel's "reset the story"). */
-export function clearHarm(): void { store.harm = { regions: {} }; store.touchHarm(); }
+export function clearHarm(): void { store.harm = { regions: {}, tally: {} }; store.touchHarm(); }

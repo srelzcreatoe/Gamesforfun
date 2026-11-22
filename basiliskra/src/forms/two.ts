@@ -7,6 +7,7 @@ import { Act, Brain, Choice, anyoneNear, isNight, nearbyPlayers, pace, wait } fr
 import { Creature } from "../creature";
 import { particle, sound, witnesses } from "../fx";
 import { GAIT_TICKS } from "../generated/rig";
+import { RoarFx } from "../roar";
 import { add, clamp, dist, distXZ, hash, mul, norm, sub, wrapDeg, yawTo, type V3 } from "../vec";
 import { blockAt, furrowOf, idAt, isLoaded, isSolidBlock, isWaterId, takesMark } from "../world";
 
@@ -61,6 +62,12 @@ export class BrainTwo extends Brain {
       this.rest("arc", TICKS.minute);
       return { name: "arc", run: this.discharge(), limit: 12 * TICKS.second };
     }
+    // now and then he bellows at nothing
+    if (!this.cooldown.has("rroar")) this.rest("rroar", (60 + 60 * hash(now, 81)) * TICKS.second);
+    if (this.ready("rroar")) {
+      this.rest("rroar", (90 + 180 * hash(now, 82)) * TICKS.second);
+      if (hash(now, 83) < 0.5 && anyoneNear(c, 72)) return { name: "roar", run: this.roar(), limit: 8 * TICKS.second };
+    }
     return { name: "wander", run: this.wander(), limit: 90 * TICKS.second };
   }
 
@@ -89,7 +96,7 @@ export class BrainTwo extends Brain {
       this.gaitStep = base + 1; c.set(PROP.gait, base + 1);
       c.say("basiliskra.ii.drag", c.anchor("hip_l"), 64);
       const before = c.travelled;
-      c.goTo(target, 0.095, arrive);
+      c.goTo(target, 0.085, arrive);             // drawn 1.25 times his model size, a pull covers 1.25 times the ground
       for (let i = 0; i < pull; i++, t++) {
         if (i % 4 === 0) this.furrow();
         yield;
@@ -258,8 +265,10 @@ export class BrainTwo extends Brain {
     const c = this.c;
     c.halt();
     c.setPhase("roar");
-    c.say("basiliskra.roar_short", c.anchor("mouth"), 112, 0.9, 1.18);
-    yield* wait(56);
+    c.say("basiliskra.roar_short", c.anchor("mouth"), 128, 1, 1.18);
+    // younger and smaller than he will be, but the ground still takes it
+    const fx = new RoarFx(c, false, 20, 3);
+    for (let t = 0; t < 76; t++) { fx.tick(); yield; }       // 4.4 s of bellow, played 1.18 times as fast
     c.setPhase("idle");
   }
 

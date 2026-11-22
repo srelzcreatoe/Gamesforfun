@@ -13,6 +13,7 @@ import { BrainOne } from "./forms/one";
 import { BrainThree } from "./forms/three";
 import { BrainTwo } from "./forms/two";
 import { beginTick, particle, players, sound } from "./fx";
+import { shake } from "./roar";
 import { RIGS } from "./generated/rig";
 import { clearHarm, type Trigger } from "./harm";
 import { addFallout, clearFallout, falloutTick } from "./fallout";
@@ -338,6 +339,7 @@ export class Controller {
     // the same voice at every age: through water, pitched up, or as it is
     if (c.form === 1) c.say("basiliskra.roar_under", c.anchor("nose"), 96);
     else c.say("basiliskra.roar_short", c.anchor("nose"), 128, 1, c.form === 2 ? 1.18 : 1);
+    shake(c, 80, c.form === 1 ? 0.3 : 0.5, 1.2);
     sound(c.dim, "basiliskra.rift.open", at, 72, 1, 1.3);
     sound(c.dim, "basiliskra.rift.close", at, 72);
     for (const p of [at, c.anchor("nose"), c.anchor("tail_notch")]) particle(c.dim, "basiliskra:seam_close", p, 72);
@@ -356,7 +358,7 @@ export class Controller {
     const c = this.creature;
     if (!c || amount <= 0) return;          // a snowball is not a wound
     this.brain?.onHurt(by);
-    if (amount >= 6 && this.now - this.hurtCryAt > 70) { this.hurtCryAt = this.now; c.say("basiliskra.hurt", c.anchor("nose"), 64); }
+    if (amount >= 6 && this.now - this.hurtCryAt > 70) { this.hurtCryAt = this.now; c.say("basiliskra.hurt", c.anchor("nose"), 64, 1, c.form === 1 ? 0.95 : c.form === 2 ? 1.25 : 1.05); }
   }
 
   // ---- tick ----------------------------------------------------------------------------------------
@@ -606,6 +608,7 @@ export class Controller {
           sound(dim, "basiliskra.i.gill_catch", c.anchor("gill_l"), 32);
           // and for the first time he is heard: the roar, through the water
           sound(dim, "basiliskra.roar_under", nose, 96, 0.9);
+          shake(c, 64, 0.35, 1.5);
           try {
             for (const b of dim.getEntities({ location: nose, maxDistance: 32, families: ["boat"] })) b.applyImpulse(mul({ x: -f.z, y: 0.12, z: f.x }, 0.35));
           } catch { /* no boats */ }
