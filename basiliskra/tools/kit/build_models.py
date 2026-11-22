@@ -23,7 +23,7 @@ import paint
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 RP = os.path.join(ROOT, "packs", "RP")
-FORMS = {"i": "form1", "ii": "form2", "iii": "form3"}
+FORMS = {"i": "form1", "ii": "form2", "iii": "form3", "iv": "form4"}
 
 
 def build(tag: str):

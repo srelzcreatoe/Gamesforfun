@@ -57,6 +57,12 @@ Rules that keep the pack clean:
 * Keep every bone and locator name in your contract EXACTLY: animation and server code are written against them.
 * Every glow zone must contain lit bones (the build writes `tools/kit/out/rig_<form>.json` with `glow_zones`).
 
+**Form IV** (`forms/form4.py`) is built by the same kit (`python3 tools/kit/build_models.py iv`) but is not yet
+used by the entity. It brings three painters of its own: `hide4` (the hide for an upright body: the back, not the
+top, is the dark side, and `front=(z, half_width)` paints chevron plates down the chest), `wing` (one thin slab cut
+to an outline by alpha: `poly`, the hanging `hem` edges, and a branching net of veins grown from `wrist`) and
+`wingbone`. `node tools/preview/turn.cjs iv --out DIR` renders stills from six sides and a turntable.
+
 **Drawn size.** The models (and the `.bbmodel` files) are at their modelled size. In game, forms II and III are
 drawn larger than that: `DRAW_SCALE` in `tools/kit/kit.py` (II 1.25, III 1.7) becomes the client entity's Molang
 `scale`, multiplies the geometry's visible bounds, and is written to `src/generated/rig.ts` (`SCALE`) so the server

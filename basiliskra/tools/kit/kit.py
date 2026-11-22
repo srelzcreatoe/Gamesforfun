@@ -23,7 +23,7 @@ which is exactly what Blockbench draws after its (-x, -y, z) import flip in ZYX 
 from __future__ import annotations
 
 # Drawn size over modelled size, per form (the client entity's "scale"; the server rig uses the same numbers).
-DRAW_SCALE = {"i": 1.0, "ii": 1.25, "iii": 1.7}
+DRAW_SCALE = {"i": 1.0, "ii": 1.25, "iii": 1.7, "iv": 2.0}
 
 import base64
 import hashlib
