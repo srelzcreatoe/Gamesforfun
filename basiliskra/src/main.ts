@@ -252,7 +252,7 @@ world.afterEvents.playerSpawn.subscribe((ev) => {
   system.runTimeout(() => { try { if (p.isValid) giveStarterItems(p); } catch { /* left */ } }, 60);
 });
 
-const FORMS = ["story", "i", "ii", "iii"];
+const FORMS = ["story", "i", "ii", "iii", "iv"];
 system.beforeEvents.startup.subscribe((ev) => {
   // his glowing blocks look after themselves: on a random tick, with no fallout left there, they go back to what they were
   try { ev.blockComponentRegistry.registerCustomComponent(FADES_COMPONENT, { onRandomTick: (e) => fadeBlock(e.block) }); }
@@ -266,13 +266,13 @@ system.beforeEvents.startup.subscribe((ev) => {
   try {
     reg.registerEnum(`${NS}:form`, FORMS);
     reg.registerCommand({
-      name: `${NS}:spawn`, description: "Bring the one Basiliskra here (form: story, i, ii or iii). Moves him if he is about.",
+      name: `${NS}:spawn`, description: "Bring the one Basiliskra here (form: story, i, ii, iii or iv). Moves him if he is about.",
       permissionLevel: CommandPermissionLevel.GameDirectors, cheatsRequired: false,
       optionalParameters: [{ name: `${NS}:form`, type: CustomCommandParamType.Enum }],
     }, (origin, form?: string) => {
       const p = who(origin);
       if (!p) return fail("Run this as a player.");
-      const want = Math.max(0, FORMS.indexOf(form ?? "story")) as 0 | 1 | 2 | 3;
+      const want = Math.max(0, FORMS.indexOf(form ?? "story")) as 0 | 1 | 2 | 3 | 4;
       system.run(() => {
         try {
           if (p.dimension.id !== OVERWORLD) { p.sendMessage("§7[Basiliskra] He only lives in the Overworld."); return; }

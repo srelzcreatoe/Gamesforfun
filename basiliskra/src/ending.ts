@@ -115,7 +115,7 @@ export class Ending {
         } catch { /* left */ }
       }
     }
-    if (rec.form !== 3) return;
+    if (rec.form < 3) return;
     const someone = players().some((p) => { try { return p.dimension.id === dim.id && distXZ(p.location, rift) < 40; } catch { return false; } });
     if (!someone || !isLoaded(dim, rift)) return;
     // teach the timing: the seam itself gives three faint pulses, his knocks, over and over
@@ -147,7 +147,7 @@ export class Ending {
   /** Returns true while the ending is driving him (the ordinary encounters are suspended). */
   drive(c: Creature): boolean {
     const rec = store.rec, now = store.rec.clock;
-    if (rec.form !== 3 || !rec.rift) return false;
+    if (rec.form < 3 || !rec.rift) return false;
     if (!this.act) {
       if (!this.rhythm || now < this.coolUntil || distXZ(c.pos, rec.rift) > 130) return false;
       const brain = this.ctl.brain;

@@ -653,6 +653,573 @@
      ]
     }
    }
+  },
+  "controller.animation.basiliskra.iv.fx": {
+   "initial_state": "idle",
+   "states": {
+    "idle": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19 || v.phase == 30)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "grounded": "(v.phase == 21)"
+      },
+      {
+       "roar": "(v.phase == 23)"
+      },
+      {
+       "recoil": "(v.phase == 32)"
+      },
+      {
+       "carry": "(v.phase == 34 || v.phase == 35)"
+      },
+      {
+       "pivot": "(v.phase == 31)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "club_crackle",
+       "locator": "spike_tip_1_iv"
+      },
+      {
+       "effect": "club_crackle",
+       "locator": "spike_tip_4_iv"
+      },
+      {
+       "effect": "club_crackle",
+       "locator": "spike_tip_11_iv"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_1_iv"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_3_iv"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_5_iv"
+      }
+     ]
+    },
+    "charge": {
+     "transitions": [
+      {
+       "fire": "(v.phase == 19 || v.phase == 30)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "grounded": "(v.phase == 21)"
+      },
+      {
+       "roar": "(v.phase == 23)"
+      },
+      {
+       "recoil": "(v.phase == 32)"
+      },
+      {
+       "carry": "(v.phase == 34 || v.phase == 35)"
+      },
+      {
+       "pivot": "(v.phase == 31)"
+      },
+      {
+       "idle": "!(v.phase == 18)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "charge_spark",
+       "locator": "club_core_iv"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_0_iv"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_2_iv"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_4_iv"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_6_iv"
+      },
+      {
+       "effect": "throat_glow",
+       "locator": "mouth_iv"
+      },
+      {
+       "effect": "charge_gather",
+       "locator": "muzzle_iv"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_1_iv"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_5_iv"
+      }
+     ]
+    },
+    "fire": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "grounded": "(v.phase == 21)"
+      },
+      {
+       "roar": "(v.phase == 23)"
+      },
+      {
+       "recoil": "(v.phase == 32)"
+      },
+      {
+       "carry": "(v.phase == 34 || v.phase == 35)"
+      },
+      {
+       "pivot": "(v.phase == 31)"
+      },
+      {
+       "idle": "!(v.phase == 19 || v.phase == 30)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "mouth_flare",
+       "locator": "muzzle_iv"
+      },
+      {
+       "effect": "mouth_flare",
+       "locator": "mouth_iv"
+      },
+      {
+       "effect": "throat_glow",
+       "locator": "throat_iv"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_0_iv"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_1_iv"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_2_iv"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_3_iv"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_4_iv"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_5_iv"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_6_iv"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_1_iv"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_4_iv"
+      },
+      {
+       "effect": "charge_spark",
+       "locator": "club_core_iv"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_0_iv"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_3_iv"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_6_iv"
+      }
+     ]
+    },
+    "vent": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19 || v.phase == 30)"
+      },
+      {
+       "grounded": "(v.phase == 21)"
+      },
+      {
+       "roar": "(v.phase == 23)"
+      },
+      {
+       "recoil": "(v.phase == 32)"
+      },
+      {
+       "carry": "(v.phase == 34 || v.phase == 35)"
+      },
+      {
+       "pivot": "(v.phase == 31)"
+      },
+      {
+       "idle": "!(v.phase == 20)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "gill_steam",
+       "locator": "gill_l_iv"
+      },
+      {
+       "effect": "gill_steam",
+       "locator": "gill_r_iv"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "gill_l_iv"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "gill_r_iv"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_0_iv"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_3_iv"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_6_iv"
+      },
+      {
+       "effect": "mouth_smoke",
+       "locator": "mouth_iv"
+      }
+     ]
+    },
+    "grounded": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19 || v.phase == 30)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "roar": "(v.phase == 23)"
+      },
+      {
+       "recoil": "(v.phase == 32)"
+      },
+      {
+       "carry": "(v.phase == 34 || v.phase == 35)"
+      },
+      {
+       "pivot": "(v.phase == 31)"
+      },
+      {
+       "idle": "!(v.phase == 21)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "club_arc",
+       "locator": "spike_tip_0_iv"
+      },
+      {
+       "effect": "club_arc",
+       "locator": "spike_tip_3_iv"
+      },
+      {
+       "effect": "club_arc",
+       "locator": "spike_tip_8_iv"
+      }
+     ]
+    },
+    "roar": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19 || v.phase == 30)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "grounded": "(v.phase == 21)"
+      },
+      {
+       "recoil": "(v.phase == 32)"
+      },
+      {
+       "carry": "(v.phase == 34 || v.phase == 35)"
+      },
+      {
+       "pivot": "(v.phase == 31)"
+      },
+      {
+       "idle": "!(v.phase == 23)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "roar_haze",
+       "locator": "mouth_iv"
+      },
+      {
+       "effect": "roar_haze",
+       "locator": "muzzle_iv"
+      }
+     ]
+    },
+    "recoil": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19 || v.phase == 30)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "grounded": "(v.phase == 21)"
+      },
+      {
+       "roar": "(v.phase == 23)"
+      },
+      {
+       "carry": "(v.phase == 34 || v.phase == 35)"
+      },
+      {
+       "pivot": "(v.phase == 31)"
+      },
+      {
+       "idle": "!(v.phase == 32)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "throat_glow",
+       "locator": "mouth_iv"
+      },
+      {
+       "effect": "mouth_smoke",
+       "locator": "mouth_iv"
+      },
+      {
+       "effect": "mouth_smoke",
+       "locator": "muzzle_iv"
+      },
+      {
+       "effect": "club_arc",
+       "locator": "wing_vein_l0_iv"
+      },
+      {
+       "effect": "club_arc",
+       "locator": "wing_vein_l1_iv"
+      },
+      {
+       "effect": "club_arc",
+       "locator": "wing_vein_l2_iv"
+      },
+      {
+       "effect": "club_arc",
+       "locator": "wing_vein_l3_iv"
+      },
+      {
+       "effect": "club_arc",
+       "locator": "wing_vein_r0_iv"
+      },
+      {
+       "effect": "club_arc",
+       "locator": "wing_vein_r1_iv"
+      },
+      {
+       "effect": "club_arc",
+       "locator": "wing_vein_r2_iv"
+      },
+      {
+       "effect": "club_arc",
+       "locator": "wing_vein_r3_iv"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "wing_vein_l0_iv"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "wing_vein_l2_iv"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "wing_vein_r0_iv"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "wing_vein_r2_iv"
+      }
+     ]
+    },
+    "carry": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19 || v.phase == 30)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "grounded": "(v.phase == 21)"
+      },
+      {
+       "roar": "(v.phase == 23)"
+      },
+      {
+       "recoil": "(v.phase == 32)"
+      },
+      {
+       "pivot": "(v.phase == 31)"
+      },
+      {
+       "idle": "!(v.phase == 34 || v.phase == 35)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "rad_drift",
+       "locator": "ribs_iv"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "ribs_iv"
+      },
+      {
+       "effect": "throat_glow",
+       "locator": "ribs_iv"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_2_iv"
+      },
+      {
+       "effect": "rad_drift",
+       "locator": "plate_tip_4_iv"
+      }
+     ]
+    },
+    "pivot": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19 || v.phase == 30)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "grounded": "(v.phase == 21)"
+      },
+      {
+       "roar": "(v.phase == 23)"
+      },
+      {
+       "recoil": "(v.phase == 32)"
+      },
+      {
+       "carry": "(v.phase == 34 || v.phase == 35)"
+      },
+      {
+       "idle": "!(v.phase == 31)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "charge_spark",
+       "locator": "club_core_iv"
+      },
+      {
+       "effect": "club_arc",
+       "locator": "spike_tip_0_iv"
+      },
+      {
+       "effect": "club_arc",
+       "locator": "spike_tip_5_iv"
+      },
+      {
+       "effect": "mouth_flare",
+       "locator": "muzzle_iv"
+      },
+      {
+       "effect": "throat_glow",
+       "locator": "throat_iv"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_0_iv"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_2_iv"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_4_iv"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_6_iv"
+      }
+     ]
+    }
+   }
   }
  }
 }

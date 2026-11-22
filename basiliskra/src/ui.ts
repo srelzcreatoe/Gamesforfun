@@ -10,12 +10,13 @@ import { CONFIG, JOURNAL_ITEM, OVERWORLD, TICKS, WHEEL_ITEM } from "./config";
 import type { Controller } from "./controller";
 import { angerNear, angriest, halfLifeDays, tallyOf, type Anger } from "./harm";
 import { doseAt, falloutCount, nearestFallout } from "./fallout";
+import { IV_BEAMS, IV_DAYS } from "./forms/three";
 import { saveSettings, resetSettings } from "./settings";
 import { store } from "./store";
 import type { V3 } from "./vec";
 import { NONE, UNLOADED, groundY, overworld } from "./world";
 
-const ROMAN = ["", "I", "II", "III"];
+const ROMAN = ["", "I", "II", "III", "IV"];
 const FALLOUT = ["off", "visual", "land"] as const;
 const DUSK = 11800;
 
@@ -103,10 +104,18 @@ function evolveLines(): string[] {
     L.push(item(o >= 1, `Dragged himself overland ${Math.floor(Math.min(220, rec.mut.overland * CONFIG.pacing))} of 220 blocks §8(he wanders while anyone is near)`));
     L.push(`  §e->§7 Then he changes at night or in rain, with a player near${f >= 1 ? " §a(he is ready: wait for dark or rain, and stay close)" : ""}.`);
   } else {
-    L.push("§fThe last crossing");
+    L.push(rec.form === 4 ? "§fThe last crossing §8(it still sends him home)" : "§fThe last crossing §8(sends him home)");
     L.push("  §7Carry his shed fin to the seam; play his three knocks on note blocks near it and keep playing; lead his charge into a lightning rod near the seam.");
+    if (rec.form === 3) {
+      const need3 = pace(IV_DAYS * TICKS.day), d3 = Math.min(1, since / need3), b = Math.min(1, rec.mut.beams / IV_BEAMS), f = Math.min(d3, b);
+      const left = d3 >= 1 ? "" : ` §8(about ${Math.max(1, Math.ceil((need3 - since) / TICKS.minute))} min left)`;
+      L.push(`§fBecoming Basiliskra IV §8(if he is not sent home first)§f: ${bar(f, "§4")} §l${pct(f)}§r`);
+      L.push(item(d3 >= 1, `Three days as Basiliskra III: ${pct(d3)}${left}`));
+      L.push(item(b >= 1, `Beams fired ${Math.min(rec.mut.beams, IV_BEAMS)} of ${IV_BEAMS}`));
+      L.push(`  §e->§7 Then he changes at night, with a player near${f >= 1 ? " §c(he is ready: it will be tonight)" : ""}.`);
+    } else L.push("§4Basiliskra IV is his last form.");
   }
-  if (rec.form < 3) L.push("  §8An operator's config wheel can also make him change at once.");
+  if (rec.form < 4) L.push("  §8An operator's config wheel can also make him change at once.");
   return L;
 }
 
@@ -211,7 +220,7 @@ export async function openJournal(p: Player, ctl: Controller): Promise<void> {
 export function placeFor(p: Player, form: number): { at: V3; yaw: number } {
   const v = p.getViewDirection();
   const n = Math.hypot(v.x, v.z) || 1;
-  const d = [0, 15, 24, 46][form] ?? 30;            // his head reaches this far in front of his middle (II and III are drawn larger)
+  const d = [0, 15, 24, 46, 52][form] ?? 30;            // his head reaches this far in front of his middle (II and III are drawn larger)
   const pl = p.location;
   const pos = { x: pl.x + (v.x / n) * d, y: pl.y, z: pl.z + (v.z / n) * d };
   // the ground there, however high above it the caller is (flying): searched all the way down
@@ -271,7 +280,7 @@ async function settingsForm(p: Player): Promise<void> {
     .toggle("Harmless on Peaceful", { defaultValue: CONFIG.harmlessOnPeaceful })
     .toggle("He hunts animals and other creatures too", { defaultValue: CONFIG.huntMobs })
     .toggle("Spawn eggs and /summon bring him to you", { defaultValue: CONFIG.allowSummon })
-    .dropdown("A spawn egg makes", ["His stage in the story", "Basiliskra I", "Basiliskra II", "Basiliskra III"], { defaultValueIndex: CONFIG.spawnForm })
+    .dropdown("A spawn egg makes", ["His stage in the story", "Basiliskra I", "Basiliskra II", "Basiliskra III", "Basiliskra IV"], { defaultValueIndex: CONFIG.spawnForm })
     .toggle("Give new players the journal", { defaultValue: CONFIG.giveJournal })
     .toggle("Give operators the config wheel", { defaultValue: CONFIG.giveWheel })
     .toggle("Debug messages in the content log", { defaultValue: CONFIG.debug })
@@ -290,7 +299,7 @@ async function settingsForm(p: Player): Promise<void> {
   const bad = typedBad(v[1], 0.25, 4) || typedBad(v[6], 0, 4);
   saveSettings({
     pacing, terrain: TERRAIN[Number(v[2])] ?? "wither", spareStorage: v[3] === true, marks: v[4] === true, damage,
-    harmlessOnPeaceful: v[7] === true, huntMobs: v[8] === true, allowSummon: v[9] === true, spawnForm: (Number(v[10]) as 0 | 1 | 2 | 3),
+    harmlessOnPeaceful: v[7] === true, huntMobs: v[8] === true, allowSummon: v[9] === true, spawnForm: (Number(v[10]) as 0 | 1 | 2 | 3 | 4),
     giveJournal: v[11] === true, giveWheel: v[12] === true, debug: v[13] === true, fallout: FALLOUT[Number(v[14])] ?? "land", sickness: v[15] === true,
     cutscenes: v[16] === true, music: v[17] === true,
   });
@@ -301,11 +310,11 @@ async function settingsForm(p: Player): Promise<void> {
 async function bringForm(p: Player, ctl: Controller): Promise<void> {
   const f = new ActionFormData().title("Bring him here")
     .body(`§7The one Basiliskra comes to you: moved here if he is about, made here if he is not. There is never more than one.\n§7Now: ${store.rec.born > 0 ? `Basiliskra ${ROMAN[store.rec.form]}` : "he has never come"}.`)
-    .button("As he is in the story").button("Basiliskra I (the water)").button("Basiliskra II (the shore)").button("Basiliskra III (four footfalls)");
+    .button("As he is in the story").button("Basiliskra I (the water)").button("Basiliskra II (the shore)").button("Basiliskra III (four footfalls)").button("Basiliskra IV (the last form)");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || r.selection === undefined) return;
   if (p.dimension.id !== OVERWORLD) { p.sendMessage("§7[Basiliskra] He only lives in the Overworld."); return; }
-  const want = r.selection as 0 | 1 | 2 | 3;
+  const want = r.selection as 0 | 1 | 2 | 3 | 4;
   const place = placeFor(p, want || formOf() || 3);
   p.sendMessage(`§7[Basiliskra] ${ctl.bringHere(place.at, place.yaw, want)}`);
 }

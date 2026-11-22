@@ -65,7 +65,7 @@ export function anyoneNear(c: Creature, range: number): boolean {
 }
 
 /** Phases in which he may grunt (not while he roars, charges, fires, knocks, crosses or hangs at a window). */
-const VOICED = new Set(["idle", "move", "look", "drink", "pin", "flinch", "beach"]);
+const VOICED = new Set(["idle", "move", "look", "drink", "pin", "flinch", "beach", "carry"]);
 
 let lastFault = "";
 
@@ -119,12 +119,12 @@ export abstract class Brain {
     if (now < this.voiceAt) return;
     this.voiceAt = now + Math.round((10 + 12 * hash(now, 71)) * 20);
     if (!VOICED.has(c.phase) || !anyoneNear(c, 80)) return;
-    const tag = ["", "i", "ii", "iii"][c.form];
+    const tag = ["", "i", "ii", "iii", "iii"][c.form];
     const r = hash(now, 72);
     const id = c.form === 1 ? (r < 0.75 ? "i.grunt" : "i.breath") : r < 0.6 ? `${tag}.grunt` : r < 0.85 ? `${tag}.breath` : `${tag}.growl`;
     // one voice: deeper through the water, younger and higher on the shore, whole as Basiliskra III
-    const pitch = (c.form === 1 ? 0.9 : c.form === 2 ? 1.15 : 0.96) * (0.96 + 0.08 * hash(now, 73));
-    c.say(`basiliskra.${id}`, c.anchor("nose"), c.form === 3 ? 80 : 64, 0.95, pitch);
+    const pitch = (c.form === 1 ? 0.9 : c.form === 2 ? 1.15 : c.form === 4 ? 0.84 : 0.96) * (0.96 + 0.08 * hash(now, 73));
+    c.say(`basiliskra.${id}`, c.anchor("nose"), c.form >= 3 ? 80 : 64, 0.95, pitch);
   }
 
   tick(): void {

@@ -37,7 +37,10 @@ P = lambda n: f"q.property('{NS}:{n}')"
 # ---- phases (must match src/phases.ts) --------------------------------------------------
 PHASE = dict(idle=0, move=1, arrive=2, ram=3, knock=4, rise=5, bite=6, sweep=7, jam=8, spasm=9, sleep=10, wake=11,
              evolve=12, beach=13, drink=14, arc=15, pin=16, look=17, charge=18, fire=19, vent=20, grounded=21,
-             scatter=22, roar=23, crossing=24, depart=25, flinch=26, window=27, stalk=28)
+             scatter=22, roar=23, crossing=24, depart=25, flinch=26, window=27, stalk=28,
+             # Basiliskra IV
+             stare=29, skid=30, pivot=31, recoil=32, drag=33, swallow=34, carry=35)
+TAGS = ("i", "ii", "iii", "iv")
 KNOCK_GAP = 0.9          # seconds between the three knocks, everywhere they occur
 GAIT_DUR = (0.8, 1.25, 1.5)     # Form II: reach, pull, rest (seconds)
 # How much bigger each form is drawn than it is modelled.  The client scales the whole entity; the server rig
@@ -54,12 +57,22 @@ TAIL_LIFT_III = 4.0      # degrees at the tail root that keep the club's lowest 
 # whose sill is a block up, and the jaw just rests on the ground; the skull is too big now to bring lower).
 WINDOW_CROUCH = 6.5
 
+# Basiliskra IV walks on two legs: one full cycle (two footfalls) in model blocks, the part of it a foot is down,
+# and how high an ankle is carried in mid-swing (model units).
+STRIDE_IV_MODEL = 7.0
+STRIDE_IV = STRIDE_IV_MODEL * SCALE["iv"]
+BETA_IV = 0.6
+LIFT_IV = 22.0
+# his wings folded: degrees added at the wing root (yaw, roll), the wing's elbow, and each finger
+WING_FOLD = {"root": (-30, -14), "arm": 118, "fingers": (30, 14, 0, -14)}
+
 # share of a look angle taken by each link, eye first (see pre_animation smoothing rates)
 LOOK = {
     "i": {"yaw": {"head": 0.6, "chest": 0.4}, "pitch": {"head": 0.6, "chest": 0.4}},
     "ii": {"yaw": {"head": 0.45, "neck": 0.40, "chest": 0.15}, "pitch": {"head": 0.5, "neck": 0.4, "chest": 0.1}},
     "iii": {"yaw": {"head": 0.35, "neck1": 0.11, "neck2": 0.11, "neck3": 0.11, "neck4": 0.11, "neck5": 0.11, "chest": 0.10},
             "pitch": {"head": 0.40, "neck1": 0.12, "neck2": 0.12, "neck3": 0.12, "neck4": 0.12, "neck5": 0.12}},
+    "iv": {"yaw": {"head": 0.40, "neck2": 0.20, "neck1": 0.20, "chest": 0.20}, "pitch": {"head": 0.45, "neck2": 0.25, "neck1": 0.20, "chest": 0.10}},
 }
 
 
@@ -224,18 +237,20 @@ def pre_animation():
         f"v.knock = {ph('knock', 'wake', 'vent')} ? v.kn : 0;",
         f"v.gill_open = {P('gill')} ? 1 : 0;",
         "v.breath = math.sin(q.life_time * 72);",
-        f"v.walk = v.walk + (({ph('move', 'crossing', 'depart', 'stalk')} ? 1 : 0) - v.walk) * v.k3;",
+        f"v.walk = v.walk + (({ph('move', 'crossing', 'depart', 'stalk', 'carry')} ? 1 : 0) - v.walk) * v.k3;",
         f"v.gait = {P('gait')};",
         "v.gt = (v.gait != v.gait_prev) ? 0 : v.gt + v.dt;",
         # the landing is reported a tick or two after the ground was covered: keep what was covered since (Form III)
         f"v.gd0 = (v.gait != v.gait_prev) ? q.modified_distance_moved - math.clamp(q.modified_distance_moved - v.gd0 - {STRIDE_III / 4}, 0, {STRIDE_III / 8}) : v.gd0;",
+        f"v.gd4 = (v.gait != v.gait_prev) ? q.modified_distance_moved - math.clamp(q.modified_distance_moved - v.gd4 - {STRIDE_IV / 2}, 0, {STRIDE_IV / 4}) : v.gd4;",
         "v.gait_prev = v.gait;",
         # a one-shot pulse from the server (1 gills, 2 tail knob, 3 the whole hide): a brief flash where it says
         # (4..7 are his voice and 8..10 his roars: nothing flashes, the mouth moves; see below)
         f"v.fx_new = ({P('fx_seq')} != v.fx_prev) ? 1 : 0;",
         f"v.fx_in = {P('fx_kind')};",
-        "v.fx_kind = (v.fx_new && v.fx_in <= 3) ? v.fx_in : v.fx_kind;",
-        "v.fxp = (v.fx_new && v.fx_in <= 3) ? 1 : math.max(0, v.fxp - v.dt * 3.2);",
+        "v.fx_flash = (v.fx_new && (v.fx_in <= 3 || v.fx_in == 11)) ? 1 : 0;",
+        "v.fx_kind = v.fx_flash ? v.fx_in : v.fx_kind;",
+        "v.fxp = v.fx_flash ? 1 : math.max(0, v.fxp - v.dt * ((v.fx_kind == 11) ? 1.6 : 3.2));",
         f"v.fx_prev = {P('fx_seq')};",
         # his voice: the mouth opens for as long as the grunt, growl, breath or cry lasts (recordings play slower in the
         # water and faster on the shore, as the script pitches them)
@@ -255,7 +270,7 @@ def pre_animation():
     for k in range(9):
         wave = f"0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - {8 - k} * 0.42 - 0.3) * 1.5, 0, 1)"
         gill = " + v.knock" if k == 7 else ""
-        flash = f" + v.fxp * (v.fx_kind == 1 ? {1 if k == 7 else 0} : (v.fx_kind == 2 ? {0.9 if k <= 1 else 0} : 0.4))"
+        flash = f" + v.fxp * (v.fx_kind == 1 ? {1 if k == 7 else 0} : (v.fx_kind == 2 ? {0.9 if k <= 1 else 0} : (v.fx_kind == 11 ? {1 if k in (6, 7) else 0} : 0.4)))"
         s.append(f"v.g{k} = math.clamp((math.clamp(v.charge * 0.5 - {k}, 0, 1) + v.over * 0.25) * v.flick + {wave}{gill}{flash}, 0, 1);")
     weights = {
         "ram": ("ram",), "knockp": ("knock", "wake"), "rise": ("rise",), "bite": ("bite",),
@@ -263,10 +278,16 @@ def pre_animation():
         "drink": ("drink",), "arc": ("arc",), "pin": ("pin",), "chargew": ("charge", "fire"), "fire": ("fire",),
         "vent": ("vent",), "ground": ("grounded",), "scatter": ("scatter",), "roar": ("roar",), "window": ("window", "stalk"),
         "flinch": ("flinch",),
+        # Basiliskra IV
+        "stare": ("stare",), "skid": ("skid", "pivot"), "pivot": ("pivot",), "recoil": ("recoil",), "drag": ("drag",),
+        "shut": ("swallow", "carry"),
     }
     for name, phases in weights.items():
         rate = "v.k4" if name == "window" else "v.k2"        # the head comes down to the window slowly
         s.append(f"v.w_{name} = v.w_{name} + (({ph(*phases)} ? 1 : 0) - v.w_{name}) * {rate};")
+    # Basiliskra IV: the flank that glows while he carries a swallowed charge, and the wing veins when the recoil goes through them
+    s.append("v.g_ribs = math.clamp(v.g5 + 0.95 * v.w_shut * (0.75 + 0.25 * math.sin(q.life_time * 400)), 0, 1);")
+    s.append("v.g_veins = math.clamp(v.g5 * 0.6 + v.w_recoil * (0.7 + 0.3 * math.sin(q.life_time * 2600)), 0, 1);")
     return s
 
 
@@ -475,19 +496,111 @@ def pose_iii(rig):
     return pre, p.bones(rig["bones"])
 
 
+# ---- Form IV ---------------------------------------------------------------------------
+def pose_iv(rig):
+    """Upright, on two legs, wings folded behind the shoulders until something opens them."""
+    p = Pose()
+    half = STRIDE_IV / 2                           # world blocks covered per footfall
+    stance = STRIDE_IV_MODEL * BETA_IV * 16        # model units a planted sole travels back under the hip
+    pre = [
+        # the server names the foot that landed last (gait 0 left, 1 right); between landings the cycle advances
+        # with the ground he covers (v.dd: see Form III, whose lines run first)
+        f"v.wt4 = (v.gait + math.clamp((q.modified_distance_moved - v.gd4) / {half}, 0, 1.15)) * 180;",
+        "v.werr4 = math.mod(math.mod(v.wt4 - v.wp4, 360) + 540, 360) - 180;",
+        f"v.wp4 = math.mod(v.wp4 + v.dd * {180 / half:.4f} + math.clamp(v.werr4, -40 * v.dt, 40 * v.dt) * math.clamp(v.dd / (v.dt + 0.0001) / 0.8, 0, 1) + 360, 360);",
+        "v.p_l = math.mod(v.wp4, 360) / 360;", "v.p_r = math.mod(v.wp4 + 180, 360) / 360;",
+        # the wings slam open and fold slowly
+        "v.wo_t = math.max(v.w_recoil, math.max(0.85 * v.w_roar, math.max(v.w_evolve, math.max(0.7 * v.w_rise, math.max(0.3 * v.w_fire, 0.45 * v.w_pivot)))));",
+        "v.wo = v.wo + (v.wo_t - v.wo) * ((v.wo_t > v.wo) ? v.k1 : v.k4);",
+        "v.fold = 1 - v.wo;",
+        # dragging the seabed: he reaches down for two and a half seconds, holds, then hauls both arms to his chest
+        "v.dr_reach = math.clamp(v.pt / 2.5, 0, 1) * (1 - math.clamp((v.pt - 4.2) / 0.5, 0, 1));",
+        "v.dr_haul = math.clamp((v.pt - 4.2) / 0.5, 0, 1);",
+        # how far the body rides below the bind pose (units): the legs are solved against this every frame
+        "v.by4 = -1.5 * v.breath * (1 - v.walk) - 3 * v.walk * math.abs(math.sin(v.wp4)) - 4 * v.w_chargew - 9 * v.w_drag * v.dr_reach - 5 * v.w_skid;",
+    ]
+    for tag, sgn in (("l", 1), ("r", -1)):
+        la, lb, rest = leg_iii(rig, tag)
+        fu, fl = -rest[0], -(rest[0] + rest[1])                       # rest angles from straight down, forward positive
+        xm = la * math.sin(math.radians(fu)) + lb * math.sin(math.radians(fl))
+        h0 = la * math.cos(math.radians(fu)) + lb * math.cos(math.radians(fl))
+        P_ = f"v.p_{tag}"
+        pre += [
+            f"v.su4_{tag} = ({P_} > {BETA_IV}) ? ({P_} - {BETA_IV}) / {1 - BETA_IV} : 0;",
+            f"v.lx4_{tag} = ({P_} < {BETA_IV}) ? {xm:.3f} + {stance} * (0.5 - {P_} / {BETA_IV}) : {xm - stance / 2:.3f} + {stance} * v.su4_{tag} * v.su4_{tag} * (3 - 2 * v.su4_{tag});",
+            # (pivoting on the planted club, the foot on the side he will sweep towards comes off the ground)
+            f"v.lh4_{tag} = {h0 - 1.0:.3f} + v.by4 - {LIFT_IV} * math.sin(180 * v.su4_{tag}) * v.walk - 34 * v.w_pivot * math.clamp({sgn} * v.bend * 0.1, 0, 1);",
+            f"v.ld4_{tag} = math.min(math.sqrt(v.lx4_{tag} * v.lx4_{tag} + v.lh4_{tag} * v.lh4_{tag}), {la + lb - 0.5});",
+            f"v.lg4_{tag} = math.atan2(v.lx4_{tag}, v.lh4_{tag});",
+            f"v.la4_{tag} = math.acos(math.clamp(({la * la - lb * lb} + v.ld4_{tag} * v.ld4_{tag}) / ({2 * la} * v.ld4_{tag}), -1, 1));",
+            f"v.lk4_{tag} = math.acos(math.clamp(({la * la + lb * lb} - v.ld4_{tag} * v.ld4_{tag}) / {2 * la * lb}, -1, 1));",
+            f"v.lu4_{tag} = v.lg4_{tag} + v.la4_{tag};", f"v.ll4_{tag} = v.lu4_{tag} - 180 + v.lk4_{tag};",       # the knee points forward
+        ]
+    L = LOOK["iv"]
+    # weight goes over the foot that is down
+    p.pos("body", x="2 * v.walk * math.cos(v.wp4 - 108)", y="v.by4", z="5 * v.w_skid")
+    p.rot("body", x=f"v.pitch - 3 * v.w_roar - 6 * v.w_skid + 1.2 * v.w_ground * {SHUDDER(1400)}", z="1.4 * v.walk * math.cos(v.wp4 - 108)")
+    # he bends at the waist, so his feet stay where they are
+    p.rot("chest", y=f"v.ly_chest * {L['yaw']['chest']} + 3 * v.walk * math.sin(v.wp4 - 108)",
+          x=f"v.lp_neck * {L['pitch']['chest']} - 1.2 * v.breath + 3 * v.walk - 2 * v.w_fire - 4 * v.w_roar - 6 * v.w_recoil + 5 * v.w_stare"
+            f" + 40 * v.w_drag * v.dr_reach - 10 * v.w_drag * v.dr_haul")
+    for i in (1, 2):
+        p.rot(f"neck{i}", y=f"v.ly_neck * {L['yaw'][f'neck{i}']}",
+              x=f"v.lp_neck * {L['pitch'][f'neck{i}']} + 0.5 * v.breath - 2 * v.w_chargew - 6 * v.w_roar + 4 * v.w_ground + 6 * v.w_stare - 12 * v.w_drag * v.dr_reach"
+                f" - 4 * v.w_shut + 0.8 * v.walk * math.sin(v.wp4 * 2 - {i * 40})")
+    p.rot("head", y=f"v.ly_head * {L['yaw']['head']}",
+          x=f"v.lp_head * {L['pitch']['head']} - 4 * v.w_chargew - 14 * v.w_roar + 1.4 * v.roar_env * {SHUDDER(2100, 2)} - 1.5 * v.voice + 10 * v.w_ground"
+            f" + 1.2 * v.w_fire * {SHUDDER(2400)} + 5 * v.w_stare - 8 * v.w_drag * v.dr_reach + 3 * v.w_recoil * {SHUDDER(1900, 3)}")
+    p.pos("head", z=f"1.6 * v.w_fire * {SHUDDER(2700, 1)}")
+    # the jaw: open to charge and fire, wide and shaking when the shot fails, clamped shut on a swallowed charge
+    p.rot("jaw", x=f"2.2 * v.breath * (1 - v.w_shut) + v.w_chargew * v.charge * 0.8 + 14 * v.w_fire + 5 * v.w_roar + v.vjaw + 26 * v.roar_env * (1 + 0.05 * {SHUDDER(2900)})"
+                   f" + 6 * v.w_vent + 8 * v.w_ground + 24 * v.w_recoil * (1 + 0.08 * {SHUDDER(1700)}) - 11 * v.w_shut")
+    for tag, sgn in (("l", 1), ("r", -1)):
+        rest = leg_iii(rig, tag)[2]
+        p.rot(f"leg_{tag}", x=f"-v.lu4_{tag} - {rest[0]}")
+        p.rot(f"leg_{tag}_lower", x=f"v.lu4_{tag} - v.ll4_{tag} - {rest[1]}")
+        # the sole stays level on the ground and tips toe-down as it leaves it
+        p.rot(f"foot_{tag}", x=f"v.ll4_{tag} - {rest[2]} + 12 * math.sin(180 * v.su4_{tag}) * v.walk")
+        # arms swing against the legs; reach for the seabed and haul it in; brace for the breath; fly out on the recoil
+        p.rot(f"arm_{tag}", x=f"{sgn} * 8 * v.walk * math.cos(v.wp4) + 6 * v.w_chargew + 10 * v.w_recoil - 62 * v.w_drag * v.dr_reach + 24 * v.w_drag * v.dr_haul",
+              z=f"{-sgn} * (8 * v.w_roar + 14 * v.w_recoil + 4 * v.w_drag * v.dr_reach)")
+        p.rot(f"forearm_{tag}", x="40 * v.w_drag * v.dr_reach - 44 * v.w_drag * v.dr_haul - 6 * v.w_roar")
+        p.rot(f"hand_{tag}", x="-12 * v.w_drag * v.dr_reach")
+        # the wings
+        ry, rz = WING_FOLD["root"]
+        p.rot(f"wing_{tag}", y=f"{sgn * ry} * v.fold",
+              z=f"{sgn * rz} * v.fold + {sgn} * 2.5 * v.wo * math.sin(q.life_time * 170) * (v.w_recoil + v.w_roar) + {sgn} * 1.2 * v.breath * v.fold")
+        p.rot(f"wing_{tag}_arm", z=f"{sgn * WING_FOLD['arm']} * v.fold")
+        for i, a in enumerate(WING_FOLD["fingers"], start=1):
+            p.rot(f"wing_{tag}_f{i}", z=f"{sgn * a} * v.fold + {sgn} * {1.5 * i} * v.w_recoil * {SHUDDER(1500, i)}")
+        for i in (1, 2, 3):
+            p.rot(f"gill_{tag}{i}", y=f"{sgn} * 40 * v.kopen * (0.7 + 0.3 * v.knock)")
+        p.pos(f"eye_{tag}", z="-v.eye_lead")
+    for i in range(1, 11):
+        # the tail follows a turn late, sways with the walk, and drives the club into the ground to charge or to pivot
+        plant = f" - 2.6 * math.max(v.w_chargew, v.w_pivot)" if i >= 5 else ""
+        p.rot(f"tail{i}", y=f"-v.ts * {0.12 + 0.03 * i:.2f} * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - {i * 36}) + 1.2 * math.sin(q.life_time * 28 - {i * 30})"
+                             f" + {1.2 * i} * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5)",
+              x=f"0.25 * v.breath{plant}")
+    p.rot("club", z="4 * v.w_chargew * math.sin(q.life_time * 2100)")
+    for j, b in enumerate(b for b in rig["bones"] if b.startswith("plates_")):
+        p.scl(b, y="(1 + 0.015 * v.breath + 0.05 * v.w_chargew)")
+    return pre, p.bones(rig["bones"])
+
+
 # ---- files -----------------------------------------------------------------------------
 def render_controllers(rigs):
     rc = {}
-    arr = {"geometries": {"Array.geo": [f"Geometry.{t}" for t in ("i", "ii", "iii")]},
-           "textures": {"Array.tex": [f"Texture.{t}" for t in ("i", "ii", "iii")], "Array.glow": [f"Texture.{t}_glow" for t in ("i", "ii", "iii")]}}
-    idx = f"{P('form')} - 1"
     base_list = []
-    for fi, tag in enumerate(("i", "ii", "iii"), start=1):
+    # Basiliskra IV's broken dorsal plate is its own bone: once it has cracked off (the gill property, which only
+    # Basiliskra I otherwise uses) it is no longer drawn on his back
+    whole = lambda tag, bone: f" && !{P('gill')}" if tag == "iv" and bone == "plate_break" else ""
+    for fi, tag in enumerate(TAGS, start=1):
         vis = [{"*": f"{P('bound')}"}]
         for bone, bd in rigs[tag]["bones"].items():
             if bd["zone"] is not None:
                 z = bd["zone"]
-                vis.append({bone: f"{P('bound')} && {z} >= {P('vis_lo')} && {z} <= {P('vis_hi')}"})
+                vis.append({bone: f"{P('bound')} && {z} >= {P('vis_lo')} && {z} <= {P('vis_hi')}{whole(tag, bone)}"})
         rc[f"controller.render.{NS}.{tag}.base"] = {
             "geometry": f"Geometry.{tag}",
             "materials": [{"*": "Material.default"}],
@@ -501,14 +614,29 @@ def render_controllers(rigs):
         }
         base_list.append({f"controller.render.{NS}.{tag}.base": f"v.form == {fi}"})
     listing = []
-    for fi, tag in enumerate(("i", "ii", "iii"), start=1):
+
+    def glow_pass(tag, fi, key, bones, alpha, z):
+        name = f"controller.render.{NS}.{tag}.glow{key}"
+        rc[name] = {
+            "geometry": f"Geometry.{tag}", "materials": [{"*": "Material.glow"}], "textures": [f"Texture.{tag}_glow"], "ignore_lighting": True,
+            "part_visibility": [{"*": False}] + [{b: True} for b in bones],
+            "color": {"r": 1.0, "g": 1.0, "b": 1.0, "a": alpha},
+        }
+        listing.append({name: f"{P('bound')} && v.form == {fi} && {alpha} > 0.01 && {z} >= {P('vis_lo')} && {z} <= {P('vis_hi')}"})
+
+    for fi, tag in enumerate(TAGS, start=1):
         zones = rigs[tag]["glow_zones"]
         for z in range(9):
             bones = zones.get(str(z), [])
+            if tag == "iv" and z == 5:
+                # his left flank and his wings light on their own as well as with the rest of his chest
+                glow_pass(tag, fi, "_ribs", [b for b in bones if b == "ribs_l"], "v.g_ribs", z)
+                glow_pass(tag, fi, "_veins", [b for b in bones if b.startswith("wing_")], "v.g_veins", z)
+                bones = [b for b in bones if b != "ribs_l" and not b.startswith("wing_")]
             if not bones:
                 continue
             name = f"controller.render.{NS}.{tag}.glow{z}"
-            vis = [{"*": False}] + [{b: True} for b in bones]
+            vis = [{"*": False}] + [{b: (f"!{P('gill')}" if tag == "iv" and b == "plate_break" else True)} for b in bones]
             rc[name] = {
                 "geometry": f"Geometry.{tag}",
                 "materials": [{"*": "Material.glow"}],
@@ -544,6 +672,26 @@ def particle_controller(tag):
         idle = [("club_crackle", "spike_tip_1"), ("club_crackle", "spike_tip_4"), ("club_crackle", "spike_tip_11")] + rad((2, 6))
         states = {"idle": idle, "charge": charge, "fire": fire, "vent": vent, "grounded": ground, "scatter": scatter, "roar": roar}
         cond = {"charge": ph("charge"), "fire": ph("fire"), "vent": ph("vent"), "grounded": ph("grounded"), "scatter": ph("scatter"), "roar": ph("roar")}
+    elif tag == "iv":
+        tips = range(7)
+        rad = lambda ks: [("rad_drift", f"plate_tip_{k}") for k in ks]
+        veins = [f"wing_vein_{s}{k}" for s in ("l", "r") for k in range(4)]
+        charge = ([("charge_spark", "club_core")] + [("plate_ember", f"plate_tip_{k}") for k in (0, 2, 4, 6)] + [("throat_glow", "mouth"), ("charge_gather", "muzzle")] + rad((1, 5)))
+        fire = ([("mouth_flare", "muzzle"), ("mouth_flare", "mouth"), ("throat_glow", "throat")] + [("plate_blaze", f"plate_tip_{k}") for k in tips]
+                + [("plate_smoke", f"plate_tip_{k}") for k in (1, 4)] + [("charge_spark", "club_core")] + rad((0, 3, 6)))
+        vent = ([("gill_steam", "gill_l"), ("gill_steam", "gill_r"), ("rad_drift", "gill_l"), ("rad_drift", "gill_r")]
+                + [("plate_smoke", f"plate_tip_{k}") for k in (0, 3, 6)] + [("mouth_smoke", "mouth")])
+        roar = [("roar_haze", "mouth"), ("roar_haze", "muzzle")]
+        # the shot that fails: light leaks between his teeth, smoke pours out, and every wing vein spits sparks
+        recoil = [("throat_glow", "mouth"), ("mouth_smoke", "mouth"), ("mouth_smoke", "muzzle")] + [("club_arc", v) for v in veins] + [("plate_ember", v) for v in veins[::2]]
+        # carrying a swallowed charge: his mouth is dark, his flank is not
+        carry = [("rad_drift", "ribs"), ("plate_ember", "ribs"), ("throat_glow", "ribs")] + rad((2, 4))
+        pivot = [("charge_spark", "club_core"), ("club_arc", "spike_tip_0"), ("club_arc", "spike_tip_5"), ("mouth_flare", "muzzle"), ("throat_glow", "throat")] + [("plate_blaze", f"plate_tip_{k}") for k in (0, 2, 4, 6)]
+        ground = [("club_arc", "spike_tip_0"), ("club_arc", "spike_tip_3"), ("club_arc", "spike_tip_8")]
+        idle = [("club_crackle", "spike_tip_1"), ("club_crackle", "spike_tip_4"), ("club_crackle", "spike_tip_11")] + rad((1, 3, 5))
+        states = {"idle": idle, "charge": charge, "fire": fire, "vent": vent, "grounded": ground, "roar": roar, "recoil": recoil, "carry": carry, "pivot": pivot}
+        cond = {"charge": ph("charge"), "fire": ph("fire", "skid"), "vent": ph("vent"), "grounded": ph("grounded"), "roar": ph("roar"), "recoil": ph("recoil"),
+                "carry": ph("swallow", "carry"), "pivot": ph("pivot")}
     elif tag == "ii":
         idle = [("horn_arc", "horn_l")]
         arc = [("horn_arc_big", "horn_l"), ("horn_arc_big", "horn_r"), ("club_crackle", "knob_core"), ("rad_drift", "knob_core"), ("rad_drift", "heart")]
@@ -580,7 +728,7 @@ def write_rig_ts(rigs):
            "export interface RigData { bones: Record<string, RigBone>; locators: Record<string, { bone: string; pos: number[] }>; meta: Record<string, number>; zones: Record<string, string[]>; boxes: Record<string, number[][]> }",
            ""]
     data = {}
-    for n, tag in enumerate(("i", "ii", "iii"), start=1):
+    for n, tag in enumerate(TAGS, start=1):
         r = rigs[tag]
         zones = {}
         for name, bd in r["bones"].items():
@@ -588,9 +736,9 @@ def write_rig_ts(rigs):
                 zones.setdefault(str(bd["zone"]), []).append(name)
         data[n] = {"bones": r["bones"], "locators": r["locators"], "meta": {k: v for k, v in r["meta"].items() if isinstance(v, (int, float))}, "zones": zones,
                    "boxes": r.get("boxes", {})}
-    out.append("export const RIGS: Record<1 | 2 | 3, RigData> = " + json.dumps(data, separators=(",", ":")) + ";")
-    look = {n: LOOK[t] for n, t in enumerate(("i", "ii", "iii"), start=1)}
-    out.append("export const LOOK: Record<1 | 2 | 3, { yaw: Record<string, number>; pitch: Record<string, number> }> = " + json.dumps(look, separators=(",", ":")) + ";")
+    out.append("export const RIGS: Record<1 | 2 | 3 | 4, RigData> = " + json.dumps(data, separators=(",", ":")) + ";")
+    look = {n: LOOK[t] for n, t in enumerate(TAGS, start=1)}
+    out.append("export const LOOK: Record<1 | 2 | 3 | 4, { yaw: Record<string, number>; pitch: Record<string, number> }> = " + json.dumps(look, separators=(",", ":")) + ";")
     out.append(f"export const STRIDE_III = {STRIDE_III};")
     out.append(f"/** Blocks a planted sole travels under the body; a foot lands half of this ahead of where it stands at rest. */")
     out.append(f"export const STANCE_III = {STRIDE_III * BETA_III};")
@@ -601,7 +749,13 @@ def write_rig_ts(rigs):
     out.append(f"export const LIFT_III = {LIFT_III};")
     out.append(f"export const STANCE_MODEL_III = {STRIDE_III_MODEL * BETA_III * 16};")
     out.append(f"/** Drawn size over modelled size, per form. */")
-    out.append(f"export const SCALE: Record<1 | 2 | 3, number> = {{ 1: {SCALE['i']}, 2: {SCALE['ii']}, 3: {SCALE['iii']} }};")
+    out.append(f"export const SCALE: Record<1 | 2 | 3 | 4, number> = {{ 1: {SCALE['i']}, 2: {SCALE['ii']}, 3: {SCALE['iii']}, 4: {SCALE['iv']} }};")
+    out.append("/** Basiliskra IV: blocks covered by one full cycle of his walk (two footfalls); the part of it a foot is down; the wing fold (degrees). */")
+    out.append(f"export const STRIDE_IV = {STRIDE_IV};")
+    out.append(f"export const BETA_IV = {BETA_IV};")
+    out.append(f"export const STANCE_MODEL_IV = {STRIDE_IV_MODEL * BETA_IV * 16};")
+    out.append(f"export const LIFT_IV = {LIFT_IV};")
+    out.append(f"export const WING_FOLD = {json.dumps(WING_FOLD)};")
     out.append(f"export const TAIL_LIFT_III = {TAIL_LIFT_III};")
     out.append(f"export const WINDOW_NECK = {json.dumps(WINDOW_NECK)};")
     out.append(f"export const WINDOW_HEAD = {json.dumps(WINDOW_HEAD)};")
@@ -616,14 +770,14 @@ def write_rig_ts(rigs):
 
 
 def main():
-    rigs = {t: json.load(open(os.path.join(OUT, f"rig_{t}.json"))) for t in ("i", "ii", "iii")}
+    rigs = {t: json.load(open(os.path.join(OUT, f"rig_{t}.json"))) for t in TAGS}
     rc, glow_list = render_controllers(rigs)
     anims = {}
     pre_all = pre_animation()
     # per-form variables are appended to the shared list: each line is cheap, and harmless
     # while another form is showing
     pre_form = []
-    for tag, fn in (("i", pose_i), ("ii", pose_ii), ("iii", pose_iii)):
+    for tag, fn in (("i", pose_i), ("ii", pose_ii), ("iii", pose_iii), ("iv", pose_iv)):
         pre, bones = fn(rigs[tag])
         pre_form += pre
         anims[f"animation.{NS}.{tag}.pose"] = {"loop": True, "bones": bones}
@@ -639,20 +793,20 @@ def main():
         "minecraft:client_entity": {"description": {
             "identifier": f"{NS}:{NS}",
             "materials": {"default": "entity_alphatest", "glow": "warden_bioluminescent_layer"},
-            "textures": {**{t: f"textures/entity/{NS}/{NS}_{t}" for t in ("i", "ii", "iii")},
-                         **{f"{t}_glow": f"textures/entity/{NS}/{NS}_{t}_glow" for t in ("i", "ii", "iii")}},
-            "geometry": {t: f"geometry.{NS}.{t}" for t in ("i", "ii", "iii")},
+            "textures": {**{t: f"textures/entity/{NS}/{NS}_{t}" for t in TAGS},
+                         **{f"{t}_glow": f"textures/entity/{NS}/{NS}_{t}_glow" for t in TAGS}},
+            "geometry": {t: f"geometry.{NS}.{t}" for t in TAGS},
             "scripts": {
                 "initialize": [init_all],
                 "pre_animation": pre_all + pre_form,
-                "animate": [{f"pose_{t}": f"v.form == {i}"} for i, t in enumerate(("i", "ii", "iii"), start=1)]
-                           + [{f"fx_{t}": f"v.form == {i} && {P('bound')}"} for i, t in enumerate(("i", "ii", "iii"), start=1)],
-                "scale": f"{P('form')} == 3 ? {SCALE['iii']} : ({P('form')} == 2 ? {SCALE['ii']} : {SCALE['i']})",
+                "animate": [{f"pose_{t}": f"v.form == {i}"} for i, t in enumerate(TAGS, start=1)]
+                           + [{f"fx_{t}": f"v.form == {i} && {P('bound')}"} for i, t in enumerate(TAGS, start=1)],
+                "scale": f"{P('form')} == 4 ? {SCALE['iv']} : ({P('form')} == 3 ? {SCALE['iii']} : ({P('form')} == 2 ? {SCALE['ii']} : {SCALE['i']}))",
                 "should_update_bones_and_effects_offscreen": "1.0",
                 "should_update_effects_offscreen": "1.0",
             },
-            "animations": {**{f"pose_{t}": f"animation.{NS}.{t}.pose" for t in ("i", "ii", "iii")},
-                           **{f"fx_{t}": f"controller.animation.{NS}.{t}.fx" for t in ("i", "ii", "iii")}},
+            "animations": {**{f"pose_{t}": f"animation.{NS}.{t}.pose" for t in TAGS},
+                           **{f"fx_{t}": f"controller.animation.{NS}.{t}.fx" for t in TAGS}},
             "particle_effects": {n: f"{NS}:{n}" for n in PARTICLES},
             "render_controllers": glow_list,
             "enable_attachables": False,
@@ -668,7 +822,7 @@ def main():
     os.makedirs(os.path.join(RP, "animation_controllers"), exist_ok=True)
     kit.write_json(os.path.join(RP, "animation_controllers", f"{NS}.animation_controllers.json"), {
         "format_version": "1.10.0",
-        "animation_controllers": {f"controller.animation.{NS}.{t}.fx": particle_controller(t) for t in ("i", "ii", "iii")}})
+        "animation_controllers": {f"controller.animation.{NS}.{t}.fx": particle_controller(t) for t in TAGS}})
 
     # the invisible hit-volume helper
     # (their client entities, one per size, are written by gen_hitbox.py; the empty geometry and its controller are here)
@@ -684,7 +838,7 @@ def main():
     # shared with the server rig and the Blockbench projects
     kit.write_json(os.path.join(OUT, "pose.json"), {"look": LOOK, "phase": PHASE, "knock_gap": KNOCK_GAP, "gait_dur": GAIT_DUR,
                                                     "stride_iii": STRIDE_III, "scale": SCALE})
-    for tag in ("i", "ii", "iii"):
+    for tag in TAGS:
         a = anims[f"animation.{NS}.{tag}.pose"]
         kit.write_json(os.path.join(OUT, f"bb_anims_{tag}.json"), {f"animation.{NS}.{tag}.pose": a})
     write_rig_ts(rigs)

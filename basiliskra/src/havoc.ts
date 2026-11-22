@@ -11,6 +11,7 @@ import { BlockVolume, Dimension, Entity, EntityDamageCause, Player } from "@mine
 import { CONFIG, PART_FAMILY, TYPE } from "./config";
 import { particle, sound, witnesses } from "./fx";
 import { add, dist, norm, type V3 } from "./vec";
+import { NATURAL_IDS, NEVER_IDS, STORAGE_IDS } from "./generated/ids";
 import { blockAt, isLoaded, isNaturalGround, isPlantBlock, isSolidBlock } from "./world";
 
 /** Never broken, in any mode. */
@@ -193,6 +194,75 @@ export function crush(dim: Dimension, pos: V3, forward: V3, front: number, halfW
     for (const p of debris.slice(0, 4)) particle(dim, "basiliskra:impact_debris", p, 72);
   }
   return broken;
+}
+
+// ---- whole volumes (Basiliskra IV) ----------------------------------------------------------------------
+// He is too big to clear block by block.  The engine can empty a box in one call, told only which block ids to
+// leave: those lists are made from the very patterns above (tools/kit/gen_ids.py), so the rules are the same.
+const HIS_GROUND = ["basiliskra:irradiated_soil", "basiliskra:irradiated_rock", "basiliskra:scarlet_trinitite", "basiliskra:glowing_slag", "basiliskra:cooled_slag"];
+const LIQUID = ["minecraft:air", "minecraft:water", "minecraft:flowing_water", "minecraft:lava", "minecraft:flowing_lava"];
+const keptLists = new Map<string, string[]>();
+function kept(ground: boolean): string[] {
+  const key = `${CONFIG.spareStorage}|${ground}`;
+  let list = keptLists.get(key);
+  if (!list) {
+    list = [...LIQUID, ...NEVER_IDS, ...(CONFIG.spareStorage ? STORAGE_IDS : []), ...(ground ? [...NATURAL_IDS, ...HIS_GROUND] : [])];
+    keptLists.set(key, list);
+  }
+  return list;
+}
+let fillRefused = false;
+
+/**
+ * Empty a box (corners inclusive).  What is never broken stays, storage stays when it is spared, water stays, and
+ * with `keepGround` so does the world's own ground.  Returns how many blocks went; -1 if the engine will not do it.
+ */
+export function clearBox(dim: Dimension, lo: V3, hi: V3, keepGround: boolean): number {
+  if (!wither()) return 0;
+  if (fillRefused) return -1;
+  try {
+    return dim.fillBlocks(new BlockVolume(lo, hi), "minecraft:air", { blockFilter: { excludeTypes: kept(keepGround) }, ignoreChunkBoundErrors: true }).getCapacity();
+  } catch (e) {
+    // an unloaded corner is not a refusal; anything else is, and the callers fall back to block-by-block work
+    if (!/Unloaded/i.test(String(e))) fillRefused = true;
+    return -1;
+  }
+}
+
+/**
+ * The slab ahead of Basiliskra IV, his own width, `depth` deep and `top` high: what is built or grown goes from
+ * the ground up, the world's own rock only from `rockFrom` above his feet (null: never; he is afloat).  A few
+ * engine calls.  Returns blocks cleared, or -1 if the engine refused.
+ */
+export function ploughBox(dim: Dimension, pos: V3, forward: V3, front: number, halfWidth: number, top: number, depth: number, rockFrom: number | null): number {
+  if (!wither()) return 0;
+  const lx = Math.abs(forward.z) * halfWidth + 1, lz = Math.abs(forward.x) * halfWidth + 1;
+  const y0 = Math.floor(pos.y);
+  let n = 0;
+  for (let d = 0; d < depth; d += 2) {
+    const cx = pos.x + forward.x * (front + d), cz = pos.z + forward.z * (front + d);
+    if (!isLoaded(dim, { x: cx, y: y0, z: cz })) continue;
+    const x0 = Math.floor(cx - lx), x1 = Math.floor(cx + lx), z0 = Math.floor(cz - lz), z1 = Math.floor(cz + lz);
+    const split = rockFrom === null ? top + 1 : Math.min(rockFrom, top + 1);
+    if (split > 0) {
+      const a = clearBox(dim, { x: x0, y: y0, z: z0 }, { x: x1, y: y0 + split - 1, z: z1 }, true);
+      if (a < 0) return -1;
+      n += a;
+    }
+    if (split <= top) {
+      const b = clearBox(dim, { x: x0, y: y0 + split, z: z0 }, { x: x1, y: y0 + top, z: z1 }, false);
+      if (b < 0) return -1;
+      n += b;
+    }
+  }
+  return n;
+}
+
+/** The noise of it. */
+export function ploughNoise(dim: Dimension, at: V3, broken: number): void {
+  sound(dim, "mob.wither.break_block", at, 128, 1, 0.55);
+  const n = Math.min(4, 1 + Math.floor(broken / 60));
+  for (let i = 0; i < n; i++) particle(dim, "basiliskra:impact_debris", { x: at.x + (i - n / 2) * 3, y: at.y + 2 + i * 3, z: at.z + (i % 2 ? 2 : -2) }, 96);
 }
 
 // ---- the shockwave -------------------------------------------------------------------------------------

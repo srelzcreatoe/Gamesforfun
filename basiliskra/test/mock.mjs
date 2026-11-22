@@ -375,6 +375,26 @@ class MockDimension {
     }
     return { getBlockLocationIterator: () => out[Symbol.iterator]() };
   }
+  /** The engine's fill: every block of the volume not excluded by the filter becomes `block` (loaded chunks only). */
+  fillBlocks(volume, block, o = {}) {
+    this.sim.work.queries++;
+    const lo = { x: Math.min(volume.from.x, volume.to.x), y: Math.min(volume.from.y, volume.to.y), z: Math.min(volume.from.z, volume.to.z) };
+    const hi = { x: Math.max(volume.from.x, volume.to.x), y: Math.max(volume.from.y, volume.to.y), z: Math.max(volume.from.z, volume.to.z) };
+    if (this.sim.refuseFill) throw new Error('EngineError: fill refused');
+    const id = typeof block === 'string' ? block : block.type?.id ?? block.id;
+    const skip = new Set(o.blockFilter?.excludeTypes ?? []);
+    let n = 0;
+    for (let x = lo.x; x <= hi.x; x++) for (let z = lo.z; z <= hi.z; z++) {
+      if (!this.isChunkLoaded({ x, y: lo.y, z })) { if (!o.ignoreChunkBoundErrors) throw new Error('UnloadedChunksError'); continue; }
+      for (let y = lo.y; y <= hi.y; y++) {
+        const was = this.sim.blockId(this.id, x, y, z);
+        if (was === id || skip.has(was)) continue;
+        this.sim.setBlock(this.id, x, y, z, id); n++;
+      }
+    }
+    this.sim.work.fills = (this.sim.work.fills ?? 0) + n;
+    return { getCapacity: () => n };
+  }
   getBlockFromRay(from, dir, o = {}) {
     this.sim.work.rays++;
     const max = o.maxDistance ?? 64;

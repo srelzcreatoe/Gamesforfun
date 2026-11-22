@@ -10,6 +10,7 @@
 import { Entity, EntityDamageCause, Player, world } from "@minecraft/server";
 import { CONFIG, KNOCK_GAP_TICKS, PROP, TICKS } from "../config";
 import { Act, Brain, Choice, anyoneNear, isNight, nearbyPlayers, pace, travel, wait, watchersNear } from "../brain";
+import { BeamSpec, BeamState, beamTick, clearRange } from "../beam";
 import { Creature, targetable } from "../creature";
 import { beamVars, flash, particle, players, sound, stopSound, witnesses } from "../fx";
 import { STANCE_III, STRIDE_III } from "../generated/rig";
@@ -24,15 +25,15 @@ import { blockAt, clearLine, idAt, isBreakableNatural, isLoaded, isNaturalGround
  * The atomic breath is one recording (basiliskra.iii.charge, then basiliskra.iii.beam): 6.86 s of charging, then
  * the shot at full force for 7.05 s and its fall.  The charge and the beam last exactly as long as it does.
  */
-const CHARGE_TICKS = 137, PLANT_TICKS = 14, LIGHT_END = 112;
-const FIRE_FULL = 141, FIRE_FADE = 14;
+export const CHARGE_TICKS = 137, PLANT_TICKS = 14, LIGHT_END = 112;
+export const FIRE_FULL = 141, FIRE_FADE = 14;
 const TIERS = {
   1: { range: 40, radius: 1.9, damage: 5, width: 2.4, carve: 2.0 },
   2: { range: 60, radius: 1.6, damage: 7, width: 1.9, carve: 2.6 },
   3: { range: 76, radius: 1.4, damage: 9, width: 1.6, carve: 3.1 },
 } as const;
-/** How deep a crater one landing place of the beam is blown to (blocks from where it first struck). */
-const CRATER = 6;
+/** What Basiliskra III must have done before he can become Basiliskra IV: days in this form, and beams fired. */
+export const IV_DAYS = 3, IV_BEAMS = 12;
 /** Closer than this (from the mouth) the beam is not his answer: he walks on you instead. */
 const BEAM_MIN = 14;
 /** Copper weathers and players wax it: all eight are the same rod to him. */
@@ -46,21 +47,21 @@ const WINDOW_STANDOFF = 23.6, WINDOW_EYE_LEFT = 2.1;
 const rodReady = new Map<string, number>();
 
 /** Players and creatures alike: what he may hunt. */
-type Quarry = Entity;
-const isPlayer = (e: Entity): e is Player => { try { return e.typeId === "minecraft:player"; } catch { return false; } };
-function headOf(e: Entity): V3 { try { return e.getHeadLocation(); } catch { return e.location; } }
+export type Quarry = Entity;
+export const isPlayer = (e: Entity): e is Player => { try { return e.typeId === "minecraft:player"; } catch { return false; } };
+export function headOf(e: Entity): V3 { try { return e.getHeadLocation(); } catch { return e.location; } }
 
 export class BrainThree extends Brain {
-  private beat = 0;
-  private stepAt = 0;
-  private prey: string | null = null;        // the one he remembers
-  private preyUntil = 0;
-  private recoverUntil = 0;
+  protected beat = 0;
+  protected stepAt = 0;
+  protected prey: string | null = null;        // the one he remembers
+  protected preyUntil = 0;
+  protected recoverUntil = 0;
   /** Creatures about him, looked up every two seconds. */
-  private mobs: Entity[] = [];
-  private mobsAt = -999;
-  private lastQuarry: string | null = null;
-  private roarSeed = 0;
+  protected mobs: Entity[] = [];
+  protected mobsAt = -999;
+  protected lastQuarry: string | null = null;
+  protected roarSeed = 0;
   /** Set when a charge is grounded: the ending listens for it. */
   groundedAt: { tick: number; rod: V3 } | null = null;
   /** The ending asks for a charge aimed at nothing in particular, beside the seam. */
@@ -72,10 +73,10 @@ export class BrainThree extends Brain {
     // a charge cut off (driven off, the quarry gone, the encounter's time up) takes its sound with it
     if (this.chargeSounding) { this.chargeSounding = false; stopSound(this.c.dim, "basiliskra.iii.charge", this.c.pos); }
   }
-  private chargeSounding = false;
+  protected chargeSounding = false;
 
   /** Creatures he could go after (not players): cached, the entity query runs every two seconds at most. */
-  private creatures(): Entity[] {
+  protected creatures(): Entity[] {
     if (!CONFIG.huntMobs) return [];
     if (this.now - this.mobsAt >= 40) { this.mobsAt = this.now; this.mobs = mobsNear(this.c.dim, this.c.pos, 72); }
     return this.mobs.filter(alive);
@@ -92,6 +93,12 @@ export class BrainThree extends Brain {
     if (this.wantCharge) {
       this.wantCharge = false;
       return { name: "charge", run: this.beam(null), limit: 40 * TICKS.second };
+    }
+    // left to himself long enough, with enough of his breath spent, he becomes the last thing he can be:
+    // three days as Basiliskra III and a dozen beams, then a night with someone near to see it
+    if (!rec.evolve && !rec.ending?.step && rec.mut.beams >= IV_BEAMS && now - rec.mut.formSince >= pace(IV_DAYS * TICKS.day) && isNight(tod) && anyoneNear(c, 140)) {
+      rec.evolve = { to: 4, step: 0, t0: now, at: { ...c.pos } };
+      return { name: "evolve", run: wait(900), limit: 900 };
     }
     const near = nearbyPlayers(c, 90);
     // he remembers who drew him here
@@ -171,7 +178,7 @@ export class BrainThree extends Brain {
     return true;
   }
 
-  private footfalls(): void {
+  protected footfalls(): void {
     const c = this.c;
     // where the client's walk cycle is (the same sum it does): the hit volumes on his legs follow it
     c.walkPhase = (((this.beat - 1) & 3) + clamp((c.travelled - this.stepAt) / (STRIDE_III / 4), 0, 1.15)) * 90;
@@ -203,7 +210,7 @@ export class BrainThree extends Brain {
     }
   }
 
-  private *roam(): Act {
+  protected *roam(): Act {
     const c = this.c;
     // he keeps near whoever is about (a Creative player too: he will not hunt them, but he stays where they are)
     const near = watchersNear(c, 110);
@@ -228,7 +235,7 @@ export class BrainThree extends Brain {
   }
 
   // ---- the eye at the window ------------------------------------------------------------------------
-  private indoors(p: Player): boolean {
+  protected indoors(p: Player): boolean {
     const c = this.c, head = p.getHeadLocation();
     let roof = false;
     for (let y = 1; y <= 7 && !roof; y++) roof = isSolidBlock(blockAt(c.dim, { x: head.x, y: head.y + y, z: head.z }));
@@ -244,7 +251,7 @@ export class BrainThree extends Brain {
    * Which way out of the room is there glass or an opening, how far off, and where is the middle of
    * the pane?  Of several, the one nearest to where he already is.
    */
-  private windowDir(p: Player): { dir: V3; reach: number; pane: V3 } {
+  protected windowDir(p: Player): { dir: V3; reach: number; pane: V3 } {
     const c = this.c, head = p.getHeadLocation();
     const toHim = norm({ x: c.pos.x - head.x, y: 0, z: c.pos.z - head.z });
     const glassy = (x: number, y: number, z: number) => /glass|iron_bars/.test(idAt(c.dim, { x, y, z }) ?? "");
@@ -275,7 +282,7 @@ export class BrainThree extends Brain {
   }
 
   /** Turn where he stands: the feet shuffle round, one planted at a time. */
-  private *face(target: V3, limit = 400): Act {
+  protected *face(target: V3, limit = 400): Act {
     const c = this.c;
     c.setPhase("move");
     for (let t = 0; t < limit; t++) {
@@ -291,7 +298,7 @@ export class BrainThree extends Brain {
     }
   }
 
-  private *window(p: Player): Act {
+  protected *window(p: Player): Act {
     const c = this.c;
     const ok = () => { try { return p.isValid && p.dimension.id === c.dim.id; } catch { return false; } };
     const { dir: out, pane } = this.windowDir(p);
@@ -354,7 +361,7 @@ export class BrainThree extends Brain {
   }
 
   // ---- he remembers you --------------------------------------------------------------------------------
-  private *remember(g: Player): Act {
+  protected *remember(g: Player): Act {
     const c = this.c;
     const ok = () => { try { return g.isValid && targetable(g) && g.dimension.id === c.dim.id; } catch { return false; } };
     c.halt();
@@ -376,7 +383,7 @@ export class BrainThree extends Brain {
   }
 
   /** After it: players at a walk he can keep up with, creatures until he is on them; whatever is underfoot is trodden. */
-  private *pursue(g: Quarry): Act {
+  protected *pursue(g: Quarry): Act {
     const c = this.c;
     const player = isPlayer(g);
     c.smash = true;
@@ -397,15 +404,15 @@ export class BrainThree extends Brain {
 
   // ---- grounding ------------------------------------------------------------------------------------------
   /** A point on the planted club that is above the ground it rests on. */
-  private clubTop(): V3 {
+  protected clubTop(): V3 {
     const k = this.c.anchor("club_core");
     return { x: k.x, y: Math.max(k.y, this.c.pos.y + 1.6), z: k.z };
   }
 
   /** Rods seen near the club during this charge, by layer: the whole reach is read once every twelve ticks. */
-  private rodSeen = new Map<string, V3>();
-  private rodLayer = 0;
-  private scanRods(layers = 1): void {
+  protected rodSeen = new Map<string, V3>();
+  protected rodLayer = 0;
+  protected scanRods(layers = 1): void {
     const c = this.c;
     const club = c.anchor("club_core");
     const y0 = Math.floor(c.pos.y), cx = Math.floor(club.x), cz = Math.floor(club.z);
@@ -421,7 +428,7 @@ export class BrainThree extends Brain {
     }
   }
   /** The nearest usable rod among those seen (still a rod, not recovering from the last strike). */
-  private findRod(): V3 | null {
+  protected findRod(): V3 | null {
     const c = this.c;
     const club = c.anchor("club_core");
     let best: V3 | null = null, bd = 1e9;
@@ -436,7 +443,7 @@ export class BrainThree extends Brain {
   }
 
   /** The discharge leaves one particular spike tip for the rod; the ridge collapses; the throat goes dark. */
-  private *ground(rod: V3): Act {
+  protected *ground(rod: V3): Act {
     const c = this.c;
     const top = { x: rod.x + 0.5, y: rod.y + 1, z: rod.z + 0.5 };
     let tip = c.anchor("spike_tip_0"), bd = 1e9;
@@ -472,7 +479,7 @@ export class BrainThree extends Brain {
   }
 
   // ---- the red beam -----------------------------------------------------------------------------------------
-  private *vent(): Act {
+  protected *vent(): Act {
     const c = this.c;
     c.setPhase("vent");
     for (let k = 0; k < 3; k++) {
@@ -534,7 +541,7 @@ export class BrainThree extends Brain {
       // a thin line down the path it will take: this is where not to be standing
       if (t % 2 === 0) {
         const { from, dir } = c.aim();
-        particle(c.dim, "basiliskra:beam_aim", from, 128, beamVars(dir, this.clearRange(from, dir, T.range), 0.22 + 0.5 * (t / lock)));
+        particle(c.dim, "basiliskra:beam_aim", from, 128, beamVars(dir, clearRange(c, from, dir, T.range), 0.22 + 0.5 * (t / lock)));
       }
       yield;
     }
@@ -553,10 +560,10 @@ export class BrainThree extends Brain {
       flash(c.dim, from, 56, { red: 1, green: 0.5, blue: 0.42 }, 0.03, 0.04, 0.3);
       shake(c, 96, 0.9, 0.5);
     }
-    const smash = wither();
     // where the beam is landing: it blasts out a crater there (it does not bore on for ever), the poison gathers
     // there, and when his aim moves on, so does the crater
-    let ground: V3 | null = null;
+    const st: BeamState = { ground: null };
+    const spec: BeamSpec = { ...T, fallout: [0, 3, 4, 5][tier], rough: tier === 1 };
     for (let t = 0; t < FIRE_FULL + FIRE_FADE; t++) {
       const fade = t < FIRE_FULL ? 1 : 1 - (t - FIRE_FULL) / FIRE_FADE;
       // the focused beam is walked slowly after its quarry; the raw one wanders where it will
@@ -566,95 +573,8 @@ export class BrainThree extends Brain {
         const rate = tier === 2 ? 0.22 : 0.3;
         c.lookYaw += clamp(want - c.lookYaw, -rate, rate);
       } else if (tier === 1) c.lookYaw = clamp(c.lookYaw + Math.sin(t * 0.09) * 0.12, -80, 80);
-      const sputter = tier === 1 && t % 17 >= 14;
-      const { from, dir } = c.aim();
-      // obstruction is decided here, once, and the damage, the destruction and the picture all use the same answer
-      let length: number = T.range;
-      let hitBlock: V3 | null = null;
-      if (isLoaded(c.dim, from)) {
-        try {
-          const hit = c.dim.getBlockFromRay(from, dir, { maxDistance: T.range, includeLiquidBlocks: false, includePassableBlocks: false });
-          if (hit) { hitBlock = hit.block.location; length = Math.max(1, dist(from, add(hit.block.location, { x: 0.5, y: 0.5, z: 0.5 })) - 0.4); }
-        } catch { length = 6; }
-      }
-      // never draw or burn into chunks that are not loaded
-      while (length > 4 && !isLoaded(c.dim, add(from, mul(dir, length)))) length -= 4;
-      const end = add(from, mul(dir, length));
-      if (!sputter) {
-        // it throbs, about as fast as a heart racing
-        const w = T.width * fade * (tier === 1 ? 0.85 + hash(t) * 0.4 : 1) * (1 + 0.14 * Math.sin(t * 1.25));
-        if (t % 5 === 0) particle(c.dim, "basiliskra:beam_ring", from, 144, beamVars(dir, length, w * 2.2));
-        if (t % 3 === 1) particle(c.dim, "basiliskra:beam_arc", from, 128, beamVars(dir, length, w));
-        if (t % 2 === 0) {
-          particle(c.dim, "basiliskra:beam_core", from, 160, beamVars(dir, length, w));
-          particle(c.dim, "basiliskra:beam_halo", from, 160, beamVars(dir, length, w * 2.4));
-          particle(c.dim, "basiliskra:beam_glow", from, 160, beamVars(dir, length, w * 5.2));
-        } else {
-          // it smokes and sheds embers all along its length
-          particle(c.dim, "basiliskra:beam_smoke", from, 128, beamVars(dir, length, w));
-          if (t % 4 === 1) particle(c.dim, "basiliskra:beam_embers", from, 128, beamVars(dir, length, w));
-        }
-        // scarlet winding round the core
-        const side = norm({ x: -dir.z, y: 0, z: dir.x });
-        const up = norm({ x: dir.y * side.z - dir.z * side.y, y: dir.z * side.x - dir.x * side.z, z: dir.x * side.y - dir.y * side.x });
-        for (let i = 0; i < 4; i++) {
-          const along = ((t * 2.3 + i * (length / 4)) % length);
-          const a = along * 1.1 + t * 0.9;
-          const r = w * 0.9 + 0.3;
-          particle(c.dim, "basiliskra:beam_spiral", add(add(from, mul(dir, along)), add(mul(side, Math.cos(a) * r), mul(up, Math.sin(a) * r))), 112);
-        }
-        if (hitBlock) {
-          if (t % 3 === 0) particle(c.dim, "basiliskra:beam_impact", end, 112);
-          if (t % 5 === 0) particle(c.dim, "basiliskra:impact_blast", end, 128);
-          if (t % 6 === 3) particle(c.dim, "basiliskra:impact_smoke", end, 144);
-          if (t % 7 === 0) particle(c.dim, "basiliskra:impact_fire", end, 112);
-          if (t % 4 === 2) particle(c.dim, "basiliskra:impact_glare", end, 160);
-          if (t % 10 === 5) particle(c.dim, "basiliskra:impact_ring", { x: end.x, y: end.y + 0.4, z: end.z }, 144);
-          if (t % 8 === 1) particle(c.dim, "basiliskra:impact_fountain", end, 144);
-          if (t % 10 === 0) sound(c.dim, "basiliskra.iii.beam_impact", end, 112);
-          if (!ground || dist(ground, hitBlock) > CRATER + 3) ground = hitBlock;
-          if (smash) {
-            // like the Wither: what his light meets is blown out of the world, and the edges burn
-            if (t % 4 === 0 && dist(ground, hitBlock) <= CRATER) {
-              const got = carve(c.dim, hitBlock, T.carve * fade + 0.5, 110, true);
-              if (got.broken) particle(c.dim, "basiliskra:impact_debris", end, 128);
-              sear(c.dim, got.floor, 5);                    // rock runs to glowing slag, sand fuses
-            }
-            if (t % 12 === 0) {
-              particle(c.dim, "minecraft:huge_explosion_emitter", end, 144);
-              sound(c.dim, "random.explode", end, 128, 1.4, 0.7 + hash(t, 3) * 0.2);
-            }
-            if (t % 8 === 4) blast(c.dim, end, T.carve + 3.5, 4, 12, 0.8, (p, n) => c.hurt(p, n), c.entity, end);
-          } else if (t % 6 === 0) this.scorch(hitBlock);
-          if (t % 6 === 0) {
-            addFallout(ground, [0, 3, 4, 5][tier] + (smash ? 1 : 0), 0.13);    // where his light lands, the ground is poisoned
-            if (CONFIG.fallout !== "off") particle(c.dim, "basiliskra:fallout_ash", end, 64);
-          }
-        }
-        if (t % 4 === 0) {
-          const reach = T.radius * Math.max(0.5, fade) + 0.4;
-          for (const p of players()) {
-            try {
-              if (p.dimension.id !== c.dim.id || !targetable(p)) continue;
-              const body = add(p.location, { x: 0, y: 0.9, z: 0 });
-              if (segDist(body, from, dir, length) > reach) continue;
-              // the nearest point of the beam must see the player: a wall he hugs from behind still shelters him
-              const along = clamp(dot(sub(body, from), dir), 0, Math.max(0, length - 0.6));
-              if (!clearLine(c.dim, add(from, mul(dir, along)), body)) continue;
-              c.hurt(p, T.damage, EntityDamageCause.entityAttack);
-              try { p.setOnFire(3, true); } catch { /* fire-proof */ }
-            } catch { /* left */ }
-          }
-          // and every creature in its path
-          for (const e of mobsNear(c.dim, add(from, mul(dir, length / 2)), length / 2 + 3)) {
-            try {
-              if (segDist(add(e.location, { x: 0, y: 0.6, z: 0 }), from, dir, length) > reach + 0.6) continue;
-              e.applyDamage(T.damage * 2, { cause: EntityDamageCause.entityAttack, damagingEntity: c.entity });
-              e.setOnFire(5, true);
-            } catch { /* gone */ }
-          }
-        }
-      }
+      // (the raw beam sputters: three ticks in every seventeen it is not there at all)
+      if (!(tier === 1 && t % 17 >= 14)) beamTick(c, spec, t, fade, st, { scorch: (hit) => this.scorch(hit) });
       if (t % 10 === 0) shake(c, 64, 0.32 * fade + 0.08, 0.6);
       yield;
     }
@@ -666,22 +586,8 @@ export class BrainThree extends Brain {
     yield* wait(40);
   }
 
-  /** How far along a line the way is clear (up to `max`), for drawing: never into a chunk that is not loaded. */
-  private clearRange(from: V3, dir: V3, max: number): number {
-    const c = this.c;
-    let length = max;
-    if (isLoaded(c.dim, from)) {
-      try {
-        const hit = c.dim.getBlockFromRay(from, dir, { maxDistance: max, includeLiquidBlocks: false, includePassableBlocks: false });
-        if (hit) length = Math.max(1, dist(from, add(hit.block.location, { x: 0.5, y: 0.5, z: 0.5 })) - 0.4);
-      } catch { length = 6; }
-    }
-    while (length > 4 && !isLoaded(c.dim, add(from, mul(dir, length)))) length -= 4;
-    return length;
-  }
-
   /** Mark what the beam touched.  Natural ground only; never a block with an inventory, a bed, a portal or redstone. */
-  private scorch(at: V3): void {
+  protected scorch(at: V3): void {
     if (CONFIG.terrain === "none") return;
     const c = this.c;
     // if what the beam met is not the world's own ground (glass, planks, a chest, anything built), nothing is touched
@@ -710,7 +616,7 @@ export class BrainThree extends Brain {
   }
 
   // ---- the ridge scatter ---------------------------------------------------------------------------------------
-  private *scatter(): Act {
+  protected *scatter(): Act {
     const c = this.c;
     c.halt();
     c.setPhase("scatter");

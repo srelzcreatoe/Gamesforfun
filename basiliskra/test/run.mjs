@@ -648,7 +648,7 @@ console.log('\n== 13. Spawn egg, the spawn command, the journal and the config w
   // the spawn command
   const w2 = start(); open(w2);
   const bo = w2.sim.addPlayer('Bo', { x: 0, y: 64, z: 0 }); bo.view = { x: 0, y: 0, z: 1 };
-  check('three commands are registered: spawn, journal, config', ['basiliskra:spawn', 'basiliskra:journal', 'basiliskra:config'].every((n) => w2.sim.commands.has(n)) && w2.sim.enums.get('basiliskra:form').join() === 'story,i,ii,iii');
+  check('three commands are registered: spawn, journal, config', ['basiliskra:spawn', 'basiliskra:journal', 'basiliskra:config'].every((n) => w2.sim.commands.has(n)) && w2.sim.enums.get('basiliskra:form').join() === 'story,i,ii,iii,iv');
   check('none of them needs cheats', [...w2.sim.commands.values()].every((c) => c.def.cheatsRequired === false));
   const r1 = w2.sim.runCommand('basiliskra:spawn', bo, 'ii'); w2.sim.step(3);
   const c2 = w2.bk.ctl.creature;
@@ -1167,6 +1167,10 @@ console.log('\n== 16. Calling, sending away, changing (1.4)');
     for (let i = 0; i < 400; i++) { w.sim.step(1); const c = w.bk.ctl.creature; maxCharge = Math.max(maxCharge, c.entity.getProperty(P('charge'))); forms.add(c.form); }
     check('Make him change now: the same animal becomes Basiliskra III, lit from tail to head as it happens', /changing into Basiliskra III/.test(msg) && w.bk.ctl.creature.entity.id === id0 && w.bk.ctl.creature.form === 3 && maxCharge === 20 && w.bk.store.rec.evolve === null, `${msg} charge ${maxCharge}`);
     check('the change is shown to those near, and it shakes the ground', op.cam.log.some((q) => q.preset) && op.seen.some((q) => q.id === 'basiliskra:mutate_gather') && op.seen.some((q) => q.id === 'basiliskra:mutate_burst'));
+    const msg4 = w.bk.ctl.evolveNow();
+    for (let i = 0; i < 400; i++) w.sim.step(1);
+    check('and again: the same animal becomes Basiliskra IV', /changing into Basiliskra IV/.test(msg4) && w.bk.ctl.creature.entity.id === id0 && w.bk.ctl.creature.form === 4 && w.bk.ctl.creature.entity.getProperty(P('form')) === 4
+      && w.bk.ctl.creature.entity.nameTag === 'Basiliskra IV', msg4);
     check('at his last form there is nothing further', /last form/.test(w.bk.ctl.evolveNow()));
   }
   // ---- brought by someone flying high above the ground: he is put on the ground, and still thinks ----
@@ -1304,6 +1308,292 @@ console.log('\n== 18. His themes, and his voice');
   ana.moveTo({ x: 0, y: 64, z: 0 }); w.sim.step(25);
   w.bk.ctl.sendAway(); w.sim.step(25);
   check('and when he is sent away it stops', ana.music === null);
+}
+
+console.log('\n== 19. Basiliskra IV');
+{
+  const PH = { charge: 18, fire: 19, vent: 20, roar: 23, stare: 29, skid: 30, pivot: 31, recoil: 32, drag: 33, swallow: 34, carry: 35 };
+  const fresh = (terrain = TERRAINS.flat) => {
+    const w = start(); w.sim.terrainFn = terrain; open(w);
+    const id = (x, y, z) => w.sim.blockId('minecraft:overworld', x, y, z);
+    return { w, id };
+  };
+  const phaseOf = (w) => w.bk.ctl.creature.entity.getProperty(P('phase'));
+  const hurtOf = (w, p, from = 0) => w.sim.log.damage.filter((d) => d.id === p.id && d.tick >= from).reduce((n, d) => n + d.amount, 0);
+  const debutDone = (w) => { w.bk.store.rec.four = { debut: true, shots: 0, plate: null }; };
+  const force = (w, name, run, limit = 4000) => { w.bk.ctl.brain.forced = { name, run, limit }; };
+
+  // ---- brought into the world; his entrance ----
+  {
+    const { w, id } = fresh();
+    const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 70 }); ana.mode = 'Creative';
+    const behind = w.sim.addPlayer('Behind', { x: 30, y: 64, z: -40 }); behind.mode = 'Spectator';        // (so that the ground under his tail is loaded too)
+    const said = w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 4);
+    w.sim.step(3);
+    const c = w.bk.ctl.creature;
+    check('he can be brought as Basiliskra IV: one of him, named, in his last form', /Basiliskra IV has come/.test(said) && w.sim.count(TYPE) === 1 && c.form === 4 && c.entity.getProperty(P('form')) === 4 && c.entity.nameTag === 'Basiliskra IV', said);
+    const parts = w.bk.creature.partsFor(4);
+    const tags = new Set(parts.map((q) => q.tag));
+    check('hit volumes cover him too: head, body, limbs (wings among them) and every part of the tail', ['head', 'body', 'limb', 'tail'].every((t) => tags.has(t)) && parts.some((q) => /^wing_/.test(q.bone)) && parts.some((q) => q.bone === 'club')
+      && parts.length >= 30 && parts.length <= 80 && w.sim.count('basiliskra:hitbox') === parts.length, `${parts.length} volumes, ${w.sim.count('basiliskra:hitbox')} entities`);
+    const nose = c.anchor('nose'), club = c.anchor('club_core'), top = c.anchor('plate_tip_0');
+    check('he is the size he is drawn: about fifty blocks to the eye, the club seventy behind him', nose.y - c.pos.y > 44 && nose.y - c.pos.y < 60 && club.z < -60 && top.y > c.pos.y + 30, `nose ${ (nose.y - c.pos.y).toFixed(1)} up, club at z ${club.z.toFixed(1)}`);
+    // the debut: a thin beam, quiet, the line popping into glass back toward him, and only then the roar
+    ana.heard.length = 0; ana.seen.length = 0;
+    const took = until(w, () => w.bk.store.rec.four?.debut === true, 900);
+    const heard = ana.heard.map((q) => q.id), pop0 = heard.indexOf('random.pop'), popN = heard.lastIndexOf('random.pop'), roar0 = heard.findIndex((q) => /^basiliskra\.roar/.test(q));
+    let glass = 0; for (let z = 30; z <= 66; z++) if (id(0, 63, z) === 'basiliskra:scarlet_trinitite') glass++;
+    for (let i = 0; i < 30; i++) w.sim.step(1);
+    const heard2 = ana.heard.map((q) => q.id);
+    check('his first act: a thin beam cuts a line across the ground toward whoever is watching', took > 0 && ana.seen.some((q) => q.id === 'basiliskra:beam_core') && ana.seen.some((q) => q.id === 'basiliskra:beam_impact'), `${took} ticks`);
+    check('the line pops into glass one block at a time', glass >= 20 && heard.filter((q) => q === 'random.pop').length >= 20, `${glass} blocks of trinitite, ${heard.filter((q) => q === 'random.pop').length} pops`);
+    check('and his first roar comes only after it', pop0 >= 0 && (roar0 < 0 || roar0 > popN) && heard2.includes('basiliskra.roar') && phaseOf(w) === PH.roar, `pops at ${pop0}..${popN}, the roar at ${heard2.indexOf('basiliskra.roar')}`);
+    check('his theme is the last one', (() => { for (let i = 0; i < 30; i++) w.sim.step(1); return ana.music?.id === 'basiliskra.music.last'; })(), JSON.stringify(ana.music));
+    w.bk.ctl.sendAway();
+  }
+
+  // ---- the stare ----
+  {
+    const { w } = fresh();
+    const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 80 }); ana.health = 1000;
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 4); w.sim.step(2); debutDone(w);
+    const b = w.bk.ctl.brain;
+    force(w, 'stare', b.stare(ana)); ana.effects = [];
+    let seen = false; for (let i = 0; i < 120; i++) { w.sim.step(1); if (phaseOf(w) === PH.stare) seen = true; }
+    const slow = (ana.effects ?? []).filter((e) => e.id === 'slowness');
+    check('the stare: he looks at one player, and that player can barely walk', seen && slow.length >= 5 && slow.every((e) => e.amplifier === 2 && e.duration <= 60) && hurtOf(w, ana) === 0 && ana.messages.some((m) => /looking at you/.test(m)),
+      `${slow.length} applications`);
+    for (let i = 0; i < 200; i++) w.sim.step(1);
+    const last = Math.max(...(ana.effects ?? []).filter((e) => e.id === 'slowness').map((e) => e.tick));
+    const n0 = (ana.effects ?? []).filter((e) => e.id === 'slowness').length;
+    for (let i = 0; i < 100; i++) w.sim.step(1);
+    check('when he looks away it wears off: nothing renews it', (ana.effects ?? []).filter((e) => e.id === 'slowness').length === n0 || w.sim.save.tick - last > 60, `last applied ${w.sim.save.tick - last} ticks ago`);
+    // something solid between you and his eye ends it early
+    force(w, 'stare', b.stare(ana));
+    for (let x = -30; x <= 30; x++) for (let y = 64; y <= 130; y++) w.sim.setBlock('minecraft:overworld', x, y, 50, 'minecraft:bedrock');
+    ana.effects = [];
+    for (let i = 0; i < 170; i++) w.sim.step(1);
+    check('behind something solid he cannot hold you', (ana.effects ?? []).filter((e) => e.id === 'slowness').length <= 1);
+    w.bk.ctl.sendAway();
+  }
+
+  // ---- he walks through the world, and every footfall is a crater ----
+  {
+    const { w, id } = fresh();
+    const ana = w.sim.addPlayer('Ana', { x: 40, y: 64, z: 60 }); ana.mode = 'Creative';
+    for (let x = -30; x <= 30; x++) for (let y = 64; y <= 96; y++) w.sim.setBlock('minecraft:overworld', x, y, 70, 'minecraft:stone_bricks');
+    w.sim.setBlock('minecraft:overworld', 2, 64, 72, 'minecraft:chest');
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 4); w.sim.step(2); debutDone(w);
+    const c = w.bk.ctl.creature, b = w.bk.ctl.brain;
+    force(w, 'walk', b.walk({ x: 0, y: 64, z: 130 }, 0.16, 6, 4000));
+    const gaits = new Set(); let lo = 99, hi = -99, ticks = 0;
+    for (; ticks < 3000 && c.pos.z < 122; ticks++) { w.sim.step(1); gaits.add(c.entity.getProperty(P('gait'))); lo = Math.min(lo, c.pos.y); hi = Math.max(hi, c.pos.y); }
+    let wall = 0, far = 0; for (let x = -9; x <= 9; x++) for (let y = 64; y <= 96; y++) if (id(x, y, 70) !== 'minecraft:air') wall++;
+    for (let y = 64; y <= 96; y++) if (id(30, y, 70) === 'minecraft:stone_bricks') far++;
+    let pits = 0, centre = 0; for (let z = 10; z <= 110; z++) { for (let x = -14; x <= 14; x++) if (id(x, 63, z) === 'minecraft:air') pits++; if (id(0, 63, z) !== 'minecraft:grass_block') centre++; }
+    check('he walks on two feet, left and right in turn', gaits.has(0) && gaits.has(1) && c.pos.z >= 122, `${ticks} ticks, z ${c.pos.z.toFixed(0)}`);
+    check('a wall thirty-three blocks high in his road is simply gone where he went through it; beside his road it stands', wall === 0 && far === 33, `${wall} left in his way, ${far} of 33 at the side`);
+    check('every footfall blows a crater in the ground', pits >= 60, `${pits} blocks of ground gone under his feet`);
+    check('he walks through, not down: the ground under his middle is whole and he never sank', centre === 0 && lo > 63.4 && hi < 66, `${centre} missing on his line, y ${lo.toFixed(1)}..${hi.toFixed(1)}`);
+    check('a chest in his road is left standing', id(2, 64, 72) === 'minecraft:chest');
+    // if the engine will not empty a box for him he still gets through, block by block
+    for (let x = -30; x <= 30; x++) for (let y = 64; y <= 80; y++) w.sim.setBlock('minecraft:overworld', x, y, 160, 'minecraft:stone_bricks');
+    w.sim.refuseFill = true;
+    ana.moveTo({ x: 40, y: 64, z: 150 }); w.sim.step(2);
+    force(w, 'walk', b.walk({ x: 0, y: 64, z: 200 }, 0.16, 6, 4000));
+    for (let i = 0; i < 3000 && c.pos.z < 190; i++) w.sim.step(1);
+    let low = 0; for (let x = -6; x <= 6; x++) for (let y = 64; y <= 80; y++) if (id(x, y, 160) !== 'minecraft:air') low++;
+    check('without the engine\'s fill he clears his road the slow way', c.pos.z >= 190 && low === 0, `z ${c.pos.z.toFixed(0)}, ${low} left`);
+    w.sim.refuseFill = false;
+    w.bk.ctl.sendAway();
+  }
+
+  // ---- the breath: from afar; the skid; the turn on the buried club ----
+  {
+    const { w } = fresh();
+    const far = w.sim.addPlayer('Far', { x: 0, y: 64, z: 135 }); far.health = 100000;
+    const anchor = w.sim.addPlayer('Watcher', { x: -40, y: 64, z: -20 }); anchor.mode = 'Creative';      // (keeps the ground he stands on loaded)
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 4); w.sim.step(2); debutDone(w);
+    const c = w.bk.ctl.creature, b = w.bk.ctl.brain;
+    const pick = b.choose();
+    check('he turns his breath on a player a hundred and twenty blocks from his mouth', pick?.name === 'beam' || pick?.name === 'stare', pick?.name);
+    const club0 = c.anchor('club_core');
+    const tail = w.sim.addPlayer('Tail', { x: club0.x + 2, y: 64, z: club0.z + 1 }); tail.health = 100000;
+    force(w, 'beam', b.breath(far));
+    const seen = new Set(); let fireAt = -1, liftAt = -1, sweepAt = -1, endAt = -1, bendAtLift = 0, yaw0 = c.yaw, z0 = c.pos.z, zSkid = 0, rMin = 1e9, rMax = 0, pivot = null, tailHurtBefore = 0;
+    for (let i = 0; i < 700; i++) {
+      w.sim.step(1);
+      const ph = phaseOf(w); seen.add(ph);
+      if (ph === PH.fire && fireAt < 0) { fireAt = i; yaw0 = c.yaw; z0 = c.pos.z; }
+      if (ph === PH.pivot && liftAt < 0) { liftAt = i; zSkid = c.pos.z; pivot = c.anchor('club_core'); }
+      if (ph === PH.pivot) {
+        if (sweepAt < 0 && Math.abs(c.yaw - yaw0) > 0.5) { sweepAt = i; bendAtLift = c.entity.getProperty(P('bend')); }
+        const r = Math.hypot(c.pos.x - pivot.x, c.pos.z - pivot.z); rMin = Math.min(rMin, r); rMax = Math.max(rMax, r);
+      }
+      if (sweepAt >= 0 && endAt < 0 && ph === PH.pivot) tailHurtBefore = hurtOf(w, tail);
+      if (liftAt >= 0 && endAt < 0 && ph === PH.fire) endAt = i;
+      if (ph === PH.roar) break;
+    }
+    const swung = Math.abs(((c.yaw - yaw0 + 540) % 360) - 180);
+    check('the breath is charged, fired, and after it he vents and roars', [PH.charge, PH.fire, PH.vent, PH.roar].every((p) => seen.has(p)) && hurtOf(w, far) > 0, [...seen].join(','));
+    check('it shoves him backward on his heels', seen.has(PH.skid) && z0 - zSkid > 1.2 && z0 - zSkid < 2.5, `${(z0 - zSkid).toFixed(2)} blocks`);
+    check('he plants the club and lifts a foot before he moves: the side is readable for more than a second', liftAt > 0 && sweepAt - liftAt >= 22 && Math.abs(bendAtLift) >= 20, `${sweepAt - liftAt} ticks of warning, bend ${bendAtLift}`);
+    check('then his whole body swings round the buried club, dragging the beam across the land', swung > 55 && swung < 85 && rMax - rMin < 1, `${swung.toFixed(0)} degrees, ${rMin.toFixed(1)}..${rMax.toFixed(1)} blocks from the club`);
+    check('beside the buried tail is the safe place, until he rips the club free', tailHurtBefore === 0 && hurtOf(w, tail) > 0, `${tailHurtBefore} before, ${hurtOf(w, tail)} after`);
+    w.bk.ctl.sendAway();
+  }
+
+  // ---- the misfire ----
+  {
+    const { w, id } = fresh();
+    const front = w.sim.addPlayer('Front', { x: 0, y: 64, z: 40 }); front.health = 100000;
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 4); w.sim.step(2); debutDone(w);
+    const c = w.bk.ctl.creature, b = w.bk.ctl.brain;
+    front.seen.length = 0;
+    const stops0 = w.sim.log.commands.filter((q) => /^stopsound/.test(q)).length;
+    b.chargeSounding = true;
+    force(w, 'misfire', b.misfire());
+    let rec = false; const from = [];
+    for (let i = 0; i < 150; i++) { w.sim.step(1); if (phaseOf(w) === PH.recoil) rec = true; }
+    for (const q of front.seen) if (q.id === 'basiliskra:beam_core') from.push(q.at ?? q.location ?? q.pos);
+    let holes = 0; for (let x = -70; x <= 70; x++) for (let z = -90; z <= -2; z++) if (id(x, 63, z) !== 'minecraft:grass_block') holes++;
+    let ahead = 0; for (let x = -40; x <= 40; x++) for (let z = 4; z <= 80; z++) if (id(x, 63, z) !== 'minecraft:grass_block') ahead++;
+    check('the shot that fails: the sound is cut, the wings take it, and thin beams go into the ground behind him', rec && w.sim.log.commands.filter((q) => /^stopsound/.test(q)).length > stops0 && from.length >= 40 && holes > 10,
+      `${from.length} thin beams drawn, ${holes} blocks of ground struck behind him`);
+    check('directly in front of his face nothing falls', hurtOf(w, front) === 0 && ahead === 0, `${hurtOf(w, front)} damage, ${ahead} blocks struck in front`);
+    w.bk.ctl.sendAway();
+  }
+
+  // ---- the beam he swallows ----
+  {
+    const { w } = fresh();
+    const p = w.sim.addPlayer('Hider', { x: 0, y: 64, z: 110 }); p.health = 100000;
+    const anchor = w.sim.addPlayer('Watcher', { x: -40, y: 64, z: 10 }); anchor.mode = 'Creative';
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 4); w.sim.step(2); debutDone(w);
+    const c = w.bk.ctl.creature, b = w.bk.ctl.brain;
+    force(w, 'beam', b.breath(p));
+    for (let i = 0; i < 50; i++) w.sim.step(1);
+    // the player reaches cover while he is still following with his eye
+    for (let x = -40; x <= 40; x++) for (let y = 64; y <= 130; y++) w.sim.setBlock('minecraft:overworld', x, y, 80, 'minecraft:bedrock');
+    const seen = new Set(); let pulses = 0, lastSeq = c.entity.getProperty(P('fx_seq')), fired = -1, sw = -1;
+    const shots0 = w.bk.store.rec.four.shots;
+    for (let i = 0; i < 700; i++) {
+      w.sim.step(1);
+      const ph = phaseOf(w); seen.add(ph);
+      if (ph === PH.swallow && sw < 0) sw = i;
+      const seq = c.entity.getProperty(P('fx_seq'));
+      if (seq !== lastSeq) { lastSeq = seq; if (c.entity.getProperty(P('fx_kind')) === 11) pulses++; }
+      if (ph === PH.fire && fired < 0) { fired = i; break; }
+    }
+    check('you reach cover while he charges: he shuts his mouth on it and carries it', sw >= 0 && seen.has(PH.carry) && !seen.has(PH.roar) && w.sim.log.commands.some((q) => /^stopsound .*iii\.charge/.test(q)), [...seen].join(','));
+    check('a red pulse climbs his neck every five seconds, and on the third he must let it go wherever he faces', pulses === 3 && fired > sw + 280 && w.bk.store.rec.four.shots === shots0 + 1 && hurtOf(w, p) === 0, `${pulses} pulses, fired ${fired - sw} ticks after swallowing`);
+    // and if he sees you first, he fires at once
+    for (let i = 0; i < 400; i++) w.sim.step(1);
+    for (let x = -40; x <= 40; x++) for (let y = 64; y <= 130; y++) w.sim.setBlock('minecraft:overworld', x, y, 80, 'minecraft:air');
+    p.moveTo({ x: 0, y: 64, z: c.pos.z + 110 }); anchor.moveTo({ x: -40, y: 64, z: c.pos.z + 10 }); w.sim.step(2);
+    b.cooldown.delete('swallow'); b.lastFailed = true;
+    force(w, 'beam', b.breath(p));
+    for (let i = 0; i < 50; i++) w.sim.step(1);
+    const wz = Math.round(c.pos.z + 70);
+    for (let x = -40; x <= 40; x++) for (let y = 64; y <= 130; y++) w.sim.setBlock('minecraft:overworld', x, y, wz, 'minecraft:bedrock');
+    let sw2 = -1; for (let i = 0; i < 120 && sw2 < 0; i++) { w.sim.step(1); if (phaseOf(w) === PH.carry) sw2 = i; }
+    for (let x = -40; x <= 40; x++) for (let y = 64; y <= 130; y++) w.sim.setBlock('minecraft:overworld', x, y, wz, 'minecraft:air');
+    const h0 = hurtOf(w, p); let at = -1;
+    for (let i = 0; i < 60 && at < 0; i++) { w.sim.step(1); if (phaseOf(w) === PH.fire) at = i; }
+    for (let i = 0; i < 60; i++) w.sim.step(1);
+    check('if he sees you before then, he fires the instant he does', sw2 >= 0 && at >= 0 && at <= 3 && hurtOf(w, p) > h0, `fired ${at} ticks after the cover was gone`);
+    w.bk.ctl.sendAway();
+  }
+
+  // ---- the plate ----
+  {
+    const { w, id } = fresh();
+    const p = w.sim.addPlayer('Sheltered', { x: 0, y: 64, z: 110 }); p.health = 100000;
+    const anchor = w.sim.addPlayer('Watcher', { x: -40, y: 64, z: 10 }); anchor.mode = 'Creative';
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 4); w.sim.step(2);
+    w.bk.store.rec.four = { debut: true, shots: 2, plate: null };
+    const c = w.bk.ctl.creature, b = w.bk.ctl.brain;
+    b.lastFailed = true;                                   // (so that this shot cannot be the one that fails)
+    force(w, 'beam', b.breath(p));
+    for (let i = 0; i < 60; i++) w.sim.step(1);
+    const P4 = w.bk.store.rec.four.plate;
+    let stood = 0; if (P4) for (let dx = -1; dx <= 1; dx++) for (let dy = 0; dy <= 4; dy++) if (id(P4.x + dx, P4.y + dy, P4.z) === 'basiliskra:scarlet_trinitite') stood++;
+    check('the third time he draws breath a plate cracks off his back and stands in the ground, taller than a player', !!P4 && stood === 8 && c.entity.getProperty(P('gill')) === true && Math.hypot(P4.x - c.pos.x, P4.z - c.pos.z) > 10,
+      P4 ? `${stood} blocks at ${P4.x},${P4.y},${P4.z}` : 'no plate');
+    b.finish(); w.sim.step(5);                             // (that breath is not needed for what follows)
+    // a player under a roof: hidden from his mouth high above, in plain sight of the plate
+    const q = { x: P4.x + 26, y: 64, z: P4.z };
+    p.moveTo(q);
+    for (let x = q.x - 22; x <= q.x + 22; x++) for (let z = q.z - 22; z <= q.z + 22; z++) w.sim.setBlock('minecraft:overworld', x, 72, z, 'minecraft:bedrock');
+    force(w, 'turn', b.turnTo({ x: c.pos.x, y: 64, z: c.pos.z + 50 }, 3, 300), 400); for (let i = 0; i < 200; i++) w.sim.step(1);
+    const mouth = c.anchor('mouth');
+    const hidden = !w.bk.world.clearLine(c.dim, mouth, p.getHeadLocation());
+    check('the plate sees whoever hides from his mouth', hidden && b.plateSees(p) === true, `hidden from the mouth: ${hidden}`);
+    const h0 = hurtOf(w, p);
+    force(w, 'beam', b.plateShot(p));
+    until(w, () => phaseOf(w) === PH.fire, 400); for (let i = 0; i < 130; i++) w.sim.step(1);
+    check('he fires into it, and it throws the beam at them', hurtOf(w, p) > h0 && w.bk.store.rec.four.plate.uses === 1, `${hurtOf(w, p) - h0} damage under the roof`);
+    for (let k = 0; k < 2; k++) { for (let i = 0; i < 200; i++) w.sim.step(1); force(w, 'beam', b.plateShot(p)); until(w, () => phaseOf(w) === PH.fire, 400); for (let i = 0; i < 130; i++) w.sim.step(1); }
+    let black = 0; for (let dx = -1; dx <= 1; dx++) for (let dy = 0; dy <= 4; dy++) if (id(P4.x + dx, P4.y + dy, P4.z) === 'basiliskra:cooled_slag') black++;
+    check('after three such shots it is burnt out, and stays, blackened', w.bk.store.rec.four.plate.burnt === true && black >= 6 && b.plateSees(p) === false, `${black} blocks blackened`);
+    w.bk.ctl.sendAway();
+  }
+
+  // ---- the seabed ----
+  {
+    const coast = (dim, x, y, z) => {
+      if (dim !== 'minecraft:overworld') return 'minecraft:air';
+      if (z < 0) return y <= 57 ? 'minecraft:sand' : y <= 62 ? 'minecraft:water' : 'minecraft:air';
+      return y > 63 ? 'minecraft:air' : y === 63 ? 'minecraft:sand' : 'minecraft:stone';
+    };
+    const { w, id } = fresh(coast);
+    const p = w.sim.addPlayer('Shore', { x: 0, y: 64, z: 26 }); p.health = 100000; p.mode = 'Creative';
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 40 }, 180, 4); w.sim.step(2); debutDone(w);
+    const c = w.bk.ctl.creature, b = w.bk.ctl.brain;
+    c.wade = true;
+    force(w, 'wade', b.walk({ x: 0, y: 58, z: -34 }, 0.2, 3, 3000));
+    for (let i = 0; i < 1500 && c.pos.z > -30; i++) w.sim.step(1);
+    p.mode = 'Survival';
+    const boat = w.sim.dims.get('minecraft:overworld').spawnEntity('minecraft:boat', { x: 6, y: 62.6, z: -4 });
+    check('standing in the shallows with someone on the beach, the seabed is his to throw', c.pos.z < -24 && c.pos.y < 60 && b.shoreVictim([p]) === p, `at z ${c.pos.z.toFixed(0)}, y ${c.pos.y.toFixed(1)}`);
+    const z0 = p.location.z, edits0 = [...w.sim.save.edits.keys()].filter((k) => !/^(placed|state|power)\|/.test(k)).length;
+    p.seen.length = 0;
+    force(w, 'drag', b.dragSeabed(p));
+    let dr = false, pushed = 0, edits1 = -1;
+    for (let i = 0; i < 460; i++) {
+      w.sim.step(1);
+      pushed = Math.max(pushed, boat.rec.vel.z, boat.rec.loc.z + 4);
+      if (phaseOf(w) === PH.drag) dr = true;
+      else if (dr && edits1 < 0) { edits1 = [...w.sim.save.edits.keys()].filter((k) => !/^(placed|state|power)\|/.test(k)).length; p.mode = 'Creative'; }
+    }
+    check('he reaches down, hauls, and a front of black water races up the beach', dr && p.seen.filter((q) => /^basiliskra:surge/.test(q.id)).length >= 100, `${p.seen.filter((q) => /^basiliskra:surge/.test(q.id)).length} bursts of spray`);
+    check('whoever stands in its path is hurt and swept inland', hurtOf(w, p) > 0 && p.location.z > z0 + 2.5, `moved ${(p.location.z - z0).toFixed(1)} blocks inland`);
+    check('boats are shoved up the shore; a cod is left flapping', pushed > 1 && w.sim.count('minecraft:cod') === 2 && w.sim.count('minecraft:boat') === 1, `boat pushed ${pushed.toFixed(1)}, ${w.sim.count('minecraft:cod')} cod`);
+    check('and not one block of water is moved: the map is not flooded', edits1 === edits0 && id(0, 60, -10) === 'minecraft:water' && id(0, 64, 10) === 'minecraft:air', `${edits1 - edits0} blocks changed`);
+    w.bk.ctl.sendAway();
+  }
+
+  // ---- how he comes to be ----
+  {
+    const { w } = fresh();
+    const ana = w.sim.addPlayer('Ana', { x: 30, y: 64, z: 30 }); ana.mode = 'Creative';
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 3); w.sim.step(2);
+    const rec = w.bk.store.rec, id0 = w.bk.ctl.creature.entity.id;
+    ana.use('basiliskra:journal'); w.sim.step(2);
+    const page3 = ana.forms[ana.forms.length - 1]?.body ?? '';
+    check('the journal says what would make Basiliskra III the last form: three days and a dozen beams', /Becoming Basiliskra IV/.test(page3) && /Three days as Basiliskra III/.test(page3) && /Beams fired 0 of 12/.test(page3));
+    rec.mut.beams = 12; rec.mut.formSince = rec.clock - 3 * 24000 - 10; w.sim.save.timeOfDay = 6000;
+    for (let i = 0; i < 200; i++) w.sim.step(1);
+    check('by day nothing happens', rec.form === 3 && !rec.evolve);
+    w.sim.save.timeOfDay = 15000;
+    const took = until(w, () => rec.form === 4 && !rec.evolve, 2400);
+    check('at night, with someone near, he changes: the same animal, Basiliskra IV', took > 0 && w.bk.ctl.creature.entity.id === id0 && w.bk.ctl.creature.form === 4 && ana.cam.log.some((q) => q.preset), `${took} ticks`);
+    check('and then makes his entrance', until(w, () => rec.four?.debut === true, 900) > 0);
+    ana.use('basiliskra:journal'); w.sim.step(2);
+    const page4 = ana.forms[ana.forms.length - 1]?.body ?? '';
+    check('the journal names his last form, and the last crossing is still offered', /Basiliskra IV is here/.test(page4) && /last form/.test(page4) && /last crossing/.test(page4));
+    check('the last crossing knows him as it knew Basiliskra III', w.bk.ctl.brain.wantCharge === false && typeof w.bk.ctl.brain.beam === 'function' && typeof w.bk.ctl.brain.walk === 'function' && 'groundedAt' in w.bk.ctl.brain);
+  }
 }
 
 console.log(`\n${results.length - failures}/${results.length} checks passed`);

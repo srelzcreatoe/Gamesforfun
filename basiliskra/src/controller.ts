@@ -11,6 +11,7 @@ import { Creature, partOwner } from "./creature";
 import { Ending } from "./ending";
 import { BrainOne } from "./forms/one";
 import { BrainThree } from "./forms/three";
+import { BrainFour } from "./forms/four";
 import { BrainTwo } from "./forms/two";
 import { beginTick, particle, players, sizeVars, sound } from "./fx";
 import { shake } from "./roar";
@@ -25,7 +26,7 @@ import { add, dist, distXZ, dot, forwardOf, hash, mul, norm, sub, wrapDeg, yawTo
 import { NONE, UNLOADED, blockAt, deepHere, groundY, isLoaded, isWaterId, overworld, waterColumn } from "./world";
 
 const TOKEN = "bk:token";
-const ROMAN = ["", "I", "II", "III"];
+const ROMAN = ["", "I", "II", "III", "IV"];
 
 /** A line for the players near something that just happened (an explicit action, never recurring). */
 function tellNear(dimId: string, at: V3, msg: string): void {
@@ -35,7 +36,7 @@ function tellNear(dimId: string, at: V3, msg: string): void {
 }
 const SPAWN_STEP = 3;
 /** The last form he can change into. */
-const MAX_FORM = 3;
+const MAX_FORM = 4;
 
 /** Places tried round a site in one full search for water (six a call, a call every five seconds). */
 const WATER_CANDIDATES = 60;
@@ -108,7 +109,7 @@ export class Controller {
    * here; otherwise a body here becomes him and the old one, wherever it lies, is removed when its chunk loads.
    * Never more than one.  Returns what happened, in words.
    */
-  bringHere(at: V3, yaw: number, want: 0 | 1 | 2 | 3, body?: Entity): string {
+  bringHere(at: V3, yaw: number, want: 0 | 1 | 2 | 3 | 4, body?: Entity): string {
     const rec = store.rec, dim = overworld();
     const form = this.formFor(want, at);
     if (form === 1) {
@@ -168,7 +169,7 @@ export class Controller {
   }
 
   /** Which form a call makes. */
-  private formFor(want: 0 | 1 | 2 | 3, at: V3): 1 | 2 | 3 {
+  private formFor(want: 0 | 1 | 2 | 3 | 4, at: V3): 1 | 2 | 3 | 4 {
     if (want) return want;
     const rec = store.rec;
     if (rec.born > 0) return rec.form;                 // he has been here: as he is in the story
@@ -192,9 +193,10 @@ export class Controller {
   }
 
   /** Change his form now, keeping him (the config wheel, /basiliskra:spawn with a form). */
-  private setForm(c: Creature, form: 1 | 2 | 3): void {
+  private setForm(c: Creature, form: 1 | 2 | 3 | 4): void {
     const rec = store.rec;
     rec.form = form; rec.mut.formSince = this.now; rec.evolve = null;
+    if (form === 4) rec.four = undefined;                  // he makes his entrance again
     c.form = form;
     try { c.entity.triggerEvent(`basiliskra:bind_${form}`); } catch { /* unloading */ }
     this.nameHim(c.entity);
@@ -290,7 +292,7 @@ export class Controller {
     if (rec.evolve) return "He is changing already.";
     if (rec.form >= MAX_FORM) return `Basiliskra ${ROMAN[rec.form]} is his last form.`;
     this.ending.reset();
-    rec.evolve = { to: (rec.form + 1) as 2 | 3, step: 0, t0: this.now, at: { ...c.pos } };
+    rec.evolve = { to: (rec.form + 1) as 2 | 3 | 4, step: 0, t0: this.now, at: { ...c.pos } };
     store.save();
     return `Basiliskra ${ROMAN[rec.form]} is changing into Basiliskra ${ROMAN[rec.form + 1]}.`;
   }
@@ -340,13 +342,14 @@ export class Controller {
 
   /** The stage of his life is his name: Basiliskra I, II, III.  It is what a death message says. */
   private nameHim(e: Entity): void {
-    try { e.nameTag = `Basiliskra ${["I", "II", "III"][store.rec.form - 1]}`; } catch { /* unloading */ }
+    try { e.nameTag = `Basiliskra ${ROMAN[store.rec.form]}`; } catch { /* unloading */ }
   }
 
   private makeBrain(c: Creature): Brain {
     // Form III's walk cycle is counted from the foot that landed last; a fresh brain starts one beat before the first
     if (c.form === 3) c.set(PROP.gait, 3);
-    return c.form === 1 ? new BrainOne(c) : c.form === 2 ? new BrainTwo(c) : new BrainThree(c);
+    if (c.form === 4) c.set(PROP.gait, 1);
+    return c.form === 1 ? new BrainOne(c) : c.form === 2 ? new BrainTwo(c) : c.form === 4 ? new BrainFour(c) : new BrainThree(c);
   }
 
   /** The only place the entity is ever created.  The reservation is already saved when this runs. */
@@ -676,7 +679,7 @@ export class Controller {
       // he is made behind it, unseen (the reservation simply waits if that place is not loaded yet)
       if (!this.creature) {
         const f = forwardOf(a.yaw);
-        const reach = [0, 14, 12, 30, 20][form];        // how far in front of his middle his nose is
+        const reach = [0, 14, 12, 30, 22][form];        // how far in front of his middle his nose is
         const back = add(at, mul(f, -(reach + 2)));
         if (!this.create(dim, { x: back.x, y: at.y + 1, z: back.z }, a.yaw)) return;
       }
@@ -886,7 +889,7 @@ export class Controller {
     const t = now - ev.t0;
     c.halt();
     // the change is a scene: light gathers on him and climbs his body, the ground shakes, and everyone near is shown it
-    const big = [0, 6, 9, 16, 26][ev.to] ?? 16;                         // roughly his size after it, in blocks
+    const big = [0, 6, 9, 16, 34][ev.to] ?? 16;                         // roughly his size after it, in blocks
     const heart = { x: c.pos.x, y: c.pos.y + big * 0.45, z: c.pos.z };
     const GATHER = 150;
     if (ev.step === 0) {
@@ -913,6 +916,7 @@ export class Controller {
         // the record changes first; the entity is then brought into line with it
         rec.form = ev.to;
         rec.mut.formSince = now;
+        if (ev.to === 4) rec.four = undefined;
         ev.step = 1; ev.t0 = now;
         store.save();
       }
@@ -928,7 +932,7 @@ export class Controller {
         this.brain = this.makeBrain(c);
         c.setPhase("beach");
         c.say("basiliskra.mutate", c.pos, 72, 1, 0.9);
-        addFallout(c.pos, rec.form === 3 ? 7 : 4, rec.form === 3 ? 0.9 : 0.45);     // the change poisons the ground it happens on
+        addFallout(c.pos, rec.form >= 3 ? 7 : 4, rec.form >= 3 ? 0.9 : 0.45);     // the change poisons the ground it happens on
         if (rec.form === 2) {
           // a crimson strip of shed fin lies where he struggled
           this.dropFin(c.dim, c.pos);
@@ -950,7 +954,9 @@ export class Controller {
       this.brain?.finish();
       // the change is over, and he says so: the whole roar as Basiliskra III, the short one, younger, as II
       const b = this.brain;
-      if (b instanceof BrainThree) b.forced = { name: "roar", run: b.roar(true), limit: 220 };
+      // (Basiliskra IV's first roar comes after his first beam: his brain begins with that)
+      if (b instanceof BrainFour) { /* his debut is his own */ }
+      else if (b instanceof BrainThree) b.forced = { name: "roar", run: b.roar(true), limit: 220 };
       else if (b instanceof BrainTwo) b.forced = { name: "roar", run: b.roar(), limit: 120 };
     }
   }

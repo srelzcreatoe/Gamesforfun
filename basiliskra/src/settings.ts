@@ -13,7 +13,7 @@ function clean(k: string, v: unknown): unknown {
     case "pacing": return typeof v === "number" && v >= 0.25 && v <= 4 ? v : undefined;
     case "damage": return typeof v === "number" && v >= 0 && v <= 4 ? v : undefined;
     case "terrain": return v === "none" || v === "scorch" || v === "break" || v === "wither" ? v : undefined;
-    case "spawnForm": return v === 0 || v === 1 || v === 2 || v === 3 ? v : undefined;
+    case "spawnForm": return v === 0 || v === 1 || v === 2 || v === 3 || v === 4 ? v : undefined;
     case "fallout": return v === "off" || v === "visual" || v === "land" ? v : undefined;
     default: return typeof v === "boolean" ? v : undefined;
   }

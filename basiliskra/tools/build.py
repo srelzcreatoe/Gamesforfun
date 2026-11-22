@@ -41,6 +41,7 @@ def main():
         run("python3", "tools/kit/build_models.py")          # second pass embeds the generated animations in the .bbmodel files
         run("python3", "tools/kit/gen_hitbox.py")
         run("python3", "tools/kit/gen_blocks.py")
+        run("python3", "tools/kit/gen_ids.py")
         run("python3", "tools/kit/gen_particles.py")
         run("python3", "tools/sound/synth.py")
     run("npx", "tsc", "--noEmit", "-p", ".")

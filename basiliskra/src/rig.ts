@@ -6,10 +6,10 @@
  * Model ("file") space: 1/16 block, +Y up, -Z is the animal's front, +X its left.
  *   v' = Rz(-rz) Ry(ry) Rx(-rx) (v - pivot) + pivot
  */
-import { BODY_DROP_III, RIGS, LOOK, SCALE, TAIL_LIFT_III, WINDOW_CROUCH_III, WINDOW_HEAD, WINDOW_NECK } from "./generated/rig";
+import { BODY_DROP_III, RIGS, LOOK, SCALE, TAIL_LIFT_III, WINDOW_CROUCH_III, WINDOW_HEAD, WINDOW_NECK, WING_FOLD } from "./generated/rig";
 import { D2R, forwardOf, leftOf, type V3 } from "./vec";
 
-export type Form = 1 | 2 | 3;
+export type Form = 1 | 2 | 3 | 4;
 export type PoseAdd = Record<string, [number, number, number]>;
 type Mat = number[];   // 3x4, row-major
 
@@ -49,7 +49,9 @@ function apply(m: Mat, p: number[]): number[] {
   ];
 }
 
-export interface PoseState { lookYaw: number; lookPitch: number; bend: number; pitch: number; charge?: number; drink?: number; window?: number }
+/** `wings`: how far Basiliskra IV's wings are open (0 folded .. 1 spread); `plant`: his club driven into the ground; `pivot`: turning on it. */
+export interface PoseState { lookYaw: number; lookPitch: number; bend: number; pitch: number; charge?: number; drink?: number; window?: number;
+                             wings?: number; plant?: number; pivot?: number }
 
 /** The steady-state pose the client settles into for these synchronised values. */
 export function poseOf(form: Form, s: PoseState): PoseAdd {
@@ -75,6 +77,18 @@ export function poseOf(form: Form, s: PoseState): PoseAdd {
     set("mid", 0, -s.bend * 0.5);
     set("hips", 0, -s.bend * 0.8);
     for (let i = 1; i <= 6; i++) set(`tail${i}`, 0, -s.bend * (0.5 + 0.1 * i));
+  } else if (form === 4) {
+    for (const n of ["neck1", "neck2"]) set(n, -2 * charge, 0);
+    set("head", -4 * charge, 0);
+    const plant = s.plant ?? 0, pivot = s.pivot ?? 0;
+    for (let i = 1; i <= 10; i++) set(`tail${i}`, i >= 5 ? -2.6 * plant : 0, -s.bend * (0.12 + 0.03 * i) * (1 - 0.7 * pivot));
+    // his wings are folded unless something has opened them
+    const fold = 1 - (s.wings ?? 0);
+    for (const [side, sg] of [["l", 1], ["r", -1]] as const) {
+      set(`wing_${side}`, 0, sg * WING_FOLD.root[0] * fold, sg * WING_FOLD.root[1] * fold);
+      set(`wing_${side}_arm`, 0, 0, sg * WING_FOLD.arm * fold);
+      WING_FOLD.fingers.forEach((a, i) => set(`wing_${side}_f${i + 1}`, 0, 0, sg * a * fold));
+    }
   } else {
     set("hips", 0, -s.bend * 0.3);
     const win = s.window ?? 0;

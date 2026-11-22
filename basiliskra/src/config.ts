@@ -28,7 +28,7 @@ export const CONFIG = {
   /** A spawn egg, /summon or /basiliskra:spawn brings the one Basiliskra to that place (false: they are removed). */
   allowSummon: true,
   /** What a spawn egg or /summon makes: 0 = his stage in the story (a new world: I in water, III on land), 1-3 = that form. */
-  spawnForm: 0 as 0 | 1 | 2 | 3,
+  spawnForm: 0 as 0 | 1 | 2 | 3 | 4,
   /** Every player gets the journal the first time they join with the pack on. */
   giveJournal: true,
   /** Operators (and the only player of a single-player world) also get the config wheel on first join. */
@@ -83,6 +83,8 @@ export const PHASE = {
   idle: 0, move: 1, arrive: 2, ram: 3, knock: 4, rise: 5, bite: 6, sweep: 7, jam: 8, spasm: 9, sleep: 10, wake: 11,
   evolve: 12, beach: 13, drink: 14, arc: 15, pin: 16, look: 17, charge: 18, fire: 19, vent: 20, grounded: 21,
   scatter: 22, roar: 23, crossing: 24, depart: 25, flinch: 26, window: 27, stalk: 28,
+  // Basiliskra IV
+  stare: 29, skid: 30, pivot: 31, recoil: 32, drag: 33, swallow: 34, carry: 35,
 } as const;
 export type PhaseName = keyof typeof PHASE;
 

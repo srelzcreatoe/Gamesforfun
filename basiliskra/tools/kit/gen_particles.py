@@ -260,6 +260,13 @@ EFFECTS = [
     scatter("impact_fountain", "spark", 14, 0.4, RAND(9, 22), RAND(0.6, 1.3), SHRINK(0.34), grad((0, WHITE), (0.3, HOT), (0.7, RED), (1, DEEP)),
             accel=[0, -18, 0], drag=0.4, material="particles_add",
             shape={"minecraft:emitter_shape_sphere": {"radius": 0.4, "direction": [RAND(-0.45, 0.45), 1, RAND(-0.45, 0.45)]}}),
+    # the seabed hauled ashore: black water, gravel and weed thrown up along the front of the wave
+    scatter("surge", "puff", 9, 1.2, RAND(2, 6), RAND(0.7, 1.4), GROW(1.0, 3.0),
+            grad((0, (0.08, 0.10, 0.13, 0.0)), (0.15, (0.08, 0.10, 0.13, 0.9)), (0.6, (0.16, 0.20, 0.22, 0.7)), (1, (0.3, 0.34, 0.36, 0))), accel=[0, -9, 0], drag=0.6,
+            shape={"minecraft:emitter_shape_sphere": {"radius": 1.2, "direction": [RAND(-0.5, 0.5), 1, RAND(-0.5, 0.5)]}}),
+    scatter("surge_spray", "drop", 12, 1.0, RAND(4, 10), RAND(0.6, 1.2), [PR(0.08, 0.2)] * 2,
+            grad((0, WATER), (0.7, WATER), (1, (0.7, 0.85, 1.0, 0))), accel=[0, -16, 0], drag=0.3,
+            shape={"minecraft:emitter_shape_sphere": {"radius": 1.0, "direction": [RAND(-0.7, 0.7), 1, RAND(-0.7, 0.7)]}}),
     # the roar: a ring of dust thrown out along the ground at the speed of the shockwave, and the ring itself
     wave("roar_wave", "puff", 110, 40, GROW(0.8, 2.6), DUST, accel=[0, 1.2, 0]),
     flat_ring("roar_ring", "ring", 40, grad((0, (1, 0.92, 0.86, 0.55)), (0.6, (1, 0.6, 0.5, 0.3)), (1, (0.8, 0.3, 0.25, 0)))),

@@ -35,7 +35,8 @@ import * as rig from "../src/rig";
 import * as fallout from "../src/fallout";
 import * as settings from "../src/settings";
 import * as ui from "../src/ui";
-(globalThis as any).__BK__ = { ctl, store, CONFIG, harm, partOwner, rig, fallout, settings, ui, creature, RIGS };
+import * as world from "../src/world";
+(globalThis as any).__BK__ = { ctl, store, CONFIG, harm, partOwner, rig, fallout, settings, ui, creature, RIGS, world };
 `);
 await build({
   entryPoints: [path.join(root, 'build/test-entry.ts')], bundle: true, format: 'iife', target: 'es2021',

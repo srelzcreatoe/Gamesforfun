@@ -31,7 +31,7 @@ export interface Rec {
   /** Identity: a random token written on the entity as well, and the engine's persistent entity id. */
   token: string;
   entityId: string | null;
-  form: 1 | 2 | 3;
+  form: 1 | 2 | 3 | 4;
   health: number;
   born: number;
   /** Where the seam opened (and must open again), and the way he faced as he came through. */
@@ -50,9 +50,15 @@ export interface Rec {
   pending: { site: V3; since: number; region: string; passes?: number } | null;
   /** `land`: he comes through a rift standing on land (a call from the config wheel), not through the water. */
   arrival: { step: number; t0: number; water: V3; yaw: number; land?: boolean } | null;
-  evolve: { to: 2 | 3; step: number; t0: number; at: V3 | null } | null;
+  evolve: { to: 2 | 3 | 4; step: number; t0: number; at: V3 | null } | null;
   ending: { step: number; t0: number; tries: number } | null;
   mut: { surfacings: number; episodes: number; overland: number; formSince: number; lastEncounter: number; beams: number };
+  /**
+   * Basiliskra IV.  `debut`: he has made his entrance (the beam, the quiet, the glass, the roar).  `plate`: where
+   * his broken dorsal plate stands in the ground, how many shots have been fired into it, and whether it is burnt out.
+   * `shots`: beams fired as IV.
+   */
+  four?: { debut: boolean; shots: number; plate: { x: number; y: number; z: number; uses: number; burnt: boolean } | null };
   learned: {
     bell: V3 | null; bellUses: number; lures: number; lureUntil: number; echoes: Record<string, number>;
     rods: number; fragments: number; fragmentAt: number;
@@ -84,7 +90,7 @@ export function migrate(raw: any): Rec {
   rec.learned = { ...base.learned, ...(raw.learned ?? {}) };
   if (!Array.isArray(rec.sites)) rec.sites = [];
   if (!Array.isArray(rec.fallout)) rec.fallout = [];
-  if (rec.form !== 1 && rec.form !== 2 && rec.form !== 3) rec.form = 1;
+  if (rec.form !== 1 && rec.form !== 2 && rec.form !== 3 && rec.form !== 4) rec.form = 1;
   const stages: Stage[] = ["dormant", "pending", "arriving", "alive", "departed"];
   if (!stages.includes(rec.stage)) rec.stage = rec.entityId ? "alive" : "dormant";
   // v1 kept the retired flag separately

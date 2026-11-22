@@ -281,6 +281,15 @@ export function fuse(b: Block): boolean {
   return setTypeOr(b, TRINITITE_BLOCK, "minecraft:smooth_basalt");
 }
 
+/** The world's own ground at a place turns to his glass (Basiliskra IV's first beam leaves a line of it).  True if it did. */
+export function glassify(dim: Dimension, at: V3): boolean {
+  if (CONFIG.fallout !== "land") return false;
+  const b = blockAt(dim, at);
+  if (!b || !isSolidBlock(b) || !isNaturalGround(b.typeId) || b.typeId === TRINITITE_BLOCK) return false;
+  if (touchesBuilt(dim, Math.floor(at.x), Math.floor(at.y), Math.floor(at.z))) return false;
+  return setTypeOr(b, TRINITITE_BLOCK, "minecraft:smooth_basalt");
+}
+
 /**
  * The floor of a crater the beam has just blown: rock runs to glowing slag, sand fuses to trinitite.  `floor`:
  * the places that were emptied; what lies under each is what is seared.  At most `max` blocks.

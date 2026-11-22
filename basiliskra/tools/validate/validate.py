@@ -198,7 +198,7 @@ for k, d in docs.items():
     anims.update(d.get("animations", {}) if "format_version" in d and "animations" in d and "minecraft:client_entity" not in d else {})
     actrl.update(d.get("animation_controllers", {}))
     rctrl.update(d.get("render_controllers", {}))
-tag_of = {"i": f"geometry.{NS}.i", "ii": f"geometry.{NS}.ii", "iii": f"geometry.{NS}.iii"}
+tag_of = {t: f"geometry.{NS}.{t}" for t in ("i", "ii", "iii", "iv")}
 for short, aid in ent.get("animations", {}).items():
     if aid.startswith("controller."):
         if aid not in actrl:
