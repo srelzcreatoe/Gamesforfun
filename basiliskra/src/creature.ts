@@ -8,56 +8,72 @@
  * his whole body.
  */
 import { Dimension, Entity, EntityDamageCause, GameMode, Player, system, world } from "@minecraft/server";
-import { CONFIG, HITBOX, PHASE, PROP, type PhaseName } from "./config";
+import { CONFIG, PHASE, PROP, hitboxId, type PhaseName } from "./config";
 import { particle, sound, witnesses } from "./fx";
 import { Skeleton, drawScale, poseOf, toWorld, type Form, type PoseAdd } from "./rig";
-import { BETA_III, LIFT_III, STANCE_MODEL_III } from "./generated/rig";
+import { BETA_III, LIFT_III, RIGS, STANCE_MODEL_III } from "./generated/rig";
 import { crush, wither } from "./havoc";
+import { Planner } from "./path";
 import { store } from "./store";
 import { add, clamp, dist, distXZ, forwardOf, leftOf, len, mul, norm, sub, turnTowards, wrapDeg, yawTo, type V3 } from "./vec";
-import { NONE, UNLOADED, blockAt, clearLine, footprintY, groundY, isLoaded, isSolidBlock, isWaterId, trunkBlocked, waterColumn, waterOver } from "./world";
+import { NONE, UNLOADED, blockAt, clearLine, footprintY, groundY, isLoaded, isNaturalGround, isPlantBlock, isSolidBlock, isWaterId, trunkBlocked, waterColumn, waterOver } from "./world";
 
 type Leg = "fl" | "fr" | "bl" | "br";
-/** `size`: edge of the cube in model blocks (scaled with the form).  `leg`: follows that leg's walk cycle (`swing` of it). */
-interface PartDef { bone: string; at: [number, number, number]; size: number; tag: "head" | "tail" | "limb" | "body"; leg?: Leg; swing?: number }
-/** Edges of the hit volume sizes the helper entity offers (packs/BP/entities/basiliskra_hitbox.json, size_0 ..). */
-const SIZES = [1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 9, 11, 13];
-const sizeIndex = (edge: number): number => {
-  let best = 0;
-  for (let i = 1; i < SIZES.length; i++) if (Math.abs(SIZES[i] - edge) < Math.abs(SIZES[best] - edge)) best = i;
-  return best;
-};
+type PartTag = "head" | "tail" | "limb" | "body";
+/** One hit volume: a cube of edge SIZES[si], centred on `at` (model units, in the bone's own frame). */
+interface PartDef { bone: string; at: [number, number, number]; si: number; tag: PartTag; leg?: Leg; swing?: number }
+/** Edges of the hit volume entities (basiliskra:hitbox_0 .., see tools/kit/gen_hitbox.py). */
+export const SIZES = [1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 9, 11, 13];
 
-/** Hit volumes along the body, in each bone's rest coordinates (model units). */
-const PARTS: Record<Form, PartDef[]> = {
-  1: [
-    { bone: "head", at: [0, 36, -70], size: 3.5, tag: "head" }, { bone: "head", at: [0, 36, -40], size: 4.5, tag: "head" },
-    { bone: "seg2", at: [0, 36, 72], size: 5.5, tag: "body" }, { bone: "seg4", at: [0, 36, 136], size: 4.5, tag: "body" },
-    { bone: "seg6", at: [0, 36, 200], size: 4.5, tag: "body" }, { bone: "seg8", at: [0, 36, 264], size: 3.5, tag: "tail" },
-    { bone: "seg10", at: [0, 36, 328], size: 2.5, tag: "tail" }, { bone: "tailfin", at: [0, 36, 376], size: 3.5, tag: "tail" },
-  ],
-  2: [
-    { bone: "head", at: [0, 84, -125], size: 4.5, tag: "head" }, { bone: "neck", at: [0, 84, -50], size: 4.5, tag: "head" },
-    { bone: "claw_l", at: [54, 6, -30], size: 2.5, tag: "limb" }, { bone: "claw_r", at: [-54, 6, -30], size: 2.5, tag: "limb" },
-    { bone: "forearm_l", at: [54, 40, -8], size: 2.5, tag: "limb" }, { bone: "forearm_r", at: [-54, 40, -8], size: 2.5, tag: "limb" },
-    { bone: "mid", at: [0, 60, 66], size: 6.5, tag: "body" }, { bone: "hips", at: [0, 38, 126], size: 5.5, tag: "body" },
-    { bone: "tail2", at: [0, 30, 192], size: 4.5, tag: "tail" }, { bone: "tail4", at: [0, 26, 248], size: 3.5, tag: "tail" },
-    { bone: "tail6", at: [0, 23, 304], size: 3.5, tag: "tail" }, { bone: "knob", at: [0, 32, 358], size: 4.5, tag: "tail" },
-  ],
-  3: [
-    { bone: "head", at: [0, 114, -262], size: 4.5, tag: "head" }, { bone: "neck4", at: [0, 114, -186], size: 4.5, tag: "head" },
-    { bone: "neck2", at: [0, 114, -152], size: 4.5, tag: "head" }, { bone: "chest", at: [0, 106, -96], size: 6.5, tag: "body" },
-    { bone: "hips", at: [0, 110, 78], size: 6.5, tag: "body" }, { bone: "body", at: [0, 104, -10], size: 6.5, tag: "body" },
-    // the legs: a volume at the knee and one at the sole, each carried with its own leg through the walk
-    { bone: "leg_fl_lower", at: [40, 40, -100], size: 3.5, tag: "limb", leg: "fl", swing: 0.5 }, { bone: "leg_fr_lower", at: [-40, 40, -100], size: 3.5, tag: "limb", leg: "fr", swing: 0.5 },
-    { bone: "leg_bl_lower", at: [40, 40, 84], size: 3.5, tag: "limb", leg: "bl", swing: 0.5 }, { bone: "leg_br_lower", at: [-40, 40, 84], size: 3.5, tag: "limb", leg: "br", swing: 0.5 },
-    { bone: "foot_fl", at: [40, 4, -112], size: 2.5, tag: "limb", leg: "fl", swing: 1 }, { bone: "foot_fr", at: [-40, 4, -112], size: 2.5, tag: "limb", leg: "fr", swing: 1 },
-    { bone: "foot_bl", at: [40, 4, 72], size: 2.5, tag: "limb", leg: "bl", swing: 1 }, { bone: "foot_br", at: [-40, 4, 72], size: 2.5, tag: "limb", leg: "br", swing: 1 },
-    { bone: "tail2", at: [0, 112, 158], size: 4.5, tag: "tail" }, { bone: "tail4", at: [0, 112, 219], size: 3.5, tag: "tail" },
-    { bone: "tail6", at: [0, 112, 278], size: 2.5, tag: "tail" }, { bone: "tail8", at: [0, 112, 336], size: 2.5, tag: "tail" },
-    { bone: "club", at: [0, 112, 374], size: 4.5, tag: "tail" },
-  ],
-};
+const partCache = new Map<Form, PartDef[]>();
+/**
+ * His hit volumes, hung on every solid part of the skeleton the model kit built (the box round each bone's
+ * flesh: `RIGS[form].boxes`), so that every form is covered from the tip of the nose to the end of the tail
+ * and nothing has to be kept in step by hand.  Big parts first; a part already inside what bigger ones cover
+ * gets none of its own; a part longer than it is thick gets a row of them.
+ */
+export function partsFor(form: Form): PartDef[] {
+  const hit = partCache.get(form);
+  if (hit) return hit;
+  const scale = drawScale(form), k = scale / 16;                 // model units -> blocks as he is drawn
+  const rest = new Skeleton(form, {});
+  const maxEdge = SIZES[SIZES.length - 1] / k / 1.02;
+  const bones = Object.entries(RIGS[form].boxes)
+    .map(([bone, [lo, hi]]) => ({ bone, lo, hi, d: [hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]] }))
+    .sort((p, q) => q.d[0] * q.d[1] * q.d[2] - p.d[0] * p.d[1] * p.d[2]);
+  const placed: { c: number[]; h: number }[] = [];               // in rest-pose model space: centre and half-edge
+  const inside = (p: number[]) => placed.some((b) => Math.abs(p[0] - b.c[0]) <= b.h && Math.abs(p[1] - b.c[1]) <= b.h && Math.abs(p[2] - b.c[2]) <= b.h);
+  const out: PartDef[] = [];
+  for (const { bone, lo, hi, d } of bones) {
+    const sorted = [...d].sort((x, y) => y - x), L = sorted[0], M = sorted[1];
+    if (L * k < 1.0) continue;                                    // an eye, a gill flap: not worth a volume
+    // is it already covered by what has been placed for bigger parts?
+    let got = 0, all = 0;
+    for (const fx of [0.1, 0.5, 0.9]) for (const fy of [0.1, 0.5, 0.9]) for (const fz of [0.1, 0.5, 0.9]) {
+      all++;
+      if (inside(rest.point(bone, [lo[0] + d[0] * fx, lo[1] + d[1] * fy, lo[2] + d[2] * fz]))) got++;
+    }
+    if (got / all >= 0.85) continue;
+    const edge = Math.min(L / M < 1.3 ? L : M, maxEdge);
+    let si = SIZES.findIndex((sz) => sz >= edge * k * 1.02);
+    if (si < 0) si = SIZES.length - 1;
+    const half = SIZES[si] / 2 / k;
+    const n = d.map((len) => Math.max(1, Math.ceil((len - edge * 0.2) / edge)));
+    const tag: PartTag = /^(head|jaw|neck)/.test(bone) ? "head" : /^(tail|club|knob|seg(8|9|10)$|tailfin)/.test(bone) ? "tail"
+      : /^(leg|foot|arm|forearm|claw|hand|wing|fin)/.test(bone) ? "limb" : "body";
+    const lm = form === 3 ? /^(?:leg|foot)_(fl|fr|bl|br)(_lower)?$/.exec(bone) : null;
+    const leg = lm ? (lm[1] as Leg) : undefined;
+    const swing = lm ? (bone.startsWith("foot") ? 1 : lm[2] ? 0.55 : 0.25) : undefined;
+    for (let ix = 0; ix < n[0]; ix++) for (let iy = 0; iy < n[1]; iy++) for (let iz = 0; iz < n[2]; iz++) {
+      const at = [ix, iy, iz].map((i, ax) => (n[ax] === 1 ? (lo[ax] + hi[ax]) / 2 : lo[ax] + edge / 2 + (i * (d[ax] - edge)) / (n[ax] - 1))) as [number, number, number];
+      out.push({ bone, at, si, tag, leg, swing });
+      placed.push({ c: rest.point(bone, at), h: half });
+    }
+  }
+  partCache.set(form, out);
+  return out;
+}
+
 /** Where each leg is in the four-beat cycle, relative to the left hind (the same offsets as the client walk). */
 const LEG_PHASE: Record<Leg, number> = { bl: 0, fl: 270, br: 180, fr: 90 };
 
@@ -103,7 +119,6 @@ export class Creature {
   afloat = false;
   private surfY: number | null | undefined = undefined;
   private partIds: (string | undefined)[] = [];
-  private partSize: number[] = [];
   /** Form III: where the walk cycle is, in degrees (0 = left hind landing), kept by the brain from its footfalls. */
   walkPhase = 0;
   /** Smash through what is built in his way (wither mode, Form III, set by the brain while he walks). */
@@ -242,9 +257,84 @@ export class Creature {
   goTo(target: V3, speed: number, arrive = 2): void {
     // a new destination starts with a clean slate: being stuck on the way to the last one says nothing about this one
     if (!this.goal || distXZ(this.goal, target) > 1.5) { this.blocked = 0; this.steerOff = 0; this.steerSide = 0; this.steerAt = -99; this.goalWalled = false; }
+    // a route belongs to the place it leads to (a pause on the way there does not lose it)
+    if (!this.routeGoal || distXZ(this.routeGoal, target) > 1.5) { this.route = []; this.planner = null; this.routeGoal = { ...target }; this.planAt = -999; }
     this.goal = target; this.goalSpeed = speed; this.arriveDist = arrive;
   }
   halt(): void { this.goal = null; this.goalSpeed = 0; this.blocked = 0; this.steerOff = 0; this.steerSide = 0; this.goalWalled = false; }
+
+  // ---- a way round -------------------------------------------------------------------------------
+  private planner: Planner | null = null;
+  private route: V3[] = [];
+  private routeGoal: V3 | null = null;
+  private planAt = -999;
+  private planSeen = new Map<string, boolean>();
+  /** He has been stopped and is working out another way: not the moment to give up on him. */
+  get planning(): boolean { return this.planner !== null; }
+  private cell(): number { return this.form === 1 ? 5 : Math.max(4, Math.round(MOVE[this.form].radius)); }
+
+  /** Could his middle be at x,z, coming from height y?  The floor (or swimming height) there, or null. */
+  private passable = (x: number, z: number, y: number, fx: number, fz: number): number | null | false => {
+    const n = Math.max(1, Math.ceil(Math.hypot(x - fx, z - fz)));
+    if (this.form === 1) {
+      // water all the way there, deep enough to carry him
+      for (let i = 1; i <= n; i += 2) {
+        const col = waterColumn(this.dim, fx + ((x - fx) * i) / n, fz + ((z - fz) * i) / n, y + 2, 10, 28);
+        if (col === UNLOADED || col === NONE || col.surface - col.floor < 3.5) return i >= n - 1 ? null : false;
+      }
+      return y;
+    }
+    const b = BODY[this.form as 2 | 3];
+    const g = groundY(this.dim, x, z, y + b.top, DROP + b.top);
+    if (typeof g !== "number") return null;
+    // room for the whole of him with a little to spare (a route that shaves the end of a wall is no route): every
+    // column under his body is looked at once per search (neighbouring cells share most of them)
+    const R = MOVE[this.form].radius + 1.5, hy = Math.floor(g + b.built[0]);
+    const cx = Math.floor(x), cz = Math.floor(z), n0 = Math.ceil(R);
+    for (let dx = -n0; dx <= n0; dx++) for (let dz = -n0; dz <= n0; dz++) {
+      if (dx * dx + dz * dz > R * R) continue;
+      const key = `${cx + dx},${hy},${cz + dz}`;
+      let wall = this.planSeen.get(key);
+      if (wall === undefined) {
+        const q = blockAt(this.dim, { x: cx + dx, y: hy, z: cz + dz });
+        wall = !!q && isSolidBlock(q) && !isPlantBlock(q.typeId) && !isNaturalGround(q.typeId);
+        this.planSeen.set(key, wall);
+      }
+      if (wall) return null;
+    }
+    if (trunkBlocked(this.dim, { x, y: g, z }, g, MOVE[this.form].radius, [], b.cliff, true)) return null;      // a cliff face
+    if (!this.wade && waterOver(this.dim, x, z, g, b.wade)) return null;
+    if (g - y > b.climb + this.cell() * 0.5) return false;
+    // nothing built standing across the line from there to here (a wall one block thick is still a wall)
+    for (let i = 1; i < n; i++) {
+      const px = fx + ((x - fx) * i) / n, pz = fz + ((z - fz) * i) / n;
+      for (const h of b.built) {
+        const q = blockAt(this.dim, { x: px, y: Math.max(y, g) + h, z: pz });
+        if (q && isSolidBlock(q) && !isPlantBlock(q.typeId)) return false;
+      }
+    }
+    return g;
+  };
+
+  /** Stopped for a while with somewhere to be: look for a route.  A few questions of the world a tick. */
+  private plan(): void {
+    if (this.planner) {
+      this.blocked = Math.min(this.blocked, 20);                    // those who wait on him wait a little longer
+      if (!this.planner.step(this.form === 3 ? 5 : 8)) return;
+      this.route = this.planner.path;
+      this.planner = null;
+      this.planAt = this.tick;
+      this.blocked = this.route.length ? 0 : Math.max(this.blocked, 60);
+      this.steerOff = 0; this.steerSide = 0; this.goalWalled = false;
+      return;
+    }
+    if (!this.goal || this.blocked < 14 || this.route.length || this.tick - this.planAt < 80 || this.smashing()) return;
+    // (Basiliskra I with his head through a gap and his shoulders caught is meant to jam there, not to find a way)
+    if (this.form === 1 && this.blockedWhy === "wall") return;
+    if (this.blockedWhy === "unloaded") return;
+    this.planSeen.clear();
+    this.planner = new Planner(this.passable, this.cell(), { ...this.pos }, this.goal, 84);
+  }
   arrived(): boolean { return !this.goal || distXZ(this.pos, this.goal) <= this.arriveDist; }
 
   // ---- walls -----------------------------------------------------------------------------------
@@ -252,8 +342,9 @@ export class Creature {
     const b = BODY[this.form as 2 | 3];
     // afloat, a bank is judged from the water line, not from the depth he hangs at: he can haul out over a low one
     const feet = this.afloat && this.surfY != null ? Math.max(this.pos.y, this.surfY - 1.2) : this.pos.y;
-    // smashing his way, only the world's own rock turns him: what is built is in front of him, not in his way
-    return trunkBlocked(this.dim, at, feet, MOVE[this.form].radius, b.built, b.cliff, full, this.smashing());
+    // ploughing through (wither mode), nothing above the ground he walks on is in his way: it is in front of him
+    if (this.smashing()) return false;
+    return trunkBlocked(this.dim, at, feet, MOVE[this.form].radius, b.built, b.cliff, full);
   }
 
   /** Is there room for his middle here (used by the few moves that carry him without stepping)? */
@@ -265,18 +356,37 @@ export class Creature {
     return true;
   }
 
-  private smashing(): boolean { return this.smash && this.form === 3 && wither(); }
+  private smashing(): boolean { return this.smash && this.form >= 3 && wither(); }
 
-  /** Clear what is built in the slab in front of his shoulders.  Cheap probe first; the slab only when it is needed. */
+  /**
+   * He walks THROUGH what stands in his path.  In a slab ahead of his shoulders, as wide as he is and as high as
+   * his back: everything built and everything grown goes, from the ground up; and the world's own rock goes
+   * where it rises higher than he can step (a cliff is cut down to a step; a slope is simply walked up).  The
+   * ground he walks on is never touched, so he does not sink.  A cheap probe first; the slab is only read when
+   * the probe finds something standing in it.
+   */
   private crushAhead(): void {
     if (this.tick - this.crushAt < 3) return;
-    const b = BODY[3];
-    const ahead = add(this.pos, mul(this.forward, b.front));
-    if (!trunkBlocked(this.dim, ahead, this.pos.y, MOVE[3].radius * 0.8, b.built, 99, false)) return;
+    const b = BODY[this.form as 2 | 3], r = MOVE[this.form].radius;
+    const top = Math.round(9.6 * this.scale), step = Math.floor(b.climb) - 1;
+    const f = this.forward, l = leftOf(this.yaw);
+    let found = false;
+    probe: for (const s of [b.front, b.front + 2]) for (const side of [-0.8, 0, 0.8]) for (const h of [1.2, step + 0.5, top * 0.55, top - 1]) {
+      const q = blockAt(this.dim, { x: this.pos.x + f.x * s + l.x * side * r, y: this.pos.y + h, z: this.pos.z + f.z * s + l.z * side * r });
+      if (!q || q.isAir || q.isLiquid) continue;
+      // the ground itself rising gently in front of him is not something in his way
+      if (h < step && isNaturalGround(q.typeId) && !isPlantBlock(q.typeId)) continue;
+      found = true;
+      break probe;
+    }
+    if (!found) return;
     this.crushAt = this.tick;
-    const broke = crush(this.dim, this.pos, this.forward, b.front - 1, Math.round(MOVE[3].radius * 0.85), 1, Math.round(9.6 * this.scale), 3, 96);
-    if (broke) this.speed *= 0.7;           // it costs him something
+    const loud = this.tick - this.crushSoundAt >= 14;
+    // (swimming or wading, where he "stands" is not the ground: the shore ahead is something to climb, not to cut)
+    const broke = crush(this.dim, this.pos, this.forward, b.front - 2, Math.ceil(r) + 1, 0, top, 5, 170, this.afloat || this.inDeep() ? null : step, loud);
+    if (broke) { this.speed *= 0.8; if (loud) this.crushSoundAt = this.tick; }      // it costs him a little
   }
+  private crushSoundAt = -99;
 
   /** Water deeper than this form wades: Form II drags through shallows, Form III stands belly-deep. */
   private tooDeep(at: V3, floorY: number): boolean {
@@ -312,7 +422,7 @@ export class Creature {
       this.steerAt = this.tick;
       let off = 0;
       if (this.clearAlong(want, d + 1)) this.steerSide = 0;
-      else if (d < 16 && this.walled(this.goal!, false)) this.goalWalled = true;      // the goal itself is inside something
+      else if (!this.route.length && d < 16 && this.walled(this.goal!, false)) this.goalWalled = true;      // the goal itself is inside something
       else {
         const sides = this.steerSide ? [this.steerSide, -this.steerSide] : (wrapDeg(this.yaw - want) >= 0 ? [1, -1] : [-1, 1]);
         search: for (const a of [25, 50, 75, 100, 130]) for (const s of sides) {
@@ -348,6 +458,7 @@ export class Creature {
     if (g === NONE) { this.blockedWhy = "edge"; return null; }
     // leaving the water, the bank under his middle is where he stands, whatever the water round it says
     if (floatY !== null && (g as number) <= floatY + 0.01 && typeof mid === "number" && mid > floatY) g = mid;
+
     const rise = (g as number) - this.pos.y;
     const swims = floatY !== null && (g as number) <= floatY + 0.01 && isWaterId(blockAt(this.dim, { x: next.x, y: floatY, z: next.z })?.typeId);
     if (!swims && rise > (this.afloat ? lim + 1.6 : BODY[this.form as 2 | 3].climb)) { this.blockedWhy = "climb"; return null; }
@@ -401,10 +512,14 @@ export class Creature {
   private locomote(): number {
     const m = MOVE[this.form];
     let wantSpeed = 0;
+    this.plan();
     if (this.goal) {
       const d = distXZ(this.pos, this.goal);
       if (d > this.arriveDist) {
-        const want = this.steer(yawTo(this.pos, this.goal), d);
+        // with a route, its next way-point is where he heads; without one, the place itself
+        while (this.route.length && distXZ(this.pos, this.route[0]) < this.cell() * 0.8) this.route.shift();
+        const via = this.route.length ? this.route[0] : this.goal;
+        const want = this.steer(yawTo(this.pos, via), this.route.length ? distXZ(this.pos, via) : d);
         const off = Math.abs(wrapDeg(want - this.yaw));
         this.yaw = turnTowards(this.yaw, want, m.turn);
         // slow into a turn he cannot make: the wide turn a boat can cut inside
@@ -463,7 +578,7 @@ export class Creature {
 
   // ---- hit volumes ----------------------------------------------------------------------------
   private syncParts(): void {
-    const defs = PARTS[this.form];
+    const defs = partsFor(this.form);
     for (let i = 0; i < defs.length; i++) {
       const d = defs[i];
       let c = this.point(d.bone, d.at);
@@ -473,7 +588,7 @@ export class Creature {
         const k = (d.swing ?? 1) * this.scale / 16;
         c = add(add(c, mul(this.forward, fwd * k)), { x: 0, y: up * k, z: 0 });
       }
-      const si = sizeIndex(d.size * this.scale);
+      const si = d.si;
       const s = SIZES[si];
       // the box stands on its lowest point: a foot's box starts at the ground it stands on, never below it
       const at = { x: c.x, y: Math.max(c.y - s / 2, this.pos.y - 0.25), z: c.z };
@@ -484,9 +599,7 @@ export class Creature {
         if (this.partIds[i]) { partOwner.delete(this.partIds[i]!); this.partIds[i] = undefined; }
         if (!isLoaded(this.dim, at)) continue;
         try {
-          part = this.dim.spawnEntity(HITBOX, at);
-          part.triggerEvent(`basiliskra:size_${si}`);
-          this.partSize[i] = si;
+          part = this.dim.spawnEntity(hitboxId(si), at);
           partOwner.set(part.id, { creature: this, tag: d.tag });
           this.parts[i] = part;
           this.partIds[i] = part.id;
@@ -494,7 +607,6 @@ export class Creature {
         } catch { this.parts[i] = undefined; }
         continue;
       }
-      if (this.partSize[i] !== si) { try { part!.triggerEvent(`basiliskra:size_${si}`); this.partSize[i] = si; } catch { /* gone */ } }
       const last = this.partPos[i];
       if (!last || dist(last, at) > 0.2) {
         try { part!.teleport(at); this.partPos[i] = at; } catch { this.parts[i] = undefined; }
@@ -518,10 +630,36 @@ export class Creature {
     this.parts.length = 0;
   }
 
+  /**
+   * Where a ray (a player's reach along their line of sight) first meets one of his hit volumes: the distance
+   * along it and which part, or null.  The boxes are where they were last put (the same ones the game is hit on).
+   */
+  rayHit(from: V3, dir: V3, reach: number): { dist: number; tag: PartTag } | null {
+    const defs = partsFor(this.form);
+    let best: { dist: number; tag: PartTag } | null = null;
+    for (let i = 0; i < defs.length; i++) {
+      const at = this.partPos[i];
+      if (!at) continue;
+      const h = SIZES[defs[i].si] / 2;
+      const lo = [at.x - h, at.y, at.z - h], hi = [at.x + h, at.y + 2 * h, at.z + h];
+      const o = [from.x, from.y, from.z], d = [dir.x, dir.y, dir.z];
+      let t0 = 0, t1 = reach, ok = true;
+      for (let a = 0; a < 3 && ok; a++) {
+        if (Math.abs(d[a]) < 1e-9) { if (o[a] < lo[a] || o[a] > hi[a]) ok = false; continue; }
+        let ta = (lo[a] - o[a]) / d[a], tb = (hi[a] - o[a]) / d[a];
+        if (ta > tb) { const s = ta; ta = tb; tb = s; }
+        t0 = Math.max(t0, ta); t1 = Math.min(t1, tb);
+        if (t0 > t1) ok = false;
+      }
+      if (ok && (!best || t0 < best.dist)) best = { dist: t0, tag: defs[i].tag };
+    }
+    return best;
+  }
+
   /** Centre and radius of each body volume, for contact checks. */
-  volumes(): { at: V3; r: number; tag: PartDef["tag"] }[] {
+  volumes(): { at: V3; r: number; tag: PartTag }[] {
     const k = this.scale;
-    const out = PARTS[this.form].map((d) => ({ at: this.point(d.bone, d.at), r: SIZES[sizeIndex(d.size * k)] / 2, tag: d.tag }));
+    const out = partsFor(this.form).map((d) => ({ at: this.point(d.bone, d.at), r: SIZES[d.si] / 2, tag: d.tag as PartTag }));
     const trunk = this.form === 1 ? { h: 4.4, r: 3.0 } : this.form === 2 ? { h: 7.2 * k, r: 3.3 * k } : { h: 9.6 * k, r: 4.3 * k };
     out.push({ at: { x: this.pos.x, y: this.pos.y + trunk.h / 2, z: this.pos.z }, r: trunk.r, tag: "body" });
     return out;
@@ -593,7 +731,7 @@ export class Creature {
 }
 
 /** Hit volume entity id -> the creature it belongs to. */
-export const partOwner = new Map<string, { creature: Creature; tag: PartDef["tag"] }>();
+export const partOwner = new Map<string, { creature: Creature; tag: PartTag }>();
 
 export function targetable(p: Player): boolean {
   try {

@@ -37,6 +37,8 @@ import numpy as np
 from PIL import Image
 
 FACES = ("north", "south", "east", "west", "up", "down")
+# what counts as his body when hit volumes are hung on him
+SOLID_MATERIALS = ("skin", "hide4", "belly", "rock", "scar", "wingbone", "horn")
 PADDED_MATERIALS = ("fin", "web")
 
 
@@ -387,8 +389,22 @@ class Model:
         for b in self.bones.values():
             for k, v in b.locators.items():
                 locs[k] = {"bone": b.name, "pos": [r4(x) for x in v]}
+        # the solid of each bone: the box round its flesh (hide, club, wing bones; not crests, membranes, teeth or eyes),
+        # in the bone's own unrotated frame.  The script hangs his hit volumes on these.
+        boxes = {}
+        for b in self.bones.values():
+            blo, bhi = np.full(3, 1e9), np.full(3, -1e9)
+            for c in b.cubes:
+                if c.mat not in SOLID_MATERIALS:
+                    continue
+                a, d = c.bounds()
+                corners = np.array([[x, y, z] for x in (a[0], d[0]) for y in (a[1], d[1]) for z in (a[2], d[2])])
+                w = apply(c.local_matrix(), corners)
+                blo, bhi = np.minimum(blo, w.min(0)), np.maximum(bhi, w.max(0))
+            if blo[0] < 1e8:
+                boxes[b.name] = [[round(float(v), 1) for v in blo], [round(float(v), 1) for v in bhi]]
         lo, hi = self.bounds()
-        return {"identifier": self.identifier, "bones": bones, "locators": locs,
+        return {"identifier": self.identifier, "bones": bones, "locators": locs, "boxes": boxes,
                 "bounds": {"min": [r4(v) for v in lo], "max": [r4(v) for v in hi]}, "meta": self.meta}
 
     def glow_bones_by_zone(self, glow_rgba: np.ndarray) -> dict:

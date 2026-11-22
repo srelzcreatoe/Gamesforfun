@@ -102,7 +102,7 @@ export class BrainTwo extends Brain {
         yield;
       }
       c.halt();
-      stuck = c.travelled - before < 0.25 ? stuck + 1 : 0;
+      stuck = c.planning ? 0 : c.travelled - before < 0.25 ? stuck + 1 : 0;      // (working out a way round is not being stuck)
       this.rec.mut.overland += c.travelled - before;
       // rest
       this.gaitStep = base + 2; c.set(PROP.gait, base + 2);

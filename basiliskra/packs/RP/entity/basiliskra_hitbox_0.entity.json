@@ -1,0 +1,20 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "basiliskra:hitbox_0",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/basiliskra/basiliskra_i"
+      },
+      "geometry": {
+        "default": "geometry.basiliskra.none"
+      },
+      "render_controllers": [
+        "controller.render.basiliskra.none"
+      ]
+    }
+  }
+}

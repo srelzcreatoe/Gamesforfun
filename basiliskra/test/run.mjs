@@ -110,7 +110,7 @@ let world;
   check('he is bound, Form I, fully through the seam, left gill stuck open', e.getProperty(P('bound')) === true && e.getProperty(P('form')) === 1 && e.getProperty(P('vis_lo')) === 0 && e.getProperty(P('gill')) === true);
   check('the three knocks and the rams were heard by the players who were there', a.heard.filter((s) => s.id === 'basiliskra.boat_knock').length === 3 && a.heard.filter((s) => s.id === 'basiliskra.ram').length === 3);
   check('and on the third ram his roar, through the water', a.heard.some((q) => q.id === 'basiliskra.roar_under') && b.heard.some((q) => q.id === 'basiliskra.roar_under'));
-  check('hit volumes cover his whole body', w.sim.count('basiliskra:hitbox') === 8, `${w.sim.count('basiliskra:hitbox')} volumes`);
+  check('hit volumes cover his whole body', w.sim.count('basiliskra:hitbox') === 25, `${w.sim.count('basiliskra:hitbox')} volumes`);
 }
 
 console.log('\n== 3. A duplicate, a stray summon and a copied creature');
@@ -134,7 +134,7 @@ console.log('\n== 3. A duplicate, a stray summon and a copied creature');
   walker.online = false;
   check('the original identity survives', w.bk.ctl.creature && w.bk.ctl.creature.entity.id === id && rec.entityId === id);
   const hp = w.bk.ctl.creature.entity.rec.health;
-  const part = [...w.sim.loaded.values()].find((x) => x.typeId === 'basiliskra:hitbox');
+  const part = [...w.sim.loaded.values()].find((x) => x.typeId.startsWith('basiliskra:hitbox'));
   part.applyDamage(20, { cause: 'entityAttack', damagingEntity: w.sim.players[0] });
   w.sim.step(2);
   check('a hit on any part of his body is a hit on him', w.bk.ctl.creature.entity.rec.health < hp && part.rec.health === 1000, `${hp} -> ${w.bk.ctl.creature.entity.rec.health}`);
@@ -142,7 +142,7 @@ console.log('\n== 3. A duplicate, a stray summon and a copied creature');
   check('the world itself (falls, lava, suffocation) does not hurt him', fell === false);
   // one blast that reaches several hit volumes at once is one blow, not eight
   const hp2 = w.bk.ctl.creature.entity.rec.health;
-  for (const h of [...w.sim.loaded.values()].filter((x) => x.typeId === 'basiliskra:hitbox')) h.applyDamage(10, { cause: 'entityExplosion' });
+  for (const h of [...w.sim.loaded.values()].filter((x) => x.typeId.startsWith('basiliskra:hitbox'))) h.applyDamage(10, { cause: 'entityExplosion' });
   w.sim.step(2);
   const lost = hp2 - w.bk.ctl.creature.entity.rec.health;
   check('a blast that touches every hit volume counts once', lost > 0 && lost <= 12.5, `lost ${lost}`);
@@ -232,7 +232,7 @@ console.log('\n== 6. Evolution during a save and reload');
   w.sim.step(3);
   check('a reload between the two writes brings the entity into line with the record', w.bk.ctl.creature?.entity.id === id && w.bk.ctl.creature.entity.getProperty(P('form')) === 3 && w.sim.count(TYPE) === 1);
   until(w, () => rec().evolve === null, 600);
-  check('Form III, the same individual', rec().form === 3 && rec().entityId === id && w.bk.ctl.creature.form === 3 && w.sim.count('basiliskra:hitbox') === 19, `${w.sim.count('basiliskra:hitbox')} hit volumes`);
+  check('Form III, the same individual', rec().form === 3 && rec().entityId === id && w.bk.ctl.creature.form === 3 && w.sim.count('basiliskra:hitbox') === 29, `${w.sim.count('basiliskra:hitbox')} hit volumes`);
   {
     const ana3 = w.sim.players.find((p) => p.online);
     const h3 = ana3.heard.length; let posed = false;
@@ -247,7 +247,7 @@ console.log('\n== 7. A player joining during a beam charge');
   const ana = w.sim.players.find((p) => p.name === 'Ana'), ben = w.sim.players.find((p) => p.name === 'Ben');
   w.sim.save.timeOfDay = 3000;
   ben.online = false;
-  const stand = () => { const f = { x: -Math.sin(c().yaw * Math.PI / 180), z: Math.cos(c().yaw * Math.PI / 180) }; return { x: c().pos.x + f.x * 54, y: c().pos.y, z: c().pos.z + f.z * 54 }; };
+  const stand = () => { const f = { x: -Math.sin(c().yaw * Math.PI / 180), z: Math.cos(c().yaw * Math.PI / 180) }; const x = c().pos.x + f.x * 54, z = c().pos.z + f.z * 54; let y = 90; while (y > 40 && w.sim.blockId('minecraft:overworld', x, y - 1, z) === 'minecraft:air') y--; return { x, y: Math.max(y, 63), z }; };      // on the ground (or the water) in front of him
   w.bk.ctl.brain.finish();
   ana.moveTo(stand());
   const t = until(w, () => { if (c().phase !== 'charge' && c().phase !== 'fire') ana.moveTo(stand()); return e().getProperty(P('phase')) === 18 && e().getProperty(P('charge')) >= 6; }, 3000);
@@ -283,7 +283,7 @@ console.log('\n== 8. Grounding the charge');
   const ana = w.sim.players.find((p) => p.name === 'Ana');
   const beams = w.bk.store.rec.mut.beams;
   w.bk.ctl.brain.finish();
-  const stand = () => { const f = { x: -Math.sin(c().yaw * Math.PI / 180), z: Math.cos(c().yaw * Math.PI / 180) }; return { x: c().pos.x + f.x * 54, y: c().pos.y, z: c().pos.z + f.z * 54 }; };
+  const stand = () => { const f = { x: -Math.sin(c().yaw * Math.PI / 180), z: Math.cos(c().yaw * Math.PI / 180) }; const x = c().pos.x + f.x * 54, z = c().pos.z + f.z * 54; let y = 90; while (y > 40 && w.sim.blockId('minecraft:overworld', x, y - 1, z) === 'minecraft:air') y--; return { x, y: Math.max(y, 63), z }; };      // on the ground (or the water) in front of him
   let rod = null;
   const t = until(w, () => {
     if (e().getProperty(P('phase')) === 21) return true;
@@ -936,7 +936,7 @@ console.log('\n== 15. Bigger, louder, out of control (1.3)');
     const feet = [];
     for (let i = 0; i < 300; i++) {
       w.sim.step(1);
-      const vols = [...w.sim.loaded.values()].filter((e) => e.rec.typeId === 'basiliskra:hitbox');
+      const vols = [...w.sim.loaded.values()].filter((e) => e.rec.typeId.startsWith('basiliskra:hitbox'));
       const lowest = Math.min(...vols.map((e) => e.rec.loc.y));
       // the foot volume of the left hind: its place along his line, relative to his middle
       const owner = [...w.bk.partOwner.entries()].filter(([, o]) => o.tag === 'limb').map(([id]) => w.sim.loaded.get(id)).filter(Boolean);
@@ -946,11 +946,48 @@ console.log('\n== 15. Bigger, louder, out of control (1.3)');
     const n = feet[0].along.length;
     const swing = [];
     for (let k = 0; k < n; k++) { const zs = feet.map((f) => f.along[k]).filter((v) => v !== undefined); swing.push(Math.max(...zs) - Math.min(...zs)); }
-    check('Form III has hit volumes on all four legs, knee and sole', n === 8, `${n} limb volumes`);
+    check('Form III has hit volumes on all four legs', n >= 8, `${n} limb volumes`);
     check('they move with the legs as he walks (each sweeps several blocks along his body)', swing.filter((s) => s > 3).length >= 4, swing.map((s) => s.toFixed(1)).join(' '));
     check('and none of them is sunk under the ground he stands on', feet.every((f) => f.lowest >= 63.7), `lowest ${Math.min(...feet.map((f) => f.lowest)).toFixed(2)}`);
-    const sizes = [...w.sim.loaded.values()].filter((e) => e.rec.typeId === 'basiliskra:hitbox').map((e) => e.rec.events.filter((q) => /size_/.test(q)).pop());
-    check('the volumes are sized for a body 1.7 times the model', sizes.some((q) => /size_[789]/.test(q)), [...new Set(sizes)].join(' '));
+    const sizes = [...w.sim.loaded.values()].filter((e) => e.rec.typeId.startsWith('basiliskra:hitbox')).map((e) => e.rec.typeId.split(':')[1]);
+    check('the volumes are sized for a body 1.7 times the model (each size its own entity type: nothing is resized)', sizes.some((q) => /hitbox_[789]/.test(q)), [...new Set(sizes)].sort().join(' '));
+    // a swing the game did not land on a volume, aimed at his head from within reach, still wounds him
+    {
+      const w5 = start(); w5.sim.terrainFn = TERRAINS.flat; open(w5);
+      const al = w5.sim.addPlayer('Al', { x: 0, y: 64, z: 0 });
+      const c5 = standThree(w5, { x: 0, y: 64, z: 60 }, 180, 0);
+      w5.bk.ctl.brain.forced = { name: 'still', run: forever(), limit: 1e9 };
+      w5.sim.step(6);
+      const nose = c5.anchor('nose');
+      al.moveTo({ x: nose.x, y: nose.y - 1.62, z: nose.z - 3.2 });      // in the air in front of his snout, three blocks off
+      al.view = { x: 0, y: 0, z: 1 };
+      const hp = () => w5.bk.ctl.creature.entity.getComponent('minecraft:health').currentValue;
+      const h0 = hp();
+      al.swing('minecraft:diamond_sword'); w5.sim.step(5);
+      const h1 = hp();
+      check('a sword swung at his snout from three blocks off wounds him, with no volume reported hit by the game', h0 - h1 >= 8, `${h0} -> ${h1}`);
+      al.view = { x: 0, y: 1, z: 0 }; al.swing('minecraft:diamond_sword'); w5.sim.step(5);
+      check('a swing at the sky does nothing', hp() === h1);
+      al.view = { x: 0, y: 0, z: 1 };
+      for (let y = -2; y <= 4; y++) for (let x = -3; x <= 3; x++) w5.sim.setBlock('minecraft:overworld', Math.floor(nose.x) + x, Math.floor(nose.y) + y, Math.floor(nose.z) - 2, 'minecraft:stone');
+      w5.sim.step(10); al.swing('minecraft:diamond_sword'); w5.sim.step(5);
+      check('nor does one with a wall between them', hp() === h1, `${h1} -> ${hp()}`);
+    }
+    // every point on the surface of every solid part of every form is inside a hit volume, or within a block of one
+    for (const form of [1, 2, 3]) {
+      const rig = w.bk.rig, k = rig.drawScale(form) / 16, rest = new rig.Skeleton(form, {});
+      const parts = w.bk.creature.partsFor(form).map((q) => ({ c: rest.point(q.bone, q.at).map((v) => v * k), h: w.bk.creature.SIZES[q.si] / 2 }));
+      let worst = 0, where = '';
+      for (const [bone, [lo, hi]] of Object.entries(w.bk.RIGS[form].boxes)) {
+        for (const fx of [0, 0.5, 1]) for (const fy of [0, 0.5, 1]) for (const fz of [0, 0.5, 1]) {
+          const q = rest.point(bone, [lo[0] + (hi[0] - lo[0]) * fx, lo[1] + (hi[1] - lo[1]) * fy, lo[2] + (hi[2] - lo[2]) * fz]).map((v) => v * k);
+          let best = 1e9;
+          for (const b of parts) best = Math.min(best, Math.hypot(Math.max(0, Math.abs(q[0] - b.c[0]) - b.h), Math.max(0, Math.abs(q[1] - b.c[1]) - b.h), Math.max(0, Math.abs(q[2] - b.c[2]) - b.h)));
+          if (best > worst) { worst = best; where = bone; }
+        }
+      }
+      check(`Basiliskra ${['', 'I', 'II', 'III'][form]}: hit volumes reach from nose to tail (no point of his body is a block outside them)`, worst <= 1.0 && parts.length <= 40, `${parts.length} volumes, worst ${worst.toFixed(2)} blocks at ${where}`);
+    }
   }
   // ---- settings: presets and typed numbers, and a world saved by 1.2 ----
   {
@@ -1096,6 +1133,87 @@ console.log('\n== 16. Calling, sending away, changing (1.4)');
     for (let i = 0; i < 600; i++) w.sim.step(1);
     check('made in mid-air he comes down to the ground', Math.abs(c.pos.y - 64) < 0.6, `y ${c.pos.y.toFixed(1)}`);
     check('and goes on living (he moves, he chooses what to do)', Math.hypot(c.pos.x - p0.x, c.pos.z - p0.z) > 3 && w.bk.ctl.brain.actName !== 'none', `${w.bk.ctl.brain.actName}, moved ${Math.hypot(c.pos.x - p0.x, c.pos.z - p0.z).toFixed(1)}`);
+  }
+}
+
+console.log('\n== 17. A way round, and a way through (1.4)');
+{
+  // a pocket: walls on three sides, open towards him, and where he is going lies beyond its closed end
+  const pocket = (w, tall = 13) => {
+    for (let y = 64; y < 64 + tall; y++) {
+      for (let x = -30; x <= 30; x++) w.sim.setBlock('minecraft:overworld', x, y, 44, 'minecraft:stone_bricks');
+      for (let z = 4; z <= 44; z++) { w.sim.setBlock('minecraft:overworld', -30, y, z, 'minecraft:stone_bricks'); w.sim.setBlock('minecraft:overworld', 30, y, z, 'minecraft:stone_bricks'); }
+    }
+  };
+  const inWall = (c) => (Math.abs(c.pos.z - 44) < 1 && Math.abs(c.pos.x) <= 30) || (Math.abs(Math.abs(c.pos.x) - 30) < 1 && c.pos.z >= 4 && c.pos.z <= 44);
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w); w.bk.CONFIG.terrain = 'scorch';
+    w.sim.addPlayer('Ana', { x: 0, y: 64, z: 30 }).mode = 'Creative';
+    pocket(w);
+    const c = standThree(w, { x: 0, y: 64, z: 14 }, 0, 0);
+    const brain = w.bk.ctl.brain;
+    let done = false, ok = false, crossed = 0, planned = false, ticks = 0;
+    brain.forced = { name: 'test', run: (function* () { ok = yield* brain.walk({ x: 0, y: 64, z: 84 }, 0.14, 5, 6000); done = true; yield* forever(); })(), limit: 1e9 };
+    for (; ticks < 6000 && !done; ticks++) { w.sim.step(1); if (inWall(c)) crossed++; if (c.planning) planned = true; }
+    check('Basiliskra III, not destroying: walked into a pocket of walls he works out the way back out and round it', done && ok && planned && crossed === 0 && Math.hypot(c.pos.x, c.pos.z - 84) < 8, `${ticks} ticks, planned ${planned}, ended ${c.pos.x.toFixed(0)},${c.pos.z.toFixed(0)}`);
+    const walls = []; for (let x = -30; x <= 30; x++) walls.push(w.sim.blockId('minecraft:overworld', x, 66, 44));
+    check('and the walls are as they were', walls.every((q) => q === 'minecraft:stone_bricks'));
+  }
+  {
+    // Basiliskra II drags himself: the same pocket, smaller
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    w.sim.addPlayer('Ana', { x: 0, y: 64, z: 30 }).mode = 'Creative';
+    pocket(w, 6);
+    const rec = w.bk.store.rec;
+    Object.assign(rec, { stage: 'alive', token: 'pockettoken00000000000000000000', form: 2, born: 1, rift: { x: 400, y: 56, z: 400, yaw: 0 }, origin: { x: 0, y: 64, z: 0 } });
+    rec.mut.formSince = rec.clock;
+    const r = w.sim.newRecord(TYPE, 'minecraft:overworld', { x: 0, y: 64, z: 16 }, 0);
+    r.dyn['bk:token'] = rec.token; rec.entityId = r.id; w.bk.store.save();
+    w.sim.attach(r, 'entityLoad'); w.sim.flush(); w.sim.step(3);
+    const c = w.bk.ctl.creature, brain = w.bk.ctl.brain;
+    let done = false, ok = false, ticks = 0;
+    brain.forced = { name: 'test', run: (function* () { ok = yield* brain.drag({ x: 0, y: 64, z: 70 }, 5, 14000); done = true; yield* forever(); })(), limit: 1e9 };
+    for (; ticks < 14000 && !done; ticks++) w.sim.step(1);
+    check('Basiliskra II finds his way out of it and round it too', done && ok && Math.hypot(c.pos.x, c.pos.z - 70) < 8, `${ticks} ticks, ended ${c.pos.x.toFixed(0)},${c.pos.z.toFixed(0)}`);
+  }
+  {
+    // like the Wither (the default): a slope, a cliff, a wood and a house are in his path
+    const w = start(); w.sim.terrainFn = (dim, x, y, z) => {
+      if (dim !== 'minecraft:overworld') return 'minecraft:air';
+      if (y <= 60) return 'minecraft:stone';
+      if (y <= 62) return 'minecraft:dirt';
+      if (y === 63) return 'minecraft:grass_block';
+      if (z >= 16 && z <= 28 && y <= 63 + Math.min(z - 15, 29 - z, 4)) return 'minecraft:dirt';          // a rise he can walk over: four blocks, gently
+      if (z >= 40 && z <= 50 && y <= 74) return 'minecraft:stone';                                       // a sheer ridge, eleven blocks high, across his way
+      if (z >= 58 && z <= 64 && (x + 400) % 5 === 0 && y <= 70) return 'minecraft:oak_log';              // a wood
+      if (z >= 58 && z <= 64 && y >= 68 && y <= 71) return 'minecraft:oak_leaves';
+      if (z >= 72 && z <= 80 && Math.abs(x) <= 5 && y <= 69 && (Math.abs(x) === 5 || z === 72 || z === 80 || y === 69)) return 'minecraft:bricks';   // a house
+      return 'minecraft:air';
+    }; open(w);
+    w.sim.addPlayer('Ana', { x: 30, y: 64, z: 50 }).mode = 'Creative';
+    w.sim.setBlock('minecraft:overworld', 0, 64, 76, 'minecraft:chest');
+    const c = standThree(w, { x: 0, y: 64, z: 0 }, 0, 0);
+    const brain = w.bk.ctl.brain;
+    let done = false, ok = false, wide = 0, lowest = 99, highest = 0, onRise = 0, ticks = 0;
+    brain.forced = { name: 'test', run: (function* () { ok = yield* brain.walk({ x: 0, y: 64, z: 104 }, 0.14, 4, 4000); done = true; yield* forever(); })(), limit: 1e9 };
+    for (; ticks < 4000 && !done; ticks++) {
+      w.sim.step(1);
+      wide = Math.max(wide, Math.abs(c.pos.x)); lowest = Math.min(lowest, c.pos.y); highest = Math.max(highest, c.pos.y);
+      if (c.pos.z > 20 && c.pos.z < 24) onRise = Math.max(onRise, c.pos.y);
+    }
+    const id = (x, y, z) => w.sim.blockId('minecraft:overworld', x, y, z);
+    check('he walks straight through a cliff, a wood and a house', done && ok && wide < 2.5 && Math.hypot(c.pos.x, c.pos.z - 104) < 6, `${ticks} ticks, strayed ${wide.toFixed(1)} blocks, ended ${c.pos.x.toFixed(0)},${c.pos.z.toFixed(0)}`);
+    let rise = 0; for (let z = 16; z <= 28; z++) for (let x = -4; x <= 4; x++) for (let y = 64; y <= 67; y++) if (id(x, y, z) === 'minecraft:dirt') rise++;
+    check('a gentle rise he simply walks over, and leaves as it was', onRise > 65 && rise > 200, `stood ${onRise.toFixed(1)} high on it, ${rise} of its blocks still there`);
+    let standing = 0, cliffLeft = 0, floorGone = 0;
+    for (let z = 40; z <= 80; z++) for (let x = -4; x <= 4; x++) {
+      for (let y = 64; y <= 78; y++) { const q = id(x, y, z); if (q === 'minecraft:air' || q === 'minecraft:chest') continue; if (z <= 50) { if (y >= 69) cliffLeft++; } else standing++; }
+      if (id(x, 63, z) === 'minecraft:air') floorGone++;
+    }
+    check('the cliff is cut down to a step he can take, and the wood and the house are gone from his road', cliffLeft === 0 && standing === 0, `${cliffLeft} cliff blocks above the step, ${standing} blocks of wood or house still in it`);
+    check('the ground he walked on is whole, and he never sank into it', floorGone === 0 && lowest > 63.5 && highest < 70, `${floorGone} floor blocks missing, y ${lowest.toFixed(1)} to ${highest.toFixed(1)}`);
+    check('a chest in the house is left standing in the road', id(0, 64, 76) === 'minecraft:chest');
+    check('beside his road the cliff still stands', id(16, 72, 45) === 'minecraft:stone');
   }
 }
 

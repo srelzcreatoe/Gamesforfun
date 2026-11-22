@@ -2,10 +2,11 @@
  * Basiliskra -- entry point.  Wires stable @minecraft/server events to the one controller.
  * No experiments, no beta APIs, no commands a survival player needs to type.
  */
-import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause, Player, system, world } from "@minecraft/server";
-import { CONFIG, HITBOX, JOURNAL_ITEM, NS, OVERWORLD, TYPE, WHEEL_ITEM } from "./config";
+import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause, EntitySwingSource, GameMode, Player, system, world } from "@minecraft/server";
+import { CONFIG, JOURNAL_ITEM, NS, OVERWORLD, TYPE, WHEEL_ITEM, isHitbox } from "./config";
 import { loadSettings } from "./settings";
 import { canAdmin, giveStarterItems, openJournal, openWheel, placeFor } from "./ui";
+import { clearLine } from "./world";
 import { releaseStale } from "./scene";
 import { Controller } from "./controller";
 import { partOwner } from "./creature";
@@ -68,7 +69,7 @@ world.afterEvents.entityLoad.subscribe((ev) => {
   if (!ready) return;
   try {
     if (ev.entity.typeId === TYPE) ctl.inspect(ev.entity);
-    else if (ev.entity.typeId === HITBOX && !partOwner.has(ev.entity.id)) ev.entity.remove();
+    else if (isHitbox(ev.entity.typeId) && !partOwner.has(ev.entity.id)) ev.entity.remove();
   } catch { /* gone */ }
 });
 
@@ -77,7 +78,7 @@ world.afterEvents.entitySpawn.subscribe((ev) => {
   try {
     const id = ev.entity.typeId;
     if (id === TYPE) { ctl.inspect(ev.entity); return; }
-    if (id === HITBOX) { if (!partOwner.has(ev.entity.id)) ev.entity.remove(); return; }
+    if (isHitbox(id)) { if (!partOwner.has(ev.entity.id)) ev.entity.remove(); return; }
     if (SPLASHERS.has(id) && ev.entity.dimension.id === OVERWORLD && ctl.creature && flying.length < 16
       && dist(ev.entity.location, ctl.creature.pos) < 64) flying.push({ e: ev.entity, born: store.rec.clock });
   } catch { /* gone */ }
@@ -87,7 +88,7 @@ world.beforeEvents.entityRemove.subscribe((ev) => {
   try {
     const id = ev.removedEntity.typeId;
     if (id === TYPE) ctl.onRemoving(ev.removedEntity);
-    else if (id === HITBOX) partOwner.delete(ev.removedEntity.id);
+    else if (isHitbox(id)) partOwner.delete(ev.removedEntity.id);
   } catch { /* gone */ }
 });
 
@@ -97,11 +98,56 @@ const PASSES = new Set<string>([EntityDamageCause.entityAttack, EntityDamageCaus
   EntityDamageCause.maceSmash, EntityDamageCause.override]);
 
 let forwardTick = -1, forwardKey = "";
+/** The last tick the game itself delivered each player's blow to one of his hit volumes. */
+const struckAt = new Map<string, number>();
+const swungAt = new Map<string, number>();
+
+/** What a blow with this in the hand does (the game's own figures for an unenchanted weapon). */
+function meleeDamage(id: string | undefined): number {
+  if (!id) return 1;
+  const tier = /netherite/.test(id) ? 4 : /diamond/.test(id) ? 3 : /iron/.test(id) ? 2 : /stone/.test(id) ? 1 : /wooden|golden/.test(id) ? 0 : -1;
+  if (/_sword$/.test(id)) return 5 + Math.max(0, tier);
+  if (/_axe$/.test(id)) return 4 + Math.max(0, tier);
+  if (/_pickaxe$/.test(id)) return 3 + Math.max(0, tier);
+  if (/_shovel$|_hoe$/.test(id)) return 2 + Math.max(0, tier);
+  if (id === "minecraft:trident") return 9;
+  if (id === "minecraft:mace") return 6;
+  return 1;
+}
+
+// A swing that the game did not land on a hit volume, but which was aimed at him from within reach, is still a
+// blow: the swing's own line is tried against his volumes.  (Which entity a swing lands on is decided on the
+// player's device; this does not depend on that.)
+world.afterEvents.playerSwingStart.subscribe((ev) => {
+  const c0 = ctl.creature;
+  if (!ready || !c0 || !c0.valid) return;
+  if (ev.swingSource !== EntitySwingSource.Attack) return;
+  const p = ev.player;
+  const t0 = store.rec.clock;
+  const held = ev.heldItemStack?.typeId;
+  system.runTimeout(() => {
+    try {
+      const c = ctl.creature;
+      if (!c || !c.valid || !p.isValid || p.dimension.id !== c.dim.id) return;
+      if ((struckAt.get(p.id) ?? -99) >= t0) return;                      // the game landed it: that was the blow
+      if (store.rec.clock - (swungAt.get(p.id) ?? -99) < 8) return;        // one blow per swing of the arm
+      const from = p.getHeadLocation(), dir = p.getViewDirection();
+      const reach = p.getGameMode() === GameMode.Creative ? 6.5 : 4.5;
+      const hit = c.rayHit(from, dir, reach);
+      if (!hit) return;
+      // something solid between them is what the swing landed on
+      if (hit.dist > 0.3 && !clearLine(c.dim, from, { x: from.x + dir.x * hit.dist, y: from.y + dir.y * hit.dist, z: from.z + dir.z * hit.dist })) return;
+      swungAt.set(p.id, store.rec.clock);
+      const amount = meleeDamage(held) * (hit.tag === "head" ? 1.25 : hit.tag === "tail" ? 0.6 : 1);
+      c.entity.applyDamage(amount, { cause: EntityDamageCause.entityAttack, damagingEntity: p });
+    } catch { /* left */ }
+  }, 2);
+});
 
 world.beforeEvents.entityHurt.subscribe((ev) => {
   let type: string;
   try { type = ev.hurtEntity.typeId; } catch { return; }
-  if (type === HITBOX) {
+  if (isHitbox(type)) {
     // a hit anywhere on his body is a hit on him
     ev.cancel = true;
     const owner = partOwner.get(ev.hurtEntity.id);
@@ -111,6 +157,7 @@ world.beforeEvents.entityHurt.subscribe((ev) => {
     if (!PASSES.has(cause) || amount <= 0) return;
     // one blast or one sweep reaches several volumes in the same tick: it is still one blow
     const key = `${cause}|${by?.id ?? ""}`;
+    if (by) struckAt.set(by.id, store.rec.clock);
     if (forwardTick === store.rec.clock && forwardKey === key) return;
     forwardTick = store.rec.clock; forwardKey = key;
     system.run(() => {

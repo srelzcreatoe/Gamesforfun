@@ -13,7 +13,7 @@
  * loaded chunks, and only ever on natural ground that nothing built touches.
  */
 import { Block, Dimension, EquipmentSlot, Player, world } from "@minecraft/server";
-import { CONFIG, COUNTER_ITEM, HITBOX, OVERWORLD, SOIL_BLOCK, TICKS, TRINITITE_BLOCK, TYPE } from "./config";
+import { CONFIG, COUNTER_ITEM, OVERWORLD, PART_FAMILY, SOIL_BLOCK, TICKS, TRINITITE_BLOCK, TYPE } from "./config";
 import { particle, players } from "./fx";
 import { store } from "./store";
 import { dist, distXZ, hash, type V3 } from "./vec";
@@ -264,7 +264,7 @@ function sicken(dim: Dimension, live: Zone[], now: number, ps: Player[]): void {
     const s = decayed(z, now);
     if (s < 0.35 || q++ >= 4) continue;
     try {
-      for (const e of dim.getEntities({ location: z, maxDistance: z.r + 1, excludeTypes: ["minecraft:player", "minecraft:item", TYPE, HITBOX] })) {
+      for (const e of dim.getEntities({ location: z, maxDistance: z.r + 1, excludeTypes: ["minecraft:player", "minecraft:item", TYPE], excludeFamilies: [PART_FAMILY] })) {
         try { e.addEffect("slowness", 80, { amplifier: 0, showParticles: false }); e.addEffect("weakness", 80, { amplifier: 0, showParticles: false }); } catch { /* immune */ }
       }
     } catch { /* unloading */ }

@@ -5,7 +5,7 @@
  * triggers, an interrupted arrival or a restart can never make a second animal.
  */
 import { Dimension, Entity, ItemStack, Player, system, world } from "@minecraft/server";
-import { CONFIG, FIN_ITEM, HITBOX, KNOCK_GAP_TICKS, OVERWORLD, PROP, TICKS, TYPE } from "./config";
+import { CONFIG, FIN_ITEM, KNOCK_GAP_TICKS, OVERWORLD, PART_FAMILY, PROP, TICKS, TYPE } from "./config";
 import { Brain, isDusk, pace } from "./brain";
 import { Creature, partOwner } from "./creature";
 import { Ending } from "./ending";
@@ -373,7 +373,7 @@ export class Controller {
       let list: Entity[] = [];
       try { list = dim.getEntities({ type: TYPE }); } catch { list = []; }
       for (const e of list) this.inspect(e);
-      try { list = dim.getEntities({ type: HITBOX }); } catch { list = []; }
+      try { list = dim.getEntities({ families: [PART_FAMILY] }); } catch { list = []; }
       for (const h of list) { try { if (!partOwner.has(h.id)) h.remove(); } catch { /* gone */ } }
     }
   }

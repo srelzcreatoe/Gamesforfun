@@ -349,7 +349,7 @@ if vanilla_blocks:
         if bid in vanilla_particles:
             ok("vanilla particle ids")
             continue
-        if bid in ("minecraft:overworld", "minecraft:nether", "minecraft:the_end", "minecraft:player", "minecraft:item") or bid.split(":")[1] in (
+        if bid in ("minecraft:overworld", "minecraft:nether", "minecraft:the_end", "minecraft:player", "minecraft:item", "minecraft:free") or bid.split(":")[1] in (
                 "health", "riding", "rideable", "equippable", "inventory", "item"):
             continue
         err(f"script names {bid}: not a block or entity id in 1.26.60")
@@ -368,7 +368,7 @@ item_ids |= block_ids                                   # every block has its ow
 commands = set(re.findall(r'name: `\$\{NS\}:([a-z_]+)`', src)) | set(re.findall(r'registerEnum\(`\$\{NS\}:([a-z_]+)`', src))
 for name in re.findall(r'`\$\{NS\}:([a-z_]+)`', src):
     pid = f"{NS}:{name}"
-    if name in ("basiliskra", "hitbox", "debug") or pid in item_ids or pid in block_ids or name in commands:
+    if name in ("basiliskra", "hitbox", "hitbox_", "debug") or pid in item_ids or pid in block_ids or name in commands:
         continue
     if pid not in props:
         err(f"script property {pid} is not defined on the entity")
@@ -411,9 +411,25 @@ if os.path.isdir(os.path.join(BP, "spawn_rules")):
 # no spawn rules (checked above), and the hit volumes never get an egg.
 if bp_ent.get("description", {}).get("is_spawnable") is True and "spawn_egg" not in ent:
     err("entity has a spawn egg but the client entity gives it no spawn_egg colours or texture")
-hb = docs.get("packs/BP/entities/basiliskra_hitbox.json", {}).get("minecraft:entity", {}).get("description", {})
-if hb.get("is_spawnable") is not False:
-    err("the hit volume entity must not be spawnable")
+# the hit volumes: one entity per size the script asks for, none spawnable, each with its client entity, and
+# collision boxes that are exactly the script's SIZES table
+sizes = [float(x) for x in re.search(r"export const SIZES = \[([^\]]+)\]", open(os.path.join(ROOT, "src", "creature.ts"), encoding="utf-8").read()).group(1).split(",")]
+for i, size in enumerate(sizes):
+    hb = docs.get(f"packs/BP/entities/basiliskra_hitbox_{i}.json", {}).get("minecraft:entity", {})
+    if hb.get("description", {}).get("identifier") != f"{NS}:hitbox_{i}":
+        err(f"hit volume entity {NS}:hitbox_{i} is missing")
+        continue
+    if hb["description"].get("is_spawnable") is not False:
+        err(f"the hit volume entity hitbox_{i} must not be spawnable")
+    box = hb.get("components", {}).get("minecraft:collision_box", {})
+    if box.get("width") != size or box.get("height") != size:
+        err(f"hitbox_{i}: collision box {box} is not the {size} the script expects")
+    ce = docs.get(f"packs/RP/entity/basiliskra_hitbox_{i}.entity.json", {}).get("minecraft:client_entity", {}).get("description", {})
+    if ce.get("identifier") != f"{NS}:hitbox_{i}":
+        err(f"hitbox_{i} has no client entity")
+    if f"{NS}_part" not in hb.get("components", {}).get("minecraft:type_family", {}).get("family", []):
+        err(f"hitbox_{i} is not of the {NS}_part family the script looks for")
+    ok("hit volume entities (fixed size each)")
 
 # items: icon in the atlas with a texture behind it, a name in the language file
 itex = docs.get("packs/RP/textures/item_texture.json", {}).get("texture_data", {})

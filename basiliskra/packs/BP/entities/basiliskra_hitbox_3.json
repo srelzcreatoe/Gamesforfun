@@ -1,0 +1,172 @@
+{
+  "format_version": "1.26.60",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "basiliskra:hitbox_3",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "spawn_category": "misc"
+    },
+    "component_groups": {
+      "basiliskra:life": {
+        "minecraft:timer": {
+          "looping": false,
+          "time": {
+            "min": 20,
+            "max": 20
+          },
+          "randomInterval": false,
+          "time_down_event": {
+            "event": "basiliskra:expire",
+            "target": "self"
+          }
+        }
+      },
+      "basiliskra:gone": {
+        "minecraft:instant_despawn": {}
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "basiliskra_part",
+          "inanimate"
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 4.5,
+        "height": 4.5
+      },
+      "minecraft:health": {
+        "value": 1000,
+        "max": 1000
+      },
+      "minecraft:physics": {
+        "has_gravity": false,
+        "has_collision": false
+      },
+      "minecraft:transient": {},
+      "minecraft:fire_immune": {},
+      "minecraft:dimension_bound": {},
+      "minecraft:knockback_resistance": {
+        "value": 1.0
+      },
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0,
+        "breathes_air": true,
+        "breathes_water": true,
+        "generates_bubbles": false
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "suffocation",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "drowning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "lava",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire_tick",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "freezing",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "contact",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "magma",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "stalactite",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "stalagmite",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fly_into_wall",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "campfire",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "soul_campfire",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "lightning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "void",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:conditional_bandwidth_optimization": {
+        "default_values": {
+          "max_optimized_distance": 0.0,
+          "max_dropped_ticks": 0,
+          "use_motion_prediction_hints": false
+        }
+      }
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": {
+          "component_groups": [
+            "basiliskra:life"
+          ]
+        }
+      },
+      "basiliskra:keep": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "basiliskra:life"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "basiliskra:life"
+              ]
+            }
+          }
+        ]
+      },
+      "basiliskra:expire": {
+        "add": {
+          "component_groups": [
+            "basiliskra:gone"
+          ]
+        }
+      }
+    }
+  }
+}

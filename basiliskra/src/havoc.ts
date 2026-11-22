@@ -8,7 +8,7 @@
  * or writes an unloaded chunk.
  */
 import { BlockVolume, Dimension, Entity, EntityDamageCause, Player } from "@minecraft/server";
-import { CONFIG, HITBOX, TYPE } from "./config";
+import { CONFIG, PART_FAMILY, TYPE } from "./config";
 import { particle, sound, witnesses } from "./fx";
 import { add, dist, norm, type V3 } from "./vec";
 import { blockAt, isLoaded, isNaturalGround, isPlantBlock, isSolidBlock } from "./world";
@@ -162,11 +162,13 @@ export function carve(dim: Dimension, at: V3, r: number, budget: number, fire = 
 
 // ---- smashing through ----------------------------------------------------------------------------------
 /**
- * Clear what is built (and what grows) in a slab of his body's width, from his knees to the top of his back,
- * `depth` blocks deep starting `front` ahead of his middle.  The world's own ground is left: a cliff still
- * turns him.  Returns how many blocks went.
+ * Clear a slab of his body's width in front of him, `depth` blocks deep starting `front` ahead of his middle,
+ * from `y0` to `y1` above his feet.  What is built and what grows goes at every height.  The world's own ground
+ * goes only from `rockFrom` above his feet up (null: never), so a slope is left to be walked up and a cliff is
+ * cut down to a step.  Returns how many blocks went.
  */
-export function crush(dim: Dimension, pos: V3, forward: V3, front: number, halfWidth: number, y0: number, y1: number, depth: number, budget: number): number {
+export function crush(dim: Dimension, pos: V3, forward: V3, front: number, halfWidth: number, y0: number, y1: number, depth: number, budget: number,
+                      rockFrom: number | null = null, loud = true): number {
   const left = { x: -forward.z, y: 0, z: forward.x };
   let broken = 0;
   const debris: V3[] = [];
@@ -178,15 +180,16 @@ export function crush(dim: Dimension, pos: V3, forward: V3, front: number, halfW
         const b = blockAt(dim, p);
         if (!b || b.isAir || b.isLiquid) continue;
         const id = b.typeId;
-        if (isNaturalGround(id) && !isPlantBlock(id)) continue;
+        // the world's own ground: never (rockFrom null), or only where it stands higher than he can step
+        if (isNaturalGround(id) && !isPlantBlock(id) && (rockFrom === null || y < rockFrom)) continue;
         if (!breakable(id)) continue;
         try { b.setType("minecraft:air"); broken++; if (broken % 6 === 1) debris.push(p); } catch { /* protected */ }
       }
     }
   }
-  if (broken) {
+  if (broken && loud) {
     const mid = add(pos, { x: forward.x * (front + 0.5), y: (y0 + y1) / 2, z: forward.z * (front + 0.5) });
-    sound(dim, "mob.wither.break_block", mid, 64, 1, 0.7);
+    sound(dim, "mob.wither.break_block", mid, 96, 1, 0.7);
     for (const p of debris.slice(0, 4)) particle(dim, "basiliskra:impact_debris", p, 72);
   }
   return broken;
@@ -231,7 +234,7 @@ export function shatterRing(dim: Dimension, center: V3, r0: number, r1: number, 
 /** Creatures (not players, not him) near a point. */
 export function mobsNear(dim: Dimension, at: V3, r: number): Entity[] {
   try {
-    return dim.getEntities({ location: at, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, HITBOX, "minecraft:player"] });
+    return dim.getEntities({ location: at, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
   } catch { return []; }
 }
 

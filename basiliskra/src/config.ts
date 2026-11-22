@@ -55,7 +55,10 @@ export const SETTINGS_KEY = "bk:cfg";
 
 export const NS = "basiliskra";
 export const TYPE = `${NS}:basiliskra`;
-export const HITBOX = `${NS}:hitbox`;
+/** His hit volumes: one entity type per size (hitbox_0 .. hitbox_9), all of one family. */
+export const hitboxId = (size: number): string => `${NS}:hitbox_${size}`;
+export const isHitbox = (typeId: string): boolean => typeId.startsWith(`${NS}:hitbox_`);
+export const PART_FAMILY = `${NS}_part`;
 export const FIN_ITEM = `${NS}:shed_fin`;
 export const JOURNAL_ITEM = `${NS}:journal`;
 export const WHEEL_ITEM = `${NS}:config_wheel`;

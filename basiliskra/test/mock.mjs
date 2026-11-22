@@ -11,13 +11,14 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const ENTITY_JSON = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities/basiliskra.json'), 'utf8'));
 const PROPS = ENTITY_JSON['minecraft:entity'].description.properties;
 const EVENTS = Object.keys(ENTITY_JSON['minecraft:entity'].events);
-const HIT_EVENTS = Object.keys(JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities/basiliskra_hitbox.json'), 'utf8'))['minecraft:entity'].events);
+const HIT_EVENTS = Object.keys(JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities/basiliskra_hitbox_0.json'), 'utf8'))['minecraft:entity'].events);
 
 export const EntityDamageCause = { entityAttack: 'entityAttack', projectile: 'projectile', entityExplosion: 'entityExplosion', blockExplosion: 'blockExplosion',
   magic: 'magic', thorns: 'thorns', sonicBoom: 'sonicBoom', maceSmash: 'maceSmash', override: 'override', fall: 'fall', lava: 'lava', suffocation: 'suffocation', drowning: 'drowning' };
 export const GameMode = { Survival: 'Survival', Creative: 'Creative', Adventure: 'Adventure', Spectator: 'Spectator' };
 export const EquipmentSlot = { Mainhand: 'Mainhand', Offhand: 'Offhand' };
 export const EasingType = { Linear: 'linear', InOutSine: 'in_out_sine' };
+export const EntitySwingSource = { Attack: 'Attack', Build: 'Build', Mine: 'Mine', Interact: 'Interact' };
 export class BlockVolume { constructor(from, to) { this.from = { ...from }; this.to = { ...to }; } }
 export class MolangVariableMap { constructor() { this.v = {}; } setFloat(k, v) { this.v[k] = v; } setVector3(k, v) { this.v[k] = v; } setColorRGB(k, v) { this.v[k] = v; } }
 export class ItemStack { constructor(typeId, amount = 1) { this.typeId = typeId; this.amount = amount; } }
@@ -120,14 +121,14 @@ export class Sim {
     this.ev = {
       worldLoad: after(), entityLoad: after(), entitySpawn: after(), entityHurt: after(), entityDie: after(), playerBreakBlock: after(),
       playerInteractWithBlock: after(), weatherChange: after(), bEntityRemove: after(), bEntityHurt: after(), shutdown: after(), scriptEvent: after(),
-      itemUse: after(), playerSpawn: after(), startup: after(),
+      itemUse: after(), playerSpawn: after(), startup: after(), playerSwingStart: after(),
     };
     this.commands = new Map();          // custom commands the script registered at start-up
     this.enums = new Map();
     this.dims = new Map();
     for (const id of ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end']) this.dims.set(id, new MockDimension(this, id));
     this.api = {
-      EntityDamageCause, GameMode, EquipmentSlot, MolangVariableMap, ItemStack, Player: MockPlayer, Entity: MockEntity, BlockVolume, EasingType,
+      EntityDamageCause, GameMode, EquipmentSlot, MolangVariableMap, ItemStack, Player: MockPlayer, Entity: MockEntity, BlockVolume, EasingType, EntitySwingSource,
       CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, PlayerPermissionLevel, EntityInitializationCause,
       world: {
         getDynamicProperty: (k) => sim.save.worldProps.get(k),
@@ -144,7 +145,7 @@ export class Sim {
         sendMessage: (m) => sim.log.commands.push(String(m)),
         afterEvents: { worldLoad: this.ev.worldLoad, entityLoad: this.ev.entityLoad, entitySpawn: this.ev.entitySpawn, entityHurt: this.ev.entityHurt,
           entityDie: this.ev.entityDie, playerBreakBlock: this.ev.playerBreakBlock, playerInteractWithBlock: this.ev.playerInteractWithBlock, weatherChange: this.ev.weatherChange,
-          itemUse: this.ev.itemUse, playerSpawn: this.ev.playerSpawn },
+          itemUse: this.ev.itemUse, playerSpawn: this.ev.playerSpawn, playerSwingStart: this.ev.playerSwingStart },
         beforeEvents: { entityRemove: this.ev.bEntityRemove, entityHurt: this.ev.bEntityHurt },
       },
       system: {
@@ -176,7 +177,8 @@ export class Sim {
     const id = String(-(this.save.nextId++) * 4294967296 - 17);       // looks like an engine id; never parsed
     const props = {};
     if (typeId === 'basiliskra:basiliskra') for (const [k, d] of Object.entries(PROPS)) props[k] = d.default;
-    const rec = { id, typeId, dim, loc: { ...loc }, rot: { x: 0, y: rot }, vel: { x: 0, y: 0, z: 0 }, props, dyn: {}, health: typeId === 'basiliskra:hitbox' ? 1000 : typeId === 'basiliskra:basiliskra' ? 600 : 10, events: [], item: null, riders: [], family: [] };
+    const rec = { id, typeId, dim, loc: { ...loc }, rot: { x: 0, y: rot }, vel: { x: 0, y: 0, z: 0 }, props, dyn: {}, health: typeId.startsWith('basiliskra:hitbox') ? 1000 : typeId === 'basiliskra:basiliskra' ? 600 : 10, events: [], item: null, riders: [],
+      family: typeId.startsWith('basiliskra:hitbox') ? ['basiliskra_part', 'inanimate'] : typeId === 'basiliskra:basiliskra' ? ['basiliskra', 'mob'] : [] };
     this.save.entities.set(id, rec);
     return rec;
   }
@@ -201,7 +203,7 @@ export class Sim {
     this.loaded.delete(e.rec.id);
     this.save.entities.delete(e.rec.id);
   }
-  count(typeId) { let n = 0; for (const r of this.save.entities.values()) if (r.typeId === typeId) n++; return n; }
+  count(typeId) { let n = 0; for (const r of this.save.entities.values()) if (r.typeId === typeId || (typeId === 'basiliskra:hitbox' && r.typeId.startsWith('basiliskra:hitbox_'))) n++; return n; }
 
   addPlayer(name, loc, dim = 'minecraft:overworld') {
     const p = new MockPlayer(this, name, loc, this.dims.get(dim));
@@ -240,7 +242,7 @@ export class Sim {
           this.ev.bEntityRemove.fire({ removedEntity: e });
           e.attached = false;
           this.loaded.delete(e.rec.id);
-          if (e.rec.typeId === 'basiliskra:hitbox') this.save.entities.delete(e.rec.id);     // transient: never saved
+          if (e.rec.typeId.startsWith('basiliskra:hitbox')) this.save.entities.delete(e.rec.id);     // transient: never saved
         }
       }
       for (const r of this.save.entities.values()) {
@@ -279,7 +281,7 @@ export class Sim {
   /** Close the world and open it again: nothing script-side survives, the save does. */
   restart(bootScript) {
     this.ev.shutdown.fire({});
-    for (const r of [...this.save.entities.values()]) if (r.typeId === 'basiliskra:hitbox') this.save.entities.delete(r.id);
+    for (const r of [...this.save.entities.values()]) if (r.typeId.startsWith('basiliskra:hitbox')) this.save.entities.delete(r.id);
     const online = this.players.filter((p) => p.online).map((p) => ({ name: p.name, loc: { ...p.location }, dim: p.dimension.id, id: p.id, dyn: p.dyn, level: p.playerPermissionLevel }));
     this.players = [];
     this.boot();
@@ -326,6 +328,7 @@ class MockDimension {
       if (o.type && r.typeId !== o.type) continue;
       if (o.excludeTypes && o.excludeTypes.includes(r.typeId)) continue;
       if (o.families && !o.families.some((f) => r.family.includes(f))) continue;
+      if (o.excludeFamilies && o.excludeFamilies.some((f) => r.family.includes(f))) continue;
       if (o.location && o.maxDistance != null && Math.hypot(r.loc.x - o.location.x, r.loc.y - o.location.y, r.loc.z - o.location.z) > o.maxDistance) continue;
       out.push(e);
     }
@@ -462,6 +465,8 @@ class MockPlayer {
   getViewDirection() { return { ...this.view }; }
   getDynamicProperty(k) { return this.dyn[k]; }
   setDynamicProperty(k, v) { this.dyn[k] = v; }
+  /** The player swings at whatever is in front of them (the game decided no entity was hit: only the swing is reported). */
+  swing(held) { this.sim.queue.push(() => this.sim.ev.playerSwingStart.fire({ player: this, heldItemStack: held ? { typeId: held } : undefined, swingSource: 'Attack' })); }
   /** The player uses the item in hand (right click / long press). */
   use(typeId) { this.sim.queue.push(() => this.sim.ev.itemUse.fire({ itemStack: { typeId }, source: this })); }
   get location() { return { ...this.loc }; }
