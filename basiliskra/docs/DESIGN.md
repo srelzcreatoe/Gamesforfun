@@ -75,6 +75,26 @@ Rules that keep it to one:
 
 **Blocks.** `irradiated_soil`, `irradiated_rock`, `crimson_crystal` and `glowing_slag` carry the custom component `basiliskra:fades` (registered at start-up): on a random tick, with no un-healed zone around it (or fallout switched off), the block puts itself back. That is what cleans up after a zone that ended with nobody near. `scarlet_trinitite`, `cooled_slag` and `shard_lamp` are plain blocks and stay. If the game refuses a custom block the script uses coarse dirt and smooth basalt for soil and trinitite and makes none of the others. Measured cost: about 110 block reads a tick at the 32-zone cap.
 
+## Basiliskra IV
+
+`src/forms/four.ts`. His brain **extends Basiliskra III's** (`BrainFour extends BrainThree`): the walk, the ordinary charge, the lightning rod, the vent and the last crossing are inherited, so the ending works for him unchanged; what he chooses to do, his feet, his roar's reach and the acts below are his own. The beam's per-tick work (ray, picture, crater, fallout, burns) is shared by both in `src/beam.ts`.
+
+| | How it is done |
+|---|---|
+| His size | One more geometry on the same entity (`form` 4, client `scale` 2.0). `tools/kit/gen_client.py` writes his pose: a two-legged walk solved like III's (the server names the foot that landed, the cycle advances with the ground covered, the knee is solved so a planted sole does not slide), wings that fold by fixed angles (`WING_FOLD`, the same numbers on the server skeleton), and a weight per set-piece phase. |
+| Hit volumes | Generated like the others, tiled more loosely, and without the wing finger bones (a block thick and forty long: two hundred volumes between them): 61 in all. |
+| The plough | `havoc.ploughBox`: the slab ahead of him (his width, 56 high, 7 deep) is emptied with `Dimension.fillBlocks` and a block filter, a few calls every fifth tick. The filter can only name block *ids*, so the ids to spare are generated from the script's own patterns and Mojang's block list (`tools/kit/gen_ids.py` -> `src/generated/ids.ts`: 36 never broken, 106 storage, 92 natural ground). Natural ground is kept below stepping height, as for III. If the engine refuses the call he falls back to III's block-by-block clearing. |
+| Footfalls | Each landing: a blast (hurt and thrown within 8 blocks) and, in destroy mode and not afloat, a carved sphere of radius 3.4 under the foot. His feet are 8.5 blocks either side of his line, so the ground under his middle is untouched and he does not sink. |
+| The stare | An act of about eight seconds: his head follows one player, and every half second while a clear line runs from his nose to their head they are given Slowness III for 2.5 s. Three failed looks end it. |
+| 1 The entrance | `debut()`: until it has played (`rec.four.debut`) it is the only thing he will do. A thin beam (drawn, harmless) is walked along 26 ground columns toward the nearest watcher; 60 ticks; each column is turned to trinitite (`fallout.glassify`, natural ground only) three ticks apart, far end first; then the whole roar. Reset on every arrival through a rift. Called back with water near, the rift is put out in the water along the line from the caller, far enough that he stops at the water's edge. |
+| 2 The pivot | Inside `fire()`, on the recording's clock: ticks 30-55 he is moved back 0.07 a tick (phase `skid`); at 55 the club's place is taken as the pivot, phase `pivot`, and `bendHold` is set to 30 toward the side the quarry is on (the client lifts that foot); from 79 to 129 his position is rotated about the pivot 1.4 degrees a tick and his yaw with it; at 129 a blast at the pivot. |
+| 3 The misfire | 22% of shots after the first, never twice running. The charge sound is stopped; phase `recoil` (the client opens the wings); for 64 ticks each of the eight `wing_vein_*` locators throws the thin beam down and backward, fanned outward. Nothing points forward. |
+| 4 The seabed | Offered when the block at his knees is water and a hunted player stands on something that is not, 24 to 90 blocks off. He turns to them, phase `drag` (the client reaches for 2.5 s, holds, hauls at 4.2 s), then a line of particles 35 wide advances 1.3 blocks a tick up the ground's own height; each entity it passes is knocked along it once (players hurt, boats given an impulse); a boat (if none was caught) and two cod are spawned where it stops. No block is changed. |
+| 5 The plate | On his third charge `shedPlate()` hides the `plate_break` bone (the `gill` flag, unused by this form) and builds eight blocks of trinitite 15 blocks to his left and 9 behind. `plateSees()` asks for a clear line mouth-to-plate and plate-to-player when the mouth itself has none; `plateShot()` draws one beam into the plate and fires a second, real one from its tip along the line fixed at that moment. Three uses, then the blocks become cooled slag. |
+| 6 The swallow | While his eye still follows (before the lock), four looks in a row with no clear line to a player end the charge: phase `swallow`, then `carry` (he walks, ploughing, toward where he last saw them; the client lights `ribs_l` on its own glow pass). One neck pulse (`fx_kind` 11) every 100 ticks. A clear line fires at once (`snapShot`, the muzzle laid in the firing pose); the third pulse fires with no aim. |
+
+He becomes IV from III's `choose()`: three days in form and twelve beams, at night, with anyone within 140 blocks; the change itself is the same scene as the others.
+
 ## Out of control (Form III)
 
 * **Quarry**: players first (the one he remembers, else the nearest), then any creature with the `mob` family within 72 blocks (looked up every two seconds), unless `huntMobs` is off. A new quarry gets a roar first.
@@ -103,6 +123,8 @@ src/                      the script, in TypeScript
   controller.ts           lifecycle: the record, arrival, evolution, absence, drive-off, retirement
   creature.ts             the loaded animal: movement, skeleton, hit volumes
   forms/one|two|three.ts  the encounters of each stage, written as generators with one exit
+  forms/four.ts           Basiliskra IV: the stare and his six set pieces, on top of three.ts
+  beam.ts                 one tick of the breath, shared by III and IV
   ending.ts               the last crossing
   havoc.ts                what he breaks: craters, ploughing, the shockwave's brittle blocks, blasts
   path.ts                 the route planner (coarse-grid A*)
@@ -115,6 +137,8 @@ src/                      the script, in TypeScript
 tools/kit/                model kit: design files per form, texture painter, client-file and particle generators
 tools/kit/gen_blocks.py   the fallout's blocks and items, the crystal's model, recipes, the fog
 tools/kit/gen_hitbox.py   the ten hit-volume entity types
+tools/kit/gen_ids.py      vanilla block ids to spare, from the script's own patterns (for the engine's fill)
+tools/preview/pose_eval.mjs  the shipped pose evaluated for given properties (to render any phase of any form)
 tools/sound/synth.py      every synthesised sound, and the cuts of the three supplied recordings (tools/sound/source/)
 tools/music/compose.py    his three themes, rendered from a written score by modelled instruments
 tools/validate/           pack validator (Mojang's published schemas + reference integrity)
@@ -139,6 +163,7 @@ Counted in the simulated world as calls into the engine per tick (`node test/per
 | The last crossing being called | 199 | 557 | 0.35 |
 | Six strong fallout zones round a player | 99 | 169 | 0.4 |
 | Fallout at its cap of 32 zones | 112 | 200 | 0.4 |
+| Form IV in a village (breath, craters, ploughing) | 142 | 862 | 1.02 |
 
 (The worst tick at the window is one route search starting: every column under his body is read once.)
 

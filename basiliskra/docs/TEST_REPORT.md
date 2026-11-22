@@ -48,16 +48,16 @@ All of it is reproducible with `python3 tools/build.py` (which runs the first fo
 | Check | Command | Result |
 |---|---|---|
 | Type-check of the script against the 2.11.0 typings (strict) | `npx tsc --noEmit -p .` | clean |
-| Bundle | `node tools/bundle.mjs` | 284 KiB, two imports: `@minecraft/server`, `@minecraft/server-ui` |
+| Bundle | `node tools/bundle.mjs` | 342 KiB, two imports: `@minecraft/server`, `@minecraft/server-ui` |
 | Pack validation | `python3 tools/validate/validate.py` | no problems |
-| Scenario suite in a simulated world | `node test/run.mjs` | **228 of 228 checks pass** (18 groups) |
+| Scenario suite in a simulated world | `node test/run.mjs` | **275 of 275 checks pass** (19 groups) |
 | Engine calls per tick | `node test/perf.mjs` | see DESIGN.md, "Bounded work" |
 | Foot and claw contact on the shipped animation | `node tools/preview/contact.cjs` | below |
 | Independent code review (a second reviewer with no access to my reasoning) | | 20 findings; all acted on, the reviewer's four probe scripts re-run clean and kept as regression scenarios |
 
 ### Pack validation
 
-Strict JSON for 152 files; 96 documents checked against Mojang's schemas (entity 1.26.60, block 1.26.60, item 1.26.50, particle 1.21.10 and others); every reference resolved: textures and their PBR texture sets, six geometries (3,597 cubes, Form IV's among them), 135 animated bones, 80 locator-bound particle hooks and 86 locators (unique across the entity's geometries), 72 particle effects, 57 sound events over 99 files, 14 synchronised properties used by the client, the ten hit-volume entity types, 7 blocks (textures, texture sets, sounds, names, loot tables and the items they drop, the crystal's model and its 30-pixel limit, block states of at most 16 values, custom components that the script really registers), 6 items, 6 recipes (shapeless and shaped), the fog the script pushes, 64 vanilla block and entity ids, one vanilla particle id and 30 vanilla sound ids used by the script, the 164 vanilla block ids the shockwave may break, and all 17 values of the sound ids the script builds at run time (all checked against the 1.26.60 lists), manifest UUIDs and versions, the two stable script modules, the `pbr` capability.
+Strict JSON for 154 files; 98 documents checked against Mojang's schemas (entity 1.26.60, block 1.26.60, item 1.26.50, particle 1.21.10 and others); every reference resolved: textures and their eight PBR texture sets, six geometries (3,597 cubes; all four forms are now drawn), 200 animated bones, 153 locator-bound particle hooks and 135 locators (unique across the entity's geometries), 74 particle effects, 42 render passes, 57 sound events over 99 files, 14 synchronised properties used by the client, the ten hit-volume entity types, 7 blocks (textures, texture sets, sounds, names, loot tables and the items they drop, the crystal's model and its 30-pixel limit, block states of at most 16 values, custom components that the script really registers), 6 items, 6 recipes (shapeless and shaped), the fog the script pushes, 66 vanilla block and entity ids, one vanilla particle id and 32 vanilla sound ids used by the script, the 164 vanilla block ids the shockwave may break, and all 17 values of the sound ids the script builds at run time (all checked against the 1.26.60 lists), manifest UUIDs and versions, the two stable script modules, the `pbr` capability.
 
 ### Scenario suite
 
@@ -84,6 +84,7 @@ The script bundle that ships is run unmodified against `test/mock.mjs`: persiste
 | Calling, sending away, the rift, changing now, mid-air (1.4) | 16 | "Call him now" opens the rift at once (water for I, land for a returning II or III, who walks out of it); the camera is given to players near and taken back; "Send him away" leaves nothing and a fresh story; "Make him change now" plays the change; brought in mid-air, each form comes down to the ground and acts |
 | Routes and ploughing (1.4) | 17 | walked into a pocket of walls, III and II (not destroying) plan a route and walk out and round; destroying, III climbs a gentle rise, cuts a cliff to a step, goes straight through a wood and a house, leaves the floor whole and a chest standing |
 | Themes and voice (1.4) | 18 | "near" plays looped and faded in; it changes to "fighting" when he charges and back some time after; off means off; out of earshot it fades after a few seconds; it stops when he is sent away; a roar tells the client which recording began; the beam draws its aim line first and only first, then the flare, shock ring, rings and lightning |
+| Basiliskra IV (1.5) | 19 | brought as IV: one of him, named, 61 hit volumes with head, body, limbs, wings and tail among them, the size he is drawn; his entrance: the thin beam, 26 blocks popping into glass, and no roar until after the last; his theme; the stare: Slowness III while he can see you and nothing after, ended by cover; he walks left foot, right foot through a 33-high wall (gone where he went, standing beside), 500 blocks of crater under his feet, the ground under his middle whole, never sinking, a chest left standing, and the same without the engine's fill; the breath at 120 blocks: charge, fire, vent, roar; the skid (1.2 to 2.5 blocks); 22 ticks or more of lifted foot before he moves; a swing of 55 to 85 degrees at a constant distance from the club; a player by the buried tail unhurt until the club is ripped free; the misfire: sound cut, thin beams drawn, ground struck behind him and none in front, nobody in front hurt; the swallow: charge sound stopped, carry, three pulses, the forced shot, and the shot at once when cover is removed; the plate: eight blocks, the bone hidden, a player under a roof seen by it and burned through it, burnt out after three; the seabed: the wave, a player hurt and swept inland, a boat shoved, two cod, no block changed; the rift out in the water when he is called back by the sea, where he stops, no roar before the glass on the beach; the change from III after three days and twelve beams, only at night; the journal for both; the last crossing's hooks present on him |
 
 Counting him: the suite counts loaded and saved entities of his type after every scenario above. It is 0 before arrival and after departure and 1 otherwise, in every case.
 
@@ -109,6 +110,17 @@ Measured again for 1.3 with the server rig (scenario 15): at the window, with th
 `previews/*.mp4` were rendered offline from replays of the real script. They are evidence of what the script decides and of how the shipped assets look and move in *my* viewer, which implements Bedrock's geometry format, Molang (the subset used), animation controllers, render controllers and particle components from their documentation. They are not evidence of how the game renders them.
 
 ## Not verified, in order of risk
+
+**New in 1.5, Basiliskra IV** (the same caveat: valid against the schemas, exercised in the simulated world, never seen in game):
+
+1. **His size.** A 55-block-tall, 90-block-long entity with a 2048 x 2048 texture, 1,464 cubes and up to twelve glow passes. Whether it is drawn at all from far enough away to see the whole of it, and what it costs on a phone, is unknown. If he is too heavy, `DRAW_SCALE["iv"]` in `tools/kit/kit.py` is the one number to lower.
+2. **`Dimension.fillBlocks` with an exclude filter of about 240 ids**, on boxes of up to 6,000 blocks, a few times every fifth tick while he walks. Stable in 2.11.0; its limits are not documented. If it throws, he clears his road block by block instead (tested).
+3. **The pivot.** His position is rotated about a point 69 blocks behind him at 1.4 degrees a tick: his middle moves about 1.7 blocks a tick sideways. How that interpolates on clients has not been seen; it may look like sliding.
+4. **His walk on two legs** is solved in Molang like III's and rendered offline (`previews/model_iv_poses.png`), but his feet on real ground have not been seen.
+5. **The poses of the set pieces** were rendered offline from the shipped animation for four of them (standing, walking, roaring, reaching); the pivot, the misfire and the swallow were checked more briefly. Arm and wing angles may need taste applied.
+6. **Spawning a boat and cod** from script; **Slowness** from the stare; the **`gill` flag hiding one bone** on this form.
+7. **61 hit volumes** following him, some 13 blocks wide.
+8. **What was not built from the brief:** the row of spines moving under the sea before his entrance, and fish stranded *before* the wave.
 
 **New in 1.4** (each is schema-valid and exercised in the simulated world, none has been seen in game):
 
@@ -138,6 +150,10 @@ Measured again for 1.3 with the server rig (scenario 15): at the window, with th
 11. **The two blocks** (irradiated soil, scarlet trinitite): schema-valid; not yet confirmed placed in game.
 12. **Sounds.** 67 files are synthesised; 18 are cuts of the three recordings supplied by the project owner (roar, atomic breath, voice). I have not heard any of them: the breath was cut where it changes from charging to firing (6.86 s: a 14 dB dip, then the low band doubles), and the voice at the breaths between grunts, both from measurements. Their in-game range follows the `max_distance` values; not heard.
 13. **Vibrant Visuals**, **Realms, consoles, split-screen, low simulation distance**, and multiplayer beyond what the simulation models.
+
+## First session checklist (1.5)
+
+On a *copy* of a world, with the content log on: **Bring him here** as IV on open ground and watch his entrance (the thin line, the glass, the roar). Does he draw at his full size, and from how far? Let him walk at a hill and a village. Stand 100 blocks off and let him fire: watch for the skid, the lifted foot, the swing; try the place by his tail. Wait for a shot that fails and stand in front of him. Hide behind a hill while he charges. Bring him to a beach. Check the frame rate while he walks.
 
 ## First session checklist (1.4)
 

@@ -5,13 +5,15 @@ model first, then stop for approval**; then everything else.
 
 ## Status
 
-* **1.4.0** (shipped): everything under "2. Bugs to fix" and "3. Changes asked for", and a clearer account of how
-  he changes (the journal's checklist). The three themes are in and play by what he is doing.
-* **Basiliskra IV**: the model is built and approved (`tools/kit/forms/form4.py`, `models/basiliskra_iv.bbmodel`,
-  `packs/RP/models/entity/basiliskra_iv.geo.json` and its textures; pictures in
-  `previews/model_iv_turnaround.png`, `previews/model_iv_views.png`, a turntable in `previews/model_iv.mp4`). It is
-  **not in the game in 1.4.0**: the entity does not use it yet. Bringing him into the game (his walk, his brain,
-  the stare, the six set pieces, the change from III to IV and its scene) is **1.5.0**.
+* **1.4.0**: everything under "2. Bugs to fix" and "3. Changes asked for", the journal's checklist for each change,
+  and the three themes.
+* **1.5.0**: Basiliskra IV is in the game (`src/forms/four.ts`): he roams and destroys, every footfall a crater, the
+  breath from 150 blocks, the stare, and all six set pieces. He comes to be when Basiliskra III has had three days
+  and fired twelve beams, at night with a player near (or at once from the config wheel). Set piece 1 is staged
+  wherever he arrives; called back near the sea he comes out of the water for it. What differs from the brief:
+  in set piece 4 no water is moved and no fish are stranded before the wave (cod are left after it); in set piece 1
+  the "row of spines moving beneath the ocean" is not drawn (he wades out through a rift).
+* None of it has been seen in game: see `docs/TEST_REPORT.md`.
 
 At model scale he is 27.5 blocks to the top of the skull (33.8 to the wing claws), 54.5 across the wings and 44.5
 from muzzle to club; 1,464 cubes, 69 bones, a 2048 x 2048 texture. `DRAW_SCALE` gives him 2.0 for now (55 blocks

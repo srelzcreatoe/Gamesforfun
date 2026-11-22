@@ -266,7 +266,8 @@ export class BrainFour extends BrainThree {
     for (let d = reach; d > reach - 26; d -= 1) {
       const x = c.pos.x + toward.x * d, z = c.pos.z + toward.z * d;
       const g = groundY(c.dim, x, z, c.pos.y + 24, 60);
-      if (typeof g === "number") line.push({ x, y: g - 1, z });
+      // (dry land only: if he stands in the sea the line is cut across the beach, and pops back toward the water)
+      if (typeof g === "number" && !isWaterId(idAt(c.dim, { x, y: g, z }))) line.push({ x, y: g - 1, z });
     }
     if (line.length < 6) { F.debut = true; store.touch(); yield* this.roar(true); return; }
     yield* wait(24);

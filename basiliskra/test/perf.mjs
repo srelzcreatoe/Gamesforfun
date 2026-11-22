@@ -82,6 +82,12 @@ function measure(name, w, ticks, each) {
   const note = { x: 8, y: 64, z: 16 };
   measure('Form III, the last crossing being called (note rhythm held)', w, 3000, (i) => { if (i % 18 === 0) w.bk.ctl.ending.onNote(note); });
 }
+{
+  const w = world('village'); const a = w.sim.addPlayer('Ana', { x: 20, y: 64, z: -30 });
+  stand(w, 4, { x: 70, y: 64, z: -20 }, 90, {});
+  w.bk.store.rec.four = { debut: true, shots: 3, plate: null };
+  measure('Form IV in a village, a player in the open (breath, craters, ploughing)', w, 6000);
+}
 
 { // six strong fallout zones round a player, nobody else about: the land changing
   const w = world(); const a = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 0 }); a.mode = 'Creative';

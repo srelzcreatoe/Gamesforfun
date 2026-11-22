@@ -229,13 +229,33 @@ export class Controller {
       store.save();
       return `The rift is opening in the water ${Math.round(dist(w, site))} blocks from you. Watch it.`;
     }
+    // Basiliskra IV comes out of the sea if there is any near: the rift opens in the water, he wades out of it,
+    // and his first beam is cut across the beach before anyone hears him
+    let fromSea = false;
+    if (form === 4) {
+      const w = this.waterNear(site, 96);
+      if (w) {
+        // as far out as the water goes along the line from the caller (up to the length he has to walk to be clear
+        // of the tear), so that he comes to a stop at the water's edge and not on top of whoever called him
+        const out = norm({ x: w.x - site.x, y: 0, z: w.z - site.z });
+        for (const d of [78, 60, 40, 20, 0]) {
+          const x = w.x + out.x * d, z = w.z + out.z * d;
+          const col = waterColumn(overworld(), x, z, w.y + 5.5, 12, 40);
+          if (col === NONE || col === UNLOADED || col.surface - col.floor < 2) continue;
+          place = { at: { x: Math.floor(x), y: col.floor, z: Math.floor(z) }, yaw: yawTo({ x, y: 0, z }, site) };
+          fromSea = true;
+          break;
+        }
+      }
+    }
     if (!place) return "He could not come there.";
     rec.stage = "arriving"; rec.entityId = null; rec.down = null; rec.pending = null;
     if (!rec.token) rec.token = newToken();
     rec.arrival = { step: 0, t0: this.now, water: { ...place.at }, yaw: place.yaw, land: true };
     rec.home = { ...place.at };
     store.save();
-    return `The rift is opening in front of you. Basiliskra ${ROMAN[form]} is coming through.`;
+    return fromSea ? `The rift is opening in the water ${Math.round(dist(place.at, site))} blocks from you. Basiliskra IV is coming out of the sea.`
+      : `The rift is opening in front of you. Basiliskra ${ROMAN[form]} is coming through.`;
   }
 
   /** The heading out of a seam in the water with the longest clear, deep run ahead of it (for his first swim). */
@@ -714,7 +734,9 @@ export class Controller {
     if (c) { c.set(PROP.visLo, 0); c.set(PROP.visHi, 8); c.wade = false; }
     this.brain?.finish();
     const b = this.brain;
-    if (b instanceof BrainThree) b.forced = { name: "roar", run: b.roar(true), limit: 220 };
+    // Basiliskra IV makes his entrance every time he comes through: the beam first, and only then the roar
+    if (b instanceof BrainFour) rec.four = { debut: false, shots: rec.four?.shots ?? 0, plate: rec.four?.plate ?? null };
+    else if (b instanceof BrainThree) b.forced = { name: "roar", run: b.roar(true), limit: 220 };
     else if (b instanceof BrainTwo) b.forced = { name: "roar", run: b.roar(), limit: 120 };
   }
 
@@ -723,7 +745,7 @@ export class Controller {
     const rec = store.rec, a = rec.arrival!, dim = overworld();
     const form = rec.form, size = RIFT_SIZE[form];
     const at = a.water, f = forwardOf(a.yaw);
-    const tail = [0, 26, 24, 42, 62][form];           // how far behind his middle his tail ends
+    const tail = [0, 26, 24, 42, 70][form];           // how far behind his middle his tail ends
     const c = this.creature!;
     c.goTo(add(at, mul(f, tail + 4)), form === 2 ? 0.1 : 0.14, 2);
     for (let t = 0; t < 700; t++) {

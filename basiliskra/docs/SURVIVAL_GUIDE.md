@@ -5,11 +5,11 @@ No experiments, no Beta APIs, no cheats, no commands. It can be added to a survi
 
 ## Install
 
-1. Open `Basiliskra-1.4.0.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
+1. Open `Basiliskra-1.5.0.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
 2. Edit your world → **Behavior Packs** → activate **Basiliskra**. The resource pack is pulled in with it. Leave every toggle under **Experiments** off.
 3. Play. Nothing happens straight away. The story is found by playing; the journal tells you how close it is.
 
-**Updating from an earlier version**: open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.4.0 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself. Settings you chose are kept; a world that never chose how destructive he is gets the new default (he destroys like the Wither).
+**Updating from an earlier version**: open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.5.0 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself. Settings you chose are kept; a world that never chose how destructive he is gets the new default (he destroys like the Wither).
 
 Realms and multiplayer: apply both packs to the world; players download the resource pack on joining. Consoles can use the add-on only through a Realm or a world transferred from another device.
 
@@ -28,9 +28,9 @@ When a region crosses the line, the nearest deep, open water is chosen (roughly 
 
 Then, at dusk, with someone near that coast: fish bunch, an empty boat knocks three times against a pier if there is one, a red seam opens in the water, and he comes through. You can move the whole time.
 
-## The three stages (one animal)
+## The four stages (one animal)
 
-He changes twice. Each change waits on a short list of things, and **the journal shows that list as a checklist** (done / not done, and how much is left), so you never have to guess.
+He changes up to three times. Each change waits on a short list of things, and **the journal shows that list as a checklist** (done / not done, and how much is left), so you never have to guess.
 
 **Basiliskra I → II** (in deep water). All three, then the last step:
 
@@ -45,7 +45,13 @@ He changes twice. Each change waits on a short list of things, and **the journal
 2. 220 blocks dragged overland (he wanders while anyone is near);
 3. then he changes **at night or in rain, with a player near**.
 
-**Basiliskra III** stays until the last crossing (below). A fourth form is built and comes in the next version.
+**Basiliskra III → IV** (only if he is not sent home first). Both, then the last step:
+
+1. three in-game days as Basiliskra III;
+2. twelve beams fired;
+3. then he changes **at night, with a player near**.
+
+The last crossing (below) sends him home as III *or* as IV. Sending him home before he becomes IV is the safer story.
 
 An operator can skip the waiting: the config wheel's **Make him change now**. Story speed (Settings) shortens every wait.
 
@@ -74,6 +80,26 @@ Things worth knowing, without spoiling how you find them:
 * Form II's drag has a rest in it. That rest is your gap.
 * **The atomic breath** (Form III) is timed to its sound. The club plants and the charging begins; for about seven seconds the plates light from tail to head, sparks are drawn out of the air into his mouth, and his eye follows you. Then the eye stops following and **a thin red line shows exactly where the beam will go: that is the moment to step sideways.** It lights with a flare and a shock ring at his mouth (screens near him white out for an instant). The shot lasts about seven and a half seconds: rings race down it, lightning crawls along it, it throws smoke and embers the whole way, and where it lands there is a glare, a ring of fire across the ground and a fountain of sparks. It drifts slowly after its target (never as fast as you can walk sideways), and blasts, burns and craters whatever it lands on. While he is destroying like the Wither it blows cover away too, so do not count on a wall; in the gentler settings solid cover still works. After it he vents with three knocks, roars, and rests a while.
 * **A lightning rod (any weathering, waxed or not) within 10 blocks of his planted tail club** takes the charge instead. The rod needs half a minute before it can do it again.
+
+## Basiliskra IV
+
+The last form: upright on two legs, winged, about **fifty-five blocks tall and ninety long**, with the same face, the same crests, the same club. He is drawn at twice his model.
+
+* **He walks across the world, not round a place**, and what is in his way is gone: the slab ahead of him, his own width and as high as he stands, is emptied as he comes (in the default destruction setting). He walks through, not down: the ground under his middle stays.
+* **Every footfall blows a crater**, like the Wither, and hurts and throws whatever is within eight blocks of it.
+* **His breath reaches 150 blocks** and is thicker and hotter. He turns it on any player or creature he can see, from as far off as he can see it.
+* **The stare.** Every minute or so he stops and looks at one player. While he can see you, you can barely walk (Slowness III). It lasts about eight seconds and wears off three seconds after he looks away, or at once if you get something solid between you and his eye.
+
+**The six things he does** (each has a tell, and a place to be):
+
+1. **His first roar comes after his first beam.** Whenever he arrives or becomes IV he is silent at first. A thin red beam cuts a line across the ground toward whoever is watching; three seconds of quiet; then the line pops into glass, one block at a time, back toward him; and when the last block turns, he roars. Called back near the sea, he comes out of the water to do it, and the line is cut across the beach.
+2. **He turns on his buried club mid-breath.** About a second and a half into a shot the breath shoves him backward on his heels. He drives the club into the ground and **one foot comes off the ground: that is the side he will swing to**, and you have more than a second to read it. Then his whole body swings round the buried club (sixty to eighty degrees) and the beam with it. **Run toward the buried tail**: inside the arc is safe. Be gone before the swing ends: he rips the club free, and that hurts anyone within nine blocks of it.
+3. **The shot that dies in his mouth.** Sometimes (never twice running) the charge fails: the sound cuts out, a little light leaks between his teeth, both wings slam open and every wing vein throws a thin beam into the ground behind him, fanned out. **Stand directly in front of his face**: nothing falls there.
+4. **He hauls the seabed ashore.** Standing in the shallows with someone on the beach, he reaches down for two and a half seconds, digs in, and hauls. A front of black water thirty-five blocks wide races up the shore: it hurts and sweeps you inland, shoves boats up the beach, and leaves a boat and a couple of cod flapping where it stops. **Get out of its lane, sideways.** No water is moved: nothing floods.
+5. **His broken plate keeps charging.** The third time he draws breath, a plate cracks off his back and stands in the ground beside him, taller than you. It lights when he charges. If you hide from his mouth (under a roof, behind a hill) but the plate can see you, **he fires into the plate and it throws the beam at you.** Where it leaves the plate is fixed when he fires: move. After three such shots it is burnt out and stays, blackened, as a landmark.
+6. **The beam he swallows.** If you reach cover while he is still charging, he shuts his mouth on it. One side of his ribs glows; he walks round with his mouth dark and **fires the instant he sees you**. A red pulse climbs his neck every five seconds: **on the third he must let it go wherever he is facing.** Lead him to face the open sea and the shot goes over the horizon.
+
+A lightning rod by his planted club still takes an ordinary charge, as it did for Basiliskra III.
 
 ## Out of control
 
@@ -148,8 +174,8 @@ Operators (and the player of a single-player world) also get a **Basiliskra Conf
 | Button | What it does |
 |---|---|
 | Settings | Everything in the table below. Saved with the world, so it survives reloads and pack updates. |
-| Call him now (the rift opens) | At once, not at dusk. If he has never come, the rift opens in the nearest deep water and Basiliskra I rises from it. If he was here before as II or III and is away, the rift opens on the ground in front of you and he walks out as he was. |
-| Bring him here (no rift, pick a form) | The one Basiliskra is put a short way in front of you, on the ground, as he is in the story or as I, II or III. Basiliskra I needs deep water within 96 blocks and goes there. |
+| Call him now (the rift opens) | At once, not at dusk. If he has never come, the rift opens in the nearest deep water and Basiliskra I rises from it. If he was here before as II, III or IV and is away, the rift opens on the ground in front of you and he walks out as he was (Basiliskra IV comes out of the sea instead, if there is water within 96 blocks). |
+| Bring him here (no rift, pick a form) | The one Basiliskra is put a short way in front of you, on the ground, as he is in the story or as I, II, III or IV. Basiliskra I needs deep water within 96 blocks and goes there. |
 | Make him change now (next form) | Plays the change, with its scene, without waiting for the list in the journal. |
 | Send him away (until he is called) | He leaves through a rift and **stays gone**. The story goes back to its beginning: the next time he is called he comes as Basiliskra I. The anger on record and his fallout stay. Asks first. |
 | Skip to dusk | Sets the time to dusk. |
@@ -161,7 +187,7 @@ Operators (and the player of a single-player world) also get a **Basiliskra Conf
 There is still only ever one Basiliskra. Calling him on purpose brings **that one** to you: if he is about he is moved to you, and if he is not, the new body becomes him and the old one is removed when its chunk next loads.
 
 * **Spawn egg**: "Spawn Basiliskra", in the Creative inventory with the other spawn eggs (or `/give @s basiliskra:basiliskra_spawn_egg`, which needs cheats). In a world he has never come to, the egg makes Basiliskra I on deep water and Basiliskra III on land. After that it brings him as he is in the story, unless the Settings say otherwise.
-* **`/basiliskra:spawn [story|i|ii|iii]`**: operators, **no cheats needed**. He appears a short way in front of you, facing you. Basiliskra I goes to the nearest deep water instead.
+* **`/basiliskra:spawn [story|i|ii|iii|iv]`**: operators, **no cheats needed**. He appears a short way in front of you, facing you. Basiliskra I goes to the nearest deep water instead.
 * `/summon basiliskra:basiliskra` (needs cheats) works like the egg.
 
 Wherever you bring him becomes his home: with nobody about he wanders round it, and if he is sent back or worn down he comes back there a day later (on land, for Basiliskra II and III). While anyone is near, Creative players included, he keeps round them; only players in Survival or Adventure are hunted.
@@ -182,7 +208,7 @@ In game: the config wheel's **Settings**. The defaults below are in `scripts/mai
 | Harmless on Peaceful | on | On Peaceful he appears and behaves but hurts nobody. |
 | He hunts animals and other creatures (`huntMobs`) | on | Off: he only goes after players (creatures in the way of his beam or his feet still suffer). |
 | Spawn eggs and /summon bring him (`allowSummon`) | on | Off: they are removed instead. |
-| A spawn egg makes (`spawnForm`) | his stage in the story | Or always I, II or III. |
+| A spawn egg makes (`spawnForm`) | his stage in the story | Or always I, II, III or IV. |
 | Give new players the journal | on | |
 | Give operators the config wheel | on | |
 | Debug messages | off | Fault messages in the content log, and operator hooks through `/scriptevent basiliskra:debug` (needs cheats). |
@@ -201,6 +227,7 @@ His destruction drops nothing: what his breath or his weight breaks is gone. He 
 
 ## Good to know
 
+* Basiliskra IV's wings are struck at the arm; the long finger bones and the membrane between them are not hit volumes.
 * **Hit him anywhere.** Every form is covered by invisible hit volumes from the tip of the snout to the tip of the tail, generated from the model itself: head, jaw, neck, body, every leg, every segment of tail. Hits on his head count from outside it. If the game ever fails to register a swing that plainly lands, the pack counts it anyway.
 * In destroy mode Basiliskra III walks through buildings, woods and cliffs; otherwise (and for I and II) he works out a way round them. He does not enter water over his depth by choice; if he ends up in it he swims.
 * If the coast he is at unloads (you go to the Nether), he is still there when you return. An empty area is never treated as "he is gone".

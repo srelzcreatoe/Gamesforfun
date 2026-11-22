@@ -1,13 +1,13 @@
 # Basiliskra
 
-An original survival-horror add-on for Minecraft Bedrock. One creature per save. Basiliskra I, II and III are three stages of the life of one animal, and the story is found by playing an ordinary survival world.
+An original survival-horror add-on for Minecraft Bedrock. One creature per save. Basiliskra I, II, III and IV are stages of the life of one animal, and the story is found by playing an ordinary survival world.
 
 * **Game:** retail Minecraft Bedrock **1.26.60**
 * **Script modules:** stable `@minecraft/server` **2.11.0** and `@minecraft/server-ui` **2.3.0** (no Beta APIs)
 * **Experiments:** none. **Cheats:** none. **Commands:** none needed.
 * **Graphics:** standard Bedrock rendering; Vibrant Visuals supported (PBR texture sets with emissive glow).
 
-> **1.4 is built from the project owner's in-game play of 1.3**: sending him away now works and calling him opens a rift at once; bringing him no longer leaves him floating; every form can be hit from snout to tail; Basiliskra III walks through whatever is in his way and every form finds its way round walls; he is heard from 200 blocks; his jaw and the screen shake follow his recordings; a bigger beam; a rift and a cutscene for his arrival and each change; fallout that spreads, glows and goes, with new blocks and items; and three themes. **None of 1.4 has been seen in game yet**: it was checked without the game, against Mojang's published schemas and typings and in a simulated world. [docs/TEST_REPORT.md](docs/TEST_REPORT.md) says exactly what was and was not verified. A fourth form is modelled (`models/basiliskra_iv.bbmodel`) and comes into the game in 1.5; the brief for it is [docs/FORM_IV_PLAN.md](docs/FORM_IV_PLAN.md).
+> **1.5 brings Basiliskra IV into the game**: the last form, upright and winged, fifty-five blocks tall. He walks across the world emptying whatever is in his way, every footfall a crater; his breath reaches 150 blocks; he stares players to a crawl; and he has six habits of his own (his first roar after his first beam, the turn on his buried club, the misfire through his wing veins, the seabed hauled ashore, the broken plate that throws his beam, the charge he swallows). **1.4** fixed what the project owner found playing 1.3 and added the rift, the cutscenes, fallout that glows and goes, and three themes. **Neither 1.4 nor 1.5 has been seen in game yet**: both were checked without the game, against Mojang's published schemas and typings and in a simulated world. [docs/TEST_REPORT.md](docs/TEST_REPORT.md) says exactly what was and was not verified; the owner's brief is [docs/FORM_IV_PLAN.md](docs/FORM_IV_PLAN.md).
 
 **Out of control:** Basiliskra III (now drawn 1.7 times his model, about seventy blocks long) goes after players and animals alike, treads on what is underfoot and smashes through buildings. His atomic breath charges for seven seconds and fires for seven and a half, smoking, blasting burning craters and destroying whatever it meets, like the Wither (chests, beds and portals are spared by default). He roars after every breath, at whatever he goes after, and now and then for no reason, and every roar shakes the screen and sends a shockwave across the land.
 
@@ -21,8 +21,8 @@ In game: a **journal** (how angry he is, as a percentage, and when he will come)
 
 | File | What it is |
 |---|---|
-| `dist/Basiliskra-1.4.0.mcaddon` | behaviour pack + resource pack, ready to import |
-| `models/basiliskra_i.bbmodel`, `_ii`, `_iii`, `_iv` | the editable Blockbench models, textures embedded (animations for I to III; IV is not in the game yet) |
+| `dist/Basiliskra-1.5.0.mcaddon` | behaviour pack + resource pack, ready to import |
+| `models/basiliskra_i.bbmodel`, `_ii`, `_iii`, `_iv` | the four editable Blockbench models, textures and animations embedded |
 | `docs/SURVIVAL_GUIDE.md` | install, what calls him, the three stages, the ending, settings |
 | `previews/*.mp4` | reference videos (see below) |
 

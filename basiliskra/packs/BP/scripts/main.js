@@ -5634,7 +5634,7 @@ var BrainFour = class extends BrainThree {
     for (let d = reach; d > reach - 26; d -= 1) {
       const x = c.pos.x + toward.x * d, z = c.pos.z + toward.z * d;
       const g = groundY(c.dim, x, z, c.pos.y + 24, 60);
-      if (typeof g === "number") line.push({ x, y: g - 1, z });
+      if (typeof g === "number" && !isWaterId(idAt(c.dim, { x, y: g, z }))) line.push({ x, y: g - 1, z });
     }
     if (line.length < 6) {
       F.debut = true;
@@ -6908,6 +6908,21 @@ var Controller = class {
       store.save();
       return `The rift is opening in the water ${Math.round(dist(w, site))} blocks from you. Watch it.`;
     }
+    let fromSea = false;
+    if (form === 4) {
+      const w = this.waterNear(site, 96);
+      if (w) {
+        const out = norm({ x: w.x - site.x, y: 0, z: w.z - site.z });
+        for (const d of [78, 60, 40, 20, 0]) {
+          const x = w.x + out.x * d, z = w.z + out.z * d;
+          const col = waterColumn(overworld(), x, z, w.y + 5.5, 12, 40);
+          if (col === NONE || col === UNLOADED || col.surface - col.floor < 2) continue;
+          place2 = { at: { x: Math.floor(x), y: col.floor, z: Math.floor(z) }, yaw: yawTo({ x, y: 0, z }, site) };
+          fromSea = true;
+          break;
+        }
+      }
+    }
     if (!place2) return "He could not come there.";
     rec.stage = "arriving";
     rec.entityId = null;
@@ -6917,7 +6932,7 @@ var Controller = class {
     rec.arrival = { step: 0, t0: this.now, water: { ...place2.at }, yaw: place2.yaw, land: true };
     rec.home = { ...place2.at };
     store.save();
-    return `The rift is opening in front of you. Basiliskra ${ROMAN2[form]} is coming through.`;
+    return fromSea ? `The rift is opening in the water ${Math.round(dist(place2.at, site))} blocks from you. Basiliskra IV is coming out of the sea.` : `The rift is opening in front of you. Basiliskra ${ROMAN2[form]} is coming through.`;
   }
   /** The heading out of a seam in the water with the longest clear, deep run ahead of it (for his first swim). */
   openHeading(w) {
@@ -7522,7 +7537,8 @@ var Controller = class {
     }
     this.brain?.finish();
     const b = this.brain;
-    if (b instanceof BrainThree) b.forced = { name: "roar", run: b.roar(true), limit: 220 };
+    if (b instanceof BrainFour) rec.four = { debut: false, shots: rec.four?.shots ?? 0, plate: rec.four?.plate ?? null };
+    else if (b instanceof BrainThree) b.forced = { name: "roar", run: b.roar(true), limit: 220 };
     else if (b instanceof BrainTwo) b.forced = { name: "roar", run: b.roar(), limit: 120 };
   }
   /** He walks out through the tear: what has passed it is what is seen.  Then it closes behind him. */
@@ -7530,7 +7546,7 @@ var Controller = class {
     const rec = store.rec, a = rec.arrival, dim = overworld();
     const form = rec.form, size = RIFT_SIZE[form];
     const at2 = a.water, f = forwardOf(a.yaw);
-    const tail = [0, 26, 24, 42, 62][form];
+    const tail = [0, 26, 24, 42, 70][form];
     const c = this.creature;
     c.goTo(add(at2, mul(f, tail + 4)), form === 2 ? 0.1 : 0.14, 2);
     for (let t = 0; t < 700; t++) {

@@ -1573,6 +1573,36 @@ console.log('\n== 19. Basiliskra IV');
     w.bk.ctl.sendAway();
   }
 
+  // ---- called back, he comes out of the sea ----
+  {
+    const coast = (dim, x, y, z) => {
+      if (dim !== 'minecraft:overworld') return 'minecraft:air';
+      if (z < 0) return y <= 57 ? 'minecraft:sand' : y <= 62 ? 'minecraft:water' : 'minecraft:air';
+      return y > 63 ? 'minecraft:air' : y === 63 ? 'minecraft:sand' : 'minecraft:stone';
+    };
+    const { w, id } = fresh(coast);
+    const op = w.sim.addPlayer('Op', { x: 0, y: 64, z: 34 }); op.mode = 'Creative'; op.view = { x: 0, y: 0, z: -1 };
+    const sea = w.sim.addPlayer('Gull', { x: 0, y: 80, z: -50 }); sea.mode = 'Spectator';
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 60 }, 180, 4); w.sim.step(2); debutDone(w);
+    w.bk.ctl.driveOff(true); w.sim.step(5);
+    const msg = w.bk.ctl.callNow(op.location, op, w.bk.ui.placeFor(op, 4));
+    const a = w.bk.store.rec.arrival;
+    check('owed back as Basiliskra IV with the sea near, the rift opens out in the water', /out of the sea/.test(msg) && a?.land === true && a.water.z < -40 && id(a.water.x, a.water.y, a.water.z) === 'minecraft:water', `${msg} (z ${a?.water.z})`);
+    op.heard.length = 0;
+    const took = until(w, () => w.bk.store.rec.stage === 'alive', 2500);
+    const c = w.bk.ctl.creature;
+    check('he wades out of it and stops at the water\'s edge, not on whoever called him', took > 0 && !!c && c.form === 4 && c.pos.z < 20 && c.pos.z > -40 && Math.hypot(c.pos.x - op.location.x, c.pos.z - op.location.z) > 14,
+      c ? `${took} ticks, at z ${c.pos.z.toFixed(0)}` : 'not here');
+    check('he has not roared yet', !op.heard.some((q) => /^basiliskra\.roar/.test(q.id)) && w.bk.store.rec.four?.debut === false);
+    until(w, () => w.bk.store.rec.four?.debut === true, 900);
+    let beach = 0, bed = 0;
+    for (let x = -60; x <= 60; x++) for (let z = -60; z <= 60; z++) { if (z >= 0 && id(x, 63, z) === 'basiliskra:scarlet_trinitite') beach++; if (z < 0 && id(x, 57, z) === 'basiliskra:scarlet_trinitite') bed++; }
+    const heard = op.heard.map((q) => q.id);
+    check('a thin beam cuts a line across the beach, it pops into glass back toward the sea, and then he roars', beach >= 8 && bed === 0 && heard.lastIndexOf('random.pop') >= 0 && heard.indexOf('basiliskra.roar') > heard.lastIndexOf('random.pop'),
+      `${beach} blocks of glass on the beach, ${bed} changed under the water`);
+    w.bk.ctl.sendAway();
+  }
+
   // ---- how he comes to be ----
   {
     const { w } = fresh();
