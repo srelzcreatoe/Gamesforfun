@@ -215,7 +215,9 @@ def _decay_noise(n, rng, rt_scale):
 
 def make_hall(seed, predelay, er_gain, rt_scale=1.0, length=4.6):
     """Synthetic concert hall: a handful of early reflections followed by a diffuse,
-    frequency-dependent exponential tail.  Returns four IRs (L->L, R->R, L->R, R->L)."""
+    frequency-dependent exponential tail.  Returns four IRs (L->L, R->R, L->R, R->L).
+    Energies are normalised so that a centred source sent at gain g comes back with
+    g^2 of its energy (0.8 from its own side, 0.2 from the opposite side)."""
     rng = np.random.default_rng(seed)
     n = int(length * SR)
     t = np.arange(n) / SR
@@ -223,22 +225,25 @@ def make_hall(seed, predelay, er_gain, rt_scale=1.0, length=4.6):
     irs = []
     for ch in range(4):
         cross = ch >= 2
+        total = 0.2 if cross else 0.8
+        q = min(0.5, 0.22 * er_gain ** 2 * (0.5 if cross else 1.0))     # share of early reflections
         tail = _decay_noise(n, rng, rt_scale)
         tail *= (1.0 - np.exp(-t / 0.035)) ** 2
-        tail /= np.sqrt(np.sum(tail * tail))
-        ir = np.zeros(n + pd + 8)
-        ir[pd:pd + n] += tail * (0.62 if cross else 1.0)
+        tail *= np.sqrt(total * (1.0 - q) / np.sum(tail * tail))
         # early reflections: sparse, progressively duller taps
+        er = np.zeros(n + pd + 8)
         k = 5 if cross else 9
         delays = np.sort(rng.uniform(0.007, 0.095, k)) + (0.006 if cross else 0.0)
         for j, dly in enumerate(delays):
-            g = er_gain * (0.34 if cross else 0.5) * (0.82 ** j) * rng.choice([-1.0, 1.0]) * rng.uniform(0.7, 1.0)
+            g = (0.82 ** j) * rng.choice([-1.0, 1.0]) * rng.uniform(0.7, 1.0)
             tap = np.array([1.0])
             for _ in range(1 + j // 2):
                 tap = np.convolve(tap, [0.25, 0.5, 0.25])
             p = pd + int(dly * SR)
-            ir[p:p + len(tap)] += g * tap
-        irs.append(ir)
+            er[p:p + len(tap)] += g * tap
+        er *= np.sqrt(total * q / np.sum(er * er))
+        er[pd:pd + n] += tail
+        irs.append(er)
     return irs
 
 
@@ -294,7 +299,11 @@ class Track:
         self.target_db = target_db
         self.buses = {}
         self.mix = {}
+        self.dry = False            # True: only log the notes (for the score picture), no audio
+        self.events = []            # (part, beat, beats, midi pitch, velocity)
         self.sections = []          # (label, first bar) for the report
+        self.ride = (0.4, 8.0)      # fader riding: dB of lift per dB below the peak passage, max lift
+        self.rt_scale = 1.0         # hall reverberation time multiplier
 
     def bt(self, bar, beat=1.0):
         """(bar, beat), both 1-based -> beats from the start."""
@@ -302,6 +311,11 @@ class Track:
 
     def sec(self, beats):
         return self.lead + beats * self.spb
+
+    def note(self, part, b, d, p, v):
+        """Log a note; returns True when no audio should be made."""
+        self.events.append((part, float(b), float(d), float(nn(p)), float(v)))
+        return self.dry
 
     def bus(self, name):
         b = self.buses.get(name)
@@ -463,6 +477,8 @@ class Strings(Section):
     def play(self, b, d, p, v=0.7, art='arco', to=None, vib=1.0, tone='ord', div=None,
              shape=None, leg=False, trem=0.0, gate=1.0):
         tr, F, rng = self.tr, self.F, self.rng
+        if tr.note(self.name, b, d * gate, p, v):
+            return
         t0 = tr.sec(b)
         dur = max(0.04, d * tr.spb * gate)
         m0 = nn(p)
@@ -507,6 +523,7 @@ class Strings(Section):
             # pitch: detune, drift, delayed vibrato, optional glissando
             c = P['det'] + rng.normal(0, 1.8)
             if n > 0.3 * SR:
+                amp = amp * (1.0 + 0.09 * smooth_rand(n, 3.5, rng))      # uneven bow pressure
                 c = c + smooth_rand(n, 2.2, rng, 2.2)
                 if vib > 0 and art in ('arco', 'marc'):
                     on = np.clip((t - P['von']) / 0.35, 0.0, 1.0)
@@ -542,14 +559,14 @@ class Strings(Section):
 # brass and low reeds
 # ----------------------------------------------------------------------------
 WIND = {
-    'tbn': dict(f_lo=420.0, p=1.0, fc=(260.0, 760.0, 2200.0), scoop=34.0, att=0.042, rel=0.12,
-                rasp=0.14, nz=0.012, vib=0.0, alpha=1.7, jit=3.0, bus='brass'),
-    'tuba': dict(f_lo=190.0, p=1.0, fc=(170.0, 400.0, 950.0), scoop=24.0, att=0.055, rel=0.14,
-                 rasp=0.10, nz=0.012, vib=0.0, alpha=1.6, jit=2.5, bus='brass'),
-    'horn': dict(f_lo=330.0, p=1.0, fc=(240.0, 540.0, 1500.0), scoop=28.0, att=0.05, rel=0.13,
-                 rasp=0.08, nz=0.010, vib=0.0, alpha=1.7, jit=2.5, dip=(1900.0, 0.55), bus='brass'),
-    'tpt': dict(f_lo=880.0, p=1.2, fc=(520.0, 1300.0, 3600.0), scoop=30.0, att=0.032, rel=0.10,
-                rasp=0.10, nz=0.010, vib=5.0, alpha=1.7, jit=2.5, bus='brass'),
+    'tbn': dict(f_lo=300.0, p=1.0, fc=(240.0, 620.0, 1500.0), scoop=34.0, att=0.042, rel=0.12,
+                rasp=0.07, nz=0.012, vib=0.0, alpha=1.7, jit=3.0, bus='brass'),
+    'tuba': dict(f_lo=120.0, p=1.0, fc=(160.0, 340.0, 700.0), scoop=24.0, att=0.055, rel=0.14,
+                 rasp=0.05, nz=0.012, vib=0.0, alpha=1.6, jit=2.5, bus='brass'),
+    'horn': dict(f_lo=260.0, p=1.0, fc=(220.0, 480.0, 1100.0), scoop=28.0, att=0.05, rel=0.13,
+                 rasp=0.04, nz=0.010, vib=0.0, alpha=1.7, jit=2.5, dip=(1900.0, 0.55), bus='brass'),
+    'tpt': dict(f_lo=700.0, p=1.2, fc=(480.0, 1100.0, 2600.0), scoop=30.0, att=0.032, rel=0.10,
+                rasp=0.05, nz=0.010, vib=5.0, alpha=1.7, jit=2.5, bus='brass'),
     'cbsn': dict(reed=True, formants=[(260.0, 2.5, 1.0), (490.0, 3.5, 0.8), (1100.0, 4.0, 0.25)],
                  fc=(450.0, 900.0, 1900.0), even=0.8, slope=0.6, scoop=10.0, att=0.05, rel=0.11,
                  rasp=0.10, nz=0.02, vib=0.0, alpha=1.5, jit=5.0, bus='ww'),
@@ -602,8 +619,10 @@ class Winds(Section):
         self.tabs[key] = T
         return T
 
-    def play(self, b, d, p, v=0.7, art='sus', div=None, shape=None, leg=False, gate=1.0):
+    def play(self, b, d, p, v=0.7, art='sus', div=None, shape=None, leg=False, gate=1.0, rip=0.0):
         tr, K, rng = self.tr, self.K, self.rng
+        if tr.note(self.name, b, d * gate, p, v):
+            return
         t0 = tr.sec(b)
         dur = max(0.05, d * tr.spb * gate)
         m0 = nn(p)
@@ -635,7 +654,12 @@ class Winds(Section):
             if K['vib'] > 0 and n > 0.6 * SR:
                 on = np.clip((t - 0.45) / 0.4, 0.0, 1.0)
                 c = c + K['vib'] * on * np.sin(2 * np.pi * P['vr'] * t + rng.uniform(0, 6.28))
-            ph = np.cumsum(cents_to_ratio(c)) * (f0 / SR) + rng.random()
+            ratio = cents_to_ratio(c)
+            if rip:
+                # a rip: the note is reached by a fast upward smear from `rip` semitones away
+                g = np.clip(t / rng.uniform(0.16, 0.22), 0.0, 1.0)
+                ratio = ratio * np.exp2(rip / 12.0 * (1.0 - g * g * (3.0 - 2.0 * g)))
+            ph = np.cumsum(ratio) * (f0 / SR) + rng.random()
             w = osc_bank(self.table(i, m0), ph)
             sig = w[0] + (w[1] - w[0]) * np.minimum(2.0 * bm, 1.0) + (w[2] - w[1]) * np.maximum(2.0 * bm - 1.0, 0.0)
             amp = e * dc ** K['alpha'] * P['g'] * (1.0 + 0.03 * smooth_rand(n, 6.0, rng))
@@ -715,6 +739,8 @@ class Choir(Section):
 
     def play(self, b, d, p, v=0.7, div=None, shape=None, leg=False, vowel=0.0, gate=1.0, art='sus'):
         tr, rng = self.tr, self.rng
+        if tr.note(self.name, b, d * gate, p, v):
+            return
         t0 = tr.sec(b)
         dur = max(0.08, d * tr.spb * gate)
         m0 = nn(p)
@@ -802,6 +828,8 @@ class Organ(Section):
 
     def play(self, b, d, p, v=0.7, stops='soft', shape=None, gate=1.0):
         tr, rng = self.tr, self.rng
+        if tr.note(self.name, b, d * gate, p, v):
+            return
         t0 = tr.sec(b)
         dur = max(0.1, d * tr.spb * gate)
         m0 = nn(p)
@@ -926,6 +954,8 @@ class Perc:
 
     # -- timpani: tuned kettle, partials 1 : 1.5 : 1.98 : 2.44 ...
     def timp(self, b, p, v=0.7, pan=-0.08, scale=1.0):
+        if self.tr.note('timp', b, 0.25, p, v):
+            return
         m = nn(p)
         vq = int(np.clip(round(v * 8), 1, 10))
         var = int(self.rng.integers(3))
@@ -943,7 +973,8 @@ class Perc:
             x[:len(s)] += s * 0.9
             return x
         x = self._get(('timp', m, vq, var), mk)
-        self.tr.add('drums', self.tr.sec(b) + self.rng.normal(0, 0.004), x, pan, self.gain * 0.75 * scale * v ** 1.6)
+        self.tr.add('drums', self.tr.sec(b) + self.rng.normal(0, 0.004), x, pan,
+                    self.gain * 0.75 * scale * v ** 1.6 * self.rng.uniform(0.93, 1.05))
 
     def timp_roll(self, b, d, p, v0, v1, rate=13.0):
         t, end = 0.0, d * self.tr.spb
@@ -955,6 +986,8 @@ class Perc:
 
     # -- gran cassa: big two-headed bass drum, soft beater
     def gc(self, b, v=0.7, pan=0.1):
+        if self.tr.note('perc', b, 0.25, 24, v):
+            return
         vq = int(np.clip(round(v * 8), 1, 10))
 
         def mk(rng):
@@ -965,11 +998,14 @@ class Perc:
             x[:len(s)] += s * 0.55
             return x
         x = self._get(('gc', vq, int(self.rng.integers(2))), mk)
-        self.tr.add('drums', self.tr.sec(b) + self.rng.normal(0, 0.004), x, pan, self.gain * 1.15 * v ** 1.6)
+        self.tr.add('drums', self.tr.sec(b) + self.rng.normal(0, 0.004), x, pan,
+                    self.gain * 1.15 * v ** 1.6 * self.rng.uniform(0.93, 1.05))
 
     # -- taiko: 'o' odaiko (three players), 'c' chu-daiko (two), 's' shime, 'k' rim click
     def taiko(self, b, v=0.8, kind='o'):
         tr, rng = self.tr, self.rng
+        if tr.note('perc', b, 0.12, {'o': 26, 'c': 28, 's': 30, 'k': 31}[kind], v):
+            return
         if kind == 'k':
             def mk(r):
                 n = int(0.25 * SR)
@@ -1004,6 +1040,8 @@ class Perc:
 
     # -- tam-tam: low partials speak at once, the high wash blooms a second later
     def tam(self, b, v=0.6, pan=0.25):
+        if self.tr.note('metal', b, 4.0, 19, v):
+            return
         vq = int(np.clip(round(v * 6), 1, 7))
 
         def mk(rng):
@@ -1013,12 +1051,13 @@ class Perc:
             n4 = int(dur * sr4)
             t = np.arange(n4) / sr4
             low = np.zeros(n4)
-            fl = 34.0 * np.exp(np.cumsum(rng.uniform(0.02, 0.09, 60)))
+            fl = 34.0 * np.exp(np.cumsum(rng.uniform(0.025, 0.085, 74)))
+            fl = fl[fl < 0.42 * sr4]
             for f in fl:
                 x = min(np.log2(f / 34.0) / 5.0, 1.0)
                 rise = 0.004 + (0.9 - 0.45 * vv) * x ** 1.6
                 T = 14.0 * (f / 40.0) ** -0.32
-                a = (f / 60.0) ** -0.35 * rng.uniform(0.4, 1.0) * vv ** (0.9 * x)
+                a = (f / 60.0) ** -0.35 * rng.uniform(0.4, 1.0) * vv ** (0.9 * x) / (1.0 + (f / 900.0) ** 2)
                 env = (1.0 - np.exp(-t / rise)) ** 2 * np.exp(-6.908 * t / T)
                 ph = 2 * np.pi * f * t
                 low += a * env * (np.sin(ph + rng.uniform(0, 6.28)) * np.minimum(t / 0.004, 1.0)
@@ -1033,8 +1072,8 @@ class Perc:
 
             def gain_fn(j, nb, fc):
                 x = (j + 0.5) / nb
-                return (fc / 700.0) ** -0.55 * vv ** (1.6 * x + 0.2)
-            wash = band_wash(n, np.geomspace(700.0, 11000.0, 9), env_fn, gain_fn, rng)
+                return (fc / 700.0) ** -0.55 * vv ** (1.6 * x + 0.2) * (fc / (fc + 600.0)) ** 2
+            wash = band_wash(n, np.geomspace(260.0, 11000.0, 11), env_fn, gain_fn, rng)
             x = low / np.sqrt(np.mean(low[:SR * 2] ** 2)) + 0.75 * wash / np.sqrt(np.mean(wash[:SR * 3] ** 2) + 1e-12)
             s = burst(0.25, 20.0, 180.0, 0.03, rng)
             x[:len(s)] += s * 0.6
@@ -1045,6 +1084,8 @@ class Perc:
 
     # -- clashed cymbals
     def crash(self, b, v=0.8, pan=0.12):
+        if self.tr.note('metal', b, 1.5, 21, v):
+            return
         vq = int(np.clip(round(v * 5), 1, 6))
 
         def mk(rng):
@@ -1056,8 +1097,8 @@ class Perc:
                 return (1.0 - np.exp(-tt / (0.004 + 0.012 * x))) * np.exp(-6.908 * tt / (6.0 - 4.4 * x))
 
             def gain_fn(j, nb, fc):
-                return (1.0 / (1.0 + (fc / 6500.0) ** 2)) * (fc / 1000.0) ** 0.2 * vv ** (0.8 * (j + 0.5) / nb)
-            x = band_wash(n, np.geomspace(320.0, 15000.0, 11), env_fn, gain_fn, rng)
+                return (1.0 / (1.0 + (fc / 6500.0) ** 2)) * (fc / (fc + 900.0)) ** 2 * vv ** (0.8 * (j + 0.5) / nb)
+            x = band_wash(n, np.geomspace(180.0, 15000.0, 13), env_fn, gain_fn, rng)
             tt = np.arange(n) / SR
             return x * np.minimum((6.5 - tt) / 0.4, 1.0)
         x = self._get(('crash', vq, int(self.rng.integers(2))), mk)
@@ -1066,6 +1107,8 @@ class Perc:
     # -- suspended cymbal roll with soft mallets: swells and brightens
     def cym_roll(self, b, d, v0, v1, pan=0.05, ring=3.5):
         tr = self.tr
+        if tr.note('metal', b, d, 22, v1):
+            return
         dur = d * tr.spb
         n = int((dur + ring) * SR)
         rng = np.random.default_rng([tr.seed, crc('roll%.3f' % b)])
@@ -1080,14 +1123,16 @@ class Perc:
             return e * tail * np.minimum(tt / 0.15, 1.0)
 
         def gain_fn(j, nb, fc):
-            return 1.0 / (1.0 + (fc / 7000.0) ** 2)
-        x = band_wash(n, np.geomspace(300.0, 14000.0, 9), env_fn, gain_fn, rng)
+            return (fc / (fc + 900.0)) ** 2 / (1.0 + (fc / 7000.0) ** 2)
+        x = band_wash(n, np.geomspace(180.0, 14000.0, 11), env_fn, gain_fn, rng)
         tt = np.arange(n) / SR
         x *= np.minimum((dur + ring - tt) / 0.3, 1.0)
         tr.add('metal', tr.sec(b), (x / 3.0).astype(np.float32), pan, self.gain * 0.5)
 
     # -- tubular bell: free-free tube partials (2n+1)^2, strike tone an octave below the 4th
     def bell(self, b, p, v=0.7, pan=-0.3):
+        if self.tr.note('bell', b, 1.5, p, v):
+            return
         m = nn(p)
         vq = int(np.clip(round(v * 6), 1, 7))
 
@@ -1111,7 +1156,9 @@ class Perc:
 def seq(inst, b, spec, v=0.7, tp=0, **kw):
     """Play a line written as 'PITCH:BEATS' tokens, e.g. "C3:2 Eb3:2 B2:3@0.9 r:1".
     'r' is a rest, 'C3+G3' a chord, '@x' overrides the velocity, tp transposes
-    (semitones).  Returns the beat after the last token."""
+    (semitones), first={...} gives extra keywords to the first note only.  Returns
+    the beat after the last token."""
+    first = kw.pop('first', None)
     for tok in spec.split():
         body, dur = tok.split(':')
         vel = v
@@ -1121,7 +1168,8 @@ def seq(inst, b, spec, v=0.7, tp=0, **kw):
         d = float(dur)
         if body != 'r':
             for p in body.split('+'):
-                inst.play(b, d, nn(p) + tp, vel, **kw)
+                inst.play(b, d, nn(p) + tp, vel, **(dict(kw, **first) if first else kw))
+            first = None
         b += d
     return b
 
@@ -1130,16 +1178,16 @@ def seq(inst, b, spec, v=0.7, tp=0, **kw):
 # mixing desk, hall, mastering
 # ----------------------------------------------------------------------------
 MIX_DEFAULT = {
-    'vn': dict(body='violin', pos='front', gain=1.0, dry=1.0, wet=0.55),
-    'va': dict(body='viola', pos='front', gain=1.0, dry=1.0, wet=0.55),
-    'vc': dict(body='cello', pos='front', gain=1.0, dry=1.0, wet=0.50),
-    'cb': dict(body='bass', pos='front', gain=1.0, dry=1.0, wet=0.40),
-    'brass': dict(pos='mid', gain=1.0, dry=0.9, wet=0.75),
-    'ww': dict(pos='mid', gain=1.0, dry=1.0, wet=0.6),
-    'choir': dict(pos='rear', gain=1.0, dry=0.75, wet=1.0),
-    'organ': dict(pos='rear', gain=1.0, dry=0.7, wet=1.0),
-    'drums': dict(pos='rear', gain=1.0, dry=1.0, wet=0.45, sat=0.6),
-    'metal': dict(pos='rear', gain=1.0, dry=0.8, wet=0.8),
+    'vn': dict(body='violin', pos='front', gain=1.0, dry=1.0, wet=0.50),
+    'va': dict(body='viola', pos='front', gain=1.0, dry=1.0, wet=0.50),
+    'vc': dict(body='cello', pos='front', gain=1.0, dry=1.0, wet=0.45),
+    'cb': dict(body='bass', pos='front', gain=1.0, dry=1.0, wet=0.35),
+    'brass': dict(pos='mid', gain=1.0, dry=0.9, wet=0.55),
+    'ww': dict(pos='mid', gain=1.0, dry=1.0, wet=0.50),
+    'choir': dict(pos='rear', gain=1.0, dry=0.8, wet=0.70),
+    'organ': dict(pos='rear', gain=1.0, dry=0.7, wet=0.75),
+    'drums': dict(pos='rear', gain=1.0, dry=1.0, wet=0.36, sat=0.6),
+    'metal': dict(pos='rear', gain=1.0, dry=0.8, wet=0.60),
 }
 HALLS = {'front': dict(seed=101, predelay=0.012, er_gain=1.0),
          'mid': dict(seed=202, predelay=0.024, er_gain=0.8),
@@ -1160,13 +1208,26 @@ def window_rms_db(x, win):
     return 10.0 * np.log10(p + 1e-12)
 
 
+def band_split(XL, XR, f):
+    p = np.abs(XL) ** 2 + np.abs(XR) ** 2
+    tot = p.sum() + 1e-30
+    return [float(p[(f >= lo) & (f < hi)].sum() / tot) for lo, hi in ((0, 60), (60, 250), (250, 2000), (2000, 1e9))]
+
+
 def mixdown(tr, stems=False, log=print):
     """Body filters, stage/hall, summing -- all in the frequency domain."""
     N = tr.N
     f = np.fft.rfftfreq(N, 1.0 / SR)
     nb = len(f)
-    dry = [np.zeros(nb, dtype=np.complex128), np.zeros(nb, dtype=np.complex128)]
-    send = {}
+    n_out = int(tr.length * SR)
+    wet_hp = (f / 90.0) / np.sqrt(1.0 + (f / 90.0) ** 2)
+    halls = {}
+    for name in tr.buses:
+        pos = bus_cfg(tr, name)['pos']
+        if pos not in halls:
+            h = HALLS[pos]
+            halls[pos] = [np.fft.rfft(ir, N) * wet_hp for ir in make_hall(h['seed'], h['predelay'], h['er_gain'], tr.rt_scale)]
+    out = [np.zeros(nb, dtype=np.complex128), np.zeros(nb, dtype=np.complex128)]
     bodies = {}
     report = []
     for name in sorted(tr.buses):
@@ -1176,50 +1237,45 @@ def mixdown(tr, stems=False, log=print):
             # gentle tape-like saturation of drum transients
             thr = cfg['sat'] * float(np.max(np.abs(bus))) + 1e-9
             bus = thr * np.tanh(bus / thr)
-        X = [np.fft.rfft(bus[0].astype(np.float64)), np.fft.rfft(bus[1].astype(np.float64))]
+        XL = np.fft.rfft(bus[0].astype(np.float64))
+        XR = np.fft.rfft(bus[1].astype(np.float64))
         if cfg.get('body'):
             key = (cfg['body'], name[-1])
             if key not in bodies:
                 fg, Hg = body_response(cfg['body'], [tr.seed % 97, crc(cfg['body'] + name[-1])])
                 bodies[key] = np.interp(f, fg, Hg.real) + 1j * np.interp(f, fg, Hg.imag)
-            for ch in (0, 1):
-                X[ch] *= bodies[key]
-        g = cfg['gain']
-        s = send.setdefault(cfg['pos'], [np.zeros(nb, dtype=np.complex128), np.zeros(nb, dtype=np.complex128)])
-        for ch in (0, 1):
-            dry[ch] += (g * cfg['dry']) * X[ch]
-            s[ch] += (g * cfg['wet']) * X[ch]
+            XL *= bodies[key]
+            XR *= bodies[key]
+        ll, rr, lr, rl = halls[cfg['pos']]
+        g, dry, wet = cfg['gain'], cfg['dry'], cfg['wet']
+        YL = g * (dry * XL + wet * (XL * ll + XR * rl))
+        YR = g * (dry * XR + wet * (XR * rr + XL * lr))
+        out[0] += YL
+        out[1] += YR
         if stems:
-            y = np.stack([np.fft.irfft(g * cfg['dry'] * X[0], N), np.fft.irfft(g * cfg['dry'] * X[1], N)])
-            report.append((name, window_rms_db(y[:, :int(tr.length * SR)], 10 * SR), db(np.max(np.abs(y)))))
-        del X
+            y = np.stack([np.fft.irfft(YL, N)[:n_out], np.fft.irfft(YR, N)[:n_out]])
+            report.append((name, window_rms_db(y, 10 * SR), db(np.max(np.abs(y))), band_split(YL, YR, f)))
+        del XL, XR, YL, YR
     tr.buses.clear()
     bodies.clear()
-    # hall
-    wet_hp = (f / 90.0) / np.sqrt(1.0 + (f / 90.0) ** 2)
-    for pos, s in send.items():
-        h = HALLS[pos]
-        ll, rr, lr, rl = [np.fft.rfft(ir, N) for ir in make_hall(h['seed'], h['predelay'], h['er_gain'])]
-        dry[0] += (s[0] * ll + s[1] * rl) * wet_hp
-        dry[1] += (s[1] * rr + s[0] * lr) * wet_hp
-        del ll, rr, lr, rl
-    send.clear()
+    halls.clear()
     # master EQ: rumble filter (4th-order high-pass at 25 Hz), mono-ish sub-bass
     hp = 1.0 / np.sqrt(1.0 + (25.0 / np.maximum(f, 1e-3)) ** 8)
     hp[0] = 0.0
-    mid = 0.5 * (dry[0] + dry[1]) * hp
-    side = 0.5 * (dry[0] - dry[1]) * hp * (1.0 - 0.65 / (1.0 + (f / 95.0) ** 4))
-    n = int(tr.length * SR)
-    out = np.stack([np.fft.irfft(mid + side, N)[:n], np.fft.irfft(mid - side, N)[:n]])
+    mid = 0.5 * (out[0] + out[1]) * hp
+    side = 0.5 * (out[0] - out[1]) * hp * (1.0 - 0.65 / (1.0 + (f / 95.0) ** 4))
+    x = np.stack([np.fft.irfft(mid + side, N)[:n_out], np.fft.irfft(mid - side, N)[:n_out]])
     if stems:
-        log('    bus      peak  | RMS per 10 s window (dB, dry only, before mastering)')
-        for name, w, pk in report:
-            log('    %-7s %6.1f | %s' % (name, pk, ' '.join('%4.0f' % x for x in w)))
-        log('    %-7s %6.1f | %s' % ('MIX', db(np.max(np.abs(out))), ' '.join('%4.0f' % x for x in window_rms_db(out, 10 * SR))))
-    return out
+        log('    bus      peak  <60 -250  -2k  2k+ | RMS per 10 s window (dB, dry + hall, before mastering)')
+        for name, w, pk, bs in report:
+            log('    %-7s %6.1f %4.0f %4.0f %4.0f %4.0f | %s' % (name, pk, *(100 * v for v in bs), ' '.join('%4.0f' % v for v in w)))
+        bs = band_split(mid + side, mid - side, f)
+        log('    %-7s %6.1f %4.0f %4.0f %4.0f %4.0f | %s' % ('MIX', db(np.max(np.abs(x))), *(100 * v for v in bs),
+                                                          ' '.join('%4.0f' % v for v in window_rms_db(x, 10 * SR))))
+    return x
 
 
-def compress(x, thr_db, ratio=1.7, knee=10.0, att=0.06, rel=0.7):
+def compress(x, thr_db, ratio=1.4, knee=8.0, att=0.06, rel=0.7):
     """Gentle feed-forward bus compressor on the stereo-linked 100 ms RMS level."""
     hop = 256
     n = x.shape[1]
@@ -1292,8 +1348,31 @@ def true_peak_db(x, k=4):
     return db(pk)
 
 
+def ride(x, k, max_boost):
+    """Fader riding.  The written dynamics span more than a game soundtrack can
+    use, so quiet passages are lifted by k dB per dB below the loudest passage
+    (at most max_boost), following a 4 s centred level so that the gain moves
+    slowly and ahead of the music.  Fades to silence are left alone."""
+    blk = int(0.1 * SR)
+    n = x.shape[1]
+    nb = n // blk
+    p = ((x[0, :nb * blk] ** 2 + x[1, :nb * blk] ** 2) * 0.5).reshape(nb, blk).mean(axis=1)
+    w = np.hanning(41)
+    w /= w.sum()
+    lev = 10.0 * np.log10(np.convolve(np.pad(p, 20, mode='edge'), w, mode='valid') + 1e-14)
+    below = loudest_rms_db(x) - lev
+    g = np.minimum(k * np.maximum(below, 0.0), max_boost)
+    g = g * np.clip((46.0 - below) / 14.0, 0.0, 1.0)
+    w = np.hanning(31)
+    w /= w.sum()
+    g = np.convolve(np.pad(g, 15, mode='edge'), w, mode='valid')
+    gain = np.interp(np.arange(n), (np.arange(nb) + 0.5) * blk, g)
+    return x * 10.0 ** (gain / 20.0), float(g.max())
+
+
 def master(tr, x, log=print):
-    x, gr = compress(x, thr_db=loudest_rms_db(x) - 8.0)
+    x, boost = ride(x, *tr.ride)
+    x, gr = compress(x, thr_db=loudest_rms_db(x) - 6.0)
     x = x * 10.0 ** ((tr.target_db - loudest_rms_db(x)) / 20.0)
     x, lim = limit(x, 10.0 ** (-1.6 / 20.0))
     n = x.shape[1]
@@ -1301,8 +1380,8 @@ def master(tr, x, log=print):
     x[:, :nf] *= cosramp(nf)
     nt = int(min(3.0, tr.length - tr.lead - tr.music_len) * SR)
     x[:, n - nt:] *= cosramp(nt)[::-1] ** 2
-    log('    master: compressor max %.1f dB, limiter max %.1f dB, loudest-10s RMS %.1f dBFS, peak %.2f dBFS'
-        % (gr, lim, loudest_rms_db(x), db(np.max(np.abs(x)))))
+    log('    master: ride max +%.1f dB, compressor max %.1f dB, limiter max %.1f dB, loudest-10s RMS %.1f dBFS, peak %.2f dBFS'
+        % (boost, gr, lim, loudest_rms_db(x), db(np.max(np.abs(x)))))
     return x
 
 
@@ -1344,15 +1423,17 @@ DIM = [(0.0, 1.0), (0.25, 0.85), (1.0, 0.3)]
 # ----------------------------------------------------------------------------
 # I.  theme_dread -- "He is near"
 # ----------------------------------------------------------------------------
-def build_dread():
+def build_dread(dry=False):
     tr = Track('theme_dread', 'He is near', bpm=200.0 / 3.0, bpb=4, bars=44, tail=6.5, seed=11,
                target_db=-18.5, key='D minor (octatonic colouring over a D pedal)')
+    tr.dry = dry
     tr.sections = [('A  Depth: bass pedal, first knocks, first distant brass swell', 1),
                    ('B  The knock motif D-F-C# in celli/contrabassoon, sequenced by minor thirds; brass answers', 9),
                    ('C  Cold high violin line (the motif in half notes) over tremolo violas', 19),
                    ('D  Surge: the motif tutti, ff, four rising statements', 31),
                    ('E  Coda: pedal, last contrabassoon statement, three far knocks', 39)]
-    tr.mix = {'brass': dict(dry=0.55, wet=1.15), 'ww': dict(dry=0.9, wet=0.7)}
+    tr.mix = {'brass': dict(dry=0.5, wet=0.8), 'ww': dict(dry=0.9, wet=0.6)}       # brass sits far back
+    tr.ride = (0.3, 6.0)
     B = tr.bt
     v1 = Strings(tr, 'vn1', 'vn', 10, -0.62, 0.26, 0.22)
     v2 = Strings(tr, 'vn2', 'vn', 8, -0.25, 0.22, 0.20)
@@ -1361,18 +1442,23 @@ def build_dread():
     cb = Strings(tr, 'cb', 'cb', 5, 0.66, 0.16, 0.32)
     cbsn = Winds(tr, 'cbsn', 'cbsn', 1, 0.22, 0.0, 0.17)
     bcl = Winds(tr, 'bcl', 'bcl', 1, -0.12, 0.0, 0.10)
-    hn = Winds(tr, 'hn', 'horn', 4, -0.20, 0.16, 0.34)
-    tb = Winds(tr, 'tb', 'tbn', 3, 0.40, 0.12, 0.34)
-    tu = Winds(tr, 'tuba', 'tuba', 1, 0.52, 0.0, 0.26)
-    tp = Winds(tr, 'tp', 'tpt', 3, 0.15, 0.10, 0.24)
+    hn = Winds(tr, 'hn', 'horn', 4, -0.20, 0.16, 0.22)
+    tb = Winds(tr, 'tb', 'tbn', 3, 0.40, 0.12, 0.22)
+    tu = Winds(tr, 'tuba', 'tuba', 1, 0.52, 0.0, 0.24)
+    tp = Winds(tr, 'tp', 'tpt', 3, 0.15, 0.10, 0.15)
     men = Choir(tr, 'men', 'B', 8, 0.30, 0.30, 0.16)
-    pc = Perc(tr)
+    pc = Perc(tr, gain=2.0)
 
-    def knocks(bar, v, timp=True):
+    def knocks(bar, v, pizz=None):
+        """His three knocks: gran cassa and timpani on D, celli pizzicato in octaves."""
         for k in range(3):
-            pc.gc(B(bar, 1 + k), v * (1.0, 0.86, 0.93)[k])
-            if timp:
-                pc.timp(B(bar, 1 + k), 'D2', v * 0.8)
+            vv = v * (1.0, 0.86, 0.93)[k]
+            pc.gc(B(bar, 1 + k), vv)
+            pc.timp(B(bar, 1 + k), 'D2', vv * 0.9)
+            if pizz:
+                m = pizz
+                vc.play(B(bar, 1 + k), 1.0, 'D2', min(1.0, vv * 1.5), art='pizz', div=(0, m))
+                vc.play(B(bar, 1 + k), 1.0, 'D3', min(1.0, vv * 1.5), art='pizz', div=(1, m))
 
     # ---- the pedal: basses on D1/D2 for the whole piece except the surge.
     #      The two halves of the section change bow in different bars.
@@ -1392,12 +1478,12 @@ def build_dread():
     # ---- A. Depth (bars 1-8)
     pc.tam(B(1), 0.30)
     pc.gc(B(1), 0.38)
-    knocks(3, 0.45)
+    knocks(3, 0.50, pizz=2)
     va.play(B(4), 8.0, 'D3', 0.36, tone='pont', trem=1.0, div=(0, 2), shape=HAIR)
     va.play(B(4), 8.0, 'Eb3', 0.36, tone='pont', trem=1.0, div=(1, 2), shape=HAIR)
     seq(cbsn, B(5), 'D2:4 F2:2 C#2:2', v=0.50, leg=True)        # the motif foreshadowed, twice as slow
     seq(bcl, B(5), 'D3:4 F3:2 C#3:2', v=0.34, leg=True)
-    knocks(7, 0.50)
+    knocks(7, 0.55, pizz=2)
     hn.chord(B(7), 7.6, ['D3', 'A3'], 0.50, shape=SWELL)
     tb.chord(B(7), 7.6, ['D2', 'A2'], 0.50, shape=SWELL)
     hn.play(B(8), 3.6, 'Bb3', 0.42, div=(3, 4), shape=SWELL)       # the flat sixth rubs against A
@@ -1421,36 +1507,40 @@ def build_dread():
     knock_motif(va, B(15), 'D3', 0.70, hold=4.0, art='marc', gate=0.97, last_shape=DIM)
     tu.play(B(16), 4.2, 'D2', 0.50, shape=SWELL)
     pc.tam(B(15), 0.38)
-    for bar in (10, 12):
-        va.play(B(bar), 8.2, 'A3', 0.33, tone='pont', trem=1.0, div=(0, 2), shape=HAIR)
-        va.play(B(bar), 8.2, 'Bb3', 0.33, tone='pont', trem=1.0, div=(1, 2), shape=HAIR)
-    knocks(17, 0.46)
+    for bar, p in ((10, 'C#4'), (12, 'E4'), (14, 'G4')):          # a shiver on each held note
+        va.play(B(bar), 4.2, p, 0.34, tone='pont', trem=1.0, shape=HAIR)
+    knocks(17, 0.50, pizz=2)
     cbsn.play(B(17), 8.0, 'D1', 0.42, shape=HAIR)
     va.play(B(17), 8.0, 'D3', 0.33, tone='pont', trem=1.0, div=(0, 2), shape=DIM)
     va.play(B(17), 8.0, 'Eb3', 0.33, tone='pont', trem=1.0, div=(1, 2), shape=DIM)
 
     # ---- C. The cold line (bars 19-30): the motif in half notes, high, senza
     #      vibrato, shadowed a fourth lower; then it slides down by semitones.
-    v1.dynamics([(19, 1, .40), (23, 1, .48), (27, 1, .52), (29, 1, .60), (31, 1, 1.0), (38, 4, 1.0),
+    v1.dynamics([(19, 1, .36), (23, 1, .42), (27, 1, .46), (29, 1, .60), (31, 1, 1.0), (38, 4, 1.0),
                  (39, 1, .30), (44, 1, .28), (45, 1, 0.0)])
-    v2.dynamics([(19, 1, .36), (23, 1, .42), (27, 1, .48), (29, 1, .60), (31, 1, 1.0), (38, 4, 1.0)])
-    seq(v1, B(19), 'A5:2 C6:2 G#5:6', v=1.0, leg=True, tone='harm', vib=0.15)
-    seq(v2, B(19), 'E5:2 G5:2 D#5:6', v=1.0, leg=True, tone='harm', vib=0.15)
-    seq(v1, B(23), 'D6:2 F6:2 C#6:6 C6:2 B5:2 Bb5:2 A5:8', v=1.0, leg=True, tone='harm', vib=0.15)
-    seq(v2, B(23), 'A5:2 C6:2 G#5:6 G5:2 F#5:2 F5:2 E5:8', v=1.0, leg=True, tone='harm', vib=0.15)
-    for bar in (19, 21, 23, 25, 27):
-        va.play(B(bar), 8.2, 'A3', 0.34, tone='pont', trem=1.0, div=(0, 2), shape=[(0, .5), (.5, 1), (1, .5)])
-        va.play(B(bar), 8.2, 'Bb3', 0.34, tone='pont', trem=1.0, div=(1, 2), shape=[(0, .5), (.5, 1), (1, .5)])
-    for bar in (19, 21, 23, 25):
-        vc.chord(B(bar), 8.2, ['A2', 'D3'], 0.30, vib=0.4)
-    knocks(21, 0.42)
+    v2.dynamics([(19, 1, .32), (23, 1, .38), (27, 1, .42), (29, 1, .60), (31, 1, 1.0), (38, 4, 1.0)])
+    for tone, dv in (('harm', (0, 2)), ('ord', (1, 2))):      # half the desks flautando, half ordinario
+        kw = dict(v=1.0, leg=True, tone=tone, vib=0.15, div=dv)
+        seq(v1, B(19), 'A5:2 C6:2 G#5:6', **kw)
+        seq(v2, B(19), 'E5:2 G5:2 D#5:6', **kw)
+        seq(v1, B(23), 'D6:2 F6:2 C#6:6 C6:2 B5:2 Bb5:2 A5:8', **kw)
+        seq(v2, B(23), 'A5:2 C6:2 G#5:6 G5:2 F#5:2 F5:2 E5:8', **kw)
+    # under it: violas shiver on one note, celli colour each held note
+    #   Dm7 | E(maj7)/D .. | Dm7 | A(maj7)/D .. Am/D | Gmaj7 - Gm7 | (motif)
+    for b0, d, p in ((B(19), 4, 'A3'), (B(20), 6, 'B3'), (B(21, 3), 10, 'A3'), (B(24), 8, 'A3'),
+                     (B(26), 2, 'B3'), (B(26, 3), 2, 'Bb3'), (B(27), 8, 'A3')):
+        va.play(b0, d + 0.2, p, 0.34, tone='pont', trem=1.0, shape=[(0, .6), (.5, 1), (1, .6)])
+    for b0, d, ch in ((B(19), 4, ['A2', 'F3']), (B(20), 6, ['B2', 'E3']), (B(21, 3), 6, ['A2', 'D3']),
+                      (B(23), 4, ['A2', 'F3']), (B(24), 8, ['A2', 'E3']), (B(26), 4, ['G2', 'D3'])):
+        vc.chord(b0, d + 0.15, ch, 0.32, vib=0.5, leg=True)
+    knocks(21, 0.46, pizz=3)
     hn.chord(B(22), 4.2, ['D3', 'A3', 'Bb3'], 0.42, shape=SWELL)
-    knocks(25, 0.45)
+    knocks(25, 0.50, pizz=3)
     knock_motif(vc, B(27), 'D2', 0.50, hold=4.0, art='marc', gate=0.97, last_shape=DIM)
     knock_motif(cbsn, B(27), 'D2', 0.48, hold=4.0, art='marc', gate=0.97, last_shape=DIM)
     # bars 29-30: everything starts to rise
-    knocks(29, 0.55)
-    knocks(30, 0.72)
+    knocks(29, 0.58, pizz=3)
+    knocks(30, 0.74, pizz=3)
     v1.play(B(29), 8.0, 'A5', 0.9, to='F6', trem=1.0, shape=CRESC)
     v2.play(B(29), 8.0, 'E5', 0.9, to='Db6', trem=1.0, shape=CRESC)
     va.play(B(29), 8.0, 'A3', 0.8, to='Db4', tone='pont', trem=1.0, div=(0, 2), shape=CRESC)
@@ -1477,13 +1567,13 @@ def build_dread():
         r1, r2 = nn(root + '1'), nn(root + '2')
         if root == 'Ab':
             r1, r2 = nn('Ab1'), nn('Ab2')
-        for inst, r, kw in ((cbsn, r1, {}), (tu, r1, {}), (vc, r2, {}), (cb, r1, dict(div=(0, 2))), (cb, r2, dict(div=(1, 2)))):
+        for inst, r, kw in ((cbsn, r1, {}), (tu, r2, {}), (vc, r2, {}), (cb, r1, dict(div=(0, 2))), (cb, r2, dict(div=(1, 2)))):
             knock_motif(inst, b, r, v, hold=hold, art='marc', gate=0.96, last_shape=None if last else FPCRESC, **kw)
         for k, vv in enumerate((0.92, 0.82, 0.88)):
             pc.gc(b + k, vv * v)
             pc.timp(b + k, r2 + (0, 3, -1)[k], 0.85 * v)
         dur = 4.0 if last else 7.7
-        hn.chord(b, dur, ch_hn, v, art='sfz', shape=FPCRESC)
+        hn.chord(b, dur, ch_hn, v, art='sfz', shape=FPCRESC, rip=-5.0)
         tb.chord(b, dur, ch_tb, v, art='sfz', shape=FPCRESC)
         if ch_tp:
             tp.chord(b, dur, ch_tp, v * 0.9, art='sfz', shape=FPCRESC)
@@ -1499,7 +1589,7 @@ def build_dread():
     pc.tam(B(37), 0.85)
     # bar 38: the diminished chord collapses onto bare D and A, fff, then is cut off
     b = B(38)
-    for inst, p, kw in ((cbsn, 'D1', {}), (tu, 'D1', {}), (vc, 'D2', {}), (cb, 'D1', dict(div=(0, 2))), (cb, 'D2', dict(div=(1, 2)))):
+    for inst, p, kw in ((cbsn, 'D1', {}), (tu, 'D2', {}), (vc, 'D2', {}), (cb, 'D1', dict(div=(0, 2))), (cb, 'D2', dict(div=(1, 2)))):
         inst.play(b, 3.0, p, 1.0, art='marc', **kw)
     hn.chord(b, 3.0, ['A3', 'D4', 'A3', 'D4'], 1.0, art='sfz')
     tb.chord(b, 3.0, ['D2', 'A2', 'D3'], 1.0, art='sfz')
@@ -1516,7 +1606,7 @@ def build_dread():
     cbsn.play(B(41, 3), 6.0, 'D2', 0.36, leg=True, shape=DIM)
     men.chord(B(39, 3), 14.0, ['A2', 'D3'], 0.34, vowel=-0.3, shape=[(0, .3), (.4, 1), (1, .2)])
     v1.play(B(41), 10.0, 'A5', 1.0, tone='harm', vib=0.15, shape=[(0, .6), (.3, 1), (1, .3)])
-    knocks(43, 0.32)
+    knocks(43, 0.36, pizz=2)
     return tr
 
 
@@ -1534,11 +1624,11 @@ WRATH_OST = [
     (('C2', 'C2'), ['C3', 'Eb3', 'B2', 'C3'], ['C3'] * 4),
     (('E2', 'E2'), ['E3', 'G3', 'D#3', 'E3'], ['E3'] * 4),
     (('Ab1', 'Ab1'), ['Ab2', 'C3', 'G2', 'Ab2'], ['Ab2'] * 4),
-    (('F#1', 'F#1'), ['F#2', 'A2', 'F2', 'F#2'], ['F#2'] * 4),
+    (('F#1', 'F#1'), ['F#2', 'A2', 'C#3', 'A2'], ['F#2'] * 4),
     (('C2', 'C2'), ['C3', 'Eb3', 'B2', 'C3'], ['C3'] * 4),
     (('B1', 'B1'), ['B2', 'D3', 'F3', 'D3'], ['B2'] * 4),
     (('F1', 'F1'), ['F2', 'Ab2', 'E2', 'F2'], ['F2'] * 4),
-    (('Db2', 'C2'), ['Db3', 'F3', 'C3', 'B2'], ['Db3', 'Db3', 'C3', 'C3']),
+    (('Db2', 'C2'), ['Db3', 'F3', 'C3', 'G2'], ['Db3', 'Db3', 'C3', 'C3']),
 ]
 WRATH_TIMP = [['C3'] * 3, ['E3'] * 3, ['Ab2'] * 3, ['F#2'] * 3, ['C3'] * 3, ['B2'] * 3, ['F2'] * 3, ['Db3', 'Db3', 'C3']]
 # choir voicings (bass, tenor, alto, soprano) for the same eight bars
@@ -1549,9 +1639,12 @@ WRATH_CHOIR = [
 ]
 
 
-def build_wrath():
+def build_wrath(dry=False):
     tr = Track('theme_wrath', 'He is fighting', bpm=70.0, bpb=4, bars=46, tail=6.0, seed=22,
                target_db=-16.5, key='C minor')
+    tr.dry = dry
+    tr.ride = (0.15, 3.0)
+    tr.rt_scale = 0.78
     tr.sections = [('Intro  Taiko / gran cassa ostinato alone, timpani knocks, strings enter', 1),
                    ('A   March theme: trombones and tuba in octaves over the string gallop', 5),
                    ("A'  Theme again with horns an octave above, violin counter-line, trumpets join", 13),
@@ -1562,19 +1655,19 @@ def build_wrath():
     B = tr.bt
     v1 = Strings(tr, 'vn1', 'vn', 10, -0.62, 0.26, 0.22)
     v2 = Strings(tr, 'vn2', 'vn', 8, -0.25, 0.22, 0.20)
-    va = Strings(tr, 'va', 'va', 7, 0.18, 0.20, 0.21)
-    vc = Strings(tr, 'vc', 'vc', 6, 0.48, 0.20, 0.25)
-    cb = Strings(tr, 'cb', 'cb', 5, 0.66, 0.16, 0.30)
-    hn = Winds(tr, 'hn', 'horn', 4, -0.20, 0.16, 0.36)
-    tb = Winds(tr, 'tb', 'tbn', 3, 0.40, 0.12, 0.40)
-    tu = Winds(tr, 'tuba', 'tuba', 1, 0.52, 0.0, 0.30)
-    tp = Winds(tr, 'tp', 'tpt', 3, 0.15, 0.10, 0.30)
-    chB = Choir(tr, 'chB', 'B', 8, 0.50, 0.22, 0.17)
-    chT = Choir(tr, 'chT', 'T', 8, 0.17, 0.22, 0.17)
-    chA = Choir(tr, 'chA', 'A', 8, -0.17, 0.22, 0.17)
-    chS = Choir(tr, 'chS', 'S', 8, -0.50, 0.22, 0.17)
+    va = Strings(tr, 'va', 'va', 7, 0.18, 0.20, 0.27)
+    vc = Strings(tr, 'vc', 'vc', 6, 0.48, 0.20, 0.31)
+    cb = Strings(tr, 'cb', 'cb', 5, 0.66, 0.16, 0.36)
+    hn = Winds(tr, 'hn', 'horn', 4, -0.20, 0.16, 0.19)
+    tb = Winds(tr, 'tb', 'tbn', 3, 0.40, 0.12, 0.21)
+    tu = Winds(tr, 'tuba', 'tuba', 1, 0.52, 0.0, 0.20)
+    tp = Winds(tr, 'tp', 'tpt', 3, 0.15, 0.10, 0.15)
+    chB = Choir(tr, 'chB', 'B', 8, 0.50, 0.22, 0.10)
+    chT = Choir(tr, 'chT', 'T', 8, 0.17, 0.22, 0.10)
+    chA = Choir(tr, 'chA', 'A', 8, -0.17, 0.22, 0.10)
+    chS = Choir(tr, 'chS', 'S', 8, -0.50, 0.22, 0.10)
     choir = (chB, chT, chA, chS)
-    pc = Perc(tr)
+    pc = Perc(tr, gain=1.8)
 
     def drums(bar, lvl, pat=1, ka=False, gc=True):
         """One bar of the ostinato: odaiko on beats 1-2-3 (the three knocks), a
@@ -1606,30 +1699,33 @@ def build_wrath():
             a, p = nn(acc[beat]), nn(ped[beat])
             parts = [(vc, 0, 1.0), (va, 12, 0.92)] + ([(v2, 24, 0.85)] if vns else [])
             for inst, sh, g in parts:
-                inst.play(b, 0.5, a + sh, lvl * g, art='spicc')
+                g = g * hum.uniform(0.92, 1.04)             # no two bow strokes alike
+                inst.play(b, 0.5, a + sh, lvl * g, art='marc', gate=0.72, vib=0.0)
                 inst.play(b + 0.5, 0.25, p + sh, lvl * g * 0.70, art='spicc')
                 inst.play(b + 0.75, 0.25, p + sh, lvl * g * 0.80, art='spicc')
             if basses:
                 r = nn(root[beat // 2])
-                cb.play(b, 0.5, r, lvl, art='spicc')
+                cb.play(b, 0.5, r, lvl, art='marc', gate=0.8, vib=0.0)
                 cb.play(b + 0.5, 0.5, r, lvl * 0.72, art='spicc')
+
+    hum = np.random.default_rng([tr.seed, 777])
 
     def minor_ost(root):
         r = nn(root)
         return ((r - 12, r - 12), [r, r + 3, r - 1, r], [r] * 4)
 
-    # written dynamics
-    tb.dynamics([(1, 1, .50), (4, 1, .50), (5, 1, .80), (8, 1, .88), (9, 1, .82), (11, 1, .92), (12, 3, .86),
-                 (13, 1, .90), (20, 1, .97), (21, 1, .58), (25, 1, .72), (27, 1, .90), (28, 4, 1.0), (29, 1, 1.0),
-                 (38, 4, 1.06), (39, 1, 1.0), (41, 1, .50), (47, 1, .30)])
-    tu.dynamics([(1, 1, .50), (5, 1, .80), (12, 3, .86), (13, 1, .90), (20, 1, .97), (21, 1, .60), (27, 1, .90),
-                 (29, 1, 1.0), (38, 4, 1.06), (39, 1, 1.0), (41, 1, .50), (47, 1, .30)])
-    hn.dynamics([(1, 1, .50), (4, 4, .75), (13, 1, .88), (20, 1, .96), (21, 1, .58), (25, 1, .74), (27, 1, .92),
-                 (29, 1, 1.0), (38, 4, 1.06), (39, 1, 1.0), (41, 1, .42), (47, 1, .30)])
-    tp.dynamics([(1, 1, .60), (17, 1, .62), (20, 4, .80), (21, 1, .60), (25, 1, .74), (28, 4, .98), (29, 1, 1.0),
+    # written dynamics: mf for the first statement, f for the second, ff for the third
+    tb.dynamics([(1, 1, .44), (4, 1, .44), (5, 1, .64), (8, 1, .74), (9, 1, .66), (11, 1, .76), (12, 3, .70),
+                 (13, 1, .78), (20, 1, .88), (21, 1, .52), (25, 1, .68), (27, 1, .88), (28, 4, 1.0), (29, 1, 1.0),
+                 (38, 4, 1.06), (39, 1, 1.0), (41, 1, .46), (47, 1, .30)])
+    tu.dynamics([(1, 1, .44), (5, 1, .66), (12, 3, .72), (13, 1, .80), (20, 1, .90), (21, 1, .54), (27, 1, .88),
+                 (29, 1, 1.0), (38, 4, 1.06), (39, 1, 1.0), (41, 1, .46), (47, 1, .30)])
+    hn.dynamics([(1, 1, .44), (4, 4, .62), (13, 1, .78), (20, 1, .88), (21, 1, .52), (25, 1, .70), (27, 1, .90),
+                 (29, 1, 1.0), (38, 4, 1.06), (39, 1, 1.0), (41, 1, .40), (47, 1, .30)])
+    tp.dynamics([(1, 1, .50), (17, 1, .52), (20, 4, .70), (21, 1, .56), (25, 1, .70), (28, 4, .98), (29, 1, 1.0),
                  (38, 4, 1.06), (39, 1, 1.0), (41, 1, .50)])
     for s in (v1, v2):
-        s.dynamics([(1, 1, .60), (13, 1, .80), (20, 4, .92), (21, 1, .40), (23, 1, .40), (28, 4, .95), (29, 1, 1.0),
+        s.dynamics([(1, 1, .60), (13, 1, .70), (20, 4, .84), (21, 1, .36), (23, 1, .36), (28, 4, .95), (29, 1, 1.0),
                     (38, 4, 1.05), (39, 1, .9), (43, 1, .4)])
 
     # ---- Intro (bars 1-4)
@@ -1652,9 +1748,9 @@ def build_wrath():
     seq(tu, B(5), WRATH_THEME, v=1.0, tp=-12, art='marc', gate=0.94)
     for k in range(8):
         bar = 5 + k
-        drums(bar, 0.90, 1 + k % 2)
-        gallop(bar, WRATH_OST[k], 0.72 + 0.02 * k)
-        pc.timp(B(bar), WRATH_TIMP[k][0], 0.75)
+        drums(bar, 0.80, 1 + k % 2)
+        gallop(bar, WRATH_OST[k], 0.62 + 0.02 * k)
+        pc.timp(B(bar), WRATH_TIMP[k][0], 0.7)
     for k, p in enumerate(('C3', 'Eb3', 'B2')):
         pc.timp(B(9, 1 + k), p, 0.8)
     pc.timp_roll(B(8, 3), 2.0, 'F#2', 0.3, 0.8)
@@ -1669,8 +1765,8 @@ def build_wrath():
     seq(v2, B(13), WRATH_COUNTER, v=1.0, tp=-12, leg=True)
     for k in range(8):
         bar = 13 + k
-        drums(bar, 1.0, 1 + k % 2, ka=True)
-        gallop(bar, WRATH_OST[k], 0.86 + 0.015 * k)
+        drums(bar, 0.92, 1 + k % 2, ka=True)
+        gallop(bar, WRATH_OST[k], 0.78 + 0.015 * k)
         for j in range(3):
             pc.timp(B(bar, 1 + j), WRATH_TIMP[k][j], 0.8 if j == 0 else 0.6)
     for bar, ch in ((17, ['Eb4', 'G4', 'C5']), (18, ['F4', 'G4', 'D5']), (19, ['F4', 'Ab4', 'C5'])):
@@ -1689,13 +1785,13 @@ def build_wrath():
         gallop(bar, o, lvl)
         gallop(bar + 1, o if bar != 27 else ((nn('G1'), nn('G1')), ['G2', 'B2', 'D3', 'F3'], ['G2'] * 4), lvl + 0.06)
     knock_motif(hn, B(21), 'Ab3', 1.0, hold=3.0, art='marc', gate=0.95, last_shape=DIM)
-    knock_motif(tb, B(22), 'Ab2', 1.0, hold=2.0, art='marc', gate=0.95, last_shape=DIM)
+    knock_motif(tb, B(22), 'Ab2', 1.0, hold=1.0, art='marc', gate=0.95, last_shape=DIM)
     knock_motif(hn, B(23), 'B3', 1.0, hold=3.0, art='marc', gate=0.95, last_shape=DIM)
-    knock_motif(tb, B(24), 'B2', 1.0, hold=2.0, art='marc', gate=0.95, last_shape=DIM)
+    knock_motif(tb, B(24), 'B2', 1.0, hold=1.0, art='marc', gate=0.95, last_shape=DIM)
     knock_motif(hn, B(25), 'D4', 1.0, hold=3.0, art='marc', gate=0.95)
     knock_motif(tp, B(25), 'D4', 1.0, hold=3.0, art='marc', gate=0.95)
-    knock_motif(tb, B(26), 'D3', 1.0, hold=2.0, art='marc', gate=0.95)
-    knock_motif(tu, B(26), 'D2', 1.0, hold=2.0, art='marc', gate=0.95)
+    knock_motif(tb, B(26), 'D3', 1.0, hold=1.0, art='marc', gate=0.95)
+    knock_motif(tu, B(26), 'D2', 1.0, hold=1.0, art='marc', gate=0.95)
     for inst, root in ((tb, 'G2'), (tu, 'G1'), (hn, 'G3'), (tp, 'G4')):
         knock_motif(inst, B(27), root, 1.0, hold=1.0, art='marc', gate=0.95)
     tb.chord(B(28), 3.9, ['G2', 'G3', 'D3'], 1.0, art='sfz', shape=FPCRESC)
@@ -1729,8 +1825,8 @@ def build_wrath():
     pc.cym_roll(B(27, 3), 6.0, 0.10, 0.90)
 
     # ---- C (bars 29-36): the theme in four octaves, choir, everything
-    seq(tp, B(29), WRATH_THEME, v=1.0, tp=24, art='marc', gate=0.94)
-    seq(hn, B(29), WRATH_THEME, v=1.0, tp=12, art='marc', gate=0.94)
+    seq(tp, B(29), WRATH_THEME, v=1.0, tp=24, art='marc', gate=0.94, first=dict(rip=-5.0))
+    seq(hn, B(29), WRATH_THEME, v=1.0, tp=12, art='marc', gate=0.94, first=dict(rip=-7.0))
     seq(tb, B(29), WRATH_THEME, v=1.0, art='marc', gate=0.94)
     seq(tu, B(29), WRATH_THEME, v=1.0, tp=-12, art='marc', gate=0.94)
     seq(v1, B(29), WRATH_COUNTER, v=1.0, leg=True)
@@ -1840,9 +1936,10 @@ LAST_T = ('Ab3:4 Ab3:4 Bb3:4 C4:4', 'C4:2 Ab3:2 Ab3:4 Bb3:4 C4:2 Bb3:2')
 LAST_B = ('F2:4 Db3:4 Db3:4 C3:4', 'F2:4 Db3:4 Gb2:4 C3:4')
 
 
-def build_last():
+def build_last(dry=False):
     tr = Track('theme_last', 'The last form', bpm=64.0, bpb=4, bars=42, tail=7.0, seed=33,
                target_db=-17.0, key='F minor')
+    tr.dry = dry
     tr.sections = [('Intro  Organ pedal F, tolling bell, men humming a bare fifth', 1),
                    ('A   Chorale, choir alone over the organ pedal (pp to mp)', 5),
                    ('B   Horns: the knock motif inverted (C-A-Db), harmonised Fm - A - Db; chorale phrase with strings; second horn call', 13),
@@ -1850,24 +1947,25 @@ def build_last():
                    ('C2  The wall: F minor then G-flat over an F pedal, hammered inverted motif', 29),
                    ('D   Collapse: bell, distant horns, choir cadence pp', 31),
                    ('Coda  A single low F; three last knocks', 37)]
-    tr.mix = {'choir': dict(gain=1.15), 'organ': dict(gain=1.0)}
+    tr.ride = (0.3, 5.0)
+    tr.rt_scale = 1.15
     B = tr.bt
-    v1 = Strings(tr, 'vn1', 'vn', 10, -0.62, 0.26, 0.22)
-    v2 = Strings(tr, 'vn2', 'vn', 8, -0.25, 0.22, 0.20)
-    va = Strings(tr, 'va', 'va', 7, 0.18, 0.20, 0.21)
-    vc = Strings(tr, 'vc', 'vc', 6, 0.48, 0.20, 0.25)
-    cb = Strings(tr, 'cb', 'cb', 5, 0.66, 0.16, 0.30)
-    hn = Winds(tr, 'hn', 'horn', 4, -0.20, 0.16, 0.36)
-    tb = Winds(tr, 'tb', 'tbn', 3, 0.40, 0.12, 0.38)
-    tu = Winds(tr, 'tuba', 'tuba', 1, 0.52, 0.0, 0.30)
-    tp = Winds(tr, 'tp', 'tpt', 3, 0.15, 0.10, 0.30)
-    chB = Choir(tr, 'chB', 'B', 9, 0.50, 0.22, 0.20)
-    chT = Choir(tr, 'chT', 'T', 9, 0.17, 0.22, 0.20)
-    chA = Choir(tr, 'chA', 'A', 9, -0.17, 0.22, 0.20)
-    chS = Choir(tr, 'chS', 'S', 9, -0.50, 0.22, 0.20)
+    v1 = Strings(tr, 'vn1', 'vn', 10, -0.62, 0.26, 0.16)
+    v2 = Strings(tr, 'vn2', 'vn', 8, -0.25, 0.22, 0.14)
+    va = Strings(tr, 'va', 'va', 7, 0.18, 0.20, 0.16)
+    vc = Strings(tr, 'vc', 'vc', 6, 0.48, 0.20, 0.19)
+    cb = Strings(tr, 'cb', 'cb', 5, 0.66, 0.16, 0.26)
+    hn = Winds(tr, 'hn', 'horn', 4, -0.20, 0.16, 0.21)
+    tb = Winds(tr, 'tb', 'tbn', 3, 0.40, 0.12, 0.22)
+    tu = Winds(tr, 'tuba', 'tuba', 1, 0.52, 0.0, 0.20)
+    tp = Winds(tr, 'tp', 'tpt', 3, 0.15, 0.10, 0.16)
+    chB = Choir(tr, 'chB', 'B', 9, 0.50, 0.22, 0.15)
+    chT = Choir(tr, 'chT', 'T', 9, 0.17, 0.22, 0.15)
+    chA = Choir(tr, 'chA', 'A', 9, -0.17, 0.22, 0.15)
+    chS = Choir(tr, 'chS', 'S', 9, -0.50, 0.22, 0.15)
     choir = (chB, chT, chA, chS)
-    org = Organ(tr, 'organ', 0.0, 0.42, 0.20)
-    pc = Perc(tr)
+    org = Organ(tr, 'organ', 0.0, 0.42, 0.13)
+    pc = Perc(tr, gain=1.8)
     lines = (LAST_B, LAST_T, LAST_A, LAST_S)
 
     def knocks(bar, v, pitch='F2'):
@@ -1875,26 +1973,31 @@ def build_last():
             pc.gc(B(bar, 1 + k), v * (1.0, 0.86, 0.93)[k])
             pc.timp(B(bar, 1 + k), pitch, v * 0.85)
 
+    def toll(b, v):
+        pc.bell(b, 'C4', v)
+        pc.bell(b, 'C3', v * 0.8, pan=-0.18)
+
     # written dynamics
     for part in choir:
         part.dynamics([(1, 1, .34), (4, 1, .44), (5, 1, .40), (8, 1, .52), (9, 1, .48), (10, 3, .66), (11, 3, .62),
-                       (12, 4, .40), (15, 1, .56), (17, 1, .68), (18, 4, .58), (19, 1, .66), (20, 4, .86),
-                       (21, 1, .88), (24, 4, .92), (25, 1, .96), (28, 4, 1.04), (29, 1, 1.08), (30, 4, 1.12),
+                       (12, 4, .40), (15, 1, .56), (17, 1, .68), (18, 4, .58), (19, 1, .66), (20, 4, .82),
+                       (21, 1, .80), (24, 4, .84), (25, 1, .88), (28, 4, .96), (29, 1, 1.06), (30, 4, 1.12),
                        (33, 1, .40), (34, 1, .40), (35, 3, .34), (37, 1, .10)])
-    org.dynamics([(1, 1, .55), (4, 1, .70), (5, 1, .62), (12, 4, .66), (13, 1, .55), (20, 4, .80), (21, 1, 1.0),
-                  (30, 4, 1.1), (31, 1, .62), (36, 1, .58), (40, 1, .50), (42, 1, .36), (43, 1, 0.0)])
-    cb.dynamics([(1, 1, .34), (5, 1, .38), (12, 4, .44), (13, 1, .50), (20, 4, .78), (21, 1, .92), (30, 4, 1.05),
-                 (31, 1, .46), (36, 1, .40), (40, 1, .36), (42, 1, .26), (43, 1, 0.0)])
+    org.dynamics([(1, 1, .55), (4, 1, .70), (5, 1, .62), (12, 4, .66), (13, 1, .55), (20, 4, .80), (21, 1, .86),
+                  (28, 4, .96), (29, 1, 1.1), (30, 4, 1.15), (31, 1, .62), (36, 1, .58), (40, 1, .50), (42, 1, .36),
+                  (43, 1, 0.0)])
+    cb.dynamics([(1, 1, .34), (5, 1, .38), (12, 4, .44), (13, 1, .50), (20, 4, .76), (21, 1, .82), (28, 4, .94),
+                 (29, 1, 1.05), (30, 4, 1.1), (31, 1, .46), (36, 1, .40), (40, 1, .36), (42, 1, .26), (43, 1, 0.0)])
     for s in (v1, v2, va, vc):
         s.dynamics([(9, 1, .34), (12, 4, .40), (13, 1, .46), (15, 1, .52), (17, 1, .64), (18, 4, .56), (19, 1, .62),
-                    (20, 4, .84), (21, 1, .88), (25, 1, .95), (28, 4, 1.02), (29, 1, 1.05), (30, 4, 1.1),
+                    (20, 4, .80), (21, 1, .80), (25, 1, .88), (28, 4, .96), (29, 1, 1.05), (30, 4, 1.1),
                     (31, 1, .34), (37, 1, .2)])
     for s in (hn, tb, tu, tp):
-        s.dynamics([(13, 1, .56), (19, 1, .74), (20, 4, .88), (21, 1, .86), (24, 4, .90), (25, 1, .95),
-                    (28, 4, 1.02), (29, 1, 1.06), (30, 4, 1.12), (31, 1, .40), (34, 1, .36)])
+        s.dynamics([(13, 1, .56), (19, 1, .72), (20, 4, .84), (21, 1, .76), (24, 4, .80), (25, 1, .86),
+                    (28, 4, .94), (29, 1, 1.06), (30, 4, 1.12), (31, 1, .40), (34, 1, .36)])
 
     # ---- Intro (bars 1-4)
-    pc.bell(B(1), 'C4', 0.62)
+    toll(B(1), 0.62)
     pc.gc(B(1), 0.30)
     org.play(B(1), 16.2, 'F1', 1.0, stops='soft')
     cb.play(B(1), 8.3, 'F1', 1.0, div=(0, 2), vib=0.4)
@@ -1903,7 +2006,7 @@ def build_last():
     cb.play(B(3), 8.3, 'F1', 1.0, div=(0, 2), vib=0.4)
     chB.chord(B(2), 11.6, ['F2', 'C3'], 1.0, vowel=-0.35, shape=[(0, .6), (.6, 1.0), (1, .7)])
     chT.play(B(3), 7.6, 'C3', 0.9, vowel=-0.35, shape=[(0, .6), (.6, 1.0), (1, .7)])
-    pc.bell(B(3), 'C4', 0.52)
+    toll(B(3), 0.52)
 
     # ---- A (bars 5-12): the chorale, choir alone
     for part, ln in zip(choir, lines):
@@ -1913,7 +2016,7 @@ def build_last():
     seq(vc, B(9), LAST_T[1], v=1.0, leg=True)
     seq(va, B(9), LAST_A[1], v=1.0, leg=True)
     for bar, v in ((5, .50), (7, .46), (9, .56), (12, .50)):
-        pc.bell(B(bar), 'C4', v)
+        toll(B(bar), v)
 
     # ---- B (bars 13-20)
     def horn_call(bar, root, harm, v):
@@ -1932,7 +2035,7 @@ def build_last():
                          (4, 'Db3', ['F3', 'Ab3', 'Db4']), (2, 'C3', ['E3', 'G3', 'C4'])], 1.0)
     hn.play(B(14, 3), 2.0, 'C4', 0.9, leg=True)
     knocks(13, 0.36)
-    pc.bell(B(13), 'C4', 0.55)
+    toll(B(13), 0.55)
     # chorale phrase 1 with violins on the melody
     for part, ln in zip(choir, lines):
         seq(part, B(15), ln[0], v=1.0, leg=True, vowel=0.0)
@@ -1942,8 +2045,8 @@ def build_last():
     seq(vc, B(15), LAST_T[0], v=1.0, leg=True)
     seq(cb, B(15), LAST_B[0], v=1.0, tp=-12, leg=True, vib=0.5)
     seq(org, B(15), LAST_B[0], v=1.0, tp=-12, stops='soft')
-    pc.bell(B(15), 'C4', 0.58)
-    pc.bell(B(17), 'C4', 0.60)
+    toll(B(15), 0.58)
+    toll(B(17), 0.60)
     # second call, a fourth higher, trombones an octave below, crescendo
     horn_call(19, 'F4', [(1, 'Bb2', ['Bb3', 'Db4', 'F4']), (1, 'D3', ['A3', 'D4', 'F#4']),
                          (4, 'Gb2', ['Bb3', 'Db4', 'Gb4']), (2, 'C3', ['Bb3', 'C4', 'E4'])], 1.0)
@@ -1959,7 +2062,7 @@ def build_last():
     seq(v1, B(19), 'F5:1 F#5:1 Gb5:4 G5:2', v=1.0, leg=True)
     seq(v2, B(19), 'Db5:1 D5:1 Db5:4 C5:2', v=1.0, leg=True)
     knocks(19, 0.5)
-    pc.bell(B(19), 'C4', 0.62)
+    toll(B(19), 0.62)
     pc.timp_roll(B(20, 3), 2.0, 'C3', 0.3, 0.9)
     pc.cym_roll(B(20), 4.0, 0.08, 0.75, ring=2.5)
 
@@ -1986,7 +2089,7 @@ def build_last():
     for k in range(8):
         bar = 21 + k
         lvl = 0.78 + 0.03 * k
-        pc.bell(B(bar), 'C4', 0.80 + 0.02 * k)
+        toll(B(bar), 0.80 + 0.02 * k)
         knocks(bar, lvl, bass[k])
     pc.tam(B(21), 0.72)
     pc.crash(B(21), 0.75)
@@ -2018,7 +2121,7 @@ def build_last():
             org.play(b, d, p, 0.8, stops='tutti')
         for k, vv in enumerate((1.0, 0.9, 0.95)):
             pc.gc(b + k, vv)
-            pc.bell(b + k, 'C4', 0.9)
+            toll(b + k, 0.9)
         pc.tam(b, 1.0 if bar == 29 else 0.9)
         pc.crash(b, 0.9)
     tu.play(B(29), 7.6, 'F1', 1.0, art='sfz', shape=FPCRESC)
@@ -2029,7 +2132,7 @@ def build_last():
     pc.cym_roll(B(29), 7.6, 0.5, 1.0, ring=3.0)
 
     # ---- D (bars 31-36): what is left
-    pc.bell(B(31), 'C4', 0.55)
+    toll(B(31), 0.55)
     org.play(B(31), 48.2, 'F1', 1.0, stops='soft')
     for bar in (31, 33, 35, 37, 39, 41):
         cb.play(B(bar), 8.3, 'F1', 1.0, div=(0, 2), vib=0.4)
@@ -2039,17 +2142,17 @@ def build_last():
     cb.play(B(42), 4.3, 'F2', 1.0, div=(1, 2), vib=0.4)
     knock_motif(hn, B(32), 'C4', 1.0, hold=3.0, inv=True, leg=True, gate=0.98)
     hn.play(B(33, 3), 2.0, 'C4', 0.9, leg=True, shape=DIM)
-    pc.bell(B(33), 'C4', 0.45)
+    toll(B(33), 0.45)
     b = B(34)
     for d, notes in ((2, ['Db3', 'Bb3', 'Gb4', 'Db5']), (2, ['Db3', 'Bb3', 'Gb4', 'Bb4']),
                      (2, ['C3', 'C4', 'F4', 'Ab4']), (2, ['C3', 'Bb3', 'E4', 'G4']), (4, ['F2', 'Ab3', 'C4', 'F4'])):
         for part, p in zip(choir, notes):
             part.play(b, d, p, 1.0, leg=True, vowel=-0.3)
         b += d
-    pc.bell(B(35), 'C4', 0.40)
+    toll(B(35), 0.40)
 
     # ---- Coda (bars 37-42): one low note, and he is still knocking
-    pc.bell(B(37), 'C4', 0.36)
+    toll(B(37), 0.36)
     knocks(39, 0.30)
     return tr
 
@@ -2085,6 +2188,67 @@ def render(job):
     return lines, info
 
 
+ROLL_COLOURS = [
+    (('vn1', 'vn2'), (120, 200, 255)), (('va',), (90, 230, 200)), (('vc',), (120, 235, 120)), (('cb',), (60, 170, 90)),
+    (('hn',), (255, 205, 90)), (('tp',), (255, 240, 130)), (('tb',), (255, 150, 60)), (('tuba',), (220, 100, 50)),
+    (('cbsn', 'bcl'), (200, 140, 255)), (('chS', 'chA', 'chT', 'chB', 'men'), (255, 130, 190)),
+    (('organ',), (170, 170, 185)), (('timp',), (255, 80, 80)), (('perc',), (200, 60, 60)),
+    (('metal',), (150, 150, 150)), (('bell',), (255, 255, 255)),
+]
+ROLL_NAMES = ['violins', 'violas', 'celli', 'basses', 'horns', 'trumpets', 'trombones', 'tuba', 'low reeds', 'choir',
+              'organ', 'timpani', 'drums (rows: gran cassa, odaiko, chu, shime, rim)', 'tam-tam / cymbals', 'bell']
+
+
+def score_picture(name):
+    """Piano-roll of the written score (no audio): one row per semitone, bars on x."""
+    from PIL import Image, ImageDraw
+    tr = BUILDERS[name](dry=True)
+    lo, hi = 17, 98
+    ph, ml, mt = 7, 44, 30
+    total = tr.bars * tr.bpb
+    pw = 1500.0 / total
+    W, H = ml + 1500 + 10, mt + (hi - lo + 1) * ph + 46
+    im = Image.new('RGB', (W, H), (14, 14, 18))
+    d = ImageDraw.Draw(im)
+    for m in range(lo, hi + 1):
+        y = mt + (hi - m) * ph
+        if m % 12 == 0:
+            d.line([(ml, y + ph), (ml + 1500, y + ph)], fill=(60, 60, 70))
+            d.text((6, y - 3), 'C%d' % (m // 12 - 1), fill=(190, 190, 190))
+    for bar in range(1, tr.bars + 2):
+        x = ml + int((bar - 1) * tr.bpb * pw)
+        d.line([(x, mt), (x, mt + (hi - lo + 1) * ph)], fill=(52, 52, 62) if (bar - 1) % 4 else (95, 95, 110))
+        if (bar - 1) % 4 == 0:
+            d.text((x + 2, mt + (hi - lo + 1) * ph + 2), str(bar), fill=(190, 190, 190))
+    for lab, bar in tr.sections:
+        x = ml + int((bar - 1) * tr.bpb * pw)
+        d.line([(x, mt - 14), (x, mt + (hi - lo + 1) * ph)], fill=(120, 255, 190))
+        d.text((x + 3, mt - 14), lab.split()[0], fill=(120, 255, 190))
+    colour = {}
+    for parts, col in ROLL_COLOURS:
+        for p in parts:
+            colour[p] = col
+    for part, b, dur, m, v in tr.events:
+        col = colour.get(part, (255, 255, 255))
+        k = 0.45 + 0.55 * min(1.0, v)
+        col = tuple(int(c * k) for c in col)
+        x0 = ml + b * pw
+        x1 = max(x0 + 1.5, ml + (b + dur) * pw - 0.5)
+        y = mt + (hi - m) * ph
+        d.rectangle([x0, y + 1, x1, y + ph - 1], fill=col)
+    d.text((ml, 6), '%s  "%s"   %s, %.2f BPM   (written notes; brightness = velocity)' % (tr.name, tr.title, tr.key, tr.bpm),
+           fill=(235, 235, 235))
+    x = ml
+    y = H - 16
+    for (parts, col), nm in zip(ROLL_COLOURS, ROLL_NAMES):
+        d.rectangle([x, y + 2, x + 10, y + 10], fill=col)
+        d.text((x + 14, y), nm, fill=(200, 200, 200))
+        x += 22 + 6 * len(nm)
+    path = os.path.join(WORK_DIR, tr.name + '_score.png')
+    im.save(path)
+    return path
+
+
 def write_definitions():
     defs = {}
     for key in ('dread', 'wrath', 'last'):
@@ -2100,10 +2264,15 @@ def main():
     ap.add_argument('--only', choices=sorted(BUILDERS), action='append', help='render just this track (repeatable)')
     ap.add_argument('--stems', action='store_true', help='print a per-bus level table for balancing')
     ap.add_argument('--serial', action='store_true', help='render one track at a time')
+    ap.add_argument('--roll', action='store_true', help='only draw the written score as piano-roll PNGs in out/')
     args = ap.parse_args()
     names = args.only or ['dread', 'wrath', 'last']
     os.makedirs(OUT_DIR, exist_ok=True)
     os.makedirs(WORK_DIR, exist_ok=True)
+    if args.roll:
+        for n in names:
+            print(score_picture(n))
+        return
     jobs = [(n, args.stems) for n in names]
     t0 = time.time()
     if args.serial or len(jobs) == 1:

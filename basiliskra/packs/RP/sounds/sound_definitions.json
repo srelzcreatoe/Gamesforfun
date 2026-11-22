@@ -858,6 +858,39 @@
           "load_on_low_memory": true
         }
       ]
+    },
+    "basiliskra.music.dread": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/music/theme_dread",
+          "stream": true,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "basiliskra.music.wrath": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/music/theme_wrath",
+          "stream": true,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "basiliskra.music.last": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/music/theme_last",
+          "stream": true,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
     }
   }
 }

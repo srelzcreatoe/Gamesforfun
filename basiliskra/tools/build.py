@@ -16,12 +16,12 @@ def run(*cmd):
     subprocess.run(cmd, cwd=ROOT, check=True)
 
 
-def add_tree(z, src, prefix):
+def add_tree(z, src, prefix, skip=()):
     n = 0
     for base, dirs, files in os.walk(src):
         dirs.sort()
         for f in sorted(files):
-            if f.startswith(".") or f.endswith((".map", ".ts")):
+            if f.startswith(".") or f.endswith((".map", ".ts")) or any(k in f for k in skip):
                 continue
             full = os.path.join(base, f)
             arc = prefix + "/" + os.path.relpath(full, src).replace(os.sep, "/")
@@ -52,8 +52,11 @@ def main():
     os.makedirs(os.path.join(ROOT, "dist"), exist_ok=True)
     out = os.path.join(ROOT, "dist", f"Basiliskra-{version}.mcaddon")
     with zipfile.ZipFile(out, "w") as z:
-        nb = add_tree(z, os.path.join(ROOT, "packs/BP"), "Basiliskra BP")
-        nr = add_tree(z, os.path.join(ROOT, "packs/RP"), "Basiliskra RP")
+        # a form that is modelled but not yet in the game (the client entity does not name its geometry) is left out
+        entity = open(os.path.join(ROOT, "packs/RP/entity/basiliskra.entity.json")).read()
+        skip = tuple(f"basiliskra_{t}" for t in ("iv",) if f"geometry.basiliskra.{t}" not in entity)
+        nb = add_tree(z, os.path.join(ROOT, "packs/BP"), "Basiliskra BP", skip)
+        nr = add_tree(z, os.path.join(ROOT, "packs/RP"), "Basiliskra RP", skip)
     digest = hashlib.sha256(open(out, "rb").read()).hexdigest()
     with open(out + ".sha256", "w") as f:
         f.write(f"{digest}  {os.path.basename(out)}\n")
