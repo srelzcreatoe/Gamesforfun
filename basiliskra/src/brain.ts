@@ -43,6 +43,20 @@ export function nearbyPlayers(c: Creature, range: number): Player[] {
   return out;
 }
 
+/** Everyone near him who is in the world to be seen (Creative players too; not spectators), nearest first. */
+export function watchersNear(c: Creature, range: number): Player[] {
+  const out: Player[] = [];
+  for (const p of players()) {
+    try {
+      if (p.dimension.id !== c.dim.id || dist(p.location, c.pos) > range) continue;
+      if (String(p.getGameMode()).toLowerCase() === "spectator") continue;
+      out.push(p);
+    } catch { /* left */ }
+  }
+  out.sort((a, b) => dist(a.location, c.pos) - dist(b.location, c.pos));
+  return out;
+}
+
 export function anyoneNear(c: Creature, range: number): boolean {
   for (const p of players()) {
     try { if (p.dimension.id === c.dim.id && dist(p.location, c.pos) <= range) return true; } catch { /* left */ }

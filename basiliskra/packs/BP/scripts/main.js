@@ -962,6 +962,7 @@ function freshRecord() {
     born: 0,
     rift: null,
     origin: null,
+    home: null,
     guilty: null,
     guiltyName: null,
     beach: null,
@@ -1781,6 +1782,19 @@ function nearbyPlayers(c, range) {
   for (const p of players()) {
     try {
       if (p.dimension.id === c.dim.id && targetable(p) && dist(p.location, c.pos) <= range) out.push(p);
+    } catch {
+    }
+  }
+  out.sort((a, b) => dist(a.location, c.pos) - dist(b.location, c.pos));
+  return out;
+}
+function watchersNear(c, range) {
+  const out = [];
+  for (const p of players()) {
+    try {
+      if (p.dimension.id !== c.dim.id || dist(p.location, c.pos) > range) continue;
+      if (String(p.getGameMode()).toLowerCase() === "spectator") continue;
+      out.push(p);
     } catch {
     }
   }
@@ -3133,14 +3147,15 @@ var BrainThree = class extends Brain {
   }
   *roam() {
     const c = this.c;
-    const near = nearbyPlayers(c, 110);
+    const near = watchersNear(c, 110);
     let target;
     if (near.length) {
       const p = near[0].location;
       const a = hash(this.now, 41) * Math.PI * 2;
-      target = { x: p.x + Math.cos(a) * 22, y: p.y, z: p.z + Math.sin(a) * 22 };
+      const r = 22 + 12 * hash(this.now, 42);
+      target = { x: p.x + Math.cos(a) * r, y: p.y, z: p.z + Math.sin(a) * r };
     } else {
-      const home = this.rec.origin ?? this.rec.rift ?? c.pos;
+      const home = this.rec.home ?? this.rec.origin ?? this.rec.rift ?? c.pos;
       const a = hash(this.now, 43) * Math.PI * 2;
       target = { x: home.x + Math.cos(a) * 40, y: c.pos.y, z: home.z + Math.sin(a) * 40 };
     }
@@ -4674,7 +4689,7 @@ var BrainTwo = class extends Brain {
   }
   *wander() {
     const c = this.c;
-    const near = nearbyPlayers(c, 96);
+    const near = watchersNear(c, 96);
     let target;
     if (near.length) {
       const p = near[0].location;
@@ -5028,6 +5043,7 @@ var Controller = class {
         rec.mut.formSince = this.now;
       }
       if (!rec.rift) rec.rift = { ...this.waterNear(at2, 64) ?? at2, yaw };
+      rec.home = { ...at2 };
       if (c.form !== form) this.setForm(c, form);
       this.brain?.finish();
       c.halt();
@@ -5067,6 +5083,7 @@ var Controller = class {
       }
       if (!rec.rift) rec.rift = { ...this.waterNear(at2, 64) ?? at2, yaw };
       if (!rec.origin) rec.origin = { ...at2 };
+      rec.home = { ...at2 };
       store.save();
       try {
         body.setDynamicProperty(TOKEN, rec.token);
@@ -5746,15 +5763,15 @@ var Controller = class {
       return;
     }
     if (now - rec.down < pace(TICKS.day) || !rec.rift) return;
+    const at2 = rec.form !== 1 && rec.home ? rec.home : rec.form === 1 ? rec.rift : rec.beach ?? rec.rift;
     const near = players().some((p) => {
       try {
-        return p.dimension.id === dim.id && distXZ(p.location, rec.rift) < 96;
+        return p.dimension.id === dim.id && distXZ(p.location, at2) < 96;
       } catch {
         return false;
       }
     });
     if (!near) return;
-    const at2 = rec.form === 1 ? rec.rift : rec.beach ?? rec.rift;
     if (!isLoaded(dim, at2)) return;
     sound(dim, "basiliskra.rift.open", rec.rift, 72);
     this.create(dim, { x: at2.x + 0.5, y: at2.y + (rec.form === 1 ? 0 : 1), z: at2.z + 0.5 }, rec.rift.yaw);

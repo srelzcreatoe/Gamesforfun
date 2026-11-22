@@ -9,7 +9,7 @@
  */
 import { Entity, EntityDamageCause, Player, world } from "@minecraft/server";
 import { CONFIG, KNOCK_GAP_TICKS, PROP, TICKS } from "../config";
-import { Act, Brain, Choice, anyoneNear, isNight, nearbyPlayers, pace, travel, wait } from "../brain";
+import { Act, Brain, Choice, anyoneNear, isNight, nearbyPlayers, pace, travel, wait, watchersNear } from "../brain";
 import { Creature, targetable } from "../creature";
 import { beamVars, particle, players, sound, stopSound, witnesses } from "../fx";
 import { STANCE_III, STRIDE_III } from "../generated/rig";
@@ -205,14 +205,17 @@ export class BrainThree extends Brain {
 
   private *roam(): Act {
     const c = this.c;
-    const near = nearbyPlayers(c, 110);
+    // he keeps near whoever is about (a Creative player too: he will not hunt them, but he stays where they are)
+    const near = watchersNear(c, 110);
     let target: V3;
     if (near.length) {
       const p = near[0].location;
       const a = hash(this.now, 41) * Math.PI * 2;
-      target = { x: p.x + Math.cos(a) * 22, y: p.y, z: p.z + Math.sin(a) * 22 };
+      const r = 22 + 12 * hash(this.now, 42);
+      target = { x: p.x + Math.cos(a) * r, y: p.y, z: p.z + Math.sin(a) * r };
     } else {
-      const home = this.rec.origin ?? this.rec.rift ?? c.pos;
+      // nobody about: where he was last brought; else the coast that called him; else the seam; else where he stands
+      const home = this.rec.home ?? this.rec.origin ?? this.rec.rift ?? c.pos;
       const a = hash(this.now, 43) * Math.PI * 2;
       target = { x: home.x + Math.cos(a) * 40, y: c.pos.y, z: home.z + Math.sin(a) * 40 };
     }

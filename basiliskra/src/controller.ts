@@ -116,6 +116,7 @@ export class Controller {
       rec.evolve = null; rec.down = null;
       if (!rec.born) { rec.born = this.now; rec.mut.formSince = this.now; }
       if (!rec.rift) rec.rift = { ...(this.waterNear(at, 64) ?? at), yaw };
+      rec.home = { ...at };                              // brought here on purpose: this is where he keeps to now
       if (c.form !== form) this.setForm(c, form);
       this.brain?.finish();
       c.halt();
@@ -140,6 +141,7 @@ export class Controller {
       if (!rec.born) { rec.born = this.now; rec.mut.formSince = this.now; }
       if (!rec.rift) rec.rift = { ...(this.waterNear(at, 64) ?? at), yaw };
       if (!rec.origin) rec.origin = { ...at };
+      rec.home = { ...at };
       store.save();
       try { body.setDynamicProperty(TOKEN, rec.token); } catch { /* gone */ }
       this.adopt(body);
@@ -678,9 +680,11 @@ export class Controller {
     if (rec.down === null) { rec.down = now; store.touch(); return; }
     // driven off: he comes back the way he came, a day later, in the form he had
     if (now - rec.down < pace(TICKS.day) || !rec.rift) return;
-    const near = players().some((p) => { try { return p.dimension.id === dim.id && distXZ(p.location, rec.rift!) < 96; } catch { return false; } });
+    // brought somewhere on purpose, he comes back there (on land: a land form is never put back at the bottom of the
+    // water); otherwise the way he came, through the seam
+    const at = rec.form !== 1 && rec.home ? rec.home : rec.form === 1 ? rec.rift : (rec.beach ?? rec.rift);
+    const near = players().some((p) => { try { return p.dimension.id === dim.id && distXZ(p.location, at) < 96; } catch { return false; } });
     if (!near) return;
-    const at = rec.form === 1 ? rec.rift : (rec.beach ?? rec.rift);
     if (!isLoaded(dim, at)) return;
     sound(dim, "basiliskra.rift.open", rec.rift, 72);
     this.create(dim, { x: at.x + 0.5, y: at.y + (rec.form === 1 ? 0 : 1), z: at.z + 0.5 }, rec.rift.yaw);

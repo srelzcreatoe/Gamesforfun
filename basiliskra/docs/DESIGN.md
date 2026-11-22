@@ -15,6 +15,7 @@ The script owns a single world record (a world dynamic property, chunked JSON, s
 | `token`, `entityId` | his identity: a random token also written on the entity, and the engine's persistent entity id |
 | `pending`, `arrival`, `evolve`, `ending` | every multi-step sequence, with its step, so each can be resumed |
 | `form`, `health`, `rift`, `beach`, `last` | the stage of his life, where the seam is, where he was last seen |
+| `home` | where he was last brought on purpose (egg, command, wheel): he wanders round it with nobody near, and comes back to it after being sent away |
 | `mut`, `learned`, `sites` | mutation progress, what he has learned, bounded kill-site history |
 | `clock` | the pack's own saved tick count; every stored time is measured on it, never on the engine's per-session tick |
 
@@ -69,6 +70,7 @@ Sand at the beam's own impact fuses into `basiliskra:scarlet_trinitite`. Both bl
 * **Footfalls** hurt and throw whatever is within 3.7 blocks of the landing foot; walking, he treads on players inside his volumes.
 * **Voice**: every 10 to 22 seconds, in the phases where he is not roaring, charging, knocking or at a window, a grunt, huff or growl cut from the supplied voice recording (pitched down through water, up as II).
 * **Random roars**: a chance every one to three minutes, with anyone (Creative included) within 110 blocks.
+* **Roaming**: round the nearest player of any game mode but Spectator (he hunts only Survival and Adventure players); with nobody within 110 blocks, round `home`, else the coast that called him, else the seam. (Before 1.3.1 a Creative player did not count, and the home was the first place he was ever brought, which is why a spawned Basiliskra III kept walking off to the water by his old seam.)
 
 ## Players' tools
 

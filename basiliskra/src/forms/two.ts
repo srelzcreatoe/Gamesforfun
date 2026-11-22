@@ -3,7 +3,7 @@
  */
 import { Player, system, world } from "@minecraft/server";
 import { CONFIG, PROP, TICKS } from "../config";
-import { Act, Brain, Choice, anyoneNear, isNight, nearbyPlayers, pace, wait } from "../brain";
+import { Act, Brain, Choice, anyoneNear, isNight, nearbyPlayers, pace, wait, watchersNear } from "../brain";
 import { Creature } from "../creature";
 import { particle, sound, witnesses } from "../fx";
 import { GAIT_TICKS } from "../generated/rig";
@@ -150,7 +150,7 @@ export class BrainTwo extends Brain {
 
   private *wander(): Act {
     const c = this.c;
-    const near = nearbyPlayers(c, 96);
+    const near = watchersNear(c, 96);
     let target: V3;
     if (near.length) {
       // he circles what he can hear: never straight at a door, always somewhere outside it

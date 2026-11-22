@@ -19,7 +19,7 @@ In game: a **journal** (how angry he is, as a percentage, and when he will come)
 
 | File | What it is |
 |---|---|
-| `dist/Basiliskra-1.3.0.mcaddon` | behaviour pack + resource pack, ready to import |
+| `dist/Basiliskra-1.3.1.mcaddon` | behaviour pack + resource pack, ready to import |
 | `models/basiliskra_i.bbmodel`, `_ii`, `_iii` | the three editable Blockbench models, textures and animations embedded |
 | `docs/SURVIVAL_GUIDE.md` | install, what calls him, the three stages, the ending, settings |
 | `previews/*.mp4` | reference videos (see below) |

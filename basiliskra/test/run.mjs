@@ -979,6 +979,24 @@ console.log('\n== 15. Bigger, louder, out of control (1.3)');
     jo.loc = { x: 75, y: 64, z: 10 }; jo.use('basiliskra:journal'); w.sim.step(2);
     check('a step over the area\'s edge does not make it vanish', /Animals killed here by players: §f3§7/.test(page()));
   }
+  // ---- spawned on purpose, he keeps to where he was brought, not to an old coast ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const rec = w.bk.store.rec;
+    // a world where he once arrived at a far coast: the seam and that coast are 300 blocks off
+    Object.assign(rec, { rift: { x: 300, y: 56, z: 300, yaw: 0 }, origin: { x: 300, y: 64, z: 290 } });
+    const bo = w.sim.addPlayer('Bo', { x: 0, y: 64, z: 0 }); bo.mode = 'Creative'; bo.view = { x: 0, y: 0, z: 1 };
+    w.sim.runCommand('basiliskra:spawn', bo, 'iii'); w.sim.step(3);
+    const c = w.bk.ctl.creature;
+    let far = 0;
+    for (let i = 0; i < 6000; i++) { w.sim.step(1); far = Math.max(far, Math.hypot(c.pos.x, c.pos.z)); }
+    check('spawned by command beside a Creative player, he stays round them and never sets off for the old coast', far < 90 && Math.hypot(c.pos.x - 300, c.pos.z - 290) > 250, `farthest ${far.toFixed(0)} from the player, home ${JSON.stringify(rec.home && { x: Math.round(rec.home.x), z: Math.round(rec.home.z) })}`);
+    w.bk.ctl.driveOff(true);
+    rec.down -= 30000;
+    let back = null;                                       // (his absence is looked at every five seconds)
+    for (let i = 0; i < 220 && !back; i++) { w.sim.step(1); if (w.bk.ctl.creature) back = { ...w.bk.ctl.creature.pos }; }
+    check('sent back, he returns where he was brought, on land, not to the old seam', !!back && Math.hypot(back.x - rec.home.x, back.z - rec.home.z) < 4 && back.y >= 63.5, back ? `at ${back.x.toFixed(0)}, ${back.y.toFixed(1)}, ${back.z.toFixed(0)}` : 'not back');
+  }
   // ---- the window, at his new size ----
   {
     const w = start(); w.sim.terrainFn = TERRAINS.village; open(w);

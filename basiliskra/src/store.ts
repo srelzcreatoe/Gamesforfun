@@ -38,6 +38,8 @@ export interface Rec {
   rift: (V3 & { yaw: number }) | null;
   /** The coast whose ruin called him, and who did most of it. */
   origin: V3 | null;
+  /** Where he was last brought on purpose (spawn egg, command, config wheel): he keeps to it, and comes back to it. */
+  home: V3 | null;
   guilty: string | null;
   guiltyName: string | null;
   beach: V3 | null;
@@ -63,7 +65,7 @@ export interface Rec {
 
 export function freshRecord(): Rec {
   return {
-    v: SCHEMA, clock: 0, stage: "dormant", token: "", entityId: null, form: 1, health: 600, born: 0, rift: null, origin: null,
+    v: SCHEMA, clock: 0, stage: "dormant", token: "", entityId: null, form: 1, health: 600, born: 0, rift: null, origin: null, home: null,
     guilty: null, guiltyName: null, beach: null, last: null, down: null, pending: null, arrival: null, evolve: null,
     ending: null,
     mut: { surfacings: 0, episodes: 0, overland: 0, formSince: 0, lastEncounter: 0, beams: 0 },
