@@ -560,11 +560,14 @@ def presolve(models):
         out, _ = base_anims(m['anims'], cid, m['geo'])
         if not new_anims.cached(cid, out, shape(m['geo']), m['eye'], setting(cid, 'scale')):
             missing.append(cid)
-    if len(missing) < 2:
+    if not missing:
         return
     import multiprocessing
-    print(f'solving stoop / lean / wave / bow for {", ".join(missing)} (in parallel: this takes a few minutes)', flush=True)
-    with multiprocessing.Pool(min(len(missing), max(1, (os.cpu_count() or 2)))) as pool:
+    print(f'solving stoop / lean / wave / bow for {", ".join(missing)} (side by side: this takes a few minutes)', flush=True)
+    # One model per process, always: tools/entities/rig.py keeps its box caches under id(skeleton), and a second
+    # skeleton in the same process can be handed the first one's boxes (the address is reused). A fresh process
+    # per model keeps every solve clean and repeatable.
+    with multiprocessing.Pool(min(len(missing), max(1, (os.cpu_count() or 2))), maxtasksperchild=1) as pool:
         # each result goes into the cache as it arrives, so an interrupted build keeps what it has solved
         for cid, entry in pool.imap_unordered(_solve, missing, chunksize=1):
             cache = new_anims._load_cache()
