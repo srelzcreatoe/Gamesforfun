@@ -227,6 +227,7 @@ for m in re.findall(r"'(shaftbreaker:[a-z_]+)'", js):
     if m.startswith('shaftbreaker:') and m.count(':') == 1:
         name = m.split(':')[1]
         if m in props or m in custom_items or m in custom_blocks or m in bp_entities or m in particles: continue
+        if any(m in st for st in block_states.values()): continue                       # a declared custom block state
         if m in ('shaftbreaker:action', 'shaftbreaker:sb', 'shaftbreaker:hanging'): continue
         if m.startswith('shaftbreaker:fog_') or m == 'shaftbreaker:the_hollows': continue   # checked in the world-generation section
         err(f'script references unknown id {m}')

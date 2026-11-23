@@ -747,24 +747,25 @@ def angdiff(a, b):
     return (a - b + math.pi) % math.tau - math.pi
 
 
-def ground_roots(v, lab, seed, count=7, r0=3.0, reach=8.4, climb=0):
-    """roots spreading over the ground from under the model, a few climbing it"""
+def ground_roots(v, lab, seed, r0=3.0, reach=8.4, angles=(0, 60, 120, 180, 240, 300), lift=2.2):
+    """roots spreading over the ground from under the model, wandering a little as they go"""
     r = np.random.default_rng(seed)
     for i in range(N):
         for k in range(N):
             if cyl(i, k)[0] < r0 + 0.6:
                 v.put(i, 0, k, lab)
-    for n in range(count):
-        ang = n / count * math.tau + r.uniform(-0.35, 0.35)
-        rad = r0; wob = 0.0
+    for deg in angles:
+        ang = math.radians(deg) + r.uniform(-0.25, 0.25)
+        rad, wob = r0, 0.0
         while rad < reach:
-            wob += r.normal(0, 0.18)
-            x = 7.5 + math.cos(ang + wob * 0.25) * rad; z = 7.5 + math.sin(ang + wob * 0.25) * rad
+            wob += r.normal(0, 0.15)
+            x = 7.5 + math.cos(ang + wob * 0.2) * rad
+            z = 7.5 + math.sin(ang + wob * 0.2) * rad
             i, k = int(round(x)), int(round(z))
             v.put(i, 0, k, lab)
-            if rad < r0 + 2.2:
+            if rad < r0 + lift:
                 v.put(i, 1, k, lab, over=False)
-            rad += 0.7
+            rad += 0.6
     return r
 
 
@@ -784,13 +785,12 @@ def sphere_vox(v, lab, c, rad, seed=None, lumps=0.0, inner=None, over=True):
                     v.put(i, j, k, lab, over)
 
 
-def surface_lines(v, lab, c, rad, seed, count, from_top=True, y_min=1.0, thick=1, stop=0.62):
-    """root strands draped over a round shape (one voxel proud of its surface)"""
-    r = np.random.default_rng(seed)
-    for n in range(count):
-        ang = n / count * math.tau + r.uniform(-0.4, 0.4)
+def surface_lines(v, lab, c, rad, angles, from_top=True, y_min=1.0, thick=1, stop=0.62):
+    """root strands draped over a round shape along meridians (one voxel proud of its surface).
+    Meridians on the grid axes mesh into few boxes; thick strands widen along the parallel."""
+    for deg in angles:
+        ang = math.radians(deg)
         phi = 0.05 if from_top else 1.75
-        wob = r.uniform(-0.2, 0.2)
         while phi < math.pi * stop:
             rr = rad + 0.55
             x = c[0] + math.sin(phi) * math.cos(ang) * rr
@@ -799,11 +799,10 @@ def surface_lines(v, lab, c, rad, seed, count, from_top=True, y_min=1.0, thick=1
             if y >= y_min:
                 i, j, k = int(math.floor(x + 8)), int(math.floor(y)), int(math.floor(z + 8))
                 v.put(i, j, k, lab, over=False)
-                if thick > 1:                                          # widen sideways (along the parallel)
+                if thick > 1:
                     ti, tk = -math.sin(ang), math.cos(ang)
                     v.put(int(math.floor(x + 8 + ti)), j, int(math.floor(z + 8 + tk)), lab, over=False)
-            ang += wob * 0.08 + r.normal(0, 0.03)
-            phi += 0.07
+            phi += 0.05
 
 
 def geo(ident, cubes):
@@ -813,16 +812,16 @@ def geo(ident, cubes):
 
 def g_organ_core():
     v = Vox({1: '*', 2: 'root'}, wrap={1})
-    ground_roots(v, 2, 1201, count=7, r0=3.6)
+    ground_roots(v, 2, 1201, r0=3.6)
     sphere_vox(v, 1, (0, 8.3, 0), 6.75)
-    surface_lines(v, 2, (0, 8.3, 0, 1.0), 6.75, 1203, 4, from_top=False, thick=1)
+    surface_lines(v, 2, (0, 8.3, 0, 1.0), 6.75, (0, 90, 180, 270), from_top=False)
     return geo('geometry.sb_inf_organ_core', v.cubes())
 
 
 def g_cracked_organ_core():
     r = np.random.default_rng(1301)
     v = Vox({1: '*', 2: 'root', 3: 'glow'}, wrap={1})
-    ground_roots(v, 2, 1302, count=7, r0=3.6)
+    ground_roots(v, 2, 1302, r0=3.6)
     c = (0, 8.0, 0)
     sphere_vox(v, 3, c, 5.2)                                      # the burning heart
     phase = r.uniform(0, math.tau)
@@ -842,14 +841,14 @@ def g_cracked_organ_core():
                 if gap and j >= 4:
                     continue                                          # split seams down the sides
                 v.put(i, j, k, 1)
-    surface_lines(v, 2, (0, 8.0, 0, 1.0), 6.75, 1303, 4, from_top=False)
+    surface_lines(v, 2, (0, 8.0, 0, 1.0), 6.75, (0, 90, 180, 270), from_top=False)
     return geo('geometry.sb_inf_cracked_organ_core', v.cubes())
 
 
 def g_watcher_pod(opened):
     r = np.random.default_rng(1401)
     v = Vox({1: '*', 2: 'root', 3: 'inner', 4: 'glow'}, wrap={1, 3})
-    ground_roots(v, 2, 1402, count=8, r0=3.4)
+    ground_roots(v, 2, 1402, r0=3.4, angles=(0, 45, 90, 135, 180, 225, 270, 315))
     c = (0, 7.6, 0); rx, ry = 6.4, 7.0
     if not opened:
         for i in range(N):
@@ -859,7 +858,7 @@ def g_watcher_pod(opened):
                     if (x * x + z * z) / rx ** 2 + y * y / ry ** 2 <= 1.0:
                         v.put(i, j, k, 1)
         # veins netted over the pod from its crown, as if it was let down on them
-        surface_lines(v, 2, (0, c[1], 0, ry / rx), rx, 1403, 6, from_top=True, y_min=1, thick=2, stop=0.75)
+        surface_lines(v, 2, (0, c[1], 0, ry / rx), rx, (0, 90, 180, 270, 45, 225), from_top=True, y_min=1, thick=2, stop=0.75)
         return geo('geometry.sb_inf_watcher_pod', v.cubes())
     # opened: a cup of shell, the eye awake in it, and four stepped petals of shell splayed to the corners
     for i in range(N):
@@ -870,7 +869,7 @@ def g_watcher_pod(opened):
                 if j + 0.5 < 6.2 and e <= 1.0:
                     v.put(i, j, k, 1 if e > 0.6 else 3)
     sphere_vox(v, 4, (0, 8.6, 0), 4.2, over=False)
-    surface_lines(v, 2, (0, c[1], 0, ry / rx), rx, 1404, 5, from_top=False, y_min=1, thick=2)
+    surface_lines(v, 2, (0, c[1], 0, ry / rx), rx, (0, 90, 180, 270), from_top=False, y_min=1, thick=2)
     cubes = v.cubes()
     for rot in (45, 135, -45, -135):
         cubes += petal(rot, PETAL_TALL)

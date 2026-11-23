@@ -30,6 +30,87 @@
     },
     "sb_clawed_stone": {
       "textures": "textures/blocks/sb_clawed_stone"
+    },
+    "sb_inf_bloodmoss": {
+      "textures": "textures/blocks/infected/bloodmoss"
+    },
+    "sb_inf_bloodmoss_side": {
+      "textures": "textures/blocks/infected/bloodmoss_side"
+    },
+    "sb_inf_bloodroot_vines": {
+      "textures": "textures/blocks/infected/bloodroot_vines"
+    },
+    "sb_inf_bloodroot_vines_tip": {
+      "textures": "textures/blocks/infected/bloodroot_vines_tip"
+    },
+    "sb_inf_cracked_organ_core": {
+      "textures": "textures/blocks/infected/cracked_organ_core"
+    },
+    "sb_inf_cracked_veinstone": {
+      "textures": "textures/blocks/infected/cracked_veinstone"
+    },
+    "sb_inf_crimson_thorns": {
+      "textures": "textures/blocks/infected/crimson_thorns"
+    },
+    "sb_inf_crimson_thorns_crystal": {
+      "textures": "textures/blocks/infected/crimson_thorns_crystal"
+    },
+    "sb_inf_dripfang": {
+      "textures": "textures/blocks/infected/dripfang"
+    },
+    "sb_inf_dripfang_drop": {
+      "textures": "textures/blocks/infected/dripfang_drop"
+    },
+    "sb_inf_dripfang_wet": {
+      "textures": "textures/blocks/infected/dripfang_wet"
+    },
+    "sb_inf_fleshstone": {
+      "textures": "textures/blocks/infected/fleshstone"
+    },
+    "sb_inf_glowspore_cluster": {
+      "textures": "textures/blocks/infected/glowspore_cluster"
+    },
+    "sb_inf_glowspore_cluster_cap": {
+      "textures": "textures/blocks/infected/glowspore_cluster_cap"
+    },
+    "sb_inf_glowspore_cluster_stem": {
+      "textures": "textures/blocks/infected/glowspore_cluster_stem"
+    },
+    "sb_inf_organ_core": {
+      "textures": "textures/blocks/infected/organ_core"
+    },
+    "sb_inf_organ_core_glow": {
+      "textures": "textures/blocks/infected/organ_core_glow"
+    },
+    "sb_inf_organ_core_root": {
+      "textures": "textures/blocks/infected/organ_core_root"
+    },
+    "sb_inf_pulsing_flesh": {
+      "textures": "textures/blocks/infected/pulsing_flesh"
+    },
+    "sb_inf_ribstone": {
+      "textures": "textures/blocks/infected/ribstone"
+    },
+    "sb_inf_ribstone_top": {
+      "textures": "textures/blocks/infected/ribstone_top"
+    },
+    "sb_inf_veinstone": {
+      "textures": "textures/blocks/infected/veinstone"
+    },
+    "sb_inf_watcher_pod": {
+      "textures": "textures/blocks/infected/watcher_pod"
+    },
+    "sb_inf_watcher_pod_eye": {
+      "textures": "textures/blocks/infected/watcher_pod_eye"
+    },
+    "sb_inf_watcher_pod_inner": {
+      "textures": "textures/blocks/infected/watcher_pod_inner"
+    },
+    "sb_inf_watcher_pod_open": {
+      "textures": "textures/blocks/infected/watcher_pod_open"
+    },
+    "sb_inf_watcher_pod_root": {
+      "textures": "textures/blocks/infected/watcher_pod_root"
     }
   }
 }
