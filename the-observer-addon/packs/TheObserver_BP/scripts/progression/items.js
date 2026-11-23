@@ -128,7 +128,9 @@ function useLens(p, onLensed) {
   safe(() => p.playSound(SOUNDS.lens, { volume: 0.7 }));
   const b = body.get();
   if (b && b.e.dimension.id === p.dimension.id && V.dist(b.e.location, p.location) < 80) {
-    const v = visibility(p, b.e.location, { stooped: b.stoop, fov: 15 });
+    // (right on top of you it fills your view: within 2.5 blocks a wide look is enough — 1.5.1)
+    const near = V.dist(b.e.location, p.location) < 2.5;
+    const v = visibility(p, b.e.location, { stooped: b.stoop, fov: near ? 70 : 15 });
     if (v.points > 0) {
       body.setState("recoil");
       onLensed(b.enc);

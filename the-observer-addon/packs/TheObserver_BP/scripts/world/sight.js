@@ -34,6 +34,9 @@ export function lineOfSight(dim, a, b) {
     const hit = safe(() => dim.getBlockFromRay(from, dir, { maxDistance: dist + 2, includeLiquidBlocks: false, includePassableBlocks: false }));
     if (!hit) return { clear: true, through };
     if (V.dot(V.sub(V.add(hit.block.location, hit.faceLocation), from), dir) > dist - 0.05) return { clear: true, through };
+    // a line to a point inside a block (a pumpkin, a door, a torch's block) is not blocked by that block itself
+    const hl = hit.block.location;
+    if (hl.x === Math.floor(b.x) && hl.y === Math.floor(b.y) && hl.z === Math.floor(b.z)) return { clear: true, through };
     if (!SEE_THROUGH_RX.test(hit.block.typeId)) return { clear: false, through };
     through++;
     // continue just beyond the transparent block along the ray

@@ -159,6 +159,8 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | targeted (1.5.1: its pace — calibrated at fixed movement values, then following a player who stands, walks and sprints, twice; the Sound Test) | 4 + 13 | 0 + 0 | calibration: 2.92, 4.56, 6.57, 8.94, 11.26 b/s at movement 0.2-0.4 under the pursuit's ×1.3 (the earlier calibration, 3.88 × multiplier² at value 0.3, i.e. speed = 43.1·(value·multiplier)², holds); then stand 1.60 / 1.47, walk 4.69 / 4.56, sprint 6.24 / 5.89 b/s |
 | targeted (1.5.1: the bigger Mire — the Mire groups, the ruins, the taiga shadow) | 55 | 0 | the test arena is still a taiga, the test Mire still at 32,-32, every Mire group and the ruins as before |
 | targeted (1.5.1: the Mire Eyebloom, twice) | 11 + 11 | 0 + 0 | three blocks tall; turns to you only while unwatched; shuts when stared at; opens and turns when you look away; falls as one; grows whole in the Mire (2 within 48 blocks of the test Mire at first, 11 after raising its density). A first probe loaded its template in mid-air, where (by design) it cannot stand |
+| full (1.5.1, first) | 611 | 5 | real: the line-of-sight fix made a line *to* a block (the pumpkin it turns) count the block itself as in the way — *Something Facing You* found nothing it could turn (a line to a point inside a block is no longer blocked by that block); its rage followed a standing player's pace down to 4.1 b/s (its rage is now always faster than a sprint, 8.0-9.4 b/s; and within 6 blocks, pursuing or enraged, it closes at 6.5 b/s at least — it creeps up, then lunges). Test-side: `pursuit_runs` still expected the old rush at a player standing still (it creeps now, by design). The tick rate dipped to 17.9 while other tests ran on a second server beside it |
+| targeted (1.5.1: those groups, the block-target encounters, the peeks, the corruption twice, the eyebloom, the takeover, talking; then the chases and the rage) | 73 + 56 + 32 + 38 | 0 + 0 + 1 + 1 | all passed but `relentless_lens_drives_it_off`, twice: test order only — the lens had been used by the group just before (standoff, or relentless itself) and was still in its 20-second cooldown. Also found: at point-blank (its body overlapping yours) the lens's narrow look could miss it; within 2.5 blocks a wide look is enough now. And the corruption (1.5.0) broke ground that grass, flowers, pages or an eyebloom stood on — they dropped off and were not put back; it now only takes bare ground (`corruption_leaves_what_stands_on_the_ground`: 10/10 flowers kept, twice) |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -596,6 +598,15 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
   blocks along the side wall (`peek_house_*`).
 * Test-side: the old auto-peek test put the log beside it (what is now refused); the tests' own checks used the same
   engine ray (now an exact walk).
+* **A line to a block was blocked by that block**: once rays reached their end reliably, a line to the centre of a
+  pumpkin hit the pumpkin; *Something Facing You* then found nothing to turn. A line to a point inside a block is not
+  blocked by that block.
+* **Its rage crept**: following a standing player's pace, its rage fell to 4.1 b/s. Its rage is always faster than a
+  sprint now, and pursuing or enraged it closes the last 6 blocks at full speed.
+* **The corruption took away what stood on the ground** (since 1.5.0): grass, flowers, torn pages dropped off the
+  ground it changed and were not put back with it. It only takes bare ground now.
+* **The lens at point-blank**: with its body overlapping yours the lens's narrow look could miss it; within 2.5 blocks a
+  wide look is enough.
 
 **Found by the 1.5.0 tests**
 * **A question nobody answered waited forever**: a form the player never closes (they walked away from the screen, or

@@ -775,7 +775,7 @@ abilities that chill, and for it to talk with the player; and for the Weeping Mi
   `sight.lineOfSight`).
 * **Its pace** (`body.pace`, every 5 ticks): its target's speed from their position over the last moment (smoothed; a
   teleport is ignored), and its movement value set so it comes at [slowest, × theirs, fastest] — approach [1.3, 1.05,
-  6.4], pursuit [1.6, 1.12, 7.4], rage [4.4, 1.18, 8.6] b/s — from the calibration speed = 43.1·(value·goal multiplier)²
+  6.4], pursuit [1.6, 1.12, 7.4], rage [8.0, 1.2, 9.4] b/s (the rage stays faster than a sprint); within 6 blocks, pursuing or enraged, it closes at 6.5 b/s at least — it creeps up, then lunges — from the calibration speed = 43.1·(value·goal multiplier)²
   (measured on BDS at 0.2-0.4: 2.92, 4.56, 6.57, 8.94, 11.26 b/s at ×1.3).
 * **A bigger Mire**: `replace_biomes` amount 0.4 → 0.55, noise frequency 2.0 → 0.5, and 13 more targets (the other
   jungles, hilly forests, savanna plateaus, deserts; still not the taigas). Measured with the test kit's `otest:miremap`
@@ -789,5 +789,8 @@ abilities that chill, and for it to talk with the player; and for the Weeping Mi
   second, for each player in the Mire, the heads within 20 blocks: face the player when more than 50° from their view;
   shut while looked at from within 10 blocks (within 9°), open 1.5 s after; spores and drops at random. Breaking any
   part takes the rest down (`setblock … destroy`, so the eye can drop its spider eye).
+* **Also in 1.5.1**: a line to a point inside a block (a pumpkin it turns, a door) is not blocked by that block itself
+  (`sight.lineOfSight`, `space.solidBlocked`); the corruption takes only bare ground (nothing standing on it — grass,
+  flowers, pages, eyeblooms would drop off and not come back); within 2.5 blocks the lens takes a 70° look instead of 15°.
 * **The Sound Test** (`ui/sounds.js`): the six tracks by `playMusic` (looping, this player only) and sixteen sounds by
   `playSound`; a stop button. Open to every player.

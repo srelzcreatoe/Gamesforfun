@@ -364,6 +364,8 @@ export function solidBlocked(dim, a, b) {
     if (!hit) return false;
     const at = V.add(hit.block.location, hit.faceLocation);
     if (V.dot(V.sub(at, from), dir) > dist - 0.05) return false;
+    const hl = hit.block.location;
+    if (hl.x === Math.floor(b.x) && hl.y === Math.floor(b.y) && hl.z === Math.floor(b.z)) return false;
     if (isCover(hit.block)) return true;
     const bl = hit.block.location;
     const center = { x: bl.x + 0.5, y: bl.y + 0.5, z: bl.z + 0.5 };

@@ -167,8 +167,8 @@ Presets) is above Relentless: almost no rest at all. *Atmosphere* is still there
   look at you. One of them walks up and stands beside you with *your name* over its head. Then the hostile ones come for
   you as its pack.
 * **The corruption.** The ground around you breaks up into black, blood red and crying obsidian for a few seconds, with
-  a hiss of static — and then it is exactly as it was. (Only natural ground, never your builds; never under a Ward
-  Lantern.)
+  a hiss of static — and then it is exactly as it was. (Only bare natural ground — never your builds, never ground
+  anything stands on; never under a Ward Lantern.)
 * **It is ahead of you.** Run from it and start to get away, and it is suddenly in front of you on your path. It
   remembers where you got away to before: run that way again, and it is already waiting there. Stuck a long way round
   (a maze, a cliff), it glitches along its own route to you.
@@ -189,7 +189,7 @@ Presets) is above Relentless: almost no rest at all. *Atmosphere* is still there
   round the edge. Never from beside a bush, never from nothing; with nothing like that nearby, it simply stands and
   watches. Move round so the cover no longer hides it, and it stops hiding.
 * **It moves as you move.** Floating at you, its speed follows yours: stand still and it creeps; walk and it drifts at a
-  walk; sprint and it comes fast — always a little faster than you.
+  walk; sprint and it comes fast — always a little faster than you. Within a few blocks of you, it lunges. (In its rage it is always faster than a sprint.)
 * **The Weeping Mire is much bigger**: long unbroken stretches several hundred blocks across instead of scattered
   patches, still close to where a world starts. (Only new parts of a world change: land already generated stays as it is.)
 * **The Mire Eyebloom.** Three blocks tall, a black stalk with drooping red-veined leaves, and for a flower a single eye

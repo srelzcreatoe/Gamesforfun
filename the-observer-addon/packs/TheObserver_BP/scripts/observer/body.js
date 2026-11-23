@@ -151,10 +151,13 @@ export function surge() {
 /**
  * Its pace (1.5.1): coming at someone, it moves as they move — they walk slowly, it drifts slowly; they run, it comes
  * fast; they stand still, it creeps. [slowest b/s, times their speed, fastest b/s] for each way it comes at them;
- * the AI goal's own multiplier for each.
+ * the AI goal's own multiplier for each. Its rage is the exception: always faster than a sprint, faster still after
+ * someone faster.
  */
-const PACE = { approach: [1.3, 1.05, 6.4], pursue: [1.6, 1.12, 7.4], rage: [4.4, 1.18, 8.6] };
+const PACE = { approach: [1.3, 1.05, 6.4], pursue: [1.6, 1.12, 7.4], rage: [8.0, 1.2, 9.4] };
 const GOAL_MULT = { approach: 0.85, pursue: 1.3, rage: 1.5 };
+/** Its speed closing the last few blocks, whatever their pace (its old pursuit speed). */
+const CLOSE_SPEED = 6.5;
 /** Steady speed (b/s) of this entity at movement value v under goal multiplier m: calibrated on the server. */
 const speedAt = (v, m) => PACE_K * (v * m) ** 2;
 const PACE_K = 43.1;
@@ -176,7 +179,9 @@ function pace(b, run) {
   if (!cfg || DEBUG.pace === "off") return;
   const m = GOAL_MULT[/** @type {keyof typeof GOAL_MULT} */ (b.mode)];
   const fixed = Number(DEBUG.pace);
-  const want = Math.max(cfg[0], Math.min(cfg[2], (b.theirSpeed ?? 0) * cfg[1]));
+  // ...and at arm's length it no longer drifts: within 6 blocks it closes at full speed (it creeps up on you, then lunges)
+  const close = V.dist(b.e.location, l) < 6 && b.mode !== "approach";
+  const want = Math.max(close ? CLOSE_SPEED : cfg[0], Math.min(cfg[2], (b.theirSpeed ?? 0) * cfg[1]));
   const v = Number.isFinite(fixed) && fixed > 0 ? fixed : Math.sqrt(want / PACE_K) / m;
   b.paceSpeed = Number.isFinite(fixed) && fixed > 0 ? speedAt(v, m) : want;
   safe(() => b.e.getComponent("minecraft:movement")?.setCurrentValue(v));

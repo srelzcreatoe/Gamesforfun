@@ -685,14 +685,14 @@ TESTS.pursuit = async () => {
   const l0 = { ...e.location };
   await wait(40);
   check("pursuit_response_window", e.isValid && hdist(e.location, l0) < 0.5);
-  // look away and stand still: it runs, then strikes
+  // look away and stand still: it comes (1.5.1: at a creep — its pace follows yours, and you are standing), then strikes
   p.lookAtLocation({ x: p.location.x - 30, y: Y + 1.6, z: p.location.z });
   await wait(40);
   const d1 = e.isValid ? hdist(e.location, p.location) : 0;
   const st1 = e.isValid ? e.getProperty("observer:state") : "gone";
   await wait(20);
   const d2 = e.isValid ? hdist(e.location, p.location) : 0;
-  check("pursuit_runs", d1 - d2 > 2.5, `speed≈${(d1 - d2).toFixed(2)} b/s`);
+  check("pursuit_runs", d1 - d2 > 0.8 && d1 - d2 < 3.0, `speed≈${(d1 - d2).toFixed(2)} b/s`);
   // 1.0.6: it floats after you — the surge, not the run
   check("pursuit_floats_surging", st1 === "surge", String(st1));
   const end = await endOf("pursuit", m, 20 * 40);
@@ -4749,14 +4749,16 @@ TESTS.pace = async () => {
     obs("trigger", "test_strike", "Tester");
     const e = await waitObserver(60);
     await wait(36);
+    // (measured while it is more than 6.5 blocks off: closer than 6 it stops drifting and lunges)
     const xs = [];
     for (let t = 0; t < 48; t += 4) {
       heal(p);
       if (step) p.teleport({ x: Math.min(990, p.location.x + step), y: Y, z: 1033.5 }, { facingLocation: { x: 900, y: Y + 1.6, z: 1033.5 } });
       await wait(4);
-      if (e?.isValid) xs.push(e.location.x);
+      if (e?.isValid && hdist(e.location, p.location) > 6.5) xs.push(e.location.x);
     }
-    speeds[name] = xs.length > 8 ? (xs[xs.length - 1] - xs[4]) / (((xs.length - 1 - 4) * 4) / 20) : -1;
+    const k0 = Math.min(2, Math.max(0, xs.length - 4));
+    speeds[name] = xs.length >= 4 ? (xs[xs.length - 1] - xs[k0]) / (((xs.length - 1 - k0) * 4) / 20) : -1;
     obs("abort");
     await observerGone(100);
   }
