@@ -754,10 +754,9 @@ def infected_features(made):
     growth('inf_bloodmoss', INF('bloodmoss'), None, 'bottom', 46, (-62, 70))
     growth('inf_glowspore', INF('glowspore_cluster'), None, 'bottom', 7, (-62, 60))
     growth('inf_thorns', INF('crimson_thorns'), None, 'bottom', 9, (-62, 60))
-    growth('inf_organ_floor', INF('organ_core'), None, 'bottom', 2, (-62, 50))
-    growth('inf_pod_floor', INF('watcher_pod'), {f'{NS}:open': False}, 'bottom', 3, (-62, 55))
-    growth('inf_organ_wall', INF('organ_core'), None, None, 4, (-62, 50), sides=True)
-    growth('inf_pod_wall', INF('watcher_pod'), {f'{NS}:open': False}, None, 3, (-62, 55), sides=True)
+    # organ cores and pods have no wall-mounted model (no facing state), so they only grow on floors
+    growth('inf_organ_floor', INF('organ_core'), None, 'bottom', 5, (-62, 50))
+    growth('inf_pod_floor', INF('watcher_pod'), {f'{NS}:open': False}, 'bottom', 5, (-62, 55))
     growth('inf_vines', INF('bloodroot_vines'), {f'{NS}:tip': False}, 'top', 34, (-62, 70))
     growth('inf_vines_tip', INF('bloodroot_vines'), {f'{NS}:tip': True}, 'top', 20, (-62, 70))
     growth('inf_fang', INF('dripfang'), {f'{NS}:tip': True}, 'top', 26, (-62, 70))

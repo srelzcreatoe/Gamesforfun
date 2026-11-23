@@ -64,7 +64,7 @@ Hold its gaze too long and it snaps. The more you stare at it, the less patience
 
 ## 11. Faster than you
 
-When it snaps it screams, the air goes red and it comes faster than you can sprint, climbing walls and pillars to reach you. Nothing can touch you for about two seconds after the scream. Break its line of sight. Daylight ends it, except in its own land.
+When it snaps it screams, the air goes red and it comes faster than you can sprint, climbing walls and pillars to reach you. Nothing can touch you for about two seconds after the scream. Break its line of sight. Daylight will not save you.
 
 *To unlock: Make it angry.*
 
@@ -122,43 +122,73 @@ At night, if you shut yourself in, it knocks. Then it waits on the other side of
 
 *To unlock: Stay inside at night.*
 
-## 21. Your own sounds
+## 21. It watches you sleep
+
+Go to sleep while it is near and you will hear knocking, then a whisper. When you wake it is standing over your bed. If you do not wake, its claws will wake you.
+
+*To unlock: Sleep while it is near.*
+
+## 22. Your own sounds
 
 A door you did not open. Footsteps that stop when you stop. Someone eating in the dark. Your own pickaxe in another tunnel. It has been listening to you.
 
 *To unlock: Listen while you work.*
 
-## 22. Whispers
+## 23. Whispers
 
 Whispers just behind your head. Sometimes words on your screen. Sometimes your name.
 
 *To unlock: Spend time near it.*
 
-## 23. Two pale points
+## 24. Two pale points
 
 Eyes in the dark, a face-width apart. They go out the moment you look straight at them.
 
 *To unlock: Look into the dark you are not lighting.*
 
-## 24. Its dens
+## 25. Its dens
 
 Chambers carpeted in grey dust and bone, the walls scored by its claws, spines hanging from the ceiling. Break the Den Heart and the territory goes quiet for a few days. It remembers who did that.
 
 *To unlock: Follow a shaft moth.*
 
-## 25. Shaft moths
+## 26. Shaft moths
 
 A pale moth that leads you to its den, and waits and points when you fall behind.
 
 *To unlock: Stay underground near a den.*
 
-## 26. The Hollows
+## 27. Its home
+
+Under the Hollows the rock is threaded with red veins, the walls are flesh, and the pools are blood. This is where it lives. Here it is stronger, faster and less patient, and it heals.
+
+*To unlock: Go underground in the Hollows.*
+
+## 28. The pods are its eyes
+
+The red pods in its caves open when you come close and look at you. Then it knows exactly where you are, and it comes, sometimes from behind.
+
+*To unlock: Walk near a watcher pod.*
+
+## 29. Its organs
+
+The glowing cores in its caves are part of it. Break one and it is wounded, and it screams, and it comes for you.
+
+*To unlock: Break an organ core.*
+
+## 30. Crimson thorns
+
+The red crystal spikes on its cave floors cut you and slow you down. It will chase you through them.
+
+*To unlock: Walk through the red crystal.*
+
+## 31. The Hollows
 
 Its own land: grey dust, dead timber, old headframes over shafts that drop into the dark, cairns nobody living built. The fog never lifts, and here it walks by day.
 
 *To unlock: Find its land.*
 
-## 27. It can be brought down
+## 32. It can be brought down
 
 Bring it down and it collapses. Its skull is yours to wear. It will come back.
 

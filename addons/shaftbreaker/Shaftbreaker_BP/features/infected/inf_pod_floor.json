@@ -6,7 +6,7 @@
     },
     "places_feature": "shaftbreaker:inf_pod_floor_block",
     "distribution": {
-      "iterations": 3,
+      "iterations": 5,
       "x": {
         "distribution": "uniform",
         "extent": [

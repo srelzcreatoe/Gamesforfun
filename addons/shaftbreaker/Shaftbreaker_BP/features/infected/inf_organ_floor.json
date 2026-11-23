@@ -6,7 +6,7 @@
     },
     "places_feature": "shaftbreaker:inf_organ_floor_block",
     "distribution": {
-      "iterations": 2,
+      "iterations": 5,
       "x": {
         "distribution": "uniform",
         "extent": [
