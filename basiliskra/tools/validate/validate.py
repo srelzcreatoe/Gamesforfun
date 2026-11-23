@@ -157,6 +157,10 @@ events = dict(bp_ent.get("events", {}))
 titan_bp = docs.get("packs/BP/entities/basiliskra_titan.json", {}).get("minecraft:entity", {})
 titan_ce = docs.get("packs/RP/entity/basiliskra_titan.entity.json", {}).get("minecraft:client_entity", {}).get("description", {})
 events.update(titan_bp.get("events", {}))
+# the people of his cities: their own entity, whose property and events the script also uses
+civ_bp = docs.get("packs/BP/entities/basiliskra_civilian.json", {}).get("minecraft:entity", {})
+civ_ce = docs.get("packs/RP/entity/basiliskra_civilian.entity.json", {}).get("minecraft:client_entity", {}).get("description", {})
+civ_props = civ_bp.get("description", {}).get("properties", {})
 
 
 def tex_exists(rel):
@@ -418,12 +422,14 @@ if vanilla_blocks:
 item_ids = {d["minecraft:item"]["description"]["identifier"] for d in docs.values() if isinstance(d, dict) and "minecraft:item" in d}
 block_ids = {d["minecraft:block"]["description"]["identifier"] for d in docs.values() if isinstance(d, dict) and "minecraft:block" in d}
 item_ids |= block_ids                                   # every block has its own item
+entity_ids = {d["minecraft:entity"]["description"]["identifier"] for d in docs.values() if isinstance(d, dict) and "minecraft:entity" in d}
+script_ok = set(props) | set(civ_props) | set(civ_bp.get("events", {})) | entity_ids
 commands = set(re.findall(r'name: `\$\{NS\}:([a-z_]+)`', src)) | set(re.findall(r'registerEnum\(`\$\{NS\}:([a-z_]+)`', src))
 for name in re.findall(r'`\$\{NS\}:([a-z_]+)`', src):
     pid = f"{NS}:{name}"
     if name in ("basiliskra", "hitbox", "hitbox_", "debug") or pid in item_ids or pid in block_ids or name in commands:
         continue
-    if pid not in props:
+    if pid not in script_ok:
         err(f"script property {pid} is not defined on the entity")
     ok("synchronised properties")
 for p, d in props.items():
@@ -537,6 +543,37 @@ else:
             err(f"the Titan animates {a}, which it does not define")
     if "spawn_egg" not in titan_ce or f"item.spawn_egg.entity.{NS}:titan.name=" not in rp_lang or f"entity.{NS}:titan.name=" not in rp_lang:
         err("the Titan's spawn egg or its name is missing")
+
+# the civilians: a client entity for the behaviour entity, the fright property the client reads, the events the script
+# sends, the families his beam and the panic look for, a texture for every outfit, and names for it and its egg
+if civ_bp.get("description", {}).get("identifier") != f"{NS}:civilian" or civ_ce.get("identifier") != f"{NS}:civilian":
+    err("the civilians have no behaviour-pack entity or no client entity")
+else:
+    if civ_props.get(f"{NS}:scared", {}).get("type") != "bool" or not civ_props[f"{NS}:scared"].get("client_sync"):
+        err("the civilians' fright is not a synchronised bool property")
+    for ev in (f"{NS}:panic", f"{NS}:calm"):
+        if ev not in civ_bp.get("events", {}):
+            err(f"the civilians lack the event {ev}")
+    cc = civ_bp.get("components", {})
+    fam = cc.get("minecraft:type_family", {}).get("family", [])
+    if f"{NS}_civilian" not in fam or NS in fam:
+        err(f"the civilians' families are {fam}")
+    groups = civ_bp.get("component_groups", {})
+    for g in ("calm", "frightened"):
+        if f"{NS}:{g}" not in groups:
+            err(f"the civilians lack the component group {NS}:{g}")
+    avoid = groups.get(f"{NS}:frightened", {}).get("minecraft:behavior.avoid_mob_type", {})
+    if not avoid:
+        err("frightened civilians do not run from anything")
+    for short, ref in civ_ce.get("textures", {}).items():
+        if not tex_exists(ref):
+            err(f"civilian texture {short} = {ref} missing")
+    for short, ref in civ_ce.get("geometry", {}).items():
+        if ref not in geos:
+            err(f"civilian geometry {ref} is not defined")
+    if "spawn_egg" not in civ_ce or f"item.spawn_egg.entity.{NS}:civilian.name=" not in rp_lang or f"entity.{NS}:civilian.name=" not in rp_lang:
+        err("the civilians' spawn egg or name is missing")
+    ok("civilians")
     th = re.search(r"export const TITAN_HEALTH = (\d+)", open(os.path.join(ROOT, "src", "generated", "rig.ts"), encoding="utf-8").read())
     if not th or int(th.group(1)) != tc.get("minecraft:health", {}).get("max"):
         err("the script's figure for the Titan's health is not the entity's")
