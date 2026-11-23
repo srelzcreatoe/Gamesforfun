@@ -1,6 +1,6 @@
 // Renders the add-on's preview pictures from the real build plan.
 //
-//   node tools/previews/make_previews.mjs [--size=1920x1080] [--only=name,name] [--no-composite]
+//   node tools/previews/make_previews.mjs [--size=1920x1080] [--only=name,name] [--no-composite] [--dog=top_hat_rat]
 //
 // 1. exports voxel snapshots of the pizzeria in the scene variants the game
 //    produces at runtime (tools/map/export_voxels.mjs)
@@ -124,6 +124,10 @@ const irLight = (id, intensity = 6) => {
   const p = c.loc.map((v, i) => v + (c.look[i] - v) * 0.35);
   return { type: 'point', pos: p, color: '#d8ffe0', intensity, distance: 18, decay: 1.6 };
 };
+// The Golden Dog (scenes 60-69). `--dog=top_hat_rat` renders a stand-in, a little larger, while his own model is
+// not in the packs.
+const DOG = arg('dog', 'golden_dog');
+const dog = (node, anim = 'idle', extra = {}) => at(DOG, node, anim, { ...(DOG === 'golden_dog' ? {} : { scale: 1.18 }), ...extra });
 const spot = (pos, target, { color = '#ffdcae', intensity = 60, distance = 26, angle = 24, penumbra = 0.55, shadow = true } = {}) =>
   ({ type: 'spot', pos, target, color, intensity, distance, angle, penumbra, shadow });
 const point = (pos, color, intensity, distance = 14) => ({ type: 'point', pos, color, intensity, distance, decay: 1.8 });
@@ -605,6 +609,84 @@ export const SCENES = [
   {
     name: '29_party_room', voxels: 'day', caption: 'The Party Room between the halls: a birthday table set for children who never came',
     scene: { camera: { pos: [36.5, 2.4, 39.6], target: [36.5, 0.8, 54], fov: 70 }, exposure: 1.0 },
+  },
+  // ---- the cellar (data/cellar_plan.js): the Golden Dog Supper Club under the pizzeria, and the Golden Dog on its stage
+  {
+    name: '60_gold_room', voxels: 'day', caption: 'Under the Dining Hall: the Gold Room of the Golden Dog Supper Club (1958 to 1971), and he is still on its stage',
+    scene: {
+      camera: { pos: [28.6, -5.1, 37.4], target: [37.5, -6.3, 19.0], fov: 74 }, exposure: 2.3, fog: { density: 0.012 },
+      entities: [dog('CEL_STAGE', 'pose_2')],
+      extra_lights: [{ type: 'ambient', color: '#3a3020', intensity: 1.3 }, point([34.5, -5.4, 19.2], '#ffd08a', 16, 14), point([27.5, -4.6, 30.5], '#ffc98a', 6, 10), point([45.2, -3.6, 28.5], '#ffc98a', 6, 10)],
+    },
+  },
+  {
+    name: '61_ghost_light', voxels: 'night', caption: 'At night one lamp is left burning down here: the ghost light, on the spot where he stands',
+    scene: {
+      camera: { pos: [38.2, -5.6, 26.5], target: [36.3, -5.1, 18.5], fov: 58 }, exposure: 1.7, fog: { density: 0.02 },
+      entities: [dog('CEL_STAGE', 'idle', { eyes: true })],
+      extra_lights: [{ type: 'ambient', color: '#0c1018', intensity: 0.6 }, point([34.5, -5.5, 19.0], '#ffd08a', 26, 13)],
+    },
+  },
+  {
+    name: '62_other_office_seat', voxels: 'night', caption: 'The Other Office: the wall behind the desk is gone. Down the Long Hall, 45 blocks away, he is standing on his stage',
+    scene: {
+      camera: { pos: [36.5, -5.38, 63.5], target: [36.5, -5.25, 18.5], fov: 50 }, exposure: 2.2, fog: { density: 0.004 },
+      entities: [dog('CEL_STAGE', 'idle', { eyes: true, eyeIntensity: 14 })],
+      extra_lights: [{ type: 'ambient', color: '#1c2434', intensity: 7 }, point([34.5, -5.5, 19.0], '#ffd08a', 34, 14), point([36.5, -3.8, 64.0], '#c8b890', 1.4, 7)],
+    },
+  },
+  {
+    name: '63_other_office_walk', voxels: 'night', caption: 'He walks while you watch him. Look down at the desk. The phone is the way back',
+    scene: {
+      camera: { pos: [36.5, -5.38, 63.5], target: [36.5, -5.1, 49.0], fov: 50 }, exposure: 2.2, fog: { density: 0.004 },
+      entities: [dog('CEL_HALL_S', 'walk', { eyes: true, eyeIntensity: 18, t: 0.35 })],
+      extra_lights: [{ type: 'ambient', color: '#1c2434', intensity: 7 }, point([34.5, -5.5, 19.0], '#ffd08a', 34, 14), point([36.5, -3.8, 64.0], '#c8b890', 1.4, 7), point([36.5, -4.2, 58.5], '#9fb3ff', 1.2, 6)],
+    },
+  },
+  {
+    name: '64_cellar_stairs', voxels: 'day', caption: 'Parts & Service: behind a railing in the middle aisle, a narrow flight of stairs goes down',
+    scene: {
+      camera: { pos: [59.4, 2.9, 65.3], target: [51.0, -3.2, 66.5], fov: 70 }, exposure: 1.3,
+      extra_lights: [{ type: 'ambient', color: '#ffffff', intensity: 1.0 }, point([55, 3.5, 66.5], '#ffe7c0', 8, 12)],
+    },
+  },
+  {
+    name: '65_cellar_landing', voxels: 'day', caption: 'The foot of the stairs. The costume that sat against the wall upstairs is down here now',
+    scene: {
+      camera: { pos: [44.4, -5.3, 66.9], target: [49.5, -5.6, 66.4], fov: 66 }, exposure: 2.2,
+      extra_lights: [{ type: 'ambient', color: '#2a2620', intensity: 1.2 }, point([48.5, -3.4, 65.5], '#ffc47a', 5, 8), point([51.5, -2.0, 66.5], '#ff5a4a', 2.5, 8)],
+    },
+  },
+  {
+    name: '66_cam_11', voxels: 'night', style: 'camera_feed', caption: 'CAM 11, the cellar: do not watch him for long. He does not like to be seen',
+    hud: { cam: '11', lines: ['§fCAM 11 · THE CELLAR', '§7Night 3 §8| §f2 AM §8| §fPOWER 58% §8| §7USAGE §a▮▮§8▯▯▯▯▯'] },
+    scene: {
+      camera: camShot('11', 64), exposure: 1.7,
+      entities: [dog('CEL_STAGE', 'idle', { eyes: true })],
+      extra_lights: [irLight('11', 10), point([34.5, -5.5, 19.0], '#ffd08a', 22, 13), point([36.5, -4.2, 28.0], '#e8ffe8', 10, 12)],
+    },
+  },
+  {
+    name: '67_office_upstairs', voxels: 'night', caption: 'The security office, from behind the seat',
+    scene: {
+      camera: { pos: [36.5, 2.75, 69.4], target: [36.5, 1.5, 60.0], fov: 74 }, exposure: 1.1,
+      extra_lights: [point([36.5, 3.8, 64.5], '#ffd9a0', 2.4, 12)],
+    },
+  },
+  {
+    name: '68_other_office', voxels: 'day', caption: 'And the Other Office, seven blocks under it: the same room, cell for cell, fifty years older. Its controls are dead',
+    scene: {
+      camera: { pos: [36.5, -4.25, 69.4], target: [36.5, -5.5, 60.0], fov: 74 }, exposure: 2.4,
+      entities: [dog('CEL_STAGE', 'idle', { eyes: true })],
+      extra_lights: [{ type: 'ambient', color: '#2a2620', intensity: 1.5 }, point([36.5, -3.4, 64.5], '#c8b890', 1.6, 9), point([34.5, -5.5, 19.0], '#ffd08a', 30, 14)],
+    },
+  },
+  {
+    name: '69_flooded_corner', voxels: 'day', caption: 'Outside the Other Office\'s left door the floor has sunk, and black water stands in the corner',
+    scene: {
+      camera: { pos: [33.4, -5.2, 66.4], target: [27.0, -7.9, 67.6], fov: 76 }, exposure: 2.6,
+      extra_lights: [{ type: 'ambient', color: '#2a2a2c', intensity: 1.6 }, point([30.5, -3.4, 62.5], '#ffc47a', 5, 9), point([28.5, -5.0, 67.5], '#9fb3c8', 2.2, 7)],
+    },
   },
 ];
 

@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "cellar_pipes",
+    "metalness_emissive_roughness": "cellar_pipes_mer",
+    "heightmap": "cellar_pipes_height"
+  }
+}

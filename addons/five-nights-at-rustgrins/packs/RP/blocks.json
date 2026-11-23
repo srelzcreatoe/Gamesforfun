@@ -13,6 +13,12 @@
   "fnar:balloons": {
     "sound": "cloth"
   },
+  "fnar:bar_bottles": {
+    "sound": "stone"
+  },
+  "fnar:bare_bulb": {
+    "sound": "stone"
+  },
   "fnar:birthday_cake": {
     "sound": "cloth"
   },
@@ -58,11 +64,26 @@
   "fnar:ceiling_tile_stained": {
     "sound": "stone"
   },
+  "fnar:cellar_concrete": {
+    "sound": "stone"
+  },
+  "fnar:cellar_pipes": {
+    "sound": "stone"
+  },
+  "fnar:cellar_puddle": {
+    "sound": "stone"
+  },
   "fnar:cinderblock_painted": {
     "sound": "stone"
   },
   "fnar:cladding_teal": {
     "sound": "metal"
+  },
+  "fnar:club_chair": {
+    "sound": "stone"
+  },
+  "fnar:club_table": {
+    "sound": "stone"
   },
   "fnar:crt_monitor": {
     "sound": "metal"
@@ -75,6 +96,12 @@
   },
   "fnar:curtain_star": {
     "sound": "cloth"
+  },
+  "fnar:dead_button": {
+    "sound": "stone"
+  },
+  "fnar:dead_monitor": {
+    "sound": "stone"
   },
   "fnar:desk_clutter": {
     "sound": "cloth"
@@ -97,6 +124,9 @@
   "fnar:drawing": {
     "sound": "cloth"
   },
+  "fnar:drawing_golden_dog": {
+    "sound": "cloth"
+  },
   "fnar:duct_metal": {
     "sound": "metal"
   },
@@ -112,11 +142,32 @@
   "fnar:fallen_chair": {
     "sound": "metal"
   },
+  "fnar:fallen_chandelier": {
+    "sound": "stone"
+  },
+  "fnar:flood_water": {
+    "sound": "stone"
+  },
   "fnar:floor_decal": {
+    "sound": "cloth"
+  },
+  "fnar:floor_decal_paws": {
     "sound": "cloth"
   },
   "fnar:footlight": {
     "sound": "metal"
+  },
+  "fnar:ghost_light": {
+    "sound": "stone"
+  },
+  "fnar:gold_curtain": {
+    "sound": "stone"
+  },
+  "fnar:gold_room_carpet": {
+    "sound": "stone"
+  },
+  "fnar:gold_wallpaper": {
+    "sound": "stone"
   },
   "fnar:guitar_amp": {
     "sound": "metal"
@@ -159,6 +210,12 @@
   },
   "fnar:neon_sign_p2": {
     "sound": "metal"
+  },
+  "fnar:old_office_tile": {
+    "sound": "stone"
+  },
+  "fnar:old_plaster_ceiling": {
+    "sound": "stone"
   },
   "fnar:pa_speaker": {
     "sound": "metal"
@@ -208,6 +265,9 @@
   "fnar:poster_cabaret": {
     "sound": "cloth"
   },
+  "fnar:poster_golden_dog": {
+    "sound": "cloth"
+  },
   "fnar:poster_midway": {
     "sound": "cloth"
   },
@@ -229,6 +289,9 @@
   "fnar:prize_case": {
     "sound": "metal"
   },
+  "fnar:rotten_panelling": {
+    "sound": "stone"
+  },
   "fnar:security_camera": {
     "sound": "metal"
   },
@@ -246,6 +309,9 @@
   },
   "fnar:sign_facade_p2": {
     "sound": "metal"
+  },
+  "fnar:sign_golden_dog": {
+    "sound": "stone"
   },
   "fnar:sign_mascot": {
     "sound": "metal"
@@ -316,6 +382,9 @@
   "fnar:stage_truss": {
     "sound": "metal"
   },
+  "fnar:stained_plaster_ceiling": {
+    "sound": "stone"
+  },
   "fnar:stanchion": {
     "sound": "metal"
   },
@@ -348,6 +417,9 @@
   },
   "fnar:token_prices": {
     "sound": "cloth"
+  },
+  "fnar:torn_gold_wallpaper": {
+    "sound": "stone"
   },
   "fnar:trash_can": {
     "sound": "metal"

@@ -1,0 +1,72 @@
+{
+  "format_version": "1.26.50",
+  "minecraft:block": {
+    "description": {
+      "identifier": "fnar:bare_bulb",
+      "menu_category": {
+        "category": "construction"
+      },
+      "states": {
+        "fnar:lit": [
+          true,
+          false
+        ]
+      }
+    },
+    "components": {
+      "minecraft:geometry": "geometry.fnar.bare_bulb",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "fnar_bare_bulb_on",
+          "render_method": "alpha_test"
+        },
+        "bulb": {
+          "texture": "fnar_bare_bulb_on",
+          "render_method": "alpha_test",
+          "face_dimming": false,
+          "ambient_occlusion": 0.0
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -2,
+          4,
+          -2
+        ],
+        "size": [
+          4,
+          12,
+          4
+        ]
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.5
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 3
+      },
+      "minecraft:map_color": "#4b3817",
+      "minecraft:light_dampening": 0,
+      "minecraft:light_emission": 11
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('fnar:lit') == false",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_bare_bulb",
+              "render_method": "alpha_test"
+            },
+            "bulb": {
+              "texture": "fnar_bare_bulb",
+              "render_method": "alpha_test"
+            }
+          },
+          "minecraft:light_emission": 0
+        }
+      }
+    ]
+  }
+}

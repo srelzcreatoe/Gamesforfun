@@ -19,8 +19,8 @@
 
 import { OFFICE } from './layout.js';
 
-/** false until the build plan really builds the cellar: tools/map/validate_map.mjs skips its camera and nodes till then. */
-export const CELLAR_BUILT = false;
+/** true since data/cellar_plan.js builds the cellar (map version 13): tools/map/validate_map.mjs checks its camera, nodes, aisle, sight line and walkways. */
+export const CELLAR_BUILT = true;
 
 const OFFSET = Object.freeze({ x: 0, y: -7, z: 0 });
 const down = (p) => Object.freeze({ ...p, x: p.x + OFFSET.x, y: p.y + OFFSET.y, z: p.z + OFFSET.z });
@@ -60,6 +60,19 @@ export const CELLAR = Object.freeze({
    * seconds, a drawing of a big yellow dog, paw prints on a hall floor). { x, y, z, key } with `key` a
    * palette key; the game puts each one down for a moment and then puts back what was built there.
    * `where`: 'office' (seen from the seat) or 'hall' (seen on a camera). Filled in by the map.
+   *   - his show poster on the Revue poster's six cells on the office's south wall (behind the seat)
+   *   - a child's drawing of a big yellow dog on the drawing by the desk (the office's east wall) and on one of
+   *     the East Hall's drawings (CAM 4A)
+   *   - four paw prints down the middle of the East Hall's floor, walking south to the office (CAM 4A): these
+   *     cells are empty as built, so putting back means clearing them
    */
-  gild: Object.freeze([]),
+  gild: Object.freeze([
+    { x: 35, y: 4, z: 70, key: 'gild_poster_0', where: 'office' }, { x: 34, y: 4, z: 70, key: 'gild_poster_1', where: 'office' },
+    { x: 35, y: 3, z: 70, key: 'gild_poster_2', where: 'office' }, { x: 34, y: 3, z: 70, key: 'gild_poster_3', where: 'office' },
+    { x: 35, y: 2, z: 70, key: 'gild_poster_4', where: 'office' }, { x: 34, y: 2, z: 70, key: 'gild_poster_5', where: 'office' },
+    { x: 40, y: 3, z: 61, key: 'gild_drawing_w', where: 'office' },
+    { x: 44, y: 3, z: 48, key: 'gild_drawing_e', where: 'hall' },
+    { x: 45, y: 0, z: 44, key: 'paws_gold_s', where: 'hall' }, { x: 45, y: 0, z: 47, key: 'paws_gold_s', where: 'hall' },
+    { x: 45, y: 0, z: 50, key: 'paws_gold_s', where: 'hall' }, { x: 45, y: 0, z: 53, key: 'paws_gold_s', where: 'hall' },
+  ].map((g) => Object.freeze(g))),
 });

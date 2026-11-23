@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "bar_bottles",
+    "metalness_emissive_roughness": "bar_bottles_mer",
+    "heightmap": "bar_bottles_height"
+  }
+}

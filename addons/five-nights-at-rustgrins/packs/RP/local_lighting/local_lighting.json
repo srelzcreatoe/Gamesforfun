@@ -1,6 +1,14 @@
 {
   "format_version": "1.21.120",
   "minecraft:local_light_settings": {
+    "fnar:bare_bulb": {
+      "light_color": "#ffc47a",
+      "light_type": "point_light"
+    },
+    "fnar:ghost_light": {
+      "light_color": "#ffd08a",
+      "light_type": "point_light"
+    },
     "fnar:arcade_cabinet": {
       "light_color": "#c890ff",
       "light_type": "point_light"

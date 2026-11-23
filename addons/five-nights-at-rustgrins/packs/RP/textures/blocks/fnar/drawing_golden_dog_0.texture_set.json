@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "drawing_golden_dog_0",
+    "metalness_emissive_roughness": "drawing_golden_dog_0_mer",
+    "heightmap": "drawing_golden_dog_0_height"
+  }
+}

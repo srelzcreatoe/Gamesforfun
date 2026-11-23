@@ -105,6 +105,34 @@ Fixed by `data/cellar.js` (the game reads these by name, so the numbers there ar
 - When the cellar is really built, set `CELLAR_BUILT = true` (the map validator then checks its camera,
   nodes, the clear aisle and the sight line from the seat to the stage).
 
+**As built** (`data/cellar_plan.js`, map version 13; no contract number changed but CAM 11's position):
+
+- The lot once held **The Golden Dog Supper Club** (1958 to 1971), and the Revue kept its plan: the Gold Room
+  lies under the Dining Hall with three doors in its south wall where the hall has three, service passages run
+  under the East and West Hall to the corners outside the Other Office's doors, and the Long Hall runs under
+  the Party Room.
+- **The Gold Room** has a stage across its north end (gold curtains, the club's sign, dead footlights) and a
+  **runway** from it down the middle of the room to the south door: that is the aisle. Stage, runway, the tier
+  along the south wall and every other room are at y = -7; the **pit** either side of the runway, where the
+  tables, the dance floor, the fallen chandelier and the bar are, is one block deeper (you stand at -8).
+- **The ghost light** at (34, -7, 18), beside his spot, is the one lamp that burns all night
+  (`CELLAR_PLAN.stageLamp`, `meta.fixtures`). Every other lamp down there is in `meta.hanging`, group `cellar`:
+  lit by day with the pizzeria's pendants, out at night. The Other Office's own lamp is dead for good.
+- **CAM 11** hangs on the Gold Room's south wall east of the Long Hall's door: mount (41, -3, 38) facing north,
+  lens (41.5, -2.65, 38.0), aimed up the runway at (36.9, -5.7, 21.0).
+- **The Long Hall** has a pipe chase along the top of each wall (x 34 and 38, y -3), so its pipes and its one
+  bulb are outside the aisle; its puddles are floor blocks.
+- **The Other Office** is read out of the plan's own ops and translated (`otherOffice()` lists the
+  differences). Its buttons and monitors are `fnar:dead_button` / `fnar:dead_monitor`, never the control
+  blocks; the phone at `CELLAR.otherOffice.phone` is a real `fnar:desk_phone`.
+- **The stairs**: one block wide along z = 66, from their head at (56, 0, 66) seven steps west and down to the
+  landing at (48, -7, 66), which opens into the east corner. A railing runs along both sides of the trench in
+  Parts & Service. Also down there: a boiler room off the east passage, the store of the club's signs off the
+  west passage, and the flooded end of the west corner outside the Other Office's left door.
+- **The gilding** (`CELLAR.gild`): his poster on the six cells of the office's Revue poster (keys
+  `gild_poster_0..5`), his drawing on the drawing by the desk and on one in the East Hall (`gild_drawing_w`,
+  `gild_drawing_e`), four paw prints down the East Hall (`paws_gold_s`, on cells that are empty as built).
+
 ## What he does at night (owner: gameplay)
 
 All of it is in the pure core (`core/ai/golden_dog.js`, driven by the session like the rest of the cast, with
