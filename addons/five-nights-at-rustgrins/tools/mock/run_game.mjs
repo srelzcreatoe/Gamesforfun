@@ -1400,7 +1400,7 @@ say('night 5 takeover -> the Final Act');
     await steps(4);
     check(!gd().away && at(P, OFFICE.spawn, 0.6), 'while the lamp stutters the guard is still in the office');
     await waitFor(() => gd().away, G.other.fade + 10, 'the Other Office');
-    await steps(2);
+    await steps(5);
     check(at(P, seatDown, 0.01) && P.rotation.y === OFFICE.spawn.yaw, `the guard sits in the Other Office, in the same seat seven blocks down (${JSON.stringify(local(P.location))})`);
     check(fogPop() > pops, "the night's fog is lifted down there (it ends at 40 blocks, and he is 45 away)");
     // (the seat faces the hall: the guard arrives looking straight at him, and he has already taken his first step)
@@ -1431,10 +1431,10 @@ say('night 5 takeover -> the Final Act');
     // the phone
     const ph = CELLAR.otherOffice.phone;
     click(ph.x, ph.y, ph.z);
-    await steps(3);
+    await steps(5);
     check(gd().away && bar().includes(T.message.quiet), 'the phone is dead until it rings');
     await waitFor(() => gd().shift.ringing, G.other.phone + 20, 'the phone to ring');
-    await steps(3);
+    await steps(5);
     check(blockAt(ph.x, ph.y, ph.z).permutation.getState('fnar:ringing') === true && cnt('fnar.golden.phone') >= 1 && bar().includes('PICK UP THE PHONE'), 'the old phone on the desk rings');
     click(ph.x, ph.y, ph.z);
     await steps(4);

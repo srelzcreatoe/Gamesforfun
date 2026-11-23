@@ -655,6 +655,8 @@ export class Golden {
     const gd = s.golden;
     // the silence while the cast is held
     if (gd.holding !== this.hush) this.setHush(gd.holding, g, now);
+    // his tell is never talked over: its caption stays up for as long as the watch ticks
+    if (gd.state === 'tell') this.cap(TEXT.caption.tell, 12);
     if (this.hush && game.phoneSeq) game.phoneSeq.next = Math.max(game.phoneSeq.next, now + 2); // nobody talks while the watch runs
     // where the guard's eyes are: the session's one question
     let look = false;
