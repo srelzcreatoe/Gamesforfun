@@ -18,10 +18,14 @@
 // the bot's hands and eyes are not held still with the cast). The bot hands the session the one thing
 // the game layer does: whether the guard is looking at him (`s.look`). A good guard looks away after
 // the tell and never looks back; an average one is sometimes slow:
+//   the tell         hands off every button from the first tick of the watch until the shift has shown
+//                    itself (`carefulP`: whether it thinks to): what the cast did in the meantime is
+//                    answered a moment late, but never with the wrong hand.
 //   the wrong feed   seen for what it is after a moment: monitor down, and no camera work till it is
 //                    over. Until then the sweep goes on picking cameras (three bring him up).
 //   the mirror       the other hand for every control once it has noticed (`mirrorP`: whether it does
-//                    at all); what a hall light shows is only seen in the hall that is really lit.
+//                    at all); what a hall light shows is only seen in the hall that is really lit, and
+//                    a hall left dark is no reason to open its door.
 //   the visit        eyes forward. With `lookP` it turns round to look, for a moment that may be too long.
 //   the Other Office it sits facing him: it looks at him until it thinks to look down at the desk, and
 //                    picks up the phone a moment after it starts to ring.
@@ -60,8 +64,9 @@ export class Bot {
     const sharp = kind === 'good' || kind === 'listener';
     this.lookP = sharp ? 0 : kind === 'medium' || kind === 'gullible' ? 0.25 : 0.6; // chance it turns round to look at a visit
     this.mirrorP = sharp ? 1 : kind === 'medium' || kind === 'gullible' ? 0.75 : 0.4; // chance it works out the mirror
+    this.carefulP = sharp ? 1 : kind === 'medium' || kind === 'gullible' ? 0.7 : 0.3; // chance it keeps its hands still when the watch ticks
     this.gq = []; // reactions to him, on the night's clock: [tick, fn]
-    this.g = { feed: false, wary: false, mirror: false, swap: false, lookUntil: 0 };
+    this.g = { feed: false, wary: false, mirror: false, swap: false, careful: false, lookUntil: 0 };
   }
   /** One hand for every control: once the bot has worked out the mirror it uses the other one. */
   press(action, arg) {
@@ -75,6 +80,9 @@ export class Bot {
   hearGolden(e) {
     const s = this.s;
     const g = this.g;
+    // the watch: hands off the buttons until it is plain what he is doing this time
+    if (e.kind === 'tell') g.careful = this.rand() < this.carefulP;
+    if (e.kind === 'shift' && g.careful) this.later(4, 24, () => { g.careful = false; });
     if (e.kind === 'shift' && e.shift === 'feed') {
       g.feed = true;
       // it sees the cellar on its monitor: a moment, then down with it, and no cameras until this is over
@@ -101,6 +109,7 @@ export class Bot {
     }
     if (e.kind === 'phone' && e.ring) this.later(8, 24, () => this.s.input('answer'));
     if (e.kind === 'end') {
+      g.careful = false;
       if (e.shift === 'feed') g.feed = g.wary = false;
       if (e.shift === 'mirror') g.mirror = g.swap = false;
       if (e.shift === 'visit' || e.shift === 'other') g.lookUntil = 0;
@@ -117,9 +126,13 @@ export class Bot {
   }
   /** Who the hall light shows in a doorway (with the mirror on: only in the hall that is really lit). */
   atDoor(side) {
-    const d = this.s.devices;
-    if (this.g.mirror && !(side === 'L' ? d.lightL : d.lightR)) return undefined;
+    if (this.dark(side)) return undefined;
     return side === 'L' ? this.occupant('DOOR_L') : this.occupant('WIN_R') || this.occupant('DOOR_R');
+  }
+  /** The mirror lit the other hall: this one is dark, and a dark hall says nothing about who stands in it. */
+  dark(side) {
+    const d = this.s.devices;
+    return this.g.mirror && !(side === 'L' ? d.lightL : d.lightR);
   }
   heard() { return this.rand() < this.earP; }
   /** A tell from the way the bot was told to expect somebody (the grudge): it is listening for that one. */
@@ -198,6 +211,9 @@ export class Bot {
   tick() {
     const s = this.s;
     const d = s.devices;
+    // the Golden Dog first: where the eyes are, and whether the hands are being kept still
+    if (this.kind !== 'idle') this.tickGolden();
+    if (this.g.careful) return;
     // queued reactions
     this.queue.sort((a, b) => a[0] - b[0]);
     while (this.queue.length && this.queue[0][0] <= s.t) {
@@ -205,7 +221,6 @@ export class Bot {
       this.do(a, arg);
     }
     if (this.kind === 'idle') return;
-    this.tickGolden();
     if (s.final) return this.finalTick();
     if (s.golden.holding) return; // (the cast holds still, and so does the routine that answers it)
     // Custom Night: the Ringmaster walks - hunt him with the spotlight now and then
@@ -257,7 +272,7 @@ export class Bot {
       const o = this.atDoor('L');
       this.need.L = !!o || this.need.L && false;
       if (o && !d.doorL) this.press('door_l');
-      if (!o && d.doorL && !this.catRunning('L') && !this.ringmasterNear('L') && s.t >= this.lingerUntil.L) this.press('door_l');
+      if (!o && !this.dark('L') && d.doorL && !this.catRunning('L') && !this.ringmasterNear('L') && s.t >= this.lingerUntil.L) this.press('door_l');
       if (d.lightL) this.press('light_l');
       this.phase = 5; this.busyUntil = s.t + 6;
     } else if (this.phase === 5) {
@@ -266,7 +281,7 @@ export class Bot {
       const o = this.atDoor('R');
       const keep = !!o || this.rustAtNook || this.catRunning('R') || s.t < this.lingerUntil.R;
       if (keep && !d.doorR) this.press('door_r');
-      if (!keep && d.doorR) this.press('door_r');
+      if (!keep && !this.dark('R') && d.doorR) this.press('door_r');
       if (d.lightR) this.press('light_r');
       this.phase = 7; this.busyUntil = s.t + this.rest[0] + Math.floor(this.rand() * (this.rest[1] - this.rest[0]));
     } else {

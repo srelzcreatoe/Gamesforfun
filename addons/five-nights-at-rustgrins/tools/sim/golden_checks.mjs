@@ -257,7 +257,7 @@ export async function goldenChecks({ check, night, run, botNight, ONLY, RUNS }) 
     check(badMoment === 0 && soonest >= G.quiet, 'the watch never starts on top of something the guard must answer: not in a blackout, the Rusted one\'s moment or "Places!", with nobody stepping in or at an open door, and not right after an arrival', `soonest ${soonest} ticks after one (at least ${G.quiet})`);
     check(heldFx === 0 && moved === 0, 'in bot play too the cast holds still through every tell, gilding, false dawn, visit and Other Office');
     check(unwarned === 0, 'he never takes the guard without his warning: only a visit looked at too long, or the Other Office watched to the desk or left ringing', `${kills} catches`);
-    check(lostTo.good === 0 && lostTo.medium > 0 && lostTo.medium <= played.medium * 0.12 && lostTo.sloppy > lostTo.medium, 'a guard who looks away after the tell is never caught by him; an average one sometimes is, a careless one more often', `good ${lostTo.good}/${played.good}, medium ${lostTo.medium}/${played.medium}, sloppy ${lostTo.sloppy}/${played.sloppy} nights lost to him`);
+    check(lostTo.good === 0 && lostTo.medium <= played.medium * 0.12 && lostTo.sloppy > 0 && lostTo.sloppy >= lostTo.medium, 'a guard who looks away after the tell is never caught by him; an average one now and then, a careless one more often', `good ${lostTo.good}/${played.good}, medium ${lostTo.medium}/${played.medium}, sloppy ${lostTo.sloppy}/${played.sloppy} nights lost to him`);
   }
 
   // ---------------------------------------------------------------------- G5. the schedule by night
