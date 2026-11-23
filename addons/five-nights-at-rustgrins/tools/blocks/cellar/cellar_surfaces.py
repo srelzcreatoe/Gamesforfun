@@ -3,7 +3,7 @@ cellar's damp concrete."""
 import math
 
 from propkit import prop, block_json, mi_set
-from pal import GRIME, WET, RUST  # noqa: F401
+from pal import GRIME, RUST  # noqa: F401
 from cellar_pal import *  # noqa: F403
 
 
@@ -113,7 +113,7 @@ def gold_curtain(out):
                 r.px(x, y, VELVETGOLD, FOLD[x] + (1 if (x * 7 + y * 3) % 11 == 0 else 0) - (1 if (x * 5 + y * 11) % 13 == 0 else 0))
         # moth holes with ragged edges, the black of the stage behind
         for (cx, cy, pts) in ((4, 4, ((0, 0), (1, 0), (0, 1), (1, 1), (1, 2))), (11, 9, ((0, 0), (1, 0), (2, 0), (1, 1), (0, -1))),
-                              (6, 12, ((0, 0), (0, 1), (1, 1))), (13, 2, ((0, 0), (0, 1))), (2, 9, ((0, 0),))):
+                              (13, 2, ((0, 0), (0, 1)))):
             for dx, dy in pts:
                 r.px(cx + dx, cy + dy, INK, 0, h=-40)
             r.px(cx - 1, cy, VELVETGOLD, 0)
@@ -209,12 +209,12 @@ def old_office_tile(out):
 
 # ---------------------------------------------------------------- the raw cellar's floor
 def _concrete(r):
-    r.fill(CONCRETE, 3, amp=0.9, white_amp=0.4, cell=5)
-    r.speck(CONCRETE, 5, 0.05, seed=1)  # aggregate
-    r.speck(CONCRETE, 1, 0.05, seed=2)
+    r.fill(CONCRETE, 3, amp=0.55, white_amp=0.3, cell=6)
+    r.speck(CONCRETE, 5, 0.03, seed=1)  # aggregate
+    r.speck(CONCRETE, 1, 0.03, seed=2)
     for (x, y) in ((2, 13), (3, 12), (4, 12), (5, 11), (6, 11), (7, 10), (7, 9), (8, 8)):
         r.px(x, y, CONCRETE, 0, h=-16)
-    r.darken_noise(0.3, -1, cell=5)
+    r.darken_noise(0.2, -1, cell=6)
     if r.variant == 'puddle':
         cx, cy = 8.0, 8.0
         for yy in range(16):

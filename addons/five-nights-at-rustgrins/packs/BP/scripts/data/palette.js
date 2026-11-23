@@ -205,6 +205,23 @@ export const PALETTE = Object.freeze({
   // a railing of iron bars along x / along z (the connections are set, so it does not depend on neighbour updates)
   rail_x: M('iron_bars', { 'minecraft:connection_east': true, 'minecraft:connection_west': true, 'minecraft:connection_north': false, 'minecraft:connection_south': false }),
   rail_z: M('iron_bars', { 'minecraft:connection_east': false, 'minecraft:connection_west': false, 'minecraft:connection_north': true, 'minecraft:connection_south': true }),
+  // the Golden Dog Supper Club's finishes, fifty years on (docs/BLOCKS.md G; tools/blocks/cellar)
+  gold_paper: F('gold_wallpaper'), gold_paper_torn: F('torn_gold_wallpaper'), panel_rot: F('rotten_panelling'), curtain_gold: F('gold_curtain'),
+  carpet_gold: F('gold_room_carpet'), plaster_old: F('old_plaster_ceiling'), plaster_old_stained: F('stained_plaster_ceiling'),
+  tile_office_old: F('old_office_tile'), concrete: F('cellar_concrete'), concrete_puddle: F('cellar_puddle'),
+  ghost_on: F('ghost_light', { 'fnar:lit': true }), ghost_off: F('ghost_light', { 'fnar:lit': false }), // the stage's ghost light
+  bare_on: F('bare_bulb', { 'fnar:lit': true }), bare_off: F('bare_bulb', { 'fnar:lit': false }),
+  ...named('pipes', 'cellar_pipes', 'fnar:kind', ['run', 'riser']),
+  ...named('deadbtn', 'dead_button', 'fnar:kind', ['door', 'light']), // the Other Office's controls: wrecks, not controls
+  ...named('deadcrt', 'dead_monitor', 'fnar:kind', ['flat', 'up']),
+  club_table: F('club_table'), ...cardStates('clubchair', 'club_chair', 'fnar:fallen', [false, true]),
+  ...card('chandelier', 'fallen_chandelier'), ...named('bottles', 'bar_bottles', 'fnar:kind', ['row', 'bar']),
+  flood: F('flood_water'), ...named('paws', 'floor_decal_paws', 'fnar:kind', ['gold', 'faint']),
+  // the gilding (CELLAR.gild in data/cellar.js): what the Golden Dog puts upstairs for a moment. His poster's six
+  // tiles as they hang on the office's south wall, and his drawing on an east and on a west wall.
+  ...Object.fromEntries([0, 1, 2, 3, 4, 5].map((t) => [`gild_poster_${t}`, F('poster_golden_dog', { 'minecraft:cardinal_direction': 'north', 'fnar:tile': t })])),
+  gild_drawing_w: F('drawing_golden_dog', { 'minecraft:cardinal_direction': 'west', 'fnar:tile': 1 }),
+  gild_drawing_e: F('drawing_golden_dog', { 'minecraft:cardinal_direction': 'east', 'fnar:tile': 0 }),
 });
 
 /** Picture panels (docs/BLOCKS.md A): name -> [tiles wide, tiles high]. Keys are generated as `${name}_${tile}_${dir}`. */
@@ -216,9 +233,10 @@ export const PICTURES = Object.freeze({
   neon_sign: [3, 1], play_net: [1, 1],
   sign_stage: [10, 3], sign_facade: [12, 4], menu_board: [4, 2],
   sign_welcome: [9, 2], sign_mascot: [6, 6], height_chart: [1, 3], token_prices: [2, 2],
+  sign_golden_dog: [7, 2], poster_golden_dog: [2, 3], drawing_golden_dog: [1, 1], // cellar (tools/blocks/cellar)
 });
 /** Variant counts for 1x1 pictures that use fnar:tile as a variant index (wall_writing: several pictures in one block). */
-export const PICTURE_VARIANTS = Object.freeze({ drawing: 8, sign_staff: 4, lot_tag: 6, wall_writing: 16, neon_sign: 35, play_net: 2 });
+export const PICTURE_VARIANTS = Object.freeze({ drawing: 8, sign_staff: 4, lot_tag: 6, wall_writing: 16, neon_sign: 35, play_net: 2, drawing_golden_dog: 2 });
 /** neon_sign tiles: the first tile of each sign and its size. */
 export const NEON = Object.freeze({
   funzone: [0, 3, 1], prizes: [3, 3, 1], party: [6, 2, 1], pizza: [8, 2, 1], games: [10, 2, 1], star: [12, 1, 1], slice: [13, 1, 1],

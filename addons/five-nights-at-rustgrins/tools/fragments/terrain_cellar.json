@@ -1,0 +1,143 @@
+{
+  "fnar_bar_bottles": {
+    "textures": "textures/blocks/fnar/bar_bottles"
+  },
+  "fnar_bare_bulb": {
+    "textures": "textures/blocks/fnar/bare_bulb"
+  },
+  "fnar_bare_bulb_on": {
+    "textures": "textures/blocks/fnar/bare_bulb_on"
+  },
+  "fnar_cellar_concrete": {
+    "textures": "textures/blocks/fnar/cellar_concrete"
+  },
+  "fnar_cellar_pipes": {
+    "textures": "textures/blocks/fnar/cellar_pipes"
+  },
+  "fnar_cellar_puddle": {
+    "textures": "textures/blocks/fnar/cellar_puddle"
+  },
+  "fnar_club_chair": {
+    "textures": "textures/blocks/fnar/club_chair"
+  },
+  "fnar_club_table": {
+    "textures": "textures/blocks/fnar/club_table"
+  },
+  "fnar_dead_button": {
+    "textures": "textures/blocks/fnar/dead_button"
+  },
+  "fnar_dead_button_light": {
+    "textures": "textures/blocks/fnar/dead_button_light"
+  },
+  "fnar_dead_monitor": {
+    "textures": "textures/blocks/fnar/dead_monitor"
+  },
+  "fnar_drawing_golden_dog_0": {
+    "textures": "textures/blocks/fnar/drawing_golden_dog_0"
+  },
+  "fnar_drawing_golden_dog_1": {
+    "textures": "textures/blocks/fnar/drawing_golden_dog_1"
+  },
+  "fnar_fallen_chandelier": {
+    "textures": "textures/blocks/fnar/fallen_chandelier"
+  },
+  "fnar_flood_water": {
+    "textures": "textures/blocks/fnar/flood_water"
+  },
+  "fnar_floor_decal_paws": {
+    "textures": "textures/blocks/fnar/floor_decal_paws"
+  },
+  "fnar_floor_decal_paws_faint": {
+    "textures": "textures/blocks/fnar/floor_decal_paws_faint"
+  },
+  "fnar_ghost_light": {
+    "textures": "textures/blocks/fnar/ghost_light"
+  },
+  "fnar_ghost_light_on": {
+    "textures": "textures/blocks/fnar/ghost_light_on"
+  },
+  "fnar_gold_curtain": {
+    "textures": "textures/blocks/fnar/gold_curtain"
+  },
+  "fnar_gold_room_carpet": {
+    "textures": "textures/blocks/fnar/gold_room_carpet"
+  },
+  "fnar_gold_wallpaper": {
+    "textures": "textures/blocks/fnar/gold_wallpaper"
+  },
+  "fnar_old_office_tile": {
+    "textures": "textures/blocks/fnar/old_office_tile"
+  },
+  "fnar_old_plaster_ceiling": {
+    "textures": "textures/blocks/fnar/old_plaster_ceiling"
+  },
+  "fnar_poster_golden_dog_0": {
+    "textures": "textures/blocks/fnar/poster_golden_dog_0"
+  },
+  "fnar_poster_golden_dog_1": {
+    "textures": "textures/blocks/fnar/poster_golden_dog_1"
+  },
+  "fnar_poster_golden_dog_2": {
+    "textures": "textures/blocks/fnar/poster_golden_dog_2"
+  },
+  "fnar_poster_golden_dog_3": {
+    "textures": "textures/blocks/fnar/poster_golden_dog_3"
+  },
+  "fnar_poster_golden_dog_4": {
+    "textures": "textures/blocks/fnar/poster_golden_dog_4"
+  },
+  "fnar_poster_golden_dog_5": {
+    "textures": "textures/blocks/fnar/poster_golden_dog_5"
+  },
+  "fnar_rotten_panelling": {
+    "textures": "textures/blocks/fnar/rotten_panelling"
+  },
+  "fnar_sign_golden_dog_0": {
+    "textures": "textures/blocks/fnar/sign_golden_dog_0"
+  },
+  "fnar_sign_golden_dog_1": {
+    "textures": "textures/blocks/fnar/sign_golden_dog_1"
+  },
+  "fnar_sign_golden_dog_10": {
+    "textures": "textures/blocks/fnar/sign_golden_dog_10"
+  },
+  "fnar_sign_golden_dog_11": {
+    "textures": "textures/blocks/fnar/sign_golden_dog_11"
+  },
+  "fnar_sign_golden_dog_12": {
+    "textures": "textures/blocks/fnar/sign_golden_dog_12"
+  },
+  "fnar_sign_golden_dog_13": {
+    "textures": "textures/blocks/fnar/sign_golden_dog_13"
+  },
+  "fnar_sign_golden_dog_2": {
+    "textures": "textures/blocks/fnar/sign_golden_dog_2"
+  },
+  "fnar_sign_golden_dog_3": {
+    "textures": "textures/blocks/fnar/sign_golden_dog_3"
+  },
+  "fnar_sign_golden_dog_4": {
+    "textures": "textures/blocks/fnar/sign_golden_dog_4"
+  },
+  "fnar_sign_golden_dog_5": {
+    "textures": "textures/blocks/fnar/sign_golden_dog_5"
+  },
+  "fnar_sign_golden_dog_6": {
+    "textures": "textures/blocks/fnar/sign_golden_dog_6"
+  },
+  "fnar_sign_golden_dog_7": {
+    "textures": "textures/blocks/fnar/sign_golden_dog_7"
+  },
+  "fnar_sign_golden_dog_8": {
+    "textures": "textures/blocks/fnar/sign_golden_dog_8"
+  },
+  "fnar_sign_golden_dog_9": {
+    "textures": "textures/blocks/fnar/sign_golden_dog_9"
+  },
+  "fnar_stained_plaster_ceiling": {
+    "textures": "textures/blocks/fnar/stained_plaster_ceiling"
+  },
+  "fnar_torn_gold_wallpaper": {
+    "textures": "textures/blocks/fnar/torn_gold_wallpaper"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "cellar_puddle",
+    "metalness_emissive_roughness": "cellar_puddle_mer",
+    "heightmap": "cellar_puddle_height"
+  }
+}

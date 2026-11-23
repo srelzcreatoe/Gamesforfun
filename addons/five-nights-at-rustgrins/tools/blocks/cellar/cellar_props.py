@@ -191,7 +191,9 @@ def dead_monitor(out):
 
     def smashed(r):  # the front, looking up at the ceiling: the bezel round a black hole, shards of glass in it
         case(3, 0.2)(r)
-        r.rect(2, 2, r.w - 4, r.h - 4, INK, 0, h=-30)
+        for yy in range(2, r.h - 2):
+            for xx in range(2, r.w - 2):
+                r.px(xx, yy, INK, 0, h=-30)
         for (x, y, i) in ((3, 2, 4), (4, 3, 3), (2, 5, 4), (8, 7, 5), (9, 6, 3), (7, 3, 2), (5, 7, 3), (6, 5, 1), (3, 6, 2)):
             if x < r.w - 2 and y < r.h - 2:
                 r.px(x, y, DEADGLASS, i)

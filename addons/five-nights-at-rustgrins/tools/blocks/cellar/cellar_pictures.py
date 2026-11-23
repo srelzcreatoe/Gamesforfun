@@ -134,10 +134,10 @@ def sign_golden_dog(out):
         tw = r.text_width('SUPPER CLUB', FONT, spacing=2)
         r.text('SUPPER CLUB', 30 + (66 - tw) // 2, 23, DULLGOLD, 2, font=FONT, spacing=2)
         # fifty years: the leaf flaking off, a water stain down the right half, grime
-        r.speck(INK, 2, 0.1, seed=3, only=DULLGOLD)
-        r.stain(WATERSTAIN, 1, 80, 10, 9, 14, seed=4, p=0.3)
+        r.speck(INK, 2, 0.07, seed=3, only=DULLGOLD)
+        r.stain(WATERSTAIN, 1, 88, 12, 7, 12, seed=4, p=0.3)
         r.drip(WATERSTAIN, 1, 84, 3, 20, seed=5)
-        r.drip(WATERSTAIN, 0, 61, 2, 14, seed=6)
+        r.drip(WATERSTAIN, 0, 44, 2, 6, seed=6)
         r.darken_noise(0.3, -1, cell=6, bottom=0.4)
 
     save_tiles(out, 'sign_golden_dog', face_sheet('sign_golden_dog', paint, W, H), 7, 2)
