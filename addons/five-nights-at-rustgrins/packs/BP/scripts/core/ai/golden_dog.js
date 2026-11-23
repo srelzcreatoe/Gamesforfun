@@ -125,6 +125,8 @@ export class GoldenDog {
     this.arrivalAt = -1e9;
     /** @type {Record<string, string | null>} slot -> who worked it at the last look */
     this.heldBy = { L: null, R: null, VL: null, VR: null };
+    /** @type {Record<string, boolean>} slot -> its holder had arrived (was standing there) at the last look */
+    this.stood = { L: false, R: false, VL: false, VR: false };
     /** how many of each shift tonight (for the tools) */
     this.count = { tell: 0, gild: 0, dawn: 0, feed: 0, mirror: 0, visit: 0, other: 0, stare: 0 };
     const c = this.cfg;
@@ -253,14 +255,19 @@ export class GoldenDog {
     this.tickShift();
   }
 
-  /** Who works which way into the office: a new one is an arrival the guard must answer. */
+  /**
+   * Who works which way into the office. Somebody on the last step to a door, a vent or the nook, or just
+   * arrived there, is an arrival the guard must answer: `arrivalAt` is the last tick that was so.
+   */
   scan() {
     const s = this.s;
     const cast = Object.values(s.chars);
     for (const k of SLOTS) {
-      const who = cast.find((c) => c.holds(k))?.id ?? null;
-      if (who && who !== this.heldBy[k]) this.arrivalAt = s.t;
+      const c = cast.find((o) => o.holds(k));
+      const who = c ? c.id : null;
+      if (c && (c.walk || who !== this.heldBy[k] || !this.stood[k])) this.arrivalAt = s.t;
       this.heldBy[k] = who;
+      this.stood[k] = !!c && !c.walk; // (it stands there now: the tick it stopped walking was its arrival)
     }
     for (const c of cast) if (STEPPING.has(c.state)) this.arrivalAt = s.t;
   }

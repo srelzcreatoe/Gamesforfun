@@ -226,7 +226,10 @@ export async function goldenChecks({ check, night, run, botNight, ONLY, RUNS }) 
               if (e.kind === 'pick') picks++;
               if (e.kind === 'arrive') arrived = s.now;
               if (e.kind === 'phone' && e.late) late = true;
-              if (e.kind === 'end') open = null;
+              if (e.kind === 'end') {
+                open = null;
+                hold = false; // (ended by the guard's own hand between two ticks - the phone - the cast moves again at once)
+              }
             },
             each: (s) => {
               // (after the tick: was the cast held during it, and did anything of theirs change?)
