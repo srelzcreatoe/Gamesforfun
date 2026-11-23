@@ -7,7 +7,7 @@ definition's min and max distance from the CAMERA (build/previews/<name>.cam.jso
 is on screen.  The files are the .ogg files shipped in the resource pack.  A soft rain or water bed made
 by this tool can be added underneath; nothing else is added.
 
-    python3 mix_audio.py <name> [--bed rain|water|none]
+    python3 mix_audio.py <name> [--bed rain|water|none] [--replay <recording>]
 """
 import json, math, os, subprocess, sys, zlib
 import numpy as np
@@ -35,7 +35,9 @@ def repitch(x, pitch):
 def main():
     name = sys.argv[1]
     bed = sys.argv[sys.argv.index("--bed") + 1] if "--bed" in sys.argv else "none"
-    replay = json.load(open(os.path.join(ROOT, "build", "replays", f"{name}.json")))
+    # a shot list may cut a recording made under another name (the breath is cut from the beam's)
+    rname = sys.argv[sys.argv.index("--replay") + 1] if "--replay" in sys.argv else name
+    replay = json.load(open(os.path.join(ROOT, "build", "replays", f"{rname}.json")))
     cam = json.load(open(os.path.join(ROOT, "build", "previews", f"{name}.cam.json")))
     defs = json.load(open(os.path.join(ROOT, "packs", "RP", "sounds", "sound_definitions.json")))["sound_definitions"]
     dur = cam["frames"] / cam["fps"]

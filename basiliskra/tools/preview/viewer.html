@@ -109,7 +109,12 @@ BK.openScene = async (name, particleFiles, files) => {
   const replay = await json(`/build/replays/${shot.replay ?? name}.json`);
   const defs = {};
   for (const f of particleFiles) { const d = (await json(f)).particle_effect; defs[d.description.identifier] = d; }
-  const sprite = await loadTexture('/packs/RP/textures/particle/basiliskra_particles.png');
+  // each effect names its own sheet: load every one they use (the first is the default)
+  const sprite = { 'textures/particle/basiliskra_particles': await loadTexture('/packs/RP/textures/particle/basiliskra_particles.png') };
+  for (const d of Object.values(defs)) {
+    const t = d.description.basic_render_parameters?.texture;
+    if (t && !sprite[t]) { try { sprite[t] = await loadTexture('/packs/RP/' + t + '.png'); } catch (e) { console.warn('particle texture', t, e.message); } }
+  }
   const player = new ScenePlayer(BK, replay, TERRAINS[replay.terrain], shot);
   await player.init({ form: (k) => ({ geo: files.geo.replace('%', k), tex: files.tex.replace('%', k), glow: files.glow.replace('%', k) }), client: files.client }, defs, sprite);
   BK.player = player;

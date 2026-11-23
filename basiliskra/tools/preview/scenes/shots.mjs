@@ -56,6 +56,21 @@ export const SHOTS = {
       { t: 25.0, pos: [30, 70, -38], tgt: { at: 'chest' }, fov: 60 },
     ],
   },
+  // the same recording, cut close on the breath itself: where it leaves his mouth, and how it is drawn (1.7)
+  breath: {
+    replay: 'beam',
+    title: 'Basiliskra III \u2014 the breath leaves his open mouth', sub: 'jaw dropped, a burst at the lips; plasma, fire and light racing down the beam',
+    bounds: { x0: -24, x1: 116, y0: 59, y1: 70, z0: -70, z1: 40 }, fog: [60, 160], home: [42, 64, -8],
+    keys: [
+      { t: 0, pos: [8, 71.5, 2], tgt: { at: 'head' }, fov: 46 },
+      { t: 17.6, pos: [8, 71.5, 2], tgt: { at: 'head' }, fov: 46 },
+      { t: 18.9, pos: [7, 71, 4], tgt: [19, 68.6, 9], fov: 52 },
+      { t: 20.6, cut: true, pos: [10.5, 71, 14.5], tgt: [21, 68.6, 4.5], fov: 56 },
+      { t: 22.6, pos: [11.5, 71.5, 16], tgt: [21, 68.6, 4.5], fov: 58 },
+      { t: 22.8, cut: true, pos: [4, 76, -14], tgt: [22, 66, 14], fov: 62 },
+      { t: 26.5, pos: [2, 77, -16], tgt: [22, 66, 16], fov: 64 },
+    ],
+  },
   // ---- model views: front, side, back and eye detail of each form (scripted properties, see model_replays.mjs) ----
   model_i: {
     title: 'Basiliskra I \u2014 the water', sub: 'about thirty blocks nose to tail; the pale notch is on the left of the tail fin',

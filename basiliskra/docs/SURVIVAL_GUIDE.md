@@ -5,11 +5,11 @@ No experiments, no Beta APIs, no cheats, no commands. It can be added to a survi
 
 ## Install
 
-1. Open `Basiliskra-1.6.2.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
+1. Open `Basiliskra-1.7.0.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
 2. Edit your world → **Behavior Packs** → activate **Basiliskra**. The resource pack is pulled in with it. Leave every toggle under **Experiments** off.
 3. Play. Nothing happens straight away. The story is found by playing; the journal tells you how close it is.
 
-**Updating from an earlier version**: open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.6.2 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself. Settings you chose are kept; a world that never chose how destructive he is gets the new default (he destroys like the Wither).
+**Updating from an earlier version**: open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.7.0 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself. Settings you chose are kept; a world that never chose how destructive he is gets the new default (he destroys like the Wither).
 
 Realms and multiplayer: apply both packs to the world; players download the resource pack on joining. Consoles can use the add-on only through a Realm or a world transferred from another device.
 
@@ -54,7 +54,11 @@ An operator can skip the waiting altogether: the config wheel's **Make him chang
 
 The bolts are drawn, not real lightning, and the glass in the ground appears only where the Settings let his fallout change the land.
 
-**His arrival is a scene too.** A rift tears open: a tall crimson tear with a white core, lightning crawling off it, rings of light running out along the ground. In deep water he rises out of it; on land (when he is called back as II or III) he walks out of it, appearing piece by piece as he crosses. The sky flashes red for everyone near.
+**His arrival is a scene too.** A rift tears open: a tall crimson tear with a white core, lightning crawling off it, rings of light running out along the ground. The sky flashes red for everyone near.
+
+* **Called with the wheel's Call him now, it opens out at sea**: in deep, open water off a beach (within 160 blocks), facing the shore, with water all round it and no block anywhere in its height, so it never stands inside a cliff, a pier or a house. Near a city it opens over the city's own deep. Basiliskra I rises out of it; II, III and IV wade out of it and up the beach. The message says how far out: *"The rift is opening in the sea 66 blocks from you."*
+* Only with no such water in reach does it open on land, and then only where the whole tear stands in open air (none of it in a hill or a building). If there is neither, nothing opens and you are told so.
+* **The arrival is filmed close, each shot placed from the size of the form that comes through.** Basiliskra I: the seam from the shore, low; close on the tear as it widens; the water above him as he comes up; his head breaking the surface. II, III and IV: the tear from the beach, low and wide; close in as it splits; the first of him through it, from low beside it; all of him coming on, from in front; his face as his name comes up.
 
 He grows: Basiliskra II stands a quarter bigger than Basiliskra I would, and Basiliskra III is drawn 1.7 times his model, close to seventy blocks from nose to club, his back as high as a tall tree. His body can be hit anywhere on it, his legs and feet included: the hit volumes on his legs move with them as he walks.
 
@@ -75,7 +79,8 @@ Things worth knowing, without spoiling how you find them:
 * He hears splashes. Two close together bring him; he learns, and the trick has a cooldown.
 * A narrow gap in the water stops him: head through, shoulders not.
 * Form II's drag has a rest in it. That rest is your gap.
-* **The atomic breath** (Form III) is timed to its sound. The club plants and the charging begins; for about seven seconds the plates light from tail to head, sparks are drawn out of the air into his mouth, and his eye follows you. Then the eye stops following and **a thin red line shows exactly where the beam will go: that is the moment to step sideways.** It lights with a flare and a shock ring at his mouth (screens near him white out for an instant). The shot lasts about seven and a half seconds: rings race down it, lightning crawls along it, it throws smoke and embers the whole way, and where it lands there is a glare, a ring of fire across the ground and a fountain of sparks. It drifts slowly after its target (never as fast as you can walk sideways), and blasts, burns and craters whatever it lands on. While he is destroying like the Wither it blows cover away too, so do not count on a wall; in the gentler settings solid cover still works. After it he vents with three knocks, roars, and rests a while.
+* **The atomic breath** (Form III) is timed to its sound. The club plants and the charging begins; for about seven seconds the plates light from tail to head, sparks are drawn out of the air into his mouth, his jaw drops further and further, and his eye follows you. Then the eye stops following and **a thin red line shows exactly where the beam will go: that is the moment to step sideways.** It lights with a flare and a shock ring at his mouth (screens near him white out for an instant). **The breath comes out of his open mouth**, from the middle of the gap between his jaws, and is as wide as he is big: about two and a half blocks across for a young Basiliskra III, three when he has fired a few times, four for Basiliskra IV. The shot lasts about seven and a half seconds: a white-hot core in a sheath of plasma and fire, light racing down it, rings, a spiral, lightning crawling along it, smoke and embers the whole way, a burst of fire at his lips, and where it lands a glare, a ring of fire across the ground and a fountain of sparks. It drifts slowly after its target (never as fast as you can walk sideways), and blasts, burns and craters whatever it lands on. While he is destroying like the Wither it blows cover away too, so do not count on a wall; in the gentler settings solid cover still works. After it he vents with three knocks, roars, and rests a while.
+* **He aims at what flies.** Against the Wither, the Ender Dragon, a ghast, phantoms, a player gliding: he tilts his head back as far as it goes (up to eighty degrees), aims where it is going rather than where it is, and keeps the beam on it as it moves. The Ender Dragon is a big target and is hit anywhere on its body.
 * **A lightning rod (any weathering, waxed or not) within 10 blocks of his planted tail club** takes the charge instead. The rod needs half a minute before it can do it again.
 
 ## Basiliskra IV
@@ -83,7 +88,8 @@ Things worth knowing, without spoiling how you find them:
 The last form: upright on two legs, winged, about **fifty-five blocks tall and ninety long**, with the same face, the same crests, the same club. He is drawn at twice his model.
 
 * **He walks across the world, not round a place**, and what is in his way is gone: the slab ahead of him, his own width and as high as he stands, is emptied as he comes (in the default destruction setting). He walks through, not down: the ground under his middle stays.
-* **Every footfall blows a crater**, like the Wither, and hurts and throws whatever is within eight blocks of it.
+* **Every footfall blows a crater**, like the Wither, and hurts and throws whatever is within eight blocks of it. And every footfall sends **a shock rolling on ahead of him**, twenty blocks and more in front of his feet and as high as he stands, that breaks what is there before he reaches it.
+* **His hands hang palms in**, toward his body, the way a big animal's do.
 * **His breath reaches 150 blocks** and is thicker and hotter. He turns it on any player or creature he can see, from as far off as he can see it.
 * **The stare.** Every minute or so he stops and looks at one player. While he can see you, you can barely walk (Slowness III). It lasts about eight seconds and wears off three seconds after he looks away, or at once if you get something solid between you and his eye.
 
@@ -104,7 +110,7 @@ Basiliskra III does not care what is around him.
 
 * He goes after **players and animals alike** (any creature: cows, villagers, wolves), and turns his breath on them as readily as on you.
 * Whatever is under a foot when it comes down is trodden: it hurts, and throws you. Being caught under him as he walks hurts too.
-* **He walks through whatever is in his way** (in the default destruction setting): houses, walls, woods. They are broken ahead of him as he comes, from the ground up, and a cliff in his road is cut down to a step he can take. He walks *through*, not down: the ground he walks on stays, and a gentle rise is simply climbed.
+* **He walks through whatever is in his way** (in the default destruction setting): houses, walls, woods. They are broken ahead of him as he comes, from the ground up, a wider and deeper strip than before, and a cliff in his road is cut down to a step he can take. While he destroys like the Wither, each footfall also sends a shock rolling on ahead of him (fourteen blocks) that knocks down what stands there before he arrives. He walks *through*, not down: the ground he walks on stays, and a gentle rise is simply climbed.
 * **He finds his way.** Walled in on three sides, or behind a long wall, every form now works out the way round (Basiliskra I round a harbour mole, II and III round walls when they are not destroying).
 * The wither-like destruction never touches bedrock, portals or command blocks, and by default spares **chests, barrels, shulker boxes, beds, furnaces, hoppers and anything else that holds things**, and the obsidian a portal stands in. You may find a chest standing alone in the rubble.
 * The config wheel's Settings can make him gentler: destruction can be reduced to scorching or nothing, the storage protection turned off, and his hunting of animals turned off.
@@ -113,23 +119,25 @@ Basiliskra III does not care what is around him.
 
 With nothing alive in reach, Basiliskra II, III and IV do not wander: **they go to the nearest place people live, and through it.**
 
-* **Villages**: he senses villagers from about 180 blocks (in the country that is loaded round him), walks to them, and then back and forth through the place until something alive takes his attention.
+* **Villages**: he senses villagers (and townspeople) from about 180 blocks (in the country that is loaded round him), walks to them, and then back and forth through the place until something alive takes his attention.
 * **Cities**: he knows of a city from 500 blocks.
 
-**Cities.** The pack raises its own: streets on a grid, towers of concrete and glass lit from inside (the tallest by the water), houses, a park, a stadium, a big wheel, street lamps, and **people** (villagers) in the streets. In front of every city is a **promenade and a wide beach** that shelves gently into the water, so that he can walk up out of the sea, and beyond the beach **the sea is cut a hundred blocks deep**: straight down, wall to wall, to a floor of abyssal basalt.
+**Cities.** The pack raises its own: streets on a grid, towers of concrete and glass lit from inside (the tallest by the water), houses, parks, a stadium, a big wheel, street lamps, and **people** in the streets (townspeople of its own: see below). In front of every city is a **promenade and a wide beach** that shelves gently into the water, so that he can walk up out of the sea, and beyond the beach **the sea is cut a hundred blocks deep**: straight down, wall to wall, to a floor of abyssal basalt.
 
-* **They rise by themselves on real coasts** as you explore: where there is land behind and open sea ahead, never where anything built already stands, and never within 900 blocks of another city. You are told when one starts ("A city is rising..."). It takes a minute or so. Settings → **Cities rise on coasts** switches this off.
-* **Or put one where you stand**: the config wheel's **Raise a city here**, or `/basiliskra:city` (operators, no cheats). The sea goes the way you are looking, the streets behind you, and you are stood on the promenade. A full city is 175 by 119 blocks; a small one 91 by 63. One is built at a time. **This one is built whatever is there**, so choose the place.
+* **They rise by themselves on real coasts** as you explore: where there is land behind and open sea ahead, never where anything built already stands, and never within 900 blocks of another city. You are told when one starts ("A city is rising..."). A full city takes about a minute and a half; it is built a little at a time (never more than 6,000 blocks, nor more than 4 milliseconds of the game's time, in any tick), so the game does not stall while it rises, as 1.6's did. Settings → **Cities rise on coasts** switches this off.
+* **Or put one where you stand**: the config wheel's **Raise a city here**, or `/basiliskra:city` (operators, no cheats). The sea goes the way you are looking, the streets behind you, and you are stood on the promenade. A full city is 259 by 175 blocks of streets with sixty townspeople; a small one 91 by 63, with eight. One is built at a time. **This one is built whatever is there**, so choose the place.
 * **The deep.** On the floor of the cut: seam vents that glow, drowned spires hung with lanterns, the ribs of something far larger than he is, a pit deeper still with a broken ring of crying obsidian at the bottom of it, and a ruin at the foot of the drop with a chest. Four new blocks are down there (abyssal basalt, seam vent, drowned lantern, old bone); all can be mined and placed.
+
+**The townspeople.** Cities are lived in by people of their own (twelve looks: office workers in shirts and suits, a builder in hi-vis, a doctor in a white coat, a police officer, people in T-shirts, hoodies and a sundress). They walk the streets, stop, look about, and go through doors. **When a giant comes into sight they throw their arms up and run**, away from it, faster than they walk, and keep running for about fifteen seconds after they last saw it; within thirty-odd blocks of him they feel the ground shake and run whether they can see him or not. Further off (up to about 110 blocks) they must actually see him: a wall or a hill between keeps them calm. They do not fight and take no part in the story: killing them calls nobody. There is a spawn egg (**Spawn Civilian**) to put them anywhere, and `/summon basiliskra:civilian`.
 
 Why not a biome: a real custom biome needs the game's **Custom Biomes experiment** switched on, and this pack runs with every experiment off. So the city is built by the script, on the game's own coasts, and from the wheel.
 
 ## The Seam Lance
 
-The one weapon made for him: a blocky gun of gunmetal and old bone with a crimson crystal held between two prongs.
+The one weapon made for him: a blocky gun of gunmetal and old bone with a crimson crystal held between two prongs. From 1.7 it is half as big again and **held in the hand like a gun**: in first person it sits low on the right pointing at the crosshair; to everyone else it is held by its grip at your side, pointing where you look.
 
 * **Craft it** from 2 crimson shards, 1 scarlet trinitite, 3 iron ingots and 1 block of redstone (shards and trinitite are what his breath leaves behind), **or find one** in the chest in the ruin at the bottom of a city's deep.
-* **Use it** (right-click, or press and hold): a bolt of his own red, straight along your line of sight, **140 blocks**. One shot every 0.6 seconds; the cooldown shows on the hotbar. It needs no ammunition.
+* **Use it** (right-click, or press and hold): **a thick red laser**, straight along your line of sight, **140 blocks**, that stands in the air for a moment with a white core, a glow, rings and sparks along it and a burst where it hits. You see it leave your own gun; others see it leave the gun in your hand. One shot every 0.6 seconds; the cooldown shows on the hotbar. It needs no ammunition.
 * It strikes the first part of him it meets: **34** to the body, **51** to the head, **24** to the tail. Solid blocks stop it. Anything else alive in the line takes 9.
 * It does not kill Basiliskra himself (nothing does: he is driven off). It does kill a Titan.
 
@@ -147,7 +155,7 @@ A **separate creature** that wears Basiliskra IV's body, made for fights in Crea
 * **It can be killed**: by another Titan, or by you (the Seam Lance, or anything else that would hurt him). It goes down onto its knees, the fire in it fails, and it is gone, leaving 24 crimson shards, a fin, and poisoned ground.
 * Its beams, its feet and its fallout follow the same Settings as his (destruction, damage, Peaceful, fallout).
 
-## The ending## The ending
+## The ending
 
 It needs Form III, a **shed fin**, **note blocks**, and a **lightning rod**.
 

@@ -33,6 +33,15 @@ model first, then stop for approval**; then everything else.
 * **1.6.1 / 1.6.2**: *"make each one of them unique like shin godzilla or other transformations"*: the one shared change
   scene is replaced by three (`change.ts`): the water boils; the sky comes down; he burns through. They are his own
   (gills and knocks, horns and lightning, plates, club and wings), not a copy of any film's.
+* **1.7.0**: the owner, after playing 1.6: *"fix the atomic breath position ... it doesn't look like it's coming out of its
+  mouth, and in each form ... the size adjusts as well"*, *"the palms are faced forward when they're supposed to be facing
+  inwards"*, *"fix the positioning of the gun it looks like im not holding and make it bigger, and make big lazers come out
+  of it"*, *"good particle effects ... for the atomic breath"*, *"each time basilikra walks it destroys what's infront even
+  more"*, *"make the city bigger"*, *"make sure the rift isn't inside blocks at all but it's in the beach ocean deep
+  water"*, *"make each form cinematic too, even more"*, *"improve their aim ... the wither and enderdragon"*, *"npcs like
+  custom npc civilians ... scared at the sight of the monster"*, *"don't make it lag when the city gets generated"*. All
+  done; see the 1.7 section of `docs/DESIGN.md`. The breath, the hands, the gun and the people have been rendered
+  offline (`previews/`); none of it has been seen in the game.
 * None of it has been seen in game: see `docs/TEST_REPORT.md`.
 
 At model scale he is 27.5 blocks to the top of the skull (33.8 to the wing claws), 54.5 across the wings and 44.5

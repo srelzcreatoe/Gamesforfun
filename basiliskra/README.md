@@ -7,6 +7,8 @@ An original survival-horror add-on for Minecraft Bedrock. One creature per save.
 * **Experiments:** none. **Cheats:** none. **Commands:** none needed.
 * **Graphics:** standard Bedrock rendering; Vibrant Visuals supported (PBR texture sets with emissive glow).
 
+> **1.7**: **his breath leaves his open mouth** (the jaw drops as he charges; the beam starts in the middle of the gap) and is **as wide as the form that fires it**, drawn in new layers: white-hot core, plasma, fire, light racing down it, rings, lightning, smoke and embers. **Form IV's palms face inward.** The **Seam Lance** is held in the hand, half as big again, and fires a **thick red laser**. Every footfall sends a **shock rolling on ahead of him** that breaks what stands in front. He **tilts his head back and leads what flies** (the Wither, the Ender Dragon, ghasts). **Cities are half as big again** and **no longer lag** as they are built (at most 6,000 blocks and 4 ms a tick), and their streets are full of **townspeople** of their own who **run when they see a giant**. Called with the wheel, **the rift opens out in deep water off a beach, clear of every block**, and he wades ashore; each form has its own arrival shots.
+>
 > **1.6.2**: **each of his three changes is now a scene of its own**: the water boils (I to II), the sky comes down (II to III), he burns through and his wings tear open (III to IV), each with its own events, length and camera.
 >
 > **1.6**: **a change now waits on time only** (set the minutes yourself), and every change is a **cinematic scene shot close**: five shots that keep him in the picture. With nothing alive in reach he **goes to the nearest village or city and walks through it**. The pack **raises cities** on real coasts and wherever an operator asks: towers, streets, people, a beach he can walk up, and beyond it a **sea cut a hundred blocks deep** with its own blocks and things on the bottom. There is a gun made for him, the **Seam Lance**. And there is the **Titan**: a separate, far stronger Basiliskra IV for battles in Creative (up to three; they fight each other, and him, with breath, jaws, tail and weight, and they can be killed).
@@ -25,7 +27,7 @@ In game: a **journal** (how angry he is, as a percentage, when he will come, and
 
 | File | What it is |
 |---|---|
-| `dist/Basiliskra-1.6.2.mcaddon` | behaviour pack + resource pack, ready to import |
+| `dist/Basiliskra-1.7.0.mcaddon` | behaviour pack + resource pack, ready to import |
 | `models/basiliskra_i.bbmodel`, `_ii`, `_iii`, `_iv` | the four editable Blockbench models, textures and animations embedded |
 | `docs/SURVIVAL_GUIDE.md` | install, what calls him, the four stages, cities, the Seam Lance, the Titan, the ending, settings |
 | `previews/*.mp4` | reference videos (see below) |
@@ -37,6 +39,8 @@ In game: a **journal** (how angry he is, as a percentage, when he will come, and
 **`previews/titan_moves.mp4`** (40 s, with sound) plays the Titan through what only it does, driven by its own client entity: at rest with its seams lit, walking, the lunge from two sides, the tail to each side, a shortened charge and the breath, the stagger, and going down as its fire fails (`node tools/preview/anim.cjs --forms titan`). Like the reel above it is an offline render, not in-game capture.
 
 **`previews/transformations.mp4`** (about a minute, with sound) plays him through the three changes as the script poses him, with the pack's sounds where the script plays them (`node tools/preview/anim.cjs --forms c1a,c1b,c2a,c2b,c3a,c3b`). What the script adds in the world (the boiling sea, the bolts, the smoke, the glass in the ground) and the game's own thunder are not in it, and the camera is the preview tool's, not the cutscene's.
+
+New for 1.7 (offline renders from the shipped files, not the game): **`previews/breath.mp4`** (10 s, with sound: Basiliskra III's breath cut close, from the recording of the real script, with the new particles: it leaves his open jaw), **`previews/seam_lance_held.png`** (the gun in a player's hand in first and third person, with the hold the pack ships), **`previews/civilians.png`** (the twelve townspeople, calm and frightened), **`previews/form_iv_hands.png`** (Basiliskra IV's hands, palms in) and **`previews/city_plan.png`** (drawn again for the bigger city). How the game binds a held item is worked out from the vanilla trident's files, not seen: the hold in the game may differ from the picture.
 
 Stills for 1.6 (offline renders and drawings, not the game): **`previews/titan_poses.png`** (the Titan at rest, its lunge, its tail, its fall, from the shipped model and pose), **`previews/seam_lance.png`** (the gun, from its shipped model and texture) and **`previews/city_plan.png`** (a full city drawn from the list of blocks the script places: a plan from above and a section through the beach and the deep).
 

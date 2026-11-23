@@ -113,7 +113,8 @@ export class ScenePlayer {
     const P = this.r.particles, B = this.r.blocks;
     for (; this.pi < P.length && P[this.pi].t <= T; this.pi++) {
       const p = P[this.pi];
-      this.particles.spawn(p.id, p.pos, p.vars);
+      // the game's own effects (the explosion his breath sets off) are not in the pack: the voxel blast stands for them
+      if (this.particles.defs[p.id]) this.particles.spawn(p.id, p.pos, p.vars);
       if (p.id === 'basiliskra:seam' || p.id === 'basiliskra:seam_close') { this.seamAt = this.time; this.seamPos = p.pos; }
       if (p.id === 'basiliskra:beam_core') { this.beamAt = this.time; this.beam = p; }
       if (p.id === 'basiliskra:arc_seg') { this.arcAt = this.time; this.arcPos = p.pos; }

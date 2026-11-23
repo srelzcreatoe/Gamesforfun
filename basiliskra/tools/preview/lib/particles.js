@@ -16,27 +16,37 @@ void main(){ vec4 t = texture2D(map, vUv); float a = t.a * vC.a; if (a < 0.01) d
 function num(e, V) { return typeof e === 'number' ? e : expr(e)({}, V); }
 
 export class Particles {
-  constructor(defs, texture, env) {
+  /** textures: one sheet, or {texture path: sheet} with the default first (each effect draws from the sheet it names). */
+  constructor(defs, textures, env) {
     this.defs = defs; this.live = []; this.emitters = [];
+    this.sheets = textures && textures.isTexture ? { default: textures } : textures;
+    this.first = Object.keys(this.sheets)[0];
     this.layers = {};
-    for (const [key, add] of [['blend', 0], ['add', 1]]) {
-      const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(MAX * 12), 3).setUsage(THREE.DynamicDrawUsage));
-      g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(MAX * 8), 2).setUsage(THREE.DynamicDrawUsage));
-      g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(MAX * 16), 4).setUsage(THREE.DynamicDrawUsage));
-      const idx = new Uint32Array(MAX * 6);
-      for (let i = 0; i < MAX; i++) idx.set([i * 4, i * 4 + 1, i * 4 + 2, i * 4, i * 4 + 2, i * 4 + 3], i * 6);
-      g.setIndex(new THREE.BufferAttribute(idx, 1));
-      const m = new THREE.ShaderMaterial({
-        uniforms: { map: { value: texture }, uFogColor: env.uFogColor, uFogNear: env.uFogNear, uFogFar: env.uFogFar, uAdd: { value: add } },
-        vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: false, side: THREE.DoubleSide,
-        blending: add ? THREE.AdditiveBlending : THREE.NormalBlending,
-      });
-      const mesh = new THREE.Mesh(g, m); mesh.frustumCulled = false; mesh.renderOrder = add ? 9 : 8;
-      this.layers[key] = mesh;
-    }
     this.group = new THREE.Group();
-    this.group.add(this.layers.blend, this.layers.add);
+    for (const [sheet, texture] of Object.entries(this.sheets)) {
+      for (const [mode, add] of [['blend', 0], ['add', 1]]) {
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(MAX * 12), 3).setUsage(THREE.DynamicDrawUsage));
+        g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(MAX * 8), 2).setUsage(THREE.DynamicDrawUsage));
+        g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(MAX * 16), 4).setUsage(THREE.DynamicDrawUsage));
+        const idx = new Uint32Array(MAX * 6);
+        for (let i = 0; i < MAX; i++) idx.set([i * 4, i * 4 + 1, i * 4 + 2, i * 4, i * 4 + 2, i * 4 + 3], i * 6);
+        g.setIndex(new THREE.BufferAttribute(idx, 1));
+        const m = new THREE.ShaderMaterial({
+          uniforms: { map: { value: texture }, uFogColor: env.uFogColor, uFogNear: env.uFogNear, uFogFar: env.uFogFar, uAdd: { value: add } },
+          vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+          blending: add ? THREE.AdditiveBlending : THREE.NormalBlending,
+        });
+        const mesh = new THREE.Mesh(g, m); mesh.frustumCulled = false; mesh.renderOrder = add ? 9 : 8;
+        this.layers[`${sheet}|${mode}`] = mesh;
+        this.group.add(mesh);
+      }
+    }
+  }
+
+  _sheet(def) {
+    const t = def.description.basic_render_parameters?.texture;
+    return t && this.sheets[t] ? t : this.first;
   }
 
   _emit(def, origin, vars, em = null) {
@@ -81,7 +91,8 @@ export class Particles {
       def, V, p: pos, rel: local ? pos.clone().sub(origin) : null, em: local, v: dir.clone().multiplyScalar(speed), dir, age: 0, life,
       acc: md.linear_acceleration || [0, 0, 0], drag: md.linear_drag_coefficient || 0,
       size: bb.size, facing: bb.facing_camera_mode,
-      uv: [u.uv[0] / tw, u.uv[1] / th, (u.uv[0] + u.uv_size[0]) / tw, (u.uv[1] + u.uv_size[1]) / th],
+      uv: [num(u.uv[0], V) / tw, num(u.uv[1], V) / th, (num(u.uv[0], V) + num(u.uv_size[0], V)) / tw, (num(u.uv[1], V) + num(u.uv_size[1], V)) / th],
+      sheet: this._sheet(def),
       tint: c['minecraft:particle_appearance_tinting']?.color ?? [1, 1, 1, 1],
       add: def.description.basic_render_parameters.material === 'particles_add',
     });
@@ -140,7 +151,8 @@ export class Particles {
   draw(camera) {
     const cr = new THREE.Vector3(), cu = new THREE.Vector3(), cf = new THREE.Vector3();
     camera.matrixWorld.extractBasis(cr, cu, cf);
-    const count = { blend: 0, add: 0 };
+    const count = {};
+    for (const k of Object.keys(this.layers)) count[k] = 0;
     for (const p of this.live) {
       const sx = num(p.size[0], p.V), sy = num(p.size[1], p.V);
       let ax, ay;
@@ -162,7 +174,8 @@ export class Particles {
         const k = keys[i + 1] > keys[i] ? Math.min(Math.max((t - keys[i]) / (keys[i + 1] - keys[i]), 0), 1) : 0;
         col = [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k, a[3] + (b[3] - a[3]) * k];
       }
-      const layer = p.add ? 'add' : 'blend', L = this.layers[layer], n = count[layer]++;
+      const layer = `${p.sheet}|${p.add ? 'add' : 'blend'}`, L = this.layers[layer], n = count[layer]++;
+      if (n >= MAX) continue;
       const P = L.geometry.attributes.position.array, U = L.geometry.attributes.uv.array, Cc = L.geometry.attributes.color.array;
       const corners = [[-1, -1, p.uv[0], p.uv[3]], [1, -1, p.uv[2], p.uv[3]], [1, 1, p.uv[2], p.uv[1]], [-1, 1, p.uv[0], p.uv[1]]];
       for (let k = 0; k < 4; k++) {
@@ -174,7 +187,7 @@ export class Particles {
         Cc.set(col, n * 16 + k * 4);
       }
     }
-    for (const key of ['blend', 'add']) {
+    for (const key of Object.keys(this.layers)) {
       const g = this.layers[key].geometry;
       g.setDrawRange(0, count[key] * 6);
       g.attributes.position.needsUpdate = true; g.attributes.uv.needsUpdate = true; g.attributes.color.needsUpdate = true;

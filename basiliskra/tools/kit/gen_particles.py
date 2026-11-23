@@ -360,7 +360,15 @@ EFFECTS = [
     # as it fires: a white flare and a shock ring at the mouth; then rings racing down it and lightning crawling along it
     scatter("muzzle_flash", "flare", 3, 0.2, 0.0, RAND(0.16, 0.3), [f"(v.width > 0 ? v.width * (1.6 + 1.8 * v.particle_random_1) : 5 + 6 * v.particle_random_1) * (1 - {AGE})"] * 2,
             grad((0, WHITE), (0.5, HOT), (1, (1, 0.15, 0.1, 0))), material="particles_add"),
-    beam_ring("muzzle_shock", "ring", 0.6, [f"1 + (v.width > 0 ? v.width * 4 : 15) * {AGE}"] * 2, grad((0, WHITE), (0.3, (1, 0.5, 0.4, 0.8)), (1, (1, 0.1, 0.08, 0))), life=0.55),
+    # the shock at his lips: drawn from the smooth ring on the beam sheet (the small one on the old sheet showed its
+    # pixels at this size), as wide as the breath of the form that fires it
+    fxb("muzzle_shock", "particles_add", **ONCE, **burst(1), **{
+        "minecraft:emitter_shape_point": {"direction": ["v.dir.x", "v.dir.y", "v.dir.z"]},
+        "minecraft:particle_initial_speed": 0.6,
+        "minecraft:particle_lifetime_expression": {"max_lifetime": 0.5},
+        "minecraft:particle_motion_dynamic": {},
+        "minecraft:particle_appearance_billboard": {"size": [f"0.8 + (v.width > 0 ? v.width * 2.6 : 9) * {AGE}"] * 2, "facing_camera_mode": "direction_z", "direction": ALONG, "uv": uvb(*RINGB)},
+        "minecraft:particle_appearance_tinting": {"color": grad((0, WHITE), (0.3, (1, 0.5, 0.4, 0.8)), (1, (1, 0.1, 0.08, 0)))}}),
     fxb("beam_ring", "particles_add", **ONCE, **burst(1), **{
         "minecraft:emitter_shape_point": {"direction": ["v.dir.x", "v.dir.y", "v.dir.z"]},
         "minecraft:particle_initial_speed": 46,
