@@ -18,6 +18,7 @@ import { GuardModel } from './ai/guard_model.js';
 import { Director } from './ai/director.js';
 import { beliefsFor, summarize } from './ai/memory.js';
 import { Liveliness } from './ai/liveliness.js';
+import { GoldenDog } from './ai/golden_dog.js';
 
 const AI_CLASSES = { mirehop: DoorStalker, noxbriar: DoorStalker, rustgrin: Rustgrin, cat: Cat, purple_rat: PurpleRat, top_hat_rat: TopHatRat };
 
@@ -36,7 +37,12 @@ export class NightSession {
     this.cfg = CONFIG;
     const seed = opts.seed ?? ((Date.now() ^ (night * 7919)) >>> 0);
     this.rng = new Rng(seed);
+    /** the cast's clock: it stops while the Golden Dog holds them still (see `now`) */
     this.t = 0;
+    /** ticks the cast has been held still so far tonight */
+    this.held = 0;
+    /** is the guard looking at the Golden Dog right now? (the game layer says, every tick: look()) */
+    this.looking = false;
     this.ticksPerHour = this.def.ticksPerHour;
     this.hour = 0;
     /** @type {number} */
@@ -75,6 +81,8 @@ export class NightSession {
     for (const id of CAST) this.chars[id] = new AI_CLASSES[id](this, id);
     /** small signs of life while they stand about: cosmetic, on a random stream of its own */
     this.life = new Liveliness(this, seed);
+    /** the Golden Dog (ai/golden_dog.js): not one of `chars` - he never walks the halls, and holds them still */
+    this.golden = new GoldenDog(this, seed);
     if (opts.memory) this.recall(opts.memory);
   }
 
@@ -112,6 +120,20 @@ export class NightSession {
       if (o !== c && o.opening && (!stalkersOnly || typeof o.trade === 'function')) return true;
     }
     return false;
+  }
+
+  /**
+   * The night's own clock (ticks since 12 AM): the hours, the power and the guard's controls run on it.
+   * The cast runs on `t`, which stops while the Golden Dog holds them still; with him off the two are
+   * the same number all night.
+   */
+  get now() {
+    return this.t + this.held;
+  }
+
+  /** The game layer's one input for the Golden Dog: is the guard looking at him right now? */
+  look(on) {
+    this.looking = !!on;
   }
 
   /** How much tonight's beliefs still count (0..1): they fade as the cast sees what the guard does tonight. */
@@ -154,7 +176,7 @@ export class NightSession {
 
   isWatchingNode(node) {
     const c = this.devices.cams;
-    if (!c.open || this.powerOut) return false;
+    if (!c.open || this.powerOut || this.golden.blind) return false; // (the wrong feed: the guard sees the cellar, whatever is picked)
     const cam = CAMERA_BY_ID[c.cam];
     return !!cam && cam.sees.includes(node) && this.camWorking(c.cam);
   }
@@ -188,6 +210,7 @@ export class NightSession {
     if (this.result) return;
     this.result = 'lose';
     this.killer = who;
+    // (the Golden Dog: 'visit' or 'other', with the tip for it)
     const got = this.breaches[who];
     this.killWay = this.powerOut ? 'power' : got?.side ?? null;
     this.killNote = (!this.powerOut && got?.note) || null;
@@ -199,12 +222,14 @@ export class NightSession {
   usage() {
     const d = this.devices;
     if (this.powerOut) return 0;
+    if (this.golden.holding) return 1 + (this.golden.drain() ? 1 : 0); // (see tick: nothing else draws while he holds the building)
     return 1 + (d.doorL ? 1 : 0) + (d.doorR ? 1 : 0) + (d.lightL ? 1 : 0) + (d.lightR ? 1 : 0) + (d.cams.open ? 1 : 0) + (d.ventL ? 1 : 0) + (d.ventR ? 1 : 0);
   }
 
   debounced(key, ticks) {
-    if ((this.debounce[key] ?? -1e9) > this.t) return true;
-    this.debounce[key] = this.t + ticks;
+    // (on the night's clock: the guard's hands are not held still with the cast)
+    if ((this.debounce[key] ?? -1e9) > this.now) return true;
+    this.debounce[key] = this.now + ticks;
     return false;
   }
 
@@ -238,6 +263,7 @@ export class NightSession {
     this.setLight('L', false);
     this.setLight('R', false);
     this.emit({ fx: 'cams', open: true, cam: c.cam, reason: 'open' });
+    this.golden.onCams(true);
     if (this.rusted) {
       this.rusted = null;
       this.emit({ fx: 'rusted', on: false });
@@ -249,7 +275,10 @@ export class NightSession {
     if (!c.open) return;
     c.open = false;
     this.emit({ fx: 'cams', open: false, cam: c.cam, reason });
-    if (reason === 'close' && !this.result && !this.powerOut && !this.mods.noRusted && this.night >= CONFIG.rusted.fromNight && !this.rusted && this.rng.chance(CONFIG.rusted.chance * (this.def.rustedChance ?? 1))) {
+    // (the Rusted one never sits down in the middle of the Golden Dog's work: his answer is the monitor)
+    const shifting = this.golden.busy;
+    this.golden.onCams(false);
+    if (reason === 'close' && !this.result && !this.powerOut && !shifting && !this.mods.noRusted && this.night >= CONFIG.rusted.fromNight && !this.rusted && this.rng.chance(CONFIG.rusted.chance * (this.def.rustedChance ?? 1))) {
       this.rusted = { until: this.t + CONFIG.rusted.window };
       this.emit({ fx: 'rusted', on: true });
     }
@@ -260,6 +289,7 @@ export class NightSession {
     if (!CAMERA_BY_ID[camId] || c.cam === camId) return false;
     c.cam = camId;
     this.emit({ fx: 'cams', open: c.open, cam: camId, reason: 'switch' });
+    if (c.open) this.golden.onPick();
     return true;
   }
 
@@ -276,7 +306,8 @@ export class NightSession {
   /**
    * Player actions. Returns { ok, reason? } so the UI can give feedback.
    * Actions: door_l, door_r, light_l, light_r, vent_l, vent_r, cams_toggle,
-   * cams_open, cams_close, cam_select(id), cam_next, cam_prev, wind, spotlight, mute_call.
+   * cams_open, cams_close, cam_select(id), cam_next, cam_prev, wind, spotlight, mute_call,
+   * answer (the phone in the Other Office).
    */
   input(action, arg) {
     if (this.result) return { ok: false, reason: 'over' };
@@ -292,6 +323,12 @@ export class NightSession {
       this.emit({ fx: 'sound', id: 'fnar.door.error', at: 'office', vol: 0.8 });
       return { ok: false, reason: why };
     };
+    const g = this.golden;
+    if (action === 'answer') return g.answer();
+    // in the Other Office nothing of the real office answers (only the phone on its desk)
+    if (g.away && action !== 'mute_call') return { ok: false, reason: 'away' };
+    // the mirror: the left controls work the right side, and the other way round
+    action = g.remap(action);
     switch (action) {
       case 'door_l':
       case 'door_r': {
@@ -368,8 +405,14 @@ export class NightSession {
   // ------------------------------------------------------------ the tick
   tick() {
     if (this.result) return;
-    this.t++;
-    if (this.t === 1) {
+    // While the Golden Dog holds the cast still, their clock (`t`) stops and none of them thinks: the
+    // night's own clock (`now`), the power and the guard's controls go on. A hold starts and ends between
+    // ticks, so the cast thinks exactly once for every tick of its clock.
+    const hold = this.golden.holding;
+    if (hold) this.held++;
+    else this.t++;
+    const now = this.now;
+    if (now === 1) {
       this.emit({ fx: 'start', night: this.night, title: this.def.title, final: this.final });
       if (this.def.phone) this.emit({ fx: 'phone', night: this.def.phone });
       if (this.final) this.emit({ fx: 'pa', key: 'intro' });
@@ -382,21 +425,24 @@ export class NightSession {
         if (c.id === 'top_hat_rat') pose = this.final ? 'perform' : 'pose';
         this.emit({ fx: 'place', who: c.id, node: c.node, pose, initial: true });
       }
+      this.golden.begin();
       if (music) this.emit({ fx: 'show_music', slow: false });
     }
     // clock
-    const hour = Math.min(6, Math.floor(this.t / this.ticksPerHour));
+    const hour = Math.min(6, Math.floor(now / this.ticksPerHour));
     if (hour !== this.hour) {
       this.hour = hour;
       this.emit({ fx: 'hour', hour });
       if (this.night === 5 && hour >= CONFIG.finale.takeoverHour) {
         // the fake ending, then the Ringmaster takes the night: the Final Act starts at once
+        this.golden.abort('time');
         this.result = 'takeover';
         this.closeCams('takeover');
         this.emit({ fx: 'takeover' });
         return;
       }
       if (hour >= 6) {
+        this.golden.abort('time');
         this.result = 'win';
         this.closeCams('win');
         this.emit({ fx: 'win', night: this.night });
@@ -413,14 +459,28 @@ export class NightSession {
     const base = p.base[this.night] ?? 3;
     const whole = Math.floor(base);
     const frac = base - whole;
-    let drain = whole + (frac > 0 && (this.t % Math.round(1 / frac)) === 0 ? 1 : 0);
+    let drain = whole + (frac > 0 && (now % Math.round(1 / frac)) === 0 ? 1 : 0);
     const door = p.door * (this.mods.doorJam ? CONFIG.mods.doorJam : 1);
-    drain += (d.doorL ? door : 0) + (d.doorR ? door : 0) + (d.lightL ? p.light : 0) + (d.lightR ? p.light : 0) + (d.cams.open ? p.cams : 0) + (d.ventL ? p.vent : 0) + (d.ventR ? p.vent : 0);
+    // While the Golden Dog holds the building still the doors, lights, vents and the monitor draw nothing
+    // (the guard could not answer them anyway): the clock's own drain goes on, and a visit and the Other
+    // Office cost a little on top of it ("the lights dim while he is in the room"). So what a hold costs
+    // is small and always the same, whatever happened to be switched on when the watch started.
+    if (hold) drain += this.golden.drain();
+    else drain += (d.doorL ? door : 0) + (d.doorR ? door : 0) + (d.lightL ? p.light : 0) + (d.lightR ? p.light : 0) + (d.cams.open ? p.cams : 0) + (d.ventL ? p.vent : 0) + (d.ventR ? p.vent : 0);
     this.drainPower(drain);
     if (this.power <= 0) {
       this.startPowerOut();
       return;
     }
+    if (!hold) {
+      this.tickCast();
+      if (this.result || this.powerOut) return;
+    }
+    this.golden.tick();
+  }
+
+  /** One tick of the cast's clock: the animatronics, the tape, the Rusted one and the hallucinations. */
+  tickCast() {
     // animatronics (on the Final Act only the Ringmaster thinks; he moves the others)
     this.habits.tick();
     this.director.tick();
@@ -448,6 +508,7 @@ export class NightSession {
   startPowerOut() {
     const rng = this.rng;
     this.power = 0;
+    this.golden.abort('power'); // whatever he was doing, he lets go (the guard is back in the real office)
     this.closeCams('power');
     this.setDoor('L', false);
     this.setDoor('R', false);
@@ -485,8 +546,9 @@ export class NightSession {
     return {
       night: this.night,
       title: this.def.title,
-      hour: this.hour,
+      hour: this.golden.dawn ? 6 : this.hour, // (the false dawn: the clock lies)
       t: this.t,
+      now: this.now,
       powerPct: Math.ceil(this.power / 1000),
       usage: this.usage(),
       devices: { doorL: d.doorL, doorR: d.doorR, lightL: d.lightL, lightR: d.lightR, ventL: d.ventL, ventR: d.ventR, camsOpen: d.cams.open, cam: d.cams.cam, broken: { ...d.broken } },
@@ -501,12 +563,14 @@ export class NightSession {
       camStatic: d.cams.open && !this.camWorking(d.cams.cam) && !CAMERA_BY_ID[d.cams.cam]?.audioOnly,
       result: this.result,
       killer: this.killer,
+      golden: this.golden.present ? this.golden.view() : null,
     };
   }
 
   debugLine() {
     const cast = Object.values(this.chars).filter((c) => c.baseAi > 0).map((c) => c.debug());
     if (this.director.enabled) cast.push(this.director.debug());
+    if (this.golden.present) cast.push(this.golden.debug());
     return cast.join(' | ');
   }
 }

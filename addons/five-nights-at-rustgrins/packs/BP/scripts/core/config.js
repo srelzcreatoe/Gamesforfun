@@ -12,8 +12,17 @@ export const CUSTOM_NIGHT = 7;
 /** The secret night after the Final Act: the Rusted one takes Rustgrin's place. */
 export const ENCORE_NIGHT = 8;
 export const CAST = Object.freeze(['mirehop', 'noxbriar', 'rustgrin', 'cat', 'purple_rat', 'top_hat_rat']);
+/**
+ * The Golden Dog (core/ai/golden_dog.js): older than the Revue, down in the cellar. He is not one of the six the
+ * night's AI loop runs (CAST): he never walks the halls, the week's memory does not track him, and a night with
+ * him switched off is the same night for the others.
+ */
+export const GOLDEN = 'golden_dog';
+/** Everybody in the building, for the lists a player sees (Custom Night sliders, Extras, the radar). */
+export const FULL_CAST = Object.freeze([...CAST, GOLDEN]);
 export const CAST_NAMES = Object.freeze({
   mirehop: 'Mirehop', noxbriar: 'Noxbriar', rustgrin: 'Rustgrin', cat: 'the Cat', purple_rat: 'Purple Rat', top_hat_rat: 'the Ringmaster',
+  golden_dog: 'the Golden Dog',
 });
 
 export const CONFIG = Object.freeze({
@@ -227,18 +236,18 @@ export const CONFIG = Object.freeze({
 
   // Nights. ai = level at 12 AM; activation = tick when the character starts thinking.
   nights: Object.freeze({
-    0: Object.freeze({ title: 'Training', ai: { mirehop: 6, noxbriar: 0, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 200 }, ticksPerHour: 300, ramp: false, phone: 0, tape: false, hallucinations: 0 }),
-    1: Object.freeze({ title: 'Night 1', ai: { mirehop: 3, noxbriar: 2, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 1000, noxbriar: 2400 }, ramp: true, phone: 1, tape: false, hallucinations: 0 }),
-    2: Object.freeze({ title: 'Night 2', ai: { mirehop: 4, noxbriar: 3, rustgrin: 0, cat: 2, purple_rat: 0, top_hat_rat: 0 }, activation: { mirehop: 400, noxbriar: 800, cat: 600 }, ramp: true, phone: 2, tape: true, hallucinations: 0.001 }),
-    3: Object.freeze({ title: 'Night 3', ai: { mirehop: 6, noxbriar: 5, rustgrin: 1, cat: 5, purple_rat: 4, top_hat_rat: 0 }, activation: { purple_rat: 800, rustgrin: 1600 }, ramp: true, phone: 3, tape: true, hallucinations: 0.002 }),
-    4: Object.freeze({ title: 'Night 4', ai: { mirehop: 9, noxbriar: 9, rustgrin: 3, cat: 7, purple_rat: 7, top_hat_rat: 0 }, activation: {}, ramp: true, phone: 4, tape: true, hallucinations: 0.004 }),
-    5: Object.freeze({ title: 'Night 5', ai: { mirehop: 17, noxbriar: 17, rustgrin: 8, cat: 14, purple_rat: 14, top_hat_rat: 0 }, activation: {}, ramp: true, phone: 5, tape: true, hallucinations: 0.006 }),
+    0: Object.freeze({ title: 'Training', ai: { mirehop: 6, noxbriar: 0, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 0, golden_dog: 0 }, activation: { mirehop: 200 }, ticksPerHour: 300, ramp: false, phone: 0, tape: false, hallucinations: 0 }),
+    1: Object.freeze({ title: 'Night 1', ai: { mirehop: 3, noxbriar: 2, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 0, golden_dog: 0 }, activation: { mirehop: 1000, noxbriar: 2400 }, ramp: true, phone: 1, tape: false, hallucinations: 0 }),
+    2: Object.freeze({ title: 'Night 2', ai: { mirehop: 4, noxbriar: 3, rustgrin: 0, cat: 2, purple_rat: 0, top_hat_rat: 0, golden_dog: 2 }, activation: { mirehop: 400, noxbriar: 800, cat: 600 }, ramp: true, phone: 2, tape: true, hallucinations: 0.001 }),
+    3: Object.freeze({ title: 'Night 3', ai: { mirehop: 6, noxbriar: 5, rustgrin: 1, cat: 5, purple_rat: 4, top_hat_rat: 0, golden_dog: 5 }, activation: { purple_rat: 800, rustgrin: 1600 }, ramp: true, phone: 3, tape: true, hallucinations: 0.002 }),
+    4: Object.freeze({ title: 'Night 4', ai: { mirehop: 9, noxbriar: 9, rustgrin: 3, cat: 7, purple_rat: 7, top_hat_rat: 0, golden_dog: 9 }, activation: {}, ramp: true, phone: 4, tape: true, hallucinations: 0.004 }),
+    5: Object.freeze({ title: 'Night 5', ai: { mirehop: 17, noxbriar: 17, rustgrin: 8, cat: 14, purple_rat: 14, top_hat_rat: 0, golden_dog: 13 }, activation: {}, ramp: true, phone: 5, tape: true, hallucinations: 0.006 }),
     // The Final Act: the Ringmaster runs the night; the others are his marionettes (they only move on his cue).
-    6: Object.freeze({ title: 'The Final Act', ai: { mirehop: 0, noxbriar: 0, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 20 }, activation: {}, ramp: false, phone: 0, tape: false, final: true, hallucinations: 0.006 }),
-    7: Object.freeze({ title: 'Custom Night', ai: { mirehop: 5, noxbriar: 5, rustgrin: 5, cat: 5, purple_rat: 5, top_hat_rat: 5 }, activation: { top_hat_rat: 1200 }, ramp: false, phone: 0, tape: true, hallucinations: 0.004 }),
+    6: Object.freeze({ title: 'The Final Act', ai: { mirehop: 0, noxbriar: 0, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 20, golden_dog: 0 }, activation: {}, ramp: false, phone: 0, tape: false, final: true, hallucinations: 0.006 }),
+    7: Object.freeze({ title: 'Custom Night', ai: { mirehop: 5, noxbriar: 5, rustgrin: 5, cat: 5, purple_rat: 5, top_hat_rat: 5, golden_dog: 0 }, activation: { top_hat_rat: 1200 }, ramp: false, phone: 0, tape: true, hallucinations: 0.004 }),
     // Encore: Rustgrin's place is taken by the Rusted one (same rules, worse company), and the
     // "he was never there" visits come far more often.
-    8: Object.freeze({ title: 'Encore', ai: { mirehop: 9, noxbriar: 9, rustgrin: 8, cat: 8, purple_rat: 8, top_hat_rat: 0 }, activation: { purple_rat: 600 }, ramp: true, phone: 0, tape: true, hallucinations: 0.012, encore: true, rustedChance: 6 }),
+    8: Object.freeze({ title: 'Encore', ai: { mirehop: 9, noxbriar: 9, rustgrin: 8, cat: 8, purple_rat: 8, top_hat_rat: 0, golden_dog: 10 }, activation: { purple_rat: 600 }, ramp: true, phone: 0, tape: true, hallucinations: 0.012, encore: true, rustedChance: 6 }),
   }),
 
   // Custom Night presets (all 0..20).
@@ -248,6 +257,8 @@ export const CONFIG = Object.freeze({
     Object.freeze({ id: 'rat_race', title: 'Rat Race', ai: { mirehop: 0, noxbriar: 0, rustgrin: 0, cat: 15, purple_rat: 20, top_hat_rat: 0 } }),
     Object.freeze({ id: 'curtain_call', title: 'Curtain Call', ai: { mirehop: 10, noxbriar: 10, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 15 } }),
     Object.freeze({ id: 'showstopper', title: 'SHOWSTOPPER (20/20/20/20/20/20)', ai: { mirehop: 20, noxbriar: 20, rustgrin: 20, cat: 20, purple_rat: 20, top_hat_rat: 20 } }),
+    // (the Golden Dog is off in every preset above: a level left out is 0 on the Custom Night)
+    Object.freeze({ id: 'last_orders', title: 'Last Orders (the Golden Dog)', ai: { mirehop: 8, noxbriar: 8, rustgrin: 4, cat: 6, purple_rat: 6, top_hat_rat: 0, golden_dog: 20 } }),
   ]),
 
   // What the animatronics notice about the guard (core/ai/guard_model.js) and how they plan
@@ -334,6 +345,50 @@ export const CONFIG = Object.freeze({
   // Small signs of life while they stand about (core/ai/liveliness.js): cosmetic effects only,
   // one every `every` ticks for the whole cast; a shuffle is this many blocks out and back.
   idle: Object.freeze({ first: 240, every: Object.freeze([150, 330]), shuffle: 1.3 }),
+
+  // The Golden Dog (core/ai/golden_dog.js). He stays on his stage in the cellar and bends the place instead:
+  // "shifts", each one announced by his pocket watch. His level works like the others' AI (0 = he only stands
+  // there; the Custom Night's seventh slider): it sets how often he acts and which shifts he knows.
+  golden: Object.freeze({
+    tell: 50, // the pocket watch ticks this long before every shift (the cast holds still from its first tick)
+    // the level each shift needs. By night: 2 gilding - 3 false dawn, wrong feed - 4 mirror, the visit - 5 the Other Office
+    unlock: Object.freeze({ gild: 1, dawn: 4, feed: 4, mirror: 7, visit: 7, other: 12 }),
+    // while he is at work on these the rest of the cast holds still (and during every tell); the mirror and the
+    // wrong feed are about the guard's own controls, so the building moves again once the watch stops
+    hold: Object.freeze({ gild: true, dawn: true, feed: false, mirror: false, visit: true, other: true }),
+    // how likely each shift is when it may happen
+    weight: Object.freeze({ gild: 2, dawn: 3, feed: 3, mirror: 3, visit: 3 }),
+    gildAt: 7, // from this level on gilding is rare (he has better things to do)
+    // ticks from the end of one shift to the next tell, by level: [least, most]
+    gap: (a) => {
+      const lo = Math.max(500, 2700 - 110 * a);
+      return [lo, Math.round(lo * 1.5)];
+    },
+    first: 0.55, // the first tell of the night comes no sooner than this share of a gap
+    quiet: 70, // no tell this soon (ticks) after somebody reached a door, a vent or the nook
+    retry: 20, // a tell that had to wait tries again this often
+    endMargin: 300, // nothing starts this close to the end of the night
+    minPower: 6000, // nor a shift that costs power while the guard has less than this (6 %)
+    gild: Object.freeze({ lasts: 80 }),
+    // the false 6 AM: once a night, not before this hour, only on a night that really ends at 6
+    dawn: Object.freeze({ lasts: 76, fromHour: 2 }),
+    // the wrong feed: every camera shows the cellar until the monitor goes down (or `lasts`); `picks` cameras
+    // picked in a row bring him up (a visit)
+    feed: Object.freeze({ lasts: 170, picks: 3 }),
+    mirror: Object.freeze({ lasts: 200 }),
+    // the visit: he stands behind the seat. Looked at (or the monitor up: it shows his face) for more than
+    // `look` ticks in all, he takes the guard. `cost`: power per tick while he is in the room
+    visit: Object.freeze({ lasts: 140, look: 30, cost: 4 }),
+    // the Other Office, once a night between these hours: `fade` ticks to get there, he walks `speed` blocks a
+    // tick while watched, the phone rings after `phone` ticks and is the way back; left ringing for
+    // `patience`, he comes whether he is watched or not
+    other: Object.freeze({ hours: Object.freeze([1.3, 3.0]), fade: 30, phone: 130, patience: 240, speed: 0.16, cost: 5, endMargin: 800 }),
+    // CAM 11 shows him. Watched for `after` ticks at a time he turns to the lens, and his next shift comes within
+    // `sooner` (never sooner than `rest` x the least gap after the last one); looked away for `forget`, it starts over
+    stare: Object.freeze({ after: 60, sooner: Object.freeze([70, 150]), rest: 0.4, forget: 40 }),
+    // how he stands on his stage by level: slumped (0), head up, standing
+    wakeAt: 1, standAt: 4,
+  }),
 
   hallucination: Object.freeze({ cooldown: 400 }),
   // Rare "Rusted Rustgrin" event: when the monitor goes down there is this chance (nights >= 2)

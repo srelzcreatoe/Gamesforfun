@@ -13,11 +13,24 @@
 // sees through a trick it heard (otherwise it takes the bait, like a player who has not
 // learnt it yet). Sounds carry the side they come from (`door`), never who it is. After a
 // 'grudge' cue (the one who got in last time comes back the same way) it listens for that way.
+//
+// The Golden Dog (core/ai/golden_dog.js) is played the same way, on the night's own clock (`s.now`:
+// the bot's hands and eyes are not held still with the cast). The bot hands the session the one thing
+// the game layer does: whether the guard is looking at him (`s.look`). A good guard looks away after
+// the tell and never looks back; an average one is sometimes slow:
+//   the wrong feed   seen for what it is after a moment: monitor down, and no camera work till it is
+//                    over. Until then the sweep goes on picking cameras (three bring him up).
+//   the mirror       the other hand for every control once it has noticed (`mirrorP`: whether it does
+//                    at all); what a hall light shows is only seen in the hall that is really lit.
+//   the visit        eyes forward. With `lookP` it turns round to look, for a moment that may be too long.
+//   the Other Office it sits facing him: it looks at him until it thinks to look down at the desk, and
+//                    picks up the phone a moment after it starts to ring.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const { CAMERA_BY_ID } = await import(path.join(ROOT, 'packs/BP/scripts/data/cameras.js'));
+const MIRROR = Object.freeze({ door_l: 'door_r', door_r: 'door_l', light_l: 'light_r', light_r: 'light_l', vent_l: 'vent_r', vent_r: 'vent_l' });
 
 export class Bot {
   constructor(s, kind, seed) {
@@ -43,6 +56,70 @@ export class Bot {
     this.rest = quiet ? [70, 150] : this.sloppy ? [40, 40] : [20, 50]; // ticks of rest after a round
     this.camEvery = quiet ? 2 : 1; // the monitor every n-th round
     this.round = 0;
+    // the Golden Dog: how good this guard is at not looking, and at left being right
+    const sharp = kind === 'good' || kind === 'listener';
+    this.lookP = sharp ? 0 : kind === 'medium' || kind === 'gullible' ? 0.25 : 0.6; // chance it turns round to look at a visit
+    this.mirrorP = sharp ? 1 : kind === 'medium' || kind === 'gullible' ? 0.75 : 0.4; // chance it works out the mirror
+    this.gq = []; // reactions to him, on the night's clock: [tick, fn]
+    this.g = { feed: false, wary: false, mirror: false, swap: false, lookUntil: 0 };
+  }
+  /** One hand for every control: once the bot has worked out the mirror it uses the other one. */
+  press(action, arg) {
+    return this.s.input(this.g.swap ? MIRROR[action] ?? action : action, arg);
+  }
+  /** A reaction to the Golden Dog, `min`..`max` ticks from now on the night's clock (slower bots are later). */
+  later(min, max, fn) {
+    this.gq.push([this.s.now + min + this.slow + Math.floor(this.rand() * (max - min + 1 + this.slow)), fn]);
+  }
+  /** His tells and shifts (the effects with fx 'golden'). */
+  hearGolden(e) {
+    const s = this.s;
+    const g = this.g;
+    if (e.kind === 'shift' && e.shift === 'feed') {
+      g.feed = true;
+      // it sees the cellar on its monitor: a moment, then down with it, and no cameras until this is over
+      this.later(6, 24, () => {
+        if (!g.feed) return;
+        g.wary = true;
+        if (s.devices.cams.open) this.press('cams_close');
+        if (this.phase <= 2) { this.phase = 3; this.busyUntil = s.t; }
+      });
+    }
+    if (e.kind === 'shift' && e.shift === 'mirror') {
+      g.mirror = true;
+      if (this.rand() < this.mirrorP) this.later(4, 24, () => { if (g.mirror) g.swap = true; });
+    }
+    if (e.kind === 'shift' && e.shift === 'visit' && this.rand() < this.lookP) {
+      // it cannot help it: a look over the shoulder
+      const from = s.now + 5 + this.slow + Math.floor(this.rand() * 30);
+      this.gq.push([from, () => { g.lookUntil = s.now + 10 + Math.floor(this.rand() * 25); }]);
+    }
+    if (e.kind === 'arrive') {
+      // the Other Office: sitting in the seat it faces him. It looks down at the desk when it thinks to
+      g.lookUntil = Infinity;
+      this.later(4, 12, () => { g.lookUntil = 0; });
+    }
+    if (e.kind === 'phone' && e.ring) this.later(8, 24, () => this.s.input('answer'));
+    if (e.kind === 'end') {
+      if (e.shift === 'feed') g.feed = g.wary = false;
+      if (e.shift === 'mirror') g.mirror = g.swap = false;
+      if (e.shift === 'visit' || e.shift === 'other') g.lookUntil = 0;
+    }
+  }
+  /** Every tick: due reactions to him, and where the guard's eyes are. */
+  tickGolden() {
+    const s = this.s;
+    if (this.gq.length) {
+      this.gq.sort((a, b) => a[0] - b[0]);
+      while (this.gq.length && this.gq[0][0] <= s.now) this.gq.shift()[1]();
+    }
+    s.look(s.now < this.g.lookUntil);
+  }
+  /** Who the hall light shows in a doorway (with the mirror on: only in the hall that is really lit). */
+  atDoor(side) {
+    const d = this.s.devices;
+    if (this.g.mirror && !(side === 'L' ? d.lightL : d.lightR)) return undefined;
+    return side === 'L' ? this.occupant('DOOR_L') : this.occupant('WIN_R') || this.occupant('DOOR_R');
   }
   heard() { return this.rand() < this.earP; }
   /** A tell from the way the bot was told to expect somebody (the grudge): it is listening for that one. */
@@ -97,6 +174,7 @@ export class Bot {
   occupant(node) { return Object.values(this.s.chars).find((c) => c.node === node && !c.walk && !c.inside); }
   hear(e) {
     if (this.kind === 'idle') return;
+    if (e.fx === 'golden') return this.hearGolden(e);
     if (this.s.final) return this.hearFinal(e);
     const cue = ['at_nook', 'at_vent', 'ringmaster', 'cue'].includes(e.fx) || (e.fx === 'sound' && ['fnar.cat.run', 'fnar.mirehop.strum', 'fnar.noxbriar.hum', 'fnar.rat.maracas', 'fnar.servo.move', 'fnar.step.heavy', 'fnar.cat.growl'].includes(e.id));
     if (cue && !this.expected(e) && !this.heard()) return;
@@ -127,16 +205,18 @@ export class Bot {
       this.do(a, arg);
     }
     if (this.kind === 'idle') return;
+    this.tickGolden();
     if (s.final) return this.finalTick();
+    if (s.golden.holding) return; // (the cast holds still, and so does the routine that answers it)
     // Custom Night: the Ringmaster walks - hunt him with the spotlight now and then
     const rm = s.chars.top_hat_rat;
-    if (rm.enabled && rm.out && s.t >= (this.huntAt ?? 0)) {
+    if (rm.enabled && rm.out && s.t >= (this.huntAt ?? 0) && !this.g.feed) {
       this.huntAt = s.t + 70 + this.slow * 2;
       // save the light until he is in a hall
       const cam = rm.node && !rm.walk && ['2A', '2B', '4A', '4B'].find((c) => CAMERA_BY_ID[c].sees.includes(rm.node));
       if (cam) {
-        if (!d.cams.open) s.input('cams_open', cam);
-        else s.input('cam_select', cam);
+        if (!d.cams.open) this.press('cams_open', cam);
+        else this.press('cam_select', cam);
         this.at(s.t + 8 + this.slow, 'spot');
         this.busyUntil = s.t + 14;
         return;
@@ -147,46 +227,47 @@ export class Bot {
     const camsSweep = ['4B', '8', '2A', '4A'];
     if (this.phase === 0) { // raise cams
       if (this.round++ % this.camEvery) { this.phase = 3; return; } // (a power saver: lights only this round)
-      if (!d.cams.open) s.input('cams_open', '4B');
+      if (this.g.wary) { this.phase = 3; return; } // (the wrong feed: there is nothing to see up there)
+      if (!d.cams.open) this.press('cams_open', '4B');
       this.sweepIdx = 0; this.phase = 1; this.busyUntil = s.t + 12;
     } else if (this.phase === 1) {
       if (!d.cams.open) { this.phase = 0; return; } // something put the monitor down: start over
       const cam = camsSweep[this.sweepIdx];
       if (!cam) { this.phase = 2; return; }
       if (cam === '8' && !s.tape.enabled) { this.sweepIdx++; return; }
-      if (d.cams.cam !== cam) { s.input('cam_select', cam); this.busyUntil = s.t + 6; return; }
+      if (d.cams.cam !== cam) { this.press('cam_select', cam); this.busyUntil = s.t + 6; return; }
       // look
       if (cam === '8') {
-        if (s.tape.level < 85000) { s.input('wind'); this.busyUntil = s.t + 9; return; }
+        if (s.tape.level < 85000) { this.press('wind'); this.busyUntil = s.t + 9; return; }
       }
-      if (cam === '4B' && s.camWorking('4B')) {
+      if (cam === '4B' && s.camWorking('4B') && !this.g.feed) {
         const r = this.occupant('NOOK');
         this.rustAtNook = !!(r && r.id === 'rustgrin');
-        if (this.rustAtNook && !d.doorR) s.input('door_r');
+        if (this.rustAtNook && !d.doorR) this.press('door_r');
         // CAM 4B also shows the window and the right doorway
-        if ((this.occupant('WIN_R') || this.occupant('DOOR_R')) && !d.doorR) s.input('door_r');
+        if ((this.occupant('WIN_R') || this.occupant('DOOR_R')) && !d.doorR) this.press('door_r');
       }
       this.sweepIdx++; this.busyUntil = s.t + (this.sloppy ? 6 : 10);
     } else if (this.phase === 2) { // lower and check lights
-      if (d.cams.open) s.input('cams_close');
+      if (d.cams.open) this.press('cams_close');
       this.phase = 3; this.busyUntil = s.t + 8;
     } else if (this.phase === 3) {
-      s.input('light_l'); this.phase = 4; this.busyUntil = s.t + 10;
+      this.press('light_l'); this.phase = 4; this.busyUntil = s.t + 10;
     } else if (this.phase === 4) {
-      const o = this.occupant('DOOR_L');
+      const o = this.atDoor('L');
       this.need.L = !!o || this.need.L && false;
-      if (o && !d.doorL) s.input('door_l');
-      if (!o && d.doorL && !this.catRunning('L') && !this.ringmasterNear('L') && s.t >= this.lingerUntil.L) s.input('door_l');
-      if (d.lightL) s.input('light_l');
+      if (o && !d.doorL) this.press('door_l');
+      if (!o && d.doorL && !this.catRunning('L') && !this.ringmasterNear('L') && s.t >= this.lingerUntil.L) this.press('door_l');
+      if (d.lightL) this.press('light_l');
       this.phase = 5; this.busyUntil = s.t + 6;
     } else if (this.phase === 5) {
-      s.input('light_r'); this.phase = 6; this.busyUntil = s.t + 10;
+      this.press('light_r'); this.phase = 6; this.busyUntil = s.t + 10;
     } else if (this.phase === 6) {
-      const o = this.occupant('WIN_R') || this.occupant('DOOR_R');
+      const o = this.atDoor('R');
       const keep = !!o || this.rustAtNook || this.catRunning('R') || s.t < this.lingerUntil.R;
-      if (keep && !d.doorR) s.input('door_r');
-      if (!keep && d.doorR) s.input('door_r');
-      if (d.lightR) s.input('light_r');
+      if (keep && !d.doorR) this.press('door_r');
+      if (!keep && d.doorR) this.press('door_r');
+      if (d.lightR) this.press('light_r');
       this.phase = 7; this.busyUntil = s.t + this.rest[0] + Math.floor(this.rand() * (this.rest[1] - this.rest[0]));
     } else {
       this.phase = 0;
@@ -211,34 +292,34 @@ export class Bot {
     const ev = rm.event;
     if (ev && ev.kind === 'game' && ev.game === 'still') return; // hands off
     if (s.t < this.busyUntil) return;
-    if (!rm.out) { if (d.cams.open && !(ev && (ev.game === 'cam' || ev.game === 'find'))) s.input('cams_close'); return; }
+    if (!rm.out) { if (d.cams.open && !(ev && (ev.game === 'cam' || ev.game === 'find'))) this.press('cams_close'); return; }
     // Act III: sweep the cameras that can see him and light him up
     const sweep = ['1C', '1B', '2A', '2B', '4A', '4B'];
-    if (!d.cams.open) { s.input('cams_open', sweep[0]); this.busyUntil = s.t + 8; return; }
+    if (!d.cams.open) { this.press('cams_open', sweep[0]); this.busyUntil = s.t + 8; return; }
     const seen = rm.node && !rm.walk && CAMERA_BY_ID[d.cams.cam].sees.includes(rm.node);
-    if (seen) { s.input('spotlight'); this.busyUntil = s.t + 12 + this.slow; return; }
+    if (seen) { this.press('spotlight'); this.busyUntil = s.t + 12 + this.slow; return; }
     this.sweepI = ((this.sweepI ?? 0) + 1) % sweep.length;
-    s.input('cam_select', sweep[this.sweepI]);
+    this.press('cam_select', sweep[this.sweepI]);
     this.busyUntil = s.t + 8 + this.slow;
   }
   catRunning(side) { const c = this.s.chars.cat; return c.state === 'run' && c.side === side; }
   ringmasterNear() { return false; }
   do(a, arg) {
     const s = this.s; const d = s.devices;
-    if (a === 'want_vent_l' && !d.ventL) s.input('vent_l');
-    if (a === 'want_vent_r' && !d.ventR) s.input('vent_r');
-    if (a === 'spot') { s.input('spotlight'); return; }
+    if (a === 'want_vent_l' && !d.ventL) this.press('vent_l');
+    if (a === 'want_vent_r' && !d.ventR) this.press('vent_r');
+    if (a === 'spot') { this.press('spotlight'); return; }
     if (a === 'listen') {
       // the kitchen camera (audio only), for a couple of seconds
-      if (!d.cams.open) s.input('cams_open', arg);
-      else s.input('cam_select', arg);
+      if (!d.cams.open) this.press('cams_open', arg);
+      else this.press('cam_select', arg);
       this.phase = 2; // then back to the lights
       this.busyUntil = Math.max(this.busyUntil, s.t + 40);
       return;
     }
     if (a === 'look_away') {
       // a squealing feed: on to the next camera of the sweep
-      if (d.cams.open && d.cams.cam === arg) { s.input('cam_select', arg === '1B' ? '2A' : '1B'); this.busyUntil = Math.max(this.busyUntil, s.t + 8); }
+      if (d.cams.open && d.cams.cam === arg) { this.press('cam_select', arg === '1B' ? '2A' : '1B'); this.busyUntil = Math.max(this.busyUntil, s.t + 8); }
       return;
     }
     if (a === 'peek') {
@@ -246,35 +327,35 @@ export class Bot {
       // on the cameras: cut the sweep short and go straight to the light checks
       if (d.cams.open) { if (this.phase === 1) { this.phase = 2; this.busyUntil = s.t; } return; }
       const light = arg === 'L' ? 'light_l' : 'light_r';
-      if (!(arg === 'L' ? d.lightL : d.lightR)) s.input(light);
+      if (!(arg === 'L' ? d.lightL : d.lightR)) this.press(light);
       this.at(s.t + 8, 'peek_look', arg);
       this.busyUntil = Math.max(this.busyUntil, s.t + 10);
       return;
     }
     if (a === 'peek_look') {
-      const o = arg === 'L' ? this.occupant('DOOR_L') : this.occupant('WIN_R') || this.occupant('DOOR_R');
-      if (o && !(arg === 'L' ? d.doorL : d.doorR)) s.input(arg === 'L' ? 'door_l' : 'door_r');
-      if (arg === 'L' ? d.lightL : d.lightR) s.input(arg === 'L' ? 'light_l' : 'light_r');
+      const o = this.atDoor(arg);
+      if (o && !(arg === 'L' ? d.doorL : d.doorR)) this.press(arg === 'L' ? 'door_l' : 'door_r');
+      if (arg === 'L' ? d.lightL : d.lightR) this.press(arg === 'L' ? 'light_l' : 'light_r');
       return;
     }
-    if (a === 'release_all') { if (d.doorL) s.input('door_l'); if (d.doorR) s.input('door_r'); if (d.ventL) s.input('vent_l'); if (d.ventR) s.input('vent_r'); if (d.lightL) s.input('light_l'); if (d.lightR) s.input('light_r'); return; }
+    if (a === 'release_all') { if (d.doorL) this.press('door_l'); if (d.doorR) this.press('door_r'); if (d.ventL) this.press('vent_l'); if (d.ventR) this.press('vent_r'); if (d.lightL) this.press('light_l'); if (d.lightR) this.press('light_r'); return; }
     if (a === 'game') {
       const g = arg.game;
-      if (g === 'cam' || g === 'find') { if (!d.cams.open) s.input('cams_open', arg.cam); else s.input('cam_select', arg.cam); this.busyUntil = s.t + 30; }
-      if (g === 'doors') { if (!d.doorL) s.input('door_l'); if (!d.doorR) s.input('door_r'); }
-      if (g === 'doors_open') { if (d.doorL) s.input('door_l'); if (d.doorR) s.input('door_r'); }
-      if (g === 'light') s.input(arg.side === 'L' ? 'light_l' : 'light_r');
-      if (g === 'vents') { if (!d.ventL) s.input('vent_l'); if (!d.ventR) s.input('vent_r'); }
+      if (g === 'cam' || g === 'find') { if (!d.cams.open) this.press('cams_open', arg.cam); else this.press('cam_select', arg.cam); this.busyUntil = s.t + 30; }
+      if (g === 'doors') { if (!d.doorL) this.press('door_l'); if (!d.doorR) this.press('door_r'); }
+      if (g === 'doors_open') { if (d.doorL) this.press('door_l'); if (d.doorR) this.press('door_r'); }
+      if (g === 'light') this.press(arg.side === 'L' ? 'light_l' : 'light_r');
+      if (g === 'vents') { if (!d.ventL) this.press('vent_l'); if (!d.ventR) this.press('vent_r'); }
       return;
     }
-    if (a === 'want_door_l' && !d.doorL) s.input('door_l');
-    if (a === 'want_door_r' && !d.doorR) s.input('door_r');
-    if (a === 'want_door_r' && this.rustAtNook && d.cams.open && d.cams.cam !== '4B') s.input('cam_select', '4B');
-    if (a === 'want_vent_l' && !d.ventL) s.input('vent_l');
-    if (a === 'want_vent_r' && !d.ventR) s.input('vent_r');
-    if (a === 'release_vent_l' && d.ventL) s.input('vent_l');
-    if (a === 'release_vent_r' && d.ventR) s.input('vent_r');
-    if (a === 'cams_open' && !d.cams.open) s.input('cams_open');
-    if (a === 'go_wind') { this.phase = 1; this.sweepIdx = 1; if (!d.cams.open) s.input('cams_open', '8'); }
+    if (a === 'want_door_l' && !d.doorL) this.press('door_l');
+    if (a === 'want_door_r' && !d.doorR) this.press('door_r');
+    if (a === 'want_door_r' && this.rustAtNook && d.cams.open && d.cams.cam !== '4B') this.press('cam_select', '4B');
+    if (a === 'want_vent_l' && !d.ventL) this.press('vent_l');
+    if (a === 'want_vent_r' && !d.ventR) this.press('vent_r');
+    if (a === 'release_vent_l' && d.ventL) this.press('vent_l');
+    if (a === 'release_vent_r' && d.ventR) this.press('vent_r');
+    if (a === 'cams_open' && !d.cams.open) this.press('cams_open');
+    if (a === 'go_wind') { this.phase = 1; this.sweepIdx = 1; if (!d.cams.open) this.press('cams_open', '8'); }
   }
 }

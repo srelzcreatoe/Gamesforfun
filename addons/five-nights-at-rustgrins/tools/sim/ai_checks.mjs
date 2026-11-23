@@ -16,6 +16,7 @@ const { CAMS_FOR_NODE } = await core('data/cameras.js');
 const { planPath, DOOR_NODES, isCrawl } = await core('core/ai/graph.js');
 const { remember, beliefsFor, cleanMemory, memoryHints } = await core('core/ai/memory.js');
 const { Bot } = await import('./bot.mjs');
+const { goldenChecks } = await import('./golden_checks.mjs');
 
 const opt = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, '').split('=')).map(([k, v]) => [k, v ?? true]));
 const RUNS = Number(opt.runs ?? 40);
@@ -27,8 +28,11 @@ const check = (ok, what, detail = '') => {
 const pct = (a, b) => (b ? (100 * a) / b : 0).toFixed(0) + '%';
 const ONLY = (over) => ({ mirehop: 0, noxbriar: 0, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 0, ...over });
 const CUES = new Set();
+// The numbered checks below are about the six: the Golden Dog is switched off for them (`golden: true` keeps
+// him at the night's own level). His own checks are in golden_checks.mjs, run at the end.
 const night = (n, seed, o = {}) => {
-  const s = new NightSession(n, { seed, ...o });
+  const { golden = false, ...rest } = o;
+  const s = new NightSession(n, { seed, ...rest, ai: golden ? rest.ai : { ...(rest.ai ?? {}), golden_dog: 0 } });
   const emit = s.emit.bind(s);
   s.emit = (e) => {
     if (e.fx === 'cue') CUES.add(e.kind);
@@ -1116,6 +1120,7 @@ const fxHash = (h, e) => {
       for (let i = 0; i < RUNS / 4; i++) {
         const told = {};
         const s = botNight(n, 8100 + i * 19 + n, kind, {
+          opts: { golden: true }, // (the Golden Dog too: his holds and his mirror never shorten a warning)
           onFx: (e, s) => {
             if (e.fx === 'cue') kinds.add(e.kind);
             if (e.fx === 'at_door') told[e.who] = s.t;
@@ -1146,6 +1151,9 @@ const fxHash = (h, e) => {
 }
 
 check(['squeal', 'burn', 'knock', 'decoy', 'playdead', 'burst', 'pull', 'pull_end', 'places', 'places_go', 'clatter', 'trade', 'grudge'].every((k) => CUES.has(k)), 'every trick has its own tell (a cue the game renders as a sound and a caption)', [...CUES].sort().join(', '));
+
+// ======================================================================== the Golden Dog
+await goldenChecks({ check, night, run, botNight, ONLY, RUNS });
 
 console.log(failed ? `\n${failed} check(s) failed` : '\nall AI checks passed');
 process.exit(failed ? 1 : 0);
