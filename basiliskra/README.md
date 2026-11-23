@@ -7,6 +7,8 @@ An original survival-horror add-on for Minecraft Bedrock. One creature per save.
 * **Experiments:** none. **Cheats:** none. **Commands:** none needed.
 * **Graphics:** standard Bedrock rendering; Vibrant Visuals supported (PBR texture sets with emissive glow).
 
+> **1.6.1**: **each of his three changes is now a scene of its own**: the water boils (I to II), the sky comes down (II to III), he burns through and his wings tear open (III to IV), each with its own events, length and camera.
+>
 > **1.6**: **a change now waits on time only** (set the minutes yourself), and every change is a **cinematic scene shot close**: five shots that keep him in the picture. With nothing alive in reach he **goes to the nearest village or city and walks through it**. The pack **raises cities** on real coasts and wherever an operator asks: towers, streets, people, a beach he can walk up, and beyond it a **sea cut a hundred blocks deep** with its own blocks and things on the bottom. There is a gun made for him, the **Seam Lance**. And there is the **Titan**: a separate, far stronger Basiliskra IV for battles in Creative (up to three; they fight each other, and him, with breath, jaws, tail and weight, and they can be killed).
 >
 > **1.5 brings Basiliskra IV into the game**: the last form, upright and winged, fifty-five blocks tall. He walks across the world emptying whatever is in his way, every footfall a crater; his breath reaches 150 blocks; he stares players to a crawl; and he has six habits of his own (his first roar after his first beam, the turn on his buried club, the misfire through his wing veins, the seabed hauled ashore, the broken plate that throws his beam, the charge he swallows). **1.4** fixed what the project owner found playing 1.3 and added the rift, the cutscenes, fallout that glows and goes, and three themes. **Neither 1.4 nor 1.5 has been seen in game yet**: both were checked without the game, against Mojang's published schemas and typings and in a simulated world. [docs/TEST_REPORT.md](docs/TEST_REPORT.md) says exactly what was and was not verified; the owner's brief is [docs/FORM_IV_PLAN.md](docs/FORM_IV_PLAN.md).
@@ -23,7 +25,7 @@ In game: a **journal** (how angry he is, as a percentage, when he will come, and
 
 | File | What it is |
 |---|---|
-| `dist/Basiliskra-1.6.0.mcaddon` | behaviour pack + resource pack, ready to import |
+| `dist/Basiliskra-1.6.1.mcaddon` | behaviour pack + resource pack, ready to import |
 | `models/basiliskra_i.bbmodel`, `_ii`, `_iii`, `_iv` | the four editable Blockbench models, textures and animations embedded |
 | `docs/SURVIVAL_GUIDE.md` | install, what calls him, the four stages, cities, the Seam Lance, the Titan, the ending, settings |
 | `previews/*.mp4` | reference videos (see below) |
@@ -33,6 +35,8 @@ In game: a **journal** (how angry he is, as a percentage, when he will come, and
 **`previews/basiliskra_animations.mp4`** is an animation reel of all four forms (2 min 22 s, with sound): each form is played through its phases from the shipped model, textures and client animation, and the pack's own recordings are laid in at the moments the script would play them, so the jaw can be watched against the roar. The ground, the camera, the scale figure and the drawn beam are the preview tool's (`tools/preview/anim.cjs`); particles are not drawn. It is an offline render, not in-game capture.
 
 **`previews/titan_moves.mp4`** (40 s, with sound) plays the Titan through what only it does, driven by its own client entity: at rest with its seams lit, walking, the lunge from two sides, the tail to each side, a shortened charge and the breath, the stagger, and going down as its fire fails (`node tools/preview/anim.cjs --forms titan`). Like the reel above it is an offline render, not in-game capture.
+
+**`previews/transformations.mp4`** (about a minute, with sound) plays him through the three changes as the script poses him, with the pack's sounds where the script plays them (`node tools/preview/anim.cjs --forms c1a,c1b,c2a,c2b,c3a,c3b`). What the script adds in the world (the boiling sea, the bolts, the smoke, the glass in the ground) and the game's own thunder are not in it, and the camera is the preview tool's, not the cutscene's.
 
 Stills for 1.6 (offline renders and drawings, not the game): **`previews/titan_poses.png`** (the Titan at rest, its lunge, its tail, its fall, from the shipped model and pose), **`previews/seam_lance.png`** (the gun, from its shipped model and texture) and **`previews/city_plan.png`** (a full city drawn from the list of blocks the script places: a plan from above and a section through the beach and the deep).
 

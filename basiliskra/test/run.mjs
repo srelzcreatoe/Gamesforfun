@@ -213,7 +213,7 @@ console.log('\n== 6. Evolution during a save and reload');
   const t = until(w, () => rec().evolve !== null, 9000, 5);
   check('repeated surfacings and mutation episodes send him to a shelf to beach', t > 0 && rec().evolve?.to === 2, `${t} ticks`);
   w.sim.step(30);
-  check('the throes have begun', rec().evolve?.step === 0 && w.bk.ctl.creature.entity.getProperty(P('phase')) === 12);
+  check('it has begun: his gills are knocking', rec().evolve?.step === 0 && w.bk.ctl.creature.entity.getProperty(P('phase')) === 4);
   w.restart();                                           // save and reload in the middle of it
   w.sim.step(5);
   check('after the reload it is still the same entity, still mid-evolution', w.bk.ctl.creature?.entity.id === id && rec().evolve !== null && w.sim.count(TYPE) === 1);
@@ -1168,7 +1168,7 @@ console.log('\n== 16. Calling, sending away, changing (1.4)');
     check('Make him change now: the same animal becomes Basiliskra III, lit from tail to head as it happens', /changing into Basiliskra III/.test(msg) && w.bk.ctl.creature.entity.id === id0 && w.bk.ctl.creature.form === 3 && maxCharge === 20 && w.bk.store.rec.evolve === null, `${msg} charge ${maxCharge}`);
     check('the change is shown to those near, and it shakes the ground', op.cam.log.some((q) => q.preset) && op.seen.some((q) => q.id === 'basiliskra:mutate_gather') && op.seen.some((q) => q.id === 'basiliskra:mutate_burst'));
     const msg4 = w.bk.ctl.evolveNow();
-    for (let i = 0; i < 400; i++) w.sim.step(1);
+    for (let i = 0; i < 520; i++) w.sim.step(1);
     check('and again: the same animal becomes Basiliskra IV', /changing into Basiliskra IV/.test(msg4) && w.bk.ctl.creature.entity.id === id0 && w.bk.ctl.creature.form === 4 && w.bk.ctl.creature.entity.getProperty(P('form')) === 4
       && w.bk.ctl.creature.entity.nameTag === 'Basiliskra IV', msg4);
     check('at his last form there is nothing further', /last form/.test(w.bk.ctl.evolveNow()));
@@ -2001,6 +2001,94 @@ console.log('\n== 22. The Titan');
     op.use('basiliskra:config_wheel'); w.sim.step(2); for (let i = 0; i < 3; i++) await new Promise((r) => setTimeout(r, 0)); w.sim.step(3);
     check('and takes them away again', titans.count === 0 && op.messages.some((m) => /1 Titan\(s\) removed/.test(m)));
   }
+}
+
+console.log('\n== 23. Three changes, three scenes');
+{
+  const NAMES = { 0: 'idle', 4: 'knock', 5: 'rise', 9: 'spasm', 12: 'evolve', 13: 'beach', 15: 'arc', 18: 'charge', 20: 'vent', 21: 'grounded', 22: 'scatter', 23: 'roar', 26: 'flinch', 32: 'recoil', 34: 'swallow' };
+  // play one change from "Make him change now" to its end, and write down everything about it
+  const play = (from, terrain, at, opAt) => {
+    const w = start(); w.sim.terrainFn = TERRAINS[terrain]; open(w);
+    const op = w.sim.addPlayer('Op', opAt); op.mode = 'Creative';
+    const said = w.bk.ctl.bringHere(at, 0, from); w.sim.step(6);
+    if (from === 4 - 1) w.bk.store.rec.four = undefined;
+    const c0 = w.bk.ctl.creature;
+    const soft = w.sim.addPlayer('Soft', { x: c0.pos.x + 24, y: opAt.y, z: c0.pos.z }); soft.mode = 'Adventure';
+    op.heard.length = 0; op.seen.length = 0; op.cam.log.length = 0; op.titles.length = 0;
+    const t0 = w.sim.save.tick;
+    const msg = w.bk.ctl.evolveNow();
+    const phases = []; let ticks = 0, swapAt = -1, hid = false, maxCharge = 0, far = 0, cuts = 0, lastCam = -9;
+    const hurt0 = w.sim.log.damage.filter((d) => d.id === soft.id).length;
+    while (w.bk.store.rec.evolve && ticks < 800) {
+      w.sim.step(1); ticks++;
+      const c = w.bk.ctl.creature;
+      const ph = NAMES[c.entity.getProperty(P('phase'))] ?? String(c.entity.getProperty(P('phase')));
+      if (phases[phases.length - 1] !== ph) phases.push(ph);
+      if (swapAt < 0 && c.form === from + 1) swapAt = ticks;
+      if (op.hud === 'hidden') hid = true;
+      maxCharge = Math.max(maxCharge, c.entity.getProperty(P('charge')));
+    }
+    for (const q of op.cam.log) {
+      if (q.at && q.look) far = Math.max(far, Math.hypot(q.at.x - q.look.x, q.at.y - q.look.y, q.at.z - q.look.z));
+      if (q.fade && q.fade.red === 0 && q.fade.green === 0 && q.tick !== lastCam) { cuts++; lastCam = q.tick; }
+    }
+    const c = w.bk.ctl.creature;
+    const hurt = w.sim.log.damage.filter((d) => d.id === soft.id).length - hurt0;
+    const n = (id) => op.heard.filter((q) => q.id === id && q.tick <= t0 + ticks).length;
+    // (the body is brought into line the tick after the instant of the change)
+    const before = (id) => op.heard.filter((q) => q.id === id && q.tick < t0 + swapAt - 1).length;
+    const after = (id) => op.heard.filter((q) => q.id === id && q.tick >= t0 + swapAt - 1 && q.tick <= t0 + ticks).length;
+    const saw = (id) => op.seen.some((q) => q.id === id);
+    let glass = 0;
+    for (let x = -14; x <= 14; x++) for (let z = -14; z <= 14; z++) for (let y = 60; y <= 66; y++) if (w.sim.blockId('minecraft:overworld', Math.floor(c.pos.x) + x, y, Math.floor(c.pos.z) + z) === 'basiliskra:scarlet_trinitite') glass++;
+    // the camera stays for the roar that follows, where one does
+    const debut = w.bk.store.rec.four?.debut === true;
+    w.sim.step(135);
+    const roared = op.heard.filter((q) => /^basiliskra\.roar/.test(q.id) && q.tick > t0 + ticks).map((q) => q.id);
+    return { w, op, c, said, msg, phases, ticks, swapAt, hid, maxCharge, far, cuts, hurt, n, before, after, saw, glass, t0, debut, roared, hudAfter: op.hud, held: op.cam.held };
+  };
+
+  // ---- I -> II: the water boils ----
+  const A = play(1, 'bay', { x: 0, y: 64, z: 12 }, { x: 0, y: 64, z: 14 });
+  check('I to II begins with three knocks on his gills, then a spasm, then he rears out of the water', A.phases.slice(0, 4).join(' ') === 'knock spasm rise evolve' && A.before('basiliskra.knock.gill') === 3 && A.before('basiliskra.i.surface') === 1,
+    `${A.msg} ${A.phases.join(' > ')}`);
+  check('the sea round him boils, his fin goes in a column of steam and thrown water', A.saw('basiliskra:splash') && A.saw('basiliskra:bubble_trail') && A.saw('basiliskra:gill_steam') && A.saw('basiliskra:fin_break') && A.saw('basiliskra:impact_fountain') && A.before('random.fizz') >= 3);
+  check('what hauls itself up has lightning between its horns: three arcs, on the beat of the knocks', A.c.form === 2 && A.phases.includes('arc') && A.after('basiliskra.ii.arc') === 3 && A.saw('basiliskra:horn_arc_big'), `${A.after('basiliskra.ii.arc')} arcs`);
+  check('no thunder in it, and no bolt from the sky', A.n('ambient.weather.thunder') === 0 && !A.saw('basiliskra:beam_core'));
+
+  // ---- II -> III: the sky comes down ----
+  const B = play(2, 'flat', { x: 0, y: 64, z: 30 }, { x: 0, y: 64, z: 0 });
+  check('II to III: three bolts find his horns, each sooner than the last, and he flinches at each', B.phases.filter((p) => p === 'flinch').length === 3 && B.before('ambient.weather.thunder') === 3 && B.saw('basiliskra:beam_core') && B.phases[0] === 'arc',
+    B.phases.join(' > '));
+  {
+    const th = B.op.heard.filter((q) => q.id === 'ambient.weather.thunder').map((q) => q.tick - B.t0);
+    check('a fourth, the biggest, and then he is standing on four legs', th.length === 4 && th[1] - th[0] > th[2] - th[1] && Math.abs(th[3] - B.swapAt) <= 2 && B.c.form === 3, `thunder at ${th.join(', ')}; changed at ${B.swapAt}`);
+  }
+  check('the charge runs to ground through his club; his plates light one by one from the tail; he shakes them out', B.phases.includes('grounded') && B.phases.includes('scatter') && B.after('basiliskra.iii.ground') === 1
+    && B.after('basiliskra.iii.charge_tick') >= 8 && B.after('basiliskra.iii.scatter') === 1 && B.saw('basiliskra:plate_ember'), `${B.after('basiliskra.iii.charge_tick')} plates heard lighting`);
+  check('the ground the bolts struck through him is glass', B.glass >= 3, `${B.glass} blocks`);
+
+  // ---- III -> IV: he burns through ----
+  const C = play(3, 'flat', { x: 0, y: 64, z: 40 }, { x: 0, y: 64, z: 0 });
+  check('III to IV begins as a charge like any other, and he does not fire', C.phases[0] === 'charge' && C.before('basiliskra.iii.charge') === 1 && C.n('basiliskra.iii.beam') === 0 && C.maxCharge === 20, C.phases.join(' > '));
+  check('he vents, three knocks, and it does not leave him: his hide flickers and the ground under him glows', C.phases.slice(0, 3).join(' ') === 'charge vent scatter' && C.before('basiliskra.knock.vent') === 3 && C.saw('basiliskra:plate_blaze') && C.glass >= 8,
+    `${C.glass} blocks of glass`);
+  check('then a dark shape with the fire shut inside it, and then the wings come open', C.phases.slice(3).join(' ').startsWith('swallow recoil rise') && C.after('mob.enderdragon.flap') === 2 && C.saw('basiliskra:impact_smoke') && C.c.form === 4, C.phases.slice(3).join(' > '));
+  {
+    const card = C.op.titles.find((q) => /BASILISKRA IV/.test(q.title));
+    check('his name is kept until he stands there with his wings spread', !!card && card.tick - (C.t0 + C.swapAt) >= 100, card ? `${card.tick - (C.t0 + C.swapAt)} ticks after the change` : 'no card');
+  }
+  check('he does not roar: his first roar is still the one that comes after his first beam', C.n('basiliskra.roar') === 0 && C.n('basiliskra.roar_short') === 0 && !C.debut);
+  check('the other two end on his roar: the short one, younger, as II; the whole roar as III', A.roared.length >= 1 && B.roared.includes('basiliskra.roar'), `II: ${A.roared.join(',')}; III: ${B.roared.join(',')}`);
+
+  // ---- and what they have in common ----
+  check('no two are alike: what he does, how long it takes, and how it is cut', new Set([A, B, C].map((s) => s.phases.join(' '))).size === 3 && new Set([A.ticks, B.ticks, C.ticks]).size === 3
+    && A.ticks < B.ticks && B.ticks < C.ticks, `${A.ticks}, ${B.ticks} and ${C.ticks} ticks; ${A.cuts}, ${B.cuts} and ${C.cuts} cuts while he changes`);
+  check('each is cut into shots, with him filling the picture', A.cuts >= 4 && B.cuts >= 5 && C.cuts >= 5 && A.far > 4 && A.far <= 30 && B.far <= 40 && C.far <= 50, `furthest the camera stands: ${A.far.toFixed(0)}, ${B.far.toFixed(0)}, ${C.far.toFixed(0)} blocks`);
+  check('each puts the HUD away and gives it back with the player\'s own eyes, and shows his new name', [A, B, C].every((s) => s.hid && s.hudAfter === 'shown' && !s.held) && /BASILISKRA II$/.test(A.op.titles[0]?.title ?? '') && /BASILISKRA III$/.test(B.op.titles[0]?.title ?? ''),
+    [A, B, C].map((s) => `${s.hid}/${s.hudAfter}/${s.held}/${s.op.titles[0]?.title}`).join(' '));
+  check('nobody standing near is hurt by any of them', A.hurt === 0 && B.hurt === 0 && C.hurt === 0, `${A.hurt}, ${B.hurt}, ${C.hurt} blows`);
+  check('each still lights all of him at its height', A.maxCharge === 20 && B.maxCharge === 20 && C.maxCharge === 20);
 }
 
 console.log(`\n${results.length - failures}/${results.length} checks passed`);

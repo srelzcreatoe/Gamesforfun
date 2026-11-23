@@ -55,9 +55,9 @@ All of it is reproducible with `python3 tools/build.py` (which runs the first fo
 | Check | Command | Result |
 |---|---|---|
 | Type-check of the script against the 2.11.0 typings (strict) | `npx tsc --noEmit -p .` | clean |
-| Bundle | `node tools/bundle.mjs` | 407 KiB, two imports: `@minecraft/server`, `@minecraft/server-ui` |
+| Bundle | `node tools/bundle.mjs` | 423 KiB, two imports: `@minecraft/server`, `@minecraft/server-ui` |
 | Pack validation | `python3 tools/validate/validate.py` | no problems |
-| Scenario suite in a simulated world | `node test/run.mjs` | **342 of 342 checks pass** (22 groups) |
+| Scenario suite in a simulated world | `node test/run.mjs` | **361 of 361 checks pass** (23 groups) |
 | Engine calls per tick | `node test/perf.mjs` | see DESIGN.md, "Bounded work" |
 | Foot and claw contact on the shipped animation | `node tools/preview/contact.cjs` | below |
 | Independent code review (a second reviewer with no access to my reasoning) | | Done once, on an early version: 20 findings, all acted on, the reviewer's four probe scripts kept as regression scenarios. **Not repeated for 1.4 to 1.6.** |
@@ -96,6 +96,7 @@ The script bundle that ships is run unmodified against `test/mock.mjs`: persiste
 | The Seam Lance (1.6) | 20 | 34 to his body from seventy blocks, 51 to the head; one shot per cooldown, with the hotbar cooldown started; a shot that misses does nothing to him; a wall stops it; something else alive in the line takes a little; the bolt is drawn from the muzzle to where it struck; the recipe and the attachable are checked by the validator |
 | Cities, the beach, the deep; going where people live (1.6) | 21 | raised where an operator stands, the sea the way they look; one at a time; the ground kept loaded while it is built and let go after; streets, lit towers (the tallest by the water), villagers; a promenade and a beach that shelves under the water; 102 blocks of water over a floor of abyssal basalt, lined on every side; vents, spires with lanterns, ribs, the pit and its ring, the ruin and its chest with a Seam Lance in it; nothing outside the footprint touched; never raised by itself over anything built; a build cut short by a restart is finished; on a real coast one rises by itself with its beach on the shoreline, and with the setting off none do; with nobody to hunt, Basiliskra III makes for the nearest city or the villagers he senses and walks through it |
 | The Titan (1.6) | 22 | made by the manager and by a spawn egg: bound, form IV, named, 61 hit volumes, 4000 health, and his story untouched (still dormant, no Basiliskra anywhere); three is the cap and a fourth is removed with a message; none outside the Overworld; alone it prowls within 95 blocks of where it was made; two Titans roar at each other, burn each other (30 a hit), lunge (85), whip (130), charge and circle, a heavy blow staggers, their middles never come nearer than their two girths, the health bars reach watchers, and after about three minutes one falls, is removed with its hit volumes, and leaves shards, a fin and fallout; against Basiliskra IV and against III he answers with his own breath and is driven off, never killed, with the Titan above 3000; the Seam Lance does 34 to it; a blow that would kill is held back and it is gone about five seconds later; a Survival player near one is hunted; after a restart the same bodies have the same names and wounds and one set of hit volumes each; the wheel puts one down and takes them away |
+| Three changes, three scenes (1.6.1) | 23 | each change is played from "Make him change now" to its end with a Creative watcher and an Adventure bystander 24 blocks off. I to II: the phases run knock, spasm, rise, evolve, then beach, arc; three gill knocks before and three horn arcs after; splash, bubbles, steam, the fin breaking and the fountain are sent; no thunder and no bolt. II to III: arc with three flinches, three thunders at shortening intervals and a fourth on the instant of the change; then grounded, at least eight plates heard lighting, scatter; glass in the ground under him. III to IV: charge, vent, scatter with the charge sound once, three vent knocks and no beam; then swallow, recoil, rise, two wing beats, smoke; his name shown 110 ticks after the change; no roar and his entrance not yet played. All three: different phase sequences, different lengths (312, 352, 448 ticks), cut into shots with the camera never more than 21, 34 and 47 blocks from what it looks at; HUD hidden and given back with the player's own view; the bystander never hurt; all of him lit at its height; II and III roar afterwards |
 
 Counting him: the suite counts loaded and saved entities of his type after every scenario above. It is 0 before arrival and after departure and 1 otherwise, in every case. (Titans are another type and are counted separately: never more than three.)
 
@@ -129,6 +130,14 @@ Measured again for 1.3 with the server rig (scenario 15): at the window, with th
 `previews/*.mp4` were rendered offline from replays of the real script. They are evidence of what the script decides and of how the shipped assets look and move in *my* viewer, which implements Bedrock's geometry format, Molang (the subset used), animation controllers, render controllers and particle components from their documentation. They are not evidence of how the game renders them.
 
 ## Not verified, in order of risk
+
+**New in 1.6.1, the three change scenes** (exercised in the simulated world; **not seen in game**):
+
+1. **They are assembled from existing poses**, timed by the script: each phase's pose was rendered offline before (the reel, and `previews/transformations.mp4` for these sequences), but how they read at cutscene distance, cut as they are, has not been watched in the game.
+2. **The bolts** are the beam's particles emitted pointing straight down for three ticks from 70 blocks up, with vanilla thunder and a screen flash. Whether that reads as lightning is a guess.
+3. **Form I's scene happens wherever he is when his time is up**: usually near a beach, sometimes in open water, where the low shots are close to the surface and may dip under it.
+4. **The top-down shots** put the camera directly over him, up to 21 blocks above Form I and 27 above Form II; under a low roof or in a cave the camera is brought down to wherever is clear.
+5. **A fault this work found and fixed**: the server skeleton was cached across the tick in which his form changes, so anything asked of his body in that tick used the old form's bones. Nothing asked before 1.6.1; the new scenes do.
 
 **New in 1.6** (schema-valid, exercised in the simulated world, **none of it seen in game**):
 
@@ -183,6 +192,10 @@ Measured again for 1.3 with the server rig (scenario 15): at the window, with th
 11. **The two blocks** (irradiated soil, scarlet trinitite): schema-valid; not yet confirmed placed in game.
 12. **Sounds.** 67 files are synthesised; 18 are cuts of the three recordings supplied by the project owner (roar, atomic breath, voice). I have not heard any of them: the breath was cut where it changes from charging to firing (6.86 s: a 14 dB dip, then the low band doubles), and the voice at the breaths between grunts, both from measurements. Their in-game range follows the `max_distance` values; not heard.
 13. **Vibrant Visuals**, **Realms, consoles, split-screen, low simulation distance**, and multiplayer beyond what the simulation models.
+
+## First session checklist (1.6.1)
+
+Set **Minutes in each form** to 1 and `/basiliskra:spawn i` in deep water near a beach; watch all three changes in turn (or use **Make him change now**). For each: is he in the picture in every shot; do the cuts fall where something happens (a knock, a bolt, the wings); does the HUD come back; and for II to III, do the bolts look like bolts?
 
 ## First session checklist (1.6)
 

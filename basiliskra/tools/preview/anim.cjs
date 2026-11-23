@@ -95,7 +95,55 @@ const REEL = {
     { t: 6.5, label: 'Beaten: onto its knees, the fire in it failing. Then it is gone', phase: 'fall', night: true, cam: CAM([40, 100], 8, 1.1),
       sounds: [{ at: 0.05, sound: 'basiliskra.roar_short', pitch: 0.9 }, { at: 2.2, sound: 'basiliskra.iii.step', pitch: 0.45 }] },
   ],
+  // (--forms c1a,c1b,c2a,c2b,c3a,c3b: his three changes, each a scene of its own; what the script adds to them in
+  // the world -- the boiling sea, the bolts, the smoke, the glass in the ground -- is not drawn here)
+  c1a: [
+    { t: 2.7, label: 'I to II. Three knocks on his gills, as on the night he came', phase: 'knock', cam: CAM([15, -5], 12, 0.62), sounds: knocks('basiliskra.knock.gill', 0), fx: [{ at: 0, kind: 1 }, { at: 0.9, kind: 1 }, { at: 1.8, kind: 1 }] },
+    { t: 3.3, label: 'A spasm runs down him, and the sea round him boils', phase: 'spasm', charge: [0, 7], cam: CAM(60, 62, 1.0), sounds: [{ at: 0, sound: 'basiliskra.i.spasm' }, { at: 0, sound: 'basiliskra.i.gill_catch' }] },
+    { t: 1.5, label: 'He rears out of the water', phase: 'rise', charge: [7, 10], cam: CAM([112, 96], 5, 0.9), sounds: [{ at: 0, sound: 'basiliskra.i.surface' }] },
+    { t: 1.3, label: 'He rears out of the water', phase: 'evolve', charge: [10, 20], cam: CAM([96, 84], 5, 0.85), sounds: [{ at: 0, sound: 'basiliskra.mutate' }] },
+  ],
+  c1b: [
+    { t: 2.2, label: 'What hauls itself up out of the steam', phase: 'beach', charge: [20, 6], cam: CAM([50, 28], 12, 1.0), sounds: [{ at: 0, sound: 'basiliskra.mutate', pitch: 0.9 }] },
+    { t: 2.8, label: 'Lightning between his horns, for the first time: three arcs, on the beat of the knocks', phase: 'arc', charge: [6, 3], cam: CAM([68, 112], 10, 0.55, 0.62),
+      fx: [{ at: 0, kind: 2 }, { at: 0.9, kind: 2 }, { at: 1.8, kind: 2 }], sounds: [0, 0.9, 1.8].map((a, k) => ({ at: a, sound: 'basiliskra.ii.arc', pitch: 1 + k * 0.06 })) },
+    { t: 1.2, label: 'Basiliskra II', phase: 'idle', cam: CAM([82, 76], 6, 0.75, 0.55) },
+    { t: 4.2, label: 'Basiliskra II', phase: 'roar', cam: CAM([76, 62], 6, 0.75, 0.55), fx: [{ at: 0.1, kind: 9 }], sounds: [{ at: 0.1, sound: 'basiliskra.roar_short', pitch: 1.18 }] },
+  ],
+  c2a: [
+    { t: 2.5, label: 'II to III. Arcs between his horns, and the sky answers', phase: 'arc', night: true, cam: CAM([265, 280], -6, 0.7, 0.75), sounds: [{ at: 0, sound: 'basiliskra.ii.arc' }] },
+    { t: 0.6, label: 'The first bolt finds his horns', phase: 'flinch', charge: 6, night: true, cam: CAM(272, -6, 0.7, 0.75), fx: [{ at: 0, kind: 3 }], sounds: [{ at: 0, sound: 'basiliskra.ii.arc', pitch: 0.8 }] },
+    { t: 1.9, label: 'The first bolt finds his horns', phase: 'arc', charge: 6, night: true, cam: CAM(60, 78, 1.1) },
+    { t: 0.6, label: 'The second, sooner', phase: 'flinch', charge: 12, night: true, cam: CAM(60, 78, 1.0), fx: [{ at: 0, kind: 3 }], sounds: [{ at: 0, sound: 'basiliskra.ii.arc', pitch: 0.8 }] },
+    { t: 1.4, label: 'The second, sooner', phase: 'arc', charge: 12, night: true, cam: CAM([40, 55], 6, 0.6, 0.6) },
+    { t: 0.6, label: 'The third, sooner still', phase: 'flinch', charge: 18, night: true, cam: CAM(55, 6, 0.6, 0.6), fx: [{ at: 0, kind: 3 }], sounds: [{ at: 0, sound: 'basiliskra.ii.arc', pitch: 0.8 }] },
+    { t: 0.4, label: 'The third, sooner still', phase: 'arc', charge: 18, night: true, cam: CAM(55, 6, 0.6, 0.6) },
+    { t: 2.0, label: 'It takes hold of him', phase: 'evolve', charge: [18, 20], night: true, cam: CAM([110, 95], 5, 1.0), sounds: [{ at: 0, sound: 'basiliskra.mutate' }] },
+  ],
+  c2b: [
+    { t: 1.7, label: 'He is standing on four legs, and the charge runs to ground through his club', phase: 'grounded', night: true, cam: CAM([125, 108], 4, 1.05, 0.35), sounds: [{ at: 0, sound: 'basiliskra.iii.ground' }] },
+    { t: 3.8, label: 'His plates light one by one, from the tail to the head', phase: 'idle', charge: [0, 18], night: true, cam: CAM([255, 285], 22, 0.8, 0.6) },
+    { t: 1.2, label: 'He shakes the fire out of them', phase: 'scatter', charge: [18, 0], night: true, cam: CAM([65, 80], 6, 0.8, 0.55), sounds: [{ at: 0, sound: 'basiliskra.iii.scatter' }] },
+    { t: 5.2, label: 'Basiliskra III', phase: 'roar', night: true, cam: CAM([75, 55], 5, 0.8, 0.55), fx: [{ at: 0.1, kind: 8 }], sounds: [{ at: 0.1, sound: 'basiliskra.roar' }] },
+  ],
+  c3a: [
+    { t: 6.86, label: 'III to IV. A charge like any other', phase: 'charge', charge: [0, 18], night: true, cam: CAM([250, 285], 18, 0.75, 0.55),
+      sounds: [{ at: 0, sound: 'basiliskra.iii.club_plant' }, { at: 0, sound: 'basiliskra.iii.charge' }] },
+    { t: 2.7, label: 'It should leave him now. He vents, three knocks, and nothing goes out of him', phase: 'vent', charge: [18, 20], night: true, cam: CAM([55, 72], 5, 0.62, 0.6),
+      sounds: knocks('basiliskra.knock.vent', 0), fx: [{ at: 0, kind: 3 }, { at: 0.9, kind: 3 }, { at: 1.8, kind: 3 }] },
+    { t: 2.25, label: 'More than his hide can hold: it flickers, and the ground under him begins to glow', phase: 'scatter', charge: 20, night: true, cam: CAM([80, 100], 8, 1.05),
+      sounds: [{ at: 0, sound: 'basiliskra.iii.scatter' }, { at: 0, sound: 'basiliskra.mutate', pitch: 0.8 }], fx: [0, 0.4, 0.8, 1.2, 1.6, 2.0].map((a) => ({ at: a, kind: 3 })) },
+  ],
+  c3b: [
+    { t: 3.2, label: 'Dark. The fire is shut inside him, and only one flank shows it', phase: 'swallow', charge: 0, night: true, cam: CAM([78, 100], -12, 0.72, 0.5),
+      sounds: [{ at: 0, sound: 'basiliskra.iii.fizzle', pitch: 0.7 }, { at: 1.2, sound: 'basiliskra.iii.breath', pitch: 0.7 }] },
+    { t: 2.3, label: 'The wings come open', phase: 'recoil', charge: [0, 12], night: true, cam: CAM([270, 256], 10, 1.2), sounds: [{ at: 0, sound: 'basiliskra.iii.club_swing', pitch: 0.7 }] },
+    { t: 5.0, label: 'Basiliskra IV. (His first roar still comes after his first beam.)', phase: 'rise', charge: [12, 20], night: true, cam: CAM([130, 78], 6, 1.25), sounds: [{ at: 0, sound: 'basiliskra.iii.growl', pitch: 0.7 }] },
+  ],
 };
+// which model plays each reel, and what it is called on screen
+const MODEL = { titan: 'iv', c1a: 'i', c1b: 'ii', c2a: 'ii', c2b: 'iii', c3a: 'iii', c3b: 'iv' };
+const TITLE = { titan: 'The Titan', c1a: 'The water boils', c1b: 'The water boils', c2a: 'The sky comes down', c2b: 'The sky comes down', c3a: 'He burns through', c3b: 'He burns through' };
 const STRIDE = { iii: POSE.stride_iii / 4, iv: 7 }, BEATS = { iii: 4, iv: 2 };
 
 async function main() {
@@ -119,7 +167,7 @@ async function main() {
 
   for (const reelKey of forms) {
     // which model plays this reel (the Titan's is Basiliskra IV's), and which client entity drives it
-    const key = reelKey === 'titan' ? 'iv' : reelKey;
+    const key = MODEL[reelKey] ?? reelKey;
     const scale = SCALE[key];
     // ---- the stage for this form: him, a chequered ground that moves under him, a figure for scale ----
     const info = await s.page.evaluate(async ({ key, scale, files, client }) => {
@@ -193,7 +241,7 @@ async function main() {
           night: !!seg.night, beam: !!seg.beam,
           back: seg.skid ? seg.skid * u : seg.held || 0, swing: seg.swing ? seg.swing * (u * u * (3 - 2 * u)) : 0,
           cam: { yaw, pitch: cam.pitch, dist: size * 1.45 * cam.dist, at: height * cam.at },
-          title: reelKey === 'titan' ? 'The Titan' : `Basiliskra ${ROMAN[key]}`, label: seg.label,
+          title: TITLE[reelKey] ?? `Basiliskra ${ROMAN[key]}`, label: seg.label,
         };
         const url = await s.page.evaluate((F) => {
           const BK = window.BK, THREE = BK.THREE, R = BK.reel, m = R.m, a = m.animator;

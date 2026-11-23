@@ -282,12 +282,12 @@ var NATURAL = /^minecraft:(stone|granite|diorite|andesite|deepslate|tuff|calcite
 var isPlantBlock = (id) => PLANT.test(id);
 var HIS_GROUND = /^basiliskra:(irradiated_soil|irradiated_rock|scarlet_trinitite|glowing_slag|cooled_slag)$/;
 var isNaturalGround = (id) => NATURAL.test(id) && !id.includes("glazed") || HIS_GROUND.test(id);
-function trunkBlocked(dim, at2, feetY, radius, built, cliff, full, smash = false) {
+function trunkBlocked(dim, at3, feetY, radius, built, cliff, full, smash = false) {
   const ring = full ? [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [0.72, 0.72], [-0.72, 0.72], [0.72, -0.72], [-0.72, -0.72]] : [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
   for (const [dx, dz] of ring) {
-    const x = at2.x + dx * radius, z = at2.z + dz * radius;
-    const top = blockAt(dim, { x, y: feetY + cliff, z });
-    if (top && isSolidBlock(top) && !isPlantBlock(top.typeId) && (!smash || isNaturalGround(top.typeId))) return true;
+    const x = at3.x + dx * radius, z = at3.z + dz * radius;
+    const top2 = blockAt(dim, { x, y: feetY + cliff, z });
+    if (top2 && isSolidBlock(top2) && !isPlantBlock(top2.typeId) && (!smash || isNaturalGround(top2.typeId))) return true;
     if (smash) continue;
     for (const h of built) {
       const b = blockAt(dim, { x, y: feetY + h, z });
@@ -299,9 +299,9 @@ function trunkBlocked(dim, at2, feetY, radius, built, cliff, full, smash = false
 function waterOver(dim, x, z, floorY, depth) {
   return isWaterId(idAt(dim, { x, y: floorY + depth, z }));
 }
-function deepHere(dim, x, z, surface, need) {
-  if (!isLoaded(dim, { x, y: surface, z })) return UNLOADED;
-  for (let d = 1; d <= need; d++) if (!isWaterId(idAt(dim, { x, y: surface - d, z }))) return false;
+function deepHere(dim, x, z, surface2, need) {
+  if (!isLoaded(dim, { x, y: surface2, z })) return UNLOADED;
+  for (let d = 1; d <= need; d++) if (!isWaterId(idAt(dim, { x, y: surface2 - d, z }))) return false;
   return true;
 }
 var UNLOADED = Symbol("unloaded");
@@ -318,11 +318,11 @@ function groundY(dim, x, z, yTop, depth) {
   }
   return NONE;
 }
-function footprintY(dim, at2, radius, yTop, depth, floatY = null) {
+function footprintY(dim, at3, radius, yTop, depth, floatY = null) {
   const ys = [];
   let unloaded = 0;
   for (const dx of [-radius, 0, radius]) for (const dz of [-radius, 0, radius]) {
-    const x = at2.x + dx, z = at2.z + dz;
+    const x = at3.x + dx, z = at3.z + dz;
     let g = groundY(dim, x, z, yTop, depth);
     if (floatY !== null && g !== UNLOADED && (g === NONE || g < floatY) && isWaterId(idAt(dim, { x, y: floatY, z }))) g = floatY;
     if (g === UNLOADED) unloaded++;
@@ -335,15 +335,15 @@ function footprintY(dim, at2, radius, yTop, depth, floatY = null) {
 }
 function waterColumn(dim, x, z, y, reach = 24, deep = 64) {
   if (!isLoaded(dim, { x, y, z })) return UNLOADED;
-  let top = Math.floor(y);
-  let b = blockAt(dim, { x, y: top, z });
+  let top2 = Math.floor(y);
+  let b = blockAt(dim, { x, y: top2, z });
   if (!b) return UNLOADED;
   if (!isWaterId(b.typeId)) {
     let found = false;
     for (let d = 1; d <= reach && !found; d++) {
-      for (const yy of [top - d, top + d]) {
+      for (const yy of [top2 - d, top2 + d]) {
         if (isWaterId(idAt(dim, { x, y: yy, z }))) {
-          top = yy;
+          top2 = yy;
           found = true;
           break;
         }
@@ -351,10 +351,10 @@ function waterColumn(dim, x, z, y, reach = 24, deep = 64) {
     }
     if (!found) return NONE;
   }
-  while (isWaterId(idAt(dim, { x, y: top + 1, z })) && top < dim.heightRange.max - 2) top++;
-  let bottom = top;
-  while (bottom > dim.heightRange.min + 1 && bottom > top - deep && isWaterId(idAt(dim, { x, y: bottom - 1, z }))) bottom--;
-  return { surface: top + 1, floor: bottom };
+  while (isWaterId(idAt(dim, { x, y: top2 + 1, z })) && top2 < dim.heightRange.max - 2) top2++;
+  let bottom = top2;
+  while (bottom > dim.heightRange.min + 1 && bottom > top2 - deep && isWaterId(idAt(dim, { x, y: bottom - 1, z }))) bottom--;
+  return { surface: top2 + 1, floor: bottom };
 }
 function clearLine(dim, a, b) {
   const dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
@@ -388,14 +388,14 @@ var PRINT = { "minecraft:grass_block": "minecraft:mud", "minecraft:dirt": "minec
 var furrowOf = (id) => MARK[id];
 var printOf = (id) => PRINT[id];
 var WILD = /^minecraft:(air|short_grass|tall_grass|fern|large_fern|deadbush|snow_layer|dandelion|poppy|.*tulip|.*_orchid|allium|azure_bluet|oxeye_daisy|cornflower|lily_of_the_valley|leaf_litter|bush|firefly_bush|wildflowers|pink_petals)$/;
-function takesMark(dim, at2) {
-  const b = blockAt(dim, at2);
+function takesMark(dim, at3) {
+  const b = blockAt(dim, at3);
   if (!b) return void 0;
-  const above = blockAt(dim, { x: at2.x, y: at2.y + 1, z: at2.z });
+  const above = blockAt(dim, { x: at3.x, y: at3.y + 1, z: at3.z });
   if (!above || !WILD.test(above.typeId)) return void 0;
   for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
     for (const dy of [0, 1]) {
-      const n = blockAt(dim, { x: at2.x + dx, y: at2.y + dy, z: at2.z + dz });
+      const n = blockAt(dim, { x: at3.x + dx, y: at3.y + dy, z: at3.z + dz });
       if (n && isSolidBlock(n) && !isNaturalGround(n.typeId) && !isPlantBlock(n.typeId)) return void 0;
     }
   }
@@ -417,11 +417,11 @@ function beginTick(tick) {
 function players() {
   return playerCache;
 }
-function witnesses(dim, at2, range) {
+function witnesses(dim, at3, range) {
   const out = [];
   for (const p of playerCache) {
     try {
-      if (p.isValid && p.dimension.id === dim.id && dist(p.location, at2) <= range) out.push(p);
+      if (p.isValid && p.dimension.id === dim.id && dist(p.location, at3) <= range) out.push(p);
     } catch {
     }
   }
@@ -430,51 +430,51 @@ function witnesses(dim, at2, range) {
 var QUIET = /^basiliskra\.(geiger|fin_pulse|boat_knock|splash|bell_pin|scrape_far|iii\.window_breath|music)/;
 var NEAR = 40;
 var FAR = 220;
-function sound(dim, id, at2, range = 48, volume = 1, pitch = 1) {
+function sound(dim, id, at3, range = 48, volume = 1, pitch = 1) {
   if (id.startsWith("basiliskra.") && !QUIET.test(id)) {
-    loud(dim, id, at2, volume, pitch);
+    loud(dim, id, at3, volume, pitch);
     return;
   }
-  for (const p of witnesses(dim, at2, range)) {
+  for (const p of witnesses(dim, at3, range)) {
     try {
-      p.playSound(id, { location: at2, volume, pitch });
+      p.playSound(id, { location: at3, volume, pitch });
     } catch {
     }
   }
 }
-function loud(dim, id, at2, volume = 1, pitch = 1, far = FAR) {
+function loud(dim, id, at3, volume = 1, pitch = 1, far = FAR) {
   for (const p of playerCache) {
     try {
       if (!p.isValid || p.dimension.id !== dim.id) continue;
-      const l = p.location, d = dist(l, at2);
+      const l = p.location, d = dist(l, at3);
       if (d > far) continue;
       if (d <= NEAR) {
-        p.playSound(id, { location: at2, volume, pitch });
+        p.playSound(id, { location: at3, volume, pitch });
         continue;
       }
       const k = 10 / d;
-      const from = { x: l.x + (at2.x - l.x) * k, y: l.y + 1.6 + (at2.y - l.y) * k, z: l.z + (at2.z - l.z) * k };
+      const from = { x: l.x + (at3.x - l.x) * k, y: l.y + 1.6 + (at3.y - l.y) * k, z: l.z + (at3.z - l.z) * k };
       const v = volume * (1 - 0.8 * Math.pow((d - NEAR) / (far - NEAR), 0.8));
       p.playSound(id, { location: from, volume: v, pitch });
     } catch {
     }
   }
 }
-function stopSound(dim, id, at2, range = 192) {
-  for (const p of witnesses(dim, at2, range)) {
+function stopSound(dim, id, at3, range = 192) {
+  for (const p of witnesses(dim, at3, range)) {
     try {
       p.runCommand(`stopsound @s ${id}`);
     } catch {
     }
   }
 }
-function particle(dim, id, at2, range = 48, vars2) {
-  if (!isLoaded(dim, at2)) return;
-  for (const p of witnesses(dim, at2, range)) {
+function particle(dim, id, at3, range = 48, vars2) {
+  if (!isLoaded(dim, at3)) return;
+  for (const p of witnesses(dim, at3, range)) {
     if (spent >= PARTICLE_BUDGET) return;
     spent++;
     try {
-      p.spawnParticle(id, at2, vars2);
+      p.spawnParticle(id, at3, vars2);
     } catch {
     }
   }
@@ -492,10 +492,10 @@ function sizeVars(size) {
   m.setFloat("variable.size", size);
   return m;
 }
-function flash(dim, at2, range, color, fadeIn = 0.05, hold = 0.1, fadeOut = 0.5) {
+function flash(dim, at3, range, color, fadeIn = 0.05, hold = 0.1, fadeOut = 0.5) {
   for (const p of players()) {
     try {
-      if (p.dimension.id !== dim.id || dist(p.location, at2) > range) continue;
+      if (p.dimension.id !== dim.id || dist(p.location, at3) > range) continue;
       p.camera.fade({ fadeColor: color, fadeTime: { fadeInTime: fadeIn, holdTime: hold, fadeOutTime: fadeOut } });
     } catch {
     }
@@ -654,11 +654,11 @@ var Skeleton = class {
   }
 };
 var drawScale = (form) => SCALE[form];
-function toWorld(at2, yaw, m, scale = 1) {
+function toWorld(at3, yaw, m, scale = 1) {
   const l = leftOf(yaw), f = forwardOf(yaw);
   const k = scale / 16;
   const x = m[0] * k, y = m[1] * k, z = -m[2] * k;
-  return { x: at2.x + l.x * x + f.x * z, y: at2.y + y, z: at2.z + l.z * x + f.z * z };
+  return { x: at3.x + l.x * x + f.x * z, y: at3.y + y, z: at3.z + l.z * x + f.z * z };
 }
 
 // src/havoc.ts
@@ -862,8 +862,8 @@ function brittleAround(dim, center, reach) {
   out.sort((a, b) => Math.hypot(a.x + 0.5 - center.x, a.z + 0.5 - center.z) - Math.hypot(b.x + 0.5 - center.x, b.z + 0.5 - center.z));
   return out;
 }
-function shatter(dim, at2) {
-  const b = blockAt(dim, at2);
+function shatter(dim, at3) {
+  const b = blockAt(dim, at3);
   if (!b || b.isAir) return false;
   const id = b.typeId;
   const isGlass = GLASS.test(id);
@@ -875,7 +875,7 @@ function shatter(dim, at2) {
   } catch {
     return false;
   }
-  if (isGlass) sound(dim, "random.glass", at2, 32, 0.8, 0.9 + (at2.x + at2.z & 3) * 0.05);
+  if (isGlass) sound(dim, "random.glass", at3, 32, 0.8, 0.9 + (at3.x + at3.z & 3) * 0.05);
   return true;
 }
 function breakable(id) {
@@ -900,10 +900,10 @@ function sphere(r) {
   spheres.set(key, out);
   return out;
 }
-function carve(dim, at2, r, budget, fire = false) {
+function carve(dim, at3, r, budget, fire = false) {
   const out = { broken: 0, floor: [] };
-  if (!isLoaded(dim, at2)) return out;
-  const cx = Math.floor(at2.x), cy = Math.floor(at2.y), cz = Math.floor(at2.z);
+  if (!isLoaded(dim, at3)) return out;
+  const cx = Math.floor(at3.x), cy = Math.floor(at3.y), cz = Math.floor(at3.z);
   let reads = 0;
   for (const [dx, dy, dz] of sphere(r)) {
     if (out.broken >= budget || reads > budget * 3) break;
@@ -988,7 +988,7 @@ function clearBox(dim, lo, hi, keepGround) {
     return -1;
   }
 }
-function ploughBox(dim, pos, forward, front, halfWidth, top, depth, rockFrom) {
+function ploughBox(dim, pos, forward, front, halfWidth, top2, depth, rockFrom) {
   if (!wither()) return 0;
   const lx = Math.abs(forward.z) * halfWidth + 1, lz = Math.abs(forward.x) * halfWidth + 1;
   const y0 = Math.floor(pos.y);
@@ -997,24 +997,24 @@ function ploughBox(dim, pos, forward, front, halfWidth, top, depth, rockFrom) {
     const cx = pos.x + forward.x * (front + d), cz = pos.z + forward.z * (front + d);
     if (!isLoaded(dim, { x: cx, y: y0, z: cz })) continue;
     const x0 = Math.floor(cx - lx), x1 = Math.floor(cx + lx), z0 = Math.floor(cz - lz), z1 = Math.floor(cz + lz);
-    const split = rockFrom === null ? top + 1 : Math.min(rockFrom, top + 1);
+    const split = rockFrom === null ? top2 + 1 : Math.min(rockFrom, top2 + 1);
     if (split > 0) {
       const a = clearBox(dim, { x: x0, y: y0, z: z0 }, { x: x1, y: y0 + split - 1, z: z1 }, true);
       if (a < 0) return -1;
       n += a;
     }
-    if (split <= top) {
-      const b = clearBox(dim, { x: x0, y: y0 + split, z: z0 }, { x: x1, y: y0 + top, z: z1 }, false);
+    if (split <= top2) {
+      const b = clearBox(dim, { x: x0, y: y0 + split, z: z0 }, { x: x1, y: y0 + top2, z: z1 }, false);
       if (b < 0) return -1;
       n += b;
     }
   }
   return n;
 }
-function ploughNoise(dim, at2, broken) {
-  sound(dim, "mob.wither.break_block", at2, 128, 1, 0.55);
+function ploughNoise(dim, at3, broken) {
+  sound(dim, "mob.wither.break_block", at3, 128, 1, 0.55);
   const n = Math.min(4, 1 + Math.floor(broken / 60));
-  for (let i = 0; i < n; i++) particle(dim, "basiliskra:impact_debris", { x: at2.x + (i - n / 2) * 3, y: at2.y + 2 + i * 3, z: at2.z + (i % 2 ? 2 : -2) }, 96);
+  for (let i = 0; i < n; i++) particle(dim, "basiliskra:impact_debris", { x: at3.x + (i - n / 2) * 3, y: at3.y + 2 + i * 3, z: at3.z + (i % 2 ? 2 : -2) }, 96);
 }
 function shatterRing(dim, center, r0, r1, samples, seed) {
   if (CONFIG.terrain === "none") return 0;
@@ -1025,8 +1025,8 @@ function shatterRing(dim, center, r0, r1, samples, seed) {
     const a = (i + seed % 7 * 0.13) * (Math.PI * 2 / samples);
     const x = center.x + Math.cos(a) * r, z = center.z + Math.sin(a) * r;
     if (!isLoaded(dim, { x, y: center.y, z })) continue;
-    const top = i % 4 === 0 ? 6 : 2;
-    for (let dy = -1; dy <= top; dy++) {
+    const top2 = i % 4 === 0 ? 6 : 2;
+    for (let dy = -1; dy <= top2; dy++) {
       const p = { x, y: center.y + dy, z };
       const b = blockAt(dim, p);
       reads++;
@@ -1046,9 +1046,9 @@ function shatterRing(dim, center, r0, r1, samples, seed) {
   }
   return reads;
 }
-function mobsNear(dim, at2, r) {
+function mobsNear(dim, at3, r) {
   try {
-    return dim.getEntities({ location: at2, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
+    return dim.getEntities({ location: at3, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
   } catch {
     return [];
   }
@@ -1060,10 +1060,10 @@ function alive(e) {
     return false;
   }
 }
-function blast(dim, at2, r, playerDamage, mobDamage, knock, hurtPlayer, source, from = at2, mobs) {
-  for (const p of witnesses(dim, at2, r)) {
+function blast(dim, at3, r, playerDamage, mobDamage, knock, hurtPlayer, source, from = at3, mobs) {
+  for (const p of witnesses(dim, at3, r)) {
     try {
-      const d = dist(add(p.location, { x: 0, y: 0.9, z: 0 }), at2);
+      const d = dist(add(p.location, { x: 0, y: 0.9, z: 0 }), at3);
       if (d > r) continue;
       const f = 1 - d / (r + 0.5);
       if (playerDamage > 0) hurtPlayer(p, Math.max(1, Math.round(playerDamage * f)));
@@ -1074,11 +1074,11 @@ function blast(dim, at2, r, playerDamage, mobDamage, knock, hurtPlayer, source, 
     } catch {
     }
   }
-  for (const e of mobs ?? mobsNear(dim, at2, r)) {
+  for (const e of mobs ?? mobsNear(dim, at3, r)) {
     try {
       if (!e.isValid) continue;
       const loc = e.location;
-      const d = dist(loc, at2);
+      const d = dist(loc, at3);
       if (d > r + 1) continue;
       const f = Math.max(0.2, 1 - d / (r + 1));
       if (mobDamage > 0) e.applyDamage(Math.round(mobDamage * f), { cause: EntityDamageCause.entityAttack, damagingEntity: source });
@@ -1237,10 +1237,10 @@ function migrate(raw) {
   return rec;
 }
 function readChunks(key) {
-  const head = world4.getDynamicProperty(key);
-  if (typeof head !== "string") return void 0;
-  if (!head.startsWith("#")) return head;
-  const n = parseInt(head.slice(1), 10);
+  const head2 = world4.getDynamicProperty(key);
+  if (typeof head2 !== "string") return void 0;
+  if (!head2.startsWith("#")) return head2;
+  const n = parseInt(head2.slice(1), 10);
   let s = "";
   for (let i = 0; i < n; i++) {
     const part = world4.getDynamicProperty(`${key}:${i}`);
@@ -1342,9 +1342,9 @@ function partsFor(form) {
     const leg = lm ? lm[1] : void 0;
     const swing = lm ? bone.startsWith("foot") ? 1 : lm[2] ? 0.55 : 0.25 : void 0;
     for (let ix = 0; ix < n[0]; ix++) for (let iy = 0; iy < n[1]; iy++) for (let iz = 0; iz < n[2]; iz++) {
-      const at2 = [ix, iy, iz].map((i, ax) => n[ax] === 1 ? (lo[ax] + hi[ax]) / 2 : lo[ax] + edge / 2 + i * (d[ax] - edge) / (n[ax] - 1));
-      out.push({ bone, at: at2, si, tag, leg, swing });
-      placed.push({ c: rest.point(bone, at2), h: half });
+      const at3 = [ix, iy, iz].map((i, ax) => n[ax] === 1 ? (lo[ax] + hi[ax]) / 2 : lo[ax] + edge / 2 + i * (d[ax] - edge) / (n[ax] - 1));
+      out.push({ bone, at: at3, si, tag, leg, swing });
+      placed.push({ c: rest.point(bone, at3), h: half });
     }
   }
   partCache.set(form, out);
@@ -1411,6 +1411,7 @@ var Creature = class {
     /** How much harder than Basiliskra himself this body hits, and how much faster it walks (the Titan). */
     this.might = 1;
     this.haste = 1;
+    this.skelForm = 1;
     // ---- a way round -------------------------------------------------------------------------------
     this.planner = null;
     this.route = [];
@@ -1540,13 +1541,18 @@ var Creature = class {
     return drawScale(this.form);
   }
   skeleton() {
-    return this.skel ?? (this.skel = new Skeleton(this.form, this.pose(), this.phase === "window" || this.phase === "stalk" ? 1 : 0));
+    if (this.skel && this.skelForm !== this.form) this.skel = null;
+    if (!this.skel) {
+      this.skel = new Skeleton(this.form, this.pose(), this.phase === "window" || this.phase === "stalk" ? 1 : 0);
+      this.skelForm = this.form;
+    }
+    return this.skel;
   }
   anchor(locator) {
     return toWorld(this.pos, this.yaw, this.skeleton().locator(locator), this.scale);
   }
-  point(bone, at2) {
-    return toWorld(this.pos, this.yaw, this.skeleton().point(bone, at2), this.scale);
+  point(bone, at3) {
+    return toWorld(this.pos, this.yaw, this.skeleton().point(bone, at3), this.scale);
   }
   /** Model-unit offset (forward, up) of a sole from its rest place, at this point of the walk (as the client solves it). */
   legOffset(leg) {
@@ -1657,16 +1663,16 @@ var Creature = class {
     return !this.goal || distXZ(this.pos, this.goal) <= this.arriveDist;
   }
   // ---- walls -----------------------------------------------------------------------------------
-  walled(at2, full) {
+  walled(at3, full) {
     const b = BODY[this.form];
     const feet = this.afloat && this.surfY != null ? Math.max(this.pos.y, this.surfY - 1.2) : this.pos.y;
     if (this.smashing()) return false;
-    return trunkBlocked(this.dim, at2, feet, MOVE[this.form].radius, b.built, b.cliff, full);
+    return trunkBlocked(this.dim, at3, feet, MOVE[this.form].radius, b.built, b.cliff, full);
   }
   /** Is there room for his middle here (used by the few moves that carry him without stepping)? */
-  roomAt(at2) {
+  roomAt(at3) {
     for (const dy of [1, 3]) {
-      const b = blockAt(this.dim, { x: at2.x, y: at2.y + dy, z: at2.z });
+      const b = blockAt(this.dim, { x: at3.x, y: at3.y + dy, z: at3.z });
       if (b && isSolidBlock(b)) return false;
     }
     return true;
@@ -1701,10 +1707,10 @@ var Creature = class {
       if (broke2 > 0) ploughBox(this.dim, { x: this.pos.x, y: this.pos.y + 57, z: this.pos.z }, this.forward, b.front - 3, Math.ceil(r) + 1, 50, 7, null);
       return;
     }
-    const top = Math.round(9.6 * this.scale);
+    const top2 = Math.round(9.6 * this.scale);
     const f = this.forward, l = leftOf(this.yaw);
     let found = false;
-    probe: for (const s of [b.front, b.front + 2]) for (const side of [-0.8, 0, 0.8]) for (const h of [1.2, step + 0.5, top * 0.55, top - 1]) {
+    probe: for (const s of [b.front, b.front + 2]) for (const side of [-0.8, 0, 0.8]) for (const h of [1.2, step + 0.5, top2 * 0.55, top2 - 1]) {
       const q = blockAt(this.dim, { x: this.pos.x + f.x * s + l.x * side * r, y: this.pos.y + h, z: this.pos.z + f.z * s + l.z * side * r });
       if (!q || q.isAir || q.isLiquid) continue;
       if (h < step && isNaturalGround(q.typeId) && !isPlantBlock(q.typeId)) continue;
@@ -1714,17 +1720,17 @@ var Creature = class {
     if (!found) return;
     this.crushAt = this.tick;
     const loud2 = this.tick - this.crushSoundAt >= 14;
-    const broke = crush(this.dim, this.pos, this.forward, b.front - 2, Math.ceil(r) + 1, 0, top, 5, 170, this.afloat || this.inDeep() ? null : step, loud2);
+    const broke = crush(this.dim, this.pos, this.forward, b.front - 2, Math.ceil(r) + 1, 0, top2, 5, 170, this.afloat || this.inDeep() ? null : step, loud2);
     if (broke) {
       this.speed *= 0.8;
       if (loud2) this.crushSoundAt = this.tick;
-      ploughBox(this.dim, { x: this.pos.x, y: this.pos.y + top + 1, z: this.pos.z }, this.forward, b.front - 2, Math.ceil(r) + 1, 70, 5, null);
+      ploughBox(this.dim, { x: this.pos.x, y: this.pos.y + top2 + 1, z: this.pos.z }, this.forward, b.front - 2, Math.ceil(r) + 1, 70, 5, null);
     }
   }
   /** Water deeper than this form wades: Form II drags through shallows, Form III stands belly-deep. */
-  tooDeep(at2, floorY) {
+  tooDeep(at3, floorY) {
     if (this.wade || this.form === 1) return false;
-    return waterOver(this.dim, at2.x, at2.z, floorY, BODY[this.form].wade);
+    return waterOver(this.dim, at3.x, at3.z, floorY, BODY[this.form].wade);
   }
   /** Already in water over his depth (swimming, or sunk to the bed): then every way is a way out. */
   inDeep() {
@@ -1734,11 +1740,11 @@ var Creature = class {
     const f = forwardOf(yaw);
     for (const s of BODY[this.form].look) {
       if (s > reach) break;
-      const at2 = add(this.pos, mul(f, s));
-      if (this.walled(at2, true)) return false;
-      const floor = groundY(this.dim, at2.x, at2.z, this.pos.y + 6, DROP + 6);
+      const at3 = add(this.pos, mul(f, s));
+      if (this.walled(at3, true)) return false;
+      const floor = groundY(this.dim, at3.x, at3.z, this.pos.y + 6, DROP + 6);
       if (floor === NONE) return false;
-      if (typeof floor === "number" && !this.inDeep() && this.tooDeep(at2, floor)) return false;
+      if (typeof floor === "number" && !this.inDeep() && this.tooDeep(at3, floor)) return false;
     }
     return true;
   }
@@ -1781,14 +1787,14 @@ var Creature = class {
       this.surfY = wc === NONE || wc === UNLOADED ? null : wc.surface;
     }
     const floatY = this.surfY !== null && this.surfY !== void 0 ? this.surfY - lim : null;
-    const top = BODY[this.form].top;
-    const yTop = this.pos.y + top + (this.afloat ? lim + 2 : 0);
-    const mid = groundY(this.dim, next.x, next.z, yTop, DROP + top);
+    const top2 = BODY[this.form].top;
+    const yTop = this.pos.y + top2 + (this.afloat ? lim + 2 : 0);
+    const mid = groundY(this.dim, next.x, next.z, yTop, DROP + top2);
     if (moving && !this.wade && !this.inDeep() && typeof mid === "number" && this.tooDeep(next, mid)) {
       this.blockedWhy = "deep";
       return null;
     }
-    let g = footprintY(this.dim, next, r, yTop, DROP + top, floatY);
+    let g = footprintY(this.dim, next, r, yTop, DROP + top2, floatY);
     if (g === UNLOADED) {
       this.blockedWhy = "unloaded";
       return null;
@@ -1823,8 +1829,8 @@ var Creature = class {
       return null;
     }
     if (moving) {
-      const head = add(next, mul(this.forward, 7));
-      const hb = blockAt(this.dim, { x: head.x, y: this.pos.y + 1.5, z: head.z });
+      const head2 = add(next, mul(this.forward, 7));
+      const hb = blockAt(this.dim, { x: head2.x, y: this.pos.y + 1.5, z: head2.z });
       if (hb && !isWaterId(hb.typeId)) {
         this.blockedWhy = "edge";
         return null;
@@ -1955,7 +1961,7 @@ var Creature = class {
       }
       const si = d.si;
       const s = SIZES[si];
-      const at2 = { x: c.x, y: Math.max(c.y - s / 2, this.pos.y - 0.25), z: c.z };
+      const at3 = { x: c.x, y: Math.max(c.y - s / 2, this.pos.y - 0.25), z: c.z };
       let part = this.parts[i];
       let ok = false;
       try {
@@ -1968,23 +1974,23 @@ var Creature = class {
           partOwner.delete(this.partIds[i]);
           this.partIds[i] = void 0;
         }
-        if (!isLoaded(this.dim, at2)) continue;
+        if (!isLoaded(this.dim, at3)) continue;
         try {
-          part = this.dim.spawnEntity(hitboxId(si), at2);
+          part = this.dim.spawnEntity(hitboxId(si), at3);
           partOwner.set(part.id, { creature: this, tag: d.tag });
           this.parts[i] = part;
           this.partIds[i] = part.id;
-          this.partPos[i] = at2;
+          this.partPos[i] = at3;
         } catch {
           this.parts[i] = void 0;
         }
         continue;
       }
       const last = this.partPos[i];
-      if (!last || dist(last, at2) > 0.2) {
+      if (!last || dist(last, at3) > 0.2) {
         try {
-          part.teleport(at2);
-          this.partPos[i] = at2;
+          part.teleport(at3);
+          this.partPos[i] = at3;
         } catch {
           this.parts[i] = void 0;
         }
@@ -2024,10 +2030,10 @@ var Creature = class {
     const defs = partsFor(this.form);
     let best = null;
     for (let i = 0; i < defs.length; i++) {
-      const at2 = this.partPos[i];
-      if (!at2) continue;
+      const at3 = this.partPos[i];
+      if (!at3) continue;
       const h = SIZES[defs[i].si] / 2;
-      const lo = [at2.x - h, at2.y, at2.z - h], hi = [at2.x + h, at2.y + 2 * h, at2.z + h];
+      const lo = [at3.x - h, at3.y, at3.z - h], hi = [at3.x + h, at3.y + 2 * h, at3.z + h];
       const o = [from.x, from.y, from.z], d = [dir.x, dir.y, dir.z];
       let t0 = 0, t1 = reach, ok = true;
       for (let a = 0; a < 3 && ok; a++) {
@@ -2112,13 +2118,13 @@ var Creature = class {
     return moved;
   }
   /** A sound from him.  If it is his voice, his mouth moves with it (the client times the jaw to the recording). */
-  say(id, at2, range = 56, volume = 1, pitch = 1) {
-    sound(this.dim, id, at2 ?? this.pos, range, volume, pitch);
+  say(id, at3, range = 56, volume = 1, pitch = 1) {
+    sound(this.dim, id, at3 ?? this.pos, range, volume, pitch);
     const m = /^basiliskra\.(?:[a-z]+\.)?(grunt|growl|breath|hurt|roar|roar_short|roar_under)$/.exec(id);
     if (m) this.pulse(VOICE_KIND[m[1]]);
   }
-  emit(id, at2, range = 56) {
-    particle(this.dim, id, at2, range);
+  emit(id, at3, range = 56) {
+    particle(this.dim, id, at3, range);
   }
   /** Damage a player from him (never on Peaceful when configured so; never Creative/Spectator). */
   hurt(p, amount, cause = EntityDamageCause2.entityAttack) {
@@ -2405,8 +2411,8 @@ function plan(S) {
       ops.push({ k: "fill", a: [u, y, v], b: [Math.min(u12, u + 31), Math.min(y1, y + 29), Math.min(v1, v + 31)], id });
     }
   };
-  const set = (at2, id) => {
-    if (at2.length) ops.push({ k: "set", at: at2, id });
+  const set = (at3, id) => {
+    if (at3.length) ops.push({ k: "set", at: at3, id });
   };
   fill(0, G + 1, 0, L.cityU - 1, G + 72, L.vBeach - 1, AIR);
   fill(0, G - 5, 0, L.cityU - 1, G - 1, L.vBeach - 1, STONE);
@@ -2422,16 +2428,16 @@ function plan(S) {
   }
   const lamps = [], posts = [], lights = [];
   const tower = (lu, lv, w, d, h, n) => {
-    const u02 = lu + Math.floor((LOT - w) / 2), v0 = lv + Math.floor((LOT - d) / 2), u12 = u02 + w - 1, v1 = v0 + d - 1, top = G + h;
+    const u02 = lu + Math.floor((LOT - w) / 2), v0 = lv + Math.floor((LOT - d) / 2), u12 = u02 + w - 1, v1 = v0 + d - 1, top2 = G + h;
     const wall = pick(WALLS, n, 1), glass = pick(GLASS2, n, 2), style = Math.floor(rnd(n, 3) * 3);
-    fill(u02, G + 1, v0, u12, top, v1, wall);
-    fill(u02 + 1, G + 1, v0 + 1, u12 - 1, top - 1, v1 - 1, AIR);
-    for (let y = G + 4; y < top - 1; y += 4) {
+    fill(u02, G + 1, v0, u12, top2, v1, wall);
+    fill(u02 + 1, G + 1, v0 + 1, u12 - 1, top2 - 1, v1 - 1, AIR);
+    for (let y = G + 4; y < top2 - 1; y += 4) {
       fill(u02 + 1, y, v0 + 1, u12 - 1, y, v1 - 1, FLOOR);
       lights.push([u02 + (w >> 1), y, v0 + (d >> 1)]);
     }
     if (style === 0) {
-      for (let y = G + 1; y + 2 < top; y += 4) {
+      for (let y = G + 1; y + 2 < top2; y += 4) {
         fill(u02 + 1, y + 1, v0, u12 - 1, y + 2, v0, glass);
         fill(u02 + 1, y + 1, v1, u12 - 1, y + 2, v1, glass);
         fill(u02, y + 1, v0 + 1, u02, y + 2, v1 - 1, glass);
@@ -2439,24 +2445,24 @@ function plan(S) {
       }
     } else if (style === 1) {
       for (let u = u02 + 1; u < u12; u += 2) {
-        fill(u, G + 2, v0, u, top - 2, v0, glass);
-        fill(u, G + 2, v1, u, top - 2, v1, glass);
+        fill(u, G + 2, v0, u, top2 - 2, v0, glass);
+        fill(u, G + 2, v1, u, top2 - 2, v1, glass);
       }
       for (let v = v0 + 1; v < v1; v += 2) {
-        fill(u02, G + 2, v, u02, top - 2, v, glass);
-        fill(u12, G + 2, v, u12, top - 2, v, glass);
+        fill(u02, G + 2, v, u02, top2 - 2, v, glass);
+        fill(u12, G + 2, v, u12, top2 - 2, v, glass);
       }
     } else {
-      fill(u02 + 1, G + 2, v0, u12 - 1, top - 2, v0, glass);
-      fill(u02 + 1, G + 2, v1, u12 - 1, top - 2, v1, glass);
-      fill(u02, G + 2, v0 + 1, u02, top - 2, v1 - 1, glass);
-      fill(u12, G + 2, v0 + 1, u12, top - 2, v1 - 1, glass);
+      fill(u02 + 1, G + 2, v0, u12 - 1, top2 - 2, v0, glass);
+      fill(u02 + 1, G + 2, v1, u12 - 1, top2 - 2, v1, glass);
+      fill(u02, G + 2, v0 + 1, u02, top2 - 2, v1 - 1, glass);
+      fill(u12, G + 2, v0 + 1, u12, top2 - 2, v1 - 1, glass);
     }
     fill(u02 + (w >> 1), G + 1, v1, u02 + (w >> 1), G + 2, v1, AIR);
-    if (h > 22) fill(u02 + 2, top + 1, v0 + 2, u12 - 2, top + 2, v1 - 2, wall);
+    if (h > 22) fill(u02 + 2, top2 + 1, v0 + 2, u12 - 2, top2 + 2, v1 - 2, wall);
     if (h > 40) {
-      fill(u02 + (w >> 1), top + 3, v0 + (d >> 1), u02 + (w >> 1), top + 8, v0 + (d >> 1), "minecraft:iron_block");
-      lights.push([u02 + (w >> 1), top + 9, v0 + (d >> 1)]);
+      fill(u02 + (w >> 1), top2 + 3, v0 + (d >> 1), u02 + (w >> 1), top2 + 8, v0 + (d >> 1), "minecraft:iron_block");
+      lights.push([u02 + (w >> 1), top2 + 9, v0 + (d >> 1)]);
     }
   };
   const houses = (lu, lv, n) => {
@@ -2562,18 +2568,18 @@ function plan(S) {
   set(posts, "minecraft:nether_brick_fence");
   set(lamps, LIGHT);
   set(lights, LIGHT);
-  const strip = (v0, v1, y, top) => {
+  const strip = (v0, v1, y, top2) => {
     fill(L.uMin, y - 6, v0, L.uMax, y - 3, v1, SANDSTONE);
-    fill(L.uMin, y - 2, v0, L.uMax, y, v1, top);
+    fill(L.uMin, y - 2, v0, L.uMax, y, v1, top2);
     if (y < SEA) fill(L.uMin, y + 1, v0, L.uMax, SEA, v1, WATER);
     fill(L.uMin, Math.max(y, SEA) + 1, v0, L.uMax, G + 40, v1, AIR);
   };
-  const rows = (v0, n, yA, yB, top) => {
+  const rows = (v0, n, yA, yB, top2) => {
     let from = 0, y = yA;
     for (let k = 1; k <= n; k++) {
       const yk = k === n ? NaN : Math.round(yA + (yB - yA) * (k / (n - 1)));
       if (yk !== y) {
-        strip(v0 + from, v0 + k - 1, y, top);
+        strip(v0 + from, v0 + k - 1, y, top2);
         from = k;
         y = yk;
       }
@@ -2732,18 +2738,18 @@ var Build = class {
           volume += (b.hi.x - b.lo.x + 1) * (b.hi.y - b.lo.y + 1) * (b.hi.z - b.lo.z + 1);
         } else if (op.k === "set") {
           for (const [u, y, v] of op.at) {
-            const at2 = blockAt(this.dim, toWorld2(this.S, u, y, v));
-            if (at2) at2.setType(op.id);
+            const at3 = blockAt(this.dim, toWorld2(this.S, u, y, v));
+            if (at3) at3.setType(op.id);
           }
           volume += op.at.length * 20;
         } else if (op.k === "mob") {
           const w = toWorld2(this.S, op.at[0], op.at[1], op.at[2]);
           this.dim.spawnEntity(op.id, { x: w.x + 0.5, y: w.y, z: w.z + 0.5 });
         } else {
-          const at2 = blockAt(this.dim, toWorld2(this.S, op.at[0], op.at[1], op.at[2]));
-          if (at2) {
-            at2.setType("minecraft:chest");
-            const box = at2.getComponent("minecraft:inventory")?.container;
+          const at3 = blockAt(this.dim, toWorld2(this.S, op.at[0], op.at[1], op.at[2]));
+          if (at3) {
+            at3.setType("minecraft:chest");
+            const box = at3.getComponent("minecraft:inventory")?.container;
             if (box) op.items.forEach(([id, n], slot) => {
               try {
                 box.setItem(slot * 2 + 3, new ItemStack(id, n));
@@ -2785,16 +2791,16 @@ function occupied(dim, S) {
   }
   return false;
 }
-function raiseCity(at2, dir, small = false, force = true) {
+function raiseCity(at3, dir, small = false, force = true) {
   if (building) return `A city is still being built (${Math.round(building.progress * 100)}%). One at a time.`;
   const list = cities();
   if (list.length >= 8) return "There are eight cities in this world already.";
   const P = small ? SMALL : FULL, L = layout(P);
-  const y = Math.max(SEA + 1, Math.min(82, Math.floor(at2.y) - 1));
+  const y = Math.max(SEA + 1, Math.min(82, Math.floor(at3.y) - 1));
   const S = { x: 0, y, z: 0, dir, small: small || void 0, done: false, t: store.rec.clock };
   const o = toWorld2(S, -L.cityU / 2, 0, -(L.vProm + 3));
-  S.x = Math.floor(at2.x + o.x);
-  S.z = Math.floor(at2.z + o.z);
+  S.x = Math.floor(at3.x + o.x);
+  S.z = Math.floor(at3.z + o.z);
   const dim = overworld();
   if (!force && occupied(dim, S)) return "Something is built there already: no city is raised over it.";
   list.push(S);
@@ -2802,30 +2808,30 @@ function raiseCity(at2, dir, small = false, force = true) {
   building = new Build(S, dim);
   return `A city is rising: ${L.cityU} by ${L.cityV} blocks of streets behind the promenade, a beach in front of it, and a sea cut ${SEA - P.floor} blocks deep beyond.`;
 }
-function nearestCity(at2) {
+function nearestCity(at3) {
   let best = null;
   for (const S of cities()) {
-    const m = landmarks(S), d = Math.hypot(m.centre.x - at2.x, m.centre.z - at2.z);
+    const m = landmarks(S), d = Math.hypot(m.centre.x - at3.x, m.centre.z - at3.z);
     if (!best || d < best.distance) best = { site: S, centre: m.centre, distance: d, radius: m.radius };
   }
   return best;
 }
 function seekCoast(dim, p) {
-  let at2;
+  let at3;
   try {
-    at2 = p.location;
+    at3 = p.location;
   } catch {
     return null;
   }
-  const near = nearestCity(at2);
+  const near = nearestCity(at3);
   if (near && near.distance < 900) return null;
-  if (hash(Math.floor(at2.x / 640), Math.floor(at2.z / 640), 5) > 0.55) return null;
+  if (hash(Math.floor(at3.x / 640), Math.floor(at3.z / 640), 5) > 0.55) return null;
   const DIRS = [[0, 1], [-1, 0], [0, -1], [1, 0]];
   for (let k = 0; k < 4; k++) {
     const [dx, dz] = DIRS[k];
     let land = -1;
     for (let s = 8; s <= 72; s += 8) {
-      const x = at2.x + dx * s, z = at2.z + dz * s;
+      const x = at3.x + dx * s, z = at3.z + dz * s;
       if (!isLoaded(dim, { x, y: 64, z })) break;
       const col = waterColumn(dim, x, z, SEA, 6, 40);
       if (col === UNLOADED) break;
@@ -2836,7 +2842,7 @@ function seekCoast(dim, p) {
         continue;
       }
       if (land < 0 || col.surface - col.floor < 3) continue;
-      const far = waterColumn(dim, at2.x + dx * (s + 16), at2.z + dz * (s + 16), SEA, 6, 60);
+      const far = waterColumn(dim, at3.x + dx * (s + 16), at3.z + dz * (s + 16), SEA, 6, 60);
       if (far === NONE || far === UNLOADED || far.surface - far.floor < 6) break;
       let biome = "";
       try {
@@ -2845,7 +2851,7 @@ function seekCoast(dim, p) {
         biome = "ocean";
       }
       if (!/ocean|beach|coast/.test(biome)) break;
-      const said = raiseCity({ x: at2.x + dx * (s - 26), y: SEA + 2, z: at2.z + dz * (s - 26) }, k, false, false);
+      const said = raiseCity({ x: at3.x + dx * (s - 26), y: SEA + 2, z: at3.z + dz * (s - 26) }, k, false, false);
       return /rising/.test(said) ? said : null;
     }
   }
@@ -3221,15 +3227,15 @@ function credit(r, playerId, name, w) {
   r.names[playerId] = name;
 }
 var THRESHOLD = { animals: 8, habitat: 6, total: 18 };
-function check(r, key, at2) {
+function check(r, key, at3) {
   const p = CONFIG.pacing;
   if (r.a * p < THRESHOLD.animals || r.h * p < THRESHOLD.habitat || (r.a + r.h) * p < THRESHOLD.total) return null;
-  let guilty = null, top = 0;
-  for (const [id, s] of Object.entries(r.by)) if (s > top) {
-    top = s;
+  let guilty = null, top2 = 0;
+  for (const [id, s] of Object.entries(r.by)) if (s > top2) {
+    top2 = s;
     guilty = id;
   }
-  let site = at2;
+  let site = at3;
   if (r.sites.length) {
     const n = r.sites.length;
     site = { x: r.sites.reduce((s, q) => s + q.x, 0) / n, y: r.sites.reduce((s, q) => s + q.y, 0) / n, z: r.sites.reduce((s, q) => s + q.z, 0) / n };
@@ -3249,17 +3255,17 @@ function tallyOf(playerId) {
   const t = store.harm.tally;
   return t?.[playerId] ? [t[playerId][0], t[playerId][1]] : [0, 0];
 }
-function recordKill(at2, typeId, playerId, playerName, now) {
+function recordKill(at3, typeId, playerId, playerName, now) {
   const call = ANIMALS[typeId];
   if (!call) return null;
-  const r = region(at2, now);
+  const r = region(at3, now);
   const w = Math.min(1, Math.max(0.15, r.ra / 2));
   r.ra += 1;
   r.a += w;
   r.n = (r.n ?? 0) + 1;
   tally(playerId, 0);
   credit(r, playerId, playerName, w);
-  const site = { x: Math.floor(at2.x), y: Math.floor(at2.y), z: Math.floor(at2.z), s: call, t: now };
+  const site = { x: Math.floor(at3.x), y: Math.floor(at3.y), z: Math.floor(at3.z), s: call, t: now };
   r.sites.push(site);
   if (r.sites.length > MAX_SITES) r.sites.shift();
   const all = store.rec.sites;
@@ -3267,12 +3273,12 @@ function recordKill(at2, typeId, playerId, playerName, now) {
   if (all.length > MAX_GLOBAL_SITES) all.shift();
   store.touch();
   store.touchHarm();
-  return check(r, keyOf(at2), at2);
+  return check(r, keyOf(at3), at3);
 }
-function recordHabitat(at2, typeId, playerId, playerName, now) {
+function recordHabitat(at3, typeId, playerId, playerName, now) {
   const base = habitatWeight(typeId);
   if (base <= 0) return null;
-  const r = region(at2, now);
+  const r = region(at3, now);
   const w = base * Math.min(1, Math.max(0.3, r.rh / 2));
   r.rh += base * 2.2;
   r.h += w;
@@ -3282,7 +3288,7 @@ function recordHabitat(at2, typeId, playerId, playerName, now) {
   }
   credit(r, playerId, playerName, w);
   store.touchHarm();
-  return check(r, keyOf(at2), at2);
+  return check(r, keyOf(at3), at3);
 }
 function peek(r, now) {
   const c = { ...r, by: { ...r.by }, names: { ...r.names }, sites: [...r.sites] };
@@ -3320,15 +3326,15 @@ function report(key, r) {
     fired: !!r?.fired
   };
 }
-function angerAt(at2, now) {
-  const k = keyOf(at2);
+function angerAt(at3, now) {
+  const k = keyOf(at3);
   const r = store.harm.regions[k];
   return report(k, r ? peek(r, now) : void 0);
 }
-function angerNear(at2, now) {
+function angerNear(at3, now) {
   const regs = store.harm.regions;
-  const ix = Math.floor(at2.x / REGION), iz = Math.floor(at2.z / REGION);
-  let best = angerAt(at2, now);
+  const ix = Math.floor(at3.x / REGION), iz = Math.floor(at3.z / REGION);
+  let best = angerAt(at3, now);
   for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
     const k = `${ix + dx},${iz + dz}`;
     const r = regs[k];
@@ -3425,12 +3431,12 @@ function wasOf(b) {
   }
 }
 var zones = () => store.rec.fallout;
-function addFallout(at2, r, s) {
+function addFallout(at3, r, s) {
   if (CONFIG.fallout === "off") return;
   const now = store.rec.clock, list = zones();
   for (const z of list) {
     const rad = radiusOf(z, now);
-    if (dist(z, at2) <= Math.max(r, Math.min(rad, 8)) * 0.75) {
+    if (dist(z, at3) <= Math.max(r, Math.min(rad, 8)) * 0.75) {
       z.s = Math.min(1.5, strengthOf(z, now) + s);
       z.r = Math.min(R_MAX, Math.max(rad, r));
       z.m = Math.min(R_MAX, Math.max(z.m ?? 0, z.r, r * GROWTH));
@@ -3442,12 +3448,12 @@ function addFallout(at2, r, s) {
   }
   let wet = false;
   try {
-    const b = blockAt(overworld(), { x: at2.x, y: at2.y + 1, z: at2.z });
+    const b = blockAt(overworld(), { x: at3.x, y: at3.y + 1, z: at3.z });
     wet = !!b && (b.typeId === "minecraft:water" || b.typeId === "minecraft:flowing_water");
   } catch {
     wet = false;
   }
-  list.push({ x: Math.floor(at2.x) + 0.5, y: Math.floor(at2.y), z: Math.floor(at2.z) + 0.5, r, m: Math.min(R_MAX, r * GROWTH), s: Math.min(1.5, s), t: now, w: wet });
+  list.push({ x: Math.floor(at3.x) + 0.5, y: Math.floor(at3.y), z: Math.floor(at3.z) + 0.5, r, m: Math.min(R_MAX, r * GROWTH), s: Math.min(1.5, s), t: now, w: wet });
   if (list.length > MAX_ZONES) {
     let weakest = 0;
     for (let i = 1; i < list.length; i++) if (strengthOf(list[i], now) < strengthOf(list[weakest], now)) weakest = i;
@@ -3578,9 +3584,9 @@ function revert(b) {
     }
     if (id === CRYSTAL_BLOCK) {
       b.setType("minecraft:air");
-      const at2 = b.location;
-      particle(b.dimension, "basiliskra:crystal_break", { x: at2.x + 0.5, y: at2.y + 0.4, z: at2.z + 0.5 }, 32);
-      sound(b.dimension, "break.amethyst_cluster", { x: at2.x + 0.5, y: at2.y + 0.4, z: at2.z + 0.5 }, 20, 0.5, 0.7);
+      const at3 = b.location;
+      particle(b.dimension, "basiliskra:crystal_break", { x: at3.x + 0.5, y: at3.y + 0.4, z: at3.z + 0.5 }, 32);
+      sound(b.dimension, "break.amethyst_cluster", { x: at3.x + 0.5, y: at3.y + 0.4, z: at3.z + 0.5 }, 20, 0.5, 0.7);
       return true;
     }
   } catch {
@@ -3593,8 +3599,8 @@ function fadeBlock(b) {
       revert(b);
       return;
     }
-    const at2 = b.location;
-    if (CONFIG.fallout !== "land" || !hotAt({ x: at2.x + 0.5, y: at2.y + 0.5, z: at2.z + 0.5 }, store.rec.clock)) revert(b);
+    const at3 = b.location;
+    if (CONFIG.fallout !== "land" || !hotAt({ x: at3.x + 0.5, y: at3.y + 0.5, z: at3.z + 0.5 }, store.rec.clock)) revert(b);
   } catch {
   }
 }
@@ -3624,11 +3630,11 @@ function fuse(b) {
   }
   return setTypeOr(b, TRINITITE_BLOCK, "minecraft:smooth_basalt");
 }
-function glassify(dim, at2) {
+function glassify(dim, at3) {
   if (CONFIG.fallout !== "land") return false;
-  const b = blockAt(dim, at2);
+  const b = blockAt(dim, at3);
   if (!b || !isSolidBlock(b) || !isNaturalGround(b.typeId) || b.typeId === TRINITITE_BLOCK) return false;
-  if (touchesBuilt(dim, Math.floor(at2.x), Math.floor(at2.y), Math.floor(at2.z))) return false;
+  if (touchesBuilt(dim, Math.floor(at3.x), Math.floor(at3.y), Math.floor(at3.z))) return false;
   return setTypeOr(b, TRINITITE_BLOCK, "minecraft:smooth_basalt");
 }
 function sear(dim, floor, max) {
@@ -3706,9 +3712,9 @@ function falloutTick(now) {
       const s = strengthOf(z, now);
       if (s < 0.05 || shown >= 8) continue;
       shown++;
-      const R = radiusOf(z, now), at2 = { x: z.x, y: z.y + 0.6, z: z.z };
-      if (hash(now, z.x, z.z) < Math.min(1, 0.35 + s)) particle(dim, "basiliskra:rad_cloud", at2, 72, sizeVars(R));
-      if (now % 16 === 0 && spreading(z, now)) particle(dim, "basiliskra:rad_front", at2, 80, sizeVars(R));
+      const R = radiusOf(z, now), at3 = { x: z.x, y: z.y + 0.6, z: z.z };
+      if (hash(now, z.x, z.z) < Math.min(1, 0.35 + s)) particle(dim, "basiliskra:rad_cloud", at3, 72, sizeVars(R));
+      if (now % 16 === 0 && spreading(z, now)) particle(dim, "basiliskra:rad_front", at3, 80, sizeVars(R));
       if (s > 0.4 && now % 24 === 0) {
         const a = hash(now, z.x, 2) * Math.PI * 2, rr = Math.sqrt(hash(now, z.z, 3)) * R * 0.6;
         particle(dim, "basiliskra:rad_shimmer", { x: z.x + Math.cos(a) * rr, y: z.y + 0.6, z: z.z + Math.sin(a) * rr }, 40);
@@ -3719,17 +3725,17 @@ function falloutTick(now) {
 }
 function counterTick(now) {
   for (const p of players()) {
-    let at2;
+    let at3;
     try {
       if (p.dimension.id !== OVERWORLD) {
         clearFog(p);
         continue;
       }
-      at2 = p.location;
+      at3 = p.location;
     } catch {
       continue;
     }
-    const d = CONFIG.fallout === "off" ? 0 : doseAt(at2, now);
+    const d = CONFIG.fallout === "off" ? 0 : doseAt(at3, now);
     doseOf.set(p.id, d);
     const holding = holdsCounter(p);
     const level = d < 0.03 ? 0 : d < 0.2 ? 1 : d < 0.45 ? 2 : d < 0.75 ? 3 : 4;
@@ -3747,8 +3753,8 @@ function counterTick(now) {
       }
     } else if (d < 0.2 && fogged.has(p.id)) clearFog(p);
     if (holding) {
-      const n = nearestFallout(at2, now);
-      const where = n && n.distance > n.radius ? `  §7fallout §f${Math.round(n.distance - n.radius)}§7 blocks ${direction(at2, n.zone)}` : "";
+      const n = nearestFallout(at3, now);
+      const where = n && n.distance > n.radius ? `  §7fallout §f${Math.round(n.distance - n.radius)}§7 blocks ${direction(at3, n.zone)}` : "";
       const colour = level >= 3 ? "§c" : level >= 1 ? "§6" : "§a";
       const shield = protectedFor(p, now);
       try {
@@ -3762,7 +3768,7 @@ function counterTick(now) {
       }
     }
     try {
-      const under = blockAt(p.dimension, { x: at2.x, y: at2.y - 0.3, z: at2.z });
+      const under = blockAt(p.dimension, { x: at3.x, y: at3.y - 0.3, z: at3.z });
       if (under?.typeId === SLAG_BLOCK && vulnerable(p)) {
         p.setOnFire(4, true);
         p.applyDamage(2 * CONFIG.damage, { cause: EntityDamageCause4.fire });
@@ -3971,10 +3977,10 @@ function beamTick(c, T, t, fade, st, shot = {}) {
     for (const p of players()) {
       try {
         if (p.dimension.id !== c.dim.id || !targetable(p)) continue;
-        const body = add(p.location, { x: 0, y: 0.9, z: 0 });
-        if (segDist(body, from, dir, length) > reach) continue;
-        const along = clamp(dot(sub(body, from), dir), 0, Math.max(0, length - 0.6));
-        if (!clearLine(c.dim, add(from, mul(dir, along)), body)) continue;
+        const body2 = add(p.location, { x: 0, y: 0.9, z: 0 });
+        if (segDist(body2, from, dir, length) > reach) continue;
+        const along = clamp(dot(sub(body2, from), dir), 0, Math.max(0, length - 0.6));
+        if (!clearLine(c.dim, add(from, mul(dir, along)), body2)) continue;
         c.hurt(p, T.damage, EntityDamageCause5.entityAttack);
         try {
           p.setOnFire(3, true);
@@ -4034,8 +4040,8 @@ var Shockwave = class {
     this.next = 0;
     const vars2 = new MolangVariableMap2();
     vars2.setFloat("variable.reach", reach);
-    const at2 = { x: center.x, y: center.y + 0.4, z: center.z };
-    particle(c.dim, "basiliskra:roar_wave", at2, reach + 64, vars2);
+    const at3 = { x: center.x, y: center.y + 0.4, z: center.z };
+    particle(c.dim, "basiliskra:roar_wave", at3, reach + 64, vars2);
     particle(c.dim, "basiliskra:roar_ring", { x: center.x, y: center.y + 0.2, z: center.z }, reach + 64, vars2);
     sound(c.dim, "basiliskra.iii.club_plant", center, reach + 48, 1, 0.62);
     this.mobs = mobsNear(c.dim, center, reach + 2);
@@ -4339,8 +4345,8 @@ var BrainThree = class extends Brain {
     blast(c.dim, ground, 2.2 * c.scale, 6, 14 * c.might, 0.9, (p, n) => c.hurt(p, n), c.entity, ground);
     if (!CONFIG.marks) return;
     for (const [dx, dz] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const at2 = { x: Math.floor(foot.x) + dx, y: Math.floor(c.pos.y - 0.5), z: Math.floor(foot.z) + dz };
-      const b = takesMark(c.dim, at2);
+      const at3 = { x: Math.floor(foot.x) + dx, y: Math.floor(c.pos.y - 0.5), z: Math.floor(foot.z) + dz };
+      const b = takesMark(c.dim, at3);
       const to = b ? printOf(b.typeId) : void 0;
       if (b && to) {
         try {
@@ -4373,13 +4379,13 @@ var BrainThree = class extends Brain {
   }
   // ---- the eye at the window ------------------------------------------------------------------------
   indoors(p) {
-    const c = this.c, head = p.getHeadLocation();
+    const c = this.c, head2 = p.getHeadLocation();
     let roof = false;
-    for (let y = 1; y <= 7 && !roof; y++) roof = isSolidBlock(blockAt(c.dim, { x: head.x, y: head.y + y, z: head.z }));
+    for (let y = 1; y <= 7 && !roof; y++) roof = isSolidBlock(blockAt(c.dim, { x: head2.x, y: head2.y + y, z: head2.z }));
     if (!roof) return false;
     let walls = 0;
     for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      for (let r = 1; r <= 7; r++) if (isSolidBlock(blockAt(c.dim, { x: head.x + dx * r, y: head.y, z: head.z + dz * r }))) {
+      for (let r = 1; r <= 7; r++) if (isSolidBlock(blockAt(c.dim, { x: head2.x + dx * r, y: head2.y, z: head2.z + dz * r }))) {
         walls++;
         break;
       }
@@ -4391,15 +4397,15 @@ var BrainThree = class extends Brain {
    * the pane?  Of several, the one nearest to where he already is.
    */
   windowDir(p) {
-    const c = this.c, head = p.getHeadLocation();
-    const toHim = norm({ x: c.pos.x - head.x, y: 0, z: c.pos.z - head.z });
+    const c = this.c, head2 = p.getHeadLocation();
+    const toHim = norm({ x: c.pos.x - head2.x, y: 0, z: c.pos.z - head2.z });
     const glassy = (x, y, z) => /glass|iron_bars/.test(idAt(c.dim, { x, y, z }) ?? "");
-    let best = toHim, score = -2, reach = 3, pane = add(head, mul(toHim, 3));
+    let best = toHim, score = -2, reach = 3, pane = add(head2, mul(toHim, 3));
     for (let i = 0; i < 16; i++) {
       const a = i * Math.PI / 8, d = { x: Math.cos(a), y: 0, z: Math.sin(a) };
-      let open = false, at2 = 3, mid = add(head, mul(d, 3));
+      let open = false, at3 = 3, mid = add(head2, mul(d, 3));
       for (let r = 1; r <= 9; r++) {
-        const q = { x: head.x + d.x * r, y: head.y, z: head.z + d.z * r };
+        const q = { x: head2.x + d.x * r, y: head2.y, z: head2.z + d.z * r };
         const b = blockAt(c.dim, q);
         if (!b) break;
         if (/glass|iron_bars|fence_gate/.test(b.typeId)) {
@@ -4408,9 +4414,9 @@ var BrainThree = class extends Brain {
           let lo = 0, hi = 0;
           while (lo > -3 && glassy(bx + along.x * (lo - 1), by, bz + along.z * (lo - 1))) lo--;
           while (hi < 3 && glassy(bx + along.x * (hi + 1), by, bz + along.z * (hi + 1))) hi++;
-          mid = { x: bx + 0.5 + along.x * (lo + hi) / 2, y: head.y, z: bz + 0.5 + along.z * (lo + hi) / 2 };
+          mid = { x: bx + 0.5 + along.x * (lo + hi) / 2, y: head2.y, z: bz + 0.5 + along.z * (lo + hi) / 2 };
           open = true;
-          at2 = r;
+          at3 = r;
           break;
         }
         if (isSolidBlock(b)) break;
@@ -4419,7 +4425,7 @@ var BrainThree = class extends Brain {
       if (open && dot(d, toHim) > score) {
         score = dot(d, toHim);
         best = d;
-        reach = at2;
+        reach = at3;
         pane = mid;
       }
     }
@@ -4537,23 +4543,23 @@ var BrainThree = class extends Brain {
     const player = isPlayer(g);
     c.smash = true;
     for (let t = 0; t < 360; t++) {
-      let at2;
+      let at3;
       try {
         if (!g.isValid || g.dimension.id !== c.dim.id || player && !targetable(g)) break;
-        at2 = g.location;
+        at3 = g.location;
       } catch {
         break;
       }
       c.setPhase("move");
       const keep = standOff(c, g, 17 * c.scale * 0.6, 3);
-      if (t === 0 && dist(at2, c.pos) < keep + 1) {
+      if (t === 0 && dist(at3, c.pos) < keep + 1) {
         yield* this.watch(g, 30);
         break;
       }
-      c.goTo(at2, 0.15, keep);
+      c.goTo(at3, 0.15, keep);
       c.lookAt(headOf(g), 60, 25);
       this.footfalls();
-      if (dist(at2, c.pos) < keep + 1) break;
+      if (dist(at3, c.pos) < keep + 1) break;
       if (t % 100 === 50) c.say("basiliskra.iii.grunt", c.anchor("nose"), 72, 1, 0.92 + hash(t) * 0.1);
       yield;
     }
@@ -4620,11 +4626,11 @@ var BrainThree = class extends Brain {
   /** The discharge leaves one particular spike tip for the rod; the ridge collapses; the throat goes dark. */
   *ground(rod) {
     const c = this.c;
-    const top = { x: rod.x + 0.5, y: rod.y + 1, z: rod.z + 0.5 };
+    const top2 = { x: rod.x + 0.5, y: rod.y + 1, z: rod.z + 0.5 };
     let tip = c.anchor("spike_tip_0"), bd = 1e9;
     for (let k = 0; k < 12; k++) {
       const s = c.anchor(`spike_tip_${k}`);
-      const d = dist(s, top);
+      const d = dist(s, top2);
       if (d < bd) {
         bd = d;
         tip = s;
@@ -4636,17 +4642,17 @@ var BrainThree = class extends Brain {
     this.groundedAt = { tick: this.now, rod };
     addFallout(rod, 2.5, 0.5);
     c.setPhase("grounded");
-    sound(c.dim, "basiliskra.iii.ground", top, 96);
-    const steps = Math.max(4, Math.ceil(dist(tip, top) * 1.6));
+    sound(c.dim, "basiliskra.iii.ground", top2, 96);
+    const steps = Math.max(4, Math.ceil(dist(tip, top2) * 1.6));
     for (let t = 0; t < 50; t++) {
       if (t < 14 && t % 2 === 0) {
         for (let i = 0; i <= steps; i++) {
           const k = i / steps;
           const j = i === 0 || i === steps ? 0 : 0.7;
           particle(c.dim, "basiliskra:arc_seg", {
-            x: tip.x + (top.x - tip.x) * k + (hash(t, i, 1) - 0.5) * j,
-            y: tip.y + (top.y - tip.y) * k + (hash(t, i, 2) - 0.5) * j,
-            z: tip.z + (top.z - tip.z) * k + (hash(t, i, 3) - 0.5) * j
+            x: tip.x + (top2.x - tip.x) * k + (hash(t, i, 1) - 0.5) * j,
+            y: tip.y + (top2.y - tip.y) * k + (hash(t, i, 2) - 0.5) * j,
+            z: tip.z + (top2.z - tip.z) * k + (hash(t, i, 3) - 0.5) * j
           }, 128);
         }
       }
@@ -4767,10 +4773,10 @@ var BrainThree = class extends Brain {
     yield* wait(40);
   }
   /** Mark what the beam touched.  Natural ground only; never a block with an inventory, a bed, a portal or redstone. */
-  scorch(at2) {
+  scorch(at3) {
     if (CONFIG.terrain === "none") return;
     const c = this.c;
-    const hit = blockAt(c.dim, at2);
+    const hit = blockAt(c.dim, at3);
     if (!hit || !isNaturalGround(hit.typeId)) return;
     const free = (x, y, z) => {
       const b = blockAt(c.dim, { x, y, z });
@@ -4782,7 +4788,7 @@ var BrainThree = class extends Brain {
     };
     for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
       if (Math.abs(dx) + Math.abs(dy) + Math.abs(dz) > 2) continue;
-      const x = Math.floor(at2.x) + dx, y = Math.floor(at2.y) + dy, z = Math.floor(at2.z) + dz;
+      const x = Math.floor(at3.x) + dx, y = Math.floor(at3.y) + dy, z = Math.floor(at3.z) + dz;
       const b = blockAt(c.dim, { x, y, z });
       if (!b) continue;
       const id = b.typeId;
@@ -4977,23 +4983,23 @@ var BrainFour = class extends BrainThree {
     const player = isPlayer(g);
     c.smash = true;
     for (let t = 0; t < 380; t++) {
-      let at2;
+      let at3;
       try {
         if (!g.isValid || g.dimension.id !== c.dim.id || player && !targetable(g)) break;
-        at2 = g.location;
+        at3 = g.location;
       } catch {
         break;
       }
       c.setPhase("move");
       const keep = standOff(c, g, 26, 6);
-      if (t === 0 && dist(at2, c.pos) < keep + 1) {
+      if (t === 0 && dist(at3, c.pos) < keep + 1) {
         yield* this.watch(g, 30);
         break;
       }
-      c.goTo(at2, 0.17, keep);
+      c.goTo(at3, 0.17, keep);
       c.lookAt(headOf(g), 60, 40);
       this.footfalls();
-      if (dist(at2, c.pos) < keep + 1) break;
+      if (dist(at3, c.pos) < keep + 1) break;
       if (t % 100 === 50) c.say("basiliskra.iii.grunt", c.anchor("nose"), 72, 1, 0.8 + hash(t) * 0.08);
       yield;
     }
@@ -5037,10 +5043,10 @@ var BrainFour = class extends BrainThree {
     }
     c.setPhase("idle");
   }
-  *turnTo(at2, rate = 1.2, limit = 240) {
+  *turnTo(at3, rate = 1.2, limit = 240) {
     const c = this.c;
     for (let t = 0; t < limit; t++) {
-      const want = yawTo(c.pos, at2);
+      const want = yawTo(c.pos, at3);
       if (Math.abs(wrapDeg(want - c.yaw)) < 2) break;
       c.yaw = turnTowards(c.yaw, want, rate);
       yield;
@@ -5062,17 +5068,17 @@ var BrainFour = class extends BrainThree {
       }
     };
     for (let t = 0; t < 170; t++) {
-      let head;
+      let head2;
       try {
         if (!p.isValid || !targetable(p) || p.dimension.id !== c.dim.id) break;
-        head = p.getHeadLocation();
+        head2 = p.getHeadLocation();
       } catch {
         break;
       }
-      c.lookAt(head, 85, 50);
+      c.lookAt(head2, 85, 50);
       if (t === 34) c.say("basiliskra.iii.growl", c.anchor("nose"), 96, 1, 0.78);
       if (t >= 14 && t % 10 === 4) {
-        const sees = dist(head, c.pos) <= 140 && clearLine(c.dim, c.anchor("nose"), head);
+        const sees = dist(head2, c.pos) <= 140 && clearLine(c.dim, c.anchor("nose"), head2);
         lost = sees ? 0 : lost + 1;
         if (lost >= 3) break;
         if (sees && !peaceful()) {
@@ -5118,14 +5124,14 @@ var BrainFour = class extends BrainThree {
     yield* wait(24);
     const st = { ground: null };
     for (let t = 0; t < 52; t++) {
-      const at2 = line[Math.min(line.length - 1, Math.floor(t / 52 * line.length))];
-      const top = { x: at2.x, y: at2.y + 1, z: at2.z };
-      c.lookAt(top, 85, 60);
+      const at3 = line[Math.min(line.length - 1, Math.floor(t / 52 * line.length))];
+      const top2 = { x: at3.x, y: at3.y + 1, z: at3.z };
+      c.lookAt(top2, 85, 60);
       const from = c.anchor("mouth");
-      const dir = norm(sub(top, from));
-      beamTick(c, { ...THIN, range: dist(from, top) + 2 }, t, 1, st, { from, dir, harmless: true });
-      if (t % 2 === 0) particle(c.dim, "basiliskra:beam_impact", top, 128);
-      if (t % 8 === 0) sound(c.dim, "basiliskra.iii.charge_tick", top, 96, 0.8, 1.5);
+      const dir = norm(sub(top2, from));
+      beamTick(c, { ...THIN, range: dist(from, top2) + 2 }, t, 1, st, { from, dir, harmless: true });
+      if (t % 2 === 0) particle(c.dim, "basiliskra:beam_impact", top2, 128);
+      if (t % 8 === 0) sound(c.dim, "basiliskra.iii.charge_tick", top2, 96, 0.8, 1.5);
       yield;
     }
     c.lookAhead();
@@ -5134,10 +5140,10 @@ var BrainFour = class extends BrainThree {
       yield;
     }
     for (let i = 0; i < line.length; i++) {
-      const at2 = line[i];
-      const made = glassify(c.dim, at2);
-      particle(c.dim, made ? "basiliskra:crystal_break" : "basiliskra:rad_glint", { x: at2.x, y: at2.y + 1.2, z: at2.z }, 96);
-      sound(c.dim, "random.pop", at2, 64, 1, 0.6 + i / line.length * 0.9);
+      const at3 = line[i];
+      const made = glassify(c.dim, at3);
+      particle(c.dim, made ? "basiliskra:crystal_break" : "basiliskra:rad_glint", { x: at3.x, y: at3.y + 1.2, z: at3.z }, 96);
+      sound(c.dim, "random.pop", at3, 64, 1, 0.6 + i / line.length * 0.9);
       yield* wait(3);
     }
     addFallout(line[Math.floor(line.length / 2)], 5, 0.5);
@@ -5158,10 +5164,10 @@ var BrainFour = class extends BrainThree {
   plateGlow(t) {
     const P = this.four().plate;
     if (!P || P.burnt || t % 10 !== 0) return;
-    const top = { x: P.x + 0.5, y: P.y + 3, z: P.z + 0.5 };
-    particle(this.c.dim, "basiliskra:impact_glare", top, 128);
-    particle(this.c.dim, "basiliskra:rad_glint", { x: top.x, y: top.y + 2, z: top.z }, 96);
-    if (t % 20 === 0) sound(this.c.dim, "basiliskra.iii.charge_tick", top, 64, 0.5, 0.7);
+    const top2 = { x: P.x + 0.5, y: P.y + 3, z: P.z + 0.5 };
+    particle(this.c.dim, "basiliskra:impact_glare", top2, 128);
+    particle(this.c.dim, "basiliskra:rad_glint", { x: top2.x, y: top2.y + 2, z: top2.z }, 96);
+    if (t % 20 === 0) sound(this.c.dim, "basiliskra.iii.charge_tick", top2, 64, 0.5, 0.7);
   }
   /**
    * He charges, following `aimAt` with his eye until the lock.  Returns "lock" when the charge is whole,
@@ -5473,30 +5479,30 @@ var BrainFour = class extends BrainThree {
     sound(c.dim, "basiliskra.iii.ground", from, 128, 1, 0.8);
     particle(c.dim, "basiliskra:impact_fountain", from, 160);
     c.say("basiliskra.hurt", c.anchor("nose"), 96, 1, 0.8);
-    const top = { x: P.x + 0.5, y: P.y + 2.5, z: P.z + 0.5 };
+    const top2 = { x: P.x + 0.5, y: P.y + 2.5, z: P.z + 0.5 };
     for (let t = 0; t < 18; t++) {
       const k = t / 18;
-      particle(c.dim, "basiliskra:impact_glare", { x: from.x + (top.x - from.x) * k, y: from.y + (top.y - from.y) * k * k, z: from.z + (top.z - from.z) * k }, 160);
+      particle(c.dim, "basiliskra:impact_glare", { x: from.x + (top2.x - from.x) * k, y: from.y + (top2.y - from.y) * k * k, z: from.z + (top2.z - from.z) * k }, 160);
       yield;
     }
     if (CONFIG.terrain !== "none") {
       for (const b of this.plateBlocks(P)) {
-        const at2 = blockAt(c.dim, b);
-        if (!at2 || isSolidBlock(at2) && at2.typeId !== CRYSTAL_BLOCK) continue;
+        const at3 = blockAt(c.dim, b);
+        if (!at3 || isSolidBlock(at3) && at3.typeId !== CRYSTAL_BLOCK) continue;
         try {
-          at2.setType(TRINITITE_BLOCK);
+          at3.setType(TRINITITE_BLOCK);
         } catch {
           try {
-            at2.setType("minecraft:red_nether_brick");
+            at3.setType("minecraft:red_nether_brick");
           } catch {
           }
         }
       }
     }
-    sound(c.dim, "mob.wither.break_block", top, 128, 1, 0.6);
-    particle(c.dim, "basiliskra:impact_ring", { x: top.x, y: P.y + 0.3, z: top.z }, 128);
-    particle(c.dim, "basiliskra:impact_debris", top, 128);
-    blast(c.dim, top, 5, 6, 12 * c.might, 0.9, (p, n) => c.hurt(p, n), c.entity);
+    sound(c.dim, "mob.wither.break_block", top2, 128, 1, 0.6);
+    particle(c.dim, "basiliskra:impact_ring", { x: top2.x, y: P.y + 0.3, z: top2.z }, 128);
+    particle(c.dim, "basiliskra:impact_debris", top2, 128);
+    blast(c.dim, top2, 5, 6, 12 * c.might, 0.9, (p, n) => c.hurt(p, n), c.entity);
     F.plate = P;
     store.touch();
     yield* wait(20);
@@ -5507,18 +5513,18 @@ var BrainFour = class extends BrainThree {
   }
   /** Can the plate see someone his mouth cannot? */
   plateSees(q) {
-    const top = this.plateTop();
-    if (!top) return false;
+    const top2 = this.plateTop();
+    if (!top2) return false;
     const c = this.c;
     const mouth = c.anchor("mouth");
-    return dist(top, mouth) <= PLATE_REACH && dist(top, q.location) <= 60 && dist(top, q.location) > 3 && clearLine(c.dim, mouth, { x: top.x, y: top.y + 0.8, z: top.z }) && clearLine(c.dim, top, headOf(q));
+    return dist(top2, mouth) <= PLATE_REACH && dist(top2, q.location) <= 60 && dist(top2, q.location) > 3 && clearLine(c.dim, mouth, { x: top2.x, y: top2.y + 0.8, z: top2.z }) && clearLine(c.dim, top2, headOf(q));
   }
   /** He fires into his own broken plate, and it throws the beam at whoever sheltered from his mouth. */
   *plateShot(target) {
     const c = this.c, F = this.four();
-    const top = this.plateTop();
-    if (!top || !F.plate) return;
-    const got = yield* this.charge(null, () => top, false);
+    const top2 = this.plateTop();
+    if (!top2 || !F.plate) return;
+    const got = yield* this.charge(null, () => top2, false);
     if (got !== "lock") {
       this.cutCharge();
       return;
@@ -5534,20 +5540,20 @@ var BrainFour = class extends BrainThree {
       const { from, dir } = c.aim();
       this.igniteAt(from, dir);
     }
-    let aim = top;
+    let aim = top2;
     try {
       aim = headOf(target);
     } catch {
     }
-    const out = norm(sub(aim, top));
+    const out = norm(sub(aim, top2));
     const a = { ground: null }, b = { ground: null };
     for (let t = 0; t < 110; t++) {
       const fade = t < 96 ? 1 : (110 - t) / 14;
       const from = c.anchor("mouth");
-      const leg = sub(top, from);
+      const leg = sub(top2, from);
       beamTick(c, { ...this.spec, range: Math.hypot(leg.x, leg.y, leg.z) }, t, fade, a, { from, dir: norm(leg), harmless: true });
-      beamTick(c, { ...this.spec, range: 70, width: this.spec.width * 0.7 }, t + 1, fade, b, { from: top, dir: out, scorch: (hit) => this.scorch(hit) });
-      if (t % 4 === 0) particle(c.dim, "basiliskra:impact_glare", top, 160);
+      beamTick(c, { ...this.spec, range: 70, width: this.spec.width * 0.7 }, t + 1, fade, b, { from: top2, dir: out, scorch: (hit) => this.scorch(hit) });
+      if (t % 4 === 0) particle(c.dim, "basiliskra:impact_glare", top2, 160);
       if (t % 10 === 0) shake(c, 96, 0.4 * fade + 0.1, 0.6);
       yield;
     }
@@ -5556,20 +5562,20 @@ var BrainFour = class extends BrainThree {
     if (F.plate.uses >= PLATE_SHOTS) {
       F.plate.burnt = true;
       for (const q of this.plateBlocks(F.plate)) {
-        const at2 = blockAt(c.dim, q);
-        if (at2 && at2.typeId === TRINITITE_BLOCK) {
+        const at3 = blockAt(c.dim, q);
+        if (at3 && at3.typeId === TRINITITE_BLOCK) {
           try {
-            at2.setType(SLAG_COLD_BLOCK);
+            at3.setType(SLAG_COLD_BLOCK);
           } catch {
             try {
-              at2.setType("minecraft:blackstone");
+              at3.setType("minecraft:blackstone");
             } catch {
             }
           }
         }
       }
-      sound(c.dim, "random.fizz", top, 96, 1, 0.6);
-      particle(c.dim, "basiliskra:impact_smoke", top, 128);
+      sound(c.dim, "random.fizz", top2, 96, 1, 0.6);
+      particle(c.dim, "basiliskra:impact_smoke", top2, 128);
     }
     store.touch();
     yield* this.vent();
@@ -5605,8 +5611,8 @@ var BrainFour = class extends BrainThree {
     const f = c.forward, l = leftOf(c.yaw);
     for (let t = 0; t < 84; t++) {
       if (t % 5 === 0) for (const h of ["hand_l", "hand_r"]) {
-        const at2 = c.anchor(h);
-        particle(c.dim, "basiliskra:surge", { x: at2.x, y: c.pos.y + 1, z: at2.z }, 96);
+        const at3 = c.anchor(h);
+        particle(c.dim, "basiliskra:surge", { x: at3.x, y: c.pos.y + 1, z: at3.z }, 96);
       }
       if (t % 20 === 10) shake(c, 80, 0.2 + t * 4e-3, 0.8);
       yield;
@@ -5625,10 +5631,10 @@ var BrainFour = class extends BrainThree {
       const y = typeof gy === "number" ? gy : c.pos.y + 1;
       end = { x: mid.x, y, z: mid.z };
       for (let w = -WIDTH; w <= WIDTH; w += 3) {
-        const at2 = { x: mid.x + l.x * w, z: mid.z + l.z * w };
-        const g = groundY(c.dim, at2.x, at2.z, y + 8, 16);
+        const at3 = { x: mid.x + l.x * w, z: mid.z + l.z * w };
+        const g = groundY(c.dim, at3.x, at3.z, y + 8, 16);
         if (g === UNLOADED || g === NONE) continue;
-        const here = { x: at2.x, y: g + 0.4, z: at2.z };
+        const here = { x: at3.x, y: g + 0.4, z: at3.z };
         particle(c.dim, (t + w) % 2 ? "basiliskra:surge" : "basiliskra:surge_spray", here, 128);
       }
       if (t % 6 === 0) sound(c.dim, "basiliskra.splash", { x: mid.x, y, z: mid.z }, 96, 1, 0.7);
@@ -5651,11 +5657,11 @@ var BrainFour = class extends BrainThree {
       yield;
     }
     try {
-      const at2 = { x: end.x, y: end.y + 0.6, z: end.z };
-      if (isLoaded(c.dim, at2)) {
-        if (!boats) c.dim.spawnEntity("minecraft:boat", at2);
-        c.dim.spawnEntity("minecraft:cod", { x: at2.x + 1.5, y: at2.y, z: at2.z + 0.5 });
-        c.dim.spawnEntity("minecraft:cod", { x: at2.x - 4, y: at2.y, z: at2.z - 3 });
+      const at3 = { x: end.x, y: end.y + 0.6, z: end.z };
+      if (isLoaded(c.dim, at3)) {
+        if (!boats) c.dim.spawnEntity("minecraft:boat", at3);
+        c.dim.spawnEntity("minecraft:cod", { x: at3.x + 1.5, y: at3.y, z: at3.z + 0.5 });
+        c.dim.spawnEntity("minecraft:cod", { x: at3.x - 4, y: at3.y, z: at3.z - 3 });
       }
     } catch {
     }
@@ -5857,14 +5863,14 @@ var BrainTitan = class extends BrainFour {
     c.halt();
   }
   /** What a blow does where it lands: the noise of it, the shake, and the ground under it. */
-  impact(at2, big) {
+  impact(at3, big) {
     const c = this.c;
-    sound(c.dim, "random.explode", at2, 160, 1.6, big ? 0.5 : 0.62);
-    sound(c.dim, "basiliskra.iii.step", at2, 160, 1, 0.5);
-    particle(c.dim, "basiliskra:impact_blast", at2, 160);
-    particle(c.dim, "basiliskra:impact_debris", at2, 128);
-    particle(c.dim, "basiliskra:impact_ring", { x: at2.x, y: c.pos.y + 0.4, z: at2.z }, 160);
-    particle(c.dim, "minecraft:huge_explosion_emitter", at2, 160);
+    sound(c.dim, "random.explode", at3, 160, 1.6, big ? 0.5 : 0.62);
+    sound(c.dim, "basiliskra.iii.step", at3, 160, 1, 0.5);
+    particle(c.dim, "basiliskra:impact_blast", at3, 160);
+    particle(c.dim, "basiliskra:impact_debris", at3, 128);
+    particle(c.dim, "basiliskra:impact_ring", { x: at3.x, y: c.pos.y + 0.4, z: at3.z }, 160);
+    particle(c.dim, "minecraft:huge_explosion_emitter", at3, 160);
     shake(c, 128, big ? 1.2 : 0.8, 0.5);
   }
   /** Jaws and the right hand, thrown forward: whatever is in front of it and within its reach is struck. */
@@ -5918,14 +5924,14 @@ var BrainTitan = class extends BrainFour {
         }
         for (const deg of [65, 105, 145]) {
           const f = forwardOf(c.yaw + deg * side);
-          const at2 = { x: c.pos.x + f.x * 24, y: c.pos.y + 1.5, z: c.pos.z + f.z * 24 };
-          if (!isLoaded(c.dim, at2)) continue;
-          blast(c.dim, at2, 10, 10, 34 * c.might, 1.8, (p, n) => c.hurt(p, n), c.entity, c.pos);
+          const at3 = { x: c.pos.x + f.x * 24, y: c.pos.y + 1.5, z: c.pos.z + f.z * 24 };
+          if (!isLoaded(c.dim, at3)) continue;
+          blast(c.dim, at3, 10, 10, 34 * c.might, 1.8, (p, n) => c.hurt(p, n), c.entity, c.pos);
           if (wither()) {
-            const got = carve(c.dim, at2, 4.2, 140, false);
-            if (got.broken > 10) particle(c.dim, "basiliskra:impact_debris", at2, 128);
+            const got = carve(c.dim, at3, 4.2, 140, false);
+            if (got.broken > 10) particle(c.dim, "basiliskra:impact_debris", at3, 128);
           }
-          particle(c.dim, "basiliskra:step_dust", at2, 128);
+          particle(c.dim, "basiliskra:step_dust", at3, 128);
         }
         if (!struck) shake(c, 96, 0.5, 0.4);
       }
@@ -5997,19 +6003,19 @@ var BrainTitan = class extends BrainFour {
       c.setPhase("fall");
       if (t % 7 === 3) {
         const v = c.volumes();
-        const at2 = v[Math.floor(hash(this.now, t) * v.length)].at;
-        particle(c.dim, "minecraft:huge_explosion_emitter", at2, 192);
-        particle(c.dim, "basiliskra:impact_fire", at2, 160);
-        sound(c.dim, "random.explode", at2, 160, 1.2, 0.55 + hash(t, 5) * 0.2);
+        const at3 = v[Math.floor(hash(this.now, t) * v.length)].at;
+        particle(c.dim, "minecraft:huge_explosion_emitter", at3, 192);
+        particle(c.dim, "basiliskra:impact_fire", at3, 160);
+        sound(c.dim, "random.explode", at3, 160, 1.2, 0.55 + hash(t, 5) * 0.2);
       }
       if (t === 44) {
         const f = forwardOf(c.yaw);
-        const at2 = { x: c.pos.x + f.x * 6, y: c.pos.y + 0.5, z: c.pos.z + f.z * 6 };
-        sound(c.dim, "basiliskra.iii.step", at2, 192, 1, 0.45);
-        particle(c.dim, "basiliskra:impact_ring", at2, 192);
-        particle(c.dim, "basiliskra:step_dust", at2, 160);
+        const at3 = { x: c.pos.x + f.x * 6, y: c.pos.y + 0.5, z: c.pos.z + f.z * 6 };
+        sound(c.dim, "basiliskra.iii.step", at3, 192, 1, 0.45);
+        particle(c.dim, "basiliskra:impact_ring", at3, 192);
+        particle(c.dim, "basiliskra:step_dust", at3, 160);
         shake(c, 160, 1.6, 0.9);
-        blast(c.dim, at2, 12, 8, 30, 1.6, (p, n) => c.hurt(p, n), c.entity, c.pos);
+        blast(c.dim, at3, 12, 8, 30, 1.6, (p, n) => c.hurt(p, n), c.entity, c.pos);
       }
       yield;
     }
@@ -6031,8 +6037,8 @@ var BrainTitan = class extends BrainFour {
     yield;
   }
 };
-function tellNear(dim, at2, msg) {
-  for (const p of witnesses(dim, at2, 96)) {
+function tellNear(dim, at3, msg) {
+  for (const p of witnesses(dim, at3, 96)) {
     try {
       p.sendMessage(msg);
     } catch {
@@ -6064,11 +6070,11 @@ var Titans = class {
     return false;
   }
   /** The one nearest a place (for the music). */
-  nearest(dimId, at2) {
+  nearest(dimId, at3) {
     let best = null, bd = 1e9;
     for (const t of this.list.values()) {
       if (!t.c.valid || t.c.dim.id !== dimId) continue;
-      const d = dist(t.c.pos, at2);
+      const d = dist(t.c.pos, at3);
       if (d < bd) {
         bd = d;
         best = t.c;
@@ -6078,18 +6084,18 @@ var Titans = class {
   }
   /** An entity of the Titan's type has appeared or loaded: it is taken up, or (one too many, the wrong world) removed. */
   inspect(e) {
-    let id, dimId, at2;
+    let id, dimId, at3;
     try {
       if (!e.isValid || e.typeId !== TITAN) return;
       id = e.id;
       dimId = e.dimension.id;
-      at2 = { ...e.location };
+      at3 = { ...e.location };
     } catch {
       return;
     }
     if (this.list.has(id)) return;
     if (dimId !== OVERWORLD) {
-      tellNear(e.dimension, at2, "§7A Titan can only stand in the Overworld.");
+      tellNear(e.dimension, at3, "§7A Titan can only stand in the Overworld.");
       try {
         e.remove();
       } catch {
@@ -6097,16 +6103,16 @@ var Titans = class {
       return;
     }
     if (this.list.size >= TITAN_MAX) {
-      tellNear(e.dimension, at2, `§7There are ${TITAN_MAX} Titans in the world already: that is as many as there can be.`);
+      tellNear(e.dimension, at3, `§7There are ${TITAN_MAX} Titans in the world already: that is as many as there can be.`);
       try {
         e.remove();
       } catch {
       }
       return;
     }
-    this.adopt(e, at2);
+    this.adopt(e, at3);
   }
-  adopt(e, at2) {
+  adopt(e, at3) {
     let saved = null;
     try {
       const s = e.getDynamicProperty(TAG);
@@ -6118,7 +6124,7 @@ var Titans = class {
     let n = saved && Number.isInteger(saved.n) && !taken.has(saved.n) ? saved.n : -1;
     if (n < 0) for (n = 0; taken.has(n); n++) {
     }
-    const home = saved && Array.isArray(saved.home) ? { x: saved.home[0], y: saved.home[1], z: saved.home[2] } : at2;
+    const home = saved && Array.isArray(saved.home) ? { x: saved.home[0], y: saved.home[1], z: saved.home[2] } : at3;
     const fresh = !saved;
     try {
       e.triggerEvent("basiliskra:bind");
@@ -6144,18 +6150,18 @@ var Titans = class {
     c.onBlow = (by, amount, heavy) => brain.onBlow(by, amount, heavy);
     this.list.set(e.id, { c, brain, rec, n });
     if (fresh) {
-      tellNear(e.dimension, at2, `§4Titan ${TITAN_NAMES[n % TITAN_NAMES.length]}§7 stands here. (${this.list.size} of ${TITAN_MAX}.)`);
+      tellNear(e.dimension, at3, `§4Titan ${TITAN_NAMES[n % TITAN_NAMES.length]}§7 stands here. (${this.list.size} of ${TITAN_MAX}.)`);
       brain.forced = { name: "roar", run: brain.roar(true), limit: 12 * TICKS.second };
     }
   }
   /** Make one here (the command and the config wheel).  Returns what happened, in words. */
-  spawn(dim, at2, yaw) {
+  spawn(dim, at3, yaw) {
     if (dim.id !== OVERWORLD) return "A Titan can only stand in the Overworld.";
     if (this.list.size >= TITAN_MAX) return `There are ${TITAN_MAX} Titans in the world already: that is as many as there can be.`;
-    if (!isLoaded(dim, at2)) return "That place is not loaded.";
+    if (!isLoaded(dim, at3)) return "That place is not loaded.";
     const before = this.list.size;
     try {
-      const e = dim.spawnEntity(TITAN, at2, { initialRotation: yaw });
+      const e = dim.spawnEntity(TITAN, at3, { initialRotation: yaw });
       this.inspect(e);
     } catch {
       return "A Titan could not be made here.";
@@ -6417,20 +6423,20 @@ function comingLines(p, ctl2) {
 }
 function falloutLines(p) {
   const L = [], now = store.rec.clock;
-  let at2;
+  let at3;
   try {
     if (p.dimension.id !== OVERWORLD) return ["§7Only the Overworld carries his fallout."];
-    at2 = p.location;
+    at3 = p.location;
   } catch {
     return L;
   }
-  const d = doseAt(at2, now);
+  const d = doseAt(at3, now);
   const word = d < 0.03 ? "§anone to speak of" : d < 0.2 ? "§6low" : d < 0.45 ? "§6rising" : d < 0.75 ? "§chigh" : "§4deadly";
   L.push(`§fRadiation where you stand: ${bar(Math.min(1, d))} §l${pct(d)}§r  ${word}`);
-  const n = nearestFallout(at2, now), count = falloutCount(now);
+  const n = nearestFallout(at3, now), count = falloutCount(now);
   if (!n) L.push("§7No fallout on record. His beam, his changes and his seam leave it where they touch the world.");
   else {
-    L.push(`§7Fallout in §f${count}§7 place${count === 1 ? "" : "s"}. The nearest is ${compass2(at2, n.zone)}, at §f${pct(n.strength)}§7.`);
+    L.push(`§7Fallout in §f${count}§7 place${count === 1 ? "" : "s"}. The nearest is ${compass2(at3, n.zone)}, at §f${pct(n.strength)}§7.`);
     L.push("§7It spreads for about a minute, stands a while, then fades and is gone within a few minutes.");
     if (CONFIG.fallout === "land") L.push("§7In it the ground glows: soil and rock turn irradiated, plants wither, wild leaves fall and crimson crystals grow (break them for shards). Where his beam lands, rock runs to glowing slag and sand fuses to scarlet trinitite. As it fades the land heals back to what it was.");
     if (CONFIG.sickness) L.push("§7It is strong: hunger, then weakness and nausea, then poison, and the heart of a fresh zone burns. Iodine tablets (2 dried kelp, sugar) keep it off for four minutes; milk clears it. A Geiger counter (trinitite or a crimson shard, copper ingot, redstone) reads it.");
@@ -6448,10 +6454,10 @@ function journalText(p, ctl2) {
   }
   if (here) L.push(...angerLines(p, here, true));
   else L.push("§7Only what is done in the Overworld counts.");
-  const top = angriest(now);
-  if (top && (!here || top.key !== here.key)) {
+  const top2 = angriest(now);
+  if (top2 && (!here || top2.key !== here.key)) {
     L.push("");
-    L.push(...angerLines(p, top, false));
+    L.push(...angerLines(p, top2, false));
   }
   const [k, c] = tallyOf(p.id);
   L.push(`§7You, everywhere: §f${k}§7 animal${k === 1 ? "" : "s"} killed, §f${c}§7 log${c === 1 ? "" : "s"} and plants cut.`);
@@ -6583,8 +6589,8 @@ async function bringForm(p, ctl2) {
   const place2 = placeFor(p, want || formOf() || 3);
   p.sendMessage(`§7[Basiliskra] ${ctl2.bringHere(place2.at, place2.yaw, want)}`);
 }
-async function confirm(p, title, body) {
-  const f = new MessageFormData().title(title).body(body).button1("Yes").button2("No");
+async function confirm(p, title, body2) {
+  const f = new MessageFormData().title(title).body(body2).button1("Yes").button2("No");
   const r = await present(p, () => f.show(p));
   return !!r && !r.canceled && r.selection === 0;
 }
@@ -6667,12 +6673,12 @@ async function cityForm(p) {
   } catch {
   }
   const dir = Math.abs(v.z) >= Math.abs(v.x) ? v.z >= 0 ? 0 : 2 : v.x < 0 ? 1 : 3;
-  const at2 = { ...p.location };
-  const said = raiseCity(at2, dir, r.selection === 1);
+  const at3 = { ...p.location };
+  const said = raiseCity(at3, dir, r.selection === 1);
   p.sendMessage(`§7[Basiliskra] ${said}`);
   if (/rising/.test(said)) {
     try {
-      p.teleport({ x: at2.x, y: Math.max(64, Math.min(83, Math.floor(at2.y))) + 1.2, z: at2.z });
+      p.teleport({ x: at3.x, y: Math.max(64, Math.min(83, Math.floor(at3.y))) + 1.2, z: at3.z });
     } catch {
     }
   }
@@ -6784,15 +6790,15 @@ var Film = class {
     }
     const f = forwardOf((this.o.facing?.() ?? 0) + span(s.angle, k));
     const d = span(s.dist, k);
-    const at2 = this.stand({ x: look.x + f.x * d, y: look.y + span(s.height, k), z: look.z + f.z * d }, look);
-    if (!at2) return;
+    const at3 = this.stand({ x: look.x + f.x * d, y: look.y + span(s.height, k), z: look.z + f.z * d }, look);
+    if (!at3) return;
     for (const { p } of this.cast) {
       try {
         if (!p.isValid || p.dimension.id !== this.dim.id) continue;
         if (first) {
           if (this.t > 1) p.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0, holdTime: 0.05, fadeOutTime: 0.2 } });
-          p.camera.setCamera("minecraft:free", { location: at2, facingLocation: look });
-        } else p.camera.setCamera("minecraft:free", { location: at2, facingLocation: look, easeOptions: { easeTime: 0.15, easeType: EasingType.Linear } });
+          p.camera.setCamera("minecraft:free", { location: at3, facingLocation: look });
+        } else p.camera.setCamera("minecraft:free", { location: at3, facingLocation: look, easeOptions: { easeTime: 0.15, easeType: EasingType.Linear } });
       } catch {
       }
     }
@@ -6808,18 +6814,18 @@ var Film = class {
       try {
         if (!p.isValid || p.dimension.id !== this.dim.id) continue;
         const a = base + (o.orbit ?? 0) * Math.PI / 180 * (k - 0.5);
-        let at2 = null;
+        let at3 = null;
         for (const [kd, kh] of [[1, 1], [1, 1.8], [0.7, 1.4], [0.45, 1.2], [0.3, 2.2]]) {
           const q = { x: f.x + Math.cos(a) * d * kd, y: f.y + o.height * kh, z: f.z + Math.sin(a) * d * kd };
           if (!isLoaded(this.dim, q)) continue;
           if (clearLine(this.dim, q, f)) {
-            at2 = q;
+            at3 = q;
             break;
           }
-          at2 ??= q;
+          at3 ??= q;
         }
-        if (!at2) continue;
-        p.camera.setCamera("minecraft:free", { location: at2, facingLocation: f, easeOptions: { easeTime: 0.25, easeType: EasingType.Linear } });
+        if (!at3) continue;
+        p.camera.setCamera("minecraft:free", { location: at3, facingLocation: f, easeOptions: { easeTime: 0.25, easeType: EasingType.Linear } });
       } catch {
       }
     }
@@ -6892,8 +6898,8 @@ var GRACE = 8 * TICKS.second;
 var PROP2 = "bk:music";
 var playing = /* @__PURE__ */ new Map();
 var scene = null;
-function sceneTheme(theme, ticks, at2, dim) {
-  scene = { theme, until: store.rec.clock + ticks, at: { ...at2 }, dim };
+function sceneTheme(theme, ticks, at3, dim) {
+  scene = { theme, until: store.rec.clock + ticks, at: { ...at3 }, dim };
 }
 var FIGHT = /* @__PURE__ */ new Set(["charge", "beam", "remember", "scatter", "lock", "pursue", "raze", "arc", "pin", "flinch", "boat"]);
 var fightUntil = -1;
@@ -6967,6 +6973,369 @@ function musicStop() {
 // src/controller.ts
 import { ItemStack as ItemStack4, system as system5, world as world13 } from "@minecraft/server";
 
+// src/change.ts
+import { MolangVariableMap as MolangVariableMap3 } from "@minecraft/server";
+function at2(c, name, up = 0) {
+  try {
+    if (name in RIGS[c.form].locators) {
+      const p = c.anchor(name);
+      return { x: p.x, y: p.y + up, z: p.z };
+    }
+  } catch {
+  }
+  const m = c.middle();
+  return { x: m.x, y: m.y + up, z: m.z };
+}
+var head = (c) => () => at2(c, "nose");
+var body = (c) => () => c.middle();
+function ringAt(c, r, a, y) {
+  return { x: c.pos.x + Math.cos(a) * r, y, z: c.pos.z + Math.sin(a) * r };
+}
+function floorAt(c, x, z) {
+  const g = groundY(c.dim, x, z, c.pos.y + 8, 24);
+  return typeof g === "number" ? g : c.pos.y;
+}
+function surface(c) {
+  let y = Math.floor(c.pos.y);
+  for (let k = 0; k < 16; k++) {
+    if (!isWaterId(idAt(c.dim, { x: c.pos.x, y: y + 1, z: c.pos.z }))) break;
+    y++;
+  }
+  return y + 1;
+}
+function reachVars(reach) {
+  const m = new MolangVariableMap3();
+  m.setFloat("variable.reach", reach);
+  return m;
+}
+function bolt(c, to, seed, big = false) {
+  const from = { x: to.x + (hash(seed, 1) - 0.5) * 14, y: to.y + 70, z: to.z + (hash(seed, 2) - 0.5) * 14 };
+  const d = norm(sub(to, from)), L = dist(from, to);
+  particle(c.dim, "basiliskra:beam_core", from, 224, beamVars(d, L, big ? 0.9 : 0.5));
+  particle(c.dim, "basiliskra:beam_halo", from, 224, beamVars(d, L, big ? 2.6 : 1.5));
+  particle(c.dim, "basiliskra:beam_arc", from, 192, beamVars(d, L, big ? 1.6 : 1));
+  particle(c.dim, "basiliskra:impact_glare", to, 192);
+  particle(c.dim, "basiliskra:horn_arc_big", to, 128);
+}
+function thunder(c, to, seed, big = false) {
+  sound(c.dim, "ambient.weather.thunder", to, 192, big ? 2 : 1.4, (big ? 0.6 : 0.85) + hash(seed, 3) * 0.2);
+  sound(c.dim, "ambient.weather.lightning.impact", to, 128, 1.2, 0.8 + hash(seed, 4) * 0.2);
+  flash(c.dim, to, 150, { red: 1, green: 0.88, blue: 0.84 }, 0.02, big ? 0.1 : 0.05, big ? 0.6 : 0.3);
+}
+function scar(c, r, n, seed) {
+  for (let k = 0; k < n; k++) {
+    const a = hash(seed, k, 5) * Math.PI * 2, d = Math.sqrt(hash(seed, k, 6)) * r;
+    const x = c.pos.x + Math.cos(a) * d, z = c.pos.z + Math.sin(a) * d;
+    const y = floorAt(c, x, z);
+    if (glassify(c.dim, { x, y: y - 1, z })) particle(c.dim, "basiliskra:impact_fire", { x, y: y + 0.2, z }, 96);
+  }
+}
+var KNOCKS = [0, 18, 36];
+var top = 0;
+var ONE = {
+  before: 176,
+  after: 134,
+  hold: 90,
+  nameAt: 0,
+  flash: { red: 0.92, green: 0.9, blue: 0.95, hold: 0.14, fade: 1 },
+  shots: (c, Fo, Fn) => [
+    // his gills, from beside his head, as they knock
+    { ticks: 54, look: head(c), angle: [72, 96], dist: [Fo * 0.3 + 2, Fo * 0.26 + 2], height: [2.5, 3.5] },
+    // straight down on the sea seething round him
+    { ticks: 66, look: body(c), angle: 0, dist: 1.5, height: [Fo * 0.9, Fo * 1.25] },
+    // low over the water in front of him as he rears out of it
+    { ticks: 56, look: head(c), angle: [-25, 10], dist: [Fo * 0.75, Fo * 0.5], height: [1.5, 2.5] },
+    // what is left when the steam goes
+    { ticks: 44, look: body(c), angle: [35, 60], dist: [Fn * 0.6, Fn * 0.95], height: [Fn * 0.15, Fn * 0.3] },
+    // his horns, and what jumps between them
+    { ticks: 56, look: () => at2(c, "horn_l"), angle: [22, -22], dist: [Fn * 0.34, Fn * 0.3], height: [1.5, 2.5] },
+    // his face, for the roar
+    { ticks: 34 + 90, look: head(c), angle: [15, 5], dist: [Fn * 0.5, Fn * 0.4], height: [-1, -0.5] }
+  ],
+  pre(c, t) {
+    if (t === 0 || t % 20 === 0) top = surface(c);
+    if (t === 0) c.setPhase("knock");
+    if (KNOCKS.includes(t)) {
+      c.say("basiliskra.knock.gill", at2(c, "gill_l"), 96, 1, 1 - KNOCKS.indexOf(t) * 0.04);
+      c.pulse(1);
+      for (const g of ["gill_l", "gill_r"]) {
+        particle(c.dim, "basiliskra:gill_bubbles", at2(c, g), 64);
+        particle(c.dim, "basiliskra:gill_silt", at2(c, g), 64);
+      }
+    }
+    if (t === 54) {
+      c.setPhase("spasm");
+      c.say("basiliskra.i.spasm", c.pos, 96);
+      c.say("basiliskra.i.gill_catch", at2(c, "gill_l"), 80);
+    }
+    if (t === 120) {
+      c.setPhase("rise");
+      c.say("basiliskra.i.surface", { x: c.pos.x, y: top, z: c.pos.z }, 112);
+      particle(c.dim, "basiliskra:surge_spray", { x: c.pos.x, y: top, z: c.pos.z }, 128);
+      particle(c.dim, "basiliskra:fin_splash", at2(c, "fin_l"), 96);
+    }
+    if (t === 150) {
+      c.setPhase("evolve");
+      c.say("basiliskra.mutate", c.pos, 96);
+    }
+    c.setCharge(t < 54 ? 0 : t < 150 ? (t - 54) / 96 * 10 : 10 + (t - 150) / 26 * 10);
+    const r = 3 + t * 0.06;
+    if (t % 3 === 0) {
+      for (let k = 0; k < 2 + Math.floor(t / 60); k++) {
+        const a = hash(t, k, 11) * Math.PI * 2, d = r * (0.4 + 0.6 * hash(t, k, 12));
+        particle(c.dim, "basiliskra:splash", ringAt(c, d, a, top), 96);
+        particle(c.dim, "basiliskra:bubble_trail", ringAt(c, d, a, top - 1.5), 64);
+      }
+    }
+    if (t >= 54 && t % 5 === 0) particle(c.dim, "basiliskra:gill_steam", ringAt(c, r * hash(t, 13), hash(t, 14) * 6.28, top + 0.4), 112);
+    if (t >= 54 && t % 12 === 0) for (const f of ["fin_l", "fin_r"]) particle(c.dim, "basiliskra:fin_spark", at2(c, f), 80);
+    if (t >= 100 && t % 8 === 0) sound(c.dim, "random.fizz", { x: c.pos.x, y: top, z: c.pos.z }, 80, 0.9, 0.6 + hash(t, 15) * 0.3);
+    if (t >= 150 && t % 6 === 0) particle(c.dim, "basiliskra:mutate_gather", c.middle(), 160, sizeVars(6));
+    if (t % 20 === 0) shake(c, 80, 0.1 + 0.4 * (t / 176), 1);
+  },
+  burst(c) {
+    top = surface(c);
+    const mid = { x: c.pos.x, y: top, z: c.pos.z };
+    for (const f of ["fin_l", "fin_r"]) particle(c.dim, "basiliskra:fin_break", at2(c, f), 128);
+    for (let k = 0; k < 8; k++) {
+      const a = k / 8 * Math.PI * 2;
+      particle(c.dim, "basiliskra:impact_fountain", ringAt(c, 3.5, a, top), 160);
+      particle(c.dim, "basiliskra:surge_spray", ringAt(c, 6, a + 0.3, top), 128);
+    }
+    for (let h = 0; h < 6; h++) particle(c.dim, "basiliskra:gill_steam", { x: mid.x, y: top + h * 2.5, z: mid.z }, 160);
+    particle(c.dim, "basiliskra:mutate_burst", c.middle(), 200);
+    sound(c.dim, "random.fizz", mid, 128, 2, 0.45);
+    sound(c.dim, "basiliskra.splash", mid, 128, 1.5, 0.6);
+    shake(c, 96, 1, 0.7);
+  },
+  post(c, t) {
+    if (t === 0) {
+      c.setPhase("beach");
+      c.say("basiliskra.mutate", c.pos, 96, 1, 0.9);
+    }
+    if (t < 70 && t % 4 === 0) particle(c.dim, "basiliskra:gill_steam", ringAt(c, 5 * hash(t, 21), hash(t, 22) * 6.28, c.pos.y + 1 + 3 * hash(t, 23)), 112);
+    if (t < 60 && t % 10 === 0) particle(c.dim, "basiliskra:shed_flakes", c.middle(), 96);
+    c.setCharge(t < 44 ? 20 - t / 44 * 14 : Math.max(0, 6 - (t - 44) * 0.07));
+    const k = [44, 62, 80].indexOf(t);
+    if (k >= 0) {
+      if (k === 0) c.setPhase("arc");
+      c.say("basiliskra.ii.arc", at2(c, "horn_l"), 112, 1, 1 + k * 0.06);
+      c.pulse(2);
+      for (const h of ["horn_l", "horn_r"]) particle(c.dim, "basiliskra:horn_arc_big", at2(c, h), 112);
+      flash(c.dim, c.pos, 60, { red: 1, green: 0.8, blue: 0.82 }, 0.02, 0.03, 0.2);
+    }
+    if (t === 104) c.setPhase("idle");
+  }
+};
+var STRIKES = [50, 100, 140];
+var TWO = {
+  before: 200,
+  after: 150,
+  hold: 120,
+  nameAt: 0,
+  flash: { red: 1, green: 0.94, blue: 0.9, hold: 0.16, fade: 0.9 },
+  shots: (c, Fo, Fn) => [
+    // from behind and below him, up past his horns at the sky the first bolt comes out of
+    { ticks: 58, look: () => at2(c, "horn_l", 6), angle: [176, 192], dist: [Fo * 0.5, Fo * 0.45], height: [-5, -4] },
+    // straight down on him, coming closer, as the second lands
+    { ticks: 50, look: body(c), angle: 90, dist: 2, height: [Fo * 1.3, Fo * 0.9] },
+    // his face, close, for the third
+    { ticks: 52, look: head(c), angle: [60, 40], dist: [Fo * 0.4, Fo * 0.32], height: [1, 0.5] },
+    // all of him, low, as it takes hold
+    { ticks: 40, look: body(c), angle: [-30, -10], dist: [Fo * 1, Fo * 0.8], height: [0.5, 1] },
+    // what stands there afterwards, with the charge running out through his club
+    { ticks: 34, look: body(c), angle: [-40, -20], dist: [Fn * 0.75, Fn * 1], height: [-Fn * 0.08, Fn * 0.05] },
+    // along his back from the tail, as the plates light one by one
+    { ticks: 76, look: () => at2(c, "plate_tip_5"), angle: [165, 195], dist: [Fn * 0.75, Fn * 0.6], height: [Fn * 0.3, Fn * 0.22] },
+    // his face: he shakes the fire out of his plates, and roars
+    { ticks: 40 + 120, look: head(c), angle: [28, 8], dist: [Fn * 0.5, Fn * 0.4], height: [-Fn * 0.1, -Fn * 0.06] }
+  ],
+  pre(c, t) {
+    if (t === 0) {
+      c.setPhase("arc");
+      c.say("basiliskra.ii.arc", at2(c, "horn_l"), 112);
+    }
+    if (t > 0 && t < 150 && t % 30 === 0 && !STRIKES.includes(t)) c.say("basiliskra.ii.arc", at2(c, "horn_r"), 96, 0.7, 1.1);
+    if (t % 4 === 0) {
+      const a = hash(t, 31) * Math.PI * 2, r = 12 - t % 40 * 0.2;
+      const p = ringAt(c, r, a, 0);
+      particle(c.dim, hash(t, 32) < 0.5 ? "basiliskra:step_dust" : "basiliskra:grit", { x: p.x, y: floorAt(c, p.x, p.z) + 0.3, z: p.z }, 96);
+    }
+    const k = STRIKES.indexOf(t);
+    if (k >= 0) {
+      const to = at2(c, k === 1 ? "horn_r" : "horn_l");
+      bolt(c, to, t);
+      thunder(c, to, t);
+      c.setPhase("flinch");
+      c.pulse(3);
+      c.setCharge(6 * (k + 1));
+      shake(c, 120, 0.9, 0.5);
+      particle(c.dim, "basiliskra:shock_ring", { x: c.pos.x, y: c.pos.y + 0.3, z: c.pos.z }, 128);
+      particle(c.dim, "basiliskra:impact_ring", { x: c.pos.x, y: c.pos.y + 0.3, z: c.pos.z }, 128);
+      scar(c, 4, 2, t);
+    }
+    for (const s of STRIKES) if (t === s + 1 || t === s + 3) bolt(c, at2(c, STRIKES.indexOf(s) === 1 ? "horn_r" : "horn_l"), s);
+    for (const s of STRIKES) if (t === s + 12) c.setPhase("arc");
+    if (t === 160) {
+      c.setPhase("evolve");
+      c.say("basiliskra.mutate", c.pos, 96);
+    }
+    if (t >= 160) {
+      c.setCharge(18 + (t - 160) / 40 * 2);
+      if (t % 6 === 0) particle(c.dim, "basiliskra:mutate_gather", c.middle(), 160, sizeVars(9));
+    }
+    if (t % 20 === 0) shake(c, 90, 0.1 + 0.3 * (t / 200), 1);
+  },
+  burst(c) {
+    const to = c.middle();
+    for (let k = 0; k < 3; k++) bolt(c, { x: to.x + (k - 1) * 1.5, y: to.y, z: to.z }, 300 + k, true);
+    thunder(c, to, 300, true);
+    particle(c.dim, "basiliskra:mutate_burst", to, 200);
+    for (let k = 0; k < 10; k++) {
+      const p = ringAt(c, 8, k / 10 * Math.PI * 2, 0);
+      const y = floorAt(c, p.x, p.z);
+      particle(c.dim, k % 2 ? "basiliskra:impact_debris" : "basiliskra:step_dust", { x: p.x, y: y + 0.4, z: p.z }, 128);
+    }
+    scar(c, 6, 8, 301);
+    shake(c, 140, 1.4, 0.8);
+  },
+  post(c, t) {
+    if (t === 0) {
+      c.setPhase("grounded");
+      c.setCharge(0);
+      c.say("basiliskra.iii.ground", at2(c, "club_core"), 128);
+      for (const s of ["spike_tip_0", "spike_tip_3", "spike_tip_8"]) particle(c.dim, "basiliskra:club_arc", at2(c, s), 112);
+    }
+    if (t === 34) c.setPhase("idle");
+    if (t >= 34 && t < 110) {
+      const before = Math.floor(c.charge / 2);
+      c.setCharge((t - 34) / 76 * 18);
+      const zone = Math.floor(c.charge / 2);
+      if (zone > before) {
+        const tip = at2(c, `plate_tip_${Math.max(0, 9 - zone)}`);
+        sound(c.dim, "basiliskra.iii.charge_tick", tip, 112, 0.8, 0.6 + zone * 0.08);
+        particle(c.dim, "basiliskra:plate_ember", tip, 112);
+      }
+    }
+    if (t === 110) {
+      c.setPhase("scatter");
+      c.say("basiliskra.iii.scatter", at2(c, "plate_tip_5"), 128);
+      shake(c, 96, 0.6, 0.5);
+    }
+    if (t > 110) c.setCharge(Math.max(0, 18 - (t - 110) * 0.9));
+    if (t === 134) c.setPhase("idle");
+  }
+};
+var VENTS = [137, 155, 173];
+var THREE = {
+  before: 236,
+  after: 210,
+  hold: 0,
+  nameAt: 110,
+  flash: { red: 1, green: 1, blue: 1, hold: 0.4, fade: 1.3 },
+  shots: (c, Fo, Fn) => [
+    // along his back from the tail as the plates light: a charge, like any other
+    { ticks: 70, look: () => at2(c, "plate_tip_5"), angle: [160, 195], dist: [Fo * 0.7, Fo * 0.55], height: [Fo * 0.3, Fo * 0.2] },
+    // his face, as it reaches his mouth and he does not fire
+    { ticks: 67, look: head(c), angle: [35, 20], dist: [Fo * 0.36, Fo * 0.28], height: [0.5, -1] },
+    // at his feet: the vent fails, and the ground under him begins to glow
+    { ticks: 54, look: () => ({ x: c.pos.x, y: c.pos.y + 2, z: c.pos.z }), angle: [70, 110], dist: [Fo * 0.6, Fo * 0.5], height: [1, 2.5] },
+    // all of him, drawing back from it
+    { ticks: 45, look: body(c), angle: [-12, 12], dist: [Fo * 0.7, Fo * 1.05], height: [Fo * 0.1, Fo * 0.2] },
+    // from the ground, up at a dark shape in the smoke
+    { ticks: 64, look: body(c), angle: [-20, -8], dist: [Fn * 0.5, Fn * 0.6], height: [-21, -20] },
+    // from behind him as the wings come open
+    { ticks: 46, look: body(c), angle: [180, 168], dist: [Fn * 0.85, Fn * 1], height: [Fn * 0.05, Fn * 0.2] },
+    // round to the front of him: all of what he is now
+    { ticks: 100, look: body(c), angle: [40, -15], dist: [Fn * 0.7, Fn * 1], height: [-Fn * 0.2, Fn * 0.1] }
+  ],
+  pre(c, t) {
+    if (t === 0) {
+      c.setPhase("charge");
+      c.say("basiliskra.iii.club_plant", at2(c, "club_core"), 128);
+      c.say("basiliskra.iii.charge", at2(c, "throat"), 160);
+    }
+    if (t < 137) {
+      const before = Math.floor(c.charge / 2);
+      c.setCharge(t / 137 * 18);
+      const zone = Math.floor(c.charge / 2);
+      if (zone > before) sound(c.dim, "basiliskra.iii.charge_tick", at2(c, zone >= 6 ? "throat" : "club_core"), 96, 0.55, 0.6 + zone * 0.08);
+    }
+    const k = VENTS.indexOf(t);
+    if (k >= 0) {
+      if (k === 0) c.setPhase("vent");
+      c.say("basiliskra.knock.vent", at2(c, "gill_l"), 96, 1, 1 - k * 0.03);
+      c.pulse(3);
+    }
+    if (t >= 137 && t < 191) {
+      c.setCharge(18 + (t - 137) / 54 * 2);
+      if (t % 3 === 0) for (const g of ["gill_l", "gill_r"]) particle(c.dim, "basiliskra:gill_steam", at2(c, g), 112);
+      if (t % 4 === 0) scar(c, 4 + (t - 137) * 0.12, 2, t);
+      if (t % 6 === 0) particle(c.dim, "basiliskra:rad_shimmer", { x: c.pos.x, y: c.pos.y + 0.5, z: c.pos.z }, 96);
+    }
+    if (t === 191) {
+      c.setPhase("scatter");
+      c.say("basiliskra.iii.scatter", at2(c, "plate_tip_5"), 160);
+      c.say("basiliskra.mutate", c.pos, 128, 1, 0.8);
+    }
+    if (t >= 191) {
+      c.setCharge(20);
+      if (t % 8 === 0) c.pulse(3);
+      if (t % 4 === 0) for (const p of [1, 4, 7]) particle(c.dim, "basiliskra:plate_blaze", at2(c, `plate_tip_${p}`), 128);
+      if (t % 6 === 0) particle(c.dim, "basiliskra:mutate_gather", c.middle(), 192, sizeVars(16));
+      if (t % 5 === 0) scar(c, 11, 2, t);
+    }
+    if (t % 20 === 0) shake(c, 120, 0.1 + 0.9 * (t / 236) * (t / 236), 1);
+  },
+  burst(c) {
+    const feet = { x: c.pos.x, y: c.pos.y + 0.4, z: c.pos.z };
+    particle(c.dim, "basiliskra:mutate_burst", c.middle(), 224);
+    particle(c.dim, "basiliskra:roar_ring", feet, 192, reachVars(30));
+    particle(c.dim, "basiliskra:roar_wave", feet, 192, reachVars(30));
+    particle(c.dim, "basiliskra:shock_ring", feet, 192);
+    sound(c.dim, "ambient.weather.thunder", feet, 224, 2, 0.45);
+    sound(c.dim, "random.explode", feet, 192, 2, 0.4);
+    blast(c.dim, feet, 30, 0, 0, 1.5, () => false, c.entity, feet);
+    scar(c, 9, 12, 500);
+    shake(c, 192, 2.2, 1.2);
+  },
+  post(c, t) {
+    if (t === 0) {
+      c.setPhase("swallow");
+      c.setCharge(0);
+      c.say("basiliskra.iii.fizzle", at2(c, "mouth"), 128, 1, 0.7);
+    }
+    if (t === 24) c.say("basiliskra.iii.breath", at2(c, "nose"), 112, 1, 0.7);
+    if (t < 80 && t % 5 === 0) {
+      const v = c.volumes();
+      for (let k = 0; k < 3; k++) particle(c.dim, "basiliskra:impact_smoke", v[Math.floor(hash(t, k, 41) * v.length)].at, 192);
+    }
+    if (t === 64) {
+      c.setPhase("recoil");
+      sound(c.dim, "mob.enderdragon.flap", at2(c, "wing_tip_l"), 192, 2, 0.5);
+      sound(c.dim, "mob.enderdragon.flap", at2(c, "wing_tip_r"), 192, 2, 0.55);
+      c.say("basiliskra.iii.club_swing", c.middle(), 160, 1, 0.7);
+      const feet = { x: c.pos.x, y: c.pos.y + 0.4, z: c.pos.z };
+      for (let k = 0; k < 12; k++) {
+        const p = ringAt(c, 14, k / 12 * Math.PI * 2, 0);
+        particle(c.dim, "basiliskra:step_dust", { x: p.x, y: floorAt(c, p.x, p.z) + 0.3, z: p.z }, 128);
+      }
+      blast(c.dim, feet, 26, 0, 0, 1, () => false, c.entity, feet);
+      shake(c, 160, 1.2, 0.6);
+    }
+    if (t >= 64 && t < 110) c.setCharge((t - 64) / 46 * 12);
+    if (t === 110) {
+      c.setPhase("rise");
+      c.say("basiliskra.iii.growl", at2(c, "nose"), 160, 1, 0.7);
+    }
+    if (t >= 110 && t < 150) c.setCharge(12 + (t - 110) / 40 * 8);
+    if (t >= 110 && t < 170 && t % 6 === 0) particle(c.dim, "basiliskra:plate_ember", at2(c, `plate_tip_${Math.floor(hash(t, 42) * 7)}`), 128);
+    if (t >= 170) c.setCharge(Math.max(0, 20 - (t - 170) * 0.5));
+    if (t === 190) c.setPhase("idle");
+  }
+};
+var CHANGES = { 2: ONE, 3: TWO, 4: THREE };
+
 // src/ending.ts
 import { EquipmentSlot as EquipmentSlot2 } from "@minecraft/server";
 var NOTE = "minecraft:noteblock";
@@ -7024,11 +7393,11 @@ var Ending = class {
     }
   }
   /** A note sounded near the seam (a player's hand or a redstone pulse). */
-  onNote(at2) {
+  onNote(at3) {
     const rift = store.rec.rift;
-    if (!rift || distXZ(at2, rift) > NOTE_REACH) return;
-    const k = `${Math.floor(at2.x)},${Math.floor(at2.y)},${Math.floor(at2.z)}`;
-    if (!this.blocks.has(k) && this.blocks.size < 32) this.blocks.set(k, { x: Math.floor(at2.x), y: Math.floor(at2.y), z: Math.floor(at2.z) });
+    if (!rift || distXZ(at3, rift) > NOTE_REACH) return;
+    const k = `${Math.floor(at3.x)},${Math.floor(at3.y)},${Math.floor(at3.z)}`;
+    if (!this.blocks.has(k) && this.blocks.size < 32) this.blocks.set(k, { x: Math.floor(at3.x), y: Math.floor(at3.y), z: Math.floor(at3.z) });
     const now = store.rec.clock;
     const gap = now - this.lastNote;
     if (gap < 4) return;
@@ -7174,7 +7543,7 @@ var Ending = class {
       if (t2 % 60 === 0) sound(dim, "basiliskra.rift.hum", rift, 64);
     };
     this.faltered = 0;
-    const surface = rift.y + 5.5;
+    const surface2 = rift.y + 5.5;
     let u = norm({ x: c.pos.x - rift.x, y: 0, z: c.pos.z - rift.z });
     if (!u.x && !u.z) u = { x: 1, y: 0, z: 0 };
     let shore = 8, found = 1e9;
@@ -7182,7 +7551,7 @@ var Ending = class {
     for (let i = 0; i < 16; i++) {
       const a = i * Math.PI / 8, d0 = { x: Math.cos(a), y: 0, z: Math.sin(a) };
       for (let d = 8; d <= 64 && d < found + 6; d += 2) {
-        const g2 = blockAt(dim, { x: rift.x + d0.x * d, y: surface - 4.5, z: rift.z + d0.z * d });
+        const g2 = blockAt(dim, { x: rift.x + d0.x * d, y: surface2 - 4.5, z: rift.z + d0.z * d });
         if (!g2 || !isSolidBlock(g2) || isPlantBlock(g2.typeId)) continue;
         const cost = d - 5 * dot(d0, toHim);
         if (cost < found) {
@@ -7354,9 +7723,9 @@ var BrainOne = class extends Brain {
   }
   interrupt() {
     if (this.lure && this.actName !== "lure" && this.actName !== "beach") {
-      const at2 = this.lure;
+      const at3 = this.lure;
       this.lure = null;
-      return { name: "lure", run: this.investigate(at2), limit: 30 * TICKS.second };
+      return { name: "lure", run: this.investigate(at3), limit: 30 * TICKS.second };
     }
     return null;
   }
@@ -7403,10 +7772,10 @@ var BrainOne = class extends Brain {
     }
     if (near.length && this.ready("harbor") && (isNight(tod) || tod > 11500)) {
       const pier = this.findPier(near[0].location);
-      const at2 = pier ?? this.openWater(near[0].location, 10, 24, 5);
-      if (at2) {
+      const at3 = pier ?? this.openWater(near[0].location, 10, 24, 5);
+      if (at3) {
         this.rest("harbor", (pier ? 4 : 6) * TICKS.minute);
-        return { name: "harbor", run: this.underHarbor(pier ?? { x: at2.x, y: at2.y + 1, z: at2.z }), limit: 2 * TICKS.minute };
+        return { name: "harbor", run: this.underHarbor(pier ?? { x: at3.x, y: at3.y + 1, z: at3.z }), limit: 2 * TICKS.minute };
       }
     }
     return { name: "patrol", run: this.patrol(), limit: 40 * TICKS.second };
@@ -7591,9 +7960,9 @@ var BrainOne = class extends Brain {
             pull = false;
           }
           if (!pull) continue;
-          const at2 = e.typeId === "minecraft:player" ? e.getHeadLocation() : e.location;
-          if (!clearLine(c.dim, g, at2)) continue;
-          const d = norm(sub(g, at2));
+          const at3 = e.typeId === "minecraft:player" ? e.getHeadLocation() : e.location;
+          if (!clearLine(c.dim, g, at3)) continue;
+          const d = norm(sub(g, at3));
           try {
             if (e.typeId === "minecraft:player") e.applyKnockback({ x: d.x * 0.42, z: d.z * 0.42 }, d.y * 0.2);
             else e.applyImpulse(mul(d, 0.14));
@@ -7611,61 +7980,61 @@ var BrainOne = class extends Brain {
   *drownedEcho(site) {
     const c = this.c;
     const col = waterColumn(c.dim, site.x, site.z, site.y, 8);
-    let at2 = col !== NONE && col !== UNLOADED ? { x: site.x + 0.5, y: col.surface - 1, z: site.z + 0.5 } : null;
-    if (!at2) {
+    let at3 = col !== NONE && col !== UNLOADED ? { x: site.x + 0.5, y: col.surface - 1, z: site.z + 0.5 } : null;
+    if (!at3) {
       for (const [dx, dz] of [[4, 0], [-4, 0], [0, 4], [0, -4], [6, 6], [-6, -6], [6, -6], [-6, 6]]) {
         const cc = waterColumn(c.dim, site.x + dx, site.z + dz, site.y, 8);
         if (cc !== NONE && cc !== UNLOADED) {
-          at2 = { x: site.x + dx, y: cc.surface - 1, z: site.z + dz };
+          at3 = { x: site.x + dx, y: cc.surface - 1, z: site.z + dz };
           break;
         }
       }
     }
-    if (!at2) return;
+    if (!at3) return;
     for (const p of nearbyPlayers(c, 64)) {
       try {
-        const ear = p.getHeadLocation(), d = dist(ear, at2);
+        const ear = p.getHeadLocation(), d = dist(ear, at3);
         if (d > 48) continue;
-        const from = d <= 10 ? at2 : add(ear, mul(norm(sub(at2, ear)), 10));
+        const from = d <= 10 ? at3 : add(ear, mul(norm(sub(at3, ear)), 10));
         p.playSound(site.s, { location: from, volume: clamp(1.1 - d / 60, 0.35, 0.9), pitch: 0.72 });
       } catch {
       }
     }
     c.halt();
     for (let t = 0; t < 46; t++) {
-      c.lookAt(at2, 70, 25);
+      c.lookAt(at3, 70, 25);
       yield;
     }
     c.setPhase("move");
     c.swimDepth = 5;
-    yield* travel(c, at2, 0.24, 5, 700);
+    yield* travel(c, at3, 0.24, 5, 700);
     c.lookAhead();
     c.setPhase("idle");
     yield* wait(70);
-    sound(c.dim, site.s, at2, 24, 0.45, 0.66);
+    sound(c.dim, site.s, at3, 24, 0.45, 0.66);
     yield* wait(80);
   }
   // ---- the second splash ----------------------------------------------------------------------------
-  onSplash(at2, _by) {
+  onSplash(at3, _by) {
     const c = this.c;
-    if (dist(at2, c.pos) > 56) return;
+    if (dist(at3, c.pos) > 56) return;
     const prev = this.splash;
-    if (prev && this.now - prev.t <= 80 && dist(prev.at, at2) <= 6 && this.rec.learned.lureUntil <= this.now) {
-      this.lure = at2;
+    if (prev && this.now - prev.t <= 80 && dist(prev.at, at3) <= 6 && this.rec.learned.lureUntil <= this.now) {
+      this.lure = at3;
       this.rec.learned.lures++;
       this.rec.learned.lureUntil = this.now + pace(30 * TICKS.second + Math.min(this.rec.learned.lures, 8) * 15 * TICKS.second);
       this.splash = null;
     } else {
-      this.splash = { at: at2, t: this.now };
-      if (this.actName === "patrol" || this.actName === "none") c.lookAt(at2, 60, 20);
+      this.splash = { at: at3, t: this.now };
+      if (this.actName === "patrol" || this.actName === "none") c.lookAt(at3, 60, 20);
     }
   }
-  *investigate(at2) {
+  *investigate(at3) {
     const c = this.c;
     c.setPhase("move");
     c.swimDepth = 5;
-    c.lookAt(at2, 60, 20);
-    yield* travel(c, at2, 0.3, 7, 500);
+    c.lookAt(at3, 60, 20);
+    yield* travel(c, at3, 0.3, 7, 500);
     c.lookAhead();
     c.setPhase("sweep");
     c.say("basiliskra.i.sweep", c.anchor("tail_tip"), 56);
@@ -7722,13 +8091,13 @@ var BrainOne = class extends Brain {
     this.rec.mut.surfacings++;
     this.rec.mut.lastEncounter = this.now;
     const col = waterColumn(c.dim, c.pos.x, c.pos.z, c.pos.y + 3, 12);
-    const surface = col !== NONE && col !== UNLOADED ? col.surface : c.pos.y + 5;
+    const surface2 = col !== NONE && col !== UNLOADED ? col.surface : c.pos.y + 5;
     for (let t = 0; t < 84; t++) {
       const k = Math.floor((t - 6) / 7);
       if (t >= 6 && (t - 6) % 7 === 0 && k <= 10) {
         const s = c.anchor(`spine_${k}`);
-        particle(c.dim, "basiliskra:fin_break", { x: s.x, y: surface + 0.05, z: s.z }, 48);
-        if (k % 3 === 0) c.say("basiliskra.splash", { x: s.x, y: surface, z: s.z }, 24, 0.6, 0.8);
+        particle(c.dim, "basiliskra:fin_break", { x: s.x, y: surface2 + 0.05, z: s.z }, 48);
+        if (k % 3 === 0) c.say("basiliskra.splash", { x: s.x, y: surface2, z: s.z }, 24, 0.6, 0.8);
       }
       yield;
     }
@@ -7747,9 +8116,9 @@ var BrainOne = class extends Brain {
     c.setPhase("sleep");
     let t = 0;
     while (isNight(world11.getTimeOfDay()) && t++ < 9e3) {
-      const head = c.anchor("muzzle");
+      const head2 = c.anchor("muzzle");
       let woke = this.now - this.hurtAt < 40;
-      for (const p of nearbyPlayers(c, 40)) if (dist(p.location, head) < 7) woke = true;
+      for (const p of nearbyPlayers(c, 40)) if (dist(p.location, head2) < 7) woke = true;
       if (woke) break;
       if (t % 90 === 0) c.say("basiliskra.i.breath", c.anchor("back"), 32, 0.6, 0.8);
       yield;
@@ -7844,9 +8213,9 @@ var BrainTwo = class extends Brain {
       return { name: "flinch", run: this.flinch(from), limit: 20 * TICKS.second };
     }
     if (this.lure && (this.actName === "well" || this.actName === "wander" || this.actName === "pin")) {
-      const at2 = this.lure;
+      const at3 = this.lure;
       this.lure = null;
-      return { name: "lure", run: this.toLure(at2), limit: 50 * TICKS.second };
+      return { name: "lure", run: this.toLure(at3), limit: 50 * TICKS.second };
     }
     return null;
   }
@@ -7932,8 +8301,8 @@ var BrainTwo = class extends Brain {
     const c = this.c;
     for (const side of ["hip_l", "hip_r"]) {
       const p = c.anchor(side);
-      const at2 = { x: Math.floor(p.x), y: Math.floor(c.pos.y - 0.5), z: Math.floor(p.z) };
-      const b = takesMark(c.dim, at2);
+      const at3 = { x: Math.floor(p.x), y: Math.floor(c.pos.y - 0.5), z: Math.floor(p.z) };
+      const b = takesMark(c.dim, at3);
       const to = b ? furrowOf(b.typeId) : void 0;
       if (b && to) {
         try {
@@ -8022,39 +8391,39 @@ var BrainTwo = class extends Brain {
     }
     return well ?? (pd < 48 ? pond : null);
   }
-  *well(at2) {
+  *well(at3) {
     const c = this.c;
-    if (!(yield* this.drag(at2, 8.5, 1800))) return;
-    c.yaw = yawTo(c.pos, at2);
+    if (!(yield* this.drag(at3, 8.5, 1800))) return;
+    c.yaw = yawTo(c.pos, at3);
     c.setPhase("drink");
     for (let t = 0; t < 700; t++) {
       if (t % 52 === 0) c.say("basiliskra.ii.drink", c.anchor("muzzle"), 32);
       yield;
     }
   }
-  *toLure(at2) {
+  *toLure(at3) {
     const c = this.c;
     c.setPhase("idle");
     for (let t = 0; t < 24; t++) {
-      c.lookAt(at2, 70, 20);
+      c.lookAt(at3, 70, 20);
       yield;
     }
     c.lookAhead();
-    yield* this.drag(at2, 6, 900);
+    yield* this.drag(at3, 6, 900);
     c.setPhase("idle");
     yield* wait(100);
   }
-  onSplash(at2, _by) {
+  onSplash(at3, _by) {
     const c = this.c;
-    if (dist(at2, c.pos) > 40) return;
+    if (dist(at3, c.pos) > 40) return;
     this.otherSound = this.now;
     const prev = this.splash;
-    if (prev && this.now - prev.t <= 100 && dist(prev.at, at2) <= 6 && this.rec.learned.lureUntil <= this.now) {
-      this.lure = at2;
+    if (prev && this.now - prev.t <= 100 && dist(prev.at, at3) <= 6 && this.rec.learned.lureUntil <= this.now) {
+      this.lure = at3;
       this.rec.learned.lures++;
       this.rec.learned.lureUntil = this.now + pace(40 * TICKS.second);
       this.splash = null;
-    } else this.splash = { at: at2, t: this.now };
+    } else this.splash = { at: at3, t: this.now };
   }
   // ---- the first discharge -----------------------------------------------------------------------------
   *discharge() {
@@ -8109,24 +8478,24 @@ var BrainTwo = class extends Brain {
     }
   }
   // ---- the bell ---------------------------------------------------------------------------------------------
-  onBell(at2, _by) {
+  onBell(at3, _by) {
     const c = this.c, rec = this.rec;
-    if (dist(at2, c.pos) > 48) return;
+    if (dist(at3, c.pos) > 48) return;
     if (this.actName === "pin") {
-      const same = rec.learned.bell && dist(rec.learned.bell, at2) < 2;
+      const same = rec.learned.bell && dist(rec.learned.bell, at3) < 2;
       if (same) {
-        sound(c.dim, "basiliskra.bell_pin", at2, 32);
-        particle(c.dim, "basiliskra:grit", { x: at2.x + 0.5, y: at2.y + 0.5, z: at2.z + 0.5 }, 24);
+        sound(c.dim, "basiliskra.bell_pin", at3, 32);
+        particle(c.dim, "basiliskra:grit", { x: at3.x + 0.5, y: at3.y + 0.5, z: at3.z + 0.5 }, 24);
       } else this.otherSound = this.now;
       return;
     }
     if (rec.learned.bellUses < 3) {
       rec.learned.bellUses++;
-      rec.learned.bell = { x: Math.floor(at2.x), y: Math.floor(at2.y), z: Math.floor(at2.z) };
-      this.startle = at2;
+      rec.learned.bell = { x: Math.floor(at3.x), y: Math.floor(at3.y), z: Math.floor(at3.z) };
+      this.startle = at3;
     } else if (rec.learned.bellUses === 3) {
       rec.learned.bellUses = 4;
-      rec.learned.bell = { x: Math.floor(at2.x), y: Math.floor(at2.y), z: Math.floor(at2.z) };
+      rec.learned.bell = { x: Math.floor(at3.x), y: Math.floor(at3.y), z: Math.floor(at3.z) };
     }
   }
   onNote(_at) {
@@ -8184,23 +8553,23 @@ var BrainTwo = class extends Brain {
 };
 
 // src/rift.ts
-import { MolangVariableMap as MolangVariableMap3 } from "@minecraft/server";
+import { MolangVariableMap as MolangVariableMap4 } from "@minecraft/server";
 function vars(size) {
-  const m = new MolangVariableMap3();
+  const m = new MolangVariableMap4();
   m.setFloat("variable.size", size);
   return m;
 }
-function riftOpen(dim, at2, size) {
+function riftOpen(dim, at3, size) {
   const v = vars(size);
-  particle(dim, "basiliskra:rift_flash", at2, 200, v);
-  particle(dim, "basiliskra:rift_burst", at2, 160, v);
-  particle(dim, "basiliskra:rift_ring", at2, 200, v);
-  loud(dim, "basiliskra.rift.open", at2, 1, 0.85);
-  loud(dim, "ambient.weather.thunder", at2, 0.9, 0.6);
+  particle(dim, "basiliskra:rift_flash", at3, 200, v);
+  particle(dim, "basiliskra:rift_burst", at3, 160, v);
+  particle(dim, "basiliskra:rift_ring", at3, 200, v);
+  loud(dim, "basiliskra.rift.open", at3, 1, 0.85);
+  loud(dim, "ambient.weather.thunder", at3, 0.9, 0.6);
   for (const p of players()) {
     try {
       if (p.dimension.id !== dim.id) continue;
-      const d = dist(p.location, at2);
+      const d = dist(p.location, at3);
       if (d > 120) continue;
       p.camera.fade({ fadeColor: { red: 0.9, green: 0.08, blue: 0.06 }, fadeTime: { fadeInTime: 0.05, holdTime: 0.1, fadeOutTime: 0.6 } });
       p.runCommand(`camerashake add @s ${(0.5 * (1 - d / 120) + 0.1).toFixed(2)} 0.8 positional`);
@@ -8208,33 +8577,33 @@ function riftOpen(dim, at2, size) {
     }
   }
 }
-function riftTick(dim, at2, size, t, power = 1) {
+function riftTick(dim, at3, size, t, power = 1) {
   const v = vars(size);
-  if (t % 3 === 0) particle(dim, "basiliskra:rift_tear", at2, 200, v);
-  if (t % 2 === 0) particle(dim, "basiliskra:rift_core", at2, 200, v);
-  if (t % Math.max(2, Math.round(6 - 4 * power)) === 0) particle(dim, "basiliskra:rift_arc", at2, 160, v);
-  if (t % 8 === 0) particle(dim, "basiliskra:rift_suck", at2, 128, v);
-  if (t % 22 === 0) particle(dim, "basiliskra:rift_ring", at2, 200, v);
-  if (t % 60 === 0) loud(dim, "basiliskra.rift.hum", at2, 1, 1);
-  if (t % 34 === 17 && hash(t, 5) < 0.5 + 0.4 * power) loud(dim, "basiliskra.ii.arc", { x: at2.x, y: at2.y + size * hash(t, 6), z: at2.z }, 0.9, 0.6 + 0.3 * hash(t, 7));
+  if (t % 3 === 0) particle(dim, "basiliskra:rift_tear", at3, 200, v);
+  if (t % 2 === 0) particle(dim, "basiliskra:rift_core", at3, 200, v);
+  if (t % Math.max(2, Math.round(6 - 4 * power)) === 0) particle(dim, "basiliskra:rift_arc", at3, 160, v);
+  if (t % 8 === 0) particle(dim, "basiliskra:rift_suck", at3, 128, v);
+  if (t % 22 === 0) particle(dim, "basiliskra:rift_ring", at3, 200, v);
+  if (t % 60 === 0) loud(dim, "basiliskra.rift.hum", at3, 1, 1);
+  if (t % 34 === 17 && hash(t, 5) < 0.5 + 0.4 * power) loud(dim, "basiliskra.ii.arc", { x: at3.x, y: at3.y + size * hash(t, 6), z: at3.z }, 0.9, 0.6 + 0.3 * hash(t, 7));
 }
-function riftClose(dim, at2, size) {
+function riftClose(dim, at3, size) {
   const v = vars(size);
-  particle(dim, "basiliskra:rift_flash", at2, 200, v);
-  particle(dim, "basiliskra:rift_burst", at2, 160, v);
-  particle(dim, "basiliskra:rift_ring", at2, 200, v);
-  particle(dim, "basiliskra:seam_close", { x: at2.x, y: at2.y + size * 0.4, z: at2.z }, 128);
-  loud(dim, "basiliskra.rift.close", at2, 1, 0.9);
+  particle(dim, "basiliskra:rift_flash", at3, 200, v);
+  particle(dim, "basiliskra:rift_burst", at3, 160, v);
+  particle(dim, "basiliskra:rift_ring", at3, 200, v);
+  particle(dim, "basiliskra:seam_close", { x: at3.x, y: at3.y + size * 0.4, z: at3.z }, 128);
+  loud(dim, "basiliskra.rift.close", at3, 1, 0.9);
 }
 var RIFT_SIZE = [0, 14, 16, 30, 46];
 
 // src/controller.ts
 var TOKEN = "bk:token";
 var ROMAN2 = ["", "I", "II", "III", "IV"];
-function tellNear2(dimId, at2, msg) {
+function tellNear2(dimId, at3, msg) {
   for (const p of players()) {
     try {
-      if (p.dimension.id === dimId && dist(p.location, at2) < 64) p.sendMessage(msg);
+      if (p.dimension.id === dimId && dist(p.location, at3) < 64) p.sendMessage(msg);
     } catch {
     }
   }
@@ -8267,6 +8636,9 @@ var Controller = class {
     this.waterSearch = null;
     this.waterWait = 0;
     this.riftShown = -1;
+    // ---- evolution: the same entity, in place, resumable ---------------------------------------------------
+    /** The scene that is playing (so that its film is started once). */
+    this.sceneKey = "";
   }
   // ---- start-up ------------------------------------------------------------------------------
   init() {
@@ -8324,9 +8696,9 @@ var Controller = class {
   // ---- called on purpose: spawn egg, /summon, /basiliskra:spawn, the config wheel ----------------------------
   /** A Basiliskra nobody reserved has appeared.  The one Basiliskra comes to that place instead. */
   summoned(e) {
-    let at2, yaw = 0, dimId = "";
+    let at3, yaw = 0, dimId = "";
     try {
-      at2 = { ...e.location };
+      at3 = { ...e.location };
       yaw = e.getRotation().y;
       dimId = e.dimension.id;
     } catch {
@@ -8334,31 +8706,31 @@ var Controller = class {
     }
     if (dimId !== OVERWORLD) {
       this.quarantine(e);
-      tellNear2(dimId, at2, "§7Basiliskra lives in the Overworld. He cannot be called here.");
+      tellNear2(dimId, at3, "§7Basiliskra lives in the Overworld. He cannot be called here.");
       return;
     }
-    const said = this.bringHere(at2, yaw, CONFIG.spawnForm, e);
-    tellNear2(dimId, at2, `§7${said}`);
+    const said = this.bringHere(at3, yaw, CONFIG.spawnForm, e);
+    tellNear2(dimId, at3, `§7${said}`);
   }
   /**
    * Bring the one Basiliskra to `at`, in `want` form (0 = his stage in the story).  If he is loaded he is moved
    * here; otherwise a body here becomes him and the old one, wherever it lies, is removed when its chunk loads.
    * Never more than one.  Returns what happened, in words.
    */
-  bringHere(at2, yaw, want, body) {
+  bringHere(at3, yaw, want, body2) {
     const rec = store.rec, dim = overworld();
-    const form = this.formFor(want, at2);
+    const form = this.formFor(want, at3);
     if (form === 1) {
-      const w = this.waterNear(at2, 96);
+      const w = this.waterNear(at3, 96);
       if (!w) {
-        if (body) this.quarantine(body);
+        if (body2) this.quarantine(body2);
         return "Basiliskra I lives in deep water, and there is none within 96 blocks (it has to be 5 deep). Bring him as II or III, or go to the sea.";
       }
-      at2 = w;
+      at3 = w;
     }
     const c = this.creature;
     if (c && c.valid) {
-      if (body) this.quarantine(body);
+      if (body2) this.quarantine(body2);
       this.runner = null;
       this.ending.reset();
       if (rec.stage !== "alive") {
@@ -8372,35 +8744,35 @@ var Controller = class {
         rec.born = Math.max(1, this.now);
         rec.mut.formSince = this.now;
       }
-      if (!rec.rift) rec.rift = { ...this.waterNear(at2, 64) ?? at2, yaw };
-      rec.home = { ...at2 };
+      if (!rec.rift) rec.rift = { ...this.waterNear(at3, 64) ?? at3, yaw };
+      rec.home = { ...at3 };
       if (c.form !== form) this.setForm(c, form);
       this.brain?.finish();
       c.halt();
-      c.pos = { ...at2 };
+      c.pos = { ...at3 };
       c.yaw = yaw;
       try {
-        c.entity.teleport(at2, { rotation: { x: 0, y: yaw } });
+        c.entity.teleport(at3, { rotation: { x: 0, y: yaw } });
       } catch {
       }
       store.save();
       return `Basiliskra ${ROMAN2[form]} has come.`;
     }
     let made = false;
-    if (!body) {
-      if (!isLoaded(dim, at2)) return "That place is not loaded.";
+    if (!body2) {
+      if (!isLoaded(dim, at3)) return "That place is not loaded.";
       try {
-        body = dim.spawnEntity(TYPE, at2, { initialRotation: yaw });
+        body2 = dim.spawnEntity(TYPE, at3, { initialRotation: yaw });
         made = true;
       } catch {
         return "He could not come there.";
       }
     }
-    this.ticket = body;
+    this.ticket = body2;
     try {
       rec.stage = "alive";
       if (!rec.token) rec.token = newToken();
-      rec.entityId = body.id;
+      rec.entityId = body2.id;
       rec.form = form;
       rec.pending = null;
       rec.arrival = null;
@@ -8411,17 +8783,17 @@ var Controller = class {
         rec.born = Math.max(1, this.now);
         rec.mut.formSince = this.now;
       }
-      if (!rec.rift) rec.rift = { ...this.waterNear(at2, 64) ?? at2, yaw };
-      if (!rec.origin) rec.origin = { ...at2 };
-      rec.home = { ...at2 };
+      if (!rec.rift) rec.rift = { ...this.waterNear(at3, 64) ?? at3, yaw };
+      if (!rec.origin) rec.origin = { ...at3 };
+      rec.home = { ...at3 };
       store.save();
       try {
-        body.setDynamicProperty(TOKEN, rec.token);
+        body2.setDynamicProperty(TOKEN, rec.token);
       } catch {
       }
-      this.adopt(body);
+      this.adopt(body2);
       try {
-        const h = body.getComponent("minecraft:health");
+        const h = body2.getComponent("minecraft:health");
         if (h) h.setCurrentValue(Math.max(1, Math.min(rec.health || h.effectiveMax, h.effectiveMax)));
       } catch {
       }
@@ -8430,28 +8802,28 @@ var Controller = class {
     }
     if (!this.creature && made) {
       try {
-        body.remove();
+        body2.remove();
       } catch {
       }
     }
     return this.creature ? `Basiliskra ${ROMAN2[form]} has come.` : "He could not come there.";
   }
   /** Which form a call makes. */
-  formFor(want, at2) {
+  formFor(want, at3) {
     if (want) return want;
     const rec = store.rec;
     if (rec.born > 0) return rec.form;
-    return this.waterNear(at2, 6) ? 1 : 3;
+    return this.waterNear(at3, 6) ? 1 : 3;
   }
   /** The nearest loaded column of open water at least five deep, at his swimming depth; null if none within reach. */
-  waterNear(at2, reach) {
+  waterNear(at3, reach) {
     const dim = overworld();
     for (let r = 0; r <= reach; r += 4) {
       const n = r === 0 ? 1 : Math.max(8, Math.round(r * 1.5));
       for (let i = 0; i < n; i++) {
         const a = i / n * Math.PI * 2;
-        const x = at2.x + Math.cos(a) * r, z = at2.z + Math.sin(a) * r;
-        const col = waterColumn(dim, x, z, at2.y, 12, 12);
+        const x = at3.x + Math.cos(a) * r, z = at3.z + Math.sin(a) * r;
+        const col = waterColumn(dim, x, z, at3.y, 12, 12);
         if (col === UNLOADED || col === NONE || col.surface - col.floor < 5) continue;
         return { x, y: col.surface - 5.5, z };
       }
@@ -8560,11 +8932,11 @@ var Controller = class {
     const c = this.creature;
     const was = store.rec.stage !== "dormant";
     if (c && c.valid) {
-      const at2 = { x: c.pos.x, y: c.pos.y, z: c.pos.z };
+      const at3 = { x: c.pos.x, y: c.pos.y, z: c.pos.z };
       if (c.form === 1) c.say("basiliskra.roar_under", c.anchor("nose"), 96);
       else c.say("basiliskra.roar_short", c.anchor("nose"), 128, 1, c.form === 2 ? 1.18 : 1);
-      riftOpen(c.dim, at2, RIFT_SIZE[c.form] * 0.6);
-      riftClose(c.dim, at2, RIFT_SIZE[c.form] * 0.6);
+      riftOpen(c.dim, at3, RIFT_SIZE[c.form] * 0.6);
+      riftClose(c.dim, at3, RIFT_SIZE[c.form] * 0.6);
       this.brain?.finish();
       c.dropParts();
       try {
@@ -8672,14 +9044,14 @@ var Controller = class {
     return c.form === 1 ? new BrainOne(c) : c.form === 2 ? new BrainTwo(c) : c.form === 4 ? new BrainFour(c) : new BrainThree(c);
   }
   /** The only place the entity is ever created.  The reservation is already saved when this runs. */
-  create(dim, at2, yaw) {
+  create(dim, at3, yaw) {
     const rec = store.rec;
     if (this.creature || rec.entityId !== null || !rec.token) return false;
     if (rec.stage !== "arriving" && rec.stage !== "alive") return false;
-    if (!isLoaded(dim, at2)) return false;
+    if (!isLoaded(dim, at3)) return false;
     let e;
     try {
-      e = dim.spawnEntity(TYPE, at2, { initialRotation: yaw });
+      e = dim.spawnEntity(TYPE, at3, { initialRotation: yaw });
     } catch {
       return false;
     }
@@ -8799,13 +9171,13 @@ var Controller = class {
       this.ending.reset();
       rec.evolve = null;
     }
-    const at2 = { x: c.pos.x, y: c.pos.y + 3, z: c.pos.z };
+    const at3 = { x: c.pos.x, y: c.pos.y + 3, z: c.pos.z };
     if (c.form === 1) c.say("basiliskra.roar_under", c.anchor("nose"), 96);
     else c.say("basiliskra.roar_short", c.anchor("nose"), 128, 1, c.form === 2 ? 1.18 : 1);
     shake(c, 80, c.form === 1 ? 0.3 : 0.5, 1.2);
-    sound(c.dim, "basiliskra.rift.open", at2, 72, 1, 1.3);
-    sound(c.dim, "basiliskra.rift.close", at2, 72);
-    for (const p of [at2, c.anchor("nose"), c.anchor("tail_notch")]) particle(c.dim, "basiliskra:seam_close", p, 72);
+    sound(c.dim, "basiliskra.rift.open", at3, 72, 1, 1.3);
+    sound(c.dim, "basiliskra.rift.close", at3, 72);
+    for (const p of [at3, c.anchor("nose"), c.anchor("tail_notch")]) particle(c.dim, "basiliskra:seam_close", p, 72);
     this.brain?.finish();
     rec.last = { x: c.pos.x, y: c.pos.y, z: c.pos.z, t: this.now };
     rec.entityId = null;
@@ -9001,7 +9373,7 @@ var Controller = class {
       }
       case 1: {
         if (t % KNOCK_GAP_TICKS === 2 && t < KNOCK_GAP_TICKS * 3) {
-          let at2 = add(a.water, { x: 0, y: 5.5, z: 0 });
+          let at3 = add(a.water, { x: 0, y: 5.5, z: 0 });
           try {
             const boat = dim.getEntities({ location: a.water, maxDistance: 40, families: ["boat"] }).find((b) => {
               try {
@@ -9011,12 +9383,12 @@ var Controller = class {
               }
             });
             if (boat) {
-              at2 = boat.location;
+              at3 = boat.location;
               boat.applyImpulse({ x: (hash(now, 1) - 0.5) * 0.2, y: 0.02, z: (hash(now, 2) - 0.5) * 0.2 });
             }
           } catch {
           }
-          sound(dim, "basiliskra.boat_knock", at2, 32);
+          sound(dim, "basiliskra.boat_knock", at3, 32);
         }
         if (t > KNOCK_GAP_TICKS * 3 + 30) {
           rec.rift = { ...a.water, yaw: a.yaw };
@@ -9030,8 +9402,8 @@ var Controller = class {
           riftOpen(dim, foot, RIFT_SIZE[1]);
           sceneTheme("dread", 300, foot, dim.id);
           addFallout(a.water, 4, 0.4);
-          const head = () => this.creature ? this.creature.anchor("nose") : { x: a.water.x, y: a.water.y + 4, z: a.water.z };
-          film(dim, head, { ticks: 330, radius: 110, dist: 30, height: 9, orbit: 50, distEnd: 22, flash: { red: 0.8, green: 0.05, blue: 0.05 } });
+          const head2 = () => this.creature ? this.creature.anchor("nose") : { x: a.water.x, y: a.water.y + 4, z: a.water.z };
+          film(dim, head2, { ticks: 330, radius: 110, dist: 30, height: 9, orbit: 50, distEnd: 22, flash: { red: 0.8, green: 0.05, blue: 0.05 } });
         }
         riftTick(dim, foot, RIFT_SIZE[1], t, Math.min(1, t / 90));
         if (t % 4 === 0) particle(dim, "basiliskra:seam", a.water, 72);
@@ -9042,8 +9414,8 @@ var Controller = class {
         riftTick(dim, { x: a.water.x, y: a.water.y - 2, z: a.water.z }, RIFT_SIZE[1], t, 1);
         if (!this.creature) {
           if (t % 20 !== 1) break;
-          const at2 = add(a.water, mul(forwardOf(a.yaw), -7));
-          if (!this.create(dim, at2, a.yaw)) break;
+          const at3 = add(a.water, mul(forwardOf(a.yaw), -7));
+          if (!this.create(dim, at3, a.yaw)) break;
           const c = this.creature;
           c.set(PROP.visLo, 9);
           c.setPhase("arrive");
@@ -9075,14 +9447,14 @@ var Controller = class {
   // ---- a rift on land (a call from the wheel once he is Basiliskra II or more) -----------------------------
   arriveLand() {
     const rec = store.rec, a = rec.arrival, dim = overworld(), t = this.now - a.t0;
-    const form = rec.form, size = RIFT_SIZE[form], at2 = a.water;
+    const form = rec.form, size = RIFT_SIZE[form], at3 = a.water;
     if (a.step === 0) {
       if (this.riftShown !== a.t0) {
         this.riftShown = a.t0;
-        riftOpen(dim, at2, size);
-        sceneTheme(store.rec.form >= 3 ? "wrath" : "dread", 420, at2, dim.id);
-        addFallout(at2, 5, 0.5);
-        const focus = () => this.creature ? this.creature.anchor("nose") : { x: at2.x, y: at2.y + size * 0.4, z: at2.z };
+        riftOpen(dim, at3, size);
+        sceneTheme(store.rec.form >= 3 ? "wrath" : "dread", 420, at3, dim.id);
+        addFallout(at3, 5, 0.5);
+        const focus = () => this.creature ? this.creature.anchor("nose") : { x: at3.x, y: at3.y + size * 0.4, z: at3.z };
         film(dim, focus, {
           ticks: 400,
           radius: 120,
@@ -9093,13 +9465,13 @@ var Controller = class {
           flash: { red: 0.8, green: 0.05, blue: 0.05 }
         });
       }
-      riftTick(dim, at2, size, t, Math.min(1, t / 60));
+      riftTick(dim, at3, size, t, Math.min(1, t / 60));
       if (t < 60) return;
       if (!this.creature) {
         const f = forwardOf(a.yaw);
         const reach = [0, 14, 12, 30, 22][form];
-        const back = add(at2, mul(f, -(reach + 2)));
-        if (!this.create(dim, { x: back.x, y: at2.y + 1, z: back.z }, a.yaw)) return;
+        const back = add(at3, mul(f, -(reach + 2)));
+        if (!this.create(dim, { x: back.x, y: at3.y + 1, z: back.z }, a.yaw)) return;
       }
       const c = this.creature;
       c.set(PROP.visLo, 9);
@@ -9111,7 +9483,7 @@ var Controller = class {
     }
     if (!this.creature) {
       if (rec.entityId !== null) return;
-      if (this.create(dim, { x: at2.x, y: at2.y + 1, z: at2.z }, a.yaw)) this.finishArrival();
+      if (this.create(dim, { x: at3.x, y: at3.y + 1, z: at3.z }, a.yaw)) this.finishArrival();
       return;
     }
     if (!this.runner) {
@@ -9150,17 +9522,17 @@ var Controller = class {
   *landWalk() {
     const rec = store.rec, a = rec.arrival, dim = overworld();
     const form = rec.form, size = RIFT_SIZE[form];
-    const at2 = a.water, f = forwardOf(a.yaw);
+    const at3 = a.water, f = forwardOf(a.yaw);
     const tail = [0, 26, 24, 42, 70][form];
     const c = this.creature;
-    c.goTo(add(at2, mul(f, tail + 4)), form === 2 ? 0.1 : 0.14, 2);
+    c.goTo(add(at3, mul(f, tail + 4)), form === 2 ? 0.1 : 0.14, 2);
     for (let t = 0; t < 700; t++) {
       if (!this.creature) return;
-      const pass = this.passed(c, at2, a.yaw);
+      const pass = this.passed(c, at3, a.yaw);
       let lo = 9;
       for (let z = 8; z >= 0 && pass[z]; z--) lo = z;
       c.set(PROP.visLo, lo);
-      riftTick(dim, at2, size, 60 + t, 1);
+      riftTick(dim, at3, size, 60 + t, 1);
       if (t % 24 === 0) {
         c.say(form >= 3 ? "basiliskra.iii.step" : "basiliskra.ii.drag", c.anchor("nose"), 96, 1, 0.9);
         shake(c, 48, 0.2, 0.3);
@@ -9171,11 +9543,11 @@ var Controller = class {
     c.wade = false;
     c.set(PROP.visLo, 0);
     c.halt();
-    riftClose(dim, at2, size);
+    riftClose(dim, at3, size);
     for (let t = 0; t < 20; t++) yield;
   }
   /** Zones (head 8 .. tail 0) that have passed a plane through `at` facing `yaw`. */
-  passed(c, at2, yaw) {
+  passed(c, at3, yaw) {
     const f = forwardOf(yaw);
     const zones2 = RIGS[c.form].zones;
     const out = [];
@@ -9186,7 +9558,7 @@ var Controller = class {
         continue;
       }
       const p = c.point(bones[0], RIGS[c.form].bones[bones[0]].pivot);
-      out.push(dot(sub(p, at2), f) > 0);
+      out.push(dot(sub(p, at3), f) > 0);
     }
     return out;
   }
@@ -9328,71 +9700,55 @@ var Controller = class {
       return;
     }
     if (now - rec.down < pace(TICKS.day) || !rec.rift) return;
-    const at2 = rec.form !== 1 && rec.home ? rec.home : rec.form === 1 ? rec.rift : rec.beach ?? rec.rift;
+    const at3 = rec.form !== 1 && rec.home ? rec.home : rec.form === 1 ? rec.rift : rec.beach ?? rec.rift;
     const near = players().some((p) => {
       try {
-        return p.dimension.id === dim.id && distXZ(p.location, at2) < 96;
+        return p.dimension.id === dim.id && distXZ(p.location, at3) < 96;
       } catch {
         return false;
       }
     });
     if (!near) return;
-    if (!isLoaded(dim, at2)) return;
+    if (!isLoaded(dim, at3)) return;
     sound(dim, "basiliskra.rift.open", rec.rift, 72);
-    this.create(dim, { x: at2.x + 0.5, y: at2.y + (rec.form === 1 ? 0 : 1), z: at2.z + 0.5 }, rec.rift.yaw);
+    this.create(dim, { x: at3.x + 0.5, y: at3.y + (rec.form === 1 ? 0 : 1), z: at3.z + 0.5 }, rec.rift.yaw);
   }
-  // ---- evolution: the same entity, in place, resumable ---------------------------------------------------
   evolve(c) {
     const rec = store.rec, ev = rec.evolve, now = this.now;
-    const t = now - ev.t0;
     c.halt();
+    const CH = CHANGES[ev.to];
     const big = [0, 6, 9, 16, 34][ev.to] ?? 16;
-    const heart = { x: c.pos.x, y: c.pos.y + big * 0.45, z: c.pos.z };
-    const GATHER = 150;
     if (ev.step === 0) {
-      if (c.phase !== "evolve") {
-        this.brain?.finish();
-        c.setPhase("evolve");
-        c.say("basiliskra.mutate", c.pos, 72);
-        const was = ev.to - 1, Fo = FRAME[was], Fn = FRAME[ev.to];
-        const head = () => c.anchor("nose");
-        const body = () => ({ x: c.pos.x, y: c.pos.y + BODY_MID[c.form], z: c.pos.z });
-        film(c.dim, body, { ticks: GATHER + 110 + 80, radius: 140, dist: Fo, height: 4, cinema: true, facing: () => c.yaw, shots: [
-          { ticks: 46, look: head, angle: [28, 42], dist: [Fo * 0.36 + 3, Fo * 0.28 + 2], height: [-0.5, 1.5] },
-          { ticks: 62, look: body, angle: [72, 138], dist: [Fo * 0.95, Fo * 0.8], height: [Fo * 0.12, Fo * 0.28] },
-          { ticks: GATHER - 108, look: head, angle: [-16, -6], dist: [Fo * 0.7, Fo * 0.46], height: [-Fo * 0.1, -Fo * 0.05] },
-          { ticks: 110, look: body, angle: [-38, 34], dist: [Fn * 0.55, Fn * 1], height: [Fn * 0.04, Fn * 0.26] },
-          { ticks: 80, look: head, angle: [22, 6], dist: [Fn * 0.5, Fn * 0.38], height: [-Fn * 0.12, -Fn * 0.07] }
-        ] });
-      }
-      c.setCharge(Math.min(20, t / GATHER * 20));
-      if (t % 6 === 0) particle(c.dim, "basiliskra:mutate_gather", heart, 160, sizeVars(big));
-      if (t % 20 === 0) shake(c, 90, 0.12 + 0.4 * Math.min(1, t / GATHER), 1);
-      if (t === 70) c.say("basiliskra.mutate", c.pos, 72, 1, 1.12);
-      if (t >= GATHER || t < 0) {
-        particle(c.dim, "basiliskra:mutate_burst", heart, 200);
-        particle(c.dim, "basiliskra:rift_flash", { x: c.pos.x, y: c.pos.y, z: c.pos.z }, 200, sizeVars(big * 1.6));
-        sound(c.dim, "ambient.weather.thunder", heart, 128, 1, 0.55);
-        for (const p of players()) {
-          try {
-            if (p.dimension.id === c.dim.id && dist(p.location, c.pos) < 140) p.camera.fade({ fadeColor: { red: 1, green: 0.85, blue: 0.8 }, fadeTime: { fadeInTime: 0.05, holdTime: 0.12, fadeOutTime: 0.9 } });
-          } catch {
-          }
-        }
-        for (const p of players()) {
-          try {
-            if (p.dimension.id !== c.dim.id || dist(p.location, c.pos) > 160) continue;
-            p.onScreenDisplay.setTitle(`§4BASILISKRA ${ROMAN2[ev.to]}`, { subtitle: NAME_CARD[ev.to], fadeInDuration: 12, stayDuration: 60, fadeOutDuration: 24 });
-          } catch {
-          }
-        }
-        rec.form = ev.to;
-        rec.mut.formSince = now;
-        if (ev.to === 4) rec.four = void 0;
-        ev.step = 1;
+      const key = `${ev.to}:${rec.token}:${rec.mut.formSince}`;
+      if (this.sceneKey !== key) {
+        this.sceneKey = key;
         ev.t0 = now;
-        store.save();
+        this.brain?.finish();
+        const was = ev.to - 1, Fo = FRAME[was], Fn = FRAME[ev.to];
+        const body2 = () => ({ x: c.pos.x, y: c.pos.y + BODY_MID[c.form], z: c.pos.z });
+        film(c.dim, body2, { ticks: CH.before + CH.after + CH.hold, radius: 140, dist: Fo, height: 4, cinema: true, facing: () => c.yaw, shots: CH.shots(c, Fo, Fn) });
       }
+      const t2 = now - ev.t0;
+      if (t2 >= 0 && t2 < CH.before) {
+        CH.pre(c, t2);
+        return;
+      }
+      CH.burst(c);
+      particle(c.dim, "basiliskra:rift_flash", { x: c.pos.x, y: c.pos.y, z: c.pos.z }, 200, sizeVars(big * 1.6));
+      for (const p of players()) {
+        try {
+          if (p.dimension.id === c.dim.id && dist(p.location, c.pos) < 140) {
+            p.camera.fade({ fadeColor: { red: CH.flash.red, green: CH.flash.green, blue: CH.flash.blue }, fadeTime: { fadeInTime: 0.05, holdTime: CH.flash.hold, fadeOutTime: CH.flash.fade } });
+          }
+        } catch {
+        }
+      }
+      rec.form = ev.to;
+      rec.mut.formSince = now;
+      if (ev.to === 4) rec.four = void 0;
+      ev.step = 1;
+      ev.t0 = now;
+      store.save();
       return;
     }
     if (ev.step === 1) {
@@ -9407,8 +9763,6 @@ var Controller = class {
         c.dropParts();
         c.resync();
         this.brain = this.makeBrain(c);
-        c.setPhase("beach");
-        c.say("basiliskra.mutate", c.pos, 72, 1, 0.9);
         addFallout(c.pos, rec.form >= 3 ? 7 : 4, rec.form >= 3 ? 0.9 : 0.45);
         if (rec.form === 2) {
           this.dropFin(c.dim, c.pos);
@@ -9417,6 +9771,8 @@ var Controller = class {
       }
       ev.step = 2;
       ev.t0 = now;
+      CH.post(c, 0);
+      if (CH.nameAt === 0) this.nameCard(c, ev.to);
       store.save();
       return;
     }
@@ -9424,23 +9780,34 @@ var Controller = class {
       ev.step = 1;
       return;
     }
-    if (c.phase !== "beach") c.setPhase("beach");
-    c.setCharge(Math.max(0, 20 - t * 0.2));
-    if (t % 10 === 0 && t < 60) particle(c.dim, "basiliskra:shed_flakes", heart, 96);
-    if (t >= 110) {
-      c.setCharge(0);
-      rec.evolve = null;
-      store.save();
-      this.brain?.finish();
-      const b = this.brain;
-      if (b instanceof BrainFour) {
-      } else if (b instanceof BrainThree) b.forced = { name: "roar", run: b.roar(true), limit: 220 };
-      else if (b instanceof BrainTwo) b.forced = { name: "roar", run: b.roar(), limit: 120 };
+    const t = now - ev.t0;
+    if (t > 0 && t < CH.after) {
+      CH.post(c, t);
+      if (t === CH.nameAt) this.nameCard(c, ev.to);
+      return;
+    }
+    c.setCharge(0);
+    rec.evolve = null;
+    store.save();
+    this.brain?.finish();
+    const b = this.brain;
+    if (b instanceof BrainFour) {
+    } else if (b instanceof BrainThree) b.forced = { name: "roar", run: b.roar(true), limit: 220 };
+    else if (b instanceof BrainTwo) b.forced = { name: "roar", run: b.roar(), limit: 120 };
+  }
+  /** His name, as the new animal is seen for the first time. */
+  nameCard(c, form) {
+    for (const p of players()) {
+      try {
+        if (p.dimension.id !== c.dim.id || dist(p.location, c.pos) > 160) continue;
+        p.onScreenDisplay.setTitle(`§4BASILISKRA ${ROMAN2[form]}`, { subtitle: NAME_CARD[form], fadeInDuration: 12, stayDuration: 60, fadeOutDuration: 24 });
+      } catch {
+      }
     }
   }
-  dropFin(dim, at2) {
+  dropFin(dim, at3) {
     try {
-      dim.spawnItem(new ItemStack4(FIN_ITEM, 1), { x: at2.x, y: at2.y + 1, z: at2.z });
+      dim.spawnItem(new ItemStack4(FIN_ITEM, 1), { x: at3.x, y: at3.y + 1, z: at3.z });
       store.rec.learned.fragments++;
       store.rec.learned.fragmentAt = this.now;
       store.touch();
@@ -9478,11 +9845,11 @@ var lastFault2 = "";
 var faultAt = -1e9;
 var SPLASHERS = /* @__PURE__ */ new Set(["minecraft:snowball", "minecraft:egg", "minecraft:item", "minecraft:ender_pearl"]);
 var flying = [];
-function splash(at2, by) {
+function splash(at3, by) {
   const dim = overworld();
-  sound(dim, "basiliskra.splash", at2, 24, 0.9);
-  particle(dim, "basiliskra:splash", at2, 32);
-  ctl.brain?.onSplash(at2, by);
+  sound(dim, "basiliskra.splash", at3, 24, 0.9);
+  particle(dim, "basiliskra:splash", at3, 32);
+  ctl.brain?.onSplash(at3, by);
 }
 function trackSplashes() {
   for (let i = flying.length - 1; i >= 0; i--) {
@@ -9730,16 +10097,16 @@ world14.afterEvents.playerBreakBlock.subscribe((ev) => {
 });
 world14.afterEvents.playerInteractWithBlock.subscribe((ev) => {
   try {
-    const id = ev.block.typeId, at2 = ev.block.location;
-    if (id === "minecraft:bell") ctl.brain?.onBell(at2, ev.player);
+    const id = ev.block.typeId, at3 = ev.block.location;
+    if (id === "minecraft:bell") ctl.brain?.onBell(at3, ev.player);
     else if (id === "minecraft:noteblock") {
-      ctl.ending.onNote(at2);
-      ctl.brain?.onNote(at2);
+      ctl.ending.onNote(at3);
+      ctl.brain?.onNote(at3);
     } else if (ev.beforeItemStack?.typeId === "minecraft:water_bucket") {
-      const p = { x: at2.x + 0.5, y: at2.y + 1, z: at2.z + 0.5 };
+      const p = { x: at3.x + 0.5, y: at3.y + 1, z: at3.z + 0.5 };
       system6.runTimeout(() => {
         try {
-          if (isWaterId(idAt(ev.player.dimension, p)) || isWaterId(idAt(ev.player.dimension, at2))) splash(p, ev.player);
+          if (isWaterId(idAt(ev.player.dimension, p)) || isWaterId(idAt(ev.player.dimension, at3))) splash(p, ev.player);
         } catch {
         }
       }, 4);

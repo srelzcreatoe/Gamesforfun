@@ -216,8 +216,12 @@ export class Creature {
   /** How much larger than modelled he is drawn. */
   get scale(): number { return drawScale(this.form); }
   skeleton(): Skeleton {
-    return this.skel ?? (this.skel = new Skeleton(this.form, this.pose(), this.phase === "window" || this.phase === "stalk" ? 1 : 0));
+    // (a skeleton built for the animal he was is no use for the animal he has just become)
+    if (this.skel && this.skelForm !== this.form) this.skel = null;
+    if (!this.skel) { this.skel = new Skeleton(this.form, this.pose(), this.phase === "window" || this.phase === "stalk" ? 1 : 0); this.skelForm = this.form; }
+    return this.skel;
   }
+  private skelForm: Form = 1;
   anchor(locator: string): V3 { return toWorld(this.pos, this.yaw, this.skeleton().locator(locator), this.scale); }
   point(bone: string, at: number[]): V3 { return toWorld(this.pos, this.yaw, this.skeleton().point(bone, at), this.scale); }
 

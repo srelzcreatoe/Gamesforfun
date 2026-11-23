@@ -7,6 +7,7 @@
 import { Dimension, Entity, ItemStack, Player, system, world } from "@minecraft/server";
 import { CONFIG, FIN_ITEM, KNOCK_GAP_TICKS, OVERWORLD, PART_FAMILY, PROP, TICKS, TYPE } from "./config";
 import { Brain, isDusk, pace } from "./brain";
+import { CHANGES } from "./change";
 import { Creature, partOwner } from "./creature";
 import { Ending } from "./ending";
 import { BrainOne } from "./forms/one";
@@ -918,60 +919,43 @@ export class Controller {
   }
 
   // ---- evolution: the same entity, in place, resumable ---------------------------------------------------
+  /** The scene that is playing (so that its film is started once). */
+  private sceneKey = "";
   private evolve(c: Creature): void {
     const rec = store.rec, ev = rec.evolve!, now = this.now;
-    const t = now - ev.t0;
     c.halt();
-    // the change is a scene: light gathers on him and climbs his body, the ground shakes, and everyone near is shown it
+    // every change is a scene of its own (change.ts): what happens to him, to the place, and where the camera stands
+    const CH = CHANGES[ev.to];
     const big = [0, 6, 9, 16, 34][ev.to] ?? 16;                         // roughly his size after it, in blocks
-    const heart = { x: c.pos.x, y: c.pos.y + big * 0.45, z: c.pos.z };
-    const GATHER = 150;
     if (ev.step === 0) {
-      if (c.phase !== "evolve") {
+      const key = `${ev.to}:${rec.token}:${rec.mut.formSince}`;
+      if (this.sceneKey !== key) {
+        // it begins now (a scene cut off by the world closing begins again: he is still the animal he was)
+        this.sceneKey = key;
+        ev.t0 = now;
         this.brain?.finish();
-        c.setPhase("evolve");
-        c.say("basiliskra.mutate", c.pos, 72);
-        // The scene, in five shots, each placed from the way he faces so that he is in the picture whoever watches,
-        // and each no further off than it takes to hold all of him: his head, close; round his side while the
-        // light gathers; low in front of him as it peaks; then the new animal, pulled back from; and his face again.
         const was = (ev.to - 1) as 1 | 2 | 3, Fo = FRAME[was], Fn = FRAME[ev.to];
-        const head = () => c.anchor("nose");
         const body = () => ({ x: c.pos.x, y: c.pos.y + BODY_MID[c.form], z: c.pos.z });
-        film(c.dim, body, { ticks: GATHER + 110 + 80, radius: 140, dist: Fo, height: 4, cinema: true, facing: () => c.yaw, shots: [
-          { ticks: 46, look: head, angle: [28, 42], dist: [Fo * 0.36 + 3, Fo * 0.28 + 2], height: [-0.5, 1.5] },
-          { ticks: 62, look: body, angle: [72, 138], dist: [Fo * 0.95, Fo * 0.8], height: [Fo * 0.12, Fo * 0.28] },
-          { ticks: GATHER - 108, look: head, angle: [-16, -6], dist: [Fo * 0.7, Fo * 0.46], height: [-Fo * 0.1, -Fo * 0.05] },
-          { ticks: 110, look: body, angle: [-38, 34], dist: [Fn * 0.55, Fn * 1.0], height: [Fn * 0.04, Fn * 0.26] },
-          { ticks: 80, look: head, angle: [22, 6], dist: [Fn * 0.5, Fn * 0.38], height: [-Fn * 0.12, -Fn * 0.07] },
-        ] });
+        film(c.dim, body, { ticks: CH.before + CH.after + CH.hold, radius: 140, dist: Fo, height: 4, cinema: true, facing: () => c.yaw, shots: CH.shots(c, Fo, Fn) });
       }
-      c.setCharge(Math.min(20, (t / GATHER) * 20));
-      if (t % 6 === 0) particle(c.dim, "basiliskra:mutate_gather", heart, 160, sizeVars(big));
-      if (t % 20 === 0) shake(c, 90, 0.12 + 0.4 * Math.min(1, t / GATHER), 1.0);
-      if (t === 70) c.say("basiliskra.mutate", c.pos, 72, 1, 1.12);
-      if (t >= GATHER || t < 0) {
-        particle(c.dim, "basiliskra:mutate_burst", heart, 200);
-        particle(c.dim, "basiliskra:rift_flash", { x: c.pos.x, y: c.pos.y, z: c.pos.z }, 200, sizeVars(big * 1.6));
-        sound(c.dim, "ambient.weather.thunder", heart, 128, 1, 0.55);
-        for (const p of players()) {
-          try {
-            if (p.dimension.id === c.dim.id && dist(p.location, c.pos) < 140) p.camera.fade({ fadeColor: { red: 1, green: 0.85, blue: 0.8 }, fadeTime: { fadeInTime: 0.05, holdTime: 0.12, fadeOutTime: 0.9 } });
-          } catch { /* left */ }
-        }
-        // his name, as the new animal is seen for the first time
-        for (const p of players()) {
-          try {
-            if (p.dimension.id !== c.dim.id || dist(p.location, c.pos) > 160) continue;
-            p.onScreenDisplay.setTitle(`§4BASILISKRA ${ROMAN[ev.to]}`, { subtitle: NAME_CARD[ev.to], fadeInDuration: 12, stayDuration: 60, fadeOutDuration: 24 });
-          } catch { /* left */ }
-        }
-        // the record changes first; the entity is then brought into line with it
-        rec.form = ev.to;
-        rec.mut.formSince = now;
-        if (ev.to === 4) rec.four = undefined;
-        ev.step = 1; ev.t0 = now;
-        store.save();
+      const t = now - ev.t0;
+      if (t >= 0 && t < CH.before) { CH.pre(c, t); return; }
+      // the instant of it
+      CH.burst(c);
+      particle(c.dim, "basiliskra:rift_flash", { x: c.pos.x, y: c.pos.y, z: c.pos.z }, 200, sizeVars(big * 1.6));
+      for (const p of players()) {
+        try {
+          if (p.dimension.id === c.dim.id && dist(p.location, c.pos) < 140) {
+            p.camera.fade({ fadeColor: { red: CH.flash.red, green: CH.flash.green, blue: CH.flash.blue }, fadeTime: { fadeInTime: 0.05, holdTime: CH.flash.hold, fadeOutTime: CH.flash.fade } });
+          }
+        } catch { /* left */ }
       }
+      // the record changes first; the entity is then brought into line with it
+      rec.form = ev.to;
+      rec.mut.formSince = now;
+      if (ev.to === 4) rec.four = undefined;
+      ev.step = 1; ev.t0 = now;
+      store.save();
       return;
     }
     if (ev.step === 1) {
@@ -982,8 +966,6 @@ export class Controller {
         c.dropParts();
         c.resync();
         this.brain = this.makeBrain(c);
-        c.setPhase("beach");
-        c.say("basiliskra.mutate", c.pos, 72, 1, 0.9);
         addFallout(c.pos, rec.form >= 3 ? 7 : 4, rec.form >= 3 ? 0.9 : 0.45);     // the change poisons the ground it happens on
         if (rec.form === 2) {
           // a crimson strip of shed fin lies where he struggled
@@ -992,24 +974,37 @@ export class Controller {
         }
       }
       ev.step = 2; ev.t0 = now;
+      CH.post(c, 0);
+      if (CH.nameAt === 0) this.nameCard(c, ev.to);
       store.save();
       return;
     }
     if (c.form !== rec.form) { ev.step = 1; return; }       // reloaded between the two writes
-    if (c.phase !== "beach") c.setPhase("beach");
-    c.setCharge(Math.max(0, 20 - t * 0.2));                  // the light drains out of him as he finds his feet
-    if (t % 10 === 0 && t < 60) particle(c.dim, "basiliskra:shed_flakes", heart, 96);
-    if (t >= 110) {
-      c.setCharge(0);
-      rec.evolve = null;
-      store.save();
-      this.brain?.finish();
-      // the change is over, and he says so: the whole roar as Basiliskra III, the short one, younger, as II
-      const b = this.brain;
-      // (Basiliskra IV's first roar comes after his first beam: his brain begins with that)
-      if (b instanceof BrainFour) { /* his debut is his own */ }
-      else if (b instanceof BrainThree) b.forced = { name: "roar", run: b.roar(true), limit: 220 };
-      else if (b instanceof BrainTwo) b.forced = { name: "roar", run: b.roar(), limit: 120 };
+    const t = now - ev.t0;
+    if (t > 0 && t < CH.after) {
+      CH.post(c, t);
+      if (t === CH.nameAt) this.nameCard(c, ev.to);
+      return;
+    }
+    c.setCharge(0);
+    rec.evolve = null;
+    store.save();
+    this.brain?.finish();
+    // the change is over, and he says so: the whole roar as Basiliskra III, the short one, younger, as II
+    const b = this.brain;
+    // (Basiliskra IV's first roar comes after his first beam: his brain begins with that)
+    if (b instanceof BrainFour) { /* his debut is his own */ }
+    else if (b instanceof BrainThree) b.forced = { name: "roar", run: b.roar(true), limit: 220 };
+    else if (b instanceof BrainTwo) b.forced = { name: "roar", run: b.roar(), limit: 120 };
+  }
+
+  /** His name, as the new animal is seen for the first time. */
+  private nameCard(c: Creature, form: number): void {
+    for (const p of players()) {
+      try {
+        if (p.dimension.id !== c.dim.id || dist(p.location, c.pos) > 160) continue;
+        p.onScreenDisplay.setTitle(`§4BASILISKRA ${ROMAN[form]}`, { subtitle: NAME_CARD[form], fadeInDuration: 12, stayDuration: 60, fadeOutDuration: 24 });
+      } catch { /* left */ }
     }
   }
 
