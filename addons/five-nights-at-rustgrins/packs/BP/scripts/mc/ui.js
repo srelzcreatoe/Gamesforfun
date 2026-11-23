@@ -5,8 +5,8 @@
 import { system } from '@minecraft/server';
 import { ActionFormData, ModalFormData, MessageFormData, FormCancelationReason, uiManager } from '@minecraft/server-ui';
 import { CAMERAS, CAMERA_BY_ID } from '../data/cameras.js';
-import { CLIPPINGS, GUIDE } from '../data/story.js';
-import { CONFIG, CAST, CAST_NAMES } from '../core/config.js';
+import { CLIPPINGS, GUIDE, GOLDEN as GOLDEN_TEXT } from '../data/story.js';
+import { CONFIG, FULL_CAST, GOLDEN, CAST_NAMES } from '../core/config.js';
 import { spotlightReady } from './hud.js';
 import { log } from './log.js';
 
@@ -176,7 +176,7 @@ export async function settingsForm(player, s) {
   return { captions: !!captions, hints: !!hints, music: !!music, bgm: !!bgm, camMap: !!camMap, camCursor: !!camCursor, debugOverlay: !!debugOverlay, deterministic: !!deterministic, seed: Number(seed) || 1991 };
 }
 
-/** Custom Night: presets or six sliders. Resolves to an AI map or undefined. */
+/** Custom Night: presets or seven sliders (the six, then the Golden Dog: off unless set). Resolves to an AI map or undefined. */
 /** @param {import('@minecraft/server').Player} player */
 export async function customNightForm(player, last) {
   const f = new ActionFormData().title('§lCUSTOM NIGHT').body('Pick a preset or set every animatronic yourself (0-20).');
@@ -187,10 +187,11 @@ export async function customNightForm(player, last) {
   if (!r || r.canceled || r.selection === undefined) return undefined;
   if (r.selection === 0) {
     const m = new ModalFormData().title('§lCUSTOM NIGHT');
-    for (const id of CAST) m.slider(CAST_NAMES[id], 0, 20, { defaultValue: last?.[id] ?? 5, valueStep: 1 });
+    const name = (id) => CAST_NAMES[id].replace(/^the /, 'The ');
+    for (const id of FULL_CAST) m.slider(name(id), 0, 20, { defaultValue: Math.max(0, Math.min(20, Number(last?.[id] ?? (id === GOLDEN ? 0 : 5)) || 0)), valueStep: 1 });
     const r2 = await show(player, m);
     if (!r2 || r2.canceled || !r2.formValues) return undefined;
-    return Object.fromEntries(CAST.map((id, i) => [id, Number(r2.formValues[i]) || 0]));
+    return Object.fromEntries(FULL_CAST.map((id, i) => [id, Number(r2.formValues[i]) || 0]));
   }
   const preset = CONFIG.presets[r.selection - 1];
   return preset ? { ...preset.ai } : undefined;
@@ -308,6 +309,7 @@ export async function galleryInfo(player, id) {
     purple_rat: 'PURPLE RAT - maracas, from the Midnight Midway. Nervous, twitchy, never far from a vent.',
     cat: 'THE CAT - the Midway\'s dancer. She shares the ring with the Purple Rat and never misses a beat. Fast. Very fast.',
     top_hat_rat: 'THE RINGMASTER - he ran the Midnight Midway after its owner vanished, and he has run every show since from his own stage, the Grand Marquee. He knows your name.',
+    [GOLDEN]: GOLDEN_TEXT.gallery,
   };
   await messageBox(player, `§l${CAST_NAMES[id].toUpperCase()}`, lines[id] ?? '');
 }

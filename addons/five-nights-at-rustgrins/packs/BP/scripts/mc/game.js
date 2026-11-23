@@ -10,14 +10,14 @@
 
 import { system, world, GameMode, ItemStack, ItemLockMode, HudVisibility, HudElement, InputButton, ButtonState, WeatherType } from '@minecraft/server';
 import { NightSession } from '../core/session.js';
-import { CONFIG, CAST, CAST_NAMES, LAST_NIGHT, CUSTOM_NIGHT, ENCORE_NIGHT, CHALLENGES, CHALLENGE_AI } from '../core/config.js';
+import { CONFIG, CAST, FULL_CAST, GOLDEN, CAST_NAMES, LAST_NIGHT, CUSTOM_NIGHT, ENCORE_NIGHT, CHALLENGES, CHALLENGE_AI } from '../core/config.js';
 import { Rng } from '../core/rng.js';
 import { generatePlan } from '../data/build_plan.js';
 import { OFFICE, LOBBY, SPAWN_OUTSIDE, LOT, ROOM_BY_ID } from '../data/layout.js';
 import { NODES, pathBetween } from '../data/nodes.js';
 import { CAMERA_BY_ID, CAMERA_ORDER, CAMS_FOR_NODE } from '../data/cameras.js';
 import { LOBBY_BUTTON_AT, STAR_SLOTS } from '../data/lobby.js';
-import { CALLS, HUNG_UP, TAKEOVER, FINAL, ENDINGS, TUTORIAL_HINTS, KILL_TIPS, DAY_TALK, CREEPY_TALK, SHOW_PA, CLOSING_PA, ENCORE } from '../data/story.js';
+import { CALLS, HUNG_UP, TAKEOVER, FINAL, ENDINGS, TUTORIAL_HINTS, KILL_TIPS, DAY_TALK, CREEPY_TALK, SHOW_PA, CLOSING_PA, ENCORE, GOLDEN as GOLDEN_TEXT } from '../data/story.js';
 import { Builder } from './builder.js';
 import { Puppets, yawToward } from './puppets.js';
 import { Guests } from './guests.js';
@@ -34,17 +34,20 @@ import { loadSave, storeSave, storeOrigin, defaultSave, loadBuild } from './pers
 import { log } from './log.js';
 import { VERSION } from '../data/version.js';
 import * as tricks from './tricks.js';
+import { Golden, GOLDEN_BODY, GALLERY_SPOT } from './golden.js';
 
 const wait = (ticks) => new Promise((res) => system.runTimeout(() => res(undefined), ticks));
 
 /** Standing eye height of each animatronic as rendered (blocks above the feet, uniform scale 1.18, about 3 blocks
  *  tall): the camera stare and the talk aim the head with it. */
-const HEAD_Y = Object.freeze({ rustgrin: 2.43, mirehop: 2.19, noxbriar: 2.4, purple_rat: 2.43, cat: 2.44, top_hat_rat: 2.38, rusted: 2.43 });
+const HEAD_Y = Object.freeze({ rustgrin: 2.43, mirehop: 2.19, noxbriar: 2.4, purple_rat: 2.43, cat: 2.44, top_hat_rat: 2.38, rusted: 2.43, [GOLDEN]: GOLDEN_BODY.eyeY });
 /** Eye height on the held frame of each jumpscare (the face lunges down): the jumpscare is framed on it. */
-const JUMPSCARE_EYE_Y = Object.freeze({ rustgrin: 2.15, mirehop: 1.97, noxbriar: 2.12, purple_rat: 2.18, cat: 2.13, top_hat_rat: 2.08, rusted: 2.15 });
+const JUMPSCARE_EYE_Y = Object.freeze({ rustgrin: 2.15, mirehop: 1.97, noxbriar: 2.12, purple_rat: 2.18, cat: 2.13, top_hat_rat: 2.08, rusted: 2.15, [GOLDEN]: GOLDEN_BODY.jumpscareEyeY });
 /** How far in front of the lens each jumpscare starts: the lunge ends with the nearest point of the head 0.43-0.47
  *  blocks from it, filling the screen without cutting through it (the Cat and the Ringmaster reach further). */
-const JUMPSCARE_DIST = Object.freeze({ rustgrin: 1.6, mirehop: 1.6, noxbriar: 1.6, purple_rat: 1.65, cat: 1.65, top_hat_rat: 1.7, rusted: 1.6 });
+const JUMPSCARE_DIST = Object.freeze({ rustgrin: 1.6, mirehop: 1.6, noxbriar: 1.6, purple_rat: 1.65, cat: 1.65, top_hat_rat: 1.7, rusted: 1.6, [GOLDEN]: GOLDEN_BODY.jumpscareDist });
+/** Everybody who can catch the guard (Extras > Jumpscares, the "seen every jumpscare" trophy). */
+const SCREAMERS = Object.freeze([...FULL_CAST, 'rusted']);
 const NIGHT_HUD = [HudElement.Health, HudElement.Hunger, HudElement.Armor, HudElement.StatusEffects, HudElement.PaperDoll, HudElement.AirBubbles, HudElement.HorseHealth];
 /** The hand slot during a shift: it holds the Camera Tablet, and hotbar scrolls on the cameras return here. */
 const NEUTRAL_SLOT = 4;
@@ -74,6 +77,7 @@ const SOUND_TEST = Object.freeze([
   { label: 'Title theme', id: 'fnar.music.title' }, { label: "The band's song", id: 'fnar.music.showtime' }, { label: "The Midway's waltz", id: 'fnar.tophat.show' },
   { label: "Rustgrin's music box", id: 'fnar.rustgrin.song' }, { label: 'Ending', id: 'fnar.music.ending' }, { label: 'Background music', id: 'fnar.music.bgm', music: true },
   { label: 'The PA chime', id: 'fnar.final.chime' }, { label: 'A jumpscare', id: 'fnar.js.mirehop' }, { label: "The Rusted one's scream", id: 'fnar.js.rusted' }, { label: 'Thunder', id: 'fnar.storm.thunder' },
+  { label: 'A pocket watch', id: 'fnar.golden.watch' }, { label: 'The wrong 6 AM', id: 'fnar.golden.chime' }, { label: 'The cellar', id: 'fnar.golden.cellar' }, { label: "The Golden Dog's scream", id: 'fnar.js.golden_dog' },
 ]);
 /** The jumpscare lens sits this far in front of the player's eyes: their own (hidden) model, armour and held
  *  item stay behind it instead of showing at the edge of the shot. */
@@ -127,6 +131,8 @@ export class Game {
     this.dread = new Dread(this);
     this.act = new Actuators(this.plan.meta);
     this.nightset = new NightSet(this);
+    /** the Golden Dog in the world (mc/golden.js) */
+    this.golden = new Golden(this);
     this.guests = new Guests(this);
     this.audio = new Audio();
     this.hud = new Hud();
@@ -225,10 +231,11 @@ export class Game {
     }
     if (s) {
       const d = s.devices;
-      lines.push(`night ${s.night} t${s.t}, power ${s.snapshot().powerPct}%, cams ${d.cams.open ? `up on ${d.cams.cam}` : 'down'}${this.cams.active ? ' (view on)' : ''}${this.camForm ? ' (map open)' : ''}`);
+      lines.push(`night ${s.night} t${s.t}${s.held ? ` (+${s.held} held)` : ''}, power ${s.snapshot().powerPct}%, cams ${d.cams.open ? `up on ${d.cams.cam}` : 'down'}${this.cams.active ? ' (view on)' : ''}${this.camForm ? ' (map open)' : ''}`);
+      if (s.golden.present) lines.push(`${s.golden.debug()}${s.looking ? ' (looked at)' : ''}`);
     }
     const seen = [];
-    for (const id of [...CAST, 'rusted']) {
+    for (const id of SCREAMERS) {
       const e = this.puppets.get(id);
       if (!e) continue;
       const l = L(e.location);
@@ -512,7 +519,8 @@ export class Game {
         }
         if (r.kind === 'ping') {
           const g = this.guard();
-          if (g) {
+          if (g && this.golden.away) p.sendMessage(`§8[FNaR] §7${GOLDEN_TEXT.operator.unheard}`);
+          else if (g) {
             this.audio.play('fnar.cam.glitch', null, g, { vol: 0.5, pitch: 1.4 });
             this.hud.setMessage(`Operator ${p.name}: check ${cam?.label?.split(' · ')[0] ?? 'the cameras'}!`, system.currentTick, 70);
             g.sendMessage(`§b[Operator] ${p.name}: §fcheck ${cam?.label ?? 'the cameras'}!`);
@@ -649,7 +657,7 @@ export class Game {
       const seen = s.seenJs.length;
       const trophies = this.trophies();
       const a = await ui.pickForm(p, '§lEXTRAS', 'Everything you have unlocked so far.', [
-        ['jumpscares', `Jumpscares §7(${seen}/7)`],
+        ['jumpscares', `Jumpscares §7(${seen}/${SCREAMERS.length})`],
         ['cast', 'The Cast'],
         ['sound', 'Sound Test'],
         ['cheats', s.beaten.includes(6) ? `Cheats${Object.values(s.cheats).some(Boolean) ? ' §c(on)' : ''}` : '§8Cheats §7(beat the Final Act)'],
@@ -662,15 +670,32 @@ export class Game {
           await ui.messageBox(p, '§lJUMPSCARES', 'Nothing to see yet. Every animatronic that catches you shows up here.');
           continue;
         }
-        const ids = [...CAST, 'rusted'].filter((id) => s.seenJs.includes(id));
+        const ids = SCREAMERS.filter((id) => s.seenJs.includes(id));
         const id = await ui.pickForm(p, '§lJUMPSCARES', 'Pick one. Brace yourself.', ids.map((x) => [x, x === 'rusted' ? 'The Rusted one' : CAST_NAMES[x].replace(/^the /, 'The ')]));
         if (id) return void this.previewJumpscare(p, id);
         continue;
       }
       if (a === 'cast') {
-        const id = await ui.pickForm(p, '§lTHE CAST', 'Pick a performer, then a pose. They stand in the Gallery behind you.', CAST.map((x) => [x, CAST_NAMES[x].replace(/^the /, 'The ')]));
+        const id = await ui.pickForm(p, '§lTHE CAST', 'Pick a performer, then a pose. They stand in the Gallery behind you.', FULL_CAST.map((x) => [x, CAST_NAMES[x].replace(/^the /, 'The ')]));
         if (!id) continue;
         await ui.galleryInfo(p, id);
+        if (id === GOLDEN) {
+          // he has no pedestal: he stands between the rows for as long as the Gallery is looked at
+          const pose = await ui.pickForm(p, `§l${CAST_NAMES[id].toUpperCase()}`, 'He does not take requests. But he can be looked at...', [['stand', 'Standing'], ['slump', 'Powered down'], ['pose', 'On his stage'], ['perform', 'The floor show'], ['wave', 'Wave'], ['bow', 'Take a bow'], ['walk', 'Walk'], ['lean', 'Lean in']]);
+          if (pose && this.state === 'LOBBY') {
+            const at = GALLERY_SPOT;
+            this.puppets.spawnAt(GOLDEN, at, at.yaw, 'stand');
+            this.puppets.eyes(GOLDEN, pose !== 'slump');
+            system.runTimeout(() => this.state === 'LOBBY' && this.puppets.anim(GOLDEN, pose), 3);
+            system.runTimeout(() => this.state === 'LOBBY' && this.puppets.remove(GOLDEN), 900); // then he is gone again
+            try {
+              p.teleport(W(at.view.x, at.view.y, at.view.z), { facingLocation: W(at.x, GOLDEN_BODY.eyeY, at.z) });
+            } catch {
+              // ignore
+            }
+          }
+          return;
+        }
         const pose = await ui.pickForm(p, `§l${CAST_NAMES[id].toUpperCase()}`, 'Make them...', [['pose', 'Stand on stage'], ['perform', 'Perform'], ['perform2', 'Perform (2)'], ['wave', 'Wave'], ['bow', 'Take a bow'], ['walk', 'Walk'], ['crawl', 'Crawl'], ['peek', 'Peek']]);
         if (pose) {
           // wave and bow play once: reset to the stage pose first so picking one again replays it
@@ -734,7 +759,7 @@ export class Game {
       ['The Final Act', s.endings.includes('final_act') || s.beaten.includes(6)],
       ['Showstopper: 20/20/20/20/20/20', !!s.showstopper],
       ['Curtain Call: survive the Encore', s.endings.includes('curtain_call')],
-      ['Seen every jumpscare', s.seenJs.length >= 7],
+      ['Seen every jumpscare', SCREAMERS.every((id) => s.seenJs.includes(id))],
       ...CHALLENGES.map((c) => [`Challenge: ${c.title}`, s.trophies.includes(c.id)]),
     ];
   }
@@ -881,6 +906,8 @@ export class Game {
       this.puppets.eyes(id, false);
     }
     this.audio.stopAll();
+    // by day the cellar door is open, and he stands on his stage down there. He does not talk
+    this.golden.roamStart();
     const now = system.currentTick;
     /** Free Roam: the show schedule and who has talked to whom (cooldowns by tick). */
     this.roam = { phase: 'idle', at: 0, nextShow: now + SHOW.firstIn, announced: false, nextAd: now + 260, talkCd: Object.create(null), sayUntil: Object.create(null), say: Object.create(null), lastLine: Object.create(null), stroll: null, strollAt: Infinity };
@@ -925,6 +952,7 @@ export class Game {
     if (now % 200 === 0) this.sweepMobs();
     const r = this.roam;
     if (!r) return;
+    this.golden.roamTick(now);
     switch (r.phase) {
       case 'idle':
         if (!r.announced && now >= r.nextShow - SHOW.announce) {
@@ -1292,6 +1320,7 @@ export class Game {
     }
     const tip = TUTORIAL_HINTS[n];
     if (tip && this.save.settings.hints) this.hud.setMessage(tip, system.currentTick + 80, 200);
+    this.golden.reset();
     this.audio.loop('office', 'fnar.amb.office', 'office', null, 0.6);
     this.audio.loop('fan', 'fnar.amb.fan', 'desk', null, 0.5);
     this.audio.loop('building', 'fnar.amb.building', null, player, 0.5);
@@ -1319,6 +1348,8 @@ export class Game {
     this.audio.stopAll();
     this.stopBgm();
     this.guests.clear(); // guests are only there by day (Free Roam and closing time)
+    this.golden.stop(); // whatever the Golden Dog bent is put back
+    this.golden.roamStop();
     this.session = null;
     this.phoneSeq = null;
     this.paQueue = [];
@@ -1392,14 +1423,20 @@ export class Game {
       }
     }
     if (this.state !== 'NIGHT') return;
-    this.act.tickFlicker(this.rng);
-    this.tickStorm(g, now);
+    // the Golden Dog: where the guard's eyes are, and the silence while he holds the cast still
+    this.golden.tick(g, now);
+    const hush = this.golden.hush;
     for (const op of this.ops.values()) if (op.view.active) op.view.tick(null);
     this.tickPhone(g, now);
-    this.tickPa(g, now);
-    this.tickBooth(g, now);
-    this.tickStare(g);
-    this.dread.tick(g, now);
+    if (!hush) {
+      // (while he holds the building nothing else in it stirs: no storm, no glimpses, no dread)
+      this.act.tickFlicker(this.rng);
+      this.tickStorm(g, now);
+      this.tickPa(g, now);
+      this.tickBooth(g, now);
+      this.tickStare(g);
+      this.dread.tick(g, now);
+    }
     this.nightset.tick(now);
     if (now % 200 === 0) this.sweepMobs();
     if (this.cams.active) this.cams.tick(this.camCover());
@@ -1429,7 +1466,7 @@ export class Game {
       if (spotlightReady(snap)) hint = this.camForm ? 'Find the Ringmaster on a camera, then press SPOTLIGHT' : 'Find the Ringmaster, then use the Office Remote: SPOTLIGHT';
       else hint = this.camForm ? 'Click a camera on the map - LOWER or Esc puts the monitor down' : 'Scroll the hotbar: next camera - Sneak or use the tablet: lower';
     }
-    const bar = this.hud.nightBar(snap, now, { captions: this.save.settings.captions, overlay, cover: this.cams.active ? this.camCover() : null, hint });
+    const bar = this.hud.nightBar(snap, now, { captions: this.save.settings.captions, overlay, cover: this.cams.active ? this.camCover() : null, hint, hints: this.save.settings.hints });
     this.lastBar = bar;
     return bar;
   }
@@ -1437,6 +1474,7 @@ export class Game {
   camCover() {
     const s = this.session;
     if (!s) return null;
+    if (this.golden.onMonitor) return null; // (the wrong feed, or his face: no static over his picture)
     const cam = CAMERA_BY_ID[s.devices.cams.cam];
     if (!cam) return null;
     if (cam.audioOnly) return 'audio';
@@ -1459,6 +1497,7 @@ export class Game {
 
   /** @param {import('@minecraft/server').Player} g */
   keepInOffice(g) {
+    if (this.golden.keep(g)) return; // (the Other Office: the guard is kept there instead)
     const l = L(g.location);
     const b = OFFICE.bounds;
     if (l.x >= b.x1 && l.x < b.x2 && l.z >= b.z1 && l.z < b.z2 && l.y > -1 && l.y < 4) return;
@@ -1483,6 +1522,8 @@ export class Game {
         return;
       case 'idle':
         return tricks.renderIdle(this, e, g);
+      case 'golden':
+        return this.golden.render(e, g);
       case 'place':
         // the session picks the pose: the band posed on its stage, the troupe dancing while its
         // music plays, the Ringmaster in his booth (conducting on his own night)
@@ -1639,7 +1680,8 @@ export class Game {
       case 'power_out':
         return this.renderPowerOut(e.stage, g);
       case 'jumpscare':
-        tricks.memoryEnd(this, s);
+        // (the week's memory does not track the Golden Dog: a night he ended is not remembered)
+        if (e.who !== GOLDEN) tricks.memoryEnd(this, s);
         tricks.killNote(e, g);
         return void this.jumpscare(e.who, g, e.note);
       case 'win':
@@ -1691,6 +1733,13 @@ export class Game {
 
   /** @param {import('@minecraft/server').Player} g */
   renderCams(e, g) {
+    this.renderCamsOwn(e, g);
+    // the Golden Dog may have the picture: every camera shows the cellar, or the monitor shows his face
+    if (e.open) this.golden.onCams(e, g);
+  }
+
+  /** @param {import('@minecraft/server').Player} g */
+  renderCamsOwn(e, g) {
     if (e.open && !this.cams.active) {
       // nothing but the feed: no hotbar, item names or controller hints over the camera
       try {
@@ -1720,7 +1769,7 @@ export class Game {
       this.cams.close();
       this.act.clearCamLight();
       this.audio.stop('cam_hum');
-      if (e.reason === 'close' || e.reason === 'power') this.audio.play('fnar.cam.down', null, g, { vol: 0.8 });
+      if (e.reason === 'close' || e.reason === 'power' || e.reason === 'golden') this.audio.play('fnar.cam.down', null, g, { vol: 0.8 });
       this.showCamMap(g, null);
       if (this.camForm) this.stopCamForm();
       if (e.reason !== 'jumpscare') {
@@ -1888,6 +1937,7 @@ export class Game {
       return;
     }
     if (t === 'fnar:desk_phone') {
+      if (this.golden.onPhone(player)) return; // (the Other Office's phone: the way back)
       this.feedback(this.session.input('mute_call'));
       return;
     }
@@ -1908,6 +1958,7 @@ export class Game {
     else if (res.reason === 'power') this.hud.setMessage('No power.', now, 50);
     else if (res.reason === 'cooldown') this.hud.setMessage('The spotlight is still warming up...', now, 40);
     else if (res.reason === 'not_cams') this.hud.setMessage('The SPOTLIGHT works through the cameras.', now, 50);
+    else if (res.reason === 'away') this.hud.setMessage(GOLDEN_TEXT.message.away, now, 50);
   }
 
   // ---------------------------------------------------------------- phone, stare, hallucinations
@@ -2064,6 +2115,8 @@ export class Game {
       const name = (this.puppets.skin[c.id] === 'rusted' ? 'Rusted' : CAST_NAMES[c.id].replace(/^the /, '')).split(' ')[0];
       parts.push(`${name} §f${cam ? `CAM ${cam}` : c.walk ? '...' : c.node}`);
     }
+    const dog = this.golden.radar();
+    if (dog) parts.push(dog);
     return parts.length ? `§bRADAR §7${parts.join(' §8| §7')}` : null;
   }
 
@@ -2243,6 +2296,7 @@ export class Game {
     this.stopBgm(g);
     this.paQueue = [];
     this.hud.setSpeech('', system.currentTick, 0);
+    this.golden.stop();
     this.focusOn(g, true);
     const id = who;
     const look = this.puppets.skin[who] ?? who; // the model (and scream) actually on stage tonight

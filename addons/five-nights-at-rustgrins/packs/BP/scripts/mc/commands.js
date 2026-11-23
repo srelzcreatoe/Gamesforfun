@@ -4,7 +4,7 @@
 //   /fnar:debug <action> [a] [b]   developer controls, try /fnar:debug help
 
 import { system, world, CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus } from '@minecraft/server';
-import { CAST, CUSTOM_NIGHT } from '../core/config.js';
+import { CAST, GOLDEN, CUSTOM_NIGHT } from '../core/config.js';
 import { log } from './log.js';
 
 const HELP = [
@@ -15,7 +15,8 @@ const HELP = [
   '/fnar:debug hour <0-5>       jump the clock',
   '/fnar:debug takeover         night 5: jump to 4 AM (the Ringmaster takes over)',
   '/fnar:debug act <1-3>        night 6: jump to an act of the Final Act',
-  '/fnar:debug ai <who> <0-20>  set one AI level (mirehop noxbriar rustgrin cat purple_rat top_hat_rat)',
+  '/fnar:debug ai <who> <0-20>  set one AI level (mirehop noxbriar rustgrin cat purple_rat top_hat_rat golden_dog)',
+  '/fnar:debug golden <shift>   the Golden Dog starts a shift now, watch first (gild dawn feed mirror visit other)',
   '/fnar:debug tape <0-100>     set the show tape',
   '/fnar:debug cat <0-3>        set the Cat\'s stage on the Midway ring',
   '/fnar:debug overlay          toggle the AI overlay',
@@ -88,8 +89,13 @@ function debug(g, action, a1, a2, p) {
       if (s) g.debugWin();
       return undefined;
     case 'lose':
-      if (s) s.kill(a1 && CAST.includes(a1) ? a1 : 'mirehop');
+      if (s) s.kill(a1 && (CAST.includes(a1) || a1 === GOLDEN) ? a1 : 'mirehop');
       return undefined;
+    case 'golden': {
+      // the Golden Dog starts a shift now (his watch ticks first, as always)
+      const done = !!s && s.golden.force(String(a1 ?? ''));
+      return say(p, !s ? 'no night running' : done ? `the watch is ticking: ${a1}` : `not now (${s.golden.debug()}): gild dawn feed mirror visit other, on a night he is on, while he stands on his stage`);
+    }
     case 'power':
       if (s) s.power = Math.max(1, Math.min(100, num(a1, 50))) * 1000;
       return undefined;
@@ -97,6 +103,7 @@ function debug(g, action, a1, a2, p) {
       if (s) s.t = Math.max(0, Math.min(5, num(a1, 0))) * s.ticksPerHour;
       return undefined;
     case 'ai':
+      if (s && a1 === GOLDEN) return say(p, `${a1} -> ${s.golden.setLevel(num(a2, 10))}`);
       if (s && s.chars[a1]) s.chars[a1].baseAi = Math.max(0, Math.min(20, num(a2, 10)));
       return say(p, s ? `${a1} -> ${s.chars[a1]?.baseAi}` : 'no night running');
     case 'tape':

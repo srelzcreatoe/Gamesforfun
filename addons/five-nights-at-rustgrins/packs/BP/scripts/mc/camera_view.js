@@ -38,6 +38,8 @@ export class CameraView {
     this.nextPan = 0;
     this.cover = null; // 'static' | 'audio' | null
     this.nextCover = 0;
+    /** a picture that is not one of the cameras is on (showAt): held still, no pan */
+    this.custom = false;
   }
 
   /** @param {import('@minecraft/server').Player} player */
@@ -63,6 +65,7 @@ export class CameraView {
     const cam = CAMERA_BY_ID[camId];
     if (!cam || !this.player?.isValid) return;
     this.cam = camId;
+    this.custom = false;
     try {
       if (!first) this.player.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0.05, holdTime: 0.05, fadeOutTime: 0.12 } });
       this.player.camera.setCamera('minecraft:free', { location: Wv(v3(cam.loc)), facingLocation: Wv(v3(cam.look)) });
@@ -71,6 +74,22 @@ export class CameraView {
       log.warn(`camera show ${camId}: ${e?.message ?? e}`);
     }
     this.nextPan = system.currentTick + 30;
+    this.nextCover = 0;
+  }
+
+  /**
+   * A picture that is not one of the cameras (the Golden Dog's face on the monitor during his visit: see
+   * mc/golden.js): the lens at `loc` looking at `look` (local coordinates), held still until show() is called.
+   */
+  showAt(loc, look) {
+    if (!this.active || !this.player?.isValid) return;
+    this.custom = true;
+    try {
+      this.player.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0.05, holdTime: 0.05, fadeOutTime: 0.12 } });
+      this.player.camera.setCamera('minecraft:free', { location: Wv(loc), facingLocation: Wv(look) });
+    } catch (e) {
+      log.warn(`camera showAt: ${e?.message ?? e}`);
+    }
     this.nextCover = 0;
   }
 
@@ -94,7 +113,7 @@ export class CameraView {
       this.nextCover = now + 30;
     }
     // slow security-camera pan around the aim point
-    if (!cover && now >= this.nextPan && cam) {
+    if (!cover && !this.custom && now >= this.nextPan && cam) {
       const [lx, ly, lz] = cam.look;
       const dx = lx - cam.loc[0];
       const dz = lz - cam.loc[2];
@@ -117,6 +136,7 @@ export class CameraView {
     this.active = false;
     this.cam = undefined;
     this.cover = null;
+    this.custom = false;
     if (p?.isValid) restorePlayerView(p);
   }
 }

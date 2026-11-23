@@ -2,6 +2,7 @@
 // the camera-map title code read by the resource pack (ui/hud_screen.json).
 
 import { CAMERA_BY_ID, CAMERA_ORDER } from '../data/cameras.js';
+import { GOLDEN as GOLDEN_TEXT } from '../data/story.js';
 
 const HOURS = ['12 AM', '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM'];
 export const hourLabel = (h) => HOURS[Math.max(0, Math.min(6, h))];
@@ -84,6 +85,23 @@ export function eventLine(ev) {
   return task ? `§6${task}  ${left}` : null;
 }
 
+/**
+ * The Golden Dog's line (mc/golden.js): the mirror always says so; what to do in a visit and in the Other
+ * Office is said while gameplay tips are on; "look away" is said whenever he has been looked at.
+ * @param {any} g the snapshot's `golden` (core/ai/golden_dog.js view()), or null
+ */
+export function goldenLine(g, hints = true) {
+  if (!g) return null;
+  const T = GOLDEN_TEXT.hud;
+  const left = (t) => t.replace('{left}', String(g.left));
+  if (g.state === 'tell') return T.tell;
+  if (g.mirror) return left(T.mirror);
+  if (g.feed) return T.feed;
+  if (g.visit) return g.seen ? T.seen : hints ? left(T.visit) : null;
+  if (g.away) return hints ? (g.ringing ? T.other_ring : T.other) : null;
+  return null;
+}
+
 export class Hud {
   constructor() {
     this.caption = null;
@@ -111,18 +129,24 @@ export class Hud {
   }
 
   /** Action bar for a running night. */
-  nightBar(snap, now, { captions = true, overlay = null, cover = null, hint = null } = {}) {
+  nightBar(snap, now, { captions = true, overlay = null, cover = null, hint = null, hints = true } = {}) {
     const lines = [];
+    const gold = snap.golden;
     if (snap.devices.camsOpen) {
       const cam = CAMERA_BY_ID[snap.devices.cam];
       let label = cam ? cam.label : '';
-      if (cover === 'static') label = '§7-- SIGNAL INTERFERENCE --';
+      // the Golden Dog's picture is on the monitor instead of a camera's: the wrong feed, or his face
+      if (gold?.feed) label = GOLDEN_TEXT.hud.feed_label;
+      else if (gold?.visit) label = GOLDEN_TEXT.hud.face_label;
+      else if (cover === 'static') label = '§7-- SIGNAL INTERFERENCE --';
       else if (cover === 'audio') label = `§6${label} §7(audio only)`;
       lines.push(`§f${label}`);
-      if (snap.devices.cam === '8' && snap.tape) lines.push(`§6SHOW TAPE ${snap.tape.pct}%${snap.tape.pct < 30 ? ' §c§lREWIND' : ''}`);
+      if (snap.devices.cam === '8' && snap.tape && !gold?.feed && !gold?.visit) lines.push(`§6SHOW TAPE ${snap.tape.pct}%${snap.tape.pct < 30 ? ' §c§lREWIND' : ''}`);
     }
     const cue = eventLine(snap.event);
     if (cue) lines.push(cue);
+    const dog = goldenLine(gold, hints);
+    if (dog) lines.push(dog);
     if (this.speech && now < this.speechUntil) lines.push(...wrap(this.speech));
     if (this.message && now < this.messageUntil) lines.push(`§e${this.message}`);
     else if (snap.devices.camsOpen && hint) lines.push(`§8${hint}`);

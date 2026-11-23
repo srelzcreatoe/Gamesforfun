@@ -15,12 +15,12 @@
 
 import { NODES } from '../data/nodes.js';
 import { OPENINGS, OFFICE } from '../data/layout.js';
-import { CAST } from '../core/config.js';
+import { FULL_CAST } from '../core/config.js';
 import { dim, W, Wv } from './world_io.js';
 import { log } from './log.js';
 import { aimHead } from './aim.js';
 
-export const ENTITY_ID = Object.freeze({ ...Object.fromEntries(CAST.map((id) => [id, `fnar:${id}`])), rusted: 'fnar:rusted' });
+export const ENTITY_ID = Object.freeze({ ...Object.fromEntries(FULL_CAST.map((id) => [id, `fnar:${id}`])), rusted: 'fnar:rusted' });
 const TAG = 'fnar_puppet';
 
 /** The animatronics stand about 3 blocks tall: every opening lower than that (with a little margin, so the 3-block doors too) makes them stoop. */
@@ -56,6 +56,8 @@ export class Puppets {
     this.props = {}; // last set property values (avoid redundant network traffic)
     /** id -> the model it wears tonight (the Encore: Rustgrin's part is played by the Rusted one) */
     this.skin = {};
+    /** the Golden Dog holds the cast still (mc/golden.js): walks stop where they are and go on when he lets go */
+    this.frozen = false;
   }
 
   /** Entity type for a puppet id, honouring tonight's skins. */
@@ -250,6 +252,7 @@ export class Puppets {
   }
 
   tick() {
+    if (this.frozen) return;
     for (const [id, w] of Object.entries(this.walks)) {
       w.t++;
       const d = Math.min(w.len, (w.t / w.dur) * w.len);
@@ -273,6 +276,7 @@ export class Puppets {
   /** Remove every puppet in the dimension (night end, lobby, rebuild). */
   removeAll() {
     this.walks = {};
+    this.frozen = false;
     try {
       for (const e of dim().getEntities({ tags: [TAG] })) e.remove();
     } catch (err) {

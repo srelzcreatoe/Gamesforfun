@@ -16,6 +16,7 @@ export const CALLS = Object.freeze({
     'Mirehop wanders the West Hall and Noxbriar prefers the East. If either one waits at your door, close it and keep it closed until they lose interest.',
     "Don't keep a door shut for nothing, though. When the power runs out, every door opens by itself and the band comes in for an encore.",
     "That's all for opening night. I'll be on my stage, the Grand Marquee, watching the show. As always.",
+    'You will count eleven cameras on that monitor. The eleventh shows a storeroom. Nothing in it is on the program.',
     'Break a leg, {name}.',
   ],
   2: [
@@ -25,6 +26,7 @@ export const CALLS = Object.freeze({
     'While the music plays, they dance. When it slows, they grow restless. When it stops... well. The Cat has very fast feet.',
     'Checking on her keeps her honest. If she ever leaves the ring, she will sprint down a hall. Close that door and let her bang on it.',
     'Each bang costs more power than the last. She has never been good at taking no for an answer.',
+    'One small thing. Should you hear a watch ticking tonight: you did not. We keep no clocks here that tick. I had them all taken out.',
     'Enjoy the show, {name}.',
   ],
   3: [
@@ -34,6 +36,8 @@ export const CALLS = Object.freeze({
     'Then there is Rustgrin, our star. He will not move while anyone is watching him. Not a single step.',
     'When he reaches the nook outside your right door, his microphone will scream. Only CAM 4B can see that corner, so keep the right door shut while you are on the cameras.',
     "You may have noticed me on CAM 1C, on my own little stage: the Grand Marquee. I don't wander like the others. A ringmaster waits for his cue.",
+    'About CAM 11. I would rather you left it alone. It is only the cellar: old stock, from before our time. There is nothing to see, and it is better not to be seen seeing it.',
+    'And if the clock tells you it is six before I do, {name}, do not believe the clock.',
     'Goodnight, {name}. Mind the feedback.',
   ],
   4: [
@@ -43,6 +47,9 @@ export const CALLS = Object.freeze({
     'Nobody leaves at intermission, {name}. It is terribly rude to the performers.',
     'Everyone is restless tonight. Watch the tape on CAM 8, watch the halls, watch the ducts. And if you ever find the old Rustgrin slumped in your office...',
     '...raise the monitor at once. He was never there, and he would very much like you to agree.',
+    'Now. I will say this once, and quietly. There was a house on this lot before ours: the Golden Dog Supper Club, 1958 to 1971. They built us on top of it.',
+    'Its host is still down there, on his stage. He is on no list. Not the auction, not the program, not mine. When his watch ticks, the band stops where it stands. So do I.',
+    'If he comes up to stand behind you, do not turn around. Do not raise the monitor. Never look at him, {name}. In all these years I never have.',
     'Two more nights. Then the lights go down for good. Or do they?',
   ],
   5: [
@@ -51,6 +58,8 @@ export const CALLS = Object.freeze({
     'I have never let the curtain fall before the finale.',
     'So listen carefully. Survive this night the way you have learned to: doors, lights, vents, the tape. All of it.',
     "And when the clock strikes four, don't be alarmed. That is simply when the real show begins.",
+    'One thing more, and then I will not speak of the cellar again. If the lamp stutters and the office is not your office: look at the desk. Only the desk.',
+    'There is a telephone on it. When it rings, pick it up. That will be me. I will be calling from very far away, {name}, and I will not be able to wait long.',
     'Places, everyone.',
   ],
 });
@@ -220,6 +229,112 @@ export const FINAL = Object.freeze({
   hour5: Object.freeze(['One more hour. The finale always runs long.']),
 });
 
+/**
+ * The Golden Dog (core/ai/golden_dog.js, mc/golden.js). He does not talk: these are the captions for his
+ * cues, the HUD's lines, the cards, what the Ringmaster says when the watch cuts into his call, and what the
+ * co-op camera operator is told. `{name}` as everywhere.
+ */
+export const GOLDEN = Object.freeze({
+  // captions (shown when captions are on)
+  caption: Object.freeze({
+    tell: 'a pocket watch is ticking, faster and faster',
+    hush: 'the building has gone silent',
+    gild_office: 'for a moment the pictures in the office are his',
+    gild_hall: 'for a moment the hall on the monitor is his',
+    dawn: 'the 6 AM chime, off-key',
+    dawn_end: 'it tears away: it is still night',
+    feed: 'the feed tears: every camera shows the cellar. Lower the monitor',
+    pick: 'something stood up in the cellar ({n} of {of})',
+    picked: 'he is coming up',
+    feed_end: 'the cameras are their own again',
+    mirror: 'left is right: the left buttons work the right side',
+    mirror_end: 'left is left again',
+    visit: 'breathing, right behind the seat. Do not turn around',
+    seen: 'he saw you look',
+    unseen: 'the breathing starts again',
+    visit_end: 'the breathing stops. The lamp comes back',
+    other: 'the lamp stutters. This is not your office',
+    walk: 'heavy steps on old boards: he walks while you watch',
+    stop: 'the steps stop',
+    phone: 'a telephone is ringing on the desk. Pick it up',
+    late: 'the ringing stops. The steps do not',
+    answered: 'a click on the line, and the lamp is your lamp again',
+    stare: 'he lifts his head to the lens. Look away',
+    cellar: 'the air down here is old',
+    end: 'something lets go of the building',
+  }),
+  // the HUD's line while a shift is on
+  hud: Object.freeze({
+    tell: '§6. . .  tick  . . .',
+    mirror: '§6§lLEFT IS RIGHT §r§7{left}s',
+    feed: '§6THE WRONG FEED §7lower the monitor',
+    visit: '§4DO NOT TURN AROUND §7{left}s',
+    seen: '§4§lLOOK AWAY',
+    other: '§4LOOK AT THE DESK',
+    other_ring: '§4LOOK AT THE DESK §8| §ePICK UP THE PHONE',
+    feed_label: 'CAM ?? · §6THE GOLD ROOM',
+    face_label: '§4HE IS IN THE ROOM',
+  }),
+  // on-screen messages (the yellow line)
+  message: Object.freeze({
+    away: 'Nothing here works. Only the telephone.',
+    quiet: 'The line is dead. It has not rung yet.',
+    stay: 'Stay in the seat.',
+  }),
+  // the false 6 AM: the real card's words, then what is left when it tears
+  dawn: Object.freeze({
+    card: Object.freeze(['§l6 AM', '§a{label} complete']),
+    torn: Object.freeze(['§4§l6 AM', '§4not yet']),
+  }),
+  // the Other Office
+  other: Object.freeze({
+    card: Object.freeze([' ', '§8THE OTHER OFFICE']),
+    // the voice on its phone is the Ringmaster's, from very far away
+    line: Object.freeze([
+      'Do not look up, {name}. Hold the line. ...There.',
+      "Eyes on the desk. I have you. Don't look back, {name}.",
+      '{name}? Good. Do not tell me what you saw. Come home.',
+    ]),
+  }),
+  // the watch cut into the Ringmaster's call: what he says when he finds his voice again
+  interrupted: Object.freeze({
+    // while he still denies it (nights 2 and 3)
+    deny: Object.freeze([
+      '...Forgive me. I lost my place. Where were we?',
+      'Did you hear a watch just now? No. Neither did I.',
+      '...A draught. These old buildings. Let us go on.',
+    ]),
+    // once he has told the guard (from night 4)
+    admit: Object.freeze([
+      '...That was him. Eyes front, {name}. Let us go on, quickly.',
+      '...He does that. I never get used to it. Where was I?',
+      "...Don't ask me to look. I won't. Let us go on.",
+    ]),
+  }),
+  // Free Roam: he does not talk. Shown to a guest who walks up to him and looks
+  silent: Object.freeze([
+    '§8The Golden Dog does not say anything.',
+    '§8He is switched off. He has been since 1971.',
+    '§8Nothing. Only the dust on his coat.',
+  ]),
+  // ...and once the guest has looked away and back
+  moved: Object.freeze([
+    '§8Was his head like that before?',
+    '§8He is not quite as he was.',
+    '§8You are sure his hand was lower.',
+  ]),
+  // the co-op camera operator (they sit in the Staff Room; he never bends their cameras)
+  operator: Object.freeze({
+    tell: "§8[FNaR] §7A watch is ticking on the guard's line.",
+    visit: '§8[FNaR] §7Someone is standing behind the guard. Do not warn them: they must not turn around.',
+    other: "§8[FNaR] §7The office is empty. The guard's seat is still warm.",
+    back: '§8[FNaR] §7The guard is back in the office.',
+    unheard: 'Nobody is in the office to hear you.',
+  }),
+  // Extras > The Cast
+  gallery: 'THE GOLDEN DOG - host of the Golden Dog Supper Club, 1958 to 1971, and its whole floor show: "The Golden Dog and his band, 9 PM." The Revue was built on top of his stage. He is on no list. Do not look at him for long.',
+});
+
 /** One clipping unlocks after each night survived (lobby board). */
 export const CLIPPINGS = Object.freeze([
   { night: 1, date: 'Route 6 Courier, March 3, 1984', headline: "RUSTGRIN'S PIZZA REVUE OPENS ITS DOORS", text: 'The Rusty Revue played to a packed house on opening night: Rustgrin the bear, Mirehop on guitar and Noxbriar on harmonies. "The kids wouldn\'t leave," the owner laughed. "We had to unplug the band to close."' },
@@ -227,6 +342,10 @@ export const CLIPPINGS = Object.freeze([
   { night: 3, date: 'Route 6 Courier, June 11, 1987', headline: 'PIZZERIA BUYS FAMOUS MIDWAY TROUPE', text: 'Rustgrin\'s has bought the Ringmaster, the Purple Rat and the Cat from the Marvello estate. "They are beautifully made," the owner said. "The Ringmaster even greets the staff by name."' },
   { night: 4, date: 'Route 6 Courier, August 19, 1990', headline: 'THE SHOW THAT WOULD NOT STOP', text: 'During a Saturday matinee the Midway ring kept performing after its power was cut. Staff say the show tape "rewound by itself." The Ringmaster has since been moved into the old Kitty\'s Cabaret, renamed the Grand Marquee "for his comfort."' },
   { night: 5, date: 'Route 6 Courier, October 30, 1991', headline: 'NIGHT GUARD WALKS OFF THE JOB', text: 'Walter Pruitt left his post at Rustgrin\'s at 3 AM and has not been seen since. His car was found in the lot with the engine running and a note on the dashboard: "he called me by my name."' },
+  // the house under the house (the cellar's own signs: "Est. 1958", "TONIGHT The Golden Dog and his band 9 PM", "CLOSED until further notice 1971")
+  { night: 2, date: 'Route 6 Courier, September 6, 1958', headline: 'THE GOLDEN DOG SUPPER CLUB OPENS TONIGHT', text: 'Dinner, dancing and a floor show, nine steps below Route 6. The host is a mechanical dog in a red tailcoat, a head taller than any man in the room, who takes out his pocket watch before every number. "He keeps better time than my band," the owner said. The Golden Dog and his band, 9 PM.' },
+  { night: 3, date: 'Tri-County Ledger, January 9, 1971', headline: 'SUPPER CLUB CLOSED "UNTIL FURTHER NOTICE"', text: 'The Golden Dog Supper Club did not open on Saturday. Its night man will not go back down the stairs. He told this paper that the dog had turned round to look at him, "and then it was six o\'clock, and then it wasn\'t." The owner asks only that somebody keep the stage lamp burning.' },
+  { night: 4, date: 'Route 6 Courier, February 20, 1984', headline: 'PIZZA REVUE TO RISE ON OLD SUPPER CLUB LOT', text: 'The new Rustgrin\'s will be built straight on top of the Golden Dog\'s cellar. "Cheaper than filling it in," the contractor said. One room was left exactly as it was found. "There is something on the stage down there. My men would not carry it out, and not one of them would look at it."' },
   { night: 6, date: 'Route 6 Courier, November 11, 1991', headline: 'AUCTION CANCELLED: ANIMATRONICS MISSING', text: 'Bidders arrived at Rustgrin\'s on Saturday to find lots one through six gone from their crates. The building was locked from the inside. The only item recovered was a ticket stub that read ADMIT ONE - ENCORE.' },
 ]);
 
@@ -281,14 +400,15 @@ export const GUIDE = Object.freeze([
   ['Purple Rat', 'Shares the Midway ring with the Cat and loves the crawl ducts. Listen for his maracas above the ceiling, left or right. CAM 9 and CAM 10 show the ducts. Seal that VENT when he is right above you, and open it after he bangs on it.\nIn a duct he only moves while you look away; stare at him on CAM 9 or 10 and he squeaks and backs off. He picks the duct on the side you are busy with least, and a vent you keep sealing sends him to the other one.\nHis trick, PLAYING DEAD: caught by the duct camera with a move in hand, his maracas stop dead. Look away now and he bolts two sections with a frantic rattle. Keep the camera on him until he squeaks.'],
   ['The Show Tape', 'The troupe dances to a tape deck on CAM 8. Press PLAY SHOW there to rewind it. Below 30 % the Cat and the Purple Rat grow bolder; at 0 % the music stops and both come for you. Rewind above 60 % to call the Cat back to the ring.'],
   ['The Ringmaster', 'He stands on his own stage, the Grand Marquee (CAM 1C, once Kitty\'s Cabaret), and calls the office every night. He does not move. Not yet.\nBut he directs. Once a night, from night 3, his cane raps over the PA: "Places!" Two of the band go back to the stage, which is a breather for you, and a few seconds later he sends them out again, together. They only step off the stage while nobody watches it: keep CAM 1A on them and his cue is wasted. After that, expect both halls, one after the other.'],
+  ['The Golden Dog', 'He was here first: the host of the Golden Dog Supper Club (1958 to 1971), which the Revue was built on top of. He stands on his little stage in the cellar (CAM 11) and never comes up the stairs. He bends the place instead.\nONE RULE: never look at the Golden Dog.\nHIS TELL is a pocket watch: two and a half seconds of ticking, faster and faster, before everything he does. Nothing else in the building ticks. While it ticks the others hold still (they are afraid of him too), the halls go silent, and your doors and lights draw no power.\nCAM 11: a few seconds at a time are safe. Stare, and he turns to the lens and comes sooner, and worse. An empty stage means he is at work.\nGILDING (from night 2): for a few seconds a poster, a drawing or a hall floor is his. Nothing to do.\nFALSE DAWN (night 3): the clock says 6 AM and the chime is off-key. It is still night. The watch ticked first, and the real 6 AM never ticks.\nWRONG FEED (night 3): every camera you pick shows the cellar\'s empty stage. Lower the monitor. Pick three cameras in a row and he comes up.\nMIRROR (night 4): for ten seconds left is right: the left buttons work the right door, light and vent, and the other way round. The others move again. Use the other hand, or wait it out.\nTHE VISIT (night 4): he is standing behind your seat, breathing, for seven seconds. Do not turn around. Do not raise the monitor: it shows only his face. A second and a half of looking, all told, and he takes you.\nTHE OTHER OFFICE (night 5, once): the lamp stutters and you are sitting somewhere else. He is on his stage at the far end of the hall, and he walks while you watch him. Look down at the desk. When the telephone rings, pick it up: that is the way back. Do not let it ring for long.'],
   ['How They Think', 'They are not random. They notice what you do: which cameras you watch, how often you check each light, which door you keep shut. Check a light like clockwork and they learn the rhythm; camp one door and the other side gets busier. Only one of them works a door at a time, and they give you a moment between one threat and the next.\nEvery trick has a tell: footsteps or humming in a hall, a soft twang, a low laugh, a growl, a squeak in a duct, a camera feed that tears. Listen, and look where they do not expect.\nOn the later nights they work together. A crash of pots in the kitchen (CAM 6, where you can only listen) is a distraction: somebody else is on its way to a door, and you will not hear its footsteps under the noise, so check both halls. On the last nights Mirehop and Noxbriar may trade halls for one trip: a twang and a hum together, far off. At your doors, trust the side you hear it from, not who you hear.\nAnd they are never just parked: heads tilt, poses change, and they shuffle about while nobody watches.'],
   ['They Remember', 'They remember you from one night of the week to the next: which hall light you checked least, which door you kept shut, which vent you sealed least, how long you sat on the cameras. The next night opens with them trying the side you neglected, and the Ringmaster cannot help hinting at it in his call.\nIt fades. Each night counts as much as all the nights before it together, and by 3 AM they go by what you do tonight. Night 1 always starts fresh.\nIf one of them catches you, it comes back by the very same way on your next try, and Mirehop and Noxbriar make sure they are the first at your door. You will hear it coming: its own sound, far off and slow. The others give you a little more room after a death, never less.'],
   ['The Night Shift', 'The building is not empty, and it is not quiet. Some sounds are only the pizzeria: a music box far away, children laughing in rooms nobody is in, a radio in a back room, the frame groaning. Others are them, right outside: breathing at an open, dark door means something is standing there; knocking or a rattle on a shut door means it is waiting for you to open it; breathing or knocking in a vent means the same up there. When you hear your own heartbeat, something is at the office.\nAnd if their eyes are ever empty when you look at them, keep looking. They are looking back.'],
   ['The Final Act', 'Night 6 belongs to the Ringmaster. ACT I: he sends one performer at a time with a 10-second warning, so shut the right door or vent in time. ACT II: do what he asks before his timer runs out. ACT III: he walks to your office and no door stops him. Find him on a camera and press SPOTLIGHT to drive him back a step. He remembers which side you caught him on.'],
-  ['Custom Night', 'After the Final Act: set each animatronic from 0 to 20. With the Ringmaster above 0, he walks to your office all night long; keep the SPOTLIGHT ready. Beat all six at 20 for the third star.'],
-  ['Free Roam', 'The pizzeria by day, open for business. Families come in from the street, find a table, play the cabinets, look at the prizes and the ball pit, and go home again; they glance at you as you pass, and some of them wave.\nA live show starts every few minutes (watch the countdown): everyone in the Dining Hall turns to the stage, and they clap and cheer. Between shows one of the band may step down and walk among the tables. The animatronics talk to you when you walk up and look at them.\nUse the Time Card to clock in: the music dies, everybody gets up and leaves, the lights go out room by room, and the night shift begins.'],
+  ['Custom Night', 'After the Final Act: set each animatronic from 0 to 20. With the Ringmaster above 0, he walks to your office all night long; keep the SPOTLIGHT ready. Beat all six at 20 for the third star.\nThe seventh slider is the Golden Dog: at 0 he only stands on his stage, and the higher it is the more often his watch ticks and the more he knows (the mirror and the visit from 7, the Other Office from 12). He does not count for the star.'],
+  ['Free Roam', 'The pizzeria by day, open for business. Families come in from the street, find a table, play the cabinets, look at the prizes and the ball pit, and go home again; they glance at you as you pass, and some of them wave.\nA live show starts every few minutes (watch the countdown): everyone in the Dining Hall turns to the stage, and they clap and cheer. Between shows one of the band may step down and walk among the tables. The animatronics talk to you when you walk up and look at them.\nBy day the cellar door in Parts & Service is open. The stairs go down to what the Revue was built on. The one who stands on the stage down there does not talk.\nUse the Time Card to clock in: the music dies, everybody gets up and leaves, the lights go out room by room, and the night shift begins.'],
   ['Storms', 'Nights 5 and 6 come with a storm. Thunder can hide the sounds you listen for, every flash of lightning lights the halls for a moment, and each strike makes the power flicker.'],
-  ['Co-op', 'Anyone else in the world during a shift becomes the camera operator: they wait in the Staff Room with a Camera Tablet, watch the cameras on their own, and press WARN GUARD to tell the guard which camera to check. Their cameras cost no power.'],
+  ['Co-op', 'Anyone else in the world during a shift becomes the camera operator: they wait in the Staff Room with a Camera Tablet, watch the cameras on their own, and press WARN GUARD to tell the guard which camera to check. Their cameras cost no power.\nThe Golden Dog only bends the guard\'s monitor, never the operator\'s: when the guard\'s cameras all show the cellar, the operator still sees the halls.'],
   ['Extras', 'The EXTRAS button on the time clock wall: replay the jumpscares you have seen, pose the cast in the Gallery, play every track in the Sound Test, and (later) cheats and challenges with trophies. Cheats switch off stars and trophies for that night.'],
 ]);
 
@@ -297,7 +417,7 @@ export const TUTORIAL_HINTS = Object.freeze({
   1: 'Tip: check the hall lights every few seconds. Footsteps in a hall mean someone is close. Shut a door only while someone is standing there.',
   2: 'Tip: keep the show tape on CAM 8 above 30 %, and glance at the Cat often.',
   3: 'Tip: maracas mean the Purple Rat is in a duct. Seal that VENT when the sound is right above you. Three knocks and nobody in the light? It is bait: look again.',
-  4: 'Tip: microphone feedback at the right door means Rustgrin. Shut the right door before you raise the monitor. If a feed squeals while you watch him, look away.',
+  4: 'Tip: microphone feedback at the right door means Rustgrin. Shut the right door before you raise the monitor. If a feed squeals while you watch him, look away. A watch ticking, then breathing behind you: do not turn around.',
   5: 'Tip: power is tight tonight. Open doors and vents as soon as the threat has gone, but a soft twang or hum means they only stepped back. A crash in the kitchen is a distraction: check both halls.',
   6: 'Tip: listen to the Ringmaster. Every act starts with a 10-second warning.',
   7: 'Tip: rewind the tape early, and save power for the SPOTLIGHT.',
@@ -312,6 +432,11 @@ export const KILL_TIPS = Object.freeze({
   purple_rat: 'The Purple Rat dropped through a vent. Seal the vent his maracas are rattling above; staring at him on CAM 9 or 10 makes him back off.',
   top_hat_rat: 'Doors do not stop the Ringmaster. Find him on the cameras and press SPOTLIGHT.',
   rusted: 'He was never there. Raise the monitor the moment you see him.',
+  // the Golden Dog: how he took the guard
+  golden_dog: 'Never look at the Golden Dog. His pocket watch ticks before everything he does: when you hear it, eyes forward and monitor down.',
+  golden_visit: 'You looked at him. When the watch has ticked and something breathes behind your seat: eyes forward, monitor down, for seven seconds. A second and a half of looking, all told, is too much.',
+  golden_other: 'You watched him all the way to the desk. In the Other Office he only walks while you look at him: look down at the desk, and pick up the telephone when it rings.',
+  golden_late: 'The telephone rang and nobody picked it up. In the Other Office it is the only way back, and he does not wait for ever: look at the desk and answer it.',
   encore: 'The Rusted one plays Rustgrin\'s part: he moves only when nobody is watching. Keep the right door shut while you are on the cameras.',
   // the cast's tricks (core/ai): shown as an extra line when a trick was part of the catch
   knock: 'Those three knocks were bait: he stepped into the doorway the moment your light went off. After a knock, look again a few seconds later.',

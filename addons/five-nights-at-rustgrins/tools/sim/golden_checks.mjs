@@ -486,7 +486,7 @@ export async function goldenChecks({ check, night, run, botNight, ONLY, RUNS }) 
     force(l, 'other');
     const all = step(l, O.fade + O.phone + O.patience + walkTicks + 5);
     const lateAt = all.findIndex((e) => e.fx === 'golden' && e.kind === 'phone' && e.late);
-    check(l.killer === GOLDEN && l.killWay === 'other' && lateAt > 0 && golden(all, 'walk')[0]?.on === true, `a phone left ringing for ${O.patience / 20} seconds is no hiding place: he stops waiting and comes whether he is watched or not`);
+    check(l.killer === GOLDEN && l.killWay === 'other' && l.killNote === 'golden_late' && lateAt > 0 && golden(all, 'walk')[0]?.on === true, `a phone left ringing for ${O.patience / 20} seconds is no hiding place: he stops waiting and comes whether he is watched or not`);
     // and answering even then is still the way back
     const a = alone(54);
     force(a, 'other');

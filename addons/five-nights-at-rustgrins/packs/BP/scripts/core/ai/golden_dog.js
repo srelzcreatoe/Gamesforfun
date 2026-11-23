@@ -215,6 +215,27 @@ export class GoldenDog {
     return { ok: true };
   }
 
+  /**
+   * Start a shift now, the watch first (the debug command and the tools). Only while he stands on his stage,
+   * on a night he is on; at level 0 he is woken for it.
+   * @returns {boolean} whether the watch started
+   */
+  force(kind) {
+    if (!this.present || this.state !== 'stage' || !SHIFTS.includes(kind) || this.s.result || this.s.powerOut) return false;
+    if (!this.enabled) this.setLevel(Math.max(1, this.level));
+    this.startTell(kind);
+    return true;
+  }
+
+  /** Set his level in the middle of a night (the debug command). @returns {number} the level */
+  setLevel(level) {
+    this.level = Math.max(0, Math.min(20, Math.round(level)));
+    this.enabled = this.present && this.level > 0;
+    if (!this.enabled) this.nextAt = Infinity;
+    else if (this.nextAt === Infinity) this.nextAt = this.s.now + this.rng.int(...this.cfg.gap(this.level));
+    return this.level;
+  }
+
   /** The power went out (or the night was cut short): whatever he was doing, he lets go. */
   abort(how = 'power') {
     if (this.state === 'stage') return;
@@ -473,7 +494,7 @@ export class GoldenDog {
           sh.idx++;
           s.emit({ fx: 'golden', kind: 'step', node: WALK.nodes[sh.idx], n: sh.idx, of: WALK.nodes.length - 1 });
         }
-        if (sh.dist >= WALK.len) this.take('other');
+        if (sh.dist >= WALK.len) this.take('other', sh.late ? 'golden_late' : 'golden_other');
         return;
       }
       default:
@@ -482,10 +503,13 @@ export class GoldenDog {
     }
   }
 
-  /** He takes the guard: the visit looked at too long, or watched all the way to the desk. */
-  take(way) {
+  /**
+   * He takes the guard: a visit looked at too long ('visit'), or the Other Office watched all the way to the
+   * desk or its phone left ringing ('other'). `note`: the game-over tip (data/story.js KILL_TIPS).
+   */
+  take(way, note = `golden_${way}`) {
     const s = this.s;
-    s.breaches[GOLDEN] = { side: way, note: `golden_${way}` };
+    s.breaches[GOLDEN] = { side: way, note };
     s.kill(GOLDEN);
   }
 
