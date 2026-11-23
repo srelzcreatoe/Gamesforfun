@@ -39,7 +39,7 @@ const MORE = {
     ['back', 'idle', 0.4, 180, ...DOG_BODY],
     ['listening', 'idle', 3.5, 8, [0, 2.36, 3.25], [0, 2.3, 0], 30, [512, 512]],
     ['slump', 'pose_2', 0.5, -20, ...DOG_BODY],
-    ['jumpscare', 'jumpscare', 1.6, 0, [0, 1.75, 6.2], [0, 1.45, 0.6], 40, [512, 768]],
+    ['jumpscare', 'jumpscare', 1.6, 0, [0, 1.9, 5.4], [0, 1.7, 0.6], 40, [512, 768]],
     ['walk', 'walk', 0.6, 30, ...DOG_BODY],
   ],
 };

@@ -3386,7 +3386,7 @@
 "loop": false
 }
 },
-"key": "deaac748661810bb73fda5726c6f6a5b4c4de618"
+"key": "813011f67c120c95c9e8047135a9d33990de3598"
 },
 "golden_dog": {
 "anims": {
@@ -6313,7 +6313,7 @@
 "rotation": [
 0.0,
 0.0,
-0.0
+-0.0
 ]
 },
 "left_finger1": {
@@ -6781,7 +6781,7 @@
 "loop": false
 }
 },
-"key": "75a9b28f86f01211bdde5e196fe6e42eb8d9cd11"
+"key": "b3f546678b7bcc8c4e1b39b06276afd6ebb5a809"
 },
 "mirehop": {
 "anims": {
@@ -10139,7 +10139,7 @@
 "loop": false
 }
 },
-"key": "d6d7f8f9c00ab5e2e0f522f35050712d8b1c6090"
+"key": "de17cad25969ec784b9c5429bf8fd238eaa46ead"
 },
 "noxbriar": {
 "anims": {
@@ -13292,7 +13292,7 @@
 "loop": false
 }
 },
-"key": "6c39bf9ab5993da520cccf5fa40384e10a9a389d"
+"key": "a67666db4e2dc18f15cba5d08f75b21938e5d821"
 },
 "purple_rat": {
 "anims": {
@@ -17224,7 +17224,7 @@
 "loop": false
 }
 },
-"key": "2f69bad60b20e8837bf433e3ccf61d07a0501ea8"
+"key": "60a067d737cf1948912c584fb1cd89b34ae16baf"
 },
 "rustgrin": {
 "anims": {
@@ -20390,7 +20390,7 @@
 "loop": false
 }
 },
-"key": "b263261309e6bb7c8e71f4265cf720524a3997be"
+"key": "b9293cb6f31961351189c0e9103fc4343516a7c4"
 },
 "top_hat_rat": {
 "anims": {
@@ -24269,6 +24269,6 @@
 "loop": false
 }
 },
-"key": "8455d864279476ea604930c375a5666a3294c5ea"
+"key": "cf96e5ce679fc8efe96f7565611f3ec580b4c801"
 }
 }
