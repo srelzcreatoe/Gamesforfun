@@ -1,0 +1,38 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "basiliskra:seam_lance"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "SSC",
+      "IRI",
+      " I "
+    ],
+    "key": {
+      "S": {
+        "item": "basiliskra:crimson_shard"
+      },
+      "C": {
+        "item": "basiliskra:scarlet_trinitite"
+      },
+      "I": {
+        "item": "minecraft:iron_ingot"
+      },
+      "R": {
+        "item": "minecraft:redstone_block"
+      }
+    },
+    "unlock": [
+      {
+        "item": "basiliskra:crimson_shard"
+      }
+    ],
+    "result": {
+      "item": "basiliskra:seam_lance"
+    }
+  }
+}

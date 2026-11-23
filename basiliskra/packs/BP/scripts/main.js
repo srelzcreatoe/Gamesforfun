@@ -2,7 +2,7 @@
 
 
 // src/main.ts
-import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause8, EntitySwingSource, GameMode as GameMode2, system as system6, world as world13 } from "@minecraft/server";
+import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause9, EntitySwingSource, GameMode as GameMode2, system as system6, world as world13 } from "@minecraft/server";
 
 // src/config.ts
 var CONFIG = {
@@ -3628,6 +3628,90 @@ function cutAll() {
   films = [];
 }
 
+// src/lance.ts
+import { EntityDamageCause as EntityDamageCause4 } from "@minecraft/server";
+var LANCE_ITEM = `${NS}:seam_lance`;
+var CATEGORY = `${NS}_lance`;
+var LANCE = { range: 140, cooldown: 12, damage: 34, head: 1.5, tail: 0.7, other: 9 };
+var firedAt = /* @__PURE__ */ new Map();
+function fireLance(p, targets, now) {
+  if (now - (firedAt.get(p.id) ?? -99) < LANCE.cooldown) return "cooling";
+  firedAt.set(p.id, now);
+  if (firedAt.size > 64) {
+    for (const [k, t] of firedAt) if (now - t > 200) firedAt.delete(k);
+  }
+  try {
+    p.startItemCooldown(CATEGORY, LANCE.cooldown);
+  } catch {
+  }
+  const dim = p.dimension;
+  let from, dir;
+  try {
+    from = p.getHeadLocation();
+    dir = p.getViewDirection();
+  } catch {
+    return "nothing";
+  }
+  let reach = LANCE.range;
+  try {
+    const b = dim.getBlockFromRay(from, dir, { maxDistance: LANCE.range, includeLiquidBlocks: false, includePassableBlocks: false });
+    if (b) reach = Math.max(0.5, Math.hypot(b.block.location.x + 0.5 - from.x, b.block.location.y + 0.5 - from.y, b.block.location.z + 0.5 - from.z) - 0.4);
+  } catch {
+  }
+  let struck = "nothing";
+  let best = null;
+  for (const c of targets) {
+    try {
+      if (!c || !c.valid || c.dim.id !== dim.id) continue;
+      const h = c.rayHit(from, dir, reach);
+      if (h && (!best || h.dist < best.dist)) best = { c, dist: h.dist, tag: h.tag };
+    } catch {
+    }
+  }
+  if (best) {
+    reach = Math.max(0.5, best.dist);
+    const amount = LANCE.damage * (best.tag === "head" ? LANCE.head : best.tag === "tail" ? LANCE.tail : 1);
+    try {
+      best.c.entity.applyDamage(amount, { cause: EntityDamageCause4.entityAttack, damagingEntity: p });
+      struck = "him";
+    } catch {
+    }
+    try {
+      p.playSound("random.orb", { volume: 0.5, pitch: best.tag === "head" ? 1.6 : 1.1 });
+    } catch {
+    }
+  } else {
+    try {
+      for (const r of dim.getEntitiesFromRay(from, dir, { maxDistance: reach })) {
+        const e = r.entity;
+        if (e.id === p.id || e.typeId === "minecraft:item" || e.typeId === TYPE || isHitbox(e.typeId)) continue;
+        reach = Math.max(0.5, r.distance);
+        e.applyDamage(LANCE.other, { cause: EntityDamageCause4.entityAttack, damagingEntity: p });
+        struck = "other";
+        break;
+      }
+    } catch {
+    }
+  }
+  const start = add(from, { x: dir.x * 1.4, y: dir.y * 1.4 - 0.3, z: dir.z * 1.4 });
+  const len2 = Math.max(0.5, reach - 1.4);
+  particle(dim, "basiliskra:beam_core", start, 128, beamVars(dir, len2, 0.26));
+  particle(dim, "basiliskra:beam_halo", start, 128, beamVars(dir, len2, 0.8));
+  const end = add(from, mul(dir, reach));
+  if (struck !== "nothing" || reach < LANCE.range - 1) {
+    particle(dim, "basiliskra:beam_impact", end, 96);
+    particle(dim, "basiliskra:crystal_break", end, 64);
+    sound(dim, "break.amethyst_cluster", end, 48, 0.9, 0.7);
+  }
+  sound(dim, "crossbow.shoot", from, 48, 1, 0.6);
+  sound(dim, "firework.blast", from, 64, 0.7, 1.7);
+  try {
+    p.runCommand("camerashake add @s 0.12 0.1 rotational");
+  } catch {
+  }
+  return struck;
+}
+
 // src/music.ts
 var TRACK = (t) => `basiliskra.music.${t}`;
 var RANGE = { dread: 80, wrath: 128, last: 160 };
@@ -3716,7 +3800,7 @@ import { EquipmentSlot as EquipmentSlot2 } from "@minecraft/server";
 import { world as world8 } from "@minecraft/server";
 
 // src/beam.ts
-import { EntityDamageCause as EntityDamageCause4 } from "@minecraft/server";
+import { EntityDamageCause as EntityDamageCause5 } from "@minecraft/server";
 var CRATER = 6;
 function beamTick(c, T, t, fade, st, shot = {}) {
   const aim = shot.from && shot.dir ? { from: shot.from, dir: shot.dir } : c.aim();
@@ -3792,7 +3876,7 @@ function beamTick(c, T, t, fade, st, shot = {}) {
         if (segDist(body, from, dir, length) > reach) continue;
         const along = clamp(dot(sub(body, from), dir), 0, Math.max(0, length - 0.6));
         if (!clearLine(c.dim, add(from, mul(dir, along)), body)) continue;
-        c.hurt(p, T.damage, EntityDamageCause4.entityAttack);
+        c.hurt(p, T.damage, EntityDamageCause5.entityAttack);
         try {
           p.setOnFire(3, true);
         } catch {
@@ -3803,7 +3887,7 @@ function beamTick(c, T, t, fade, st, shot = {}) {
     for (const e of mobsNear(c.dim, add(from, mul(dir, length / 2)), length / 2 + 3)) {
       try {
         if (segDist(add(e.location, { x: 0, y: 0.6, z: 0 }), from, dir, length) > reach + 0.6) continue;
-        e.applyDamage(T.damage * 2, { cause: EntityDamageCause4.entityAttack, damagingEntity: c.entity });
+        e.applyDamage(T.damage * 2, { cause: EntityDamageCause5.entityAttack, damagingEntity: c.entity });
         e.setOnFire(5, true);
       } catch {
       }
@@ -3826,7 +3910,7 @@ function clearRange(c, from, dir, max) {
 }
 
 // src/roar.ts
-import { EntityDamageCause as EntityDamageCause5, MolangVariableMap as MolangVariableMap2 } from "@minecraft/server";
+import { EntityDamageCause as EntityDamageCause6, MolangVariableMap as MolangVariableMap2 } from "@minecraft/server";
 var WAVE_SPEED = 2;
 function shake(c, range, peak, seconds = 0.6) {
   for (const p of witnesses(c.dim, c.pos, range)) {
@@ -3903,7 +3987,7 @@ var Shockwave = class {
         this.hit.add(e.id);
         const f = 1 - d / (this.reach + 2);
         const away = norm({ x: e.location.x - this.center.x, y: 0, z: e.location.z - this.center.z });
-        e.applyDamage(Math.max(1, Math.round(this.power * 2 * (0.35 + 0.65 * f))), { cause: EntityDamageCause5.entityAttack, damagingEntity: c.entity });
+        e.applyDamage(Math.max(1, Math.round(this.power * 2 * (0.35 + 0.65 * f))), { cause: EntityDamageCause6.entityAttack, damagingEntity: c.entity });
         e.applyKnockback({ x: (away.x || 0.01) * (0.8 + 1.6 * f), z: (away.z || 0.01) * (0.8 + 1.6 * f) }, 0.3 + 0.35 * f);
       } catch {
       }
@@ -5475,7 +5559,7 @@ var BrainOne = class extends Brain {
 };
 
 // src/forms/four.ts
-import { EntityDamageCause as EntityDamageCause7, world as world10 } from "@minecraft/server";
+import { EntityDamageCause as EntityDamageCause8, world as world10 } from "@minecraft/server";
 var SPEC = { range: 150, radius: 2.4, damage: 11, width: 3.2, carve: 3.8, fallout: 6 };
 var THIN = { range: 60, radius: 1, damage: 5, width: 0.55, carve: 1.2, fallout: 2 };
 var BEAM_MIN2 = 18;
@@ -6283,7 +6367,7 @@ var BrainFour = class extends BrainThree {
     if (e.typeId === "minecraft:player") {
       const p = e;
       if (!targetable(p)) return false;
-      c.hurt(p, 5, EntityDamageCause7.entityAttack);
+      c.hurt(p, 5, EntityDamageCause8.entityAttack);
       try {
         p.applyKnockback({ x: f.x * 3.4, z: f.z * 3.4 }, 0.7);
       } catch {
@@ -6305,7 +6389,7 @@ var BrainFour = class extends BrainThree {
     if (!alive(e)) return false;
     try {
       e.applyKnockback({ x: f.x * 3, z: f.z * 3 }, 0.6);
-      e.applyDamage(6, { cause: EntityDamageCause7.entityAttack, damagingEntity: c.entity });
+      e.applyDamage(6, { cause: EntityDamageCause8.entityAttack, damagingEntity: c.entity });
       return true;
     } catch {
       return false;
@@ -8048,15 +8132,15 @@ world13.beforeEvents.entityRemove.subscribe((ev) => {
   }
 });
 var PASSES = /* @__PURE__ */ new Set([
-  EntityDamageCause8.entityAttack,
-  EntityDamageCause8.projectile,
-  EntityDamageCause8.entityExplosion,
-  EntityDamageCause8.blockExplosion,
-  EntityDamageCause8.magic,
-  EntityDamageCause8.thorns,
-  EntityDamageCause8.sonicBoom,
-  EntityDamageCause8.maceSmash,
-  EntityDamageCause8.override
+  EntityDamageCause9.entityAttack,
+  EntityDamageCause9.projectile,
+  EntityDamageCause9.entityExplosion,
+  EntityDamageCause9.blockExplosion,
+  EntityDamageCause9.magic,
+  EntityDamageCause9.thorns,
+  EntityDamageCause9.sonicBoom,
+  EntityDamageCause9.maceSmash,
+  EntityDamageCause9.override
 ]);
 var forwardTick = -1;
 var forwardKey = "";
@@ -8093,7 +8177,7 @@ world13.afterEvents.playerSwingStart.subscribe((ev) => {
       if (hit.dist > 0.3 && !clearLine(c.dim, from, { x: from.x + dir.x * hit.dist, y: from.y + dir.y * hit.dist, z: from.z + dir.z * hit.dist })) return;
       swungAt.set(p.id, store.rec.clock);
       const amount = meleeDamage(held) * (hit.tag === "head" ? 1.25 : hit.tag === "tail" ? 0.6 : 1);
-      c.entity.applyDamage(amount, { cause: EntityDamageCause8.entityAttack, damagingEntity: p });
+      c.entity.applyDamage(amount, { cause: EntityDamageCause9.entityAttack, damagingEntity: p });
     } catch {
     }
   }, 2);
@@ -8212,6 +8296,7 @@ world13.afterEvents.itemUse.subscribe((ev) => {
     const id = ev.itemStack.typeId;
     if (id === JOURNAL_ITEM) void openJournal(ev.source, ctl);
     else if (id === WHEEL_ITEM) void openWheel(ev.source, ctl);
+    else if (id === LANCE_ITEM) fireLance(ev.source, [ctl.creature], store.rec.clock);
   } catch {
   }
 });

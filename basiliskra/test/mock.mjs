@@ -397,6 +397,20 @@ class MockDimension {
     this.sim.work.fills = (this.sim.work.fills ?? 0) + n;
     return { getCapacity: () => n };
   }
+  /** Entities whose middle lies within a block of a ray, nearest first (players included, as in the game). */
+  getEntitiesFromRay(from, dir, o = {}) {
+    this.sim.work.rays++;
+    const max = o.maxDistance ?? 64, out = [];
+    const test = (entity, loc) => {
+      const rx = loc.x - from.x, ry = loc.y + 0.6 - from.y, rz = loc.z - from.z;
+      const along = rx * dir.x + ry * dir.y + rz * dir.z;
+      if (along < 0 || along > max) return;
+      if (Math.hypot(rx - dir.x * along, ry - dir.y * along, rz - dir.z * along) <= 1.0) out.push({ entity, distance: along });
+    };
+    for (const e of this.sim.loaded.values()) if (e.rec.dim === this.id) test(e, e.rec.loc);
+    for (const p of this.sim.players) if (p.online && p.dimension.id === this.id) test(p, p.loc);
+    return out.sort((a, b) => a.distance - b.distance);
+  }
   getBlockFromRay(from, dir, o = {}) {
     this.sim.work.rays++;
     const max = o.maxDistance ?? 64;
@@ -512,6 +526,8 @@ class MockPlayer {
   sendMessage(m) { this.messages.push(String(m)); }
   addEffect(id, duration, o = {}) { (this.effects ??= []).push({ id, duration, amplifier: o.amplifier ?? 0, tick: this.sim.save.tick }); return {}; }
   getViewDirection() { return { ...this.view }; }
+  getItemCooldown(cat) { return Math.max(0, (this.cool?.[cat] ?? 0) - this.sim.save.tick); }
+  startItemCooldown(cat, ticks) { (this.cool ??= {})[cat] = this.sim.save.tick + ticks; }
   getDynamicProperty(k) { return this.dyn[k]; }
   setDynamicProperty(k, v) { this.dyn[k] = v; }
   /** The player swings at whatever is in front of them (the game decided no entity was hit: only the swing is reported). */

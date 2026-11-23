@@ -207,6 +207,8 @@ for short, aid in ent.get("animations", {}).items():
         err(f"client entity: animation {aid} missing")
 for aid, a in anims.items():
     tag = aid.split(".")[2]
+    if tag not in tag_of:
+        continue                                        # not one of his poses (an attachable's hold: checked with the attachable)
     bones = geos.get(tag_of.get(tag, ""), {}).get("bones", {})
     for b in a.get("bones", {}):
         if b not in bones:
@@ -515,6 +517,30 @@ for k, d in docs.items():
         if n > 16:
             err(f"{k}: state {state} has {n} values (16 at most)")
     ok("blocks")
+
+# attachables (held 3D items): the item exists, and so do the model, the texture and the animations it names
+for k, d in docs.items():
+    if not (isinstance(d, dict) and "minecraft:attachable" in d):
+        continue
+    desc = d["minecraft:attachable"]["description"]
+    if desc["identifier"] not in item_ids:
+        err(f"{k}: no item {desc['identifier']} for this attachable")
+    for g in desc.get("geometry", {}).values():
+        if g not in geos:
+            err(f"{k}: geometry {g} is not in the resource pack")
+        elif not any(b.get("binding") for b in geos[g]["bones"].values()):
+            err(f"{k}: no bone of {g} is bound to an item slot")
+    for name, t in desc.get("textures", {}).items():
+        if not t.startswith("textures/misc/") and not tex_exists(t):
+            err(f"{k}: texture {t} missing")
+    for a_id in desc.get("animations", {}).values():
+        if a_id not in anims:
+            err(f"{k}: animation {a_id} is not in the resource pack")
+        else:
+            for bone in anims[a_id].get("bones", {}):
+                if not any(bone in geos.get(g, {}).get("bones", {}) for g in desc.get("geometry", {}).values()):
+                    err(f"{k}: animation {a_id} moves bone {bone}, which the model does not have")
+    ok("attachables")
 
 # fogs the script pushes exist
 for fid in sorted(set(re.findall(r"fog @s push (basiliskra:[a-z_]+)", src))):

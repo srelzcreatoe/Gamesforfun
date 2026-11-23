@@ -9,6 +9,7 @@ import { canAdmin, giveStarterItems, openJournal, openWheel, placeFor } from "./
 import { clearLine } from "./world";
 import { releaseStale } from "./scene";
 import { fadeBlock, falloutJoin, isIodine, takeIodine } from "./fallout";
+import { LANCE_ITEM, fireLance } from "./lance";
 import { musicJoin } from "./music";
 import { FADES_COMPONENT } from "./generated/blocks";
 import { Controller } from "./controller";
@@ -235,6 +236,7 @@ world.afterEvents.itemUse.subscribe((ev) => {
     const id = ev.itemStack.typeId;
     if (id === JOURNAL_ITEM) void openJournal(ev.source, ctl);
     else if (id === WHEEL_ITEM) void openWheel(ev.source, ctl);
+    else if (id === LANCE_ITEM) fireLance(ev.source, [ctl.creature], store.rec.clock);
   } catch { /* left */ }
 });
 

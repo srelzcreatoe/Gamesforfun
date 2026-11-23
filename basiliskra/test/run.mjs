@@ -1638,6 +1638,41 @@ console.log('\n== 19. Basiliskra IV');
   }
 }
 
+console.log('\n== 20. The Seam Lance');
+{
+  const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+  const p = w.sim.addPlayer('Gunner', { x: 0, y: 64, z: 70 }); p.mode = 'Creative';
+  w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 3); w.sim.step(4);
+  const c = w.bk.ctl.creature;
+  const dealt = (from = 0) => w.sim.log.damage.filter((d) => d.id === c.entity.id && d.tick >= from).map((d) => d.amount);
+  const aimAt = (at) => { const h = p.getHeadLocation(), d = { x: at.x - h.x, y: at.y - h.y, z: at.z - h.z }, n = Math.hypot(d.x, d.y, d.z); p.view = { x: d.x / n, y: d.y / n, z: d.z / n }; };
+  const body = { x: c.pos.x, y: c.pos.y + 5, z: c.pos.z };
+  aimAt(body); p.seen.length = 0;
+  let t0 = w.sim.save.tick;
+  p.use('basiliskra:seam_lance'); w.sim.step(2);
+  check('a shot at his body counts, from seventy blocks', dealt(t0).length === 1 && dealt(t0)[0] === 34, JSON.stringify(dealt(t0)));
+  check('the bolt is drawn from the muzzle to where it struck', p.seen.some((q) => q.id === 'basiliskra:beam_core') && p.seen.some((q) => q.id === 'basiliskra:beam_impact'));
+  p.use('basiliskra:seam_lance'); w.sim.step(2);
+  check('it cannot be fired again at once', dealt(t0).length === 1 && p.getItemCooldown('basiliskra_lance') > 0);
+  w.sim.step(14); t0 = w.sim.save.tick;
+  aimAt(c.anchor('nose'));
+  p.use('basiliskra:seam_lance'); w.sim.step(2);
+  check('his head counts for half as much again', dealt(t0).length === 1 && dealt(t0)[0] === 51, JSON.stringify(dealt(t0)));
+  w.sim.step(14); t0 = w.sim.save.tick;
+  p.view = { x: 1, y: 0.2, z: 0 };
+  p.use('basiliskra:seam_lance'); w.sim.step(2);
+  check('a shot that misses him does nothing to him', dealt(t0).length === 0);
+  for (let x = -6; x <= 6; x++) for (let y = 64; y <= 76; y++) w.sim.setBlock('minecraft:overworld', x, y, 60, 'minecraft:stone');
+  w.sim.step(14); t0 = w.sim.save.tick; aimAt(body);
+  p.use('basiliskra:seam_lance'); w.sim.step(2);
+  check('a wall stops it', dealt(t0).length === 0);
+  const cow = w.sim.dims.get('minecraft:overworld').spawnEntity('minecraft:cow', { x: 20, y: 64, z: 70 });
+  w.sim.step(14); t0 = w.sim.save.tick; aimAt({ x: 20, y: 64.6, z: 70 });
+  p.use('basiliskra:seam_lance'); w.sim.step(2);
+  const cowHit = w.sim.log.damage.filter((d) => d.id === cow.id && d.tick >= t0).map((d) => d.amount);
+  check('anything else alive in the line takes a little of it', cowHit.length === 1 && cowHit[0] === 9 && dealt(t0).length === 0, JSON.stringify(cowHit));
+}
+
 console.log(`\n${results.length - failures}/${results.length} checks passed`);
 fs.mkdirSync(path.join(ROOT, 'build'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, 'build/test-results.json'), JSON.stringify({ when: new Date().toISOString(), passed: results.length - failures, total: results.length, results }, null, 1));

@@ -19,6 +19,9 @@
     },
     "basiliskra_iodine_tablets": {
       "textures": "textures/items/basiliskra_iodine_tablets"
+    },
+    "basiliskra_seam_lance": {
+      "textures": "textures/items/basiliskra_seam_lance"
     }
   }
 }
