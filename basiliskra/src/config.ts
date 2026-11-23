@@ -49,6 +49,8 @@ export const CONFIG = {
   sickness: true,
   /** He hunts animals and other creatures too, not only players. */
   huntMobs: true,
+  /** Cities are raised on coasts as players explore (never where anything built stands).  Off: only where an operator asks. */
+  cities: true,
   /** Short cutscenes (a camera that shows the rift opening, him coming through, and each transformation). */
   cutscenes: true,
   /** His themes play when he is near, fighting, or in his last form. */
@@ -56,7 +58,7 @@ export const CONFIG = {
 };
 
 /** The settings a player may change in game (the config wheel); saved with the world, over the defaults above. */
-export const SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music", "changeMinutes"] as const;
+export const SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music", "changeMinutes", "cities"] as const;
 export const SETTINGS_KEY = "bk:cfg";
 
 export const NS = "basiliskra";

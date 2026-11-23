@@ -10,6 +10,7 @@ import { CONFIG, JOURNAL_ITEM, OVERWORLD, TICKS, WHEEL_ITEM } from "./config";
 import type { Controller } from "./controller";
 import { angerNear, angriest, halfLifeDays, tallyOf, type Anger } from "./harm";
 import { doseAt, falloutCount, nearestFallout } from "./fallout";
+import { raiseCity } from "./city";
 import { saveSettings, resetSettings } from "./settings";
 import { store } from "./store";
 import type { V3 } from "./vec";
@@ -269,12 +270,13 @@ async function settingsForm(p: Player): Promise<void> {
     .toggle("His music", { defaultValue: CONFIG.music })
     .dropdown("Minutes in each form before he changes (time is all it takes)", MINUTES.map((m) => (m ? `${m} minutes` : "The story's timing: 40, 40, 60 (at story speed 1)")),
       { defaultValueIndex: Math.max(0, MINUTES.indexOf(CONFIG.changeMinutes)) })
+    .toggle("Cities rise on coasts as you explore (never over anything built)", { defaultValue: CONFIG.cities })
     .toggle("§cRestore every default", { defaultValue: false })
     .submitButton("Save");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || !r.formValues) return;
   const v = r.formValues;
-  if (v[19] === true) { resetSettings(); p.sendMessage("§7[Basiliskra] Settings restored to the defaults."); return; }
+  if (v[20] === true) { resetSettings(); p.sendMessage("§7[Basiliskra] Settings restored to the defaults."); return; }
   const pacing = pickNumber(SPEEDS, v[0], v[1], CONFIG.pacing, 0.25, 4);
   const damage = pickNumber(DAMAGES, v[5], v[6], CONFIG.damage, 0, 4);
   const bad = typedBad(v[1], 0.25, 4) || typedBad(v[6], 0, 4);
@@ -282,7 +284,7 @@ async function settingsForm(p: Player): Promise<void> {
     pacing, terrain: TERRAIN[Number(v[2])] ?? "wither", spareStorage: v[3] === true, marks: v[4] === true, damage,
     harmlessOnPeaceful: v[7] === true, huntMobs: v[8] === true, allowSummon: v[9] === true, spawnForm: (Number(v[10]) as 0 | 1 | 2 | 3 | 4),
     giveJournal: v[11] === true, giveWheel: v[12] === true, debug: v[13] === true, fallout: FALLOUT[Number(v[14])] ?? "land", sickness: v[15] === true,
-    cutscenes: v[16] === true, music: v[17] === true, changeMinutes: MINUTES[Number(v[18])] ?? 0,
+    cutscenes: v[16] === true, music: v[17] === true, changeMinutes: MINUTES[Number(v[18])] ?? 0, cities: v[19] === true,
   });
   p.sendMessage(`§7[Basiliskra] Settings saved with this world. Story speed §fx${CONFIG.pacing}§7, damage §fx${CONFIG.damage}§7.`);
   if (bad) p.sendMessage("§7[Basiliskra] A number you typed was not in range, so the choice above it was used.");
@@ -320,7 +322,8 @@ export async function openWheel(p: Player, ctl: Controller): Promise<void> {
     .button("Send him away (until he is called)")
     .button("Skip to dusk")
     .button("Journal")
-    .button("§cReset the story");
+    .button("§cReset the story")
+    .button("Raise a city here (a beach, and a very deep sea)");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled) return;
   switch (r.selection) {
@@ -341,6 +344,7 @@ export async function openWheel(p: Player, ctl: Controller): Promise<void> {
       break;
     case 5: world.setTimeOfDay(DUSK + 100); p.sendMessage("§7[Basiliskra] Dusk."); break;
     case 6: await openJournal(p, ctl); break;
+    case 8: await cityForm(p); break;
     case 7:
       if (await confirm(p, "Reset the story", "Forget him, his form, everything he has learned and all the anger on record, as if the pack had just been added. He is removed from the world.")) {
         ctl.resetStory();
@@ -348,6 +352,25 @@ export async function openWheel(p: Player, ctl: Controller): Promise<void> {
       }
       break;
   }
+}
+
+/** A city, where the operator stands: the promenade under their feet, the streets behind them, the sea ahead. */
+export async function cityForm(p: Player): Promise<void> {
+  if (!canAdmin(p)) { p.sendMessage("§7[Basiliskra] Only an operator can raise a city."); return; }
+  if (p.dimension.id !== OVERWORLD) { p.sendMessage("§7[Basiliskra] Cities stand in the Overworld."); return; }
+  const f = new ActionFormData().title("Raise a city here")
+    .body("§7You will be standing on its promenade. §fBehind you§7: streets, towers, houses, people. §fAhead of you§7 (the way you are looking): a beach, and beyond it a sea cut a hundred blocks deep, with things on the bottom.\n§cEverything in that area is replaced§7: about 180 by 160 blocks of city and beach, and 200 by 140 of sea. It takes under a minute.")
+    .button("A full city (175 by 119)").button("A small one (91 by 63)").button("Not here");
+  const r = await present(p, () => f.show(p));
+  if (!r || r.canceled || r.selection === undefined || r.selection > 1) return;
+  let v = { x: 0, y: 0, z: 1 };
+  try { v = p.getViewDirection(); } catch { /* left */ }
+  const dir = (Math.abs(v.z) >= Math.abs(v.x) ? (v.z >= 0 ? 0 : 2) : (v.x < 0 ? 1 : 3)) as 0 | 1 | 2 | 3;
+  const at = { ...p.location };
+  const said = raiseCity(at, dir, r.selection === 1);
+  p.sendMessage(`§7[Basiliskra] ${said}`);
+  // the promenade is laid a little above the sea whatever stood here: put them on it
+  if (/rising/.test(said)) { try { p.teleport({ x: at.x, y: Math.max(64, Math.min(83, Math.floor(at.y))) + 1.2, z: at.z }); } catch { /* left */ } }
 }
 
 // ---- handing them out -----------------------------------------------------------------------------------------

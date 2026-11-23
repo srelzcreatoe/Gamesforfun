@@ -1,0 +1,39 @@
+{
+  "format_version": "1.26.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "basiliskra:seam_vent",
+      "menu_category": {
+        "category": "construction"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.basiliskra:seam_vent.name",
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 3.0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 3.0
+      },
+      "minecraft:light_emission": 11,
+      "minecraft:map_color": "#ec3c2c",
+      "minecraft:tags": [
+        "minecraft:is_pickaxe_item_destructible"
+      ],
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "basiliskra_seam_vent_side",
+          "render_method": "opaque"
+        },
+        "up": {
+          "texture": "basiliskra_seam_vent_top",
+          "render_method": "opaque"
+        },
+        "down": {
+          "texture": "basiliskra_abyssal_basalt",
+          "render_method": "opaque"
+        }
+      }
+    }
+  }
+}

@@ -6,6 +6,7 @@
 import { Player, system } from "@minecraft/server";
 import { CONFIG, TICKS } from "./config";
 import { Creature, targetable } from "./creature";
+import { nearestCity } from "./city";
 import { players } from "./fx";
 import { store, type Rec } from "./store";
 import { dist, distXZ, hash, type V3 } from "./vec";
@@ -69,7 +70,33 @@ export function anyoneNear(c: Creature, range: number): boolean {
 
 /** Phases in which he may grunt (not while he roars, charges, fires, knocks, crosses or hangs at a window). */
 /** Acts with no ending of their own: wandering, following, resting. */
-const IDLE_ACTS = new Set(["roam", "pursue", "wander", "patrol", "sleep", "harbor", "well", "lure", "echo"]);
+const IDLE_ACTS = new Set(["roam", "raze", "pursue", "wander", "patrol", "sleep", "harbor", "well", "lure", "echo"]);
+
+/**
+ * The nearest place where people live that he could know of: a city the script has raised (he knows of those
+ * from five hundred blocks), else villagers he can sense (in the chunks that are loaded round him).
+ */
+const sensed = new Map<string, { at: V3 | null; t: number }>();
+export function settlementNear(c: Creature, now: number): V3 | null {
+  let best: V3 | null = null, bd = 1e9;
+  const city = nearestCity(c.pos);
+  if (city && city.distance < 500) { best = city.centre; bd = city.distance; }
+  let s = sensed.get(c.entity.id);
+  if (!s || now - s.t >= 100) {
+    s = { at: null, t: now };
+    try {
+      let nd = 1e9;
+      for (const e of c.dim.getEntities({ type: "minecraft:villager_v2", location: c.pos, maxDistance: 180 })) {
+        const d = dist(e.location, c.pos);
+        if (d < nd) { nd = d; s.at = { ...e.location }; }
+      }
+    } catch { /* unloading */ }
+    sensed.set(c.entity.id, s);
+    if (sensed.size > 8) sensed.clear();
+  }
+  if (s.at && dist(s.at, c.pos) < bd) best = s.at;
+  return best;
+}
 const VOICED = new Set(["idle", "move", "look", "drink", "pin", "flinch", "beach", "carry"]);
 
 let lastFault = "";

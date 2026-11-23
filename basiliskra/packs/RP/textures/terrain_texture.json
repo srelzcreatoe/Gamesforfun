@@ -30,6 +30,21 @@
     },
     "basiliskra_shard_lamp": {
       "textures": "textures/blocks/basiliskra_shard_lamp"
+    },
+    "basiliskra_abyssal_basalt": {
+      "textures": "textures/blocks/basiliskra_abyssal_basalt"
+    },
+    "basiliskra_seam_vent_top": {
+      "textures": "textures/blocks/basiliskra_seam_vent_top"
+    },
+    "basiliskra_seam_vent_side": {
+      "textures": "textures/blocks/basiliskra_seam_vent_side"
+    },
+    "basiliskra_drowned_lantern": {
+      "textures": "textures/blocks/basiliskra_drowned_lantern"
+    },
+    "basiliskra_old_bone": {
+      "textures": "textures/blocks/basiliskra_old_bone"
     }
   }
 }

@@ -9,7 +9,7 @@
  */
 import { Entity, EntityDamageCause, Player, world } from "@minecraft/server";
 import { CONFIG, KNOCK_GAP_TICKS, PROP, TICKS } from "../config";
-import { Act, anyoneNear, Brain, changeTicks, Choice, isNight, nearbyPlayers, pace, travel, wait, watchersNear } from "../brain";
+import { Act, anyoneNear, Brain, changeTicks, Choice, isNight, nearbyPlayers, pace, travel, wait, watchersNear, settlementNear } from "../brain";
 import { BeamSpec, BeamState, beamTick, clearRange } from "../beam";
 import { Creature, targetable } from "../creature";
 import { beamVars, flash, particle, players, sound, stopSound, witnesses } from "../fx";
@@ -154,7 +154,26 @@ export class BrainThree extends Brain {
       this.lastQuarry = quarry.id;
       return { name: "pursue", run: this.pursue(quarry), limit: 20 * TICKS.second };
     }
+    // with nothing alive in reach he goes to the nearest place where people live, and through it
+    const town = settlementNear(c, now);
+    if (town) return { name: "raze", run: this.raze(town), limit: 150 * TICKS.second };
     return { name: "roam", run: this.roam(), limit: 80 * TICKS.second };
+  }
+
+  /** To a village or a city, and then through it from one side to the other, and again: what he walks through is gone. */
+  protected *raze(town: V3): Act {
+    const c = this.c;
+    for (let leg = 0; leg < 4; leg++) {
+      const there = distXZ(c.pos, town) < 60;
+      const a = hash(this.now, leg, 51) * Math.PI * 2, r = there ? 22 + 34 * hash(this.now, leg, 52) : 12 * hash(this.now, leg, 53);
+      const got = yield* this.walk({ x: town.x + Math.cos(a) * r, y: town.y, z: town.z + Math.sin(a) * r }, this.c.form === 4 ? 0.16 : 0.14, 9, 1500);
+      if (!got) break;
+      // something alive within reach: that comes first
+      if (nearbyPlayers(c, 80).length || this.creatures().length) break;
+      if (leg % 2 === 1 && there) c.say("basiliskra.iii.growl", c.anchor("nose"), 96, 1, 0.9);
+    }
+    c.setPhase("idle");
+    yield* wait(30);
   }
 
   // ---- four footfalls --------------------------------------------------------------------------

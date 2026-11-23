@@ -391,6 +391,8 @@ export class Creature {
       // (if the engine will not empty a box for us, the old way: block by block, within a budget, as high as it reaches)
       if (broke < 0) { crush(this.dim, this.pos, this.forward, b.front - 2, Math.ceil(r) + 1, 0, 26, 5, 220, rock, this.tick - this.crushSoundAt >= 14); return; }
       if (broke > 12 && this.tick - this.crushSoundAt >= 14) { this.crushSoundAt = this.tick; ploughNoise(this.dim, add(this.pos, mul(this.forward, b.front)), broke); }
+      // and whatever stood higher than he does on what he walked through comes down with it
+      if (broke > 0) ploughBox(this.dim, { x: this.pos.x, y: this.pos.y + 57, z: this.pos.z }, this.forward, b.front - 3, Math.ceil(r) + 1, 50, 7, null);
       return;
     }
     const top = Math.round(9.6 * this.scale);
@@ -409,7 +411,12 @@ export class Creature {
     const loud = this.tick - this.crushSoundAt >= 14;
     // (swimming or wading, where he "stands" is not the ground: the shore ahead is something to climb, not to cut)
     const broke = crush(this.dim, this.pos, this.forward, b.front - 2, Math.ceil(r) + 1, 0, top, 5, 170, this.afloat || this.inDeep() ? null : step, loud);
-    if (broke) { this.speed *= 0.8; if (loud) this.crushSoundAt = this.tick; }      // it costs him a little
+    if (broke) {
+      this.speed *= 0.8; if (loud) this.crushSoundAt = this.tick;      // it costs him a little
+      // what stood on what he has just walked through comes down with it: a tower cut at the knees does not hang in the air
+      // (anything built or grown above the slab, as high as towers go; the world's own rock stays)
+      ploughBox(this.dim, { x: this.pos.x, y: this.pos.y + top + 1, z: this.pos.z }, this.forward, b.front - 2, Math.ceil(r) + 1, 70, 5, null);
+    }
   }
   private crushSoundAt = -99;
 

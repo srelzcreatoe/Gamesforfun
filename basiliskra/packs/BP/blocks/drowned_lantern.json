@@ -1,0 +1,31 @@
+{
+  "format_version": "1.26.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "basiliskra:drowned_lantern",
+      "menu_category": {
+        "category": "construction"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.basiliskra:drowned_lantern.name",
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.6
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0.6
+      },
+      "minecraft:light_emission": 14,
+      "minecraft:map_color": "#ffd6c8",
+      "minecraft:tags": [
+        "minecraft:is_pickaxe_item_destructible"
+      ],
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "basiliskra_drowned_lantern",
+          "render_method": "opaque"
+        }
+      }
+    }
+  }
+}

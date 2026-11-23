@@ -24,5 +24,17 @@
   },
   "basiliskra:shard_lamp": {
     "sound": "glass"
+  },
+  "basiliskra:abyssal_basalt": {
+    "sound": "stone"
+  },
+  "basiliskra:seam_vent": {
+    "sound": "stone"
+  },
+  "basiliskra:drowned_lantern": {
+    "sound": "glass"
+  },
+  "basiliskra:old_bone": {
+    "sound": "stone"
   }
 }

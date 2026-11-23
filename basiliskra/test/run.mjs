@@ -1673,6 +1673,129 @@ console.log('\n== 20. The Seam Lance');
   check('anything else alive in the line takes a little of it', cowHit.length === 1 && cowHit[0] === 9 && dealt(t0).length === 0, JSON.stringify(cowHit));
 }
 
+console.log('\n== 21. A city by the sea, and the deep');
+{
+  const flatWorld = () => { const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w); return w; };
+  {
+    const w = flatWorld();
+    const id = (x, y, z) => w.sim.blockId('minecraft:overworld', x, y, z);
+    const op = w.sim.addPlayer('Op', { x: 0, y: 64, z: 0 }); op.mode = 'Creative'; op.view = { x: 0, y: 0, z: 1 }; op.playerPermissionLevel = 2;
+    w.sim.setBlock('minecraft:overworld', 400, 64, 400, 'minecraft:oak_planks');
+    const C = w.bk.city, P = C.SMALL, L = C.layout(P);
+    const said = C.raiseCity({ x: 0, y: 64, z: 0 }, 0, true);
+    const S = w.bk.store.rec.cities[0], G = S.y;
+    check('a city can be raised where an operator stands: the promenade under them, the sea the way they look', /rising/.test(said) && S.dir === 0 && Math.abs(S.x + L.cityU / 2) <= 1 && Math.abs(S.z + L.vProm + 3) <= 1, said);
+    check('only one is built at a time', /still being built/.test(C.raiseCity({ x: 300, y: 64, z: 300 }, 0, true)));
+    w.sim.step(3);
+    check('the ground it needs is kept loaded while it is built', w.sim.log.commands.filter((c) => /^tickingarea add .* bk_city_\d$/.test(c)).length === 4 && w.sim.areas.size === 4);
+    const took = until(w, () => S.done === true, 4000);
+    check('it is finished in under a minute, and the ground is let go again', took > 0 && took < 1200 && w.sim.areas.size === 0 && op.messages.some((m) => /The city stands/.test(m)), `${took} ticks`);
+    const X = (u) => S.x + u, Z = (v) => S.z + v;
+    // streets and what stands on them
+    let wall = 0, glass = 0, lit = 0, tallest = 0;
+    for (let u = 0; u < L.cityU; u++) for (let v = 0; v < L.cityV; v++) {
+      for (let y = G + 1; y <= G + 80; y++) {
+        const b = id(X(u), y, Z(v));
+        if (b === 'minecraft:air') continue;
+        if (/concrete|quartz|terracotta|brick|planks/.test(b)) wall++; else if (/glass/.test(b)) glass++; else if (b === 'minecraft:sea_lantern') lit++;
+        tallest = Math.max(tallest, y - G);
+      }
+    }
+    check('streets on a grid', id(X(2), G, Z(40)) === 'minecraft:gray_concrete' && id(X(3), G, Z(40)) === 'minecraft:light_gray_concrete' && id(X(40), G, Z(30)) === 'minecraft:gray_concrete' && id(X(8), G, Z(8)) !== 'minecraft:gray_concrete');
+    check('towers of concrete and glass, lit inside, the tallest by the water', wall > 3000 && glass > 600 && lit > 20 && tallest >= 34, `${wall} wall, ${glass} glass, ${lit} lights, tallest ${tallest}`);
+    check('people in the streets', w.sim.count('minecraft:villager_v2') === P.people, `${w.sim.count('minecraft:villager_v2')} villagers`);
+    const mid = Math.floor(L.cityU / 2);
+    const top = (u, v) => { for (let y = G + 10; y > -64; y--) { const b = id(X(u), y, Z(v)); if (b !== 'minecraft:air' && b !== 'minecraft:water') return { y, b }; } return { y: -99, b: '' }; };
+    check('a promenade, then a beach of sand that shelves down under the water', id(X(mid + 8), G, Z(L.vProm + 2)) === 'minecraft:smooth_stone' && top(mid + 8, L.vBeach + 2).b === 'minecraft:sand' && top(mid + 8, L.vBeach + 2).y === G
+      && top(mid + 8, L.vBeach + 30).b === 'minecraft:sand' && top(mid + 8, L.vBeach + 30).y < 62 && id(X(mid + 8), 62, Z(L.vBeach + 31)) === 'minecraft:water', `sand at ${top(mid + 8, L.vBeach + 2).y}, then ${top(mid + 8, L.vBeach + 30).y}`);
+    // the deep
+    // (the open floor of the trench: columns with nothing standing on them)
+    let depth = 0, open = 0;
+    for (let u = L.uS0 + 2; u <= L.uS1 - 2; u += 3) for (let v = L.vTr + 2; v <= L.vEnd - 2; v += 3) {
+      const t = top(u, v);
+      if (t.b !== 'basiliskra:abyssal_basalt' || t.y !== P.floor) continue;
+      let d = 0; for (let y = 62; y > t.y && id(X(u), y, Z(v)) === 'minecraft:water'; y--) d++;
+      depth = Math.max(depth, d); if (d === 62 - P.floor) open++;
+    }
+    check('beyond the beach the sea is cut deep: a hundred blocks of water, straight down, to a floor of abyssal basalt', depth === 102 && open >= 60, `${depth} blocks of water over ${open} sampled columns of open floor`);
+    const count = (what, y0, y1) => { let n = 0; for (let u = L.uS0 - 2; u <= L.uS1 + 2; u++) for (let v = L.vDrop; v <= L.vEnd + 2; v++) for (let y = y0; y <= y1; y++) if (id(X(u), y, Z(v)) === what) n++; return n; };
+    const deep = { vents: count('basiliskra:seam_vent', -40, -28), lanterns: count('basiliskra:drowned_lantern', -58, 30), bone: count('basiliskra:old_bone', -40, -10), ring: count('minecraft:crying_obsidian', -58, -38),
+      glass: count('basiliskra:scarlet_trinitite', -58, -56) };
+    check('on its floor: vents that glow, drowned spires with lanterns, the ribs of something far larger than he is', deep.vents >= 2 && deep.lanterns >= 6 && deep.bone >= 80, JSON.stringify(deep));
+    const pu = Math.floor((L.uS0 + L.uS1) / 2), pv = Math.floor((L.vTr + L.vEnd) / 2);
+    check('and a pit deeper still, with a broken ring at the bottom of it', id(X(pu + 3), -50, Z(pv + 3)) === 'minecraft:water' && deep.ring >= 12 && deep.glass === 25 && 62 - (-56) >= 118, `${deep.ring} blocks of ring`);
+    let chest = null; for (let u = L.uS0; u <= L.uS1 && !chest; u++) for (let v = L.vTr; v <= L.vTr + 12; v++) if (id(X(u), -38, Z(v)) === 'minecraft:chest') { chest = w.sim.save.edits.get(`inv|${X(u)},-38,${Z(v)}`); break; }
+    check('a ruin at the foot of the drop holds a chest, and in it a Seam Lance', !!chest && Object.values(chest).some((s) => s?.typeId === 'basiliskra:seam_lance') && Object.values(chest).some((s) => s?.typeId === 'basiliskra:crimson_shard'));
+    check('the walls of the deep are lined, so the sea that fills it goes nowhere else', id(X(L.uS0 - 1), 0, Z(L.vTr + 10)) === 'basiliskra:abyssal_basalt' && id(X(L.uS1 + 1), -20, Z(L.vTr + 10)) === 'basiliskra:abyssal_basalt' && id(X(pu), 10, Z(L.vEnd + 1)) === 'basiliskra:abyssal_basalt');
+    check('nothing beyond it is touched', id(400, 64, 400) === 'minecraft:oak_planks' && id(X(-20), 63, Z(-20)) === 'minecraft:grass_block' && id(X(L.cityU + 12), 63, Z(10)) === 'minecraft:grass_block');
+    // left to itself (not asked for by an operator) it will not stand on what somebody built
+    for (let k = 0; k < 12; k++) w.sim.setBlock('minecraft:overworld', 400 + k, 64, 400, 'minecraft:oak_planks');
+    op.moveTo({ x: 405, y: 64, z: 400 }); w.sim.step(2);
+    const n0 = w.bk.store.rec.cities.length;
+    const refused = C.raiseCity({ x: 405, y: 64, z: 400 + L.vProm + 3 - 20 }, 0, true, false);
+    check('left to itself a city is never raised over what somebody built', /built there already/.test(refused) && w.bk.store.rec.cities.length === n0 && C.cityBuilding() === null, refused);
+    op.moveTo({ x: 0, y: 64, z: 0 }); w.sim.step(2);
+    // he goes there
+    const m = C.landmarks(S);
+    for (const e of [...w.sim.loaded.values()]) if (e.rec.typeId === 'minecraft:villager_v2') { w.sim.save.entities.delete(e.rec.id); w.sim.loaded.delete(e.rec.id); }
+    op.moveTo({ x: m.centre.x, y: G + 1, z: m.centre.z - 70 });
+    w.bk.ctl.bringHere({ x: m.centre.x, y: G + 1, z: S.z - 60 }, 0, 3); w.sim.step(3);
+    const pick = w.bk.ctl.brain.choose();
+    check('with nobody to hunt, Basiliskra III makes for the nearest place people live', pick?.name === 'raze', pick?.name);
+    const standing = () => { let n = 0; for (let u = 0; u < L.cityU; u++) for (let v = 0; v < L.cityV; v++) for (let y = G + 1; y <= G + 70; y += 3) if (id(X(u), y, Z(v)) !== 'minecraft:air') n++; return n; };
+    const before = standing();
+    w.bk.ctl.brain.forced = { name: 'raze', run: w.bk.ctl.brain.raze(m.centre), limit: 6000 };
+    for (let i = 0; i < 2600; i++) w.sim.step(1);
+    const after = standing(), c = w.bk.ctl.creature;
+    check('and walks through it: what he walks through is gone', after < before * 0.9 && Math.hypot(c.pos.x - m.centre.x, c.pos.z - m.centre.z) < 90, `${before} -> ${after} (sampled), he is ${Math.hypot(c.pos.x - m.centre.x, c.pos.z - m.centre.z).toFixed(0)} from its middle`);
+  }
+  {
+    // people he can sense, with no city on record: a village
+    const w = flatWorld();
+    const op = w.sim.addPlayer('Op', { x: 0, y: 64, z: 0 }); op.mode = 'Creative';
+    const far = w.sim.addPlayer('Watcher', { x: 110, y: 64, z: 0 }); far.mode = 'Spectator';
+    for (let k = 0; k < 4; k++) w.sim.dims.get('minecraft:overworld').spawnEntity('minecraft:villager_v2', { x: 120 + k, y: 64, z: 5 });
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 30 }, 0, 3); w.sim.step(3);
+    const town = w.bk.ctl.brain.choose();
+    let goal = null; if (town?.name === 'raze') { w.bk.ctl.brain.forced = town; w.sim.step(3); goal = w.bk.ctl.creature.goal; }
+    check('a village counts: he heads for the villagers he can sense', town?.name === 'raze' && !!goal && Math.hypot(goal.x - 120, goal.z - 5) < 20, JSON.stringify(goal));
+  }
+  {
+    // the build is the same plan from the same place: cut short, it is simply taken up again
+    const w = flatWorld();
+    const op = w.sim.addPlayer('Op', { x: 0, y: 64, z: 0 }); op.mode = 'Creative';
+    w.bk.city.raiseCity({ x: 0, y: 64, z: 0 }, 2, true);
+    w.sim.step(25);
+    w.restart();
+    const S = w.bk.store.rec.cities?.[0], unfinished = !!S && S.done === false && w.bk.city.cityBuilding() === null;
+    const took = until(w, () => w.bk.store.rec.cities[0].done === true, 4000);
+    check('a build cut short by the world closing is taken up again and finished', unfinished && took > 0 && w.sim.count('minecraft:villager_v2') === w.bk.city.SMALL.people, `${took} ticks, ${w.sim.count('minecraft:villager_v2')} villagers`);
+  }
+  {
+    // on their own, cities rise on real coasts: land behind, open sea ahead, nothing built
+    const coast = (dim, x, y, z) => {
+      if (dim !== 'minecraft:overworld') return 'minecraft:air';
+      if (z < 0) return y <= 44 ? 'minecraft:gravel' : y <= 62 ? 'minecraft:water' : 'minecraft:air';
+      return y > 63 ? 'minecraft:air' : y === 63 ? 'minecraft:grass_block' : 'minecraft:stone';
+    };
+    const w = start(); w.sim.terrainFn = coast; w.sim.biomeFn = (x, z) => (z < 0 ? 'minecraft:ocean' : 'minecraft:plains'); open(w);
+    const p = w.sim.addPlayer('Walker', { x: 0, y: 64, z: 30 });
+    let S = null;
+    for (let k = 0; k < 14 && !S; k++) { p.moveTo({ x: k * 640 + 100, y: 64, z: 30 }); for (let i = 0; i < 210 && !S; i++) { w.sim.step(1); S = w.bk.store.rec.cities?.[0] ?? null; } }
+    const L = w.bk.city.layout(w.bk.city.FULL);
+    const shore = S ? -(S.z - 0) : 0;                          // dir 2: v runs toward -z, so the natural shore (z = 0) is at v = S.z
+    check('walking a coast, sooner or later a city is found rising on it, its sea the real sea', !!S && S.dir === 2 && !S.small && p.messages.some((m) => /A city is rising/.test(m)), S ? `at ${S.x},${S.z}` : 'none in 14 regions');
+    check('its beach is laid where the land meets the water', !!S && S.z > L.vBeach - 10 && S.z < L.vShal + 10, S ? `the shore falls at v = ${S.z} (beach ${L.vBeach}..${L.vShal})` : '');
+    w.bk.city.stopBuilding();
+    w.bk.CONFIG.cities = false;
+    const n0 = w.bk.store.rec.cities.length; w.bk.store.rec.cities[0].done = true;
+    for (let k = 0; k < 6; k++) { p.moveTo({ x: -k * 640 - 3000, y: 64, z: 30 }); for (let i = 0; i < 210; i++) w.sim.step(1); }
+    check('with the setting off none rise by themselves', w.bk.store.rec.cities.length === n0);
+    w.bk.CONFIG.cities = true;
+    void shore;
+  }
+}
+
 console.log(`\n${results.length - failures}/${results.length} checks passed`);
 fs.mkdirSync(path.join(ROOT, 'build'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, 'build/test-results.json'), JSON.stringify({ when: new Date().toISOString(), passed: results.length - failures, total: results.length, results }, null, 1));

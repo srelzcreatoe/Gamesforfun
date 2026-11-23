@@ -5,7 +5,7 @@
 import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause, EntitySwingSource, GameMode, Player, system, world } from "@minecraft/server";
 import { CONFIG, JOURNAL_ITEM, NS, OVERWORLD, TYPE, WHEEL_ITEM, isHitbox } from "./config";
 import { loadSettings } from "./settings";
-import { canAdmin, giveStarterItems, openJournal, openWheel, placeFor } from "./ui";
+import { canAdmin, giveStarterItems, openJournal, openWheel, placeFor, cityForm } from "./ui";
 import { clearLine } from "./world";
 import { releaseStale } from "./scene";
 import { fadeBlock, falloutJoin, isIodine, takeIodine } from "./fallout";
@@ -301,6 +301,15 @@ system.beforeEvents.startup.subscribe((ev) => {
       const p = who(origin);
       if (!p) return fail("Run this as a player.");
       system.run(() => { if (canAdmin(p)) void openWheel(p, ctl); else p.sendMessage("§7[Basiliskra] Only an operator can use the config wheel."); });
+      return { status: CustomCommandStatus.Success };
+    });
+    reg.registerCommand({
+      name: `${NS}:city`, description: "Raise a city where you stand: streets behind you, a beach and a very deep sea ahead.",
+      permissionLevel: CommandPermissionLevel.GameDirectors, cheatsRequired: false,
+    }, (origin) => {
+      const p = who(origin);
+      if (!p) return fail("Run this as a player.");
+      system.run(() => { void cityForm(p); });
       return { status: CustomCommandStatus.Success };
     });
   } catch (e) { console.warn(`[${NS}] commands: ${e}`); }

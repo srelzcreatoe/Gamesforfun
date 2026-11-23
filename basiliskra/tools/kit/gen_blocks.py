@@ -194,6 +194,77 @@ def lamp(r):
     return np.clip(c, 0, 255), m
 
 
+def abyssal(r):
+    """Abyssal basalt: the floor and walls of the deep.  Near black, columnar, with a hair of crimson in the joints."""
+    c = noise(r, (22, 22, 30), 4)
+    m = np.zeros((16, 16, 3)); m[..., 2] = 120
+    for x in (0, 5, 9, 13):                                  # the joints between columns
+        off = int(r.integers(0, 3))
+        for y in range(16):
+            c[y, (x + (1 if (y + off) % 7 == 0 else 0)) % 16] = (10, 10, 14)
+    for _ in range(4):
+        x, y = r.integers(0, 16, 2)
+        c[y, x] = (120, 18, 26); m[y, x, 1] = 140
+    for _ in range(12):
+        x, y = r.integers(0, 16, 2)
+        c[y, x] = (36, 36, 48)
+    return c, m
+
+
+def vent_top(r):
+    """A seam vent, from above: a throat that glows, ringed with scale."""
+    c, m = abyssal(r)
+    yy, xx = np.mgrid[0:16, 0:16]
+    d = np.hypot(xx - 7.5, yy - 7.5)
+    ring = (d >= 4.2) & (d < 6.2)
+    c[ring] = np.array((70, 52, 48)) + r.normal(0, 6, (int(ring.sum()), 3))
+    hot = d < 4.2
+    c[hot] = (236, 60, 44); m[hot, 1] = 230
+    core = d < 2.4
+    c[core] = (255, 214, 170); m[core, 1] = 255
+    return np.clip(c, 0, 255), m
+
+
+def vent_side(r):
+    c, m = abyssal(r)
+    for x in range(16):                                      # light spills over the lip and runs down the joints
+        n = int(r.integers(1, 4))
+        for y in range(n):
+            c[y, x] = (200, 44, 40) if y == 0 else (120, 22, 28); m[y, x, 1] = 220 if y == 0 else 120
+    return c, m
+
+
+def lantern(r):
+    """A drowned lantern: something like coral, lit from inside, pale at the heart."""
+    yy, xx = np.mgrid[0:16, 0:16]
+    c = np.zeros((16, 16, 3)); m = np.zeros((16, 16, 3)); m[..., 2] = 90
+    cell = np.minimum(np.abs((xx % 5) - 2), np.abs((yy % 5) - 2))
+    glow = np.clip(1 - cell / 2.2, 0, 1)
+    c[:] = np.array((96, 16, 30))[None, None] + glow[..., None] * np.array((159, 190, 170))[None, None]
+    c += r.normal(0, 5, (16, 16, 1))
+    m[..., 1] = 130 + 125 * glow
+    web = (xx % 5 == 4) | (yy % 5 == 4)
+    c[web] = (58, 10, 20); m[web, 1] = 40
+    return np.clip(c, 0, 255), m
+
+
+def bone(r):
+    """Old bone: pale, pitted, grained along its length.  The ribs in the deep are made of it."""
+    c = noise(r, (206, 198, 178), 6)
+    m = np.zeros((16, 16, 3)); m[..., 2] = 200
+    for y in range(16):
+        if y % 4 == 3:
+            c[y] = c[y] * 0.86
+    for _ in range(9):
+        x, y = r.integers(0, 16, 2)
+        c[y, x] = (150, 140, 122)
+    for _ in range(2):
+        x, y = r.integers(0, 16, 2)
+        for k in range(int(r.integers(3, 7))):
+            c[(y + k) % 16, x] = (128, 118, 102)
+    return c, m
+
+
 def shard_icon():
     rows = ["................", "..........w.....", ".........wr.....", "........wrr.....", ".......wrrd.....", "......wrrrd..w..",
             ".....wrrrdd.wr..", "....wrrrrd.wrd..", "....rrrrdd.rrd..", "...wrrrrd.wrd...", "...rrrrdd.rdd...", "..wrrrdd..dd....",
@@ -270,7 +341,8 @@ SOIL_WAS = ["dirt", "grass_block", "podzol", "mycelium", "moss_block", "coarse_d
 ROCK_WAS = ["stone", "deepslate", "granite", "diorite", "andesite", "tuff", "sandstone", "red_sandstone", "calcite", "basalt", "blackstone", "netherrack",
             "end_stone", "dripstone_block", "smooth_basalt", "hardened_clay"]
 FADES = f"{NS}:fades"            # a custom component (src/fallout.ts): on a random tick, with no fallout left here, the block goes back
-LIGHT = {"irradiated_soil": 7, "irradiated_rock": 8, "scarlet_trinitite": 7, "glowing_slag": 13, "cooled_slag": 0, "crimson_crystal": 12, "shard_lamp": 15}
+LIGHT = {"irradiated_soil": 7, "irradiated_rock": 8, "scarlet_trinitite": 7, "glowing_slag": 13, "cooled_slag": 0, "crimson_crystal": 12, "shard_lamp": 15,
+         "abyssal_basalt": 0, "seam_vent": 11, "drowned_lantern": 14, "old_bone": 0}
 
 
 def block(ident, display, textures, light, mining, tag, map_color, loot=None, was=False, fades=False, extra=None, method="opaque", category="nature"):
@@ -310,7 +382,9 @@ def main():
     for name, fn, seed in (("irradiated_soil_top", soil_top, 11), ("irradiated_soil_side", soil_side, 12),
                            ("irradiated_soil_bottom", soil_bottom, 13), ("scarlet_trinitite", trinitite, 14),
                            ("irradiated_rock", rock, 15), ("glowing_slag", slag_hot, 16), ("cooled_slag", slag_cold, 16),
-                           ("crimson_crystal", crystal, 17), ("shard_lamp", lamp, 18)):
+                           ("crimson_crystal", crystal, 17), ("shard_lamp", lamp, 18),
+                           ("abyssal_basalt", abyssal, 21), ("seam_vent_top", vent_top, 22), ("seam_vent_side", vent_side, 23),
+                           ("drowned_lantern", lantern, 24), ("old_bone", bone, 25)):
         c, m = fn(rng(seed))
         save_texture(f"{NS}_{name}", c, m)
         names[f"{NS}_{name}"] = f"textures/blocks/{NS}_{name}"
@@ -321,7 +395,9 @@ def main():
                                             f"{NS}:irradiated_soil": {"sound": "gravel"}, f"{NS}:scarlet_trinitite": {"sound": "glass"},
                                             f"{NS}:irradiated_rock": {"sound": "stone"}, f"{NS}:glowing_slag": {"sound": "stone"},
                                             f"{NS}:cooled_slag": {"sound": "stone"}, f"{NS}:crimson_crystal": {"sound": "glass"},
-                                            f"{NS}:shard_lamp": {"sound": "glass"}})
+                                            f"{NS}:shard_lamp": {"sound": "glass"},
+                                            f"{NS}:abyssal_basalt": {"sound": "stone"}, f"{NS}:seam_vent": {"sound": "stone"},
+                                            f"{NS}:drowned_lantern": {"sound": "glass"}, f"{NS}:old_bone": {"sound": "stone"}})
     B = os.path.join(BP, "blocks")
     T = lambda n: f"tile.{NS}:{n}.name"
     write(os.path.join(B, "irradiated_soil.json"),
@@ -343,6 +419,17 @@ def main():
     write(os.path.join(B, "shard_lamp.json"),
           block(f"{NS}:shard_lamp", T("shard_lamp"), {"*": f"{NS}_shard_lamp"}, LIGHT["shard_lamp"], 0.5, "minecraft:is_pickaxe_item_destructible", "#e02830",
                 category="construction"))
+    # the deep: what the trench off the city's beach is made of, and what stands in it
+    write(os.path.join(B, "abyssal_basalt.json"),
+          block(f"{NS}:abyssal_basalt", T("abyssal_basalt"), {"*": f"{NS}_abyssal_basalt"}, 0, 3.0, "minecraft:is_pickaxe_item_destructible", "#16161e", category="construction"))
+    write(os.path.join(B, "seam_vent.json"),
+          block(f"{NS}:seam_vent", T("seam_vent"), {"*": f"{NS}_seam_vent_side", "up": f"{NS}_seam_vent_top", "down": f"{NS}_abyssal_basalt"},
+                LIGHT["seam_vent"], 3.0, "minecraft:is_pickaxe_item_destructible", "#ec3c2c", category="construction"))
+    write(os.path.join(B, "drowned_lantern.json"),
+          block(f"{NS}:drowned_lantern", T("drowned_lantern"), {"*": f"{NS}_drowned_lantern"}, LIGHT["drowned_lantern"], 0.6, "minecraft:is_pickaxe_item_destructible", "#ffd6c8",
+                category="construction"))
+    write(os.path.join(B, "old_bone.json"),
+          block(f"{NS}:old_bone", T("old_bone"), {"*": f"{NS}_old_bone"}, 0, 2.0, "minecraft:is_pickaxe_item_destructible", "#cec6b2", category="construction"))
     # the crystal: a model of its own, nothing to walk into, light pours out of it
     crystal_block = block(f"{NS}:crimson_crystal", T("crimson_crystal"), {"*": f"{NS}_crimson_crystal"}, LIGHT["crimson_crystal"], 0.4,
                           "minecraft:is_pickaxe_item_destructible", "#e02830", f"loot_tables/blocks/{NS}_crimson_crystal.json", fades=True, method="alpha_test",
@@ -393,6 +480,7 @@ def main():
                      "weather": {"fog_start": 2.0, "fog_end": 40.0, "fog_color": "#6a1016", "render_distance_type": "fixed"}}}})
     names_lang = {T("irradiated_soil"): "Irradiated Soil", T("scarlet_trinitite"): "Scarlet Trinitite", T("irradiated_rock"): "Irradiated Rock",
                   T("glowing_slag"): "Glowing Slag", T("cooled_slag"): "Cooled Slag", T("crimson_crystal"): "Crimson Crystal", T("shard_lamp"): "Shard Lamp",
+                  T("abyssal_basalt"): "Abyssal Basalt", T("seam_vent"): "Seam Vent", T("drowned_lantern"): "Drowned Lantern", T("old_bone"): "Old Bone",
                   f"item.{NS}:geiger_counter.name": "Geiger Counter", f"item.{NS}:crimson_shard.name": "Crimson Shard",
                   f"item.{NS}:iodine_tablets.name": "Iodine Tablets"}
     for pack in (BP, RP):
@@ -410,7 +498,7 @@ def main():
           f"export const FADES_COMPONENT = {json.dumps(FADES)};", ""]
     with open(os.path.join(ROOT, "src", "generated", "blocks.ts"), "w") as f:
         f.write("\n".join(ts))
-    print("7 blocks (irradiated soil and rock, scarlet trinitite, glowing and cooled slag, crimson crystal, shard lamp), 9 textures with texture sets, "
+    print("11 blocks (irradiated soil and rock, scarlet trinitite, glowing and cooled slag, crimson crystal, shard lamp, abyssal basalt, seam vent, drowned lantern, old bone), 14 textures with texture sets, "
           "3 items (Geiger counter, crimson shard, iodine tablets), 4 recipes, the fallout fog")
 
 

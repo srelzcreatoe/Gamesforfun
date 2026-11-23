@@ -1,0 +1,31 @@
+{
+  "format_version": "1.26.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "basiliskra:old_bone",
+      "menu_category": {
+        "category": "construction"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.basiliskra:old_bone.name",
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 2.0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 2.0
+      },
+      "minecraft:light_emission": 0,
+      "minecraft:map_color": "#cec6b2",
+      "minecraft:tags": [
+        "minecraft:is_pickaxe_item_destructible"
+      ],
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "basiliskra_old_bone",
+          "render_method": "opaque"
+        }
+      }
+    }
+  }
+}

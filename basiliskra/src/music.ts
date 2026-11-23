@@ -33,7 +33,7 @@ export function sceneTheme(theme: Theme, ticks: number, at: V3, dim: string): vo
 }
 
 /** What he does when he fights (the names his brains give their acts). */
-const FIGHT = new Set(["charge", "beam", "remember", "scatter", "lock", "pursue", "arc", "pin", "flinch", "boat"]);
+const FIGHT = new Set(["charge", "beam", "remember", "scatter", "lock", "pursue", "raze", "arc", "pin", "flinch", "boat"]);
 let fightUntil = -1;
 
 function themeFor(c: Creature | null, now: number, doing: string, hurtAt: number): Theme | null {

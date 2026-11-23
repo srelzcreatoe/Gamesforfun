@@ -52,12 +52,14 @@ var CONFIG = {
   sickness: true,
   /** He hunts animals and other creatures too, not only players. */
   huntMobs: true,
+  /** Cities are raised on coasts as players explore (never where anything built stands).  Off: only where an operator asks. */
+  cities: true,
   /** Short cutscenes (a camera that shows the rift opening, him coming through, and each transformation). */
   cutscenes: true,
   /** His themes play when he is near, fighting, or in his last form. */
   music: true
 };
-var SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music", "changeMinutes"];
+var SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music", "changeMinutes", "cities"];
 var SETTINGS_KEY = "bk:cfg";
 var NS = "basiliskra";
 var TYPE = `${NS}:basiliskra`;
@@ -200,7 +202,7 @@ function resetSettings() {
 }
 
 // src/ui.ts
-import { ItemStack, PlayerPermissionLevel, system as system2, world as world7 } from "@minecraft/server";
+import { ItemStack as ItemStack2, PlayerPermissionLevel, system as system2, world as world7 } from "@minecraft/server";
 import { ActionFormData, FormCancelationReason, MessageFormData, ModalFormData } from "@minecraft/server-ui";
 
 // src/creature.ts
@@ -1686,6 +1688,7 @@ var Creature = class {
         this.crushSoundAt = this.tick;
         ploughNoise(this.dim, add(this.pos, mul(this.forward, b.front)), broke2);
       }
+      if (broke2 > 0) ploughBox(this.dim, { x: this.pos.x, y: this.pos.y + 57, z: this.pos.z }, this.forward, b.front - 3, Math.ceil(r) + 1, 50, 7, null);
       return;
     }
     const top = Math.round(9.6 * this.scale);
@@ -1705,6 +1708,7 @@ var Creature = class {
     if (broke) {
       this.speed *= 0.8;
       if (loud2) this.crushSoundAt = this.tick;
+      ploughBox(this.dim, { x: this.pos.x, y: this.pos.y + top + 1, z: this.pos.z }, this.forward, b.front - 2, Math.ceil(r) + 1, 70, 5, null);
     }
   }
   /** Water deeper than this form wades: Form II drags through shallows, Form III stands belly-deep. */
@@ -2128,6 +2132,711 @@ function targetable(p) {
   }
 }
 
+// src/city.ts
+import { BlockVolume as BlockVolume2, ItemStack } from "@minecraft/server";
+
+// src/lance.ts
+import { EntityDamageCause as EntityDamageCause3 } from "@minecraft/server";
+var LANCE_ITEM = `${NS}:seam_lance`;
+var CATEGORY = `${NS}_lance`;
+var LANCE = { range: 140, cooldown: 12, damage: 34, head: 1.5, tail: 0.7, other: 9 };
+var firedAt = /* @__PURE__ */ new Map();
+function fireLance(p, targets, now) {
+  if (now - (firedAt.get(p.id) ?? -99) < LANCE.cooldown) return "cooling";
+  firedAt.set(p.id, now);
+  if (firedAt.size > 64) {
+    for (const [k, t] of firedAt) if (now - t > 200) firedAt.delete(k);
+  }
+  try {
+    p.startItemCooldown(CATEGORY, LANCE.cooldown);
+  } catch {
+  }
+  const dim = p.dimension;
+  let from, dir;
+  try {
+    from = p.getHeadLocation();
+    dir = p.getViewDirection();
+  } catch {
+    return "nothing";
+  }
+  let reach = LANCE.range;
+  try {
+    const b = dim.getBlockFromRay(from, dir, { maxDistance: LANCE.range, includeLiquidBlocks: false, includePassableBlocks: false });
+    if (b) reach = Math.max(0.5, Math.hypot(b.block.location.x + 0.5 - from.x, b.block.location.y + 0.5 - from.y, b.block.location.z + 0.5 - from.z) - 0.4);
+  } catch {
+  }
+  let struck = "nothing";
+  let best = null;
+  for (const c of targets) {
+    try {
+      if (!c || !c.valid || c.dim.id !== dim.id) continue;
+      const h = c.rayHit(from, dir, reach);
+      if (h && (!best || h.dist < best.dist)) best = { c, dist: h.dist, tag: h.tag };
+    } catch {
+    }
+  }
+  if (best) {
+    reach = Math.max(0.5, best.dist);
+    const amount = LANCE.damage * (best.tag === "head" ? LANCE.head : best.tag === "tail" ? LANCE.tail : 1);
+    try {
+      best.c.entity.applyDamage(amount, { cause: EntityDamageCause3.entityAttack, damagingEntity: p });
+      struck = "him";
+    } catch {
+    }
+    try {
+      p.playSound("random.orb", { volume: 0.5, pitch: best.tag === "head" ? 1.6 : 1.1 });
+    } catch {
+    }
+  } else {
+    try {
+      for (const r of dim.getEntitiesFromRay(from, dir, { maxDistance: reach })) {
+        const e = r.entity;
+        if (e.id === p.id || e.typeId === "minecraft:item" || e.typeId === TYPE || isHitbox(e.typeId)) continue;
+        reach = Math.max(0.5, r.distance);
+        e.applyDamage(LANCE.other, { cause: EntityDamageCause3.entityAttack, damagingEntity: p });
+        struck = "other";
+        break;
+      }
+    } catch {
+    }
+  }
+  const start = add(from, { x: dir.x * 1.4, y: dir.y * 1.4 - 0.3, z: dir.z * 1.4 });
+  const len2 = Math.max(0.5, reach - 1.4);
+  particle(dim, "basiliskra:beam_core", start, 128, beamVars(dir, len2, 0.26));
+  particle(dim, "basiliskra:beam_halo", start, 128, beamVars(dir, len2, 0.8));
+  const end = add(from, mul(dir, reach));
+  if (struck !== "nothing" || reach < LANCE.range - 1) {
+    particle(dim, "basiliskra:beam_impact", end, 96);
+    particle(dim, "basiliskra:crystal_break", end, 64);
+    sound(dim, "break.amethyst_cluster", end, 48, 0.9, 0.7);
+  }
+  sound(dim, "crossbow.shoot", from, 48, 1, 0.6);
+  sound(dim, "firework.blast", from, 64, 0.7, 1.7);
+  try {
+    p.runCommand("camerashake add @s 0.12 0.1 rotational");
+  } catch {
+  }
+  return struck;
+}
+
+// src/city.ts
+var FULL = { lotsU: 6, lotsV: 4, trenchU: 200, trenchV: 100, floor: -40, people: 36 };
+var SMALL = { lotsU: 3, lotsV: 2, trenchU: 56, trenchV: 40, floor: -40, people: 8 };
+var SEA = 62;
+var LOT = 21;
+var ROAD = 7;
+var PITCH = LOT + ROAD;
+var AIR = "minecraft:air";
+var WATER = "minecraft:water";
+var STONE = "minecraft:stone";
+var SAND = "minecraft:sand";
+var SANDSTONE = "minecraft:sandstone";
+var ASPHALT = "minecraft:gray_concrete";
+var LINE = "minecraft:light_gray_concrete";
+var WALK = "minecraft:smooth_stone";
+var GRASS = "minecraft:grass_block";
+var FLOOR = "minecraft:smooth_stone";
+var LIGHT = "minecraft:sea_lantern";
+var LOG = "minecraft:oak_log";
+var LEAVES = "minecraft:oak_leaves";
+var ABYSS = `${NS}:abyssal_basalt`;
+var VENT = `${NS}:seam_vent`;
+var LANTERN = `${NS}:drowned_lantern`;
+var BONE = `${NS}:old_bone`;
+var WALLS = [
+  "minecraft:white_concrete",
+  "minecraft:light_gray_concrete",
+  "minecraft:light_blue_concrete",
+  "minecraft:blue_concrete",
+  "minecraft:cyan_concrete",
+  "minecraft:lime_concrete",
+  "minecraft:orange_concrete",
+  "minecraft:red_concrete",
+  "minecraft:purple_concrete",
+  "minecraft:yellow_concrete",
+  "minecraft:quartz_block",
+  "minecraft:gray_concrete",
+  "minecraft:pink_concrete",
+  "minecraft:green_concrete"
+];
+var GLASS2 = [
+  "minecraft:glass",
+  "minecraft:light_blue_stained_glass",
+  "minecraft:blue_stained_glass",
+  "minecraft:gray_stained_glass",
+  "minecraft:cyan_stained_glass",
+  "minecraft:white_stained_glass"
+];
+var HOUSE = ["minecraft:brick_block", "minecraft:white_terracotta", "minecraft:yellow_terracotta", "minecraft:light_blue_terracotta", "minecraft:oak_planks", "minecraft:birch_planks"];
+var ROOF = ["minecraft:red_terracotta", "minecraft:brown_terracotta", "minecraft:gray_terracotta", "minecraft:dark_oak_planks", "minecraft:spruce_planks"];
+var GONDOLA = ["minecraft:red_concrete", "minecraft:yellow_concrete", "minecraft:blue_concrete", "minecraft:lime_concrete"];
+var BUILT = [
+  "minecraft:oak_planks",
+  "minecraft:spruce_planks",
+  "minecraft:birch_planks",
+  "minecraft:jungle_planks",
+  "minecraft:acacia_planks",
+  "minecraft:dark_oak_planks",
+  "minecraft:cobblestone",
+  "minecraft:stone_bricks",
+  "minecraft:brick_block",
+  "minecraft:glass",
+  "minecraft:torch",
+  "minecraft:chest",
+  "minecraft:crafting_table",
+  "minecraft:furnace",
+  "minecraft:bed",
+  "minecraft:wooden_door",
+  "minecraft:farmland",
+  "minecraft:rail",
+  "minecraft:oak_fence",
+  "minecraft:ladder",
+  "minecraft:bookshelf",
+  "minecraft:white_wool",
+  "minecraft:hay_block",
+  "minecraft:bell",
+  "minecraft:lantern",
+  "minecraft:glass_pane",
+  "minecraft:oak_stairs",
+  "minecraft:cobblestone_wall"
+];
+function toWorld2(S, u, y, v) {
+  switch (S.dir) {
+    case 0:
+      return { x: S.x + u, y, z: S.z + v };
+    case 1:
+      return { x: S.x - v, y, z: S.z + u };
+    case 2:
+      return { x: S.x - u, y, z: S.z - v };
+    default:
+      return { x: S.x + v, y, z: S.z - u };
+  }
+}
+var planOf = (S) => S.small ? SMALL : FULL;
+function layout(P) {
+  const cityU = P.lotsU * PITCH + ROAD, cityV = P.lotsV * PITCH + ROAD;
+  const vProm = cityV, vBeach = cityV + 6, vShal = vBeach + 32, vDrop = vShal + 20, vTr = vDrop + 20, vEnd = vTr + P.trenchV - 1;
+  const uS0 = Math.floor((cityU - P.trenchU) / 2), uS1 = uS0 + P.trenchU - 1;
+  return { cityU, cityV, vProm, vBeach, vShal, vDrop, vTr, vEnd, uS0, uS1, uMin: Math.min(0, uS0) - 2, uMax: Math.max(cityU - 1, uS1) + 2 };
+}
+function landmarks(S) {
+  const P = planOf(S), L = layout(P);
+  return {
+    centre: toWorld2(S, L.cityU / 2, S.y + 1, L.cityV / 2),
+    beach: toWorld2(S, L.cityU / 2, S.y + 1, L.vBeach + 10),
+    deep: toWorld2(S, (L.uS0 + L.uS1) / 2, P.floor + 2, (L.vTr + L.vEnd) / 2),
+    radius: Math.max(L.cityU, L.cityV) / 2
+  };
+}
+function plan(S) {
+  const P = planOf(S), L = layout(P), G = S.y, ops = [];
+  const rnd = (i, j = 0) => hash(S.x * 0.37 + i * 1.7, S.z * 0.53 + j * 2.3, i * 31 + j);
+  const pick = (list, i, j = 0) => list[Math.floor(rnd(i, j) * list.length) % list.length];
+  const fill = (u02, y0, v0, u12, y1, v1, id) => {
+    if (u12 < u02 || y1 < y0 || v1 < v0) return;
+    for (let u = u02; u <= u12; u += 32) for (let v = v0; v <= v1; v += 32) for (let y = y0; y <= y1; y += 30) {
+      ops.push({ k: "fill", a: [u, y, v], b: [Math.min(u12, u + 31), Math.min(y1, y + 29), Math.min(v1, v + 31)], id });
+    }
+  };
+  const set = (at2, id) => {
+    if (at2.length) ops.push({ k: "set", at: at2, id });
+  };
+  fill(0, G + 1, 0, L.cityU - 1, G + 72, L.vBeach - 1, AIR);
+  fill(0, G - 5, 0, L.cityU - 1, G - 1, L.vBeach - 1, STONE);
+  fill(0, G, 0, L.cityU - 1, G, L.cityV - 1, WALK);
+  fill(0, G, L.vProm, L.cityU - 1, G, L.vBeach - 1, WALK);
+  for (let i = 0; i <= P.lotsU; i++) {
+    fill(i * PITCH, G, 0, i * PITCH + 6, G, L.cityV - 1, ASPHALT);
+    fill(i * PITCH + 3, G, 0, i * PITCH + 3, G, L.cityV - 1, LINE);
+  }
+  for (let j = 0; j <= P.lotsV; j++) {
+    fill(0, G, j * PITCH, L.cityU - 1, G, j * PITCH + 6, ASPHALT);
+    fill(0, G, j * PITCH + 3, L.cityU - 1, G, j * PITCH + 3, LINE);
+  }
+  const lamps = [], posts = [], lights = [];
+  const tower = (lu, lv, w, d, h, n) => {
+    const u02 = lu + Math.floor((LOT - w) / 2), v0 = lv + Math.floor((LOT - d) / 2), u12 = u02 + w - 1, v1 = v0 + d - 1, top = G + h;
+    const wall = pick(WALLS, n, 1), glass = pick(GLASS2, n, 2), style = Math.floor(rnd(n, 3) * 3);
+    fill(u02, G + 1, v0, u12, top, v1, wall);
+    fill(u02 + 1, G + 1, v0 + 1, u12 - 1, top - 1, v1 - 1, AIR);
+    for (let y = G + 4; y < top - 1; y += 4) {
+      fill(u02 + 1, y, v0 + 1, u12 - 1, y, v1 - 1, FLOOR);
+      lights.push([u02 + (w >> 1), y, v0 + (d >> 1)]);
+    }
+    if (style === 0) {
+      for (let y = G + 1; y + 2 < top; y += 4) {
+        fill(u02 + 1, y + 1, v0, u12 - 1, y + 2, v0, glass);
+        fill(u02 + 1, y + 1, v1, u12 - 1, y + 2, v1, glass);
+        fill(u02, y + 1, v0 + 1, u02, y + 2, v1 - 1, glass);
+        fill(u12, y + 1, v0 + 1, u12, y + 2, v1 - 1, glass);
+      }
+    } else if (style === 1) {
+      for (let u = u02 + 1; u < u12; u += 2) {
+        fill(u, G + 2, v0, u, top - 2, v0, glass);
+        fill(u, G + 2, v1, u, top - 2, v1, glass);
+      }
+      for (let v = v0 + 1; v < v1; v += 2) {
+        fill(u02, G + 2, v, u02, top - 2, v, glass);
+        fill(u12, G + 2, v, u12, top - 2, v, glass);
+      }
+    } else {
+      fill(u02 + 1, G + 2, v0, u12 - 1, top - 2, v0, glass);
+      fill(u02 + 1, G + 2, v1, u12 - 1, top - 2, v1, glass);
+      fill(u02, G + 2, v0 + 1, u02, top - 2, v1 - 1, glass);
+      fill(u12, G + 2, v0 + 1, u12, top - 2, v1 - 1, glass);
+    }
+    fill(u02 + (w >> 1), G + 1, v1, u02 + (w >> 1), G + 2, v1, AIR);
+    if (h > 22) fill(u02 + 2, top + 1, v0 + 2, u12 - 2, top + 2, v1 - 2, wall);
+    if (h > 40) {
+      fill(u02 + (w >> 1), top + 3, v0 + (d >> 1), u02 + (w >> 1), top + 8, v0 + (d >> 1), "minecraft:iron_block");
+      lights.push([u02 + (w >> 1), top + 9, v0 + (d >> 1)]);
+    }
+  };
+  const houses = (lu, lv, n) => {
+    fill(lu + 1, G, lv + 1, lu + LOT - 2, G, lv + LOT - 2, GRASS);
+    for (let a = 0; a < 2; a++) for (let b = 0; b < 2; b++) {
+      const u02 = lu + 2 + a * 10, v0 = lv + 2 + b * 10, k = n * 4 + a * 2 + b;
+      const wall = pick(HOUSE, k, 5), roof = pick(ROOF, k, 6);
+      fill(u02, G + 1, v0, u02 + 6, G + 4, v0 + 6, wall);
+      fill(u02 + 1, G + 1, v0 + 1, u02 + 5, G + 4, v0 + 5, AIR);
+      fill(u02 + 2, G + 2, v0, u02 + 4, G + 2, v0, "minecraft:glass");
+      fill(u02 + 2, G + 2, v0 + 6, u02 + 4, G + 2, v0 + 6, "minecraft:glass");
+      fill(u02, G + 2, v0 + 2, u02, G + 2, v0 + 4, "minecraft:glass");
+      fill(u02 + 6, G + 1, v0 + 3, u02 + 6, G + 2, v0 + 3, AIR);
+      for (let r = 0; r < 4; r++) fill(u02 - 1 + r, G + 5 + r, v0 - 1 + r, u02 + 7 - r, G + 5 + r, v0 + 7 - r, roof);
+      lights.push([u02 + 3, G + 4, v0 + 3]);
+    }
+  };
+  const park = (lu, lv, n) => {
+    fill(lu + 1, G, lv + 1, lu + LOT - 2, G, lv + LOT - 2, GRASS);
+    fill(lu + 9, G, lv + 1, lu + 11, G, lv + LOT - 2, "minecraft:gravel");
+    fill(lu + 1, G, lv + 9, lu + LOT - 2, G, lv + 11, "minecraft:gravel");
+    fill(lu + 8, G + 1, lv + 8, lu + 12, G + 1, lv + 12, "minecraft:stone_bricks");
+    fill(lu + 9, G + 1, lv + 9, lu + 11, G + 1, lv + 11, WATER);
+    for (const [du, dv] of [[4, 4], [16, 4], [4, 16], [16, 16]]) {
+      const h = 4 + Math.floor(rnd(n, du + dv) * 3);
+      fill(lu + du - 2, G + h, lv + dv - 2, lu + du + 2, G + h + 2, lv + dv + 2, LEAVES);
+      fill(lu + du - 1, G + h + 3, lv + dv - 1, lu + du + 1, G + h + 3, lv + dv + 1, LEAVES);
+      fill(lu + du, G + 1, lv + dv, lu + du, G + h + 1, lv + dv, LOG);
+    }
+  };
+  const stadium = (lu, lv) => {
+    const u02 = lu, v0 = lv, u12 = lu + 2 * LOT + ROAD - 1, v1 = lv + 2 * LOT + ROAD - 1;
+    fill(u02, G, v0, u12, G, v1, WALK);
+    const ring = (inset, y0, y1, id) => {
+      fill(u02 + inset, y0, v0 + inset, u12 - inset, y1, v0 + inset + 1, id);
+      fill(u02 + inset, y0, v1 - inset - 1, u12 - inset, y1, v1 - inset, id);
+      fill(u02 + inset, y0, v0 + inset, u02 + inset + 1, y1, v1 - inset, id);
+      fill(u12 - inset - 1, y0, v0 + inset, u12 - inset, y1, v1 - inset, id);
+    };
+    ring(0, G + 1, G + 13, "minecraft:quartz_block");
+    for (let k = 0; k < 5; k++) ring(2 + 2 * k, G + 1, G + 10 - 2 * k, k % 2 ? "minecraft:blue_concrete" : "minecraft:red_concrete");
+    fill(u02 + 12, G, v0 + 12, u12 - 12, G, v1 - 12, "minecraft:lime_concrete");
+    fill(u02 + 12, G, v0 + v1 >> 1, u12 - 12, G, v0 + v1 >> 1, "minecraft:white_concrete");
+    fill(u02 + u12 >> 1, G + 1, v1 - 1, (u02 + u12 >> 1) + 1, G + 3, v1, AIR);
+    for (const [u, v] of [[u02, v0], [u12, v0], [u02, v1], [u12, v1]]) {
+      fill(u, G + 14, v, u, G + 20, v, "minecraft:iron_block");
+      lights.push([u, G + 21, v]);
+    }
+  };
+  const wheel = (lu, lv) => {
+    fill(lu + 1, G, lv + 1, lu + LOT - 2, G, lv + LOT - 2, WALK);
+    const cu = lu + 10, cv = lv + 10, cy = G + 19, R = 15;
+    const rim = [], spokes = [], legs = [], cars = GONDOLA.map(() => []);
+    const seen = /* @__PURE__ */ new Set();
+    for (let a = 0; a < 360; a += 3) {
+      const p = [cu + Math.round(R * Math.cos(a * Math.PI / 180)), cy + Math.round(R * Math.sin(a * Math.PI / 180)), cv];
+      if (!seen.has(p.join())) {
+        seen.add(p.join());
+        rim.push(p);
+      }
+      if (a % 45 === 0) {
+        cars[a / 45 % GONDOLA.length].push([p[0], p[1] - 1, cv + 1], [p[0], p[1] - 2, cv + 1]);
+        for (let r = 2; r < R; r += 1) spokes.push([cu + Math.round(r * Math.cos(a * Math.PI / 180)), cy + Math.round(r * Math.sin(a * Math.PI / 180)), cv]);
+      }
+    }
+    for (let y = G + 1; y < cy; y++) {
+      const k = (cy - y) * 0.42;
+      legs.push([cu - Math.round(k), y, cv - 1], [cu + Math.round(k), y, cv - 1]);
+    }
+    set(rim, "minecraft:white_concrete");
+    set(spokes, "minecraft:iron_bars");
+    set(legs, "minecraft:iron_block");
+    set([[cu, cy, cv], [cu, cy, cv - 1]], "minecraft:red_concrete");
+    cars.forEach((c, i) => set(c, GONDOLA[i]));
+  };
+  const big = P.lotsU >= 5 && P.lotsV >= 4;
+  for (let i = 0; i < P.lotsU; i++) for (let j = 0; j < P.lotsV; j++) {
+    const lu = i * PITCH + ROAD, lv = j * PITCH + ROAD, n = i * 16 + j;
+    for (const [cu, cv] of [[lu, lv], [lu + LOT - 1, lv + LOT - 1]]) {
+      posts.push([cu, G + 1, cv], [cu, G + 2, cv], [cu, G + 3, cv]);
+      lamps.push([cu, G + 4, cv]);
+    }
+    if (big && i < 2 && j < 2) {
+      if (i === 0 && j === 0) stadium(lu, lv);
+      continue;
+    }
+    if (big && i === P.lotsU - 1 && j === 1) {
+      wheel(lu, lv);
+      continue;
+    }
+    const r = rnd(n, 9);
+    if (j === 0 && r < 0.75) houses(lu, lv, n);
+    else if (r < 0.14 || !big && i === 1 && j === 0) park(lu, lv, n);
+    else {
+      const tall = j === P.lotsV - 1 ? 34 + Math.floor(rnd(n, 10) * 32) : 14 + Math.floor(rnd(n, 10) * (j >= 2 ? 30 : 18));
+      tower(lu, lv, 11 + 2 * Math.floor(rnd(n, 11) * 4), 11 + 2 * Math.floor(rnd(n, 12) * 4), 2 + 4 * Math.round(tall / 4), n);
+    }
+  }
+  for (let u = 4; u < L.cityU; u += 12) {
+    posts.push([u, G + 1, L.vProm + 4], [u, G + 2, L.vProm + 4], [u, G + 3, L.vProm + 4]);
+    lamps.push([u, G + 4, L.vProm + 4]);
+  }
+  set(posts, "minecraft:nether_brick_fence");
+  set(lamps, LIGHT);
+  set(lights, LIGHT);
+  const strip = (v0, v1, y, top) => {
+    fill(L.uMin, y - 6, v0, L.uMax, y - 3, v1, SANDSTONE);
+    fill(L.uMin, y - 2, v0, L.uMax, y, v1, top);
+    if (y < SEA) fill(L.uMin, y + 1, v0, L.uMax, SEA, v1, WATER);
+    fill(L.uMin, Math.max(y, SEA) + 1, v0, L.uMax, G + 40, v1, AIR);
+  };
+  const rows = (v0, n, yA, yB, top) => {
+    let from = 0, y = yA;
+    for (let k = 1; k <= n; k++) {
+      const yk = k === n ? NaN : Math.round(yA + (yB - yA) * (k / (n - 1)));
+      if (yk !== y) {
+        strip(v0 + from, v0 + k - 1, y, top);
+        from = k;
+        y = yk;
+      }
+    }
+  };
+  rows(L.vBeach, 32, G, SEA - 2, SAND);
+  rows(L.vShal, 20, SEA - 2, SEA - 9, SAND);
+  fill(Math.floor(L.cityU / 2) - 1, G, L.vBeach, Math.floor(L.cityU / 2) + 1, G, L.vShal + 14, "minecraft:spruce_planks");
+  const F = P.floor, u0 = L.uS0, u1 = L.uS1;
+  fill(u0 - 2, F - 2, L.vDrop, u0 - 1, SEA - 9, L.vEnd + 2, ABYSS);
+  fill(u1 + 1, F - 2, L.vDrop, u1 + 2, SEA - 9, L.vEnd + 2, ABYSS);
+  fill(u0, F - 2, L.vEnd + 1, u1, SEA - 9, L.vEnd + 2, ABYSS);
+  fill(u0, F - 2, L.vDrop, u1, F, L.vEnd, ABYSS);
+  for (let k = 0; k < 20; k++) {
+    const y = Math.round(SEA - 9 + (F - (SEA - 9)) * ((k + 1) / 20));
+    fill(u0, F + 1, L.vDrop + k, u1, y, L.vDrop + k, ABYSS);
+    fill(u0, y + 1, L.vDrop + k, u1, SEA, L.vDrop + k, WATER);
+  }
+  fill(u0, F + 1, L.vTr, u1, SEA, L.vEnd, WATER);
+  fill(u0 - 2, SEA + 1, L.vDrop, u1 + 2, G + 40, L.vEnd + 2, AIR);
+  const pu = u0 + u1 >> 1, pv = L.vTr + L.vEnd >> 1, pr = Math.min(17, Math.floor(Math.min(P.trenchU, P.trenchV) / 2) - 6), PF = -57;
+  fill(pu - pr - 1, PF - 1, pv - pr - 1, pu + pr + 1, F, pv + pr + 1, ABYSS);
+  fill(pu - pr, PF + 1, pv - pr, pu + pr, F, pv + pr, WATER);
+  const gate = [], gateLit = [], gr = Math.min(8, pr - 3);
+  for (let a = 20; a < 340; a += 5) {
+    const p = [pu + Math.round(gr * Math.sin(a * Math.PI / 180)), PF + 1 + gr - Math.round(gr * Math.cos(a * Math.PI / 180)), pv];
+    (a % 60 < 6 ? gateLit : gate).push(p);
+  }
+  set(gate, "minecraft:crying_obsidian");
+  set(gateLit, LANTERN);
+  fill(pu - 2, PF, pv - 2, pu + 2, PF, pv + 2, TRINITITE_BLOCK);
+  const vents = [], lit = [];
+  const nVent = Math.round(P.trenchU * P.trenchV / 1400), tu = P.trenchU - 8, tv = P.trenchV - 8;
+  for (let k = 0; k < nVent; k++) {
+    const u = u0 + 4 + Math.floor(rnd(k, 20) * tu), v = L.vTr + 4 + Math.floor(rnd(k, 21) * tv);
+    if (Math.abs(u - pu) <= pr + 2 && Math.abs(v - pv) <= pr + 2) continue;
+    const h = 1 + Math.floor(rnd(k, 22) * 8);
+    fill(u, F + 1, v, u + 1, F + h, v + 1, ABYSS);
+    vents.push([u, F + h + 1, v], [u + 1, F + h + 1, v + 1]);
+  }
+  set(vents, VENT);
+  const nSpire = Math.max(2, Math.round(P.trenchU / 34));
+  for (let k = 0; k < nSpire; k++) {
+    const u = u0 + 8 + Math.floor(rnd(k, 30) * (P.trenchU - 16)), v = L.vTr + 6 + Math.floor(rnd(k, 31) * (P.trenchV - 12));
+    if (Math.abs(u - pu) <= pr + 3 && Math.abs(v - pv) <= pr + 3) continue;
+    const h = 24 + Math.floor(rnd(k, 32) * 36);
+    fill(u - 1, F + 1, v - 1, u + 1, F + Math.floor(h / 3), v + 1, ABYSS);
+    fill(u, F + 1, v, u, F + h, v, ABYSS);
+    for (let y = F + 8; y <= F + h; y += 8) lit.push([u, y, v]);
+  }
+  const ru = u0 + Math.floor(P.trenchU * 0.24), nRib = Math.max(2, Math.min(6, Math.floor((P.trenchV - 12) / 13))), half = Math.min(14, Math.floor(P.trenchU * 0.2));
+  const ribs = [];
+  for (let r = 0; r < nRib; r++) {
+    const v = L.vTr + 8 + r * 13;
+    for (let du = -half; du <= half; du++) {
+      const y = F + 1 + Math.round(22 * (1 - du / half * (du / half)));
+      const y2 = F + 1 + Math.round(22 * (1 - (du + (du < 0 ? 1 : -1)) / half * ((du + (du < 0 ? 1 : -1)) / half)));
+      for (let yy = Math.min(y, y2); yy <= Math.max(y, y2); yy++) ribs.push([ru + du, yy, v], [ru + du, yy, v + 1]);
+    }
+  }
+  set(ribs, BONE);
+  fill(ru - 1, F + 22, L.vTr + 6, ru + 1, F + 24, L.vTr + 10 + (nRib - 1) * 13, BONE);
+  const qu = u1 - Math.floor(P.trenchU * 0.22), qv = L.vTr + 6;
+  fill(qu - 4, F + 1, qv - 4, qu + 4, F + 1, qv + 4, "minecraft:prismarine_bricks");
+  for (const [du, dv] of [[-4, -4], [4, -4], [-4, 4], [4, 4]]) fill(qu + du, F + 2, qv + dv, qu + du, F + 6, qv + dv, "minecraft:dark_prismarine");
+  fill(qu - 4, F + 7, qv - 4, qu + 4, F + 7, qv - 4, "minecraft:prismarine_bricks");
+  fill(qu - 4, F + 7, qv + 4, qu + 4, F + 7, qv + 4, "minecraft:prismarine_bricks");
+  lit.push([qu - 4, F + 8, qv - 4], [qu + 4, F + 8, qv + 4], [pu - pr, F + 1, pv - pr], [pu + pr, F + 1, pv + pr], [pu - pr, F + 1, pv + pr], [pu + pr, F + 1, pv - pr]);
+  set(lit, LANTERN);
+  ops.push({ k: "chest", at: [qu, F + 2, qv], items: [[LANCE_ITEM, 1], [SHARD_ITEM, 12], [IODINE_ITEM, 8], ["minecraft:diamond", 3], ["minecraft:heart_of_the_sea", 1]] });
+  for (let k = 0; k < P.people; k++) {
+    const i = Math.floor(rnd(k, 40) * (P.lotsU + 1)), j = Math.floor(rnd(k, 41) * (P.lotsV + 1));
+    const along = rnd(k, 42) < 0.5;
+    ops.push({ k: "mob", id: "minecraft:villager_v2", at: along ? [i * PITCH + 1 + k % 2 * 4, G + 1, 2 + Math.floor(rnd(k, 43) * (L.cityV - 4))] : [2 + Math.floor(rnd(k, 44) * (L.cityU - 4)), G + 1, j * PITCH + 1 + k % 2 * 4] });
+  }
+  return ops;
+}
+var AREA = "bk_city";
+var Build = class {
+  constructor(S, dim) {
+    this.S = S;
+    this.dim = dim;
+    this.held = false;
+    this.waited = 0;
+    this.failed = 0;
+    this.ops = plan(S);
+    this.done = new Uint8Array(this.ops.length);
+    this.left = this.ops.length;
+  }
+  get finished() {
+    return this.left <= 0;
+  }
+  get progress() {
+    return 1 - this.left / Math.max(1, this.ops.length);
+  }
+  /** Ask the game to keep the whole site loaded while it is built (four areas; if it will not, the plan waits for players). */
+  hold() {
+    if (this.held) return;
+    this.held = true;
+    const L = layout(planOf(this.S));
+    const a = toWorld2(this.S, L.uMin - 2, 0, -2), b = toWorld2(this.S, L.uMax + 2, 0, L.vEnd + 4);
+    const x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), z0 = Math.min(a.z, b.z), z1 = Math.max(a.z, b.z);
+    const mx = Math.floor((x0 + x1) / 2), mz = Math.floor((z0 + z1) / 2);
+    const quads = [[x0, z0, mx, mz], [mx + 1, z0, x1, mz], [x0, mz + 1, mx, z1], [mx + 1, mz + 1, x1, z1]];
+    quads.forEach(([ax, az, bx, bz], k) => {
+      try {
+        this.dim.runCommand(`tickingarea remove ${AREA}_${k}`);
+      } catch {
+      }
+      try {
+        this.dim.runCommand(`tickingarea add ${Math.floor(ax)} 0 ${Math.floor(az)} ${Math.floor(bx)} 0 ${Math.floor(bz)} ${AREA}_${k}`);
+      } catch {
+      }
+    });
+  }
+  release() {
+    if (!this.held) return;
+    this.held = false;
+    for (let k = 0; k < 4; k++) {
+      try {
+        this.dim.runCommand(`tickingarea remove ${AREA}_${k}`);
+      } catch {
+      }
+    }
+  }
+  box(op) {
+    const pts = op.k === "fill" ? [op.a, op.b] : op.k === "set" ? op.at : [op.at];
+    const lo = { x: 1e9, y: 1e9, z: 1e9 }, hi = { x: -1e9, y: -1e9, z: -1e9 };
+    for (const [u, y, v] of pts) {
+      const w = toWorld2(this.S, u, y, v);
+      lo.x = Math.min(lo.x, w.x);
+      lo.y = Math.min(lo.y, w.y);
+      lo.z = Math.min(lo.z, w.z);
+      hi.x = Math.max(hi.x, w.x);
+      hi.y = Math.max(hi.y, w.y);
+      hi.z = Math.max(hi.z, w.z);
+    }
+    return { lo, hi };
+  }
+  /** A tick's worth: boxes up to a volume, in order; a box whose ground is not loaded waits, and so does everything over the same ground. */
+  tick() {
+    this.hold();
+    let volume = 0, small = 0, any = false;
+    const blocked = [];
+    for (let i = 0; i < this.ops.length && volume < 4e4 && small < 48 && blocked.length < 12; i++) {
+      if (this.done[i]) continue;
+      const op = this.ops[i], b = this.box(op);
+      if (blocked.some((q) => b.lo.x <= q.hi.x && b.hi.x >= q.lo.x && b.lo.z <= q.hi.z && b.hi.z >= q.lo.z)) continue;
+      if (!isLoaded(this.dim, b.lo) || !isLoaded(this.dim, b.hi) || !isLoaded(this.dim, { x: b.lo.x, y: 0, z: b.hi.z }) || !isLoaded(this.dim, { x: b.hi.x, y: 0, z: b.lo.z })) {
+        blocked.push(b);
+        continue;
+      }
+      try {
+        if (op.k === "fill") {
+          this.dim.fillBlocks(new BlockVolume2(b.lo, b.hi), op.id, { ignoreChunkBoundErrors: true });
+          volume += (b.hi.x - b.lo.x + 1) * (b.hi.y - b.lo.y + 1) * (b.hi.z - b.lo.z + 1);
+        } else if (op.k === "set") {
+          for (const [u, y, v] of op.at) {
+            const at2 = blockAt(this.dim, toWorld2(this.S, u, y, v));
+            if (at2) at2.setType(op.id);
+          }
+          volume += op.at.length * 20;
+        } else if (op.k === "mob") {
+          const w = toWorld2(this.S, op.at[0], op.at[1], op.at[2]);
+          this.dim.spawnEntity(op.id, { x: w.x + 0.5, y: w.y, z: w.z + 0.5 });
+        } else {
+          const at2 = blockAt(this.dim, toWorld2(this.S, op.at[0], op.at[1], op.at[2]));
+          if (at2) {
+            at2.setType("minecraft:chest");
+            const box = at2.getComponent("minecraft:inventory")?.container;
+            if (box) op.items.forEach(([id, n], slot) => {
+              try {
+                box.setItem(slot * 2 + 3, new ItemStack(id, n));
+              } catch {
+              }
+            });
+          }
+        }
+      } catch {
+        this.failed++;
+      }
+      this.done[i] = 1;
+      this.left--;
+      small++;
+      any = true;
+    }
+    this.waited = any ? 0 : this.waited + 1;
+  }
+  /** Nothing could be done for a long while: the ground is not loading (the plan stays, and is taken up again when someone is near). */
+  get stalled() {
+    return this.waited > 30 * TICKS.second;
+  }
+};
+var building = null;
+var cities = () => store.rec.cities ??= [];
+function occupied(dim, S) {
+  const L = layout(planOf(S));
+  let found = 0;
+  for (let u = 0; u < L.cityU; u += 32) for (let v = 0; v < L.vShal; v += 32) {
+    const a = toWorld2(S, u, S.y - 2, v), b = toWorld2(S, Math.min(L.cityU - 1, u + 31), S.y + 30, Math.min(L.vShal - 1, v + 31));
+    if (!isLoaded(dim, a) || !isLoaded(dim, b)) continue;
+    try {
+      const lo = { x: Math.min(a.x, b.x), y: a.y, z: Math.min(a.z, b.z) }, hi = { x: Math.max(a.x, b.x), y: b.y, z: Math.max(a.z, b.z) };
+      for (const _ of dim.getBlocks(new BlockVolume2(lo, hi), { includeTypes: BUILT }, true).getBlockLocationIterator()) {
+        if (++found > 6) return true;
+      }
+    } catch {
+    }
+  }
+  return false;
+}
+function raiseCity(at2, dir, small = false, force = true) {
+  if (building) return `A city is still being built (${Math.round(building.progress * 100)}%). One at a time.`;
+  const list = cities();
+  if (list.length >= 8) return "There are eight cities in this world already.";
+  const P = small ? SMALL : FULL, L = layout(P);
+  const y = Math.max(SEA + 1, Math.min(82, Math.floor(at2.y) - 1));
+  const S = { x: 0, y, z: 0, dir, small: small || void 0, done: false, t: store.rec.clock };
+  const o = toWorld2(S, -L.cityU / 2, 0, -(L.vProm + 3));
+  S.x = Math.floor(at2.x + o.x);
+  S.z = Math.floor(at2.z + o.z);
+  const dim = overworld();
+  if (!force && occupied(dim, S)) return "Something is built there already: no city is raised over it.";
+  list.push(S);
+  store.touch();
+  building = new Build(S, dim);
+  return `A city is rising: ${L.cityU} by ${L.cityV} blocks of streets behind the promenade, a beach in front of it, and a sea cut ${SEA - P.floor} blocks deep beyond.`;
+}
+function nearestCity(at2) {
+  let best = null;
+  for (const S of cities()) {
+    const m = landmarks(S), d = Math.hypot(m.centre.x - at2.x, m.centre.z - at2.z);
+    if (!best || d < best.distance) best = { site: S, centre: m.centre, distance: d, radius: m.radius };
+  }
+  return best;
+}
+function seekCoast(dim, p) {
+  let at2;
+  try {
+    at2 = p.location;
+  } catch {
+    return null;
+  }
+  const near = nearestCity(at2);
+  if (near && near.distance < 900) return null;
+  if (hash(Math.floor(at2.x / 640), Math.floor(at2.z / 640), 5) > 0.55) return null;
+  const DIRS = [[0, 1], [-1, 0], [0, -1], [1, 0]];
+  for (let k = 0; k < 4; k++) {
+    const [dx, dz] = DIRS[k];
+    let land = -1;
+    for (let s = 8; s <= 72; s += 8) {
+      const x = at2.x + dx * s, z = at2.z + dz * s;
+      if (!isLoaded(dim, { x, y: 64, z })) break;
+      const col = waterColumn(dim, x, z, SEA, 6, 40);
+      if (col === UNLOADED) break;
+      if (col === NONE) {
+        const g = groundY(dim, x, z, 90, 40);
+        if (typeof g === "number" && g >= SEA && g <= SEA + 10) land = s;
+        else land = -1;
+        continue;
+      }
+      if (land < 0 || col.surface - col.floor < 3) continue;
+      const far = waterColumn(dim, at2.x + dx * (s + 16), at2.z + dz * (s + 16), SEA, 6, 60);
+      if (far === NONE || far === UNLOADED || far.surface - far.floor < 6) break;
+      let biome = "";
+      try {
+        biome = dim.getBiome({ x, y: SEA, z }).id;
+      } catch {
+        biome = "ocean";
+      }
+      if (!/ocean|beach|coast/.test(biome)) break;
+      const said = raiseCity({ x: at2.x + dx * (s - 26), y: SEA + 2, z: at2.z + dz * (s - 26) }, k, false, false);
+      return /rising/.test(said) ? said : null;
+    }
+  }
+  return null;
+}
+function cityTick(now) {
+  if (building) {
+    building.tick();
+    if (building.finished) {
+      building.S.done = true;
+      store.touch();
+      const m = landmarks(building.S);
+      for (const p of players()) {
+        try {
+          if (p.dimension.id === OVERWORLD && dist(p.location, m.centre) < 400) p.sendMessage(`§7[Basiliskra] The city stands. Its beach is ${compass(p.location, m.beach)}; the deep water is beyond it.`);
+        } catch {
+        }
+      }
+      building.release();
+      building = null;
+    } else if (building.stalled) {
+      building.release();
+      building = null;
+    }
+    return;
+  }
+  if (now % 100 !== 50) return;
+  const dim = overworld();
+  const open = cities().find((S) => !S.done && players().some((p) => {
+    try {
+      return p.dimension.id === OVERWORLD && dist(p.location, landmarks(S).centre) < 160;
+    } catch {
+      return false;
+    }
+  }));
+  if (open) {
+    building = new Build(open, dim);
+    return;
+  }
+  if (!CONFIG.cities || cities().length >= 6) return;
+  for (const p of players()) {
+    try {
+      if (p.dimension.id !== OVERWORLD) continue;
+      const said = seekCoast(dim, p);
+      if (said) {
+        p.sendMessage(`§7[Basiliskra] ${said}`);
+        return;
+      }
+    } catch {
+    }
+  }
+}
+function compass(from, to) {
+  const a = Math.atan2(-(to.x - from.x), to.z - from.z) * 180 / Math.PI;
+  const d = Math.round(Math.hypot(to.x - from.x, to.z - from.z));
+  return `${d} blocks ${["south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"][(Math.round(a / 45) % 8 + 8) % 8]}`;
+}
+
 // src/brain.ts
 function* wait(ticks) {
   for (let i = 0; i < ticks; i++) yield;
@@ -2187,7 +2896,35 @@ function anyoneNear(c, range) {
   }
   return false;
 }
-var IDLE_ACTS = /* @__PURE__ */ new Set(["roam", "pursue", "wander", "patrol", "sleep", "harbor", "well", "lure", "echo"]);
+var IDLE_ACTS = /* @__PURE__ */ new Set(["roam", "raze", "pursue", "wander", "patrol", "sleep", "harbor", "well", "lure", "echo"]);
+var sensed = /* @__PURE__ */ new Map();
+function settlementNear(c, now) {
+  let best = null, bd = 1e9;
+  const city = nearestCity(c.pos);
+  if (city && city.distance < 500) {
+    best = city.centre;
+    bd = city.distance;
+  }
+  let s = sensed.get(c.entity.id);
+  if (!s || now - s.t >= 100) {
+    s = { at: null, t: now };
+    try {
+      let nd = 1e9;
+      for (const e of c.dim.getEntities({ type: "minecraft:villager_v2", location: c.pos, maxDistance: 180 })) {
+        const d = dist(e.location, c.pos);
+        if (d < nd) {
+          nd = d;
+          s.at = { ...e.location };
+        }
+      }
+    } catch {
+    }
+    sensed.set(c.entity.id, s);
+    if (sensed.size > 8) sensed.clear();
+  }
+  if (s.at && dist(s.at, c.pos) < bd) best = s.at;
+  return best;
+}
 var VOICED = /* @__PURE__ */ new Set(["idle", "move", "look", "drink", "pin", "flinch", "beach", "carry"]);
 var lastFault = "";
 var Brain = class {
@@ -2547,7 +3284,7 @@ function clearHarm() {
 }
 
 // src/fallout.ts
-import { BlockPermutation, BlockVolume as BlockVolume2, EntityDamageCause as EntityDamageCause3, EquipmentSlot, world as world6 } from "@minecraft/server";
+import { BlockPermutation, BlockVolume as BlockVolume3, EntityDamageCause as EntityDamageCause4, EquipmentSlot, world as world6 } from "@minecraft/server";
 
 // src/generated/blocks.ts
 var SOIL_WAS = ["minecraft:dirt", "minecraft:grass_block", "minecraft:podzol", "minecraft:mycelium", "minecraft:moss_block", "minecraft:coarse_dirt", "minecraft:dirt_with_roots", "minecraft:sand", "minecraft:red_sand", "minecraft:gravel", "minecraft:mud", "minecraft:clay", "minecraft:snow", "minecraft:pale_moss_block"];
@@ -2800,7 +3537,7 @@ function healStep(dim, z) {
   const lo = { x: x0, y: Math.floor(z.y) - 14, z: z0 }, hi = { x: Math.min(x0 + 15, Math.floor(z.x) + R), y: Math.floor(z.y) + 14, z: Math.min(z0 + 15, Math.floor(z.z) + R) };
   if (!isLoaded(dim, lo) || !isLoaded(dim, hi)) return false;
   try {
-    for (const p of dim.getBlocks(new BlockVolume2(lo, hi), { includeTypes: FADING }, true).getBlockLocationIterator()) healQueue.push({ x: p.x, y: p.y, z: p.z });
+    for (const p of dim.getBlocks(new BlockVolume3(lo, hi), { includeTypes: FADING }, true).getBlockLocationIterator()) healQueue.push({ x: p.x, y: p.y, z: p.z });
   } catch {
     return false;
   }
@@ -2959,7 +3696,7 @@ function counterTick(now) {
       const under = blockAt(p.dimension, { x: at2.x, y: at2.y - 0.3, z: at2.z });
       if (under?.typeId === SLAG_BLOCK && vulnerable(p)) {
         p.setOnFire(4, true);
-        p.applyDamage(2 * CONFIG.damage, { cause: EntityDamageCause3.fire });
+        p.applyDamage(2 * CONFIG.damage, { cause: EntityDamageCause4.fire });
       }
     } catch {
     }
@@ -3040,7 +3777,7 @@ function sicken(dim, live, now, ps) {
         p.addEffect("nausea", 140, { amplifier: 0, showParticles: false });
       }
       if (d > 0.5) p.addEffect("poison", 60, { amplifier: d > 0.9 ? 1 : 0, showParticles: false });
-      if (d > 0.8 && took >= BURN_AFTER) p.applyDamage(Math.max(1, Math.round(2 * CONFIG.damage)), { cause: EntityDamageCause3.magic });
+      if (d > 0.8 && took >= BURN_AFTER) p.applyDamage(Math.max(1, Math.round(2 * CONFIG.damage)), { cause: EntityDamageCause4.magic });
     } catch {
     }
   }
@@ -3089,7 +3826,7 @@ function mins(ticks) {
   if (m < 90) return `about ${Math.round(m)} minute${Math.round(m) === 1 ? "" : "s"}`;
   return `about ${(m / 60).toFixed(1)} hours`;
 }
-function compass(from, to) {
+function compass2(from, to) {
   const dx = to.x - from.x, dz = to.z - from.z;
   if (Math.hypot(dx, dz) < 4) return "right here";
   const names = ["south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"];
@@ -3116,7 +3853,7 @@ async function present(p, show) {
 function angerLines(p, a, here) {
   const L = [];
   const where = `around ${Math.floor(a.center.x)}, ${Math.floor(a.center.z)}`;
-  L.push(here ? `§fNear you §7(the 64-block area ${where})` : `§fThe angriest area: ${where} §7(${compass(p.location, a.center)})`);
+  L.push(here ? `§fNear you §7(the 64-block area ${where})` : `§fThe angriest area: ${where} §7(${compass2(p.location, a.center)})`);
   L.push(`  ${bar(a.progress)} §l${pct(a.progress)}§r §7of what calls him`);
   L.push(`  §7Animals killed here by players: §f${a.kills}§7 (they count as §f${a.weightA.toFixed(1)}§7 of the §f${a.needA}§7 it takes)`);
   L.push(`  §7Logs, reeds and shore plants cut here: §f${a.cut}§7 (they count as §f${a.weightH.toFixed(1)}§7 of the §f${a.needH}§7 it takes)`);
@@ -3160,7 +3897,7 @@ function comingLines(p, ctl2) {
       break;
     case "pending": {
       const pd = rec.pending;
-      L.push(`§eHe has been called§7, by what was done near §f${Math.floor(pd.site.x)}, ${Math.floor(pd.site.z)}§7 (${compass(p.location, pd.site)}).`);
+      L.push(`§eHe has been called§7, by what was done near §f${Math.floor(pd.site.x)}, ${Math.floor(pd.site.z)}§7 (${compass2(p.location, pd.site)}).`);
       L.push(`§7He is looking for deep, open water there (search ${Math.min(12, (pd.passes ?? 0) + 1)} of 12). Someone must be within 128 blocks of that place.`);
       if ((pd.passes ?? 0) >= 4) L.push("§7No water has been deep and open enough so far. Harm nearer a coast or a big lake will call him there instead.");
       break;
@@ -3168,9 +3905,9 @@ function comingLines(p, ctl2) {
     case "arriving": {
       const a = rec.arrival;
       if (a.step === 0) {
-        L.push(`§eHe is coming§7, through the water at §f${at(a.water)}§7 (${compass(p.location, a.water)}).`);
+        L.push(`§eHe is coming§7, through the water at §f${at(a.water)}§7 (${compass2(p.location, a.water)}).`);
         L.push(toDusk === 0 ? "§7At dusk, which is now: someone must be within 96 blocks of that water." : `§7At the next dusk, in §f${mins(toDusk)}§7, while someone is within 96 blocks of that water.`);
-      } else L.push(`§cHe is coming through now§7, at §f${at(a.water)}§7 (${compass(p.location, a.water)}).`);
+      } else L.push(`§cHe is coming through now§7, at §f${at(a.water)}§7 (${compass2(p.location, a.water)}).`);
       break;
     }
     case "alive": {
@@ -3182,12 +3919,12 @@ function comingLines(p, ctl2) {
           if (h) hp = ` §7Health §f${Math.ceil(h.currentValue)}/${h.effectiveMax}`;
         } catch {
         }
-        L.push(`§cBasiliskra ${ROMAN[rec.form]} is here§7, ${compass(p.location, c.pos)}.${hp}`);
+        L.push(`§cBasiliskra ${ROMAN[rec.form]} is here§7, ${compass2(p.location, c.pos)}.${hp}`);
       } else if (rec.entityId === null && rec.down !== null) {
         const left = pace(TICKS.day) - (now - rec.down);
         L.push(`§7Driven off. He comes back through the seam at §f${rec.rift ? at(rec.rift) : "the old place"}§7 in §f${mins(left)}§7, when someone is near it.`);
       } else if (rec.last) {
-        L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach. Last seen near §f${at(rec.last)}§7 (${compass(p.location, rec.last)}), ${mins(now - rec.last.t)} ago.`);
+        L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach. Last seen near §f${at(rec.last)}§7 (${compass2(p.location, rec.last)}), ${mins(now - rec.last.t)} ago.`);
       } else L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach.`);
       if (rec.guiltyName) L.push(`§7He remembers §f${rec.guiltyName}§7.`);
       break;
@@ -3213,7 +3950,7 @@ function falloutLines(p) {
   const n = nearestFallout(at2, now), count = falloutCount(now);
   if (!n) L.push("§7No fallout on record. His beam, his changes and his seam leave it where they touch the world.");
   else {
-    L.push(`§7Fallout in §f${count}§7 place${count === 1 ? "" : "s"}. The nearest is ${compass(at2, n.zone)}, at §f${pct(n.strength)}§7.`);
+    L.push(`§7Fallout in §f${count}§7 place${count === 1 ? "" : "s"}. The nearest is ${compass2(at2, n.zone)}, at §f${pct(n.strength)}§7.`);
     L.push("§7It spreads for about a minute, stands a while, then fades and is gone within a few minutes.");
     if (CONFIG.fallout === "land") L.push("§7In it the ground glows: soil and rock turn irradiated, plants wither, wild leaves fall and crimson crystals grow (break them for shards). Where his beam lands, rock runs to glowing slag and sand fuses to scarlet trinitite. As it fades the land heals back to what it was.");
     if (CONFIG.sickness) L.push("§7It is strong: hunger, then weakness and nausea, then poison, and the heart of a fresh zone burns. Iodine tablets (2 dried kelp, sugar) keep it off for four minutes; milk clears it. A Geiger counter (trinitite or a crimson shard, copper ingot, redstone) reads it.");
@@ -3318,11 +4055,11 @@ async function settingsForm(p) {
     "Minutes in each form before he changes (time is all it takes)",
     MINUTES.map((m) => m ? `${m} minutes` : "The story's timing: 40, 40, 60 (at story speed 1)"),
     { defaultValueIndex: Math.max(0, MINUTES.indexOf(CONFIG.changeMinutes)) }
-  ).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
+  ).toggle("Cities rise on coasts as you explore (never over anything built)", { defaultValue: CONFIG.cities }).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || !r.formValues) return;
   const v = r.formValues;
-  if (v[19] === true) {
+  if (v[20] === true) {
     resetSettings();
     p.sendMessage("§7[Basiliskra] Settings restored to the defaults.");
     return;
@@ -3347,7 +4084,8 @@ async function settingsForm(p) {
     sickness: v[15] === true,
     cutscenes: v[16] === true,
     music: v[17] === true,
-    changeMinutes: MINUTES[Number(v[18])] ?? 0
+    changeMinutes: MINUTES[Number(v[18])] ?? 0,
+    cities: v[19] === true
   });
   p.sendMessage(`§7[Basiliskra] Settings saved with this world. Story speed §fx${CONFIG.pacing}§7, damage §fx${CONFIG.damage}§7.`);
   if (bad) p.sendMessage("§7[Basiliskra] A number you typed was not in range, so the choice above it was used.");
@@ -3378,7 +4116,7 @@ async function openWheel(p, ctl2) {
   const rec = store.rec;
   const here = ctl2.creature && ctl2.creature.valid;
   const state = here ? `§cBasiliskra ${ROMAN[rec.form]} is here` : rec.stage === "arriving" ? "§ehe is coming through" : rec.stage === "alive" ? `§7Basiliskra ${ROMAN[rec.form]} is away, owed back` : "§7he is not in this world";
-  const f = new ActionFormData().title("Basiliskra Config Wheel").body(`${state}§7 · Story speed §fx${CONFIG.pacing}§7 · Damage §fx${CONFIG.damage}`).button("Settings").button("Call him now (the rift opens)").button("Bring him here (no rift, pick a form)").button("Make him change now (next form)").button("Send him away (until he is called)").button("Skip to dusk").button("Journal").button("§cReset the story");
+  const f = new ActionFormData().title("Basiliskra Config Wheel").body(`${state}§7 · Story speed §fx${CONFIG.pacing}§7 · Damage §fx${CONFIG.damage}`).button("Settings").button("Call him now (the rift opens)").button("Bring him here (no rift, pick a form)").button("Make him change now (next form)").button("Send him away (until he is called)").button("Skip to dusk").button("Journal").button("§cReset the story").button("Raise a city here (a beach, and a very deep sea)");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled) return;
   switch (r.selection) {
@@ -3412,12 +4150,43 @@ async function openWheel(p, ctl2) {
     case 6:
       await openJournal(p, ctl2);
       break;
+    case 8:
+      await cityForm(p);
+      break;
     case 7:
       if (await confirm(p, "Reset the story", "Forget him, his form, everything he has learned and all the anger on record, as if the pack had just been added. He is removed from the world.")) {
         ctl2.resetStory();
         p.sendMessage("§7[Basiliskra] The story has been reset.");
       }
       break;
+  }
+}
+async function cityForm(p) {
+  if (!canAdmin(p)) {
+    p.sendMessage("§7[Basiliskra] Only an operator can raise a city.");
+    return;
+  }
+  if (p.dimension.id !== OVERWORLD) {
+    p.sendMessage("§7[Basiliskra] Cities stand in the Overworld.");
+    return;
+  }
+  const f = new ActionFormData().title("Raise a city here").body("§7You will be standing on its promenade. §fBehind you§7: streets, towers, houses, people. §fAhead of you§7 (the way you are looking): a beach, and beyond it a sea cut a hundred blocks deep, with things on the bottom.\n§cEverything in that area is replaced§7: about 180 by 160 blocks of city and beach, and 200 by 140 of sea. It takes under a minute.").button("A full city (175 by 119)").button("A small one (91 by 63)").button("Not here");
+  const r = await present(p, () => f.show(p));
+  if (!r || r.canceled || r.selection === void 0 || r.selection > 1) return;
+  let v = { x: 0, y: 0, z: 1 };
+  try {
+    v = p.getViewDirection();
+  } catch {
+  }
+  const dir = Math.abs(v.z) >= Math.abs(v.x) ? v.z >= 0 ? 0 : 2 : v.x < 0 ? 1 : 3;
+  const at2 = { ...p.location };
+  const said = raiseCity(at2, dir, r.selection === 1);
+  p.sendMessage(`§7[Basiliskra] ${said}`);
+  if (/rising/.test(said)) {
+    try {
+      p.teleport({ x: at2.x, y: Math.max(64, Math.min(83, Math.floor(at2.y))) + 1.2, z: at2.z });
+    } catch {
+    }
   }
 }
 function giveStarterItems(p) {
@@ -3431,7 +4200,7 @@ function giveStarterItems(p) {
   if (CONFIG.giveWheel && canAdmin(p)) items.push(WHEEL_ITEM);
   for (const id of items) {
     try {
-      const left = p.getComponent("minecraft:inventory")?.container?.addItem(new ItemStack(id, 1));
+      const left = p.getComponent("minecraft:inventory")?.container?.addItem(new ItemStack2(id, 1));
       if (left) p.dimension.spawnItem(left, p.location);
     } catch {
     }
@@ -3628,90 +4397,6 @@ function cutAll() {
   films = [];
 }
 
-// src/lance.ts
-import { EntityDamageCause as EntityDamageCause4 } from "@minecraft/server";
-var LANCE_ITEM = `${NS}:seam_lance`;
-var CATEGORY = `${NS}_lance`;
-var LANCE = { range: 140, cooldown: 12, damage: 34, head: 1.5, tail: 0.7, other: 9 };
-var firedAt = /* @__PURE__ */ new Map();
-function fireLance(p, targets, now) {
-  if (now - (firedAt.get(p.id) ?? -99) < LANCE.cooldown) return "cooling";
-  firedAt.set(p.id, now);
-  if (firedAt.size > 64) {
-    for (const [k, t] of firedAt) if (now - t > 200) firedAt.delete(k);
-  }
-  try {
-    p.startItemCooldown(CATEGORY, LANCE.cooldown);
-  } catch {
-  }
-  const dim = p.dimension;
-  let from, dir;
-  try {
-    from = p.getHeadLocation();
-    dir = p.getViewDirection();
-  } catch {
-    return "nothing";
-  }
-  let reach = LANCE.range;
-  try {
-    const b = dim.getBlockFromRay(from, dir, { maxDistance: LANCE.range, includeLiquidBlocks: false, includePassableBlocks: false });
-    if (b) reach = Math.max(0.5, Math.hypot(b.block.location.x + 0.5 - from.x, b.block.location.y + 0.5 - from.y, b.block.location.z + 0.5 - from.z) - 0.4);
-  } catch {
-  }
-  let struck = "nothing";
-  let best = null;
-  for (const c of targets) {
-    try {
-      if (!c || !c.valid || c.dim.id !== dim.id) continue;
-      const h = c.rayHit(from, dir, reach);
-      if (h && (!best || h.dist < best.dist)) best = { c, dist: h.dist, tag: h.tag };
-    } catch {
-    }
-  }
-  if (best) {
-    reach = Math.max(0.5, best.dist);
-    const amount = LANCE.damage * (best.tag === "head" ? LANCE.head : best.tag === "tail" ? LANCE.tail : 1);
-    try {
-      best.c.entity.applyDamage(amount, { cause: EntityDamageCause4.entityAttack, damagingEntity: p });
-      struck = "him";
-    } catch {
-    }
-    try {
-      p.playSound("random.orb", { volume: 0.5, pitch: best.tag === "head" ? 1.6 : 1.1 });
-    } catch {
-    }
-  } else {
-    try {
-      for (const r of dim.getEntitiesFromRay(from, dir, { maxDistance: reach })) {
-        const e = r.entity;
-        if (e.id === p.id || e.typeId === "minecraft:item" || e.typeId === TYPE || isHitbox(e.typeId)) continue;
-        reach = Math.max(0.5, r.distance);
-        e.applyDamage(LANCE.other, { cause: EntityDamageCause4.entityAttack, damagingEntity: p });
-        struck = "other";
-        break;
-      }
-    } catch {
-    }
-  }
-  const start = add(from, { x: dir.x * 1.4, y: dir.y * 1.4 - 0.3, z: dir.z * 1.4 });
-  const len2 = Math.max(0.5, reach - 1.4);
-  particle(dim, "basiliskra:beam_core", start, 128, beamVars(dir, len2, 0.26));
-  particle(dim, "basiliskra:beam_halo", start, 128, beamVars(dir, len2, 0.8));
-  const end = add(from, mul(dir, reach));
-  if (struck !== "nothing" || reach < LANCE.range - 1) {
-    particle(dim, "basiliskra:beam_impact", end, 96);
-    particle(dim, "basiliskra:crystal_break", end, 64);
-    sound(dim, "break.amethyst_cluster", end, 48, 0.9, 0.7);
-  }
-  sound(dim, "crossbow.shoot", from, 48, 1, 0.6);
-  sound(dim, "firework.blast", from, 64, 0.7, 1.7);
-  try {
-    p.runCommand("camerashake add @s 0.12 0.1 rotational");
-  } catch {
-  }
-  return struck;
-}
-
 // src/music.ts
 var TRACK = (t) => `basiliskra.music.${t}`;
 var RANGE = { dread: 80, wrath: 128, last: 160 };
@@ -3722,7 +4407,7 @@ var scene = null;
 function sceneTheme(theme, ticks, at2, dim) {
   scene = { theme, until: store.rec.clock + ticks, at: { ...at2 }, dim };
 }
-var FIGHT = /* @__PURE__ */ new Set(["charge", "beam", "remember", "scatter", "lock", "pursue", "arc", "pin", "flinch", "boat"]);
+var FIGHT = /* @__PURE__ */ new Set(["charge", "beam", "remember", "scatter", "lock", "pursue", "raze", "arc", "pin", "flinch", "boat"]);
 var fightUntil = -1;
 function themeFor(c, now, doing, hurtAt) {
   if (scene && now < scene.until) return scene.theme;
@@ -3791,7 +4476,7 @@ function musicStop() {
 }
 
 // src/controller.ts
-import { ItemStack as ItemStack2, system as system5, world as world12 } from "@minecraft/server";
+import { ItemStack as ItemStack3, system as system5, world as world12 } from "@minecraft/server";
 
 // src/ending.ts
 import { EquipmentSlot as EquipmentSlot2 } from "@minecraft/server";
@@ -4168,7 +4853,23 @@ var BrainThree = class extends Brain {
       this.lastQuarry = quarry.id;
       return { name: "pursue", run: this.pursue(quarry), limit: 20 * TICKS.second };
     }
+    const town = settlementNear(c, now);
+    if (town) return { name: "raze", run: this.raze(town), limit: 150 * TICKS.second };
     return { name: "roam", run: this.roam(), limit: 80 * TICKS.second };
+  }
+  /** To a village or a city, and then through it from one side to the other, and again: what he walks through is gone. */
+  *raze(town) {
+    const c = this.c;
+    for (let leg = 0; leg < 4; leg++) {
+      const there = distXZ(c.pos, town) < 60;
+      const a = hash(this.now, leg, 51) * Math.PI * 2, r = there ? 22 + 34 * hash(this.now, leg, 52) : 12 * hash(this.now, leg, 53);
+      const got = yield* this.walk({ x: town.x + Math.cos(a) * r, y: town.y, z: town.z + Math.sin(a) * r }, this.c.form === 4 ? 0.16 : 0.14, 9, 1500);
+      if (!got) break;
+      if (nearbyPlayers(c, 80).length || this.creatures().length) break;
+      if (leg % 2 === 1 && there) c.say("basiliskra.iii.growl", c.anchor("nose"), 96, 1, 0.9);
+    }
+    c.setPhase("idle");
+    yield* wait(30);
   }
   // ---- four footfalls --------------------------------------------------------------------------
   /** Walk, landing one foot every quarter stride: left hind, left fore, right hind, right fore. */
@@ -5641,6 +6342,8 @@ var BrainFour = class extends BrainThree {
     }
     const quarry = near.find((p) => dist(p.location, c.pos) < 110) ?? mobs.sort((x, y) => dist(x.location, c.pos) - dist(y.location, c.pos))[0];
     if (quarry) return { name: "pursue", run: this.pursue(quarry), limit: 20 * TICKS.second };
+    const town = settlementNear(c, now);
+    if (town) return { name: "raze", run: this.raze(town), limit: 150 * TICKS.second };
     return { name: "roam", run: this.roam(), limit: 90 * TICKS.second };
   }
   // ---- two feet, and what is under them -----------------------------------------------------------------
@@ -6400,7 +7103,7 @@ var BrainFour = class extends BrainThree {
 // src/forms/two.ts
 import { world as world11 } from "@minecraft/server";
 var LAMP = /^minecraft:((lit_)?redstone_lamp|(soul_)?lantern|.*copper_lantern|sea_lantern|glowstone|.*copper_bulb|(soul_|redstone_|copper_)?torch|shroomlight|.*froglight)$/;
-var STONE = /^minecraft:(stone|cobblestone|mossy_cobblestone|stone_bricks|andesite|diorite|granite|deepslate|tuff|.*_slab|stone_.*|polished_.*|smooth_stone|gravel)$/;
+var STONE2 = /^minecraft:(stone|cobblestone|mossy_cobblestone|stone_bricks|andesite|diorite|granite|deepslate|tuff|.*_slab|stone_.*|polished_.*|smooth_stone|gravel)$/;
 var BrainTwo = class extends Brain {
   constructor() {
     super(...arguments);
@@ -6525,7 +7228,7 @@ var BrainTwo = class extends Brain {
     const c = this.c;
     const k = c.anchor("knob_core");
     const under = idAt(c.dim, { x: k.x, y: c.pos.y - 0.5, z: k.z }) ?? "";
-    if (!STONE.test(under)) return false;
+    if (!STONE2.test(under)) return false;
     if (this.rec.weather !== "clear") return true;
     for (const [dx, dz] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) if (isWaterId(idAt(c.dim, { x: k.x + dx, y: c.pos.y, z: k.z + dz }))) return true;
     return false;
@@ -6553,6 +7256,10 @@ var BrainTwo = class extends Brain {
           }
         }
       }
+    } else if (settlementNear(c, this.now)) {
+      const town = settlementNear(c, this.now);
+      const a = hash(this.now, 24) * Math.PI * 2;
+      target = { x: town.x + Math.cos(a) * 16, y: town.y, z: town.z + Math.sin(a) * 16 };
     } else {
       const a = hash(this.now, 25) * Math.PI * 2;
       target = { x: c.pos.x + Math.cos(a) * 18, y: c.pos.y, z: c.pos.z + Math.sin(a) * 18 };
@@ -7159,6 +7866,7 @@ var Controller = class {
     store.rec.clock = old.clock;
     store.rec.fallout = old.fallout;
     store.rec.sites = old.sites;
+    store.rec.cities = old.cities;
     store.save();
     store.flush();
     return was;
@@ -7190,9 +7898,10 @@ var Controller = class {
       } catch {
       }
     }
-    const clock = store.rec.clock;
+    const clock = store.rec.clock, cities2 = store.rec.cities;
     store.rec = freshRecord();
     store.rec.clock = clock;
+    store.rec.cities = cities2;
     clearHarm();
     clearFallout();
     store.save();
@@ -7412,6 +8121,7 @@ var Controller = class {
     filmTick();
     falloutTick(now);
     musicTick(this.creature, now, this.brain?.actName ?? "", this.brain?.hurtAt ?? -1);
+    cityTick(now);
     if (this.creature && !this.creature.valid) {
       this.creature.dropParts();
       this.creature = null;
@@ -8009,7 +8719,7 @@ var Controller = class {
   }
   dropFin(dim, at2) {
     try {
-      dim.spawnItem(new ItemStack2(FIN_ITEM, 1), { x: at2.x, y: at2.y + 1, z: at2.z });
+      dim.spawnItem(new ItemStack3(FIN_ITEM, 1), { x: at2.x, y: at2.y + 1, z: at2.z });
       store.rec.learned.fragments++;
       store.rec.learned.fragmentAt = this.now;
       store.touch();
@@ -8383,6 +9093,19 @@ system6.beforeEvents.startup.subscribe((ev) => {
       system6.run(() => {
         if (canAdmin(p)) void openWheel(p, ctl);
         else p.sendMessage("§7[Basiliskra] Only an operator can use the config wheel.");
+      });
+      return { status: CustomCommandStatus.Success };
+    });
+    reg.registerCommand({
+      name: `${NS}:city`,
+      description: "Raise a city where you stand: streets behind you, a beach and a very deep sea ahead.",
+      permissionLevel: CommandPermissionLevel.GameDirectors,
+      cheatsRequired: false
+    }, (origin) => {
+      const p = who(origin);
+      if (!p) return fail("Run this as a player.");
+      system6.run(() => {
+        void cityForm(p);
       });
       return { status: CustomCommandStatus.Success };
     });

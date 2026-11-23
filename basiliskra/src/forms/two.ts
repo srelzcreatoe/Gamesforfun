@@ -3,7 +3,7 @@
  */
 import { Player, system, world } from "@minecraft/server";
 import { CONFIG, PROP, TICKS } from "../config";
-import { Act, anyoneNear, Brain, changeTicks, Choice, isNight, nearbyPlayers, pace, wait, watchersNear } from "../brain";
+import { Act, anyoneNear, Brain, changeTicks, Choice, isNight, nearbyPlayers, pace, wait, watchersNear, settlementNear } from "../brain";
 import { Creature } from "../creature";
 import { particle, sound, witnesses } from "../fx";
 import { GAIT_TICKS } from "../generated/rig";
@@ -162,6 +162,11 @@ export class BrainTwo extends Brain {
           try { w.playSound("basiliskra.scrape_far", { location: c.pos, volume: 0.9 }); } catch { /* gone */ }
         }
       }
+    } else if (settlementNear(c, this.now)) {
+      // nobody about, but people live near: he goes to them
+      const town = settlementNear(c, this.now)!;
+      const a = hash(this.now, 24) * Math.PI * 2;
+      target = { x: town.x + Math.cos(a) * 16, y: town.y, z: town.z + Math.sin(a) * 16 };
     } else {
       const a = hash(this.now, 25) * Math.PI * 2;
       target = { x: c.pos.x + Math.cos(a) * 18, y: c.pos.y, z: c.pos.z + Math.sin(a) * 18 };

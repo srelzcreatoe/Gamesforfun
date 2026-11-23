@@ -177,6 +177,7 @@ export class Sim {
     if (this.onBlock) this.onBlock(Math.floor(x), Math.floor(y), Math.floor(z), id);
   }
   chunkLoaded(dim, p) {
+    if (dim === 'minecraft:overworld' && this.areas) for (const a of this.areas.values()) if (p.x >= a.x0 - 15 && p.x <= a.x1 + 15 && p.z >= a.z0 - 15 && p.z <= a.z1 + 15) return true;
     return this.players.some((pl) => pl.online && pl.dimension.id === dim && Math.max(Math.abs(pl.location.x - p.x), Math.abs(pl.location.z - p.z)) <= CHUNK_RANGE);
   }
 
@@ -332,12 +333,33 @@ class MockBlock {
       return st && st.id === self.typeId ? st.states[k] : (self.typeId.startsWith('basiliskra:') && k === 'basiliskra:was' ? 0 : undefined);
     } };
   }
+  getComponent(id) {
+    if (!/inventory/.test(id) || !/chest|barrel/.test(this.typeId)) return undefined;
+    const key = `inv|${this.x},${this.y},${this.z}`, edits = this.sim.save.edits;
+    if (!edits.has(key)) edits.set(key, {});
+    return { container: { size: 27, setItem: (slot, stack) => { edits.get(key)[slot] = stack ? { typeId: stack.typeId, amount: stack.amount } : undefined; }, getItem: (slot) => edits.get(key)[slot] } };
+  }
   getRedstonePower() { return this.sim.save.edits.get(`power|${this.x},${this.y},${this.z}`) ?? 0; }
 }
 
 class MockDimension {
   constructor(sim, id) { this.sim = sim; this.id = id; this.heightRange = { min: -64, max: 320 }; }
   isChunkLoaded(p) { return this.sim.chunkLoaded(this.id, p); }
+  /** Commands run on a dimension: logged, and the ones the pack relies on are acted out (ticking areas keep ground loaded). */
+  runCommand(c) {
+    this.sim.log.commands.push(c);
+    const add = /^tickingarea add (-?\d+) -?\d+ (-?\d+) (-?\d+) -?\d+ (-?\d+) (\S+)/.exec(c), rem = /^tickingarea remove (\S+)/.exec(c);
+    this.sim.areas ??= new Map();
+    if (add) {
+      if (this.sim.refuseAreas || this.sim.areas.size >= 10) throw new Error('CommandError: ticking area refused');
+      const [x0, z0, x1, z1] = add.slice(1, 5).map(Number);
+      if ((Math.abs(x1 - x0) / 16 + 1) * (Math.abs(z1 - z0) / 16 + 1) > 100) throw new Error('CommandError: a ticking area holds 100 chunks at most');
+      this.sim.areas.set(add[5], { x0: Math.min(x0, x1), x1: Math.max(x0, x1), z0: Math.min(z0, z1), z1: Math.max(z0, z1) });
+    }
+    if (rem) { if (!this.sim.areas.delete(rem[1])) throw new Error('CommandError: no such area'); }
+    return { successCount: 1 };
+  }
+  getBiome(p) { return { id: this.sim.biomeFn ? this.sim.biomeFn(p.x, p.z) : 'minecraft:plains' }; }
   getBlock(p) {
     this.sim.work.blocks++;                       // work counters for test/perf.mjs: calls into the engine, not time
     if (!this.isChunkLoaded(p)) throw new Error('LocationInUnloadedChunkError');
@@ -558,5 +580,6 @@ class MockPlayer {
     if (id === 'minecraft:inventory') return { container: { size: self.inv.length, getItem: (i) => self.inv[i], addItem: (it) => { self.inv.push(it); return undefined; } } };
     return undefined;
   }
+  teleport(loc) { this.loc = { ...loc }; }
   moveTo(loc, dimId) { this.loc = { ...loc }; if (dimId) this.dim = this.sim.dims.get(dimId); }
 }

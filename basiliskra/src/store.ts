@@ -58,6 +58,8 @@ export interface Rec {
    * his broken dorsal plate stands in the ground, how many shots have been fired into it, and whether it is burnt out.
    * `shots`: beams fired as IV.
    */
+  /** Cities the script has raised (see city.ts): where, which way their sea lies, and whether they are finished. */
+  cities?: { x: number; y: number; z: number; dir: 0 | 1 | 2 | 3; small?: boolean; done: boolean; t: number }[];
   four?: { debut: boolean; shots: number; plate: { x: number; y: number; z: number; uses: number; burnt: boolean } | null };
   learned: {
     bell: V3 | null; bellUses: number; lures: number; lureUntil: number; echoes: Record<string, number>;

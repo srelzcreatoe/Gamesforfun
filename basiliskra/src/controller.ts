@@ -20,6 +20,7 @@ import { cutAll, film, filmTick } from "./scene";
 import { RIGS } from "./generated/rig";
 import { clearHarm, type Trigger } from "./harm";
 import { addFallout, clearFallout, falloutTick } from "./fallout";
+import { cityTick } from "./city";
 import { musicStop, musicTick, sceneTheme } from "./music";
 import { freshRecord, newToken, store } from "./store";
 import { add, dist, distXZ, dot, forwardOf, hash, mul, norm, sub, wrapDeg, yawTo, type V3 } from "./vec";
@@ -304,6 +305,7 @@ export class Controller {
     store.rec.clock = old.clock;
     store.rec.fallout = old.fallout;
     store.rec.sites = old.sites;
+    store.rec.cities = old.cities;
     store.save();
     store.flush();
     return was;
@@ -328,9 +330,10 @@ export class Controller {
     this.creature = null; this.brain = null; this.runner = null;
     this.ending.reset();
     if (c) { c.dropParts(); try { c.entity.setProperty(PROP.bound, false); c.entity.remove(); } catch { /* gone */ } }
-    const clock = store.rec.clock;
+    const clock = store.rec.clock, cities = store.rec.cities;
     store.rec = freshRecord();
     store.rec.clock = clock;
+    store.rec.cities = cities;                              // (they are in the world, whatever the story forgets)
     clearHarm();
     clearFallout();
     store.save();
@@ -495,6 +498,7 @@ export class Controller {
     filmTick();
     falloutTick(now);
     musicTick(this.creature, now, this.brain?.actName ?? "", this.brain?.hurtAt ?? -1);
+    cityTick(now);
     if (this.creature && !this.creature.valid) { this.creature.dropParts(); this.creature = null; this.brain = null; this.runner = null; }
     if (now % 20 === 0) this.sweep();
     switch (rec.stage) {

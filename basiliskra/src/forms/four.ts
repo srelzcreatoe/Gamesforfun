@@ -23,7 +23,7 @@
  */
 import { Entity, EntityDamageCause, Player, world } from "@minecraft/server";
 import { BeamSpec, BeamState, beamTick, clearRange } from "../beam";
-import { Act, Choice, anyoneNear, nearbyPlayers, wait, watchersNear } from "../brain";
+import { Act, Choice, anyoneNear, nearbyPlayers, settlementNear, wait, watchersNear } from "../brain";
 import { CONFIG, CRYSTAL_BLOCK, PROP, SLAG_COLD_BLOCK, TICKS, TRINITITE_BLOCK } from "../config";
 import { targetable } from "../creature";
 import { addFallout, glassify } from "../fallout";
@@ -119,6 +119,8 @@ export class BrainFour extends BrainThree {
     // he walks at what lives; with nothing in sight, across the world
     const quarry: Quarry | undefined = near.find((p) => dist(p.location, c.pos) < 110) ?? mobs.sort((x, y) => dist(x.location, c.pos) - dist(y.location, c.pos))[0];
     if (quarry) return { name: "pursue", run: this.pursue(quarry), limit: 20 * TICKS.second };
+    const town = settlementNear(c, now);
+    if (town) return { name: "raze", run: this.raze(town), limit: 150 * TICKS.second };
     return { name: "roam", run: this.roam(), limit: 90 * TICKS.second };
   }
 
