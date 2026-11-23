@@ -274,7 +274,7 @@ What lies under the pizzeria (`docs/GOLDEN_DOG.md`, `packs/BP/scripts/data/cella
 | `cellar_concrete`, `cellar_puddle` | full cubes | damp poured concrete; the puddle is in the block itself (glossy in Vibrant Visuals), so nothing lies in the aisle |
 | `ghost_light` | `fnar:lit` (light 12, warm point light); 23 px tall | a theatre's ghost light: one bare caged bulb on a tall stand, left burning on the dark stage beside the Golden Dog's spot. Built lit (`meta.fixtures`) |
 | `bare_bulb` | `fnar:lit` (light 11, warm point light) | a bare bulb on a flex from the top of the cell: the cellar's day lamps (`meta.hanging`, group `cellar`) |
-| `cellar_pipes` | `fnar:kind` 0 a lagged steam pipe and a copper pipe under the ceiling (along the facing's axis), 1 the pair rising up a wall with a red hand wheel; facing | the boiler's pipes; in the Long Hall they run in a chase in each wall |
+| `cellar_pipes` | `fnar:kind` 0 a lagged steam pipe and a copper pipe under the ceiling (along the facing's axis), 1 the pair rising up a wall with a red hand wheel, 2 the riser's plain lengths; facing | the boiler's pipes; in the Long Hall they run in a chase in each wall |
 | `dead_button` | `fnar:kind` 0 the door's (a cracked red cap), 1 the light's (an empty socket); facing (wall mounted) | the Other Office's buttons: rusted plates, a wire hanging out. No `fnar:control`: they do nothing |
 | `dead_monitor` | `fnar:kind` 0 its carcass flat on the desk, the tube smashed in (4 px tall), 1 a dead set upright; facing | the Other Office's monitors. No `fnar:control` |
 | `club_table` | none | a round supper table under a grey, stained cloth hanging in rags, a dead candle lamp |

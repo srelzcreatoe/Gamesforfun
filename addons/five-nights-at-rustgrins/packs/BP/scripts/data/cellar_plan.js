@@ -113,6 +113,12 @@ function dayLamp(p, x, y, z, key = 'bare_off') {
   p.meta.hanging.push({ x, y, z, group: 'cellar' });
 }
 
+/** A pipe riser up a wall from the floor to the ceiling, its hand wheel at chest height. `dir`: the way it faces. */
+function riser(p, x, z, dir) {
+  p.fill(x, STAND, z, x, TOP, z, `pipes_plain_${dir}`);
+  p.set(x, STAND + 1, z, `pipes_riser_${dir}`);
+}
+
 /** A club table with chairs round it: `chairs` lists the sides (n/s/w/e) and whether the chair there has fallen. */
 function tableSet(p, x, y, z, chairs) {
   const side = { n: [0, -1, 's'], s: [0, 1, 'n'], w: [-1, 0, 'e'], e: [1, 0, 'w'] };
@@ -256,7 +262,7 @@ function goldRoom(p) {
     else p.set(x, STAND, edge, 'fence_dark');
   }
   p.picture('poster_golden_dog', 32, STAND + 3, GZ2, 'n', 2, 3); // his show poster, by the south door
-  p.set(39, STAND + 3, GZ2, 'sconce_false_n'); // dead
+  dayLamp(p, 39, STAND + 3, GZ2, 'sconce_false_n'); // the lamp by the south door still works, by day
   // a step up onto the runway from each side of the pit
   p.set(AISLE.x1 - 1, pit, 27, 'dark_oak_stairs_e');
   p.set(AISLE.x2 + 1, pit, 27, 'dark_oak_stairs_w');
@@ -321,7 +327,7 @@ function passages(p) {
   const R = CELLAR_PLAN.rooms;
   // ---- the east passage: the boiler's pipes along its east wall, casks by the corner
   for (let z = 40; z <= 47; z++) p.set(46, TOP, z, 'pipes_run_n');
-  p.fill(46, STAND, 50, 46, TOP, 50, 'pipes_riser_w');
+  riser(p, 46, 50, 'w');
   p.set(44, STAND, 56, 'barrel_e');
   p.set(44, STAND + 1, 56, 'barrel_e');
   p.set(44, STAND, 55, 'barrel_n');
@@ -353,7 +359,7 @@ function passages(p) {
   p.fill(fx1, FLOOR, fz1, fx2, FLOOR, fz2, 'flood');
   p.set(27, FLOOR, 68, 'barrel_n');
   p.set(29, FLOOR, 70, 'barrel_e');
-  p.fill(fx1, STAND, fz2, fx1, TOP, fz2, 'pipes_riser_n');
+  riser(p, fx1, fz2, 'n');
   p.set(fx2, TOP, fz2, 'cobweb');
   p.set(fx1, TOP, 58, 'cobweb');
   dayLamp(p, 30, TOP, 62); // by the left window
@@ -362,15 +368,16 @@ function passages(p) {
 // ---------------------------------------------------------------- the boiler room
 function boilerRoom(p) {
   const [x1, z1, x2, z2] = CELLAR_PLAN.rooms.BOILER;
-  // the boiler: a riveted copper drum three blocks each way, its fire door facing the room, a flue to the ceiling
-  p.fill(53, STAND, 45, 55, STAND + 2, 47, 'copper_old');
-  p.fill(53, STAND + 2, 45, 55, STAND + 2, 47, 'copper_green');
+  // the boiler: a black iron drum three blocks each way on a brick footing, its fire door facing the room under
+  // a green copper plate, a flue to the ceiling
+  p.fill(53, STAND, 45, 55, STAND, 47, 'blackstone_bricks');
+  p.fill(53, STAND + 1, 45, 55, STAND + 2, 47, 'blackstone');
   p.set(54, STAND, 47, 'blast_s');
-  p.set(54, STAND + 1, 47, 'iron_block');
+  p.set(54, STAND + 1, 47, 'copper_green');
   p.fill(54, STAND + 3, 46, 54, TOP, 46, 'lamp_post');
   p.set(53, STAND + 1, 48, 'deadbtn_light_s'); // a dead gauge
   // pipes: up the north wall either side of it, and away under the ceiling towards the door
-  for (const x of [52, 56]) p.fill(x, STAND, z1, x, TOP, z1, 'pipes_riser_s');
+  for (const x of [52, 56]) riser(p, x, z1, 's');
   for (let x = x1; x <= 51; x++) p.set(x, TOP, 46, 'pipes_run_e');
   // the coal: a heap in the south-east corner behind a board
   p.fill(x2 - 1, STAND, z2 - 1, x2, STAND, z2, 'coal');
@@ -382,7 +389,7 @@ function boilerRoom(p) {
   p.set(x1 + 2, STAND, z2, 'barrel_n');
   p.set(x1 + 3, STAND, z2, 'barrel_n');
   p.set(x1 + 2, STAND + 1, z2, 'barrel_n');
-  p.set(x2, STAND, z1 + 5, 'cauldron');
+  p.set(x2, STAND, z1 + 5, 'barrel_w'); // the water butt
   p.set(x2, STAND, z1 + 6, 'clubchair_false_w');
   for (const [x, z] of [[x1, z1], [x2, z2], [x2, z1 + 4]]) p.set(x, TOP, z, 'cobweb');
   dayLamp(p, x1 + 2, TOP, z1 + 6);
@@ -532,7 +539,7 @@ function oldKey(key, rng, at) {
     trim: at.alongZ ? 'stripped_dark_oak_z' : 'stripped_dark_oak_x',
     lamp_office: 'lamp_off', lamp_on: 'lamp_off', vent_closed: 'vent_open',
     stripped_dark_oak_x: 'dark_oak_log_x', int_core: at.y < 0 ? 'dark_oak' : 'brick',
-    fan_s: 'clutter_s', plush_s: 'air', walter_desk_s: 'air', walter_flashlight_w: 'air',
+    fan_s: 'bottles_bar_s', plush_s: 'air', // where the fan stands upstairs: the night man's bottle and glasses walter_desk_s: 'air', walter_flashlight_w: 'air',
     ceiling_missing: 'plaster_old_stained', crt_true_s: 'deadcrt_flat_s', crt_false_s: 'deadcrt_up_s',
   }[key];
   if (direct) return direct;

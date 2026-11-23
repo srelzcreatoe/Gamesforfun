@@ -211,7 +211,7 @@ export const PALETTE = Object.freeze({
   tile_office_old: F('old_office_tile'), concrete: F('cellar_concrete'), concrete_puddle: F('cellar_puddle'),
   ghost_on: F('ghost_light', { 'fnar:lit': true }), ghost_off: F('ghost_light', { 'fnar:lit': false }), // the stage's ghost light
   bare_on: F('bare_bulb', { 'fnar:lit': true }), bare_off: F('bare_bulb', { 'fnar:lit': false }),
-  ...named('pipes', 'cellar_pipes', 'fnar:kind', ['run', 'riser']),
+  ...named('pipes', 'cellar_pipes', 'fnar:kind', ['run', 'riser', 'plain']),
   ...named('deadbtn', 'dead_button', 'fnar:kind', ['door', 'light']), // the Other Office's controls: wrecks, not controls
   ...named('deadcrt', 'dead_monitor', 'fnar:kind', ['flat', 'up']),
   club_table: F('club_table'), ...cardStates('clubchair', 'club_chair', 'fnar:fallen', [false, true]),

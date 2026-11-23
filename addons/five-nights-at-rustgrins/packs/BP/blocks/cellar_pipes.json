@@ -9,7 +9,8 @@
       "states": {
         "fnar:kind": [
           0,
-          1
+          1,
+          2
         ]
       },
       "traits": {
@@ -66,6 +67,24 @@
               11,
               16,
               5.5
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:kind') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.fnar.cellar_pipes_plain",
+          "minecraft:selection_box": {
+            "origin": [
+              -5.5,
+              0,
+              4
+            ],
+            "size": [
+              11,
+              16,
+              4
             ]
           }
         }

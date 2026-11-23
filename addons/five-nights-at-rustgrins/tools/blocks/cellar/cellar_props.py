@@ -82,7 +82,8 @@ def bare_bulb(out):
 @prop
 def cellar_pipes(out):
     """fnar:kind 0: a lagged steam pipe and a copper pipe running under the ceiling (along the facing's axis);
-    1: the same pair rising up a wall (back at z = +8), a red hand wheel on the copper one."""
+    1: the same pair rising up a wall (back at z = +8), a red hand wheel on the copper one; 2: the riser
+    without the wheel (the rest of the column)."""
     g = Geo('cellar_pipes', 64, 64)
 
     def lagging(r):
@@ -131,12 +132,20 @@ def cellar_pipes(out):
     g.box('riser', (0.5, 8, 4.5), (3.5, 11, 7.5), {'*': Face(iron(3), 'valve')})
     g.box('riser', (1.5, 9, 3), (2.5, 10, 4.5), {'sides': Face(iron(4), 'stem')})
     g.box('riser', (-0.5, 7, 2.5), (4.5, 12, 3), {'north': Face(wheel, 'wheel'), 'south': Face(wheel, 'wheel')})
-    out.geo(g, {'geometry.fnar.cellar_pipes': (['run'], (0, 0, 0)), 'geometry.fnar.cellar_pipes_riser': (['riser'], (0, 0, 0))})
+    # ---- kind 2: the riser's plain lengths
+    g.bone('plain')
+    g.box('plain', (-5, 0, 4), (-2, 16, 7), {'north': Face(lagging, 'rlag'), 'east': Face(lagging, 'rlag'), 'west': Face(lagging, 'rlag')})
+    g.box('plain', (1, 0, 5), (3, 16, 7), {'north': Face(copper, 'rcu'), 'east': Face(copper, 'rcu'), 'west': Face(copper, 'rcu')})
+    g.box('plain', (0.5, 12, 4.5), (3.5, 13, 7.5), {'*': Face(iron(2), 'collar')})
+    out.geo(g, {'geometry.fnar.cellar_pipes': (['run'], (0, 0, 0)), 'geometry.fnar.cellar_pipes_riser': (['riser'], (0, 0, 0)),
+                'geometry.fnar.cellar_pipes_plain': (['plain'], (0, 0, 0))})
     out.tex('cellar_pipes', g.paint())
     blk = block_json('cellar_pipes', geometry='geometry.fnar.cellar_pipes', materials=mi_set('cellar_pipes'),
-                     states={'fnar:kind': [0, 1]}, collision=False, selection=box(-5.5, 10.5, -8, 5.5, 16, 8), map_color='#3f362e', destroy=1.5,
+                     states={'fnar:kind': [0, 1, 2]}, collision=False, selection=box(-5.5, 10.5, -8, 5.5, 16, 8), map_color='#3f362e', destroy=1.5,
                      perms=[(bs('fnar:kind', 1), {'minecraft:geometry': 'geometry.fnar.cellar_pipes_riser',
-                                                  'minecraft:selection_box': box(-5.5, 0, 2.5, 5.5, 16, 8)})])
+                                                  'minecraft:selection_box': box(-5.5, 0, 2.5, 5.5, 16, 8)}),
+                            (bs('fnar:kind', 2), {'minecraft:geometry': 'geometry.fnar.cellar_pipes_plain',
+                                                  'minecraft:selection_box': box(-5.5, 0, 4, 5.5, 16, 8)})])
     out.block('cellar_pipes', blk)
 
 
