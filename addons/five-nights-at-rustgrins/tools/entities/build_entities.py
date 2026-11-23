@@ -552,10 +552,12 @@ def presolve(models):
     import multiprocessing
     print(f'solving stoop / lean / wave / bow for {", ".join(missing)} (in parallel: this takes a few minutes)', flush=True)
     with multiprocessing.Pool(min(len(missing), max(1, (os.cpu_count() or 2)))) as pool:
-        done = pool.map(_solve, missing, chunksize=1)
-    cache = new_anims._load_cache()
-    cache.update(dict(done))
-    new_anims._save_cache(cache)
+        # each result goes into the cache as it arrives, so an interrupted build keeps what it has solved
+        for cid, entry in pool.imap_unordered(_solve, missing, chunksize=1):
+            cache = new_anims._load_cache()
+            cache[cid] = entry
+            new_anims._save_cache(cache)
+            print(f'   {cid}: solved', flush=True)
 
 
 def main():
