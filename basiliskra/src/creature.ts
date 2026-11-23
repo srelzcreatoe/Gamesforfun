@@ -206,19 +206,40 @@ export class Creature {
   // ---- skeleton -----------------------------------------------------------------------------
   private pose(): PoseAdd {
     // the client only ever sees whole degrees: pose the server skeleton from the same numbers
+    const b = this.breathPose();
     return poseOf(this.form, {
       lookYaw: Math.round(this.lookYaw), lookPitch: Math.round(this.lookPitch), bend: Math.round(this.bend), pitch: Math.round(this.pitch),
-      charge: this.phase === "charge" || this.phase === "fire" ? 1 : 0, drink: this.phase === "drink" ? 1 : 0,
+      charge: b.charge, drink: this.phase === "drink" ? 1 : 0,
       window: this.phase === "window" || this.phase === "stalk" ? 1 : 0,
       wings: WINGS[this.phase] ?? 0, plant: PLANTED.has(this.phase) ? 1 : 0, pivot: this.phase === "pivot" ? 1 : 0,
+      jaw: b.jaw, lean: b.lean, chest: b.chest,
     });
+  }
+  /**
+   * What the client animation adds to his jaw, chest and body in the phases of a breath, once it has settled (the
+   * same numbers as tools/kit/gen_client.py): the mouth the beam leaves by must be where it is drawn.
+   */
+  private breathPose(): { charge: number; jaw: number; lean: number; chest: number; body: number[] } {
+    const ph = this.phase, f = this.form;
+    const charging = ph === "charge" || ph === "fire" || (f === 4 && (ph === "skid" || ph === "pivot"));
+    const firing = ph === "fire" || (f === 4 && (ph === "skid" || ph === "pivot"));
+    const skid = f === 4 && (ph === "skid" || ph === "pivot");
+    if (f === 3) {
+      return { charge: charging ? 1 : 0, jaw: (charging ? this.charge * 0.9 : 0) + (firing ? 16 : 0) + (ph === "vent" ? 6 : 0) + (ph === "grounded" ? 8 : 0),
+               lean: 0, chest: firing ? -1.5 : 0, body: [0, charging ? -3 : 0, 0] };
+    }
+    if (f === 4) {
+      return { charge: charging ? 1 : 0, jaw: (charging ? this.charge * 0.8 : 0) + (firing ? 14 : 0) + (ph === "vent" ? 6 : 0) + (ph === "grounded" ? 8 : 0) + (ph === "recoil" ? 24 : 0),
+               lean: skid ? -6 : 0, chest: firing ? -2 : 0, body: [0, (charging ? -4 : 0) + (skid ? -5 : 0), skid ? 5 : 0] };
+    }
+    return { charge: 0, jaw: 0, lean: 0, chest: 0, body: [0, 0, 0] };
   }
   /** How much larger than modelled he is drawn. */
   get scale(): number { return drawScale(this.form); }
   skeleton(): Skeleton {
     // (a skeleton built for the animal he was is no use for the animal he has just become)
     if (this.skel && this.skelForm !== this.form) this.skel = null;
-    if (!this.skel) { this.skel = new Skeleton(this.form, this.pose(), this.phase === "window" || this.phase === "stalk" ? 1 : 0); this.skelForm = this.form; }
+    if (!this.skel) { this.skel = new Skeleton(this.form, this.pose(), this.phase === "window" || this.phase === "stalk" ? 1 : 0, this.breathPose().body); this.skelForm = this.form; }
     return this.skel;
   }
   private skelForm: Form = 1;
@@ -234,10 +255,27 @@ export class Creature {
     return [-stance / 2 + stance * su * su * (3 - 2 * su), lift * Math.sin(Math.PI * su) * (this.phase === "move" || this.phase === "stalk" || this.phase === "carry" ? 1 : 0)];
   }
   get forward(): V3 { return forwardOf(this.yaw); }
-  /** Where the head is pointing: from the throat through the muzzle. */
+  /**
+   * Where his breath leaves him, and the way his head points (from the throat through the muzzle).  It leaves by the
+   * middle of the open mouth: half way between the line of his upper jaw (the mouth locator as it is with the jaw
+   * shut) and the dropped lower jaw (the same locator as the jaw is drawn).
+   */
   aim(): { from: V3; dir: V3 } {
-    const from = this.anchor("mouth");
-    return { from, dir: norm(sub(this.anchor("muzzle"), this.anchor("throat"))) };
+    const dir = norm(sub(this.anchor("muzzle"), this.anchor("throat")));
+    const loc = RIGS[this.form].locators.mouth;
+    if (!loc || loc.bone !== "jaw") return { from: this.anchor("mouth"), dir };
+    const sk = this.skeleton();
+    const open = sk.point("jaw", loc.pos), shut = sk.restPoint("jaw", loc.pos);
+    const mid = [(open[0] + shut[0]) / 2, (open[1] + shut[1]) / 2, (open[2] + shut[2]) / 2];
+    return { from: toWorld(this.pos, this.yaw, mid, this.scale), dir };
+  }
+  /** How wide his mouth stands open, in blocks (the breath is drawn to fill it). */
+  mouthGap(): number {
+    const loc = RIGS[this.form].locators.mouth;
+    if (!loc || loc.bone !== "jaw") return 0;
+    const sk = this.skeleton();
+    const a = sk.point("jaw", loc.pos), b = sk.restPoint("jaw", loc.pos);
+    return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) * this.scale / 16;
   }
 
   /** Turn the head (not the feet) towards a point; returns how far off the limit it is. */
@@ -252,6 +290,22 @@ export class Creature {
     return Math.abs(want) - maxYaw;
   }
   lookAhead(): void { this.lookYaw = 0; this.lookPitch = 0; }
+
+  /**
+   * Turn the head toward a point, but no faster than `rate` degrees a tick on each axis (what is aimed at moves; a
+   * head this size does not snap round).  The muzzle is pointed as aimAt points it; if the neck cannot reach, the
+   * feet shuffle round.  Returns the error left, in degrees.
+   */
+  trackTo(target: V3, rate: number, maxYaw = 80, maxPitch = 80): number {
+    const y0 = this.lookYaw, p0 = this.lookPitch;
+    const reach = this.aimAt(target, maxYaw, maxPitch);
+    const wantY = this.lookYaw, wantP = this.lookPitch;
+    this.lookYaw = y0 + clamp(wantY - y0, -rate, rate);
+    this.lookPitch = p0 + clamp(wantP - p0, -rate, rate);
+    this.skel = null;
+    if (reach > 0) this.yaw = turnTowards(this.yaw, yawTo(this.pos, target), Math.min(1.2, rate * 0.5));
+    return Math.hypot(wantY - this.lookYaw, wantP - this.lookPitch);
+  }
 
   /**
    * Point the muzzle itself at a target: look, measure where the skeleton actually aims in its
@@ -396,12 +450,12 @@ export class Creature {
       if (this.tick - this.crushAt < 5 || this.speed < 0.01) return;
       this.crushAt = this.tick;
       const rock = this.afloat || this.inDeep() ? null : step;
-      const broke = ploughBox(this.dim, this.pos, this.forward, b.front - 3, Math.ceil(r) + 1, 56, 7, rock);
+      const broke = ploughBox(this.dim, this.pos, this.forward, b.front - 3, Math.ceil(r) + 3, 56, 7, rock);
       // (if the engine will not empty a box for us, the old way: block by block, within a budget, as high as it reaches)
       if (broke < 0) { crush(this.dim, this.pos, this.forward, b.front - 2, Math.ceil(r) + 1, 0, 26, 5, 220, rock, this.tick - this.crushSoundAt >= 14); return; }
       if (broke > 12 && this.tick - this.crushSoundAt >= 14) { this.crushSoundAt = this.tick; ploughNoise(this.dim, add(this.pos, mul(this.forward, b.front)), broke); }
       // and whatever stood higher than he does on what he walked through comes down with it
-      if (broke > 0) ploughBox(this.dim, { x: this.pos.x, y: this.pos.y + 57, z: this.pos.z }, this.forward, b.front - 3, Math.ceil(r) + 1, 50, 7, null);
+      if (broke > 0) ploughBox(this.dim, { x: this.pos.x, y: this.pos.y + 57, z: this.pos.z }, this.forward, b.front - 3, Math.ceil(r) + 3, 50, 7, null);
       return;
     }
     const top = Math.round(9.6 * this.scale);
@@ -419,15 +473,42 @@ export class Creature {
     this.crushAt = this.tick;
     const loud = this.tick - this.crushSoundAt >= 14;
     // (swimming or wading, where he "stands" is not the ground: the shore ahead is something to climb, not to cut)
-    const broke = crush(this.dim, this.pos, this.forward, b.front - 2, Math.ceil(r) + 1, 0, top, 5, 170, this.afloat || this.inDeep() ? null : step, loud);
+    const broke = crush(this.dim, this.pos, this.forward, b.front - 2, Math.ceil(r) + 2, 0, top, 6, 260, this.afloat || this.inDeep() ? null : step, loud);
     if (broke) {
       this.speed *= 0.8; if (loud) this.crushSoundAt = this.tick;      // it costs him a little
       // what stood on what he has just walked through comes down with it: a tower cut at the knees does not hang in the air
       // (anything built or grown above the slab, as high as towers go; the world's own rock stays)
-      ploughBox(this.dim, { x: this.pos.x, y: this.pos.y + top + 1, z: this.pos.z }, this.forward, b.front - 2, Math.ceil(r) + 1, 70, 5, null);
+      ploughBox(this.dim, { x: this.pos.x, y: this.pos.y + top + 1, z: this.pos.z }, this.forward, b.front - 2, Math.ceil(r) + 2, 70, 6, null);
     }
   }
   private crushSoundAt = -99;
+
+  /**
+   * A footfall's shock rolling out ahead of him: a band wider than he is, sweeping forward two blocks a tick from his
+   * shoulders, and everything built or grown in it goes (never the ground itself).  `reach`: how far it rolls;
+   * `extra`: how much wider than his body; `top`: how high it reaches.  In the destructive setting only.
+   */
+  stompWave(reach: number, extra: number, top: number): void {
+    if (!this.smashing() || this.afloat || this.inDeep()) return;
+    const front = BODY[this.form as Walker].front;
+    this.waves.push({ pos: { ...this.pos }, fwd: this.forward, d: front - 1, end: front + reach, half: Math.ceil(MOVE[this.form].radius) + extra, top });
+    if (this.waves.length > 3) this.waves.shift();
+  }
+  private waves: { pos: V3; fwd: V3; d: number; end: number; half: number; top: number }[] = [];
+  private waveTick(): void {
+    for (let i = this.waves.length - 1; i >= 0; i--) {
+      const w = this.waves[i];
+      const n = ploughBox(this.dim, w.pos, w.fwd, w.d, w.half, w.top, 2, null);
+      if (n > 8) {
+        const at = add(w.pos, mul(w.fwd, w.d + 1));
+        particle(this.dim, "basiliskra:impact_debris", { x: at.x, y: at.y + 2, z: at.z }, 96);
+        particle(this.dim, "basiliskra:step_dust", { x: at.x, y: at.y + 0.5, z: at.z }, 96);
+        if (n > 30 && this.tick - this.crushSoundAt >= 6) { this.crushSoundAt = this.tick; ploughNoise(this.dim, at, n); }
+      }
+      w.d += 2;
+      if (n < 0 || w.d >= w.end) this.waves.splice(i, 1);
+    }
+  }
 
   /** Water deeper than this form wades: Form II drags through shallows, Form III stands belly-deep. */
   private tooDeep(at: V3, floorY: number): boolean {
@@ -755,6 +836,7 @@ export class Creature {
     this.set(PROP.pitch, Math.round(this.pitch));
     this.skel = null;
     if (this.tick % 2 === 0) { this.syncParts(); this.pushPlayers(); }
+    if (this.waves.length) this.waveTick();
     return moved;
   }
   /** Curl held while not moving (sleeping at the seam). */
@@ -812,6 +894,25 @@ export const giants = new Map<string, Creature>();
 export function giantOf(e: Entity | undefined): Creature | null {
   try { if (!e) return null; const g = giants.get(e.id); return g && g.valid ? g : null; } catch { return null; }
 }
+/**
+ * Giants are solid to each other: two whose trunks overlap are eased apart (each half the overlap, onto ground it
+ * can stand on).  Once a tick, from the controller.
+ */
+export function separateGiants(): void {
+  const all = [...giants.values()].filter((g) => g.valid && g.form >= 2);
+  for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
+    const a = all[i], b = all[j];
+    if (a.dim.id !== b.dim.id) continue;
+    const dx = b.pos.x - a.pos.x, dz = b.pos.z - a.pos.z, d = Math.hypot(dx, dz);
+    const min = (a.girth + b.girth) * 0.75;
+    if (d >= min) continue;
+    const away = d > 0.01 ? { x: dx / d, y: 0, z: dz / d } : { x: 1, y: 0, z: 0 };
+    const push = (min - d) / 2 + 0.1;
+    b.shove(away, push);
+    a.shove({ x: -away.x, y: 0, z: -away.z }, push);
+  }
+}
+
 /** The giants in his world other than himself. */
 export function otherGiants(c: Creature): Creature[] {
   const out: Creature[] = [];

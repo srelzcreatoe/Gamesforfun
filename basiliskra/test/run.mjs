@@ -1535,7 +1535,8 @@ console.log('\n== 19. Basiliskra IV');
     check('he fires into it, and it throws the beam at them', hurtOf(w, p) > h0 && w.bk.store.rec.four.plate.uses === 1, `${hurtOf(w, p) - h0} damage under the roof`);
     for (let k = 0; k < 2; k++) { for (let i = 0; i < 200; i++) w.sim.step(1); force(w, 'beam', b.plateShot(p)); until(w, () => phaseOf(w) === PH.fire, 400); for (let i = 0; i < 130; i++) w.sim.step(1); }
     let black = 0; for (let dx = -1; dx <= 1; dx++) for (let dy = 0; dy <= 4; dy++) if (id(P4.x + dx, P4.y + dy, P4.z) === 'basiliskra:cooled_slag') black++;
-    check('after three such shots it is burnt out, and stays, blackened', w.bk.store.rec.four.plate.burnt === true && black >= 6 && b.plateSees(p) === false, `${black} blocks blackened`);
+    const plateNow = []; for (let dx = -1; dx <= 1; dx++) for (let dy = 0; dy <= 4; dy++) plateNow.push(id(P4.x + dx, P4.y + dy, P4.z).replace(/^(minecraft|basiliskra):/, ''));
+    check('after three such shots it is burnt out, and stays, blackened', w.bk.store.rec.four.plate.burnt === true && black >= 6 && b.plateSees(p) === false, `${black} blocks blackened: ${plateNow.join(' ')}`);
     w.bk.ctl.sendAway();
   }
 
@@ -1890,7 +1891,7 @@ console.log('\n== 22. The Titan');
     const da = dmg(ida), db = dmg(idb);
     seen.beam = eyes[0].heard.filter((q) => q.id === 'basiliskra.iii.beam').length;
     check('two Titans go for each other', acts.has('lock') && (acts.has('beam') || acts.has('ram') || acts.has('pursue')), [...acts].join(' '));
-    check('with their breath: each burns the other, thirty at a time', seen.beam >= 2 && da.includes(30) && db.includes(30), `${seen.beam} beams`);
+    check('with their breath: each burns the other, fifteen at a time (half of what it does to anything smaller)', seen.beam >= 2 && da.includes(15) && db.includes(15), `${seen.beam} beams`);
     check('and with their bodies: jaws and claws, the tail, the whole weight', seen.bite && da.concat(db).includes(85) && seen.sweep && da.concat(db).includes(130) && acts.has('ram') && acts.has('circle'), `closest ${seen.close.toFixed(0)}; acts ${[...acts].join(' ')}`);
     check('a heavy blow staggers the one it lands on', seen.recoil && acts.has('reel'));
     check('they stand off at arm\'s length: neither walks through the other', seen.close > 12, `${seen.close.toFixed(1)} blocks between their middles at the nearest`);
@@ -1918,7 +1919,7 @@ console.log('\n== 22. The Titan');
       if (!w.bk.ctl.creature || w.bk.store.rec.ending?.step || w.bk.store.rec.stage !== 'alive') away = i + 1;
     }
     const onHim = w.sim.log.damage.filter((d) => d.id === hid), onIt = w.sim.log.damage.filter((d) => d.id === tid);
-    check('a Titan goes for Basiliskra himself, and he answers it', onHim.length > 0 && fought && onIt.some((d) => d.amount === 11), `${onHim.length} blows on him, ${onIt.length} on the Titan`);
+    check('a Titan goes for Basiliskra himself, and he answers it', onHim.length > 0 && fought && onIt.some((d) => d.amount === 5.5), `${onHim.length} blows on him, ${onIt.length} on the Titan`);
     check('it is much the stronger: he is the one driven off, and it is barely marked', away > 0 && healthOf(t) > 3000 && w.sim.count(TYPE) <= 1, `after ${away} ticks; the Titan at ${Math.round(healthOf(t))}`);
     check('he is never killed by it', !w.sim.log.damage.some((d) => d.id === hid && d.amount >= 600) && w.bk.store.rec.stage !== 'dormant');
   }

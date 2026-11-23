@@ -5,7 +5,7 @@
    "identifier": "basiliskra:beam_ring",
    "basic_render_parameters": {
     "material": "particles_add",
-    "texture": "textures/particle/basiliskra_particles"
+    "texture": "textures/particle/basiliskra_beam"
    }
   },
   "components": {
@@ -29,25 +29,25 @@
    "minecraft:particle_motion_dynamic": {},
    "minecraft:particle_appearance_billboard": {
     "size": [
-     "v.width * (0.9 + 1.6 * v.particle_age / v.particle_lifetime)",
-     "v.width * (0.9 + 1.6 * v.particle_age / v.particle_lifetime)"
+     "v.width * (0.75 + 1.3 * v.particle_age / v.particle_lifetime)",
+     "v.width * (0.75 + 1.3 * v.particle_age / v.particle_lifetime)"
     ],
     "facing_camera_mode": "direction_z",
-    "uv": {
-     "texture_width": 64,
-     "texture_height": 64,
-     "uv": [
-      0,
-      48
-     ],
-     "uv_size": [
-      16,
-      16
-     ]
-    },
     "direction": {
      "mode": "derive_from_velocity",
      "min_speed_threshold": 0.001
+    },
+    "uv": {
+     "texture_width": 192,
+     "texture_height": 128,
+     "uv": [
+      160,
+      48
+     ],
+     "uv_size": [
+      32,
+      32
+     ]
     }
    },
    "minecraft:particle_appearance_tinting": {

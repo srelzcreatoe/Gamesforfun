@@ -447,20 +447,25 @@ def build() -> Model:
         for k in range(2):                                                                                # two spines down the forearm
             spike(lo, (sx + side * 16, ey - 16 - k * 22, sz + 6), (side * 0.7, 0.5, 0.5), 18 - k * 3, 7)
         wy = ey - L2
+        # the hand hangs with its palm to his side, as a standing animal's does: the fingers in a row from front to
+        # back, curling in toward his thigh, and the thumb forward
         hd = m.bone(f"hand_{tag}", lo, (sx, wy, sz), rot=(34, 0, 0))
-        hd.cube((sx - 22, wy - 24, sz - 16), (44, 30, 30), "hide4", scale=(5, 4))                          # palm
-        for k in range(4):                                                                                # fingers, splayed
-            fx = sx + (k - 1.5) * 12.0
-            roll = (k - 1.5) * 7.0
-            hd.cube((fx - 5.4, wy - 47, sz - 15), (10.8, 26, 13), "hide4", scale=(4, 3), rot=(-14, 0, roll), pivot=(fx, wy - 24, sz - 9))
-            hd.cube((fx - 4.2, wy - 80, sz - 14), (8.4, 36, 9), "ivory", rot=(-30, 0, roll), pivot=(fx, wy - 46, sz - 10),
+        ix = -side                                                                                         # the way that is inward, toward his middle
+        hd.cube((sx - 15, wy - 24, sz - 22), (30, 30, 44), "hide4", scale=(5, 4))                          # palm
+        for k in range(4):                                                                                # fingers, splayed front to back
+            fz = sz + (k - 1.5) * 12.0
+            fan = (k - 1.5) * 7.0
+            px = sx + ix * 9
+            hd.cube((px - 6.5, wy - 47, fz - 5.4), (13, 26, 10.8), "hide4", scale=(4, 3), rot=(fan, 0, side * 14), pivot=(px, wy - 24, fz))
+            hd.cube((px + ix * 1 - 4.5, wy - 80, fz - 4.2), (9, 36, 8.4), "ivory", rot=(fan, 0, side * 30), pivot=(px + ix * 1, wy - 46, fz),
                     g=(wy - 46, wy - 80), axis=1)                                                          # talon
-            hd.cube((fx - 2.8, wy - 92, sz - 13), (5.6, 14, 6), "ivory", rot=(-46, 0, roll), pivot=(fx, wy - 46, sz - 10),
+            hd.cube((px + ix * 2 - 3, wy - 92, fz - 2.8), (6, 14, 5.6), "ivory", rot=(fan, 0, side * 46), pivot=(px + ix * 1, wy - 46, fz),
                     g=(wy - 46, wy - 92), axis=1)
-        hd.cube((sx - side * 19 - 5, wy - 32, sz - 13), (10, 20, 11), "hide4", scale=(4, 3), rot=(-10, 0, -side * 28), pivot=(sx - side * 19, wy - 15, sz - 8))   # thumb
-        hd.cube((sx - side * 25 - 3.5, wy - 56, sz - 11), (7, 26, 7), "ivory", rot=(-18, 0, -side * 34), pivot=(sx - side * 19, wy - 15, sz - 8),
+        tx = sx + ix * 8
+        hd.cube((tx - 5.5, wy - 32, sz - 24), (11, 20, 10), "hide4", scale=(4, 3), rot=(-28, 0, side * 10), pivot=(tx, wy - 15, sz - 19))   # thumb
+        hd.cube((tx - 3.5, wy - 56, sz - 29.5), (7, 26, 7), "ivory", rot=(-34, 0, side * 18), pivot=(tx, wy - 15, sz - 19),
                 g=(wy - 30, wy - 56), axis=1)
-        hd.locator(f"hand_{tag}", (sx, wy - 38, sz - 10))
+        hd.locator(f"hand_{tag}", (sx + ix * 10, wy - 38, sz))
         return up
 
     arm("l", +1)

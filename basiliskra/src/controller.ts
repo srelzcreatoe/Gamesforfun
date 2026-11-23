@@ -8,7 +8,7 @@ import { Dimension, Entity, ItemStack, Player, system, world } from "@minecraft/
 import { CONFIG, FIN_ITEM, KNOCK_GAP_TICKS, OVERWORLD, PART_FAMILY, PROP, TICKS, TYPE } from "./config";
 import { Brain, isDusk, pace } from "./brain";
 import { CHANGES } from "./change";
-import { Creature, partOwner } from "./creature";
+import { Creature, partOwner, separateGiants } from "./creature";
 import { Ending } from "./ending";
 import { BrainOne } from "./forms/one";
 import { BrainThree } from "./forms/three";
@@ -24,6 +24,7 @@ import { addFallout, clearFallout, falloutTick } from "./fallout";
 import { cityTick } from "./city";
 import { musicStop, musicTick, sceneTheme } from "./music";
 import { titans } from "./titan";
+import { lanceTick } from "./lance";
 import { freshRecord, newToken, store } from "./store";
 import { add, dist, distXZ, dot, forwardOf, hash, mul, norm, sub, wrapDeg, yawTo, type V3 } from "./vec";
 import { NONE, UNLOADED, blockAt, deepHere, groundY, isLoaded, isWaterId, overworld, waterColumn } from "./world";
@@ -504,6 +505,8 @@ export class Controller {
     musicTick(lead, now, this.brain?.actName ?? "", this.brain?.hurtAt ?? -1, titans.fighting());
     cityTick(now);
     titans.tick(now);
+    separateGiants();
+    lanceTick();
     if (this.creature && !this.creature.valid) { this.creature.dropParts(); this.creature = null; this.brain = null; this.runner = null; }
     if (now % 20 === 0) this.sweep();
     switch (rec.stage) {

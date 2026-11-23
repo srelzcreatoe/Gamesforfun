@@ -17,7 +17,7 @@ import { FIN_ITEM, OVERWORLD, PROP, SHARD_ITEM, TICKS, TITAN } from "./config";
 import { Creature, giants, otherGiants } from "./creature";
 import { addFallout, holdsCounter } from "./fallout";
 import { BrainFour } from "./forms/four";
-import type { Quarry } from "./forms/three";
+import { aimOf, type Quarry } from "./forms/three";
 import { particle, players, sound, witnesses } from "./fx";
 import { TITAN_HEALTH } from "./generated/rig";
 import { blast, carve, wither } from "./havoc";
@@ -30,7 +30,7 @@ import { clearLine, isLoaded } from "./world";
 export const TITAN_MAX = 3;
 export const TITAN_NAMES = ["Alpha", "Beta", "Gamma"];
 /** Its breath beside his: half as far again, wider, and nearly three times as hot. */
-export const TITAN_SPEC: BeamSpec = { range: 220, radius: 3.4, damage: 30, width: 4.4, carve: 5.2, fallout: 8 };
+export const TITAN_SPEC: BeamSpec = { range: 220, radius: 3.4, damage: 30, width: 4.6, carve: 5.2, fallout: 8 };
 /** What its body does to another giant, and how far it throws it. */
 export const BLOW = { lunge: 85, tail: 130, ram: 110 };
 const MIGHT = 3, HASTE = 1.35;
@@ -125,7 +125,7 @@ export class BrainTitan extends BrainFour {
   /** Its breath is whole every time: nothing fails in its mouth, nothing is swallowed, no plate is shed. */
   protected *breath(target: Quarry): Act {
     const g = giants.get(target.id);
-    const got = yield* this.charge(target, () => (g && g.valid ? g.middle() : this.aimPoint(target)), false);
+    const got = yield* this.charge(target, () => (g && g.valid ? g.middle() : aimOf(target)), false);
     if (got !== "lock") { this.cutCharge(); return; }
     yield* this.fire(target);
     yield* this.vent();

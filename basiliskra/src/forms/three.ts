@@ -28,9 +28,10 @@ import { blockAt, clearLine, idAt, isBreakableNatural, isLoaded, isNaturalGround
 export const CHARGE_TICKS = 137, PLANT_TICKS = 14, LIGHT_END = 112;
 export const FIRE_FULL = 141, FIRE_FADE = 14;
 const TIERS = {
-  1: { range: 40, radius: 1.9, damage: 5, width: 2.4, carve: 2.0 },
-  2: { range: 60, radius: 1.6, damage: 7, width: 1.9, carve: 2.6 },
-  3: { range: 76, radius: 1.4, damage: 9, width: 1.6, carve: 3.1 },
+  // (width: the breath as drawn, in proportion to his mouth, which stands 3.7 blocks open when he fires)
+  1: { range: 40, radius: 1.9, damage: 5, width: 2.5, carve: 2.0 },
+  2: { range: 60, radius: 1.6, damage: 7, width: 2.8, carve: 2.6 },
+  3: { range: 76, radius: 1.4, damage: 9, width: 3.0, carve: 3.1 },
 } as const;
 /** Closer than this (from the mouth) the beam is not his answer: he walks on you instead. */
 const BEAM_MIN = 14;
@@ -53,6 +54,26 @@ export function headOf(e: Entity): V3 {
   if (g) return g.middle();
   try { return e.getHeadLocation(); } catch { return e.location; }
 }
+/** What flies: his breath must follow it, and lead it (it does not wait to be burnt). */
+const FLYERS = new Set(["minecraft:ender_dragon", "minecraft:wither", "minecraft:ghast", "minecraft:happy_ghast", "minecraft:phantom", "minecraft:blaze",
+  "minecraft:vex", "minecraft:breeze", "minecraft:bee", "minecraft:parrot", "minecraft:bat", "minecraft:allay"]);
+export function isFlyer(e: Entity): boolean {
+  try {
+    if (FLYERS.has(e.typeId)) return true;
+    if (isPlayer(e)) return (e as Player).isGliding || (e as Player).isFlying;
+    return false;
+  } catch { return false; }
+}
+/** Where to aim at something: for what flies, where it will be a few ticks from now; for the biggest, the middle of the body. */
+export function aimOf(e: Entity, lead = 4): V3 {
+  let at = headOf(e);
+  try {
+    if (e.typeId === "minecraft:ender_dragon" || e.typeId === "minecraft:ghast" || e.typeId === "minecraft:happy_ghast") at = { x: e.location.x, y: e.location.y + 2, z: e.location.z };
+    if (isFlyer(e)) { const v = e.getVelocity(); at = { x: at.x + v.x * lead, y: at.y + v.y * lead, z: at.z + v.z * lead }; }
+  } catch { /* gone */ }
+  return at;
+}
+
 /** How near he comes to what he goes after: a player is kept at the length of his neck, a giant at arm's length, the rest are walked over. */
 export function standOff(c: Creature, e: Entity, player: number, other: number): number {
   const g = giantOf(e);
@@ -88,7 +109,7 @@ export class BrainThree extends Brain {
     // another giant in his world is never beneath his notice, whatever the setting says about animals
     const big = otherGiants(this.c).filter((g) => dist(g.pos, this.c.pos) < this.giantSight).sort((a, b) => dist(a.pos, this.c.pos) - dist(b.pos, this.c.pos)).map((g) => g.entity);
     if (!CONFIG.huntMobs) return big;
-    if (this.now - this.mobsAt >= 40) { this.mobsAt = this.now; this.mobs = mobsNear(this.c.dim, this.c.pos, 72); }
+    if (this.now - this.mobsAt >= 40) { this.mobsAt = this.now; this.mobs = mobsNear(this.c.dim, this.c.pos, this.c.form >= 4 ? 130 : 72); }
     return [...big, ...this.mobs.filter(alive)];
   }
   /** From how far he knows of another giant. */
@@ -228,8 +249,10 @@ export class BrainThree extends Brain {
       const f = 1 - dist(p.location, foot) / 40;
       try { p.runCommand(`camerashake add @s ${(0.06 + 0.16 * f).toFixed(2)} 0.25 positional`); } catch { /* commands unavailable: the sound carries it */ }
     }
-    // whatever is under the foot when it comes down
+    // whatever is under the foot when it comes down; and the shock of it rolls on ahead of him
+    // (his feet are close under him: the ground they land on is not broken, or he would walk himself into a trench)
     blast(c.dim, ground, 2.2 * c.scale, 6, 14 * c.might, 0.9, (p, n) => c.hurt(p, n), c.entity, ground);
+    if (c.smash && wither()) c.stompWave(14, 4, 34);
     if (!CONFIG.marks) return;
     // a print pressed into natural ground: never into a floor
     for (const [dx, dz] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
@@ -540,7 +563,9 @@ export class BrainThree extends Brain {
     const T = TIERS[tier];
     c.set(PROP.tier, tier);
     const ok = () => { try { return !target || (target.isValid && target.dimension.id === c.dim.id); } catch { return false; } };
-    const aimAt = (): V3 => (target ? headOf(target) : add(c.anchor("mouth"), mul(c.forward, 30)));
+    const flying = !!target && isFlyer(target);
+    const aimAt = (): V3 => (target ? aimOf(target) : add(c.anchor("mouth"), mul(c.forward, 30)));
+    const pitchMax = flying ? 80 : 40;
     c.halt();
     // 1. the club plants first, and the breath begins: the charge lasts exactly as long as its sound
     c.setPhase("charge");
@@ -548,7 +573,7 @@ export class BrainThree extends Brain {
     c.say("basiliskra.iii.charge", c.anchor("throat"), 128);
     this.chargeSounding = true;
     this.rodSeen.clear(); this.rodLayer = 0;
-    for (let t = 0; t < PLANT_TICKS; t++) { c.setCharge(t / 7); if (ok()) c.aimAt(aimAt(), 80, 40); this.scanRods(); yield; }
+    for (let t = 0; t < PLANT_TICKS; t++) { c.setCharge(t / 7); if (ok()) c.aimAt(aimAt(), 80, pitchMax); this.scanRods(); yield; }
     // 2. the ridge lights, tail to shoulders, and the whole hide with it
     let rod: V3 | null = null;
     let lit = 1;
@@ -556,8 +581,8 @@ export class BrainThree extends Brain {
     for (let t = 0; t < light; t++) {
       if (!ok()) return;                     // (onFinish cuts the sound)
       const aim = aimAt();
-      const off = c.aimAt(aim, 80, 40);
-      if (off > 0) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), 0.6);      // feet shuffle only if the neck cannot reach
+      const off = c.aimAt(aim, 80, pitchMax);
+      if (off > 0) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), flying ? 1.4 : 0.6);      // feet shuffle only if the neck cannot reach
       c.setCharge(2 + (t / light) * 13.4);                                     // 15 at most: 16 is the lock, and the eye still follows here
       const zone = Math.floor(c.charge / 2);
       if (zone > lit) {
@@ -581,6 +606,8 @@ export class BrainThree extends Brain {
     const lock = CHARGE_TICKS - LIGHT_END;
     for (let t = 0; t < lock; t++) {
       c.setCharge(16 + (t / lock) * 2);
+      // (what flies is not given the chance to step aside: his eye keeps after it)
+      if (flying && ok()) c.trackTo(aimAt(), 4, 80, 80);
       // a thin line down the path it will take: this is where not to be standing
       if (t % 2 === 0) {
         const { from, dir } = c.aim();
@@ -598,8 +625,8 @@ export class BrainThree extends Brain {
     {
       // the moment it lights: a flare and a shock ring at his mouth, and every screen near him whites out for an instant
       const { from, dir } = c.aim();
-      particle(c.dim, "basiliskra:muzzle_flash", from, 160);
-      particle(c.dim, "basiliskra:muzzle_shock", from, 160, beamVars(dir, 1, 1));
+      particle(c.dim, "basiliskra:muzzle_flash", from, 160, beamVars(dir, 1, TIERS[this.tier()].width));
+      particle(c.dim, "basiliskra:muzzle_shock", from, 160, beamVars(dir, 1, TIERS[this.tier()].width));
       flash(c.dim, from, 56, { red: 1, green: 0.5, blue: 0.42 }, 0.03, 0.04, 0.3);
       shake(c, 96, 0.9, 0.5);
     }
@@ -611,7 +638,10 @@ export class BrainThree extends Brain {
       const fade = t < FIRE_FULL ? 1 : 1 - (t - FIRE_FULL) / FIRE_FADE;
       // the focused beam is walked slowly after its quarry; the raw one wanders where it will
       // (never as fast as a player walks sideways at the range he fires from: stepping out of the line still works)
-      if (tier >= 2 && target && ok() && (!isPlayer(target) || targetable(target as Player))) {
+      if (flying && target && ok() && (!isPlayer(target) || targetable(target as Player))) {
+        // after something that flies he swings his head round with it, ahead of it
+        c.trackTo(aimOf(target), tier === 1 ? 2.2 : 3.2, 80, 80);
+      } else if (tier >= 2 && target && ok() && (!isPlayer(target) || targetable(target as Player))) {
         const want = clamp(wrapDeg(yawTo(c.anchor("throat"), target.location) - c.yaw), -80, 80);
         const rate = tier === 2 ? 0.22 : 0.3;
         c.lookYaw += clamp(want - c.lookYaw, -rate, rate);

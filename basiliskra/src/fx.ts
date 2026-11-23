@@ -65,12 +65,22 @@ export function stopSound(dim: Dimension, id: string, at: V3, range = 192): void
   }
 }
 
-export function particle(dim: Dimension, id: string, at: V3, range = 48, vars?: MolangVariableMap): void {
+export function particle(dim: Dimension, id: string, at: V3, range = 48, vars?: MolangVariableMap, but?: Player): void {
   if (!isLoaded(dim, at)) return;
   for (const p of witnesses(dim, at, range)) {
     if (spent >= PARTICLE_BUDGET) return;
+    if (but && p.id === but.id) continue;
     spent++;
     try { p.spawnParticle(id, at, vars); } catch { /* out of range for that client */ }
+  }
+}
+
+/** A particle for these players only (what one player sees from where they stand, that nobody else should). */
+export function particleFor(to: Player[], id: string, at: V3, vars?: MolangVariableMap): void {
+  for (const p of to) {
+    if (spent >= PARTICLE_BUDGET) return;
+    spent++;
+    try { p.spawnParticle(id, at, vars); } catch { /* left */ }
   }
 }
 

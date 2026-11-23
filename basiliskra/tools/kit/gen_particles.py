@@ -64,6 +64,108 @@ def draw_sheet() -> np.ndarray:
     return (a * 255).round().astype(np.uint8)
 
 
+# ---- the breath's own sheet: animated plasma, a hot core, a soft band, glows, a star and a ring (192 x 128) ------------
+TEXB = f"textures/particle/{NS}_beam"
+BW, BH = 192, 128
+
+
+def _noise1(n, seed, octaves=((3, 1.0), (7, 0.5), (15, 0.25))):
+    """Smooth periodic noise along a strip of n pixels (a sum of sines with seeded phases), in -1..1."""
+    r = np.random.default_rng(seed)
+    x = np.arange(n) / n * 2 * np.pi
+    out = np.zeros(n)
+    for k, a in octaves:
+        out += a * np.sin(k * x + r.uniform(0, 2 * np.pi))
+    return out / sum(a for _, a in octaves)
+
+
+def draw_beam_sheet() -> np.ndarray:
+    a = np.zeros((BH, BW, 4), dtype=np.float64)
+    vv = (np.arange(16) - 7.5) / 7.5                                   # across a band: -1 .. 1
+    for f in range(8):
+        y0 = f * 16
+        # plasma: a turbulent band whose edge wanders along its length, bright filaments inside it
+        edge = 0.66 + 0.22 * _noise1(64, 100 + f)
+        lumps = 0.82 + 0.18 * _noise1(64, 200 + f, ((5, 1.0), (11, 0.6), (23, 0.3)))
+        fil = [0.45 * _noise1(64, 300 + f * 3 + k, ((2, 1.0), (5, 0.4))) for k in range(3)]
+        for u in range(64):
+            d = np.abs(vv) / edge[u]
+            alpha = np.clip(1 - d ** 2, 0, 1) ** 0.6 * lumps[u]
+            light = 0.55 + 0.45 * np.clip(1 - d, 0, 1)
+            for k in range(3):
+                light = light + 0.45 * (np.abs(vv - fil[k][u]) < 0.11)
+            a[y0:y0 + 16, u, :3] = np.clip(light, 0, 1)[:, None]
+            a[y0:y0 + 16, u, 3] = alpha
+        # the core: a narrow white-hot line that crackles
+        width = 0.24 + 0.07 * _noise1(64, 400 + f, ((6, 1.0), (17, 0.5)))
+        for u in range(64):
+            d = np.abs(vv) / width[u]
+            a[y0:y0 + 16, 64 + u, :3] = 1.0
+            a[y0:y0 + 16, 64 + u, 3] = np.clip(1.15 - d, 0, 1) ** 0.5
+    # a soft band (the glow round the beam)
+    a[0:16, 128:192, :3] = 1.0
+    a[0:16, 128:192, 3] = np.exp(-(vv / 0.5) ** 2)[:, None]
+    yy, xx = np.mgrid[0:32, 0:32]
+    r = np.hypot(xx - 15.5, yy - 15.5) / 15.5
+    ang = np.arctan2(yy - 15.5, xx - 15.5)
+    def put(x0, y0, rgb, alpha):
+        a[y0:y0 + 32, x0:x0 + 32, :3] = rgb[..., None] if np.ndim(rgb) == 2 else rgb
+        a[y0:y0 + 32, x0:x0 + 32, 3] = np.clip(alpha, 0, 1)
+    put(128, 16, np.ones((32, 32)), np.exp(-(r / 0.5) ** 2))                                            # glow
+    star = np.maximum(np.exp(-(r / 0.22) ** 2), np.clip(1 - r, 0, 1) ** 1.5 * np.abs(np.cos(3 * ang)) ** 18)
+    put(160, 16, np.ones((32, 32)), star)                                                                  # six-pointed flare
+    put(128, 48, np.clip(1.2 - r, 0, 1), np.clip(1 - r ** 2, 0, 1) ** 1.5)                                 # an energy blob, hot in the middle
+    put(160, 48, np.ones((32, 32)), np.exp(-((r - 0.8) / 0.12) ** 2))                                      # a ring
+    return (a * 255).round().astype(np.uint8)
+
+
+def uvb(x, y, w, h, frames=False) -> dict:
+    d = {"texture_width": BW, "texture_height": BH, "uv": [x, y], "uv_size": [w, h]}
+    if frames:
+        d["uv"] = [x, f"math.floor(v.particle_random_1 * 7.99) * 16"]      # each one drawn picks a frame: the plasma never holds still
+    return d
+
+
+PLASMA, CORE = (0, 0, 64, 16, True), (64, 0, 64, 16, True)
+BAND, GLOW, STAR, BLOB, RINGB = (128, 0, 64, 16), (128, 16, 32, 32), (160, 16, 32, 32), (128, 48, 32, 32), (160, 48, 32, 32)
+
+
+def fxb(name, material, **components):
+    """An effect drawn from the breath's own sheet."""
+    return name, {
+        "format_version": "1.26.10",
+        "particle_effect": {
+            "description": {"identifier": f"{NS}:{name}", "basic_render_parameters": {"material": material, "texture": TEXB}},
+            "components": components,
+        }}, None
+
+
+def beam2(name, region, material, tint, half_width):
+    """One quad laid from the mouth along the beam (variable.dir, variable.len), `half_width` x variable.width across."""
+    return fxb(name, material, **ONCE, **burst(1), **{
+        "minecraft:emitter_shape_point": {
+            "offset": ["v.dir.x * v.len * 0.5", "v.dir.y * v.len * 0.5", "v.dir.z * v.len * 0.5"],
+            "direction": ["v.dir.x", "v.dir.y", "v.dir.z"]},
+        "minecraft:particle_initial_speed": 0.05,
+        "minecraft:particle_lifetime_expression": {"max_lifetime": 0.14},
+        "minecraft:particle_motion_dynamic": {},
+        "minecraft:particle_appearance_billboard": {"size": ["v.len * 0.5", f"v.width * {half_width}"], "facing_camera_mode": "lookat_direction",
+                                                    "direction": ALONG, "uv": uvb(*region)},
+        "minecraft:particle_appearance_tinting": {"color": list(tint) if isinstance(tint, tuple) else tint},
+    })
+
+
+def at_mouth(name, region, material, size, life, color, n=1, spin=False):
+    """Something at the mouth itself, sized by the breath (variable.width)."""
+    comps = {**ONCE, **burst(n), "minecraft:emitter_shape_point": {}, "minecraft:particle_initial_speed": 0,
+             "minecraft:particle_lifetime_expression": {"max_lifetime": life}, "minecraft:particle_motion_dynamic": {}}
+    if spin:
+        comps["minecraft:particle_initial_spin"] = {"rotation": "math.random(0, 360)", "rotation_rate": "math.random(-90, 90)"}
+    comps["minecraft:particle_appearance_billboard"] = {"size": size, "facing_camera_mode": "rotate_xyz", "uv": uvb(*region)}
+    comps["minecraft:particle_appearance_tinting"] = {"color": color}
+    return fxb(name, material, **comps)
+
+
 def uv(sprite: str) -> dict:
     i = SPRITES.index(sprite)
     return {"texture_width": SHEET, "texture_height": SHEET, "uv": [(i % GRID) * CELL, (i // GRID) * CELL], "uv_size": [CELL, CELL]}
@@ -231,19 +333,41 @@ GROW = lambda a, b: [f"({a} + ({b} - {a}) * v.particle_age / v.particle_lifetime
 
 EFFECTS = [
     # ---- the beam ---------------------------------------------------------------------------
-    beam("beam_core", "streak", "particles_add", WHITE),
-    beam("beam_halo", "halo", "particles_blend", (1.0, 0.10, 0.07, 0.9)),
-    # the wide scarlet glow round the beam, and the smoke and embers it throws off along its whole length
-    beam("beam_glow", "halo", "particles_blend", (0.95, 0.08, 0.06, 0.38)),
+    # Drawn in layers, every one sized from variable.width (the breath is drawn to fill the mouth it leaves by):
+    # a white-hot crackling core, a scarlet body of plasma that never holds still, a layer of fire over it, and a
+    # soft scarlet glow round the whole.  (Blended layers keep their colour against the sky; the added ones burn.)
+    beam2("beam_core", CORE, "particles_add", WHITE, 0.17),
+    beam2("beam_halo", PLASMA, "particles_blend", (1.0, 0.16, 0.08, 0.93), 0.42),
+    beam2("beam_heat", PLASMA, "particles_add", (1.0, 0.42, 0.18, 0.55), 0.3),
+    beam2("beam_glow", BAND, "particles_blend", (0.92, 0.07, 0.05, 0.34), 1.25),
+    # light racing down it from his mouth, and what leaves his mouth with it: a white burst, a star, sparks thrown off
+    fxb("beam_pulse", "particles_add", **ONCE, **burst(1), **{
+        "minecraft:emitter_shape_point": {"direction": ["v.dir.x", "v.dir.y", "v.dir.z"]},
+        "minecraft:particle_initial_speed": 85,
+        "minecraft:particle_lifetime_expression": {"max_lifetime": "math.max(0.05, v.len / 85)"},
+        "minecraft:particle_motion_dynamic": {},
+        "minecraft:particle_appearance_billboard": {"size": ["v.width * 0.42", "v.width * 0.42"], "facing_camera_mode": "rotate_xyz", "uv": uvb(*BLOB)},
+        "minecraft:particle_appearance_tinting": {"color": grad((0, WHITE), (0.5, (1, 0.6, 0.4, 0.9)), (1, (1, 0.2, 0.1, 0.4)))}}),
+    at_mouth("mouth_burst", GLOW, "particles_add", ["v.width * (0.9 + 0.25 * v.particle_random_1)"] * 2, 0.13, grad((0, (1, 0.85, 0.75, 0.95)), (1, (1, 0.3, 0.15, 0)))),
+    at_mouth("mouth_star", STAR, "particles_add", ["v.width * (1.2 + 0.5 * v.particle_random_1)"] * 2, 0.18, grad((0, WHITE), (0.5, (1, 0.5, 0.35, 0.8)), (1, (1, 0.1, 0.05, 0))), spin=True),
+    streak_along("beam_sparks", "spark", 8, 6.0, RAND(0.25, 0.6), SHRINK(0.18), grad((0, WHITE), (0.4, HOT), (1, DEEP)), accel=[0, -8, 0], material="particles_add", spread=0.35),
+    # where it lands: a star too bright to look at
+    at_mouth("impact_flash", STAR, "particles_add", ["v.width * (2.0 + 1.0 * v.particle_random_1)"] * 2, 0.22, grad((0, WHITE), (0.4, (1, 0.6, 0.4, 0.85)), (1, (1, 0.15, 0.08, 0))), spin=True),
     streak_along("beam_smoke", "puff", 12, 4.0, RAND(1.8, 3.2), GROW(0.5, 2.4), SMOKE, accel=[0, 1.6, 0], spread=0.12),
     streak_along("beam_embers", "ember", 10, 3.0, RAND(0.5, 1.1), SHRINK(0.22), FIRE, accel=[0, -3, 0], material="particles_add", spread=0.2),
     # before it: a thin line down the path it is about to take (from the moment his eye stops following)
     beam("beam_aim", "streak", "particles_add", (1.0, 0.16, 0.12, 0.55)),
     # as it fires: a white flare and a shock ring at the mouth; then rings racing down it and lightning crawling along it
-    scatter("muzzle_flash", "flare", 3, 0.2, 0.0, RAND(0.16, 0.3), [f"(5 + 6 * v.particle_random_1) * (1 - {AGE})"] * 2,
+    scatter("muzzle_flash", "flare", 3, 0.2, 0.0, RAND(0.16, 0.3), [f"(v.width > 0 ? v.width * (1.6 + 1.8 * v.particle_random_1) : 5 + 6 * v.particle_random_1) * (1 - {AGE})"] * 2,
             grad((0, WHITE), (0.5, HOT), (1, (1, 0.15, 0.1, 0))), material="particles_add"),
-    beam_ring("muzzle_shock", "ring", 0.6, [f"1 + 15 * {AGE}"] * 2, grad((0, WHITE), (0.3, (1, 0.5, 0.4, 0.8)), (1, (1, 0.1, 0.08, 0))), life=0.55),
-    beam_ring("beam_ring", "ring", 46, [f"v.width * (0.9 + 1.6 * {AGE})"] * 2, grad((0, (1, 0.9, 0.8, 0.9)), (0.5, (1, 0.3, 0.22, 0.7)), (1, (0.9, 0.08, 0.06, 0)))),
+    beam_ring("muzzle_shock", "ring", 0.6, [f"1 + (v.width > 0 ? v.width * 4 : 15) * {AGE}"] * 2, grad((0, WHITE), (0.3, (1, 0.5, 0.4, 0.8)), (1, (1, 0.1, 0.08, 0))), life=0.55),
+    fxb("beam_ring", "particles_add", **ONCE, **burst(1), **{
+        "minecraft:emitter_shape_point": {"direction": ["v.dir.x", "v.dir.y", "v.dir.z"]},
+        "minecraft:particle_initial_speed": 46,
+        "minecraft:particle_lifetime_expression": {"max_lifetime": "math.max(0.1, v.len / 46)"},
+        "minecraft:particle_motion_dynamic": {},
+        "minecraft:particle_appearance_billboard": {"size": [f"v.width * (0.75 + 1.3 * {AGE})"] * 2, "facing_camera_mode": "direction_z", "direction": ALONG, "uv": uvb(*RINGB)},
+        "minecraft:particle_appearance_tinting": {"color": grad((0, (1, 0.9, 0.8, 0.9)), (0.5, (1, 0.3, 0.22, 0.7)), (1, (0.9, 0.08, 0.06, 0)))}}),
     streak_along("beam_arc", "zigzag", 7, 5.0, RAND(0.08, 0.2), [PR(0.5, 1.3), PR(0.25, 0.6, 2)], grad((0, WHITE), (0.4, (1, 0.4, 0.35, 1)), (1, DEEP)),
                  material="particles_add", spread=0.045, facing="rotate_xyz"),
     # where it lands: a white flash, fire, a column of smoke, and the ground thrown into the air
@@ -448,6 +572,7 @@ def main():
     os.makedirs(os.path.join(RP, "textures", "items"), exist_ok=True)
     os.makedirs(os.path.join(RP, "particles"), exist_ok=True)
     Image.fromarray(draw_sheet(), "RGBA").save(os.path.join(RP, TEX + ".png"))
+    Image.fromarray(draw_beam_sheet(), "RGBA").save(os.path.join(RP, TEXB + ".png"))
     Image.fromarray(draw_fin_icon(), "RGBA").save(os.path.join(RP, "textures", "items", f"{NS}_shed_fin.png"))
     Image.fromarray(draw_journal_icon(), "RGBA").save(os.path.join(RP, "textures", "items", f"{NS}_journal.png"))
     Image.fromarray(draw_wheel_icon(), "RGBA").save(os.path.join(RP, "textures", "items", f"{NS}_config_wheel.png"))

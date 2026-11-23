@@ -4,16 +4,16 @@
     "animation.basiliskra.seam_lance.wield": {
       "loop": true,
       "bones": {
-        "rightitem": {
+        "lance": {
           "position": [
-            "c.is_first_person ? 13.0 : 0.5",
-            "c.is_first_person ? 7.0 : -0.5",
-            "c.is_first_person ? 2.0 : -1.5"
+            "c.is_first_person ? 7.29 : 0.0",
+            "c.is_first_person ? -7.08 : -0.4",
+            "c.is_first_person ? 2.29 : 0.0"
           ],
           "rotation": [
-            "c.is_first_person ? -9.0 : 0.0",
-            "c.is_first_person ? 60.0 : -3.0",
-            "c.is_first_person ? -47.0 : 3.25"
+            "c.is_first_person ? 75.3 : 22.0",
+            "c.is_first_person ? 60.74 : 0.0",
+            "c.is_first_person ? -57.67 : 0.0"
           ]
         }
       }

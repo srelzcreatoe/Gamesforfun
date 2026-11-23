@@ -277,7 +277,7 @@ def pre_animation():
     weights = {
         "ram": ("ram",), "knockp": ("knock", "wake"), "rise": ("rise",), "bite": ("bite",),
         "sweep": ("sweep",), "jam": ("jam",), "spasmw": ("spasm",), "sleep": ("sleep",), "evolve": ("evolve", "beach"),
-        "drink": ("drink",), "arc": ("arc",), "pin": ("pin",), "chargew": ("charge", "fire"), "fire": ("fire",),
+        "drink": ("drink",), "arc": ("arc",), "pin": ("pin",), "chargew": ("charge", "fire", "skid", "pivot"), "fire": ("fire", "skid", "pivot"),
         "vent": ("vent",), "ground": ("grounded",), "scatter": ("scatter",), "roar": ("roar",), "window": ("window", "stalk"),
         "flinch": ("flinch",),
         # Basiliskra IV

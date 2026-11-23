@@ -51,7 +51,10 @@ function apply(m: Mat, p: number[]): number[] {
 
 /** `wings`: how far Basiliskra IV's wings are open (0 folded .. 1 spread); `plant`: his club driven into the ground; `pivot`: turning on it. */
 export interface PoseState { lookYaw: number; lookPitch: number; bend: number; pitch: number; charge?: number; drink?: number; window?: number;
-                             wings?: number; plant?: number; pivot?: number }
+                             wings?: number; plant?: number; pivot?: number;
+                             /** What the client adds while he breathes fire (degrees, model units): the jaw dropped, the body
+                              *  ridden lower, leaning back on its heels and carried back (the skid), the chest pitched. */
+                             jaw?: number; drop?: number; lean?: number; back?: number; chest?: number }
 
 /** The steady-state pose the client settles into for these synchronised values. */
 export function poseOf(form: Form, s: PoseState): PoseAdd {
@@ -64,7 +67,9 @@ export function poseOf(form: Form, s: PoseState): PoseAdd {
   };
   for (const [b, w] of Object.entries(yawW)) set(b, 0, s.lookYaw * w);
   for (const [b, w] of Object.entries(pitchW)) set(b, s.lookPitch * w, 0);
-  set("body", s.pitch, 0);
+  set("body", s.pitch + (s.lean ?? 0), 0);
+  if (s.jaw) set("jaw", s.jaw, 0);
+  if (s.chest) set("chest", s.chest, 0);
   const charge = s.charge ?? 0, drink = s.drink ?? 0;
   if (form === 1) {
     set("head", 0, s.bend * 0.6);
@@ -101,8 +106,8 @@ export function poseOf(form: Form, s: PoseState): PoseAdd {
 
 export class Skeleton {
   private cache = new Map<string, Mat>();
-  /** `window`: 0..1, how far into the window crouch (Form III). */
-  constructor(readonly form: Form, private pose: PoseAdd, private window = 0) {}
+  /** `window`: 0..1, how far into the window crouch (Form III).  `body`: [x, y, z] the body is carried (model units). */
+  constructor(readonly form: Form, private pose: PoseAdd, private window = 0, private body: number[] = [0, 0, 0]) {}
 
   private bone(name: string): Mat {
     const hit = this.cache.get(name);
@@ -114,6 +119,7 @@ export class Skeleton {
     const local = about(R, b.pivot);
     // he rides this far below the bind pose (see gen_client.py), and lower still at a window
     if (this.form === 3 && name === "body") local[7] -= BODY_DROP_III + WINDOW_CROUCH_III * this.window;
+    if (name === "body") { local[3] += this.body[0]; local[7] += this.body[1]; local[11] += this.body[2]; }
     const m = b.parent ? mulM(this.bone(b.parent), local) : local;
     this.cache.set(name, m);
     return m;
@@ -128,6 +134,12 @@ export class Skeleton {
 
   /** Model-space position of a point given in a bone's rest coordinates. */
   point(bone: string, p: number[]): number[] { return apply(this.bone(bone), p); }
+  /** The same point, but with this bone at its rest angle (its parent posed): where a locator on the jaw is with the mouth shut. */
+  restPoint(bone: string, p: number[]): number[] {
+    const b = RIGS[this.form].bones[bone];
+    const local = about(rotation(b.rot[0], b.rot[1], b.rot[2]), b.pivot);
+    return apply(b.parent ? mulM(this.bone(b.parent), local) : local, p);
+  }
   pivot(bone: string): number[] { return apply(this.bone(bone), RIGS[this.form].bones[bone].pivot); }
 }
 

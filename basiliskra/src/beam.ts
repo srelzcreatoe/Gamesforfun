@@ -4,14 +4,18 @@
  *
  * Obstruction is decided once, here, and the damage, the destruction and the picture all use the same answer.
  */
-import { EntityDamageCause, Player } from "@minecraft/server";
+import { Dimension, EntityDamageCause, MolangVariableMap, Player } from "@minecraft/server";
 import { CONFIG } from "./config";
 import { Creature, otherGiants, targetable } from "./creature";
 import { addFallout, sear } from "./fallout";
-import { beamVars, particle, players, sound } from "./fx";
+import { beamVars, particle, particleFor, players, sound } from "./fx";
 import { blast, carve, mobsNear, segDist, wither } from "./havoc";
 import { add, clamp, dist, dot, hash, mul, norm, sub, type V3 } from "./vec";
 import { clearLine, isLoaded } from "./world";
+
+/** How far the bodies of the biggest creatures reach from the point they stand at (blocks). */
+const BIG: Record<string, number> = { "minecraft:ender_dragon": 6, "minecraft:ghast": 2.5, "minecraft:happy_ghast": 2.5, "minecraft:wither": 1.4,
+  "minecraft:ravager": 1.2, "minecraft:iron_golem": 0.8, "minecraft:warden": 0.8, "minecraft:elder_guardian": 1.2, "minecraft:sniffer": 1.0 };
 
 /** How deep a crater one landing place of the beam is blown to (blocks from where it first struck). */
 export const CRATER = 6;
@@ -68,28 +72,19 @@ export function beamTick(c: Creature, T: BeamSpec, t: number, fade: number, st: 
     if (t % 7 === 0) particle(c.dim, "basiliskra:impact_fire", end, 128);
     if (t % 6 === 3) particle(c.dim, "basiliskra:impact_smoke", end, 144);
     if (t % 10 === 0) sound(c.dim, "basiliskra.iii.beam_impact", end, 128);
-    if (t % 4 === 0) struck.takeBlow(c, T.damage * Math.max(0.3, fade));
+    // (half of it: a body that size soaks up light, and giants that only stood off and burned each other would never close)
+    if (t % 4 === 0) struck.takeBlow(c, T.damage * 0.5 * Math.max(0.3, fade));
   }
-  // it throbs, about as fast as a heart racing
+  // it throbs, about as fast as a heart racing (the width is the breath's: drawn to fill the mouth it leaves by)
   const w = T.width * fade * (T.rough ? 0.85 + hash(t) * 0.4 : 1) * (1 + 0.14 * Math.sin(t * 1.25));
-  if (t % 5 === 0) particle(c.dim, "basiliskra:beam_ring", from, 144, beamVars(dir, length, w * 2.2));
-  if (t % 3 === 1) particle(c.dim, "basiliskra:beam_arc", from, 128, beamVars(dir, length, w));
-  if (t % 2 === 0) {
-    particle(c.dim, "basiliskra:beam_core", from, 160, beamVars(dir, length, w));
-    particle(c.dim, "basiliskra:beam_halo", from, 160, beamVars(dir, length, w * 2.4));
-    particle(c.dim, "basiliskra:beam_glow", from, 160, beamVars(dir, length, w * 5.2));
-  } else {
-    // it smokes and sheds embers all along its length
-    particle(c.dim, "basiliskra:beam_smoke", from, 128, beamVars(dir, length, w));
-    if (t % 4 === 1) particle(c.dim, "basiliskra:beam_embers", from, 128, beamVars(dir, length, w));
-  }
+  drawBeam(c.dim, from, dir, length, w, t, hitBlock !== null || struck !== null, end);
   // scarlet winding round the core
   const side = norm({ x: -dir.z, y: 0, z: dir.x });
   const up = norm({ x: dir.y * side.z - dir.z * side.y, y: dir.z * side.x - dir.x * side.z, z: dir.x * side.y - dir.y * side.x });
   for (let i = 0; i < 4; i++) {
     const along = ((t * 2.3 + i * (length / 4)) % length);
     const a = along * 1.1 + t * 0.9;
-    const r = w * 0.9 + 0.3;
+    const r = w * 0.45 + 0.3;
     particle(c.dim, "basiliskra:beam_spiral", add(add(from, mul(dir, along)), add(mul(side, Math.cos(a) * r), mul(up, Math.sin(a) * r))), 112);
   }
   if (hitBlock) {
@@ -134,16 +129,49 @@ export function beamTick(c: Creature, T: BeamSpec, t: number, fade: number, st: 
         try { (p as Player).setOnFire(3, true); } catch { /* fire-proof */ }
       } catch { /* left */ }
     }
-    // and every creature in its path
-    for (const e of mobsNear(c.dim, add(from, mul(dir, length / 2)), length / 2 + 3)) {
+    // and every creature in its path (the big ones by the whole of their bodies, not the point they stand at)
+    for (const e of mobsNear(c.dim, add(from, mul(dir, length / 2)), length / 2 + 10)) {
       try {
-        if (segDist(add(e.location, { x: 0, y: 0.6, z: 0 }), from, dir, length) > reach + 0.6) continue;
+        const big = BIG[e.typeId] ?? 0;
+        if (segDist(add(e.location, { x: 0, y: 0.6 + big * 0.4, z: 0 }), from, dir, length) > reach + 0.6 + big) continue;
         e.applyDamage(T.damage * 2, { cause: EntityDamageCause.entityAttack, damagingEntity: c.entity });
         e.setOnFire(5, true);
       } catch { /* gone */ }
     }
   }
   return { end, hit: hitBlock, length, from, dir, struck };
+}
+
+/**
+ * One tick of a beam as it is seen: a crackling white core, a body of scarlet plasma, fire over it and a glow round
+ * it, light racing down it, a burst and a star at the mouth, rings, lightning, smoke, sparks; and at the far end, if
+ * it struck something, a flash.  `w`: its width (all of it is drawn in proportion).  `to`: if given, only these
+ * players are shown it (the Seam Lance draws its shooter's own view separately); `but`: everyone else.
+ */
+export function drawBeam(dim: Dimension, from: V3, dir: V3, length: number, w: number, t: number, landed: boolean, end: V3,
+                         to?: Player[], but?: Player): void {
+  const show = (id: string, at: V3, range: number, vars?: MolangVariableMap) => {
+    if (to) particleFor(to, id, at, vars);
+    else particle(dim, id, at, range, vars, but);
+  };
+  const v = beamVars(dir, length, w);
+  if (t % 2 === 0) {
+    show("basiliskra:beam_glow", from, 192, v);
+    show("basiliskra:beam_halo", from, 192, v);
+    show("basiliskra:beam_heat", from, 192, v);
+    show("basiliskra:beam_core", from, 192, v);
+    show("basiliskra:beam_pulse", from, 160, v);
+    show("basiliskra:mouth_burst", from, 160, v);
+  } else {
+    // it smokes, sheds embers and throws sparks all along its length
+    show("basiliskra:beam_smoke", from, 128, v);
+    show("basiliskra:beam_sparks", from, 128, v);
+    if (t % 4 === 1) show("basiliskra:beam_embers", from, 128, v);
+  }
+  if (t % 4 === 1) show("basiliskra:mouth_star", from, 160, v);
+  if (t % 5 === 0) show("basiliskra:beam_ring", from, 160, v);
+  if (t % 3 === 1) show("basiliskra:beam_arc", from, 128, v);
+  if (landed && t % 4 === 2) show("basiliskra:impact_flash", end, 192, v);
 }
 
 /** How far along a line the way is clear (up to `max`), for drawing: never into a chunk that is not loaded. */

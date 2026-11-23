@@ -8,8 +8,14 @@ model seen from the side, outlined), the item, its recipe and its name.
 
     python3 tools/kit/gen_lance.py
 
-The model is held the way the vanilla crossbow is: it lies along -Z under the hand, and the hold animation uses
-the crossbow's own first- and third-person offsets (bedrock-samples, animation.crossbow.wield).
+How it is held.  The game puts a held model's own pivot on the hand (the item bone), and turns it with the arm.
+(Measured on the vanilla trident, a pole of cubes: under that rule its third-person hold passes the shaft through
+the hand, butt behind and prongs ahead; under the others it floats a block above it.)  So the model is built round
+its grip: the pivot is where the fist closes.  The arm itself is posed by the game: in third person it hangs raised
+18 degrees forward (animation.player.holding); in first person, for anything but a crossbow or a map, it takes
+animation.player.first_person.empty_hand.  The hold below undoes each pose, so the barrel points where the player
+faces in third person and where they look in first person.  (The crossbow's own numbers assume the crossbow's own
+arm pose, animation.player.crossbow_equipped, which a custom item never gets: that is why 1.6's hold floated.)
 """
 import json
 import math
@@ -31,7 +37,7 @@ MATS = {
 }
 ORDER = list(MATS)
 
-# cubes: (x0, y0, z0, x1, y1, z1, material[, (pivot, rotation)]).  -Z is the muzzle; the hand is at the origin.
+# cubes: (x0, y0, z0, x1, y1, z1, material[, (pivot, rotation)]).  -Z is the muzzle.  Drawn SIZE times larger, about GRIP.
 CUBES = [
     (-1.5, -7.0, -4.0, 1.5, -3.0, 4.0, "metal"),                       # receiver
     (-2.0, -3.0, -5.0, 2.0, -2.0, 3.0, "plate"),                       # top plate
@@ -55,6 +61,21 @@ CUBES = [
     (-0.5, -2.0, 1.0, 0.5, -0.5, 2.5, "trim"),
     (-0.5, -2.0, -4.5, 0.5, -1.0, -3.5, "plate"),                      # fore sight
 ]
+
+
+SIZE = 1.5
+GRIP = (0.0, -8.4, 2.1)               # where the fist closes on the grip, just behind the trigger guard
+# the hold, solved from the vanilla arm poses (see the module notes): first person turns the model to point down the
+# view (3 degrees in toward the crosshair, 2 down) and carries it 10 units forward of the hand so its stock clears
+# the eye; third person levels it (4 degrees nose-down) against the arm's raise
+HOLD_FP = {"rot": [75.3, 60.74, -57.67], "pos": [7.29, -7.08, 2.29]}
+HOLD_TP = {"rot": [22.0, 0.0, 0.0], "pos": [0.0, -0.4, 0.0]}
+# the muzzle (the crystal's lit point), in the model as it is drawn: the script fires from here
+MUZZLE = (0.0, (-5.0 - GRIP[1]) * SIZE, (-14.0 - GRIP[2]) * SIZE)
+
+
+def big(p):
+    return [round((p[i] - GRIP[i]) * SIZE, 3) for i in range(3)]
 
 
 def swatch(base, edge, seed):
@@ -81,15 +102,15 @@ def geometry():
         x0, y0, z0, x1, y1, z1, m = c[:7]
         i = ORDER.index(m)
         face = {"uv": [(i % 4) * 8, (i // 4) * 8], "uv_size": [8, 8]}
-        cube = {"origin": [x0, y0, z0], "size": [round(x1 - x0, 3), round(y1 - y0, 3), round(z1 - z0, 3)],
+        cube = {"origin": big((x0, y0, z0)), "size": [round((x1 - x0) * SIZE, 3), round((y1 - y0) * SIZE, 3), round((z1 - z0) * SIZE, 3)],
                 "uv": {f: face for f in ("north", "south", "east", "west", "up", "down")}}
         if len(c) > 7:
-            cube["pivot"], cube["rotation"] = list(c[7][0]), list(c[7][1])
+            cube["pivot"], cube["rotation"] = big(c[7][0]), list(c[7][1])
         cubes.append(cube)
     return {"format_version": "1.16.0", "minecraft:geometry": [{
         "description": {"identifier": f"geometry.{NS}.{NAME}", "texture_width": 32, "texture_height": 16,
-                        "visible_bounds_width": 3, "visible_bounds_height": 3, "visible_bounds_offset": [0, 1, 0]},
-        "bones": [{"name": "rightitem", "binding": "q.item_slot_to_bone_name(c.item_slot)", "pivot": [0, 0, 0], "cubes": cubes}]}]}
+                        "visible_bounds_width": 4, "visible_bounds_height": 4, "visible_bounds_offset": [0, 1, 0]},
+        "bones": [{"name": "lance", "binding": "q.item_slot_to_bone_name(c.item_slot)", "pivot": [0, 0, 0], "cubes": cubes}]}]}
 
 
 def icon(size=32):
@@ -148,11 +169,12 @@ def main():
         "animations": {"wield": f"animation.{NS}.{NAME}.wield"},
         "scripts": {"animate": ["wield"]},
         "render_controllers": ["controller.render.item_default"]}}})
-    # the vanilla crossbow's hold, so that it sits in the hand as a crossbow does (first person: at the right, pointing ahead)
+    # held by its grip, pointing where the player faces (see the module notes)
+    pick = lambda k, i: f"c.is_first_person ? {HOLD_FP[k][i]} : {HOLD_TP[k][i]}"
     write(os.path.join(RP, "animations", f"{NS}_{NAME}.animation.json"), {"format_version": "1.10.0", "animations": {
-        f"animation.{NS}.{NAME}.wield": {"loop": True, "bones": {"rightitem": {
-            "position": ["c.is_first_person ? 13.0 : 0.5", "c.is_first_person ? 7.0 : -0.5", "c.is_first_person ? 2.0 : -1.5"],
-            "rotation": ["c.is_first_person ? -9.0 : 0.0", "c.is_first_person ? 60.0 : -3.0", "c.is_first_person ? -47.0 : 3.25"]}}}}})
+        f"animation.{NS}.{NAME}.wield": {"loop": True, "bones": {"lance": {
+            "position": [pick("pos", i) for i in range(3)],
+            "rotation": [pick("rot", i) for i in range(3)]}}}}})
     write(os.path.join(BP, "items", f"{NAME}.json"), {"format_version": "1.26.30", "minecraft:item": {
         "description": {"identifier": ident, "menu_category": {"category": "equipment"}},
         "components": {"minecraft:display_name": {"value": f"item.{ident}.name"}, "minecraft:icon": {"textures": {"default": f"{NS}_{NAME}"}},
@@ -169,7 +191,8 @@ def main():
             s += f"item.{ident}.name=Seam Lance\n"
         open(p, "w").write(s)
     Image.fromarray(icon(96), "RGBA").save(os.path.join(ROOT, "build", "lance_icon_big.png")) if os.path.isdir(os.path.join(ROOT, "build")) else None
-    print(f"the Seam Lance: {len(CUBES)} cubes, a 32x16 texture, a 32x32 icon, attachable, item and recipe")
+    write(os.path.join(ROOT, "tools", "kit", "out", "lance_hold.json"), {"size": SIZE, "grip": GRIP, "fp": HOLD_FP, "tp": HOLD_TP, "muzzle": MUZZLE})
+    print(f"the Seam Lance: {len(CUBES)} cubes at {SIZE}x, a 32x16 texture, a 32x32 icon, attachable, item and recipe; muzzle {MUZZLE}")
 
 
 if __name__ == "__main__":

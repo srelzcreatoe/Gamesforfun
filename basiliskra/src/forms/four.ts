@@ -34,10 +34,10 @@ import { RoarFx, shake } from "../roar";
 import { store, type Rec } from "../store";
 import { add, clamp, dist, distXZ, hash, leftOf, mul, norm, sub, turnTowards, wrapDeg, yawTo, type V3 } from "../vec";
 import { NONE, UNLOADED, blockAt, clearLine, groundY, isLoaded, isSolidBlock, isWaterId, idAt } from "../world";
-import { BrainThree, CHARGE_TICKS, LIGHT_END, PLANT_TICKS, Quarry, headOf, isPlayer, standOff } from "./three";
+import { BrainThree, CHARGE_TICKS, LIGHT_END, PLANT_TICKS, Quarry, aimOf, headOf, isFlyer, isPlayer, standOff } from "./three";
 
 /** His breath: thicker, hotter and three times as long in the reach as it ever was. */
-const SPEC: BeamSpec = { range: 150, radius: 2.4, damage: 11, width: 3.2, carve: 3.8, fallout: 6 };
+const SPEC: BeamSpec = { range: 150, radius: 2.4, damage: 11, width: 4.0, carve: 3.8, fallout: 6 };   // (his mouth stands 5 blocks open)
 /** The thin lines: his first beam, and what his wing veins throw. */
 const THIN: BeamSpec = { range: 60, radius: 1.0, damage: 5, width: 0.55, carve: 1.2, fallout: 2 };
 const BEAM_MIN = 18;
@@ -152,8 +152,13 @@ export class BrainFour extends BrainThree {
     }
     blast(c.dim, ground, 8, 8, 20 * c.might, 1.1, (p, n) => c.hurt(p, n), c.entity, ground);
     if (wither() && !c.afloat) {
-      const got = carve(c.dim, { x: ground.x, y: ground.y - 0.6, z: ground.z }, 3.4, 150, false);
+      // (a crater stops short of his own broken plate: it stands where it fell)
+      const P = this.rec.four?.plate;
+      const r = P ? Math.min(4.2, Math.hypot(ground.x - P.x - 0.5, ground.z - P.z - 0.5) - 2) : 4.2;
+      const got = r < 1.5 ? { broken: 0 } : carve(c.dim, { x: ground.x, y: ground.y - 0.6, z: ground.z }, r, 220, false);
       if (got.broken > 20) particle(c.dim, "basiliskra:impact_debris", { x: ground.x, y: ground.y + 1, z: ground.z }, 96);
+      // and the shock of it rolls on ahead of him, wider than he is
+      c.stompWave(22, 6, 70);
     }
   }
 
@@ -315,8 +320,8 @@ export class BrainFour extends BrainThree {
   // ---- the breath, and what can happen inside it ---------------------------------------------------------------
   private igniteAt(from: V3, dir: V3): void {
     const c = this.c;
-    particle(c.dim, "basiliskra:muzzle_flash", from, 192);
-    particle(c.dim, "basiliskra:muzzle_shock", from, 192, beamVars(dir, 1, 1));
+    particle(c.dim, "basiliskra:muzzle_flash", from, 192, beamVars(dir, 1, this.spec.width));
+    particle(c.dim, "basiliskra:muzzle_shock", from, 192, beamVars(dir, 1, this.spec.width));
     flash(c.dim, from, 80, { red: 1, green: 0.5, blue: 0.42 }, 0.03, 0.04, 0.3);
     shake(c, 128, 1.0, 0.5);
   }
@@ -339,20 +344,22 @@ export class BrainFour extends BrainThree {
   protected *charge(target: Quarry | null, aimAt: () => V3, watchCover: boolean): Generator<void, "lock" | "cover" | "gone", void> {
     const c = this.c;
     const ok = () => { try { return !target || (target.isValid && target.dimension.id === c.dim.id); } catch { return false; } };
+    const flying = !!target && isFlyer(target);
+    const pitchMax = flying ? 80 : 50;
     c.halt();
     c.setPhase("charge");
     c.say("basiliskra.iii.club_plant", c.anchor("club_core"), 128);
     c.say("basiliskra.iii.charge", c.anchor("throat"), 160);
     this.chargeSounding = true;
     this.rodSeen.clear(); this.rodLayer = 0;
-    for (let t = 0; t < PLANT_TICKS; t++) { c.setCharge(t / 7); if (ok()) c.aimAt(aimAt(), 80, 50); this.scanRods(); yield; }
+    for (let t = 0; t < PLANT_TICKS; t++) { c.setCharge(t / 7); if (ok()) c.aimAt(aimAt(), 80, pitchMax); this.scanRods(); yield; }
     const light = LIGHT_END - PLANT_TICKS;
     let hidden = 0, lit = 1;
     for (let t = 0; t < light; t++) {
       if (!ok()) return "gone";
       const aim = aimAt();
-      const off = c.aimAt(aim, 80, 50);
-      if (off > 0) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), 0.5);
+      const off = c.aimAt(aim, 80, pitchMax);
+      if (off > 0) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), flying ? 1.2 : 0.5);
       c.setCharge(2 + (t / light) * 13.4);
       const zone = Math.floor(c.charge / 2);
       if (zone > lit) { lit = zone; sound(c.dim, "basiliskra.iii.charge_tick", c.anchor(zone >= 6 ? "throat" : "club_core"), 96, 0.55, 0.6 + zone * 0.08); }
@@ -369,6 +376,7 @@ export class BrainFour extends BrainThree {
     const lock = CHARGE_TICKS - LIGHT_END;
     for (let t = 0; t < lock; t++) {
       c.setCharge(16 + (t / lock) * 2);
+      if (flying && ok()) c.trackTo(aimAt(), 4, 80, 80);              // what flies is followed to the last
       if (t % 2 === 0) {
         const { from, dir } = c.aim();
         particle(c.dim, "basiliskra:beam_aim", from, 160, beamVars(dir, clearRange(c, from, dir, this.spec.range), 0.3 + 0.7 * (t / lock)));
@@ -390,7 +398,7 @@ export class BrainFour extends BrainThree {
     const c = this.c, F = this.four();
     // a damaged plate cracks off his back the third time he draws breath, and stands where it falls
     if (!F.plate && F.shots >= 2) yield* this.shedPlate();
-    const got = yield* this.charge(target, () => headOf(target), isPlayer(target) && this.ready("swallow"));
+    const got = yield* this.charge(target, () => aimOf(target), isPlayer(target) && !isFlyer(target) && this.ready("swallow"));
     if (got === "gone") { this.cutCharge(); return; }
     if (got === "cover") { this.rest("swallow", 3 * TICKS.minute); yield* this.swallow(target as Player); return; }
     // a lightning rod by his club still robs him of it
@@ -425,9 +433,13 @@ export class BrainFour extends BrainThree {
     const live = () => { try { return !!target && target.isValid && target.dimension.id === c.dim.id && (!isPlayer(target) || targetable(target as Player)); } catch { return false; } };
     let side = 0;                               // which way he will swing: +1 to his left, -1 to his right
     let pivot: V3 | null = null;                // the club, in the ground
+    const flying = !!target && isFlyer(target);
     for (let t = 0; t < FIRE; t++) {
       const fade = t < FIRE - 16 ? 1 : (FIRE - t) / 16;
-      if (t < SKID_AT) {
+      if (flying) {
+        // after something that flies he does not skid or turn on his club: he swings his head round with it, ahead of it
+        if (live()) c.trackTo(aimOf(target!), 3.5, 80, 80);
+      } else if (t < SKID_AT) {
         // his head follows, slowly: stepping out of the line still works
         if (live()) {
           const want = clamp(wrapDeg(yawTo(c.anchor("throat"), target!.location) - c.yaw), -80, 80);

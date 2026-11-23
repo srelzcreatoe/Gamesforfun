@@ -5,7 +5,7 @@
    "identifier": "basiliskra:beam_glow",
    "basic_render_parameters": {
     "material": "particles_blend",
-    "texture": "textures/particle/basiliskra_particles"
+    "texture": "textures/particle/basiliskra_beam"
    }
   },
   "components": {
@@ -35,32 +35,32 @@
    "minecraft:particle_appearance_billboard": {
     "size": [
      "v.len * 0.5",
-     "v.width * 0.5"
+     "v.width * 1.25"
     ],
     "facing_camera_mode": "lookat_direction",
-    "uv": {
-     "texture_width": 64,
-     "texture_height": 64,
-     "uv": [
-      16,
-      32
-     ],
-     "uv_size": [
-      16,
-      16
-     ]
-    },
     "direction": {
      "mode": "derive_from_velocity",
      "min_speed_threshold": 0.001
+    },
+    "uv": {
+     "texture_width": 192,
+     "texture_height": 128,
+     "uv": [
+      128,
+      0
+     ],
+     "uv_size": [
+      64,
+      16
+     ]
     }
    },
    "minecraft:particle_appearance_tinting": {
     "color": [
-     0.95,
-     0.08,
-     0.06,
-     0.38
+     0.92,
+     0.07,
+     0.05,
+     0.34
     ]
    }
   }
