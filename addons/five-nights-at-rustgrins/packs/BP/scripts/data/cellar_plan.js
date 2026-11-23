@@ -92,7 +92,7 @@ const K = {
   // the club's finishes
   panel: 'panel_rot',
   paper: ['gold_paper', 'gold_paper', 'gold_paper', 'gold_paper', 'gold_paper', 'gold_paper', 'gold_paper_torn'],
-  plaster: ['plaster_old', 'plaster_old', 'plaster_old', 'plaster_old', 'plaster_old_stained'],
+  plaster: ['plaster_old', 'plaster_old', 'plaster_old', 'plaster_old', 'plaster_old', 'plaster_old', 'plaster_old', 'plaster_old', 'plaster_old', 'plaster_old_stained'],
   carpet: 'carpet_gold',
   curtain: 'curtain_gold',
   boards: 'stage_floor',

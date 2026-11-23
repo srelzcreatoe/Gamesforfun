@@ -452,10 +452,12 @@ def flood_water(out):
     g = Geo('flood_water', 16, 16)
 
     def water(r):
-        r.fill(BLACKWATER, 2, amp=0.9, white_amp=0.3, cell=6)
-        for (x, y, n) in ((2, 3, 4), (9, 6, 5), (5, 11, 3), (11, 13, 3)):  # slow ripples catching what light there is
+        r.fill(BLACKWATER, 2, amp=1.1, white_amp=0.3, cell=6)
+        for (x, y, n) in ((1, 2, 5), (9, 5, 6), (4, 9, 4), (11, 12, 4), (0, 14, 3), (13, 8, 3)):  # slow ripples catching what light there is
             r.hline(x, y, n, BLACKWATER, 5)
+            r.px(x + 1, y, BLACKWATER, 6)
             r.px(x + n, y + 1, BLACKWATER, 4)
+            r.hline(x, y - 1, n - 1, BLACKWATER, 0)
         for (x, y) in ((13, 2), (14, 2), (13, 3), (3, 8), (7, 14), (8, 14)):  # scum, a floating scrap of paper
             r.px(x, y, SCUM, 2 + (x + y) % 2)
         r.px(10, 10, OLDPAPER, 2); r.px(11, 10, OLDPAPER, 1)

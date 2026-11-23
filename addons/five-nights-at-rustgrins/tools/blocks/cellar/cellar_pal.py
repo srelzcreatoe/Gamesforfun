@@ -33,7 +33,7 @@ CASE = Mat('case_old', ['#2e2a20', '#3d382b', '#4d4737', '#5d5643', '#6d6550', '
 DEADGLASS = Mat('deadglass', ['#040506', '#07090a', '#0b0e10', '#111517', '#191f22', '#252d31'], rough=40, h=130, hk=1)
 BULBWARM = Mat('bulb_warm', ['#a86a22', '#dc9c3e', '#ffcf72', '#ffecb8', '#fffbe6'], rough=40, emit=[150, 210, 245, 255, 255], h=148, hk=1)
 BULBDEAD = Mat('bulb_dead', ['#1e1a12', '#2c261a', '#3c3424', '#4e4430', '#62563e'], rough=45, h=148, hk=1)
-BLACKWATER = Mat('blackwater', ['#030405', '#05070a', '#080b0f', '#0c1116', '#131a20', '#1e2830', '#2e3b45'], rough=10, h=120, hk=1)
+BLACKWATER = Mat('blackwater', ['#04070a', '#070c10', '#0b1218', '#111b23', '#1a2832', '#2a3f4e', '#44606f'], rough=10, h=120, hk=1)
 WET = Mat('wet_floor', ['#06080a', '#0b0f12', '#11171b', '#1a2228', '#2a3640', '#45525c'], rough=12, h=124, hk=1)
 SCUM = Mat('scum', ['#1a1d12', '#252a19', '#323822', '#41482c'], rough=160, h=124, hk=1)
 CRAYON_Y = Mat('crayon_yellow', ['#8f7416', '#b3921c', '#d1ad26', '#e6c53a'], rough=200, h=138, hk=1)
