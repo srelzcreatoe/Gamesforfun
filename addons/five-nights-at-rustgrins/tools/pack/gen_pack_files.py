@@ -203,7 +203,7 @@ def title(s):
 def lang():
     lines = [f'## {TITLE}', '']
     names = {'rustgrin': 'Rustgrin', 'mirehop': 'Mirehop', 'noxbriar': 'Noxbriar', 'purple_rat': 'Purple Rat', 'cat': 'The Cat', 'top_hat_rat': 'The Ringmaster', 'rusted': 'Rustgrin?',
-             'guest': 'Guest'}
+             'golden_dog': 'The Golden Dog', 'guest': 'Guest'}
     for k, v in names.items():
         lines.append(f'entity.fnar:{k}.name={v}')
     for k, (name, _) in ITEMS.items():
