@@ -1,6 +1,6 @@
 // @ts-check
 // The Config Wheel: one item that opens every setting and test tool for The Observer.
-//   * everyone: status, their own sound captions
+//   * everyone: status, their own sound captions, and (1.5.1) the Sound Test
 //   * operators (or the only player in the world): See it now, Start it for me now, presets, all
 //     settings, a toggle for each encounter type, Test an encounter, Undo its changes, and (1.2.0) Other creatures:
 //     what each kind of creature is to it — answers to it, its rival, or left alone
@@ -14,6 +14,7 @@ import * as director from "../director/director.js";
 import { standing } from "../observer/dominion.js";
 import * as puppets from "../observer/puppets.js";
 import { isOperator, openSettings } from "./forms.js";
+import { openSoundTest } from "./sounds.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
 /** @typedef {import("@minecraft/server").RawMessage} RawMessage */
@@ -87,6 +88,8 @@ export async function openWheel(p) {
     add("observer.wheel.btn_creatures", () => creatures(p));
     add("observer.wheel.btn_undo", () => undoChanges(p));
   }
+  // 1.5.1: hear every piece of its music and every sound it makes (for everyone: it changes nothing)
+  add("observer.wheel.btn_sounds", () => openSoundTest(p));
   add(captionsOn(p) ? "observer.ui.btn_captions_on" : "observer.ui.btn_captions_off", () => {
     const s = ps(p);
     s.captions = !captionsOn(p);

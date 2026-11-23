@@ -59,6 +59,9 @@ the-observer-addon/
 | `observer/corrupt.js` | the corruption (1.5.0): the ground breaks up for a few seconds, through the ledger |
 | `tools/synth_music.py` | its broken music and its glitch / static stings (1.5.0), original, rendered from oscillators |
 | `tools/make_structures.py`, `tools/nbt_le.py` | the Weeping Mire's ruins (1.5.0): .mcstructure files, loot tables, lore and world generation; a little-endian NBT reader/writer |
+| `mire/eyebloom.js` | the Mire Eyebloom (1.5.1): its custom component (break one part, the plant falls) and `tick` (heads turn to you unwatched, shut when stared at, weep) |
+| `ui/sounds.js` | the Sound Test (1.5.1): every track and sound, `playTrack`, `playEffect`, `stop` |
+| `tools/make_eyebloom.py` | the Eyebloom's textures (the eye's flipbook strip included) and its 1×3×1 .mcstructure (1.5.1) |
 | `encounters/mirrored.js`, `encounters/guide.js` | The Mirror and The Guide (1.4.0) |
 | `encounters/knocking.js`, `bait.js`, `among_them.js`, `rival_hunt.js` | Knocking, Bait, One of Them, What Was Left (1.3.0) |
 | `encounters/its_eyes.js` | its eyes (1.2.1): `eyesFor` (a creature that answers to it, ahead and in sight), the encounter |
@@ -253,6 +256,14 @@ Strings are split into 30 000-character chunks (`key`, `key#1`, …). `v` is the
 * Block searches use the native `dimension.getBlocks(volume, {includeTypes})` within ≤ 16 blocks.
 * Hard caps: one body, ≤ 800 ledger entries, ≤ 16 traces, ≤ 8 chalk marks per player, ≤ 64 wards.
 * Measured on BDS with the full suite running: see TEST_REPORT.md (tick-rate monitor).
+* 1.5.1 dev commands: `sounds track <i>|sound <i>|stop` (the Sound Test without its page), `pace auto|off|<value>`
+  (its pace follows its target; off: the old fixed speeds; a number: that movement value, for calibration),
+  `eyes always|never|auto` (the eyeblooms watch players anywhere / not at all / in the Mire). Test kit:
+  `/scriptevent otest:miremap [half] [step]` maps the Weeping Mire round 0,0 (ticking areas in 480-block windows, the
+  biome every `step` blocks) and logs its share, pieces, biggest piece and a small map.
+* Rays: `getBlockFromRay` steps about a block at a time and can slip past a block a line only clips. Where it matters
+  (is it hidden behind this trunk? is its head in sight round it?) use `space.solidBlocked` / `nearBlocked` (an exact
+  cell-by-cell walk over the last few blocks) as `peekCheck` does, and cast past the end, counting only hits before it.
 * Finding a slow step (1.5.0): with tracing on (`/scriptevent observer:trace on`, or `debug on`), the main steps of the
   loops in `main.js` are wrapped in `timed(name, fn)`, which logs `slow <step>: N ms` when one takes 25 ms or more, every dev
   command logs `slow command <name>` likewise, and a pause of 120 ms or more between two ticks logs `hitch N ms (last step

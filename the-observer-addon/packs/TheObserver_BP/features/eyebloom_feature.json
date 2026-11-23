@@ -1,0 +1,26 @@
+{
+  "format_version": "1.13.0",
+  "minecraft:structure_template_feature": {
+    "description": {
+      "identifier": "wmire:eyebloom_feature"
+    },
+    "structure_name": "wmire:eyebloom",
+    "adjustment_radius": 2,
+    "facing_direction": "random",
+    "constraints": {
+      "grounded": {},
+      "unburied": {},
+      "block_intersection": {
+        "block_allowlist": [
+          "minecraft:air",
+          "minecraft:short_grass",
+          "minecraft:tall_grass",
+          "minecraft:fern",
+          "minecraft:large_fern",
+          "wmire:bone_grass",
+          "wmire:bone_sprout"
+        ]
+      }
+    }
+  }
+}

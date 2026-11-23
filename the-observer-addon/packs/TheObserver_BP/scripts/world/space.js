@@ -3,7 +3,7 @@
 // rejects unloaded chunks, solid/dangerous blocks, insufficient headroom, warded
 // areas and (optionally) liquid surfaces. findSpot() samples candidates around a
 // player and scores them by concealment, cover and distance.
-import { BlockVolume } from "@minecraft/server";
+import { BlockVolume, BlockTypes } from "@minecraft/server";
 import { DANGER, TRUNKS, MIRE_TRUNKS } from "../core/constants.js";
 import { V, safe, dimIndex, rand, yawDelta } from "../core/util.js";
 import { W } from "../core/state.js";
@@ -93,16 +93,23 @@ export function standNear(dim, x, z, y, o = {}) {
   return undefined;
 }
 
-/** Is there a solid block beside loc (perpendicular to the line of sight) that can hide/peek from? */
-export function coverSide(dim, feet, eye) {
+/**
+ * Is there a solid block beside loc (perpendicular to the line of sight) that can hide/peek from? Only real cover
+ * counts (1.5.1): not leaves, glass, bars, fences or plants. tall: a column from its feet to above its head (0-3).
+ * @param {Dimension} dim @param {Vec} feet @param {Vec} eye @param {{tall?:boolean}} [o]
+ */
+export function coverSide(dim, feet, eye, o = {}) {
   const toEye = V.flat(V.sub(eye, feet));
   const side = { x: -toEye.z, y: 0, z: toEye.x };
+  const heights = o.tall ? [0, 1, 2, 3] : [1, 2];
   const solidAt = (dir) => {
-    for (const h of [1, 2]) {
+    let n = 0;
+    for (const h of heights) {
       const b = safe(() => dim.getBlock({ x: feet.x + dir.x * 0.9, y: feet.y + h, z: feet.z + dir.z * 0.9 }));
-      if (b && !b.isAir && !b.isLiquid && !/grass|flower|fern|bush|vine/.test(b.typeId)) return true;
+      if (isCover(b)) n++;
+      else if (o.tall) return false;
     }
-    return false;
+    return n > 0;
   };
   const left = solidAt(side), right = solidAt(V.scale(side, -1));
   // side is the peek clip's lean: +1 leans toward -side, so it leans out away from the cover (1.1.0: it used to be
@@ -195,7 +202,7 @@ export function findSpot(p, spec) {
     }
     if (spec.hideFrom && spec.hideFrom.some((o) => o.id !== p.id && visibility(o, st.loc, { stooped: st.stoop, fov: 70 }).points > 0)) continue;
     if (spec.showTo && !spec.showTo.every((o) => visibility(o, st.loc, { stooped: st.stoop, fov: 55 }).points > 0)) continue;
-    const cover = coverSide(dim, st.loc, eye);
+    const cover = coverSide(dim, st.loc, eye, { tall: true });
     if (cover.has) score += 3;
     if (cover.one) score += spec.preferCover ? 10 : 2; // a trunk or wall corner to lean out from
     const light = safe(() => dim.getLightLevel({ x: st.loc.x, y: st.loc.y + 1, z: st.loc.z }), 8) ?? 8;
@@ -267,11 +274,170 @@ const TRUNK_SET = new Set(TRUNK_IDS);
 const LOOK_THROUGH = /^minecraft:(air|short_grass|tall_grass|fern|large_fern|vine|.+_leaves)$|^wmire:(weeping_leaves|weeping_tendril)$/;
 
 /**
- * Hiding behind a tree (1.1.0): a trunk at least three logs high, some 8-28 blocks off, and the spot straight behind
- * it as the player sees it — where the trunk hides its body — with a side it can look round: its head, leaning about
- * a block out at head height, in sight both ways. The other side too, if it is open (it switches sides when it keeps
- * being caught on one). side follows the peek clip (+1 leans toward -sideVec; see coverSide).
- * @param {Player} p @param {{minDist?:number, maxDist?:number, samples?:number}} [o]
+ * What is not cover (1.5.1): what you can see through or past — leaves, glass, bars, fences — and plants, lights and
+ * the like. Everything else that is a block, not air or liquid, hides it.
+ */
+const NOT_COVER = /leaves|tendril|glass|pane|_bars|fence|vine|grass|fern|flower|bush|sapling|roots|torch|lantern|candle|sign|banner|carpet|rail|button|pressure_plate|lever|ladder|scaffolding|web|snow_layer|light_block|kelp|seagrass|coral_fan|lily|dripleaf|azalea$|mushroom$|wheat|carrots|potatoes|beetroot|sweet_berry|cactus|bamboo|chain$|eyebloom/;
+/** @param {import("@minecraft/server").Block|undefined} b */
+export function isCover(b) {
+  return !!b && !b.isAir && !b.isLiquid && !NOT_COVER.test(b.typeId);
+}
+
+/** Places round a column of cover, nearest first: beside it and along the walls that meet there, up to three blocks off. */
+const ROUND = (() => {
+  const out = [];
+  for (let ox = -3; ox <= 3; ox++) for (let oz = -3; oz <= 3; oz++) if ((ox || oz) && Math.min(Math.abs(ox), Math.abs(oz)) <= 1) out.push([ox, oz]);
+  return out.sort((a, b) => Math.hypot(a[0], a[1]) - Math.hypot(b[0], b[1]));
+})();
+
+/** The building blocks it can hide behind besides trees — walls of houses, pillars, rock (built once). @type {string[]|undefined} */
+let coverIds;
+function buildingCover() {
+  if (coverIds) return coverIds;
+  const ok = /(_planks|_log|_wood|_stem|_hyphae|brick|bricks|cobblestone|stone_bricks|^minecraft:stone$|smooth_stone|sandstone|_concrete$|terracotta|_wool$|quartz_block|purpur_block|_tiles$|polished_|blackstone|basalt|obsidian|bookshelf|^minecraft:(andesite|diorite|granite|tuff|calcite|deepslate|cobbled_deepslate|mossy_cobblestone|packed_mud|mud_bricks|hay_block|bone_block|crafting_table|barrel)$|^wmire:)/;
+  const no = /slab|stairs|wall$|_wall|fence|door|button|pressure|sign|pane|glass|leaves|tendril|carpet|_ore$|eyebloom|page|torn|grass|sprout/;
+  const ids = (safe(() => BlockTypes.getAll().map((t) => t.id), []) ?? []).filter((id) => ok.test(id) && !no.test(id));
+  coverIds = [...new Set([...TRUNK_IDS, ...ids])];
+  return coverIds;
+}
+
+/**
+ * Every block cell a straight line from a to b passes through, between distances d0 and d1 along it (an exact
+ * voxel walk). @param {Vec} a @param {Vec} b @param {number} d0 @param {number} d1 @returns {Generator<Vec>}
+ */
+function* cellsAlong(a, b, d0, d1) {
+  const len = V.len(V.sub(b, a));
+  if (len < 1e-6) return;
+  const dx = (b.x - a.x) / len, dy = (b.y - a.y) / len, dz = (b.z - a.z) / len;
+  const px = a.x + dx * d0, py = a.y + dy * d0, pz = a.z + dz * d0;
+  let x = Math.floor(px), y = Math.floor(py), z = Math.floor(pz);
+  const sx = Math.sign(dx), sy = Math.sign(dy), sz = Math.sign(dz);
+  const tdx = sx ? Math.abs(1 / dx) : Infinity, tdy = sy ? Math.abs(1 / dy) : Infinity, tdz = sz ? Math.abs(1 / dz) : Infinity;
+  let tx = sx > 0 ? (x + 1 - px) / dx : sx < 0 ? (x - px) / dx : Infinity;
+  let ty = sy > 0 ? (y + 1 - py) / dy : sy < 0 ? (y - py) / dy : Infinity;
+  let tz = sz > 0 ? (z + 1 - pz) / dz : sz < 0 ? (z - pz) / dz : Infinity;
+  for (let n = 0; n < 64; n++) {
+    yield { x, y, z };
+    const next = Math.min(tx, ty, tz);
+    if (d0 + next > d1) return;
+    if (tx === next) {
+      x += sx;
+      tx += tdx;
+    } else if (ty === next) {
+      y += sy;
+      ty += tdy;
+    } else {
+      z += sz;
+      tz += tdz;
+    }
+  }
+}
+
+/**
+ * Is there a block that passes test in the last `near` blocks of the line from a to b (an exact walk, cell by cell —
+ * the engine's own ray steps about a block at a time and can slip past the corner of a block a line only clips)?
+ * @param {Dimension} dim @param {Vec} a @param {Vec} b @param {number} near @param {(b: import("@minecraft/server").Block|undefined) => boolean} test
+ */
+export function nearBlocked(dim, a, b, near, test) {
+  const len = V.len(V.sub(b, a));
+  for (const c of cellsAlong(a, b, Math.max(0, len - near), len - 0.05)) if (test(safe(() => dim.getBlock(c)))) return true;
+  return false;
+}
+
+/** Blocks the view of its head: solid cover, or leaves. @param {import("@minecraft/server").Block|undefined} b */
+const blocksView = (b) => isCover(b) || (!!b && /leaves/.test(b.typeId));
+
+/**
+ * Does solid cover (not leaves, glass and the like) stand between a and b? Leaves and see-through blocks on the way
+ * are passed through and the ray goes on (1.5.1). @param {Dimension} dim @param {Vec} a @param {Vec} b
+ */
+export function solidBlocked(dim, a, b) {
+  let from = a;
+  for (let hop = 0; hop < 6; hop++) {
+    const delta = V.sub(b, from);
+    const dist = V.len(delta);
+    if (dist < 0.3) return false;
+    const dir = V.scale(delta, 1 / dist);
+    // (the engine's ray can miss a block that ends just short of maxDistance: cast a little further and keep only
+    // what it hits before the point)
+    const hit = safe(() => dim.getBlockFromRay(from, dir, { maxDistance: dist + 2, includeLiquidBlocks: false, includePassableBlocks: false }));
+    if (!hit) return false;
+    const at = V.add(hit.block.location, hit.faceLocation);
+    if (V.dot(V.sub(at, from), dir) > dist - 0.05) return false;
+    if (isCover(hit.block)) return true;
+    const bl = hit.block.location;
+    const center = { x: bl.x + 0.5, y: bl.y + 0.5, z: bl.z + 0.5 };
+    const along = V.dot(V.sub(center, from), dir) + 0.9;
+    from = V.add(from, V.scale(dir, Math.max(along, 0.5)));
+  }
+  return true;
+}
+
+/**
+ * Solid cover between a and b — what the engine's ray finds, and, walked exactly cell by cell, anything in the last few
+ * blocks before b (where the trunk or wall it hides behind stands). @param {Dimension} dim @param {Vec} a @param {Vec} b
+ */
+function coverBetween(dim, a, b) {
+  return solidBlocked(dim, a, b) || nearBlocked(dim, a, b, 5, isCover);
+}
+
+/** Its whole body at feet — feet, chest, the top of its head — behind solid cover from eye. @param {Dimension} dim @param {Vec} feet @param {Vec} eye @param {boolean} stoop */
+export function hiddenBehind(dim, feet, eye, stoop) {
+  for (const pt of bodyPoints(feet, stoop)) if (!coverBetween(dim, eye, pt)) return false;
+  return true;
+}
+
+/**
+ * Hiding at feet from eye, as body.js keeps it: the cover between, the side it looks round, and the other side.
+ * @param {Dimension} dim @param {Vec} feet @param {Vec} eye @param {boolean} stoop
+ * @returns {{trunk:Vec, side:number, peek:Vec, alt?:{loc:Vec, side:number, peek:Vec}}|undefined}
+ */
+export function hideAt(dim, feet, eye, stoop) {
+  const sides = peekCheck(dim, feet, eye, stoop);
+  if (!sides) return undefined;
+  const u = V.flat(V.sub(eye, feet));
+  return { trunk: { x: feet.x + u.x, y: feet.y, z: feet.z + u.z }, side: sides[0].side, peek: sides[0].peek, alt: sides[1] };
+}
+
+/**
+ * Standing at feet, is it hidden from eye — its whole body, feet to the top of its head, behind solid cover as tall as
+ * it is — with a side it can lean its head out from, seen and seeing? (1.5.1: the only way it peeks.) side follows the
+ * peek clip (+1 leans toward -sideVec; see coverSide).
+ * @param {Dimension} dim @param {Vec} feet @param {Vec} eye @param {boolean} stoop
+ * @returns {{loc:Vec, side:number, peek:Vec}[]|undefined} one entry per side it can look round, best first
+ */
+export function peekCheck(dim, feet, eye, stoop) {
+  if (!hiddenBehind(dim, feet, eye, stoop)) return undefined;
+  const toEye = V.flat(V.sub(eye, feet));
+  const sideVec = { x: -toEye.z, y: 0, z: toEye.x };
+  /** @type {{loc:Vec, side:number, peek:Vec}[]} */
+  const sides = [];
+  for (const s of [1, -1]) {
+    const lean = V.scale(sideVec, -s);
+    // its head, leaning about a block out — seen if its middle is, or its outer half (a line grazing the corner of the
+    // cover still shows half a face)
+    const y = feet.y + (stoop ? 2.5 : 3.4);
+    const head = [1.0, 1.3].map((k) => ({ x: feet.x + lean.x * k, y, z: feet.z + lean.z * k })).find((pt) => {
+      const cell = safe(() => dim.getBlock(pt));
+      if (cell && !LOOK_THROUGH.test(cell.typeId)) return false;
+      return lineOfSight(dim, eye, pt).clear && lineOfSight(dim, pt, eye).clear && !nearBlocked(dim, eye, pt, 4, blocksView);
+    });
+    if (!head) continue;
+    // standing a touch away from the side it looks round, so its body stays behind the cover and only its head, a
+    // shoulder and the hand on the edge come round it
+    const nudge = V.scale(sideVec, s * 0.06);
+    sides.push({ loc: { x: feet.x + nudge.x, y: feet.y, z: feet.z + nudge.z }, side: s, peek: head });
+  }
+  return sides.length ? sides : undefined;
+}
+
+/**
+ * Hiding behind something (1.1.0 trees; 1.5.1 anything solid as tall as it is — a trunk, the wall or corner of a
+ * house, a pillar, a rock): a column of cover some 8-28 blocks off, and a spot beside it where the column hides its
+ * whole body from the player — straight behind it, or round the corner of a wall — with a side it can look round:
+ * its head, leaning about a block out at head height, in sight both ways. The other side too, if it is open (it
+ * switches sides when it keeps being caught on one).
+ * @param {Player} p @param {{minDist?:number, maxDist?:number, samples?:number, treesOnly?:boolean}} [o]
  * @returns {{loc:Vec, stoop:boolean, vis:number, side:number, score:number, liquid:boolean, hide:{trunk:Vec, side:number, peek:Vec, alt?:{loc:Vec, side:number, peek:Vec}}}|undefined}
  */
 export function hideSpot(p, o = {}) {
@@ -279,68 +445,71 @@ export function hideSpot(p, o = {}) {
   const eye = p.getHeadLocation();
   const base = p.location;
   const min = o.minDist ?? 8, max = o.maxDist ?? 28;
-  const isTrunk = (x, y, z) => TRUNK_SET.has(safe(() => dim.getBlock({ x, y, z })?.typeId, "") ?? "");
-  // every trunk within reach at about the player's height, in one query
+  const others = o.treesOnly ? [] : buildingCover().filter((id) => !TRUNK_SET.has(id));
+  const idSet = new Set([...TRUNK_IDS, ...others]);
+  const typeAt = (x, y, z) => safe(() => dim.getBlock({ x, y, z })?.typeId, "") ?? "";
+  const isCol = (x, y, z) => idSet.has(typeAt(x, y, z));
+  // every column of cover within reach at about the player's height: the trees in one query, the rest in another
   const bx = Math.floor(base.x), by = Math.floor(base.y), bz = Math.floor(base.z);
-  /** @type {Map<number, {x:number, z:number, d:number}>} */
+  const box = new BlockVolume({ x: bx - max, y: by - 1, z: bz - max }, { x: bx + max, y: by + 4, z: bz + max });
+  /** @type {Map<number, {x:number, z:number, d:number, tree:boolean}>} */
   const cols = new Map();
-  const found = safe(() => dim.getBlocks(new BlockVolume({ x: bx - max, y: by - 1, z: bz - max }, { x: bx + max, y: by + 4, z: bz + max }), { includeTypes: TRUNK_IDS }, true));
-  if (found) {
+  for (const [types, tree] of /** @type {[string[], boolean][]} */ ([[TRUNK_IDS, true], [others, false]])) {
+    if (!types.length) continue;
+    const found = safe(() => dim.getBlocks(box, { includeTypes: types }, true));
+    if (!found) continue;
     for (const l of found.getBlockLocationIterator()) {
       const k = l.x * 100003 + l.z;
       if (cols.has(k)) continue;
       const d = Math.hypot(l.x + 0.5 - base.x, l.z + 0.5 - base.z);
-      if (d >= min && d <= max) cols.set(k, { x: l.x, z: l.z, d });
+      if (d >= min && d <= max) cols.set(k, { x: l.x, z: l.z, d, tree });
     }
   }
-  const list = [...cols.values()].sort(() => Math.random() - 0.5).slice(0, o.samples ?? 40);
+  // trees first (shuffled), then the rest (shuffled)
+  const all = [...cols.values()].sort(() => Math.random() - 0.5);
+  const list = [...all.filter((c) => c.tree), ...all.filter((c) => !c.tree)].slice(0, o.samples ?? 48);
   let best;
-  for (const { x, z, d } of list) {
+  let checks = 0;
+  for (const { x, z, d, tree } of list) {
+    if (checks > 140) break;
     let ty;
-    for (const dy of [1, 2, 0, 3, -1, 4]) if (isTrunk(x, Math.floor(base.y) + dy, z)) {
-      ty = Math.floor(base.y) + dy;
+    for (const dy of [1, 2, 0, 3, -1, 4]) if (isCol(x, by + dy, z)) {
+      ty = by + dy;
       break;
     }
     if (ty === undefined) continue;
     let bottom = ty, top = ty;
-    while (bottom > ty - 6 && isTrunk(x, bottom - 1, z)) bottom--;
-    while (top < ty + 8 && isTrunk(x, top + 1, z)) top++;
+    while (bottom > ty - 6 && isCol(x, bottom - 1, z)) bottom--;
+    while (top < ty + 8 && isCol(x, top + 1, z)) top++;
+    // as tall as a tree: at least three blocks of it above the ground it stands on
     if (top - bottom + 1 < 3) continue;
     const trunk = { x: x + 0.5, y: bottom, z: z + 0.5 };
     const u = V.flat(V.sub(trunk, eye));
-    // straight behind it (one block more behind a thick trunk)
-    let st;
-    for (const k of [1.05, 2.05]) {
-      const hx = trunk.x + u.x * k, hz = trunk.z + u.z * k;
-      const s = standAt(dim, hx, hz, bottom + 2.5, 4);
-      if (!s || s.liquid || Math.abs(s.loc.y - bottom) > 1.1 || isTrunk(Math.floor(hx), Math.floor(s.loc.y) + 1, Math.floor(hz))) continue;
-      st = s;
+    // a wall's middle hides nothing it can lean round: only columns with open air on two sides at right angles
+    // (a corner, a wall's end, a pillar, a trunk)
+    const open = [[1, 0], [0, 1], [-1, 0], [0, -1]].map(([ox, oz]) => !isCover(safe(() => dim.getBlock({ x: x + ox, y: bottom + 1, z: z + oz }))));
+    if (!open.some((v, i) => v && open[(i + 1) % 4])) continue;
+    // where it could stand: straight behind it (one more behind a thick trunk), then round its far side — along the
+    // walls that meet there, up to three blocks back (the corner of a house: round it, where the walls hide it and its
+    // head comes past the edge)
+    const at = [[u.x * 1.05, u.z * 1.05], [u.x * 2.05, u.z * 2.05], ...ROUND.filter(([ox, oz]) => ox * u.x + oz * u.z > 0.1)];
+    for (const [ox, oz] of at) {
+      const hx = trunk.x + ox, hz = trunk.z + oz;
+      const dd = Math.hypot(hx - base.x, hz - base.z);
+      if (dd < min || dd > max + 2) continue;
+      const st = standAt(dim, hx, hz, bottom + 2.5, 4);
+      if (!st || st.liquid || Math.abs(st.loc.y - bottom) > 1.1 || isCover(safe(() => dim.getBlock({ x: Math.floor(hx), y: Math.floor(st.loc.y) + 1, z: Math.floor(hz) })))) continue;
+      checks++;
+      const sides = peekCheck(dim, st.loc, eye, st.stoop);
+      if (!sides) continue;
+      if (Math.random() < 0.5) sides.reverse();
+      const light = safe(() => dim.getLightLevel({ x: st.loc.x, y: st.loc.y + 1, z: st.loc.z }), 8) ?? 8;
+      const score = (15 - light) * 0.2 - Math.abs(d - (min + max) / 2) * 0.05 + rand(0, 1) + (tree ? 0.5 : 0);
+      if (!best || score > best.score) {
+        best = { loc: sides[0].loc, stoop: st.stoop, vis: 1, side: sides[0].side, score, liquid: false,
+          hide: { trunk, side: sides[0].side, peek: sides[0].peek, alt: sides[1] } };
+      }
       break;
-    }
-    if (!st) continue;
-    // hidden there: the trunk stands between the player and its chest
-    if (lineOfSight(dim, eye, { x: st.loc.x, y: st.loc.y + 1.9, z: st.loc.z }).clear) continue;
-    const toEye = V.flat(V.sub(eye, st.loc));
-    const sideVec = { x: -toEye.z, y: 0, z: toEye.x };
-    const sides = [];
-    for (const s of [1, -1]) {
-      const lean = V.scale(sideVec, -s);
-      const head = { x: st.loc.x + lean.x * 1.0, y: st.loc.y + (st.stoop ? 2.5 : 3.4), z: st.loc.z + lean.z * 1.0 };
-      const cell = safe(() => dim.getBlock(head));
-      if (cell && !LOOK_THROUGH.test(cell.typeId)) continue;
-      if (!lineOfSight(dim, eye, head).clear || !lineOfSight(dim, head, eye).clear) continue;
-      // standing a touch away from the side it looks round, so its body stays behind the trunk and only its head,
-      // a shoulder and the hand on the bark come round the edge
-      const nudge = V.scale(sideVec, s * 0.06);
-      sides.push({ loc: { x: st.loc.x + nudge.x, y: st.loc.y, z: st.loc.z + nudge.z }, side: s, peek: head });
-    }
-    if (!sides.length) continue;
-    if (Math.random() < 0.5) sides.reverse();
-    const light = safe(() => dim.getLightLevel({ x: st.loc.x, y: st.loc.y + 1, z: st.loc.z }), 8) ?? 8;
-    const score = (15 - light) * 0.2 - Math.abs(d - (min + max) / 2) * 0.05 + rand(0, 1);
-    if (!best || score > best.score) {
-      best = { loc: sides[0].loc, stoop: st.stoop, vis: 1, side: sides[0].side, score, liquid: false,
-        hide: { trunk, side: sides[0].side, peek: sides[0].peek, alt: sides[1] } };
     }
   }
   return best;

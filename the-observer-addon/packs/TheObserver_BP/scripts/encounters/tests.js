@@ -8,8 +8,7 @@ import * as body from "../observer/body.js";
 import { SOUNDS, ITEMS } from "../core/constants.js";
 import { V, safe } from "../core/util.js";
 import { aggression } from "../core/settings.js";
-import { findSpot, standNear, coverSide, hideSpot } from "../world/space.js";
-import { lineOfSight } from "../world/sight.js";
+import { findSpot, standNear, hideSpot } from "../world/space.js";
 import { findSpotLoose, lunge, sighting, relentless, chaseState, outthink } from "./common.js";
 import * as illusions from "../observer/illusions.js";
 import * as hush from "../observer/hush.js";
@@ -118,31 +117,14 @@ register({
 });
 
 // ---- Peeking: it stands beside the nearest cover (a trunk, a wall corner) and leans out at you
-/** A standing spot 5-14 blocks ahead with cover on exactly one side and a clear view of the player. */
-function peekSpot(p) {
-  const dim = p.dimension;
-  const eye = p.getHeadLocation();
-  const yaw = p.getRotation().y;
-  for (let d = 5; d <= 14; d++) {
-    for (const a of [0, 10, -10, 20, -20, 30, -30, 40, -40, 50, -50, 60, -60]) {
-      const dir = V.fromYaw(yaw + a);
-      const st = standNear(dim, p.location.x + dir.x * d, p.location.z + dir.z * d, p.location.y);
-      if (!st) continue;
-      const head = { x: st.loc.x, y: st.loc.y + (st.stoop ? 2.45 : 3.4), z: st.loc.z };
-      if (!lineOfSight(dim, head, eye).clear) continue;
-      const cover = coverSide(dim, st.loc, eye);
-      if (cover.one) return { ...st, side: cover.side };
-    }
-  }
-  return undefined;
-}
 
 register({
   ...TEST,
   id: "test_peek",
   prepare(enc) {
-    // behind a real tree first (1.1.0), else beside a wall corner; with neither ahead, it tells you so instead
-    const spot = hideSpot(enc.p, { minDist: 5, maxDist: 20 }) ?? peekSpot(enc.p);
+    // behind a tree, a wall, the corner of a house — anything solid as tall as it is that hides all of it (1.5.1: never
+    // beside a bush, never in the open); with nothing like that in reach, it tells you so instead
+    const spot = hideSpot(enc.p, { minDist: 5, maxDist: 20 });
     if (!spot) return false;
     enc.data.spot = spot;
     return true;
@@ -150,7 +132,7 @@ register({
   async run(enc) {
     const spot = enc.data.spot;
     if (!enc.spawnBody(spot.loc, { state: "peek", stoop: spot.stoop, side: spot.side, autoPeek: true, hide: spot.hide })) return enc.result("deferred");
-    if (spot.hide) enc.emit("hide", { trunk: spot.hide.trunk, side: spot.side, peek: spot.hide.peek, x: spot.loc.x, y: spot.loc.y, z: spot.loc.z, alt: !!spot.hide.alt });
+    enc.emit("hide", { trunk: spot.hide.trunk, side: spot.side, peek: spot.hide.peek, x: spot.loc.x, y: spot.loc.y, z: spot.loc.z, alt: !!spot.hide.alt });
     // behind a tree it plays it out: caught three times, or kept ducked for 6 s by a player staring at the tree, it
     // slips away; beside a wall corner, looked at for 3 s
     let ducked = 0;

@@ -1125,7 +1125,8 @@ TESTS.presence_fx = async () => {
 };
 
 TESTS.auto_peek = async () => {
-  // something beside it (a wall, a trunk): it leans out from behind it; take it away and it stands normally
+  // something solid as tall as it is between you (1.5.1: a column four high — never just beside it): it hides behind
+  // it and looks round it; take it away and it stands there, plainly
   const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z + 30 });
   isolate(p);
   const m = mark();
@@ -1135,11 +1136,10 @@ TESTS.auto_peek = async () => {
   p.lookAtLocation({ x: p.location.x - (e.location.x - p.location.x), y: Y + 1.6, z: p.location.z - (e.location.z - p.location.z) });
   const toEye = { x: p.location.x - e.location.x, z: p.location.z - e.location.z };
   const len = Math.hypot(toEye.x, toEye.z);
-  const side = { x: -toEye.z / len, z: toEye.x / len };
-  const col = { x: Math.floor(e.location.x + side.x * 0.9), z: Math.floor(e.location.z + side.z * 0.9) };
+  const col = { x: Math.floor(e.location.x + (toEye.x / len) * 1.0), z: Math.floor(e.location.z + (toEye.z / len) * 1.0) };
   const fy = Math.floor(e.location.y);
   const placed = [];
-  for (const h of [1, 2, 3]) {
+  for (const h of [0, 1, 2, 3]) {
     const b = ow().getBlock({ x: col.x, y: fy + h, z: col.z });
     if (b && b.isAir) {
       b.setType("minecraft:oak_log");
@@ -1160,7 +1160,7 @@ TESTS.auto_peek = async () => {
     if (e.getProperty("observer:state") === "watch") back = true;
     if (back) break;
   }
-  check("auto_peek_stands_without_cover", back || placed.length < 3, `state=${e.isValid ? e.getProperty("observer:state") : "gone"}`);
+  check("auto_peek_stands_without_cover", back || placed.length < 4, `state=${e.isValid ? e.getProperty("observer:state") : "gone"}`);
   obs("abort");
   await endOf("distant_watch", m, 200);
   await observerGone(200);
@@ -2532,6 +2532,118 @@ TESTS.profile = async () => {
   obs("profile", "clear", "Tester");
 };
 
+/**
+ * The first block a straight line from a to b passes through (an exact walk, cell by cell: the engine's own ray steps
+ * about a block at a time and can slip past a block a line only clips), ignoring air and plants. @returns {Block|undefined}
+ */
+function firstBlockOn(a, b) {
+  const len = Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z);
+  const d = { x: (b.x - a.x) / len, y: (b.y - a.y) / len, z: (b.z - a.z) / len };
+  const c = { x: Math.floor(a.x), y: Math.floor(a.y), z: Math.floor(a.z) };
+  const st = { x: Math.sign(d.x), y: Math.sign(d.y), z: Math.sign(d.z) };
+  const td = {}, tm = {};
+  for (const k of ["x", "y", "z"]) {
+    td[k] = st[k] ? Math.abs(1 / d[k]) : Infinity;
+    tm[k] = st[k] > 0 ? (c[k] + 1 - a[k]) / d[k] : st[k] < 0 ? (c[k] - a[k]) / d[k] : Infinity;
+  }
+  for (let n = 0; n < 200; n++) {
+    const blk = ow().getBlock(c);
+    if (n > 0 && blk && !blk.isAir && !blk.isLiquid && !/grass|flower|fern/.test(blk.typeId)) return blk;
+    const k = tm.x <= tm.y && tm.x <= tm.z ? "x" : tm.y <= tm.z ? "y" : "z";
+    if (tm[k] > len - 0.05) return undefined;
+    c[k] += st[k];
+    tm[k] += td[k];
+  }
+  return undefined;
+}
+
+/** A small wooden house (log corners, plank walls, a doorway, a flat roof) on the open platform, or its removal. @param {boolean} on */
+function smallHouse(on) {
+  const run = (c) => {
+    try {
+      ow().runCommand(c);
+    } catch (e) {
+      log(`[OTEST] house cmd failed: ${c} -> ${e}`);
+    }
+  };
+  if (!on) return run(`fill 1099 ${Y} 1021 1107 ${Y + 5} 1029 air`);
+  run(`fill 1100 ${Y} 1022 1106 ${Y + 3} 1028 oak_planks hollow`);
+  for (const [x, z] of [[1100, 1022], [1106, 1022], [1100, 1028], [1106, 1028]]) run(`fill ${x} ${Y} ${z} ${x} ${Y + 3} ${z} oak_log`);
+  run(`fill 1100 ${Y + 4} 1022 1106 ${Y + 4} 1028 oak_planks`);
+  run(`fill 1103 ${Y} 1022 1103 ${Y + 1} 1022 air`);
+}
+
+TESTS.peek_house = async () => {
+  // 1.5.1: no tree in reach — it hides behind a house instead, round its corner, the walls hiding all of it, and looks
+  // round the edge at you
+  const stand = { x: 1103.5, y: Y, z: 1012.5 };
+  smallHouse(true);
+  await wait(4);
+  const p = await freshTarget("Tester", stand, { x: 1103.5, y: Y + 1.6, z: 1040 }, 2);
+  isolate(p);
+  const m = mark();
+  obs("trigger", "test_peek", "Tester");
+  const e = await waitObserver(60);
+  const hd = since(m, "hide")[0];
+  if (!check("peek_house_found", !!e && !!hd, JSON.stringify(hd ?? since(m, "end")[0] ?? {}))) {
+    smallHouse(false);
+    return;
+  }
+  const eye = p.getHeadLocation();
+  const rayTo = (pt) => firstBlockOn(eye, pt);
+  const hits = [0.6, 2.0, 3.6].map((h) => rayTo({ x: e.location.x, y: e.location.y + h, z: e.location.z }));
+  check("peek_house_all_of_it_hidden_by_the_house", hits.every((h) => !!h && /planks|log/.test(h.typeId)), hits.map((h) => (h ? h.typeId : "nothing")).join(","));
+  const inside = e.location.x > 1100 && e.location.x < 1107 && e.location.z > 1022 && e.location.z < 1029;
+  check("peek_house_outside_it", !inside, `${e.location.x.toFixed(1)},${e.location.z.toFixed(1)}`);
+  let peeked = false;
+  for (let t = 0; t < 40 && e.isValid && !peeked; t += 4) {
+    if (e.getProperty("observer:state") === "peek") peeked = true;
+    await wait(4);
+  }
+  check("peek_house_looks_round_the_edge", peeked && !rayTo(hd.peek), `state ${e.isValid ? e.getProperty("observer:state") : "gone"}; head ${rayTo(hd.peek)?.typeId ?? "in sight"}`);
+  obs("abort");
+  await observerGone(100);
+  smallHouse(false);
+};
+
+TESTS.peek_not_bushes = async () => {
+  // 1.5.1: a bush of leaves is not cover — nothing solid in reach, it does not peek at all (it says what it needs);
+  // and standing in the open beside the bush, it never leans out from it
+  const stand = { x: 1104.5, y: Y, z: 1012.5 };
+  const run = (c) => {
+    try {
+      ow().runCommand(c);
+    } catch (e) {
+      log(`[OTEST] bush cmd failed: ${c} -> ${e}`);
+    }
+  };
+  run(`fill 1102 ${Y} 1022 1105 ${Y + 4} 1024 oak_leaves ["persistent_bit"=true]`);
+  const p = await freshTarget("Tester", stand, { x: 1104.5, y: Y + 1.6, z: 1040 }, 2);
+  isolate(p);
+  await wait(4);
+  let m = mark();
+  obs("trigger", "test_peek", "Tester");
+  const end = await endOf("test_peek", m, 100);
+  check("peek_not_bushes_no_peek", !!end && end.outcome === "deferred" && !since(m, "body").some((d) => d.what === "spawn"), end ? end.outcome : "none");
+  await observerGone(100);
+  // right beside the bush, in the open, it stands — no leaning out from the leaves
+  m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  const e = await waitObserver(60);
+  if (e) {
+    e.teleport({ x: 1106.5, y: Y, z: 1023.5 });
+    const seen = new Set();
+    for (let t = 0; t < 60 && e.isValid; t += 5) {
+      seen.add(e.getProperty("observer:state"));
+      await wait(5);
+    }
+    check("peek_not_bushes_stands_beside_one", !seen.has("peek"), [...seen].join(","));
+  } else check("peek_not_bushes_stands_beside_one", true, "no body this time");
+  obs("abort");
+  await observerGone(100);
+  run(`fill 1102 ${Y} 1022 1105 ${Y + 4} 1024 air`);
+};
+
 TESTS.peek_tree = async () => {
   // behind a real tree it hides — its body behind the trunk — and looks round it at you
   const stand = { x: 940.5, y: Y, z: 1003.5 };
@@ -2546,11 +2658,9 @@ TESTS.peek_tree = async () => {
   const toT = { x: hd.trunk.x - eye.x, z: hd.trunk.z - eye.z }, toB = { x: e.location.x - eye.x, z: e.location.z - eye.z };
   const ang = (Math.acos((toT.x * toB.x + toT.z * toB.z) / (Math.hypot(toT.x, toT.z) * Math.hypot(toB.x, toB.z))) * 180) / Math.PI;
   const chest = { x: e.location.x, y: e.location.y + 1.9, z: e.location.z };
-  const v = { x: chest.x - eye.x, y: chest.y - eye.y, z: chest.z - eye.z };
-  const len = Math.hypot(v.x, v.y, v.z);
-  const hit = ow().getBlockFromRay(eye, { x: v.x / len, y: v.y / len, z: v.z / len }, { maxDistance: len, includePassableBlocks: false });
-  check("peek_tree_body_behind_the_trunk", ang < 7 && Math.hypot(toB.x, toB.z) > Math.hypot(toT.x, toT.z) && !!hit && /log|wood|stem/.test(hit.block.typeId),
-    `${ang.toFixed(1)} deg off the trunk line; ray hits ${hit ? hit.block.typeId : "nothing"}`);
+  const hit = firstBlockOn(eye, chest);
+  check("peek_tree_body_behind_the_trunk", ang < 7 && Math.hypot(toB.x, toB.z) > Math.hypot(toT.x, toT.z) && !!hit && /log|wood|stem/.test(hit.typeId),
+    `${ang.toFixed(1)} deg off the trunk line; ray hits ${hit ? hit.typeId : "nothing"}`);
   check("peek_tree_looks_round", e.getProperty("observer:state") === "peek", e.getProperty("observer:state"));
   // look straight at its face: it ducks back behind the trunk, and waits while you watch the tree
   const away = { x: stand.x, y: Y + 1.6, z: stand.z - 30 };
@@ -4603,6 +4713,15 @@ TESTS.corruption = async () => {
   daylight(stand);
   const p = await freshTarget("Tester", stand, { x: stand.x, y: Y + 1.6, z: stand.z - 30 }, 4);
   isolate(p);
+  // (1.5.1) flowers on some of the ground round you: nothing standing on the ground is ever under it
+  const flowers = [];
+  for (const [dx, dz] of [[3, 0], [-3, 0], [0, 3], [0, -3], [2, 2], [-2, -2], [4, -2], [-4, 2], [5, 1], [-1, -5]]) {
+    const b = ow().getBlock({ x: Math.floor(stand.x) + dx, y: Y, z: Math.floor(stand.z) + dz });
+    if (b?.isAir && ow().getBlock({ x: b.location.x, y: Y - 1, z: b.location.z })?.typeId === "minecraft:grass_block") {
+      b.setType("minecraft:poppy");
+      flowers.push(b.location);
+    }
+  }
   const m = mark();
   obs("corrupt", "Tester");
   const c = await waitEvent("corrupt", (d) => d.what === "corrupt", 20, m);
@@ -4612,6 +4731,64 @@ TESTS.corruption = async () => {
   const restored = since(m, "ledger").filter((d) => d.what === "restored" && d.kind === "corrupt");
   const same = changed.every((d) => ow().getBlock({ x: d.x, y: d.y, z: d.z })?.typeId === d.from);
   check("corruption_put_back_as_it_was", restored.length === changed.length && same, `${restored.length}/${changed.length} put back`);
+  const kept = flowers.filter((l) => ow().getBlock(l)?.typeId === "minecraft:poppy").length;
+  const under = changed.filter((d) => flowers.some((l) => l.x === d.x && l.z === d.z && l.y === d.y + 1)).length;
+  check("corruption_leaves_what_stands_on_the_ground", flowers.length > 0 && kept === flowers.length && under === 0, `${kept}/${flowers.length} flowers kept, ${under} broken under one`);
+  for (const l of flowers) ow().getBlock(l)?.setType("minecraft:air");
+};
+
+TESTS.pace = async () => {
+  // 1.5.1: coming at you, it moves as you move — you stand still, it creeps; you walk, it drifts at a walk; you
+  // sprint, it comes fast
+  obs("ahead", "never");
+  obs("pace", "auto");
+  const speeds = {};
+  for (const [name, step] of [["still", 0], ["walk", 0.86], ["sprint", 1.12]]) {
+    const p = await freshTarget("Tester", { x: 935.5, y: Y, z: 1033.5 }, { x: 900, y: Y + 1.6, z: 1033.5 }, 3);
+    isolate(p);
+    obs("trigger", "test_strike", "Tester");
+    const e = await waitObserver(60);
+    await wait(36);
+    const xs = [];
+    for (let t = 0; t < 48; t += 4) {
+      heal(p);
+      if (step) p.teleport({ x: Math.min(990, p.location.x + step), y: Y, z: 1033.5 }, { facingLocation: { x: 900, y: Y + 1.6, z: 1033.5 } });
+      await wait(4);
+      if (e?.isValid) xs.push(e.location.x);
+    }
+    speeds[name] = xs.length > 8 ? (xs[xs.length - 1] - xs[4]) / (((xs.length - 1 - 4) * 4) / 20) : -1;
+    obs("abort");
+    await observerGone(100);
+  }
+  const str = Object.entries(speeds).map(([k, v]) => `${k} ${v.toFixed(2)}`).join(", ");
+  check("pace_creeps_when_you_stand_still", speeds.still > 0.6 && speeds.still < 2.6, str);
+  check("pace_drifts_at_a_walk", speeds.walk > 3.6 && speeds.walk < 6.0, str);
+  check("pace_fast_when_you_sprint", speeds.sprint > speeds.walk + 0.6 && speeds.sprint > 5.6, str);
+};
+
+TESTS.pace_cal = async () => {
+  // (calibration, not in the suite) its steady speed in pursuit at fixed movement values
+  obs("ahead", "never");
+  for (const v of ["0.2", "0.25", "0.3", "0.35", "0.4", "0.45", "0.5"]) {
+    obs("pace", v);
+    const p = await freshTarget("Tester", { x: 935.5, y: Y, z: 1033.5 }, { x: 900, y: Y + 1.6, z: 1033.5 }, 3);
+    isolate(p);
+    obs("trigger", "test_strike", "Tester");
+    const e = await waitObserver(60);
+    await wait(40);
+    const xs = [];
+    for (let t = 0; t < 60; t += 4) {
+      heal(p);
+      p.teleport({ x: Math.min(990, p.location.x + 2.0), y: Y, z: 1033.5 }, { facingLocation: { x: 900, y: Y + 1.6, z: 1033.5 } });
+      await wait(4);
+      if (e?.isValid) xs.push(e.location.x);
+    }
+    const sp = xs.length > 8 ? (xs[xs.length - 1] - xs[4]) / (((xs.length - 1 - 4) * 4) / 20) : -1;
+    log(`[OTEST] pacecal v=${v} speed=${sp.toFixed(2)} n=${xs.length}`);
+    obs("abort");
+    await observerGone(100);
+  }
+  obs("pace", "auto");
 };
 
 TESTS.ahead = async () => {
@@ -4666,6 +4843,84 @@ TESTS.ahead = async () => {
   obs("ahead", "never");
   obs("preset", "standard");
   await observerGone(100);
+};
+
+TESTS.eyebloom = async () => {
+  // 1.5.1: the Mire Eyebloom — three blocks tall; it turns to you only while you are not looking at it; stared at, it
+  // shuts its eye; look away and it opens and turns to you; break its eye and the whole plant comes down
+  obs("eyes", "always");
+  const base = { x: FIELD.x + 6, y: Y, z: FIELD.z - 10 };
+  const headAt = { x: base.x, y: base.y + 2, z: base.z };
+  ow().runCommand(`fill ${base.x} ${base.y} ${base.z} ${base.x} ${base.y + 2} ${base.z} air`);
+  ow().runCommand(`structure load wmire:eyebloom ${base.x} ${base.y} ${base.z}`);
+  await wait(4);
+  const parts = [0, 1, 2].map((dy) => ow().getBlock({ x: base.x, y: base.y + dy, z: base.z })?.typeId ?? "?");
+  if (!check("eyebloom_three_blocks_tall", parts.join() === "wmire:eyebloom_stalk,wmire:eyebloom_stalk,wmire:eyebloom", parts.join(","))) return obs("eyes", "auto");
+  const st = () => {
+    const pm = ow().getBlock(headAt)?.permutation;
+    return { dir: pm?.getState("minecraft:cardinal_direction"), shut: pm?.getState("wmire:shut") };
+  };
+  // to its east, looking away: it turns to face you
+  const p = await freshTarget("Tester", { x: base.x + 8.5, y: Y, z: base.z + 0.5 }, { x: base.x + 40, y: Y + 1.6, z: base.z + 0.5 }, 2);
+  isolate(p);
+  for (let t = 0; t < 80 && st().dir !== "east"; t += 5) await wait(5);
+  check("eyebloom_turns_to_you_unwatched", st().dir === "east", JSON.stringify(st()));
+  // round to its south, looking straight at it from close by: it does not turn while watched — and it shuts its eye
+  p.teleport({ x: base.x + 0.5, y: Y, z: base.z + 7.5 }, { facingLocation: { x: base.x + 0.5, y: Y + 2.5, z: base.z + 0.5 } });
+  let shut = false;
+  for (let t = 0; t < 60; t += 5) {
+    await wait(5);
+    p.lookAtLocation({ x: base.x + 0.5, y: Y + 2.5, z: base.z + 0.5 });
+    if (st().shut) shut = true;
+  }
+  check("eyebloom_still_while_watched", st().dir === "east", JSON.stringify(st()));
+  check("eyebloom_shuts_when_stared_at", shut, JSON.stringify(st()));
+  // look away: it opens its eye, and turns to you
+  p.lookAtLocation({ x: base.x + 0.5, y: Y + 1.6, z: base.z + 40 });
+  for (let t = 0; t < 100 && (st().dir !== "south" || st().shut); t += 5) await wait(5);
+  check("eyebloom_opens_and_turns_when_you_look_away", st().dir === "south" && !st().shut, JSON.stringify(st()));
+  // break its eye: the whole plant comes down
+  const m = mark();
+  p.teleport({ x: base.x + 0.5, y: Y, z: base.z + 2.5 }, { facingLocation: { x: base.x + 0.5, y: Y + 2.5, z: base.z + 0.5 } });
+  await wait(6);
+  p.breakBlock(headAt);
+  for (let t = 0; t < 60 && ![0, 1, 2].every((dy) => ow().getBlock({ x: base.x, y: base.y + dy, z: base.z })?.isAir); t += 5) await wait(5);
+  const left = [0, 1, 2].map((dy) => ow().getBlock({ x: base.x, y: base.y + dy, z: base.z })?.typeId ?? "?");
+  check("eyebloom_falls_as_one", left.every((id) => id === "minecraft:air"), `${left.join(",")}; ${JSON.stringify(since(m, "eyebloom").find((d) => d.what === "fell") ?? {})}`);
+  obs("eyes", "auto");
+  // and they grow in the Mire: whole plants, stalk, stalk, eye
+  const ms = await findMireStand();
+  if (!ms) return check("eyebloom_grows_in_the_mire", false, "no Mire stand");
+  const found = ow().getBlocks(new BlockVolume({ x: ms.x - 48, y: ms.y - 20, z: ms.z - 48 }, { x: ms.x + 48, y: ms.y + 20, z: ms.z + 48 }), { includeTypes: ["wmire:eyebloom"] }, true);
+  let heads = 0, whole = 0;
+  for (const l of found.getBlockLocationIterator()) {
+    heads++;
+    if (ow().getBlock({ x: l.x, y: l.y - 1, z: l.z })?.typeId === "wmire:eyebloom_stalk" && ow().getBlock({ x: l.x, y: l.y - 2, z: l.z })?.typeId === "wmire:eyebloom_stalk") whole++;
+  }
+  check("eyebloom_grows_in_the_mire", heads >= 1 && whole === heads, `${heads} eyes within 48 blocks of ${ms.x},${ms.z}, ${whole} whole`);
+};
+
+TESTS.sound_test = async () => {
+  // 1.5.1: the Sound Test plays every track of its music (looping, on the player's music channel) and every sound
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
+  isolate(p);
+  const m = mark();
+  for (let i = 0; i < 6; i++) {
+    obs("sounds", "track", String(i), "Tester");
+    await wait(6);
+  }
+  for (let i = 0; i < 16; i++) {
+    obs("sounds", "sound", String(i), "Tester");
+    await wait(3);
+  }
+  obs("sounds", "stop", "Tester");
+  await wait(6);
+  const ev = since(m, "sounds");
+  const tracks = ev.filter((d) => d.what === "track");
+  const sounds = ev.filter((d) => d.what === "sound");
+  check("sound_test_every_track_plays", tracks.length === 6 && tracks.every((d) => d.ok) && new Set(tracks.map((d) => d.id)).size === 6, tracks.map((d) => `${d.id}:${d.ok}`).join(" "));
+  check("sound_test_every_sound_plays", sounds.length === 16 && sounds.every((d) => d.ok), `${sounds.filter((d) => d.ok).length}/${sounds.length}`);
+  check("sound_test_stops", ev.some((d) => d.what === "stop"));
 };
 
 TESTS.its_music = async () => {

@@ -14,7 +14,7 @@ under its own `wmire:` namespace, except:
 Files with the same name in both packs are merged: RP blocks.json, textures/terrain_texture.json,
 texts/en_US.lang. The RP manifest gets the "pbr" capability the Mire's textures and lighting need.
 
-One file is tuned (1.0.8), so the Mire generates near the player: the biome's replace_biomes rule
+One file is tuned (1.0.8; bigger in 1.5.1), so the Mire generates near the player: the biome's replace_biomes rule
 (see tune_biome). Everything else in the biome is unchanged, and the player is never started inside it
 (scripts/mire/mire.js moves a first spawn in the Mire just outside it).
 Re-running is safe: it rewrites the merged files from the archive.
@@ -46,19 +46,26 @@ SKIP = {
 }
 BIOME = "Weeping Mire BP/biomes/weeping_mire.biome.json"
 # the Mire also takes over these (the original replaces plains, forests, swamps and rivers): meadows, the pale
-# garden, cherry groves, savannas and jungles, so wherever a world starts it is not far away. Not the taigas:
-# they keep their own shadows (observer/illusions.js), and taking them made no difference to the distances
+# garden, cherry groves, savannas and jungles, so wherever a world starts it is not far away; and (1.5.1) the rest of
+# the jungles, the hilly forests, the savanna plateaus and the deserts, so a Mire is not cut short at every border.
+# Not the taigas: they keep their own shadows (observer/illusions.js), and taking them made no difference to the distances
 MORE_TARGETS = ["minecraft:meadow", "minecraft:pale_garden", "minecraft:cherry_grove", "minecraft:savanna",
-                "minecraft:savanna_mutated", "minecraft:jungle_edge", "minecraft:jungle"]
+                "minecraft:savanna_mutated", "minecraft:jungle_edge", "minecraft:jungle",
+                "minecraft:jungle_mutated", "minecraft:jungle_edge_mutated", "minecraft:jungle_hills", "minecraft:bamboo_jungle",
+                "minecraft:bamboo_jungle_hills", "minecraft:forest_hills", "minecraft:birch_forest_hills",
+                "minecraft:birch_forest_hills_mutated", "minecraft:savanna_plateau", "minecraft:savanna_plateau_mutated",
+                "minecraft:desert", "minecraft:desert_hills", "minecraft:desert_mutated"]
 
 
 def tune_biome(data):
-    """Near the player: 40 % of each target biome instead of 25 %, in patches about half the size (twice the
-    noise frequency), over more kinds of land. Measured on BDS 1.26.52 over 8 seeds with `locate` from 0,0
-    (docs/TEST_REPORT.md): from 290-2270 blocks (6 of 8 over 1200) to 45-595, half of them right there."""
+    """Near the player, and big (1.5.1): 55 % of each target biome instead of 25 %, in large unbroken stretches (half
+    the original noise frequency), over more kinds of land. 1.0.8 had brought it near (amount 0.4, frequency 2.0:
+    45-595 blocks from 0,0 over 8 seeds, but in patches of ~60,000-100,000 square blocks in 8-11 pieces); 1.5.1
+    measured over a 960-block square on four seeds: the biggest stretch 130,000-300,000 square blocks, in 5-14 pieces
+    (most single samples at a border), still 45-101 blocks from 0,0 (docs/TEST_REPORT.md)."""
     rule = data["minecraft:biome"]["components"]["minecraft:replace_biomes"]["replacements"][0]
-    rule["amount"] = 0.4
-    rule["noise_frequency_scale"] = 2.0
+    rule["amount"] = 0.55
+    rule["noise_frequency_scale"] = 0.5
     rule["targets"] = rule["targets"] + [t for t in MORE_TARGETS if t not in rule["targets"]]
     return data
 

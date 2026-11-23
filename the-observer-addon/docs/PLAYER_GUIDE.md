@@ -19,7 +19,7 @@ Minecraft imports both packs. Then:
    Weeping Mire, its home). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from an earlier version:** import the new `.mcaddon` (version 1.5.0). If a world still uses the old copy, open the world's
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.5.1). If a world still uses the old copy, open the world's
 settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.5.0 packs again. Your
 progress is kept; the new options below start switched on.
 
@@ -183,6 +183,23 @@ Presets) is above Relentless: almost no rest at all. *Atmosphere* is still there
   items (Vestiges, Flares, Cold Eyes, now and then a Witness Lens) — and their lecterns hold the journals of the people
   who were there before you.
 
+**1.5.1.**
+* **It only peeks from behind something real.** When it looks round at you, all of it is hidden behind something solid
+  at least as tall as it is — a tree trunk, the wall or corner of a house, a pillar, a rock — and only its head comes
+  round the edge. Never from beside a bush, never from nothing; with nothing like that nearby, it simply stands and
+  watches. Move round so the cover no longer hides it, and it stops hiding.
+* **It moves as you move.** Floating at you, its speed follows yours: stand still and it creeps; walk and it drifts at a
+  walk; sprint and it comes fast — always a little faster than you.
+* **The Weeping Mire is much bigger**: long unbroken stretches several hundred blocks across instead of scattered
+  patches, still close to where a world starts. (Only new parts of a world change: land already generated stays as it is.)
+* **The Mire Eyebloom.** Three blocks tall, a black stalk with drooping red-veined leaves, and for a flower a single eye
+  in a halo of dark petals. The eye is never still — it looks about, blinks, its pupil widens — and it weeps red drops
+  and drifting spores. They turn to look at you, but only while you are not looking at them: look back, and they are
+  all already facing you. Stare at one from close by and it shuts its eye. Break any part and the whole plant falls
+  (the eye sometimes leaves a spider eye).
+* **Sound Test** (Config Wheel, for everyone): hear every piece of its music — its two themes, and its own stalking,
+  Mire, chase and end themes — and every sound it makes, whenever you like.
+
 **The animals know.** When it comes — whether you have seen it or not — the animals near it stop what they are
 doing and turn to face it, quite still: the nearest first, the rest a moment later. After a while cows, sheep, pigs,
 horses and chickens edge a few blocks away from it, unhurried, and stop and look back at it. Dogs stand their ground and
@@ -291,7 +308,7 @@ Some useful habits (no spoilers beyond what the game tells you early):
 ## The Config Wheel
 The **Observer Config Wheel** (an iron gear with an eye) opens every setting and test tool. You get one the first time
 you join a world as its only player or as an operator; anyone can craft one from *iron ingot + redstone + stick*.
-Players who are not operators only see the status and their own caption setting.
+Players who are not operators only see the status, the Sound Test and their own caption setting.
 
 | Button | What it does |
 |---|---|
@@ -302,9 +319,10 @@ Players who are not operators only see the status and their own caption setting.
 | **Presets** | Atmosphere, Standard, Relentless |
 | **All settings** | frequency, aggression, environmental manipulation, sudden scares, camera effects, captions, grace period, world weather, developer tracing, taiga shadows, escape learning, the silence before attacks, pages you didn't write, returned items, the heartbeat, the animals, other creatures, its puppets |
 | **Encounter toggles** | one switch per encounter type (with the stage it unlocks at); switched-off types are never chosen |
-| **Test an encounter** | starts something on you right now. First the single behaviours (red): **The Vigil (practice)** (three rounds, no reward, nothing recorded), **The Strike** (it floats at you and keeps attacking from the air until you die or drive it off — Low aggression: one strike), **The Lunge** (look at it and it comes at you), **Peeking from cover** (behind a tree within 20 blocks, or beside a wall corner ahead; with neither it says so), **Taiga shadow** (the illusion, here anywhere), **Getting too close** (walk up to it), **The Flare** (it stares; throw a flare near it — you get one if you have none), **The world goes quiet** (20 s of silence, then nothing), **A page you didn't write** (one appears in your Field Notes now), **It returns what you threw away** (needs a home it knows: drop something and walk 10 blocks away), **The floating chase** (it floats at you and tears apart 3 blocks short), **Climbing after you** (stand on something 3+ blocks high: it climbs up to you, then lets go). Then every encounter. If the place is unsuitable it tells you what that one needs (for example, *The Closed Path* needs a tunnel at least 3 blocks high). Tests never count toward your story |
+| **Test an encounter** | starts something on you right now. First the single behaviours (red): **The Vigil (practice)** (three rounds, no reward, nothing recorded), **The Strike** (it floats at you and keeps attacking from the air until you die or drive it off — Low aggression: one strike), **The Lunge** (look at it and it comes at you), **Peeking from cover** (behind a tree, a wall or the corner of a house within 20 blocks — all of it hidden, only its head looking round; with nothing like that in reach it says so), **Taiga shadow** (the illusion, here anywhere), **Getting too close** (walk up to it), **The Flare** (it stares; throw a flare near it — you get one if you have none), **The world goes quiet** (20 s of silence, then nothing), **A page you didn't write** (one appears in your Field Notes now), **It returns what you threw away** (needs a home it knows: drop something and walk 10 blocks away), **The floating chase** (it floats at you and tears apart 3 blocks short), **Climbing after you** (stand on something 3+ blocks high: it climbs up to you, then lets go). Then every encounter. If the place is unsuitable it tells you what that one needs (for example, *The Closed Path* needs a tunnel at least 3 blocks high). Tests never count toward your story |
 | **Other creatures** | look at a creature first: mark its kind *Answers to it*, *Its rival*, *Its puppet* or *Leave it alone* (or back to the default), or forget every mark; it also says whether it has that one right now |
 | **Undo its changes** | puts back every block it changed and ends whatever it is doing |
+| **Sound Test** (everyone) | its music — *It is around*, *Lurking* (your recordings), *Stalking*, *Its home*, *The chase*, *The end* — looping on your music channel until you stop it (turn your Music volume up), and every sound it makes; only you hear them, and nothing changes |
 | **Sound captions** | your own caption setting |
 
 Encounters only come for players in **Survival or Adventure**; in Creative it leaves you alone (the preview still works).

@@ -155,6 +155,10 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | targeted (1.5.0: it talks and asks, its puppets glitch, the takeover, the corruption, it cuts ahead of you and waits where you hid, its broken music, the Mire's ruins and their loot; with its puppets, the hold, the chase, its pack, the relentless attack, the standoff and the music) | 97 + 49 + 10 | 4 + 1 + 0 | real: a question nobody answered waited forever (a player who walks away from the screen never closes the form) — it now gives up after a minute, closes the form and takes the silence as an answer (`talk_no_answer_is_an_answer`); cutting ahead of you lived only in the relentless attack, while the pursuit and the test strike ran chase loops of their own — all three now share one (`outthink`). Test-side: the test's flight was too slow to count as running away, and the hiding place was recorded after the test had already moved the player (script events arrive a moment late) |
 | full (1.5.0, first) | 597 | 2 | `talk_it_asks`: a question it had asked on its own was still open when the test asked for one (the test now counts from the start of its group); `music_the_chase_when_it_comes` — real: the test strike (the Config Wheel's *Test an encounter*) chased without the chase music until the rage took over; it now plays it from the first step. The affected groups then passed, 29 of 29 |
 | **final (1.5.0)** | **599** | **0** | all passed: the 1.4.0 suite plus it talks (your name, your coordinates; it asks, takes the silence as an answer, breaks the fourth wall, angers, falls silent when switched off), what it holds glitches (jolts, freezes, snaps, a scrambled name, static — still its, given back whole), the takeover (six of six looking at you, one in your name, the hostile ones then hunting you, names given back), the corruption (12 broken, 12 put back), it is ahead of you and waits where you hid, its broken music and the chase theme, and the five ruins (whole, with their chests, barrels, lecterns and loot). Then, after two small changes, `glitches` three times with `talks takeover puppets_core hold ahead`: 53 + 1 and 62 + 0 — the one a test window too short for the worst case (a scrambled name holds the next glitch back 30 ticks): the window is now 8 s and the test-only mode starts sooner |
+| targeted (1.5.1: the peek — a column four high between it and you, one log, a house, a leaf bush; with the tree, the test entries, the showcase and the encounters that peek) | 48 + 54 + 77 + 36 | 4 + 1 + 2 + 1 | the user's screenshot: it "peeked" in the open beside a bush. Real: the cover test counted leaves and only wanted a block *beside* it — now its whole body must be hidden behind solid cover as tall as it is, with its head in sight round the edge. Found on the way: the engine's ray (`getBlockFromRay`) steps about a block at a time and slipped past the log or wall a diagonal line only clipped (traced: three rays to its body, "none", with the log right there) — the last blocks before the body are now walked cell by cell; leaning out exactly one block put its head's line on the very corner of the cover (its outer half now counts); a house corner needed spots two or three blocks along the walls. Test-side: the old test put the log beside it (the behaviour now refused); the tests' own checks used the same engine ray (now an exact walk) |
+| targeted (1.5.1: its pace — calibrated at fixed movement values, then following a player who stands, walks and sprints, twice; the Sound Test) | 4 + 13 | 0 + 0 | calibration: 2.92, 4.56, 6.57, 8.94, 11.26 b/s at movement 0.2-0.4 under the pursuit's ×1.3 (the earlier calibration, 3.88 × multiplier² at value 0.3, i.e. speed = 43.1·(value·multiplier)², holds); then stand 1.60 / 1.47, walk 4.69 / 4.56, sprint 6.24 / 5.89 b/s |
+| targeted (1.5.1: the bigger Mire — the Mire groups, the ruins, the taiga shadow) | 55 | 0 | the test arena is still a taiga, the test Mire still at 32,-32, every Mire group and the ruins as before |
+| targeted (1.5.1: the Mire Eyebloom, twice) | 11 + 11 | 0 + 0 | three blocks tall; turns to you only while unwatched; shuts when stared at; opens and turns when you look away; falls as one; grows whole in the Mire (2 within 48 blocks of the test Mire at first, 11 after raising its density). A first probe loaded its template in mid-air, where (by design) it cannot stand |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -376,6 +380,27 @@ Taking the taigas as well made no difference to these distances but put the test
 so the taigas are left alone (they keep the taiga shadows). With the shipped setting, `setup_arena_not_in_the_mire`
 and `illusion_in_taiga` confirm the arena is still a taiga, and the test Mire is at 32, 95, -32 (seed 424242).
 
+**1.5.1: bigger.** The user found the Mire small and broken up. Measured with the test kit's `otest:miremap 480 16`
+(ticking areas over a 960-block square round 0,0, loaded in four windows; the biome sampled every 16 blocks at y 64;
+pieces 4-connected; one sample = 256 square blocks), fresh worlds, no other change:
+
+| Setting (`replace_biomes`) | seed | share | pieces | biggest piece (square blocks) | `locate` from 0,0 |
+|---|---|---|---|---|---|
+| 1.0.8-1.5.0: amount 0.4, frequency 2.0, 20 targets | 424242 | 16.7 % | 11 | 60,160 | 45 |
+| ″ | 90210 | 25.1 % | 8 | 102,144 | 45 |
+| amount 0.5, frequency 0.75, 33 targets | 424242 | 26.1 % | 4 | 237,824 | 101 |
+| ″ | 90210 | 27.7 % | 6 | 231,424 | 45 |
+| ″ | 2026 | 29.4 % | 17 | 236,544 | 101 |
+| ″ | 5150 | 13.6 % | 9 | 105,472 | 45 |
+| **shipped: amount 0.55, frequency 0.5, 33 targets** | **424242** | **31.2 %** | **5** | **281,344** | **101** |
+| ″ | **90210** | **30.3 %** | **6** | **255,488** | **45** |
+| ″ | **2026** | **34.4 %** | **14** | **297,472** | **45** |
+| ″ | **5150** | **15.7 %** | **5** | **130,816** | **45** |
+
+Most of the remaining "pieces" are single samples where a target biome meets one that is not. The 13 new targets: the
+other jungles, the hilly forests, the savanna plateaus and the deserts (still not the taigas: the test arena stays a
+taiga and the taiga shadows keep their home).
+
 ## 6. Manual in-game test procedure (client)
 
 A dedicated server cannot render, play audio, or show forms. Before distribution, one pass in a Bedrock client
@@ -507,6 +532,14 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
    the Mire (`/locate structure wmire:drowned_chapel`; likewise `wmire:watchers_spire`, `wmire:bone_altar`,
    `wmire:sunken_archive`, `wmire:surveyors_camp`): it should sit on the ground (the archive sunk into it), with its chest, barrels and lectern book.
 
+22. **1.5.1** — In a village or near a house, with no trees close: Test an encounter → Peeking from cover; it should
+   be hidden behind a wall or round a corner with only its head showing, and duck back when you look straight at it.
+   Next to a bush with nothing solid nearby, it should say it needs cover instead. Stand still while it floats at you
+   (Test an encounter → The floating chase), then walk, then sprint: its speed should follow yours. Config Wheel → Sound
+   Test: play each track (Music volume up) and each sound; stop. Walk into new land of the Weeping Mire: long unbroken
+   stretches; find an Eyebloom: watch its eye move and blink, look away and back (it has turned to you), stare at it
+   from close (it shuts), break the stalk (the whole plant falls).
+
 ## 7. Bugs found and fixed
 
 **Found by runtime testing**
@@ -549,6 +582,20 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
 * The new too-close reaction cut *Borrowed Work* short (walking up to the source is that encounter's answer) — it now
   handles the approach itself; spots far below the player's level are penalised (an *Echo Ahead* spot landed 64
   blocks below the test platform).
+
+**Found in 1.5.1** (the user's screenshot of it "peeking from cover" in the open, and the tests written for it)
+* **It peeked from beside a bush, or from nothing**: a peek only asked for a block beside it, and leaves counted. Now
+  its whole body must be hidden from you behind solid cover as tall as it is (leaves, glass, bars, fences and plants
+  are not cover), with its head in sight round the edge; otherwise it stands (`peek_not_bushes_*`, `auto_peek_*`).
+* **The engine's ray slips past blocks**: `getBlockFromRay` steps about a block at a time, so a diagonal line that only
+  clips a log or a wall corner can pass straight through it ("none", with the log right there). The last few blocks
+  before its body are now walked exactly, cell by cell; rays are cast past their end and only earlier hits counted.
+* **Its head on the corner**: leaning out exactly one block put the line to its head on the very corner of the cover;
+  its outer half now counts as its head being seen.
+* **A house hid nothing**: only spots right next to a column were tried; round a house corner the spot is two or three
+  blocks along the side wall (`peek_house_*`).
+* Test-side: the old auto-peek test put the log beside it (what is now refused); the tests' own checks used the same
+  engine ray (now an exact walk).
 
 **Found by the 1.5.0 tests**
 * **A question nobody answered waited forever**: a form the player never closes (they walked away from the screen, or

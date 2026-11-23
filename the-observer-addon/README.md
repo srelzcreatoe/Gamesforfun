@@ -123,6 +123,11 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   the Mire; and at the fifth stage a cheerful little tune that falls apart a little more each time round. **The Mire's
   ruins**: a drowned chapel, a watcher's spire, a bone altar, a sunken archive and the surveyors' last camp, with chests
   of decent loot (diamonds, enchanted books and gear, golden apples, its own items) and journals.
+* **1.5.1**: it only ever **peeks from behind real cover** — a trunk, a house wall or corner, a pillar, all of it hidden
+  and only its head round the edge (never from beside a bush, never from nothing); floating at you, **its speed follows
+  yours** (you stand, it creeps; you sprint, it comes fast); the **Weeping Mire is far bigger** and unbroken; the
+  **Mire Eyebloom**, three blocks tall with an eye for a flower that looks about, blinks, weeps red, and turns to face
+  you whenever you are not looking; and a **Sound Test** in the Config Wheel to hear all of its music and sounds.
 * **Its voice and its music** (1.1.2, your recordings): while it is around, its own theme replaces the game's music
   — *lurking* in the Weeping Mire, its home — and the game's music fades back once it has gone. A sting when you spot
   it, a scream when it snaps or comes for you (and over the blow that kills), a grunt as it arrives out of nowhere, its

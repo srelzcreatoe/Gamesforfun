@@ -90,10 +90,23 @@
               "minecraft:savanna",
               "minecraft:savanna_mutated",
               "minecraft:jungle_edge",
-              "minecraft:jungle"
+              "minecraft:jungle",
+              "minecraft:jungle_mutated",
+              "minecraft:jungle_edge_mutated",
+              "minecraft:jungle_hills",
+              "minecraft:bamboo_jungle",
+              "minecraft:bamboo_jungle_hills",
+              "minecraft:forest_hills",
+              "minecraft:birch_forest_hills",
+              "minecraft:birch_forest_hills_mutated",
+              "minecraft:savanna_plateau",
+              "minecraft:savanna_plateau_mutated",
+              "minecraft:desert",
+              "minecraft:desert_hills",
+              "minecraft:desert_mutated"
             ],
-            "amount": 0.4,
-            "noise_frequency_scale": 2.0
+            "amount": 0.55,
+            "noise_frequency_scale": 0.5
           }
         ]
       },

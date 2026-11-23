@@ -16,7 +16,7 @@ import { OBSERVER_ID, TARGET_TAG, ENTITY_ENC_PROP, PARTICLES, SOUNDS } from "../
 import { V, safe, DEBUG, trace, emit, allPlayers } from "../core/util.js";
 import { S, strikeDamage, aggression } from "../core/settings.js";
 import { visibility, lineOfSight, seenByAny } from "../world/sight.js";
-import { standNear, coverSide } from "../world/space.js";
+import { standNear, hideAt, hiddenBehind } from "../world/space.js";
 
 /** @typedef {import("@minecraft/server").Entity} Entity */
 /** @typedef {import("@minecraft/server").Player} Player */
@@ -40,6 +40,9 @@ import { standNear, coverSide } from "../world/space.js";
  * @property {boolean} [hung]      reached the top of its climb and hangs there beside them
  * @property {boolean} [silent]    floating: no footstep sounds
  * @property {boolean} [crawling]  flat on its front with a collision box a block high (observer/squeeze.js)
+ * @property {{x:number, z:number, t:number}} [paceAt]  where its target was a moment ago (1.5.1)
+ * @property {number} [theirSpeed]  how fast its target is moving, blocks a second, smoothed (1.5.1)
+ * @property {number} [paceSpeed]   the speed it is coming at them now, blocks a second (1.5.1)
  * @property {{trunk:Vec, side:number, peek:Vec, alt?:{loc:Vec, side:number, peek:Vec}, seen:number, duckUntil:number,
  *             caught:Record<string, number>}} [hide]  behind a tree, looking round it (space.hideSpot)
  */
@@ -70,12 +73,13 @@ export const wasLost = (enc) => lostEnc === enc;
  */
 export function spawn(dim, loc, o) {
   despawn("replace");
-  // it only ever peeks from behind something: with nothing beside it, it stands (behind a tree it knows its side)
+  // it only ever peeks from behind something: its whole body hidden behind solid cover as tall as it is (a trunk, a
+  // wall, a corner — never leaves, never nothing), only its head coming round (1.5.1). Without that, it stands.
   if (o.state === "peek" && !o.hide) {
     const eye = o.target?.isValid ? o.target.getHeadLocation() : o.face;
-    const cover = eye ? coverSide(dim, loc, eye) : undefined;
-    if (!cover || !cover.one) o = { ...o, state: "watch" };
-    else o = { ...o, side: cover.side };
+    const hid = eye ? hideAt(dim, loc, eye, !!o.stoop) : undefined;
+    if (!hid) o = { ...o, state: "watch" };
+    else o = { ...o, side: hid.side, hide: hid };
   }
   const e = safe(() => dim.spawnEntity(OBSERVER_ID, loc, { initialPersistence: false }));
   if (!e) return null;
@@ -142,6 +146,41 @@ export function setCrawl(v) {
 export function surge() {
   setSilent(true);
   setState("surge");
+}
+
+/**
+ * Its pace (1.5.1): coming at someone, it moves as they move — they walk slowly, it drifts slowly; they run, it comes
+ * fast; they stand still, it creeps. [slowest b/s, times their speed, fastest b/s] for each way it comes at them;
+ * the AI goal's own multiplier for each.
+ */
+const PACE = { approach: [1.3, 1.05, 6.4], pursue: [1.6, 1.12, 7.4], rage: [4.4, 1.18, 8.6] };
+const GOAL_MULT = { approach: 0.85, pursue: 1.3, rage: 1.5 };
+/** Steady speed (b/s) of this entity at movement value v under goal multiplier m: calibrated on the server. */
+const speedAt = (v, m) => PACE_K * (v * m) ** 2;
+const PACE_K = 43.1;
+
+/** Every 5 ticks: how fast its target is moving, and its own movement set to match. @param {Body} b @param {number} run */
+function pace(b, run) {
+  const p = b.target;
+  if (!p?.isValid || p.dimension.id !== b.e.dimension.id) return;
+  const t = system.currentTick;
+  const l = p.location;
+  const last = b.paceAt;
+  if (last && t > last.t && t - last.t < 40) {
+    const sp = (Math.hypot(l.x - last.x, l.z - last.z) * 20) / (t - last.t);
+    // (a teleport is not running)
+    if (sp < 30) b.theirSpeed = b.theirSpeed === undefined ? sp : b.theirSpeed * 0.45 + sp * 0.55;
+  }
+  b.paceAt = { x: l.x, z: l.z, t };
+  const cfg = PACE[/** @type {keyof typeof PACE} */ (b.mode)];
+  if (!cfg || DEBUG.pace === "off") return;
+  const m = GOAL_MULT[/** @type {keyof typeof GOAL_MULT} */ (b.mode)];
+  const fixed = Number(DEBUG.pace);
+  const want = Math.max(cfg[0], Math.min(cfg[2], (b.theirSpeed ?? 0) * cfg[1]));
+  const v = Number.isFinite(fixed) && fixed > 0 ? fixed : Math.sqrt(want / PACE_K) / m;
+  b.paceSpeed = Number.isFinite(fixed) && fixed > 0 ? speedAt(v, m) : want;
+  safe(() => b.e.getComponent("minecraft:movement")?.setCurrentValue(v));
+  if (run % 4 === 0) emit("pace", { mode: b.mode, theirs: Math.round((b.theirSpeed ?? 0) * 100) / 100, want: Math.round(b.paceSpeed * 100) / 100, v: Math.round(v * 1000) / 1000 });
 }
 
 /** @param {"still"|"approach"|"pursue"|"retreat"|"rage"} m */
@@ -300,6 +339,7 @@ export function maintain(run) {
   if (!b) return;
   const e = b.e;
   const l = e.location;
+  pace(b, run);
   if (b.mode === "still" && b.faceTarget && b.target?.isValid && b.target.dimension.id === e.dimension.id) faceTo(b.target.getHeadLocation());
   // headroom: stoop when fewer than 5 open blocks above
   const ceil = safe(() => e.dimension.getBlockAbove({ x: l.x, y: l.y + 0.1, z: l.z }, { includePassableBlocks: false, includeLiquidBlocks: true, maxDistance: 5 }));
@@ -317,13 +357,22 @@ export function maintain(run) {
   const tod = safe(() => world.getTimeOfDay(), 6000) ?? 6000;
   const night = e.dimension.id === "minecraft:overworld" && tod > 12800 && tod < 23200;
   setDark(night || light <= 7);
-  // it peeks out from behind whatever stands beside it (a wall corner, a door frame), leaning away from it
-  if (!b.hide && b.mode === "still" && b.autoPeek && (b.state === "watch" || b.state === "peek") && b.target?.isValid && b.target.dimension.id === e.dimension.id) {
-    const cover = coverSide(e.dimension, l, b.target.getHeadLocation());
-    if (cover.one) {
-      setSide(cover.side);
+  // behind something solid as tall as it is, hidden from you, it looks round it — and from then on plays it out as it
+  // does behind a tree; with nothing between you, it stands (1.5.1: no more peeking from beside a bush, or from nothing)
+  const tgt = b.target?.isValid && b.target.dimension.id === e.dimension.id ? b.target : undefined;
+  if (!b.hide && b.mode === "still" && b.autoPeek && (b.state === "watch" || b.state === "peek") && tgt) {
+    const hid = hideAt(e.dimension, l, tgt.getHeadLocation(), b.stoop);
+    if (hid) {
+      b.hide = { ...hid, seen: 0, duckUntil: 0, caught: { "1": 0, "-1": 0 } };
+      setSide(hid.side);
       setState("peek");
+      emit("peek", { what: "peek", side: hid.side, auto: true });
     } else if (b.state === "peek") setState("watch");
+  } else if (b.hide && b.mode === "still" && tgt && !hiddenBehind(e.dimension, l, tgt.getHeadLocation(), b.stoop)) {
+    // the cover is gone, or no longer between you: it stops hiding and stands there, plainly
+    b.hide = undefined;
+    if (b.state === "peek") setState("watch");
+    emit("peek", { what: "exposed" });
   }
 }
 

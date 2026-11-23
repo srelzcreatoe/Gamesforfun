@@ -44,5 +44,11 @@
   },
   "wmire:torn_page": {
     "sound": "grass"
+  },
+  "wmire:eyebloom_stalk": {
+    "sound": "grass"
+  },
+  "wmire:eyebloom": {
+    "sound": "grass"
   }
 }

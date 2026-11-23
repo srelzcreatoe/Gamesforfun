@@ -1,0 +1,76 @@
+{
+  "format_version": "1.10.0",
+  "particle_effect": {
+    "description": {
+      "identifier": "observer:eye_drip",
+      "basic_render_parameters": {
+        "material": "particles_alpha",
+        "texture": "textures/particle/observer/mote"
+      }
+    },
+    "components": {
+      "minecraft:emitter_rate_instant": {
+        "num_particles": "math.random_integer(1, 2)"
+      },
+      "minecraft:emitter_lifetime_once": {
+        "active_time": 0.05
+      },
+      "minecraft:emitter_shape_point": {
+        "offset": [
+          0,
+          -0.25,
+          0
+        ],
+        "direction": [
+          0,
+          -1,
+          0
+        ]
+      },
+      "minecraft:particle_lifetime_expression": {
+        "max_lifetime": "math.random(0.9, 1.6)"
+      },
+      "minecraft:particle_initial_speed": 0.2,
+      "minecraft:particle_motion_dynamic": {
+        "linear_acceleration": [
+          0,
+          -5,
+          0
+        ],
+        "linear_drag_coefficient": 1.5
+      },
+      "minecraft:particle_motion_collision": {
+        "collision_radius": 0.05,
+        "coefficient_of_restitution": 0,
+        "expire_on_contact": true
+      },
+      "minecraft:particle_appearance_billboard": {
+        "size": [
+          0.06,
+          0.1
+        ],
+        "facing_camera_mode": "lookat_y",
+        "uv": {
+          "texture_width": 1,
+          "texture_height": 1,
+          "uv": [
+            0,
+            0
+          ],
+          "uv_size": [
+            1,
+            1
+          ]
+        }
+      },
+      "minecraft:particle_appearance_tinting": {
+        "color": [
+          0.55,
+          0.02,
+          0.05,
+          1.0
+        ]
+      }
+    }
+  }
+}

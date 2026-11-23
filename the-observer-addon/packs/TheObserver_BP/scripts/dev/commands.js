@@ -27,6 +27,7 @@ import { ps, W, now, resetPlayer, markPlayerDirty, markWorldDirty, warp } from "
 import { S, updateSettings, PRESETS } from "../core/settings.js";
 import { DEBUG, safe, V, dimIndex, allPlayers, emit } from "../core/util.js";
 import { ITEMS } from "../core/constants.js";
+import * as soundTest from "../ui/sounds.js";
 import { DISCOVERIES } from "../progression/discoveries.js";
 import * as director from "../director/director.js";
 import * as talk from "../observer/talk.js";
@@ -120,6 +121,18 @@ export function run(name, args, caller) {
     case "abort":
       director.abortAll("dev");
       return "aborted";
+    case "sounds": {
+      // sounds track <i> | sounds sound <i> | sounds stop | sounds list — the Sound Test, without its page (1.5.1)
+      const p = pick(2);
+      if (!p) return "no player";
+      if (args[0] === "track") return `track ${soundTest.playTrack(p, parseInt(args[1], 10) || 0)}`;
+      if (args[0] === "sound") return `sound ${soundTest.playEffect(p, parseInt(args[1], 10) || 0)}`;
+      if (args[0] === "stop") {
+        soundTest.stop(p);
+        return "stopped";
+      }
+      return `${soundTest.TRACKS.length} tracks, ${soundTest.EFFECTS.length} sounds`;
+    }
     case "debug":
       updateSettings({ dev: args[0] === "on" || args[0] === "true" });
       DEBUG.trace = S().dev;
@@ -391,6 +404,15 @@ export function run(name, args, caller) {
       // ahead auto|never: cutting ahead of someone running, and glitching along its route when stuck (tests)
       DEBUG.ahead = args[0] === "never" ? "never" : "auto";
       return `ahead ${DEBUG.ahead}`;
+    case "eyes":
+      // eyes always|never|auto: the Mire's eyeblooms watching players anywhere / not at all / in the Mire (1.5.1)
+      DEBUG.eyes = args[0] === "always" ? "always" : args[0] === "never" ? "never" : "auto";
+      return `eyes ${DEBUG.eyes}`;
+    case "pace":
+      // pace auto|off|<movement value>: its speed coming at someone follows theirs; off: the old fixed speeds;
+      // a number: that movement value (calibration) (1.5.1)
+      DEBUG.pace = args[0] === "off" ? "off" : Number(args[0]) > 0 ? String(Number(args[0])) : "auto";
+      return `pace ${DEBUG.pace}`;
     case "ambient":
       // ambient auto|never: the world breaking up and the takeover on their own (tests)
       DEBUG.ambient = args[0] === "never" ? "never" : "auto";

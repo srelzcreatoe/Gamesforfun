@@ -81,6 +81,9 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   list and are not verifiable on a server.
 * Forms (Field Notes — including "Pages I didn't write" and what it has learned — settings), action-bar captions, title
   cards, camera fades and shakes (the fade API and the `camerashake` command were accepted by the server).
+* 1.5.1: the Mire Eyebloom in a client (its model and flipbook eye, the rotations, the shut lid, the drops and spores);
+  the Sound Test's tracks at the player's music volume; a peek round the corner of a real house in a real village; the
+  bigger Mire on the user's own world (only newly generated land changes).
 * 1.5.0: how its talking reads in a real chat and on screen (the scrambled letters, the titles); answering its
   questions with a real player (the simulated players in the tests cannot answer a form, so only "no answer" is tested);
   the fourth-wall scares; the glitch aura and stutters on real creatures; the new music (rendered and checked as
@@ -213,6 +216,7 @@ finally meet its gaze.
 * It takes creatures for its own: you will know them by their eyes
 * It talks to you — by name — asks you questions and acts on your answers; what it holds glitches; ruins in its swamp
   hold its things
+* Eyes grow in its swamp, three blocks tall, and turn to look at you the moment you look away
 * Real, reversible world changes — your builds are protected and your own changes always win
 * 44 discoveries, a Witness Lens, Tally Chalk, Ward Lanterns, Flares, and an ending you can reach
 * Works across the Overworld, caves, water, the Nether and the End; multiplayer-aware; no experiments needed

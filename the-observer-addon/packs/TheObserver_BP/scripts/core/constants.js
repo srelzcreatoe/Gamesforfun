@@ -43,6 +43,9 @@ export const PARTICLES = {
   // 1.5.0: its glitch, on what it holds and where it tears through
   glitchAura: "observer:glitch_aura",
   glitchBurst: "observer:glitch_burst",
+  // 1.5.1: the Mire Eyebloom weeps: dark red drops from its eye, red spores drifting up
+  eyeDrip: "observer:eye_drip",
+  eyeSpore: "observer:eye_spore",
 };
 
 export const SOUNDS = {

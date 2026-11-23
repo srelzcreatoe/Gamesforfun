@@ -29,8 +29,11 @@ export function lineOfSight(dim, a, b) {
     const dist = V.len(delta);
     if (dist < 0.3) return { clear: true, through };
     const dir = V.scale(delta, 1 / dist);
-    const hit = safe(() => dim.getBlockFromRay(from, dir, { maxDistance: dist, includeLiquidBlocks: false, includePassableBlocks: false }));
+    // (1.5.1: the engine's ray can miss a block that ends just short of maxDistance — cast a little further and keep
+    // only what it hits before b)
+    const hit = safe(() => dim.getBlockFromRay(from, dir, { maxDistance: dist + 2, includeLiquidBlocks: false, includePassableBlocks: false }));
     if (!hit) return { clear: true, through };
+    if (V.dot(V.sub(V.add(hit.block.location, hit.faceLocation), from), dir) > dist - 0.05) return { clear: true, through };
     if (!SEE_THROUGH_RX.test(hit.block.typeId)) return { clear: false, through };
     through++;
     // continue just beyond the transparent block along the ray

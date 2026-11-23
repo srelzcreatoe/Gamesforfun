@@ -1,0 +1,71 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "wmire:eyebloom_stalk",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "minecraft:geometry.cross",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "wmire_eyebloom_stalk",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -3,
+          0,
+          -3
+        ],
+        "size": [
+          6,
+          16,
+          6
+        ]
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.15
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0.0
+      },
+      "minecraft:flammable": {
+        "catch_chance_modifier": 30,
+        "destroy_chance_modifier": 60
+      },
+      "minecraft:loot": "loot_tables/wmire/eyebloom_stalk.json",
+      "minecraft:placement_filter": {
+        "conditions": [
+          {
+            "allowed_faces": [
+              "up"
+            ],
+            "block_filter": [
+              "wmire:mire_moss",
+              "wmire:mire_soil",
+              "wmire:mire_silt",
+              "wmire:bone_root",
+              "minecraft:grass_block",
+              "minecraft:dirt",
+              "minecraft:coarse_dirt",
+              "minecraft:podzol",
+              "minecraft:mud",
+              "minecraft:moss_block",
+              "minecraft:mycelium",
+              "minecraft:dirt_with_roots",
+              "wmire:eyebloom_stalk"
+            ]
+          }
+        ]
+      },
+      "minecraft:map_color": "#1e2420",
+      "wmire:eyebloom": {}
+    }
+  }
+}

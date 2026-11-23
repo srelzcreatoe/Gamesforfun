@@ -758,3 +758,36 @@ abilities that chill, and for it to talk with the player; and for the Weeping Mi
   (9×5×9). The .mcstructure files are written from Python with the server's own full default block states; chests and
   barrels carry `LootTable` (six tables), lecterns carry original journals. Located in a fresh world 80 and 144 blocks
   from spawn.
+
+## 25. Real cover; its pace; a bigger Mire; the Mire Eyebloom; the Sound Test (1.5.1)
+
+* **It only peeks from behind real cover.** A peek used to accept "a solid block beside it" — and leaves counted — so it
+  could lean out beside a bush in the open. Now the peek pose needs `space.peekCheck`: its whole body (feet, chest, the
+  top of its head) behind *solid* cover from the player's eye — leaves, glass, bars, fences and plants do not count —
+  and a side where its head, leaning a block out, is in sight both ways (its middle or its outer half). `hideSpot` finds
+  such places round trees and, now, any column of building blocks or rock three or more high with open air on two sides
+  at right angles (a house corner, a wall's end, a pillar): straight behind it, or up to three blocks along the walls that
+  meet there, on the far side. `body.spawn` turns any requested peek without such cover into a plain stand; a body
+  standing behind cover gets the tree peek-a-boo (duck when looked at, switch sides); if the cover stops hiding it, it
+  stops hiding. The engine's own ray (`getBlockFromRay`) steps about a block at a time and slips past blocks a line only
+  clips, so the last five blocks before the body (four before its head) are walked exactly, cell by cell
+  (`space.cellsAlong`), and every ray is cast a little past its end with only hits before the end counted (also in
+  `sight.lineOfSight`).
+* **Its pace** (`body.pace`, every 5 ticks): its target's speed from their position over the last moment (smoothed; a
+  teleport is ignored), and its movement value set so it comes at [slowest, × theirs, fastest] — approach [1.3, 1.05,
+  6.4], pursuit [1.6, 1.12, 7.4], rage [4.4, 1.18, 8.6] b/s — from the calibration speed = 43.1·(value·goal multiplier)²
+  (measured on BDS at 0.2-0.4: 2.92, 4.56, 6.57, 8.94, 11.26 b/s at ×1.3).
+* **A bigger Mire**: `replace_biomes` amount 0.4 → 0.55, noise frequency 2.0 → 0.5, and 13 more targets (the other
+  jungles, hilly forests, savanna plateaus, deserts; still not the taigas). Measured with the test kit's `otest:miremap`
+  (ticking areas over a 960-block square, the biome every 16 blocks): the biggest stretch 60,000-100,000 → 130,000-
+  300,000 square blocks, in 5-14 pieces (most of them single samples at a border), still 45-101 blocks from 0,0.
+* **The Mire Eyebloom** (`wmire:eyebloom_stalk` ×2 under `wmire:eyebloom`): the stalk a cross plant; the flower a
+  custom model — a short stem, a halo of petals, an 8-pixel eyeball whose front face is a flipbook (8 frames: ahead,
+  left, right, up, half shut, shut, down, wide; 40-step sequence at 4 ticks a frame), light 4. States: the
+  `minecraft:cardinal_direction` placement trait (rotations 0/90/180/-90) and `wmire:shut` (the lid texture). Placed by
+  `structure_template_feature` (1×3×1 template), 4 tries a chunk at 2 in 3, in the Mire, on dry ground only. Every
+  second, for each player in the Mire, the heads within 20 blocks: face the player when more than 50° from their view;
+  shut while looked at from within 10 blocks (within 9°), open 1.5 s after; spores and drops at random. Breaking any
+  part takes the rest down (`setblock … destroy`, so the eye can drop its spider eye).
+* **The Sound Test** (`ui/sounds.js`): the six tracks by `playMusic` (looping, this player only) and sixteen sounds by
+  `playSound`; a stop button. Open to every player.

@@ -33,6 +33,8 @@ import * as rivalHunt from "./encounters/rival_hunt.js";
 import * as paralysis from "./encounters/paralysis.js";
 import * as charm from "./progression/charm.js";
 import * as talk from "./observer/talk.js";
+import * as soundTest from "./ui/sounds.js";
+import * as eyebloom from "./mire/eyebloom.js";
 import { corrupt } from "./observer/corrupt.js";
 import { stageHooks } from "./progression/discoveries.js";
 import * as mire from "./mire/mire.js";
@@ -338,6 +340,7 @@ world.beforeEvents.playerLeave.subscribe((ev) => {
     herald.forget(id);
     charm.forget(id);
     talk.forget(id);
+    soundTest.forget(id);
     inMireBefore.delete(id);
     diedAt.delete(id);
     dropPlayer(id);
@@ -448,6 +451,8 @@ system.runInterval(() => {
   timed("illusions.tick", () => illusions.tick());
   // it talks, and asks (1.5.0); and from the fourth stage the world around you sometimes breaks up for a moment
   timed("talk.tick", () => talk.tick());
+  // the Mire's eyeblooms watch you (1.5.1)
+  timed("eyebloom.tick", () => eyebloom.tick((p) => inMireBefore.get(p.id) === true));
   for (const p of allPlayers()) {
     const s = ps(p);
     if (DEBUG.ambient !== "never" && s.stage >= 4 && !director.encounterFor(p.id) && now() - (s.corruptAt ?? -1e9) > 600 && Math.random() < 1 / 900) {

@@ -2,8 +2,9 @@
 // The corruption (1.5.0). The world around you glitches: for a few seconds the ground under and around you breaks up
 // into black, blood-red and crying obsidian, torn fragments flicker where it happens, there is a burst of static — and
 // then it is all exactly as it was. Only natural ground (grass, dirt, stone, sand ...) is ever touched, never anything
-// you built and never a block that holds something; every change is in the ledger and put back after a few seconds
-// (or at once with Undo its changes). Needs manipulation at Subtle or above; never inside a Ward Lantern's light.
+// you built and never a block that holds something — or has anything standing on it (1.5.1); every change is in the
+// ledger and put back after a few seconds (or at once with Undo its changes). Needs manipulation at Subtle or above;
+// never inside a Ward Lantern's light.
 import { BlockPermutation } from "@minecraft/server";
 import * as ledger from "../world/ledger.js";
 import { manip } from "../world/manipulate.js";
@@ -33,6 +34,10 @@ export function corrupt(p, o = {}) {
     const ground = safe(() => dim.getBlockBelow(top, { includePassableBlocks: false, includeLiquidBlocks: false, maxDistance: 6 }), undefined);
     if (!ground || !NATURAL.has(ground.typeId)) continue;
     const loc = ground.location;
+    // bare ground only: grass, a flower, a torn page, an eyebloom standing on it would drop off the moment it changed,
+    // and putting the ground back would not bring them back (1.5.1)
+    const above = safe(() => dim.getBlock({ x: loc.x, y: loc.y + 1, z: loc.z }), undefined);
+    if (!above || !above.isAir) continue;
     if (isWarded(d, loc) || ledger.at(d, loc)) continue;
     const perm = safe(() => BlockPermutation.resolve(pick(PALETTE)), undefined);
     if (!perm) continue;

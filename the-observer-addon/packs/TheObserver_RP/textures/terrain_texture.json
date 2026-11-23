@@ -57,6 +57,21 @@
     },
     "wmire_torn_page": {
       "textures": "textures/blocks/wmire/torn_page"
+    },
+    "wmire_eyebloom_stalk": {
+      "textures": "textures/blocks/wmire/eyebloom_stalk"
+    },
+    "wmire_eyebloom_petals": {
+      "textures": "textures/blocks/wmire/eyebloom_petals"
+    },
+    "wmire_eyebloom_white": {
+      "textures": "textures/blocks/wmire/eyebloom_white"
+    },
+    "wmire_eyebloom_eye": {
+      "textures": "textures/blocks/wmire/eyebloom_eye"
+    },
+    "wmire_eyebloom_shut": {
+      "textures": "textures/blocks/wmire/eyebloom_shut"
     }
   }
 }

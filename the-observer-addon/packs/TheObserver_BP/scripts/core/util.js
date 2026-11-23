@@ -161,6 +161,11 @@ export const DEBUG = {
   ahead: "auto",
   /** tests: "never" stops the world breaking up around a player and the takeover happening on their own (1.5.0) */
   ambient: "auto",
+  /** tests: "auto" — its speed coming at someone follows theirs; a number fixes its movement value (calibration);
+   *  "off" leaves the old fixed speeds (1.5.1) */
+  pace: /** @type {string} */ ("auto"),
+  /** tests: "always" makes the Mire's eyeblooms watch players anywhere, not just in the Mire; "never" stills them (1.5.1) */
+  eyes: "auto",
   /** low-volume lifecycle lines (encounter start/end); enabled in dev mode and by the test kit */
   trace: false,
   /** @param {string} msg */

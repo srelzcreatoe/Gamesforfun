@@ -90,9 +90,12 @@ for (const pack of [BP, RP]) {
     }
     if (!v) continue;
     schemaChecked++;
-    if (!v(data)) {
+    // the flipbook schema describes one entry: the file (as in vanilla) is a list of them, each checked (1.5.1)
+    const items = base === "flipbook_textures.json" && Array.isArray(data) ? data : [data];
+    for (const [i, item] of items.entries()) {
+      if (v(item)) continue;
       for (const err of v.errors.slice(0, 6)) {
-        const msg = `${rel(f)}: schema ${err.instancePath || "/"} ${err.message} ${err.params ? JSON.stringify(err.params) : ""}`;
+        const msg = `${rel(f)}${items.length > 1 || item !== data ? `[${i}]` : ""}: schema ${err.instancePath || "/"} ${err.message} ${err.params ? JSON.stringify(err.params) : ""}`;
         const q = SCHEMA_QUIRKS.find(([rx]) => rx.test(msg));
         if (q) quirkHits.push(`${rel(f)} (${q[1]})`);
         else fail(msg);

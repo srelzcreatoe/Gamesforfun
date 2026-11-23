@@ -78,6 +78,13 @@ particle definitions (`glitch_aura`, `glitch_burst`), and five original structur
 (`structures/wmire/drowned_chapel`, `watchers_spire`, `bone_altar`, `sunken_archive`, `surveyors_camp`) with their loot
 tables and original journals.
 
+1.5.1 adds the Mire Eyebloom, all original: five textures drawn by `tools/make_eyebloom.py` (the stalk, the petals,
+the eyeball, the eye as an 8-frame flipbook, the shut lid), its flower's model, two one-shot particles made from the
+existing mote texture (a falling red drop, rising red spores), its blocks, a 1×3×1 structure and its worldgen; and
+the Sound Test, which plays the existing sounds and music (no new audio). The Weeping Mire's biome file changes again
+(its `replace_biomes` rule only: amount 0.55, frequency 0.5, 33 targets; `tools/merge_weeping_mire.py --check` applies
+the same tuning and finds 0 differences from the user's archive otherwise).
+
 1.4.0 adds two original item icons drawn by `tools/make_textures.py` (`cold_eye.png`, `cold_charm.png`) and one original
 sound synthesized by `tools/synth_sounds.py` (`charm_hum1.ogg`: two detuned partials a fifth apart, a faint shimmer, a
 breath of noise), for the Cold Eye and the Charm of Cold Eyes. The test kit's stand-in for another add-on's scripted
@@ -209,6 +216,22 @@ for the eyes it puts in the creatures that are its). 1.2.0 adds no asset files (
 | `TheObserver_BP/worldgen/structures/watchers_spire.json` | original — tools/make_structures.py (1.5.0) | `f90b50e0e1eae9a9` |
 | `TheObserver_BP/worldgen/template_pools/watchers_spire.json` | original — tools/make_structures.py (1.5.0) | `bf1563073be67d3a` |
 | `TheObserver_BP/worldgen/structure_sets/mire_ruins.json` | original — tools/make_structures.py (1.5.0): the ruins scattered through the Weeping Mire | `1d29df8da9ecba4e` |
+| `TheObserver_RP/textures/blocks/wmire/eyebloom_stalk.png` | original — drawn by tools/make_eyebloom.py (1.5.1): the stalk: a black-green stem with drooping, red-veined leaves (a cross plant) | `a5e10ea0c7271b48` |
+| `TheObserver_RP/textures/blocks/wmire/eyebloom_petals.png` | original — drawn by tools/make_eyebloom.py (1.5.1): a halo of dark petals with crimson tips, behind its eye | `4818f723eb6a64d2` |
+| `TheObserver_RP/textures/blocks/wmire/eyebloom_white.png` | original — drawn by tools/make_eyebloom.py (1.5.1): the eyeball: off-white, shaded, red veins | `25ee64e77396a2c9` |
+| `TheObserver_RP/textures/blocks/wmire/eyebloom_eye.png` | original — drawn by tools/make_eyebloom.py (1.5.1): its eye, a flipbook strip of 8 frames (16×128): ahead, left, right, up, half shut, shut, down, the pupil wide | `56659331bb82687b` |
+| `TheObserver_RP/textures/blocks/wmire/eyebloom_shut.png` | original — drawn by tools/make_eyebloom.py (1.5.1): the lid, shut tight, weeping | `f02ef8af557e9faa` |
+| `TheObserver_RP/models/blocks/eyebloom.geo.json` | original — written for 1.5.1: the Eyebloom's flower (a stem, a halo of petals, an eyeball) | `2a5bec7f23c8538e` |
+| `TheObserver_RP/textures/flipbook_textures.json` | original — 1.5.1: the eye's flipbook (its frames and timing) | `ba98a58af438d6c2` |
+| `TheObserver_RP/particles/eye_drip.json` | original — written for 1.5.1 (one-shot; its existing mote texture, tinted): a red drop falling from the eye | `d30fa55c74874ff4` |
+| `TheObserver_RP/particles/eye_spore.json` | original — written for 1.5.1 (one-shot; its existing mote texture, tinted): red spores drifting up | `0b74fdd4eded489a` |
+| `TheObserver_BP/blocks/eyebloom.json` | original — 1.5.1: the Eyebloom's flower | `e888c1aabc76090c` |
+| `TheObserver_BP/blocks/eyebloom_stalk.json` | original — 1.5.1: the Eyebloom's stalk | `3a5816ebcd58281e` |
+| `TheObserver_BP/structures/wmire/eyebloom.mcstructure` | original — written by tools/make_eyebloom.py (1.5.1): stalk, stalk, flower | `66bc676a8ec03d0b` |
+| `TheObserver_BP/features/eyebloom_feature.json` | original — 1.5.1 | `819e45170d21fc67` |
+| `TheObserver_BP/feature_rules/weeping_mire_eyeblooms.json` | original — 1.5.1: the Eyebloom in the Mire | `60c2fbb1c482923e` |
+| `TheObserver_BP/loot_tables/wmire/eyebloom.json` | original — 1.5.1: the eye may leave a spider eye | `db124c85f935250d` |
+| `TheObserver_BP/loot_tables/wmire/eyebloom_stalk.json` | original — 1.5.1: nothing | `d19c6266c7122cab` |
 
 ## Vanilla references
 
