@@ -79,7 +79,7 @@ export function partsFor(form: Form): PartDef[] {
 }
 
 /** How far Basiliskra IV's wings stand open in each phase (the client eases to the same figures), and when his club is in the ground. */
-const WINGS: Partial<Record<PhaseName, number>> = { recoil: 1, roar: 0.85, evolve: 1, rise: 0.7, fire: 0.3, pivot: 0.45 };
+const WINGS: Partial<Record<PhaseName, number>> = { recoil: 1, roar: 0.85, evolve: 1, rise: 0.7, fire: 0.3, pivot: 0.45, bite: 0.5, fall: 0.6 };
 const PLANTED = new Set<PhaseName>(["charge", "fire", "pivot", "skid"]);
 /** Where each leg is in the four-beat cycle, relative to the left hind (the same offsets as the client walk). */
 const LEG_PHASE: Record<Leg, number> = { bl: 0, fl: 270, br: 180, fr: 90, l: 0, r: 180 };
@@ -152,12 +152,17 @@ export class Creature {
   private crushedAt = new Map<string, number>();
   tick = 0;
 
-  constructor(readonly entity: Entity) {
+  /** How much harder than Basiliskra himself this body hits, and how much faster it walks (the Titan). */
+  might = 1;
+  haste = 1;
+
+  constructor(readonly entity: Entity, form: Form = store.rec.form) {
     this.dim = entity.dimension;
     this.pos = { ...entity.location };
     this.yaw = entity.getRotation().y;
     this.lastYaw = this.yaw;
-    this.form = store.rec.form;
+    this.form = form;
+    giants.set(entity.id, this);
     const p = entity.getProperty(PROP.phase);
     for (const [k, v] of Object.entries(PHASE)) if (v === p) this.phase = k as PhaseName;
   }
@@ -272,7 +277,7 @@ export class Creature {
     if (!this.goal || distXZ(this.goal, target) > 1.5) { this.blocked = 0; this.steerOff = 0; this.steerSide = 0; this.steerAt = -99; this.goalWalled = false; }
     // a route belongs to the place it leads to (a pause on the way there does not lose it)
     if (!this.routeGoal || distXZ(this.routeGoal, target) > 1.5) { this.route = []; this.planner = null; this.routeGoal = { ...target }; this.planAt = -999; }
-    this.goal = target; this.goalSpeed = speed; this.arriveDist = arrive;
+    this.goal = target; this.goalSpeed = speed * this.haste; this.arriveDist = arrive;
   }
   halt(): void { this.goal = null; this.goalSpeed = 0; this.blocked = 0; this.steerOff = 0; this.steerSide = 0; this.goalWalled = false; }
 
@@ -763,8 +768,54 @@ export class Creature {
   hurt(p: Player, amount: number, cause: EntityDamageCause = EntityDamageCause.entityAttack): boolean {
     if (!targetable(p)) return false;
     if (CONFIG.harmlessOnPeaceful && String(world.getDifficulty()).toLowerCase() === "peaceful") return false;
-    try { return p.applyDamage(amount * CONFIG.damage, { cause, damagingEntity: this.entity }); } catch { return false; }
+    try { return p.applyDamage(amount * CONFIG.damage * this.might, { cause, damagingEntity: this.entity }); } catch { return false; }
   }
+
+  /** How far his trunk reaches from his middle, on the ground. */
+  get girth(): number { return MOVE[this.form].radius; }
+
+  /** Told of every blow another giant lands on this body (`heavy`: its jaws, its tail, its weight; not its breath). */
+  onBlow: ((by: Creature, amount: number, heavy: boolean) => void) | null = null;
+  /** A blow from another giant (its breath, its jaws, its tail). */
+  takeBlow(by: Creature, amount: number, heavy = false): boolean {
+    if (amount <= 0 || !this.valid) return false;
+    try { this.onBlow?.(by, amount, heavy); } catch { /* its brain is its own affair */ }
+    try { return this.entity.applyDamage(amount, { cause: EntityDamageCause.entityAttack, damagingEntity: by.entity }); } catch { return false; }
+  }
+
+  /** The middle of his trunk: what another giant aims at. */
+  middle(): V3 {
+    const h = this.form === 1 ? 2.2 : this.form === 2 ? 3.6 * this.scale : this.form === 4 ? 12 * this.scale : 4.8 * this.scale;
+    return { x: this.pos.x, y: this.pos.y + h, z: this.pos.z };
+  }
+
+  /** Thrown back by a blow from something his own size: he gives ground if there is ground to give. */
+  shove(away: V3, blocks: number): void {
+    if (this.form === 1) return;
+    const d = norm({ x: away.x, y: 0, z: away.z });
+    for (let k = blocks; k > 0.4; k -= 1) {
+      const to = { x: this.pos.x + d.x * k, y: this.pos.y, z: this.pos.z + d.z * k };
+      if (!isLoaded(this.dim, to)) continue;
+      const settled = this.stepLand(to, false);
+      if (settled && Math.abs(settled.y - this.pos.y) < 6) { this.pos = settled; return; }
+    }
+  }
+}
+
+/** Every giant there is to hit: Basiliskra himself and the Titans, by entity id (one body per entity). */
+export const giants = new Map<string, Creature>();
+/** The giant an entity is, if it is one (and still here). */
+export function giantOf(e: Entity | undefined): Creature | null {
+  try { if (!e) return null; const g = giants.get(e.id); return g && g.valid ? g : null; } catch { return null; }
+}
+/** The giants in his world other than himself. */
+export function otherGiants(c: Creature): Creature[] {
+  const out: Creature[] = [];
+  for (const [id, g] of giants) {
+    if (!g.valid) { giants.delete(id); continue; }
+    if (g !== c && g.dim.id === c.dim.id) out.push(g);
+  }
+  return out;
 }
 
 /** Hit volume entity id -> the creature it belongs to. */

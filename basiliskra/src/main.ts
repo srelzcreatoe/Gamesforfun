@@ -3,7 +3,7 @@
  * No experiments, no beta APIs, no commands a survival player needs to type.
  */
 import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause, EntitySwingSource, GameMode, Player, system, world } from "@minecraft/server";
-import { CONFIG, JOURNAL_ITEM, NS, OVERWORLD, TYPE, WHEEL_ITEM, isHitbox } from "./config";
+import { CONFIG, JOURNAL_ITEM, NS, OVERWORLD, TITAN, TYPE, WHEEL_ITEM, isHitbox } from "./config";
 import { loadSettings } from "./settings";
 import { canAdmin, giveStarterItems, openJournal, openWheel, placeFor, cityForm } from "./ui";
 import { clearLine } from "./world";
@@ -13,7 +13,8 @@ import { LANCE_ITEM, fireLance } from "./lance";
 import { musicJoin } from "./music";
 import { FADES_COMPONENT } from "./generated/blocks";
 import { Controller } from "./controller";
-import { partOwner } from "./creature";
+import { partOwner, type Creature } from "./creature";
+import { titans } from "./titan";
 import { particle, sound } from "./fx";
 import { ANIMALS, recordHabitat, recordKill } from "./harm";
 import { store } from "./store";
@@ -73,6 +74,7 @@ world.afterEvents.entityLoad.subscribe((ev) => {
   if (!ready) return;
   try {
     if (ev.entity.typeId === TYPE) ctl.inspect(ev.entity);
+    else if (ev.entity.typeId === TITAN) titans.inspect(ev.entity);
     else if (isHitbox(ev.entity.typeId) && !partOwner.has(ev.entity.id)) ev.entity.remove();
   } catch { /* gone */ }
 });
@@ -82,6 +84,7 @@ world.afterEvents.entitySpawn.subscribe((ev) => {
   try {
     const id = ev.entity.typeId;
     if (id === TYPE) { ctl.inspect(ev.entity); return; }
+    if (id === TITAN) { titans.inspect(ev.entity); return; }
     if (isHitbox(id)) { if (!partOwner.has(ev.entity.id)) ev.entity.remove(); return; }
     if (SPLASHERS.has(id) && ev.entity.dimension.id === OVERWORLD && ctl.creature && flying.length < 16
       && dist(ev.entity.location, ctl.creature.pos) < 64) flying.push({ e: ev.entity, born: store.rec.clock });
@@ -92,6 +95,7 @@ world.beforeEvents.entityRemove.subscribe((ev) => {
   try {
     const id = ev.removedEntity.typeId;
     if (id === TYPE) ctl.onRemoving(ev.removedEntity);
+    else if (id === TITAN) titans.onRemoving(ev.removedEntity);
     else if (isHitbox(id)) partOwner.delete(ev.removedEntity.id);
   } catch { /* gone */ }
 });
@@ -102,6 +106,8 @@ const PASSES = new Set<string>([EntityDamageCause.entityAttack, EntityDamageCaus
   EntityDamageCause.maceSmash, EntityDamageCause.override]);
 
 let forwardTick = -1, forwardKey = "";
+/** How much of a Titan's blow reaches Basiliskra himself. */
+const TITAN_ON_HIM = 0.3;
 /** The last tick the game itself delivered each player's blow to one of his hit volumes. */
 const struckAt = new Map<string, number>();
 const swungAt = new Map<string, number>();
@@ -122,23 +128,30 @@ function meleeDamage(id: string | undefined): number {
 // A swing that the game did not land on a hit volume, but which was aimed at him from within reach, is still a
 // blow: the swing's own line is tried against his volumes.  (Which entity a swing lands on is decided on the
 // player's device; this does not depend on that.)
+/** Every giant there is to hit: Basiliskra himself, and the Titans. */
+const everyGiant = (): Creature[] => [...(ctl.creature ? [ctl.creature] : []), ...titans.creatures()];
+
 world.afterEvents.playerSwingStart.subscribe((ev) => {
-  const c0 = ctl.creature;
-  if (!ready || !c0 || !c0.valid) return;
+  if (!ready || !everyGiant().length) return;
   if (ev.swingSource !== EntitySwingSource.Attack) return;
   const p = ev.player;
   const t0 = store.rec.clock;
   const held = ev.heldItemStack?.typeId;
   system.runTimeout(() => {
     try {
-      const c = ctl.creature;
-      if (!c || !c.valid || !p.isValid || p.dimension.id !== c.dim.id) return;
+      if (!p.isValid) return;
       if ((struckAt.get(p.id) ?? -99) >= t0) return;                      // the game landed it: that was the blow
       if (store.rec.clock - (swungAt.get(p.id) ?? -99) < 8) return;        // one blow per swing of the arm
       const from = p.getHeadLocation(), dir = p.getViewDirection();
       const reach = p.getGameMode() === GameMode.Creative ? 6.5 : 4.5;
-      const hit = c.rayHit(from, dir, reach);
-      if (!hit) return;
+      // whichever giant the swing's line meets first
+      let c: Creature | null = null, hit: ReturnType<Creature["rayHit"]> = null;
+      for (const g of everyGiant()) {
+        if (!g.valid || p.dimension.id !== g.dim.id) continue;
+        const h = g.rayHit(from, dir, reach);
+        if (h && (!hit || h.dist < hit.dist)) { hit = h; c = g; }
+      }
+      if (!c || !hit) return;
       // something solid between them is what the swing landed on
       if (hit.dist > 0.3 && !clearLine(c.dim, from, { x: from.x + dir.x * hit.dist, y: from.y + dir.y * hit.dist, z: from.z + dir.z * hit.dist })) return;
       swungAt.set(p.id, store.rec.clock);
@@ -160,7 +173,7 @@ world.beforeEvents.entityHurt.subscribe((ev) => {
     const cause = ev.damageSource.cause, by = ev.damageSource.damagingEntity;
     if (!PASSES.has(cause) || amount <= 0) return;
     // one blast or one sweep reaches several volumes in the same tick: it is still one blow
-    const key = `${cause}|${by?.id ?? ""}`;
+    const key = `${cause}|${by?.id ?? ""}|${owner.creature.entity.id}`;
     if (by) struckAt.set(by.id, store.rec.clock);
     if (forwardTick === store.rec.clock && forwardKey === key) return;
     forwardTick = store.rec.clock; forwardKey = key;
@@ -169,8 +182,16 @@ world.beforeEvents.entityHurt.subscribe((ev) => {
     });
     return;
   }
+  if (type === TITAN) {
+    // a Titan can be killed: the blow that would do it is held back, and it goes down in its own time
+    if (!PASSES.has(ev.damageSource.cause)) { ev.cancel = true; return; }
+    if (titans.beforeHurt(ev.hurtEntity, ev.damage) <= 0) ev.cancel = true;
+    return;
+  }
   if (type !== TYPE) return;
   if (!PASSES.has(ev.damageSource.cause)) { ev.cancel = true; return; }
+  // what a Titan does to him is turned by the same hide it has itself: he is outmatched, not swatted
+  try { if (ev.damageSource.damagingEntity?.typeId === TITAN) ev.damage *= TITAN_ON_HIM; } catch { /* gone */ }
   // he cannot be killed here, only driven off: the blow is trimmed so he keeps his last breath
   let health = 1;
   try { health = ev.hurtEntity.getComponent("minecraft:health")?.currentValue ?? 1; } catch { health = 1; }
@@ -180,6 +201,7 @@ world.beforeEvents.entityHurt.subscribe((ev) => {
 
 world.afterEvents.entityHurt.subscribe((ev) => {
   try {
+    if (ev.hurtEntity.typeId === TITAN) { titans.onHurt(ev.hurtEntity, ev.damageSource.damagingEntity, ev.damage); return; }
     if (ev.hurtEntity.typeId !== TYPE) return;
     const by = ev.damageSource.damagingEntity;
     ctl.onHurt(by && by.typeId === "minecraft:player" ? (by as Player) : undefined, ev.damage);
@@ -236,7 +258,7 @@ world.afterEvents.itemUse.subscribe((ev) => {
     const id = ev.itemStack.typeId;
     if (id === JOURNAL_ITEM) void openJournal(ev.source, ctl);
     else if (id === WHEEL_ITEM) void openWheel(ev.source, ctl);
-    else if (id === LANCE_ITEM) fireLance(ev.source, [ctl.creature], store.rec.clock);
+    else if (id === LANCE_ITEM) fireLance(ev.source, everyGiant(), store.rec.clock);
   } catch { /* left */ }
 });
 
@@ -301,6 +323,23 @@ system.beforeEvents.startup.subscribe((ev) => {
       const p = who(origin);
       if (!p) return fail("Run this as a player.");
       system.run(() => { if (canAdmin(p)) void openWheel(p, ctl); else p.sendMessage("§7[Basiliskra] Only an operator can use the config wheel."); });
+      return { status: CustomCommandStatus.Success };
+    });
+    reg.registerEnum(`${NS}:titan_do`, ["here", "clear"]);
+    reg.registerCommand({
+      name: `${NS}:titan`, description: "Put a Titan where you look (a Basiliskra IV made for battles; up to three), or clear them all.",
+      permissionLevel: CommandPermissionLevel.GameDirectors, cheatsRequired: false,
+      optionalParameters: [{ name: `${NS}:titan_do`, type: CustomCommandParamType.Enum }],
+    }, (origin, what?: string) => {
+      const p = who(origin);
+      if (!p) return fail("Run this as a player.");
+      system.run(() => {
+        try {
+          if (what === "clear") { p.sendMessage(`§7[Basiliskra] ${titans.clear()} Titan(s) removed.`); return; }
+          const place = placeFor(p, 4);
+          p.sendMessage(`§7[Basiliskra] ${titans.spawn(p.dimension, place.at, place.yaw)}`);
+        } catch (e) { p.sendMessage(`§c[Basiliskra] ${e}`); }
+      });
       return { status: CustomCommandStatus.Success };
     });
     reg.registerCommand({

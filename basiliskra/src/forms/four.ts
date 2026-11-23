@@ -25,16 +25,16 @@ import { Entity, EntityDamageCause, Player, world } from "@minecraft/server";
 import { BeamSpec, BeamState, beamTick, clearRange } from "../beam";
 import { Act, Choice, anyoneNear, nearbyPlayers, settlementNear, wait, watchersNear } from "../brain";
 import { CONFIG, CRYSTAL_BLOCK, PROP, SLAG_COLD_BLOCK, TICKS, TRINITITE_BLOCK } from "../config";
-import { targetable } from "../creature";
+import { Creature, targetable } from "../creature";
 import { addFallout, glassify } from "../fallout";
 import { beamVars, flash, particle, sound, stopSound, witnesses } from "../fx";
 import { STRIDE_IV } from "../generated/rig";
 import { alive, blast, carve, wither } from "../havoc";
 import { RoarFx, shake } from "../roar";
-import { store } from "../store";
+import { store, type Rec } from "../store";
 import { add, clamp, dist, distXZ, hash, leftOf, mul, norm, sub, turnTowards, wrapDeg, yawTo, type V3 } from "../vec";
 import { NONE, UNLOADED, blockAt, clearLine, groundY, isLoaded, isSolidBlock, isWaterId, idAt } from "../world";
-import { BrainThree, CHARGE_TICKS, LIGHT_END, PLANT_TICKS, Quarry, headOf, isPlayer } from "./three";
+import { BrainThree, CHARGE_TICKS, LIGHT_END, PLANT_TICKS, Quarry, headOf, isPlayer, standOff } from "./three";
 
 /** His breath: thicker, hotter and three times as long in the reach as it ever was. */
 const SPEC: BeamSpec = { range: 150, radius: 2.4, damage: 11, width: 3.2, carve: 3.8, fallout: 6 };
@@ -54,15 +54,17 @@ type Four = NonNullable<typeof store.rec.four>;
 
 export class BrainFour extends BrainThree {
   private lastFailed = false;
-  private heading = -1;
+  protected heading = -1;
+  /** His breath (the Titan's is its own). */
+  protected spec: BeamSpec = SPEC;
 
-  constructor(c: ConstructorParameters<typeof BrainThree>[0]) {
-    super(c);
+  constructor(c: Creature, own?: Rec) {
+    super(c, own);
     c.set(PROP.tier, 3);
     c.set(PROP.gill, !!this.four().plate);            // (on this form the gill flag hides the plate that has broken off)
   }
 
-  private four(): Four {
+  protected four(): Four {
     return (this.rec.four ??= { debut: false, shots: 0, plate: null });
   }
 
@@ -103,7 +105,7 @@ export class BrainFour extends BrainThree {
         const mouth = c.anchor("mouth");
         for (const q of [...near, ...mobs] as Quarry[]) {
           const d = dist(q.location, mouth);
-          if (d < BEAM_MIN || d > SPEC.range - 6) continue;
+          if (d < BEAM_MIN || d > this.spec.range - 6) continue;
           if (clearLine(c.dim, mouth, headOf(q))) {
             this.rest("beam", 24 * TICKS.second);
             return { name: "beam", run: this.breath(q), limit: 90 * TICKS.second };
@@ -139,7 +141,7 @@ export class BrainFour extends BrainThree {
   }
 
   /** One foot coming down: the ground under it is blown out, like the Wither's, and whatever stood there with it. */
-  private stomp(ground: V3): void {
+  protected stomp(ground: V3): void {
     const c = this.c;
     sound(c.dim, "basiliskra.iii.step", ground, 128, 1, 0.66 + (this.beat & 1) * 0.04);
     particle(c.dim, "basiliskra:step_dust", ground, 96);
@@ -148,7 +150,7 @@ export class BrainFour extends BrainThree {
       const f = 1 - dist(p.location, ground) / 70;
       try { p.runCommand(`camerashake add @s ${(0.08 + 0.3 * f).toFixed(2)} 0.3 positional`); } catch { /* the sound carries it */ }
     }
-    blast(c.dim, ground, 8, 8, 20, 1.1, (p, n) => c.hurt(p, n), c.entity, ground);
+    blast(c.dim, ground, 8, 8, 20 * c.might, 1.1, (p, n) => c.hurt(p, n), c.entity, ground);
     if (wither() && !c.afloat) {
       const got = carve(c.dim, { x: ground.x, y: ground.y - 0.6, z: ground.z }, 3.4, 150, false);
       if (got.broken > 20) particle(c.dim, "basiliskra:impact_debris", { x: ground.x, y: ground.y + 1, z: ground.z }, 96);
@@ -163,10 +165,12 @@ export class BrainFour extends BrainThree {
       let at: V3;
       try { if (!g.isValid || g.dimension.id !== c.dim.id || (player && !targetable(g as Player))) break; at = g.location; } catch { break; }
       c.setPhase("move");
-      c.goTo(at, 0.17, player ? 26 : 6);
-      c.lookAt(at, 60, 40);
+      const keep = standOff(c, g, 26, 6);
+      if (t === 0 && dist(at, c.pos) < keep + 1) { yield* this.watch(g, 30); break; }
+      c.goTo(at, 0.17, keep);
+      c.lookAt(headOf(g), 60, 40);
       this.footfalls();
-      if (dist(at, c.pos) < (player ? 26 : 7)) break;
+      if (dist(at, c.pos) < keep + 1) break;
       if (t % 100 === 50) c.say("basiliskra.iii.grunt", c.anchor("nose"), 72, 1, 0.8 + hash(t) * 0.08);
       yield;
     }
@@ -211,7 +215,7 @@ export class BrainFour extends BrainThree {
     c.setPhase("idle");
   }
 
-  private *turnTo(at: V3, rate = 1.2, limit = 240): Act {
+  protected *turnTo(at: V3, rate = 1.2, limit = 240): Act {
     const c = this.c;
     for (let t = 0; t < limit; t++) {
       const want = yawTo(c.pos, at);
@@ -332,7 +336,7 @@ export class BrainFour extends BrainThree {
    * "cover" if the quarry got something solid between them while he was still following (see the swallow), and
    * "gone" if there is nothing left to fire at.
    */
-  private *charge(target: Quarry | null, aimAt: () => V3, watchCover: boolean): Generator<void, "lock" | "cover" | "gone", void> {
+  protected *charge(target: Quarry | null, aimAt: () => V3, watchCover: boolean): Generator<void, "lock" | "cover" | "gone", void> {
     const c = this.c;
     const ok = () => { try { return !target || (target.isValid && target.dimension.id === c.dim.id); } catch { return false; } };
     c.halt();
@@ -367,7 +371,7 @@ export class BrainFour extends BrainThree {
       c.setCharge(16 + (t / lock) * 2);
       if (t % 2 === 0) {
         const { from, dir } = c.aim();
-        particle(c.dim, "basiliskra:beam_aim", from, 160, beamVars(dir, clearRange(c, from, dir, SPEC.range), 0.3 + 0.7 * (t / lock)));
+        particle(c.dim, "basiliskra:beam_aim", from, 160, beamVars(dir, clearRange(c, from, dir, this.spec.range), 0.3 + 0.7 * (t / lock)));
       }
       this.plateGlow(LIGHT_END + t);
       yield;
@@ -375,14 +379,14 @@ export class BrainFour extends BrainThree {
     return "lock";
   }
 
-  private cutCharge(): void {
+  protected cutCharge(): void {
     if (!this.chargeSounding) return;
     this.chargeSounding = false;
     stopSound(this.c.dim, "basiliskra.iii.charge", this.c.pos);
   }
 
   /** The breath at something he can see. */
-  private *breath(target: Quarry): Act {
+  protected *breath(target: Quarry): Act {
     const c = this.c, F = this.four();
     // a damaged plate cracks off his back the third time he draws breath, and stands where it falls
     if (!F.plate && F.shots >= 2) yield* this.shedPlate();
@@ -409,7 +413,7 @@ export class BrainFour extends BrainThree {
   }
 
   /** 2. The shot, the skid, and the turn on the buried club. */
-  private *fire(target: Quarry | null): Act {
+  protected *fire(target: Quarry | null): Act {
     const c = this.c, F = this.four();
     c.setPhase("fire");
     c.setCharge(20);
@@ -463,10 +467,10 @@ export class BrainFour extends BrainThree {
         sound(c.dim, "mob.wither.break_block", pivot, 128, 1, 0.5);
         particle(c.dim, "basiliskra:impact_debris", { x: pivot.x, y: c.pos.y + 1, z: pivot.z }, 128);
         particle(c.dim, "basiliskra:impact_ring", { x: pivot.x, y: c.pos.y + 0.3, z: pivot.z }, 128);
-        blast(c.dim, { x: pivot.x, y: c.pos.y + 1, z: pivot.z }, 9, 9, 18, 1.3, (p, n) => c.hurt(p, n), c.entity);
+        blast(c.dim, { x: pivot.x, y: c.pos.y + 1, z: pivot.z }, 9, 9, 18 * c.might, 1.3, (p, n) => c.hurt(p, n), c.entity);
         if (wither()) carve(c.dim, { x: pivot.x, y: c.pos.y, z: pivot.z }, 3, 120, false);
       }
-      beamTick(c, SPEC, t, fade, st, { scorch: (hit) => this.scorch(hit) });
+      beamTick(c, this.spec, t, fade, st, { scorch: (hit) => this.scorch(hit) });
       if (t % 10 === 0) shake(c, 96, 0.4 * fade + 0.1, 0.6);
       yield;
     }
@@ -521,7 +525,7 @@ export class BrainFour extends BrainThree {
       try {
         if (target.isValid && targetable(target) && target.dimension.id === c.dim.id) {
           const mouth = c.anchor("mouth");
-          seen = dist(target.location, mouth) < SPEC.range - 6 && dist(target.location, mouth) > 10 && clearLine(c.dim, mouth, headOf(target));
+          seen = dist(target.location, mouth) < this.spec.range - 6 && dist(target.location, mouth) > 10 && clearLine(c.dim, mouth, headOf(target));
           if (seen) last = { ...target.location };
         }
       } catch { /* left */ }
@@ -570,7 +574,7 @@ export class BrainFour extends BrainThree {
           c.lookYaw += clamp(want - c.lookYaw, -0.25, 0.25);
         }
       } catch { /* gone */ }
-      beamTick(c, SPEC, t, fade, st, { scorch: (hit) => this.scorch(hit) });
+      beamTick(c, this.spec, t, fade, st, { scorch: (hit) => this.scorch(hit) });
       if (t % 10 === 0) shake(c, 96, 0.4 * fade + 0.1, 0.6);
       yield;
     }
@@ -617,7 +621,7 @@ export class BrainFour extends BrainThree {
     sound(c.dim, "mob.wither.break_block", top, 128, 1, 0.6);
     particle(c.dim, "basiliskra:impact_ring", { x: top.x, y: P.y + 0.3, z: top.z }, 128);
     particle(c.dim, "basiliskra:impact_debris", top, 128);
-    blast(c.dim, top, 5, 6, 12, 0.9, (p, n) => c.hurt(p, n), c.entity);
+    blast(c.dim, top, 5, 6, 12 * c.might, 0.9, (p, n) => c.hurt(p, n), c.entity);
     F.plate = P;
     store.touch();
     yield* wait(20);
@@ -660,8 +664,8 @@ export class BrainFour extends BrainThree {
       const fade = t < 96 ? 1 : (110 - t) / 14;
       const from = c.anchor("mouth");
       const leg = sub(top, from);
-      beamTick(c, { ...SPEC, range: Math.hypot(leg.x, leg.y, leg.z) }, t, fade, a, { from, dir: norm(leg), harmless: true });
-      beamTick(c, { ...SPEC, range: 70, width: SPEC.width * 0.7 }, t + 1, fade, b, { from: top, dir: out, scorch: (hit) => this.scorch(hit) });
+      beamTick(c, { ...this.spec, range: Math.hypot(leg.x, leg.y, leg.z) }, t, fade, a, { from, dir: norm(leg), harmless: true });
+      beamTick(c, { ...this.spec, range: 70, width: this.spec.width * 0.7 }, t + 1, fade, b, { from: top, dir: out, scorch: (hit) => this.scorch(hit) });
       if (t % 4 === 0) particle(c.dim, "basiliskra:impact_glare", top, 160);
       if (t % 10 === 0) shake(c, 96, 0.4 * fade + 0.1, 0.6);
       yield;

@@ -15,6 +15,7 @@ import { saveSettings, resetSettings } from "./settings";
 import { store } from "./store";
 import type { V3 } from "./vec";
 import { NONE, UNLOADED, groundY, overworld } from "./world";
+import { TITAN_MAX, titans } from "./titan";
 
 const ROMAN = ["", "I", "II", "III", "IV"];
 const FALLOUT = ["off", "visual", "land"] as const;
@@ -323,10 +324,19 @@ export async function openWheel(p: Player, ctl: Controller): Promise<void> {
     .button("Skip to dusk")
     .button("Journal")
     .button("§cReset the story")
-    .button("Raise a city here (a beach, and a very deep sea)");
+    .button("Raise a city here (a beach, and a very deep sea)")
+    .button(`Put a Titan here (for battles: ${titans.count} of ${TITAN_MAX})`)
+    .button("Remove the Titans");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled) return;
   switch (r.selection) {
+    case 9: {
+      // a Basiliskra IV of its own kind, made to fight: it stands in front of the operator, facing them
+      const place = placeFor(p, 4);
+      p.sendMessage(`§7[Basiliskra] ${titans.spawn(p.dimension, place.at, place.yaw)}`);
+      break;
+    }
+    case 10: p.sendMessage(`§7[Basiliskra] ${titans.clear()} Titan(s) removed.`); break;
     case 0: await settingsForm(p); break;
     case 1: {
       if (p.dimension.id !== OVERWORLD) { p.sendMessage("§7[Basiliskra] He only lives in the Overworld."); break; }

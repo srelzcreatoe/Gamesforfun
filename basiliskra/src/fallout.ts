@@ -435,7 +435,7 @@ export function takeIodine(p: Player): void {
 }
 export const isIodine = (id: string | undefined): boolean => id === IODINE_ITEM;
 
-function holdsCounter(p: Player): boolean {
+export function holdsCounter(p: Player): boolean {
   try { return p.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand)?.typeId === COUNTER_ITEM; } catch { return false; }
 }
 

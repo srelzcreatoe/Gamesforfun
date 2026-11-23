@@ -111,8 +111,9 @@ export abstract class Brain {
   forced: Choice | null = null;
   hurtAt = -9999;
 
-  constructor(readonly c: Creature) {}
-  get rec(): Rec { return store.rec; }
+  /** `own`: a record of this body's own (a Titan's).  Without one, the story's record. */
+  constructor(readonly c: Creature, private readonly own?: Rec) {}
+  get rec(): Rec { return this.own ?? store.rec; }
   get now(): number { return store.rec.clock; }
 
   ready(key: string): boolean { return (this.cooldown.get(key) ?? -1e9) <= this.now; }

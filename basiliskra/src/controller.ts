@@ -22,6 +22,7 @@ import { clearHarm, type Trigger } from "./harm";
 import { addFallout, clearFallout, falloutTick } from "./fallout";
 import { cityTick } from "./city";
 import { musicStop, musicTick, sceneTheme } from "./music";
+import { titans } from "./titan";
 import { freshRecord, newToken, store } from "./store";
 import { add, dist, distXZ, dot, forwardOf, hash, mul, norm, sub, wrapDeg, yawTo, type V3 } from "./vec";
 import { NONE, UNLOADED, blockAt, deepHere, groundY, isLoaded, isWaterId, overworld, waterColumn } from "./world";
@@ -497,8 +498,11 @@ export class Controller {
     beginTick(now);
     filmTick();
     falloutTick(now);
-    musicTick(this.creature, now, this.brain?.actName ?? "", this.brain?.hurtAt ?? -1);
+    // (with Basiliskra himself not about, a Titan is what the music follows; and Titans fighting is a fight)
+    const lead = this.creature ?? titans.creatures().find((t) => t.valid) ?? null;
+    musicTick(lead, now, this.brain?.actName ?? "", this.brain?.hurtAt ?? -1, titans.fighting());
     cityTick(now);
+    titans.tick(now);
     if (this.creature && !this.creature.valid) { this.creature.dropParts(); this.creature = null; this.brain = null; this.runner = null; }
     if (now % 20 === 0) this.sweep();
     switch (rec.stage) {

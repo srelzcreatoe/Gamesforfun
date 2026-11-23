@@ -2,7 +2,7 @@
 
 
 // src/main.ts
-import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause9, EntitySwingSource, GameMode as GameMode2, system as system6, world as world13 } from "@minecraft/server";
+import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause9, EntitySwingSource, GameMode as GameMode2, system as system6, world as world14 } from "@minecraft/server";
 
 // src/config.ts
 var CONFIG = {
@@ -63,6 +63,7 @@ var SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmles
 var SETTINGS_KEY = "bk:cfg";
 var NS = "basiliskra";
 var TYPE = `${NS}:basiliskra`;
+var TITAN = `${NS}:titan`;
 var hitboxId = (size) => `${NS}:hitbox_${size}`;
 var isHitbox = (typeId) => typeId.startsWith(`${NS}:hitbox_`);
 var PART_FAMILY = `${NS}_part`;
@@ -133,7 +134,9 @@ var PHASE = {
   recoil: 32,
   drag: 33,
   swallow: 34,
-  carry: 35
+  carry: 35,
+  // the Titan
+  fall: 36
 };
 var TICKS = { second: 20, minute: 1200, day: 24e3 };
 var KNOCK_GAP_TICKS = 18;
@@ -202,7 +205,7 @@ function resetSettings() {
 }
 
 // src/ui.ts
-import { ItemStack as ItemStack2, PlayerPermissionLevel, system as system2, world as world7 } from "@minecraft/server";
+import { ItemStack as ItemStack3, PlayerPermissionLevel, system as system2, world as world10 } from "@minecraft/server";
 import { ActionFormData, FormCancelationReason, MessageFormData, ModalFormData } from "@minecraft/server-ui";
 
 // src/creature.ts
@@ -516,6 +519,7 @@ var STANCE_MODEL_IV = 67.2;
 var LIFT_IV = 22;
 var WING_FOLD = { "root": [-30, -14], "arm": 118, "fingers": [30, 14, 0, -14] };
 var TAIL_LIFT_III = 4;
+var TITAN_HEALTH = 4e3;
 var WINDOW_NECK = [32, 28, 20, 0, -24];
 var WINDOW_HEAD = [-62.7, 21.8, -51.8];
 var GAIT_TICKS = [16, 25, 30];
@@ -1044,7 +1048,7 @@ function shatterRing(dim, center, r0, r1, samples, seed) {
 }
 function mobsNear(dim, at2, r) {
   try {
-    return dim.getEntities({ location: at2, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
+    return dim.getEntities({ location: at2, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
   } catch {
     return [];
   }
@@ -1346,7 +1350,7 @@ function partsFor(form) {
   partCache.set(form, out);
   return out;
 }
-var WINGS = { recoil: 1, roar: 0.85, evolve: 1, rise: 0.7, fire: 0.3, pivot: 0.45 };
+var WINGS = { recoil: 1, roar: 0.85, evolve: 1, rise: 0.7, fire: 0.3, pivot: 0.45, bite: 0.5, fall: 0.6 };
 var PLANTED = /* @__PURE__ */ new Set(["charge", "fire", "pivot", "skid"]);
 var LEG_PHASE = { bl: 0, fl: 270, br: 180, fr: 90, l: 0, r: 180 };
 var MOVE = {
@@ -1362,7 +1366,7 @@ var BODY = {
   4: { built: [6, 11], cliff: 15, front: 11, look: [0.6, 4, 14, 24, 34], wade: 16, climb: 7.4, top: 24 }
 };
 var Creature = class {
-  constructor(entity) {
+  constructor(entity, form = store.rec.form) {
     this.entity = entity;
     this.speed = 0;
     /** Navigation request for this tick onwards. */
@@ -1404,6 +1408,9 @@ var Creature = class {
     this.pushAt = /* @__PURE__ */ new Map();
     this.crushedAt = /* @__PURE__ */ new Map();
     this.tick = 0;
+    /** How much harder than Basiliskra himself this body hits, and how much faster it walks (the Titan). */
+    this.might = 1;
+    this.haste = 1;
     // ---- a way round -------------------------------------------------------------------------------
     this.planner = null;
     this.route = [];
@@ -1457,11 +1464,14 @@ var Creature = class {
     this.dry = 0;
     /** Curl held while not moving (sleeping at the seam). */
     this.bendHold = 0;
+    /** Told of every blow another giant lands on this body (`heavy`: its jaws, its tail, its weight; not its breath). */
+    this.onBlow = null;
     this.dim = entity.dimension;
     this.pos = { ...entity.location };
     this.yaw = entity.getRotation().y;
     this.lastYaw = this.yaw;
-    this.form = store.rec.form;
+    this.form = form;
+    giants.set(entity.id, this);
     const p = entity.getProperty(PROP.phase);
     for (const [k, v] of Object.entries(PHASE)) if (v === p) this.phase = k;
   }
@@ -1605,7 +1615,7 @@ var Creature = class {
       this.planAt = -999;
     }
     this.goal = target;
-    this.goalSpeed = speed;
+    this.goalSpeed = speed * this.haste;
     this.arriveDist = arrive;
   }
   halt() {
@@ -2115,12 +2125,69 @@ var Creature = class {
     if (!targetable(p)) return false;
     if (CONFIG.harmlessOnPeaceful && String(world5.getDifficulty()).toLowerCase() === "peaceful") return false;
     try {
-      return p.applyDamage(amount * CONFIG.damage, { cause, damagingEntity: this.entity });
+      return p.applyDamage(amount * CONFIG.damage * this.might, { cause, damagingEntity: this.entity });
     } catch {
       return false;
     }
   }
+  /** How far his trunk reaches from his middle, on the ground. */
+  get girth() {
+    return MOVE[this.form].radius;
+  }
+  /** A blow from another giant (its breath, its jaws, its tail). */
+  takeBlow(by, amount, heavy = false) {
+    if (amount <= 0 || !this.valid) return false;
+    try {
+      this.onBlow?.(by, amount, heavy);
+    } catch {
+    }
+    try {
+      return this.entity.applyDamage(amount, { cause: EntityDamageCause2.entityAttack, damagingEntity: by.entity });
+    } catch {
+      return false;
+    }
+  }
+  /** The middle of his trunk: what another giant aims at. */
+  middle() {
+    const h = this.form === 1 ? 2.2 : this.form === 2 ? 3.6 * this.scale : this.form === 4 ? 12 * this.scale : 4.8 * this.scale;
+    return { x: this.pos.x, y: this.pos.y + h, z: this.pos.z };
+  }
+  /** Thrown back by a blow from something his own size: he gives ground if there is ground to give. */
+  shove(away, blocks) {
+    if (this.form === 1) return;
+    const d = norm({ x: away.x, y: 0, z: away.z });
+    for (let k = blocks; k > 0.4; k -= 1) {
+      const to = { x: this.pos.x + d.x * k, y: this.pos.y, z: this.pos.z + d.z * k };
+      if (!isLoaded(this.dim, to)) continue;
+      const settled = this.stepLand(to, false);
+      if (settled && Math.abs(settled.y - this.pos.y) < 6) {
+        this.pos = settled;
+        return;
+      }
+    }
+  }
 };
+var giants = /* @__PURE__ */ new Map();
+function giantOf(e) {
+  try {
+    if (!e) return null;
+    const g = giants.get(e.id);
+    return g && g.valid ? g : null;
+  } catch {
+    return null;
+  }
+}
+function otherGiants(c) {
+  const out = [];
+  for (const [id, g] of giants) {
+    if (!g.valid) {
+      giants.delete(id);
+      continue;
+    }
+    if (g !== c && g.dim.id === c.dim.id) out.push(g);
+  }
+  return out;
+}
 var partOwner = /* @__PURE__ */ new Map();
 function targetable(p) {
   try {
@@ -2191,7 +2258,7 @@ function fireLance(p, targets, now) {
     try {
       for (const r of dim.getEntitiesFromRay(from, dir, { maxDistance: reach })) {
         const e = r.entity;
-        if (e.id === p.id || e.typeId === "minecraft:item" || e.typeId === TYPE || isHitbox(e.typeId)) continue;
+        if (e.id === p.id || e.typeId === "minecraft:item" || e.typeId === TYPE || e.typeId === TITAN || isHitbox(e.typeId)) continue;
         reach = Math.max(0.5, r.distance);
         e.applyDamage(LANCE.other, { cause: EntityDamageCause3.entityAttack, damagingEntity: p });
         struck = "other";
@@ -2928,8 +2995,10 @@ function settlementNear(c, now) {
 var VOICED = /* @__PURE__ */ new Set(["idle", "move", "look", "drink", "pin", "flinch", "beach", "carry"]);
 var lastFault = "";
 var Brain = class {
-  constructor(c) {
+  /** `own`: a record of this body's own (a Titan's).  Without one, the story's record. */
+  constructor(c, own) {
     this.c = c;
+    this.own = own;
     this.act = null;
     this.actName = "none";
     this.actTicks = 0;
@@ -2942,7 +3011,7 @@ var Brain = class {
     this.voiceAt = -1;
   }
   get rec() {
-    return store.rec;
+    return this.own ?? store.rec;
   }
   get now() {
     return store.rec.clock;
@@ -3800,689 +3869,11 @@ function sicken(dim, live, now, ps) {
   }
 }
 
-// src/ui.ts
-var ROMAN = ["", "I", "II", "III", "IV"];
-var FALLOUT = ["off", "visual", "land"];
-var DUSK = 11800;
-function canAdmin(p) {
-  try {
-    if (p.playerPermissionLevel === PlayerPermissionLevel.Operator) return true;
-  } catch {
-  }
-  try {
-    return world7.getAllPlayers().length <= 1;
-  } catch {
-    return false;
-  }
-}
-var pct = (f) => `${Math.floor(Math.max(0, Math.min(1, f)) * 100)}%`;
-function bar(f, colour = "§c") {
-  const n = Math.round(Math.max(0, Math.min(1, f)) * 20);
-  return `${colour}${"|".repeat(n)}§8${"|".repeat(20 - n)}§r`;
-}
-function mins(ticks) {
-  const m = Math.max(0, ticks) / TICKS.minute;
-  if (m < 1) return "less than a minute";
-  if (m < 90) return `about ${Math.round(m)} minute${Math.round(m) === 1 ? "" : "s"}`;
-  return `about ${(m / 60).toFixed(1)} hours`;
-}
-function compass2(from, to) {
-  const dx = to.x - from.x, dz = to.z - from.z;
-  if (Math.hypot(dx, dz) < 4) return "right here";
-  const names = ["south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"];
-  const a = Math.atan2(-dx, dz) * 180 / Math.PI;
-  return `${Math.round(Math.hypot(dx, dz))} blocks ${names[(Math.round(a / 45) % 8 + 8) % 8]}`;
-}
-var at = (v) => `${Math.floor(v.x)}, ${Math.floor(v.y)}, ${Math.floor(v.z)}`;
-async function present(p, show) {
-  for (let i = 0; i < 20; i++) {
-    let r;
-    try {
-      r = await show();
-    } catch {
-      return void 0;
-    }
-    if (r.canceled && r.cancelationReason === FormCancelationReason.UserBusy) {
-      await new Promise((res) => system2.runTimeout(() => res(), 8));
-      continue;
-    }
-    return r;
-  }
-  return void 0;
-}
-function angerLines(p, a, here) {
-  const L = [];
-  const where = `around ${Math.floor(a.center.x)}, ${Math.floor(a.center.z)}`;
-  L.push(here ? `§fNear you §7(the 64-block area ${where})` : `§fThe angriest area: ${where} §7(${compass2(p.location, a.center)})`);
-  L.push(`  ${bar(a.progress)} §l${pct(a.progress)}§r §7of what calls him`);
-  L.push(`  §7Animals killed here by players: §f${a.kills}§7 (they count as §f${a.weightA.toFixed(1)}§7 of the §f${a.needA}§7 it takes)`);
-  L.push(`  §7Logs, reeds and shore plants cut here: §f${a.cut}§7 (they count as §f${a.weightH.toFixed(1)}§7 of the §f${a.needH}§7 it takes)`);
-  if (a.fired) L.push("  §7He has already been called from here.");
-  else if (a.pct < 1) {
-    L.push(`  §7Both are needed. Still to go here: about §f${a.moreKills}§7 more animal${a.moreKills === 1 ? "" : "s"} and §f${a.moreLogs}§7 more logs.`);
-    L.push("  §8The first kills of a spree and the first logs of a tree count for less; repeated harm counts in full.");
-  }
-  const total = Object.values(a.by).reduce((s, v) => s + v, 0);
-  const mine = a.by[p.id] ?? 0;
-  if (total > 0) L.push(`  §7Your share of it: §f${pct(mine / total)}`);
-  return L;
-}
-function evolveLines() {
-  const rec = store.rec, now = rec.clock, L = [];
-  if (rec.evolve) {
-    L.push("§cHe is changing right now.");
-    return L;
-  }
-  if (rec.form < 4) {
-    const need = changeTicks(rec.form), since = Math.max(0, now - rec.mut.formSince), f = Math.min(1, since / need);
-    const left = Math.max(0, need - since);
-    L.push(`§fBecoming Basiliskra ${ROMAN[rec.form + 1]}: ${bar(f, rec.form === 3 ? "§4" : "§6")} §l${pct(f)}§r`);
-    L.push(f >= 1 ? "  §aThe time is up: he changes as soon as he is free to." : `  §7Only time: §f${left >= TICKS.minute ? `${Math.ceil(left / TICKS.minute)} min` : `${Math.ceil(left / TICKS.second)} s`}§7 left of ${Math.round(need / TICKS.minute)} min as Basiliskra ${ROMAN[rec.form]}.`);
-    L.push("  §8Nothing else is needed. The config wheel can set the minutes, or make him change at once.");
-  } else L.push("§4Basiliskra IV is his last form.");
-  if (rec.form >= 3) {
-    L.push(rec.form === 4 ? "§fThe last crossing §8(it still sends him home)" : "§fThe last crossing §8(sends him home)");
-    L.push("  §7Carry his shed fin to the seam; play his three knocks on note blocks near it and keep playing; lead his charge into a lightning rod near the seam.");
-  }
-  return L;
-}
-function comingLines(p, ctl2) {
-  const rec = store.rec, now = rec.clock, L = [];
-  const tod = world7.getTimeOfDay();
-  const toDusk = tod >= DUSK && tod < 13800 ? 0 : (DUSK - tod + 24e3) % 24e3;
-  switch (rec.stage) {
-    case "dormant":
-      L.push("§7Not yet. When one place reaches §f100%§7 he is called through deep water near it.");
-      L.push("§7He needs open water about §f6 blocks deep§7 with a clear run of about §f45 blocks§7 within ~90 blocks of that place. Harm far inland calls no one.");
-      break;
-    case "pending": {
-      const pd = rec.pending;
-      L.push(`§eHe has been called§7, by what was done near §f${Math.floor(pd.site.x)}, ${Math.floor(pd.site.z)}§7 (${compass2(p.location, pd.site)}).`);
-      L.push(`§7He is looking for deep, open water there (search ${Math.min(12, (pd.passes ?? 0) + 1)} of 12). Someone must be within 128 blocks of that place.`);
-      if ((pd.passes ?? 0) >= 4) L.push("§7No water has been deep and open enough so far. Harm nearer a coast or a big lake will call him there instead.");
-      break;
-    }
-    case "arriving": {
-      const a = rec.arrival;
-      if (a.step === 0) {
-        L.push(`§eHe is coming§7, through the water at §f${at(a.water)}§7 (${compass2(p.location, a.water)}).`);
-        L.push(toDusk === 0 ? "§7At dusk, which is now: someone must be within 96 blocks of that water." : `§7At the next dusk, in §f${mins(toDusk)}§7, while someone is within 96 blocks of that water.`);
-      } else L.push(`§cHe is coming through now§7, at §f${at(a.water)}§7 (${compass2(p.location, a.water)}).`);
-      break;
-    }
-    case "alive": {
-      const c = ctl2.creature;
-      if (c && c.valid) {
-        let hp = "";
-        try {
-          const h = c.entity.getComponent("minecraft:health");
-          if (h) hp = ` §7Health §f${Math.ceil(h.currentValue)}/${h.effectiveMax}`;
-        } catch {
-        }
-        L.push(`§cBasiliskra ${ROMAN[rec.form]} is here§7, ${compass2(p.location, c.pos)}.${hp}`);
-      } else if (rec.entityId === null && rec.down !== null) {
-        const left = pace(TICKS.day) - (now - rec.down);
-        L.push(`§7Driven off. He comes back through the seam at §f${rec.rift ? at(rec.rift) : "the old place"}§7 in §f${mins(left)}§7, when someone is near it.`);
-      } else if (rec.last) {
-        L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach. Last seen near §f${at(rec.last)}§7 (${compass2(p.location, rec.last)}), ${mins(now - rec.last.t)} ago.`);
-      } else L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach.`);
-      if (rec.guiltyName) L.push(`§7He remembers §f${rec.guiltyName}§7.`);
-      break;
-    }
-    case "departed":
-      L.push("§7He has gone home. The story in this world is over; nothing calls another.");
-      break;
-  }
-  return L;
-}
-function falloutLines(p) {
-  const L = [], now = store.rec.clock;
-  let at2;
-  try {
-    if (p.dimension.id !== OVERWORLD) return ["§7Only the Overworld carries his fallout."];
-    at2 = p.location;
-  } catch {
-    return L;
-  }
-  const d = doseAt(at2, now);
-  const word = d < 0.03 ? "§anone to speak of" : d < 0.2 ? "§6low" : d < 0.45 ? "§6rising" : d < 0.75 ? "§chigh" : "§4deadly";
-  L.push(`§fRadiation where you stand: ${bar(Math.min(1, d))} §l${pct(d)}§r  ${word}`);
-  const n = nearestFallout(at2, now), count = falloutCount(now);
-  if (!n) L.push("§7No fallout on record. His beam, his changes and his seam leave it where they touch the world.");
-  else {
-    L.push(`§7Fallout in §f${count}§7 place${count === 1 ? "" : "s"}. The nearest is ${compass2(at2, n.zone)}, at §f${pct(n.strength)}§7.`);
-    L.push("§7It spreads for about a minute, stands a while, then fades and is gone within a few minutes.");
-    if (CONFIG.fallout === "land") L.push("§7In it the ground glows: soil and rock turn irradiated, plants wither, wild leaves fall and crimson crystals grow (break them for shards). Where his beam lands, rock runs to glowing slag and sand fuses to scarlet trinitite. As it fades the land heals back to what it was.");
-    if (CONFIG.sickness) L.push("§7It is strong: hunger, then weakness and nausea, then poison, and the heart of a fresh zone burns. Iodine tablets (2 dried kelp, sugar) keep it off for four minutes; milk clears it. A Geiger counter (trinitite or a crimson shard, copper ingot, redstone) reads it.");
-  }
-  return L;
-}
-function journalText(p, ctl2) {
-  const now = store.rec.clock, L = [];
-  L.push("§l§4HIS ANGER§r");
-  let here = null;
-  try {
-    if (p.dimension.id === OVERWORLD) here = angerNear(p.location, now);
-  } catch {
-    here = null;
-  }
-  if (here) L.push(...angerLines(p, here, true));
-  else L.push("§7Only what is done in the Overworld counts.");
-  const top = angriest(now);
-  if (top && (!here || top.key !== here.key)) {
-    L.push("");
-    L.push(...angerLines(p, top, false));
-  }
-  const [k, c] = tallyOf(p.id);
-  L.push(`§7You, everywhere: §f${k}§7 animal${k === 1 ? "" : "s"} killed, §f${c}§7 log${c === 1 ? "" : "s"} and plants cut.`);
-  L.push(`§8Anger is kept per 64-block area. Left alone, an area's anger halves every ${halfLifeDays().toFixed(1)} in-game days.`);
-  L.push("");
-  L.push("§l§4WHEN HE COMES§r");
-  L.push(...comingLines(p, ctl2));
-  if (store.rec.stage === "alive" || store.rec.stage === "arriving") {
-    L.push("");
-    L.push("§l§4HIM§r");
-    L.push(...evolveLines());
-  }
-  if (CONFIG.fallout !== "off") {
-    L.push("");
-    L.push("§l§4FALLOUT§r");
-    L.push(...falloutLines(p));
-  }
-  return L.join("\n");
-}
-async function openJournal(p, ctl2) {
-  for (; ; ) {
-    const f = new ActionFormData().title("Basiliskra Journal").body(journalText(p, ctl2)).button("Read again").button("Close");
-    if (canAdmin(p)) f.button("Config wheel");
-    const r = await present(p, () => f.show(p));
-    if (!r || r.canceled) return;
-    if (r.selection === 0) continue;
-    if (r.selection === 2) await openWheel(p, ctl2);
-    return;
-  }
-}
-function placeFor(p, form) {
-  const v = p.getViewDirection();
-  const n = Math.hypot(v.x, v.z) || 1;
-  const d = [0, 15, 24, 46, 52][form] ?? 30;
-  const pl = p.location;
-  const pos = { x: pl.x + v.x / n * d, y: pl.y, z: pl.z + v.z / n * d };
-  const dimension = overworld();
-  let g = groundY(dimension, pos.x, pos.z, pl.y + 24, 48);
-  if (g === NONE) g = groundY(dimension, pos.x, pos.z, pl.y - 24, pl.y - 24 - dimension.heightRange.min);
-  if (g !== UNLOADED && g !== NONE) pos.y = g;
-  const yaw = Math.atan2(-(pl.x - pos.x), pl.z - pos.z) * 180 / Math.PI;
-  return { at: pos, yaw };
-}
-function formOf(rec = store.rec) {
-  return rec.born > 0 ? rec.form : 0;
-}
-var SPEEDS = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
-var MINUTES = [0, 1, 2, 5, 10, 20, 30, 60];
-var DAMAGES = [0, 0.25, 0.5, 1, 1.5, 2, 3, 4];
-var TERRAIN = ["none", "scorch", "break", "wither"];
-function presetList(values, current, def, word) {
-  const items = values.map((v) => `${word(v)}${v === def ? " (default)" : ""}`);
-  let index = values.indexOf(current);
-  items.push(index < 0 ? `Custom: x${current}` : "Custom (type it in the box below)");
-  if (index < 0) index = values.length;
-  return { items, index };
-}
-function typedNumber(typed) {
-  const t = typeof typed === "string" ? typed.trim().replace(/^x/i, "").replace(",", ".") : "";
-  return t === "" ? void 0 : Number(t);
-}
-var typedBad = (typed, lo, hi) => {
-  const n = typedNumber(typed);
-  return n !== void 0 && !(n >= lo && n <= hi);
-};
-function pickNumber(values, index, typed, current, lo, hi) {
-  const n = typedNumber(typed);
-  if (n !== void 0 && n >= lo && n <= hi) return Math.round(n * 100) / 100;
-  const i = Number(index);
-  return Number.isInteger(i) && i >= 0 && i < values.length ? values[i] : current;
-}
-async function settingsForm(p) {
-  const speed = presetList(SPEEDS, CONFIG.pacing, 1, (v2) => `x${v2}${v2 < 1 ? " (slower)" : v2 > 1 ? " (faster)" : ""}`);
-  const dmg = presetList(DAMAGES, CONFIG.damage, 1, (v2) => v2 === 0 ? "None (x0)" : `x${v2}`);
-  const f = new ModalFormData().title("Basiliskra Settings").dropdown("Story speed", speed.items, { defaultValueIndex: speed.index, tooltip: "x2 halves every wait and threshold; x0.5 doubles them." }).textField("...or type a story speed (0.25 to 4)", "e.g. 1.25").dropdown("What his beam, roar and weight do to the world", [
-    "Nothing (light and sound only)",
-    "Scorch natural ground",
-    "Scorch and break natural ground",
-    "Destroy everything, like the Wither (default)"
-  ], { defaultValueIndex: Math.max(0, TERRAIN.indexOf(CONFIG.terrain)) }).toggle("Spare chests, beds, furnaces and portals", { defaultValue: CONFIG.spareStorage }).toggle("Footprints and furrows in natural ground", { defaultValue: CONFIG.marks }).dropdown("Damage to players", dmg.items, { defaultValueIndex: dmg.index }).textField("...or type a damage multiplier (0 to 4)", "e.g. 0.75").toggle("Harmless on Peaceful", { defaultValue: CONFIG.harmlessOnPeaceful }).toggle("He hunts animals and other creatures too", { defaultValue: CONFIG.huntMobs }).toggle("Spawn eggs and /summon bring him to you", { defaultValue: CONFIG.allowSummon }).dropdown("A spawn egg makes", ["His stage in the story", "Basiliskra I", "Basiliskra II", "Basiliskra III", "Basiliskra IV"], { defaultValueIndex: CONFIG.spawnForm }).toggle("Give new players the journal", { defaultValue: CONFIG.giveJournal }).toggle("Give operators the config wheel", { defaultValue: CONFIG.giveWheel }).toggle("Debug messages in the content log", { defaultValue: CONFIG.debug }).dropdown("His fallout", ["Off", "Glowing motes and Geiger clicks only", "Also changes the land (natural ground only)"], { defaultValueIndex: FALLOUT.indexOf(CONFIG.fallout) }).toggle("Radiation sickness for players", { defaultValue: CONFIG.sickness }).toggle("Cutscenes (the rift, each transformation)", { defaultValue: CONFIG.cutscenes }).toggle("His music", { defaultValue: CONFIG.music }).dropdown(
-    "Minutes in each form before he changes (time is all it takes)",
-    MINUTES.map((m) => m ? `${m} minutes` : "The story's timing: 40, 40, 60 (at story speed 1)"),
-    { defaultValueIndex: Math.max(0, MINUTES.indexOf(CONFIG.changeMinutes)) }
-  ).toggle("Cities rise on coasts as you explore (never over anything built)", { defaultValue: CONFIG.cities }).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
-  const r = await present(p, () => f.show(p));
-  if (!r || r.canceled || !r.formValues) return;
-  const v = r.formValues;
-  if (v[20] === true) {
-    resetSettings();
-    p.sendMessage("§7[Basiliskra] Settings restored to the defaults.");
-    return;
-  }
-  const pacing = pickNumber(SPEEDS, v[0], v[1], CONFIG.pacing, 0.25, 4);
-  const damage = pickNumber(DAMAGES, v[5], v[6], CONFIG.damage, 0, 4);
-  const bad = typedBad(v[1], 0.25, 4) || typedBad(v[6], 0, 4);
-  saveSettings({
-    pacing,
-    terrain: TERRAIN[Number(v[2])] ?? "wither",
-    spareStorage: v[3] === true,
-    marks: v[4] === true,
-    damage,
-    harmlessOnPeaceful: v[7] === true,
-    huntMobs: v[8] === true,
-    allowSummon: v[9] === true,
-    spawnForm: Number(v[10]),
-    giveJournal: v[11] === true,
-    giveWheel: v[12] === true,
-    debug: v[13] === true,
-    fallout: FALLOUT[Number(v[14])] ?? "land",
-    sickness: v[15] === true,
-    cutscenes: v[16] === true,
-    music: v[17] === true,
-    changeMinutes: MINUTES[Number(v[18])] ?? 0,
-    cities: v[19] === true
-  });
-  p.sendMessage(`§7[Basiliskra] Settings saved with this world. Story speed §fx${CONFIG.pacing}§7, damage §fx${CONFIG.damage}§7.`);
-  if (bad) p.sendMessage("§7[Basiliskra] A number you typed was not in range, so the choice above it was used.");
-}
-async function bringForm(p, ctl2) {
-  const f = new ActionFormData().title("Bring him here").body(`§7The one Basiliskra comes to you: moved here if he is about, made here if he is not. There is never more than one.
-§7Now: ${store.rec.born > 0 ? `Basiliskra ${ROMAN[store.rec.form]}` : "he has never come"}.`).button("As he is in the story").button("Basiliskra I (the water)").button("Basiliskra II (the shore)").button("Basiliskra III (four footfalls)").button("Basiliskra IV (the last form)");
-  const r = await present(p, () => f.show(p));
-  if (!r || r.canceled || r.selection === void 0) return;
-  if (p.dimension.id !== OVERWORLD) {
-    p.sendMessage("§7[Basiliskra] He only lives in the Overworld.");
-    return;
-  }
-  const want = r.selection;
-  const place2 = placeFor(p, want || formOf() || 3);
-  p.sendMessage(`§7[Basiliskra] ${ctl2.bringHere(place2.at, place2.yaw, want)}`);
-}
-async function confirm(p, title, body) {
-  const f = new MessageFormData().title(title).body(body).button1("Yes").button2("No");
-  const r = await present(p, () => f.show(p));
-  return !!r && !r.canceled && r.selection === 0;
-}
-async function openWheel(p, ctl2) {
-  if (!canAdmin(p)) {
-    p.sendMessage("§7[Basiliskra] Only an operator can use the config wheel.");
-    return;
-  }
-  const rec = store.rec;
-  const here = ctl2.creature && ctl2.creature.valid;
-  const state = here ? `§cBasiliskra ${ROMAN[rec.form]} is here` : rec.stage === "arriving" ? "§ehe is coming through" : rec.stage === "alive" ? `§7Basiliskra ${ROMAN[rec.form]} is away, owed back` : "§7he is not in this world";
-  const f = new ActionFormData().title("Basiliskra Config Wheel").body(`${state}§7 · Story speed §fx${CONFIG.pacing}§7 · Damage §fx${CONFIG.damage}`).button("Settings").button("Call him now (the rift opens)").button("Bring him here (no rift, pick a form)").button("Make him change now (next form)").button("Send him away (until he is called)").button("Skip to dusk").button("Journal").button("§cReset the story").button("Raise a city here (a beach, and a very deep sea)");
-  const r = await present(p, () => f.show(p));
-  if (!r || r.canceled) return;
-  switch (r.selection) {
-    case 0:
-      await settingsForm(p);
-      break;
-    case 1: {
-      if (p.dimension.id !== OVERWORLD) {
-        p.sendMessage("§7[Basiliskra] He only lives in the Overworld.");
-        break;
-      }
-      const form = rec.stage === "alive" && rec.born > 0 ? rec.form : 1;
-      p.sendMessage(`§7[Basiliskra] ${ctl2.callNow(p.location, p, form > 1 ? placeFor(p, form) : void 0)}`);
-      break;
-    }
-    case 2:
-      await bringForm(p, ctl2);
-      break;
-    case 3:
-      p.sendMessage(`§7[Basiliskra] ${ctl2.evolveNow()}`);
-      break;
-    case 4:
-      if (await confirm(p, "Send him away", "He leaves through a seam and stays gone until you call him again (or until the land is harmed enough to call him). The story starts again from Basiliskra I; the anger on record and his fallout stay.")) {
-        p.sendMessage(ctl2.sendAway() ? "§7[Basiliskra] He is gone. Call him now opens the rift again, whenever you want it." : "§7[Basiliskra] He was not in this world.");
-      }
-      break;
-    case 5:
-      world7.setTimeOfDay(DUSK + 100);
-      p.sendMessage("§7[Basiliskra] Dusk.");
-      break;
-    case 6:
-      await openJournal(p, ctl2);
-      break;
-    case 8:
-      await cityForm(p);
-      break;
-    case 7:
-      if (await confirm(p, "Reset the story", "Forget him, his form, everything he has learned and all the anger on record, as if the pack had just been added. He is removed from the world.")) {
-        ctl2.resetStory();
-        p.sendMessage("§7[Basiliskra] The story has been reset.");
-      }
-      break;
-  }
-}
-async function cityForm(p) {
-  if (!canAdmin(p)) {
-    p.sendMessage("§7[Basiliskra] Only an operator can raise a city.");
-    return;
-  }
-  if (p.dimension.id !== OVERWORLD) {
-    p.sendMessage("§7[Basiliskra] Cities stand in the Overworld.");
-    return;
-  }
-  const f = new ActionFormData().title("Raise a city here").body("§7You will be standing on its promenade. §fBehind you§7: streets, towers, houses, people. §fAhead of you§7 (the way you are looking): a beach, and beyond it a sea cut a hundred blocks deep, with things on the bottom.\n§cEverything in that area is replaced§7: about 180 by 160 blocks of city and beach, and 200 by 140 of sea. It takes under a minute.").button("A full city (175 by 119)").button("A small one (91 by 63)").button("Not here");
-  const r = await present(p, () => f.show(p));
-  if (!r || r.canceled || r.selection === void 0 || r.selection > 1) return;
-  let v = { x: 0, y: 0, z: 1 };
-  try {
-    v = p.getViewDirection();
-  } catch {
-  }
-  const dir = Math.abs(v.z) >= Math.abs(v.x) ? v.z >= 0 ? 0 : 2 : v.x < 0 ? 1 : 3;
-  const at2 = { ...p.location };
-  const said = raiseCity(at2, dir, r.selection === 1);
-  p.sendMessage(`§7[Basiliskra] ${said}`);
-  if (/rising/.test(said)) {
-    try {
-      p.teleport({ x: at2.x, y: Math.max(64, Math.min(83, Math.floor(at2.y))) + 1.2, z: at2.z });
-    } catch {
-    }
-  }
-}
-function giveStarterItems(p) {
-  try {
-    if (p.getDynamicProperty("bk:given") === true) return;
-  } catch {
-    return;
-  }
-  const items = [];
-  if (CONFIG.giveJournal) items.push(JOURNAL_ITEM);
-  if (CONFIG.giveWheel && canAdmin(p)) items.push(WHEEL_ITEM);
-  for (const id of items) {
-    try {
-      const left = p.getComponent("minecraft:inventory")?.container?.addItem(new ItemStack2(id, 1));
-      if (left) p.dimension.spawnItem(left, p.location);
-    } catch {
-    }
-  }
-  try {
-    p.setDynamicProperty("bk:given", true);
-  } catch {
-  }
-  if (items.length) p.sendMessage(`§7[Basiliskra] ${items.length > 1 ? "A journal and a config wheel are" : "A journal is"} in your inventory. Use the journal to see how angry he is, and when he will come.`);
-}
+// src/titan.ts
+import { ItemStack as ItemStack2, world as world9 } from "@minecraft/server";
 
-// src/scene.ts
-import { EasingType, HudElement, HudVisibility } from "@minecraft/server";
-var FLAG = "bk:film";
-var HUD = [
-  HudElement.PaperDoll,
-  HudElement.Armor,
-  HudElement.ToolTips,
-  HudElement.Crosshair,
-  HudElement.Hotbar,
-  HudElement.Health,
-  HudElement.ProgressBar,
-  HudElement.Hunger,
-  HudElement.AirBubbles,
-  HudElement.HorseHealth,
-  HudElement.StatusEffects,
-  HudElement.ItemText
-];
-var span = (v, k) => typeof v === "number" ? v : v[0] + (v[1] - v[0]) * k;
-var Film = class {
-  constructor(dim, focus, o) {
-    this.dim = dim;
-    this.focus = focus;
-    this.o = o;
-    this.t = 0;
-    this.cast = [];
-    this.done = false;
-    const f = focus();
-    for (const p of players()) {
-      try {
-        if (p.dimension.id !== dim.id || dist(p.location, f) > o.radius) continue;
-        const base = Math.atan2(p.location.z - f.z, p.location.x - f.x);
-        this.cast.push({ p, base });
-        p.setDynamicProperty(FLAG, true);
-        if (o.cinema) {
-          try {
-            p.onScreenDisplay.setHudVisibility(HudVisibility.Hide, HUD);
-          } catch {
-          }
-        }
-        if (o.flash) p.camera.fade({ fadeColor: o.flash, fadeTime: { fadeInTime: 0.1, holdTime: 0.15, fadeOutTime: 0.7 } });
-      } catch {
-      }
-    }
-    this.aim();
-  }
-  /** A place the camera can stand: not inside a block, not under the ground, and able to see what it looks at. */
-  stand(want, look) {
-    let best = null;
-    for (const [kd, up] of [[1, 0], [1, 3], [0.85, 6], [0.7, 10], [0.55, 16], [0.4, 24]]) {
-      const q = { x: look.x + (want.x - look.x) * kd, y: want.y + up, z: look.z + (want.z - look.z) * kd };
-      if (!isLoaded(this.dim, q)) continue;
-      const g = groundY(this.dim, q.x, q.z, q.y + 12, 40);
-      if (typeof g === "number" && q.y < g + 1.6) q.y = g + 1.6;
-      const here = blockAt(this.dim, q);
-      if (here && isSolidBlock(here)) continue;
-      if (clearLine(this.dim, q, look)) return q;
-      best ??= q;
-    }
-    return best;
-  }
-  /** The shot that is playing, and how far through it the film is (0..1). */
-  shot() {
-    const shots = this.o.shots;
-    if (!shots || !shots.length) return null;
-    let t = this.t;
-    for (const s of shots) {
-      if (t < s.ticks) return { s, k: t / Math.max(1, s.ticks - 1), first: t < 2 };
-      t -= s.ticks;
-    }
-    return { s: shots[shots.length - 1], k: 1, first: false };
-  }
-  aimShot() {
-    const cur = this.shot();
-    if (!cur) return;
-    const { s, first } = cur;
-    const k = cur.k * cur.k * (3 - 2 * cur.k);
-    let look;
-    try {
-      look = (s.look ?? this.focus)();
-    } catch {
-      look = this.focus();
-    }
-    const f = forwardOf((this.o.facing?.() ?? 0) + span(s.angle, k));
-    const d = span(s.dist, k);
-    const at2 = this.stand({ x: look.x + f.x * d, y: look.y + span(s.height, k), z: look.z + f.z * d }, look);
-    if (!at2) return;
-    for (const { p } of this.cast) {
-      try {
-        if (!p.isValid || p.dimension.id !== this.dim.id) continue;
-        if (first) {
-          if (this.t > 1) p.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0, holdTime: 0.05, fadeOutTime: 0.2 } });
-          p.camera.setCamera("minecraft:free", { location: at2, facingLocation: look });
-        } else p.camera.setCamera("minecraft:free", { location: at2, facingLocation: look, easeOptions: { easeTime: 0.15, easeType: EasingType.Linear } });
-      } catch {
-      }
-    }
-  }
-  aim() {
-    if (this.o.shots) {
-      this.aimShot();
-      return;
-    }
-    const o = this.o, f = this.focus(), k = Math.min(1, this.t / Math.max(1, o.ticks));
-    const d = o.dist + ((o.distEnd ?? o.dist) - o.dist) * k;
-    for (const { p, base } of this.cast) {
-      try {
-        if (!p.isValid || p.dimension.id !== this.dim.id) continue;
-        const a = base + (o.orbit ?? 0) * Math.PI / 180 * (k - 0.5);
-        let at2 = null;
-        for (const [kd, kh] of [[1, 1], [1, 1.8], [0.7, 1.4], [0.45, 1.2], [0.3, 2.2]]) {
-          const q = { x: f.x + Math.cos(a) * d * kd, y: f.y + o.height * kh, z: f.z + Math.sin(a) * d * kd };
-          if (!isLoaded(this.dim, q)) continue;
-          if (clearLine(this.dim, q, f)) {
-            at2 = q;
-            break;
-          }
-          at2 ??= q;
-        }
-        if (!at2) continue;
-        p.camera.setCamera("minecraft:free", { location: at2, facingLocation: f, easeOptions: { easeTime: 0.25, easeType: EasingType.Linear } });
-      } catch {
-      }
-    }
-  }
-  tick() {
-    if (this.done) return;
-    this.t++;
-    if (this.t >= this.o.ticks) {
-      this.cut();
-      return;
-    }
-    if (this.t % 2 === 0 || this.o.shots) this.aim();
-  }
-  /** End it now: every watcher gets their own eyes back. */
-  cut() {
-    if (this.done) return;
-    this.done = true;
-    for (const { p } of this.cast) release(p);
-    this.cast = [];
-  }
-};
-function release(p) {
-  try {
-    p.camera.clear();
-  } catch {
-  }
-  try {
-    p.onScreenDisplay.setHudVisibility(HudVisibility.Reset, HUD);
-  } catch {
-  }
-  try {
-    p.setDynamicProperty(FLAG, void 0);
-  } catch {
-  }
-}
-var films = [];
-function film(dim, focus, o) {
-  if (!CONFIG.cutscenes) return { cut() {
-  }, done: true };
-  const f = new Film(dim, focus, o);
-  films.push(f);
-  return f;
-}
-function filmTick() {
-  if (!films.length) return;
-  for (const f of films) {
-    try {
-      f.tick();
-    } catch {
-      f.cut();
-    }
-  }
-  films = films.filter((f) => !f.done);
-}
-function releaseStale(p) {
-  try {
-    if (p.getDynamicProperty(FLAG) === true) release(p);
-  } catch {
-  }
-}
-function cutAll() {
-  for (const f of films) f.cut();
-  films = [];
-}
-
-// src/music.ts
-var TRACK = (t) => `basiliskra.music.${t}`;
-var RANGE = { dread: 80, wrath: 128, last: 160 };
-var GRACE = 8 * TICKS.second;
-var PROP2 = "bk:music";
-var playing = /* @__PURE__ */ new Map();
-var scene = null;
-function sceneTheme(theme, ticks, at2, dim) {
-  scene = { theme, until: store.rec.clock + ticks, at: { ...at2 }, dim };
-}
-var FIGHT = /* @__PURE__ */ new Set(["charge", "beam", "remember", "scatter", "lock", "pursue", "raze", "arc", "pin", "flinch", "boat"]);
-var fightUntil = -1;
-function themeFor(c, now, doing, hurtAt) {
-  if (scene && now < scene.until) return scene.theme;
-  if (!c || !c.valid) return null;
-  if (store.rec.ending?.step || store.rec.evolve) return "last";
-  if (c.form >= 4) return "last";
-  if (FIGHT.has(doing) || hurtAt > 0 && now - hurtAt < 5 * TICKS.second) fightUntil = now + 25 * TICKS.second;
-  if (now < fightUntil) return "wrath";
-  return c.phase === "sleep" ? null : "dread";
-}
-function stop(p) {
-  try {
-    p.runCommand("music stop 3");
-  } catch {
-    try {
-      p.stopMusic();
-    } catch {
-    }
-  }
-  try {
-    p.setDynamicProperty(PROP2, void 0);
-  } catch {
-  }
-}
-function musicTick(c, now, doing = "", hurtAt = -1) {
-  if (now % 20 !== 0) return;
-  const want = CONFIG.music ? themeFor(c, now, doing, hurtAt) : null;
-  for (const p of players()) {
-    let near = false;
-    try {
-      const inScene = !!scene && now < scene.until && p.dimension.id === scene.dim && dist(p.location, scene.at) <= RANGE.last;
-      near = !!want && (inScene || !!c && c.valid && p.dimension.id === c.dim.id && dist(p.location, c.pos) <= RANGE[want]);
-    } catch {
-      continue;
-    }
-    const cur = playing.get(p.id);
-    if (near && want) {
-      if (!cur || cur.theme !== want) {
-        try {
-          p.playMusic(TRACK(want), { fade: cur ? 3 : 2, loop: true, volume: 0.85 });
-          p.setDynamicProperty(PROP2, want);
-          playing.set(p.id, { theme: want, lost: -1 });
-        } catch {
-        }
-      } else cur.lost = -1;
-    } else if (cur) {
-      if (cur.lost < 0) cur.lost = now;
-      if (!CONFIG.music || now - cur.lost >= GRACE) {
-        stop(p);
-        playing.delete(p.id);
-      }
-    }
-  }
-}
-function musicJoin(p) {
-  playing.delete(p.id);
-  try {
-    if (p.getDynamicProperty(PROP2) !== void 0) stop(p);
-  } catch {
-  }
-}
-function musicStop() {
-  scene = null;
-  fightUntil = -1;
-  for (const p of players()) if (playing.delete(p.id)) stop(p);
-}
-
-// src/controller.ts
-import { ItemStack as ItemStack3, system as system5, world as world12 } from "@minecraft/server";
-
-// src/ending.ts
-import { EquipmentSlot as EquipmentSlot2 } from "@minecraft/server";
-
-// src/forms/three.ts
-import { world as world8 } from "@minecraft/server";
+// src/forms/four.ts
+import { EntityDamageCause as EntityDamageCause8, world as world8 } from "@minecraft/server";
 
 // src/beam.ts
 import { EntityDamageCause as EntityDamageCause5 } from "@minecraft/server";
@@ -4505,7 +3896,30 @@ function beamTick(c, T, t, fade, st, shot = {}) {
     }
   }
   while (length > 4 && !isLoaded(c.dim, add(from, mul(dir, length)))) length -= 4;
+  let struck = null;
+  for (const g of otherGiants(c)) {
+    if (dist(g.pos, from) > length + 70) continue;
+    for (const v of g.volumes()) {
+      const along = dot(sub(v.at, from), dir);
+      if (along <= 0 || along >= length + v.r) continue;
+      if (dist(v.at, add(from, mul(dir, along))) > v.r + T.radius * 0.5) continue;
+      const stop2 = Math.max(1, along - v.r * 0.6);
+      if (stop2 < length) {
+        length = stop2;
+        hitBlock = null;
+        struck = g;
+      }
+    }
+  }
   const end = add(from, mul(dir, length));
+  if (struck) {
+    if (t % 3 === 0) particle(c.dim, "basiliskra:beam_impact", end, 128);
+    if (t % 4 === 2) particle(c.dim, "basiliskra:impact_glare", end, 160);
+    if (t % 7 === 0) particle(c.dim, "basiliskra:impact_fire", end, 128);
+    if (t % 6 === 3) particle(c.dim, "basiliskra:impact_smoke", end, 144);
+    if (t % 10 === 0) sound(c.dim, "basiliskra.iii.beam_impact", end, 128);
+    if (t % 4 === 0) struck.takeBlow(c, T.damage * Math.max(0.3, fade));
+  }
   const w = T.width * fade * (T.rough ? 0.85 + hash(t) * 0.4 : 1) * (1 + 0.14 * Math.sin(t * 1.25));
   if (t % 5 === 0) particle(c.dim, "basiliskra:beam_ring", from, 144, beamVars(dir, length, w * 2.2));
   if (t % 3 === 1) particle(c.dim, "basiliskra:beam_arc", from, 128, beamVars(dir, length, w));
@@ -4578,7 +3992,7 @@ function beamTick(c, T, t, fade, st, shot = {}) {
       }
     }
   }
-  return { end, hit: hitBlock, length, from, dir };
+  return { end, hit: hitBlock, length, from, dir, struck };
 }
 function clearRange(c, from, dir, max) {
   let length = max;
@@ -4705,6 +4119,7 @@ var RoarFx = class {
 };
 
 // src/forms/three.ts
+import { world as world7 } from "@minecraft/server";
 var CHARGE_TICKS = 137;
 var PLANT_TICKS = 14;
 var LIGHT_END = 112;
@@ -4730,11 +4145,17 @@ var isPlayer = (e) => {
   }
 };
 function headOf(e) {
+  const g = giantOf(e);
+  if (g) return g.middle();
   try {
     return e.getHeadLocation();
   } catch {
     return e.location;
   }
+}
+function standOff(c, e, player, other) {
+  const g = giantOf(e);
+  return g ? c.girth + g.girth + 6 : isPlayer(e) ? player : other;
 }
 var BrainThree = class extends Brain {
   constructor() {
@@ -4755,6 +4176,8 @@ var BrainThree = class extends Brain {
     /** The ending asks for a charge aimed at nothing in particular, beside the seam. */
     this.wantCharge = false;
     this.chargeSounding = false;
+    /** From how far he knows of another giant. */
+    this.giantSight = 160;
     /** Rods seen near the club during this charge, by layer: the whole reach is read once every twelve ticks. */
     this.rodSeen = /* @__PURE__ */ new Map();
     this.rodLayer = 0;
@@ -4769,12 +4192,13 @@ var BrainThree = class extends Brain {
   }
   /** Creatures he could go after (not players): cached, the entity query runs every two seconds at most. */
   creatures() {
-    if (!CONFIG.huntMobs) return [];
+    const big = otherGiants(this.c).filter((g) => dist(g.pos, this.c.pos) < this.giantSight).sort((a, b) => dist(a.pos, this.c.pos) - dist(b.pos, this.c.pos)).map((g) => g.entity);
+    if (!CONFIG.huntMobs) return big;
     if (this.now - this.mobsAt >= 40) {
       this.mobsAt = this.now;
       this.mobs = mobsNear(this.c.dim, this.c.pos, 72);
     }
-    return this.mobs.filter(alive);
+    return [...big, ...this.mobs.filter(alive)];
   }
   tier() {
     const b = this.rec.mut.beams;
@@ -4782,7 +4206,7 @@ var BrainThree = class extends Brain {
   }
   choose() {
     const c = this.c, rec = this.rec, now = this.now;
-    const tod = world8.getTimeOfDay();
+    const tod = world7.getTimeOfDay();
     if (this.wantCharge) {
       this.wantCharge = false;
       return { name: "charge", run: this.beam(null), limit: 40 * TICKS.second };
@@ -4912,7 +4336,7 @@ var BrainThree = class extends Brain {
       } catch {
       }
     }
-    blast(c.dim, ground, 2.2 * c.scale, 6, 14, 0.9, (p, n) => c.hurt(p, n), c.entity, ground);
+    blast(c.dim, ground, 2.2 * c.scale, 6, 14 * c.might, 0.9, (p, n) => c.hurt(p, n), c.entity, ground);
     if (!CONFIG.marks) return;
     for (const [dx, dz] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
       const at2 = { x: Math.floor(foot.x) + dx, y: Math.floor(c.pos.y - 0.5), z: Math.floor(foot.z) + dz };
@@ -5121,15 +4545,35 @@ var BrainThree = class extends Brain {
         break;
       }
       c.setPhase("move");
-      c.goTo(at2, 0.15, player ? 17 * c.scale * 0.6 : 3);
-      c.lookAt(at2, 60, 25);
+      const keep = standOff(c, g, 17 * c.scale * 0.6, 3);
+      if (t === 0 && dist(at2, c.pos) < keep + 1) {
+        yield* this.watch(g, 30);
+        break;
+      }
+      c.goTo(at2, 0.15, keep);
+      c.lookAt(headOf(g), 60, 25);
       this.footfalls();
-      if (dist(at2, c.pos) < (player ? 17 * c.scale * 0.6 : 4)) break;
+      if (dist(at2, c.pos) < keep + 1) break;
       if (t % 100 === 50) c.say("basiliskra.iii.grunt", c.anchor("nose"), 72, 1, 0.92 + hash(t) * 0.1);
       yield;
     }
     c.halt();
     c.smash = false;
+  }
+  /** Already as near as he means to come: he stands and watches it for a moment. */
+  *watch(g, ticks) {
+    const c = this.c;
+    c.halt();
+    c.setPhase("idle");
+    for (let t = 0; t < ticks; t++) {
+      try {
+        if (!g.isValid || g.dimension.id !== c.dim.id) break;
+        c.lookAt(headOf(g), 70, 40);
+      } catch {
+        break;
+      }
+      yield;
+    }
   }
   // ---- grounding ------------------------------------------------------------------------------------------
   /** A point on the planted club that is above the ground it rests on. */
@@ -5408,7 +4852,2123 @@ var BrainThree = class extends Brain {
   }
 };
 
+// src/forms/four.ts
+var SPEC = { range: 150, radius: 2.4, damage: 11, width: 3.2, carve: 3.8, fallout: 6 };
+var THIN = { range: 60, radius: 1, damage: 5, width: 0.55, carve: 1.2, fallout: 2 };
+var BEAM_MIN2 = 18;
+var FEET2 = ["foot_l", "foot_r"];
+var VEINS = [0, 1, 2, 3].flatMap((k) => [`wing_vein_l${k}`, `wing_vein_r${k}`]);
+var HALF = STRIDE_IV / 2;
+var FIRE = 155;
+var SKID_AT = 30;
+var LIFT_AT = 55;
+var SWEEP_AT = 79;
+var SWEEP_END = 129;
+var PULSE_TICKS = 100;
+var PLATE_REACH = 70;
+var PLATE_SHOTS = 3;
+var BrainFour = class extends BrainThree {
+  constructor(c, own) {
+    super(c, own);
+    this.lastFailed = false;
+    this.heading = -1;
+    /** His breath (the Titan's is its own). */
+    this.spec = SPEC;
+    c.set(PROP.tier, 3);
+    c.set(PROP.gill, !!this.four().plate);
+  }
+  four() {
+    return this.rec.four ??= { debut: false, shots: 0, plate: null };
+  }
+  tier() {
+    return 3;
+  }
+  onFinish() {
+    super.onFinish();
+    this.c.bendHold = 0;
+    this.c.wade = false;
+  }
+  choose() {
+    const c = this.c, now = this.now, F = this.four();
+    if (this.wantCharge) {
+      this.wantCharge = false;
+      return { name: "charge", run: this.beam(null), limit: 40 * TICKS.second };
+    }
+    if (!F.debut) return { name: "debut", run: this.debut(), limit: 60 * TICKS.second };
+    const near = nearbyPlayers(c, 170);
+    const mobs = this.creatures();
+    if (!this.cooldown.has("rroar")) this.rest("rroar", (40 + 60 * hash(now, 91)) * TICKS.second);
+    if (this.ready("rroar")) {
+      this.rest("rroar", (70 + 120 * hash(now, 92)) * TICKS.second);
+      if (hash(now, 93) < 0.6 && anyoneNear(c, 160)) return { name: "roar", run: this.roar(hash(now, 94) < 0.3), limit: 12 * TICKS.second };
+    }
+    if (now >= this.recoverUntil) {
+      const eye = c.anchor("nose");
+      if (this.ready("stare")) {
+        const p = near.find((q) => dist(q.location, c.pos) <= 130 && clearLine(c.dim, eye, headOf(q)));
+        if (p) {
+          this.rest("stare", (55 + 40 * hash(now, 95)) * TICKS.second);
+          return { name: "stare", run: this.stare(p), limit: 14 * TICKS.second };
+        }
+      }
+      if (this.ready("drag")) {
+        const shore = this.shoreVictim(near);
+        if (shore) {
+          this.rest("drag", 4 * TICKS.minute);
+          return { name: "drag", run: this.dragSeabed(shore), limit: 30 * TICKS.second };
+        }
+      }
+      if (this.ready("beam")) {
+        const mouth = c.anchor("mouth");
+        for (const q of [...near, ...mobs]) {
+          const d = dist(q.location, mouth);
+          if (d < BEAM_MIN2 || d > this.spec.range - 6) continue;
+          if (clearLine(c.dim, mouth, headOf(q))) {
+            this.rest("beam", 24 * TICKS.second);
+            return { name: "beam", run: this.breath(q), limit: 90 * TICKS.second };
+          }
+          if (isPlayer(q) && this.plateSees(q)) {
+            this.rest("beam", 26 * TICKS.second);
+            return { name: "beam", run: this.plateShot(q), limit: 45 * TICKS.second };
+          }
+        }
+      }
+    }
+    const quarry = near.find((p) => dist(p.location, c.pos) < 110) ?? mobs.sort((x, y) => dist(x.location, c.pos) - dist(y.location, c.pos))[0];
+    if (quarry) return { name: "pursue", run: this.pursue(quarry), limit: 20 * TICKS.second };
+    const town = settlementNear(c, now);
+    if (town) return { name: "raze", run: this.raze(town), limit: 150 * TICKS.second };
+    return { name: "roam", run: this.roam(), limit: 90 * TICKS.second };
+  }
+  // ---- two feet, and what is under them -----------------------------------------------------------------
+  footfalls() {
+    const c = this.c;
+    c.walkPhase = ((this.beat - 1 & 1) + clamp((c.travelled - this.stepAt) / HALF, 0, 1.15)) * 180;
+    if (c.travelled - this.stepAt < HALF) return;
+    this.stepAt = c.travelled - this.stepAt < STRIDE_IV ? this.stepAt + HALF : c.travelled;
+    const k = this.beat & 1;
+    c.set(PROP.gait, k);
+    const foot = add(c.anchor(FEET2[k]), mul(c.forward, HALF * 0.5));
+    this.beat++;
+    this.rec.mut.overland += HALF;
+    this.stomp({ x: foot.x, y: c.pos.y + 0.1, z: foot.z });
+  }
+  /** One foot coming down: the ground under it is blown out, like the Wither's, and whatever stood there with it. */
+  stomp(ground) {
+    const c = this.c;
+    sound(c.dim, "basiliskra.iii.step", ground, 128, 1, 0.66 + (this.beat & 1) * 0.04);
+    particle(c.dim, "basiliskra:step_dust", ground, 96);
+    particle(c.dim, "basiliskra:impact_ring", { x: ground.x, y: ground.y + 0.3, z: ground.z }, 128);
+    for (const p of witnesses(c.dim, ground, 70)) {
+      const f = 1 - dist(p.location, ground) / 70;
+      try {
+        p.runCommand(`camerashake add @s ${(0.08 + 0.3 * f).toFixed(2)} 0.3 positional`);
+      } catch {
+      }
+    }
+    blast(c.dim, ground, 8, 8, 20 * c.might, 1.1, (p, n) => c.hurt(p, n), c.entity, ground);
+    if (wither() && !c.afloat) {
+      const got = carve(c.dim, { x: ground.x, y: ground.y - 0.6, z: ground.z }, 3.4, 150, false);
+      if (got.broken > 20) particle(c.dim, "basiliskra:impact_debris", { x: ground.x, y: ground.y + 1, z: ground.z }, 96);
+    }
+  }
+  *pursue(g) {
+    const c = this.c;
+    const player = isPlayer(g);
+    c.smash = true;
+    for (let t = 0; t < 380; t++) {
+      let at2;
+      try {
+        if (!g.isValid || g.dimension.id !== c.dim.id || player && !targetable(g)) break;
+        at2 = g.location;
+      } catch {
+        break;
+      }
+      c.setPhase("move");
+      const keep = standOff(c, g, 26, 6);
+      if (t === 0 && dist(at2, c.pos) < keep + 1) {
+        yield* this.watch(g, 30);
+        break;
+      }
+      c.goTo(at2, 0.17, keep);
+      c.lookAt(headOf(g), 60, 40);
+      this.footfalls();
+      if (dist(at2, c.pos) < keep + 1) break;
+      if (t % 100 === 50) c.say("basiliskra.iii.grunt", c.anchor("nose"), 72, 1, 0.8 + hash(t) * 0.08);
+      yield;
+    }
+    c.halt();
+    c.smash = false;
+  }
+  /** He goes a long way in one direction before he thinks of another: across the world, not round a place. */
+  *roam() {
+    const c = this.c;
+    const near = watchersNear(c, 220);
+    let target;
+    if (near.length && hash(this.now, 41) < 0.65) {
+      const p = near[0].location;
+      const on = norm({ x: p.x - c.pos.x, y: 0, z: p.z - c.pos.z });
+      target = { x: p.x + on.x * 30 + (hash(this.now, 42) - 0.5) * 50, y: p.y, z: p.z + on.z * 30 + (hash(this.now, 43) - 0.5) * 50 };
+    } else {
+      if (this.heading < 0) this.heading = hash(this.now, 44) * 360;
+      this.heading = (this.heading + (hash(this.now, 45) - 0.5) * 70 + 360) % 360;
+      const a = this.heading * Math.PI / 180;
+      target = { x: c.pos.x - Math.sin(a) * 150, y: c.pos.y, z: c.pos.z + Math.cos(a) * 150 };
+    }
+    const got = yield* this.walk(target, 0.16, 10, 1700);
+    if (!got) this.heading = (this.heading + 110 + 360) % 360;
+    c.setPhase("idle");
+    for (let t = 0; t < 90; t++) {
+      if (t === 30) c.say(hash(this.now, 17) < 0.5 ? "basiliskra.iii.breath" : "basiliskra.iii.growl", c.anchor("nose"), 80, 0.9, 0.82);
+      yield;
+    }
+  }
+  /** His roar is the same roar, from a bigger chest: it reaches further and throws harder.  The wings open with it. */
+  *roar(whole) {
+    const c = this.c;
+    c.halt();
+    c.setPhase("roar");
+    c.say(whole ? "basiliskra.roar" : "basiliskra.roar_short", c.anchor("mouth"), whole ? 192 : 160);
+    const fx = new RoarFx(c, whole, whole ? 56 : 42, whole ? 9 : 6);
+    const ticks = whole ? 160 : 88;
+    for (let t = 0; t < ticks; t++) {
+      fx.tick();
+      yield;
+    }
+    c.setPhase("idle");
+  }
+  *turnTo(at2, rate = 1.2, limit = 240) {
+    const c = this.c;
+    for (let t = 0; t < limit; t++) {
+      const want = yawTo(c.pos, at2);
+      if (Math.abs(wrapDeg(want - c.yaw)) < 2) break;
+      c.yaw = turnTowards(c.yaw, want, rate);
+      yield;
+    }
+  }
+  // ---- the stare ------------------------------------------------------------------------------------------
+  /** He looks at one player.  While he can see them they can barely walk; when he looks away, it wears off. */
+  *stare(p) {
+    const c = this.c;
+    c.halt();
+    c.setPhase("stare");
+    c.say("basiliskra.iii.neck_turn", c.anchor("nose"), 96);
+    let lost = 0, told = false;
+    const peaceful = () => {
+      try {
+        return CONFIG.harmlessOnPeaceful && String(world8.getDifficulty()).toLowerCase() === "peaceful";
+      } catch {
+        return false;
+      }
+    };
+    for (let t = 0; t < 170; t++) {
+      let head;
+      try {
+        if (!p.isValid || !targetable(p) || p.dimension.id !== c.dim.id) break;
+        head = p.getHeadLocation();
+      } catch {
+        break;
+      }
+      c.lookAt(head, 85, 50);
+      if (t === 34) c.say("basiliskra.iii.growl", c.anchor("nose"), 96, 1, 0.78);
+      if (t >= 14 && t % 10 === 4) {
+        const sees = dist(head, c.pos) <= 140 && clearLine(c.dim, c.anchor("nose"), head);
+        lost = sees ? 0 : lost + 1;
+        if (lost >= 3) break;
+        if (sees && !peaceful()) {
+          try {
+            p.addEffect("slowness", 50, { amplifier: 2, showParticles: false });
+            if (!told) {
+              told = true;
+              p.onScreenDisplay.setActionBar("§cHe is looking at you.");
+              p.playSound("basiliskra.iii.window_breath", { volume: 1 });
+            }
+            p.runCommand("camerashake add @s 0.05 0.5 rotational");
+          } catch {
+          }
+        }
+      }
+      yield;
+    }
+    c.lookAhead();
+    c.setPhase("idle");
+    yield* wait(20);
+  }
+  // ---- 1. his first roar comes after his first beam ----------------------------------------------------------
+  *debut() {
+    const c = this.c, F = this.four();
+    c.halt();
+    const who = watchersNear(c, 170)[0];
+    const toward = who ? norm({ x: who.location.x - c.pos.x, y: 0, z: who.location.z - c.pos.z }) : c.forward;
+    if (who) yield* this.turnTo(who.location, 1.5, 160);
+    c.setPhase("look");
+    const reach = who ? clamp(distXZ(who.location, c.pos) - 8, 30, 70) : 46;
+    const line = [];
+    for (let d = reach; d > reach - 26; d -= 1) {
+      const x = c.pos.x + toward.x * d, z = c.pos.z + toward.z * d;
+      const g = groundY(c.dim, x, z, c.pos.y + 24, 60);
+      if (typeof g === "number" && !isWaterId(idAt(c.dim, { x, y: g, z }))) line.push({ x, y: g - 1, z });
+    }
+    if (line.length < 6) {
+      F.debut = true;
+      store.touch();
+      yield* this.roar(true);
+      return;
+    }
+    yield* wait(24);
+    const st = { ground: null };
+    for (let t = 0; t < 52; t++) {
+      const at2 = line[Math.min(line.length - 1, Math.floor(t / 52 * line.length))];
+      const top = { x: at2.x, y: at2.y + 1, z: at2.z };
+      c.lookAt(top, 85, 60);
+      const from = c.anchor("mouth");
+      const dir = norm(sub(top, from));
+      beamTick(c, { ...THIN, range: dist(from, top) + 2 }, t, 1, st, { from, dir, harmless: true });
+      if (t % 2 === 0) particle(c.dim, "basiliskra:beam_impact", top, 128);
+      if (t % 8 === 0) sound(c.dim, "basiliskra.iii.charge_tick", top, 96, 0.8, 1.5);
+      yield;
+    }
+    c.lookAhead();
+    for (let t = 0; t < 60; t++) {
+      if (t % 6 === 0) for (let i = t % 12 === 0 ? 0 : 1; i < line.length; i += 2) particle(c.dim, "basiliskra:rad_glint", { x: line[i].x, y: line[i].y + 1.1, z: line[i].z }, 96);
+      yield;
+    }
+    for (let i = 0; i < line.length; i++) {
+      const at2 = line[i];
+      const made = glassify(c.dim, at2);
+      particle(c.dim, made ? "basiliskra:crystal_break" : "basiliskra:rad_glint", { x: at2.x, y: at2.y + 1.2, z: at2.z }, 96);
+      sound(c.dim, "random.pop", at2, 64, 1, 0.6 + i / line.length * 0.9);
+      yield* wait(3);
+    }
+    addFallout(line[Math.floor(line.length / 2)], 5, 0.5);
+    F.debut = true;
+    store.touch();
+    yield* this.roar(true);
+    this.recoverUntil = this.now + 4 * TICKS.second;
+  }
+  // ---- the breath, and what can happen inside it ---------------------------------------------------------------
+  igniteAt(from, dir) {
+    const c = this.c;
+    particle(c.dim, "basiliskra:muzzle_flash", from, 192);
+    particle(c.dim, "basiliskra:muzzle_shock", from, 192, beamVars(dir, 1, 1));
+    flash(c.dim, from, 80, { red: 1, green: 0.5, blue: 0.42 }, 0.03, 0.04, 0.3);
+    shake(c, 128, 1, 0.5);
+  }
+  /** The plate that stands in the ground lights with the gap in his spine. */
+  plateGlow(t) {
+    const P = this.four().plate;
+    if (!P || P.burnt || t % 10 !== 0) return;
+    const top = { x: P.x + 0.5, y: P.y + 3, z: P.z + 0.5 };
+    particle(this.c.dim, "basiliskra:impact_glare", top, 128);
+    particle(this.c.dim, "basiliskra:rad_glint", { x: top.x, y: top.y + 2, z: top.z }, 96);
+    if (t % 20 === 0) sound(this.c.dim, "basiliskra.iii.charge_tick", top, 64, 0.5, 0.7);
+  }
+  /**
+   * He charges, following `aimAt` with his eye until the lock.  Returns "lock" when the charge is whole,
+   * "cover" if the quarry got something solid between them while he was still following (see the swallow), and
+   * "gone" if there is nothing left to fire at.
+   */
+  *charge(target, aimAt, watchCover) {
+    const c = this.c;
+    const ok = () => {
+      try {
+        return !target || target.isValid && target.dimension.id === c.dim.id;
+      } catch {
+        return false;
+      }
+    };
+    c.halt();
+    c.setPhase("charge");
+    c.say("basiliskra.iii.club_plant", c.anchor("club_core"), 128);
+    c.say("basiliskra.iii.charge", c.anchor("throat"), 160);
+    this.chargeSounding = true;
+    this.rodSeen.clear();
+    this.rodLayer = 0;
+    for (let t = 0; t < PLANT_TICKS; t++) {
+      c.setCharge(t / 7);
+      if (ok()) c.aimAt(aimAt(), 80, 50);
+      this.scanRods();
+      yield;
+    }
+    const light = LIGHT_END - PLANT_TICKS;
+    let hidden = 0, lit = 1;
+    for (let t = 0; t < light; t++) {
+      if (!ok()) return "gone";
+      const aim = aimAt();
+      const off = c.aimAt(aim, 80, 50);
+      if (off > 0) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), 0.5);
+      c.setCharge(2 + t / light * 13.4);
+      const zone = Math.floor(c.charge / 2);
+      if (zone > lit) {
+        lit = zone;
+        sound(c.dim, "basiliskra.iii.charge_tick", c.anchor(zone >= 6 ? "throat" : "club_core"), 96, 0.55, 0.6 + zone * 0.08);
+      }
+      if (t % 20 === 10) shake(c, 64, 0.14 + 0.24 * (t / light), 1);
+      this.plateGlow(t);
+      this.scanRods();
+      if (watchCover && target && t > 24 && t % 4 === 0) {
+        hidden = clearLine(c.dim, c.anchor("mouth"), headOf(target)) ? 0 : hidden + 1;
+        if (hidden >= 4) return "cover";
+      }
+      yield;
+    }
+    const lock = CHARGE_TICKS - LIGHT_END;
+    for (let t = 0; t < lock; t++) {
+      c.setCharge(16 + t / lock * 2);
+      if (t % 2 === 0) {
+        const { from, dir } = c.aim();
+        particle(c.dim, "basiliskra:beam_aim", from, 160, beamVars(dir, clearRange(c, from, dir, this.spec.range), 0.3 + 0.7 * (t / lock)));
+      }
+      this.plateGlow(LIGHT_END + t);
+      yield;
+    }
+    return "lock";
+  }
+  cutCharge() {
+    if (!this.chargeSounding) return;
+    this.chargeSounding = false;
+    stopSound(this.c.dim, "basiliskra.iii.charge", this.c.pos);
+  }
+  /** The breath at something he can see. */
+  *breath(target) {
+    const c = this.c, F = this.four();
+    if (!F.plate && F.shots >= 2) yield* this.shedPlate();
+    const got = yield* this.charge(target, () => headOf(target), isPlayer(target) && this.ready("swallow"));
+    if (got === "gone") {
+      this.cutCharge();
+      return;
+    }
+    if (got === "cover") {
+      this.rest("swallow", 3 * TICKS.minute);
+      yield* this.swallow(target);
+      return;
+    }
+    const rod = this.findRod();
+    if (rod && clearLine(c.dim, this.clubTop(), { x: rod.x + 0.5, y: rod.y + 1.2, z: rod.z + 0.5 })) {
+      this.cutCharge();
+      yield* this.ground(rod);
+      this.recoverUntil = this.now + 8 * TICKS.second;
+      return;
+    }
+    if (!this.lastFailed && F.shots >= 1 && hash(this.now, 96) < 0.22) {
+      this.lastFailed = true;
+      yield* this.misfire();
+      return;
+    }
+    this.lastFailed = false;
+    yield* this.fire(target);
+    yield* this.vent();
+    yield* this.roar(hash(this.now, 61) < 0.3);
+    this.recoverUntil = this.now + 6 * TICKS.second;
+    c.setPhase("idle");
+    yield* wait(30);
+  }
+  /** 2. The shot, the skid, and the turn on the buried club. */
+  *fire(target) {
+    const c = this.c, F = this.four();
+    c.setPhase("fire");
+    c.setCharge(20);
+    F.shots++;
+    this.rec.mut.beams++;
+    this.rec.mut.lastEncounter = this.now;
+    this.chargeSounding = false;
+    c.say("basiliskra.iii.beam", c.anchor("mouth"), 192);
+    {
+      const { from, dir } = c.aim();
+      this.igniteAt(from, dir);
+    }
+    const st = { ground: null };
+    const live = () => {
+      try {
+        return !!target && target.isValid && target.dimension.id === c.dim.id && (!isPlayer(target) || targetable(target));
+      } catch {
+        return false;
+      }
+    };
+    let side = 0;
+    let pivot = null;
+    for (let t = 0; t < FIRE; t++) {
+      const fade = t < FIRE - 16 ? 1 : (FIRE - t) / 16;
+      if (t < SKID_AT) {
+        if (live()) {
+          const want = clamp(wrapDeg(yawTo(c.anchor("throat"), target.location) - c.yaw), -80, 80);
+          c.lookYaw += clamp(want - c.lookYaw, -0.3, 0.3);
+        }
+      } else if (t < LIFT_AT) {
+        if (t === SKID_AT) {
+          c.setPhase("skid");
+          c.say("basiliskra.iii.grunt", c.anchor("nose"), 96, 1, 0.74);
+        }
+        const back = mul(c.forward, -0.07);
+        const to = { x: c.pos.x + back.x, y: c.pos.y, z: c.pos.z + back.z };
+        if (isLoaded(c.dim, to) && typeof groundY(c.dim, to.x, to.z, c.pos.y + 4, 10) === "number") c.pos = to;
+        if (t % 3 === 0) for (const h of ["heel_l", "heel_r"]) particle(c.dim, "basiliskra:step_dust", { ...c.anchor(h), y: c.pos.y + 0.2 }, 96);
+      } else if (t < SWEEP_AT) {
+        if (t === LIFT_AT) {
+          const bearing = live() ? wrapDeg(yawTo(c.pos, target.location) - (c.yaw + c.lookYaw)) : hash(this.now, 97) - 0.5;
+          side = bearing >= 0 ? 1 : -1;
+          pivot = c.anchor("club_core");
+          c.setPhase("pivot");
+          c.bendHold = 30 * side;
+          c.say("basiliskra.iii.club_plant", pivot, 128, 1, 0.8);
+          particle(c.dim, "basiliskra:impact_ring", { x: pivot.x, y: c.pos.y + 0.3, z: pivot.z }, 128);
+          shake(c, 96, 0.5, 0.4);
+        }
+      } else if (t < SWEEP_END && pivot) {
+        const step = 1.4 * side;
+        const a = step * Math.PI / 180;
+        const rx = c.pos.x - pivot.x, rz = c.pos.z - pivot.z;
+        const to = { x: pivot.x + rx * Math.cos(a) - rz * Math.sin(a), y: c.pos.y, z: pivot.z + rx * Math.sin(a) + rz * Math.cos(a) };
+        if (isLoaded(c.dim, to)) {
+          c.pos = to;
+          c.yaw = wrapDeg(c.yaw + step);
+        }
+        if (t % 12 === 0) this.stomp({ ...c.anchor(side > 0 ? "foot_r" : "foot_l"), y: c.pos.y + 0.1 });
+      } else if (t === SWEEP_END && pivot) {
+        c.setPhase("fire");
+        c.bendHold = 0;
+        sound(c.dim, "mob.wither.break_block", pivot, 128, 1, 0.5);
+        particle(c.dim, "basiliskra:impact_debris", { x: pivot.x, y: c.pos.y + 1, z: pivot.z }, 128);
+        particle(c.dim, "basiliskra:impact_ring", { x: pivot.x, y: c.pos.y + 0.3, z: pivot.z }, 128);
+        blast(c.dim, { x: pivot.x, y: c.pos.y + 1, z: pivot.z }, 9, 9, 18 * c.might, 1.3, (p, n) => c.hurt(p, n), c.entity);
+        if (wither()) carve(c.dim, { x: pivot.x, y: c.pos.y, z: pivot.z }, 3, 120, false);
+      }
+      beamTick(c, this.spec, t, fade, st, { scorch: (hit) => this.scorch(hit) });
+      if (t % 10 === 0) shake(c, 96, 0.4 * fade + 0.1, 0.6);
+      yield;
+    }
+    c.bendHold = 0;
+  }
+  // ---- 3. the misfire: his wings take the recoil -----------------------------------------------------------------
+  *misfire() {
+    const c = this.c;
+    this.cutCharge();
+    c.setPhase("recoil");
+    c.say("basiliskra.iii.fizzle", c.anchor("mouth"), 128);
+    c.setCharge(8);
+    shake(c, 96, 0.7, 0.5);
+    const f = c.forward, l = leftOf(c.yaw);
+    const states = VEINS.map(() => ({ ground: null }));
+    for (let t = 0; t < 96; t++) {
+      if (t >= 16 && t < 80) {
+        for (let k = 0; k < VEINS.length; k++) {
+          if (t < 16 + k * 2 || (t + k) % 2) continue;
+          const sgn = k % 2 === 0 ? 1 : -1, out = 0.2 + 0.22 * Math.floor(k / 2);
+          const from = c.anchor(VEINS[k]);
+          const dir = norm({ x: -f.x * 0.7 + l.x * sgn * out, y: -0.62, z: -f.z * 0.7 + l.z * sgn * out });
+          beamTick(c, THIN, t + k * 3, 1, states[k], { from, dir, scorch: (hit) => this.scorch(hit) });
+        }
+        if (t % 12 === 0) sound(c.dim, "basiliskra.ii.arc", c.anchor(VEINS[t / 12 % VEINS.length | 0]), 96, 1, 0.7);
+      }
+      c.setCharge(Math.max(0, 8 - t * 0.09));
+      yield;
+    }
+    c.setCharge(0);
+    c.setPhase("idle");
+    c.say("basiliskra.iii.growl", c.anchor("nose"), 96, 1, 0.8);
+    this.recoverUntil = this.now + 5 * TICKS.second;
+    yield* wait(40);
+  }
+  // ---- 6. the beam he swallows ----------------------------------------------------------------------------------
+  *swallow(target) {
+    const c = this.c;
+    this.cutCharge();
+    c.setPhase("swallow");
+    c.say("basiliskra.iii.fizzle", c.anchor("mouth"), 96, 1, 0.7);
+    c.lookAhead();
+    for (let t = 0; t < 36; t++) {
+      c.setCharge(Math.max(0, 16 - t * 0.5));
+      yield;
+    }
+    let last = { ...target.location };
+    let pulses = 0;
+    c.smash = true;
+    for (let t = 1; pulses < 3; t++) {
+      let seen = false;
+      try {
+        if (target.isValid && targetable(target) && target.dimension.id === c.dim.id) {
+          const mouth = c.anchor("mouth");
+          seen = dist(target.location, mouth) < this.spec.range - 6 && dist(target.location, mouth) > 10 && clearLine(c.dim, mouth, headOf(target));
+          if (seen) last = { ...target.location };
+        }
+      } catch {
+      }
+      if (seen && Math.abs(wrapDeg(yawTo(c.pos, last) - c.yaw)) < 70) break;
+      c.setPhase("carry");
+      c.goTo(last, 0.17, 12);
+      this.footfalls();
+      if (t % PULSE_TICKS === 0) {
+        pulses++;
+        c.pulse(11);
+        c.say("basiliskra.knock.vent", c.anchor("throat"), 96, 1, 0.8 + pulses * 0.1);
+        shake(c, 64, 0.3, 0.3);
+      }
+      yield;
+    }
+    c.halt();
+    c.smash = false;
+    const forced = pulses >= 3;
+    let live = false;
+    try {
+      live = target.isValid && target.dimension.id === c.dim.id;
+    } catch {
+      live = false;
+    }
+    c.lookAhead();
+    yield* this.snapShot(!forced && live ? target : null, 72);
+    yield* this.vent();
+    this.recoverUntil = this.now + 6 * TICKS.second;
+    c.setPhase("idle");
+  }
+  /** A shot with no warning but the pulse: what he was already carrying. */
+  *snapShot(target, ticks) {
+    const c = this.c, F = this.four();
+    c.setPhase("fire");
+    c.setCharge(20);
+    try {
+      if (target && target.isValid) c.aimAt(headOf(target), 80, 50);
+    } catch {
+    }
+    F.shots++;
+    this.rec.mut.beams++;
+    this.rec.mut.lastEncounter = this.now;
+    c.say("basiliskra.iii.beam", c.anchor("mouth"), 192);
+    {
+      const { from, dir } = c.aim();
+      this.igniteAt(from, dir);
+    }
+    const st = { ground: null };
+    for (let t = 0; t < ticks; t++) {
+      const fade = t < ticks - 12 ? 1 : (ticks - t) / 12;
+      try {
+        if (target && target.isValid) {
+          const want = clamp(wrapDeg(yawTo(c.anchor("throat"), target.location) - c.yaw), -80, 80);
+          c.lookYaw += clamp(want - c.lookYaw, -0.25, 0.25);
+        }
+      } catch {
+      }
+      beamTick(c, this.spec, t, fade, st, { scorch: (hit) => this.scorch(hit) });
+      if (t % 10 === 0) shake(c, 96, 0.4 * fade + 0.1, 0.6);
+      yield;
+    }
+    stopSound(c.dim, "basiliskra.iii.beam", c.pos);
+  }
+  // ---- 5. the plate that keeps charging --------------------------------------------------------------------------
+  plateBlocks(P) {
+    const out = [];
+    for (let h = 0; h < 5; h++) out.push({ x: P.x, y: P.y + h, z: P.z });
+    out.push({ x: P.x + 1, y: P.y + 2, z: P.z }, { x: P.x - 1, y: P.y + 3, z: P.z }, { x: P.x + 1, y: P.y + 3, z: P.z });
+    return out;
+  }
+  *shedPlate() {
+    const c = this.c, F = this.four();
+    const from = c.anchor("plate_break");
+    const l = leftOf(c.yaw), f = c.forward;
+    const spot = { x: Math.floor(c.pos.x + l.x * 15 - f.x * 9), z: Math.floor(c.pos.z + l.z * 15 - f.z * 9) };
+    const g = groundY(c.dim, spot.x + 0.5, spot.z + 0.5, c.pos.y + 20, 50);
+    if (typeof g !== "number") return;
+    const P = { x: spot.x, y: g, z: spot.z, uses: 0, burnt: false };
+    c.set(PROP.gill, true);
+    sound(c.dim, "random.glass", from, 128, 1, 0.5);
+    sound(c.dim, "basiliskra.iii.ground", from, 128, 1, 0.8);
+    particle(c.dim, "basiliskra:impact_fountain", from, 160);
+    c.say("basiliskra.hurt", c.anchor("nose"), 96, 1, 0.8);
+    const top = { x: P.x + 0.5, y: P.y + 2.5, z: P.z + 0.5 };
+    for (let t = 0; t < 18; t++) {
+      const k = t / 18;
+      particle(c.dim, "basiliskra:impact_glare", { x: from.x + (top.x - from.x) * k, y: from.y + (top.y - from.y) * k * k, z: from.z + (top.z - from.z) * k }, 160);
+      yield;
+    }
+    if (CONFIG.terrain !== "none") {
+      for (const b of this.plateBlocks(P)) {
+        const at2 = blockAt(c.dim, b);
+        if (!at2 || isSolidBlock(at2) && at2.typeId !== CRYSTAL_BLOCK) continue;
+        try {
+          at2.setType(TRINITITE_BLOCK);
+        } catch {
+          try {
+            at2.setType("minecraft:red_nether_brick");
+          } catch {
+          }
+        }
+      }
+    }
+    sound(c.dim, "mob.wither.break_block", top, 128, 1, 0.6);
+    particle(c.dim, "basiliskra:impact_ring", { x: top.x, y: P.y + 0.3, z: top.z }, 128);
+    particle(c.dim, "basiliskra:impact_debris", top, 128);
+    blast(c.dim, top, 5, 6, 12 * c.might, 0.9, (p, n) => c.hurt(p, n), c.entity);
+    F.plate = P;
+    store.touch();
+    yield* wait(20);
+  }
+  plateTop() {
+    const P = this.four().plate;
+    return P && !P.burnt ? { x: P.x + 0.5, y: P.y + 5.3, z: P.z + 0.5 } : null;
+  }
+  /** Can the plate see someone his mouth cannot? */
+  plateSees(q) {
+    const top = this.plateTop();
+    if (!top) return false;
+    const c = this.c;
+    const mouth = c.anchor("mouth");
+    return dist(top, mouth) <= PLATE_REACH && dist(top, q.location) <= 60 && dist(top, q.location) > 3 && clearLine(c.dim, mouth, { x: top.x, y: top.y + 0.8, z: top.z }) && clearLine(c.dim, top, headOf(q));
+  }
+  /** He fires into his own broken plate, and it throws the beam at whoever sheltered from his mouth. */
+  *plateShot(target) {
+    const c = this.c, F = this.four();
+    const top = this.plateTop();
+    if (!top || !F.plate) return;
+    const got = yield* this.charge(null, () => top, false);
+    if (got !== "lock") {
+      this.cutCharge();
+      return;
+    }
+    c.setPhase("fire");
+    c.setCharge(20);
+    F.shots++;
+    this.rec.mut.beams++;
+    this.rec.mut.lastEncounter = this.now;
+    this.chargeSounding = false;
+    c.say("basiliskra.iii.beam", c.anchor("mouth"), 192);
+    {
+      const { from, dir } = c.aim();
+      this.igniteAt(from, dir);
+    }
+    let aim = top;
+    try {
+      aim = headOf(target);
+    } catch {
+    }
+    const out = norm(sub(aim, top));
+    const a = { ground: null }, b = { ground: null };
+    for (let t = 0; t < 110; t++) {
+      const fade = t < 96 ? 1 : (110 - t) / 14;
+      const from = c.anchor("mouth");
+      const leg = sub(top, from);
+      beamTick(c, { ...this.spec, range: Math.hypot(leg.x, leg.y, leg.z) }, t, fade, a, { from, dir: norm(leg), harmless: true });
+      beamTick(c, { ...this.spec, range: 70, width: this.spec.width * 0.7 }, t + 1, fade, b, { from: top, dir: out, scorch: (hit) => this.scorch(hit) });
+      if (t % 4 === 0) particle(c.dim, "basiliskra:impact_glare", top, 160);
+      if (t % 10 === 0) shake(c, 96, 0.4 * fade + 0.1, 0.6);
+      yield;
+    }
+    stopSound(c.dim, "basiliskra.iii.beam", c.pos);
+    F.plate.uses++;
+    if (F.plate.uses >= PLATE_SHOTS) {
+      F.plate.burnt = true;
+      for (const q of this.plateBlocks(F.plate)) {
+        const at2 = blockAt(c.dim, q);
+        if (at2 && at2.typeId === TRINITITE_BLOCK) {
+          try {
+            at2.setType(SLAG_COLD_BLOCK);
+          } catch {
+            try {
+              at2.setType("minecraft:blackstone");
+            } catch {
+            }
+          }
+        }
+      }
+      sound(c.dim, "random.fizz", top, 96, 1, 0.6);
+      particle(c.dim, "basiliskra:impact_smoke", top, 128);
+    }
+    store.touch();
+    yield* this.vent();
+    this.recoverUntil = this.now + 6 * TICKS.second;
+    c.setPhase("idle");
+  }
+  // ---- 4. he drags the seabed ashore ------------------------------------------------------------------------------
+  /** Standing in the shallows, with somebody on dry land ahead: who the wave is for. */
+  shoreVictim(near) {
+    const c = this.c;
+    const feet = idAt(c.dim, { x: c.pos.x, y: c.pos.y + 1.2, z: c.pos.z });
+    if (!isWaterId(feet)) return null;
+    for (const p of near) {
+      const d = distXZ(p.location, c.pos);
+      if (d < 24 || d > 90) continue;
+      const under = idAt(c.dim, { x: p.location.x, y: p.location.y - 0.5, z: p.location.z });
+      if (under && !isWaterId(under) && under !== "minecraft:air") return p;
+    }
+    return null;
+  }
+  *dragSeabed(p) {
+    const c = this.c;
+    c.halt();
+    let goal = { ...c.pos };
+    try {
+      goal = { ...p.location };
+    } catch {
+      return;
+    }
+    yield* this.turnTo(goal, 1.2, 200);
+    c.setPhase("drag");
+    c.say("basiliskra.iii.growl", c.anchor("nose"), 128, 1, 0.74);
+    const f = c.forward, l = leftOf(c.yaw);
+    for (let t = 0; t < 84; t++) {
+      if (t % 5 === 0) for (const h of ["hand_l", "hand_r"]) {
+        const at2 = c.anchor(h);
+        particle(c.dim, "basiliskra:surge", { x: at2.x, y: c.pos.y + 1, z: at2.z }, 96);
+      }
+      if (t % 20 === 10) shake(c, 80, 0.2 + t * 4e-3, 0.8);
+      yield;
+    }
+    c.say("basiliskra.roar_short", c.anchor("mouth"), 160);
+    sound(c.dim, "random.explode", add(c.pos, mul(f, 14)), 128, 1, 0.5);
+    shake(c, 128, 0.9, 0.8);
+    const WIDTH = 17, REACH = Math.min(70, distXZ(goal, c.pos) + 22), SPEED = 1.3;
+    const swept = /* @__PURE__ */ new Set();
+    let boats = 0;
+    let end = { ...c.pos };
+    for (let t = 0; t * SPEED < REACH; t++) {
+      const d = 12 + t * SPEED;
+      const mid = { x: c.pos.x + f.x * d, z: c.pos.z + f.z * d };
+      const gy = groundY(c.dim, mid.x, mid.z, c.pos.y + 16, 30);
+      const y = typeof gy === "number" ? gy : c.pos.y + 1;
+      end = { x: mid.x, y, z: mid.z };
+      for (let w = -WIDTH; w <= WIDTH; w += 3) {
+        const at2 = { x: mid.x + l.x * w, z: mid.z + l.z * w };
+        const g = groundY(c.dim, at2.x, at2.z, y + 8, 16);
+        if (g === UNLOADED || g === NONE) continue;
+        const here = { x: at2.x, y: g + 0.4, z: at2.z };
+        particle(c.dim, (t + w) % 2 ? "basiliskra:surge" : "basiliskra:surge_spray", here, 128);
+      }
+      if (t % 6 === 0) sound(c.dim, "basiliskra.splash", { x: mid.x, y, z: mid.z }, 96, 1, 0.7);
+      try {
+        for (const e of c.dim.getEntities({ location: { x: mid.x, y, z: mid.z }, maxDistance: WIDTH + 4 })) {
+          try {
+            if (e.id === c.entity.id || swept.has(e.id) || e.typeId === "minecraft:item") continue;
+            const rel = sub(e.location, { x: c.pos.x, y: e.location.y, z: c.pos.z });
+            const along = rel.x * f.x + rel.z * f.z, across = rel.x * l.x + rel.z * l.z;
+            if (Math.abs(along - d) > 3 || Math.abs(across) > WIDTH || Math.abs(e.location.y - y) > 7) continue;
+            if (this.sweep(e, f)) {
+              swept.add(e.id);
+              if (/boat/.test(e.typeId)) boats++;
+            }
+          } catch {
+          }
+        }
+      } catch {
+      }
+      yield;
+    }
+    try {
+      const at2 = { x: end.x, y: end.y + 0.6, z: end.z };
+      if (isLoaded(c.dim, at2)) {
+        if (!boats) c.dim.spawnEntity("minecraft:boat", at2);
+        c.dim.spawnEntity("minecraft:cod", { x: at2.x + 1.5, y: at2.y, z: at2.z + 0.5 });
+        c.dim.spawnEntity("minecraft:cod", { x: at2.x - 4, y: at2.y, z: at2.z - 3 });
+      }
+    } catch {
+    }
+    c.setPhase("idle");
+    this.recoverUntil = this.now + 5 * TICKS.second;
+    yield* wait(50);
+  }
+  /** One thing caught by the wave.  True if it was moved. */
+  sweep(e, f) {
+    const c = this.c;
+    if (e.typeId === "minecraft:player") {
+      const p = e;
+      if (!targetable(p)) return false;
+      c.hurt(p, 5, EntityDamageCause8.entityAttack);
+      try {
+        p.applyKnockback({ x: f.x * 3.4, z: f.z * 3.4 }, 0.7);
+      } catch {
+      }
+      try {
+        p.runCommand("camerashake add @s 0.6 0.6 positional");
+      } catch {
+      }
+      return true;
+    }
+    if (/boat|minecart/.test(e.typeId)) {
+      try {
+        e.applyImpulse({ x: f.x * 2.2, y: 0.55, z: f.z * 2.2 });
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    if (!alive(e)) return false;
+    try {
+      e.applyKnockback({ x: f.x * 3, z: f.z * 3 }, 0.6);
+      e.applyDamage(6, { cause: EntityDamageCause8.entityAttack, damagingEntity: c.entity });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+};
+
+// src/titan.ts
+var TITAN_MAX = 3;
+var TITAN_NAMES = ["Alpha", "Beta", "Gamma"];
+var TITAN_SPEC = { range: 220, radius: 3.4, damage: 30, width: 4.4, carve: 5.2, fallout: 8 };
+var BLOW = { lunge: 85, tail: 130, ram: 110 };
+var MIGHT = 3;
+var HASTE = 1.35;
+var TAG = "bk:titan";
+var PROWL = 70;
+var BrainTitan = class extends BrainFour {
+  constructor(c, own, home) {
+    super(c, own);
+    /** Set when a blow would have killed it: it goes down, and then it is gone. */
+    this.dying = false;
+    /** Set when it has gone down for good: the manager takes the body away. */
+    this.gone = false;
+    this.reeling = false;
+    this.home = { ...home };
+    this.spec = TITAN_SPEC;
+    this.giantSight = 240;
+    c.set(PROP.gill, false);
+  }
+  /** Something its own size has struck it. */
+  onBlow(_by, _amount, heavy) {
+    this.hurtAt = this.now;
+    if (heavy && this.ready("reel")) {
+      this.rest("reel", 5 * TICKS.second);
+      this.reeling = true;
+    }
+  }
+  /** The nearest giant that is not itself. */
+  foe() {
+    let best = null, bd = this.giantSight;
+    for (const g of otherGiants(this.c)) {
+      const d = dist(g.pos, this.c.pos);
+      if (d < bd) {
+        bd = d;
+        best = g;
+      }
+    }
+    return best;
+  }
+  interrupt() {
+    if (this.dying) return this.actName === "fall" ? null : { name: "fall", run: this.fall(), limit: 12 * TICKS.second };
+    if (this.reeling) {
+      this.reeling = false;
+      if (["charge", "fire", "skid", "pivot", "roar", "vent", "fall"].includes(this.c.phase)) return null;
+      return { name: "reel", run: this.reel(), limit: 3 * TICKS.second };
+    }
+    return null;
+  }
+  choose() {
+    const c = this.c, now = this.now;
+    const foe = this.foe();
+    if (!foe) {
+      const near = nearbyPlayers(c, 170);
+      if (near.length || this.creatures().length) return super.choose();
+      const town = settlementNear(c, now);
+      if (town && distXZ(town, this.home) < 160) return { name: "raze", run: this.raze(town), limit: 150 * TICKS.second };
+      if (this.ready("rroar") && hash(now, 93) < 0.4) {
+        this.rest("rroar", (60 + 80 * hash(now, 92)) * TICKS.second);
+        return { name: "roar", run: this.roar(hash(now, 94) < 0.3), limit: 12 * TICKS.second };
+      }
+      return { name: "roam", run: this.roam(), limit: 60 * TICKS.second };
+    }
+    const d = distXZ(foe.pos, c.pos), reach = c.girth + foe.girth;
+    const bearing = wrapDeg(yawTo(c.pos, foe.pos) - c.yaw);
+    if (foe.entity.id !== this.lastQuarry) {
+      this.lastQuarry = foe.entity.id;
+      if (this.ready("lockroar")) {
+        this.rest("lockroar", 40 * TICKS.second);
+        return { name: "lock", run: this.challenge(foe), limit: 14 * TICKS.second };
+      }
+    }
+    if (d < reach + 14) {
+      if (Math.abs(bearing) > 55 && this.ready("tail")) {
+        this.rest("tail", 6 * TICKS.second);
+        return { name: "tail", run: this.tail(bearing >= 0 ? 1 : -1), limit: 4 * TICKS.second };
+      }
+      if (this.ready("lunge")) {
+        this.rest("lunge", 3.5 * TICKS.second);
+        return { name: "lunge", run: this.lunge(foe), limit: 5 * TICKS.second };
+      }
+      if (this.ready("circle") && this.ready("tail")) {
+        this.rest("circle", 9 * TICKS.second);
+        return { name: "circle", run: this.circle(foe), limit: 8 * TICKS.second };
+      }
+    }
+    if (this.ready("beam") && now >= this.recoverUntil && d < this.spec.range - 10) {
+      if (d < reach + 14 && hash(now, 81) < 0.55) this.rest("beam", 5 * TICKS.second);
+      else if (clearLine(c.dim, c.anchor("mouth"), foe.middle())) {
+        this.rest("beam", 15 * TICKS.second);
+        return { name: "beam", run: this.breath(foe.entity), limit: 60 * TICKS.second };
+      }
+    }
+    if (d > reach + 34 && this.ready("ram")) {
+      this.rest("ram", 22 * TICKS.second);
+      return { name: "ram", run: this.ram(foe), limit: 30 * TICKS.second };
+    }
+    if (d >= reach + 14) return { name: "pursue", run: this.pursue(foe.entity), limit: 20 * TICKS.second };
+    return { name: "square", run: this.square(foe), limit: 2 * TICKS.second };
+  }
+  /** Its breath is whole every time: nothing fails in its mouth, nothing is swallowed, no plate is shed. */
+  *breath(target) {
+    const g = giants.get(target.id);
+    const got = yield* this.charge(target, () => g && g.valid ? g.middle() : this.aimPoint(target), false);
+    if (got !== "lock") {
+      this.cutCharge();
+      return;
+    }
+    yield* this.fire(target);
+    yield* this.vent();
+    this.rest("beam", 12 * TICKS.second);
+    this.recoverUntil = this.now + 3 * TICKS.second;
+    this.c.setPhase("idle");
+  }
+  aimPoint(e) {
+    try {
+      return e.getHeadLocation();
+    } catch {
+      return this.c.pos;
+    }
+  }
+  *challenge(foe) {
+    yield* this.turnTo(foe.pos, 2.5, 60);
+    this.c.lookAt(foe.middle(), 80, 40);
+    yield* this.roar(false);
+  }
+  *square(foe) {
+    const c = this.c;
+    c.halt();
+    c.setPhase("idle");
+    for (let t = 0; t < 14 && foe.valid; t++) {
+      c.yaw = wrapDeg(c.yaw + Math.max(-2.5, Math.min(2.5, wrapDeg(yawTo(c.pos, foe.pos) - c.yaw))));
+      c.lookAt(foe.middle(), 70, 40);
+      yield;
+    }
+  }
+  /** A quarter of the way round the enemy, at arm's length: it ends side-on to it. */
+  *circle(foe) {
+    const c = this.c;
+    const side = hash(this.now, 83) < 0.5 ? 1 : -1;
+    const r = c.girth + foe.girth + 8;
+    const a = Math.atan2(c.pos.z - foe.pos.z, c.pos.x - foe.pos.x) + side * 1.25;
+    const to = { x: foe.pos.x + Math.cos(a) * r, y: c.pos.y, z: foe.pos.z + Math.sin(a) * r };
+    for (let t = 0; t < 130; t++) {
+      if (!foe.valid) break;
+      c.setPhase("move");
+      c.goTo(to, 0.2, 3);
+      c.lookAt(foe.middle(), 80, 40);
+      this.footfalls();
+      if (distXZ(to, c.pos) < 4 || c.blocked > 30) break;
+      if (t > 30 && Math.abs(wrapDeg(yawTo(c.pos, foe.pos) - c.yaw)) > 65 && distXZ(foe.pos, c.pos) < r + 6) break;
+      yield;
+    }
+    c.halt();
+  }
+  /** What a blow does where it lands: the noise of it, the shake, and the ground under it. */
+  impact(at2, big) {
+    const c = this.c;
+    sound(c.dim, "random.explode", at2, 160, 1.6, big ? 0.5 : 0.62);
+    sound(c.dim, "basiliskra.iii.step", at2, 160, 1, 0.5);
+    particle(c.dim, "basiliskra:impact_blast", at2, 160);
+    particle(c.dim, "basiliskra:impact_debris", at2, 128);
+    particle(c.dim, "basiliskra:impact_ring", { x: at2.x, y: c.pos.y + 0.4, z: at2.z }, 160);
+    particle(c.dim, "minecraft:huge_explosion_emitter", at2, 160);
+    shake(c, 128, big ? 1.2 : 0.8, 0.5);
+  }
+  /** Jaws and the right hand, thrown forward: whatever is in front of it and within its reach is struck. */
+  *lunge(foe) {
+    const c = this.c;
+    c.halt();
+    yield* this.turnTo(foe.pos, 3, 24);
+    c.lookAhead();
+    c.setPhase("bite");
+    c.say("basiliskra.iii.growl", c.anchor("nose"), 128, 1, 0.78);
+    for (let t = 0; t < 25; t++) {
+      if (t === 9) {
+        const f = forwardOf(c.yaw);
+        const front = { x: c.pos.x + f.x * (c.girth + 7), y: c.pos.y + 1, z: c.pos.z + f.z * (c.girth + 7) };
+        for (const g of otherGiants(c)) {
+          if (distXZ(g.pos, c.pos) > c.girth + g.girth + 15 || Math.abs(wrapDeg(yawTo(c.pos, g.pos) - c.yaw)) > 60) continue;
+          g.takeBlow(c, BLOW.lunge, true);
+          g.shove({ x: g.pos.x - c.pos.x, y: 0, z: g.pos.z - c.pos.z }, 5);
+          this.impact(add(c.pos, add(mul(f, c.girth + 5), { x: 0, y: 26, z: 0 })), false);
+        }
+        blast(c.dim, front, 9, 10, 30 * c.might, 1.4, (p, n) => c.hurt(p, n), c.entity, c.pos);
+      }
+      yield;
+    }
+    c.setPhase("idle");
+  }
+  /**
+   * The tail: it winds away, then lashes round to the side its head has turned to (`side`: +1 the side its yaw
+   * grows towards).  Everything on that side of it, from beside its shoulder round to behind it, is struck.
+   */
+  *tail(side) {
+    const c = this.c;
+    c.halt();
+    c.lookYaw = 70 * side;
+    c.lookPitch = 0;
+    c.setPhase("sweep");
+    c.say("basiliskra.iii.growl", c.anchor("nose"), 128, 1, 0.7);
+    for (let t = 0; t < 36; t++) {
+      c.lookYaw = 70 * side;
+      if (t === 13) sound(c.dim, "basiliskra.iii.club_plant", c.anchor("club_core"), 160, 1, 1.3);
+      if (t === 15) {
+        let struck = false;
+        for (const g of otherGiants(c)) {
+          const b = wrapDeg(yawTo(c.pos, g.pos) - c.yaw) * side;
+          if (b < 35 || distXZ(g.pos, c.pos) > c.girth + g.girth + 28) continue;
+          g.takeBlow(c, BLOW.tail, true);
+          g.shove({ x: g.pos.x - c.pos.x, y: 0, z: g.pos.z - c.pos.z }, 9);
+          const mid = { x: (g.pos.x + c.pos.x) / 2, y: c.pos.y + 14, z: (g.pos.z + c.pos.z) / 2 };
+          this.impact(mid, true);
+          struck = true;
+        }
+        for (const deg of [65, 105, 145]) {
+          const f = forwardOf(c.yaw + deg * side);
+          const at2 = { x: c.pos.x + f.x * 24, y: c.pos.y + 1.5, z: c.pos.z + f.z * 24 };
+          if (!isLoaded(c.dim, at2)) continue;
+          blast(c.dim, at2, 10, 10, 34 * c.might, 1.8, (p, n) => c.hurt(p, n), c.entity, c.pos);
+          if (wither()) {
+            const got = carve(c.dim, at2, 4.2, 140, false);
+            if (got.broken > 10) particle(c.dim, "basiliskra:impact_debris", at2, 128);
+          }
+          particle(c.dim, "basiliskra:step_dust", at2, 128);
+        }
+        if (!struck) shake(c, 96, 0.5, 0.4);
+      }
+      yield;
+    }
+    c.lookAhead();
+    c.setPhase("idle");
+  }
+  /** Its whole weight, at a run: it does not stop until it has hit the enemy or lost it. */
+  *ram(foe) {
+    const c = this.c;
+    yield* this.turnTo(foe.pos, 2.5, 50);
+    c.say("basiliskra.roar_short", c.anchor("mouth"), 192);
+    c.smash = true;
+    for (let t = 0; t < 420; t++) {
+      if (!foe.valid || foe.dim.id !== c.dim.id) break;
+      const reach = c.girth + foe.girth;
+      c.setPhase("move");
+      c.goTo(foe.pos, 0.3, reach + 2);
+      c.lookAt(foe.middle(), 60, 40);
+      this.footfalls();
+      if (distXZ(foe.pos, c.pos) < reach + 5) {
+        const away = norm({ x: foe.pos.x - c.pos.x, y: 0, z: foe.pos.z - c.pos.z });
+        foe.takeBlow(c, BLOW.ram * Math.min(1, 0.5 + c.speed / 0.5), true);
+        foe.shove(away, 11);
+        this.impact({ x: (foe.pos.x + c.pos.x) / 2, y: c.pos.y + 22, z: (foe.pos.z + c.pos.z) / 2 }, true);
+        break;
+      }
+      if (c.blocked > 60) break;
+      yield;
+    }
+    c.halt();
+    c.smash = false;
+    c.setPhase("idle");
+    for (let t = 0; t < 12; t++) yield;
+  }
+  /** Staggered by a blow from something its own size: its wings fly open and it loses a second. */
+  *reel() {
+    const c = this.c;
+    c.halt();
+    c.setPhase("recoil");
+    c.say("basiliskra.hurt", c.anchor("nose"), 128, 1, 0.82);
+    for (let t = 0; t < 18; t++) yield;
+    c.setPhase("idle");
+  }
+  /** Round the place it was made: never far from where a second one will be put down to meet it. */
+  *roam() {
+    const c = this.c, now = this.now;
+    const a = hash(now, 51) * Math.PI * 2, r = 20 + hash(now, 52) * (PROWL - 20);
+    const to = { x: this.home.x + Math.cos(a) * r, y: c.pos.y, z: this.home.z + Math.sin(a) * r };
+    yield* this.walk(to, 0.14, 8, 900);
+    c.setPhase("idle");
+    for (let t = 0; t < 100; t++) {
+      if (t === 30) c.say(hash(now, 17) < 0.5 ? "basiliskra.iii.breath" : "basiliskra.iii.growl", c.anchor("nose"), 96, 0.9, 0.78);
+      if (this.foe()) break;
+      yield;
+    }
+  }
+  /** Beaten: onto its knees, the fire in it failing, and then nothing of it but ash and what it leaves. */
+  *fall() {
+    const c = this.c;
+    c.halt();
+    c.smash = false;
+    c.setCharge(0);
+    c.lookAhead();
+    c.setPhase("fall");
+    c.say("basiliskra.roar_short", c.anchor("mouth"), 224, 1, 0.9);
+    for (let t = 0; t < 96; t++) {
+      c.setPhase("fall");
+      if (t % 7 === 3) {
+        const v = c.volumes();
+        const at2 = v[Math.floor(hash(this.now, t) * v.length)].at;
+        particle(c.dim, "minecraft:huge_explosion_emitter", at2, 192);
+        particle(c.dim, "basiliskra:impact_fire", at2, 160);
+        sound(c.dim, "random.explode", at2, 160, 1.2, 0.55 + hash(t, 5) * 0.2);
+      }
+      if (t === 44) {
+        const f = forwardOf(c.yaw);
+        const at2 = { x: c.pos.x + f.x * 6, y: c.pos.y + 0.5, z: c.pos.z + f.z * 6 };
+        sound(c.dim, "basiliskra.iii.step", at2, 192, 1, 0.45);
+        particle(c.dim, "basiliskra:impact_ring", at2, 192);
+        particle(c.dim, "basiliskra:step_dust", at2, 160);
+        shake(c, 160, 1.6, 0.9);
+        blast(c.dim, at2, 12, 8, 30, 1.6, (p, n) => c.hurt(p, n), c.entity, c.pos);
+      }
+      yield;
+    }
+    const mid = c.middle();
+    for (const v of c.volumes()) {
+      if (hash(v.at.x, v.at.z) < 0.4) particle(c.dim, "basiliskra:fallout_ash", v.at, 160);
+      if (hash(v.at.z, v.at.y) < 0.25) particle(c.dim, "basiliskra:impact_smoke", v.at, 192);
+    }
+    particle(c.dim, "basiliskra:impact_glare", mid, 224);
+    particle(c.dim, "minecraft:huge_explosion_emitter", mid, 224);
+    sound(c.dim, "random.explode", mid, 224, 2, 0.4);
+    addFallout({ x: Math.floor(c.pos.x), y: Math.floor(c.pos.y), z: Math.floor(c.pos.z) }, 9, 0.6);
+    try {
+      c.dim.spawnItem(new ItemStack2(SHARD_ITEM, 24), { x: c.pos.x, y: c.pos.y + 1.5, z: c.pos.z });
+      c.dim.spawnItem(new ItemStack2(FIN_ITEM, 1), { x: c.pos.x + 1, y: c.pos.y + 1.5, z: c.pos.z });
+    } catch {
+    }
+    this.gone = true;
+    yield;
+  }
+};
+function tellNear(dim, at2, msg) {
+  for (const p of witnesses(dim, at2, 96)) {
+    try {
+      p.sendMessage(msg);
+    } catch {
+    }
+  }
+}
+var Titans = class {
+  constructor() {
+    this.list = /* @__PURE__ */ new Map();
+    this.hurtCry = /* @__PURE__ */ new Map();
+  }
+  get count() {
+    return this.list.size;
+  }
+  /** The body an entity is, if it is a Titan that has been taken up. */
+  of(e) {
+    try {
+      return this.list.get(e.id);
+    } catch {
+      return void 0;
+    }
+  }
+  creatures() {
+    return [...this.list.values()].map((t) => t.c);
+  }
+  /** Are any of them at each other, or at him, just now? */
+  fighting() {
+    for (const t of this.list.values()) if (t.brain.foe()) return true;
+    return false;
+  }
+  /** The one nearest a place (for the music). */
+  nearest(dimId, at2) {
+    let best = null, bd = 1e9;
+    for (const t of this.list.values()) {
+      if (!t.c.valid || t.c.dim.id !== dimId) continue;
+      const d = dist(t.c.pos, at2);
+      if (d < bd) {
+        bd = d;
+        best = t.c;
+      }
+    }
+    return best;
+  }
+  /** An entity of the Titan's type has appeared or loaded: it is taken up, or (one too many, the wrong world) removed. */
+  inspect(e) {
+    let id, dimId, at2;
+    try {
+      if (!e.isValid || e.typeId !== TITAN) return;
+      id = e.id;
+      dimId = e.dimension.id;
+      at2 = { ...e.location };
+    } catch {
+      return;
+    }
+    if (this.list.has(id)) return;
+    if (dimId !== OVERWORLD) {
+      tellNear(e.dimension, at2, "§7A Titan can only stand in the Overworld.");
+      try {
+        e.remove();
+      } catch {
+      }
+      return;
+    }
+    if (this.list.size >= TITAN_MAX) {
+      tellNear(e.dimension, at2, `§7There are ${TITAN_MAX} Titans in the world already: that is as many as there can be.`);
+      try {
+        e.remove();
+      } catch {
+      }
+      return;
+    }
+    this.adopt(e, at2);
+  }
+  adopt(e, at2) {
+    let saved = null;
+    try {
+      const s = e.getDynamicProperty(TAG);
+      if (typeof s === "string") saved = JSON.parse(s);
+    } catch {
+      saved = null;
+    }
+    const taken = new Set([...this.list.values()].map((t) => t.n));
+    let n = saved && Number.isInteger(saved.n) && !taken.has(saved.n) ? saved.n : -1;
+    if (n < 0) for (n = 0; taken.has(n); n++) {
+    }
+    const home = saved && Array.isArray(saved.home) ? { x: saved.home[0], y: saved.home[1], z: saved.home[2] } : at2;
+    const fresh = !saved;
+    try {
+      e.triggerEvent("basiliskra:bind");
+      e.setDynamicProperty(TAG, JSON.stringify({ n, home: [Math.round(home.x), Math.round(home.y), Math.round(home.z)] }));
+      e.nameTag = `Titan ${TITAN_NAMES[n % TITAN_NAMES.length]}`;
+    } catch {
+      return;
+    }
+    const c = new Creature(e, 4);
+    c.might = MIGHT;
+    c.haste = HASTE;
+    c.resync();
+    c.set(PROP.visLo, 0);
+    c.set(PROP.visHi, 8);
+    c.set(PROP.gait, 1);
+    const rec = freshRecord();
+    rec.stage = "alive";
+    rec.form = 4;
+    rec.home = home;
+    rec.born = rec.mut.formSince = store.rec.clock;
+    rec.four = { debut: true, shots: 0, plate: null };
+    const brain = new BrainTitan(c, rec, home);
+    c.onBlow = (by, amount, heavy) => brain.onBlow(by, amount, heavy);
+    this.list.set(e.id, { c, brain, rec, n });
+    if (fresh) {
+      tellNear(e.dimension, at2, `§4Titan ${TITAN_NAMES[n % TITAN_NAMES.length]}§7 stands here. (${this.list.size} of ${TITAN_MAX}.)`);
+      brain.forced = { name: "roar", run: brain.roar(true), limit: 12 * TICKS.second };
+    }
+  }
+  /** Make one here (the command and the config wheel).  Returns what happened, in words. */
+  spawn(dim, at2, yaw) {
+    if (dim.id !== OVERWORLD) return "A Titan can only stand in the Overworld.";
+    if (this.list.size >= TITAN_MAX) return `There are ${TITAN_MAX} Titans in the world already: that is as many as there can be.`;
+    if (!isLoaded(dim, at2)) return "That place is not loaded.";
+    const before = this.list.size;
+    try {
+      const e = dim.spawnEntity(TITAN, at2, { initialRotation: yaw });
+      this.inspect(e);
+    } catch {
+      return "A Titan could not be made here.";
+    }
+    return this.list.size > before ? "A Titan stands here." : "A Titan could not be made here.";
+  }
+  /** Take every Titan out of the world.  Returns how many there were. */
+  clear() {
+    const n = this.list.size;
+    for (const t of [...this.list.values()]) this.drop(t, true);
+    return n;
+  }
+  drop(t, remove) {
+    let id = "";
+    for (const [k, v] of this.list) if (v === t) id = k;
+    t.c.dropParts();
+    if (id) {
+      this.list.delete(id);
+      giants.delete(id);
+      this.hurtCry.delete(id);
+    }
+    if (remove) {
+      try {
+        t.c.entity.setProperty(PROP.bound, false);
+        t.c.entity.remove();
+      } catch {
+      }
+    }
+  }
+  onRemoving(e) {
+    const t = this.of(e);
+    if (t) this.drop(t, false);
+  }
+  /**
+   * A blow is about to land on a Titan.  Returns the damage it may do: all of it; or, when it would kill, none
+   * (the Titan goes down in its own time, and is removed when it has).
+   */
+  beforeHurt(e, damage) {
+    const t = this.of(e);
+    if (!t) return damage;
+    if (t.brain.dying) return 0;
+    let health = 1;
+    try {
+      health = e.getComponent("minecraft:health")?.currentValue ?? 1;
+    } catch {
+      health = 1;
+    }
+    if (damage >= health - 1) {
+      t.brain.dying = true;
+      return 0;
+    }
+    return damage;
+  }
+  onHurt(e, by, amount) {
+    const t = this.of(e);
+    if (!t || amount <= 0) return;
+    let player;
+    try {
+      if (by && by.typeId === "minecraft:player") player = by;
+    } catch {
+      player = void 0;
+    }
+    t.brain.onHurt(player);
+    const now = store.rec.clock;
+    if (amount >= 20 && now - (this.hurtCry.get(e.id) ?? -999) > 90 && !t.brain.dying) {
+      this.hurtCry.set(e.id, now);
+      t.c.say("basiliskra.hurt", t.c.anchor("nose"), 96, 1, 0.9);
+    }
+  }
+  /** Health of each, for whoever is near enough to be watching the fight. */
+  hud() {
+    const rows = [];
+    for (const t of this.list.values()) {
+      let h = 0;
+      try {
+        h = t.c.entity.getComponent("minecraft:health")?.currentValue ?? 0;
+      } catch {
+        continue;
+      }
+      if (t.brain.dying) h = 0;
+      const k = Math.max(0, Math.min(10, Math.ceil(h / TITAN_HEALTH * 10)));
+      rows.push({ c: t.c, text: `§4${TITAN_NAMES[t.n % TITAN_NAMES.length]} §c${"█".repeat(k)}§8${"█".repeat(10 - k)} §7${Math.max(0, Math.round(h))}` });
+    }
+    if (!rows.length) return;
+    for (const p of players()) {
+      try {
+        if (holdsCounter(p)) continue;
+        const mine = rows.filter((r) => r.c.dim.id === p.dimension.id && dist(r.c.pos, p.location) < 150);
+        if (mine.length) p.onScreenDisplay.setActionBar(mine.map((r) => r.text).join("§r   "));
+      } catch {
+      }
+    }
+  }
+  tick(now) {
+    if (now % 20 === 7) {
+      try {
+        for (const e of store.loaded ? worldTitans() : []) this.inspect(e);
+      } catch {
+      }
+    }
+    for (const t of [...this.list.values()]) {
+      if (!t.c.valid) {
+        this.drop(t, false);
+        continue;
+      }
+      t.brain.tick();
+      if (t.brain.gone) {
+        this.drop(t, true);
+        continue;
+      }
+      t.c.update();
+    }
+    if (now % 10 === 3 && this.list.size) this.hud();
+  }
+};
+function worldTitans() {
+  try {
+    return world9.getDimension(OVERWORLD).getEntities({ type: TITAN });
+  } catch {
+    return [];
+  }
+}
+var titans = new Titans();
+
+// src/ui.ts
+var ROMAN = ["", "I", "II", "III", "IV"];
+var FALLOUT = ["off", "visual", "land"];
+var DUSK = 11800;
+function canAdmin(p) {
+  try {
+    if (p.playerPermissionLevel === PlayerPermissionLevel.Operator) return true;
+  } catch {
+  }
+  try {
+    return world10.getAllPlayers().length <= 1;
+  } catch {
+    return false;
+  }
+}
+var pct = (f) => `${Math.floor(Math.max(0, Math.min(1, f)) * 100)}%`;
+function bar(f, colour = "§c") {
+  const n = Math.round(Math.max(0, Math.min(1, f)) * 20);
+  return `${colour}${"|".repeat(n)}§8${"|".repeat(20 - n)}§r`;
+}
+function mins(ticks) {
+  const m = Math.max(0, ticks) / TICKS.minute;
+  if (m < 1) return "less than a minute";
+  if (m < 90) return `about ${Math.round(m)} minute${Math.round(m) === 1 ? "" : "s"}`;
+  return `about ${(m / 60).toFixed(1)} hours`;
+}
+function compass2(from, to) {
+  const dx = to.x - from.x, dz = to.z - from.z;
+  if (Math.hypot(dx, dz) < 4) return "right here";
+  const names = ["south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"];
+  const a = Math.atan2(-dx, dz) * 180 / Math.PI;
+  return `${Math.round(Math.hypot(dx, dz))} blocks ${names[(Math.round(a / 45) % 8 + 8) % 8]}`;
+}
+var at = (v) => `${Math.floor(v.x)}, ${Math.floor(v.y)}, ${Math.floor(v.z)}`;
+async function present(p, show) {
+  for (let i = 0; i < 20; i++) {
+    let r;
+    try {
+      r = await show();
+    } catch {
+      return void 0;
+    }
+    if (r.canceled && r.cancelationReason === FormCancelationReason.UserBusy) {
+      await new Promise((res) => system2.runTimeout(() => res(), 8));
+      continue;
+    }
+    return r;
+  }
+  return void 0;
+}
+function angerLines(p, a, here) {
+  const L = [];
+  const where = `around ${Math.floor(a.center.x)}, ${Math.floor(a.center.z)}`;
+  L.push(here ? `§fNear you §7(the 64-block area ${where})` : `§fThe angriest area: ${where} §7(${compass2(p.location, a.center)})`);
+  L.push(`  ${bar(a.progress)} §l${pct(a.progress)}§r §7of what calls him`);
+  L.push(`  §7Animals killed here by players: §f${a.kills}§7 (they count as §f${a.weightA.toFixed(1)}§7 of the §f${a.needA}§7 it takes)`);
+  L.push(`  §7Logs, reeds and shore plants cut here: §f${a.cut}§7 (they count as §f${a.weightH.toFixed(1)}§7 of the §f${a.needH}§7 it takes)`);
+  if (a.fired) L.push("  §7He has already been called from here.");
+  else if (a.pct < 1) {
+    L.push(`  §7Both are needed. Still to go here: about §f${a.moreKills}§7 more animal${a.moreKills === 1 ? "" : "s"} and §f${a.moreLogs}§7 more logs.`);
+    L.push("  §8The first kills of a spree and the first logs of a tree count for less; repeated harm counts in full.");
+  }
+  const total = Object.values(a.by).reduce((s, v) => s + v, 0);
+  const mine = a.by[p.id] ?? 0;
+  if (total > 0) L.push(`  §7Your share of it: §f${pct(mine / total)}`);
+  return L;
+}
+function evolveLines() {
+  const rec = store.rec, now = rec.clock, L = [];
+  if (rec.evolve) {
+    L.push("§cHe is changing right now.");
+    return L;
+  }
+  if (rec.form < 4) {
+    const need = changeTicks(rec.form), since = Math.max(0, now - rec.mut.formSince), f = Math.min(1, since / need);
+    const left = Math.max(0, need - since);
+    L.push(`§fBecoming Basiliskra ${ROMAN[rec.form + 1]}: ${bar(f, rec.form === 3 ? "§4" : "§6")} §l${pct(f)}§r`);
+    L.push(f >= 1 ? "  §aThe time is up: he changes as soon as he is free to." : `  §7Only time: §f${left >= TICKS.minute ? `${Math.ceil(left / TICKS.minute)} min` : `${Math.ceil(left / TICKS.second)} s`}§7 left of ${Math.round(need / TICKS.minute)} min as Basiliskra ${ROMAN[rec.form]}.`);
+    L.push("  §8Nothing else is needed. The config wheel can set the minutes, or make him change at once.");
+  } else L.push("§4Basiliskra IV is his last form.");
+  if (rec.form >= 3) {
+    L.push(rec.form === 4 ? "§fThe last crossing §8(it still sends him home)" : "§fThe last crossing §8(sends him home)");
+    L.push("  §7Carry his shed fin to the seam; play his three knocks on note blocks near it and keep playing; lead his charge into a lightning rod near the seam.");
+  }
+  return L;
+}
+function comingLines(p, ctl2) {
+  const rec = store.rec, now = rec.clock, L = [];
+  const tod = world10.getTimeOfDay();
+  const toDusk = tod >= DUSK && tod < 13800 ? 0 : (DUSK - tod + 24e3) % 24e3;
+  switch (rec.stage) {
+    case "dormant":
+      L.push("§7Not yet. When one place reaches §f100%§7 he is called through deep water near it.");
+      L.push("§7He needs open water about §f6 blocks deep§7 with a clear run of about §f45 blocks§7 within ~90 blocks of that place. Harm far inland calls no one.");
+      break;
+    case "pending": {
+      const pd = rec.pending;
+      L.push(`§eHe has been called§7, by what was done near §f${Math.floor(pd.site.x)}, ${Math.floor(pd.site.z)}§7 (${compass2(p.location, pd.site)}).`);
+      L.push(`§7He is looking for deep, open water there (search ${Math.min(12, (pd.passes ?? 0) + 1)} of 12). Someone must be within 128 blocks of that place.`);
+      if ((pd.passes ?? 0) >= 4) L.push("§7No water has been deep and open enough so far. Harm nearer a coast or a big lake will call him there instead.");
+      break;
+    }
+    case "arriving": {
+      const a = rec.arrival;
+      if (a.step === 0) {
+        L.push(`§eHe is coming§7, through the water at §f${at(a.water)}§7 (${compass2(p.location, a.water)}).`);
+        L.push(toDusk === 0 ? "§7At dusk, which is now: someone must be within 96 blocks of that water." : `§7At the next dusk, in §f${mins(toDusk)}§7, while someone is within 96 blocks of that water.`);
+      } else L.push(`§cHe is coming through now§7, at §f${at(a.water)}§7 (${compass2(p.location, a.water)}).`);
+      break;
+    }
+    case "alive": {
+      const c = ctl2.creature;
+      if (c && c.valid) {
+        let hp = "";
+        try {
+          const h = c.entity.getComponent("minecraft:health");
+          if (h) hp = ` §7Health §f${Math.ceil(h.currentValue)}/${h.effectiveMax}`;
+        } catch {
+        }
+        L.push(`§cBasiliskra ${ROMAN[rec.form]} is here§7, ${compass2(p.location, c.pos)}.${hp}`);
+      } else if (rec.entityId === null && rec.down !== null) {
+        const left = pace(TICKS.day) - (now - rec.down);
+        L.push(`§7Driven off. He comes back through the seam at §f${rec.rift ? at(rec.rift) : "the old place"}§7 in §f${mins(left)}§7, when someone is near it.`);
+      } else if (rec.last) {
+        L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach. Last seen near §f${at(rec.last)}§7 (${compass2(p.location, rec.last)}), ${mins(now - rec.last.t)} ago.`);
+      } else L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach.`);
+      if (rec.guiltyName) L.push(`§7He remembers §f${rec.guiltyName}§7.`);
+      break;
+    }
+    case "departed":
+      L.push("§7He has gone home. The story in this world is over; nothing calls another.");
+      break;
+  }
+  return L;
+}
+function falloutLines(p) {
+  const L = [], now = store.rec.clock;
+  let at2;
+  try {
+    if (p.dimension.id !== OVERWORLD) return ["§7Only the Overworld carries his fallout."];
+    at2 = p.location;
+  } catch {
+    return L;
+  }
+  const d = doseAt(at2, now);
+  const word = d < 0.03 ? "§anone to speak of" : d < 0.2 ? "§6low" : d < 0.45 ? "§6rising" : d < 0.75 ? "§chigh" : "§4deadly";
+  L.push(`§fRadiation where you stand: ${bar(Math.min(1, d))} §l${pct(d)}§r  ${word}`);
+  const n = nearestFallout(at2, now), count = falloutCount(now);
+  if (!n) L.push("§7No fallout on record. His beam, his changes and his seam leave it where they touch the world.");
+  else {
+    L.push(`§7Fallout in §f${count}§7 place${count === 1 ? "" : "s"}. The nearest is ${compass2(at2, n.zone)}, at §f${pct(n.strength)}§7.`);
+    L.push("§7It spreads for about a minute, stands a while, then fades and is gone within a few minutes.");
+    if (CONFIG.fallout === "land") L.push("§7In it the ground glows: soil and rock turn irradiated, plants wither, wild leaves fall and crimson crystals grow (break them for shards). Where his beam lands, rock runs to glowing slag and sand fuses to scarlet trinitite. As it fades the land heals back to what it was.");
+    if (CONFIG.sickness) L.push("§7It is strong: hunger, then weakness and nausea, then poison, and the heart of a fresh zone burns. Iodine tablets (2 dried kelp, sugar) keep it off for four minutes; milk clears it. A Geiger counter (trinitite or a crimson shard, copper ingot, redstone) reads it.");
+  }
+  return L;
+}
+function journalText(p, ctl2) {
+  const now = store.rec.clock, L = [];
+  L.push("§l§4HIS ANGER§r");
+  let here = null;
+  try {
+    if (p.dimension.id === OVERWORLD) here = angerNear(p.location, now);
+  } catch {
+    here = null;
+  }
+  if (here) L.push(...angerLines(p, here, true));
+  else L.push("§7Only what is done in the Overworld counts.");
+  const top = angriest(now);
+  if (top && (!here || top.key !== here.key)) {
+    L.push("");
+    L.push(...angerLines(p, top, false));
+  }
+  const [k, c] = tallyOf(p.id);
+  L.push(`§7You, everywhere: §f${k}§7 animal${k === 1 ? "" : "s"} killed, §f${c}§7 log${c === 1 ? "" : "s"} and plants cut.`);
+  L.push(`§8Anger is kept per 64-block area. Left alone, an area's anger halves every ${halfLifeDays().toFixed(1)} in-game days.`);
+  L.push("");
+  L.push("§l§4WHEN HE COMES§r");
+  L.push(...comingLines(p, ctl2));
+  if (store.rec.stage === "alive" || store.rec.stage === "arriving") {
+    L.push("");
+    L.push("§l§4HIM§r");
+    L.push(...evolveLines());
+  }
+  if (CONFIG.fallout !== "off") {
+    L.push("");
+    L.push("§l§4FALLOUT§r");
+    L.push(...falloutLines(p));
+  }
+  return L.join("\n");
+}
+async function openJournal(p, ctl2) {
+  for (; ; ) {
+    const f = new ActionFormData().title("Basiliskra Journal").body(journalText(p, ctl2)).button("Read again").button("Close");
+    if (canAdmin(p)) f.button("Config wheel");
+    const r = await present(p, () => f.show(p));
+    if (!r || r.canceled) return;
+    if (r.selection === 0) continue;
+    if (r.selection === 2) await openWheel(p, ctl2);
+    return;
+  }
+}
+function placeFor(p, form) {
+  const v = p.getViewDirection();
+  const n = Math.hypot(v.x, v.z) || 1;
+  const d = [0, 15, 24, 46, 52][form] ?? 30;
+  const pl = p.location;
+  const pos = { x: pl.x + v.x / n * d, y: pl.y, z: pl.z + v.z / n * d };
+  const dimension = overworld();
+  let g = groundY(dimension, pos.x, pos.z, pl.y + 24, 48);
+  if (g === NONE) g = groundY(dimension, pos.x, pos.z, pl.y - 24, pl.y - 24 - dimension.heightRange.min);
+  if (g !== UNLOADED && g !== NONE) pos.y = g;
+  const yaw = Math.atan2(-(pl.x - pos.x), pl.z - pos.z) * 180 / Math.PI;
+  return { at: pos, yaw };
+}
+function formOf(rec = store.rec) {
+  return rec.born > 0 ? rec.form : 0;
+}
+var SPEEDS = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
+var MINUTES = [0, 1, 2, 5, 10, 20, 30, 60];
+var DAMAGES = [0, 0.25, 0.5, 1, 1.5, 2, 3, 4];
+var TERRAIN = ["none", "scorch", "break", "wither"];
+function presetList(values, current, def, word) {
+  const items = values.map((v) => `${word(v)}${v === def ? " (default)" : ""}`);
+  let index = values.indexOf(current);
+  items.push(index < 0 ? `Custom: x${current}` : "Custom (type it in the box below)");
+  if (index < 0) index = values.length;
+  return { items, index };
+}
+function typedNumber(typed) {
+  const t = typeof typed === "string" ? typed.trim().replace(/^x/i, "").replace(",", ".") : "";
+  return t === "" ? void 0 : Number(t);
+}
+var typedBad = (typed, lo, hi) => {
+  const n = typedNumber(typed);
+  return n !== void 0 && !(n >= lo && n <= hi);
+};
+function pickNumber(values, index, typed, current, lo, hi) {
+  const n = typedNumber(typed);
+  if (n !== void 0 && n >= lo && n <= hi) return Math.round(n * 100) / 100;
+  const i = Number(index);
+  return Number.isInteger(i) && i >= 0 && i < values.length ? values[i] : current;
+}
+async function settingsForm(p) {
+  const speed = presetList(SPEEDS, CONFIG.pacing, 1, (v2) => `x${v2}${v2 < 1 ? " (slower)" : v2 > 1 ? " (faster)" : ""}`);
+  const dmg = presetList(DAMAGES, CONFIG.damage, 1, (v2) => v2 === 0 ? "None (x0)" : `x${v2}`);
+  const f = new ModalFormData().title("Basiliskra Settings").dropdown("Story speed", speed.items, { defaultValueIndex: speed.index, tooltip: "x2 halves every wait and threshold; x0.5 doubles them." }).textField("...or type a story speed (0.25 to 4)", "e.g. 1.25").dropdown("What his beam, roar and weight do to the world", [
+    "Nothing (light and sound only)",
+    "Scorch natural ground",
+    "Scorch and break natural ground",
+    "Destroy everything, like the Wither (default)"
+  ], { defaultValueIndex: Math.max(0, TERRAIN.indexOf(CONFIG.terrain)) }).toggle("Spare chests, beds, furnaces and portals", { defaultValue: CONFIG.spareStorage }).toggle("Footprints and furrows in natural ground", { defaultValue: CONFIG.marks }).dropdown("Damage to players", dmg.items, { defaultValueIndex: dmg.index }).textField("...or type a damage multiplier (0 to 4)", "e.g. 0.75").toggle("Harmless on Peaceful", { defaultValue: CONFIG.harmlessOnPeaceful }).toggle("He hunts animals and other creatures too", { defaultValue: CONFIG.huntMobs }).toggle("Spawn eggs and /summon bring him to you", { defaultValue: CONFIG.allowSummon }).dropdown("A spawn egg makes", ["His stage in the story", "Basiliskra I", "Basiliskra II", "Basiliskra III", "Basiliskra IV"], { defaultValueIndex: CONFIG.spawnForm }).toggle("Give new players the journal", { defaultValue: CONFIG.giveJournal }).toggle("Give operators the config wheel", { defaultValue: CONFIG.giveWheel }).toggle("Debug messages in the content log", { defaultValue: CONFIG.debug }).dropdown("His fallout", ["Off", "Glowing motes and Geiger clicks only", "Also changes the land (natural ground only)"], { defaultValueIndex: FALLOUT.indexOf(CONFIG.fallout) }).toggle("Radiation sickness for players", { defaultValue: CONFIG.sickness }).toggle("Cutscenes (the rift, each transformation)", { defaultValue: CONFIG.cutscenes }).toggle("His music", { defaultValue: CONFIG.music }).dropdown(
+    "Minutes in each form before he changes (time is all it takes)",
+    MINUTES.map((m) => m ? `${m} minutes` : "The story's timing: 40, 40, 60 (at story speed 1)"),
+    { defaultValueIndex: Math.max(0, MINUTES.indexOf(CONFIG.changeMinutes)) }
+  ).toggle("Cities rise on coasts as you explore (never over anything built)", { defaultValue: CONFIG.cities }).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
+  const r = await present(p, () => f.show(p));
+  if (!r || r.canceled || !r.formValues) return;
+  const v = r.formValues;
+  if (v[20] === true) {
+    resetSettings();
+    p.sendMessage("§7[Basiliskra] Settings restored to the defaults.");
+    return;
+  }
+  const pacing = pickNumber(SPEEDS, v[0], v[1], CONFIG.pacing, 0.25, 4);
+  const damage = pickNumber(DAMAGES, v[5], v[6], CONFIG.damage, 0, 4);
+  const bad = typedBad(v[1], 0.25, 4) || typedBad(v[6], 0, 4);
+  saveSettings({
+    pacing,
+    terrain: TERRAIN[Number(v[2])] ?? "wither",
+    spareStorage: v[3] === true,
+    marks: v[4] === true,
+    damage,
+    harmlessOnPeaceful: v[7] === true,
+    huntMobs: v[8] === true,
+    allowSummon: v[9] === true,
+    spawnForm: Number(v[10]),
+    giveJournal: v[11] === true,
+    giveWheel: v[12] === true,
+    debug: v[13] === true,
+    fallout: FALLOUT[Number(v[14])] ?? "land",
+    sickness: v[15] === true,
+    cutscenes: v[16] === true,
+    music: v[17] === true,
+    changeMinutes: MINUTES[Number(v[18])] ?? 0,
+    cities: v[19] === true
+  });
+  p.sendMessage(`§7[Basiliskra] Settings saved with this world. Story speed §fx${CONFIG.pacing}§7, damage §fx${CONFIG.damage}§7.`);
+  if (bad) p.sendMessage("§7[Basiliskra] A number you typed was not in range, so the choice above it was used.");
+}
+async function bringForm(p, ctl2) {
+  const f = new ActionFormData().title("Bring him here").body(`§7The one Basiliskra comes to you: moved here if he is about, made here if he is not. There is never more than one.
+§7Now: ${store.rec.born > 0 ? `Basiliskra ${ROMAN[store.rec.form]}` : "he has never come"}.`).button("As he is in the story").button("Basiliskra I (the water)").button("Basiliskra II (the shore)").button("Basiliskra III (four footfalls)").button("Basiliskra IV (the last form)");
+  const r = await present(p, () => f.show(p));
+  if (!r || r.canceled || r.selection === void 0) return;
+  if (p.dimension.id !== OVERWORLD) {
+    p.sendMessage("§7[Basiliskra] He only lives in the Overworld.");
+    return;
+  }
+  const want = r.selection;
+  const place2 = placeFor(p, want || formOf() || 3);
+  p.sendMessage(`§7[Basiliskra] ${ctl2.bringHere(place2.at, place2.yaw, want)}`);
+}
+async function confirm(p, title, body) {
+  const f = new MessageFormData().title(title).body(body).button1("Yes").button2("No");
+  const r = await present(p, () => f.show(p));
+  return !!r && !r.canceled && r.selection === 0;
+}
+async function openWheel(p, ctl2) {
+  if (!canAdmin(p)) {
+    p.sendMessage("§7[Basiliskra] Only an operator can use the config wheel.");
+    return;
+  }
+  const rec = store.rec;
+  const here = ctl2.creature && ctl2.creature.valid;
+  const state = here ? `§cBasiliskra ${ROMAN[rec.form]} is here` : rec.stage === "arriving" ? "§ehe is coming through" : rec.stage === "alive" ? `§7Basiliskra ${ROMAN[rec.form]} is away, owed back` : "§7he is not in this world";
+  const f = new ActionFormData().title("Basiliskra Config Wheel").body(`${state}§7 · Story speed §fx${CONFIG.pacing}§7 · Damage §fx${CONFIG.damage}`).button("Settings").button("Call him now (the rift opens)").button("Bring him here (no rift, pick a form)").button("Make him change now (next form)").button("Send him away (until he is called)").button("Skip to dusk").button("Journal").button("§cReset the story").button("Raise a city here (a beach, and a very deep sea)").button(`Put a Titan here (for battles: ${titans.count} of ${TITAN_MAX})`).button("Remove the Titans");
+  const r = await present(p, () => f.show(p));
+  if (!r || r.canceled) return;
+  switch (r.selection) {
+    case 9: {
+      const place2 = placeFor(p, 4);
+      p.sendMessage(`§7[Basiliskra] ${titans.spawn(p.dimension, place2.at, place2.yaw)}`);
+      break;
+    }
+    case 10:
+      p.sendMessage(`§7[Basiliskra] ${titans.clear()} Titan(s) removed.`);
+      break;
+    case 0:
+      await settingsForm(p);
+      break;
+    case 1: {
+      if (p.dimension.id !== OVERWORLD) {
+        p.sendMessage("§7[Basiliskra] He only lives in the Overworld.");
+        break;
+      }
+      const form = rec.stage === "alive" && rec.born > 0 ? rec.form : 1;
+      p.sendMessage(`§7[Basiliskra] ${ctl2.callNow(p.location, p, form > 1 ? placeFor(p, form) : void 0)}`);
+      break;
+    }
+    case 2:
+      await bringForm(p, ctl2);
+      break;
+    case 3:
+      p.sendMessage(`§7[Basiliskra] ${ctl2.evolveNow()}`);
+      break;
+    case 4:
+      if (await confirm(p, "Send him away", "He leaves through a seam and stays gone until you call him again (or until the land is harmed enough to call him). The story starts again from Basiliskra I; the anger on record and his fallout stay.")) {
+        p.sendMessage(ctl2.sendAway() ? "§7[Basiliskra] He is gone. Call him now opens the rift again, whenever you want it." : "§7[Basiliskra] He was not in this world.");
+      }
+      break;
+    case 5:
+      world10.setTimeOfDay(DUSK + 100);
+      p.sendMessage("§7[Basiliskra] Dusk.");
+      break;
+    case 6:
+      await openJournal(p, ctl2);
+      break;
+    case 8:
+      await cityForm(p);
+      break;
+    case 7:
+      if (await confirm(p, "Reset the story", "Forget him, his form, everything he has learned and all the anger on record, as if the pack had just been added. He is removed from the world.")) {
+        ctl2.resetStory();
+        p.sendMessage("§7[Basiliskra] The story has been reset.");
+      }
+      break;
+  }
+}
+async function cityForm(p) {
+  if (!canAdmin(p)) {
+    p.sendMessage("§7[Basiliskra] Only an operator can raise a city.");
+    return;
+  }
+  if (p.dimension.id !== OVERWORLD) {
+    p.sendMessage("§7[Basiliskra] Cities stand in the Overworld.");
+    return;
+  }
+  const f = new ActionFormData().title("Raise a city here").body("§7You will be standing on its promenade. §fBehind you§7: streets, towers, houses, people. §fAhead of you§7 (the way you are looking): a beach, and beyond it a sea cut a hundred blocks deep, with things on the bottom.\n§cEverything in that area is replaced§7: about 180 by 160 blocks of city and beach, and 200 by 140 of sea. It takes under a minute.").button("A full city (175 by 119)").button("A small one (91 by 63)").button("Not here");
+  const r = await present(p, () => f.show(p));
+  if (!r || r.canceled || r.selection === void 0 || r.selection > 1) return;
+  let v = { x: 0, y: 0, z: 1 };
+  try {
+    v = p.getViewDirection();
+  } catch {
+  }
+  const dir = Math.abs(v.z) >= Math.abs(v.x) ? v.z >= 0 ? 0 : 2 : v.x < 0 ? 1 : 3;
+  const at2 = { ...p.location };
+  const said = raiseCity(at2, dir, r.selection === 1);
+  p.sendMessage(`§7[Basiliskra] ${said}`);
+  if (/rising/.test(said)) {
+    try {
+      p.teleport({ x: at2.x, y: Math.max(64, Math.min(83, Math.floor(at2.y))) + 1.2, z: at2.z });
+    } catch {
+    }
+  }
+}
+function giveStarterItems(p) {
+  try {
+    if (p.getDynamicProperty("bk:given") === true) return;
+  } catch {
+    return;
+  }
+  const items = [];
+  if (CONFIG.giveJournal) items.push(JOURNAL_ITEM);
+  if (CONFIG.giveWheel && canAdmin(p)) items.push(WHEEL_ITEM);
+  for (const id of items) {
+    try {
+      const left = p.getComponent("minecraft:inventory")?.container?.addItem(new ItemStack3(id, 1));
+      if (left) p.dimension.spawnItem(left, p.location);
+    } catch {
+    }
+  }
+  try {
+    p.setDynamicProperty("bk:given", true);
+  } catch {
+  }
+  if (items.length) p.sendMessage(`§7[Basiliskra] ${items.length > 1 ? "A journal and a config wheel are" : "A journal is"} in your inventory. Use the journal to see how angry he is, and when he will come.`);
+}
+
+// src/scene.ts
+import { EasingType, HudElement, HudVisibility } from "@minecraft/server";
+var FLAG = "bk:film";
+var HUD = [
+  HudElement.PaperDoll,
+  HudElement.Armor,
+  HudElement.ToolTips,
+  HudElement.Crosshair,
+  HudElement.Hotbar,
+  HudElement.Health,
+  HudElement.ProgressBar,
+  HudElement.Hunger,
+  HudElement.AirBubbles,
+  HudElement.HorseHealth,
+  HudElement.StatusEffects,
+  HudElement.ItemText
+];
+var span = (v, k) => typeof v === "number" ? v : v[0] + (v[1] - v[0]) * k;
+var Film = class {
+  constructor(dim, focus, o) {
+    this.dim = dim;
+    this.focus = focus;
+    this.o = o;
+    this.t = 0;
+    this.cast = [];
+    this.done = false;
+    const f = focus();
+    for (const p of players()) {
+      try {
+        if (p.dimension.id !== dim.id || dist(p.location, f) > o.radius) continue;
+        const base = Math.atan2(p.location.z - f.z, p.location.x - f.x);
+        this.cast.push({ p, base });
+        p.setDynamicProperty(FLAG, true);
+        if (o.cinema) {
+          try {
+            p.onScreenDisplay.setHudVisibility(HudVisibility.Hide, HUD);
+          } catch {
+          }
+        }
+        if (o.flash) p.camera.fade({ fadeColor: o.flash, fadeTime: { fadeInTime: 0.1, holdTime: 0.15, fadeOutTime: 0.7 } });
+      } catch {
+      }
+    }
+    this.aim();
+  }
+  /** A place the camera can stand: not inside a block, not under the ground, and able to see what it looks at. */
+  stand(want, look) {
+    let best = null;
+    for (const [kd, up] of [[1, 0], [1, 3], [0.85, 6], [0.7, 10], [0.55, 16], [0.4, 24]]) {
+      const q = { x: look.x + (want.x - look.x) * kd, y: want.y + up, z: look.z + (want.z - look.z) * kd };
+      if (!isLoaded(this.dim, q)) continue;
+      const g = groundY(this.dim, q.x, q.z, q.y + 12, 40);
+      if (typeof g === "number" && q.y < g + 1.6) q.y = g + 1.6;
+      const here = blockAt(this.dim, q);
+      if (here && isSolidBlock(here)) continue;
+      if (clearLine(this.dim, q, look)) return q;
+      best ??= q;
+    }
+    return best;
+  }
+  /** The shot that is playing, and how far through it the film is (0..1). */
+  shot() {
+    const shots = this.o.shots;
+    if (!shots || !shots.length) return null;
+    let t = this.t;
+    for (const s of shots) {
+      if (t < s.ticks) return { s, k: t / Math.max(1, s.ticks - 1), first: t < 2 };
+      t -= s.ticks;
+    }
+    return { s: shots[shots.length - 1], k: 1, first: false };
+  }
+  aimShot() {
+    const cur = this.shot();
+    if (!cur) return;
+    const { s, first } = cur;
+    const k = cur.k * cur.k * (3 - 2 * cur.k);
+    let look;
+    try {
+      look = (s.look ?? this.focus)();
+    } catch {
+      look = this.focus();
+    }
+    const f = forwardOf((this.o.facing?.() ?? 0) + span(s.angle, k));
+    const d = span(s.dist, k);
+    const at2 = this.stand({ x: look.x + f.x * d, y: look.y + span(s.height, k), z: look.z + f.z * d }, look);
+    if (!at2) return;
+    for (const { p } of this.cast) {
+      try {
+        if (!p.isValid || p.dimension.id !== this.dim.id) continue;
+        if (first) {
+          if (this.t > 1) p.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0, holdTime: 0.05, fadeOutTime: 0.2 } });
+          p.camera.setCamera("minecraft:free", { location: at2, facingLocation: look });
+        } else p.camera.setCamera("minecraft:free", { location: at2, facingLocation: look, easeOptions: { easeTime: 0.15, easeType: EasingType.Linear } });
+      } catch {
+      }
+    }
+  }
+  aim() {
+    if (this.o.shots) {
+      this.aimShot();
+      return;
+    }
+    const o = this.o, f = this.focus(), k = Math.min(1, this.t / Math.max(1, o.ticks));
+    const d = o.dist + ((o.distEnd ?? o.dist) - o.dist) * k;
+    for (const { p, base } of this.cast) {
+      try {
+        if (!p.isValid || p.dimension.id !== this.dim.id) continue;
+        const a = base + (o.orbit ?? 0) * Math.PI / 180 * (k - 0.5);
+        let at2 = null;
+        for (const [kd, kh] of [[1, 1], [1, 1.8], [0.7, 1.4], [0.45, 1.2], [0.3, 2.2]]) {
+          const q = { x: f.x + Math.cos(a) * d * kd, y: f.y + o.height * kh, z: f.z + Math.sin(a) * d * kd };
+          if (!isLoaded(this.dim, q)) continue;
+          if (clearLine(this.dim, q, f)) {
+            at2 = q;
+            break;
+          }
+          at2 ??= q;
+        }
+        if (!at2) continue;
+        p.camera.setCamera("minecraft:free", { location: at2, facingLocation: f, easeOptions: { easeTime: 0.25, easeType: EasingType.Linear } });
+      } catch {
+      }
+    }
+  }
+  tick() {
+    if (this.done) return;
+    this.t++;
+    if (this.t >= this.o.ticks) {
+      this.cut();
+      return;
+    }
+    if (this.t % 2 === 0 || this.o.shots) this.aim();
+  }
+  /** End it now: every watcher gets their own eyes back. */
+  cut() {
+    if (this.done) return;
+    this.done = true;
+    for (const { p } of this.cast) release(p);
+    this.cast = [];
+  }
+};
+function release(p) {
+  try {
+    p.camera.clear();
+  } catch {
+  }
+  try {
+    p.onScreenDisplay.setHudVisibility(HudVisibility.Reset, HUD);
+  } catch {
+  }
+  try {
+    p.setDynamicProperty(FLAG, void 0);
+  } catch {
+  }
+}
+var films = [];
+function film(dim, focus, o) {
+  if (!CONFIG.cutscenes) return { cut() {
+  }, done: true };
+  const f = new Film(dim, focus, o);
+  films.push(f);
+  return f;
+}
+function filmTick() {
+  if (!films.length) return;
+  for (const f of films) {
+    try {
+      f.tick();
+    } catch {
+      f.cut();
+    }
+  }
+  films = films.filter((f) => !f.done);
+}
+function releaseStale(p) {
+  try {
+    if (p.getDynamicProperty(FLAG) === true) release(p);
+  } catch {
+  }
+}
+function cutAll() {
+  for (const f of films) f.cut();
+  films = [];
+}
+
+// src/music.ts
+var TRACK = (t) => `basiliskra.music.${t}`;
+var RANGE = { dread: 80, wrath: 128, last: 160 };
+var GRACE = 8 * TICKS.second;
+var PROP2 = "bk:music";
+var playing = /* @__PURE__ */ new Map();
+var scene = null;
+function sceneTheme(theme, ticks, at2, dim) {
+  scene = { theme, until: store.rec.clock + ticks, at: { ...at2 }, dim };
+}
+var FIGHT = /* @__PURE__ */ new Set(["charge", "beam", "remember", "scatter", "lock", "pursue", "raze", "arc", "pin", "flinch", "boat"]);
+var fightUntil = -1;
+function themeFor(c, now, doing, hurtAt, battle) {
+  if (scene && now < scene.until) return scene.theme;
+  if (!c || !c.valid) return null;
+  if (store.rec.ending?.step || store.rec.evolve) return "last";
+  if (battle) return "wrath";
+  if (c.form >= 4) return "last";
+  if (FIGHT.has(doing) || hurtAt > 0 && now - hurtAt < 5 * TICKS.second) fightUntil = now + 25 * TICKS.second;
+  if (now < fightUntil) return "wrath";
+  return c.phase === "sleep" ? null : "dread";
+}
+function stop(p) {
+  try {
+    p.runCommand("music stop 3");
+  } catch {
+    try {
+      p.stopMusic();
+    } catch {
+    }
+  }
+  try {
+    p.setDynamicProperty(PROP2, void 0);
+  } catch {
+  }
+}
+function musicTick(c, now, doing = "", hurtAt = -1, battle = false) {
+  if (now % 20 !== 0) return;
+  const want = CONFIG.music ? themeFor(c, now, doing, hurtAt, battle) : null;
+  for (const p of players()) {
+    let near = false;
+    try {
+      const inScene = !!scene && now < scene.until && p.dimension.id === scene.dim && dist(p.location, scene.at) <= RANGE.last;
+      near = !!want && (inScene || !!c && c.valid && p.dimension.id === c.dim.id && dist(p.location, c.pos) <= RANGE[want]);
+    } catch {
+      continue;
+    }
+    const cur = playing.get(p.id);
+    if (near && want) {
+      if (!cur || cur.theme !== want) {
+        try {
+          p.playMusic(TRACK(want), { fade: cur ? 3 : 2, loop: true, volume: 0.85 });
+          p.setDynamicProperty(PROP2, want);
+          playing.set(p.id, { theme: want, lost: -1 });
+        } catch {
+        }
+      } else cur.lost = -1;
+    } else if (cur) {
+      if (cur.lost < 0) cur.lost = now;
+      if (!CONFIG.music || now - cur.lost >= GRACE) {
+        stop(p);
+        playing.delete(p.id);
+      }
+    }
+  }
+}
+function musicJoin(p) {
+  playing.delete(p.id);
+  try {
+    if (p.getDynamicProperty(PROP2) !== void 0) stop(p);
+  } catch {
+  }
+}
+function musicStop() {
+  scene = null;
+  fightUntil = -1;
+  for (const p of players()) if (playing.delete(p.id)) stop(p);
+}
+
+// src/controller.ts
+import { ItemStack as ItemStack4, system as system5, world as world13 } from "@minecraft/server";
+
 // src/ending.ts
+import { EquipmentSlot as EquipmentSlot2 } from "@minecraft/server";
 var NOTE = "minecraft:noteblock";
 var NOTE_REACH = 24;
 var GAP_MIN = 11;
@@ -5771,7 +7331,7 @@ var Ending = class {
 };
 
 // src/forms/one.ts
-import { world as world9 } from "@minecraft/server";
+import { world as world11 } from "@minecraft/server";
 function boatOf(p) {
   try {
     const r = p.getComponent("minecraft:riding");
@@ -5802,7 +7362,7 @@ var BrainOne = class extends Brain {
   }
   choose() {
     const c = this.c, now = this.now, rec = this.rec;
-    const tod = world9.getTimeOfDay();
+    const tod = world11.getTimeOfDay();
     const p = Math.max(0.25, 1 / Math.max(0.1, 1));
     if (!rec.evolve && now - rec.mut.formSince >= changeTicks(1) && this.ready("beach")) {
       this.rest("beach", 2 * TICKS.minute);
@@ -6186,7 +7746,7 @@ var BrainOne = class extends Brain {
     c.bendHold = 19;
     c.setPhase("sleep");
     let t = 0;
-    while (isNight(world9.getTimeOfDay()) && t++ < 9e3) {
+    while (isNight(world11.getTimeOfDay()) && t++ < 9e3) {
       const head = c.anchor("muzzle");
       let woke = this.now - this.hurtAt < 40;
       for (const p of nearbyPlayers(c, 40)) if (dist(p.location, head) < 7) woke = true;
@@ -6259,849 +7819,8 @@ var BrainOne = class extends Brain {
   }
 };
 
-// src/forms/four.ts
-import { EntityDamageCause as EntityDamageCause8, world as world10 } from "@minecraft/server";
-var SPEC = { range: 150, radius: 2.4, damage: 11, width: 3.2, carve: 3.8, fallout: 6 };
-var THIN = { range: 60, radius: 1, damage: 5, width: 0.55, carve: 1.2, fallout: 2 };
-var BEAM_MIN2 = 18;
-var FEET2 = ["foot_l", "foot_r"];
-var VEINS = [0, 1, 2, 3].flatMap((k) => [`wing_vein_l${k}`, `wing_vein_r${k}`]);
-var HALF = STRIDE_IV / 2;
-var FIRE = 155;
-var SKID_AT = 30;
-var LIFT_AT = 55;
-var SWEEP_AT = 79;
-var SWEEP_END = 129;
-var PULSE_TICKS = 100;
-var PLATE_REACH = 70;
-var PLATE_SHOTS = 3;
-var BrainFour = class extends BrainThree {
-  constructor(c) {
-    super(c);
-    this.lastFailed = false;
-    this.heading = -1;
-    c.set(PROP.tier, 3);
-    c.set(PROP.gill, !!this.four().plate);
-  }
-  four() {
-    return this.rec.four ??= { debut: false, shots: 0, plate: null };
-  }
-  tier() {
-    return 3;
-  }
-  onFinish() {
-    super.onFinish();
-    this.c.bendHold = 0;
-    this.c.wade = false;
-  }
-  choose() {
-    const c = this.c, now = this.now, F = this.four();
-    if (this.wantCharge) {
-      this.wantCharge = false;
-      return { name: "charge", run: this.beam(null), limit: 40 * TICKS.second };
-    }
-    if (!F.debut) return { name: "debut", run: this.debut(), limit: 60 * TICKS.second };
-    const near = nearbyPlayers(c, 170);
-    const mobs = this.creatures();
-    if (!this.cooldown.has("rroar")) this.rest("rroar", (40 + 60 * hash(now, 91)) * TICKS.second);
-    if (this.ready("rroar")) {
-      this.rest("rroar", (70 + 120 * hash(now, 92)) * TICKS.second);
-      if (hash(now, 93) < 0.6 && anyoneNear(c, 160)) return { name: "roar", run: this.roar(hash(now, 94) < 0.3), limit: 12 * TICKS.second };
-    }
-    if (now >= this.recoverUntil) {
-      const eye = c.anchor("nose");
-      if (this.ready("stare")) {
-        const p = near.find((q) => dist(q.location, c.pos) <= 130 && clearLine(c.dim, eye, headOf(q)));
-        if (p) {
-          this.rest("stare", (55 + 40 * hash(now, 95)) * TICKS.second);
-          return { name: "stare", run: this.stare(p), limit: 14 * TICKS.second };
-        }
-      }
-      if (this.ready("drag")) {
-        const shore = this.shoreVictim(near);
-        if (shore) {
-          this.rest("drag", 4 * TICKS.minute);
-          return { name: "drag", run: this.dragSeabed(shore), limit: 30 * TICKS.second };
-        }
-      }
-      if (this.ready("beam")) {
-        const mouth = c.anchor("mouth");
-        for (const q of [...near, ...mobs]) {
-          const d = dist(q.location, mouth);
-          if (d < BEAM_MIN2 || d > SPEC.range - 6) continue;
-          if (clearLine(c.dim, mouth, headOf(q))) {
-            this.rest("beam", 24 * TICKS.second);
-            return { name: "beam", run: this.breath(q), limit: 90 * TICKS.second };
-          }
-          if (isPlayer(q) && this.plateSees(q)) {
-            this.rest("beam", 26 * TICKS.second);
-            return { name: "beam", run: this.plateShot(q), limit: 45 * TICKS.second };
-          }
-        }
-      }
-    }
-    const quarry = near.find((p) => dist(p.location, c.pos) < 110) ?? mobs.sort((x, y) => dist(x.location, c.pos) - dist(y.location, c.pos))[0];
-    if (quarry) return { name: "pursue", run: this.pursue(quarry), limit: 20 * TICKS.second };
-    const town = settlementNear(c, now);
-    if (town) return { name: "raze", run: this.raze(town), limit: 150 * TICKS.second };
-    return { name: "roam", run: this.roam(), limit: 90 * TICKS.second };
-  }
-  // ---- two feet, and what is under them -----------------------------------------------------------------
-  footfalls() {
-    const c = this.c;
-    c.walkPhase = ((this.beat - 1 & 1) + clamp((c.travelled - this.stepAt) / HALF, 0, 1.15)) * 180;
-    if (c.travelled - this.stepAt < HALF) return;
-    this.stepAt = c.travelled - this.stepAt < STRIDE_IV ? this.stepAt + HALF : c.travelled;
-    const k = this.beat & 1;
-    c.set(PROP.gait, k);
-    const foot = add(c.anchor(FEET2[k]), mul(c.forward, HALF * 0.5));
-    this.beat++;
-    this.rec.mut.overland += HALF;
-    this.stomp({ x: foot.x, y: c.pos.y + 0.1, z: foot.z });
-  }
-  /** One foot coming down: the ground under it is blown out, like the Wither's, and whatever stood there with it. */
-  stomp(ground) {
-    const c = this.c;
-    sound(c.dim, "basiliskra.iii.step", ground, 128, 1, 0.66 + (this.beat & 1) * 0.04);
-    particle(c.dim, "basiliskra:step_dust", ground, 96);
-    particle(c.dim, "basiliskra:impact_ring", { x: ground.x, y: ground.y + 0.3, z: ground.z }, 128);
-    for (const p of witnesses(c.dim, ground, 70)) {
-      const f = 1 - dist(p.location, ground) / 70;
-      try {
-        p.runCommand(`camerashake add @s ${(0.08 + 0.3 * f).toFixed(2)} 0.3 positional`);
-      } catch {
-      }
-    }
-    blast(c.dim, ground, 8, 8, 20, 1.1, (p, n) => c.hurt(p, n), c.entity, ground);
-    if (wither() && !c.afloat) {
-      const got = carve(c.dim, { x: ground.x, y: ground.y - 0.6, z: ground.z }, 3.4, 150, false);
-      if (got.broken > 20) particle(c.dim, "basiliskra:impact_debris", { x: ground.x, y: ground.y + 1, z: ground.z }, 96);
-    }
-  }
-  *pursue(g) {
-    const c = this.c;
-    const player = isPlayer(g);
-    c.smash = true;
-    for (let t = 0; t < 380; t++) {
-      let at2;
-      try {
-        if (!g.isValid || g.dimension.id !== c.dim.id || player && !targetable(g)) break;
-        at2 = g.location;
-      } catch {
-        break;
-      }
-      c.setPhase("move");
-      c.goTo(at2, 0.17, player ? 26 : 6);
-      c.lookAt(at2, 60, 40);
-      this.footfalls();
-      if (dist(at2, c.pos) < (player ? 26 : 7)) break;
-      if (t % 100 === 50) c.say("basiliskra.iii.grunt", c.anchor("nose"), 72, 1, 0.8 + hash(t) * 0.08);
-      yield;
-    }
-    c.halt();
-    c.smash = false;
-  }
-  /** He goes a long way in one direction before he thinks of another: across the world, not round a place. */
-  *roam() {
-    const c = this.c;
-    const near = watchersNear(c, 220);
-    let target;
-    if (near.length && hash(this.now, 41) < 0.65) {
-      const p = near[0].location;
-      const on = norm({ x: p.x - c.pos.x, y: 0, z: p.z - c.pos.z });
-      target = { x: p.x + on.x * 30 + (hash(this.now, 42) - 0.5) * 50, y: p.y, z: p.z + on.z * 30 + (hash(this.now, 43) - 0.5) * 50 };
-    } else {
-      if (this.heading < 0) this.heading = hash(this.now, 44) * 360;
-      this.heading = (this.heading + (hash(this.now, 45) - 0.5) * 70 + 360) % 360;
-      const a = this.heading * Math.PI / 180;
-      target = { x: c.pos.x - Math.sin(a) * 150, y: c.pos.y, z: c.pos.z + Math.cos(a) * 150 };
-    }
-    const got = yield* this.walk(target, 0.16, 10, 1700);
-    if (!got) this.heading = (this.heading + 110 + 360) % 360;
-    c.setPhase("idle");
-    for (let t = 0; t < 90; t++) {
-      if (t === 30) c.say(hash(this.now, 17) < 0.5 ? "basiliskra.iii.breath" : "basiliskra.iii.growl", c.anchor("nose"), 80, 0.9, 0.82);
-      yield;
-    }
-  }
-  /** His roar is the same roar, from a bigger chest: it reaches further and throws harder.  The wings open with it. */
-  *roar(whole) {
-    const c = this.c;
-    c.halt();
-    c.setPhase("roar");
-    c.say(whole ? "basiliskra.roar" : "basiliskra.roar_short", c.anchor("mouth"), whole ? 192 : 160);
-    const fx = new RoarFx(c, whole, whole ? 56 : 42, whole ? 9 : 6);
-    const ticks = whole ? 160 : 88;
-    for (let t = 0; t < ticks; t++) {
-      fx.tick();
-      yield;
-    }
-    c.setPhase("idle");
-  }
-  *turnTo(at2, rate = 1.2, limit = 240) {
-    const c = this.c;
-    for (let t = 0; t < limit; t++) {
-      const want = yawTo(c.pos, at2);
-      if (Math.abs(wrapDeg(want - c.yaw)) < 2) break;
-      c.yaw = turnTowards(c.yaw, want, rate);
-      yield;
-    }
-  }
-  // ---- the stare ------------------------------------------------------------------------------------------
-  /** He looks at one player.  While he can see them they can barely walk; when he looks away, it wears off. */
-  *stare(p) {
-    const c = this.c;
-    c.halt();
-    c.setPhase("stare");
-    c.say("basiliskra.iii.neck_turn", c.anchor("nose"), 96);
-    let lost = 0, told = false;
-    const peaceful = () => {
-      try {
-        return CONFIG.harmlessOnPeaceful && String(world10.getDifficulty()).toLowerCase() === "peaceful";
-      } catch {
-        return false;
-      }
-    };
-    for (let t = 0; t < 170; t++) {
-      let head;
-      try {
-        if (!p.isValid || !targetable(p) || p.dimension.id !== c.dim.id) break;
-        head = p.getHeadLocation();
-      } catch {
-        break;
-      }
-      c.lookAt(head, 85, 50);
-      if (t === 34) c.say("basiliskra.iii.growl", c.anchor("nose"), 96, 1, 0.78);
-      if (t >= 14 && t % 10 === 4) {
-        const sees = dist(head, c.pos) <= 140 && clearLine(c.dim, c.anchor("nose"), head);
-        lost = sees ? 0 : lost + 1;
-        if (lost >= 3) break;
-        if (sees && !peaceful()) {
-          try {
-            p.addEffect("slowness", 50, { amplifier: 2, showParticles: false });
-            if (!told) {
-              told = true;
-              p.onScreenDisplay.setActionBar("§cHe is looking at you.");
-              p.playSound("basiliskra.iii.window_breath", { volume: 1 });
-            }
-            p.runCommand("camerashake add @s 0.05 0.5 rotational");
-          } catch {
-          }
-        }
-      }
-      yield;
-    }
-    c.lookAhead();
-    c.setPhase("idle");
-    yield* wait(20);
-  }
-  // ---- 1. his first roar comes after his first beam ----------------------------------------------------------
-  *debut() {
-    const c = this.c, F = this.four();
-    c.halt();
-    const who = watchersNear(c, 170)[0];
-    const toward = who ? norm({ x: who.location.x - c.pos.x, y: 0, z: who.location.z - c.pos.z }) : c.forward;
-    if (who) yield* this.turnTo(who.location, 1.5, 160);
-    c.setPhase("look");
-    const reach = who ? clamp(distXZ(who.location, c.pos) - 8, 30, 70) : 46;
-    const line = [];
-    for (let d = reach; d > reach - 26; d -= 1) {
-      const x = c.pos.x + toward.x * d, z = c.pos.z + toward.z * d;
-      const g = groundY(c.dim, x, z, c.pos.y + 24, 60);
-      if (typeof g === "number" && !isWaterId(idAt(c.dim, { x, y: g, z }))) line.push({ x, y: g - 1, z });
-    }
-    if (line.length < 6) {
-      F.debut = true;
-      store.touch();
-      yield* this.roar(true);
-      return;
-    }
-    yield* wait(24);
-    const st = { ground: null };
-    for (let t = 0; t < 52; t++) {
-      const at2 = line[Math.min(line.length - 1, Math.floor(t / 52 * line.length))];
-      const top = { x: at2.x, y: at2.y + 1, z: at2.z };
-      c.lookAt(top, 85, 60);
-      const from = c.anchor("mouth");
-      const dir = norm(sub(top, from));
-      beamTick(c, { ...THIN, range: dist(from, top) + 2 }, t, 1, st, { from, dir, harmless: true });
-      if (t % 2 === 0) particle(c.dim, "basiliskra:beam_impact", top, 128);
-      if (t % 8 === 0) sound(c.dim, "basiliskra.iii.charge_tick", top, 96, 0.8, 1.5);
-      yield;
-    }
-    c.lookAhead();
-    for (let t = 0; t < 60; t++) {
-      if (t % 6 === 0) for (let i = t % 12 === 0 ? 0 : 1; i < line.length; i += 2) particle(c.dim, "basiliskra:rad_glint", { x: line[i].x, y: line[i].y + 1.1, z: line[i].z }, 96);
-      yield;
-    }
-    for (let i = 0; i < line.length; i++) {
-      const at2 = line[i];
-      const made = glassify(c.dim, at2);
-      particle(c.dim, made ? "basiliskra:crystal_break" : "basiliskra:rad_glint", { x: at2.x, y: at2.y + 1.2, z: at2.z }, 96);
-      sound(c.dim, "random.pop", at2, 64, 1, 0.6 + i / line.length * 0.9);
-      yield* wait(3);
-    }
-    addFallout(line[Math.floor(line.length / 2)], 5, 0.5);
-    F.debut = true;
-    store.touch();
-    yield* this.roar(true);
-    this.recoverUntil = this.now + 4 * TICKS.second;
-  }
-  // ---- the breath, and what can happen inside it ---------------------------------------------------------------
-  igniteAt(from, dir) {
-    const c = this.c;
-    particle(c.dim, "basiliskra:muzzle_flash", from, 192);
-    particle(c.dim, "basiliskra:muzzle_shock", from, 192, beamVars(dir, 1, 1));
-    flash(c.dim, from, 80, { red: 1, green: 0.5, blue: 0.42 }, 0.03, 0.04, 0.3);
-    shake(c, 128, 1, 0.5);
-  }
-  /** The plate that stands in the ground lights with the gap in his spine. */
-  plateGlow(t) {
-    const P = this.four().plate;
-    if (!P || P.burnt || t % 10 !== 0) return;
-    const top = { x: P.x + 0.5, y: P.y + 3, z: P.z + 0.5 };
-    particle(this.c.dim, "basiliskra:impact_glare", top, 128);
-    particle(this.c.dim, "basiliskra:rad_glint", { x: top.x, y: top.y + 2, z: top.z }, 96);
-    if (t % 20 === 0) sound(this.c.dim, "basiliskra.iii.charge_tick", top, 64, 0.5, 0.7);
-  }
-  /**
-   * He charges, following `aimAt` with his eye until the lock.  Returns "lock" when the charge is whole,
-   * "cover" if the quarry got something solid between them while he was still following (see the swallow), and
-   * "gone" if there is nothing left to fire at.
-   */
-  *charge(target, aimAt, watchCover) {
-    const c = this.c;
-    const ok = () => {
-      try {
-        return !target || target.isValid && target.dimension.id === c.dim.id;
-      } catch {
-        return false;
-      }
-    };
-    c.halt();
-    c.setPhase("charge");
-    c.say("basiliskra.iii.club_plant", c.anchor("club_core"), 128);
-    c.say("basiliskra.iii.charge", c.anchor("throat"), 160);
-    this.chargeSounding = true;
-    this.rodSeen.clear();
-    this.rodLayer = 0;
-    for (let t = 0; t < PLANT_TICKS; t++) {
-      c.setCharge(t / 7);
-      if (ok()) c.aimAt(aimAt(), 80, 50);
-      this.scanRods();
-      yield;
-    }
-    const light = LIGHT_END - PLANT_TICKS;
-    let hidden = 0, lit = 1;
-    for (let t = 0; t < light; t++) {
-      if (!ok()) return "gone";
-      const aim = aimAt();
-      const off = c.aimAt(aim, 80, 50);
-      if (off > 0) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), 0.5);
-      c.setCharge(2 + t / light * 13.4);
-      const zone = Math.floor(c.charge / 2);
-      if (zone > lit) {
-        lit = zone;
-        sound(c.dim, "basiliskra.iii.charge_tick", c.anchor(zone >= 6 ? "throat" : "club_core"), 96, 0.55, 0.6 + zone * 0.08);
-      }
-      if (t % 20 === 10) shake(c, 64, 0.14 + 0.24 * (t / light), 1);
-      this.plateGlow(t);
-      this.scanRods();
-      if (watchCover && target && t > 24 && t % 4 === 0) {
-        hidden = clearLine(c.dim, c.anchor("mouth"), headOf(target)) ? 0 : hidden + 1;
-        if (hidden >= 4) return "cover";
-      }
-      yield;
-    }
-    const lock = CHARGE_TICKS - LIGHT_END;
-    for (let t = 0; t < lock; t++) {
-      c.setCharge(16 + t / lock * 2);
-      if (t % 2 === 0) {
-        const { from, dir } = c.aim();
-        particle(c.dim, "basiliskra:beam_aim", from, 160, beamVars(dir, clearRange(c, from, dir, SPEC.range), 0.3 + 0.7 * (t / lock)));
-      }
-      this.plateGlow(LIGHT_END + t);
-      yield;
-    }
-    return "lock";
-  }
-  cutCharge() {
-    if (!this.chargeSounding) return;
-    this.chargeSounding = false;
-    stopSound(this.c.dim, "basiliskra.iii.charge", this.c.pos);
-  }
-  /** The breath at something he can see. */
-  *breath(target) {
-    const c = this.c, F = this.four();
-    if (!F.plate && F.shots >= 2) yield* this.shedPlate();
-    const got = yield* this.charge(target, () => headOf(target), isPlayer(target) && this.ready("swallow"));
-    if (got === "gone") {
-      this.cutCharge();
-      return;
-    }
-    if (got === "cover") {
-      this.rest("swallow", 3 * TICKS.minute);
-      yield* this.swallow(target);
-      return;
-    }
-    const rod = this.findRod();
-    if (rod && clearLine(c.dim, this.clubTop(), { x: rod.x + 0.5, y: rod.y + 1.2, z: rod.z + 0.5 })) {
-      this.cutCharge();
-      yield* this.ground(rod);
-      this.recoverUntil = this.now + 8 * TICKS.second;
-      return;
-    }
-    if (!this.lastFailed && F.shots >= 1 && hash(this.now, 96) < 0.22) {
-      this.lastFailed = true;
-      yield* this.misfire();
-      return;
-    }
-    this.lastFailed = false;
-    yield* this.fire(target);
-    yield* this.vent();
-    yield* this.roar(hash(this.now, 61) < 0.3);
-    this.recoverUntil = this.now + 6 * TICKS.second;
-    c.setPhase("idle");
-    yield* wait(30);
-  }
-  /** 2. The shot, the skid, and the turn on the buried club. */
-  *fire(target) {
-    const c = this.c, F = this.four();
-    c.setPhase("fire");
-    c.setCharge(20);
-    F.shots++;
-    this.rec.mut.beams++;
-    this.rec.mut.lastEncounter = this.now;
-    this.chargeSounding = false;
-    c.say("basiliskra.iii.beam", c.anchor("mouth"), 192);
-    {
-      const { from, dir } = c.aim();
-      this.igniteAt(from, dir);
-    }
-    const st = { ground: null };
-    const live = () => {
-      try {
-        return !!target && target.isValid && target.dimension.id === c.dim.id && (!isPlayer(target) || targetable(target));
-      } catch {
-        return false;
-      }
-    };
-    let side = 0;
-    let pivot = null;
-    for (let t = 0; t < FIRE; t++) {
-      const fade = t < FIRE - 16 ? 1 : (FIRE - t) / 16;
-      if (t < SKID_AT) {
-        if (live()) {
-          const want = clamp(wrapDeg(yawTo(c.anchor("throat"), target.location) - c.yaw), -80, 80);
-          c.lookYaw += clamp(want - c.lookYaw, -0.3, 0.3);
-        }
-      } else if (t < LIFT_AT) {
-        if (t === SKID_AT) {
-          c.setPhase("skid");
-          c.say("basiliskra.iii.grunt", c.anchor("nose"), 96, 1, 0.74);
-        }
-        const back = mul(c.forward, -0.07);
-        const to = { x: c.pos.x + back.x, y: c.pos.y, z: c.pos.z + back.z };
-        if (isLoaded(c.dim, to) && typeof groundY(c.dim, to.x, to.z, c.pos.y + 4, 10) === "number") c.pos = to;
-        if (t % 3 === 0) for (const h of ["heel_l", "heel_r"]) particle(c.dim, "basiliskra:step_dust", { ...c.anchor(h), y: c.pos.y + 0.2 }, 96);
-      } else if (t < SWEEP_AT) {
-        if (t === LIFT_AT) {
-          const bearing = live() ? wrapDeg(yawTo(c.pos, target.location) - (c.yaw + c.lookYaw)) : hash(this.now, 97) - 0.5;
-          side = bearing >= 0 ? 1 : -1;
-          pivot = c.anchor("club_core");
-          c.setPhase("pivot");
-          c.bendHold = 30 * side;
-          c.say("basiliskra.iii.club_plant", pivot, 128, 1, 0.8);
-          particle(c.dim, "basiliskra:impact_ring", { x: pivot.x, y: c.pos.y + 0.3, z: pivot.z }, 128);
-          shake(c, 96, 0.5, 0.4);
-        }
-      } else if (t < SWEEP_END && pivot) {
-        const step = 1.4 * side;
-        const a = step * Math.PI / 180;
-        const rx = c.pos.x - pivot.x, rz = c.pos.z - pivot.z;
-        const to = { x: pivot.x + rx * Math.cos(a) - rz * Math.sin(a), y: c.pos.y, z: pivot.z + rx * Math.sin(a) + rz * Math.cos(a) };
-        if (isLoaded(c.dim, to)) {
-          c.pos = to;
-          c.yaw = wrapDeg(c.yaw + step);
-        }
-        if (t % 12 === 0) this.stomp({ ...c.anchor(side > 0 ? "foot_r" : "foot_l"), y: c.pos.y + 0.1 });
-      } else if (t === SWEEP_END && pivot) {
-        c.setPhase("fire");
-        c.bendHold = 0;
-        sound(c.dim, "mob.wither.break_block", pivot, 128, 1, 0.5);
-        particle(c.dim, "basiliskra:impact_debris", { x: pivot.x, y: c.pos.y + 1, z: pivot.z }, 128);
-        particle(c.dim, "basiliskra:impact_ring", { x: pivot.x, y: c.pos.y + 0.3, z: pivot.z }, 128);
-        blast(c.dim, { x: pivot.x, y: c.pos.y + 1, z: pivot.z }, 9, 9, 18, 1.3, (p, n) => c.hurt(p, n), c.entity);
-        if (wither()) carve(c.dim, { x: pivot.x, y: c.pos.y, z: pivot.z }, 3, 120, false);
-      }
-      beamTick(c, SPEC, t, fade, st, { scorch: (hit) => this.scorch(hit) });
-      if (t % 10 === 0) shake(c, 96, 0.4 * fade + 0.1, 0.6);
-      yield;
-    }
-    c.bendHold = 0;
-  }
-  // ---- 3. the misfire: his wings take the recoil -----------------------------------------------------------------
-  *misfire() {
-    const c = this.c;
-    this.cutCharge();
-    c.setPhase("recoil");
-    c.say("basiliskra.iii.fizzle", c.anchor("mouth"), 128);
-    c.setCharge(8);
-    shake(c, 96, 0.7, 0.5);
-    const f = c.forward, l = leftOf(c.yaw);
-    const states = VEINS.map(() => ({ ground: null }));
-    for (let t = 0; t < 96; t++) {
-      if (t >= 16 && t < 80) {
-        for (let k = 0; k < VEINS.length; k++) {
-          if (t < 16 + k * 2 || (t + k) % 2) continue;
-          const sgn = k % 2 === 0 ? 1 : -1, out = 0.2 + 0.22 * Math.floor(k / 2);
-          const from = c.anchor(VEINS[k]);
-          const dir = norm({ x: -f.x * 0.7 + l.x * sgn * out, y: -0.62, z: -f.z * 0.7 + l.z * sgn * out });
-          beamTick(c, THIN, t + k * 3, 1, states[k], { from, dir, scorch: (hit) => this.scorch(hit) });
-        }
-        if (t % 12 === 0) sound(c.dim, "basiliskra.ii.arc", c.anchor(VEINS[t / 12 % VEINS.length | 0]), 96, 1, 0.7);
-      }
-      c.setCharge(Math.max(0, 8 - t * 0.09));
-      yield;
-    }
-    c.setCharge(0);
-    c.setPhase("idle");
-    c.say("basiliskra.iii.growl", c.anchor("nose"), 96, 1, 0.8);
-    this.recoverUntil = this.now + 5 * TICKS.second;
-    yield* wait(40);
-  }
-  // ---- 6. the beam he swallows ----------------------------------------------------------------------------------
-  *swallow(target) {
-    const c = this.c;
-    this.cutCharge();
-    c.setPhase("swallow");
-    c.say("basiliskra.iii.fizzle", c.anchor("mouth"), 96, 1, 0.7);
-    c.lookAhead();
-    for (let t = 0; t < 36; t++) {
-      c.setCharge(Math.max(0, 16 - t * 0.5));
-      yield;
-    }
-    let last = { ...target.location };
-    let pulses = 0;
-    c.smash = true;
-    for (let t = 1; pulses < 3; t++) {
-      let seen = false;
-      try {
-        if (target.isValid && targetable(target) && target.dimension.id === c.dim.id) {
-          const mouth = c.anchor("mouth");
-          seen = dist(target.location, mouth) < SPEC.range - 6 && dist(target.location, mouth) > 10 && clearLine(c.dim, mouth, headOf(target));
-          if (seen) last = { ...target.location };
-        }
-      } catch {
-      }
-      if (seen && Math.abs(wrapDeg(yawTo(c.pos, last) - c.yaw)) < 70) break;
-      c.setPhase("carry");
-      c.goTo(last, 0.17, 12);
-      this.footfalls();
-      if (t % PULSE_TICKS === 0) {
-        pulses++;
-        c.pulse(11);
-        c.say("basiliskra.knock.vent", c.anchor("throat"), 96, 1, 0.8 + pulses * 0.1);
-        shake(c, 64, 0.3, 0.3);
-      }
-      yield;
-    }
-    c.halt();
-    c.smash = false;
-    const forced = pulses >= 3;
-    let live = false;
-    try {
-      live = target.isValid && target.dimension.id === c.dim.id;
-    } catch {
-      live = false;
-    }
-    c.lookAhead();
-    yield* this.snapShot(!forced && live ? target : null, 72);
-    yield* this.vent();
-    this.recoverUntil = this.now + 6 * TICKS.second;
-    c.setPhase("idle");
-  }
-  /** A shot with no warning but the pulse: what he was already carrying. */
-  *snapShot(target, ticks) {
-    const c = this.c, F = this.four();
-    c.setPhase("fire");
-    c.setCharge(20);
-    try {
-      if (target && target.isValid) c.aimAt(headOf(target), 80, 50);
-    } catch {
-    }
-    F.shots++;
-    this.rec.mut.beams++;
-    this.rec.mut.lastEncounter = this.now;
-    c.say("basiliskra.iii.beam", c.anchor("mouth"), 192);
-    {
-      const { from, dir } = c.aim();
-      this.igniteAt(from, dir);
-    }
-    const st = { ground: null };
-    for (let t = 0; t < ticks; t++) {
-      const fade = t < ticks - 12 ? 1 : (ticks - t) / 12;
-      try {
-        if (target && target.isValid) {
-          const want = clamp(wrapDeg(yawTo(c.anchor("throat"), target.location) - c.yaw), -80, 80);
-          c.lookYaw += clamp(want - c.lookYaw, -0.25, 0.25);
-        }
-      } catch {
-      }
-      beamTick(c, SPEC, t, fade, st, { scorch: (hit) => this.scorch(hit) });
-      if (t % 10 === 0) shake(c, 96, 0.4 * fade + 0.1, 0.6);
-      yield;
-    }
-    stopSound(c.dim, "basiliskra.iii.beam", c.pos);
-  }
-  // ---- 5. the plate that keeps charging --------------------------------------------------------------------------
-  plateBlocks(P) {
-    const out = [];
-    for (let h = 0; h < 5; h++) out.push({ x: P.x, y: P.y + h, z: P.z });
-    out.push({ x: P.x + 1, y: P.y + 2, z: P.z }, { x: P.x - 1, y: P.y + 3, z: P.z }, { x: P.x + 1, y: P.y + 3, z: P.z });
-    return out;
-  }
-  *shedPlate() {
-    const c = this.c, F = this.four();
-    const from = c.anchor("plate_break");
-    const l = leftOf(c.yaw), f = c.forward;
-    const spot = { x: Math.floor(c.pos.x + l.x * 15 - f.x * 9), z: Math.floor(c.pos.z + l.z * 15 - f.z * 9) };
-    const g = groundY(c.dim, spot.x + 0.5, spot.z + 0.5, c.pos.y + 20, 50);
-    if (typeof g !== "number") return;
-    const P = { x: spot.x, y: g, z: spot.z, uses: 0, burnt: false };
-    c.set(PROP.gill, true);
-    sound(c.dim, "random.glass", from, 128, 1, 0.5);
-    sound(c.dim, "basiliskra.iii.ground", from, 128, 1, 0.8);
-    particle(c.dim, "basiliskra:impact_fountain", from, 160);
-    c.say("basiliskra.hurt", c.anchor("nose"), 96, 1, 0.8);
-    const top = { x: P.x + 0.5, y: P.y + 2.5, z: P.z + 0.5 };
-    for (let t = 0; t < 18; t++) {
-      const k = t / 18;
-      particle(c.dim, "basiliskra:impact_glare", { x: from.x + (top.x - from.x) * k, y: from.y + (top.y - from.y) * k * k, z: from.z + (top.z - from.z) * k }, 160);
-      yield;
-    }
-    if (CONFIG.terrain !== "none") {
-      for (const b of this.plateBlocks(P)) {
-        const at2 = blockAt(c.dim, b);
-        if (!at2 || isSolidBlock(at2) && at2.typeId !== CRYSTAL_BLOCK) continue;
-        try {
-          at2.setType(TRINITITE_BLOCK);
-        } catch {
-          try {
-            at2.setType("minecraft:red_nether_brick");
-          } catch {
-          }
-        }
-      }
-    }
-    sound(c.dim, "mob.wither.break_block", top, 128, 1, 0.6);
-    particle(c.dim, "basiliskra:impact_ring", { x: top.x, y: P.y + 0.3, z: top.z }, 128);
-    particle(c.dim, "basiliskra:impact_debris", top, 128);
-    blast(c.dim, top, 5, 6, 12, 0.9, (p, n) => c.hurt(p, n), c.entity);
-    F.plate = P;
-    store.touch();
-    yield* wait(20);
-  }
-  plateTop() {
-    const P = this.four().plate;
-    return P && !P.burnt ? { x: P.x + 0.5, y: P.y + 5.3, z: P.z + 0.5 } : null;
-  }
-  /** Can the plate see someone his mouth cannot? */
-  plateSees(q) {
-    const top = this.plateTop();
-    if (!top) return false;
-    const c = this.c;
-    const mouth = c.anchor("mouth");
-    return dist(top, mouth) <= PLATE_REACH && dist(top, q.location) <= 60 && dist(top, q.location) > 3 && clearLine(c.dim, mouth, { x: top.x, y: top.y + 0.8, z: top.z }) && clearLine(c.dim, top, headOf(q));
-  }
-  /** He fires into his own broken plate, and it throws the beam at whoever sheltered from his mouth. */
-  *plateShot(target) {
-    const c = this.c, F = this.four();
-    const top = this.plateTop();
-    if (!top || !F.plate) return;
-    const got = yield* this.charge(null, () => top, false);
-    if (got !== "lock") {
-      this.cutCharge();
-      return;
-    }
-    c.setPhase("fire");
-    c.setCharge(20);
-    F.shots++;
-    this.rec.mut.beams++;
-    this.rec.mut.lastEncounter = this.now;
-    this.chargeSounding = false;
-    c.say("basiliskra.iii.beam", c.anchor("mouth"), 192);
-    {
-      const { from, dir } = c.aim();
-      this.igniteAt(from, dir);
-    }
-    let aim = top;
-    try {
-      aim = headOf(target);
-    } catch {
-    }
-    const out = norm(sub(aim, top));
-    const a = { ground: null }, b = { ground: null };
-    for (let t = 0; t < 110; t++) {
-      const fade = t < 96 ? 1 : (110 - t) / 14;
-      const from = c.anchor("mouth");
-      const leg = sub(top, from);
-      beamTick(c, { ...SPEC, range: Math.hypot(leg.x, leg.y, leg.z) }, t, fade, a, { from, dir: norm(leg), harmless: true });
-      beamTick(c, { ...SPEC, range: 70, width: SPEC.width * 0.7 }, t + 1, fade, b, { from: top, dir: out, scorch: (hit) => this.scorch(hit) });
-      if (t % 4 === 0) particle(c.dim, "basiliskra:impact_glare", top, 160);
-      if (t % 10 === 0) shake(c, 96, 0.4 * fade + 0.1, 0.6);
-      yield;
-    }
-    stopSound(c.dim, "basiliskra.iii.beam", c.pos);
-    F.plate.uses++;
-    if (F.plate.uses >= PLATE_SHOTS) {
-      F.plate.burnt = true;
-      for (const q of this.plateBlocks(F.plate)) {
-        const at2 = blockAt(c.dim, q);
-        if (at2 && at2.typeId === TRINITITE_BLOCK) {
-          try {
-            at2.setType(SLAG_COLD_BLOCK);
-          } catch {
-            try {
-              at2.setType("minecraft:blackstone");
-            } catch {
-            }
-          }
-        }
-      }
-      sound(c.dim, "random.fizz", top, 96, 1, 0.6);
-      particle(c.dim, "basiliskra:impact_smoke", top, 128);
-    }
-    store.touch();
-    yield* this.vent();
-    this.recoverUntil = this.now + 6 * TICKS.second;
-    c.setPhase("idle");
-  }
-  // ---- 4. he drags the seabed ashore ------------------------------------------------------------------------------
-  /** Standing in the shallows, with somebody on dry land ahead: who the wave is for. */
-  shoreVictim(near) {
-    const c = this.c;
-    const feet = idAt(c.dim, { x: c.pos.x, y: c.pos.y + 1.2, z: c.pos.z });
-    if (!isWaterId(feet)) return null;
-    for (const p of near) {
-      const d = distXZ(p.location, c.pos);
-      if (d < 24 || d > 90) continue;
-      const under = idAt(c.dim, { x: p.location.x, y: p.location.y - 0.5, z: p.location.z });
-      if (under && !isWaterId(under) && under !== "minecraft:air") return p;
-    }
-    return null;
-  }
-  *dragSeabed(p) {
-    const c = this.c;
-    c.halt();
-    let goal = { ...c.pos };
-    try {
-      goal = { ...p.location };
-    } catch {
-      return;
-    }
-    yield* this.turnTo(goal, 1.2, 200);
-    c.setPhase("drag");
-    c.say("basiliskra.iii.growl", c.anchor("nose"), 128, 1, 0.74);
-    const f = c.forward, l = leftOf(c.yaw);
-    for (let t = 0; t < 84; t++) {
-      if (t % 5 === 0) for (const h of ["hand_l", "hand_r"]) {
-        const at2 = c.anchor(h);
-        particle(c.dim, "basiliskra:surge", { x: at2.x, y: c.pos.y + 1, z: at2.z }, 96);
-      }
-      if (t % 20 === 10) shake(c, 80, 0.2 + t * 4e-3, 0.8);
-      yield;
-    }
-    c.say("basiliskra.roar_short", c.anchor("mouth"), 160);
-    sound(c.dim, "random.explode", add(c.pos, mul(f, 14)), 128, 1, 0.5);
-    shake(c, 128, 0.9, 0.8);
-    const WIDTH = 17, REACH = Math.min(70, distXZ(goal, c.pos) + 22), SPEED = 1.3;
-    const swept = /* @__PURE__ */ new Set();
-    let boats = 0;
-    let end = { ...c.pos };
-    for (let t = 0; t * SPEED < REACH; t++) {
-      const d = 12 + t * SPEED;
-      const mid = { x: c.pos.x + f.x * d, z: c.pos.z + f.z * d };
-      const gy = groundY(c.dim, mid.x, mid.z, c.pos.y + 16, 30);
-      const y = typeof gy === "number" ? gy : c.pos.y + 1;
-      end = { x: mid.x, y, z: mid.z };
-      for (let w = -WIDTH; w <= WIDTH; w += 3) {
-        const at2 = { x: mid.x + l.x * w, z: mid.z + l.z * w };
-        const g = groundY(c.dim, at2.x, at2.z, y + 8, 16);
-        if (g === UNLOADED || g === NONE) continue;
-        const here = { x: at2.x, y: g + 0.4, z: at2.z };
-        particle(c.dim, (t + w) % 2 ? "basiliskra:surge" : "basiliskra:surge_spray", here, 128);
-      }
-      if (t % 6 === 0) sound(c.dim, "basiliskra.splash", { x: mid.x, y, z: mid.z }, 96, 1, 0.7);
-      try {
-        for (const e of c.dim.getEntities({ location: { x: mid.x, y, z: mid.z }, maxDistance: WIDTH + 4 })) {
-          try {
-            if (e.id === c.entity.id || swept.has(e.id) || e.typeId === "minecraft:item") continue;
-            const rel = sub(e.location, { x: c.pos.x, y: e.location.y, z: c.pos.z });
-            const along = rel.x * f.x + rel.z * f.z, across = rel.x * l.x + rel.z * l.z;
-            if (Math.abs(along - d) > 3 || Math.abs(across) > WIDTH || Math.abs(e.location.y - y) > 7) continue;
-            if (this.sweep(e, f)) {
-              swept.add(e.id);
-              if (/boat/.test(e.typeId)) boats++;
-            }
-          } catch {
-          }
-        }
-      } catch {
-      }
-      yield;
-    }
-    try {
-      const at2 = { x: end.x, y: end.y + 0.6, z: end.z };
-      if (isLoaded(c.dim, at2)) {
-        if (!boats) c.dim.spawnEntity("minecraft:boat", at2);
-        c.dim.spawnEntity("minecraft:cod", { x: at2.x + 1.5, y: at2.y, z: at2.z + 0.5 });
-        c.dim.spawnEntity("minecraft:cod", { x: at2.x - 4, y: at2.y, z: at2.z - 3 });
-      }
-    } catch {
-    }
-    c.setPhase("idle");
-    this.recoverUntil = this.now + 5 * TICKS.second;
-    yield* wait(50);
-  }
-  /** One thing caught by the wave.  True if it was moved. */
-  sweep(e, f) {
-    const c = this.c;
-    if (e.typeId === "minecraft:player") {
-      const p = e;
-      if (!targetable(p)) return false;
-      c.hurt(p, 5, EntityDamageCause8.entityAttack);
-      try {
-        p.applyKnockback({ x: f.x * 3.4, z: f.z * 3.4 }, 0.7);
-      } catch {
-      }
-      try {
-        p.runCommand("camerashake add @s 0.6 0.6 positional");
-      } catch {
-      }
-      return true;
-    }
-    if (/boat|minecart/.test(e.typeId)) {
-      try {
-        e.applyImpulse({ x: f.x * 2.2, y: 0.55, z: f.z * 2.2 });
-        return true;
-      } catch {
-        return false;
-      }
-    }
-    if (!alive(e)) return false;
-    try {
-      e.applyKnockback({ x: f.x * 3, z: f.z * 3 }, 0.6);
-      e.applyDamage(6, { cause: EntityDamageCause8.entityAttack, damagingEntity: c.entity });
-      return true;
-    } catch {
-      return false;
-    }
-  }
-};
-
 // src/forms/two.ts
-import { world as world11 } from "@minecraft/server";
+import { world as world12 } from "@minecraft/server";
 var LAMP = /^minecraft:((lit_)?redstone_lamp|(soul_)?lantern|.*copper_lantern|sea_lantern|glowstone|.*copper_bulb|(soul_|redstone_|copper_)?torch|shroomlight|.*froglight)$/;
 var STONE2 = /^minecraft:(stone|cobblestone|mossy_cobblestone|stone_bricks|andesite|diorite|granite|deepslate|tuff|.*_slab|stone_.*|polished_.*|smooth_stone|gravel)$/;
 var BrainTwo = class extends Brain {
@@ -7133,7 +7852,7 @@ var BrainTwo = class extends Brain {
   }
   choose() {
     const c = this.c, rec = this.rec, now = this.now;
-    const tod = world11.getTimeOfDay();
+    const tod = world12.getTimeOfDay();
     if (!rec.evolve && now - rec.mut.formSince >= changeTicks(2)) {
       rec.evolve = { to: 3, step: 0, t0: now, at: { ...c.pos } };
       return { name: "evolve", run: wait(900), limit: 900 };
@@ -7512,7 +8231,7 @@ var RIFT_SIZE = [0, 14, 16, 30, 46];
 // src/controller.ts
 var TOKEN = "bk:token";
 var ROMAN2 = ["", "I", "II", "III", "IV"];
-function tellNear(dimId, at2, msg) {
+function tellNear2(dimId, at2, msg) {
   for (const p of players()) {
     try {
       if (p.dimension.id === dimId && dist(p.location, at2) < 64) p.sendMessage(msg);
@@ -7615,11 +8334,11 @@ var Controller = class {
     }
     if (dimId !== OVERWORLD) {
       this.quarantine(e);
-      tellNear(dimId, at2, "§7Basiliskra lives in the Overworld. He cannot be called here.");
+      tellNear2(dimId, at2, "§7Basiliskra lives in the Overworld. He cannot be called here.");
       return;
     }
     const said = this.bringHere(at2, yaw, CONFIG.spawnForm, e);
-    tellNear(dimId, at2, `§7${said}`);
+    tellNear2(dimId, at2, `§7${said}`);
   }
   /**
    * Bring the one Basiliskra to `at`, in `want` form (0 = his stage in the story).  If he is loaded he is moved
@@ -7981,7 +8700,7 @@ var Controller = class {
     for (const id of [OVERWORLD, "minecraft:nether", "minecraft:the_end"]) {
       let dim;
       try {
-        dim = world12.getDimension(id);
+        dim = world13.getDimension(id);
       } catch {
         continue;
       }
@@ -8120,8 +8839,10 @@ var Controller = class {
     beginTick(now);
     filmTick();
     falloutTick(now);
-    musicTick(this.creature, now, this.brain?.actName ?? "", this.brain?.hurtAt ?? -1);
+    const lead = this.creature ?? titans.creatures().find((t) => t.valid) ?? null;
+    musicTick(lead, now, this.brain?.actName ?? "", this.brain?.hurtAt ?? -1, titans.fighting());
     cityTick(now);
+    titans.tick(now);
     if (this.creature && !this.creature.valid) {
       this.creature.dropParts();
       this.creature = null;
@@ -8274,7 +8995,7 @@ var Controller = class {
             }
           }
         }
-        const tod = world12.getTimeOfDay();
+        const tod = world13.getTimeOfDay();
         if (near && (isDusk(tod) || t > pace(1.2 * TICKS.day))) this.setStep(1);
         break;
       }
@@ -8573,7 +9294,7 @@ var Controller = class {
     const dim = overworld();
     if (rec.entityId !== null) {
       try {
-        const e = world12.getEntity(rec.entityId);
+        const e = world13.getEntity(rec.entityId);
         if (e) {
           this.inspect(e);
           return;
@@ -8719,7 +9440,7 @@ var Controller = class {
   }
   dropFin(dim, at2) {
     try {
-      dim.spawnItem(new ItemStack3(FIN_ITEM, 1), { x: at2.x, y: at2.y + 1, z: at2.z });
+      dim.spawnItem(new ItemStack4(FIN_ITEM, 1), { x: at2.x, y: at2.y + 1, z: at2.z });
       store.rec.learned.fragments++;
       store.rec.learned.fragmentAt = this.now;
       store.touch();
@@ -8779,7 +9500,7 @@ function trackSplashes() {
     if (done) flying.splice(i, 1);
   }
 }
-world13.afterEvents.worldLoad.subscribe(() => {
+world14.afterEvents.worldLoad.subscribe(() => {
   loadSettings();
   ctl.init();
   ready = true;
@@ -8809,20 +9530,25 @@ system6.beforeEvents.shutdown.subscribe(() => {
   } catch {
   }
 });
-world13.afterEvents.entityLoad.subscribe((ev) => {
+world14.afterEvents.entityLoad.subscribe((ev) => {
   if (!ready) return;
   try {
     if (ev.entity.typeId === TYPE) ctl.inspect(ev.entity);
+    else if (ev.entity.typeId === TITAN) titans.inspect(ev.entity);
     else if (isHitbox(ev.entity.typeId) && !partOwner.has(ev.entity.id)) ev.entity.remove();
   } catch {
   }
 });
-world13.afterEvents.entitySpawn.subscribe((ev) => {
+world14.afterEvents.entitySpawn.subscribe((ev) => {
   if (!ready) return;
   try {
     const id = ev.entity.typeId;
     if (id === TYPE) {
       ctl.inspect(ev.entity);
+      return;
+    }
+    if (id === TITAN) {
+      titans.inspect(ev.entity);
       return;
     }
     if (isHitbox(id)) {
@@ -8833,10 +9559,11 @@ world13.afterEvents.entitySpawn.subscribe((ev) => {
   } catch {
   }
 });
-world13.beforeEvents.entityRemove.subscribe((ev) => {
+world14.beforeEvents.entityRemove.subscribe((ev) => {
   try {
     const id = ev.removedEntity.typeId;
     if (id === TYPE) ctl.onRemoving(ev.removedEntity);
+    else if (id === TITAN) titans.onRemoving(ev.removedEntity);
     else if (isHitbox(id)) partOwner.delete(ev.removedEntity.id);
   } catch {
   }
@@ -8854,6 +9581,7 @@ var PASSES = /* @__PURE__ */ new Set([
 ]);
 var forwardTick = -1;
 var forwardKey = "";
+var TITAN_ON_HIM = 0.3;
 var struckAt = /* @__PURE__ */ new Map();
 var swungAt = /* @__PURE__ */ new Map();
 function meleeDamage(id) {
@@ -8867,23 +9595,30 @@ function meleeDamage(id) {
   if (id === "minecraft:mace") return 6;
   return 1;
 }
-world13.afterEvents.playerSwingStart.subscribe((ev) => {
-  const c0 = ctl.creature;
-  if (!ready || !c0 || !c0.valid) return;
+var everyGiant = () => [...ctl.creature ? [ctl.creature] : [], ...titans.creatures()];
+world14.afterEvents.playerSwingStart.subscribe((ev) => {
+  if (!ready || !everyGiant().length) return;
   if (ev.swingSource !== EntitySwingSource.Attack) return;
   const p = ev.player;
   const t0 = store.rec.clock;
   const held = ev.heldItemStack?.typeId;
   system6.runTimeout(() => {
     try {
-      const c = ctl.creature;
-      if (!c || !c.valid || !p.isValid || p.dimension.id !== c.dim.id) return;
+      if (!p.isValid) return;
       if ((struckAt.get(p.id) ?? -99) >= t0) return;
       if (store.rec.clock - (swungAt.get(p.id) ?? -99) < 8) return;
       const from = p.getHeadLocation(), dir = p.getViewDirection();
       const reach = p.getGameMode() === GameMode2.Creative ? 6.5 : 4.5;
-      const hit = c.rayHit(from, dir, reach);
-      if (!hit) return;
+      let c = null, hit = null;
+      for (const g of everyGiant()) {
+        if (!g.valid || p.dimension.id !== g.dim.id) continue;
+        const h = g.rayHit(from, dir, reach);
+        if (h && (!hit || h.dist < hit.dist)) {
+          hit = h;
+          c = g;
+        }
+      }
+      if (!c || !hit) return;
       if (hit.dist > 0.3 && !clearLine(c.dim, from, { x: from.x + dir.x * hit.dist, y: from.y + dir.y * hit.dist, z: from.z + dir.z * hit.dist })) return;
       swungAt.set(p.id, store.rec.clock);
       const amount = meleeDamage(held) * (hit.tag === "head" ? 1.25 : hit.tag === "tail" ? 0.6 : 1);
@@ -8892,7 +9627,7 @@ world13.afterEvents.playerSwingStart.subscribe((ev) => {
     }
   }, 2);
 });
-world13.beforeEvents.entityHurt.subscribe((ev) => {
+world14.beforeEvents.entityHurt.subscribe((ev) => {
   let type;
   try {
     type = ev.hurtEntity.typeId;
@@ -8906,7 +9641,7 @@ world13.beforeEvents.entityHurt.subscribe((ev) => {
     const amount = ev.damage * (owner.tag === "head" ? 1.25 : owner.tag === "tail" ? 0.6 : 1);
     const cause = ev.damageSource.cause, by = ev.damageSource.damagingEntity;
     if (!PASSES.has(cause) || amount <= 0) return;
-    const key = `${cause}|${by?.id ?? ""}`;
+    const key = `${cause}|${by?.id ?? ""}|${owner.creature.entity.id}`;
     if (by) struckAt.set(by.id, store.rec.clock);
     if (forwardTick === store.rec.clock && forwardKey === key) return;
     forwardTick = store.rec.clock;
@@ -8919,10 +9654,22 @@ world13.beforeEvents.entityHurt.subscribe((ev) => {
     });
     return;
   }
+  if (type === TITAN) {
+    if (!PASSES.has(ev.damageSource.cause)) {
+      ev.cancel = true;
+      return;
+    }
+    if (titans.beforeHurt(ev.hurtEntity, ev.damage) <= 0) ev.cancel = true;
+    return;
+  }
   if (type !== TYPE) return;
   if (!PASSES.has(ev.damageSource.cause)) {
     ev.cancel = true;
     return;
+  }
+  try {
+    if (ev.damageSource.damagingEntity?.typeId === TITAN) ev.damage *= TITAN_ON_HIM;
+  } catch {
   }
   let health = 1;
   try {
@@ -8940,15 +9687,19 @@ world13.beforeEvents.entityHurt.subscribe((ev) => {
     system6.run(() => ctl.driveOff());
   }
 });
-world13.afterEvents.entityHurt.subscribe((ev) => {
+world14.afterEvents.entityHurt.subscribe((ev) => {
   try {
+    if (ev.hurtEntity.typeId === TITAN) {
+      titans.onHurt(ev.hurtEntity, ev.damageSource.damagingEntity, ev.damage);
+      return;
+    }
     if (ev.hurtEntity.typeId !== TYPE) return;
     const by = ev.damageSource.damagingEntity;
     ctl.onHurt(by && by.typeId === "minecraft:player" ? by : void 0, ev.damage);
   } catch {
   }
 });
-world13.afterEvents.entityDie.subscribe((ev) => {
+world14.afterEvents.entityDie.subscribe((ev) => {
   let type;
   try {
     type = ev.deadEntity.typeId;
@@ -8969,7 +9720,7 @@ world13.afterEvents.entityDie.subscribe((ev) => {
   } catch {
   }
 });
-world13.afterEvents.playerBreakBlock.subscribe((ev) => {
+world14.afterEvents.playerBreakBlock.subscribe((ev) => {
   try {
     if (ev.dimension.id !== OVERWORLD) return;
     const t = recordHabitat(ev.block.location, ev.brokenBlockPermutation.type.id, ev.player.id, ev.player.name, store.rec.clock);
@@ -8977,7 +9728,7 @@ world13.afterEvents.playerBreakBlock.subscribe((ev) => {
   } catch {
   }
 });
-world13.afterEvents.playerInteractWithBlock.subscribe((ev) => {
+world14.afterEvents.playerInteractWithBlock.subscribe((ev) => {
   try {
     const id = ev.block.typeId, at2 = ev.block.location;
     if (id === "minecraft:bell") ctl.brain?.onBell(at2, ev.player);
@@ -8996,27 +9747,27 @@ world13.afterEvents.playerInteractWithBlock.subscribe((ev) => {
   } catch {
   }
 });
-world13.afterEvents.weatherChange.subscribe((ev) => {
+world14.afterEvents.weatherChange.subscribe((ev) => {
   const w = String(ev.newWeather).toLowerCase();
   store.rec.weather = w.includes("thunder") ? "thunder" : w.includes("rain") ? "rain" : "clear";
   store.touch();
 });
-world13.afterEvents.itemUse.subscribe((ev) => {
+world14.afterEvents.itemUse.subscribe((ev) => {
   try {
     const id = ev.itemStack.typeId;
     if (id === JOURNAL_ITEM) void openJournal(ev.source, ctl);
     else if (id === WHEEL_ITEM) void openWheel(ev.source, ctl);
-    else if (id === LANCE_ITEM) fireLance(ev.source, [ctl.creature], store.rec.clock);
+    else if (id === LANCE_ITEM) fireLance(ev.source, everyGiant(), store.rec.clock);
   } catch {
   }
 });
-world13.afterEvents.itemCompleteUse.subscribe((ev) => {
+world14.afterEvents.itemCompleteUse.subscribe((ev) => {
   try {
     if (isIodine(ev.itemStack?.typeId)) takeIodine(ev.source);
   } catch {
   }
 });
-world13.afterEvents.playerSpawn.subscribe((ev) => {
+world14.afterEvents.playerSpawn.subscribe((ev) => {
   releaseStale(ev.player);
   if (!ev.initialSpawn) return;
   falloutJoin(ev.player);
@@ -9096,6 +9847,30 @@ system6.beforeEvents.startup.subscribe((ev) => {
       });
       return { status: CustomCommandStatus.Success };
     });
+    reg.registerEnum(`${NS}:titan_do`, ["here", "clear"]);
+    reg.registerCommand({
+      name: `${NS}:titan`,
+      description: "Put a Titan where you look (a Basiliskra IV made for battles; up to three), or clear them all.",
+      permissionLevel: CommandPermissionLevel.GameDirectors,
+      cheatsRequired: false,
+      optionalParameters: [{ name: `${NS}:titan_do`, type: CustomCommandParamType.Enum }]
+    }, (origin, what) => {
+      const p = who(origin);
+      if (!p) return fail("Run this as a player.");
+      system6.run(() => {
+        try {
+          if (what === "clear") {
+            p.sendMessage(`§7[Basiliskra] ${titans.clear()} Titan(s) removed.`);
+            return;
+          }
+          const place2 = placeFor(p, 4);
+          p.sendMessage(`§7[Basiliskra] ${titans.spawn(p.dimension, place2.at, place2.yaw)}`);
+        } catch (e) {
+          p.sendMessage(`§c[Basiliskra] ${e}`);
+        }
+      });
+      return { status: CustomCommandStatus.Success };
+    });
     reg.registerCommand({
       name: `${NS}:city`,
       description: "Raise a city where you stand: streets behind you, a beach and a very deep sea ahead.",
@@ -9119,7 +9894,7 @@ system6.afterEvents.scriptEventReceive.subscribe((ev) => {
   const rec = store.rec;
   const src = ev.sourceEntity;
   if (cmd === "status") {
-    world13.sendMessage(`[${NS}] stage=${rec.stage} form=${rec.form} id=${rec.entityId} loaded=${!!ctl.creature} act=${ctl.brain?.actName} quarantined=${ctl.quarantined}`);
+    world14.sendMessage(`[${NS}] stage=${rec.stage} form=${rec.form} id=${rec.entityId} loaded=${!!ctl.creature} act=${ctl.brain?.actName} quarantined=${ctl.quarantined}`);
   } else if (cmd === "arrive" && src) {
     ctl.requestArrival({ region: "debug", site: src.location, guilty: src.id, guiltyName: src.name ?? null });
   } else if (cmd === "stats") {
@@ -9130,7 +9905,7 @@ system6.afterEvents.scriptEventReceive.subscribe((ev) => {
     rec.mut.beams = Number(arg ?? rec.mut.beams);
     store.save();
   } else if (cmd === "dusk") {
-    world13.setTimeOfDay(12200);
+    world14.setTimeOfDay(12200);
   }
 }, { namespaces: [NS] });
 export {

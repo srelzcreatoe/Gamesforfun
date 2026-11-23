@@ -8,7 +8,7 @@
  * or writes an unloaded chunk.
  */
 import { BlockVolume, Dimension, Entity, EntityDamageCause, Player } from "@minecraft/server";
-import { CONFIG, PART_FAMILY, TYPE } from "./config";
+import { CONFIG, PART_FAMILY, TITAN, TYPE } from "./config";
 import { particle, sound, witnesses } from "./fx";
 import { add, dist, norm, type V3 } from "./vec";
 import { NATURAL_IDS, NEVER_IDS, STORAGE_IDS } from "./generated/ids";
@@ -304,7 +304,7 @@ export function shatterRing(dim: Dimension, center: V3, r0: number, r1: number, 
 /** Creatures (not players, not him) near a point. */
 export function mobsNear(dim: Dimension, at: V3, r: number): Entity[] {
   try {
-    return dim.getEntities({ location: at, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
+    return dim.getEntities({ location: at, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
   } catch { return []; }
 }
 

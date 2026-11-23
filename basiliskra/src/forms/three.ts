@@ -11,7 +11,7 @@ import { Entity, EntityDamageCause, Player, world } from "@minecraft/server";
 import { CONFIG, KNOCK_GAP_TICKS, PROP, TICKS } from "../config";
 import { Act, anyoneNear, Brain, changeTicks, Choice, isNight, nearbyPlayers, pace, travel, wait, watchersNear, settlementNear } from "../brain";
 import { BeamSpec, BeamState, beamTick, clearRange } from "../beam";
-import { Creature, targetable } from "../creature";
+import { Creature, giantOf, otherGiants, targetable } from "../creature";
 import { beamVars, flash, particle, players, sound, stopSound, witnesses } from "../fx";
 import { STANCE_III, STRIDE_III } from "../generated/rig";
 import { alive, blast, carve, mobsNear, segDist, wither } from "../havoc";
@@ -47,7 +47,17 @@ const rodReady = new Map<string, number>();
 /** Players and creatures alike: what he may hunt. */
 export type Quarry = Entity;
 export const isPlayer = (e: Entity): e is Player => { try { return e.typeId === "minecraft:player"; } catch { return false; } };
-export function headOf(e: Entity): V3 { try { return e.getHeadLocation(); } catch { return e.location; } }
+/** Where to aim at something: its head; at another giant, the middle of its trunk. */
+export function headOf(e: Entity): V3 {
+  const g = giantOf(e);
+  if (g) return g.middle();
+  try { return e.getHeadLocation(); } catch { return e.location; }
+}
+/** How near he comes to what he goes after: a player is kept at the length of his neck, a giant at arm's length, the rest are walked over. */
+export function standOff(c: Creature, e: Entity, player: number, other: number): number {
+  const g = giantOf(e);
+  return g ? c.girth + g.girth + 6 : isPlayer(e) ? player : other;
+}
 
 export class BrainThree extends Brain {
   protected beat = 0;
@@ -75,10 +85,14 @@ export class BrainThree extends Brain {
 
   /** Creatures he could go after (not players): cached, the entity query runs every two seconds at most. */
   protected creatures(): Entity[] {
-    if (!CONFIG.huntMobs) return [];
+    // another giant in his world is never beneath his notice, whatever the setting says about animals
+    const big = otherGiants(this.c).filter((g) => dist(g.pos, this.c.pos) < this.giantSight).sort((a, b) => dist(a.pos, this.c.pos) - dist(b.pos, this.c.pos)).map((g) => g.entity);
+    if (!CONFIG.huntMobs) return big;
     if (this.now - this.mobsAt >= 40) { this.mobsAt = this.now; this.mobs = mobsNear(this.c.dim, this.c.pos, 72); }
-    return this.mobs.filter(alive);
+    return [...big, ...this.mobs.filter(alive)];
   }
+  /** From how far he knows of another giant. */
+  protected giantSight = 160;
 
   tier(): 1 | 2 | 3 {
     const b = this.rec.mut.beams;
@@ -215,7 +229,7 @@ export class BrainThree extends Brain {
       try { p.runCommand(`camerashake add @s ${(0.06 + 0.16 * f).toFixed(2)} 0.25 positional`); } catch { /* commands unavailable: the sound carries it */ }
     }
     // whatever is under the foot when it comes down
-    blast(c.dim, ground, 2.2 * c.scale, 6, 14, 0.9, (p, n) => c.hurt(p, n), c.entity, ground);
+    blast(c.dim, ground, 2.2 * c.scale, 6, 14 * c.might, 0.9, (p, n) => c.hurt(p, n), c.entity, ground);
     if (!CONFIG.marks) return;
     // a print pressed into natural ground: never into a floor
     for (const [dx, dz] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
@@ -407,15 +421,28 @@ export class BrainThree extends Brain {
       let at: V3;
       try { if (!g.isValid || g.dimension.id !== c.dim.id || (player && !targetable(g as Player))) break; at = g.location; } catch { break; }
       c.setPhase("move");
-      c.goTo(at, 0.15, player ? 17 * c.scale * 0.6 : 3);
-      c.lookAt(at, 60, 25);
+      const keep = standOff(c, g, 17 * c.scale * 0.6, 3);
+      if (t === 0 && dist(at, c.pos) < keep + 1) { yield* this.watch(g, 30); break; }
+      c.goTo(at, 0.15, keep);
+      c.lookAt(headOf(g), 60, 25);
       this.footfalls();
-      if (dist(at, c.pos) < (player ? 17 * c.scale * 0.6 : 4)) break;
+      if (dist(at, c.pos) < keep + 1) break;
       if (t % 100 === 50) c.say("basiliskra.iii.grunt", c.anchor("nose"), 72, 1, 0.92 + hash(t) * 0.1);
       yield;
     }
     c.halt();
     c.smash = false;
+  }
+
+  /** Already as near as he means to come: he stands and watches it for a moment. */
+  protected *watch(g: Quarry, ticks: number): Act {
+    const c = this.c;
+    c.halt();
+    c.setPhase("idle");
+    for (let t = 0; t < ticks; t++) {
+      try { if (!g.isValid || g.dimension.id !== c.dim.id) break; c.lookAt(headOf(g), 70, 40); } catch { break; }
+      yield;
+    }
   }
 
   // ---- grounding ------------------------------------------------------------------------------------------

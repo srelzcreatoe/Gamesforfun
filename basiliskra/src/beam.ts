@@ -6,7 +6,7 @@
  */
 import { EntityDamageCause, Player } from "@minecraft/server";
 import { CONFIG } from "./config";
-import { Creature, targetable } from "./creature";
+import { Creature, otherGiants, targetable } from "./creature";
 import { addFallout, sear } from "./fallout";
 import { beamVars, particle, players, sound } from "./fx";
 import { blast, carve, mobsNear, segDist, wither } from "./havoc";
@@ -35,7 +35,7 @@ export interface BeamShot {
 }
 
 /** Returns where the beam ended, the block it struck (if any) and its length. */
-export function beamTick(c: Creature, T: BeamSpec, t: number, fade: number, st: BeamState, shot: BeamShot = {}): { end: V3; hit: V3 | null; length: number; from: V3; dir: V3 } {
+export function beamTick(c: Creature, T: BeamSpec, t: number, fade: number, st: BeamState, shot: BeamShot = {}): { end: V3; hit: V3 | null; length: number; from: V3; dir: V3; struck: Creature | null } {
   const aim = shot.from && shot.dir ? { from: shot.from, dir: shot.dir } : c.aim();
   const from = aim.from, dir = aim.dir;
   const smash = wither() && !shot.harmless;
@@ -49,7 +49,27 @@ export function beamTick(c: Creature, T: BeamSpec, t: number, fade: number, st: 
   }
   // never draw or burn into chunks that are not loaded
   while (length > 4 && !isLoaded(c.dim, add(from, mul(dir, length)))) length -= 4;
+  // another giant in its way stops it: a body that size is as solid to the light as a hill is
+  let struck: Creature | null = null;
+  for (const g of otherGiants(c)) {
+    if (dist(g.pos, from) > length + 70) continue;
+    for (const v of g.volumes()) {
+      const along = dot(sub(v.at, from), dir);
+      if (along <= 0 || along >= length + v.r) continue;
+      if (dist(v.at, add(from, mul(dir, along))) > v.r + T.radius * 0.5) continue;
+      const stop = Math.max(1, along - v.r * 0.6);
+      if (stop < length) { length = stop; hitBlock = null; struck = g; }
+    }
+  }
   const end = add(from, mul(dir, length));
+  if (struck) {
+    if (t % 3 === 0) particle(c.dim, "basiliskra:beam_impact", end, 128);
+    if (t % 4 === 2) particle(c.dim, "basiliskra:impact_glare", end, 160);
+    if (t % 7 === 0) particle(c.dim, "basiliskra:impact_fire", end, 128);
+    if (t % 6 === 3) particle(c.dim, "basiliskra:impact_smoke", end, 144);
+    if (t % 10 === 0) sound(c.dim, "basiliskra.iii.beam_impact", end, 128);
+    if (t % 4 === 0) struck.takeBlow(c, T.damage * Math.max(0.3, fade));
+  }
   // it throbs, about as fast as a heart racing
   const w = T.width * fade * (T.rough ? 0.85 + hash(t) * 0.4 : 1) * (1 + 0.14 * Math.sin(t * 1.25));
   if (t % 5 === 0) particle(c.dim, "basiliskra:beam_ring", from, 144, beamVars(dir, length, w * 2.2));
@@ -123,7 +143,7 @@ export function beamTick(c: Creature, T: BeamSpec, t: number, fade: number, st: 
       } catch { /* gone */ }
     }
   }
-  return { end, hit: hitBlock, length, from, dir };
+  return { end, hit: hitBlock, length, from, dir, struck };
 }
 
 /** How far along a line the way is clear (up to `max`), for drawing: never into a chunk that is not loaded. */

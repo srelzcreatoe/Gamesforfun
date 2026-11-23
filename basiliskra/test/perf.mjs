@@ -88,6 +88,14 @@ function measure(name, w, ticks, each) {
   w.bk.store.rec.four = { debut: true, shots: 3, plate: null };
   measure('Form IV in a village, a player in the open (breath, craters, ploughing)', w, 6000);
 }
+{ // two Titans at each other, watched from every side (Creative): beams, blows, sixty hit volumes each
+  const w = world();
+  for (const [x, z] of [[0, 70], [0, -70], [120, 0], [-120, 0]]) { const q = w.sim.addPlayer(`Eye${x}_${z}`, { x, y: 64, z }); q.mode = 'Creative'; }
+  const dim = w.sim.api.world.getDimension(OW);
+  w.bk.titan.titans.spawn(dim, { x: 0, y: 64, z: -60 }, 0);
+  w.bk.titan.titans.spawn(dim, { x: 0, y: 64, z: 60 }, 180);
+  measure('two Titans fighting (no Basiliskra): breath, blows, a hundred and twenty hit volumes', w, 2400);
+}
 
 { // six strong fallout zones round a player, nobody else about: the land changing
   const w = world(); const a = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 0 }); a.mode = 'Creative';

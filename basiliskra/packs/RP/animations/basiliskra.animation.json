@@ -1178,33 +1178,33 @@
      "rotation": [
       "(v.pitch - 3 * v.w_roar - 6 * v.w_skid + 1.2 * v.w_ground * math.sin(q.life_time * 1400 + 0))",
       0,
-      "(1.4 * v.walk * math.cos(v.wp4 - 108))"
+      "(1.4 * v.walk * math.cos(v.wp4 - 108) + 2.5 * v.w_fall * (1 - v.fa) * math.sin(q.life_time * 1300 + 0))"
      ]
     },
     "chest": {
      "rotation": [
-      "(v.lp_neck * 0.1 - 1.2 * v.breath + 3 * v.walk - 2 * v.w_fire - 4 * v.w_roar - 6 * v.w_recoil + 5 * v.w_stare + 40 * v.w_drag * v.dr_reach - 10 * v.w_drag * v.dr_haul)",
-      "(v.ly_chest * 0.2 + 3 * v.walk * math.sin(v.wp4 - 108))",
+      "(v.lp_neck * 0.1 - 1.2 * v.breath + 3 * v.walk - 2 * v.w_fire - 4 * v.w_roar - 6 * v.w_recoil + 5 * v.w_stare + 40 * v.w_drag * v.dr_reach - 10 * v.w_drag * v.dr_haul + v.w_bite * (30 * v.st_hit - 9 * v.st_wind) + 42 * v.fa2)",
+      "(v.ly_chest * 0.2 + 3 * v.walk * math.sin(v.wp4 - 108) + 14 * v.w_sweep * v.sw_side * math.max(v.sw_c, 0))",
       0
      ]
     },
     "neck1": {
      "rotation": [
-      "(v.lp_neck * 0.2 + 0.5 * v.breath - 2 * v.w_chargew - 6 * v.w_roar + 4 * v.w_ground + 6 * v.w_stare - 12 * v.w_drag * v.dr_reach - 4 * v.w_shut + 0.8 * v.walk * math.sin(v.wp4 * 2 - 40))",
+      "(v.lp_neck * 0.2 + 0.5 * v.breath - 2 * v.w_chargew - 6 * v.w_roar + 4 * v.w_ground + 6 * v.w_stare - 12 * v.w_drag * v.dr_reach - 4 * v.w_shut + 0.8 * v.walk * math.sin(v.wp4 * 2 - 40) + v.w_bite * (9 * v.st_hit - 7 * v.st_wind) + 13 * v.fa2)",
       "(v.ly_neck * 0.2)",
       0
      ]
     },
     "neck2": {
      "rotation": [
-      "(v.lp_neck * 0.25 + 0.5 * v.breath - 2 * v.w_chargew - 6 * v.w_roar + 4 * v.w_ground + 6 * v.w_stare - 12 * v.w_drag * v.dr_reach - 4 * v.w_shut + 0.8 * v.walk * math.sin(v.wp4 * 2 - 80))",
+      "(v.lp_neck * 0.25 + 0.5 * v.breath - 2 * v.w_chargew - 6 * v.w_roar + 4 * v.w_ground + 6 * v.w_stare - 12 * v.w_drag * v.dr_reach - 4 * v.w_shut + 0.8 * v.walk * math.sin(v.wp4 * 2 - 80) + v.w_bite * (9 * v.st_hit - 7 * v.st_wind) + 13 * v.fa2)",
       "(v.ly_neck * 0.2)",
       0
      ]
     },
     "head": {
      "rotation": [
-      "(v.lp_head * 0.45 - 4 * v.w_chargew - 14 * v.w_roar + 1.4 * v.roar_env * math.sin(q.life_time * 2100 + 142) - 1.5 * v.voice + 10 * v.w_ground + 1.2 * v.w_fire * math.sin(q.life_time * 2400 + 0) + 5 * v.w_stare - 8 * v.w_drag * v.dr_reach + 3 * v.w_recoil * math.sin(q.life_time * 1900 + 213))",
+      "(v.lp_head * 0.45 - 4 * v.w_chargew - 14 * v.w_roar + 1.4 * v.roar_env * math.sin(q.life_time * 2100 + 142) - 1.5 * v.voice + 10 * v.w_ground + 1.2 * v.w_fire * math.sin(q.life_time * 2400 + 0) + 5 * v.w_stare - 8 * v.w_drag * v.dr_reach + 3 * v.w_recoil * math.sin(q.life_time * 1900 + 213) + v.w_bite * (5 * v.st_hit - 10 * v.st_wind) + 16 * v.fa2)",
       "(v.ly_head * 0.4)",
       0
      ],
@@ -1216,7 +1216,7 @@
     },
     "jaw": {
      "rotation": [
-      "(2.2 * v.breath * (1 - v.w_shut) + v.w_chargew * v.charge * 0.8 + 14 * v.w_fire + 5 * v.w_roar + v.vjaw + 26 * v.roar_env * (1 + 0.05 * math.sin(q.life_time * 2900 + 0)) + 6 * v.w_vent + 8 * v.w_ground + 24 * v.w_recoil * (1 + 0.08 * math.sin(q.life_time * 1700 + 0)) - 11 * v.w_shut)",
+      "(2.2 * v.breath * (1 - v.w_shut) + v.w_chargew * v.charge * 0.8 + 14 * v.w_fire + 5 * v.w_roar + v.vjaw + 26 * v.roar_env * (1 + 0.05 * math.sin(q.life_time * 2900 + 0)) + 6 * v.w_vent + 8 * v.w_ground + 24 * v.w_recoil * (1 + 0.08 * math.sin(q.life_time * 1700 + 0)) - 11 * v.w_shut + v.w_bite * (24 * v.st_wind + 3 * v.st_hit) + 10 * v.w_fall)",
       0,
       0
      ]
@@ -1244,14 +1244,14 @@
     },
     "arm_l": {
      "rotation": [
-      "(1 * 8 * v.walk * math.cos(v.wp4) + 6 * v.w_chargew + 10 * v.w_recoil - 62 * v.w_drag * v.dr_reach + 24 * v.w_drag * v.dr_haul)",
+      "(1 * 8 * v.walk * math.cos(v.wp4) + 6 * v.w_chargew + 10 * v.w_recoil - 62 * v.w_drag * v.dr_reach + 24 * v.w_drag * v.dr_haul + v.w_bite * (-34 * v.st_hit) + 16 * v.fa2)",
       0,
-      "(-1 * (8 * v.w_roar + 14 * v.w_recoil + 4 * v.w_drag * v.dr_reach))"
+      "(-1 * (8 * v.w_roar + 14 * v.w_recoil + 4 * v.w_drag * v.dr_reach + 10 * v.w_bite * v.st_wind + 7 * v.fa2))"
      ]
     },
     "forearm_l": {
      "rotation": [
-      "(40 * v.w_drag * v.dr_reach - 44 * v.w_drag * v.dr_haul - 6 * v.w_roar)",
+      "(40 * v.w_drag * v.dr_reach - 44 * v.w_drag * v.dr_haul - 6 * v.w_roar + 22 * v.w_bite * v.st_hit)",
       0,
       0
      ]
@@ -1356,14 +1356,14 @@
     },
     "arm_r": {
      "rotation": [
-      "(-1 * 8 * v.walk * math.cos(v.wp4) + 6 * v.w_chargew + 10 * v.w_recoil - 62 * v.w_drag * v.dr_reach + 24 * v.w_drag * v.dr_haul)",
+      "(-1 * 8 * v.walk * math.cos(v.wp4) + 6 * v.w_chargew + 10 * v.w_recoil - 62 * v.w_drag * v.dr_reach + 24 * v.w_drag * v.dr_haul + v.w_bite * (24 * v.st_wind - 72 * v.st_hit) + 16 * v.fa2)",
       0,
-      "(1 * (8 * v.w_roar + 14 * v.w_recoil + 4 * v.w_drag * v.dr_reach))"
+      "(1 * (8 * v.w_roar + 14 * v.w_recoil + 4 * v.w_drag * v.dr_reach + 10 * v.w_bite * v.st_wind + 7 * v.fa2))"
      ]
     },
     "forearm_r": {
      "rotation": [
-      "(40 * v.w_drag * v.dr_reach - 44 * v.w_drag * v.dr_haul - 6 * v.w_roar)",
+      "(40 * v.w_drag * v.dr_reach - 44 * v.w_drag * v.dr_haul - 6 * v.w_roar + 22 * v.w_bite * v.st_hit)",
       0,
       0
      ]
@@ -1448,70 +1448,70 @@
     "tail1": {
      "rotation": [
       "(0.25 * v.breath)",
-      "(-v.ts * 0.15 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 36) + 1.2 * math.sin(q.life_time * 28 - 30) + 1.2 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5))",
+      "(-v.ts * 0.15 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 36) + 1.2 * math.sin(q.life_time * 28 - 30) + 1.2 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5) - 5.6 * v.w_sweep * v.sw_side * v.sw_c)",
       0
      ]
     },
     "tail2": {
      "rotation": [
       "(0.25 * v.breath)",
-      "(-v.ts * 0.18 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 72) + 1.2 * math.sin(q.life_time * 28 - 60) + 2.4 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5))",
+      "(-v.ts * 0.18 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 72) + 1.2 * math.sin(q.life_time * 28 - 60) + 2.4 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5) - 7.2 * v.w_sweep * v.sw_side * v.sw_c)",
       0
      ]
     },
     "tail3": {
      "rotation": [
       "(0.25 * v.breath)",
-      "(-v.ts * 0.21 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 108) + 1.2 * math.sin(q.life_time * 28 - 90) + 3.5999999999999996 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5))",
+      "(-v.ts * 0.21 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 108) + 1.2 * math.sin(q.life_time * 28 - 90) + 3.5999999999999996 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5) - 8.8 * v.w_sweep * v.sw_side * v.sw_c)",
       0
      ]
     },
     "tail4": {
      "rotation": [
       "(0.25 * v.breath)",
-      "(-v.ts * 0.24 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 144) + 1.2 * math.sin(q.life_time * 28 - 120) + 4.8 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5))",
+      "(-v.ts * 0.24 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 144) + 1.2 * math.sin(q.life_time * 28 - 120) + 4.8 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5) - 10.4 * v.w_sweep * v.sw_side * v.sw_c)",
       0
      ]
     },
     "tail5": {
      "rotation": [
       "(0.25 * v.breath - 2.6 * math.max(v.w_chargew, v.w_pivot))",
-      "(-v.ts * 0.27 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 180) + 1.2 * math.sin(q.life_time * 28 - 150) + 6.0 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5))",
+      "(-v.ts * 0.27 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 180) + 1.2 * math.sin(q.life_time * 28 - 150) + 6.0 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5) - 12.0 * v.w_sweep * v.sw_side * v.sw_c)",
       0
      ]
     },
     "tail6": {
      "rotation": [
       "(0.25 * v.breath - 2.6 * math.max(v.w_chargew, v.w_pivot))",
-      "(-v.ts * 0.30 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 216) + 1.2 * math.sin(q.life_time * 28 - 180) + 7.199999999999999 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5))",
+      "(-v.ts * 0.30 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 216) + 1.2 * math.sin(q.life_time * 28 - 180) + 7.199999999999999 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5) - 13.6 * v.w_sweep * v.sw_side * v.sw_c)",
       0
      ]
     },
     "tail7": {
      "rotation": [
       "(0.25 * v.breath - 2.6 * math.max(v.w_chargew, v.w_pivot))",
-      "(-v.ts * 0.33 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 252) + 1.2 * math.sin(q.life_time * 28 - 210) + 8.4 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5))",
+      "(-v.ts * 0.33 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 252) + 1.2 * math.sin(q.life_time * 28 - 210) + 8.4 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5) - 15.2 * v.w_sweep * v.sw_side * v.sw_c)",
       0
      ]
     },
     "tail8": {
      "rotation": [
       "(0.25 * v.breath - 2.6 * math.max(v.w_chargew, v.w_pivot))",
-      "(-v.ts * 0.36 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 288) + 1.2 * math.sin(q.life_time * 28 - 240) + 9.6 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5))",
+      "(-v.ts * 0.36 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 288) + 1.2 * math.sin(q.life_time * 28 - 240) + 9.6 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5) - 16.8 * v.w_sweep * v.sw_side * v.sw_c)",
       0
      ]
     },
     "tail9": {
      "rotation": [
       "(0.25 * v.breath - 2.6 * math.max(v.w_chargew, v.w_pivot))",
-      "(-v.ts * 0.39 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 324) + 1.2 * math.sin(q.life_time * 28 - 270) + 10.799999999999999 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5))",
+      "(-v.ts * 0.39 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 324) + 1.2 * math.sin(q.life_time * 28 - 270) + 10.799999999999999 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5) - 18.4 * v.w_sweep * v.sw_side * v.sw_c)",
       0
      ]
     },
     "tail10": {
      "rotation": [
       "(0.25 * v.breath - 2.6 * math.max(v.w_chargew, v.w_pivot))",
-      "(-v.ts * 0.42 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 360) + 1.2 * math.sin(q.life_time * 28 - 300) + 12.0 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5))",
+      "(-v.ts * 0.42 * (1 - 0.7 * v.w_pivot) + 3 * v.walk * math.sin(v.wp4 - 360) + 1.2 * math.sin(q.life_time * 28 - 300) + 12.0 * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5) - 20.0 * v.w_sweep * v.sw_side * v.sw_c)",
       0
      ]
     },

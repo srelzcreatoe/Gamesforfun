@@ -63,6 +63,8 @@ export const SETTINGS_KEY = "bk:cfg";
 
 export const NS = "basiliskra";
 export const TYPE = `${NS}:basiliskra`;
+/** The Titan: Basiliskra IV's body as an entity of its own, for battles (see titan.ts). */
+export const TITAN = `${NS}:titan`;
 /** His hit volumes: one entity type per size (hitbox_0 .. hitbox_9), all of one family. */
 export const hitboxId = (size: number): string => `${NS}:hitbox_${size}`;
 export const isHitbox = (typeId: string): boolean => typeId.startsWith(`${NS}:hitbox_`);
@@ -93,6 +95,8 @@ export const PHASE = {
   scatter: 22, roar: 23, crossing: 24, depart: 25, flinch: 26, window: 27, stalk: 28,
   // Basiliskra IV
   stare: 29, skid: 30, pivot: 31, recoil: 32, drag: 33, swallow: 34, carry: 35,
+  // the Titan
+  fall: 36,
 } as const;
 export type PhaseName = keyof typeof PHASE;
 

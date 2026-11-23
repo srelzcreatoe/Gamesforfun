@@ -36,10 +36,12 @@ export function sceneTheme(theme: Theme, ticks: number, at: V3, dim: string): vo
 const FIGHT = new Set(["charge", "beam", "remember", "scatter", "lock", "pursue", "raze", "arc", "pin", "flinch", "boat"]);
 let fightUntil = -1;
 
-function themeFor(c: Creature | null, now: number, doing: string, hurtAt: number): Theme | null {
+function themeFor(c: Creature | null, now: number, doing: string, hurtAt: number, battle: boolean): Theme | null {
   if (scene && now < scene.until) return scene.theme;
   if (!c || !c.valid) return null;
   if (store.rec.ending?.step || store.rec.evolve) return "last";
+  // giants at each other: that is a fight, whatever form they have
+  if (battle) return "wrath";
   if (c.form >= 4) return "last";
   // a fight is held for a while after its last blow, so the music does not flicker between two pieces
   if (FIGHT.has(doing) || (hurtAt > 0 && now - hurtAt < 5 * TICKS.second)) fightUntil = now + 25 * TICKS.second;
@@ -53,9 +55,9 @@ function stop(p: Player): void {
 }
 
 /** Once a second: start, change or fade out each player's theme. */
-export function musicTick(c: Creature | null, now: number, doing = "", hurtAt = -1): void {
+export function musicTick(c: Creature | null, now: number, doing = "", hurtAt = -1, battle = false): void {
   if (now % 20 !== 0) return;
-  const want = CONFIG.music ? themeFor(c, now, doing, hurtAt) : null;
+  const want = CONFIG.music ? themeFor(c, now, doing, hurtAt, battle) : null;
   for (const p of players()) {
     let near = false;
     try {

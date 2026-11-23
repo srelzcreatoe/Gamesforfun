@@ -114,7 +114,11 @@ else:
 ent = docs.get("packs/RP/entity/basiliskra.entity.json", {}).get("minecraft:client_entity", {}).get("description", {})
 bp_ent = docs.get("packs/BP/entities/basiliskra.json", {}).get("minecraft:entity", {})
 props = bp_ent.get("description", {}).get("properties", {})
-events = bp_ent.get("events", {})
+events = dict(bp_ent.get("events", {}))
+# the Titan (the story entity's body as an entity of its own): its events count as the pack's too
+titan_bp = docs.get("packs/BP/entities/basiliskra_titan.json", {}).get("minecraft:entity", {})
+titan_ce = docs.get("packs/RP/entity/basiliskra_titan.entity.json", {}).get("minecraft:client_entity", {}).get("description", {})
+events.update(titan_bp.get("events", {}))
 
 
 def tex_exists(rel):
@@ -455,6 +459,45 @@ for k, d in docs.items():
     ok("items")
 if "spawn_egg" in ent and f"item.spawn_egg.entity.{NS}:{NS}.name=" not in rp_lang:
     err("spawn egg name missing from RP en_US.lang")
+
+# the Titan: the same synchronised properties as he has (it is drawn by the same pose), always his last form, a
+# client entity whose every reference is one of his, more health than he has, and a name for it and for its egg
+if titan_bp.get("description", {}).get("identifier") != f"{NS}:titan" or titan_ce.get("identifier") != f"{NS}:titan":
+    err("the Titan has no behaviour-pack entity or no client entity")
+else:
+    tp = titan_bp["description"].get("properties", {})
+    if set(tp) != set(props):
+        err(f"the Titan's properties differ from his: {sorted(set(tp) ^ set(props))}")
+    for k in props:
+        if k in tp and (tp[k].get("range") != props[k].get("range") or tp[k].get("client_sync") is not True):
+            err(f"the Titan's property {k} does not match his")
+    if tp.get(f"{NS}:form", {}).get("default") != 4:
+        err("the Titan must start in the last form")
+    tc = titan_bp.get("components", {})
+    if tc.get("minecraft:health", {}).get("max", 0) < 3 * bp_ent.get("components", {}).get("minecraft:health", {}).get("max", 600):
+        err("the Titan is not much stronger than he is")
+    if NS in tc.get("minecraft:type_family", {}).get("family", []) or f"{NS}_part" in tc.get("minecraft:type_family", {}).get("family", []):
+        err("the Titan must not be of his family or of the hit volumes'")
+    if "minecraft:collision_box" not in tc or f"{NS}:bind" not in titan_bp.get("events", {}) or f"{NS}:expire" not in titan_bp.get("events", {}):
+        err("the Titan's entity lacks its box, or the events the script binds and removes it with")
+    for kind in ("textures", "geometry", "animations", "particle_effects", "materials"):
+        for short, ref in titan_ce.get(kind, {}).items():
+            if ent.get(kind, {}).get(short) != ref:
+                err(f"the Titan's client entity names {kind}.{short} = {ref}, which is not one of his")
+    known_rc = {next(iter(r)) if isinstance(r, dict) else r for r in ent.get("render_controllers", [])}
+    for r in titan_ce.get("render_controllers", []):
+        name = next(iter(r)) if isinstance(r, dict) else r
+        if name not in known_rc or ".iv." not in name:
+            err(f"the Titan's render controller {name} is not one of his last form's")
+    for a in titan_ce.get("scripts", {}).get("animate", []):
+        if (next(iter(a)) if isinstance(a, dict) else a) not in titan_ce.get("animations", {}):
+            err(f"the Titan animates {a}, which it does not define")
+    if "spawn_egg" not in titan_ce or f"item.spawn_egg.entity.{NS}:titan.name=" not in rp_lang or f"entity.{NS}:titan.name=" not in rp_lang:
+        err("the Titan's spawn egg or its name is missing")
+    th = re.search(r"export const TITAN_HEALTH = (\d+)", open(os.path.join(ROOT, "src", "generated", "rig.ts"), encoding="utf-8").read())
+    if not th or int(th.group(1)) != tc.get("minecraft:health", {}).get("max"):
+        err("the script's figure for the Titan's health is not the entity's")
+    ok("the Titan (entity, client entity, names)")
 
 vanilla_items = set()
 if SAMPLES and os.path.exists(os.path.join(SAMPLES, "metadata/vanilladata_modules/mojang-items.json")):

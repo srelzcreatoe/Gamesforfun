@@ -11,6 +11,10 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const ENTITY_JSON = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities/basiliskra.json'), 'utf8'));
 const PROPS = ENTITY_JSON['minecraft:entity'].description.properties;
 const EVENTS = Object.keys(ENTITY_JSON['minecraft:entity'].events);
+const TITAN_JSON = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities/basiliskra_titan.json'), 'utf8'))['minecraft:entity'];
+const TITAN_PROPS = TITAN_JSON.description.properties;
+const TITAN_EVENTS = Object.keys(TITAN_JSON.events);
+const TITAN_HEALTH = TITAN_JSON.components['minecraft:health'].max;
 const HIT_EVENTS = Object.keys(JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities/basiliskra_hitbox_0.json'), 'utf8'))['minecraft:entity'].events);
 
 export const EntityDamageCause = { entityAttack: 'entityAttack', projectile: 'projectile', entityExplosion: 'entityExplosion', blockExplosion: 'blockExplosion',
@@ -186,8 +190,10 @@ export class Sim {
     const id = String(-(this.save.nextId++) * 4294967296 - 17);       // looks like an engine id; never parsed
     const props = {};
     if (typeId === 'basiliskra:basiliskra') for (const [k, d] of Object.entries(PROPS)) props[k] = d.default;
-    const rec = { id, typeId, dim, loc: { ...loc }, rot: { x: 0, y: rot }, vel: { x: 0, y: 0, z: 0 }, props, dyn: {}, health: typeId.startsWith('basiliskra:hitbox') ? 1000 : typeId === 'basiliskra:basiliskra' ? 600 : 10, events: [], item: null, riders: [],
-      family: typeId.startsWith('basiliskra:hitbox') ? ['basiliskra_part', 'inanimate'] : typeId === 'basiliskra:basiliskra' ? ['basiliskra', 'mob'] : [] };
+    if (typeId === 'basiliskra:titan') for (const [k, d] of Object.entries(TITAN_PROPS)) props[k] = d.default;
+    const rec = { id, typeId, dim, loc: { ...loc }, rot: { x: 0, y: rot }, vel: { x: 0, y: 0, z: 0 }, props, dyn: {}, health: typeId.startsWith('basiliskra:hitbox') ? 1000 : typeId === 'basiliskra:basiliskra' ? 600 : typeId === 'basiliskra:titan' ? TITAN_HEALTH : 10, events: [], item: null, riders: [],
+      family: typeId.startsWith('basiliskra:hitbox') ? ['basiliskra_part', 'inanimate'] : typeId === 'basiliskra:basiliskra' ? ['basiliskra', 'mob']
+        : typeId === 'basiliskra:titan' ? [...TITAN_JSON.components['minecraft:type_family'].family] : [] };
     this.save.entities.set(id, rec);
     return rec;
   }
@@ -479,7 +485,7 @@ class MockEntity {
   getProperty(k) { this.need(); return this.rec.props[k]; }
   setProperty(k, v) {
     this.need();
-    const d = PROPS[k];
+    const d = (this.rec.typeId === 'basiliskra:titan' ? TITAN_PROPS : PROPS)[k];
     if (!d) throw new Error(`property ${k} is not defined on ${this.rec.typeId}`);
     if (d.type === 'bool' && typeof v !== 'boolean') throw new Error(`property ${k} expects bool, got ${v}`);
     if (d.type === 'int' && (!Number.isInteger(v) || v < d.range[0] || v > d.range[1])) throw new Error(`property ${k}=${v} outside ${d.range}`);
@@ -489,14 +495,14 @@ class MockEntity {
   setDynamicProperty(k, v) { this.need(); this.rec.dyn[k] = v; }
   triggerEvent(n) {
     this.need();
-    const known = this.rec.typeId === 'basiliskra:basiliskra' ? EVENTS : HIT_EVENTS;
+    const known = this.rec.typeId === 'basiliskra:basiliskra' ? EVENTS : this.rec.typeId === 'basiliskra:titan' ? TITAN_EVENTS : HIT_EVENTS;
     if (!known.includes(n)) throw new Error(`event ${n} is not defined on ${this.rec.typeId}`);
     this.rec.events.push(n);
   }
   getComponent(id) {
     this.need();
     const rec = this.rec, sim = this.sim, self = this;
-    if (id === 'minecraft:health') return { get currentValue() { return rec.health; }, setCurrentValue(v) { rec.health = v; }, effectiveMax: 600 };
+    if (id === 'minecraft:health') return { get currentValue() { return rec.health; }, setCurrentValue(v) { rec.health = v; }, effectiveMax: rec.typeId === 'basiliskra:titan' ? TITAN_HEALTH : 600 };
     if (id === 'minecraft:item') return rec.item ? { itemStack: rec.item } : undefined;
     if (id === 'minecraft:rideable') return { getRiders: () => rec.riders };
     if (id === 'minecraft:riding') return undefined;

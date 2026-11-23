@@ -6,7 +6,7 @@
  * It is a held item with no use of its own in the game's eyes: the script hears "item used" and does the rest.
  */
 import { EntityDamageCause, Player } from "@minecraft/server";
-import { isHitbox, NS, TYPE } from "./config";
+import { isHitbox, NS, TITAN, TYPE } from "./config";
 import type { Creature } from "./creature";
 import { beamVars, particle, sound } from "./fx";
 import { add, mul, type V3 } from "./vec";
@@ -18,7 +18,7 @@ export const LANCE = { range: 140, cooldown: 12, damage: 34, head: 1.5, tail: 0.
 const firedAt = new Map<string, number>();
 
 /** A player has pulled the trigger.  `targets`: every Basiliskra there is to hit.  Returns what it struck. */
-export function fireLance(p: Player, targets: (Creature | null)[], now: number): "him" | "other" | "nothing" | "cooling" {
+export function fireLance(p: Player, targets: readonly (Creature | null)[], now: number): "him" | "other" | "nothing" | "cooling" {
   // one shot per cooldown (the item's own cooldown shows it on the hotbar; the script's clock is what is trusted)
   if (now - (firedAt.get(p.id) ?? -99) < LANCE.cooldown) return "cooling";
   firedAt.set(p.id, now);
@@ -52,7 +52,7 @@ export function fireLance(p: Player, targets: (Creature | null)[], now: number):
     try {
       for (const r of dim.getEntitiesFromRay(from, dir, { maxDistance: reach })) {
         const e = r.entity;
-        if (e.id === p.id || e.typeId === "minecraft:item" || e.typeId === TYPE || isHitbox(e.typeId)) continue;
+        if (e.id === p.id || e.typeId === "minecraft:item" || e.typeId === TYPE || e.typeId === TITAN || isHitbox(e.typeId)) continue;
         reach = Math.max(0.5, r.distance);
         e.applyDamage(LANCE.other, { cause: EntityDamageCause.entityAttack, damagingEntity: p });
         struck = "other";
