@@ -50,7 +50,8 @@
 //   { kind: 'arrive' }                        the Other Office: the fade is over, the guard sits there
 //   { kind: 'phone', ring | late }            the Other Office: the phone starts to ring / he stops waiting
 //   { kind: 'walk', on }  { kind: 'step', node }   the Other Office: he walks / stops; he passes a spot
-//   { kind: 'end', shift, how }               the shift is over ('time', 'lowered', 'picked', 'answered', 'power')
+//   { kind: 'end', shift, how }               the shift is over ('time', 'lowered', 'picked', 'answered', 'power');
+//                                             `shift: 'tell'`: the power or the night ended before it began
 //   { kind: 'stare', on }                     CAM 11: he turns to the lens / lets go of it
 // Pure (no @minecraft imports).
 
@@ -239,12 +240,7 @@ export class GoldenDog {
   /** The power went out (or the night was cut short): whatever he was doing, he lets go. */
   abort(how = 'power') {
     if (this.state === 'stage') return;
-    if (this.state === 'tell') {
-      const kind = this.tell.kind;
-      this.tell = null;
-      this.state = kind;
-      this.shift = { kind };
-    }
+    // (cut off while the watch was still ticking: the shift never began, and the effect says so: `shift: 'tell'`)
     this.finish(how);
   }
 

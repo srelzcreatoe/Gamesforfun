@@ -435,6 +435,14 @@ export async function goldenChecks({ check, night, run, botNight, ONLY, RUNS }) 
     b.power = 20;
     const dark = step(b, 12);
     check(b.powerOut && golden(dark, 'end')[0]?.how === 'power' && b.golden.state === 'stage' && !b.golden.holding, 'if the power goes during his visit he lets go: the blackout is the Rustgrin\'s own');
+    // ...and if it goes while the watch is still ticking, the shift never begins
+    const w = alone(47);
+    w.golden.startTell('visit');
+    step(w, 5);
+    w.power = 20;
+    const cut = step(w, 12);
+    const end = golden(cut, 'end')[0];
+    check(w.powerOut && end?.shift === 'tell' && end.how === 'power' && golden(cut, 'shift').length === 0 && w.golden.state === 'stage' && !w.golden.holding && w.golden.count.visit === 0, 'a blackout in the middle of the tell: the watch stops, and the shift it announced never begins');
   }
 
   // ---------------------------------------------------------------------- G10. the Other Office
