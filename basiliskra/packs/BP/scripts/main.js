@@ -2,7 +2,7 @@
 
 
 // src/main.ts
-import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause9, EntitySwingSource, GameMode as GameMode2, system as system6, world as world14 } from "@minecraft/server";
+import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause9, EntitySwingSource, GameMode as GameMode2, system as system6, world as world15 } from "@minecraft/server";
 
 // src/config.ts
 var CONFIG = {
@@ -64,6 +64,7 @@ var SETTINGS_KEY = "bk:cfg";
 var NS = "basiliskra";
 var TYPE = `${NS}:basiliskra`;
 var TITAN = `${NS}:titan`;
+var CIVILIAN = `${NS}:civilian`;
 var hitboxId = (size) => `${NS}:hitbox_${size}`;
 var isHitbox = (typeId) => typeId.startsWith(`${NS}:hitbox_`);
 var PART_FAMILY = `${NS}_part`;
@@ -3157,7 +3158,7 @@ function fireLance(p, targets, now) {
 }
 
 // src/city.ts
-var FULL = { lotsU: 6, lotsV: 4, trenchU: 200, trenchV: 100, floor: -40, people: 36 };
+var FULL = { lotsU: 9, lotsV: 6, trenchU: 240, trenchV: 100, floor: -40, people: 60 };
 var SMALL = { lotsU: 3, lotsV: 2, trenchU: 56, trenchV: 40, floor: -40, people: 8 };
 var SEA = 62;
 var LOT = 21;
@@ -3271,8 +3272,8 @@ function plan(S) {
   const pick = (list, i, j = 0) => list[Math.floor(rnd(i, j) * list.length) % list.length];
   const fill = (u02, y0, v0, u12, y1, v1, id) => {
     if (u12 < u02 || y1 < y0 || v1 < v0) return;
-    for (let u = u02; u <= u12; u += 32) for (let v = v0; v <= v1; v += 32) for (let y = y0; y <= y1; y += 30) {
-      ops.push({ k: "fill", a: [u, y, v], b: [Math.min(u12, u + 31), Math.min(y1, y + 29), Math.min(v1, v + 31)], id });
+    for (let u = u02; u <= u12; u += 16) for (let v = v0; v <= v1; v += 16) for (let y = y0; y <= y1; y += 16) {
+      ops.push({ k: "fill", a: [u, y, v], b: [Math.min(u12, u + 15), Math.min(y1, y + 15), Math.min(v1, v + 15)], id });
     }
   };
   const set = (at3, id) => {
@@ -3418,8 +3419,8 @@ function plan(S) {
       continue;
     }
     const r = rnd(n, 9);
-    if (j === 0 && r < 0.75) houses(lu, lv, n);
-    else if (r < 0.14 || !big && i === 1 && j === 0) park(lu, lv, n);
+    if (j <= (P.lotsV >= 6 ? 1 : 0) && r < 0.75) houses(lu, lv, n);
+    else if (r < 0.14 || !big && i === 1 && j === 0 || big && i === Math.floor(P.lotsU / 2) && j === Math.floor(P.lotsV / 2)) park(lu, lv, n);
     else {
       const tall = j === P.lotsV - 1 ? 34 + Math.floor(rnd(n, 10) * 32) : 14 + Math.floor(rnd(n, 10) * (j >= 2 ? 30 : 18));
       tower(lu, lv, 11 + 2 * Math.floor(rnd(n, 11) * 4), 11 + 2 * Math.floor(rnd(n, 12) * 4), 2 + 4 * Math.round(tall / 4), n);
@@ -3432,6 +3433,11 @@ function plan(S) {
   set(posts, "minecraft:nether_brick_fence");
   set(lamps, LIGHT);
   set(lights, LIGHT);
+  for (let k = 0; k < P.people; k++) {
+    const i = Math.floor(rnd(k, 40) * (P.lotsU + 1)), j = Math.floor(rnd(k, 41) * (P.lotsV + 1));
+    const along = rnd(k, 42) < 0.5;
+    ops.push({ k: "mob", id: CIVILIAN, at: along ? [i * PITCH + 1 + k % 2 * 4, G + 1, 2 + Math.floor(rnd(k, 43) * (L.cityV - 4))] : [2 + Math.floor(rnd(k, 44) * (L.cityU - 4)), G + 1, j * PITCH + 1 + k % 2 * 4] });
+  }
   const strip = (v0, v1, y, top2) => {
     fill(L.uMin, y - 6, v0, L.uMax, y - 3, v1, SANDSTONE);
     fill(L.uMin, y - 2, v0, L.uMax, y, v1, top2);
@@ -3514,20 +3520,18 @@ function plan(S) {
   lit.push([qu - 4, F + 8, qv - 4], [qu + 4, F + 8, qv + 4], [pu - pr, F + 1, pv - pr], [pu + pr, F + 1, pv + pr], [pu - pr, F + 1, pv + pr], [pu + pr, F + 1, pv - pr]);
   set(lit, LANTERN);
   ops.push({ k: "chest", at: [qu, F + 2, qv], items: [[LANCE_ITEM, 1], [SHARD_ITEM, 12], [IODINE_ITEM, 8], ["minecraft:diamond", 3], ["minecraft:heart_of_the_sea", 1]] });
-  for (let k = 0; k < P.people; k++) {
-    const i = Math.floor(rnd(k, 40) * (P.lotsU + 1)), j = Math.floor(rnd(k, 41) * (P.lotsV + 1));
-    const along = rnd(k, 42) < 0.5;
-    ops.push({ k: "mob", id: "minecraft:villager_v2", at: along ? [i * PITCH + 1 + k % 2 * 4, G + 1, 2 + Math.floor(rnd(k, 43) * (L.cityV - 4))] : [2 + Math.floor(rnd(k, 44) * (L.cityU - 4)), G + 1, j * PITCH + 1 + k % 2 * 4] });
-  }
   return ops;
 }
 var AREA = "bk_city";
+var BUILD = { volume: 6e3, pieces: 20, ms: 4 };
 var Build = class {
   constructor(S, dim) {
     this.S = S;
     this.dim = dim;
     this.held = false;
     this.waited = 0;
+    /** Everything before this is done (so a tick does not walk the whole plan to find its work). */
+    this.first = 0;
     this.failed = 0;
     this.ops = plan(S);
     this.done = new Uint8Array(this.ops.length);
@@ -3583,12 +3587,17 @@ var Build = class {
     }
     return { lo, hi };
   }
-  /** A tick's worth: boxes up to a volume, in order; a box whose ground is not loaded waits, and so does everything over the same ground. */
+  /**
+   * A tick's worth, kept small enough that nobody feels it: boxes in order up to a few thousand blocks, two dozen
+   * pieces and a few milliseconds of the script's time; a box whose ground is not loaded waits, and so does
+   * everything over the same ground.  (A city is millions of blocks: it is raised over a minute or two, not at once.)
+   */
   tick() {
     this.hold();
     let volume = 0, small = 0, any = false;
+    const started = Date.now();
     const blocked = [];
-    for (let i = 0; i < this.ops.length && volume < 4e4 && small < 48 && blocked.length < 12; i++) {
+    for (let i = this.first; i < this.ops.length && volume < BUILD.volume && small < BUILD.pieces && blocked.length < 12 && Date.now() - started < BUILD.ms; i++) {
       if (this.done[i]) continue;
       const op = this.ops[i], b = this.box(op);
       if (blocked.some((q) => b.lo.x <= q.hi.x && b.hi.x >= q.lo.x && b.lo.z <= q.hi.z && b.hi.z >= q.lo.z)) continue;
@@ -3596,9 +3605,12 @@ var Build = class {
         blocked.push(b);
         continue;
       }
+      const cost = op.k === "fill" ? (b.hi.x - b.lo.x + 1) * (b.hi.y - b.lo.y + 1) * (b.hi.z - b.lo.z + 1) : op.k === "set" ? op.at.length * 20 : 0;
+      if (small > 0 && volume + cost > BUILD.volume) break;
       try {
         if (op.k === "fill") {
-          this.dim.fillBlocks(new BlockVolume3(b.lo, b.hi), op.id, { ignoreChunkBoundErrors: true });
+          const same = op.id === AIR ? [AIR] : op.id === WATER ? [WATER, "minecraft:flowing_water"] : void 0;
+          this.dim.fillBlocks(new BlockVolume3(b.lo, b.hi), op.id, same ? { ignoreChunkBoundErrors: true, blockFilter: { excludeTypes: same } } : { ignoreChunkBoundErrors: true });
           volume += (b.hi.x - b.lo.x + 1) * (b.hi.y - b.lo.y + 1) * (b.hi.z - b.lo.z + 1);
         } else if (op.k === "set") {
           for (const [u, y, v] of op.at) {
@@ -3630,6 +3642,7 @@ var Build = class {
       small++;
       any = true;
     }
+    while (this.first < this.ops.length && this.done[this.first]) this.first++;
     this.waited = any ? 0 : this.waited + 1;
   }
   /** Nothing could be done for a long while: the ground is not loading (the plan stays, and is taken up again when someone is near). */
@@ -3847,7 +3860,10 @@ function settlementNear(c, now) {
     s = { at: null, t: now };
     try {
       let nd = 1e9;
-      for (const e of c.dim.getEntities({ type: "minecraft:villager_v2", location: c.pos, maxDistance: 180 })) {
+      for (const e of [
+        ...c.dim.getEntities({ type: "minecraft:villager_v2", location: c.pos, maxDistance: 180 }),
+        ...c.dim.getEntities({ type: CIVILIAN, location: c.pos, maxDistance: 180 })
+      ]) {
         const d = dist(e.location, c.pos);
         if (d < nd) {
           nd = d;
@@ -7236,7 +7252,7 @@ function musicStop() {
 }
 
 // src/controller.ts
-import { ItemStack as ItemStack4, system as system5, world as world13 } from "@minecraft/server";
+import { ItemStack as ItemStack4, system as system5, world as world14 } from "@minecraft/server";
 
 // src/change.ts
 import { MolangVariableMap as MolangVariableMap4 } from "@minecraft/server";
@@ -7295,6 +7311,7 @@ function scar(c, r, n, seed) {
     if (glassify(c.dim, { x, y: y - 1, z })) particle(c.dim, "basiliskra:impact_fire", { x, y: y + 0.2, z }, 96);
   }
 }
+var OPENING = 36;
 var KNOCKS = [0, 18, 36];
 var top = 0;
 var ONE = {
@@ -7303,6 +7320,8 @@ var ONE = {
   hold: 90,
   nameAt: 0,
   flash: { red: 0.92, green: 0.9, blue: 0.95, hold: 0.14, fade: 1 },
+  // high over the sea, coming down toward the water where he lies
+  wide: (c, Fo) => ({ ticks: OPENING, look: body(c), angle: [125, 95], dist: [Fo * 1.45, Fo * 1.15], height: [Fo * 0.7, Fo * 0.45] }),
   shots: (c, Fo, Fn) => [
     // his gills, from beside his head, as they knock
     { ticks: 54, look: head(c), angle: [72, 96], dist: [Fo * 0.3 + 2, Fo * 0.26 + 2], height: [2.5, 3.5] },
@@ -7399,6 +7418,8 @@ var TWO = {
   hold: 120,
   nameAt: 0,
   flash: { red: 1, green: 0.94, blue: 0.9, hold: 0.16, fade: 0.9 },
+  // low and far: him against the sky that is about to come down on him
+  wide: (c, Fo) => ({ ticks: OPENING, look: () => at2(c, "horn_l", 4), angle: [205, 185], dist: [Fo * 1.65, Fo * 1.35], height: [-3, -1] }),
   shots: (c, Fo, Fn) => [
     // from beside his shoulder and below, up past his horns at the sky the first bolt comes out of
     { ticks: 58, look: () => at2(c, "horn_l", 6), angle: [146, 158], dist: [Fo * 0.8, Fo * 0.72], height: [-5, -4] },
@@ -7498,6 +7519,8 @@ var THREE = {
   hold: 0,
   nameAt: 110,
   flash: { red: 1, green: 1, blue: 1, hold: 0.4, fade: 1.3 },
+  // from the ground far off, the whole of him, the light already gathering
+  wide: (c, Fo) => ({ ticks: OPENING, look: body(c), angle: [-150, -172], dist: [Fo * 1.38, Fo * 1.15], height: [-Fo * 0.08, 0] }),
   shots: (c, Fo, Fn) => [
     // along his back from the tail as the plates light: a charge, like any other
     { ticks: 70, look: () => at2(c, "plate_tip_5"), angle: [160, 195], dist: [Fo * 0.7, Fo * 0.55], height: [Fo * 0.3, Fo * 0.2] },
@@ -8862,6 +8885,73 @@ function riftClose(dim, at3, size) {
 }
 var RIFT_SIZE = [0, 14, 16, 30, 46];
 
+// src/civilians.ts
+import { world as world13 } from "@minecraft/server";
+var SIGHT = 110;
+var FELT = 36;
+var FRIGHT = 300;
+var SCARED = `${NS}:scared`;
+var frightened = /* @__PURE__ */ new Map();
+function panic(e) {
+  try {
+    e.triggerEvent(`${NS}:panic`);
+    e.setProperty(SCARED, true);
+  } catch {
+  }
+}
+function calm(e) {
+  try {
+    e.triggerEvent(`${NS}:calm`);
+    e.setProperty(SCARED, false);
+  } catch {
+  }
+}
+function civiliansTick(now, giants2) {
+  if (now % 10 !== 4) return;
+  for (const g of giants2) {
+    if (!g.valid) continue;
+    let near = [];
+    try {
+      near = g.dim.getEntities({ type: CIVILIAN, location: g.pos, maxDistance: SIGHT });
+    } catch {
+      continue;
+    }
+    const mid = g.middle();
+    let looks = 0;
+    for (const e of near) {
+      let d = 1e9;
+      try {
+        d = dist(e.location, g.pos);
+      } catch {
+        continue;
+      }
+      let sees = d < FELT + g.girth;
+      if (!sees && looks < 24) {
+        looks++;
+        try {
+          sees = clearLine(g.dim, e.getHeadLocation(), mid);
+        } catch {
+          sees = false;
+        }
+      }
+      if (!sees) continue;
+      if ((frightened.get(e.id) ?? -1) <= now) panic(e);
+      frightened.set(e.id, now + FRIGHT);
+    }
+  }
+  for (const [id, until] of frightened) {
+    if (until > now) continue;
+    frightened.delete(id);
+    let e;
+    try {
+      e = world13.getEntity(id);
+    } catch {
+      e = void 0;
+    }
+    if (e) calm(e);
+  }
+}
+
 // src/controller.ts
 var TOKEN = "bk:token";
 var ROMAN2 = ["", "I", "II", "III", "IV"];
@@ -9117,6 +9207,81 @@ var Controller = class {
    * deep water (the story begins: he will change as he lives); once he is II or more and has been driven off,
    * the rift opens on land in front of the caller and he walks out of it as he was.
    */
+  /**
+   * Where a rift may open for him near a place: in the sea, deep enough for the form he comes as, open all round
+   * (the water reaches the surface everywhere the tear stands, and nothing solid stands in its height), and as near
+   * a shore as that allows, facing it: he comes out of the water and up onto the beach.  A city's own deep sea is
+   * taken first when one is near (it was cut for this).  Null if there is no such water within reach.
+   */
+  riftSite(site, form, reach = 160) {
+    const dim = overworld(), size = RIFT_SIZE[form];
+    const need = [0, 6, 3, 3, 3][form], half = Math.max(4, Math.min(14, size * 0.3));
+    const open = (x, z, surface2, base) => {
+      for (let k = 0; k < 8; k++) {
+        const a = k / 8 * Math.PI * 2, px = x + Math.cos(a) * half, pz = z + Math.sin(a) * half;
+        const col = waterColumn(dim, px, pz, surface2 - 1, 3, 40);
+        if (col === NONE || col === UNLOADED || Math.abs(col.surface - surface2) > 1 || col.surface - col.floor < 2) return false;
+      }
+      for (const [px, pz] of [[x, z], [x + half * 0.7, z], [x - half * 0.7, z], [x, z + half * 0.7], [x, z - half * 0.7]]) {
+        for (let y = base; y <= base + size; y += 3) if (isSolidBlock(blockAt(dim, { x: px, y, z: pz }))) return false;
+      }
+      return true;
+    };
+    const shoreDist = (x, z, surface2) => {
+      const d = norm({ x: site.x - x, y: 0, z: site.z - z });
+      for (let s = 4; s <= 120; s += 4) {
+        const col = waterColumn(dim, x + d.x * s, z + d.z * s, surface2 - 1, 3, 12);
+        if (col === UNLOADED) return 999;
+        if (col === NONE) return s;
+      }
+      return 999;
+    };
+    const city = nearestCity(site);
+    const want = size * 0.8 + 14;
+    let best = null, score = 1e9;
+    const consider = (x, z, bonus) => {
+      const col = waterColumn(dim, x, z, Math.max(site.y, 63), 16, 160);
+      if (col === NONE || col === UNLOADED || col.surface - col.floor < need) return;
+      const base = form === 1 ? col.surface - 5.5 : Math.max(col.floor, Math.floor(col.surface - size * 0.4));
+      if (!open(x, z, col.surface, Math.ceil(col.surface))) return;
+      const shore = shoreDist(x, z, col.surface);
+      const sc = Math.abs(Math.min(shore, 200) - want) + Math.hypot(x - site.x, z - site.z) * 0.2 - bonus;
+      if (sc < score) {
+        score = sc;
+        best = { at: { x: Math.floor(x), y: Math.floor(base), z: Math.floor(z) }, yaw: yawTo({ x, y: 0, z }, site) };
+      }
+    };
+    if (city && city.distance < reach + 120) {
+      const m = landmarks(city.site);
+      for (const k of [0.35, 0.55, 0.75]) consider(m.beach.x + (m.deep.x - m.beach.x) * k, m.beach.z + (m.deep.z - m.beach.z) * k, 60);
+      if (best) return best;
+    }
+    for (let r = 10; r <= reach; r += 6) {
+      const n = Math.max(12, Math.round(r * 0.7));
+      for (let i = 0; i < n; i++) {
+        const a = i / n * Math.PI * 2;
+        consider(site.x + Math.cos(a) * r, site.z + Math.sin(a) * r, 0);
+      }
+      if (best && score < 12) break;
+    }
+    return best;
+  }
+  /** Somewhere on land in front of a place where the whole tear stands in open air (none of it in a hill or a house). */
+  landRift(place2, form) {
+    const dim = overworld(), size = RIFT_SIZE[form], half = Math.max(3, Math.min(12, size * 0.3));
+    const f = forwardOf(place2.yaw), l = { x: -f.z, y: 0, z: f.x };
+    for (const d of [0, 8, 16, 24, 32, 44]) for (const s of [0, 10, -10, 20, -20]) {
+      const x = place2.at.x - f.x * d + l.x * s, z = place2.at.z - f.z * d + l.z * s;
+      const g = groundY(dim, x, z, place2.at.y + 24, 48);
+      if (typeof g !== "number") continue;
+      let clear = true;
+      for (const [px, pz] of [[x, z], [x + l.x * half, z + l.z * half], [x - l.x * half, z - l.z * half]]) {
+        for (let y = g + 1; y <= g + size && clear; y += 2) if (isSolidBlock(blockAt(dim, { x: px, y, z: pz }))) clear = false;
+      }
+      if (clear) return { at: { x: Math.floor(x), y: g, z: Math.floor(z) }, yaw: place2.yaw };
+    }
+    return null;
+  }
   callNow(site, by, place2) {
     const rec = store.rec;
     const c = this.creature;
@@ -9126,7 +9291,8 @@ var Controller = class {
     const form = returning ? rec.form : 1;
     const origin = { x: Math.floor(site.x), y: Math.floor(site.y), z: Math.floor(site.z) };
     if (form === 1) {
-      const w = this.waterNear(site, 96);
+      const r = this.riftSite(site, 1, 120);
+      const w = r ? { x: r.at.x + 0.5, y: r.at.y, z: r.at.z + 0.5 } : this.waterNear(site, 96);
       if (!w) return "The rift opens in deep water, and there is none within 96 blocks (it has to be 5 deep). Go to the sea, a deep lake or a wide river and call him again.";
       this.waterSearch = null;
       rec.stage = "arriving";
@@ -9146,21 +9312,12 @@ var Controller = class {
       return `The rift is opening in the water ${Math.round(dist(w, site))} blocks from you. Watch it.`;
     }
     let fromSea = false;
-    if (form === 4) {
-      const w = this.waterNear(site, 96);
-      if (w) {
-        const out = norm({ x: w.x - site.x, y: 0, z: w.z - site.z });
-        for (const d of [78, 60, 40, 20, 0]) {
-          const x = w.x + out.x * d, z = w.z + out.z * d;
-          const col = waterColumn(overworld(), x, z, w.y + 5.5, 12, 40);
-          if (col === NONE || col === UNLOADED || col.surface - col.floor < 2) continue;
-          place2 = { at: { x: Math.floor(x), y: col.floor, z: Math.floor(z) }, yaw: yawTo({ x, y: 0, z }, site) };
-          fromSea = true;
-          break;
-        }
-      }
-    }
-    if (!place2) return "He could not come there.";
+    const sea = this.riftSite(site, form);
+    if (sea) {
+      place2 = sea;
+      fromSea = true;
+    } else if (place2) place2 = this.landRift(place2, form) ?? void 0;
+    if (!place2) return "There is nowhere near here for the rift to open: no deep, open water, and no open ground clear of hills and buildings.";
     rec.stage = "arriving";
     rec.entityId = null;
     rec.down = null;
@@ -9169,7 +9326,7 @@ var Controller = class {
     rec.arrival = { step: 0, t0: this.now, water: { ...place2.at }, yaw: place2.yaw, land: true };
     rec.home = { ...place2.at };
     store.save();
-    return fromSea ? `The rift is opening in the water ${Math.round(dist(place2.at, site))} blocks from you. Basiliskra IV is coming out of the sea.` : `The rift is opening in front of you. Basiliskra ${ROMAN2[form]} is coming through.`;
+    return fromSea ? `The rift is opening in the sea ${Math.round(dist(place2.at, site))} blocks from you. Basiliskra ${ROMAN2[form]} is coming out of the water.` : `The rift is opening on open ground in front of you. Basiliskra ${ROMAN2[form]} is coming through.`;
   }
   /** The heading out of a seam in the water with the longest clear, deep run ahead of it (for his first swim). */
   openHeading(w) {
@@ -9337,7 +9494,7 @@ var Controller = class {
     for (const id of [OVERWORLD, "minecraft:nether", "minecraft:the_end"]) {
       let dim;
       try {
-        dim = world13.getDimension(id);
+        dim = world14.getDimension(id);
       } catch {
         continue;
       }
@@ -9481,6 +9638,7 @@ var Controller = class {
     cityTick(now);
     titans.tick(now);
     separateGiants();
+    civiliansTick(now, this.creature ? [this.creature, ...titans.creatures()] : titans.creatures());
     lanceTick();
     if (this.creature && !this.creature.valid) {
       this.creature.dropParts();
@@ -9634,7 +9792,7 @@ var Controller = class {
             }
           }
         }
-        const tod = world13.getTimeOfDay();
+        const tod = world14.getTimeOfDay();
         if (near && (isDusk(tod) || t > pace(1.2 * TICKS.day))) this.setStep(1);
         break;
       }
@@ -9669,8 +9827,18 @@ var Controller = class {
           riftOpen(dim, foot, RIFT_SIZE[1]);
           sceneTheme("dread", 300, foot, dim.id);
           addFallout(a.water, 4, 0.4);
-          const head2 = () => this.creature ? this.creature.anchor("nose") : { x: a.water.x, y: a.water.y + 4, z: a.water.z };
-          film(dim, head2, { ticks: 330, radius: 110, dist: 30, height: 9, orbit: 50, distEnd: 22, flash: { red: 0.8, green: 0.05, blue: 0.05 } });
+          const tear = () => ({ x: a.water.x, y: a.water.y + 4, z: a.water.z });
+          const head2 = () => this.creature ? this.creature.anchor("nose") : tear();
+          const surface2 = () => {
+            const h = head2();
+            return { x: h.x, y: Math.max(h.y, a.water.y + 5), z: h.z };
+          };
+          film(dim, head2, { ticks: 330, radius: 110, dist: 30, height: 9, cinema: true, facing: () => a.yaw, flash: { red: 0.8, green: 0.05, blue: 0.05 }, shots: [
+            { ticks: 50, look: tear, angle: [6, -6], dist: [44, 36], height: [2, 3] },
+            { ticks: 45, look: tear, angle: [55, 70], dist: [16, 12], height: [1, 2.5] },
+            { ticks: 90, look: surface2, angle: [30, 10], dist: [22, 16], height: [7, 3] },
+            { ticks: 145, look: head2, angle: [70, 40], dist: [14, 10], height: [1.5, 0.5] }
+          ] });
         }
         riftTick(dim, foot, RIFT_SIZE[1], t, Math.min(1, t / 90));
         if (t % 4 === 0) particle(dim, "basiliskra:seam", a.water, 72);
@@ -9721,16 +9889,17 @@ var Controller = class {
         riftOpen(dim, at3, size);
         sceneTheme(store.rec.form >= 3 ? "wrath" : "dread", 420, at3, dim.id);
         addFallout(at3, 5, 0.5);
-        const focus = () => this.creature ? this.creature.anchor("nose") : { x: at3.x, y: at3.y + size * 0.4, z: at3.z };
-        film(dim, focus, {
-          ticks: 400,
-          radius: 120,
-          dist: size * 1.5 + 14,
-          height: size * 0.35 + 4,
-          orbit: 60,
-          distEnd: size * 1.2 + 10,
-          flash: { red: 0.8, green: 0.05, blue: 0.05 }
-        });
+        const tear = () => ({ x: at3.x, y: at3.y + size * 0.5, z: at3.z });
+        const head2 = () => this.creature ? this.creature.anchor("nose") : tear();
+        const body2 = () => this.creature ? { x: this.creature.pos.x, y: this.creature.pos.y + BODY_MID[form], z: this.creature.pos.z } : tear();
+        const F = FRAME[form];
+        film(dim, body2, { ticks: 400, radius: 140, dist: F, height: 4, cinema: true, facing: () => a.yaw, flash: { red: 0.8, green: 0.05, blue: 0.05 }, shots: [
+          { ticks: 40, look: tear, angle: [-4, 4], dist: [size * 1.8 + 20, size * 1.5 + 16], height: [-size * 0.35, -size * 0.3] },
+          { ticks: 30, look: tear, angle: [48, 62], dist: [size * 0.7 + 6, size * 0.55 + 5], height: [0, size * 0.1] },
+          { ticks: 70, look: head2, angle: [-62, -40], dist: [F * 0.55, F * 0.45], height: [-F * 0.12, -F * 0.06] },
+          { ticks: 150, look: body2, angle: [8, -8], dist: [F * 1.1, F * 0.8], height: [-F * 0.18, -F * 0.1] },
+          { ticks: 110, look: head2, angle: [26, 14], dist: [F * 0.45, F * 0.36], height: [-F * 0.1, -F * 0.05] }
+        ] });
       }
       riftTick(dim, at3, size, t, Math.min(1, t / 60));
       if (t < 60) return;
@@ -9746,6 +9915,7 @@ var Controller = class {
       c.wade = true;
       this.setStep(4);
       this.runner = this.landWalk();
+      this.nameCard(c, form, "§7comes through");
       return;
     }
     if (!this.creature) {
@@ -9933,7 +10103,7 @@ var Controller = class {
     const dim = overworld();
     if (rec.entityId !== null) {
       try {
-        const e = world13.getEntity(rec.entityId);
+        const e = world14.getEntity(rec.entityId);
         if (e) {
           this.inspect(e);
           return;
@@ -9993,10 +10163,23 @@ var Controller = class {
         this.brain?.finish();
         const was = ev.to - 1, Fo = FRAME[was], Fn = FRAME[ev.to];
         const body2 = () => ({ x: c.pos.x, y: c.pos.y + BODY_MID[c.form], z: c.pos.z });
-        film(c.dim, body2, { ticks: CH.before + CH.after + CH.hold, radius: 140, dist: Fo, height: 4, cinema: true, facing: () => c.yaw, shots: CH.shots(c, Fo, Fn) });
+        film(c.dim, body2, {
+          ticks: OPENING + CH.before + CH.after + CH.hold,
+          radius: 140,
+          dist: Fo,
+          height: 4,
+          cinema: true,
+          facing: () => c.yaw,
+          shots: [CH.wide(c, Fo), ...CH.shots(c, Fo, Fn)]
+        });
+        c.say("basiliskra.mutate", c.pos, 96, 0.6, 0.7);
       }
-      const t2 = now - ev.t0;
-      if (t2 >= 0 && t2 < CH.before) {
+      const t2 = now - ev.t0 - OPENING;
+      if (t2 < 0) {
+        if ((t2 + OPENING) % 12 === 0) shake(c, 110, 0.12 + 0.2 * ((t2 + OPENING) / OPENING), 0.8);
+        return;
+      }
+      if (t2 < CH.before) {
         CH.pre(c, t2);
         return;
       }
@@ -10062,12 +10245,12 @@ var Controller = class {
     } else if (b instanceof BrainThree) b.forced = { name: "roar", run: b.roar(true), limit: 220 };
     else if (b instanceof BrainTwo) b.forced = { name: "roar", run: b.roar(), limit: 120 };
   }
-  /** His name, as the new animal is seen for the first time. */
-  nameCard(c, form) {
+  /** His name, as the new animal is seen for the first time (or as he comes through a rift). */
+  nameCard(c, form, subtitle = NAME_CARD[form]) {
     for (const p of players()) {
       try {
         if (p.dimension.id !== c.dim.id || dist(p.location, c.pos) > 160) continue;
-        p.onScreenDisplay.setTitle(`§4BASILISKRA ${ROMAN2[form]}`, { subtitle: NAME_CARD[form], fadeInDuration: 12, stayDuration: 60, fadeOutDuration: 24 });
+        p.onScreenDisplay.setTitle(`§4BASILISKRA ${ROMAN2[form]}`, { subtitle, fadeInDuration: 12, stayDuration: 60, fadeOutDuration: 24 });
       } catch {
       }
     }
@@ -10134,7 +10317,7 @@ function trackSplashes() {
     if (done) flying.splice(i, 1);
   }
 }
-world14.afterEvents.worldLoad.subscribe(() => {
+world15.afterEvents.worldLoad.subscribe(() => {
   loadSettings();
   ctl.init();
   ready = true;
@@ -10164,7 +10347,7 @@ system6.beforeEvents.shutdown.subscribe(() => {
   } catch {
   }
 });
-world14.afterEvents.entityLoad.subscribe((ev) => {
+world15.afterEvents.entityLoad.subscribe((ev) => {
   if (!ready) return;
   try {
     if (ev.entity.typeId === TYPE) ctl.inspect(ev.entity);
@@ -10173,7 +10356,7 @@ world14.afterEvents.entityLoad.subscribe((ev) => {
   } catch {
   }
 });
-world14.afterEvents.entitySpawn.subscribe((ev) => {
+world15.afterEvents.entitySpawn.subscribe((ev) => {
   if (!ready) return;
   try {
     const id = ev.entity.typeId;
@@ -10193,7 +10376,7 @@ world14.afterEvents.entitySpawn.subscribe((ev) => {
   } catch {
   }
 });
-world14.beforeEvents.entityRemove.subscribe((ev) => {
+world15.beforeEvents.entityRemove.subscribe((ev) => {
   try {
     const id = ev.removedEntity.typeId;
     if (id === TYPE) ctl.onRemoving(ev.removedEntity);
@@ -10230,7 +10413,7 @@ function meleeDamage(id) {
   return 1;
 }
 var everyGiant = () => [...ctl.creature ? [ctl.creature] : [], ...titans.creatures()];
-world14.afterEvents.playerSwingStart.subscribe((ev) => {
+world15.afterEvents.playerSwingStart.subscribe((ev) => {
   if (!ready || !everyGiant().length) return;
   if (ev.swingSource !== EntitySwingSource.Attack) return;
   const p = ev.player;
@@ -10261,7 +10444,7 @@ world14.afterEvents.playerSwingStart.subscribe((ev) => {
     }
   }, 2);
 });
-world14.beforeEvents.entityHurt.subscribe((ev) => {
+world15.beforeEvents.entityHurt.subscribe((ev) => {
   let type;
   try {
     type = ev.hurtEntity.typeId;
@@ -10321,7 +10504,7 @@ world14.beforeEvents.entityHurt.subscribe((ev) => {
     system6.run(() => ctl.driveOff());
   }
 });
-world14.afterEvents.entityHurt.subscribe((ev) => {
+world15.afterEvents.entityHurt.subscribe((ev) => {
   try {
     if (ev.hurtEntity.typeId === TITAN) {
       titans.onHurt(ev.hurtEntity, ev.damageSource.damagingEntity, ev.damage);
@@ -10333,7 +10516,7 @@ world14.afterEvents.entityHurt.subscribe((ev) => {
   } catch {
   }
 });
-world14.afterEvents.entityDie.subscribe((ev) => {
+world15.afterEvents.entityDie.subscribe((ev) => {
   let type;
   try {
     type = ev.deadEntity.typeId;
@@ -10354,7 +10537,7 @@ world14.afterEvents.entityDie.subscribe((ev) => {
   } catch {
   }
 });
-world14.afterEvents.playerBreakBlock.subscribe((ev) => {
+world15.afterEvents.playerBreakBlock.subscribe((ev) => {
   try {
     if (ev.dimension.id !== OVERWORLD) return;
     const t = recordHabitat(ev.block.location, ev.brokenBlockPermutation.type.id, ev.player.id, ev.player.name, store.rec.clock);
@@ -10362,7 +10545,7 @@ world14.afterEvents.playerBreakBlock.subscribe((ev) => {
   } catch {
   }
 });
-world14.afterEvents.playerInteractWithBlock.subscribe((ev) => {
+world15.afterEvents.playerInteractWithBlock.subscribe((ev) => {
   try {
     const id = ev.block.typeId, at3 = ev.block.location;
     if (id === "minecraft:bell") ctl.brain?.onBell(at3, ev.player);
@@ -10381,12 +10564,12 @@ world14.afterEvents.playerInteractWithBlock.subscribe((ev) => {
   } catch {
   }
 });
-world14.afterEvents.weatherChange.subscribe((ev) => {
+world15.afterEvents.weatherChange.subscribe((ev) => {
   const w = String(ev.newWeather).toLowerCase();
   store.rec.weather = w.includes("thunder") ? "thunder" : w.includes("rain") ? "rain" : "clear";
   store.touch();
 });
-world14.afterEvents.itemUse.subscribe((ev) => {
+world15.afterEvents.itemUse.subscribe((ev) => {
   try {
     const id = ev.itemStack.typeId;
     if (id === JOURNAL_ITEM) void openJournal(ev.source, ctl);
@@ -10395,13 +10578,13 @@ world14.afterEvents.itemUse.subscribe((ev) => {
   } catch {
   }
 });
-world14.afterEvents.itemCompleteUse.subscribe((ev) => {
+world15.afterEvents.itemCompleteUse.subscribe((ev) => {
   try {
     if (isIodine(ev.itemStack?.typeId)) takeIodine(ev.source);
   } catch {
   }
 });
-world14.afterEvents.playerSpawn.subscribe((ev) => {
+world15.afterEvents.playerSpawn.subscribe((ev) => {
   releaseStale(ev.player);
   if (!ev.initialSpawn) return;
   falloutJoin(ev.player);
@@ -10528,7 +10711,7 @@ system6.afterEvents.scriptEventReceive.subscribe((ev) => {
   const rec = store.rec;
   const src = ev.sourceEntity;
   if (cmd === "status") {
-    world14.sendMessage(`[${NS}] stage=${rec.stage} form=${rec.form} id=${rec.entityId} loaded=${!!ctl.creature} act=${ctl.brain?.actName} quarantined=${ctl.quarantined}`);
+    world15.sendMessage(`[${NS}] stage=${rec.stage} form=${rec.form} id=${rec.entityId} loaded=${!!ctl.creature} act=${ctl.brain?.actName} quarantined=${ctl.quarantined}`);
   } else if (cmd === "arrive" && src) {
     ctl.requestArrival({ region: "debug", site: src.location, guilty: src.id, guiltyName: src.name ?? null });
   } else if (cmd === "stats") {
@@ -10539,7 +10722,7 @@ system6.afterEvents.scriptEventReceive.subscribe((ev) => {
     rec.mut.beams = Number(arg ?? rec.mut.beams);
     store.save();
   } else if (cmd === "dusk") {
-    world14.setTimeOfDay(12200);
+    world15.setTimeOfDay(12200);
   }
 }, { namespaces: [NS] });
 export {

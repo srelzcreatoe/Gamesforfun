@@ -42,6 +42,8 @@ export interface Change {
   /** What the screen flashes at that instant: colour, and seconds held and fading. */
   flash: { red: number; green: number; blue: number; hold: number; fade: number };
   shots(c: Creature, Fo: number, Fn: number): Shot[];
+  /** The establishing shot it opens on, held for OPENING ticks before anything happens (the ground already shaking). */
+  wide(c: Creature, Fo: number): Shot;
   /** Each tick of the build-up, from 0. */
   pre(c: Creature, t: number): void;
   /** The instant itself (he is still the animal he was). */
@@ -113,12 +115,17 @@ function scar(c: Creature, r: number, n: number, seed: number): void {
   }
 }
 
+/** How long each scene holds its establishing shot before the change begins. */
+export const OPENING = 36;
+
 // ---- I -> II: the water boils ---------------------------------------------------------------------------------
 const KNOCKS = [0, 18, 36];
 let top = 0;                 // the water's surface, read now and then
 const ONE: Change = {
   before: 176, after: 134, hold: 90, nameAt: 0,
   flash: { red: 0.92, green: 0.9, blue: 0.95, hold: 0.14, fade: 1.0 },
+  // high over the sea, coming down toward the water where he lies
+  wide: (c, Fo) => ({ ticks: OPENING, look: body(c), angle: [125, 95], dist: [Fo * 1.45, Fo * 1.15], height: [Fo * 0.7, Fo * 0.45] }),
   shots: (c, Fo, Fn) => [
     // his gills, from beside his head, as they knock
     { ticks: 54, look: head(c), angle: [72, 96], dist: [Fo * 0.3 + 2, Fo * 0.26 + 2], height: [2.5, 3.5] },
@@ -207,6 +214,8 @@ const STRIKES = [50, 100, 140];
 const TWO: Change = {
   before: 200, after: 150, hold: 120, nameAt: 0,
   flash: { red: 1, green: 0.94, blue: 0.9, hold: 0.16, fade: 0.9 },
+  // low and far: him against the sky that is about to come down on him
+  wide: (c, Fo) => ({ ticks: OPENING, look: () => at(c, "horn_l", 4), angle: [205, 185], dist: [Fo * 1.65, Fo * 1.35], height: [-3, -1] }),
   shots: (c, Fo, Fn) => [
     // from beside his shoulder and below, up past his horns at the sky the first bolt comes out of
     { ticks: 58, look: () => at(c, "horn_l", 6), angle: [146, 158], dist: [Fo * 0.8, Fo * 0.72], height: [-5, -4] },
@@ -298,6 +307,8 @@ const VENTS = [137, 155, 173];
 const THREE: Change = {
   before: 236, after: 210, hold: 0, nameAt: 110,
   flash: { red: 1, green: 1, blue: 1, hold: 0.4, fade: 1.3 },
+  // from the ground far off, the whole of him, the light already gathering
+  wide: (c, Fo) => ({ ticks: OPENING, look: body(c), angle: [-150, -172], dist: [Fo * 1.38, Fo * 1.15], height: [-Fo * 0.08, 0] }),
   shots: (c, Fo, Fn) => [
     // along his back from the tail as the plates light: a charge, like any other
     { ticks: 70, look: () => at(c, "plate_tip_5"), angle: [160, 195], dist: [Fo * 0.7, Fo * 0.55], height: [Fo * 0.3, Fo * 0.2] },

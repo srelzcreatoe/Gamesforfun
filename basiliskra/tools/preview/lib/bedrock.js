@@ -55,7 +55,7 @@ export function buildGeometry(geoJson) {
     (parent ? parent.group : root).add(group);
 
     const pos = [], nor = [], uv = [], idx = [];
-    for (const c of jb.cubes || []) {
+    for (let c of jb.cubes || []) {
       cubeCount++;
       const inf = c.inflate || 0;
       const lo = [c.origin[0] - inf, c.origin[1] - inf, c.origin[2] - inf];
@@ -65,7 +65,15 @@ export function buildGeometry(geoJson) {
         M = fileRot(c.rotation[0], c.rotation[1], c.rotation[2]);
         cp = c.pivot || pivot;
       }
-      if (Array.isArray(c.uv)) throw new Error('box UV cubes are not used by this pack');
+      if (Array.isArray(c.uv)) {
+        // box layout (the usual skin layout): the six faces round the corner given, as Blockbench unfolds them
+        // (file space: west is the character's right, the strip at the corner's left)
+        const [u, v] = c.uv, w = Math.floor(c.size[0]), h = Math.floor(c.size[1]), d = Math.floor(c.size[2]);
+        c = { ...c, uv: {
+          north: { uv: [u + d, v + d], uv_size: [w, h] }, south: { uv: [u + 2 * d + w, v + d], uv_size: [w, h] },
+          west: { uv: [u, v + d], uv_size: [d, h] }, east: { uv: [u + d + w, v + d], uv_size: [d, h] },
+          up: { uv: [u + d, v], uv_size: [w, d] }, down: { uv: [u + d + w, v + d], uv_size: [w, -d] } } };
+      }
       for (const face of Object.keys(c.uv || {})) {
         const f = c.uv[face];
         const n0 = new THREE.Vector3(...NORMALS[face]);

@@ -4,7 +4,7 @@
  * same `finish()`, and every encounter has a time limit.
  */
 import { Player, system } from "@minecraft/server";
-import { CONFIG, TICKS } from "./config";
+import { CIVILIAN, CONFIG, TICKS } from "./config";
 import { Creature, targetable } from "./creature";
 import { nearestCity } from "./city";
 import { players } from "./fx";
@@ -86,7 +86,8 @@ export function settlementNear(c: Creature, now: number): V3 | null {
     s = { at: null, t: now };
     try {
       let nd = 1e9;
-      for (const e of c.dim.getEntities({ type: "minecraft:villager_v2", location: c.pos, maxDistance: 180 })) {
+      for (const e of [...c.dim.getEntities({ type: "minecraft:villager_v2", location: c.pos, maxDistance: 180 }),
+                       ...c.dim.getEntities({ type: CIVILIAN, location: c.pos, maxDistance: 180 })]) {
         const d = dist(e.location, c.pos);
         if (d < nd) { nd = d; s.at = { ...e.location }; }
       }

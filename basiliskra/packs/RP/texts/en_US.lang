@@ -24,3 +24,5 @@ tile.basiliskra:abyssal_basalt.name=Abyssal Basalt
 tile.basiliskra:seam_vent.name=Seam Vent
 tile.basiliskra:drowned_lantern.name=Drowned Lantern
 tile.basiliskra:old_bone.name=Old Bone
+entity.basiliskra:civilian.name=Civilian
+item.spawn_egg.entity.basiliskra:civilian.name=Spawn Civilian

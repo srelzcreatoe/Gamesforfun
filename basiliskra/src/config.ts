@@ -65,6 +65,8 @@ export const NS = "basiliskra";
 export const TYPE = `${NS}:basiliskra`;
 /** The Titan: Basiliskra IV's body as an entity of its own, for battles (see titan.ts). */
 export const TITAN = `${NS}:titan`;
+/** The people of his cities (see civilians.ts). */
+export const CIVILIAN = `${NS}:civilian`;
 /** His hit volumes: one entity type per size (hitbox_0 .. hitbox_9), all of one family. */
 export const hitboxId = (size: number): string => `${NS}:hitbox_${size}`;
 export const isHitbox = (typeId: string): boolean => typeId.startsWith(`${NS}:hitbox_`);

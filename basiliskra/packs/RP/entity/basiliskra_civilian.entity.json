@@ -1,0 +1,59 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "basiliskra:civilian",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "v0": "textures/entity/basiliskra/civilian/civilian_0",
+        "v1": "textures/entity/basiliskra/civilian/civilian_1",
+        "v2": "textures/entity/basiliskra/civilian/civilian_2",
+        "v3": "textures/entity/basiliskra/civilian/civilian_3",
+        "v4": "textures/entity/basiliskra/civilian/civilian_4",
+        "v5": "textures/entity/basiliskra/civilian/civilian_5",
+        "v6": "textures/entity/basiliskra/civilian/civilian_6",
+        "v7": "textures/entity/basiliskra/civilian/civilian_7",
+        "v8": "textures/entity/basiliskra/civilian/civilian_8",
+        "v9": "textures/entity/basiliskra/civilian/civilian_9",
+        "v10": "textures/entity/basiliskra/civilian/civilian_10",
+        "v11": "textures/entity/basiliskra/civilian/civilian_11"
+      },
+      "geometry": {
+        "default": "geometry.basiliskra.civilian"
+      },
+      "scripts": {
+        "initialize": [
+          "v.fright = 0;"
+        ],
+        "pre_animation": [
+          "v.fright = math.lerp(v.fright, q.property('basiliskra:scared') ? 1 : 0, math.min(1, q.delta_time * 8));"
+        ],
+        "animate": [
+          "move",
+          "look",
+          {
+            "idle": "v.fright < 0.5"
+          },
+          {
+            "panic": "v.fright > 0.01"
+          }
+        ]
+      },
+      "animations": {
+        "move": "animation.basiliskra.civilian.move",
+        "look": "animation.basiliskra.civilian.look",
+        "idle": "animation.basiliskra.civilian.idle",
+        "panic": "animation.basiliskra.civilian.panic"
+      },
+      "render_controllers": [
+        "controller.render.basiliskra.civilian"
+      ],
+      "spawn_egg": {
+        "base_color": "#3a6ea5",
+        "overlay_color": "#f4d0b1"
+      }
+    }
+  }
+}

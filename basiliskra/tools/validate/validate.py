@@ -14,6 +14,7 @@ Static validation of the two packs against the target release.
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import struct
@@ -77,6 +78,33 @@ if have_schemas:
                 by_id[s["$id"]] = s
                 reg = reg.with_resource(s["$id"], Resource.from_contents(s, default_specification=DRAFT7))
 
+        def walk_filters(d, path=""):
+            if isinstance(d, dict):
+                for k2, x in d.items():
+                    if k2 == "filters":
+                        yield f"{path}/{k2}", x
+                    else:
+                        yield from walk_filters(x, f"{path}/{k2}")
+            elif isinstance(d, list):
+                for i, x in enumerate(d):
+                    yield from walk_filters(x, f"{path}/{i}")
+
+        def filter_shape(f):
+            """A filter as vanilla writes them: a test object, a list of filters, or a group of them."""
+            if isinstance(f, list):
+                return next((p for p in map(filter_shape, f) if p), None)
+            if not isinstance(f, dict):
+                return f"not a filter: {f!r}"
+            groups = {"all_of", "any_of", "none_of", "AND", "OR", "NOT", "all", "any"}
+            if set(f) & groups:
+                if set(f) - groups:
+                    return f"a group with other keys: {sorted(set(f) - groups)}"
+                return next((p for g in f.values() for p in [filter_shape(g)] if p), None)
+            if not isinstance(f.get("test"), str):
+                return "a test with no name"
+            extra = set(f) - {"test", "subject", "operator", "domain", "value"}
+            return f"unknown keys {sorted(extra)}" if extra else None
+
         def check(doc_key, schema_id, value):
             sch = by_id.get(schema_id)
             if not sch:
@@ -84,9 +112,19 @@ if have_schemas:
                 return
             v = Draft7Validator(sch, registry=reg)
             bad = sorted(v.iter_errors(value), key=lambda e: list(e.absolute_path))
-            # No waivers.  The game parses a file by the schema of the format_version it declares: a timer
+            # No waivers, but one.  The game parses a file by the schema of the format_version it declares: a timer
             # written as a bare number passed here once as 'what vanilla does' and failed to load in game
             # (vanilla files that do it are on older format versions).
+            # The one: entity filters.  The published Filter Group is a oneOf of a Filter Test, a list and a Filter
+            # Group Map, and neither object form forbids the other's keys, so every filter matches two branches and
+            # none can pass (tested: a single plain test fails as surely as vanilla's own any_of).  The shape of
+            # each filter is checked by filter_shape() instead.
+            bad = [e for e in bad if not ("filters" in [str(x) for x in e.absolute_path]
+                                          or any("filters" in [str(x) for x in c.absolute_path] for c in (e.context or [])))]
+            for path, f in walk_filters(value):
+                problem = filter_shape(f)
+                if problem:
+                    err(f"{doc_key}: filter at /{path}: {problem}")
             for e in bad[:8]:
                 err(f"{doc_key}: schema {schema_id}: /{'/'.join(str(x) for x in e.absolute_path)}: {e.message[:200]}")
             if not bad:
@@ -137,7 +175,12 @@ for k, d in docs.items():
             if "parent" in b and b["parent"] not in bones:
                 err(f"{k}: bone {b['name']} has unknown parent {b['parent']}")
             for c in b.get("cubes", []):
-                for face, u in (c.get("uv") or {}).items():
+                uvs = c.get("uv") or {}
+                if isinstance(uvs, list):
+                    # box layout: the six faces fill (2d + 2w) x (d + h) from the corner given
+                    w, h, dd = (math.floor(v) for v in c["size"])
+                    uvs = {"box": {"uv": uvs, "uv_size": [2 * dd + 2 * w, dd + h]}}
+                for face, u in uvs.items():
                     x0, y0 = u["uv"]; x1, y1 = x0 + u["uv_size"][0], y0 + u["uv_size"][1]
                     if min(x0, x1) < 0 or min(y0, y1) < 0 or max(x0, x1) > desc["texture_width"] or max(y0, y1) > desc["texture_height"]:
                         err(f"{k}: {b['name']} face {face} uv outside the texture")

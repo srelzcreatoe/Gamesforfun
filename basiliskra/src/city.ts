@@ -15,7 +15,7 @@
  * operator asks for one.
  */
 import { BlockVolume, Dimension, ItemStack, Player } from "@minecraft/server";
-import { CONFIG, IODINE_ITEM, NS, OVERWORLD, SHARD_ITEM, TICKS, TRINITITE_BLOCK } from "./config";
+import { CIVILIAN, CONFIG, IODINE_ITEM, NS, OVERWORLD, SHARD_ITEM, TICKS, TRINITITE_BLOCK } from "./config";
 import { players } from "./fx";
 import { LANCE_ITEM } from "./lance";
 import { store } from "./store";
@@ -24,7 +24,7 @@ import { NONE, UNLOADED, blockAt, groundY, idAt, isLoaded, isWaterId, overworld,
 
 export interface Site { x: number; y: number; z: number; dir: 0 | 1 | 2 | 3; small?: boolean; done: boolean; t: number }
 export interface Plan { lotsU: number; lotsV: number; trenchU: number; trenchV: number; floor: number; people: number }
-export const FULL: Plan = { lotsU: 6, lotsV: 4, trenchU: 200, trenchV: 100, floor: -40, people: 36 };
+export const FULL: Plan = { lotsU: 9, lotsV: 6, trenchU: 240, trenchV: 100, floor: -40, people: 60 };
 export const SMALL: Plan = { lotsU: 3, lotsV: 2, trenchU: 56, trenchV: 40, floor: -40, people: 8 };
 const SEA = 62;                       // the top block of the sea
 const LOT = 21, ROAD = 7, PITCH = LOT + ROAD;
@@ -79,11 +79,11 @@ export function plan(S: Site): Op[] {
   const P = planOf(S), L = layout(P), G = S.y, ops: Op[] = [];
   const rnd = (i: number, j = 0) => hash(S.x * 0.37 + i * 1.7, S.z * 0.53 + j * 2.3, i * 31 + j);
   const pick = <T>(list: T[], i: number, j = 0): T => list[Math.floor(rnd(i, j) * list.length) % list.length];
-  // a box, cut into pieces no bigger than the engine will fill in one call
+  // a box, cut into pieces small enough that filling one never costs the game a stutter (16 x 16 x 16 at most)
   const fill = (u0: number, y0: number, v0: number, u1: number, y1: number, v1: number, id: string) => {
     if (u1 < u0 || y1 < y0 || v1 < v0) return;
-    for (let u = u0; u <= u1; u += 32) for (let v = v0; v <= v1; v += 32) for (let y = y0; y <= y1; y += 30) {
-      ops.push({ k: "fill", a: [u, y, v], b: [Math.min(u1, u + 31), Math.min(y1, y + 29), Math.min(v1, v + 31)], id });
+    for (let u = u0; u <= u1; u += 16) for (let v = v0; v <= v1; v += 16) for (let y = y0; y <= y1; y += 16) {
+      ops.push({ k: "fill", a: [u, y, v], b: [Math.min(u1, u + 15), Math.min(y1, y + 15), Math.min(v1, v + 15)], id });
     }
   };
   const set = (at: P3[], id: string) => { if (at.length) ops.push({ k: "set", at, id }); };
@@ -185,8 +185,8 @@ export function plan(S: Site): Op[] {
     if (big && i < 2 && j < 2) { if (i === 0 && j === 0) stadium(lu, lv); continue; }
     if (big && i === P.lotsU - 1 && j === 1) { wheel(lu, lv); continue; }
     const r = rnd(n, 9);
-    if (j === 0 && r < 0.75) houses(lu, lv, n);
-    else if (r < 0.14 || (!big && i === 1 && j === 0)) park(lu, lv, n);
+    if (j <= (P.lotsV >= 6 ? 1 : 0) && r < 0.75) houses(lu, lv, n);
+    else if (r < 0.14 || (!big && i === 1 && j === 0) || (big && i === Math.floor(P.lotsU / 2) && j === Math.floor(P.lotsV / 2))) park(lu, lv, n);
     else {
       // the nearer the water, the taller
       const tall = j === P.lotsV - 1 ? 34 + Math.floor(rnd(n, 10) * 32) : 14 + Math.floor(rnd(n, 10) * (j >= 2 ? 30 : 18));
@@ -196,6 +196,14 @@ export function plan(S: Site): Op[] {
   // lamps along the promenade, and a pier out over the beach
   for (let u = 4; u < L.cityU; u += 12) { posts.push([u, G + 1, L.vProm + 4], [u, G + 2, L.vProm + 4], [u, G + 3, L.vProm + 4]); lamps.push([u, G + 4, L.vProm + 4]); }
   set(posts, "minecraft:nether_brick_fence"); set(lamps, LIGHT); set(lights, LIGHT);
+
+  // ---- the people: in the streets as soon as there are streets (they are what he comes for) ------------------------
+  for (let k = 0; k < P.people; k++) {
+    const i = Math.floor(rnd(k, 40) * (P.lotsU + 1)), j = Math.floor(rnd(k, 41) * (P.lotsV + 1));
+    const along = rnd(k, 42) < 0.5;
+    ops.push({ k: "mob", id: CIVILIAN, at: along ? [i * PITCH + 1 + (k % 2) * 4, G + 1, 2 + Math.floor(rnd(k, 43) * (L.cityV - 4))]
+      : [2 + Math.floor(rnd(k, 44) * (L.cityU - 4)), G + 1, j * PITCH + 1 + (k % 2) * 4] });
+  }
 
   // ---- the beach: sand shelving down from the promenade to the water and under it ---------------------------
   const strip = (v0: number, v1: number, y: number, top: string) => {
@@ -283,24 +291,21 @@ export function plan(S: Site): Op[] {
   set(lit, LANTERN);
   ops.push({ k: "chest", at: [qu, F + 2, qv], items: [[LANCE_ITEM, 1], [SHARD_ITEM, 12], [IODINE_ITEM, 8], ["minecraft:diamond", 3], ["minecraft:heart_of_the_sea", 1]] });
 
-  // ---- the people -------------------------------------------------------------------------------------------------
-  for (let k = 0; k < P.people; k++) {
-    const i = Math.floor(rnd(k, 40) * (P.lotsU + 1)), j = Math.floor(rnd(k, 41) * (P.lotsV + 1));
-    const along = rnd(k, 42) < 0.5;
-    ops.push({ k: "mob", id: "minecraft:villager_v2", at: along ? [i * PITCH + 1 + (k % 2) * 4, G + 1, 2 + Math.floor(rnd(k, 43) * (L.cityV - 4))]
-      : [2 + Math.floor(rnd(k, 44) * (L.cityU - 4)), G + 1, j * PITCH + 1 + (k % 2) * 4] });
-  }
   return ops;
 }
 
 // ---- building ---------------------------------------------------------------------------------------------------------
 const AREA = "bk_city";
+/** What one tick of building may cost: blocks of volume, pieces, and milliseconds of the script's time. */
+export const BUILD = { volume: 6000, pieces: 20, ms: 4 };
 class Build {
   private ops: Op[];
   private done: Uint8Array;
   private left: number;
   private held = false;
   private waited = 0;
+  /** Everything before this is done (so a tick does not walk the whole plan to find its work). */
+  private first = 0;
   failed = 0;
   constructor(readonly S: Site, private readonly dim: Dimension) {
     this.ops = plan(S);
@@ -341,19 +346,29 @@ class Build {
     return { lo, hi };
   }
 
-  /** A tick's worth: boxes up to a volume, in order; a box whose ground is not loaded waits, and so does everything over the same ground. */
+  /**
+   * A tick's worth, kept small enough that nobody feels it: boxes in order up to a few thousand blocks, two dozen
+   * pieces and a few milliseconds of the script's time; a box whose ground is not loaded waits, and so does
+   * everything over the same ground.  (A city is millions of blocks: it is raised over a minute or two, not at once.)
+   */
   tick(): void {
     this.hold();
     let volume = 0, small = 0, any = false;
+    const started = Date.now();
     const blocked: { lo: V3; hi: V3 }[] = [];
-    for (let i = 0; i < this.ops.length && volume < 40000 && small < 48 && blocked.length < 12; i++) {
+    for (let i = this.first; i < this.ops.length && volume < BUILD.volume && small < BUILD.pieces && blocked.length < 12 && Date.now() - started < BUILD.ms; i++) {
       if (this.done[i]) continue;
       const op = this.ops[i], b = this.box(op);
       if (blocked.some((q) => b.lo.x <= q.hi.x && b.hi.x >= q.lo.x && b.lo.z <= q.hi.z && b.hi.z >= q.lo.z)) continue;
       if (!isLoaded(this.dim, b.lo) || !isLoaded(this.dim, b.hi) || !isLoaded(this.dim, { x: b.lo.x, y: 0, z: b.hi.z }) || !isLoaded(this.dim, { x: b.hi.x, y: 0, z: b.lo.z })) { blocked.push(b); continue; }
+      // a piece that would take this tick over its budget waits for the next (one piece is always allowed)
+      const cost = op.k === "fill" ? (b.hi.x - b.lo.x + 1) * (b.hi.y - b.lo.y + 1) * (b.hi.z - b.lo.z + 1) : op.k === "set" ? op.at.length * 20 : 0;
+      if (small > 0 && volume + cost > BUILD.volume) break;
       try {
         if (op.k === "fill") {
-          this.dim.fillBlocks(new BlockVolume(b.lo, b.hi), op.id, { ignoreChunkBoundErrors: true });
+          // air where it is already air, and sea where it is already sea, are left alone: no update for the game to send
+          const same = op.id === AIR ? [AIR] : op.id === WATER ? [WATER, "minecraft:flowing_water"] : undefined;
+          this.dim.fillBlocks(new BlockVolume(b.lo, b.hi), op.id, same ? { ignoreChunkBoundErrors: true, blockFilter: { excludeTypes: same } } : { ignoreChunkBoundErrors: true });
           volume += (b.hi.x - b.lo.x + 1) * (b.hi.y - b.lo.y + 1) * (b.hi.z - b.lo.z + 1);
         } else if (op.k === "set") {
           for (const [u, y, v] of op.at) { const at = blockAt(this.dim, toWorld(this.S, u, y, v)); if (at) at.setType(op.id); }
@@ -372,6 +387,7 @@ class Build {
       } catch { this.failed++; }
       this.done[i] = 1; this.left--; small++; any = true;
     }
+    while (this.first < this.ops.length && this.done[this.first]) this.first++;
     this.waited = any ? 0 : this.waited + 1;
   }
   /** Nothing could be done for a long while: the ground is not loading (the plan stays, and is taken up again when someone is near). */

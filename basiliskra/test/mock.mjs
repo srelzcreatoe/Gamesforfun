@@ -15,6 +15,9 @@ const TITAN_JSON = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities
 const TITAN_PROPS = TITAN_JSON.description.properties;
 const TITAN_EVENTS = Object.keys(TITAN_JSON.events);
 const TITAN_HEALTH = TITAN_JSON.components['minecraft:health'].max;
+const CIV_JSON = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities/basiliskra_civilian.json'), 'utf8'))['minecraft:entity'];
+const CIV_PROPS = CIV_JSON.description.properties;
+const CIV_EVENTS = Object.keys(CIV_JSON.events);
 const HIT_EVENTS = Object.keys(JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities/basiliskra_hitbox_0.json'), 'utf8'))['minecraft:entity'].events);
 
 export const EntityDamageCause = { entityAttack: 'entityAttack', projectile: 'projectile', entityExplosion: 'entityExplosion', blockExplosion: 'blockExplosion',
@@ -191,9 +194,11 @@ export class Sim {
     const props = {};
     if (typeId === 'basiliskra:basiliskra') for (const [k, d] of Object.entries(PROPS)) props[k] = d.default;
     if (typeId === 'basiliskra:titan') for (const [k, d] of Object.entries(TITAN_PROPS)) props[k] = d.default;
+    if (typeId === 'basiliskra:civilian') for (const [k, d] of Object.entries(CIV_PROPS)) props[k] = d.default;
     const rec = { id, typeId, dim, loc: { ...loc }, rot: { x: 0, y: rot }, vel: { x: 0, y: 0, z: 0 }, props, dyn: {}, health: typeId.startsWith('basiliskra:hitbox') ? 1000 : typeId === 'basiliskra:basiliskra' ? 600 : typeId === 'basiliskra:titan' ? TITAN_HEALTH : 10, events: [], item: null, riders: [],
       family: typeId.startsWith('basiliskra:hitbox') ? ['basiliskra_part', 'inanimate'] : typeId === 'basiliskra:basiliskra' ? ['basiliskra', 'mob']
-        : typeId === 'basiliskra:titan' ? [...TITAN_JSON.components['minecraft:type_family'].family] : [] };
+        : typeId === 'basiliskra:titan' ? [...TITAN_JSON.components['minecraft:type_family'].family]
+        : typeId === 'basiliskra:civilian' ? [...CIV_JSON.components['minecraft:type_family'].family] : [] };
     this.save.entities.set(id, rec);
     return rec;
   }
@@ -476,6 +481,7 @@ class MockEntity {
   get dimension() { this.need(); return this.sim.dims.get(this.rec.dim); }
   get isInWater() { return this.sim.blockId(this.rec.dim, this.rec.loc.x, this.rec.loc.y, this.rec.loc.z) === 'minecraft:water'; }
   getRotation() { this.need(); return { ...this.rec.rot }; }
+  getHeadLocation() { this.need(); return { x: this.rec.loc.x, y: this.rec.loc.y + 1.6, z: this.rec.loc.z }; }
   setRotation(r) { this.need(); this.rec.rot = { x: r.x, y: r.y }; }
   getVelocity() { this.need(); return { ...this.rec.vel }; }
   applyImpulse(v) { this.need(); if (![v.x, v.y, v.z].every(Number.isFinite)) throw new Error('ArgumentOutOfBoundsError'); this.rec.vel.x += v.x; this.rec.vel.y += v.y; this.rec.vel.z += v.z; }
@@ -485,7 +491,7 @@ class MockEntity {
   getProperty(k) { this.need(); return this.rec.props[k]; }
   setProperty(k, v) {
     this.need();
-    const d = (this.rec.typeId === 'basiliskra:titan' ? TITAN_PROPS : PROPS)[k];
+    const d = (this.rec.typeId === 'basiliskra:titan' ? TITAN_PROPS : this.rec.typeId === 'basiliskra:civilian' ? CIV_PROPS : PROPS)[k];
     if (!d) throw new Error(`property ${k} is not defined on ${this.rec.typeId}`);
     if (d.type === 'bool' && typeof v !== 'boolean') throw new Error(`property ${k} expects bool, got ${v}`);
     if (d.type === 'int' && (!Number.isInteger(v) || v < d.range[0] || v > d.range[1])) throw new Error(`property ${k}=${v} outside ${d.range}`);
@@ -495,7 +501,8 @@ class MockEntity {
   setDynamicProperty(k, v) { this.need(); this.rec.dyn[k] = v; }
   triggerEvent(n) {
     this.need();
-    const known = this.rec.typeId === 'basiliskra:basiliskra' ? EVENTS : this.rec.typeId === 'basiliskra:titan' ? TITAN_EVENTS : HIT_EVENTS;
+    const known = this.rec.typeId === 'basiliskra:basiliskra' ? EVENTS : this.rec.typeId === 'basiliskra:titan' ? TITAN_EVENTS
+      : this.rec.typeId === 'basiliskra:civilian' ? CIV_EVENTS : HIT_EVENTS;
     if (!known.includes(n)) throw new Error(`event ${n} is not defined on ${this.rec.typeId}`);
     this.rec.events.push(n);
   }

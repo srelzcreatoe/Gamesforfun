@@ -51,8 +51,8 @@
     "basiliskra:look_pitch": {
      "type": "int",
      "range": [
-      -60,
-      60
+      -85,
+      85
      ],
      "default": 0,
      "client_sync": true

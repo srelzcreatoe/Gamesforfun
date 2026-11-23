@@ -1,0 +1,102 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.basiliskra.civilian.move": {
+      "loop": true,
+      "bones": {
+        "leg_r": {
+          "rotation": [
+            "math.cos(q.modified_distance_moved * 38.17) * 70 * q.modified_move_speed",
+            0,
+            0
+          ]
+        },
+        "leg_l": {
+          "rotation": [
+            "-math.cos(q.modified_distance_moved * 38.17) * 70 * q.modified_move_speed",
+            0,
+            0
+          ]
+        },
+        "arm_r": {
+          "rotation": [
+            "-math.cos(q.modified_distance_moved * 38.17) * 50 * q.modified_move_speed * (1 - v.fright)",
+            0,
+            0
+          ]
+        },
+        "arm_l": {
+          "rotation": [
+            "math.cos(q.modified_distance_moved * 38.17) * 50 * q.modified_move_speed * (1 - v.fright)",
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "animation.basiliskra.civilian.look": {
+      "loop": true,
+      "bones": {
+        "head": {
+          "rotation": [
+            "q.target_x_rotation * (1 - v.fright)",
+            "q.target_y_rotation * (1 - v.fright)",
+            0
+          ]
+        }
+      }
+    },
+    "animation.basiliskra.civilian.idle": {
+      "loop": true,
+      "bones": {
+        "arm_r": {
+          "rotation": [
+            0,
+            0,
+            "2.5 + math.sin(q.life_time * 70) * 2.5"
+          ]
+        },
+        "arm_l": {
+          "rotation": [
+            0,
+            0,
+            "-2.5 - math.sin(q.life_time * 70) * 2.5"
+          ]
+        }
+      }
+    },
+    "animation.basiliskra.civilian.panic": {
+      "loop": true,
+      "bones": {
+        "arm_r": {
+          "rotation": [
+            "v.fright * (-155 + math.sin(q.life_time * 900) * 25)",
+            0,
+            "v.fright * (12 + math.sin(q.life_time * 700) * 10)"
+          ]
+        },
+        "arm_l": {
+          "rotation": [
+            "v.fright * (-155 - math.sin(q.life_time * 900) * 25)",
+            0,
+            "v.fright * (-12 - math.sin(q.life_time * 700) * 10)"
+          ]
+        },
+        "head": {
+          "rotation": [
+            "v.fright * -10",
+            "v.fright * math.sin(q.life_time * 220) * 40",
+            0
+          ]
+        },
+        "body": {
+          "rotation": [
+            "v.fright * 8",
+            0,
+            "v.fright * math.sin(q.life_time * 450) * 4"
+          ]
+        }
+      }
+    }
+  }
+}

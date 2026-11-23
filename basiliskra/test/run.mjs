@@ -212,7 +212,7 @@ console.log('\n== 6. Evolution during a save and reload');
   w.sim.save.timeOfDay = 1000;                           // morning: if he was asleep at the seam, he wakes
   const t = until(w, () => rec().evolve !== null, 9000, 5);
   check('repeated surfacings and mutation episodes send him to a shelf to beach', t > 0 && rec().evolve?.to === 2, `${t} ticks`);
-  w.sim.step(30);
+  w.sim.step(30 + 36);                                   // (after the scene's establishing shot)
   check('it has begun: his gills are knocking', rec().evolve?.step === 0 && w.bk.ctl.creature.entity.getProperty(P('phase')) === 4);
   w.restart();                                           // save and reload in the middle of it
   w.sim.step(5);
@@ -1588,7 +1588,7 @@ console.log('\n== 19. Basiliskra IV');
     w.bk.ctl.driveOff(true); w.sim.step(5);
     const msg = w.bk.ctl.callNow(op.location, op, w.bk.ui.placeFor(op, 4));
     const a = w.bk.store.rec.arrival;
-    check('owed back as Basiliskra IV with the sea near, the rift opens out in the water', /out of the sea/.test(msg) && a?.land === true && a.water.z < -40 && id(a.water.x, a.water.y, a.water.z) === 'minecraft:water', `${msg} (z ${a?.water.z})`);
+    check('owed back as Basiliskra IV with the sea near, the rift opens out in the water', /out of the (sea|water)/.test(msg) && a?.land === true && a.water.z < -40 && id(a.water.x, a.water.y, a.water.z) === 'minecraft:water', `${msg} (z ${a?.water.z})`);
     op.heard.length = 0;
     const took = until(w, () => w.bk.store.rec.stage === 'alive', 2500);
     const c = w.bk.ctl.creature;
@@ -1709,8 +1709,11 @@ console.log('\n== 21. A city by the sea, and the deep');
     check('only one is built at a time', /still being built/.test(C.raiseCity({ x: 300, y: 64, z: 300 }, 0, true)));
     w.sim.step(3);
     check('the ground it needs is kept loaded while it is built', w.sim.log.commands.filter((c) => /^tickingarea add .* bk_city_\d$/.test(c)).length === 4 && w.sim.areas.size === 4);
-    const took = until(w, () => S.done === true, 4000);
+    // (and never at a cost anybody would feel: a few thousand blocks a tick at most, however much is left to do)
+    let worst = 0, took = -1;
+    for (let i = 0; i < 4000; i++) { w.sim.work = { blocks: 0, queries: 0, rays: 0, fills: 0 }; w.sim.step(1); worst = Math.max(worst, w.sim.work.fills ?? 0); if (S.done === true) { took = i + 1; break; } }
     check('it is finished in under a minute, and the ground is let go again', took > 0 && took < 1200 && w.sim.areas.size === 0 && op.messages.some((m) => /The city stands/.test(m)), `${took} ticks`);
+    check('and no tick of it changes more than six thousand blocks (1.6 changed up to forty thousand, and lagged)', worst > 0 && worst <= C.BUILD.volume, `${worst} blocks in the worst tick`);
     const X = (u) => S.x + u, Z = (v) => S.z + v;
     // streets and what stands on them
     let wall = 0, glass = 0, lit = 0, tallest = 0;
@@ -1724,7 +1727,7 @@ console.log('\n== 21. A city by the sea, and the deep');
     }
     check('streets on a grid', id(X(2), G, Z(40)) === 'minecraft:gray_concrete' && id(X(3), G, Z(40)) === 'minecraft:light_gray_concrete' && id(X(40), G, Z(30)) === 'minecraft:gray_concrete' && id(X(8), G, Z(8)) !== 'minecraft:gray_concrete');
     check('towers of concrete and glass, lit inside, the tallest by the water', wall > 3000 && glass > 600 && lit > 20 && tallest >= 34, `${wall} wall, ${glass} glass, ${lit} lights, tallest ${tallest}`);
-    check('people in the streets', w.sim.count('minecraft:villager_v2') === P.people, `${w.sim.count('minecraft:villager_v2')} villagers`);
+    check('people in the streets: its own townspeople, who walk and look about', w.sim.count('basiliskra:civilian') === P.people && w.sim.count('minecraft:villager_v2') === 0, `${w.sim.count('basiliskra:civilian')} civilians`);
     const mid = Math.floor(L.cityU / 2);
     const top = (u, v) => { for (let y = G + 10; y > -64; y--) { const b = id(X(u), y, Z(v)); if (b !== 'minecraft:air' && b !== 'minecraft:water') return { y, b }; } return { y: -99, b: '' }; };
     check('a promenade, then a beach of sand that shelves down under the water', id(X(mid + 8), G, Z(L.vProm + 2)) === 'minecraft:smooth_stone' && top(mid + 8, L.vBeach + 2).b === 'minecraft:sand' && top(mid + 8, L.vBeach + 2).y === G
@@ -1758,7 +1761,8 @@ console.log('\n== 21. A city by the sea, and the deep');
     op.moveTo({ x: 0, y: 64, z: 0 }); w.sim.step(2);
     // he goes there
     const m = C.landmarks(S);
-    for (const e of [...w.sim.loaded.values()]) if (e.rec.typeId === 'minecraft:villager_v2') { w.sim.save.entities.delete(e.rec.id); w.sim.loaded.delete(e.rec.id); }
+    const people = [...w.sim.loaded.values()].filter((e) => e.rec.typeId === 'basiliskra:civilian').map((e) => e.rec);
+    for (const r of people) { w.sim.save.entities.delete(r.id); w.sim.loaded.delete(r.id); }
     op.moveTo({ x: m.centre.x, y: G + 1, z: m.centre.z - 70 });
     w.bk.ctl.bringHere({ x: m.centre.x, y: G + 1, z: S.z - 60 }, 0, 3); w.sim.step(3);
     const pick = w.bk.ctl.brain.choose();
@@ -1790,7 +1794,7 @@ console.log('\n== 21. A city by the sea, and the deep');
     w.restart();
     const S = w.bk.store.rec.cities?.[0], unfinished = !!S && S.done === false && w.bk.city.cityBuilding() === null;
     const took = until(w, () => w.bk.store.rec.cities[0].done === true, 4000);
-    check('a build cut short by the world closing is taken up again and finished', unfinished && took > 0 && w.sim.count('minecraft:villager_v2') === w.bk.city.SMALL.people, `${took} ticks, ${w.sim.count('minecraft:villager_v2')} villagers`);
+    check('a build cut short by the world closing is taken up again and finished', unfinished && took > 0 && w.sim.count('basiliskra:civilian') === w.bk.city.SMALL.people, `${took} ticks, ${w.sim.count('basiliskra:civilian')} civilians`);
   }
   {
     // on their own, cities rise on real coasts: land behind, open sea ahead, nothing built
@@ -2024,7 +2028,7 @@ console.log('\n== 23. Three changes, three scenes');
       w.sim.step(1); ticks++;
       const c = w.bk.ctl.creature;
       const ph = NAMES[c.entity.getProperty(P('phase'))] ?? String(c.entity.getProperty(P('phase')));
-      if (phases[phases.length - 1] !== ph) phases.push(ph);
+      if (phases[phases.length - 1] !== ph && !(phases.length === 0 && ph === 'idle')) phases.push(ph);      // (the establishing shot: he stands)
       if (swapAt < 0 && c.form === from + 1) swapAt = ticks;
       if (op.hud === 'hidden') hid = true;
       maxCharge = Math.max(maxCharge, c.entity.getProperty(P('charge')));
@@ -2090,6 +2094,145 @@ console.log('\n== 23. Three changes, three scenes');
     [A, B, C].map((s) => `${s.hid}/${s.hudAfter}/${s.held}/${s.op.titles[0]?.title}`).join(' '));
   check('nobody standing near is hurt by any of them', A.hurt === 0 && B.hurt === 0 && C.hurt === 0, `${A.hurt}, ${B.hurt}, ${C.hurt} blows`);
   check('each still lights all of him at its height', A.maxCharge === 20 && B.maxCharge === 20 && C.maxCharge === 20);
+}
+
+console.log('\n== 24. The breath from the mouth, the gun, the walk, the aim, the people, the rift (1.7)');
+{
+  const near = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+  // ---- the breath leaves by the middle of the open mouth, as wide as that mouth ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 50 }); ana.mode = 'Creative';
+    w.sim.addPlayer('Behind', { x: 0, y: 64, z: -50 }).mode = 'Spectator';
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 4); w.sim.step(3);
+    const c = w.bk.ctl.creature;
+    c.setPhase('fire'); c.setCharge(20); c.lookYaw = 0; c.lookPitch = 0;
+    const a = c.aim(), gap = c.mouthGap();
+    const loc = w.bk.RIGS[4].locators.mouth;
+    const shutLine = w.bk.rig.toWorld(c.pos, c.yaw, c.skeleton().restPoint('jaw', loc.pos), c.scale);
+    const dropped = c.anchor('mouth');
+    const mid = { x: (shutLine.x + dropped.x) / 2, y: (shutLine.y + dropped.y) / 2, z: (shutLine.z + dropped.z) / 2 };
+    check('firing, his jaw is dropped as it is drawn, and the breath leaves by the middle of the gap', gap > 4 && gap < 6 && near(a.from, mid) < 0.05 && dropped.y < shutLine.y - 3,
+      `the mouth stands ${gap.toFixed(1)} blocks open; the lower jaw ${(shutLine.y - dropped.y).toFixed(1)} below the upper`);
+    const three = new w.bk.creature.Creature({ dimension: c.dim, location: { x: 300, y: 64, z: 0 }, getRotation: () => ({ x: 0, y: 0 }), getProperty: () => 0, setProperty() {}, id: 'probe3' }, 3);
+    three.setPhase('fire'); three.setCharge(20);
+    check('his mouth as III stands open less wide than as IV, and the breath of each is drawn to fill it', three.mouthGap() > 2.8 && three.mouthGap() < gap, `${three.mouthGap().toFixed(1)} and ${gap.toFixed(1)} blocks`);
+    w.bk.store.rec.four = { debut: true, shots: 0, plate: { x: 900, y: 0, z: 900, uses: 0, burnt: false } };      // (no misfire on a first breath)
+    ana.seen.length = 0;
+    const target = w.sim.summon('minecraft:cow', 'minecraft:overworld', { x: 0, y: 64, z: 110 }); target.rec.family = ['mob'];
+    w.bk.ctl.brain.forced = { name: 'beam', run: w.bk.ctl.brain.breath(target), limit: 4000 };
+    until(w, () => c.phase === 'fire', 600); w.sim.step(10);
+    const cores = ana.seen.filter((q) => q.id === 'basiliskra:beam_core');
+    const at = c.aim().from, last = cores[cores.length - 1];
+    check('the beam is drawn from where it leaves him, in its new layers: plasma, fire, light racing down it, a burst at his mouth',
+      !!last && near(last.loc, at) < 1.5 && ['beam_halo', 'beam_heat', 'beam_glow', 'beam_pulse', 'mouth_burst'].every((k) => ana.seen.some((q) => q.id === 'basiliskra:' + k)) && last.vars['variable.width'] > 3.5,
+      last ? `${near(last.loc, at).toFixed(2)} blocks from his mouth, ${last.vars['variable.width'].toFixed(1)} wide` : 'no beam');
+  }
+  // ---- the Seam Lance: a held laser, from the gun as each player sees it ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const p = w.sim.addPlayer('Gunner', { x: 0, y: 64, z: 70 }); p.mode = 'Creative';
+    const o = w.sim.addPlayer('Other', { x: 12, y: 64, z: 72 }); o.mode = 'Creative';
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 3); w.sim.step(4);
+    const c = w.bk.ctl.creature;
+    const h = p.getHeadLocation(), b = { x: c.pos.x, y: c.pos.y + 5, z: c.pos.z }, d = { x: b.x - h.x, y: b.y - h.y, z: b.z - h.z }, n = Math.hypot(d.x, d.y, d.z);
+    p.view = { x: d.x / n, y: d.y / n, z: d.z / n };
+    p.seen.length = 0; o.seen.length = 0;
+    const t0 = w.sim.save.tick;
+    p.use('basiliskra:seam_lance'); w.sim.step(10);
+    const mine = p.seen.filter((q) => q.id === 'basiliskra:beam_core'), theirs = o.seen.filter((q) => q.id === 'basiliskra:beam_core');
+    const ticks = new Set(mine.map((q) => q.tick)).size;
+    const dealt = w.sim.log.damage.filter((x) => x.id === c.entity.id && x.tick >= t0).map((x) => x.amount);
+    const fpOff = mine[0] ? near(mine[0].loc, h) : 0, tpOff = theirs[0] ? Math.hypot(theirs[0].loc.x - p.location.x, theirs[0].loc.z - p.location.z) : 0;
+    check('the Seam Lance fires a laser that stands in the air for several ticks, as thick as a block, and still strikes him for 34', ticks >= 3 && mine[0]?.vars['variable.width'] >= 0.8 && dealt.length === 1 && dealt[0] === 34,
+      `${ticks} ticks drawn, ${mine[0]?.vars['variable.width']} wide, ${JSON.stringify(dealt)}`);
+    check('its shooter sees it leave their own gun (ahead, right and below the eye); everyone else sees it leave the gun in their hand', mine.length > 0 && theirs.length > 0 && fpOff > 2 && fpOff < 4 && tpOff > 1 && tpOff < 2.2 && Math.abs(theirs[0].loc.y - (p.location.y + 1.06)) < 0.3,
+      `${fpOff.toFixed(2)} from the eye; ${tpOff.toFixed(2)} out from their feet at hip height`);
+    check('the other player is not shown the shooter\'s own view, nor the shooter theirs', !o.seen.some((q) => q.id === 'basiliskra:beam_core' && near(q.loc, mine[0].loc) < 0.01) && !p.seen.some((q) => q.id === 'basiliskra:beam_core' && near(q.loc, theirs[0].loc) < 0.01));
+  }
+  // ---- each footfall's shock rolls on ahead of him ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    w.sim.addPlayer('Ana', { x: 30, y: 64, z: 40 }).mode = 'Creative';
+    for (let x = -10; x <= 10; x++) for (let y = 64; y <= 70; y++) w.sim.setBlock('minecraft:overworld', x, y, 60, 'minecraft:oak_planks');
+    const c = standThree(w, { x: 0, y: 64, z: 0 }, 0, 0);
+    const brain = w.bk.ctl.brain;
+    let reached = -1, firstGone = -1;
+    brain.forced = { name: 'test', run: (function* () { yield* brain.walk({ x: 0, y: 64, z: 120 }, 0.14, 4, 4000); })(), limit: 1e9 };
+    for (let i = 0; i < 1600 && reached < 0; i++) {
+      w.sim.step(1);
+      if (firstGone < 0 && w.sim.blockId('minecraft:overworld', 0, 66, 60) === 'minecraft:air') firstGone = c.pos.z;
+      if (c.pos.z > 55) reached = i;
+    }
+    check('a footfall\'s shock rolls on ahead of him: a wall well beyond his shoulders is gone before he reaches it', firstGone > 0 && 60 - firstGone > 13, `gone when his middle was ${firstGone.toFixed(0)}, ${(60 - firstGone).toFixed(0)} blocks short of it`);
+  }
+  // ---- he leads what flies, and turns his head up after it ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 60 }); ana.mode = 'Creative';
+    w.sim.addPlayer('Behind', { x: 0, y: 64, z: -50 }).mode = 'Spectator';
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 4); w.sim.step(3);
+    w.bk.store.rec.four = { debut: true, shots: 0, plate: { x: 900, y: 0, z: 900, uses: 0, burnt: false } };
+    const c = w.bk.ctl.creature;
+    // (his mouth is near fifty blocks up: this is seventy over that, circling at fifty off)
+    const wither = w.sim.summon('minecraft:wither', 'minecraft:overworld', { x: 0, y: 182, z: 50 }); wither.rec.family = ['mob', 'monster']; wither.rec.health = 300;
+    let a = 0, maxPitch = 0;
+    const fly = () => { a += 0.012; wither.rec.loc = { x: 50 * Math.sin(a), y: 182, z: 50 * Math.cos(a) }; wither.rec.vel = { x: 50 * 0.012 * Math.cos(a), y: 0, z: -50 * 0.012 * Math.sin(a) }; };
+    w.bk.ctl.brain.forced = { name: 'beam', run: w.bk.ctl.brain.breath(wither), limit: 4000 };
+    const t0 = w.sim.save.tick;
+    for (let i = 0; i < 400; i++) { fly(); w.sim.step(1); maxPitch = Math.max(maxPitch, -c.lookPitch); }
+    const hits = w.sim.log.damage.filter((x) => x.id === wither.id && x.tick >= t0).length;
+    check('against the Wither circling high over his head, he tilts his head far back, follows it, and burns it', hits >= 5 && maxPitch > 45, `${hits} hits, head ${maxPitch.toFixed(0)} degrees up`);
+  }
+  // ---- giants are solid to each other ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 80 }); ana.mode = 'Creative';
+    const dim = w.sim.api.world.getDimension('minecraft:overworld');
+    w.bk.titan.titans.spawn(dim, { x: 0, y: 64, z: 0 }, 0); w.bk.titan.titans.spawn(dim, { x: 3, y: 64, z: 2 }, 0);
+    w.sim.step(10);
+    const [t1, t2] = w.bk.titan.titans.creatures();
+    const d = Math.hypot(t1.pos.x - t2.pos.x, t1.pos.z - t2.pos.z);
+    check('two giants put down on top of each other are eased apart: their trunks do not overlap', d > 12, `${d.toFixed(1)} blocks between their middles`);
+  }
+  // ---- his cities' people take fright at the sight of a giant, run, and calm again when it has gone ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 40 }); ana.mode = 'Creative';
+    const people = [0, 1, 2, 3].map((k) => w.sim.summon('basiliskra:civilian', 'minecraft:overworld', { x: -6 + k * 4, y: 64, z: 60 }));
+    const far = w.sim.summon('basiliskra:civilian', 'minecraft:overworld', { x: 0, y: 64, z: 260 });
+    w.sim.step(20);
+    check('a townsperson walks calmly while nothing is near', people.every((e) => e.rec.props['basiliskra:scared'] === false));
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 3); w.sim.step(25);
+    check('Basiliskra III in sight: they take fright and run (their arms go up; they flee him)', people.every((e) => e.rec.props['basiliskra:scared'] === true && e.rec.events.includes('basiliskra:panic'))
+      && far.rec.props['basiliskra:scared'] === false, people.map((e) => e.rec.props['basiliskra:scared']).join(','));
+    w.bk.ctl.sendAway(); for (let i = 0; i < 400; i++) w.sim.step(1);
+    check('when he has gone they calm down, a while after they last saw him', people.every((e) => !e.attached || (e.rec.props['basiliskra:scared'] === false && e.rec.events.includes('basiliskra:calm'))));
+  }
+  // ---- called back, the rift opens in the sea, clear of every block ----
+  {
+    const coast = (dim, x, y, z) => {
+      if (dim !== 'minecraft:overworld') return 'minecraft:air';
+      if (z < 0) return y <= 50 ? 'minecraft:sand' : y <= 62 ? 'minecraft:water' : 'minecraft:air';
+      if (z < 8 && Math.abs(x - 20) < 3 && y > 63 && y < 80) return 'minecraft:stone';          // a sea stack by the beach
+      return y > 63 ? 'minecraft:air' : y === 63 ? 'minecraft:sand' : 'minecraft:stone';
+    };
+    const w = start(); w.sim.terrainFn = coast; open(w);
+    const op = w.sim.addPlayer('Op', { x: 0, y: 64, z: 30 }); op.mode = 'Creative'; op.view = { x: 0, y: 0, z: -1 };
+    w.sim.addPlayer('Gull', { x: 0, y: 80, z: -70 }).mode = 'Spectator';
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 60 }, 180, 3); w.sim.step(2);
+    w.bk.ctl.driveOff(true); w.sim.step(5);
+    const msg = w.bk.ctl.callNow(op.location, op, w.bk.ui.placeFor(op, 3));
+    const a = w.bk.store.rec.arrival;
+    let solid = 0;
+    if (a) for (let dy = 0; dy <= 30; dy += 2) for (const [dx, dz] of [[0, 0], [5, 0], [-5, 0], [0, 5], [0, -5]]) {
+      const q = w.sim.blockId('minecraft:overworld', Math.floor(a.water.x + dx), Math.floor(a.water.y + dy), Math.floor(a.water.z + dz));
+      if (q !== 'minecraft:water' && q !== 'minecraft:air') solid++;
+    }
+    check('called back as Basiliskra III by the sea, the rift opens out in the water, and none of it stands in a block', /out of the water/.test(msg) && !!a && a.water.z < -4 && solid === 0, `${msg} (z ${a?.water.z}, ${solid} solid)`);
+    const took = until(w, () => w.bk.store.rec.stage === 'alive', 2500);
+    check('he wades ashore through it', took > 0 && w.bk.ctl.creature && w.bk.ctl.creature.pos.z > a.water.z + 10, w.bk.ctl.creature ? `at z ${w.bk.ctl.creature.pos.z.toFixed(0)}` : 'not here');
+  }
 }
 
 console.log(`\n${results.length - failures}/${results.length} checks passed`);

@@ -7,7 +7,7 @@
 import { Dimension, Entity, ItemStack, Player, system, world } from "@minecraft/server";
 import { CONFIG, FIN_ITEM, KNOCK_GAP_TICKS, OVERWORLD, PART_FAMILY, PROP, TICKS, TYPE } from "./config";
 import { Brain, isDusk, pace } from "./brain";
-import { CHANGES } from "./change";
+import { CHANGES, OPENING } from "./change";
 import { Creature, partOwner, separateGiants } from "./creature";
 import { Ending } from "./ending";
 import { BrainOne } from "./forms/one";
@@ -21,13 +21,14 @@ import { cutAll, film, filmTick } from "./scene";
 import { RIGS } from "./generated/rig";
 import { clearHarm, type Trigger } from "./harm";
 import { addFallout, clearFallout, falloutTick } from "./fallout";
-import { cityTick } from "./city";
+import { cityTick, landmarks, nearestCity } from "./city";
 import { musicStop, musicTick, sceneTheme } from "./music";
 import { titans } from "./titan";
 import { lanceTick } from "./lance";
+import { civiliansTick } from "./civilians";
 import { freshRecord, newToken, store } from "./store";
 import { add, dist, distXZ, dot, forwardOf, hash, mul, norm, sub, wrapDeg, yawTo, type V3 } from "./vec";
-import { NONE, UNLOADED, blockAt, deepHere, groundY, isLoaded, isWaterId, overworld, waterColumn } from "./world";
+import { NONE, UNLOADED, blockAt, deepHere, groundY, isLoaded, isSolidBlock, isWaterId, overworld, waterColumn } from "./world";
 
 const TOKEN = "bk:token";
 const ROMAN = ["", "I", "II", "III", "IV"];
@@ -218,6 +219,83 @@ export class Controller {
    * deep water (the story begins: he will change as he lives); once he is II or more and has been driven off,
    * the rift opens on land in front of the caller and he walks out of it as he was.
    */
+  /**
+   * Where a rift may open for him near a place: in the sea, deep enough for the form he comes as, open all round
+   * (the water reaches the surface everywhere the tear stands, and nothing solid stands in its height), and as near
+   * a shore as that allows, facing it: he comes out of the water and up onto the beach.  A city's own deep sea is
+   * taken first when one is near (it was cut for this).  Null if there is no such water within reach.
+   */
+  riftSite(site: V3, form: 1 | 2 | 3 | 4, reach = 160): { at: V3; yaw: number } | null {
+    const dim = overworld(), size = RIFT_SIZE[form];
+    const need = [0, 6, 3, 3, 3][form], half = Math.max(4, Math.min(14, size * 0.3));      // (the tear stands mostly above the water: he needs to swim only as I)
+    const open = (x: number, z: number, surface: number, base: number): boolean => {
+      for (let k = 0; k < 8; k++) {
+        const a = (k / 8) * Math.PI * 2, px = x + Math.cos(a) * half, pz = z + Math.sin(a) * half;
+        const col = waterColumn(dim, px, pz, surface - 1, 3, 40);
+        if (col === NONE || col === UNLOADED || Math.abs(col.surface - surface) > 1 || col.surface - col.floor < 2) return false;
+      }
+      // nothing solid in the height of the tear, over its middle and its two edges
+      for (const [px, pz] of [[x, z], [x + half * 0.7, z], [x - half * 0.7, z], [x, z + half * 0.7], [x, z - half * 0.7]]) {
+        for (let y = base; y <= base + size; y += 3) if (isSolidBlock(blockAt(dim, { x: px, y, z: pz }))) return false;
+      }
+      return true;
+    };
+    const shoreDist = (x: number, z: number, surface: number): number => {
+      const d = norm({ x: site.x - x, y: 0, z: site.z - z });
+      for (let s = 4; s <= 120; s += 4) {
+        const col = waterColumn(dim, x + d.x * s, z + d.z * s, surface - 1, 3, 12);
+        if (col === UNLOADED) return 999;
+        if (col === NONE) return s;
+      }
+      return 999;
+    };
+    // a city's deep sea, if one is near
+    const city = nearestCity(site);
+    const want = size * 0.8 + 14;                            // he comes ashore after a few strides through the shallows
+    let best: { at: V3; yaw: number } | null = null, score = 1e9;
+    const consider = (x: number, z: number, bonus: number): void => {
+      const col = waterColumn(dim, x, z, Math.max(site.y, 63), 16, 160);
+      if (col === NONE || col === UNLOADED || col.surface - col.floor < need) return;
+      // Basiliskra I comes through under the water; the rest from a tear that stands mostly above it
+      const base = form === 1 ? col.surface - 5.5 : Math.max(col.floor, Math.floor(col.surface - size * 0.4));
+      if (!open(x, z, col.surface, Math.ceil(col.surface))) return;
+      const shore = shoreDist(x, z, col.surface);
+      const sc = Math.abs(Math.min(shore, 200) - want) + Math.hypot(x - site.x, z - site.z) * 0.2 - bonus;
+      if (sc < score) { score = sc; best = { at: { x: Math.floor(x), y: Math.floor(base), z: Math.floor(z) }, yaw: yawTo({ x, y: 0, z }, site) }; }
+    };
+    if (city && city.distance < reach + 120) {
+      const m = landmarks(city.site);
+      for (const k of [0.35, 0.55, 0.75]) consider(m.beach.x + (m.deep.x - m.beach.x) * k, m.beach.z + (m.deep.z - m.beach.z) * k, 60);
+      if (best) return best;
+    }
+    for (let r = 10; r <= reach; r += 6) {
+      const n = Math.max(12, Math.round(r * 0.7));
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2;
+        consider(site.x + Math.cos(a) * r, site.z + Math.sin(a) * r, 0);
+      }
+      if (best && score < 12) break;
+    }
+    return best;
+  }
+
+  /** Somewhere on land in front of a place where the whole tear stands in open air (none of it in a hill or a house). */
+  private landRift(place: { at: V3; yaw: number }, form: number): { at: V3; yaw: number } | null {
+    const dim = overworld(), size = RIFT_SIZE[form], half = Math.max(3, Math.min(12, size * 0.3));
+    const f = forwardOf(place.yaw), l = { x: -f.z, y: 0, z: f.x };
+    for (const d of [0, 8, 16, 24, 32, 44]) for (const s of [0, 10, -10, 20, -20]) {
+      const x = place.at.x - f.x * d + l.x * s, z = place.at.z - f.z * d + l.z * s;
+      const g = groundY(dim, x, z, place.at.y + 24, 48);
+      if (typeof g !== "number") continue;
+      let clear = true;
+      for (const [px, pz] of [[x, z], [x + l.x * half, z + l.z * half], [x - l.x * half, z - l.z * half]]) {
+        for (let y = g + 1; y <= g + size && clear; y += 2) if (isSolidBlock(blockAt(dim, { x: px, y, z: pz }))) clear = false;
+      }
+      if (clear) return { at: { x: Math.floor(x), y: g, z: Math.floor(z) }, yaw: place.yaw };
+    }
+    return null;
+  }
+
   callNow(site: V3, by: Player, place?: { at: V3; yaw: number }): string {
     const rec = store.rec;
     const c = this.creature;
@@ -227,7 +305,8 @@ export class Controller {
     const form = returning ? rec.form : 1;
     const origin = { x: Math.floor(site.x), y: Math.floor(site.y), z: Math.floor(site.z) };
     if (form === 1) {
-      const w = this.waterNear(site, 96);
+      const r = this.riftSite(site, 1, 120);
+      const w = r ? { x: r.at.x + 0.5, y: r.at.y, z: r.at.z + 0.5 } : this.waterNear(site, 96);
       if (!w) return "The rift opens in deep water, and there is none within 96 blocks (it has to be 5 deep). Go to the sea, a deep lake or a wide river and call him again.";
       this.waterSearch = null;
       rec.stage = "arriving"; rec.token = newToken(); rec.entityId = null; rec.down = null; rec.form = 1; rec.pending = null;
@@ -237,33 +316,21 @@ export class Controller {
       store.save();
       return `The rift is opening in the water ${Math.round(dist(w, site))} blocks from you. Watch it.`;
     }
-    // Basiliskra IV comes out of the sea if there is any near: the rift opens in the water, he wades out of it,
-    // and his first beam is cut across the beach before anyone hears him
+    // Every form comes out of the sea when there is sea near: the tear opens in deep, open water off a beach, facing
+    // it, and he wades ashore through it (Basiliskra IV cuts his first beam across that beach before anyone hears him).
+    // Only with no such water in reach does it open on land, and then only where the whole of it stands in open air.
     let fromSea = false;
-    if (form === 4) {
-      const w = this.waterNear(site, 96);
-      if (w) {
-        // as far out as the water goes along the line from the caller (up to the length he has to walk to be clear
-        // of the tear), so that he comes to a stop at the water's edge and not on top of whoever called him
-        const out = norm({ x: w.x - site.x, y: 0, z: w.z - site.z });
-        for (const d of [78, 60, 40, 20, 0]) {
-          const x = w.x + out.x * d, z = w.z + out.z * d;
-          const col = waterColumn(overworld(), x, z, w.y + 5.5, 12, 40);
-          if (col === NONE || col === UNLOADED || col.surface - col.floor < 2) continue;
-          place = { at: { x: Math.floor(x), y: col.floor, z: Math.floor(z) }, yaw: yawTo({ x, y: 0, z }, site) };
-          fromSea = true;
-          break;
-        }
-      }
-    }
-    if (!place) return "He could not come there.";
+    const sea = this.riftSite(site, form as 2 | 3 | 4);
+    if (sea) { place = sea; fromSea = true; }
+    else if (place) place = this.landRift(place, form) ?? undefined;
+    if (!place) return "There is nowhere near here for the rift to open: no deep, open water, and no open ground clear of hills and buildings.";
     rec.stage = "arriving"; rec.entityId = null; rec.down = null; rec.pending = null;
     if (!rec.token) rec.token = newToken();
     rec.arrival = { step: 0, t0: this.now, water: { ...place.at }, yaw: place.yaw, land: true };
     rec.home = { ...place.at };
     store.save();
-    return fromSea ? `The rift is opening in the water ${Math.round(dist(place.at, site))} blocks from you. Basiliskra IV is coming out of the sea.`
-      : `The rift is opening in front of you. Basiliskra ${ROMAN[form]} is coming through.`;
+    return fromSea ? `The rift is opening in the sea ${Math.round(dist(place.at, site))} blocks from you. Basiliskra ${ROMAN[form]} is coming out of the water.`
+      : `The rift is opening on open ground in front of you. Basiliskra ${ROMAN[form]} is coming through.`;
   }
 
   /** The heading out of a seam in the water with the longest clear, deep run ahead of it (for his first swim). */
@@ -506,6 +573,7 @@ export class Controller {
     cityTick(now);
     titans.tick(now);
     separateGiants();
+    civiliansTick(now, this.creature ? [this.creature, ...titans.creatures()] : titans.creatures());
     lanceTick();
     if (this.creature && !this.creature.valid) { this.creature.dropParts(); this.creature = null; this.brain = null; this.runner = null; }
     if (now % 20 === 0) this.sweep();
@@ -653,8 +721,17 @@ export class Controller {
           riftOpen(dim, foot, RIFT_SIZE[1]);
           sceneTheme("dread", 300, foot, dim.id);
           addFallout(a.water, 4, 0.4);
-          const head = () => (this.creature ? this.creature.anchor("nose") : { x: a.water.x, y: a.water.y + 4, z: a.water.z });
-          film(dim, head, { ticks: 330, radius: 110, dist: 30, height: 9, orbit: 50, distEnd: 22, flash: { red: 0.8, green: 0.05, blue: 0.05 } });
+          const tear = () => ({ x: a.water.x, y: a.water.y + 4, z: a.water.z });
+          const head = () => (this.creature ? this.creature.anchor("nose") : tear());
+          const surface = (): V3 => { const h = head(); return { x: h.x, y: Math.max(h.y, a.water.y + 5), z: h.z }; };
+          // the seam from the shore, low; close on the tear as it widens; then on the water above him as he comes up
+          // through it, and his head as it breaks the surface
+          film(dim, head, { ticks: 330, radius: 110, dist: 30, height: 9, cinema: true, facing: () => a.yaw, flash: { red: 0.8, green: 0.05, blue: 0.05 }, shots: [
+            { ticks: 50, look: tear, angle: [6, -6], dist: [44, 36], height: [2, 3] },
+            { ticks: 45, look: tear, angle: [55, 70], dist: [16, 12], height: [1, 2.5] },
+            { ticks: 90, look: surface, angle: [30, 10], dist: [22, 16], height: [7, 3] },
+            { ticks: 145, look: head, angle: [70, 40], dist: [14, 10], height: [1.5, 0.5] },
+          ] });
         }
         riftTick(dim, foot, RIFT_SIZE[1], t, Math.min(1, t / 90));
         if (t % 4 === 0) particle(dim, "basiliskra:seam", a.water, 72);
@@ -706,9 +783,19 @@ export class Controller {
         riftOpen(dim, at, size);
         sceneTheme(store.rec.form >= 3 ? "wrath" : "dread", 420, at, dim.id);
         addFallout(at, 5, 0.5);
-        const focus = (): V3 => (this.creature ? this.creature.anchor("nose") : { x: at.x, y: at.y + size * 0.4, z: at.z });
-        film(dim, focus, { ticks: 400, radius: 120, dist: size * 1.5 + 14, height: size * 0.35 + 4, orbit: 60, distEnd: size * 1.2 + 10,
-                           flash: { red: 0.8, green: 0.05, blue: 0.05 } });
+        const tear = (): V3 => ({ x: at.x, y: at.y + size * 0.5, z: at.z });
+        const head = (): V3 => (this.creature ? this.creature.anchor("nose") : tear());
+        const body = (): V3 => (this.creature ? { x: this.creature.pos.x, y: this.creature.pos.y + BODY_MID[form], z: this.creature.pos.z } : tear());
+        const F = FRAME[form];
+        // the tear from the shore he is making for, low and wide; in close on it as it splits; then the first of him
+        // through it, from low beside it; all of him coming on, from the beach in front; and his face as he arrives
+        film(dim, body, { ticks: 400, radius: 140, dist: F, height: 4, cinema: true, facing: () => a.yaw, flash: { red: 0.8, green: 0.05, blue: 0.05 }, shots: [
+          { ticks: 40, look: tear, angle: [-4, 4], dist: [size * 1.8 + 20, size * 1.5 + 16], height: [-size * 0.35, -size * 0.3] },
+          { ticks: 30, look: tear, angle: [48, 62], dist: [size * 0.7 + 6, size * 0.55 + 5], height: [0, size * 0.1] },
+          { ticks: 70, look: head, angle: [-62, -40], dist: [F * 0.55, F * 0.45], height: [-F * 0.12, -F * 0.06] },
+          { ticks: 150, look: body, angle: [8, -8], dist: [F * 1.1, F * 0.8], height: [-F * 0.18, -F * 0.1] },
+          { ticks: 110, look: head, angle: [26, 14], dist: [F * 0.45, F * 0.36], height: [-F * 0.1, -F * 0.05] },
+        ] });
       }
       riftTick(dim, at, size, t, Math.min(1, t / 60));
       if (t < 60) return;
@@ -725,6 +812,7 @@ export class Controller {
       c.wade = true;
       this.setStep(4);
       this.runner = this.landWalk();
+      this.nameCard(c, form, "§7comes through");
       return;
     }
     if (!this.creature) {
@@ -939,10 +1027,17 @@ export class Controller {
         this.brain?.finish();
         const was = (ev.to - 1) as 1 | 2 | 3, Fo = FRAME[was], Fn = FRAME[ev.to];
         const body = () => ({ x: c.pos.x, y: c.pos.y + BODY_MID[c.form], z: c.pos.z });
-        film(c.dim, body, { ticks: CH.before + CH.after + CH.hold, radius: 140, dist: Fo, height: 4, cinema: true, facing: () => c.yaw, shots: CH.shots(c, Fo, Fn) });
+        film(c.dim, body, { ticks: OPENING + CH.before + CH.after + CH.hold, radius: 140, dist: Fo, height: 4, cinema: true, facing: () => c.yaw,
+                            shots: [CH.wide(c, Fo), ...CH.shots(c, Fo, Fn)] });
+        c.say("basiliskra.mutate", c.pos, 96, 0.6, 0.7);
       }
-      const t = now - ev.t0;
-      if (t >= 0 && t < CH.before) { CH.pre(c, t); return; }
+      const t = now - ev.t0 - OPENING;
+      if (t < 0) {
+        // the establishing shot: nothing has happened yet, but the ground has begun to shake
+        if ((t + OPENING) % 12 === 0) shake(c, 110, 0.12 + 0.2 * ((t + OPENING) / OPENING), 0.8);
+        return;
+      }
+      if (t < CH.before) { CH.pre(c, t); return; }
       // the instant of it
       CH.burst(c);
       particle(c.dim, "basiliskra:rift_flash", { x: c.pos.x, y: c.pos.y, z: c.pos.z }, 200, sizeVars(big * 1.6));
@@ -1001,12 +1096,12 @@ export class Controller {
     else if (b instanceof BrainTwo) b.forced = { name: "roar", run: b.roar(), limit: 120 };
   }
 
-  /** His name, as the new animal is seen for the first time. */
-  private nameCard(c: Creature, form: number): void {
+  /** His name, as the new animal is seen for the first time (or as he comes through a rift). */
+  private nameCard(c: Creature, form: number, subtitle = NAME_CARD[form]): void {
     for (const p of players()) {
       try {
         if (p.dimension.id !== c.dim.id || dist(p.location, c.pos) > 160) continue;
-        p.onScreenDisplay.setTitle(`§4BASILISKRA ${ROMAN[form]}`, { subtitle: NAME_CARD[form], fadeInDuration: 12, stayDuration: 60, fadeOutDuration: 24 });
+        p.onScreenDisplay.setTitle(`§4BASILISKRA ${ROMAN[form]}`, { subtitle, fadeInDuration: 12, stayDuration: 60, fadeOutDuration: 24 });
       } catch { /* left */ }
     }
   }
