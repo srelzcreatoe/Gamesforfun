@@ -214,7 +214,7 @@ export function* pursue(ctx, cr, opts = {}) {
     if (el >= maxT) return 'cap';
     if (phase === 'frenzy' && frenzyTicks >= sec(Math.min(30, cfg.maxHuntSeconds))) return 'cap';
     if (d > (rage ? 56 : 48) || (lostLOS > sec(rage ? 15 : 12) && d > (rage ? 28 : 22))) return 'escaped';
-    if (!ctx.manual && !isUnderground(pl) && isDaylight() && !ctx.ps.hollows) {   // it never follows you into daylight (except in its own land)
+    if (cfg.daylightSafe && !ctx.manual && !isUnderground(pl) && isDaylight() && !ctx.ps.hollows) {   // only if the world makes daylight safe
       surfaceT += 5;
       if (!cfg.surfaceMode || surfaceT > sec(6)) return 'surface';      // L52 / L53
     } else surfaceT = 0;
@@ -347,6 +347,10 @@ export function* pursue(ctx, cr, opts = {}) {
       cr.huntTarget(pl, true);
     }
     if (phase === 'frenzy') frenzyTicks += 5;
+    if (rage && !quiet && now() >= (ctx.nextChaseScream || now() + sec(3))) {
+      if (ctx.nextChaseScream) playAt(cr.dim, chance(0.65) ? 'shaftbreaker.screech' : 'shaftbreaker.roar_cut', cr.loc, 1.0, rand(0.9, 1.08));
+      ctx.nextChaseScream = now() + sec(rand(3.5, 6.5));
+    }
     // ---- specials
     if (now() >= nextSpecial && s.visible) {
       let did = false;

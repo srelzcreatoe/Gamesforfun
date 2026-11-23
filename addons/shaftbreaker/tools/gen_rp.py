@@ -289,7 +289,7 @@ def atlases():
 
 LANG = {
     'pack.name': 'The Shaftbreaker',
-    'pack.description': 'v3.0  It is in the dark, and it wants to be seen. Use the Breaker\'s Wheel. No experimental toggles required.',
+    'pack.description': 'v3.1  It is in the dark, and it wants to be seen. Use the Breaker\'s Wheel. No experimental toggles required.',
     f'entity.{NS}:shaftbreaker.name': 'Shaftbreaker',
     f'entity.{NS}:shaft_moth.name': 'Shaft Moth',
     f'item.spawn_egg.entity.{NS}:shaftbreaker.name': 'Spawn Shaftbreaker',

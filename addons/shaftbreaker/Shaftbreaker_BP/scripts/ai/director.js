@@ -1,7 +1,7 @@
 // @ts-check
 import { world, system } from '@minecraft/server';
 import { now, sec, mins, rand, randi, chance, dist, distXZ, sub, norm, lenXZ, clamp, weighted, valid, safe, reportError, worldTicks, isPlayableTarget, OVERWORLD, floor3, key } from '../core/util.js';
-import { config, freqMul, intensityMul, prefs } from '../core/config.js';
+import { config, freqMul, intensityMul, prefs, diff } from '../core/config.js';
 import { WalkMap, isUnderground, resetBudget, BlockCache, inHollows } from '../world/space.js';
 import { profile, evidence, decay, noteEncounter, saveDirty, trait, curious, markDirty, forget, bumpRegion } from './memory.js';
 import { ws, wsDirty, wsSave, addDanger, pushHistory, suppressionAt, pruneSuppression, nearestDen } from './worldstate.js';
@@ -16,9 +16,9 @@ import { MINOR_TEMPLATES } from './encounters/minor.js';
 import { OBSERVE_TEMPLATES } from './encounters/observe.js';
 import { STANDOFF_TEMPLATES } from './encounters/standoff.js';
 import { HUNT_TEMPLATES, isDaylight } from './encounters/hunt.js';
-import { STALK_TEMPLATES, MIND_TEMPLATES, ambushMoment, addTension } from './encounters/stalk.js';
+import { STALK_TEMPLATES, MIND_TEMPLATES, SLEEP_TEMPLATES, ambushMoment, addTension, relaxedSpot } from './encounters/stalk.js';
 
-export const TEMPLATES = [...MINOR_TEMPLATES, ...OBSERVE_TEMPLATES, ...STANDOFF_TEMPLATES, ...HUNT_TEMPLATES, ...STALK_TEMPLATES, ...MIND_TEMPLATES];
+export const TEMPLATES = [...MINOR_TEMPLATES, ...OBSERVE_TEMPLATES, ...STANDOFF_TEMPLATES, ...HUNT_TEMPLATES, ...STALK_TEMPLATES, ...MIND_TEMPLATES, ...SLEEP_TEMPLATES];
 const BY_ID = new Map(TEMPLATES.map((t) => [t.id, t]));
 const STATES = ['dormant', 'interested', 'observing', 'provoked', 'hunting'];
 const FAMILY_WEIGHT = { stalk: 30, uncanny: 20, audio: 15, env: 15, standoff: 10, hunt: 8, rare: 2 };
@@ -231,6 +231,13 @@ function stalkerClock() {
   return false;
 }
 
+/** asleep players are not "underground", but it knows where you sleep */
+function eligibleAsleep(p) {
+  const cfg = config();
+  if (!cfg.enabled || !cfg.naturalEncounters || p.dimension.id !== OVERWORLD) return false;
+  return now() >= pstate(p).graceUntil;
+}
+
 let pendingRage = null;
 /** struck or shot: it snaps (after any non-hunt beat is cut short) */
 function queueRage(player, why) {
@@ -330,13 +337,14 @@ function updatePlayer(p, dt) {
   if (ug && !s.underground) { s.underground = true; if (!s.scheduled) scheduleFresh(s, pf); }
   if (!ug && s.underground) { s.underground = false; }
   // at night it also stalks you on the surface (through the trees, around your house)
-  s.night = !ug && !!config().nightStalking && p.dimension.id === OVERWORLD && !isDaylight();
+  const cfgN = config();
+  s.night = !ug && p.dimension.id === OVERWORLD && (!!cfgN.dayStalking || (!!cfgN.nightStalking && !isDaylight()));
   // the Hollows are its own land: there it is about by day as well
   s.hollows = p.dimension.id === OVERWORLD && inHollows(p.dimension, p.location);
   if (s.hollows) unlockNote(p, 'hollows');
   if (s.hollows && !ug) s.night = true;
   if (s.night && !s.scheduled) scheduleFresh(s, pf);
-  if (s.night) s.ugTicks += dt;
+  if (s.night) { s.ugTicks += dt; pf.undergroundSec += dt / 20; }
   s.tension = (s.tension || 0) * 0.996;                                   // tension fades over a few quiet minutes
   if (ug) {
     s.ugTicks += dt; pf.undergroundSec += dt / 20; markDirty(p);
@@ -527,6 +535,15 @@ export function directorTick() {
   ws().danger = clamp(ws().danger + 0.06, 0, 100);                      // ~ +1.8 per minute
   safe('brain', brainTick);
   if (cur) return;
+  // it visits you while you sleep
+  for (const p of list) {
+    const s = pstate(p);
+    if (!safe('sleep?', () => p.isSleeping, false)) { s.sleepSince = 0; continue; }
+    if (!s.sleepSince) s.sleepSince = now();
+    if (now() - s.sleepSince < sec(2) || now() - (s.lastBedside || -1e9) < mins(8) || !creature() || !eligibleAsleep(p)) continue;
+    s.lastBedside = now();
+    if (chance(Math.min(0.95, 0.55 * diff().snap)) && startById('bedside', p)) return;
+  }
   if (safe('stalker', stalkerClock, false)) return;
   if (pendingScan) {
     const ps = pendingScan;
@@ -606,7 +623,9 @@ export function forceShow(player, kind = 'any', reaction = null) {
   const s = pstate(player);
   const map = freshMap(player);
   const ctx = { player, ps: s, map, isolated: s.isolated, forceKind: kind === 'any' ? null : kind };
-  const plan = safe('wheelPlan', () => tpl.plan(ctx), null);
+  let plan = safe('wheelPlan', () => tpl.plan(ctx), null);
+  // a reaction does not need the exact pose: anywhere it can stand will do
+  if (!plan && (reaction || kind === 'any' || kind === 'still' || kind === 'behind' || kind === 'ahead')) plan = safe('wheelRelaxed', () => relaxedSpot(ctx), null);
   if (!plan) return kind === 'ceiling' ? 'no ceiling high enough near you' : kind === 'peek' ? 'nothing to hide behind near you (trees on the surface, pillars underground)' : kind === 'ledge' ? 'no ledge above you' : 'no place for that here';
   plan.forceReaction = reaction;
   s.reason = 'wheel';

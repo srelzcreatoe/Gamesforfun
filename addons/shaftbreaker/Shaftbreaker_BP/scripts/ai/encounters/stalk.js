@@ -39,6 +39,13 @@ function diffMul() {
 const canHurt = (ctx) => (pl) => valid(pl) && now() >= ctx.ps.graceUntil && !config().harmless;
 
 // ------------------------------------------------------------------ tension & hunt cadence
+/** the Wheel insists: any reachable cell 5-22 blocks away (visible if possible), when the exact kind has no place */
+export function relaxedSpot(ctx) {
+  const s = findSpot(ctx.map, ctx.player, { minDist: 5, maxDist: 22, los: true, inViewOk: true, crawl: false, maxChecks: 200, test: notWatched(ctx) })
+    || findSpot(ctx.map, ctx.player, { minDist: 5, maxDist: 26, crawl: false, maxChecks: 260 });
+  return s && { kind: 'still', pos: s.pos };
+}
+
 export function tension(s) { return s.tension || 0; }
 export function addTension(s, v) { s.tension = clamp((s.tension || 0) + v * intensityMul(), 0, 100); }
 /** a real chase is due once a few minutes have passed since the last one */
@@ -46,6 +53,7 @@ export function huntDue(s, player = null) {
   if (!s.huntGap) s.huntGap = sec(rand(240, 400) * freqMul() / intensityMul());
   let gap = s.huntGap * diff().huntGap;
   if (player && hpFrac(player) < 0.5) gap *= 0.6;                       // you are hurt: it presses
+  if (player) gap *= clamp(1 - (profile(player).undergroundSec || 0) / 60 / 150, 0.55, 1);   // the longer it has known you, the shorter its patience
   return now() - (s.lastHuntEnd ?? s.arrivedAt ?? now()) >= gap;
 }
 export function hpFrac(p) {
@@ -81,7 +89,8 @@ function planLedge(ctx) {
   return s && { kind: 'ledge', pos: s.pos };
 }
 function planBehind(ctx) {
-  const s = findSpot(ctx.map, ctx.player, { minDist: 6, maxDist: 13, los: true, minAngle: 125, crawl: false, maxLight: maxLight(ctx), maxChecks: 80, test: notWatched(ctx) });
+  const s = findSpot(ctx.map, ctx.player, { minDist: 3.5, maxDist: 9, los: true, minAngle: 125, crawl: false, maxLight: maxLight(ctx), maxChecks: 120, test: notWatched(ctx) })
+    || findSpot(ctx.map, ctx.player, { minDist: 3.5, maxDist: 12, los: true, minAngle: 110, crawl: false, maxLight: maxLight(ctx), maxChecks: 120, test: notWatched(ctx) });
   return s && { kind: 'behind', pos: s.pos };
 }
 /** it predicts where you are going and waits there, just around the corner */
@@ -230,6 +239,18 @@ function* lunge(ctx, cr) {
   yield* dropDown(ctx, cr);
   cr.halt();
   cr.setGravity(true); cr.lockStance = false;
+  if (cr.valid && dist(cr.loc, pl.location) > 7) {                        // too far to leap: it charges first
+    ctx.tel.notes.push('charge');
+    cr.setPhase('frenzy'); cr.setEyes(1.0);
+    playAt(cr.dim, 'shaftbreaker.rush', cr.loc, 1.0, rand(0.95, 1.05));
+    playAt(cr.dim, 'shaftbreaker.screech', cr.loc, 0.9, rand(0.95, 1.05));
+    shake(pl, 0.25, 1.0);
+    cr.chase(pl, SPEED.rage * 1.25);
+    const until = now() + sec(4.5);
+    while (now() < until && cr.valid && dist(cr.loc, pl.location) > 4.5) yield W(2);
+    cr.stop();
+    if (!cr.valid) return false;
+  }
   cr.face(pl.getHeadLocation());
   cr.setPhase('breaker');
   cr.setEyes(1.0);
@@ -322,12 +343,12 @@ function* flee(ctx, cr) {
 }
 
 // ------------------------------------------------------------------ waiting to be noticed
-function* waitNoticed(ctx, cr, plan) {
+function* waitNoticed(ctx, cr, plan, maxTicks = 0) {
   const pl = ctx.player;
   let lookT = 0;
   let nextCreep = now() + sec(rand(9, 14));
   let creeps = 0;
-  const until = now() + sec(rand(45, 70));
+  const until = now() + (maxTicks || sec(rand(45, 70)));
   while (now() < until) {
     yield W(4);
     if (!cr.valid) return 'gone';
@@ -442,7 +463,8 @@ function* standoff(ctx, cr) {
   const T = tension(s);
   // players who keep staring it down teach it to lose patience sooner
   const stareLimit = sec(clamp(rand(6, 10) * (1 - T / 300) * (1 - habit(pl, 'stare') * 0.4) * diff().stare / intensityMul(), 2.2, 13));
-  let stare = 0; let away = 0; let crept = false; let lastTest = '';
+  let stare = 0; let away = 0; let crept = false; let lastTest = ''; let face = 0;
+  const faceLimit = sec(clamp(2.4 * diff().stare, 0.7, 4));
   let nextTest = now() + sec(rand(1.0, 2.2));
   const hist = [];
   const until = now() + sec(rand(30, 48));
@@ -462,6 +484,7 @@ function* standoff(ctx, cr) {
       setDanger(pl, clamp(0.45 + (12 - d) / 24, 0.45, 0.8));
       if (d < 14 && now() >= nextDark) { darkness(pl, 4); nextDark = now() + sec(rand(5, 9)); }
       if (stare >= stareLimit) return 'stared';
+      if (sv.headVisible && sv.angle < 8 && d < 12) { face += 4; if (face >= faceLimit) { ctx.tel.notes.push('looked it in the face'); return 'stared'; } } else face = Math.max(0, face - 2);
       if (now() >= nextTest && !cr.act && !cr.moving) {                // (hanging from the ceiling it only stares)
         lastTest = yield* testYou(ctx, cr, lastTest);
         nextTest = now() + sec(rand(2.4, 4.2));
@@ -544,6 +567,7 @@ export const STALK_TEMPLATES = [
       const pl = ctx.player;
       const s = ctx.ps;
       plan = { ...plan };
+      const forced = !!(ctx.plan && ctx.plan.forceReaction);
       // ---- arrive: silently, somewhere you will notice it, perfectly still
       const pos = plan.kind === 'ceiling' ? plan.anchor : plan.pos;
       const cr = appear(ctx, { pos }, { phase: 'dormant', eyes: plan.kind === 'peek' ? 0.85 : 0.75, act: plan.kind === 'ceiling' ? ACT.CEILING_HANG : 0 });
@@ -567,8 +591,9 @@ export const STALK_TEMPLATES = [
           const c = new BlockCache(cr.dim);
           if (c.standable(pr.side.step.x, pr.side.step.y, pr.side.step.z)) { cr.stepAlong([pr.side.step], pl.getHeadLocation(), 0.05); yield W(sec(1.0)); }
         }
-      } else r = yield* waitNoticed(ctx, cr, plan);
+      } else r = yield* waitNoticed(ctx, cr, plan, forced ? sec(4) : 0);
       if (r === 'gone') return 'gone';
+      if (r === 'timeout' && forced) r = 'spotted';                    // the Wheel asked for it: it happens now
       if (r === 'timeout') {
         if (!seen(ctx, cr).visible) { cr.vanish(true); return 'unnoticed'; }
         r = 'spotted';
@@ -594,7 +619,7 @@ export const STALK_TEMPLATES = [
       if (what === 'jumpscare') { jumpscare(pl, cr, true); yield W(sec(0.8)); yield* vanishHere(ctx, cr); return 'jumpscare'; }
       if (what === 'vanish') { yield W(sec(rand(0.6, 1.6))); yield* vanishHere(ctx, cr); return 'vanished'; }
       if (what === 'flee') { yield W(sec(rand(0.3, 0.9))); yield* flee(ctx, cr); return 'fled'; }
-      if (what === 'lunge') { const hit = yield* lunge(ctx, cr); return yield* afterStrike(ctx, cr, hit ? 0.55 : 0.35); }
+      if (what === 'lunge') { const hit = yield* lunge(ctx, cr); if (ctx.plan && ctx.plan.forceReaction) return yield* rage(ctx, 'lunged', true); return yield* afterStrike(ctx, cr, hit ? 0.55 : 0.35); }
       if (what === 'rage') return yield* rage(ctx, 'spotted');
       // ---- the standoff
       const o = yield* standoff(ctx, cr);
@@ -683,6 +708,52 @@ function findDoor(p) {
   }
   return best;
 }
+
+/** a standable cell right beside a sleeping player */
+function bedsideSpot(p) {
+  const c = new BlockCache(p.dimension);
+  const b = p.location;
+  for (const r of [1.6, 2.2, 2.8]) {
+    for (let k = 0; k < 8; k++) {
+      const a = k / 8 * Math.PI * 2;
+      for (const dy of [0, 1, -1]) {
+        const q = floor3({ x: b.x + Math.cos(a) * r, y: b.y + dy, z: b.z + Math.sin(a) * r });
+        if (c.standable(q.x, q.y, q.z)) return center(q);
+      }
+    }
+  }
+  return null;
+}
+
+export const SLEEP_TEMPLATES = [
+  {
+    ...BASE, id: 'bedside', features: ['L46', 'N24'],
+    trigger: 'you went to sleep while it was near', telegraph: 'knocking, a whisper, then breathing right beside you',
+    counterplay: 'do not sleep where it has been watching you; keep a door between you and the dark',
+    plan(ctx) { const pos = bedsideSpot(ctx.player); return pos && { pos }; },
+    *run(ctx, plan) {
+      const pl = ctx.player;
+      ctx.tel.notes.push('visited your bed');
+      const door = findDoor(pl);
+      const knockAt = door ? { x: door.door.x + 0.5, y: door.door.y + 1, z: door.door.z + 0.5 } : plan.pos;
+      for (const gap of [0.4, 0.4, 1.6]) { playAt(pl.dimension, 'shaftbreaker.knock', knockAt, 1.0, rand(0.9, 1.0)); yield W(sec(gap)); }
+      whisper(pl, true);
+      const cr = appear(ctx, { pos: plan.pos }, { phase: 'watching', eyes: 1.0, allowInView: true });
+      if (!cr) return 'no_spawn';
+      cr.halt(); cr.face(pl.getHeadLocation());
+      playAt(cr.dim, 'shaftbreaker.breath', { x: cr.loc.x, y: cr.loc.y + 2.2, z: cr.loc.z }, 1.0, 0.85);
+      const until = now() + sec(6);
+      let awake = false;
+      while (now() < until) { yield W(5); if (!cr.valid) return 'gone'; if (!safe('sleeping', () => pl.isSleeping, false)) { awake = true; break; } }
+      sighted(ctx);
+      if (!awake) { yield* closeStrike(ctx, cr); return yield* afterStrike(ctx, cr, 0.5); }   // its claws wake you
+      if (canJumpscare(pl, 20)) { ctx.tel.notes.push('jumpscare'); jumpscare(pl, cr); yield W(sec(0.6)); }
+      if (chance(0.55 * diff().snap)) { yield* closeStrike(ctx, cr); return yield* afterStrike(ctx, cr, 0.6); }
+      yield* vanishHere(ctx, cr);
+      return 'watched_you_sleep';
+    },
+  },
+];
 
 export const MIND_TEMPLATES = [
   {

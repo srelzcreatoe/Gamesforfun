@@ -6,7 +6,7 @@ import { isOperator, compassName, worldTicks, safe, now, dist, valid } from './c
 import { profile, topTraits, SIGNAL_TEXT, resetProfile, markDirty } from './ai/memory.js';
 import { pstate, forceShow, forceById, setMood, stopEncounter } from './ai/director.js';
 import { ws, nearestDen } from './ai/worldstate.js';
-import { playFor, stopMusic, startMusic } from './audio.js';
+import { playFor, stopMusic, startMusic, previewMusic, endPreview } from './audio.js';
 import { creature } from './ai/creature.js';
 import { jumpscare, whisper, startEyes, mindGame, shake } from './scare.js';
 import { tryGenerateDen, guideNow } from './world/den.js';
@@ -214,6 +214,7 @@ const ACTIONS = [
   ['Play a mind game', (p) => (mindGame(p, true) ? '...' : 'mind games are switched off')],
   ['Mimic my sounds', (p) => forceById(p, 'mimic')],
   ['Knock on my door (indoors at night)', (p) => forceById(p, 'knock_door')],
+  ['Visit me when I sleep (use a bed first)', (p) => (p.isSleeping ? forceById(p, 'bedside') : 'get into a bed, then ask again')],
   ['Grow a den near me (underground)', (p) => (tryGenerateDen(p) ? 'a den is growing somewhere close' : 'no chamber for a den here, or there is one nearby')],
   ['Send me a guide moth', (p) => guideNow(p)],
   ['Send it away', () => { stopEncounter(); return 'it is gone, for now'; }],
@@ -265,6 +266,8 @@ const SWITCHES = [
   ['eyesInDark', 'Eyes in the dark'],
   ['mimicry', 'It mimics your sounds'],
   ['nightStalking', 'It stalks you on the surface at night'],
+  ['dayStalking', 'It stalks you on the surface by day too'],
+  ['daylightSafe', 'Daylight ends its chases'],
   ['creativeEncounters', 'It stalks creative-mode players (no damage)'],
   ['denGeneration', 'Dens grow in the caves'],
   ['chaseMusic', 'Chase music'],
@@ -328,9 +331,9 @@ async function soundsAndMusic(player) {
   const r = await f.show(player);
   if (r.canceled || r.selection === undefined) return;
   const i = /** @type {number} */ (r.selection);
-  if (i >= SOUNDS.length) { stopMusic(player); return; }
+  if (i >= SOUNDS.length) { endPreview(player); return; }
   const [, id, music] = SOUNDS[i];
-  if (music) { stopMusic(player); startMusic(player, /** @type {string} */ (id)); } else playFor(player, /** @type {string} */ (id), undefined, 1.0);
+  if (music) previewMusic(player, /** @type {string} */ (id), 150); else playFor(player, /** @type {string} */ (id), undefined, 1.0);
   return soundsAndMusic(player);
 }
 

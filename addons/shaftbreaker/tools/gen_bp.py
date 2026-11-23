@@ -6,7 +6,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BP = os.path.join(ROOT, 'Shaftbreaker_BP')
 RP = os.path.join(ROOT, 'Shaftbreaker_RP')
 NS = 'shaftbreaker'
-VERSION = [3, 0, 0]
+VERSION = [3, 1, 0]
 MIN_ENGINE = [1, 26, 30]   # custom biomes (the Hollows) need 1.26.30+
 UUID = {
     'bp_header': '6f1c2b0e-3a5d-4c7e-9b21-5d8e7a4c1f01',

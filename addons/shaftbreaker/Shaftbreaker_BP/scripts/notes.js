@@ -28,7 +28,7 @@ export const FIELD_NOTES = [
   { id: 'stared', title: 'Do not stare it down', hint: 'What happens if you never look away?',
     text: 'Hold its gaze too long and it snaps. The more you stare at it, the less patience it has for it next time.' },
   { id: 'rage', title: 'Faster than you', hint: 'Make it angry.',
-    text: 'When it snaps it screams, the air goes red and it comes faster than you can sprint, climbing walls and pillars to reach you. Nothing can touch you for about two seconds after the scream. Break its line of sight. Daylight ends it, except in its own land.' },
+    text: 'When it snaps it screams, the air goes red and it comes faster than you can sprint, climbing walls and pillars to reach you. Nothing can touch you for about two seconds after the scream. Break its line of sight. Daylight will not save you.' },
   { id: 'hurt', title: 'Do not hit it', hint: 'Hit it. (Not recommended.)',
     text: 'Striking it or shooting it makes it snap. It has a great deal of health, and it falls hard when it finally falls. If you mean to fight it, mean it.' },
   { id: 'charged', title: 'Do not run at it', hint: 'Run straight at it.',
@@ -47,6 +47,8 @@ export const FIELD_NOTES = [
     text: 'It opens doors, gates and trapdoors, smashes glass and leaves, and crawls through one-block gaps. Shut yourself in and it goes for the nearest door or window. When it is over, every door is closed and every pane is back, as if it was never there.' },
   { id: 'knock', title: 'Do not open the door', hint: 'Stay inside at night.',
     text: 'At night, if you shut yourself in, it knocks. Then it waits on the other side of the door.' },
+  { id: 'sleep', title: 'It watches you sleep', hint: 'Sleep while it is near.',
+    text: 'Go to sleep while it is near and you will hear knocking, then a whisper. When you wake it is standing over your bed. If you do not wake, its claws will wake you.' },
   { id: 'mimic', title: 'Your own sounds', hint: 'Listen while you work.',
     text: 'A door you did not open. Footsteps that stop when you stop. Someone eating in the dark. Your own pickaxe in another tunnel. It has been listening to you.' },
   { id: 'whisper', title: 'Whispers', hint: 'Spend time near it.',
@@ -102,4 +104,5 @@ export function notesFromEncounter(player, tplId, tel) {
   if (/breach:/.test(n)) add('breach');
   if (tplId === 'knock_door') add('knock');
   if (tplId === 'mimic') add('mimic');
+  if (tplId === 'bedside') add('sleep');
 }

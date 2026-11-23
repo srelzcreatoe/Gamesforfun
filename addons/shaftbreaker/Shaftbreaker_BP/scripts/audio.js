@@ -27,7 +27,7 @@ export function caption(player, text, from) {
 }
 
 // ------------------------------------------------------------------ heartbeat & music per player
-/** @type {Map<string, {danger:number,nextBeat:number,music:string|null,musicUntil:number,drone:number}>} */
+/** @type {Map<string, {danger:number,nextBeat:number,music:string|null,musicUntil:number,drone:number,previewUntil?:number}>} */
 const state = new Map();
 function ps(player) {
   let s = state.get(player.id);
@@ -52,6 +52,7 @@ export function tickHeart(player) {
 }
 
 export function startMusic(player, track) {
+  if (isPreviewing(player)) return;                                    // a Wheel preview owns the music
   const cfg = config();
   const pr = prefs(player);
   if (track === 'music.shaftbreaker.chase' && (!cfg.chaseMusic || pr.reducedChase)) return;
@@ -63,9 +64,20 @@ export function startMusic(player, track) {
 
 export function currentMusic(player) { return ps(player).music; }
 
+/** the Wheel's music preview: nothing else touches the music until it ends or is stopped */
+export function previewMusic(player, track, seconds = 150) {
+  const s = ps(player);
+  s.previewUntil = 0;
+  stopMusic(player);
+  startMusic(player, track);
+  s.previewUntil = now() + sec(seconds);
+}
+export function isPreviewing(player) { return now() < (ps(player).previewUntil || 0); }
+export function endPreview(player) { ps(player).previewUntil = 0; stopMusic(player); }
+
 export function stopMusic(player) {
   const s = ps(player);
-  if (!s.music) return;
+  if (!s.music || isPreviewing(player)) return;
   try { player.stopMusic(); } catch { /* ignore */ }
   s.music = null;
 }

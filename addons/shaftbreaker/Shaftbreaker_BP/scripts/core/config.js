@@ -31,6 +31,8 @@ export const DEFAULTS = Object.freeze({
   harmless: false,                    // creature never damages players or edits blocks
   creativeEncounters: true,           // creative players are stalked too (no damage; hunts become chases)
   nightStalking: true,                // at night it stalks players on the surface too (trees, houses)
+  dayStalking: true,                  // it stalks players on the surface by day as well (anywhere, any time)
+  daylightSafe: false,                // daylight ends its chases (off: nowhere is safe)
   difficulty: 'normal',               // easy | normal | hard | nightmare (the Wheel: how hard it is)
   jumpscares: true,                   // its face in yours: lunges, ambushes, sudden appearances
   mindGames: true,                    // whispers, its words on your screen, fourth-wall scares

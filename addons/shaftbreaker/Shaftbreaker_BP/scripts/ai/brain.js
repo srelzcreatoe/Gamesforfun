@@ -12,7 +12,7 @@ import { WalkMap, findSpot, isUnderground, BlockCache } from '../world/space.js'
 import { creature, spawnCreature, seenByAnyone, SPEED } from './creature.js';
 import { noteSighting } from './memory.js';
 import { ws } from './worldstate.js';
-import { playAt, setDanger, startMusic, stopMusic, currentMusic } from '../audio.js';
+import { playAt, setDanger, startMusic, stopMusic, currentMusic, isPreviewing } from '../audio.js';
 import { inAnyonesView } from './encounters/common.js';
 import { log } from '../core/log.js';
 import { whisper, startEyes, mindGame } from '../scare.js';
@@ -249,6 +249,7 @@ export function presenceAudio() {
     const st = (B.music[p.id] = B.music[p.id] || { since: 0 });
     if (p.dimension.id !== OVERWORLD) { if (currentMusic(p)) stopMusic(p); continue; }
     const cur = currentMusic(p);
+    if (isPreviewing(p)) continue;                                       // the Wheel is playing something
     if (cur === 'music.shaftbreaker.chase' || cur === 'music.shaftbreaker.standoff') continue;   // owned by a scripted beat
     if (!c || c.defeated) { if (cur) stopMusic(p); continue; }
     const d = dist(c.loc, p.location);

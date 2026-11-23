@@ -53,7 +53,7 @@ function findStart(i) {
   if (SCENARIO === 'hollows') {                                     // daytime, on the surface of the Hollows
     for (let r = 0; r < 4000; r++) { const x = Math.floor(rand2(-45, -18)), z = Math.floor(rand2(-30, 30)); if (vw.standable(x, 61, z) && vw.sky(x, 61, z) > 0) return { x: x + 0.5, y: 61, z: z + 0.5 }; }
   }
-  if (SCENARIO === 'night') {                                       // on the surface near the house and the trees
+  if (SCENARIO === 'night' || SCENARIO === 'day' || SCENARIO === 'wheel') {   // on the surface near the house and the trees
     for (let r = 0; r < 4000; r++) { const x = Math.floor(rand2(-30, 30)), z = Math.floor(rand2(-30, 30)); if (vw.standable(x, 61, z) && vw.sky(x, 61, z) > 0) return { x: x + 0.5, y: 61, z: z + 0.5 }; }
   }
   for (let r = 0; r < 4000; r++) {
@@ -69,7 +69,7 @@ for (let i = 0; i < NPLAYERS; i++) {
   const p = new Player(`Bot${i + 1}`, dim, findStart(i));
   p._spawnPoint = { x: 0, y: 61, z: 0, dimension: dim };
   world._players.push(p); world._entities.push(p);
-  bots.push({ p, strat: SCENARIO === 'stairs' ? 'stairs' : SCENARIO === 'door' ? 'door' : SCENARIO === 'night' ? (i % 2 ? 'fighter' : 'house') : STRATS[i % STRATS.length], path: [], goal: null, mode: 'explore', lookT: 0, mineDir: null, mineLeft: 0, torchT: 0, react: 0, attackT: 0, deadT: 0, escapes: 0 });
+  bots.push({ p, strat: SCENARIO === 'stairs' ? 'stairs' : SCENARIO === 'door' ? 'door' : (SCENARIO === 'night' || SCENARIO === 'day' || SCENARIO === 'wheel') ? (i % 2 ? 'fighter' : 'house') : STRATS[i % STRATS.length], path: [], goal: null, mode: 'explore', lookT: 0, mineDir: null, mineLeft: 0, torchT: 0, react: 0, attackT: 0, deadT: 0, escapes: 0 });
 }
 
 // ---- boot the add-on exactly like the game would
@@ -349,6 +349,12 @@ for (let i = 0; i < total; i++) {
   SIM.curEnc = r ? r.tpl.id : (sbs.length ? 'lurk' : 'absent');
   if (r !== lastRun) { if (r) encLog.push({ t: M.system.currentTick, id: r.tpl.id, f: r.tpl.family, p: r.ctx.player.name }); lastRun = r; }
   if (i % 100 === 0) for (const r of LOGM.recent(60)) ALLTEL.add(r);
+  if (SCENARIO === 'wheel' && i > 1200 && i % 1200 === 600) {           // press a Wheel action every minute, like the user did
+    const WA = [['still', 'lunge'], ['behind', null], ['any', 'rage'], ['any', 'standoff'], ['behind', 'jumpscare'], ['still', 'lunge'], ['ahead', null], ['any', 'flee']];
+    const [k, r] = WA[(SIM.wheelN = (SIM.wheelN || 0) + 1) % WA.length];
+    const msg = dir.forceShow(bots[0].p, k, r);
+    (SIM.wheelLog ||= []).push({ t: i, k, r, msg, hp0: bots[0].p._hp });
+  }
   if (process.env.SBDBG && i % 1200 === 0) { const b = bots[0]; const st = dir.pstate(b.p); const B = brMod.brainState(); const c = crMod.creature(); console.log(`DBG t=${(i / 1200).toFixed(0)}m night=${st.night} ug=${st.underground} ugT=${(st.ugTicks / 20).toFixed(0)} grace=${Math.max(0, st.graceUntil - i)} cr=${!!c} tgt=${B.targetId === b.p.id} mapFor=${B.mapFor === b.p.id} mapAge=${i - B.mapT} nextShow=${st.nextShow ? ((st.nextShow - i) / 20).toFixed(0) : '-'} run=${dir.running() ? dir.running().tpl.id : '-'} pos=${b.p.location.x.toFixed(0)},${b.p.location.y.toFixed(0)},${b.p.location.z.toFixed(0)} elig=${brMod.presenceEligible(b.p)} arrDelay=${st.arrivalDelay} nextArr=${B.nextArrival - i}`); }
   if (i % 200 === 0) for (const b of bots) { const st = dir.pstate(b.p).state; stateHist[st] = (stateHist[st] || 0) + 1; }
   if (i % 20 === 0) for (const b of bots) {
@@ -410,6 +416,7 @@ for (const r of log.recent(60)) ALLTEL.add(r);
     console.log(`SCARES: fog pushes ${cnt(/fog @s push/)} (rage ${cnt(/fog_rage/)}, near ${cnt(/fog_near/)}, territory ${cnt(/fog_territory/)}), fog removals ${cnt(/fog @s remove/)}, camera shakes ${cnt(/camerashake/)}, jumpscares ${snd('shaftbreaker.jumpscare')}, reveal stings ${snd('shaftbreaker.sting_reveal')}, whispers ${snd('shaftbreaker.whisper')}, eye glints ${SIM.particles.filter((q) => q.id === 'shaftbreaker:eye_glint').length}, mind games ${(SIM.messages || []).filter((m) => /joined the game|\[title:/.test(String(m))).length}, mimicked sounds ${['random.door_open', 'random.chestopen', 'step.stone', 'game.player.hurt', 'random.eat', 'dig.stone'].map(snd).reduce((a, b) => a + b, 0)}, knocks ${snd('shaftbreaker.knock')}`);
     console.log(`FIELD NOTES unlocked: ${notes.length} ${JSON.stringify(notes.map((m) => String(m).replace(/.*New entry: §f/, '').replace(/§8.*/, '')))}; wheels given ${SIM.given || 0}`);
   }
+  if (SIM.wheelLog) { const recsW = [...ALLTEL].filter((x) => x.reason === 'wheel'); console.log('WHEEL PRESSES: ' + SIM.wheelLog.map((w, j) => `${w.k}/${w.r || '-'} -> ${w.msg}`).join(' | ')); console.log('WHEEL OUTCOMES: ' + recsW.map((x) => `${x.outcome}[${(x.notes || []).filter((n) => /reaction|charge|lunge|rage \(|jumpscare|show:|close strike/.test(n)).join(',')}]`).join(' | ')); }
   console.log(`STALKER: first show at ${firstShow ? (firstShow.t / 1200).toFixed(1) : '-'} min, first chase at ${firstRage ? (firstRage.t / 1200).toFixed(1) : (rages.length ? 'inline' : '-')} min; damage to players ${SIM.hits.reduce((a, h) => a + h.n, 0).toFixed(0)} in ${SIM.hits.length} hits; deaths ${SIM.deaths || 0}; bot reactions ${JSON.stringify(SIM.reacts || {})}`);
 }
 const hist = ws.ws().history;
