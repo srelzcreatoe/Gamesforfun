@@ -1611,13 +1611,25 @@ console.log('\n== 19. Basiliskra IV');
     const rec = w.bk.store.rec, id0 = w.bk.ctl.creature.entity.id;
     ana.use('basiliskra:journal'); w.sim.step(2);
     const page3 = ana.forms[ana.forms.length - 1]?.body ?? '';
-    check('the journal says what would make Basiliskra III the last form: three days and a dozen beams', /Becoming Basiliskra IV/.test(page3) && /Three days as Basiliskra III/.test(page3) && /Beams fired 0 of 12/.test(page3));
-    rec.mut.beams = 12; rec.mut.formSince = rec.clock - 3 * 24000 - 10; w.sim.save.timeOfDay = 6000;
+    check('the journal says what makes Basiliskra III the last form: time, and nothing else', /Becoming Basiliskra IV/.test(page3) && /Only time: §f60 min§7 left of 60 min/.test(page3) && !/Beams fired|night/.test(page3),
+      (page3.match(/Only time[^\n]*/) || [''])[0]);
+    w.sim.save.timeOfDay = 6000;                              // broad daylight, no beams fired: only the clock matters
     for (let i = 0; i < 200; i++) w.sim.step(1);
-    check('by day nothing happens', rec.form === 3 && !rec.evolve);
-    w.sim.save.timeOfDay = 15000;
-    const took = until(w, () => rec.form === 4 && !rec.evolve, 2400);
-    check('at night, with someone near, he changes: the same animal, Basiliskra IV', took > 0 && w.bk.ctl.creature.entity.id === id0 && w.bk.ctl.creature.form === 4 && ana.cam.log.some((q) => q.preset), `${took} ticks`);
+    check('before the time is up nothing happens', rec.form === 3 && !rec.evolve);
+    rec.mut.formSince = rec.clock - 3 * 24000 - 10;
+    ana.cam.log.length = 0; ana.titles.length = 0;
+    let hid = false, far = 0, lastTick = -9;
+    const took = until(w, () => {
+      if (ana.hud === 'hidden') hid = true;
+      const c = w.bk.ctl.creature;
+      for (const q of ana.cam.log) if (q.tick > lastTick && q.at && q.look) { lastTick = q.tick; far = Math.max(far, Math.hypot(q.at.x - q.look.x, q.at.y - q.look.y, q.at.z - q.look.z)); }
+      return rec.form === 4 && !rec.evolve;
+    }, 2400);
+    check('when the time is up he changes, by day, with nothing else asked: the same animal, Basiliskra IV', took > 0 && took < 700 && w.bk.ctl.creature.entity.id === id0 && w.bk.ctl.creature.form === 4, `${took} ticks`);
+    check('the change is filmed close: the camera is never further off than it takes to hold all of him', ana.cam.log.some((q) => q.preset) && far > 8 && far <= 50, `furthest ${far.toFixed(0)} blocks from what it is looking at (it took ${(2.4 * 34 + 12).toFixed(0)} before)`);
+    check('the HUD is put away for it and his name is shown', hid && ana.titles.some((t) => /BASILISKRA IV/.test(t.title)), JSON.stringify(ana.titles.slice(-1)));
+    for (let i = 0; i < 200; i++) w.sim.step(1);
+    check('and afterwards the player has their own eyes and their HUD back', ana.cam.held === false && ana.hud === 'shown');
     check('and then makes his entrance', until(w, () => rec.four?.debut === true, 900) > 0);
     ana.use('basiliskra:journal'); w.sim.step(2);
     const page4 = ana.forms[ana.forms.length - 1]?.body ?? '';

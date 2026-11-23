@@ -25,6 +25,12 @@ export const CONFIG = {
   harmlessOnPeaceful: true,
   /** Operator test hooks via /scriptevent basiliskra:debug ... (needs cheats; off for survival). */
   debug: false,
+  /**
+   * Minutes he spends in each form before he changes into the next.  Time is the only thing a change waits on.
+   * 0: the story's own timing (two in-game days as I, two as II, three as III: 40, 40 and 60 minutes at story
+   * speed 1).  Any other number: that many minutes for every change.
+   */
+  changeMinutes: 0,
   /** A spawn egg, /summon or /basiliskra:spawn brings the one Basiliskra to that place (false: they are removed). */
   allowSummon: true,
   /** What a spawn egg or /summon makes: 0 = his stage in the story (a new world: I in water, III on land), 1-3 = that form. */
@@ -50,7 +56,7 @@ export const CONFIG = {
 };
 
 /** The settings a player may change in game (the config wheel); saved with the world, over the defaults above. */
-export const SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music"] as const;
+export const SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music", "changeMinutes"] as const;
 export const SETTINGS_KEY = "bk:cfg";
 
 export const NS = "basiliskra";

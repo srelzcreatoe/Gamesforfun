@@ -31,6 +31,9 @@ export function* travel(c: Creature, target: V3, speed: number, arrive = 2, time
 }
 
 export const pace = (ticks: number): number => Math.max(1, Math.round(ticks / CONFIG.pacing));
+/** Ticks he spends in a form before he changes out of it.  Time is all a change waits on. */
+export const STORY_DAYS = [0, 2, 2, 3];
+export const changeTicks = (form: number): number => (CONFIG.changeMinutes > 0 ? CONFIG.changeMinutes * TICKS.minute : pace((STORY_DAYS[form] ?? 3) * TICKS.day));
 export const isNight = (tod: number): boolean => tod >= 13000 && tod < 23000;   // from the clock, never from the sky
 export const isDusk = (tod: number): boolean => tod >= 11800 && tod < 13800;
 
@@ -65,6 +68,8 @@ export function anyoneNear(c: Creature, range: number): boolean {
 }
 
 /** Phases in which he may grunt (not while he roars, charges, fires, knocks, crosses or hangs at a window). */
+/** Acts with no ending of their own: wandering, following, resting. */
+const IDLE_ACTS = new Set(["roam", "pursue", "wander", "patrol", "sleep", "harbor", "well", "lure", "echo"]);
 const VOICED = new Set(["idle", "move", "look", "drink", "pin", "flinch", "beach", "carry"]);
 
 let lastFault = "";
@@ -90,6 +95,11 @@ export abstract class Brain {
   protected abstract choose(): Choice | null;
   /** Something that should not wait for the current encounter to end. */
   protected interrupt(): Choice | null { return null; }
+  /** Has he been in this form as long as a form lasts?  (Time is all a change waits on.) */
+  protected changeDue(): boolean {
+    const rec = this.rec;
+    return this.c.form < 4 && !rec.evolve && !rec.ending?.step && this.now - rec.mut.formSince >= changeTicks(this.c.form);
+  }
 
   begin(ch: Choice): void {
     this.finish();
@@ -130,6 +140,9 @@ export abstract class Brain {
   tick(): void {
     this.voice();
     if (this.forced) { const f = this.forced; this.forced = null; this.begin(f); }
+    // when his time in this form is up, whatever he was idly doing stops, so that the change is not kept waiting
+    // (a breath, a roar or any other act with an ending is let finish first)
+    if (this.act && IDLE_ACTS.has(this.actName) && this.changeDue()) this.finish();
     const pre = this.interrupt();
     if (pre) this.begin(pre);
     if (!this.act) {

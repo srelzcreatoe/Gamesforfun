@@ -9,7 +9,7 @@
  */
 import { Entity, EntityDamageCause, Player, world } from "@minecraft/server";
 import { CONFIG, KNOCK_GAP_TICKS, PROP, TICKS } from "../config";
-import { Act, Brain, Choice, anyoneNear, isNight, nearbyPlayers, pace, travel, wait, watchersNear } from "../brain";
+import { Act, anyoneNear, Brain, changeTicks, Choice, isNight, nearbyPlayers, pace, travel, wait, watchersNear } from "../brain";
 import { BeamSpec, BeamState, beamTick, clearRange } from "../beam";
 import { Creature, targetable } from "../creature";
 import { beamVars, flash, particle, players, sound, stopSound, witnesses } from "../fx";
@@ -32,8 +32,6 @@ const TIERS = {
   2: { range: 60, radius: 1.6, damage: 7, width: 1.9, carve: 2.6 },
   3: { range: 76, radius: 1.4, damage: 9, width: 1.6, carve: 3.1 },
 } as const;
-/** What Basiliskra III must have done before he can become Basiliskra IV: days in this form, and beams fired. */
-export const IV_DAYS = 3, IV_BEAMS = 12;
 /** Closer than this (from the mouth) the beam is not his answer: he walks on you instead. */
 const BEAM_MIN = 14;
 /** Copper weathers and players wax it: all eight are the same rod to him. */
@@ -94,9 +92,8 @@ export class BrainThree extends Brain {
       this.wantCharge = false;
       return { name: "charge", run: this.beam(null), limit: 40 * TICKS.second };
     }
-    // left to himself long enough, with enough of his breath spent, he becomes the last thing he can be:
-    // three days as Basiliskra III and a dozen beams, then a night with someone near to see it
-    if (!rec.evolve && !rec.ending?.step && rec.mut.beams >= IV_BEAMS && now - rec.mut.formSince >= pace(IV_DAYS * TICKS.day) && isNight(tod) && anyoneNear(c, 140)) {
+    // left to himself long enough he becomes the last thing he can be: time is all it waits on
+    if (!rec.evolve && !rec.ending?.step && now - rec.mut.formSince >= changeTicks(3)) {
       rec.evolve = { to: 4, step: 0, t0: now, at: { ...c.pos } };
       return { name: "evolve", run: wait(900), limit: 900 };
     }

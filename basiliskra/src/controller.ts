@@ -37,6 +37,10 @@ function tellNear(dimId: string, at: V3, msg: string): void {
 const SPAWN_STEP = 3;
 /** The last form he can change into. */
 const MAX_FORM = 4;
+/** How far back the camera must stand to hold all of each form in the picture, and how high his middle is (blocks). */
+const FRAME = [0, 17, 21, 34, 46];
+const BODY_MID = [0, 1.5, 3.5, 6, 24];
+const NAME_CARD = ["", "", "§7he has left the water", "§7he stands up", "§7the last form"];
 
 /** Places tried round a site in one full search for water (six a call, a call every five seconds). */
 const WATER_CANDIDATES = 60;
@@ -919,8 +923,19 @@ export class Controller {
         this.brain?.finish();
         c.setPhase("evolve");
         c.say("basiliskra.mutate", c.pos, 72);
-        film(c.dim, () => ({ x: c.pos.x, y: c.pos.y + big * 0.45, z: c.pos.z }),
-             { ticks: GATHER + 190, radius: 120, dist: big * 2.4 + 12, height: big * 0.5 + 3, orbit: 140, distEnd: big * 1.7 + 10 });
+        // The scene, in five shots, each placed from the way he faces so that he is in the picture whoever watches,
+        // and each no further off than it takes to hold all of him: his head, close; round his side while the
+        // light gathers; low in front of him as it peaks; then the new animal, pulled back from; and his face again.
+        const was = (ev.to - 1) as 1 | 2 | 3, Fo = FRAME[was], Fn = FRAME[ev.to];
+        const head = () => c.anchor("nose");
+        const body = () => ({ x: c.pos.x, y: c.pos.y + BODY_MID[c.form], z: c.pos.z });
+        film(c.dim, body, { ticks: GATHER + 110 + 80, radius: 140, dist: Fo, height: 4, cinema: true, facing: () => c.yaw, shots: [
+          { ticks: 46, look: head, angle: [28, 42], dist: [Fo * 0.36 + 3, Fo * 0.28 + 2], height: [-0.5, 1.5] },
+          { ticks: 62, look: body, angle: [72, 138], dist: [Fo * 0.95, Fo * 0.8], height: [Fo * 0.12, Fo * 0.28] },
+          { ticks: GATHER - 108, look: head, angle: [-16, -6], dist: [Fo * 0.7, Fo * 0.46], height: [-Fo * 0.1, -Fo * 0.05] },
+          { ticks: 110, look: body, angle: [-38, 34], dist: [Fn * 0.55, Fn * 1.0], height: [Fn * 0.04, Fn * 0.26] },
+          { ticks: 80, look: head, angle: [22, 6], dist: [Fn * 0.5, Fn * 0.38], height: [-Fn * 0.12, -Fn * 0.07] },
+        ] });
       }
       c.setCharge(Math.min(20, (t / GATHER) * 20));
       if (t % 6 === 0) particle(c.dim, "basiliskra:mutate_gather", heart, 160, sizeVars(big));
@@ -933,6 +948,13 @@ export class Controller {
         for (const p of players()) {
           try {
             if (p.dimension.id === c.dim.id && dist(p.location, c.pos) < 140) p.camera.fade({ fadeColor: { red: 1, green: 0.85, blue: 0.8 }, fadeTime: { fadeInTime: 0.05, holdTime: 0.12, fadeOutTime: 0.9 } });
+          } catch { /* left */ }
+        }
+        // his name, as the new animal is seen for the first time
+        for (const p of players()) {
+          try {
+            if (p.dimension.id !== c.dim.id || dist(p.location, c.pos) > 160) continue;
+            p.onScreenDisplay.setTitle(`§4BASILISKRA ${ROMAN[ev.to]}`, { subtitle: NAME_CARD[ev.to], fadeInDuration: 12, stayDuration: 60, fadeOutDuration: 24 });
           } catch { /* left */ }
         }
         // the record changes first; the entity is then brought into line with it

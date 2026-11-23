@@ -28,6 +28,12 @@ var CONFIG = {
   harmlessOnPeaceful: true,
   /** Operator test hooks via /scriptevent basiliskra:debug ... (needs cheats; off for survival). */
   debug: false,
+  /**
+   * Minutes he spends in each form before he changes into the next.  Time is the only thing a change waits on.
+   * 0: the story's own timing (two in-game days as I, two as II, three as III: 40, 40 and 60 minutes at story
+   * speed 1).  Any other number: that many minutes for every change.
+   */
+  changeMinutes: 0,
   /** A spawn egg, /summon or /basiliskra:spawn brings the one Basiliskra to that place (false: they are removed). */
   allowSummon: true,
   /** What a spawn egg or /summon makes: 0 = his stage in the story (a new world: I in water, III on land), 1-3 = that form. */
@@ -51,7 +57,7 @@ var CONFIG = {
   /** His themes play when he is near, fighting, or in his last form. */
   music: true
 };
-var SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music"];
+var SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music", "changeMinutes"];
 var SETTINGS_KEY = "bk:cfg";
 var NS = "basiliskra";
 var TYPE = `${NS}:basiliskra`;
@@ -142,6 +148,8 @@ function clean(k, v) {
       return typeof v === "number" && v >= 0 && v <= 4 ? v : void 0;
     case "terrain":
       return v === "none" || v === "scorch" || v === "break" || v === "wither" ? v : void 0;
+    case "changeMinutes":
+      return typeof v === "number" && v >= 0 && v <= 600 ? v : void 0;
     case "spawnForm":
       return v === 0 || v === 1 || v === 2 || v === 3 || v === 4 ? v : void 0;
     case "fallout":
@@ -192,7 +200,7 @@ function resetSettings() {
 }
 
 // src/ui.ts
-import { ItemStack, PlayerPermissionLevel, system as system2, world as world8 } from "@minecraft/server";
+import { ItemStack, PlayerPermissionLevel, system as system2, world as world7 } from "@minecraft/server";
 import { ActionFormData, FormCancelationReason, MessageFormData, ModalFormData } from "@minecraft/server-ui";
 
 // src/creature.ts
@@ -2142,6 +2150,8 @@ function* travel(c, target, speed, arrive = 2, timeout = 600) {
   return true;
 }
 var pace = (ticks) => Math.max(1, Math.round(ticks / CONFIG.pacing));
+var STORY_DAYS = [0, 2, 2, 3];
+var changeTicks = (form) => CONFIG.changeMinutes > 0 ? CONFIG.changeMinutes * TICKS.minute : pace((STORY_DAYS[form] ?? 3) * TICKS.day);
 var isNight = (tod) => tod >= 13e3 && tod < 23e3;
 var isDusk = (tod) => tod >= 11800 && tod < 13800;
 function nearbyPlayers(c, range) {
@@ -2177,6 +2187,7 @@ function anyoneNear(c, range) {
   }
   return false;
 }
+var IDLE_ACTS = /* @__PURE__ */ new Set(["roam", "pursue", "wander", "patrol", "sleep", "harbor", "well", "lure", "echo"]);
 var VOICED = /* @__PURE__ */ new Set(["idle", "move", "look", "drink", "pin", "flinch", "beach", "carry"]);
 var lastFault = "";
 var Brain = class {
@@ -2208,6 +2219,11 @@ var Brain = class {
   /** Something that should not wait for the current encounter to end. */
   interrupt() {
     return null;
+  }
+  /** Has he been in this form as long as a form lasts?  (Time is all a change waits on.) */
+  changeDue() {
+    const rec = this.rec;
+    return this.c.form < 4 && !rec.evolve && !rec.ending?.step && this.now - rec.mut.formSince >= changeTicks(this.c.form);
   }
   begin(ch) {
     this.finish();
@@ -2256,6 +2272,7 @@ var Brain = class {
       this.forced = null;
       this.begin(f);
     }
+    if (this.act && IDLE_ACTS.has(this.actName) && this.changeDue()) this.finish();
     const pre = this.interrupt();
     if (pre) this.begin(pre);
     if (!this.act) {
@@ -3046,8 +3063,657 @@ function sicken(dim, live, now, ps) {
   }
 }
 
+// src/ui.ts
+var ROMAN = ["", "I", "II", "III", "IV"];
+var FALLOUT = ["off", "visual", "land"];
+var DUSK = 11800;
+function canAdmin(p) {
+  try {
+    if (p.playerPermissionLevel === PlayerPermissionLevel.Operator) return true;
+  } catch {
+  }
+  try {
+    return world7.getAllPlayers().length <= 1;
+  } catch {
+    return false;
+  }
+}
+var pct = (f) => `${Math.floor(Math.max(0, Math.min(1, f)) * 100)}%`;
+function bar(f, colour = "§c") {
+  const n = Math.round(Math.max(0, Math.min(1, f)) * 20);
+  return `${colour}${"|".repeat(n)}§8${"|".repeat(20 - n)}§r`;
+}
+function mins(ticks) {
+  const m = Math.max(0, ticks) / TICKS.minute;
+  if (m < 1) return "less than a minute";
+  if (m < 90) return `about ${Math.round(m)} minute${Math.round(m) === 1 ? "" : "s"}`;
+  return `about ${(m / 60).toFixed(1)} hours`;
+}
+function compass(from, to) {
+  const dx = to.x - from.x, dz = to.z - from.z;
+  if (Math.hypot(dx, dz) < 4) return "right here";
+  const names = ["south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"];
+  const a = Math.atan2(-dx, dz) * 180 / Math.PI;
+  return `${Math.round(Math.hypot(dx, dz))} blocks ${names[(Math.round(a / 45) % 8 + 8) % 8]}`;
+}
+var at = (v) => `${Math.floor(v.x)}, ${Math.floor(v.y)}, ${Math.floor(v.z)}`;
+async function present(p, show) {
+  for (let i = 0; i < 20; i++) {
+    let r;
+    try {
+      r = await show();
+    } catch {
+      return void 0;
+    }
+    if (r.canceled && r.cancelationReason === FormCancelationReason.UserBusy) {
+      await new Promise((res) => system2.runTimeout(() => res(), 8));
+      continue;
+    }
+    return r;
+  }
+  return void 0;
+}
+function angerLines(p, a, here) {
+  const L = [];
+  const where = `around ${Math.floor(a.center.x)}, ${Math.floor(a.center.z)}`;
+  L.push(here ? `§fNear you §7(the 64-block area ${where})` : `§fThe angriest area: ${where} §7(${compass(p.location, a.center)})`);
+  L.push(`  ${bar(a.progress)} §l${pct(a.progress)}§r §7of what calls him`);
+  L.push(`  §7Animals killed here by players: §f${a.kills}§7 (they count as §f${a.weightA.toFixed(1)}§7 of the §f${a.needA}§7 it takes)`);
+  L.push(`  §7Logs, reeds and shore plants cut here: §f${a.cut}§7 (they count as §f${a.weightH.toFixed(1)}§7 of the §f${a.needH}§7 it takes)`);
+  if (a.fired) L.push("  §7He has already been called from here.");
+  else if (a.pct < 1) {
+    L.push(`  §7Both are needed. Still to go here: about §f${a.moreKills}§7 more animal${a.moreKills === 1 ? "" : "s"} and §f${a.moreLogs}§7 more logs.`);
+    L.push("  §8The first kills of a spree and the first logs of a tree count for less; repeated harm counts in full.");
+  }
+  const total = Object.values(a.by).reduce((s, v) => s + v, 0);
+  const mine = a.by[p.id] ?? 0;
+  if (total > 0) L.push(`  §7Your share of it: §f${pct(mine / total)}`);
+  return L;
+}
+function evolveLines() {
+  const rec = store.rec, now = rec.clock, L = [];
+  if (rec.evolve) {
+    L.push("§cHe is changing right now.");
+    return L;
+  }
+  if (rec.form < 4) {
+    const need = changeTicks(rec.form), since = Math.max(0, now - rec.mut.formSince), f = Math.min(1, since / need);
+    const left = Math.max(0, need - since);
+    L.push(`§fBecoming Basiliskra ${ROMAN[rec.form + 1]}: ${bar(f, rec.form === 3 ? "§4" : "§6")} §l${pct(f)}§r`);
+    L.push(f >= 1 ? "  §aThe time is up: he changes as soon as he is free to." : `  §7Only time: §f${left >= TICKS.minute ? `${Math.ceil(left / TICKS.minute)} min` : `${Math.ceil(left / TICKS.second)} s`}§7 left of ${Math.round(need / TICKS.minute)} min as Basiliskra ${ROMAN[rec.form]}.`);
+    L.push("  §8Nothing else is needed. The config wheel can set the minutes, or make him change at once.");
+  } else L.push("§4Basiliskra IV is his last form.");
+  if (rec.form >= 3) {
+    L.push(rec.form === 4 ? "§fThe last crossing §8(it still sends him home)" : "§fThe last crossing §8(sends him home)");
+    L.push("  §7Carry his shed fin to the seam; play his three knocks on note blocks near it and keep playing; lead his charge into a lightning rod near the seam.");
+  }
+  return L;
+}
+function comingLines(p, ctl2) {
+  const rec = store.rec, now = rec.clock, L = [];
+  const tod = world7.getTimeOfDay();
+  const toDusk = tod >= DUSK && tod < 13800 ? 0 : (DUSK - tod + 24e3) % 24e3;
+  switch (rec.stage) {
+    case "dormant":
+      L.push("§7Not yet. When one place reaches §f100%§7 he is called through deep water near it.");
+      L.push("§7He needs open water about §f6 blocks deep§7 with a clear run of about §f45 blocks§7 within ~90 blocks of that place. Harm far inland calls no one.");
+      break;
+    case "pending": {
+      const pd = rec.pending;
+      L.push(`§eHe has been called§7, by what was done near §f${Math.floor(pd.site.x)}, ${Math.floor(pd.site.z)}§7 (${compass(p.location, pd.site)}).`);
+      L.push(`§7He is looking for deep, open water there (search ${Math.min(12, (pd.passes ?? 0) + 1)} of 12). Someone must be within 128 blocks of that place.`);
+      if ((pd.passes ?? 0) >= 4) L.push("§7No water has been deep and open enough so far. Harm nearer a coast or a big lake will call him there instead.");
+      break;
+    }
+    case "arriving": {
+      const a = rec.arrival;
+      if (a.step === 0) {
+        L.push(`§eHe is coming§7, through the water at §f${at(a.water)}§7 (${compass(p.location, a.water)}).`);
+        L.push(toDusk === 0 ? "§7At dusk, which is now: someone must be within 96 blocks of that water." : `§7At the next dusk, in §f${mins(toDusk)}§7, while someone is within 96 blocks of that water.`);
+      } else L.push(`§cHe is coming through now§7, at §f${at(a.water)}§7 (${compass(p.location, a.water)}).`);
+      break;
+    }
+    case "alive": {
+      const c = ctl2.creature;
+      if (c && c.valid) {
+        let hp = "";
+        try {
+          const h = c.entity.getComponent("minecraft:health");
+          if (h) hp = ` §7Health §f${Math.ceil(h.currentValue)}/${h.effectiveMax}`;
+        } catch {
+        }
+        L.push(`§cBasiliskra ${ROMAN[rec.form]} is here§7, ${compass(p.location, c.pos)}.${hp}`);
+      } else if (rec.entityId === null && rec.down !== null) {
+        const left = pace(TICKS.day) - (now - rec.down);
+        L.push(`§7Driven off. He comes back through the seam at §f${rec.rift ? at(rec.rift) : "the old place"}§7 in §f${mins(left)}§7, when someone is near it.`);
+      } else if (rec.last) {
+        L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach. Last seen near §f${at(rec.last)}§7 (${compass(p.location, rec.last)}), ${mins(now - rec.last.t)} ago.`);
+      } else L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach.`);
+      if (rec.guiltyName) L.push(`§7He remembers §f${rec.guiltyName}§7.`);
+      break;
+    }
+    case "departed":
+      L.push("§7He has gone home. The story in this world is over; nothing calls another.");
+      break;
+  }
+  return L;
+}
+function falloutLines(p) {
+  const L = [], now = store.rec.clock;
+  let at2;
+  try {
+    if (p.dimension.id !== OVERWORLD) return ["§7Only the Overworld carries his fallout."];
+    at2 = p.location;
+  } catch {
+    return L;
+  }
+  const d = doseAt(at2, now);
+  const word = d < 0.03 ? "§anone to speak of" : d < 0.2 ? "§6low" : d < 0.45 ? "§6rising" : d < 0.75 ? "§chigh" : "§4deadly";
+  L.push(`§fRadiation where you stand: ${bar(Math.min(1, d))} §l${pct(d)}§r  ${word}`);
+  const n = nearestFallout(at2, now), count = falloutCount(now);
+  if (!n) L.push("§7No fallout on record. His beam, his changes and his seam leave it where they touch the world.");
+  else {
+    L.push(`§7Fallout in §f${count}§7 place${count === 1 ? "" : "s"}. The nearest is ${compass(at2, n.zone)}, at §f${pct(n.strength)}§7.`);
+    L.push("§7It spreads for about a minute, stands a while, then fades and is gone within a few minutes.");
+    if (CONFIG.fallout === "land") L.push("§7In it the ground glows: soil and rock turn irradiated, plants wither, wild leaves fall and crimson crystals grow (break them for shards). Where his beam lands, rock runs to glowing slag and sand fuses to scarlet trinitite. As it fades the land heals back to what it was.");
+    if (CONFIG.sickness) L.push("§7It is strong: hunger, then weakness and nausea, then poison, and the heart of a fresh zone burns. Iodine tablets (2 dried kelp, sugar) keep it off for four minutes; milk clears it. A Geiger counter (trinitite or a crimson shard, copper ingot, redstone) reads it.");
+  }
+  return L;
+}
+function journalText(p, ctl2) {
+  const now = store.rec.clock, L = [];
+  L.push("§l§4HIS ANGER§r");
+  let here = null;
+  try {
+    if (p.dimension.id === OVERWORLD) here = angerNear(p.location, now);
+  } catch {
+    here = null;
+  }
+  if (here) L.push(...angerLines(p, here, true));
+  else L.push("§7Only what is done in the Overworld counts.");
+  const top = angriest(now);
+  if (top && (!here || top.key !== here.key)) {
+    L.push("");
+    L.push(...angerLines(p, top, false));
+  }
+  const [k, c] = tallyOf(p.id);
+  L.push(`§7You, everywhere: §f${k}§7 animal${k === 1 ? "" : "s"} killed, §f${c}§7 log${c === 1 ? "" : "s"} and plants cut.`);
+  L.push(`§8Anger is kept per 64-block area. Left alone, an area's anger halves every ${halfLifeDays().toFixed(1)} in-game days.`);
+  L.push("");
+  L.push("§l§4WHEN HE COMES§r");
+  L.push(...comingLines(p, ctl2));
+  if (store.rec.stage === "alive" || store.rec.stage === "arriving") {
+    L.push("");
+    L.push("§l§4HIM§r");
+    L.push(...evolveLines());
+  }
+  if (CONFIG.fallout !== "off") {
+    L.push("");
+    L.push("§l§4FALLOUT§r");
+    L.push(...falloutLines(p));
+  }
+  return L.join("\n");
+}
+async function openJournal(p, ctl2) {
+  for (; ; ) {
+    const f = new ActionFormData().title("Basiliskra Journal").body(journalText(p, ctl2)).button("Read again").button("Close");
+    if (canAdmin(p)) f.button("Config wheel");
+    const r = await present(p, () => f.show(p));
+    if (!r || r.canceled) return;
+    if (r.selection === 0) continue;
+    if (r.selection === 2) await openWheel(p, ctl2);
+    return;
+  }
+}
+function placeFor(p, form) {
+  const v = p.getViewDirection();
+  const n = Math.hypot(v.x, v.z) || 1;
+  const d = [0, 15, 24, 46, 52][form] ?? 30;
+  const pl = p.location;
+  const pos = { x: pl.x + v.x / n * d, y: pl.y, z: pl.z + v.z / n * d };
+  const dimension = overworld();
+  let g = groundY(dimension, pos.x, pos.z, pl.y + 24, 48);
+  if (g === NONE) g = groundY(dimension, pos.x, pos.z, pl.y - 24, pl.y - 24 - dimension.heightRange.min);
+  if (g !== UNLOADED && g !== NONE) pos.y = g;
+  const yaw = Math.atan2(-(pl.x - pos.x), pl.z - pos.z) * 180 / Math.PI;
+  return { at: pos, yaw };
+}
+function formOf(rec = store.rec) {
+  return rec.born > 0 ? rec.form : 0;
+}
+var SPEEDS = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
+var MINUTES = [0, 1, 2, 5, 10, 20, 30, 60];
+var DAMAGES = [0, 0.25, 0.5, 1, 1.5, 2, 3, 4];
+var TERRAIN = ["none", "scorch", "break", "wither"];
+function presetList(values, current, def, word) {
+  const items = values.map((v) => `${word(v)}${v === def ? " (default)" : ""}`);
+  let index = values.indexOf(current);
+  items.push(index < 0 ? `Custom: x${current}` : "Custom (type it in the box below)");
+  if (index < 0) index = values.length;
+  return { items, index };
+}
+function typedNumber(typed) {
+  const t = typeof typed === "string" ? typed.trim().replace(/^x/i, "").replace(",", ".") : "";
+  return t === "" ? void 0 : Number(t);
+}
+var typedBad = (typed, lo, hi) => {
+  const n = typedNumber(typed);
+  return n !== void 0 && !(n >= lo && n <= hi);
+};
+function pickNumber(values, index, typed, current, lo, hi) {
+  const n = typedNumber(typed);
+  if (n !== void 0 && n >= lo && n <= hi) return Math.round(n * 100) / 100;
+  const i = Number(index);
+  return Number.isInteger(i) && i >= 0 && i < values.length ? values[i] : current;
+}
+async function settingsForm(p) {
+  const speed = presetList(SPEEDS, CONFIG.pacing, 1, (v2) => `x${v2}${v2 < 1 ? " (slower)" : v2 > 1 ? " (faster)" : ""}`);
+  const dmg = presetList(DAMAGES, CONFIG.damage, 1, (v2) => v2 === 0 ? "None (x0)" : `x${v2}`);
+  const f = new ModalFormData().title("Basiliskra Settings").dropdown("Story speed", speed.items, { defaultValueIndex: speed.index, tooltip: "x2 halves every wait and threshold; x0.5 doubles them." }).textField("...or type a story speed (0.25 to 4)", "e.g. 1.25").dropdown("What his beam, roar and weight do to the world", [
+    "Nothing (light and sound only)",
+    "Scorch natural ground",
+    "Scorch and break natural ground",
+    "Destroy everything, like the Wither (default)"
+  ], { defaultValueIndex: Math.max(0, TERRAIN.indexOf(CONFIG.terrain)) }).toggle("Spare chests, beds, furnaces and portals", { defaultValue: CONFIG.spareStorage }).toggle("Footprints and furrows in natural ground", { defaultValue: CONFIG.marks }).dropdown("Damage to players", dmg.items, { defaultValueIndex: dmg.index }).textField("...or type a damage multiplier (0 to 4)", "e.g. 0.75").toggle("Harmless on Peaceful", { defaultValue: CONFIG.harmlessOnPeaceful }).toggle("He hunts animals and other creatures too", { defaultValue: CONFIG.huntMobs }).toggle("Spawn eggs and /summon bring him to you", { defaultValue: CONFIG.allowSummon }).dropdown("A spawn egg makes", ["His stage in the story", "Basiliskra I", "Basiliskra II", "Basiliskra III", "Basiliskra IV"], { defaultValueIndex: CONFIG.spawnForm }).toggle("Give new players the journal", { defaultValue: CONFIG.giveJournal }).toggle("Give operators the config wheel", { defaultValue: CONFIG.giveWheel }).toggle("Debug messages in the content log", { defaultValue: CONFIG.debug }).dropdown("His fallout", ["Off", "Glowing motes and Geiger clicks only", "Also changes the land (natural ground only)"], { defaultValueIndex: FALLOUT.indexOf(CONFIG.fallout) }).toggle("Radiation sickness for players", { defaultValue: CONFIG.sickness }).toggle("Cutscenes (the rift, each transformation)", { defaultValue: CONFIG.cutscenes }).toggle("His music", { defaultValue: CONFIG.music }).dropdown(
+    "Minutes in each form before he changes (time is all it takes)",
+    MINUTES.map((m) => m ? `${m} minutes` : "The story's timing: 40, 40, 60 (at story speed 1)"),
+    { defaultValueIndex: Math.max(0, MINUTES.indexOf(CONFIG.changeMinutes)) }
+  ).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
+  const r = await present(p, () => f.show(p));
+  if (!r || r.canceled || !r.formValues) return;
+  const v = r.formValues;
+  if (v[19] === true) {
+    resetSettings();
+    p.sendMessage("§7[Basiliskra] Settings restored to the defaults.");
+    return;
+  }
+  const pacing = pickNumber(SPEEDS, v[0], v[1], CONFIG.pacing, 0.25, 4);
+  const damage = pickNumber(DAMAGES, v[5], v[6], CONFIG.damage, 0, 4);
+  const bad = typedBad(v[1], 0.25, 4) || typedBad(v[6], 0, 4);
+  saveSettings({
+    pacing,
+    terrain: TERRAIN[Number(v[2])] ?? "wither",
+    spareStorage: v[3] === true,
+    marks: v[4] === true,
+    damage,
+    harmlessOnPeaceful: v[7] === true,
+    huntMobs: v[8] === true,
+    allowSummon: v[9] === true,
+    spawnForm: Number(v[10]),
+    giveJournal: v[11] === true,
+    giveWheel: v[12] === true,
+    debug: v[13] === true,
+    fallout: FALLOUT[Number(v[14])] ?? "land",
+    sickness: v[15] === true,
+    cutscenes: v[16] === true,
+    music: v[17] === true,
+    changeMinutes: MINUTES[Number(v[18])] ?? 0
+  });
+  p.sendMessage(`§7[Basiliskra] Settings saved with this world. Story speed §fx${CONFIG.pacing}§7, damage §fx${CONFIG.damage}§7.`);
+  if (bad) p.sendMessage("§7[Basiliskra] A number you typed was not in range, so the choice above it was used.");
+}
+async function bringForm(p, ctl2) {
+  const f = new ActionFormData().title("Bring him here").body(`§7The one Basiliskra comes to you: moved here if he is about, made here if he is not. There is never more than one.
+§7Now: ${store.rec.born > 0 ? `Basiliskra ${ROMAN[store.rec.form]}` : "he has never come"}.`).button("As he is in the story").button("Basiliskra I (the water)").button("Basiliskra II (the shore)").button("Basiliskra III (four footfalls)").button("Basiliskra IV (the last form)");
+  const r = await present(p, () => f.show(p));
+  if (!r || r.canceled || r.selection === void 0) return;
+  if (p.dimension.id !== OVERWORLD) {
+    p.sendMessage("§7[Basiliskra] He only lives in the Overworld.");
+    return;
+  }
+  const want = r.selection;
+  const place2 = placeFor(p, want || formOf() || 3);
+  p.sendMessage(`§7[Basiliskra] ${ctl2.bringHere(place2.at, place2.yaw, want)}`);
+}
+async function confirm(p, title, body) {
+  const f = new MessageFormData().title(title).body(body).button1("Yes").button2("No");
+  const r = await present(p, () => f.show(p));
+  return !!r && !r.canceled && r.selection === 0;
+}
+async function openWheel(p, ctl2) {
+  if (!canAdmin(p)) {
+    p.sendMessage("§7[Basiliskra] Only an operator can use the config wheel.");
+    return;
+  }
+  const rec = store.rec;
+  const here = ctl2.creature && ctl2.creature.valid;
+  const state = here ? `§cBasiliskra ${ROMAN[rec.form]} is here` : rec.stage === "arriving" ? "§ehe is coming through" : rec.stage === "alive" ? `§7Basiliskra ${ROMAN[rec.form]} is away, owed back` : "§7he is not in this world";
+  const f = new ActionFormData().title("Basiliskra Config Wheel").body(`${state}§7 · Story speed §fx${CONFIG.pacing}§7 · Damage §fx${CONFIG.damage}`).button("Settings").button("Call him now (the rift opens)").button("Bring him here (no rift, pick a form)").button("Make him change now (next form)").button("Send him away (until he is called)").button("Skip to dusk").button("Journal").button("§cReset the story");
+  const r = await present(p, () => f.show(p));
+  if (!r || r.canceled) return;
+  switch (r.selection) {
+    case 0:
+      await settingsForm(p);
+      break;
+    case 1: {
+      if (p.dimension.id !== OVERWORLD) {
+        p.sendMessage("§7[Basiliskra] He only lives in the Overworld.");
+        break;
+      }
+      const form = rec.stage === "alive" && rec.born > 0 ? rec.form : 1;
+      p.sendMessage(`§7[Basiliskra] ${ctl2.callNow(p.location, p, form > 1 ? placeFor(p, form) : void 0)}`);
+      break;
+    }
+    case 2:
+      await bringForm(p, ctl2);
+      break;
+    case 3:
+      p.sendMessage(`§7[Basiliskra] ${ctl2.evolveNow()}`);
+      break;
+    case 4:
+      if (await confirm(p, "Send him away", "He leaves through a seam and stays gone until you call him again (or until the land is harmed enough to call him). The story starts again from Basiliskra I; the anger on record and his fallout stay.")) {
+        p.sendMessage(ctl2.sendAway() ? "§7[Basiliskra] He is gone. Call him now opens the rift again, whenever you want it." : "§7[Basiliskra] He was not in this world.");
+      }
+      break;
+    case 5:
+      world7.setTimeOfDay(DUSK + 100);
+      p.sendMessage("§7[Basiliskra] Dusk.");
+      break;
+    case 6:
+      await openJournal(p, ctl2);
+      break;
+    case 7:
+      if (await confirm(p, "Reset the story", "Forget him, his form, everything he has learned and all the anger on record, as if the pack had just been added. He is removed from the world.")) {
+        ctl2.resetStory();
+        p.sendMessage("§7[Basiliskra] The story has been reset.");
+      }
+      break;
+  }
+}
+function giveStarterItems(p) {
+  try {
+    if (p.getDynamicProperty("bk:given") === true) return;
+  } catch {
+    return;
+  }
+  const items = [];
+  if (CONFIG.giveJournal) items.push(JOURNAL_ITEM);
+  if (CONFIG.giveWheel && canAdmin(p)) items.push(WHEEL_ITEM);
+  for (const id of items) {
+    try {
+      const left = p.getComponent("minecraft:inventory")?.container?.addItem(new ItemStack(id, 1));
+      if (left) p.dimension.spawnItem(left, p.location);
+    } catch {
+    }
+  }
+  try {
+    p.setDynamicProperty("bk:given", true);
+  } catch {
+  }
+  if (items.length) p.sendMessage(`§7[Basiliskra] ${items.length > 1 ? "A journal and a config wheel are" : "A journal is"} in your inventory. Use the journal to see how angry he is, and when he will come.`);
+}
+
+// src/scene.ts
+import { EasingType, HudElement, HudVisibility } from "@minecraft/server";
+var FLAG = "bk:film";
+var HUD = [
+  HudElement.PaperDoll,
+  HudElement.Armor,
+  HudElement.ToolTips,
+  HudElement.Crosshair,
+  HudElement.Hotbar,
+  HudElement.Health,
+  HudElement.ProgressBar,
+  HudElement.Hunger,
+  HudElement.AirBubbles,
+  HudElement.HorseHealth,
+  HudElement.StatusEffects,
+  HudElement.ItemText
+];
+var span = (v, k) => typeof v === "number" ? v : v[0] + (v[1] - v[0]) * k;
+var Film = class {
+  constructor(dim, focus, o) {
+    this.dim = dim;
+    this.focus = focus;
+    this.o = o;
+    this.t = 0;
+    this.cast = [];
+    this.done = false;
+    const f = focus();
+    for (const p of players()) {
+      try {
+        if (p.dimension.id !== dim.id || dist(p.location, f) > o.radius) continue;
+        const base = Math.atan2(p.location.z - f.z, p.location.x - f.x);
+        this.cast.push({ p, base });
+        p.setDynamicProperty(FLAG, true);
+        if (o.cinema) {
+          try {
+            p.onScreenDisplay.setHudVisibility(HudVisibility.Hide, HUD);
+          } catch {
+          }
+        }
+        if (o.flash) p.camera.fade({ fadeColor: o.flash, fadeTime: { fadeInTime: 0.1, holdTime: 0.15, fadeOutTime: 0.7 } });
+      } catch {
+      }
+    }
+    this.aim();
+  }
+  /** A place the camera can stand: not inside a block, not under the ground, and able to see what it looks at. */
+  stand(want, look) {
+    let best = null;
+    for (const [kd, up] of [[1, 0], [1, 3], [0.85, 6], [0.7, 10], [0.55, 16], [0.4, 24]]) {
+      const q = { x: look.x + (want.x - look.x) * kd, y: want.y + up, z: look.z + (want.z - look.z) * kd };
+      if (!isLoaded(this.dim, q)) continue;
+      const g = groundY(this.dim, q.x, q.z, q.y + 12, 40);
+      if (typeof g === "number" && q.y < g + 1.6) q.y = g + 1.6;
+      const here = blockAt(this.dim, q);
+      if (here && isSolidBlock(here)) continue;
+      if (clearLine(this.dim, q, look)) return q;
+      best ??= q;
+    }
+    return best;
+  }
+  /** The shot that is playing, and how far through it the film is (0..1). */
+  shot() {
+    const shots = this.o.shots;
+    if (!shots || !shots.length) return null;
+    let t = this.t;
+    for (const s of shots) {
+      if (t < s.ticks) return { s, k: t / Math.max(1, s.ticks - 1), first: t < 2 };
+      t -= s.ticks;
+    }
+    return { s: shots[shots.length - 1], k: 1, first: false };
+  }
+  aimShot() {
+    const cur = this.shot();
+    if (!cur) return;
+    const { s, first } = cur;
+    const k = cur.k * cur.k * (3 - 2 * cur.k);
+    let look;
+    try {
+      look = (s.look ?? this.focus)();
+    } catch {
+      look = this.focus();
+    }
+    const f = forwardOf((this.o.facing?.() ?? 0) + span(s.angle, k));
+    const d = span(s.dist, k);
+    const at2 = this.stand({ x: look.x + f.x * d, y: look.y + span(s.height, k), z: look.z + f.z * d }, look);
+    if (!at2) return;
+    for (const { p } of this.cast) {
+      try {
+        if (!p.isValid || p.dimension.id !== this.dim.id) continue;
+        if (first) {
+          if (this.t > 1) p.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0, holdTime: 0.05, fadeOutTime: 0.2 } });
+          p.camera.setCamera("minecraft:free", { location: at2, facingLocation: look });
+        } else p.camera.setCamera("minecraft:free", { location: at2, facingLocation: look, easeOptions: { easeTime: 0.15, easeType: EasingType.Linear } });
+      } catch {
+      }
+    }
+  }
+  aim() {
+    if (this.o.shots) {
+      this.aimShot();
+      return;
+    }
+    const o = this.o, f = this.focus(), k = Math.min(1, this.t / Math.max(1, o.ticks));
+    const d = o.dist + ((o.distEnd ?? o.dist) - o.dist) * k;
+    for (const { p, base } of this.cast) {
+      try {
+        if (!p.isValid || p.dimension.id !== this.dim.id) continue;
+        const a = base + (o.orbit ?? 0) * Math.PI / 180 * (k - 0.5);
+        let at2 = null;
+        for (const [kd, kh] of [[1, 1], [1, 1.8], [0.7, 1.4], [0.45, 1.2], [0.3, 2.2]]) {
+          const q = { x: f.x + Math.cos(a) * d * kd, y: f.y + o.height * kh, z: f.z + Math.sin(a) * d * kd };
+          if (!isLoaded(this.dim, q)) continue;
+          if (clearLine(this.dim, q, f)) {
+            at2 = q;
+            break;
+          }
+          at2 ??= q;
+        }
+        if (!at2) continue;
+        p.camera.setCamera("minecraft:free", { location: at2, facingLocation: f, easeOptions: { easeTime: 0.25, easeType: EasingType.Linear } });
+      } catch {
+      }
+    }
+  }
+  tick() {
+    if (this.done) return;
+    this.t++;
+    if (this.t >= this.o.ticks) {
+      this.cut();
+      return;
+    }
+    if (this.t % 2 === 0 || this.o.shots) this.aim();
+  }
+  /** End it now: every watcher gets their own eyes back. */
+  cut() {
+    if (this.done) return;
+    this.done = true;
+    for (const { p } of this.cast) release(p);
+    this.cast = [];
+  }
+};
+function release(p) {
+  try {
+    p.camera.clear();
+  } catch {
+  }
+  try {
+    p.onScreenDisplay.setHudVisibility(HudVisibility.Reset, HUD);
+  } catch {
+  }
+  try {
+    p.setDynamicProperty(FLAG, void 0);
+  } catch {
+  }
+}
+var films = [];
+function film(dim, focus, o) {
+  if (!CONFIG.cutscenes) return { cut() {
+  }, done: true };
+  const f = new Film(dim, focus, o);
+  films.push(f);
+  return f;
+}
+function filmTick() {
+  if (!films.length) return;
+  for (const f of films) {
+    try {
+      f.tick();
+    } catch {
+      f.cut();
+    }
+  }
+  films = films.filter((f) => !f.done);
+}
+function releaseStale(p) {
+  try {
+    if (p.getDynamicProperty(FLAG) === true) release(p);
+  } catch {
+  }
+}
+function cutAll() {
+  for (const f of films) f.cut();
+  films = [];
+}
+
+// src/music.ts
+var TRACK = (t) => `basiliskra.music.${t}`;
+var RANGE = { dread: 80, wrath: 128, last: 160 };
+var GRACE = 8 * TICKS.second;
+var PROP2 = "bk:music";
+var playing = /* @__PURE__ */ new Map();
+var scene = null;
+function sceneTheme(theme, ticks, at2, dim) {
+  scene = { theme, until: store.rec.clock + ticks, at: { ...at2 }, dim };
+}
+var FIGHT = /* @__PURE__ */ new Set(["charge", "beam", "remember", "scatter", "lock", "pursue", "arc", "pin", "flinch", "boat"]);
+var fightUntil = -1;
+function themeFor(c, now, doing, hurtAt) {
+  if (scene && now < scene.until) return scene.theme;
+  if (!c || !c.valid) return null;
+  if (store.rec.ending?.step || store.rec.evolve) return "last";
+  if (c.form >= 4) return "last";
+  if (FIGHT.has(doing) || hurtAt > 0 && now - hurtAt < 5 * TICKS.second) fightUntil = now + 25 * TICKS.second;
+  if (now < fightUntil) return "wrath";
+  return c.phase === "sleep" ? null : "dread";
+}
+function stop(p) {
+  try {
+    p.runCommand("music stop 3");
+  } catch {
+    try {
+      p.stopMusic();
+    } catch {
+    }
+  }
+  try {
+    p.setDynamicProperty(PROP2, void 0);
+  } catch {
+  }
+}
+function musicTick(c, now, doing = "", hurtAt = -1) {
+  if (now % 20 !== 0) return;
+  const want = CONFIG.music ? themeFor(c, now, doing, hurtAt) : null;
+  for (const p of players()) {
+    let near = false;
+    try {
+      const inScene = !!scene && now < scene.until && p.dimension.id === scene.dim && dist(p.location, scene.at) <= RANGE.last;
+      near = !!want && (inScene || !!c && c.valid && p.dimension.id === c.dim.id && dist(p.location, c.pos) <= RANGE[want]);
+    } catch {
+      continue;
+    }
+    const cur = playing.get(p.id);
+    if (near && want) {
+      if (!cur || cur.theme !== want) {
+        try {
+          p.playMusic(TRACK(want), { fade: cur ? 3 : 2, loop: true, volume: 0.85 });
+          p.setDynamicProperty(PROP2, want);
+          playing.set(p.id, { theme: want, lost: -1 });
+        } catch {
+        }
+      } else cur.lost = -1;
+    } else if (cur) {
+      if (cur.lost < 0) cur.lost = now;
+      if (!CONFIG.music || now - cur.lost >= GRACE) {
+        stop(p);
+        playing.delete(p.id);
+      }
+    }
+  }
+}
+function musicJoin(p) {
+  playing.delete(p.id);
+  try {
+    if (p.getDynamicProperty(PROP2) !== void 0) stop(p);
+  } catch {
+  }
+}
+function musicStop() {
+  scene = null;
+  fightUntil = -1;
+  for (const p of players()) if (playing.delete(p.id)) stop(p);
+}
+
+// src/controller.ts
+import { ItemStack as ItemStack2, system as system5, world as world12 } from "@minecraft/server";
+
+// src/ending.ts
+import { EquipmentSlot as EquipmentSlot2 } from "@minecraft/server";
+
 // src/forms/three.ts
-import { world as world7 } from "@minecraft/server";
+import { world as world8 } from "@minecraft/server";
 
 // src/beam.ts
 import { EntityDamageCause as EntityDamageCause4 } from "@minecraft/server";
@@ -3280,8 +3946,6 @@ var TIERS = {
   2: { range: 60, radius: 1.6, damage: 7, width: 1.9, carve: 2.6 },
   3: { range: 76, radius: 1.4, damage: 9, width: 1.6, carve: 3.1 }
 };
-var IV_DAYS = 3;
-var IV_BEAMS = 12;
 var BEAM_MIN = 14;
 var ROD = /^minecraft:(waxed_)?(exposed_|weathered_|oxidized_)?lightning_rod$/;
 var ROD_REACH = 10;
@@ -3349,12 +4013,12 @@ var BrainThree = class extends Brain {
   }
   choose() {
     const c = this.c, rec = this.rec, now = this.now;
-    const tod = world7.getTimeOfDay();
+    const tod = world8.getTimeOfDay();
     if (this.wantCharge) {
       this.wantCharge = false;
       return { name: "charge", run: this.beam(null), limit: 40 * TICKS.second };
     }
-    if (!rec.evolve && !rec.ending?.step && rec.mut.beams >= IV_BEAMS && now - rec.mut.formSince >= pace(IV_DAYS * TICKS.day) && isNight(tod) && anyoneNear(c, 140)) {
+    if (!rec.evolve && !rec.ending?.step && now - rec.mut.formSince >= changeTicks(3)) {
       rec.evolve = { to: 4, step: 0, t0: now, at: { ...c.pos } };
       return { name: "evolve", run: wait(900), limit: 900 };
     }
@@ -3959,588 +4623,7 @@ var BrainThree = class extends Brain {
   }
 };
 
-// src/ui.ts
-var ROMAN = ["", "I", "II", "III", "IV"];
-var FALLOUT = ["off", "visual", "land"];
-var DUSK = 11800;
-function canAdmin(p) {
-  try {
-    if (p.playerPermissionLevel === PlayerPermissionLevel.Operator) return true;
-  } catch {
-  }
-  try {
-    return world8.getAllPlayers().length <= 1;
-  } catch {
-    return false;
-  }
-}
-var pct = (f) => `${Math.floor(Math.max(0, Math.min(1, f)) * 100)}%`;
-function bar(f, colour = "§c") {
-  const n = Math.round(Math.max(0, Math.min(1, f)) * 20);
-  return `${colour}${"|".repeat(n)}§8${"|".repeat(20 - n)}§r`;
-}
-function mins(ticks) {
-  const m = Math.max(0, ticks) / TICKS.minute;
-  if (m < 1) return "less than a minute";
-  if (m < 90) return `about ${Math.round(m)} minute${Math.round(m) === 1 ? "" : "s"}`;
-  return `about ${(m / 60).toFixed(1)} hours`;
-}
-function compass(from, to) {
-  const dx = to.x - from.x, dz = to.z - from.z;
-  if (Math.hypot(dx, dz) < 4) return "right here";
-  const names = ["south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"];
-  const a = Math.atan2(-dx, dz) * 180 / Math.PI;
-  return `${Math.round(Math.hypot(dx, dz))} blocks ${names[(Math.round(a / 45) % 8 + 8) % 8]}`;
-}
-var at = (v) => `${Math.floor(v.x)}, ${Math.floor(v.y)}, ${Math.floor(v.z)}`;
-async function present(p, show) {
-  for (let i = 0; i < 20; i++) {
-    let r;
-    try {
-      r = await show();
-    } catch {
-      return void 0;
-    }
-    if (r.canceled && r.cancelationReason === FormCancelationReason.UserBusy) {
-      await new Promise((res) => system2.runTimeout(() => res(), 8));
-      continue;
-    }
-    return r;
-  }
-  return void 0;
-}
-function angerLines(p, a, here) {
-  const L = [];
-  const where = `around ${Math.floor(a.center.x)}, ${Math.floor(a.center.z)}`;
-  L.push(here ? `§fNear you §7(the 64-block area ${where})` : `§fThe angriest area: ${where} §7(${compass(p.location, a.center)})`);
-  L.push(`  ${bar(a.progress)} §l${pct(a.progress)}§r §7of what calls him`);
-  L.push(`  §7Animals killed here by players: §f${a.kills}§7 (they count as §f${a.weightA.toFixed(1)}§7 of the §f${a.needA}§7 it takes)`);
-  L.push(`  §7Logs, reeds and shore plants cut here: §f${a.cut}§7 (they count as §f${a.weightH.toFixed(1)}§7 of the §f${a.needH}§7 it takes)`);
-  if (a.fired) L.push("  §7He has already been called from here.");
-  else if (a.pct < 1) {
-    L.push(`  §7Both are needed. Still to go here: about §f${a.moreKills}§7 more animal${a.moreKills === 1 ? "" : "s"} and §f${a.moreLogs}§7 more logs.`);
-    L.push("  §8The first kills of a spree and the first logs of a tree count for less; repeated harm counts in full.");
-  }
-  const total = Object.values(a.by).reduce((s, v) => s + v, 0);
-  const mine = a.by[p.id] ?? 0;
-  if (total > 0) L.push(`  §7Your share of it: §f${pct(mine / total)}`);
-  return L;
-}
-function evolveLines() {
-  const rec = store.rec, now = rec.clock, L = [];
-  const need = pace(2 * TICKS.day), since = now - rec.mut.formSince;
-  const days = Math.min(1, since / need);
-  const item = (done, text) => `  ${done ? "§a[x]" : "§c[ ]"} §7${text}`;
-  const wait2 = days >= 1 ? "" : ` §8(about ${Math.max(1, Math.ceil((need - since) / TICKS.minute))} min left)`;
-  if (rec.evolve) {
-    L.push("§cHe is changing right now.");
-    return L;
-  }
-  if (rec.form === 1) {
-    const s = Math.min(1, rec.mut.surfacings / 6), e = Math.min(1, rec.mut.episodes / 3), f = Math.min(days, s, e);
-    L.push(`§fBecoming Basiliskra II: ${bar(f, "§6")} §l${pct(f)}§r`);
-    L.push("§7All three of these, then the last step:");
-    L.push(item(days >= 1, `Two days in the water: ${pct(days)}${wait2}`));
-    L.push(item(s >= 1, `Seen at the surface ${Math.min(rec.mut.surfacings, 6)} of 6 times §8(he comes up under boats and near swimmers)`));
-    L.push(item(e >= 1, `Spasms ${Math.min(rec.mut.episodes, 3)} of 3 §8(they take him near piers, and in open water at dusk)`));
-    L.push(`  §e->§7 Then he beaches on a sand or gravel shore with a player near, and changes there${f >= 1 ? " §a(he is ready: go and stand on a beach)" : ""}.`);
-  } else if (rec.form === 2) {
-    const o = Math.min(1, rec.mut.overland * CONFIG.pacing / 220), f = Math.min(days, o);
-    L.push(`§fBecoming Basiliskra III: ${bar(f, "§6")} §l${pct(f)}§r`);
-    L.push("§7Both of these, then the last step:");
-    L.push(item(days >= 1, `Two days on the shore: ${pct(days)}${wait2}`));
-    L.push(item(o >= 1, `Dragged himself overland ${Math.floor(Math.min(220, rec.mut.overland * CONFIG.pacing))} of 220 blocks §8(he wanders while anyone is near)`));
-    L.push(`  §e->§7 Then he changes at night or in rain, with a player near${f >= 1 ? " §a(he is ready: wait for dark or rain, and stay close)" : ""}.`);
-  } else {
-    L.push(rec.form === 4 ? "§fThe last crossing §8(it still sends him home)" : "§fThe last crossing §8(sends him home)");
-    L.push("  §7Carry his shed fin to the seam; play his three knocks on note blocks near it and keep playing; lead his charge into a lightning rod near the seam.");
-    if (rec.form === 3) {
-      const need3 = pace(IV_DAYS * TICKS.day), d3 = Math.min(1, since / need3), b = Math.min(1, rec.mut.beams / IV_BEAMS), f = Math.min(d3, b);
-      const left = d3 >= 1 ? "" : ` §8(about ${Math.max(1, Math.ceil((need3 - since) / TICKS.minute))} min left)`;
-      L.push(`§fBecoming Basiliskra IV §8(if he is not sent home first)§f: ${bar(f, "§4")} §l${pct(f)}§r`);
-      L.push(item(d3 >= 1, `Three days as Basiliskra III: ${pct(d3)}${left}`));
-      L.push(item(b >= 1, `Beams fired ${Math.min(rec.mut.beams, IV_BEAMS)} of ${IV_BEAMS}`));
-      L.push(`  §e->§7 Then he changes at night, with a player near${f >= 1 ? " §c(he is ready: it will be tonight)" : ""}.`);
-    } else L.push("§4Basiliskra IV is his last form.");
-  }
-  if (rec.form < 4) L.push("  §8An operator's config wheel can also make him change at once.");
-  return L;
-}
-function comingLines(p, ctl2) {
-  const rec = store.rec, now = rec.clock, L = [];
-  const tod = world8.getTimeOfDay();
-  const toDusk = tod >= DUSK && tod < 13800 ? 0 : (DUSK - tod + 24e3) % 24e3;
-  switch (rec.stage) {
-    case "dormant":
-      L.push("§7Not yet. When one place reaches §f100%§7 he is called through deep water near it.");
-      L.push("§7He needs open water about §f6 blocks deep§7 with a clear run of about §f45 blocks§7 within ~90 blocks of that place. Harm far inland calls no one.");
-      break;
-    case "pending": {
-      const pd = rec.pending;
-      L.push(`§eHe has been called§7, by what was done near §f${Math.floor(pd.site.x)}, ${Math.floor(pd.site.z)}§7 (${compass(p.location, pd.site)}).`);
-      L.push(`§7He is looking for deep, open water there (search ${Math.min(12, (pd.passes ?? 0) + 1)} of 12). Someone must be within 128 blocks of that place.`);
-      if ((pd.passes ?? 0) >= 4) L.push("§7No water has been deep and open enough so far. Harm nearer a coast or a big lake will call him there instead.");
-      break;
-    }
-    case "arriving": {
-      const a = rec.arrival;
-      if (a.step === 0) {
-        L.push(`§eHe is coming§7, through the water at §f${at(a.water)}§7 (${compass(p.location, a.water)}).`);
-        L.push(toDusk === 0 ? "§7At dusk, which is now: someone must be within 96 blocks of that water." : `§7At the next dusk, in §f${mins(toDusk)}§7, while someone is within 96 blocks of that water.`);
-      } else L.push(`§cHe is coming through now§7, at §f${at(a.water)}§7 (${compass(p.location, a.water)}).`);
-      break;
-    }
-    case "alive": {
-      const c = ctl2.creature;
-      if (c && c.valid) {
-        let hp = "";
-        try {
-          const h = c.entity.getComponent("minecraft:health");
-          if (h) hp = ` §7Health §f${Math.ceil(h.currentValue)}/${h.effectiveMax}`;
-        } catch {
-        }
-        L.push(`§cBasiliskra ${ROMAN[rec.form]} is here§7, ${compass(p.location, c.pos)}.${hp}`);
-      } else if (rec.entityId === null && rec.down !== null) {
-        const left = pace(TICKS.day) - (now - rec.down);
-        L.push(`§7Driven off. He comes back through the seam at §f${rec.rift ? at(rec.rift) : "the old place"}§7 in §f${mins(left)}§7, when someone is near it.`);
-      } else if (rec.last) {
-        L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach. Last seen near §f${at(rec.last)}§7 (${compass(p.location, rec.last)}), ${mins(now - rec.last.t)} ago.`);
-      } else L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach.`);
-      if (rec.guiltyName) L.push(`§7He remembers §f${rec.guiltyName}§7.`);
-      break;
-    }
-    case "departed":
-      L.push("§7He has gone home. The story in this world is over; nothing calls another.");
-      break;
-  }
-  return L;
-}
-function falloutLines(p) {
-  const L = [], now = store.rec.clock;
-  let at2;
-  try {
-    if (p.dimension.id !== OVERWORLD) return ["§7Only the Overworld carries his fallout."];
-    at2 = p.location;
-  } catch {
-    return L;
-  }
-  const d = doseAt(at2, now);
-  const word = d < 0.03 ? "§anone to speak of" : d < 0.2 ? "§6low" : d < 0.45 ? "§6rising" : d < 0.75 ? "§chigh" : "§4deadly";
-  L.push(`§fRadiation where you stand: ${bar(Math.min(1, d))} §l${pct(d)}§r  ${word}`);
-  const n = nearestFallout(at2, now), count = falloutCount(now);
-  if (!n) L.push("§7No fallout on record. His beam, his changes and his seam leave it where they touch the world.");
-  else {
-    L.push(`§7Fallout in §f${count}§7 place${count === 1 ? "" : "s"}. The nearest is ${compass(at2, n.zone)}, at §f${pct(n.strength)}§7.`);
-    L.push("§7It spreads for about a minute, stands a while, then fades and is gone within a few minutes.");
-    if (CONFIG.fallout === "land") L.push("§7In it the ground glows: soil and rock turn irradiated, plants wither, wild leaves fall and crimson crystals grow (break them for shards). Where his beam lands, rock runs to glowing slag and sand fuses to scarlet trinitite. As it fades the land heals back to what it was.");
-    if (CONFIG.sickness) L.push("§7It is strong: hunger, then weakness and nausea, then poison, and the heart of a fresh zone burns. Iodine tablets (2 dried kelp, sugar) keep it off for four minutes; milk clears it. A Geiger counter (trinitite or a crimson shard, copper ingot, redstone) reads it.");
-  }
-  return L;
-}
-function journalText(p, ctl2) {
-  const now = store.rec.clock, L = [];
-  L.push("§l§4HIS ANGER§r");
-  let here = null;
-  try {
-    if (p.dimension.id === OVERWORLD) here = angerNear(p.location, now);
-  } catch {
-    here = null;
-  }
-  if (here) L.push(...angerLines(p, here, true));
-  else L.push("§7Only what is done in the Overworld counts.");
-  const top = angriest(now);
-  if (top && (!here || top.key !== here.key)) {
-    L.push("");
-    L.push(...angerLines(p, top, false));
-  }
-  const [k, c] = tallyOf(p.id);
-  L.push(`§7You, everywhere: §f${k}§7 animal${k === 1 ? "" : "s"} killed, §f${c}§7 log${c === 1 ? "" : "s"} and plants cut.`);
-  L.push(`§8Anger is kept per 64-block area. Left alone, an area's anger halves every ${halfLifeDays().toFixed(1)} in-game days.`);
-  L.push("");
-  L.push("§l§4WHEN HE COMES§r");
-  L.push(...comingLines(p, ctl2));
-  if (store.rec.stage === "alive" || store.rec.stage === "arriving") {
-    L.push("");
-    L.push("§l§4HIM§r");
-    L.push(...evolveLines());
-  }
-  if (CONFIG.fallout !== "off") {
-    L.push("");
-    L.push("§l§4FALLOUT§r");
-    L.push(...falloutLines(p));
-  }
-  return L.join("\n");
-}
-async function openJournal(p, ctl2) {
-  for (; ; ) {
-    const f = new ActionFormData().title("Basiliskra Journal").body(journalText(p, ctl2)).button("Read again").button("Close");
-    if (canAdmin(p)) f.button("Config wheel");
-    const r = await present(p, () => f.show(p));
-    if (!r || r.canceled) return;
-    if (r.selection === 0) continue;
-    if (r.selection === 2) await openWheel(p, ctl2);
-    return;
-  }
-}
-function placeFor(p, form) {
-  const v = p.getViewDirection();
-  const n = Math.hypot(v.x, v.z) || 1;
-  const d = [0, 15, 24, 46, 52][form] ?? 30;
-  const pl = p.location;
-  const pos = { x: pl.x + v.x / n * d, y: pl.y, z: pl.z + v.z / n * d };
-  const dimension = overworld();
-  let g = groundY(dimension, pos.x, pos.z, pl.y + 24, 48);
-  if (g === NONE) g = groundY(dimension, pos.x, pos.z, pl.y - 24, pl.y - 24 - dimension.heightRange.min);
-  if (g !== UNLOADED && g !== NONE) pos.y = g;
-  const yaw = Math.atan2(-(pl.x - pos.x), pl.z - pos.z) * 180 / Math.PI;
-  return { at: pos, yaw };
-}
-function formOf(rec = store.rec) {
-  return rec.born > 0 ? rec.form : 0;
-}
-var SPEEDS = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
-var DAMAGES = [0, 0.25, 0.5, 1, 1.5, 2, 3, 4];
-var TERRAIN = ["none", "scorch", "break", "wither"];
-function presetList(values, current, def, word) {
-  const items = values.map((v) => `${word(v)}${v === def ? " (default)" : ""}`);
-  let index = values.indexOf(current);
-  items.push(index < 0 ? `Custom: x${current}` : "Custom (type it in the box below)");
-  if (index < 0) index = values.length;
-  return { items, index };
-}
-function typedNumber(typed) {
-  const t = typeof typed === "string" ? typed.trim().replace(/^x/i, "").replace(",", ".") : "";
-  return t === "" ? void 0 : Number(t);
-}
-var typedBad = (typed, lo, hi) => {
-  const n = typedNumber(typed);
-  return n !== void 0 && !(n >= lo && n <= hi);
-};
-function pickNumber(values, index, typed, current, lo, hi) {
-  const n = typedNumber(typed);
-  if (n !== void 0 && n >= lo && n <= hi) return Math.round(n * 100) / 100;
-  const i = Number(index);
-  return Number.isInteger(i) && i >= 0 && i < values.length ? values[i] : current;
-}
-async function settingsForm(p) {
-  const speed = presetList(SPEEDS, CONFIG.pacing, 1, (v2) => `x${v2}${v2 < 1 ? " (slower)" : v2 > 1 ? " (faster)" : ""}`);
-  const dmg = presetList(DAMAGES, CONFIG.damage, 1, (v2) => v2 === 0 ? "None (x0)" : `x${v2}`);
-  const f = new ModalFormData().title("Basiliskra Settings").dropdown("Story speed", speed.items, { defaultValueIndex: speed.index, tooltip: "x2 halves every wait and threshold; x0.5 doubles them." }).textField("...or type a story speed (0.25 to 4)", "e.g. 1.25").dropdown("What his beam, roar and weight do to the world", [
-    "Nothing (light and sound only)",
-    "Scorch natural ground",
-    "Scorch and break natural ground",
-    "Destroy everything, like the Wither (default)"
-  ], { defaultValueIndex: Math.max(0, TERRAIN.indexOf(CONFIG.terrain)) }).toggle("Spare chests, beds, furnaces and portals", { defaultValue: CONFIG.spareStorage }).toggle("Footprints and furrows in natural ground", { defaultValue: CONFIG.marks }).dropdown("Damage to players", dmg.items, { defaultValueIndex: dmg.index }).textField("...or type a damage multiplier (0 to 4)", "e.g. 0.75").toggle("Harmless on Peaceful", { defaultValue: CONFIG.harmlessOnPeaceful }).toggle("He hunts animals and other creatures too", { defaultValue: CONFIG.huntMobs }).toggle("Spawn eggs and /summon bring him to you", { defaultValue: CONFIG.allowSummon }).dropdown("A spawn egg makes", ["His stage in the story", "Basiliskra I", "Basiliskra II", "Basiliskra III", "Basiliskra IV"], { defaultValueIndex: CONFIG.spawnForm }).toggle("Give new players the journal", { defaultValue: CONFIG.giveJournal }).toggle("Give operators the config wheel", { defaultValue: CONFIG.giveWheel }).toggle("Debug messages in the content log", { defaultValue: CONFIG.debug }).dropdown("His fallout", ["Off", "Glowing motes and Geiger clicks only", "Also changes the land (natural ground only)"], { defaultValueIndex: FALLOUT.indexOf(CONFIG.fallout) }).toggle("Radiation sickness for players", { defaultValue: CONFIG.sickness }).toggle("Cutscenes (the rift, each transformation)", { defaultValue: CONFIG.cutscenes }).toggle("His music", { defaultValue: CONFIG.music }).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
-  const r = await present(p, () => f.show(p));
-  if (!r || r.canceled || !r.formValues) return;
-  const v = r.formValues;
-  if (v[18] === true) {
-    resetSettings();
-    p.sendMessage("§7[Basiliskra] Settings restored to the defaults.");
-    return;
-  }
-  const pacing = pickNumber(SPEEDS, v[0], v[1], CONFIG.pacing, 0.25, 4);
-  const damage = pickNumber(DAMAGES, v[5], v[6], CONFIG.damage, 0, 4);
-  const bad = typedBad(v[1], 0.25, 4) || typedBad(v[6], 0, 4);
-  saveSettings({
-    pacing,
-    terrain: TERRAIN[Number(v[2])] ?? "wither",
-    spareStorage: v[3] === true,
-    marks: v[4] === true,
-    damage,
-    harmlessOnPeaceful: v[7] === true,
-    huntMobs: v[8] === true,
-    allowSummon: v[9] === true,
-    spawnForm: Number(v[10]),
-    giveJournal: v[11] === true,
-    giveWheel: v[12] === true,
-    debug: v[13] === true,
-    fallout: FALLOUT[Number(v[14])] ?? "land",
-    sickness: v[15] === true,
-    cutscenes: v[16] === true,
-    music: v[17] === true
-  });
-  p.sendMessage(`§7[Basiliskra] Settings saved with this world. Story speed §fx${CONFIG.pacing}§7, damage §fx${CONFIG.damage}§7.`);
-  if (bad) p.sendMessage("§7[Basiliskra] A number you typed was not in range, so the choice above it was used.");
-}
-async function bringForm(p, ctl2) {
-  const f = new ActionFormData().title("Bring him here").body(`§7The one Basiliskra comes to you: moved here if he is about, made here if he is not. There is never more than one.
-§7Now: ${store.rec.born > 0 ? `Basiliskra ${ROMAN[store.rec.form]}` : "he has never come"}.`).button("As he is in the story").button("Basiliskra I (the water)").button("Basiliskra II (the shore)").button("Basiliskra III (four footfalls)").button("Basiliskra IV (the last form)");
-  const r = await present(p, () => f.show(p));
-  if (!r || r.canceled || r.selection === void 0) return;
-  if (p.dimension.id !== OVERWORLD) {
-    p.sendMessage("§7[Basiliskra] He only lives in the Overworld.");
-    return;
-  }
-  const want = r.selection;
-  const place2 = placeFor(p, want || formOf() || 3);
-  p.sendMessage(`§7[Basiliskra] ${ctl2.bringHere(place2.at, place2.yaw, want)}`);
-}
-async function confirm(p, title, body) {
-  const f = new MessageFormData().title(title).body(body).button1("Yes").button2("No");
-  const r = await present(p, () => f.show(p));
-  return !!r && !r.canceled && r.selection === 0;
-}
-async function openWheel(p, ctl2) {
-  if (!canAdmin(p)) {
-    p.sendMessage("§7[Basiliskra] Only an operator can use the config wheel.");
-    return;
-  }
-  const rec = store.rec;
-  const here = ctl2.creature && ctl2.creature.valid;
-  const state = here ? `§cBasiliskra ${ROMAN[rec.form]} is here` : rec.stage === "arriving" ? "§ehe is coming through" : rec.stage === "alive" ? `§7Basiliskra ${ROMAN[rec.form]} is away, owed back` : "§7he is not in this world";
-  const f = new ActionFormData().title("Basiliskra Config Wheel").body(`${state}§7 · Story speed §fx${CONFIG.pacing}§7 · Damage §fx${CONFIG.damage}`).button("Settings").button("Call him now (the rift opens)").button("Bring him here (no rift, pick a form)").button("Make him change now (next form)").button("Send him away (until he is called)").button("Skip to dusk").button("Journal").button("§cReset the story");
-  const r = await present(p, () => f.show(p));
-  if (!r || r.canceled) return;
-  switch (r.selection) {
-    case 0:
-      await settingsForm(p);
-      break;
-    case 1: {
-      if (p.dimension.id !== OVERWORLD) {
-        p.sendMessage("§7[Basiliskra] He only lives in the Overworld.");
-        break;
-      }
-      const form = rec.stage === "alive" && rec.born > 0 ? rec.form : 1;
-      p.sendMessage(`§7[Basiliskra] ${ctl2.callNow(p.location, p, form > 1 ? placeFor(p, form) : void 0)}`);
-      break;
-    }
-    case 2:
-      await bringForm(p, ctl2);
-      break;
-    case 3:
-      p.sendMessage(`§7[Basiliskra] ${ctl2.evolveNow()}`);
-      break;
-    case 4:
-      if (await confirm(p, "Send him away", "He leaves through a seam and stays gone until you call him again (or until the land is harmed enough to call him). The story starts again from Basiliskra I; the anger on record and his fallout stay.")) {
-        p.sendMessage(ctl2.sendAway() ? "§7[Basiliskra] He is gone. Call him now opens the rift again, whenever you want it." : "§7[Basiliskra] He was not in this world.");
-      }
-      break;
-    case 5:
-      world8.setTimeOfDay(DUSK + 100);
-      p.sendMessage("§7[Basiliskra] Dusk.");
-      break;
-    case 6:
-      await openJournal(p, ctl2);
-      break;
-    case 7:
-      if (await confirm(p, "Reset the story", "Forget him, his form, everything he has learned and all the anger on record, as if the pack had just been added. He is removed from the world.")) {
-        ctl2.resetStory();
-        p.sendMessage("§7[Basiliskra] The story has been reset.");
-      }
-      break;
-  }
-}
-function giveStarterItems(p) {
-  try {
-    if (p.getDynamicProperty("bk:given") === true) return;
-  } catch {
-    return;
-  }
-  const items = [];
-  if (CONFIG.giveJournal) items.push(JOURNAL_ITEM);
-  if (CONFIG.giveWheel && canAdmin(p)) items.push(WHEEL_ITEM);
-  for (const id of items) {
-    try {
-      const left = p.getComponent("minecraft:inventory")?.container?.addItem(new ItemStack(id, 1));
-      if (left) p.dimension.spawnItem(left, p.location);
-    } catch {
-    }
-  }
-  try {
-    p.setDynamicProperty("bk:given", true);
-  } catch {
-  }
-  if (items.length) p.sendMessage(`§7[Basiliskra] ${items.length > 1 ? "A journal and a config wheel are" : "A journal is"} in your inventory. Use the journal to see how angry he is, and when he will come.`);
-}
-
-// src/scene.ts
-import { EasingType } from "@minecraft/server";
-var FLAG = "bk:film";
-var Film = class {
-  constructor(dim, focus, o) {
-    this.dim = dim;
-    this.focus = focus;
-    this.o = o;
-    this.t = 0;
-    this.cast = [];
-    this.done = false;
-    const f = focus();
-    for (const p of players()) {
-      try {
-        if (p.dimension.id !== dim.id || dist(p.location, f) > o.radius) continue;
-        const base = Math.atan2(p.location.z - f.z, p.location.x - f.x);
-        this.cast.push({ p, base });
-        p.setDynamicProperty(FLAG, true);
-        if (o.flash) p.camera.fade({ fadeColor: o.flash, fadeTime: { fadeInTime: 0.1, holdTime: 0.15, fadeOutTime: 0.7 } });
-      } catch {
-      }
-    }
-    this.aim();
-  }
-  aim() {
-    const o = this.o, f = this.focus(), k = Math.min(1, this.t / Math.max(1, o.ticks));
-    const d = o.dist + ((o.distEnd ?? o.dist) - o.dist) * k;
-    for (const { p, base } of this.cast) {
-      try {
-        if (!p.isValid || p.dimension.id !== this.dim.id) continue;
-        const a = base + (o.orbit ?? 0) * Math.PI / 180 * (k - 0.5);
-        let at2 = null;
-        for (const [kd, kh] of [[1, 1], [1, 1.8], [0.7, 1.4], [0.45, 1.2], [0.3, 2.2]]) {
-          const q = { x: f.x + Math.cos(a) * d * kd, y: f.y + o.height * kh, z: f.z + Math.sin(a) * d * kd };
-          if (!isLoaded(this.dim, q)) continue;
-          if (clearLine(this.dim, q, f)) {
-            at2 = q;
-            break;
-          }
-          at2 ??= q;
-        }
-        if (!at2) continue;
-        p.camera.setCamera("minecraft:free", { location: at2, facingLocation: f, easeOptions: { easeTime: 0.25, easeType: EasingType.Linear } });
-      } catch {
-      }
-    }
-  }
-  tick() {
-    if (this.done) return;
-    this.t++;
-    if (this.t >= this.o.ticks) {
-      this.cut();
-      return;
-    }
-    if (this.t % 2 === 0) this.aim();
-  }
-  /** End it now: every watcher gets their own eyes back. */
-  cut() {
-    if (this.done) return;
-    this.done = true;
-    for (const { p } of this.cast) release(p);
-    this.cast = [];
-  }
-};
-function release(p) {
-  try {
-    p.camera.clear();
-  } catch {
-  }
-  try {
-    p.setDynamicProperty(FLAG, void 0);
-  } catch {
-  }
-}
-var films = [];
-function film(dim, focus, o) {
-  if (!CONFIG.cutscenes) return { cut() {
-  }, done: true };
-  const f = new Film(dim, focus, o);
-  films.push(f);
-  return f;
-}
-function filmTick() {
-  if (!films.length) return;
-  for (const f of films) {
-    try {
-      f.tick();
-    } catch {
-      f.cut();
-    }
-  }
-  films = films.filter((f) => !f.done);
-}
-function releaseStale(p) {
-  try {
-    if (p.getDynamicProperty(FLAG) === true) release(p);
-  } catch {
-  }
-}
-function cutAll() {
-  for (const f of films) f.cut();
-  films = [];
-}
-
-// src/music.ts
-var TRACK = (t) => `basiliskra.music.${t}`;
-var RANGE = { dread: 80, wrath: 128, last: 160 };
-var GRACE = 8 * TICKS.second;
-var PROP2 = "bk:music";
-var playing = /* @__PURE__ */ new Map();
-var scene = null;
-function sceneTheme(theme, ticks, at2, dim) {
-  scene = { theme, until: store.rec.clock + ticks, at: { ...at2 }, dim };
-}
-var FIGHT = /* @__PURE__ */ new Set(["charge", "beam", "remember", "scatter", "lock", "pursue", "arc", "pin", "flinch", "boat"]);
-var fightUntil = -1;
-function themeFor(c, now, doing, hurtAt) {
-  if (scene && now < scene.until) return scene.theme;
-  if (!c || !c.valid) return null;
-  if (store.rec.ending?.step || store.rec.evolve) return "last";
-  if (c.form >= 4) return "last";
-  if (FIGHT.has(doing) || hurtAt > 0 && now - hurtAt < 5 * TICKS.second) fightUntil = now + 25 * TICKS.second;
-  if (now < fightUntil) return "wrath";
-  return c.phase === "sleep" ? null : "dread";
-}
-function stop(p) {
-  try {
-    p.runCommand("music stop 3");
-  } catch {
-    try {
-      p.stopMusic();
-    } catch {
-    }
-  }
-  try {
-    p.setDynamicProperty(PROP2, void 0);
-  } catch {
-  }
-}
-function musicTick(c, now, doing = "", hurtAt = -1) {
-  if (now % 20 !== 0) return;
-  const want = CONFIG.music ? themeFor(c, now, doing, hurtAt) : null;
-  for (const p of players()) {
-    let near = false;
-    try {
-      const inScene = !!scene && now < scene.until && p.dimension.id === scene.dim && dist(p.location, scene.at) <= RANGE.last;
-      near = !!want && (inScene || !!c && c.valid && p.dimension.id === c.dim.id && dist(p.location, c.pos) <= RANGE[want]);
-    } catch {
-      continue;
-    }
-    const cur = playing.get(p.id);
-    if (near && want) {
-      if (!cur || cur.theme !== want) {
-        try {
-          p.playMusic(TRACK(want), { fade: cur ? 3 : 2, loop: true, volume: 0.85 });
-          p.setDynamicProperty(PROP2, want);
-          playing.set(p.id, { theme: want, lost: -1 });
-        } catch {
-        }
-      } else cur.lost = -1;
-    } else if (cur) {
-      if (cur.lost < 0) cur.lost = now;
-      if (!CONFIG.music || now - cur.lost >= GRACE) {
-        stop(p);
-        playing.delete(p.id);
-      }
-    }
-  }
-}
-function musicJoin(p) {
-  playing.delete(p.id);
-  try {
-    if (p.getDynamicProperty(PROP2) !== void 0) stop(p);
-  } catch {
-  }
-}
-function musicStop() {
-  scene = null;
-  fightUntil = -1;
-  for (const p of players()) if (playing.delete(p.id)) stop(p);
-}
-
-// src/controller.ts
-import { ItemStack as ItemStack2, system as system5, world as world12 } from "@minecraft/server";
-
 // src/ending.ts
-import { EquipmentSlot as EquipmentSlot2 } from "@minecraft/server";
 var NOTE = "minecraft:noteblock";
 var NOTE_REACH = 24;
 var GAP_MIN = 11;
@@ -4936,7 +5019,7 @@ var BrainOne = class extends Brain {
     const c = this.c, now = this.now, rec = this.rec;
     const tod = world9.getTimeOfDay();
     const p = Math.max(0.25, 1 / Math.max(0.1, 1));
-    if (!rec.evolve && rec.mut.surfacings >= 6 && rec.mut.episodes >= 3 && now - rec.mut.formSince >= pace(2 * TICKS.day) && anyoneNear(c, 96) && this.ready("beach")) {
+    if (!rec.evolve && now - rec.mut.formSince >= changeTicks(1) && this.ready("beach")) {
       this.rest("beach", 2 * TICKS.minute);
       return { name: "beach", run: this.beach(), limit: 3 * TICKS.minute };
     }
@@ -5365,7 +5448,11 @@ var BrainOne = class extends Brain {
   *beach() {
     const c = this.c;
     const shelf = this.findShelf();
-    if (!shelf) return;
+    if (!shelf) {
+      this.rec.evolve = { to: 2, step: 0, t0: this.now, at: { ...c.pos } };
+      yield* wait(600);
+      return;
+    }
     c.setPhase("move");
     c.swimDepth = 3.6;
     yield* travel(c, shelf.water, 0.22, 5, 1600);
@@ -6260,7 +6347,7 @@ var BrainTwo = class extends Brain {
   choose() {
     const c = this.c, rec = this.rec, now = this.now;
     const tod = world11.getTimeOfDay();
-    if (!rec.evolve && rec.mut.overland >= 220 / CONFIG.pacing && now - rec.mut.formSince >= pace(2 * TICKS.day) && (isNight(tod) || rec.weather !== "clear") && anyoneNear(c, 96)) {
+    if (!rec.evolve && now - rec.mut.formSince >= changeTicks(2)) {
       rec.evolve = { to: 3, step: 0, t0: now, at: { ...c.pos } };
       return { name: "evolve", run: wait(900), limit: 900 };
     }
@@ -6644,6 +6731,9 @@ function tellNear(dimId, at2, msg) {
 }
 var SPAWN_STEP = 3;
 var MAX_FORM = 4;
+var FRAME = [0, 17, 21, 34, 46];
+var BODY_MID = [0, 1.5, 3.5, 6, 24];
+var NAME_CARD = ["", "", "§7he has left the water", "§7he stands up", "§7the last form"];
 var WATER_CANDIDATES = 60;
 var Controller = class {
   constructor() {
@@ -7749,11 +7839,16 @@ var Controller = class {
         this.brain?.finish();
         c.setPhase("evolve");
         c.say("basiliskra.mutate", c.pos, 72);
-        film(
-          c.dim,
-          () => ({ x: c.pos.x, y: c.pos.y + big * 0.45, z: c.pos.z }),
-          { ticks: GATHER + 190, radius: 120, dist: big * 2.4 + 12, height: big * 0.5 + 3, orbit: 140, distEnd: big * 1.7 + 10 }
-        );
+        const was = ev.to - 1, Fo = FRAME[was], Fn = FRAME[ev.to];
+        const head = () => c.anchor("nose");
+        const body = () => ({ x: c.pos.x, y: c.pos.y + BODY_MID[c.form], z: c.pos.z });
+        film(c.dim, body, { ticks: GATHER + 110 + 80, radius: 140, dist: Fo, height: 4, cinema: true, facing: () => c.yaw, shots: [
+          { ticks: 46, look: head, angle: [28, 42], dist: [Fo * 0.36 + 3, Fo * 0.28 + 2], height: [-0.5, 1.5] },
+          { ticks: 62, look: body, angle: [72, 138], dist: [Fo * 0.95, Fo * 0.8], height: [Fo * 0.12, Fo * 0.28] },
+          { ticks: GATHER - 108, look: head, angle: [-16, -6], dist: [Fo * 0.7, Fo * 0.46], height: [-Fo * 0.1, -Fo * 0.05] },
+          { ticks: 110, look: body, angle: [-38, 34], dist: [Fn * 0.55, Fn * 1], height: [Fn * 0.04, Fn * 0.26] },
+          { ticks: 80, look: head, angle: [22, 6], dist: [Fn * 0.5, Fn * 0.38], height: [-Fn * 0.12, -Fn * 0.07] }
+        ] });
       }
       c.setCharge(Math.min(20, t / GATHER * 20));
       if (t % 6 === 0) particle(c.dim, "basiliskra:mutate_gather", heart, 160, sizeVars(big));
@@ -7766,6 +7861,13 @@ var Controller = class {
         for (const p of players()) {
           try {
             if (p.dimension.id === c.dim.id && dist(p.location, c.pos) < 140) p.camera.fade({ fadeColor: { red: 1, green: 0.85, blue: 0.8 }, fadeTime: { fadeInTime: 0.05, holdTime: 0.12, fadeOutTime: 0.9 } });
+          } catch {
+          }
+        }
+        for (const p of players()) {
+          try {
+            if (p.dimension.id !== c.dim.id || dist(p.location, c.pos) > 160) continue;
+            p.onScreenDisplay.setTitle(`§4BASILISKRA ${ROMAN2[ev.to]}`, { subtitle: NAME_CARD[ev.to], fadeInDuration: 12, stayDuration: 60, fadeOutDuration: 24 });
           } catch {
           }
         }

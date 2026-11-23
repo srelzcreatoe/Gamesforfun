@@ -19,6 +19,8 @@ export const GameMode = { Survival: 'Survival', Creative: 'Creative', Adventure:
 export const EquipmentSlot = { Mainhand: 'Mainhand', Offhand: 'Offhand' };
 export const EasingType = { Linear: 'linear', InOutSine: 'in_out_sine' };
 export const EntitySwingSource = { Attack: 'Attack', Build: 'Build', Mine: 'Mine', Interact: 'Interact' };
+export const HudVisibility = { Hide: 0, Reset: 1 };
+export const HudElement = { PaperDoll: 0, Armor: 1, ToolTips: 2, TouchControls: 3, Crosshair: 4, Hotbar: 5, Health: 6, ProgressBar: 7, Hunger: 8, AirBubbles: 9, HorseHealth: 10, StatusEffects: 11, ItemText: 12 };
 export class BlockVolume { constructor(from, to) { this.from = { ...from }; this.to = { ...to }; } }
 /** A block type with its states (only what the pack asks of it: resolve, and reading a state back). */
 export class BlockPermutation {
@@ -134,7 +136,7 @@ export class Sim {
     this.dims = new Map();
     for (const id of ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end']) this.dims.set(id, new MockDimension(this, id));
     this.api = {
-      EntityDamageCause, GameMode, EquipmentSlot, MolangVariableMap, ItemStack, Player: MockPlayer, Entity: MockEntity, BlockVolume, BlockPermutation, EasingType, EntitySwingSource,
+      EntityDamageCause, GameMode, EquipmentSlot, MolangVariableMap, ItemStack, Player: MockPlayer, Entity: MockEntity, BlockVolume, BlockPermutation, EasingType, EntitySwingSource, HudVisibility, HudElement,
       CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, PlayerPermissionLevel, EntityInitializationCause,
       world: {
         getDynamicProperty: (k) => sim.save.worldProps.get(k),
@@ -491,7 +493,12 @@ class MockPlayer {
     this.loc = { ...loc }; this.dim = dim; this.mode = GameMode.Survival; this.health = 20; this.hand = null; this.inv = []; this.vehicle = null; this.heard = []; this.seen = [];
     this.vel = { x: 0, y: 0, z: 0 };
     this.playerPermissionLevel = 2; this.messages = []; this.forms = []; this.answers = []; this.dyn = {}; this.view = { x: 0, y: 0, z: 1 };
-    this.onScreenDisplay = { setActionBar: (t) => this.messages.push('[actionbar] ' + t) };
+    this.hud = 'shown'; this.titles = [];
+    this.onScreenDisplay = {
+      setActionBar: (t) => this.messages.push('[actionbar] ' + t),
+      setHudVisibility: (v) => { this.hud = v === HudVisibility.Hide ? 'hidden' : 'shown'; },
+      setTitle: (t, o = {}) => { this.titles.push({ title: String(t), subtitle: o.subtitle ? String(o.subtitle) : '', tick: this.sim.save.tick }); },
+    };
     // the camera: what a cutscene did to it is kept, so a test can see that it was taken and given back
     this.cam = { log: [], held: false };
     const cam = this.cam;

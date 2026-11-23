@@ -3,7 +3,7 @@
  */
 import { Entity, EntityDamageCause, Player } from "@minecraft/server";
 import { KNOCK_GAP_TICKS, PROP, TICKS } from "../config";
-import { Act, Brain, Choice, anyoneNear, isNight, nearbyPlayers, pace, travel, wait } from "../brain";
+import { Act, anyoneNear, Brain, changeTicks, Choice, isNight, nearbyPlayers, pace, travel, wait } from "../brain";
 import { Creature, targetable } from "../creature";
 import { particle, sound } from "../fx";
 import { add, clamp, dist, distXZ, forwardOf, hash, leftOf, mul, norm, sub, yawTo, type V3 } from "../vec";
@@ -41,8 +41,8 @@ export class BrainOne extends Brain {
     const tod = world.getTimeOfDay();
     // the mutation that takes him out of the water
     const p = Math.max(0.25, 1 / Math.max(0.1, 1));
-    if (!rec.evolve && rec.mut.surfacings >= 6 && rec.mut.episodes >= 3 && now - rec.mut.formSince >= pace(2 * TICKS.day)
-      && anyoneNear(c, 96) && this.ready("beach")) {
+    // (time is all it waits on; he comes ashore for it if there is a shore to come to)
+    if (!rec.evolve && now - rec.mut.formSince >= changeTicks(1) && this.ready("beach")) {
       this.rest("beach", 2 * TICKS.minute);
       return { name: "beach", run: this.beach(), limit: 3 * TICKS.minute };
     }
@@ -466,7 +466,12 @@ export class BrainOne extends Brain {
   private *beach(): Act {
     const c = this.c;
     const shelf = this.findShelf();
-    if (!shelf) return;
+    if (!shelf) {
+      // no shore within reach: he changes where he is
+      this.rec.evolve = { to: 2, step: 0, t0: this.now, at: { ...c.pos } };
+      yield* wait(600);
+      return;
+    }
     c.setPhase("move");
     c.swimDepth = 3.6;
     yield* travel(c, shelf.water, 0.22, 5, 1600);

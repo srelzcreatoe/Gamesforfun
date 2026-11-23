@@ -5,12 +5,11 @@
  */
 import { ItemStack, Player, PlayerPermissionLevel, system, world } from "@minecraft/server";
 import { ActionFormData, FormCancelationReason, MessageFormData, ModalFormData } from "@minecraft/server-ui";
-import { pace } from "./brain";
+import { pace, changeTicks } from "./brain";
 import { CONFIG, JOURNAL_ITEM, OVERWORLD, TICKS, WHEEL_ITEM } from "./config";
 import type { Controller } from "./controller";
 import { angerNear, angriest, halfLifeDays, tallyOf, type Anger } from "./harm";
 import { doseAt, falloutCount, nearestFallout } from "./fallout";
-import { IV_BEAMS, IV_DAYS } from "./forms/three";
 import { saveSettings, resetSettings } from "./settings";
 import { store } from "./store";
 import type { V3 } from "./vec";
@@ -82,40 +81,19 @@ function angerLines(p: Player, a: Anger, here: boolean): string[] {
 
 function evolveLines(): string[] {
   const rec = store.rec, now = rec.clock, L: string[] = [];
-  const need = pace(2 * TICKS.day), since = now - rec.mut.formSince;
-  const days = Math.min(1, since / need);
-  // one line for each thing the change waits on: done, or how much is left
-  const item = (done: boolean, text: string) => `  ${done ? "§a[x]" : "§c[ ]"} §7${text}`;
-  const wait = days >= 1 ? "" : ` §8(about ${Math.max(1, Math.ceil((need - since) / TICKS.minute))} min left)`;
   if (rec.evolve) { L.push("§cHe is changing right now."); return L; }
-  if (rec.form === 1) {
-    const s = Math.min(1, rec.mut.surfacings / 6), e = Math.min(1, rec.mut.episodes / 3), f = Math.min(days, s, e);
-    L.push(`§fBecoming Basiliskra II: ${bar(f, "§6")} §l${pct(f)}§r`);
-    L.push("§7All three of these, then the last step:");
-    L.push(item(days >= 1, `Two days in the water: ${pct(days)}${wait}`));
-    L.push(item(s >= 1, `Seen at the surface ${Math.min(rec.mut.surfacings, 6)} of 6 times §8(he comes up under boats and near swimmers)`));
-    L.push(item(e >= 1, `Spasms ${Math.min(rec.mut.episodes, 3)} of 3 §8(they take him near piers, and in open water at dusk)`));
-    L.push(`  §e->§7 Then he beaches on a sand or gravel shore with a player near, and changes there${f >= 1 ? " §a(he is ready: go and stand on a beach)" : ""}.`);
-  } else if (rec.form === 2) {
-    const o = Math.min(1, (rec.mut.overland * CONFIG.pacing) / 220), f = Math.min(days, o);
-    L.push(`§fBecoming Basiliskra III: ${bar(f, "§6")} §l${pct(f)}§r`);
-    L.push("§7Both of these, then the last step:");
-    L.push(item(days >= 1, `Two days on the shore: ${pct(days)}${wait}`));
-    L.push(item(o >= 1, `Dragged himself overland ${Math.floor(Math.min(220, rec.mut.overland * CONFIG.pacing))} of 220 blocks §8(he wanders while anyone is near)`));
-    L.push(`  §e->§7 Then he changes at night or in rain, with a player near${f >= 1 ? " §a(he is ready: wait for dark or rain, and stay close)" : ""}.`);
-  } else {
+  if (rec.form < 4) {
+    // time is the only thing a change waits on
+    const need = changeTicks(rec.form), since = Math.max(0, now - rec.mut.formSince), f = Math.min(1, since / need);
+    const left = Math.max(0, need - since);
+    L.push(`§fBecoming Basiliskra ${ROMAN[rec.form + 1]}: ${bar(f, rec.form === 3 ? "§4" : "§6")} §l${pct(f)}§r`);
+    L.push(f >= 1 ? "  §aThe time is up: he changes as soon as he is free to." : `  §7Only time: §f${left >= TICKS.minute ? `${Math.ceil(left / TICKS.minute)} min` : `${Math.ceil(left / TICKS.second)} s`}§7 left of ${Math.round(need / TICKS.minute)} min as Basiliskra ${ROMAN[rec.form]}.`);
+    L.push("  §8Nothing else is needed. The config wheel can set the minutes, or make him change at once.");
+  } else L.push("§4Basiliskra IV is his last form.");
+  if (rec.form >= 3) {
     L.push(rec.form === 4 ? "§fThe last crossing §8(it still sends him home)" : "§fThe last crossing §8(sends him home)");
     L.push("  §7Carry his shed fin to the seam; play his three knocks on note blocks near it and keep playing; lead his charge into a lightning rod near the seam.");
-    if (rec.form === 3) {
-      const need3 = pace(IV_DAYS * TICKS.day), d3 = Math.min(1, since / need3), b = Math.min(1, rec.mut.beams / IV_BEAMS), f = Math.min(d3, b);
-      const left = d3 >= 1 ? "" : ` §8(about ${Math.max(1, Math.ceil((need3 - since) / TICKS.minute))} min left)`;
-      L.push(`§fBecoming Basiliskra IV §8(if he is not sent home first)§f: ${bar(f, "§4")} §l${pct(f)}§r`);
-      L.push(item(d3 >= 1, `Three days as Basiliskra III: ${pct(d3)}${left}`));
-      L.push(item(b >= 1, `Beams fired ${Math.min(rec.mut.beams, IV_BEAMS)} of ${IV_BEAMS}`));
-      L.push(`  §e->§7 Then he changes at night, with a player near${f >= 1 ? " §c(he is ready: it will be tonight)" : ""}.`);
-    } else L.push("§4Basiliskra IV is his last form.");
   }
-  if (rec.form < 4) L.push("  §8An operator's config wheel can also make him change at once.");
   return L;
 }
 
@@ -236,6 +214,7 @@ function formOf(rec = store.rec): number { return rec.born > 0 ? rec.form : 0; }
 
 /** Choices offered for a number (no sliders: they cannot be dragged on every touch screen), with a box to type any other. */
 const SPEEDS = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
+const MINUTES = [0, 1, 2, 5, 10, 20, 30, 60];
 const DAMAGES = [0, 0.25, 0.5, 1, 1.5, 2, 3, 4];
 const TERRAIN = ["none", "scorch", "break", "wither"] as const;
 
@@ -288,12 +267,14 @@ async function settingsForm(p: Player): Promise<void> {
     .toggle("Radiation sickness for players", { defaultValue: CONFIG.sickness })
     .toggle("Cutscenes (the rift, each transformation)", { defaultValue: CONFIG.cutscenes })
     .toggle("His music", { defaultValue: CONFIG.music })
+    .dropdown("Minutes in each form before he changes (time is all it takes)", MINUTES.map((m) => (m ? `${m} minutes` : "The story's timing: 40, 40, 60 (at story speed 1)")),
+      { defaultValueIndex: Math.max(0, MINUTES.indexOf(CONFIG.changeMinutes)) })
     .toggle("§cRestore every default", { defaultValue: false })
     .submitButton("Save");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || !r.formValues) return;
   const v = r.formValues;
-  if (v[18] === true) { resetSettings(); p.sendMessage("§7[Basiliskra] Settings restored to the defaults."); return; }
+  if (v[19] === true) { resetSettings(); p.sendMessage("§7[Basiliskra] Settings restored to the defaults."); return; }
   const pacing = pickNumber(SPEEDS, v[0], v[1], CONFIG.pacing, 0.25, 4);
   const damage = pickNumber(DAMAGES, v[5], v[6], CONFIG.damage, 0, 4);
   const bad = typedBad(v[1], 0.25, 4) || typedBad(v[6], 0, 4);
@@ -301,7 +282,7 @@ async function settingsForm(p: Player): Promise<void> {
     pacing, terrain: TERRAIN[Number(v[2])] ?? "wither", spareStorage: v[3] === true, marks: v[4] === true, damage,
     harmlessOnPeaceful: v[7] === true, huntMobs: v[8] === true, allowSummon: v[9] === true, spawnForm: (Number(v[10]) as 0 | 1 | 2 | 3 | 4),
     giveJournal: v[11] === true, giveWheel: v[12] === true, debug: v[13] === true, fallout: FALLOUT[Number(v[14])] ?? "land", sickness: v[15] === true,
-    cutscenes: v[16] === true, music: v[17] === true,
+    cutscenes: v[16] === true, music: v[17] === true, changeMinutes: MINUTES[Number(v[18])] ?? 0,
   });
   p.sendMessage(`§7[Basiliskra] Settings saved with this world. Story speed §fx${CONFIG.pacing}§7, damage §fx${CONFIG.damage}§7.`);
   if (bad) p.sendMessage("§7[Basiliskra] A number you typed was not in range, so the choice above it was used.");

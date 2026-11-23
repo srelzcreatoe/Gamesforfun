@@ -3,7 +3,7 @@
  */
 import { Player, system, world } from "@minecraft/server";
 import { CONFIG, PROP, TICKS } from "../config";
-import { Act, Brain, Choice, anyoneNear, isNight, nearbyPlayers, pace, wait, watchersNear } from "../brain";
+import { Act, anyoneNear, Brain, changeTicks, Choice, isNight, nearbyPlayers, pace, wait, watchersNear } from "../brain";
 import { Creature } from "../creature";
 import { particle, sound, witnesses } from "../fx";
 import { GAIT_TICKS } from "../generated/rig";
@@ -43,8 +43,7 @@ export class BrainTwo extends Brain {
     const c = this.c, rec = this.rec, now = this.now;
     const tod = world.getTimeOfDay();
     // repeated overland exertion drives the last mutation; it happens on a wet night, with someone there to hear it
-    if (!rec.evolve && rec.mut.overland >= 220 / CONFIG.pacing && now - rec.mut.formSince >= pace(2 * TICKS.day)
-      && (isNight(tod) || rec.weather !== "clear") && anyoneNear(c, 96)) {
+    if (!rec.evolve && now - rec.mut.formSince >= changeTicks(2)) {
       rec.evolve = { to: 3, step: 0, t0: now, at: { ...c.pos } };
       return { name: "evolve", run: wait(900), limit: 900 };
     }

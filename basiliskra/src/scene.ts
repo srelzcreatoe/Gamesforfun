@@ -4,13 +4,16 @@
  * players can still move; only what they see changes.  Every film has a fixed length and is ended by the
  * controller's own tick, so nothing that goes wrong in the scene it belongs to can leave a camera behind.
  */
-import { Dimension, EasingType, Player } from "@minecraft/server";
+import { Dimension, EasingType, HudElement, HudVisibility, Player } from "@minecraft/server";
 import { CONFIG } from "./config";
 import { players } from "./fx";
-import { dist, type V3 } from "./vec";
-import { clearLine, isLoaded } from "./world";
+import { dist, forwardOf, type V3 } from "./vec";
+import { blockAt, clearLine, groundY, isLoaded, isSolidBlock } from "./world";
 
 const FLAG = "bk:film";
+/** What is put away while a scene plays: everything but the touch controls (a player can still walk) and titles. */
+const HUD = [HudElement.PaperDoll, HudElement.Armor, HudElement.ToolTips, HudElement.Crosshair, HudElement.Hotbar, HudElement.Health, HudElement.ProgressBar,
+  HudElement.Hunger, HudElement.AirBubbles, HudElement.HorseHealth, HudElement.StatusEffects, HudElement.ItemText];
 
 export interface FilmOptions {
   /** Ticks it lasts. */
@@ -26,7 +29,31 @@ export interface FilmOptions {
   distEnd?: number;
   /** A short fade through this colour as it starts (a flash for the rift, black for a change). */
   flash?: { red: number; green: number; blue: number };
+  /**
+   * A scene cut into shots (when given, `dist`, `height`, `orbit` and `distEnd` are not used).  Every watcher is
+   * shown the same picture: the camera is placed relative to the way he faces, so he is in frame whoever watches.
+   */
+  shots?: Shot[];
+  /** The way he faces (degrees), for placing the shots. */
+  facing?: () => number;
+  /** Hide the hotbar and the rest of the HUD while it plays. */
+  cinema?: boolean;
 }
+
+/**
+ * One shot.  The camera stands `dist` blocks from what it looks at, `height` blocks above (or below) it, at
+ * `angle` degrees round from straight in front of him (0: face on; 90: side on; 180: behind).  Each of the three
+ * may be [from, to]: the camera moves smoothly between them over the shot.  `look`: what it looks at, if not the
+ * film's focus (his head for a close-up, say).
+ */
+export interface Shot {
+  ticks: number;
+  angle: number | [number, number];
+  dist: number | [number, number];
+  height: number | [number, number];
+  look?: () => V3;
+}
+const span = (v: number | [number, number], k: number): number => (typeof v === "number" ? v : v[0] + (v[1] - v[0]) * k);
 
 class Film {
   private t = 0;
@@ -41,13 +68,66 @@ class Film {
         const base = Math.atan2(p.location.z - f.z, p.location.x - f.x);
         this.cast.push({ p, base });
         p.setDynamicProperty(FLAG, true);
+        if (o.cinema) { try { p.onScreenDisplay.setHudVisibility(HudVisibility.Hide, HUD); } catch { /* an older client: the HUD stays */ } }
         if (o.flash) p.camera.fade({ fadeColor: o.flash, fadeTime: { fadeInTime: 0.1, holdTime: 0.15, fadeOutTime: 0.7 } });
       } catch { /* left */ }
     }
     this.aim();
   }
 
+  /** A place the camera can stand: not inside a block, not under the ground, and able to see what it looks at. */
+  private stand(want: V3, look: V3): V3 | null {
+    let best: V3 | null = null;
+    for (const [kd, up] of [[1, 0], [1, 3], [0.85, 6], [0.7, 10], [0.55, 16], [0.4, 24]]) {
+      const q = { x: look.x + (want.x - look.x) * kd, y: want.y + up, z: look.z + (want.z - look.z) * kd };
+      if (!isLoaded(this.dim, q)) continue;
+      const g = groundY(this.dim, q.x, q.z, q.y + 12, 40);
+      if (typeof g === "number" && q.y < g + 1.6) q.y = g + 1.6;                 // never under the ground
+      const here = blockAt(this.dim, q);
+      if (here && isSolidBlock(here)) continue;
+      if (clearLine(this.dim, q, look)) return q;
+      best ??= q;
+    }
+    return best;
+  }
+
+  /** The shot that is playing, and how far through it the film is (0..1). */
+  private shot(): { s: Shot; k: number; first: boolean } | null {
+    const shots = this.o.shots;
+    if (!shots || !shots.length) return null;
+    let t = this.t;
+    for (const s of shots) {
+      if (t < s.ticks) return { s, k: t / Math.max(1, s.ticks - 1), first: t < 2 };
+      t -= s.ticks;
+    }
+    return { s: shots[shots.length - 1], k: 1, first: false };
+  }
+
+  private aimShot(): void {
+    const cur = this.shot();
+    if (!cur) return;
+    const { s, first } = cur;
+    const k = cur.k * cur.k * (3 - 2 * cur.k);                                   // ease in and out of every move
+    let look: V3;
+    try { look = (s.look ?? this.focus)(); } catch { look = this.focus(); }
+    const f = forwardOf((this.o.facing?.() ?? 0) + span(s.angle, k));
+    const d = span(s.dist, k);
+    const at = this.stand({ x: look.x + f.x * d, y: look.y + span(s.height, k), z: look.z + f.z * d }, look);
+    if (!at) return;
+    for (const { p } of this.cast) {
+      try {
+        if (!p.isValid || p.dimension.id !== this.dim.id) continue;
+        // a new shot is a cut: no easing across it, and a blink of black so that it reads as one
+        if (first) {
+          if (this.t > 1) p.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0, holdTime: 0.05, fadeOutTime: 0.2 } });
+          p.camera.setCamera("minecraft:free", { location: at, facingLocation: look });
+        } else p.camera.setCamera("minecraft:free", { location: at, facingLocation: look, easeOptions: { easeTime: 0.15, easeType: EasingType.Linear } });
+      } catch { /* this watcher has gone, or the engine refused the camera: the others still see it */ }
+    }
+  }
+
   private aim(): void {
+    if (this.o.shots) { this.aimShot(); return; }
     const o = this.o, f = this.focus(), k = Math.min(1, this.t / Math.max(1, o.ticks));
     const d = o.dist + ((o.distEnd ?? o.dist) - o.dist) * k;
     for (const { p, base } of this.cast) {
@@ -72,7 +152,7 @@ class Film {
     if (this.done) return;
     this.t++;
     if (this.t >= this.o.ticks) { this.cut(); return; }
-    if (this.t % 2 === 0) this.aim();
+    if (this.t % 2 === 0 || this.o.shots) this.aim();
   }
 
   /** End it now: every watcher gets their own eyes back. */
@@ -86,6 +166,7 @@ class Film {
 
 function release(p: Player): void {
   try { p.camera.clear(); } catch { /* left */ }
+  try { p.onScreenDisplay.setHudVisibility(HudVisibility.Reset, HUD); } catch { /* left, or an older client */ }
   try { p.setDynamicProperty(FLAG, undefined); } catch { /* left */ }
 }
 
