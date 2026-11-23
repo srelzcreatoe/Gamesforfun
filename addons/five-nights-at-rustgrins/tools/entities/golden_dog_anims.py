@@ -460,14 +460,14 @@ def perform_1(B):
 
 
 def perform_2(B):
-    """He tips his hat to the house (4 s): the right hand goes up to the brim, the hat and the head dip,
-    then both arms open wide, slowly, and come down."""
+    """He bows his head to the house (4 s): the right hand comes up to his chest, over the badge, the head
+    dips and the hat tips forward on its own little servo; then both arms open wide, slowly, and come down.
+    (His arms do not reach his hat: the hat tips itself.)"""
     c = Clip(4.0)
     base = stance(B, torso=0.0, head=2.0, knee=4.0)
-    brim = B.reach(base, 'right', (-4.4, 40.6, -5.6), (-11.2, 33.5, -3.0), [-150.0, 0.0, 30.0, -110.0, 0.0, 0.0],
-                   avoid=['torso', 'head', 'jaw', 'hat', 'right_ear'])
-    pinch = hand('right', 30, 50, 40, thumb=(0, 26), thumb_tip=16)
-    up = merge(base, brim, pinch)
+    chest = B.reach(base, 'right', (-3.6, 26.6, -6.9), (-9.8, 23.2, -0.6), [-40.0, -20.0, 6.0, -100.0, 0.0, 0.0])
+    flat = hand('right', 8, 14, 10, thumb=(2, 10), thumb_tip=6)
+    up = merge(base, chest, flat)
     wide = copy.deepcopy(base)
     for s in SIDES:
         wide[f'{s}_arm'] = R(-34, 0, sgn(s) * -62)
@@ -480,9 +480,10 @@ def perform_2(B):
         half[f'{s}_forearm'] = R(-30, 0, 0)
         half.update(open_hand(s))
     mid_up = copy.deepcopy(base)
-    mid_up['right_arm'] = R(-70, 0, -28)
-    mid_up['right_forearm'] = R(-95, 0, 0)
-    mid_up.update(pinch)
+    ra, rf = up['right_arm']['rotation'], up['right_forearm']['rotation']
+    mid_up['right_arm'] = R(0.5 * ra[0] - 8, 0.5 * ra[1], 0.5 * ra[2] - 10)       # out and round, not through the belly
+    mid_up['right_forearm'] = R(0.6 * rf[0], 0, 0)
+    mid_up.update(flat)
 
     def with_head(p, head, hat=0.0, jaw=0.0, torso=0.0):
         q = copy.deepcopy(p)
@@ -495,10 +496,10 @@ def perform_2(B):
     c.key(0.45, with_head(mid_up, (2, 4, 0)))
     c.key(0.95, with_head(up, (0, 6, 0)))
     c.key(1.15, with_head(up, (0, 6, 0)))
-    c.key(1.45, with_head(add(add(up, 'right_arm', dx=5), 'right_forearm', dx=6), (9, 6, 0), hat=13, torso=4))   # the tip
-    c.key(1.75, with_head(add(add(up, 'right_arm', dx=5), 'right_forearm', dx=6), (9, 6, 0), hat=13, torso=4))
-    c.key(2.05, with_head(up, (1, 4, 0), hat=0, torso=1))
-    c.key(2.45, with_head(half, (-3, 0, 0), jaw=6))
+    c.key(1.5, with_head(up, (11, 6, 0), hat=14, torso=5))                         # the bow of the head, the hat's tip
+    c.key(1.8, with_head(up, (11, 6, 0), hat=14, torso=5))
+    c.key(2.1, with_head(up, (1, 4, 0), hat=0, torso=1))
+    c.key(2.5, with_head(half, (-3, 0, 0), jaw=6))
     c.key(2.95, with_head(wide, (-8, 0, 0), jaw=16, torso=-3))
     c.key(3.35, with_head(wide, (-7, 0, 0), jaw=14, torso=-3))
     c.key(3.7, with_head(half, (0, 0, 0), jaw=2))

@@ -617,6 +617,7 @@ def generate(pack=PACK, log=print):
     """Writes the whole source pack. Returns (model, geometry)."""
     import golden_dog_anims
     from PIL import Image
+    stamp = source_hash()               # (taken first: an edit made while this runs leaves the pack stale)
     m = build_model()
     height, layers, used = mk.build(m, 512)
     geo = mk.to_geometry(m, f'geometry.{CID}', 512, height)
@@ -632,7 +633,7 @@ def generate(pack=PACK, log=print):
     write_json(os.path.join(pack, 'entity', f'{CID}.entity.json'), client_entity())
     write_json(os.path.join(pack, 'animation_controllers', f'{CID}.ac.json'), move_controller())
     write_json(os.path.join(pack, 'manifest.json'), MANIFEST)
-    write_json(os.path.join(pack, STAMP), {'generator': 'tools/entities/golden_dog.py', 'sources': source_hash(), 'cubes': n})
+    write_json(os.path.join(pack, STAMP), {'generator': 'tools/entities/golden_dog.py', 'sources': stamp, 'cubes': n})
     return m, geo
 
 
