@@ -95,7 +95,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 117 test groups (including setup and a status check) with 599 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 122 test groups (including setup and a status check) with 619 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -161,6 +161,7 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | targeted (1.5.1: the Mire Eyebloom, twice) | 11 + 11 | 0 + 0 | three blocks tall; turns to you only while unwatched; shuts when stared at; opens and turns when you look away; falls as one; grows whole in the Mire (2 within 48 blocks of the test Mire at first, 11 after raising its density). A first probe loaded its template in mid-air, where (by design) it cannot stand |
 | full (1.5.1, first) | 611 | 5 | real: the line-of-sight fix made a line *to* a block (the pumpkin it turns) count the block itself as in the way — *Something Facing You* found nothing it could turn (a line to a point inside a block is no longer blocked by that block); its rage followed a standing player's pace down to 4.1 b/s (its rage is now always faster than a sprint, 8.0-9.4 b/s; and within 6 blocks, pursuing or enraged, it closes at 6.5 b/s at least — it creeps up, then lunges). Test-side: `pursuit_runs` still expected the old rush at a player standing still (it creeps now, by design). The tick rate dipped to 17.9 while other tests ran on a second server beside it |
 | targeted (1.5.1: those groups, the block-target encounters, the peeks, the corruption twice, the eyebloom, the takeover, talking; then the chases and the rage) | 73 + 56 + 32 + 38 | 0 + 0 + 1 + 1 | all passed but `relentless_lens_drives_it_off`, twice: test order only — the lens had been used by the group just before (standoff, or relentless itself) and was still in its 20-second cooldown. Also found: at point-blank (its body overlapping yours) the lens's narrow look could miss it; within 2.5 blocks a wide look is enough now. And the corruption (1.5.0) broke ground that grass, flowers, pages or an eyebloom stood on — they dropped off and were not put back; it now only takes bare ground (`corruption_leaves_what_stands_on_the_ground`: 10/10 flowers kept, twice) |
+| **final (1.5.1)** | **617** | **2** | the 1.5.0 suite plus peeking only from behind real cover (a column between you, a trunk, a house corner — all of it hidden by planks and logs, its head in sight round the edge — and never from a bush), its pace (it creeps, drifts at a walk, comes fast at a sprint; its rage faster than a sprint), the Sound Test (6 tracks, 16 sounds), the Mire Eyebloom (three tall, turns unwatched, shuts when stared at, falls as one, 11 whole within 48 blocks of the test Mire), and the corruption leaving what stands on the ground. The two failures were the tests' own measurements: `pace_drifts_at_a_walk` started measuring before its wind-up was over (2.80 b/s — it now waits until it is coming: 4.56, 4.72, 4.65 in three runs after), and `mire_all_pages_behind` asked for 110 degrees off your view where the placement allows 105 (its fallbacks are 140 degrees either side, ±35; it came 110 off — now 117 and 115). Both groups then passed, 30 of 30 |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -201,6 +202,11 @@ Final run (1.3.0): 102 test groups, 1844 s, minimum TPS between tests 19.9, **0 
 Final run (1.4.0): 110 test groups, 2068 s, minimum TPS between tests 19.6, **0 content-log or script errors**; 563 of
 564 (the one, above, then passed on its own twice). On fresh worlds with every experiment off (no test kit), the add-on
 loaded with 0 errors (`noexp.txt`) and the Weeping Mire generated (`mire_locate.txt`).
+
+Final run (1.5.1): 122 test groups, 2226 s, minimum TPS between tests 19.8, **0 content-log or script errors**; 617 of
+619 (the two, test measurements, above, then passed: 30 of 30). `noexp.txt` on the final build: `level.dat` experiments
+none, 0 errors; `mire_locate.txt`: the Mire 101 blocks from 0,0 (-32, 64, -96 — the bigger Mire's nearest edge), a
+surveyors' camp 101 and a drowned chapel 80 blocks away. Restart recovery re-run on 1.5.1: 6/6 and 2/2, 0 errors.
 
 Final run (1.5.0): 117 test groups, 2047 s, minimum TPS between tests 18.8 (during *Bait* — like the procession, a dip
 straight after the test spawns its villagers; see §7), **0 content-log or script errors**; 599 of 599. `noexp.txt` on
@@ -350,6 +356,11 @@ which is why only test worlds get it.
 | `ahead` | 3 | — |
 | `its_music` | 2 | — |
 | `ruins` | 11 | — |
+| `peek_house` | 4 | — |
+| `peek_not_bushes` | 2 | — |
+| `pace` | 3 | — |
+| `sound_test` | 3 | — |
+| `eyebloom` | 7 | — |
 | `natural` | 1 | — |
 | `status` | 0 | — |
 
@@ -360,6 +371,7 @@ a *Closed Path* is started, the Veil seal placed and the Observer present and wa
 mid-encounter (A: 5/5 pass). After restart (B: 2/2 pass): **0 stray Observer bodies** once the chunk loaded, and the
 interrupted encounter's Veil cells were **restored** (0 Veil blocks left) within 30 s.
 Re-run on 1.5.0: A 6/6, B 2/2 (0 stray bodies, 0 Veil blocks left), 0 errors.
+Re-run on 1.5.1: A 6/6, B 2/2, 0 errors.
 
 ### 5.4 Where the Weeping Mire generates (1.0.8)
 

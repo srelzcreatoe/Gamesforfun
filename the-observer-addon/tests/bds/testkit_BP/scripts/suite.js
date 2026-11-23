@@ -4749,17 +4749,17 @@ TESTS.pace = async () => {
     isolate(p);
     obs("trigger", "test_strike", "Tester");
     const e = await waitObserver(60);
-    await wait(36);
-    // (measured while it is more than 6.5 blocks off: closer than 6 it stops drifting and lunges)
+    // once it is coming (past its wind-up), and a moment to get up to speed — the player already moving
+    for (let t = 0; t < 80 && e?.isValid && e.getProperty("observer:state") !== "surge"; t += 2) await wait(2);
     const xs = [];
-    for (let t = 0; t < 48; t += 4) {
+    for (let t = 0; t < 60; t += 4) {
       heal(p);
       if (step) p.teleport({ x: Math.min(990, p.location.x + step), y: Y, z: 1033.5 }, { facingLocation: { x: 900, y: Y + 1.6, z: 1033.5 } });
       await wait(4);
-      if (e?.isValid && hdist(e.location, p.location) > 6.5) xs.push(e.location.x);
+      // (measured from 16 ticks in, while it is more than 6.5 blocks off: closer than 6 it stops drifting and lunges)
+      if (t >= 16 && e?.isValid && hdist(e.location, p.location) > 6.5) xs.push(e.location.x);
     }
-    const k0 = Math.min(2, Math.max(0, xs.length - 4));
-    speeds[name] = xs.length >= 4 ? (xs[xs.length - 1] - xs[k0]) / (((xs.length - 1 - k0) * 4) / 20) : -1;
+    speeds[name] = xs.length >= 4 ? (xs[xs.length - 1] - xs[0]) / (((xs.length - 1) * 4) / 20) : -1;
     obs("abort");
     await observerGone(100);
   }
