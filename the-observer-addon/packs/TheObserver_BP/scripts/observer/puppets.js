@@ -28,13 +28,14 @@
 import { system, world, ItemStack } from "@minecraft/server";
 import { S, aggression } from "../core/settings.js";
 import { W, ps, now, markPlayerDirty, markWorldDirty } from "../core/state.js";
-import { V, safe, emit, rand, DEBUG } from "../core/util.js";
+import { V, safe, emit, rand, pick, DEBUG } from "../core/util.js";
 import { PARTICLES, SOUNDS, ITEMS } from "../core/constants.js";
 import { visibility, lineOfSight, viewAngle } from "../world/sight.js";
 import { clearAhead } from "../world/walk.js";
 import { eyes, tearApart, isHeld } from "./dominion.js";
 import * as chase from "./chase.js";
 import { discover } from "../progression/discoveries.js";
+import * as talk from "./talk.js";
 
 /** @typedef {import("@minecraft/server").Entity} Entity */
 /** @typedef {import("@minecraft/server").Player} Player */
@@ -81,6 +82,10 @@ import { discover } from "../progression/discoveries.js";
  * @property {boolean} [arrived]   a guide: it got where it was leading
  * @property {boolean} [waiting]   a guide: stopped, looking back for them
  * @property {boolean} [looked]    a mirror: they are looking at it
+ * @property {string} name0         its own name (put back when it is let go, and after every glitch)
+ * @property {number} glitchAt      tick of its next glitch (1.5.0)
+ * @property {{kind:string, until:number, back?:Vec}} [glitch]  a glitch in progress
+ * @property {string} [wearing]     the name of the one it is used on, worn as its own (1.5.0)
  */
 /** @typedef {{type:string, loc:Vec, dimId:string, yaw:number, hp:number, name:string, why:string}} Snap */
 
@@ -172,9 +177,9 @@ export function take(e, why, o = {}) {
     mode: o.mode ?? "stand", keep: o.keep ?? 8, yaw: safe(() => e.getRotation().y, 0) ?? 0, voiceAt: t + Math.round(rand(80, 200)),
     moving: false, quiet: !!o.quiet, home: !!o.home, fx: new Set(), sensedAt: 0, face: o.face, onRelease: o.onRelease,
     at: l, atDim: e.dimension.id, anchor: (o.mode ?? "stand") === "stand" ? l : undefined, strict: strict(e.typeId),
-    crackAt: -1e9, foughtAt: -1e9, backs: [], jumpAt: -1e9 };
+    crackAt: -1e9, foughtAt: -1e9, backs: [], jumpAt: -1e9, name0: safe(() => e.nameTag, "") ?? "", glitchAt: t + Math.round(rand(20, 80)) };
   puppets.set(e.id, pp);
-  safe(() => e.setDynamicProperty(PROP, JSON.stringify({ why, at: [Math.round(l.x * 10) / 10, Math.round(l.y * 10) / 10, Math.round(l.z * 10) / 10], d: pp.dimId })));
+  safe(() => e.setDynamicProperty(PROP, JSON.stringify({ why, at: [Math.round(l.x * 10) / 10, Math.round(l.y * 10) / 10, Math.round(l.z * 10) / 10], d: pp.dimId, n: pp.name0 })));
   // it cannot be hidden from you: whatever hid it, it is seen again
   safe(() => e.removeEffect("invisibility"));
   // its legs are its now, from the first moment
@@ -205,6 +210,8 @@ export function release(id, how) {
   const e = pp.e;
   if (e.isValid) {
     for (const fx of pp.fx) safe(() => e.removeEffect(fx));
+    // its own name back (whatever its glitches, or the name it wore, did to it)
+    if ((safe(() => e.nameTag, "") ?? "") !== pp.name0) safe(() => (e.nameTag = pp.name0));
     safe(() => e.setDynamicProperty(PROP, undefined));
     const l = { ...e.location };
     if (how === "torn") tearApart(e, `puppet_${pp.why}`);
@@ -354,6 +361,13 @@ function step(pp, t) {
   if (t % 10 === 0 && safe(() => e.getComponent("minecraft:onfire"), undefined)) safe(() => e.extinguishFire(false));
   // it cannot be hidden from you (whatever made it invisible slipped past the moment it was put on)
   unhide(pp);
+  // 1.5.0: its hold is not a clean one — a torn, flickering aura about what it holds, and now and then it stutters:
+  // a jolt sideways, a freeze in mid-step, its head snapped round, its name turned to scramble, a burst of static
+  if (!pp.quiet && glitchStep(pp, t)) {
+    pp.at = { ...e.location };
+    pp.atDim = e.dimension.id;
+    return;
+  }
   // the tells: its eyes always; its wisps and, as it moves, its shreds (unless it is hiding among its kind)
   if (t % 10 === 0) eyes(e);
   if (!pp.quiet && t % 20 === 5) safe(() => e.dimension.spawnParticle(PARTICLES.puppetWisp, e.location));
@@ -494,6 +508,62 @@ function hold(pp, t, late = false) {
     safe(() => e.teleport(a, { rotation: { x: 0, y: pp.yaw }, keepVelocity: false }));
     emit("puppet", { what: "kept_still", id: pp.id, d: Math.round(V.hdist(cur, a) * 10) / 10 });
   }
+}
+
+/**
+ * Its glitch (1.5.0): the aura every few ticks, and a stutter every few seconds. Returns true while a stutter holds it
+ * frozen (nothing else moves it this tick). @param {Puppet} pp @param {number} t
+ */
+function glitchStep(pp, t) {
+  const e = pp.e;
+  if (DEBUG.glitch !== "never" && t % 6 === 0) safe(() => e.dimension.spawnParticle(PARTICLES.glitchAura, e.location));
+  const g = pp.glitch;
+  if (g) {
+    if (t < g.until) {
+      if (g.kind === "freeze") {
+        still(pp);
+        return true;
+      }
+      return false;
+    }
+    // the moment passes: everything as it was
+    if (g.kind === "jitter" && g.back) {
+      const back = g.back;
+      safe(() => e.teleport(back, { rotation: { x: 0, y: pp.yaw }, keepVelocity: false }));
+    }
+    if (g.kind === "snap") safe(() => e.setRotation({ x: 0, y: pp.yaw }));
+    if (g.kind === "name") safe(() => (e.nameTag = pp.wearing ?? pp.name0));
+    pp.glitch = undefined;
+    return false;
+  }
+  if (DEBUG.glitch === "never" || t < pp.glitchAt) return false;
+  pp.glitchAt = t + Math.round(DEBUG.glitch === "always" ? rand(15, 30) : rand(50, 140));
+  const kind = pick(["jitter", "freeze", "snap", "name", "static"]);
+  safe(() => e.dimension.spawnParticle(PARTICLES.glitchBurst, e.location));
+  safe(() => e.dimension.playSound(SOUNDS.glitch, e.location, { volume: 0.45, pitch: rand(0.7, 1.3) }));
+  if (kind === "jitter") {
+    const back = { ...e.location };
+    const off = V.scale(V.fromYaw(rand(0, 360)), rand(0.4, 0.8));
+    safe(() => e.teleport(V.add(back, off), { rotation: { x: 0, y: pp.yaw }, keepVelocity: false }));
+    pp.glitch = { kind, until: t + 2, back };
+  } else if (kind === "freeze") pp.glitch = { kind, until: t + Math.round(rand(8, 16)) };
+  else if (kind === "snap") {
+    safe(() => e.setRotation({ x: rand(-30, 30), y: pp.yaw + 180 }));
+    pp.glitch = { kind, until: t + 3 };
+  } else if (kind === "name") {
+    const n = Math.round(rand(4, 9));
+    safe(() => (e.nameTag = `§4§k${"x".repeat(n)}`));
+    pp.glitch = { kind, until: t + 30 };
+  }
+  emit("puppet", { what: "glitch", kind, id: pp.id, why: pp.why });
+  return kind === "freeze";
+}
+
+/** It wears their name (1.5.0): the creature goes about with the name of the one it is used on. @param {Puppet} pp @param {string} name */
+export function wearName(pp, name) {
+  pp.wearing = name;
+  safe(() => (pp.e.nameTag = name));
+  emit("puppet", { what: "wears_name", id: pp.id, name });
 }
 
 /** Its legs off, its strength, its harmlessness, for what it is doing now. @param {Puppet} pp */
@@ -738,8 +808,8 @@ function bringBack(pp, sn, t) {
   if (pp.mode === "stand") pp.anchor = { ...sn.loc };
   pp.backs.push(t);
   puppets.set(ne.id, pp);
-  safe(() => ne.setDynamicProperty(PROP, JSON.stringify({ why: pp.why, at: [Math.round(pp.origin.x * 10) / 10, Math.round(pp.origin.y * 10) / 10, Math.round(pp.origin.z * 10) / 10], d: pp.dimId })));
-  if (sn.name) safe(() => (ne.nameTag = sn.name));
+  safe(() => ne.setDynamicProperty(PROP, JSON.stringify({ why: pp.why, at: [Math.round(pp.origin.x * 10) / 10, Math.round(pp.origin.y * 10) / 10, Math.round(pp.origin.z * 10) / 10], d: pp.dimId, n: pp.name0 })));
+  if (pp.wearing || pp.name0) safe(() => (ne.nameTag = pp.wearing ?? pp.name0));
   const hc = safe(() => ne.getComponent("minecraft:health"), undefined);
   if (hc && sn.hp > 0) safe(() => hc.setCurrentValue(Math.min(sn.hp, hc.effectiveMax)));
   refresh(pp);
@@ -768,6 +838,7 @@ function killed(pp, p, e) {
   s.puppets.killed = (s.puppets.killed ?? 0) + 1;
   markPlayerDirty(p);
   discover(p, "cold_eyes");
+  talk.react(p, "killed_mine", 0.7);
   emit("puppet", { what: "release", how: "killed", why: pp.why, type: pp.type, id: pp.id, player: p.name });
   safe(() => pp.onRelease?.(pp, "killed"));
 }
@@ -790,6 +861,9 @@ export function recover(e) {
   const note = safe(() => e.getDynamicProperty(PROP), undefined);
   if (note === undefined) return false;
   for (const fx of ["slowness", "weakness", "strength", "speed", "resistance", "fire_resistance"]) safe(() => e.removeEffect(fx));
+  // its own name back (a glitch, or a name it wore, may have been on it when the game stopped)
+  const n0 = safe(() => JSON.parse(String(note)).n, undefined);
+  if (typeof n0 === "string" && (safe(() => e.nameTag, "") ?? "") !== n0) safe(() => (e.nameTag = n0));
   safe(() => e.setDynamicProperty(PROP, undefined));
   emit("puppet", { what: "recovered", type: e.typeId, id: e.id });
   return true;

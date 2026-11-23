@@ -19,8 +19,8 @@ Minecraft imports both packs. Then:
    Weeping Mire, its home). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from an earlier version:** import the new `.mcaddon` (version 1.4.0). If a world still uses the old copy, open the world's
-settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.4.0 packs again. Your
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.5.0). If a world still uses the old copy, open the world's
+settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.5.0 packs again. Your
 progress is kept; the new options below start switched on.
 
 **The Weeping Mire is part of The Observer now (1.0.7).** If a world also has the stand-alone *Weeping Mire* packs
@@ -141,6 +141,47 @@ lunges. Sprinting alone will not lose it; breaking its line of sight and getting
 * **Mine first.** Another creature — any creature, from any add-on — is about to reach you, and it stops dead. It turns
   its head and looks at you with small cold eyes, and walks off into the dark. It is not protecting you. It does not
   share you.
+
+**It is overwhelming now (1.5.0).** On Standard it begins after four minutes, not twelve; it moves through its stages
+far faster; it comes back sooner and more often, with shorter quiet spells between. *Nightmare* (Config Wheel →
+Presets) is above Relentless: almost no rest at all. *Atmosphere* is still there for a gentler game.
+* **It talks to you.** In your chat (its name never quite the same twice), in a whisper across the bottom of your
+  screen, and later in great broken letters across your view. What it says is about you: your name, where your home is,
+  how many times you have died, how long since you slept, what you are holding, where you are standing right now. Its
+  words break up as it speaks — scrambled letters, stutters — more the further it has come. It answers what you do: you
+  get away from it, you look at it through the lens, you kill one of its own, you die, you lie down to sleep, you walk
+  into its home, you reach a new stage.
+* **It asks you things.** From the third stage, now and then, when you are somewhere quiet and unhurt, a question
+  appears on your screen and waits: *Do you know what I am? Are you alone? Can I come in?* What you choose changes what
+  it does — it shows itself, it gets angry and comes sooner, it knocks, it is inside, or it gives you a quiet night. Lie
+  to it (say you are alone with someone beside you) and it knows. Close the question without answering and it takes
+  that as an answer too. (It cannot read what you type — it talks, and you answer by choosing.)
+* **Fourth-wall scares** (a setting of their own): a line that looks like the game's own — *The Observer joined the
+  game* — a chat line in your own name that you never typed, the screen cutting to black static and an error.
+* **It is never whole.** Torn, flickering fragments hang about it, red and cyan and white, like a broken screen.
+* **What it holds glitches.** Its puppets and servants flicker with the same fragments, and every few seconds something
+  goes wrong with them: a jolt sideways and back, a freeze in mid-step, the head snapped round backwards, the name over
+  them turned to scrambled letters, a burst of static. Its hold underneath never slips.
+* **The takeover.** From the fourth stage, at night, now and then — and in its rage at the fifth stage — every creature
+  around you is its, all at once: animals, monsters, other add-ons' creatures. They stop, they flicker, they turn and
+  look at you. One of them walks up and stands beside you with *your name* over its head. Then the hostile ones come for
+  you as its pack.
+* **The corruption.** The ground around you breaks up into black, blood red and crying obsidian for a few seconds, with
+  a hiss of static — and then it is exactly as it was. (Only natural ground, never your builds; never under a Ward
+  Lantern.)
+* **It is ahead of you.** Run from it and start to get away, and it is suddenly in front of you on your path. It
+  remembers where you got away to before: run that way again, and it is already waiting there. Stuck a long way round
+  (a maze, a cliff), it glitches along its own route to you.
+* **It takes more of them.** A kind you mark "Its puppet" is taken from up to 96 blocks away, and far more often.
+* **Its broken music.** Until the fourth stage its themes are your recordings. From the fourth stage its music is its
+  own: a slowed, detuned, wobbling tune with a music box and a drone; in the Mire, low voices and wrong bells; and at the
+  fifth stage a cheerful little tune that falls apart a little more every time it comes round. Whenever it — or its pack
+  — is coming for you, a driving chase theme, at any stage.
+* **The Mire's ruins.** Out in the Weeping Mire: a drowned chapel with a black altar, a watcher's spire with a seat at
+  the top window, a ring of bone pillars round an altar, a library buried up to its roof, and the surveyors' last camp.
+  Their chests hold decent loot — diamonds, emeralds, enchanted books and gear, golden apples, ender pearls, its own
+  items (Vestiges, Flares, Cold Eyes, now and then a Witness Lens) — and their lecterns hold the journals of the people
+  who were there before you.
 
 **The animals know.** When it comes — whether you have seen it or not — the animals near it stop what they are
 doing and turn to face it, quite still: the nearest first, the rest a moment later. After a while cows, sheep, pigs,

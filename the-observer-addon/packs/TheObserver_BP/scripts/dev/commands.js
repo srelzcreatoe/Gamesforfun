@@ -29,6 +29,8 @@ import { DEBUG, safe, V, dimIndex, allPlayers, emit } from "../core/util.js";
 import { ITEMS } from "../core/constants.js";
 import { DISCOVERIES } from "../progression/discoveries.js";
 import * as director from "../director/director.js";
+import * as talk from "../observer/talk.js";
+import { corrupt } from "../observer/corrupt.js";
 import * as illusions from "../observer/illusions.js";
 import * as ledger from "../world/ledger.js";
 import * as body from "../observer/body.js";
@@ -352,6 +354,62 @@ export function run(name, args, caller) {
       if (!p) return "no player";
       return possession.nightNow(p) ? "they turn" : "not here (stage 5, home needed)";
     }
+    case "talk": {
+      // talk always|never|auto | talk say <key> [player] | talk ask [index] [player] | talk fourth <joined|own_name|static> [player]
+      // | talk act <show|angry|inside|knock|calm> [player]   (1.5.0)
+      if (["always", "never", "auto"].includes(args[0])) {
+        DEBUG.talk = /** @type {any} */ (args[0]);
+        return `talk ${DEBUG.talk}`;
+      }
+      const p = pick(2);
+      if (!p) return "no player";
+      if (args[0] === "say") return talk.say(p, /** @type {any} */ (args[1] ?? "low")) ? "said" : "nothing said";
+      if (args[0] === "ask") {
+        talk.ask(p, args[1] !== undefined ? Number(args[1]) : undefined).catch(() => {});
+        return "asked";
+      }
+      if (args[0] === "fourth") return talk.fourth(p, /** @type {any} */ (args[1])) ? "done" : "off";
+      if (args[0] === "act") {
+        safe(() => talk.hooks.act?.(p, args[1] ?? "show"));
+        return `acted ${args[1]}`;
+      }
+      return "usage: talk always|never|auto | say <key> | ask [i] | fourth <kind> | act <what>";
+    }
+    case "takeover": {
+      // takeover [player]: every creature around them is its, at once (1.5.0)
+      const p = pick(0);
+      if (!p) return "no player";
+      return `took ${possession.takeoverFor(p)}`;
+    }
+    case "corrupt": {
+      // corrupt [player]: the ground around them breaks up for a moment (1.5.0)
+      const p = pick(0);
+      if (!p) return "no player";
+      return `corrupted ${corrupt(p)}`;
+    }
+    case "ahead":
+      // ahead auto|never: cutting ahead of someone running, and glitching along its route when stuck (tests)
+      DEBUG.ahead = args[0] === "never" ? "never" : "auto";
+      return `ahead ${DEBUG.ahead}`;
+    case "ambient":
+      // ambient auto|never: the world breaking up and the takeover on their own (tests)
+      DEBUG.ambient = args[0] === "never" ? "never" : "auto";
+      return `ambient ${DEBUG.ambient}`;
+    case "glitch":
+      // glitch always|never|auto: its puppets' glitches (tests)
+      DEBUG.glitch = args[0] === "always" || args[0] === "never" ? args[0] : "auto";
+      return `glitch ${DEBUG.glitch}`;
+    case "hideout": {
+      // hideout [player] | hideout clear [player]: where they got away from it (it waits there) (1.5.0)
+      const clear = args[0] === "clear";
+      const p = pick(clear ? 1 : 0);
+      if (!p) return "no player";
+      const s = ps(p);
+      if (clear) s.hideouts = [];
+      else s.hideouts = [...(s.hideouts ?? []), [dimIndex(p.dimension.id), Math.round(p.location.x), Math.round(p.location.y), Math.round(p.location.z), Math.round(now())]].slice(-4);
+      markPlayerDirty(p);
+      return `hideouts ${JSON.stringify(s.hideouts)}`;
+    }
     case "bringback":
       // bringback on|off: whether it brings back a puppet something else removed (tests clear creatures away)
       DEBUG.bringBack = args[0] === "off" ? "off" : "on";
@@ -434,7 +492,9 @@ export function register() {
     const name = ev.id.slice("observer:".length);
     const args = ev.message.trim().length ? ev.message.trim().split(/\s+/) : [];
     const caller = ev.sourceEntity && ev.sourceEntity.typeId === "minecraft:player" ? /** @type {Player} */ (ev.sourceEntity) : undefined;
+    const t0 = Date.now();
     reply(caller, run(name, args, caller));
+    if (DEBUG.trace && Date.now() - t0 >= 25) console.warn(`[Observer] slow command ${name}: ${Date.now() - t0} ms`);
   });
 }
 

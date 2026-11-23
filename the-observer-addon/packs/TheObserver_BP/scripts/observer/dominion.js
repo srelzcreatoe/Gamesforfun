@@ -97,6 +97,8 @@ export const isHeld = (id) => held.has(id);
 export const hooks = {
   /** @type {((at:Vec, dimId:string)=>void)|undefined} */ sent: undefined,
   /** its rage: those it let go hunt them as one (1.4.0) @type {((p:Player, ents:Entity[])=>number)|undefined} */ pack: undefined,
+  /** its rage at the fifth stage: every creature near them, at once (1.5.0) @type {((p:Player)=>number)|undefined} */ takeover: undefined,
+  /** its rage: the ground breaks up around them (1.5.0) @type {((p:Player)=>number)|undefined} */ corrupt: undefined,
 };
 
 /** One of its puppets (observer/puppets.js notes that on the creature itself): those have their own orders. @param {Entity} e */

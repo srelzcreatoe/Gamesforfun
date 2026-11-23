@@ -4,7 +4,7 @@ import { world, system, MolangVariableMap } from "@minecraft/server";
 import { W, loadWorld, saveWorld, savePlayers, savePlayer, ps, now, dropPlayer, markPlayerDirty, markWorldDirty } from "./core/state.js";
 import { S } from "./core/settings.js";
 import { DEBUG, safe, trace, dimIndex, V, allPlayers } from "./core/util.js";
-import { PARTICLES, TARGET_TAG, ITEMS } from "./core/constants.js";
+import { PARTICLES, TARGET_TAG, ITEMS, SOUNDS } from "./core/constants.js";
 import * as ledger from "./world/ledger.js";
 import * as body from "./observer/body.js";
 import * as memory from "./observer/memory.js";
@@ -32,6 +32,9 @@ import * as herald from "./observer/herald.js";
 import * as rivalHunt from "./encounters/rival_hunt.js";
 import * as paralysis from "./encounters/paralysis.js";
 import * as charm from "./progression/charm.js";
+import * as talk from "./observer/talk.js";
+import { corrupt } from "./observer/corrupt.js";
+import { stageHooks } from "./progression/discoveries.js";
 import * as mire from "./mire/mire.js";
 import { pending as mirePending } from "./encounters/mire_watcher.js";
 
@@ -103,6 +106,38 @@ puppets.registerEvents();
 dominion.hooks.sent = (at, dimId) => possession.tribute(at, dimId, (p, minAway) => returns.takeAway(p, minAway));
 // its rage: the creatures it lets go near you hunt you as one (1.4.0)
 dominion.hooks.pack = (p, ents) => possession.packHunt(p, ents);
+// 1.5.0: its rage at the fifth stage takes every creature near you; the ground breaks up under you
+dominion.hooks.takeover = (p) => possession.takeoverFor(p);
+dominion.hooks.corrupt = (p) => corruptFor(p);
+/** The ground around them breaks up (and the first time, they know it). @param {import("@minecraft/server").Player} p */
+function corruptFor(p) {
+  const n = corrupt(p);
+  if (n) discover(p, "the_corruption");
+  return n;
+}
+// 1.5.0: it talks — a word at each new stage, and what your answers to its questions do
+stageHooks.push((p, st) => {
+  if (st >= 2) talk.say(p, /** @type {any} */ (`stage${st}`), st >= 4 ? "title" : "chat");
+});
+talk.hooks.act = (p, what) => {
+  const s = ps(p);
+  if (what === "show") {
+    if (!director.tryManual("close_breath", p, { anyway: true })) director.tryManual("distant_watch", p, { anyway: true });
+  } else if (what === "angry") {
+    s.tension = Math.min(100, (s.tension ?? 0) + 30);
+    s.nextAt = Math.min(s.nextAt, now() + 15);
+    s.quietUntil = 0;
+    corruptFor(p);
+    if (s.stage >= 4) possession.takeoverFor(p);
+  } else if (what === "inside") {
+    if (!director.tryManual("inside", p, { anyway: true })) director.tryManual("knocking", p, { anyway: true });
+  } else if (what === "knock") {
+    if (!director.tryManual("knocking", p, { anyway: true })) for (let i = 0; i < 3; i++) system.runTimeout(() => safe(() => p.playSound(SOUNDS.knock, { volume: 1 })), 20 + i * 12);
+  } else if (what === "calm") {
+    s.quietUntil = Math.max(s.quietUntil, now() + 300);
+  }
+  markPlayerDirty(p);
+};
 // the Weeping Mire, its home: wind, falling leaves and the torn pages. The Mire's old watcher is the
 // Observer now: a torn page may bring it up behind you, and the last of the eight always does.
 mire.register({
@@ -224,11 +259,43 @@ flare.registerEvents({
 
 world.afterEvents.worldLoad.subscribe(() => init());
 
+/**
+ * Run a part of a loop; with dev tracing on, a part that takes 25 ms or more is logged (it shows as a dip in the server's
+ * tick rate). @param {string} name @param {() => any} fn
+ */
+function timed(name, fn) {
+  if (!DEBUG.trace) return safe(fn);
+  const t0 = Date.now();
+  const r = safe(fn);
+  const ms = Date.now() - t0;
+  if (ms >= 25) console.warn(`[Observer] slow ${name}: ${ms} ms`);
+  lastTimed = name;
+  return r;
+}
+let lastTimed = "";
+let lastTickMs = 0;
+// with dev tracing on: a long pause between two ticks is logged with the last step that ran before it
+system.runInterval(() => {
+  const t = Date.now();
+  if (DEBUG.trace && lastTickMs && t - lastTickMs >= 120) console.warn(`[Observer] hitch ${t - lastTickMs} ms (last step ${lastTimed})`);
+  lastTickMs = t;
+}, 1);
+
+/** Players who died and have not come back yet (it has a word for that). @type {Set<string>} */
+const diedAt = new Set();
+/** Was each player in its home a second ago? @type {Map<string, boolean>} */
+const inMireBefore = new Map();
+
 world.afterEvents.playerSpawn.subscribe((ev) => {
   if (!ready) init();
   const p = ev.player;
   ps(p);
-  if (!ev.initialSpawn) return;
+  if (!ev.initialSpawn) {
+    if (diedAt.delete(p.id)) system.runTimeout(() => talk.react(p, "died", 0.8), 40);
+    return;
+  }
+  // back in the world: it was waiting (1.5.0)
+  if (ps(p).stage >= 2) system.runTimeout(() => talk.react(p, "greet"), 140);
   memory.motion(p);
   // first join: say that the add-on is running, and hand operators the Config Wheel
   const s = ps(p);
@@ -270,6 +337,9 @@ world.beforeEvents.playerLeave.subscribe((ev) => {
     dread.forget(id);
     herald.forget(id);
     charm.forget(id);
+    talk.forget(id);
+    inMireBefore.delete(id);
+    diedAt.delete(id);
     dropPlayer(id);
   });
 });
@@ -293,7 +363,10 @@ world.afterEvents.entityHurt.subscribe(
 );
 
 world.afterEvents.entityDie.subscribe((ev) => {
-  if (ev.deadEntity.typeId === "minecraft:player") director.onDeath(/** @type {any} */ (ev.deadEntity));
+  if (ev.deadEntity.typeId === "minecraft:player") {
+    director.onDeath(/** @type {any} */ (ev.deadEntity));
+    diedAt.add(ev.deadEntity.id);
+  }
 });
 
 world.afterEvents.playerDimensionChange.subscribe((ev) => {
@@ -335,11 +408,11 @@ let fastRuns = 0;
 system.runInterval(() => {
   if (!ready) return;
   fastRuns++;
-  body.maintain(fastRuns);
+  timed("body.maintain", () => body.maintain(fastRuns));
   // asleep long enough to wake in the night? (decided once per sleep, before the night is skipped)
   for (const p of allPlayers()) safe(() => paralysis.watchSleep(p));
-  if (fastRuns % 2 === 0) safe(() => ledger.scan(new Set(director.running().map((e) => e.id))));
-  safe(() => director.nearCheck());
+  if (fastRuns % 2 === 0) timed("ledger.scan", () => ledger.scan(new Set(director.running().map((e) => e.id))));
+  timed("director.nearCheck", () => director.nearCheck());
 }, 5);
 
 let slowRuns = 0;
@@ -348,7 +421,7 @@ system.runInterval(() => {
   slowRuns++;
   const tick = system.currentTick;
   for (const p of allPlayers()) {
-    safe(() => memory.sample(p));
+    timed("memory.sample", () => memory.sample(p));
     // manual triggers: dimension follow-ups and sleeping
     const s = ps(p);
     if (s.followAt && now() >= s.followAt) {
@@ -356,29 +429,43 @@ system.runInterval(() => {
       if (p.dimension.id !== "minecraft:overworld" || Math.random() < 0.5) director.tryManual("portal_follow", p);
     }
     // where its home is: somewhere in the Mire someone has stood (the procession faces it, 1.4.0)
-    if (slowRuns % 10 === 0 && safe(() => mire.inMire(p), false)) {
+    // walking into its home: it has a word for that (1.5.0)
+    const inMireNow = !!timed("mire.inMire", () => mire.inMire(p));
+    if (inMireNow && !inMireBefore.get(p.id)) talk.react(p, "mire", 0.7);
+    inMireBefore.set(p.id, inMireNow);
+    if (slowRuns % 10 === 0 && inMireNow) {
       W.mireAt = [Math.round(p.location.x), Math.round(p.location.z)];
       markWorldDirty();
     }
     const m = memory.motion(p);
     if (m.sleeping && m.sleptAt > 0 && tick - m.sleptAt > 40) {
       m.sleptAt = -1;
+      talk.react(p, "sleep", 0.6);
       director.tryManual("night_visit", p);
     }
   }
-  safe(() => director.tick());
-  safe(() => illusions.tick());
+  timed("director.tick", () => director.tick());
+  timed("illusions.tick", () => illusions.tick());
+  // it talks, and asks (1.5.0); and from the fourth stage the world around you sometimes breaks up for a moment
+  timed("talk.tick", () => talk.tick());
+  for (const p of allPlayers()) {
+    const s = ps(p);
+    if (DEBUG.ambient !== "never" && s.stage >= 4 && !director.encounterFor(p.id) && now() - (s.corruptAt ?? -1e9) > 600 && Math.random() < 1 / 900) {
+      s.corruptAt = now();
+      safe(() => corruptFor(p));
+    }
+  }
   // while it is around you, your music is cut; when it is gone, it fades back
-  safe(() => hush.presence(now(), isAround, (p) => mire.inMire(p)));
-  if (slowRuns % 5 === 0) safe(() => returns.tick());
+  timed("hush.presence", () => hush.presence(now(), isAround, (p) => mire.inMire(p)));
+  if (slowRuns % 5 === 0) timed("returns.tick", () => returns.tick());
   // its puppets: the marked ones, the one cow, its guards, the night they turn; and what was left of its rivals (1.3.0)
-  safe(() => possession.tick());
-  safe(() => rivalHunt.tick());
-  if (slowRuns % 20 === 0) safe(() => pages.tick(new Set(director.running().map((e) => e.pid))));
-  safe(() => ledger.processDue(12));
+  timed("possession.tick", () => possession.tick());
+  timed("rivalHunt.tick", () => rivalHunt.tick());
+  if (slowRuns % 20 === 0) timed("pages.tick", () => pages.tick(new Set(director.running().map((e) => e.pid))));
+  timed("ledger.processDue", () => ledger.processDue(12));
   if (slowRuns % 2 === 0) {
-    safe(() => items.renderMarks());
-    safe(() => tickTraces());
+    timed("items.renderMarks", () => items.renderMarks());
+    timed("tickTraces", () => tickTraces());
   }
 }, 20);
 
@@ -402,12 +489,12 @@ system.runInterval(() => {
 }, 1200);
 
 system.runInterval(() => {
-  if (ready) safe(() => body.tickPuppets());
+  if (ready) timed("body.tickPuppets", () => body.tickPuppets());
 }, 10);
 
 // its presence, felt: a heartbeat only the player hears, and a light tremor when it is close and meaning harm
 system.runInterval(() => {
-  if (ready) safe(() => dread.tick((pid) => director.encounterFor(pid)));
+  if (ready) timed("dread.tick", () => dread.tick((pid) => director.encounterFor(pid)));
 }, 2);
 
 // animals sense it: they turn to it and freeze, edge away, growl or hiss (every tick, for smooth turning and walking)
@@ -416,20 +503,20 @@ system.runInterval(() => {
   if (!ready) return;
   tickRuns++;
   // another creature about to reach someone: it stops it first (1.4.0)
-  if (tickRuns % 4 === 0) safe(() => possession.fast());
+  if (tickRuns % 4 === 0) timed("possession.fast", () => possession.fast());
   // the charm of cold eyes hums near its puppets (1.4.0)
-  if (tickRuns % 5 === 0) safe(() => charm.tick());
-  safe(() => animals.tick());
+  if (tickRuns % 5 === 0) timed("charm.tick", () => charm.tick());
+  timed("animals.tick", () => animals.tick());
   // the other creatures of the dark answer to it (1.2.0), and those it has taken for its own do its bidding (1.3.0)
-  safe(() => dominion.tick());
-  safe(() => puppets.tick());
+  timed("dominion.tick", () => dominion.tick());
+  timed("puppets.tick", () => puppets.tick());
 }, 1);
 
 // taiga illusions vanish the instant they are looked at; flares fly, burn and glare
 system.runInterval(() => {
   if (!ready) return;
-  safe(() => illusions.watch());
-  safe(() => flare.tick());
+  timed("illusions.watch", () => illusions.watch());
+  timed("flare.tick", () => flare.tick());
 }, 2);
 
 /**

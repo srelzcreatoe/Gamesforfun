@@ -420,6 +420,77 @@
           "volume": 0.8
         }
       ]
+    },
+    "observer.glitch": {
+      "category": "hostile",
+      "max_distance": 24,
+      "sounds": [
+        {
+          "name": "sounds/observer/glitch1",
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/observer/glitch2",
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/observer/glitch3",
+          "volume": 0.8
+        }
+      ]
+    },
+    "observer.static": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/observer/static1",
+          "volume": 0.7
+        },
+        {
+          "name": "sounds/observer/static2",
+          "volume": 0.7
+        }
+      ]
+    },
+    "observer.music.stalk": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/observer/music/stalk",
+          "stream": true,
+          "volume": 0.85
+        }
+      ]
+    },
+    "observer.music.chase": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/observer/music/chase",
+          "stream": true,
+          "volume": 0.75
+        }
+      ]
+    },
+    "observer.music.mire": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/observer/music/mire",
+          "stream": true,
+          "volume": 0.85
+        }
+      ]
+    },
+    "observer.music.end": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/observer/music/end",
+          "stream": true,
+          "volume": 0.85
+        }
+      ]
     }
   }
 }

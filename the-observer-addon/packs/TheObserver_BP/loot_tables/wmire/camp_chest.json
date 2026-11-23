@@ -1,0 +1,205 @@
+{
+  "pools": [
+    {
+      "rolls": {
+        "min": 4,
+        "max": 7
+      },
+      "entries": [
+        {
+          "type": "item",
+          "name": "minecraft:bread",
+          "weight": 12,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 2,
+                "max": 5
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:cooked_beef",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 2,
+                "max": 5
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:baked_potato",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 3,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:torch",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 6,
+                "max": 16
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:iron_ingot",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:coal",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 4,
+                "max": 10
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:arrow",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 6,
+                "max": 16
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:leather",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 2,
+                "max": 5
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "observer:flare",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 2,
+                "max": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:shield",
+          "weight": 3
+        },
+        {
+          "type": "item",
+          "name": "minecraft:bow",
+          "weight": 3
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "item",
+          "name": "minecraft:iron_pickaxe",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "enchant_with_levels",
+              "levels": {
+                "min": 10,
+                "max": 20
+              },
+              "treasure": false
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:iron_sword",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "enchant_with_levels",
+              "levels": {
+                "min": 10,
+                "max": 20
+              },
+              "treasure": false
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:written_book",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "set_book_contents",
+              "author": "Surveyors' Company",
+              "title": "Last Entry",
+              "pages": [
+                "Camp three. The\nother two camps are\ngone. Not packed up.\nGone. Tents, fires,\nmen.",
+                "Mapped the bone\naltar today. The\ncandles were lit\nwhen we got there.\nWe did not light\nthem.",
+                "Fire went out by\nitself. The animals\nwould not come near\nthe tent. They stood\nin a line and\nwatched it instead.",
+                "Whoever finds this:\nthe map is wrong.\nThe Mire is bigger\nat night."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "empty",
+          "weight": 4
+        }
+      ]
+    }
+  ]
+}

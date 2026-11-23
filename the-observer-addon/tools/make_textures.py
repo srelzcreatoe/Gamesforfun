@@ -290,6 +290,39 @@ def cold_charm():
     d.line([11, 12, 12, 11], fill=string)
     return save(outline(img, (20, 24, 30, 255)), "textures", "items", "observer", "cold_charm.png")
 
+def glitch_sheet():
+    """1.5.0: its glitch: a 64x64 sheet of sixteen 16x16 fragments — torn horizontal bars in red, cyan and white,
+    split colour edges, dead black blocks and scanline noise (its own generator, so the seeded textures stay as they are)."""
+    rng = random.Random(1500)
+    img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    px = img.load()
+    cols = [(220, 20, 30, 255), (20, 230, 230, 255), (250, 250, 250, 255), (8, 8, 10, 255), (140, 0, 10, 255)]
+    for cell in range(16):
+        ox, oy = (cell % 4) * 16, (cell // 4) * 16
+        kind = cell % 4
+        for _ in range(rng.randint(2, 5)):
+            y = rng.randint(1, 13)
+            h = rng.randint(1, 3)
+            x0 = rng.randint(0, 6)
+            w = rng.randint(5, 15 - x0)
+            c = rng.choice(cols)
+            for yy in range(y, min(16, y + h)):
+                for xx in range(x0, min(16, x0 + w)):
+                    if kind == 3 and (xx + yy) % 2:
+                        continue
+                    px[ox + xx, oy + yy] = c
+            # the split edge: red on one side, cyan on the other
+            if kind in (0, 2) and x0 + w < 15:
+                for yy in range(y, min(16, y + h)):
+                    px[ox + min(15, x0 + w), oy + yy] = cols[1]
+                    if x0 > 0:
+                        px[ox + x0 - 1, oy + yy] = cols[0]
+        if kind == 1:
+            for _ in range(rng.randint(10, 22)):
+                px[ox + rng.randint(0, 15), oy + rng.randint(0, 15)] = rng.choice(cols)
+    return save(img, "textures", "particle", "observer", "glitch.png")
+
+
 def soft_dot(size, color, falloff=1.6):
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     px = img.load()
@@ -364,6 +397,7 @@ def main():
     made += particles()
     made.append(flare())  # drawn last: earlier textures use the seeded random generator
     made += [cold_eye(), cold_charm()]  # 1.4.0 (no randomness)
+    made.append(glitch_sheet())  # 1.5.0 (its own random generator)
     icon = pack_icon()
     icon.save(os.path.join(RP, "pack_icon.png"))
     icon.save(os.path.join(BP, "pack_icon.png"))

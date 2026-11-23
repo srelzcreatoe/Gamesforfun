@@ -1,0 +1,37 @@
+{
+  "format_version": "1.21.130",
+  "minecraft:structure_set": {
+    "description": {
+      "identifier": "wmire:mire_ruins"
+    },
+    "placement": {
+      "type": "minecraft:random_spread",
+      "salt": 51530917,
+      "spacing": 8,
+      "separation": 3,
+      "spread_type": "linear"
+    },
+    "structures": [
+      {
+        "structure": "wmire:drowned_chapel",
+        "weight": 3
+      },
+      {
+        "structure": "wmire:watchers_spire",
+        "weight": 2
+      },
+      {
+        "structure": "wmire:bone_altar",
+        "weight": 3
+      },
+      {
+        "structure": "wmire:sunken_archive",
+        "weight": 2
+      },
+      {
+        "structure": "wmire:surveyors_camp",
+        "weight": 4
+      }
+    ]
+  }
+}

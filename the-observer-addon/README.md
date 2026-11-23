@@ -47,7 +47,7 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   blocks; a torn page may bring it up behind you, and the last of the eight always does. In the Mire it comes sooner
   and more often: the grace period ends after 30 seconds there, the gaps between encounters are shorter, and it acts as
   if you were one stage further along.
-* **30 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*)
+* **32 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*)
   and *Closer Each Time* (it only moves while unwatched), *It's Inside* (the dark corner of your own room), *Signs*
   (by your bed or door), *Borrowed Eyes* (a creature that turns its head to follow you) and *In the Mire*; a lunge when it is spotted,
   a fast, relentless attack once it reaches you, a too-close reaction, and harmless shadows in taiga forests that
@@ -103,6 +103,27 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   **The Procession** (stage 4+): one night a village's villagers walk out and stand in a line at its edge, facing the
   Mire, until dawn. **Mine first**: when another creature is about to reach you, it stops it dead, turns it to look at
   you, and walks it off into the dark — it does not share you.
+* **It is overwhelming now** (1.5.0): it starts within minutes (a four-minute grace on Standard), moves through its
+  stages far faster, and comes back sooner and more often, with shorter quiet spells; **Nightmare** sits above
+  Relentless. **It talks to you**: in your chat, in whispers across the bottom of your screen, and in great broken
+  letters across your view — about *you*: your name, where your home is, how many times you have died, how long since
+  you slept, what you are holding, where you are standing. Its words break up as it speaks (scrambled letters, stutters),
+  more the further it has come. It answers what you do (you escape it, look at it through the lens, kill one of its own,
+  die, lie down to sleep, walk into its home, reach a new stage), and now and then, somewhere quiet, it **asks you
+  something** and waits — and what you choose (or not answering at all) changes what it does next. Optional
+  **fourth-wall scares**: "The Observer joined the game", a chat line in your own name you never typed, the screen
+  cutting to static and an error. **It is never whole**: torn, flickering fragments hang about it; everything it holds
+  glitches — jolts sideways, freezes mid-step, snaps its head round, its name turns to scrambled letters, bursts of
+  static. **The takeover**: every creature around you at once is its — they stop, flicker, turn to look at you; one
+  comes to stand beside you with *your name* over its head; from the fourth stage the hostile ones then hunt you as its
+  pack. **The corruption**: the ground around you breaks up into black and blood-red for a few seconds, then is exactly
+  as it was. **It is ahead of you**: run from it and get away, and it is suddenly in front of you — or waiting where you
+  hid last time; stuck a long way round, it glitches along its own route to you. It takes marked creatures from further
+  off and far more often. **Its broken music** (original, made for it): from the fourth stage a slowed, detuned,
+  bit-crushed tune with a music box and a drone; a driving chase theme whenever it or its pack comes for you; its own in
+  the Mire; and at the fifth stage a cheerful little tune that falls apart a little more each time round. **The Mire's
+  ruins**: a drowned chapel, a watcher's spire, a bone altar, a sunken archive and the surveyors' last camp, with chests
+  of decent loot (diamonds, enchanted books and gear, golden apples, its own items) and journals.
 * **Its voice and its music** (1.1.2, your recordings): while it is around, its own theme replaces the game's music
   — *lurking* in the Weeping Mire, its home — and the game's music fades back once it has gone. A sting when you spot
   it, a scream when it snaps or comes for you (and over the blow that kills), a grunt as it arrives out of nowhere, its
@@ -145,7 +166,7 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   effigies, temporary openings, animals turning) through a **restoration ledger**: recorded, locked, reload-safe,
   dupe-proof, and the player's own changes always win.
 * **Bounded memory** of each player: breadcrumbs, home, familiar routes, habits, a favoured bearing.
-* **Progression**: 33 discoveries written in the Field Notes; Tally Chalk, Witness Lens, Ward Lantern, Vestiges, and
+* **Progression**: 44 discoveries written in the Field Notes; Tally Chalk, Witness Lens, Ward Lantern, Vestiges, and
   the **Flare** (thrown; its glare drives it off within 16 blocks, even mid-attack); the Vigil as the long-term goal;
   three post-ending modes.
 * **Config Wheel**: one item for status, a harmless *See it now* preview of the creature and all its animations,

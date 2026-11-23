@@ -1,0 +1,27 @@
+{
+  "format_version": "1.21.130",
+  "minecraft:jigsaw": {
+    "description": {
+      "identifier": "wmire:bone_altar"
+    },
+    "step": "surface_structures",
+    "terrain_adaptation": "beard_thin",
+    "start_pool": "wmire:bone_altar",
+    "max_depth": 1,
+    "start_height": {
+      "type": "constant",
+      "value": {
+        "absolute": -1
+      }
+    },
+    "heightmap_projection": "world_surface",
+    "liquid_settings": "ignore_waterlogging",
+    "biome_filters": [
+      {
+        "test": "has_biome_tag",
+        "operator": "==",
+        "value": "wmire_weeping_mire"
+      }
+    ]
+  }
+}

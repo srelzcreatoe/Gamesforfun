@@ -1,4 +1,4 @@
-import { system } from "@minecraft/server";
+import { system, BlockPermutation } from "@minecraft/server";
 import { runProto } from "./proto.js";
 import { runSpeed } from "./speed.js";
 import { runSuite, checkRecovery, interruptSetup, measureTps } from "./suite.js";
@@ -12,5 +12,15 @@ system.afterEvents.scriptEventReceive.subscribe((ev) => {
   if (ev.id === "otest:tps") measureTps().catch(fail("tps"));
   if (ev.id === "otest:recovery") checkRecovery().catch(fail("recovery"));
   if (ev.id === "otest:interrupt") interruptSetup().catch(fail("interrupt"));
+  // dev: the full default states of some blocks (tools/make_structures.py needs them exactly)
+  if (ev.id === "otest:states") {
+    for (const id of ev.message.trim().split(/[\s,]+/)) {
+      try {
+        console.warn(`[OTEST] states ${id} ${JSON.stringify(BlockPermutation.resolve(id).getAllStates())}`);
+      } catch (e) {
+        console.warn(`[OTEST] states ${id} ERROR ${e}`);
+      }
+    }
+  }
 });
 system.run(() => console.warn("[OTEST] testkit loaded"));

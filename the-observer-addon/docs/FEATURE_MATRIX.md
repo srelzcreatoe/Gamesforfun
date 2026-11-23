@@ -291,6 +291,20 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | The Procession | `possession.procession` | stage 4+, a night, villagers | out in a line at the edge, facing the Mire; seen; back by dawn | `procession_walks_out`, `procession_in_a_line_at_the_edge`, `procession_faces_the_mire`, `procession_seen`, `procession_back_by_dawn` | ✅ Runtime (villagers asleep in beds ❔) |
 | Mine first | `possession.mineFirst` | another add-on's creature about to reach you | stopped, walked off; never reached you | `mine_first_stops_it`, `mine_first_walks_it_off`, `mine_first_it_never_reached_you`, `mine_first_discovered` | ✅ Runtime |
 
+## 1.5.0: overwhelming; it talks; its glitch; the takeover; the corruption; ahead of you; its music; the Mire's ruins
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| Overwhelming pacing, Nightmare | `PRESETS`, director gaps, stage thresholds | always | 4-min grace on Standard, faster stages, shorter gaps; Nightmare preset | (whole suite) | ✅ Runtime |
+| It talks | `observer/talk.js` | every 1-5 min by stage; on what you do | lines about you, in chat / whisper / title, words breaking up | `talk_it_speaks_to_you`, `talk_it_knows_your_name`, `talk_silent_when_switched_off` | ✅ Runtime (the look of the text ❔) |
+| It asks | `talk.ask`, `talk.hooks.act` | stage 3+, a fair moment | a question; the answer acts; no answer is an answer | `talk_it_asks`, `talk_no_answer_is_an_answer`, `talk_an_answer_angers_it` | ✅ Runtime (answering in a client ❔) |
+| Fourth wall | `talk.fourth` | rare, stage 3+ | joined line, own-name line, static screen | `talk_fourth_wall` | ✅ Runtime (the look ❔) |
+| Its glitch | `puppets.glitchStep`, `body.maintain`, `glitch_aura`/`glitch_burst` | always on what it holds | aura; jitter, freeze, snap, scrambled name, static; given back whole | `glitch_what_it_holds_glitches`, `glitch_its_name_scrambles`, `glitch_still_its`, `glitch_given_back_whole` | ✅ Runtime (the look ❔) |
+| The takeover | `possession.takeover` | stage 4+ at night; rage at stage 5; an angry answer | every creature near you; one wears your name; the hostile ones hunt | `takeover_takes_them_all`, `takeover_one_wears_your_name`, `takeover_they_all_look_at_you`, `takeover_then_the_hostile_ones_hunt_you`, `takeover_names_given_back` | ✅ Runtime |
+| The corruption | `observer/corrupt.js` | rage, anger, takeover, rare at stage 4+ | the ground breaks up, put back exactly | `corruption_the_ground_breaks_up`, `corruption_put_back_as_it_was` | ✅ Runtime |
+| Ahead of you; where you hid | `common.outthink`, `cutAhead`, `noteHideout`, `glitchStep` | every chase | in front of you when you pull away; waiting at your hideout | `ahead_it_is_in_front_of_you`, `ahead_waits_where_you_hid` | ✅ Runtime |
+| Its broken music | `hush.trackFor`, `tools/synth_music.py` | stage 4+, chases | stalk / mire / end; the chase theme | `music_broken_from_the_fourth_stage`, `music_the_chase_when_it_comes` | ✅ Runtime (the sound ❔) |
+| The Mire's ruins | `tools/make_structures.py`, `worldgen/*`, `loot_tables/wmire/*` | world generation in the Mire | five ruins with chests, barrels, journals; decent loot | `ruins_*_loads_whole`, `ruins_loot_*`, `mire_locate.txt` (located 80 and 144 blocks from spawn) | ✅ Runtime |
+
 ## Performance
 | Measure | Result | Test |
 |---|---|---|

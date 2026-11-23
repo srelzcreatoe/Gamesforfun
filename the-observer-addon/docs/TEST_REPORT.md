@@ -152,6 +152,8 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | targeted (1.4.0: its hold against a stand-in for another add-on's scripted creature, the cold eye and its charm, the chase, its pack, the mirror, the guide, the procession, mine first; with its puppets, its herald and its servants) | 95 + 95 + 95 | 12 + 4 + 1 | first run: 8 failures were test-side (the test kit read the Observer's own note on a creature — a pack's dynamic properties are its alone — and the herald ran straight after a group that used the encounter it announces); real: another pack's every-tick teleport won every frame (fixed with the end-of-tick look: 0 → 60 of 60), invisibility got through (the effect event names effects by display name: fixed), the hunt ran at 3.99 b/s (ground friction: fixed, 5.78), and a pack's blocker gave up its doorway for good (fixed). Third run: the blocker rightly turned on the player its partner's blows had knocked into its doorway (the test now holds the player in place) |
 | full (1.4.0, first) | 547 (cut short) | 16 | the groups clear creatures away between them, as another add-on would — and its own were now brought back, and wandered into later groups; and *Mine first* stopped creatures the older groups need to reach the player. Both are switched off in the test set-up and on in their own groups (`bringback`, `mine`); a run of the suite in the background was also stopped by its time limit |
 | **final (1.4.0)** | **563** | **1** | the 1.3.0 suite plus its hold — harmless while held (its blow, harm in its name and in no one's: 17 undone, 0 taken), pulled back from you, from far off, from the Nether, from a teleport every single tick (60 of 60), unhidden, untouchable but by you, brought back when deleted or killed, learning the kind, and dangerous when turned loose; cold eyes and the charm; the chase at 5.8 b/s, straight, round a wall, up a pillar, through a door; its pack and the doorway; the Mirror; the Guide; the Procession; Mine first; the rage hunting as one. The one failure, `standoff_shot_provokes`, is a timing race in a 1.0.9 test (the standoff ended — looked away from — a moment before the arrow could land; nothing of 1.4.0 is involved): the standoff group then passed twice in a row on its own, 28 of 28 |
+| targeted (1.5.0: it talks and asks, its puppets glitch, the takeover, the corruption, it cuts ahead of you and waits where you hid, its broken music, the Mire's ruins and their loot; with its puppets, the hold, the chase, its pack, the relentless attack, the standoff and the music) | 97 + 49 + 10 | 4 + 1 + 0 | real: a question nobody answered waited forever (a player who walks away from the screen never closes the form) — it now gives up after a minute, closes the form and takes the silence as an answer (`talk_no_answer_is_an_answer`); cutting ahead of you lived only in the relentless attack, while the pursuit and the test strike ran chase loops of their own — all three now share one (`outthink`). Test-side: the test's flight was too slow to count as running away, and the hiding place was recorded after the test had already moved the player (script events arrive a moment late) |
+| full (1.5.0, first) | 597 | 2 | `talk_it_asks`: a question it had asked on its own was still open when the test asked for one (the test now counts from the start of its group); `music_the_chase_when_it_comes` — real: the test strike (the Config Wheel's *Test an encounter*) chased without the chase music until the rage took over; it now plays it from the first step. The affected groups then passed, 29 of 29 |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -329,6 +331,13 @@ which is why only test worlds get it.
 | `guide` | 4 | — |
 | `procession` | 5 | — |
 | `mine_first` | 4 | — |
+| `talks` | 7 | — |
+| `glitches` | 4 | — |
+| `takeover` | 6 | — |
+| `corruption` | 2 | — |
+| `ahead` | 3 | — |
+| `its_music` | 2 | — |
+| `ruins` | 11 | — |
 | `natural` | 1 | — |
 | `status` | 0 | — |
 
@@ -476,6 +485,20 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
    Mirror (a cow 15 blocks ahead) and The Guide (a cow 10 blocks off); `/scriptevent observer:procession` at night near
    three or more villagers (and in bed); `/scriptevent observer:mine always` with a zombie walking at you. Provoke a rage
    with creatures around (stage 4) from inside a house: one should wait in the doorway.
+21. **1.5.0** — Stage 3+ (`/scriptevent observer:stage 4`): it should speak now and then — in chat under a name that
+   keeps changing, as a whisper over the hotbar, and from stage 4 sometimes as a title — and use your name, your
+   coordinates, your bed, your deaths. `/scriptevent observer:talk ask` opens one of its questions: answer each way
+   once (it shows itself, gets angry — the ground breaks up — comes inside, knocks, or leaves you alone for a while),
+   then once press Escape and once leave it for a minute ("Answer me."). Mark a creature its puppet and watch it glitch:
+   a jitter, a freeze, a snap round, its name scrambling, a crackle of static, the shreds around it — and it is still
+   its own. Near several animals and a zombie: `/scriptevent observer:takeover` — all of them turn to you at once, one
+   follows you wearing your name, then the hostile ones hunt you. `/scriptevent observer:corrupt`: the ground around you
+   breaks up into black, red and crying obsidian for a few seconds, then is exactly as it was. Run from a chase
+   (Test an encounter → The Closed Path or a rage) — it should appear in front of you, and the second time you run to the
+   same hiding place it should already be there. The music: from stage 4 its stalking theme, the chase theme in a chase,
+   its theme in the Mire, and at stage 5 the end theme — check they are loud enough but not painful. Find a ruin in
+   the Mire (`/locate structure wmire:drowned_chapel`; likewise `wmire:watchers_spire`, `wmire:bone_altar`,
+   `wmire:sunken_archive`, `wmire:surveyors_camp`): it should sit on the ground (the archive sunk into it), with its chest, barrels and lectern book.
 
 ## 7. Bugs found and fixed
 
@@ -519,6 +542,22 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
 * The new too-close reaction cut *Borrowed Work* short (walking up to the source is that encounter's answer) — it now
   handles the approach itself; spots far below the player's level are penalised (an *Echo Ahead* spot landed 64
   blocks below the test platform).
+
+**Found by the 1.5.0 tests**
+* **A question nobody answered waited forever**: a form the player never closes (they walked away from the screen, or
+  a simulated player) never answers, and the question was never asked again. It now gives up after a minute, closes
+  the form, says "Answer me." and knocks (`talk_no_answer_is_an_answer`).
+* **Cutting ahead only worked in one of its chases**: the relentless attack had it, but the pursuit (*Breathing Room*)
+  and the test strike run chase loops of their own. One shared step now runs in all three (`ahead_it_is_in_front_of_you`).
+* **The test strike had no chase music** until the rage took over; it now plays from its first step
+  (`music_the_chase_when_it_comes`).
+* Test-side: the test's flight was too slow to count as running away; the hiding place was recorded only after the
+  test had moved the player on (script events arrive a moment late — the test now waits); a question it had asked on
+  its own was still open when the test asked for one (the test counts from the start of its group).
+* A dip in the tick rate during the procession (18.4 at worst, once in three) was traced with a developer-only step
+  timer and pause detector: no step of the add-on took 25 ms or more; the pause (about 0.4 s) comes straight after the
+  test builds its lot and spawns four villagers, and 1.4.0 shows the same dip on the same test (18.4, 20.0, 17.7). Not
+  the add-on.
 
 **Found by the 1.4.0 tests** (the hold was tested against a stand-in for another add-on's creature, driven by its own
 scripts in the test kit's separate script context: teleporting it to the player, 25 blocks away, into the Nether and

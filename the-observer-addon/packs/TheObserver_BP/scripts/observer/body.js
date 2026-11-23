@@ -308,6 +308,8 @@ export function maintain(run) {
   // behind a tree: it looks round the trunk at you; look straight at it and it ducks back behind it, and waits
   // until you look away to look round again — after being caught twice on one side, from the other side
   if (b.hide && b.mode === "still" && (b.state === "watch" || b.state === "peek") && b.target?.isValid && b.target.dimension.id === e.dimension.id) peekaboo(b, b.target);
+  // 1.5.0: it is never quite whole — torn fragments flicker about it
+  if (run % 2 === 0 && b.state !== "hidden") safe(() => e.dimension.spawnParticle(PARTICLES.glitchAura, { x: l.x, y: l.y + (b.stoop ? 0.6 : 1.4), z: l.z }));
   if (run % 4 !== 0) return;
   // eyes glow (client layer + glow at the eye locators) at night or in darkness
   const head = { x: l.x, y: l.y + (b.stoop ? 2.45 : 3.62), z: l.z };

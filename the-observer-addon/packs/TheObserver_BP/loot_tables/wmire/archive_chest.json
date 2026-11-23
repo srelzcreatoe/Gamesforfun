@@ -1,0 +1,178 @@
+{
+  "pools": [
+    {
+      "rolls": {
+        "min": 4,
+        "max": 7
+      },
+      "entries": [
+        {
+          "type": "item",
+          "name": "minecraft:book",
+          "weight": 14,
+          "functions": [
+            {
+              "function": "enchant_randomly"
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:book",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 2,
+                "max": 5
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:paper",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 4,
+                "max": 12
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:ink_sac",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 1,
+                "max": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:empty_map",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:compass",
+          "weight": 4
+        },
+        {
+          "type": "item",
+          "name": "minecraft:experience_bottle",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 4,
+                "max": 10
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:emerald",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:feather",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "observer:field_notes",
+          "weight": 3
+        },
+        {
+          "type": "item",
+          "name": "minecraft:writable_book",
+          "weight": 4
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "set_book_contents",
+              "author": "The Archivist",
+              "title": "Index of the Unwritten",
+              "pages": [
+                "Catalogue, shelf 1:\naccounts of the\nfigure at the edge\nof the trees.\n\nAll of them end the\nsame way: it was\ncloser.",
+                "Shelf 2: letters\nto no one. Written\nin a hand none of\nus had. Signed with\nthe names of the\npeople who found\nthem.",
+                "Shelf 3: empty.\n\nIt took that shelf\nfirst. It took the\nbooks about itself.",
+                "I have stopped\nwriting its name.\nWhen I write it,\nthe ink runs\nbackwards.",
+                "I buried the archive\nto keep it from\nreading us.\n\nIt reads anyway."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "set_book_contents",
+              "author": "Fr. Aldous Wren",
+              "title": "The Choir",
+              "pages": [
+                "We built the chapel\nwhere the marsh was\nquietest. We thought\nthe quiet was holy.\n\nIt was listening.",
+                "Every evening the\nchoir sang to the\ntree line. Every\nevening something\nstood at the edge\nof the fog and did\nnot sing back.",
+                "It stood in the\ndoorway during\nvespers. Nobody\nturned round. We\nall knew. We sang\nlouder.",
+                "One by one the\nvoices went. Not\ndead. Gone. Their\npews still face the\naltar.\n\nThey still face it.",
+                "If you are reading\nthis, do not pray\nhere. It answers."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

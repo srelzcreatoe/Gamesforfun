@@ -21,6 +21,7 @@ import { discover, give } from "./discoveries.js";
 import { openJournal, openAfter, showLater } from "../ui/forms.js";
 import { throwFlare } from "./flare.js";
 import * as puppets from "../observer/puppets.js";
+import * as talk from "../observer/talk.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
 
@@ -133,6 +134,7 @@ function useLens(p, onLensed) {
       onLensed(b.enc);
       discover(p, "through_the_lens");
       pressure(p);
+      talk.react(p, "lens", 0.5);
       return;
     }
   }
@@ -140,6 +142,7 @@ function useLens(p, onLensed) {
   if (puppets.lensOn(p)) {
     safe(() => p.onScreenDisplay.setActionBar({ rawtext: [{ translate: "observer.ui.lens_puppet" }] }));
     discover(p, "its_puppets");
+    talk.react(p, "lens", 0.4);
     return;
   }
   // nothing to hold: the lens shows where it has walked

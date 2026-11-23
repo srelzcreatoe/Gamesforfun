@@ -81,6 +81,11 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   list and are not verifiable on a server.
 * Forms (Field Notes — including "Pages I didn't write" and what it has learned — settings), action-bar captions, title
   cards, camera fades and shakes (the fade API and the `camerashake` command were accepted by the server).
+* 1.5.0: how its talking reads in a real chat and on screen (the scrambled letters, the titles); answering its
+  questions with a real player (the simulated players in the tests cannot answer a form, so only "no answer" is tested);
+  the fourth-wall scares; the glitch aura and stutters on real creatures; the new music (rendered and checked as
+  spectrograms and levels, not listened to here) and its balance against the game; the five ruins as they generate (they
+  load whole and are located in a fresh world, but how they sit on uneven ground is untested).
 * 1.4.0, its hold and the chase: a real creature from another add-on marked "Its puppet" in survival — that its own
   scripts no longer get it away (the stand-in in the tests teleports it, hides it, clears its effects, deletes it, kills
   it, and hurts players in its name; all of that is undone), how the pull back reads when it happens (a crack and a puff
@@ -199,14 +204,16 @@ the sounds of your own work and plays them from where you are not. It gets home 
 you to find. It closes the tunnel behind you. It can be understood — and if you pay attention long enough, you can
 finally meet its gaze.
 
-* 30 encounter types, three signature encounters, five escalating stages
+* 32 encounter types, three signature encounters, five escalating stages
 * A home of its own: the Weeping Mire, a swamp of weeping trees where it watches from between the trunks, and eight
   torn pages that bring it closer
 * It learns how you escape, goes quiet before it attacks, and writes pages in your notes from what you did
 * Some nights you wake unable to move, and it is standing at the foot of your bed; the animals always know where it is
 * The other creatures of the dark answer to it — and what hurts you, it may take apart
 * It takes creatures for its own: you will know them by their eyes
+* It talks to you — by name — asks you questions and acts on your answers; what it holds glitches; ruins in its swamp
+  hold its things
 * Real, reversible world changes — your builds are protected and your own changes always win
-* 33 discoveries, a Witness Lens, Tally Chalk, Ward Lanterns, Flares, and an ending you can reach
+* 44 discoveries, a Witness Lens, Tally Chalk, Ward Lanterns, Flares, and an ending you can reach
 * Works across the Overworld, caves, water, the Nether and the End; multiplayer-aware; no experiments needed
 * Atmosphere, Standard and Relentless presets; captions and full control over scares and camera effects

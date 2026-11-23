@@ -25,6 +25,13 @@
 //                        and walks it off into the dark. It is not saving you; you are its, and it does not share.
 //   kept below           a kind whatever made it takes back whenever it is up on the surface is kept below: its marked
 //                        puppets of that kind are taken only while you are down there too.
+// 1.5.0:
+//   the takeover         every creature around you at once — animals, monsters, another add-on's dwellers — is its for a
+//                        few moments: they all stop, glitch, and turn to look at you; one of them wears your name and
+//                        comes to stand beside you. From the fourth stage the hostile ones then come for you as its pack.
+//                        Stage 4+, at night, now and then (20-40 min apart at least); in its rage at the fifth
+//                        stage; when you anger it.
+//   marked puppets       taken from further off (96 blocks), more often (every 4-7 minutes, 3 in 5).
 // Settings: "It takes creatures for its own" (on). Nothing of another add-on is touched or read (observer/puppets.js).
 import { system, world } from "@minecraft/server";
 import * as puppets from "./puppets.js";
@@ -33,9 +40,13 @@ import { primaryHaunt } from "./memory.js";
 import { S } from "../core/settings.js";
 import { W, ps, now, markPlayerDirty } from "../core/state.js";
 import { V, safe, emit, rand, allPlayers, DEBUG } from "../core/util.js";
+import { SOUNDS } from "../core/constants.js";
 import { findSpot, hideSpot, standNear } from "../world/space.js";
 import { seenByAny, visibility, lineOfSight } from "../world/sight.js";
 import { discover } from "../progression/discoveries.js";
+import * as talk from "./talk.js";
+import * as hush from "./hush.js";
+import { corrupt } from "./corrupt.js";
 
 /** @typedef {import("@minecraft/server").Entity} Entity */
 /** @typedef {import("@minecraft/server").Player} Player */
@@ -75,13 +86,13 @@ function marked(p, t) {
   if (!kinds.length) return;
   // a kind taken back from it whenever it is up on the surface is kept below: only while they are down there too
   const up = !underground(p);
-  const near = (safe(() => p.dimension.getEntities({ location: p.location, maxDistance: 64 }), []) ?? [])
+  const near = (safe(() => p.dimension.getEntities({ location: p.location, maxDistance: 96 }), []) ?? [])
     .filter((e) => kinds.includes(e.typeId) && free(e) && !(up && puppets.keepBelow(e.typeId)))
     .sort((a, b) => V.dist(a.location, p.location) - V.dist(b.location, p.location));
   if (!near.length) return;
-  s.puppetAt = t + (DEBUG.possess === "always" ? 20 : rand(600, 900) / Math.max(0.5, S().frequency));
+  s.puppetAt = t + (DEBUG.possess === "always" ? 20 : rand(240, 420) / Math.max(0.5, S().frequency));
   markPlayerDirty(p);
-  if (!chance(0.35)) return;
+  if (!chance(0.6)) return;
   markedRun(near[0], p).catch((err) => console.warn(`[Observer] puppet error: ${err}`));
 }
 
@@ -270,6 +281,7 @@ export function packHunt(p, ents) {
     puppets.setMode(pp, "hunt");
   });
   packs.set(pack, { pid: p.id, seen: false });
+  hush.chase(p.id, true, pack);
   emit("puppet", { what: "pack", pack, player: p.name, n: members.length, roles: members.map((m) => m.role), ids: members.map((m) => m.id) });
   return members.length;
 }
@@ -282,6 +294,7 @@ function packSeen(p) {
     const members = puppets.packOf(pack);
     if (!members.length) {
       packs.delete(pack);
+      hush.chase(k.pid, false, pack);
       continue;
     }
     if (k.pid !== p.id || k.seen) continue;
@@ -372,6 +385,79 @@ export function processionNow(p) {
   if (vs.length >= 3) walkOut(p, vs.slice(0, 8));
   DEBUG.possess = was;
   return processions.has(p.id);
+}
+
+
+// ---------------------------------------------------------------- the takeover (1.5.0)
+
+/** Not things, not bosses, not anyone's: a creature it can take in a crowd. @param {Entity} e */
+function takeable(e) {
+  if (!free(e) || e.typeId.startsWith("observer:")) return false;
+  if (!safe(() => e.matches({ families: ["mob"] }), false)) return false;
+  if (/^minecraft:(ender_dragon|wither|warden|elder_guardian|villager_v2|wandering_trader|iron_golem|snow_golem)$/.test(e.typeId)) return false;
+  return (safe(() => e.getComponent("minecraft:health")?.effectiveMax, 0) ?? 0) < 300;
+}
+
+/**
+ * Every creature around them at once (up to 12 within 24 blocks): they stop, glitch, and turn to look at them; one
+ * comes to stand beside them wearing their name. From the fourth stage (Standard or High) the hostile ones then hunt
+ * them as its pack. @param {Player} p @param {string} [why] @returns {number} how many it took
+ */
+export function takeover(p, why = "takeover") {
+  if (!on() || !p.isValid) return 0;
+  const s = ps(p);
+  const ents = (safe(() => p.dimension.getEntities({ location: p.location, maxDistance: 24, excludeTypes: ["minecraft:player", "minecraft:item"] }), []) ?? [])
+    .filter(takeable)
+    .sort((a, b) => V.dist(a.location, p.location) - V.dist(b.location, p.location))
+    .slice(0, 12);
+  if (!ents.length) return 0;
+  const eye = p.getHeadLocation();
+  /** @type {import("./puppets.js").Puppet[]} */
+  const mine = [];
+  for (const e of ents) {
+    const pp = puppets.take(e, "takeover", { p, mode: "stand", seconds: 16, face: eye });
+    if (pp) mine.push(pp);
+  }
+  if (!mine.length) return 0;
+  s.takeoverAt = now() + (DEBUG.possess === "always" ? 20 : rand(1200, 2400));
+  markPlayerDirty(p);
+  // they all look at them; one comes to stand beside them, in their name
+  for (const pp of mine) pp.face = undefined;
+  const wearer = mine.find((pp) => !safe(() => pp.e.matches({ families: ["monster"] }), false)) ?? mine[0];
+  puppets.wearName(wearer, p.name);
+  puppets.setMode(wearer, "follow", { keep: 3 });
+  safe(() => p.playSound(SOUNDS.static, { volume: 0.7 }));
+  talk.react(p, "takeover");
+  emit("puppet", { what: "takeover", why, player: p.name, n: mine.length, ids: mine.map((m) => m.id), wearer: wearer.id });
+  discover(p, "the_takeover");
+  // then, from the fourth stage: the hostile ones come for them as one
+  system.runTimeout(() => {
+    if (!p.isValid || !puppets.mayHunt(p)) return;
+    const hostile = mine.filter((pp) => puppets.get(pp.id) === pp && safe(() => pp.e.matches({ families: ["monster"] }), false));
+    for (const pp of hostile) puppets.release(pp.id, "quiet");
+    if (hostile.length) packHunt(p, hostile.map((pp) => pp.e).filter((e) => e.isValid));
+  }, DEBUG.possess === "always" ? 60 : 160);
+  return mine.length;
+}
+
+/** Stage 4+, at night, outdoors in the overworld, now and then: the takeover. @param {Player} p @param {number} t */
+function takeoverNow(p, t) {
+  const s = ps(p);
+  if (s.stage < 4 || t < (s.takeoverAt ?? 0) || DEBUG.possess === "never" || DEBUG.ambient === "never") return;
+  const tod = safe(() => world.getTimeOfDay(), 6000) ?? 6000;
+  if (p.dimension.id !== "minecraft:overworld" || tod < 13000 || tod > 23000) return;
+  s.takeoverAt = t + 60;
+  if (!chance(0.06)) return;
+  if (takeover(p)) corrupt(p, { n: 8 });
+}
+
+/** Tests and its anger: the takeover, now. @param {Player} p */
+export function takeoverFor(p) {
+  const was = DEBUG.possess;
+  DEBUG.possess = "always";
+  const n = takeover(p, "now");
+  DEBUG.possess = was;
+  return n;
 }
 
 // ---------------------------------------------------------------- mine first (1.4.0)
@@ -494,6 +580,7 @@ export function tick() {
     safe(() => nightTurn(p, t));
     safe(() => procession(p, t));
     safe(() => packSeen(p));
+    safe(() => takeoverNow(p, t));
   }
   safe(() => keepAway());
 }

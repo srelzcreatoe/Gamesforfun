@@ -17,7 +17,8 @@ import { V, safe } from "../core/util.js";
 import { litLightsNear } from "../world/manipulate.js";
 import { findSpot, standNear } from "../world/space.js";
 import { context } from "../director/context.js";
-import { sighting, relentless } from "./common.js";
+import { sighting, relentless, chaseState, outthink, noteHideout } from "./common.js";
+import * as hush from "../observer/hush.js";
 import * as learn from "../observer/learn.js";
 import * as climb from "../observer/climb.js";
 import * as squeeze from "../observer/squeeze.js";
@@ -97,11 +98,16 @@ register({
     const lightBonus = learn.lightBonus(enc);
     const escapeAt = 48 + learn.outrunBonus(enc);
     const track = { best: Infinity, since: 0 };
+    // 1.5.0: it cuts ahead of you, and glitches along its own way round; and its chase music
+    const outrun = chaseState(enc);
+    hush.chase(p.id, true, "pursuit");
+    try {
     for (let t = 0; t < 20 * 35; t += 4) {
       await enc.wait(4);
       const bl = body.loc();
       if (!bl) return;
       const dist = V.dist(p.location, bl);
+      if (outthink(enc, outrun, t, dist)) continue;
       const c = t % 20 === 0 ? context(p) : null;
       if (c && c.water && learn.adapted(enc.s) === "water" && !enc.data.shoreWaited) {
         // it has learned that you run for the water: it waits at the edge
@@ -172,6 +178,7 @@ register({
       if (escapedTicks >= 80) {
         enc.result("escaped", true);
         enc.discover("breathing_room");
+        noteHideout(p);
         return;
       }
       if (dist <= 2.7) {
@@ -182,5 +189,8 @@ register({
     }
     enc.result("outlasted", true);
     enc.discover("breathing_room");
+    } finally {
+      hush.chase(p.id, false, "pursuit");
+    }
   },
 });

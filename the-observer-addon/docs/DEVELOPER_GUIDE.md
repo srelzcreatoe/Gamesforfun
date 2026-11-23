@@ -55,6 +55,10 @@ the-observer-addon/
 | `observer/chase.js` | driving its puppets (1.4.0): `drive` (straight, or along a route; doors, climbs, hops, the twitch when stuck), `hunt` (speed, lunge, the strike through it), `packGoal` (driver / cutter / blocker), `face` |
 | `world/path.js` | finding the way for a driven creature (1.4.0): `straight`, `search` / `plan` (A* as a `system.runJob`), `chokepoint`, `bodyCells` — it depends only on the world |
 | `progression/charm.js` | the charm of cold eyes (1.4.0): the hum near its puppets |
+| `observer/talk.js` | it talks (1.5.0): `say`, `react`, `ask` (and `hooks.act`, filled in by main.js), `fourth`, `glitch`, `tick` |
+| `observer/corrupt.js` | the corruption (1.5.0): the ground breaks up for a few seconds, through the ledger |
+| `tools/synth_music.py` | its broken music and its glitch / static stings (1.5.0), original, rendered from oscillators |
+| `tools/make_structures.py`, `tools/nbt_le.py` | the Weeping Mire's ruins (1.5.0): .mcstructure files, loot tables, lore and world generation; a little-endian NBT reader/writer |
 | `encounters/mirrored.js`, `encounters/guide.js` | The Mirror and The Guide (1.4.0) |
 | `encounters/knocking.js`, `bait.js`, `among_them.js`, `rival_hunt.js` | Knocking, Bait, One of Them, What Was Left (1.3.0) |
 | `encounters/its_eyes.js` | its eyes (1.2.1): `eyesFor` (a creature that answers to it, ahead and in sight), the encounter |
@@ -249,6 +253,10 @@ Strings are split into 30 000-character chunks (`key`, `key#1`, …). `v` is the
 * Block searches use the native `dimension.getBlocks(volume, {includeTypes})` within ≤ 16 blocks.
 * Hard caps: one body, ≤ 800 ledger entries, ≤ 16 traces, ≤ 8 chalk marks per player, ≤ 64 wards.
 * Measured on BDS with the full suite running: see TEST_REPORT.md (tick-rate monitor).
+* Finding a slow step (1.5.0): with tracing on (`/scriptevent observer:trace on`, or `debug on`), the main steps of the
+  loops in `main.js` are wrapped in `timed(name, fn)`, which logs `slow <step>: N ms` when one takes 25 ms or more, every dev
+  command logs `slow command <name>` likewise, and a pause of 120 ms or more between two ticks logs `hitch N ms (last step
+  ...)`. With tracing off, `timed` is a plain `safe(fn)` and the pause check does nothing but read the clock.
 
 ## 9. Compatibility
 

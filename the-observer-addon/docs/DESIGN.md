@@ -699,3 +699,62 @@ the hold total — still without reading, copying or changing anything of the ot
 * **Cold eyes** (`progression/charm.js`): the charm is found anywhere in the inventory or the off hand (looked for once
   a second); the nearest puppet within 32 blocks — hidden ones included — sets the hum's volume (by distance, and by how
   directly the player faces it) and pitch, every 0.5-2 s.
+
+## 24. Overwhelming; it talks; it glitches; the takeover; the corruption; ahead of you; its music; the Mire's ruins (1.5.0)
+
+The user asked for the Observer to be far more intelligent and overwhelming — more than the Goatwalker add-on of theirs —
+with uncanny, distorted music in the spirit of the "exe" horror games, a glitch over everything it controls, unique
+abilities that chill, and for it to talk with the player; and for the Weeping Mire to have structures with good loot.
+
+* **Pacing** (`core/settings.js`, `director/director.js`, `progression/discoveries.js`): Standard is frequency 1.25 and a
+  4-minute grace (was 1.0 and 12); *Relentless* 1.7 and 2; new *Nightmare* 2.0 and 1, aggression High. The gap after an
+  encounter is `rand(60, 140) / freq × (1 − 0.07·stage) × mood × (1 + tension/200)` (was 110-240, 0.04, /150); quiet
+  spells every 4-7 encounters for 2-4 min (were every 3-5 for 4-8); recovery after a tier-3 encounter 90-150 s (was
+  180-240). Stages at exposure 2 / 5 / 9 / 14 with 1 / 2 / 3 / 5 encounters (were 3 / 8 / 14 / 22 with 2 / 3 / 5 / 8).
+* **It talks** (`observer/talk.js`): lines by occasion (low / mid / high by stage; greet, chase, ahead, hideout, escaped,
+  repelled, died, killed one of its own, takeover, the Mire, sleep, the lens, each new stage) with `{name}`, `{hx} {hz}`
+  (the primary haunt), `{deaths}`, `{days}`, `{item}` (in hand), `{slept}`, `{mined}`, `{doors}`, `{here}` filled from
+  what it already tracks; the last eight lines per player are not repeated. Three ways: chat (a speaker name that varies,
+  `§k` included), the action bar with a whisper, and a title at stage 4+. `glitch(text, level)` turns words and parts of
+  words into `§k` and stutters; level = 0.1 + 0.12·stage + tension/300. Ambient talk every 300/200/140/90/60 s × 0.75-1.5
+  by stage (2-5). Questions (`ActionFormData`) from stage 3, every 20-40 min, at a fair moment (health ≥ 60 %, not
+  flying, gliding, swimming, sleeping or riding, no monster within 12); six questions, each answer with a reply and an
+  act: `show` (Close, or the Figure at the Edge), `angry` (tension +30, next encounter within 15 s, quiet spell ended,
+  the corruption, and at stage 4+ the takeover), `inside` (It's Inside, else Knocking), `knock`, `calm` (5 quiet
+  minutes). A lie (alone, with another player within 48) is caught. Unanswered for a minute (or closed), it closes the
+  form (`uiManager.closeAllForms`) and says "Answer me." The add-on never reads chat (that needs the Beta APIs
+  experiment). Fourth wall (`fourth`): a yellow "joined the game" line, a `<name>` line, a black camera fade with an
+  error title and static. Settings `talks`, `fourthWall`.
+* **Its glitch** (`puppets.glitchStep`, `body.maintain`): `observer:glitch_aura` (3 fragments of a 64×64 sheet of torn
+  red/cyan/white bars, alive 0.1-0.3 s) every 6 ticks on its puppets and every 10 on its body; a stutter every 50-140
+  ticks per puppet: jitter (0.4-0.8 blocks sideways for 2 ticks), freeze (8-16 ticks, nothing moves it), snap (head
+  turned 180° for 3 ticks), name (`§4§k…` for 30 ticks), static (burst and sound only), each with
+  `observer:glitch_burst` and `observer.glitch`. The creature's own name is kept (`name0`, also in its note, so a
+  restart mid-glitch gives it back); the hold is unaffected.
+* **The takeover** (`possession.takeover`): every mob (family `mob`, not anyone's, not a boss, villager, trader or
+  golem, under 300 health) within 24 blocks, up to 12, taken in stand mode facing the player for 16 s; one (a non-monster
+  if there is one) wears the player's name and follows at 3 blocks (`puppets.wearName`); after 8 s, from stage 4 at
+  Standard/High, the monsters among them are handed to `packHunt`. Ambient: stage 4+, overworld, night, a 6 % roll a
+  minute once 20-40 min have passed; also its rage at stage 5 (`dominion.hooks.takeover`) and an `angry` answer.
+* **The corruption** (`observer/corrupt.js`): up to 12 natural ground blocks 1.5-7 blocks from the player (the `NATURAL`
+  set only — never builds or block entities; never warded, never a cell already in the ledger) become black concrete, red
+  concrete, crying obsidian or redstone block for 3-4.5 s through the ledger (kind `corrupt`), with bursts and static.
+  Its rage, an `angry` answer, the takeover, and at stage 4+ a 1-in-900 chance a second (at most every 10 minutes).
+* **Ahead of you** (`common.chaseState`, `outthink`, `cutAhead`, `glitchStep`, `noteHideout`), in every chase (Breathing
+  Room, its rage and attack, the test chase), Standard/High aggression: each second, if the player is 12+ blocks off and
+  pulling away, it moves 9-13 blocks ahead along their travel direction (±18°, ±35° if blocked) — or to a remembered
+  hideout (the last four places a player escaped or drove it off) when one lies 10-40 blocks away within 35° of where
+  they are running — at most 3 times a chase (4 on High), 5-7 s apart. Getting no closer for 3.5 s, it runs a quick A*
+  (`world/path.js`, 900 nodes, climbs allowed) and glitches 3-5 cells along it.
+* **Possession reach**: marked kinds within 96 blocks (was 64), every 4-7 minutes (was 10-15), a 60 % roll (was 35 %).
+* **Its music** (`hush.trackFor`, `tools/synth_music.py`): stage 1-3 the user's themes (around / lurking); stage 4
+  `observer.music.stalk` (in the Mire `observer.music.mire`), stage 5 `observer.music.end`, and `observer.music.chase`
+  whenever a chase or its pack is on (`hush.chase(pid, on, source)`). All original: a C-major chip tune and an A
+  harmonic-minor music box written in the script, rendered from oscillators, then slowed, detuned, wow-and-fluttered,
+  bit-crushed, partly reversed, stuttered, tape-stopped and cut with static; the chase is 152 BPM on an E / B♭ tritone.
+* **The Mire's ruins** (`tools/make_structures.py`, `tools/nbt_le.py`): five jigsaw structures in one structure set
+  (`wmire:mire_ruins`, random spread 8 / 3 chunks, Mire biome tag only, `beard_thin`): the drowned chapel (11×11×15),
+  the watcher's spire (7×20×7), the bone altar (11×6×11), the sunken archive (11×7×9, four deep), the surveyors' camp
+  (9×5×9). The .mcstructure files are written from Python with the server's own full default block states; chests and
+  barrels carry `LootTable` (six tables), lecterns carry original journals. Located in a fresh world 80 and 144 blocks
+  from spawn.

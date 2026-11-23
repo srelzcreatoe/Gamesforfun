@@ -352,15 +352,16 @@ function finish(enc) {
     W.stats.byType[enc.def.id] = (W.stats.byType[enc.def.id] || 0) + 1;
     s.tension = Math.min(100, s.tension + TIER_TENSION[enc.def.tier]);
     const freq = Math.max(0.25, S().frequency);
-    const gap = rand(110, 240) / freq * (1 - 0.04 * s.stage) * moodFactor(enc.ctx) * (1 + s.tension / 150);
+    // 1.5.0: overwhelming — shorter gaps, much shorter at the later stages, and fewer, shorter quiet spells
+    const gap = rand(60, 140) / freq * (1 - 0.07 * s.stage) * moodFactor(enc.ctx) * (1 + s.tension / 200);
     s.nextAt = t + gap;
     s.sinceQuiet++;
-    if (s.sinceQuiet >= Math.floor(rand(3, 6))) {
-      s.quietUntil = t + rand(240, 480) / freq;
+    if (s.sinceQuiet >= Math.floor(rand(4, 8))) {
+      s.quietUntil = t + rand(120, 240) / freq;
       s.sinceQuiet = 0;
       trace(`${enc.p.isValid ? enc.p.name : enc.pid}: quiet period`);
     }
-    if (enc.def.tier >= 3) s.recoveryUntil = Math.max(s.recoveryUntil, t + rand(180, 240));
+    if (enc.def.tier >= 3) s.recoveryUntil = Math.max(s.recoveryUntil, t + rand(90, 150));
     if (!enc.outcome.startsWith("aborted") && enc.p.isValid) {
       expose(enc.p, TIER_POINTS[enc.def.tier] + (enc.noticed ? 1 : 0) + enc.points);
       noteAttention(enc.p, enc.noticed);

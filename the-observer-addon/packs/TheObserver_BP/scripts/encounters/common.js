@@ -13,6 +13,11 @@ import * as climb from "../observer/climb.js";
 import * as squeeze from "../observer/squeeze.js";
 import * as profile from "../observer/profile.js";
 import * as dominion from "../observer/dominion.js";
+import * as hush from "../observer/hush.js";
+import * as talk from "../observer/talk.js";
+import { PARTICLES } from "../core/constants.js";
+import { dimIndex, emit } from "../core/util.js";
+import { search as pathSearch } from "../world/path.js";
 
 /** @typedef {import("../director/encounter.js").Encounter} Encounter */
 /** @typedef {{x:number,y:number,z:number}} Vec */
@@ -170,6 +175,11 @@ export async function relentless(enc, o = {}) {
   const loseAt = 64 + outrunBonus(enc);
   const mode = o.rage ? "rage" : "pursue";
   const track = { best: Infinity, since: 0 };
+  // 1.5.0: it does not stay behind you — and its music says so
+  const flee = chaseState(enc);
+  hush.chase(p.id, true);
+  talk.react(p, "chase", o.rage ? 1 : 0.6);
+  try {
   if (o.rage) {
     const l0 = body.loc();
     if (l0) enc.worldSound(SOUNDS.shriek, { x: l0.x, y: l0.y + 3, z: l0.z }, 1);
@@ -178,6 +188,9 @@ export async function relentless(enc, o = {}) {
     enc.emit("rage", {});
     // and the creatures it holds near them come too, its eyes still in them (1.2.1)
     dominion.unleash(p);
+    // 1.5.0: the ground around them breaks up; at the fifth stage every creature near them is its, at once
+    safe(() => dominion.hooks.corrupt?.(p));
+    if (ps(p).stage >= 5) safe(() => dominion.hooks.takeover?.(p));
   }
   for (let t = 0; t < end; t += 2) {
     // strikes back to back never pass through enc.wait(): check for an abort (flare, player left) here
@@ -191,14 +204,27 @@ export async function relentless(enc, o = {}) {
       await enc.wait(16);
       body.despawn("repelled");
       enc.result("repelled", true);
+      noteHideout(p);
+      talk.react(p, "repelled", 0.8);
       return "repelled";
     }
     const d = V.dist(l, p.location);
     if (d > loseAt) {
       body.despawn("lost_you");
       enc.result("escaped", true);
+      noteHideout(p);
+      talk.react(p, "escaped", 0.8);
       return "escaped";
     }
+    // running from it, getting away: it is suddenly ahead of you — or waiting where you always hide (1.5.0)
+    if (outthink(enc, flee, t, d, !!o.rage)) {
+      track.best = Infinity;
+      track.since = t;
+      await enc.wait(2);
+      continue;
+    }
+    // in its rage it is never clean: it tears and flickers as it comes
+    if (o.rage && t % 20 === 0) safe(() => enc.dim.spawnParticle(PARTICLES.glitchBurst, l));
     if (d <= 2.8) {
       const r = await body.strike(p, { recover: 8 });
       if (r === "hit") hits++;
@@ -219,6 +245,7 @@ export async function relentless(enc, o = {}) {
     }
     // a wall with a gap, a door, glass: it finds its own way through
     if (await squeeze.unstick(enc, track, t, d)) continue;
+
     body.setMode(mode);
     body.surge();
     // no footsteps: only the rush of air as it comes — and, enraged, screeches and groans
@@ -229,6 +256,134 @@ export async function relentless(enc, o = {}) {
   }
   body.despawn("gave_up");
   return enc.outcome || "gave_up";
+  } finally {
+    hush.chase(p.id, false);
+  }
+}
+
+/**
+ * How a chase is going, for outthink() (1.5.0). @param {Encounter} enc
+ * @returns {{last:number, checkAt:number, lastAhead:number, aheads:number, stallAt:number, stallD:number, stallCheck:number}}
+ */
+export function chaseState(enc) {
+  const l = body.loc();
+  return { last: l ? V.dist(l, enc.p.location) : Infinity, checkAt: -1e9, lastAhead: -1e9, aheads: 0, stallAt: 0, stallD: Infinity, stallCheck: -1e9 };
+}
+
+/**
+ * Every chase calls this as it goes (1.5.0). Running from it and getting away (12+ blocks off and pulling further away):
+ * it is suddenly ahead of them — or waiting where they hid before (three times a chase, four on High). Getting no
+ * closer for three and a half seconds (a maze, a cliff, a long way round): it glitches 3-5 blocks along a route of its
+ * own. Returns true when it moved (the chase should go round again). Standard or High aggression only.
+ * @param {Encounter} enc @param {ReturnType<typeof chaseState>} st @param {number} t ticks into the chase @param {number} d
+ * @param {boolean} [rage]
+ */
+export function outthink(enc, st, t, d, rage = false) {
+  if (DEBUG.ahead === "never" || aggression() < 2) return false;
+  if (t - st.checkAt >= 20) {
+    const grow = d - st.last;
+    st.last = d;
+    st.checkAt = t;
+    if (grow > 0.4 && d > 12 && t - st.lastAhead > (rage ? 100 : 140) && st.aheads < (aggression() >= 3 ? 4 : 3) && cutAhead(enc)) {
+      st.lastAhead = t;
+      st.aheads++;
+      st.stallAt = t;
+      st.stallD = Infinity;
+      return true;
+    }
+  }
+  if (t - st.stallCheck >= 10) {
+    st.stallCheck = t;
+    if (d < st.stallD - 1) {
+      st.stallD = d;
+      st.stallAt = t;
+    } else if (t - st.stallAt > 70 && d > 5 && glitchStep(enc)) {
+      st.stallAt = t;
+      st.stallD = Infinity;
+      return true;
+    }
+  }
+  return false;
+}
+
+/** Where they got away from it: it remembers (the last four), and waits there next time (1.5.0). @param {import("@minecraft/server").Player} p */
+export function noteHideout(p) {
+  if (!p.isValid) return;
+  const s = ps(p);
+  const d = dimIndex(p.dimension.id);
+  const l = p.location;
+  const list = (s.hideouts ?? []).filter((h) => !(h[0] === d && Math.hypot(h[1] - l.x, h[3] - l.z) < 8));
+  list.push([d, Math.round(l.x), Math.round(l.y), Math.round(l.z), Math.round(now())]);
+  s.hideouts = list.slice(-4);
+  markPlayerDirty(p);
+}
+
+/**
+ * It is suddenly ahead of them (1.5.0): 9-13 blocks on along the way they are running — or at a place they got away
+ * to before, if that is where they are heading — torn out of where it was and into where they are going.
+ * @param {Encounter} enc @returns {boolean}
+ */
+function cutAhead(enc) {
+  const p = enc.p;
+  const from = body.loc();
+  if (!from) return false;
+  const dir = travelDir(p);
+  const d = dimIndex(p.dimension.id);
+  const hide = (ps(p).hideouts ?? []).find((h) => {
+    if (h[0] !== d) return false;
+    const to = { x: h[1] - p.location.x, y: 0, z: h[3] - p.location.z };
+    const dist = Math.hypot(to.x, to.z);
+    // well inside the distance at which any of its chases lets them go (48 for the pursuit), or it would lose them by it
+    return dist > 10 && dist < 40 && V.angle(dir, to) < 35;
+  });
+  /** @type {Vec[]} */
+  const tries = [];
+  if (hide) tries.push({ x: hide[1] + 0.5, y: hide[2], z: hide[3] + 0.5 });
+  for (const off of [0, 18, -18, 35, -35]) {
+    const v = V.rotY(dir, off);
+    tries.push(V.add(p.location, V.scale(v, rand(9, 13))));
+  }
+  for (const to of tries) {
+    const st = standNear(enc.dim, to.x, to.z, p.location.y);
+    if (!st || V.hdist(st.loc, p.location) < 6) continue;
+    if (!body.moveTo(st.loc, p.getHeadLocation())) continue;
+    safe(() => enc.dim.spawnParticle(PARTICLES.glitchBurst, from));
+    safe(() => enc.dim.spawnParticle(PARTICLES.glitchBurst, st.loc));
+    enc.worldSound(SOUNDS.glitch, st.loc, 1, 0.7);
+    talk.react(p, to === tries[0] && hide ? "hideout" : "ahead");
+    enc.emit("relentless", { what: "ahead", hideout: !!(hide && to === tries[0]), d: Math.round(V.hdist(st.loc, p.location) * 10) / 10 });
+    enc.discover("wrong_way");
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Stuck a long way round: it glitches 3-5 blocks along a route it finds to them (a quick search, its own height,
+ * climbing allowed), torn from one spot to the next (1.5.0). @param {Encounter} enc @returns {boolean}
+ */
+function glitchStep(enc) {
+  const p = enc.p;
+  const from = body.loc();
+  if (!from) return false;
+  /** @type {import("../world/path.js").PathNode[]|undefined} */
+  let route;
+  const gen = pathSearch(enc.dim, from, p.location, { h: 2, climb: 5, maxNodes: 900, radius: 28, perTick: 1e9 }, (path) => {
+    route = path;
+  });
+  for (const _ of gen) {
+    // (one pass: perTick is above maxNodes)
+  }
+  if (!route || route.length < 2) return false;
+  const k = Math.min(route.length - 1, Math.max(2, Math.round(rand(3, 5))));
+  const n = route[k];
+  const to = { x: n.x + 0.5, y: n.y, z: n.z + 0.5 };
+  if (!body.moveTo(to, p.getHeadLocation())) return false;
+  safe(() => enc.dim.spawnParticle(PARTICLES.glitchBurst, from));
+  safe(() => enc.dim.spawnParticle(PARTICLES.glitchAura, to));
+  enc.worldSound(SOUNDS.glitch, to, 0.7, 1.1);
+  enc.emit("relentless", { what: "glitch_step", n: route.length, k });
+  return true;
 }
 
 /**

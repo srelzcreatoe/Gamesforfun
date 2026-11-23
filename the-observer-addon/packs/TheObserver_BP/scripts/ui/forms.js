@@ -185,7 +185,7 @@ export async function openSettings(p) {
     return;
   }
   const c = S();
-  const presets = ["atmosphere", "standard", "relentless", "custom"];
+  const presets = ["atmosphere", "standard", "relentless", "nightmare", "custom"];
   const f = new ModalFormData()
     .title(tr("observer.ui.settings_title"))
     .toggle(tr("observer.set.enabled"), { defaultValue: c.enabled })
@@ -207,7 +207,9 @@ export async function openSettings(p) {
     .toggle(tr("observer.set.heartbeat"), { defaultValue: c.heartbeat !== false })
     .toggle(tr("observer.set.animals"), { defaultValue: c.animals !== false })
     .toggle(tr("observer.set.creatures"), { defaultValue: c.creatures !== false })
-    .toggle(tr("observer.set.puppets"), { defaultValue: c.puppets !== false });
+    .toggle(tr("observer.set.puppets"), { defaultValue: c.puppets !== false })
+    .toggle(tr("observer.set.talks"), { defaultValue: c.talks !== false })
+    .toggle(tr("observer.set.fourth_wall"), { defaultValue: c.fourthWall !== false });
   const r = await f.show(p);
   if (r.canceled || !r.formValues) return;
   const v = r.formValues;
@@ -217,6 +219,7 @@ export async function openSettings(p) {
     enabled: !!v[0], frequency: Number(v[2]) / 100, aggression: Number(v[3]), manipulation: Number(v[4]),
     scares: Number(v[5]), camera: Number(v[6]), captions: !!v[7], graceMinutes: Number(v[8]), worldEffects: !!v[9], dev: !!v[10],
     illusions: !!v[11], learning: !!v[12], quiet: !!v[13], pages: !!v[14], returns: !!v[15], heartbeat: !!v[16], animals: !!v[17], creatures: !!v[18], puppets: !!v[19],
+    talks: !!v[20], fourthWall: !!v[21],
   };
   // choosing a named preset applies it; otherwise individual values make it "custom"
   if (chosenPreset !== c.preset && chosenPreset !== "custom") {

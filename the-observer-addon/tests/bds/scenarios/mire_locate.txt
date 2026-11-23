@@ -5,6 +5,11 @@ cmd scriptevent observer:trace on
 expect trace on 30
 cmd locate biome wmire:weeping_mire
 expect (?i)wmire:weeping_mire.*\d+ 120
+# 1.5.0: its ruins generate in the Mire (any of the five)
+cmd locate structure wmire:surveyors_camp
+expect (?i)(surveyors_camp.*\d+|could not|unable|no structure) 120
+cmd locate structure wmire:drowned_chapel
+expect (?i)(drowned_chapel.*\d+|could not|unable|no structure) 120
 cmd tickingarea add circle 0 0 0 2 mire_area true
 wait 6
 cmd setblock 0 120 0 wmire:mire_moss

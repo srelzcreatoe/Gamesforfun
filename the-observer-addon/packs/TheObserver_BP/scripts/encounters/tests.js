@@ -10,7 +10,7 @@ import { V, safe } from "../core/util.js";
 import { aggression } from "../core/settings.js";
 import { findSpot, standNear, coverSide, hideSpot } from "../world/space.js";
 import { lineOfSight } from "../world/sight.js";
-import { findSpotLoose, lunge, sighting, relentless } from "./common.js";
+import { findSpotLoose, lunge, sighting, relentless, chaseState, outthink } from "./common.js";
 import * as illusions from "../observer/illusions.js";
 import * as hush from "../observer/hush.js";
 import * as pages from "../observer/pages.js";
@@ -53,11 +53,21 @@ register({
     body.setMode("pursue");
     body.surge();
     const track = { best: Infinity, since: 0 };
+    const outrun = chaseState(enc);
+    // its chase music from the moment it comes (1.5.0)
+    hush.chase(p.id, true, "test");
+    try {
     for (let t = 0; t < 20 * 15; t += 2) {
       await enc.wait(2);
       const l = body.loc();
       if (!l) return enc.result("vanished");
       const d = V.dist(l, p.location);
+      // 1.5.0: run from it and it is ahead of you (the same as every chase)
+      if (outthink(enc, outrun, t, d)) {
+        body.setMode("pursue");
+        body.surge();
+        continue;
+      }
       // a wall with a gap, a door, glass: it finds its own way through
       if (await squeeze.unstick(enc, track, t, d)) {
         body.setMode("pursue");
@@ -77,6 +87,9 @@ register({
     }
     body.despawn("timeout");
     enc.result("no_contact");
+    } finally {
+      hush.chase(p.id, false, "test");
+    }
   },
 });
 

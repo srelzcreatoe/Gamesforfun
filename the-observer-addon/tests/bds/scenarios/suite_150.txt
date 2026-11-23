@@ -1,0 +1,7 @@
+# 1.5.0: it talks (and asks, and acts on the answer), its puppets glitch, the takeover, the corruption, it cuts ahead
+# of you and waits where you hid, its broken music, the Mire's ruins and their loot; regressions: its puppets, the chase,
+# the hold, its pack, the relentless attack, the standoff, the music.
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup talks glitches takeover corruption ahead its_music ruins puppets_core hold chase pack relentless standoff presence_music
+expect \[OTEST\] SUITE DONE 3600

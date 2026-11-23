@@ -71,6 +71,13 @@ prepared by `tools/prepare_supplied_sounds.py` (the raw WAVs are not kept in the
 the synthesized sounds (the arrival pressure, the shriek and the vanish) and add its sting when spotted, its whisper
 and its two themes. Their rights rest with the user who supplied them.
 
+1.5.0 adds original sounds and music synthesized by `tools/synth_music.py` (glitch1-3, static1-2, and four tracks in
+`sounds/observer/music/`: stalk, chase, mire, end — melodies written in the script, no samples, no existing songs), an
+original particle sheet drawn by `tools/make_textures.py` (`textures/particle/observer/glitch.png`) with two one-shot
+particle definitions (`glitch_aura`, `glitch_burst`), and five original structures written by `tools/make_structures.py`
+(`structures/wmire/drowned_chapel`, `watchers_spire`, `bone_altar`, `sunken_archive`, `surveyors_camp`) with their loot
+tables and original journals.
+
 1.4.0 adds two original item icons drawn by `tools/make_textures.py` (`cold_eye.png`, `cold_charm.png`) and one original
 sound synthesized by `tools/synth_sounds.py` (`charm_hum1.ogg`: two detuned partials a fifth apart, a faint shimmer, a
 breath of noise), for the Cold Eye and the Charm of Cold Eyes. The test kit's stand-in for another add-on's scripted
@@ -168,6 +175,40 @@ for the eyes it puts in the creatures that are its). 1.2.0 adds no asset files (
 | `TheObserver_RP/models/blocks/ward_lantern.geo.json` | original — tools/make_textures.py | `fa03764ae1ebdcb9` |
 | `TheObserver_RP/models/entity/the_observer.geo.json` | supplied — hollow_dweller.geo.json, identifier renamed and two eye locators added (tools/integrate_supplied_assets.py asserts cubes/UVs unchanged) | `48b77f6164817a47` |
 | `TheObserver_RP/pack_icon.png` | derived — crop of supplied dweller_preview.png on a generated background (tools/make_textures.py) | `2529bdac03c514e1` |
+| `TheObserver_RP/sounds/observer/glitch1.ogg` | original — synthesized by tools/synth_music.py (1.5.0): a crushed, gated square tone jumping in pitch, with a stutter: what it holds glitches | `1c99f71bdb958501` |
+| `TheObserver_RP/sounds/observer/glitch2.ogg` | original — synthesized by tools/synth_music.py (1.5.0): a second glitch variant (longer) | `766010fb5a9fda23` |
+| `TheObserver_RP/sounds/observer/glitch3.ogg` | original — synthesized by tools/synth_music.py (1.5.0): a third glitch variant (shorter) | `fa9e56ad4adad447` |
+| `TheObserver_RP/sounds/observer/static1.ogg` | original — synthesized by tools/synth_music.py (1.5.0): static with a mains hum: the corruption, a scrambled name | `226810c58cc0e5b8` |
+| `TheObserver_RP/sounds/observer/static2.ogg` | original — synthesized by tools/synth_music.py (1.5.0): a shorter burst of static | `51296887237e8cf5` |
+| `TheObserver_RP/sounds/observer/music/stalk.ogg` | original — synthesized by tools/synth_music.py (1.5.0; melodies written in the script, no samples, no existing songs): its stalking theme from the fourth stage — a warped music box in A harmonic minor over a beating drone, an original cheerful tune drifting in far too slow, detuned, crushed and partly backwards, static and drop-outs (loop) | `0bebd789dad62a74` |
+| `TheObserver_RP/sounds/observer/music/chase.ogg` | original — synthesized by tools/synth_music.py (1.5.0; melodies written in the script, no samples, no existing songs): the chase theme — 152 bpm, a driven bass on E and B-flat, a heartbeat kick, the same tune turned minor and fast, stutters, tape-stops and static | `ebcd8983510b52f1` |
+| `TheObserver_RP/sounds/observer/music/mire.ogg` | original — synthesized by tools/synth_music.py (1.5.0; melodies written in the script, no samples, no existing songs): its theme in the Mire from the fourth stage — a low drone, faint filtered-noise voices, slow out-of-tune bells, the tune as if from underwater (loop) | `aa9c7615b3fa962b` |
+| `TheObserver_RP/sounds/observer/music/end.ogg` | original — synthesized by tools/synth_music.py (1.5.0; melodies written in the script, no samples, no existing songs): the fifth-stage theme — the cheerful tune six times over, each slower, lower and more broken (crushed, warped, reversed, dropping out), until a tape-stop and a drone | `53d41429b5c7c277` |
+| `TheObserver_RP/textures/particle/observer/glitch.png` | original — drawn by tools/make_textures.py (1.5.0): glitch fragments for the aura round what it holds and the bursts | `69368823bc97f3ac` |
+| `TheObserver_RP/particles/glitch_aura.json` | original — written for 1.5.0 (one-shot; its own glitch texture) | `b57602aad7a6529a` |
+| `TheObserver_RP/particles/glitch_burst.json` | original — written for 1.5.0 (one-shot; its own glitch texture) | `4f50fb8c5746f37d` |
+| `TheObserver_BP/structures/wmire/drowned_chapel.mcstructure` | original — written block by block by tools/make_structures.py (1.5.0): a drowned chapel, with a chest and a lectern; the lectern holds an original journal | `727dcfee212e2994` |
+| `TheObserver_BP/structures/wmire/watchers_spire.mcstructure` | original — written block by block by tools/make_structures.py (1.5.0): a tall watchers' spire, with a chest, two barrels and a lectern; the lectern holds an original journal | `0193e574a8b0fa57` |
+| `TheObserver_BP/structures/wmire/bone_altar.mcstructure` | original — written block by block by tools/make_structures.py (1.5.0): a bone altar, with a chest and a lectern; the lectern holds an original journal | `35b2953d30f9ce7b` |
+| `TheObserver_BP/structures/wmire/sunken_archive.mcstructure` | original — written block by block by tools/make_structures.py (1.5.0): an archive sunk into the ground, with two chests and a lectern; the lectern holds an original journal | `304fdc1957127d03` |
+| `TheObserver_BP/structures/wmire/surveyors_camp.mcstructure` | original — written block by block by tools/make_structures.py (1.5.0): an abandoned surveyors' camp, with a chest, two barrels and a lectern; the lectern holds an original journal | `833d39a1f5c815b2` |
+| `TheObserver_BP/loot_tables/wmire/altar_chest.json` | original — tools/make_structures.py (1.5.0) | `79e3aede77416949` |
+| `TheObserver_BP/loot_tables/wmire/archive_chest.json` | original — tools/make_structures.py (1.5.0) | `97baa19ad8b2b76b` |
+| `TheObserver_BP/loot_tables/wmire/camp_barrel.json` | original — tools/make_structures.py (1.5.0) | `9342b17d7619ef61` |
+| `TheObserver_BP/loot_tables/wmire/camp_chest.json` | original — tools/make_structures.py (1.5.0) | `2adbae19cea6ce22` |
+| `TheObserver_BP/loot_tables/wmire/chapel_chest.json` | original — tools/make_structures.py (1.5.0) | `367a00615c2dbeee` |
+| `TheObserver_BP/loot_tables/wmire/spire_chest.json` | original — tools/make_structures.py (1.5.0) | `340c0330c24fc97d` |
+| `TheObserver_BP/worldgen/structures/bone_altar.json` | original — tools/make_structures.py (1.5.0) | `c0ebcb9ce1ca8bdc` |
+| `TheObserver_BP/worldgen/template_pools/bone_altar.json` | original — tools/make_structures.py (1.5.0) | `3bab5d481f30f415` |
+| `TheObserver_BP/worldgen/structures/drowned_chapel.json` | original — tools/make_structures.py (1.5.0) | `1f2d178374012a37` |
+| `TheObserver_BP/worldgen/template_pools/drowned_chapel.json` | original — tools/make_structures.py (1.5.0) | `899ab8dfc1f985d3` |
+| `TheObserver_BP/worldgen/structures/sunken_archive.json` | original — tools/make_structures.py (1.5.0) | `63a36e2b7e97ca74` |
+| `TheObserver_BP/worldgen/template_pools/sunken_archive.json` | original — tools/make_structures.py (1.5.0) | `07e6f32df3a2e1c8` |
+| `TheObserver_BP/worldgen/structures/surveyors_camp.json` | original — tools/make_structures.py (1.5.0) | `6500bc916f6a242d` |
+| `TheObserver_BP/worldgen/template_pools/surveyors_camp.json` | original — tools/make_structures.py (1.5.0) | `211fdaf0f67b68b0` |
+| `TheObserver_BP/worldgen/structures/watchers_spire.json` | original — tools/make_structures.py (1.5.0) | `f90b50e0e1eae9a9` |
+| `TheObserver_BP/worldgen/template_pools/watchers_spire.json` | original — tools/make_structures.py (1.5.0) | `bf1563073be67d3a` |
+| `TheObserver_BP/worldgen/structure_sets/mire_ruins.json` | original — tools/make_structures.py (1.5.0): the ruins scattered through the Weeping Mire | `1d29df8da9ecba4e` |
 
 ## Vanilla references
 
@@ -177,4 +218,4 @@ the Flare uses `random.bow`, `firework.blast`, `random.fuse` and `random.fizz`; 
 The thrown flare's client entity uses the vanilla `geometry.item_sprite`, `controller.render.item_sprite`,
 `animation.actor.billboard` and `snowball` material by reference, exactly as the vanilla snowball does.
 No vanilla audio files are copied into the packs. Block identifiers used by the scripts were checked against
-`@minecraft/vanilla-data` 1.26.52 (141 identifiers, see `tools/validate.mjs`).
+`@minecraft/vanilla-data` 1.26.52 (190 identifiers, see `tools/validate.mjs`).

@@ -40,6 +40,9 @@ export const PARTICLES = {
   puppetWisp: "observer:puppet_wisp",
   puppetShred: "observer:puppet_shred",
   puppetBurst: "observer:puppet_burst",
+  // 1.5.0: its glitch, on what it holds and where it tears through
+  glitchAura: "observer:glitch_aura",
+  glitchBurst: "observer:glitch_burst",
 };
 
 export const SOUNDS = {
@@ -80,6 +83,13 @@ export const SOUNDS = {
   themeMire: "observer.theme.lurking",
   // 1.4.0: the charm of cold eyes, humming near one of its puppets
   charmHum: "observer.charm_hum",
+  // 1.5.0: its glitch, its static, and its music (original, distorted)
+  glitch: "observer.glitch",
+  static: "observer.static",
+  musicStalk: "observer.music.stalk",
+  musicChase: "observer.music.chase",
+  musicMire: "observer.music.mire",
+  musicEnd: "observer.music.end",
 };
 
 export const FOGS = { dread: "observer:dread", soft: "observer:dread_soft", vigil: "observer:vigil" };

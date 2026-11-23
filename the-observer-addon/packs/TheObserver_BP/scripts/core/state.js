@@ -179,6 +179,11 @@ export function now() {
  * @property {number} [mineAt]       clock before which it does not stop another creature coming for them (1.4.0)
  * @property {number} [processionAt] clock before which no procession is walked out for them (1.4.0)
  * @property {boolean} [charmHeard]  their charm of cold eyes has hummed for them (1.4.0)
+ * @property {number} [talkLast]     clock it last said something to them (1.5.0)
+ * @property {number} [askAt]        clock it last asked them something (1.5.0)
+ * @property {number[][]} [hideouts] where they got away from it, [dim,x,y,z,clock] — it waits there next time (1.5.0)
+ * @property {number} [takeoverAt]   clock before which it takes no crowd of them at once (1.5.0)
+ * @property {number} [corruptAt]    clock of the last time the world around them broke up (1.5.0)
  * @property {number} lungeAt      clock of its last lunge at this player
  * @property {number} nearStrikeAt clock of its last strike because the player came too close
  * @property {Record<string,number>} [escapes] how often each way out was used (observer/learn.js)

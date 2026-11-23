@@ -7,6 +7,9 @@
 // And whenever it is around (1.1.0) — one of its encounters running for you, or its body within 64 blocks —
 // your music is cut completely and (1.1.2) its own theme plays in its place, looping: "lurking" in the Weeping Mire,
 // its home, the other one everywhere else. Once it has been gone a few seconds, the game's music fades back in.
+// 1.5.0: from the fourth stage its music is no longer the user's two themes but its own broken ones (original, made for
+// it: detuned, slowed, reversed, bit-crushed): "stalk" everywhere, "mire" in its home, "end" at the fifth stage — and
+// "chase" whenever it, or its pack, is coming for you, at any stage.
 import { ps } from "../core/state.js";
 import { S } from "../core/settings.js";
 import { safe, rand, emit, trace, DEBUG, allPlayers } from "../core/util.js";
@@ -107,6 +110,26 @@ export function end(p, pid, why) {
 
 /** @type {Map<string, number>} player id -> clock when it was last around them */
 const around = new Map();
+/** Players it is coming for right now (its chase, its pack's hunt), and what is coming: the chase music. @type {Map<string, Set<string>>} */
+const chasing = new Map();
+/** It (or its pack) is coming for this player now / no longer. @param {string} pid @param {boolean} on @param {string} [src] */
+export function chase(pid, on, src = "it") {
+  const set = chasing.get(pid) ?? new Set();
+  if (on) set.add(src);
+  else set.delete(src);
+  if (set.size) chasing.set(pid, set);
+  else chasing.delete(pid);
+}
+/** Which of its music for this player now. @param {Player} p @param {boolean} mire */
+function trackFor(p, mire) {
+  if (chasing.has(p.id)) return SOUNDS.musicChase;
+  const st = ps(p).stage;
+  if (st >= 5) return SOUNDS.musicEnd;
+  if (st >= 4) return mire ? SOUNDS.musicMire : SOUNDS.musicStalk;
+  return mire ? SOUNDS.themeMire : SOUNDS.themeAround;
+}
+const THEME_NAME = { [SOUNDS.themeMire]: "lurking", [SOUNDS.themeAround]: "around", [SOUNDS.musicChase]: "chase", [SOUNDS.musicEnd]: "end",
+  [SOUNDS.musicMire]: "mire", [SOUNDS.musicStalk]: "stalk" };
 
 /**
  * Every second: while it is around a player their music is replaced by its theme (once it arrives, even a silence
@@ -116,9 +139,9 @@ const around = new Map();
 export function presence(t, isAround, inMire) {
   const on = S().quiet !== false && S().enabled;
   for (const p of allPlayers()) {
-    if (on && isAround(p)) {
-      const track = inMire(p) ? SOUNDS.themeMire : SOUNDS.themeAround;
-      if (themed.get(p.id) !== track) emit("hush", { what: "presence", player: p.name, theme: track === SOUNDS.themeMire ? "lurking" : "around", music: theme(p, track) });
+    if (on && (isAround(p) || chasing.has(p.id))) {
+      const track = trackFor(p, inMire(p));
+      if (themed.get(p.id) !== track) emit("hush", { what: "presence", player: p.name, theme: THEME_NAME[track] ?? track, music: theme(p, track) });
       around.set(p.id, t);
       continue;
     }
@@ -137,4 +160,5 @@ export function forget(pid) {
   silenced.delete(pid);
   around.delete(pid);
   themed.delete(pid);
+  chasing.delete(pid);
 }

@@ -6,7 +6,7 @@ import { DEBUG } from "./util.js";
 /**
  * @typedef {Object} Settings
  * @property {boolean} enabled        master switch
- * @property {string} preset          atmosphere | standard | relentless | custom
+ * @property {string} preset          atmosphere | standard | relentless | nightmare | custom
  * @property {number} frequency       encounter rate multiplier 0.25..2
  * @property {number} aggression      0 never attacks, 1 low, 2 standard, 3 high
  * @property {number} manipulation    0 off (audio-visual only), 1 subtle, 2 standard, 3 unsettling
@@ -31,22 +31,32 @@ import { DEBUG } from "./util.js";
  * @property {Record<string, "kin"|"rival"|"ignore"|"puppet">} marks  what a kind of creature is to it, by type id (Config Wheel)
  * @property {boolean} puppets        it takes creatures for its own (1.3.0): its puppets, the herald, knocking, bait, the one cow,
  *                                    its guards in the Mire, the night they all turn, tribute
+ * @property {boolean} talks          it talks to you (1.5.0): in your chat, in whispers, across your screen, and now and
+ *                                    then it asks you something and waits for your answer
+ * @property {boolean} fourthWall     fourth-wall scares (1.5.0): a line that looks like the game's own ("joined the game"),
+ *                                    the screen cutting to static, a chat line in your own name
  */
 
 /** On/off settings added after 1.0.0, all on by default (older worlds get them switched on). */
-export const FEATURE_TOGGLES = ["illusions", "learning", "quiet", "pages", "returns", "heartbeat", "animals", "creatures", "puppets"];
+export const FEATURE_TOGGLES = ["illusions", "learning", "quiet", "pages", "returns", "heartbeat", "animals", "creatures", "puppets", "talks", "fourthWall"];
 
-/** @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects"|"off"|"illusions"|"learning"|"quiet"|"pages"|"returns"|"heartbeat"|"animals"|"creatures"|"marks"|"puppets">>} */
+/**
+ * 1.5.0: it is overwhelming now — Standard comes sooner and more often than before, and Nightmare is above Relentless.
+ * Atmosphere stays the gentle way to play.
+ * @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects"|"off"|"illusions"|"learning"|"quiet"|"pages"|"returns"|"heartbeat"|"animals"|"creatures"|"marks"|"puppets"|"talks"|"fourthWall">>}
+ */
 export const PRESETS = {
   atmosphere: { frequency: 0.6, aggression: 0, manipulation: 1, scares: 0, camera: 1, graceMinutes: 15 },
-  standard: { frequency: 1.0, aggression: 2, manipulation: 2, scares: 2, camera: 2, graceMinutes: 12 },
-  relentless: { frequency: 1.5, aggression: 3, manipulation: 3, scares: 2, camera: 2, graceMinutes: 5 },
+  standard: { frequency: 1.25, aggression: 2, manipulation: 2, scares: 2, camera: 2, graceMinutes: 4 },
+  relentless: { frequency: 1.7, aggression: 3, manipulation: 3, scares: 2, camera: 2, graceMinutes: 2 },
+  nightmare: { frequency: 2.0, aggression: 3, manipulation: 3, scares: 2, camera: 2, graceMinutes: 1 },
 };
 
 /** @returns {Settings} */
 export function defaults() {
   return { enabled: true, preset: "standard", ...PRESETS.standard, captions: false, worldEffects: true, dev: false, off: [],
-    illusions: true, learning: true, quiet: true, pages: true, returns: true, heartbeat: true, animals: true, creatures: true, marks: {}, puppets: true };
+    illusions: true, learning: true, quiet: true, pages: true, returns: true, heartbeat: true, animals: true, creatures: true, marks: {}, puppets: true,
+    talks: true, fourthWall: true };
 }
 
 /** @returns {Settings} */

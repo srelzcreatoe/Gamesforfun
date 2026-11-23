@@ -16,12 +16,16 @@ export const DISCOVERIES = [
   "elsewhere_too", "the_window", "close", "through_the_lens", "it_was_inside", "its_home", "foot_of_the_bed", "not_yours", "its_eyes",
   "its_puppets", "who_knocks", "the_voice_in_the_dark", "one_of_them", "what_was_left", "the_night_they_turned",
   "it_brings_them_back", "they_hunt_as_one", "the_mirror", "the_guide", "the_procession", "mine_first", "cold_eyes",
+  "the_takeover", "it_speaks", "wrong_way", "the_corruption",
 ];
 export const VIGIL_REQUIREMENT = 12;
+/** Called when a player reaches a new stage (1.5.0: it says something). @type {((p:Player, stage:number)=>void)[]} */
+export const stageHooks = [];
 
 /** Stage thresholds on exposure points. Stage 1 begins when the grace period ends. */
-export const STAGE_EXPOSURE = [0, 0, 3, 8, 14, 22];
-export const STAGE_MIN_ENCOUNTERS = [0, 0, 2, 3, 5, 8];
+// 1.5.0: it moves on faster — overwhelming, not patient
+export const STAGE_EXPOSURE = [0, 0, 2, 5, 9, 14];
+export const STAGE_MIN_ENCOUNTERS = [0, 0, 1, 2, 3, 5];
 
 /** @param {Player} p @param {string} id @returns {boolean} newly unlocked */
 export function discover(p, id) {
@@ -60,6 +64,9 @@ export function expose(p, pts) {
   while (s.stage < 5 && s.stage >= 1 && s.exposure >= STAGE_EXPOSURE[s.stage + 1] && s.encCount >= STAGE_MIN_ENCOUNTERS[s.stage + 1]) {
     s.stage++;
     trace(`${p.name} reached stage ${s.stage}`);
+    // it has a word for each new stage (1.5.0)
+    const st = s.stage;
+    system.runTimeout(() => safe(() => p.isValid && stageHooks.forEach((h) => h(p, st))), 60);
   }
   markPlayerDirty(p);
 }

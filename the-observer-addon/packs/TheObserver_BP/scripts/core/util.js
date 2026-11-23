@@ -151,6 +151,16 @@ export const DEBUG = {
   /** tests: "off" stops it bringing back puppets something else removed (test clean-up removes creatures between groups,
    *  as another add-on would); "on" (normal play) (1.4.0) */
   bringBack: "on",
+  /** tests: "never" keeps its puppets from glitching (checks of where they stand and face); "always" glitches them
+   *  every second or so (1.5.0) */
+  glitch: "auto",
+  /** tests: "always" makes it talk every few seconds and ask at once; "never" keeps it quiet (1.5.0) */
+  talk: "auto",
+  /** tests: "never" stops it cutting ahead of someone running from it, and glitching along its own route when stuck
+   *  (the older escape tests need the old chase) (1.5.0) */
+  ahead: "auto",
+  /** tests: "never" stops the world breaking up around a player and the takeover happening on their own (1.5.0) */
+  ambient: "auto",
   /** low-volume lifecycle lines (encounter start/end); enabled in dev mode and by the test kit */
   trace: false,
   /** @param {string} msg */

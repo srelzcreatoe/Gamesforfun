@@ -208,6 +208,12 @@ TESTS.setup = async () => {
   // a creature coming at the player could be stopped by it first: both only in their own groups
   obs("bringback", "off");
   obs("mine", "never");
+  // 1.5.0: it talks, glitches, breaks the ground up, takes them all at once and cuts ahead of you — each only in its
+  // own groups (the older groups check where things stand and face, and that you can get away)
+  obs("talk", "never");
+  obs("glitch", "never");
+  obs("ahead", "never");
+  obs("ambient", "never");
   obs("preset", "standard");
   await wait(20);
   const p = spawn("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
@@ -4476,6 +4482,269 @@ TESTS.mine_first = async () => {
   check("mine_first_discovered", discovered(m, "mine_first"));
   if (r.isValid) r.remove();
   obs("mine", "never");
+};
+
+// ------------------------------------------------------------------ 1.5.0: it talks; it glitches; the takeover; the corruption; ahead of you; its music; the Mire's ruins
+
+TESTS.talks = async () => {
+  // it talks to you — about you — asks you things, and acts on the answer (no answer is an answer too)
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  daylight(stand);
+  clearPuppetArena(stand);
+  const p = await freshTarget("Tester", stand, { x: stand.x, y: Y + 1.6, z: stand.z - 30 }, 3);
+  isolate(p);
+  let m = mark();
+  const m0 = m;
+  obs("talk", "always");
+  const said = await waitEvent("talk", (d) => d.what === "say" && d.player === "Tester", 20 * 15, m);
+  check("talk_it_speaks_to_you", !!said, JSON.stringify(said ?? {}));
+  m = mark();
+  obs("talk", "say", "stage3", "Tester");
+  const named = await waitEvent("talk", (d) => d.what === "say" && d.key === "stage3", 20, m);
+  check("talk_it_knows_your_name", !!named && named.text.includes("Tester"), JSON.stringify(named ?? {}));
+  // it asks (on its own, talking this much, or when told to); a simulated player cannot answer — and saying nothing
+  // is an answer
+  obs("talk", "ask", "0", "Tester");
+  const ask = await waitEvent("talk", (d) => d.what === "ask" && d.player === "Tester", 40, m0);
+  const ans = await waitEvent("talk", (d) => d.what === "answer" && d.player === "Tester", 20 * 8, m0);
+  check("talk_it_asks", !!ask);
+  check("talk_no_answer_is_an_answer", !!ans && ans.a === -1, JSON.stringify(ans ?? {}));
+  // the fourth wall
+  m = mark();
+  obs("talk", "fourth", "static", "Tester");
+  const fw = await waitEvent("talk", (d) => d.what === "fourth_wall" && d.kind === "static", 20, m);
+  check("talk_fourth_wall", !!fw);
+  // an answer's consequence: it is angry — the ground breaks up around you
+  m = mark();
+  obs("talk", "act", "angry", "Tester");
+  const cor = await waitEvent("corrupt", (d) => d.what === "corrupt" && d.player === "Tester", 40, m);
+  check("talk_an_answer_angers_it", !!cor && discovered(m, "the_corruption"), JSON.stringify(cor ?? {}));
+  // switched off: it is silent
+  obs("set", "talks", "false");
+  m = mark();
+  await wait(20 * 4);
+  check("talk_silent_when_switched_off", !since(m, "talk").some((d) => d.what === "say"));
+  obs("set", "talks", "true");
+  obs("talk", "never");
+  await wait(20 * 6);
+};
+
+TESTS.glitches = async () => {
+  // what it holds glitches: an aura, a jolt, a freeze, its head snapped round, its name scrambled — and is given back whole
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  daylight(stand);
+  clearPuppetArena(stand);
+  obs("puppet", "release");
+  const p = await freshTarget("Tester", stand, { x: stand.x, y: Y + 1.6, z: stand.z - 30 }, 3);
+  isolate(p);
+  const [h] = around(stand, [["minecraft:husk", 0, -6]]);
+  h.addEffect("slowness", 40, { amplifier: 7, showParticles: false });
+  await wait(4);
+  obs("glitch", "always");
+  const m = mark();
+  obs("puppet", "take", "Tester");
+  let scrambled = false;
+  for (let t = 0; t < 20 * 6; t += 2) {
+    await wait(2);
+    if (h.isValid && (h.nameTag ?? "").includes("§k")) scrambled = true;
+  }
+  const gl = since(m, "puppet").filter((d) => d.what === "glitch" && d.id === h.id);
+  const kinds = [...new Set(gl.map((g) => g.kind))];
+  check("glitch_what_it_holds_glitches", gl.length >= 3 && kinds.length >= 2, `${gl.length} glitches: ${kinds.join(",")}`);
+  check("glitch_its_name_scrambles", scrambled || !kinds.includes("name"), kinds.includes("name") ? "scrambled" : "no name glitch this time");
+  check("glitch_still_its", await isIts(h));
+  obs("glitch", "never");
+  await wait(40);
+  obs("puppet", "release");
+  await wait(4);
+  check("glitch_given_back_whole", h.isValid && (h.nameTag ?? "") === "" && !hasFx(h, "slowness", "weakness"), JSON.stringify(h.nameTag));
+  clearPuppetArena(stand);
+};
+
+TESTS.takeover = async () => {
+  // every creature around you, at once: they look at you; one wears your name; the hostile ones then come for you
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  daylight(stand);
+  clearPuppetArena(stand);
+  for (const e of ow().getEntities({ location: stand, maxDistance: 30 })) if (/^minecraft:(cow|sheep|pig)$/.test(e.typeId)) e.remove();
+  obs("puppet", "release");
+  obs("set", "aggression", "2");
+  obs("possess", "always");
+  const p = await freshTarget("Tester", stand, { x: stand.x, y: Y + 1.6, z: stand.z - 30 }, 4);
+  isolate(p);
+  const mobs = around(stand, [["minecraft:cow", 5, 0], ["minecraft:cow", -5, 0], ["minecraft:sheep", 0, 6], ["minecraft:pig", 3, -5], ["minecraft:husk", -4, -7], ["minecraft:husk", 4, 8]]);
+  for (const e of mobs) e.addEffect("slowness", 20, { amplifier: 7, showParticles: false });
+  await wait(6);
+  const m = mark();
+  obs("takeover", "Tester");
+  const tk = await waitEvent("puppet", (d) => d.what === "takeover", 20, m);
+  check("takeover_takes_them_all", !!tk && tk.n >= 5, JSON.stringify(tk ?? {}));
+  const wearer = tk ? world.getEntity(tk.wearer) : undefined;
+  check("takeover_one_wears_your_name", !!wearer && wearer.nameTag === "Tester", wearer ? wearer.nameTag : "none");
+  await wait(30);
+  const facing = mobs.filter((e) => e.isValid && facingErr(e, p.location) < 35).length;
+  check("takeover_they_all_look_at_you", facing >= 4, `${facing} of ${mobs.length}`);
+  check("takeover_discovered", discovered(m, "the_takeover"));
+  const pk = await waitEvent("puppet", (d) => d.what === "pack", 20 * 8, m);
+  check("takeover_then_the_hostile_ones_hunt_you", !!pk && pk.n >= 2, JSON.stringify(pk ?? {}));
+  obs("puppet", "release");
+  await wait(4);
+  check("takeover_names_given_back", mobs.filter((e) => e.isValid).every((e) => (e.nameTag ?? "") === ""), mobs.filter((e) => e.isValid).map((e) => e.nameTag).join("|"));
+  for (const e of mobs) if (e.isValid) e.remove();
+  obs("possess", "auto");
+  obs("preset", "standard");
+  heal(p);
+};
+
+TESTS.corruption = async () => {
+  // the ground around you breaks up for a moment — and is exactly as it was afterwards
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  daylight(stand);
+  const p = await freshTarget("Tester", stand, { x: stand.x, y: Y + 1.6, z: stand.z - 30 }, 4);
+  isolate(p);
+  const m = mark();
+  obs("corrupt", "Tester");
+  const c = await waitEvent("corrupt", (d) => d.what === "corrupt", 20, m);
+  const changed = since(m, "ledger").filter((d) => d.what === "change" && d.kind === "corrupt");
+  check("corruption_the_ground_breaks_up", !!c && c.n >= 6 && changed.length === c.n, `${c?.n} broken, ${changed.length} in the ledger`);
+  await wait(20 * 7);
+  const restored = since(m, "ledger").filter((d) => d.what === "restored" && d.kind === "corrupt");
+  const same = changed.every((d) => ow().getBlock({ x: d.x, y: d.y, z: d.z })?.typeId === d.from);
+  check("corruption_put_back_as_it_was", restored.length === changed.length && same, `${restored.length}/${changed.length} put back`);
+};
+
+TESTS.ahead = async () => {
+  // running from it and getting away: it is suddenly ahead of you; and it waits where you hid before
+  obs("ahead", "auto");
+  obs("set", "aggression", "2");
+  const start = { x: 915.5, y: Y, z: 1033.5 };
+  daylight(start, 100);
+  let p = await freshTarget("Tester", start, { x: 990, y: Y + 1.6, z: 1033.5 }, 3);
+  isolate(p);
+  const run = async (m, ticks, stopWhen) => {
+    for (let t = 0; t < ticks; t += 4) {
+      heal(p);
+      // running (faster than it chases: 10 blocks a second, as on a horse or with pearls)
+      const x = Math.min(990, p.location.x + 2.0);
+      p.teleport({ x, y: Y, z: 1033.5 }, { facingLocation: { x: 1000, y: Y + 1.6, z: 1033.5 } });
+      await wait(4);
+      if (stopWhen()) return true;
+    }
+    return false;
+  };
+  let m = mark();
+  obs("trigger", "test_strike", "Tester");
+  await waitObserver(60);
+  await wait(10);
+  await run(m, 20 * 12, () => since(m, "relentless").some((d) => d.what === "ahead"));
+  const ah = since(m, "relentless").find((d) => d.what === "ahead");
+  const e = observerEntity();
+  check("ahead_it_is_in_front_of_you", !!ah && !!e && e.location.x > p.location.x + 3, ah ? `${ah.d} blocks; it at x ${e?.location.x.toFixed(0)}, you at ${p.location.x.toFixed(0)}` : "never");
+  check("ahead_discovered", discovered(m, "wrong_way"));
+  obs("abort");
+  await observerGone(100);
+  // a place they got away to before: running that way, it is waiting there
+  p = await freshTarget("Tester", { x: 975.5, y: Y, z: 1033.5 }, { x: 990, y: Y + 1.6, z: 1033.5 }, 3);
+  obs("hideout", "clear", "Tester");
+  await wait(4);
+  obs("hideout", "Tester");
+  // (the hideout is noted where they stand when the command arrives: stay there until it has)
+  await wait(6);
+  p.teleport(start, { facingLocation: { x: 990, y: Y + 1.6, z: 1033.5 } });
+  await wait(10);
+  m = mark();
+  obs("trigger", "test_strike", "Tester");
+  await waitObserver(60);
+  await wait(10);
+  await run(m, 20 * 12, () => since(m, "relentless").some((d) => d.what === "ahead"));
+  const hd = since(m, "relentless").find((d) => d.what === "ahead");
+  const e2 = observerEntity();
+  check("ahead_waits_where_you_hid", !!hd && hd.hideout && !!e2 && Math.abs(e2.location.x - 975.5) < 4, hd ? `hideout ${hd.hideout}; it at x ${e2?.location.x.toFixed(0)}` : "never");
+  obs("abort");
+  obs("hideout", "clear", "Tester");
+  obs("ahead", "never");
+  obs("preset", "standard");
+  await observerGone(100);
+};
+
+TESTS.its_music = async () => {
+  // from the fourth stage its own broken music; when it comes for you, the chase
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  daylight(stand);
+  let p = await freshTarget("Tester", stand, { x: stand.x, y: Y + 1.6, z: stand.z - 30 }, 4);
+  isolate(p);
+  await wait(90);
+  let m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  const pres = await waitEvent("hush", (d) => d.what === "presence" && d.player === "Tester", 80, m);
+  check("music_broken_from_the_fourth_stage", !!pres && pres.theme === "stalk" && pres.music === true, JSON.stringify(pres ?? {}));
+  obs("abort");
+  await observerGone(100);
+  await wait(90);
+  m = mark();
+  obs("trigger", "test_strike", "Tester");
+  const ch = await waitEvent("hush", (d) => d.what === "presence" && d.player === "Tester" && d.theme === "chase", 80, m);
+  check("music_the_chase_when_it_comes", !!ch, JSON.stringify(since(m, "hush")));
+  for (let t = 0; t < 60; t += 4) {
+    heal(p);
+    await wait(4);
+  }
+  obs("abort");
+  await observerGone(100);
+  p = await freshTarget("Tester", stand, { x: stand.x, y: Y + 1.6, z: stand.z - 30 }, 2);
+  await wait(90);
+};
+
+TESTS.ruins = async () => {
+  // the Mire's ruins: each loads whole, with its chests, barrels and journal; every loot table gives something
+  if (!(await buildLot())) return;
+  clearLot();
+  const at = { x: 1063, y: Y - 1, z: 1190 };
+  const expect = {
+    drowned_chapel: { size: [11, 11, 15], chest: 1, barrel: 0, lectern: 1 },
+    watchers_spire: { size: [7, 20, 7], chest: 1, barrel: 2, lectern: 1 },
+    bone_altar: { size: [11, 6, 11], chest: 1, barrel: 0, lectern: 1 },
+    sunken_archive: { size: [11, 7, 9], chest: 2, barrel: 0, lectern: 1 },
+    surveyors_camp: { size: [9, 5, 9], chest: 1, barrel: 2, lectern: 1 },
+  };
+  const dim = ow();
+  for (const [name, ex] of Object.entries(expect)) {
+    const [sx, sy, sz] = ex.size;
+    let ok = 0;
+    try {
+      ok = dim.runCommand(`structure load wmire:${name} ${at.x} ${at.y} ${at.z}`).successCount;
+    } catch (e) {
+      log(`[OTEST] structure load ${name}: ${e}`);
+    }
+    await wait(4);
+    const n = { chest: 0, barrel: 0, lectern: 0, solid: 0 };
+    for (let x = at.x; x < at.x + sx; x++) for (let y = at.y; y < at.y + sy; y++) for (let z = at.z; z < at.z + sz; z++) {
+      const b = dim.getBlock({ x, y, z });
+      if (!b || b.isAir) continue;
+      n.solid++;
+      if (b.typeId === "minecraft:chest") n.chest++;
+      if (b.typeId === "minecraft:barrel") n.barrel++;
+      if (b.typeId === "minecraft:lectern") n.lectern++;
+    }
+    check(`ruins_${name}_loads_whole`, ok === 1 && n.chest === ex.chest && n.barrel === ex.barrel && n.lectern === ex.lectern && n.solid > 40, JSON.stringify(n));
+    dim.runCommand(`fill ${at.x} ${at.y} ${at.z} ${at.x + sx - 1} ${at.y + sy - 1} ${at.z + sz - 1} air`);
+    dim.runCommand(`fill ${at.x} ${Y - 1} ${at.z} ${at.x + sx - 1} ${Y - 1} ${at.z + sz - 1} grass_block`);
+  }
+  for (const it of dim.getEntities({ type: "minecraft:item", location: { x: at.x + 5, y: Y, z: at.z + 5 }, maxDistance: 30 })) it.remove();
+  for (const table of ["chapel_chest", "spire_chest", "altar_chest", "archive_chest", "camp_chest", "camp_barrel"]) {
+    const pos = { x: at.x + 5.5, y: Y + 1, z: at.z + 5.5 };
+    let ok = 0;
+    try {
+      ok = dim.runCommand(`loot spawn ${pos.x} ${pos.y} ${pos.z} loot "wmire/${table}"`).successCount;
+    } catch (e) {
+      log(`[OTEST] loot ${table}: ${e}`);
+    }
+    await wait(2);
+    const items = dim.getEntities({ type: "minecraft:item", location: pos, maxDistance: 4 });
+    const kinds = items.map((i) => i.getComponent("minecraft:item")?.itemStack.typeId.replace("minecraft:", "")).join(",");
+    check(`ruins_loot_${table}`, ok >= 1 && items.length >= 3, `${items.length} stacks: ${kinds}`);
+    for (const it of items) it.remove();
+  }
 };
 
 export async function runSuite(names) {
