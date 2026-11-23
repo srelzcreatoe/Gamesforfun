@@ -5,7 +5,7 @@ Player-facing instructions are in [SURVIVAL_GUIDE.md](SURVIVAL_GUIDE.md); what w
 
 ## One animal
 
-There is one entity type, `basiliskra:basiliskra`, and at most one instance per save. Basiliskra I, II and III are the same entity: a synchronised property (`basiliskra:form`) selects geometry, texture, animation, movement and collision, and it changes in place.
+There is one entity type for him, `basiliskra:basiliskra`, and at most one instance per save (the Titan, below, is a different type and no part of this). Basiliskra I, II, III and IV are the same entity: a synchronised property (`basiliskra:form`) selects geometry, texture, animation, movement and collision, and it changes in place.
 
 The script owns a single world record (a world dynamic property, chunked JSON, schema-versioned and migrated on load):
 
@@ -93,7 +93,40 @@ Rules that keep it to one:
 | 5 The plate | On his third charge `shedPlate()` hides the `plate_break` bone (the `gill` flag, unused by this form) and builds eight blocks of trinitite 15 blocks to his left and 9 behind. `plateSees()` asks for a clear line mouth-to-plate and plate-to-player when the mouth itself has none; `plateShot()` draws one beam into the plate and fires a second, real one from its tip along the line fixed at that moment. Three uses, then the blocks become cooled slag. |
 | 6 The swallow | While his eye still follows (before the lock), four looks in a row with no clear line to a player end the charge: phase `swallow`, then `carry` (he walks, ploughing, toward where he last saw them; the client lights `ribs_l` on its own glow pass). One neck pulse (`fx_kind` 11) every 100 ticks. A clear line fires at once (`snapShot`, the muzzle laid in the firing pose); the third pulse fires with no aim. |
 
-He becomes IV from III's `choose()`: three days in form and twelve beams, at night, with anyone within 140 blocks; the change itself is the same scene as the others.
+He becomes IV from III's `choose()` when he has been III for his time (three in-game days, or the minutes set); the change itself is the same scene as the others.
+
+## What a change waits on, and how it is shown (1.6)
+
+* **Time only.** `brain.changeTicks(form)`: `changeMinutes` minutes if the setting is not 0, else the story's own days (2, 2, 3) divided by the story speed. Each brain compares it with `rec.mut.formSince`; nothing else is consulted (the counts of surfacings, distance and beams are still kept, and no longer gate anything). Acts with no ending of their own (roaming, following, sleeping: `IDLE_ACTS`) are cut short when the time is up, so a change is not kept waiting behind a walk; a breath or a roar finishes first.
+* **The scene is a list of shots** (`scene.ts`): each has a length, an angle round him measured from the way he faces, a distance and a height (each a number or a pair to move between), and optionally its own look-at point. `controller.evolve()` gives five: his head close; a side orbit; low in front, pushing in; the reveal; his face for the roar. Distances are multiples of `FRAME[form]`, the size he is drawn, so every form fills the picture alike. The camera's place is tested (`stand()`): if it is inside something solid or under the ground it is brought nearer and higher until it is clear. A cut is a quarter-second fade up from black. `cinema: true` hides the HUD (all but touch controls) until the scene lets go.
+
+## Where people live (1.6)
+
+* **Seeking.** `brain.settlementNear(c, now)`: the nearest city the script has raised within 500 blocks (`city.nearestCity`), else the nearest `minecraft:villager_v2` within 180 (an entity query, cached five seconds). II's `wander` heads for it; III and IV, with no player or creature in reach, run `raze(town)`: to its middle, then to and fro across it, ploughing.
+* **Why cities are built by script.** A behaviour-pack biome definition is still behind the game's Custom Biomes experiment in 1.26.60; structures placed by feature rules would depend on it too. So `city.ts` holds a plan and builds it with `fillBlocks` and `setType`.
+* **The plan** (`plan(S)`): a list of operations (fill a box, set a block, spawn a villager, fill a chest), generated from the site, the way its sea lies (one of four directions) and its size. Streets on a grid; lots with towers in three window styles, houses, a park, a stadium, a wheel; lamps; a promenade; a beach in strips that shelve down; then the cut: a box of water 102 deep, lined on five sides with abyssal basalt so that it drains nowhere, with vents, spires, ribs, a deeper pit and a ruin on its floor.
+* **Building** (`class Build`): up to 48 operations and 40,000 blocks of volume a tick, in an order that never leaves water unsupported. The ground it needs is kept loaded with up to four ticking areas (`bk_city_0..3`), removed when it is done. Progress is in the record (`rec.cities[]`), so a build cut short by the world closing is taken up again.
+* **Where** (`seekCoast`): every five seconds, round the players in the Overworld, in about half of the world's 640-block regions (chosen by a hash, so the same region always gives the same answer): land biome behind, ocean ahead, water where the sea should be, and none of about 240 built block ids in the footprint. Never within 900 blocks of another city. The wheel and `/basiliskra:city` skip those tests.
+
+## The Seam Lance (1.6)
+
+`lance.ts`; assets by `tools/kit/gen_lance.py` (a 21-cube attachable, its texture and icon, the item, the recipe). The item has no behaviour the game knows of: `itemUse` calls `fireLance`, which keeps its own 12-tick clock per player (and starts the item cooldown so the hotbar shows it), casts one block ray for what stops the bolt, tests the line against every giant's hit volumes (`Creature.rayHit`: the same boxes the game is hit on), and applies 34 times 1.5 / 1 / 0.7 for head / body / tail as damage from that player. Missing all giants, the first other entity on the line takes 9. The bolt is drawn with the beam's own particles.
+
+## The Titan (1.6)
+
+`titan.ts`. A second entity type, `basiliskra:titan`, written by `gen_client.py` from his files: the same properties (so the same pose animation drives it), form fixed at 4, his last form's collision box, 4000 health, a family of its own. Its client entity names only his last form's geometry, textures, pose and render passes, and adds lines after his pre-animation that hold every glow zone at a third or more: that is how it is told from him.
+
+| | How it is done |
+|---|---|
+| More than one body | `Creature` takes its form as an argument and no longer reads the story's record; `Brain` takes an optional record of its own (`own ?? store.rec`). A Titan's brain is `BrainTitan extends BrainFour` with a fresh record (form 4, debut done) that is never saved. Every `Creature` is listed in `creature.giants` by entity id. |
+| Lifecycle | `Titans.inspect` on spawn, on load and in a sweep every second: one too many (three is the cap) or one outside the Overworld is removed; otherwise it is bound (`basiliskra:bind` stops the entity's own two-second expiry), named (Alpha, Beta, Gamma; kept with its home in a dynamic property on the entity) and given a body and a brain. After a reload it is taken up again from the entity. |
+| Strength | Its own beam spec (range 220, damage 30, wider, deeper craters), `might` 3 (what it does to players and the creature damage of its blasts) and `haste` 1.35 (its walking speed). |
+| Giants and beams | `beamTick` tests the line against every other giant's volumes after the block ray: the nearest one hit ends the beam there, takes `damage` every fourth tick (`Creature.takeBlow`), and gets the impact effects. Small-creature queries exclude both giant types, so nothing is counted twice. |
+| What it chooses | `BrainTitan.choose()`: the nearest other giant within 240 is the enemy. A roar at a new one; within arm's length the tail (enemy more than 55 degrees off its facing) or the lunge; between blows a quarter-circle round the enemy, which brings the enemy to its side; the breath when ready (rested 12 s from the end of the last one; held back about half the time at arm's length); a charge from over 50 blocks; otherwise it closes. With no giant about it behaves as Basiliskra IV does toward players and creatures, and prowls within 70 blocks of where it was made. Its breath never misfires, is never swallowed, and no plate is shed. |
+| The blows | Lunge: phase `bite`, the blow at tick 9, 85 to giants within reach and 60 degrees of its front, thrown back 5. Tail: phase `sweep` with the head turned to the side (the client latches that side), the blow at tick 15, 130 to giants on that side from 35 degrees round to behind, thrown 9, and three blasts (and craters) along the club's arc. Charge: 110 scaled by its speed, thrown 11. A heavy blow tells the victim's brain (`Creature.onBlow`): a Titan reels (phase `recoil`, 18 ticks) unless it is breathing or roaring. `Creature.shove` moves a giant only onto ground it could stand on. |
+| Basiliskra himself | `BrainThree.creatures()` puts other giants first among what he goes after, `headOf` aims at a giant's middle, and `standOff` keeps a giant at both girths plus six. What a Titan does to him is multiplied by 0.3 before the usual rule (he keeps his last breath and is driven off). |
+| Dying | `beforeEvents.entityHurt` on a Titan: a blow that would kill is cancelled and the brain's `dying` flag set. `interrupt()` then starts `fall()` whatever it was doing: phase `fall` for 96 ticks (the client kneels it and lets the glow die), bursts along its body, a ground blow as the knees land; then ash, fallout, 24 shards and a fin, and the entity is removed. |
+| Watching | Every half second each player within 150 blocks is shown the Titans' names and health on the action bar (not while holding a Geiger counter, which uses the same line). With no Basiliskra loaded the music follows the nearest Titan; giants fighting play the fighting theme. |
 
 ## Out of control (Form III)
 
@@ -109,7 +142,7 @@ He becomes IV from III's `choose()`: three days in form and twelve beams, at nig
 
 * **Journal** (`basiliskra:journal`, `/basiliskra:journal`): a server-ui form built from the record and a read-only copy of the harm history (`harm.angerNear`, `harm.angriest`), so reading it never creates or evicts a region. Each region also keeps plain counts (animals killed, habitat blocks cut) beside its weighted, fading score, and each player a running total, so the journal shows counts as counts. "Near you" is the angriest of the nine regions round the player.
 * **Config wheel** (`basiliskra:config_wheel`, `/basiliskra:config`): operators only. Settings are one world dynamic property (`bk:cfg`) applied over the defaults in `config.ts` at load; unknown or out-of-range values are ignored. From 1.3 only values that differ from the defaults are saved (with `v: 2`); a 1.2 save that carries the old default terrain mode is read as "never chosen". Numbers are dropdowns of presets plus a text box (no sliders).
-* **Commands** are registered at start-up with the stable custom-command registry (`cheatsRequired: false`); callbacks only schedule work (`system.run`), as the API requires.
+* **Commands** are registered at start-up with the stable custom-command registry (`cheatsRequired: false`); callbacks only schedule work (`system.run`), as the API requires. From 1.6 also `/basiliskra:city` and `/basiliskra:titan [here|clear]`.
 * Forms that cannot open yet (chat still open) are retried for a few seconds.
 
 ## Where things are
@@ -118,12 +151,15 @@ He becomes IV from III's `choose()`: three days in form and twelve beams, at nig
 packs/BP/                 behaviour pack: entities, item, manifest, scripts/main.js (bundled)
 packs/RP/                 resource pack: geometry, textures + texture sets, client entity, animations,
                           animation controllers, render controllers, particles, sounds
-models/*.bbmodel          the editable Blockbench models (I to III with animations; IV modelled, not yet in the game)
+models/*.bbmodel          the editable Blockbench models, with their animations
 src/                      the script, in TypeScript
   controller.ts           lifecycle: the record, arrival, evolution, absence, drive-off, retirement
   creature.ts             the loaded animal: movement, skeleton, hit volumes
   forms/one|two|three.ts  the encounters of each stage, written as generators with one exit
   forms/four.ts           Basiliskra IV: the stare and his six set pieces, on top of three.ts
+  titan.ts                the Titan: its brain (on top of four.ts) and the manager of up to three of them
+  city.ts                 cities: the plan, the builder, where they rise, the nearest one
+  lance.ts                the Seam Lance
   beam.ts                 one tick of the breath, shared by III and IV
   ending.ts               the last crossing
   havoc.ts                what he breaks: craters, ploughing, the shockwave's brittle blocks, blasts
@@ -137,6 +173,8 @@ src/                      the script, in TypeScript
 tools/kit/                model kit: design files per form, texture painter, client-file and particle generators
 tools/kit/gen_blocks.py   the fallout's blocks and items, the crystal's model, recipes, the fog
 tools/kit/gen_hitbox.py   the ten hit-volume entity types
+tools/kit/gen_lance.py    the Seam Lance: model, texture, icon, attachable, item, recipe
+tools/preview/item_shot.cjs  a still of any single model (the gun, a block)
 tools/kit/gen_ids.py      vanilla block ids to spare, from the script's own patterns (for the engine's fill)
 tools/preview/pose_eval.mjs  the shipped pose evaluated for given properties (to render any phase of any form)
 tools/preview/anim.cjs    the animation reel: every form through its phases, with the pack's sounds laid in
@@ -154,20 +192,23 @@ Counted in the simulated world as calls into the engine per tick (`node test/per
 
 | Situation | block reads, average | worst tick | entity queries, average |
 |---|---|---|---|
-| Dormant world | 0 | 1 | 0.3 |
-| Searching for water | 5 | 265 | 0.32 |
-| Arrival | 29 | 920 | 0.33 |
-| Form I | 35 to 43 | 64 | 0.3 |
-| Form II in a village | 55 | 631 | 0.3 |
-| Form III in a village, fighting (beams, craters, pursuit) | 179 | 609 | 0.51 |
-| Form III at the window | 134 | 1411 | 0.33 |
-| The last crossing being called | 199 | 557 | 0.35 |
-| Six strong fallout zones round a player | 99 | 169 | 0.4 |
-| Fallout at its cap of 32 zones | 112 | 200 | 0.4 |
-| Form IV in a village (breath, craters, ploughing) | 142 | 862 | 1.02 |
+| Dormant world | 13 | 1324 | 0.35 |
+| Searching for water | 19 | 1324 | 0.36 |
+| Arrival | 42 | 1362 | 0.38 |
+| Form I | 48 to 56 | 1368 | 0.36 |
+| Form II in a village | 66 | 1803 | 0.35 |
+| Form III in a village, fighting (beams, craters, pursuit) | 199 | 2068 | 0.55 |
+| Form III at the window | 148 | 1806 | 0.38 |
+| The last crossing being called | 212 | 1838 | 0.4 |
+| Form IV in a village (breath, craters, ploughing) | 177 | 2253 | 1.1 |
+| Two Titans fighting, no Basiliskra (1.6) | 528 | 5297 | 1.35 |
+| Six strong fallout zones round a player | 111 | 1374 | 0.45 |
+| Fallout at its cap of 32 zones | 124 | 1414 | 0.45 |
+
+From 1.6 every row includes the coast seeker ("Cities rise on coasts"): once every five seconds it reads up to about 1,300 blocks of one candidate site, which is the worst tick of the quiet rows and about 13 reads a tick on average. (Most of those reads are inside one filtered `getBlocks` query, which the simulation counts block by block.) Before the seeker existed a dormant world read 0 blocks on average and 1 at worst; with the setting off the seeker is skipped. Two Titans cost about three times what Basiliskra IV does alone: two bodies walking, breathing and ploughing at once.
 
 (The worst tick at the window is one route search starting: every column under his body is read once.)
 
-No world-wide scans, no chunk loading, no recurring chat. Harm history is capped at 40 regions and 24 kill sites. Particles are sent per witness with a budget of 96 packets a tick. Sounds and particles go only to players within range of the event.
+No world-wide scans, no recurring chat, and no chunk loading except while a city is being built (up to four ticking areas, removed when it is done). Harm history is capped at 40 regions and 24 kill sites. Particles are sent per witness with a budget of 96 packets a tick. Sounds and particles go only to players within range of the event.
 
 These are counts from a simulation, not frame times from a device.

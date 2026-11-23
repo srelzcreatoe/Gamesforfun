@@ -1,5 +1,5 @@
 pack.name=Basiliskra
-pack.description=One creature. Three stages of one life. He comes for what was done to the shore.
+pack.description=One creature. Four stages of one life. He comes for what was done to the shore.
 item.basiliskra:journal.name=Basiliskra Journal
 item.basiliskra:config_wheel.name=Basiliskra Config Wheel
 item.spawn_egg.entity.basiliskra:basiliskra.name=Spawn Basiliskra

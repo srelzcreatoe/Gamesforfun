@@ -5,11 +5,11 @@ No experiments, no Beta APIs, no cheats, no commands. It can be added to a survi
 
 ## Install
 
-1. Open `Basiliskra-1.5.1.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
+1. Open `Basiliskra-1.6.0.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
 2. Edit your world → **Behavior Packs** → activate **Basiliskra**. The resource pack is pulled in with it. Leave every toggle under **Experiments** off.
 3. Play. Nothing happens straight away. The story is found by playing; the journal tells you how close it is.
 
-**Updating from an earlier version**: open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.5.1 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself. Settings you chose are kept; a world that never chose how destructive he is gets the new default (he destroys like the Wither).
+**Updating from an earlier version**: open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.6.0 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself. Settings you chose are kept; a world that never chose how destructive he is gets the new default (he destroys like the Wither).
 
 Realms and multiplayer: apply both packs to the world; players download the resource pack on joining. Consoles can use the add-on only through a Realm or a world transferred from another device.
 
@@ -30,32 +30,23 @@ Then, at dusk, with someone near that coast: fish bunch, an empty boat knocks th
 
 ## The four stages (one animal)
 
-He changes up to three times. Each change waits on a short list of things, and **the journal shows that list as a checklist** (done / not done, and how much is left), so you never have to guess.
+He changes up to three times, and **time is the only thing a change waits on**: how long he has been what he is.
 
-**Basiliskra I → II** (in deep water). All three, then the last step:
+| Change | By the story's own clock | At story speed 1 that is |
+|---|---|---|
+| Basiliskra I → II | two in-game days | 40 minutes |
+| Basiliskra II → III | two in-game days | 40 minutes |
+| Basiliskra III → IV | three in-game days | 60 minutes |
 
-1. two in-game days in the water;
-2. seen at the surface six times (he comes up under boats and near swimmers);
-3. three spasms (they take him near piers, and in open water at dusk);
-4. then he **beaches on a sand or gravel shore with a player near**, and changes there.
+Nothing else is asked for any more: no surfacings to be seen, no blocks dragged, no beams counted, no night, no rain, nobody watching. When his time is up he stops whatever he is idly doing (a breath or a roar is let finish first) and changes where he is. Basiliskra I makes for a beach first if one is in reach, and changes in the water if none is.
 
-**Basiliskra II → III** (on the shore). Both, then the last step:
-
-1. two in-game days on the shore;
-2. 220 blocks dragged overland (he wanders while anyone is near);
-3. then he changes **at night or in rain, with a player near**.
-
-**Basiliskra III → IV** (only if he is not sent home first). Both, then the last step:
-
-1. three in-game days as Basiliskra III;
-2. twelve beams fired;
-3. then he changes **at night, with a player near**.
+**Set the minutes yourself.** Settings → **Minutes in each form before he changes**: 1, 2, 5, 10, 20, 30 or 60 minutes for every change, or "the story's own timing" (the table above, which Story speed shortens). **The journal shows the minutes left.**
 
 The last crossing (below) sends him home as III *or* as IV. Sending him home before he becomes IV is the safer story.
 
-An operator can skip the waiting: the config wheel's **Make him change now**. Story speed (Settings) shortens every wait.
+An operator can skip the waiting altogether: the config wheel's **Make him change now**.
 
-**Every change is a scene.** Light is drawn into him for seven seconds while the ground shakes, the screen flashes, and he stands up as what he is next and roars. Everyone within 120 blocks is shown it from a camera that circles him (switch "Cutscenes" off in the Settings to keep your own view).
+**Every change is a scene, shot close.** Light is drawn into him for seven seconds while the ground shakes, the screen flashes, and he stands up as what he is next and roars. Everyone within 140 blocks is shown it as five shots that cut from one to the next, each framed on him so that he fills the picture whatever his size: his head, close; a slow orbit of his whole body from the side; low in front of him, pushing in as the light gathers; the reveal of the new form, pulling back just far enough to hold all of it; and his face for the roar. The HUD is hidden for the length of it and his name comes up as he stands. The camera never sits inside a hill or a wall: it finds a clear place nearer or higher. (Switch "Cutscenes" off in the Settings to keep your own view.)
 
 **His arrival is a scene too.** A rift tears open: a tall crimson tear with a white core, lightning crawling off it, rings of light running out along the ground. In deep water he rises out of it; on land (when he is called back as II or III) he walks out of it, appearing piece by piece as he crosses. The sky flashes red for everyone near.
 
@@ -112,7 +103,45 @@ Basiliskra III does not care what is around him.
 * The wither-like destruction never touches bedrock, portals or command blocks, and by default spares **chests, barrels, shulker boxes, beds, furnaces, hoppers and anything else that holds things**, and the obsidian a portal stands in. You may find a chest standing alone in the rubble.
 * The config wheel's Settings can make him gentler: destruction can be reduced to scorching or nothing, the storage protection turned off, and his hunting of animals turned off.
 
-## The ending
+## Where people live
+
+With nothing alive in reach, Basiliskra II, III and IV do not wander: **they go to the nearest place people live, and through it.**
+
+* **Villages**: he senses villagers from about 180 blocks (in the country that is loaded round him), walks to them, and then back and forth through the place until something alive takes his attention.
+* **Cities**: he knows of a city from 500 blocks.
+
+**Cities.** The pack raises its own: streets on a grid, towers of concrete and glass lit from inside (the tallest by the water), houses, a park, a stadium, a big wheel, street lamps, and **people** (villagers) in the streets. In front of every city is a **promenade and a wide beach** that shelves gently into the water, so that he can walk up out of the sea, and beyond the beach **the sea is cut a hundred blocks deep**: straight down, wall to wall, to a floor of abyssal basalt.
+
+* **They rise by themselves on real coasts** as you explore: where there is land behind and open sea ahead, never where anything built already stands, and never within 900 blocks of another city. You are told when one starts ("A city is rising..."). It takes a minute or so. Settings → **Cities rise on coasts** switches this off.
+* **Or put one where you stand**: the config wheel's **Raise a city here**, or `/basiliskra:city` (operators, no cheats). The sea goes the way you are looking, the streets behind you, and you are stood on the promenade. A full city is 175 by 119 blocks; a small one 91 by 63. One is built at a time. **This one is built whatever is there**, so choose the place.
+* **The deep.** On the floor of the cut: seam vents that glow, drowned spires hung with lanterns, the ribs of something far larger than he is, a pit deeper still with a broken ring of crying obsidian at the bottom of it, and a ruin at the foot of the drop with a chest. Four new blocks are down there (abyssal basalt, seam vent, drowned lantern, old bone); all can be mined and placed.
+
+Why not a biome: a real custom biome needs the game's **Custom Biomes experiment** switched on, and this pack runs with every experiment off. So the city is built by the script, on the game's own coasts, and from the wheel.
+
+## The Seam Lance
+
+The one weapon made for him: a blocky gun of gunmetal and old bone with a crimson crystal held between two prongs.
+
+* **Craft it** from 2 crimson shards, 1 scarlet trinitite, 3 iron ingots and 1 block of redstone (shards and trinitite are what his breath leaves behind), **or find one** in the chest in the ruin at the bottom of a city's deep.
+* **Use it** (right-click, or press and hold): a bolt of his own red, straight along your line of sight, **140 blocks**. One shot every 0.6 seconds; the cooldown shows on the hotbar. It needs no ammunition.
+* It strikes the first part of him it meets: **34** to the body, **51** to the head, **24** to the tail. Solid blocks stop it. Anything else alive in the line takes 9.
+* It does not kill Basiliskra himself (nothing does: he is driven off). It does kill a Titan.
+
+## The Titan (for battles)
+
+A **separate creature** that wears Basiliskra IV's body, made for fights in Creative. It is not the one Basiliskra and has no part in his story: no rift, no changes, no leaving, and making or losing one changes nothing about him.
+
+* **Make one**: the **Spawn Basiliskra Titan** egg (Creative inventory), `/basiliskra:titan` (operators, no cheats), `/summon basiliskra:titan`, or the config wheel's **Put a Titan here**. It stands a short way in front of you. **Up to three at once**: Alpha, Beta and Gamma. `/basiliskra:titan clear` or the wheel's **Remove the Titans** takes them all away.
+* **Much stronger than he is**: 4000 health to his 600; its breath reaches 220 blocks (his: 150) and burns nearly three times as hot; it walks a third faster; and everything it does to a player is tripled.
+* **You can tell it from him**: its seams never go dark. It smoulders red all the time.
+* **It fights with its body as well as its breath**: a **lunge** (it rears back, then throws its jaws and its right hand forward), its **tail** (it winds away and lashes round to the side its head turns to), a **charge** with its whole weight from a distance, and it **circles** between blows. A heavy blow staggers whoever it lands on and throws them back.
+* **What it fights**: another Titan, or Basiliskra himself, before anything else; then any creature, and players in Survival or Adventure. **Players in Creative are left alone**, so you can stand and watch. Left alone it prowls round the place it was put down.
+* **Titan against Titan**: put two down a hundred blocks apart. They roar at each other, breathe, close, and fight until one goes down: about three minutes. A beam stops on a giant's body. Everyone within 150 blocks sees each Titan's health above the hotbar.
+* **Titan against Basiliskra**: he answers it (as III or IV, with his breath), and he loses: he is driven off through a seam as he always is, never killed.
+* **It can be killed**: by another Titan, or by you (the Seam Lance, or anything else that would hurt him). It goes down onto its knees, the fire in it fails, and it is gone, leaving 24 crimson shards, a fin, and poisoned ground.
+* Its beams, its feet and its fallout follow the same Settings as his (destruction, damage, Peaceful, fallout).
+
+## The ending## The ending
 
 It needs Form III, a **shed fin**, **note blocks**, and a **lightning rod**.
 
@@ -163,7 +192,7 @@ Every player gets a **Basiliskra Journal** the first time they join with the pac
 * **His anger** near you: how close the area you are in is to calling him, as a percentage that only rises with harm; **how many animals have been killed there by players, and how many logs, reeds and shore plants cut**, as plain counts, with what they count for against what it takes (both are needed: animals *and* habitat); your own share; roughly how many more it would take. Anger is kept per 64-block area; the journal shows the angriest area around you, so stepping over an edge does not make it vanish. It also shows the angriest place in the world and which way it is, and your own totals everywhere.
 * The first kills of a spree and the first logs of a tree count for less, which is why three kills count as about 1.6 of the 8 needed.
 * **When he comes**: not yet; called and looking for deep water (and where); coming at the next dusk (and how many minutes that is, and which water); here now (and how far away); driven off (and when he returns); or gone home.
-* **Him**, once he is here: how close he is to changing, and what it takes.
+* **Him**, once he is here: how many minutes are left before he changes (time is all it takes).
 
 Reading it never changes anything.
 
@@ -176,11 +205,14 @@ Operators (and the player of a single-player world) also get a **Basiliskra Conf
 | Settings | Everything in the table below. Saved with the world, so it survives reloads and pack updates. |
 | Call him now (the rift opens) | At once, not at dusk. If he has never come, the rift opens in the nearest deep water and Basiliskra I rises from it. If he was here before as II, III or IV and is away, the rift opens on the ground in front of you and he walks out as he was (Basiliskra IV comes out of the sea instead, if there is water within 96 blocks). |
 | Bring him here (no rift, pick a form) | The one Basiliskra is put a short way in front of you, on the ground, as he is in the story or as I, II, III or IV. Basiliskra I needs deep water within 96 blocks and goes there. |
-| Make him change now (next form) | Plays the change, with its scene, without waiting for the list in the journal. |
+| Make him change now (next form) | Plays the change, with its scene, without waiting for his time to be up. |
 | Send him away (until he is called) | He leaves through a rift and **stays gone**. The story goes back to its beginning: the next time he is called he comes as Basiliskra I. The anger on record and his fallout stay. Asks first. |
 | Skip to dusk | Sets the time to dusk. |
 | Journal | Opens the journal. |
 | Reset the story | Forgets him, his form, what he learned and all the anger on record, as if the pack had just been added. Asks first. |
+| Raise a city here | A full city or a small one where you stand: the sea the way you are looking, the streets behind you. See "Where people live". |
+| Put a Titan here | A Titan a short way in front of you, facing you (up to three). See "The Titan". |
+| Remove the Titans | Takes every Titan out of the world. |
 
 ## Spawning him yourself
 
@@ -216,6 +248,8 @@ In game: the config wheel's **Settings**. The defaults below are in `scripts/mai
 | Radiation sickness (`sickness`) | on | Players in fallout get hungry, weak and sick, and burn in the heart of it. |
 | Cutscenes (`cutscenes`) | on | The camera shows everyone near the rift opening and each change. Off: you keep your own view. |
 | His music (`music`) | on | His three themes. |
+| Minutes in each form before he changes (`changeMinutes`) | the story's own timing | Or 1, 2, 5, 10, 20, 30 or 60 minutes for every change. |
+| Cities rise on coasts (`cities`) | on | Off: a city is only raised where an operator asks for one. |
 
 There are no sliders (they could not be dragged on some phones): every number is a list to pick from, with a box to type your own.
 
@@ -226,6 +260,9 @@ In the scorch and break modes nothing built is ever touched: not redstone, glass
 His destruction drops nothing: what his breath or his weight breaks is gone. He uses no real lightning and no real explosions (the blasts are his own, so nothing he does is stopped by blast resistance, and nothing is set off).
 
 ## Good to know
+
+* **Not yet seen in the game by its author.** Everything in 1.6 (the close cutscenes, the Seam Lance in the hand, the cities and the deep, the Titan) passes the pack's own simulated-world tests and the game's file checks, but none of it has been run in Minecraft itself. See `docs/TEST_REPORT.md` for the list of what to look at first.
+* Two Titans fighting ask about three times as much of the game as Basiliskra IV does alone. If a world struggles, fight two, not three.
 
 * Basiliskra IV's wings are struck at the arm; the long finger bones and the membrane between them are not hit volumes.
 * **Hit him anywhere.** Every form is covered by invisible hit volumes from the tip of the snout to the tip of the tail, generated from the model itself: head, jaw, neck, body, every leg, every segment of tail. Hits on his head count from outside it. If the game ever fails to register a swing that plainly lands, the pack counts it anyway.

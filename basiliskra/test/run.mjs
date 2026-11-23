@@ -1638,6 +1638,26 @@ console.log('\n== 19. Basiliskra IV');
   }
 }
 
+{
+  // the minutes setting: every change that many minutes after the last, whatever else is true
+  const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+  const ana = w.sim.addPlayer('Ana', { x: 30, y: 64, z: 30 }); ana.mode = 'Creative';
+  w.bk.CONFIG.changeMinutes = 1;
+  w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 2); w.sim.step(2);
+  const rec = w.bk.store.rec, id0 = w.bk.ctl.creature.entity.id;
+  w.sim.save.timeOfDay = 5000;                              // broad day, no rain
+  Object.assign(rec.mut, { surfacings: 0, episodes: 0, overland: 0, beams: 0 });
+  rec.mut.formSince = rec.clock;
+  w.sim.step(1140);
+  check('set to one minute, Basiliskra II is still II fifty-seven seconds after he became II', rec.form === 2 && !rec.evolve);
+  const t2 = until(w, () => rec.form === 3 && !rec.evolve, 1200);
+  check('and a minute after, he changes: by day, dry, having dragged himself nowhere', t2 > 0 && rec.mut.overland < 220 && w.bk.ctl.creature.entity.id === id0 && w.sim.save.timeOfDay < 12000, `${t2} more ticks; ${Math.round(rec.mut.overland)} blocks dragged`);
+  const since = rec.mut.formSince;
+  const t3 = until(w, () => rec.form === 4 && !rec.evolve, 2400);
+  check('Basiliskra III a minute after that, without a beam fired', t3 > 0 && rec.mut.beams === 0 && rec.mut.formSince - since >= 1200 && rec.mut.formSince - since < 1800 && w.sim.count(TYPE) === 1, `${rec.mut.formSince - since} ticks as III; ${rec.mut.beams} beams`);
+  w.bk.ctl.sendAway();
+}
+
 console.log('\n== 20. The Seam Lance');
 {
   const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);

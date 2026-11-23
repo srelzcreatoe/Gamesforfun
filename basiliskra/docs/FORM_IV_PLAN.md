@@ -9,10 +9,27 @@ model first, then stop for approval**; then everything else.
   and the three themes.
 * **1.5.0**: Basiliskra IV is in the game (`src/forms/four.ts`): he roams and destroys, every footfall a crater, the
   breath from 150 blocks, the stare, and all six set pieces. He comes to be when Basiliskra III has had three days
-  and fired twelve beams, at night with a player near (or at once from the config wheel). Set piece 1 is staged
+  (from 1.6 that is all it takes; before, also twelve beams, night, and a player near) or at once from the config wheel. Set piece 1 is staged
   wherever he arrives; called back near the sea he comes out of the water for it. What differs from the brief:
   in set piece 4 no water is moved and no fish are stranded before the wave (cod are left after it); in set piece 1
   the "row of spines moving beneath the ocean" is not drawn (he wades out through a rift).
+* **1.6.0**: a second brief (a message with three pictures: two voxel cities seen from the air and the shore, and a
+  blocky toy-like gun with a red crystal barrel). What was asked, and what was built:
+  * *"some of them get out of frame cuz it's zoomed out in the cutscene ... have it be much closer"*, *"make each
+    transformation cinematic"*: the change is now five cut shots, each placed from his own size and facing
+    (`scene.ts` shots; `controller.ts` evolve), HUD hidden, name card.
+  * *"only have the requirements be ... how many minutes pass"*: time is all a change waits on (`brain.ts`
+    `changeTicks`); the Settings have "Minutes in each form before he changes".
+  * *"go to the nearest village it can find and start destroying it"*: `settlementNear` and the `raze` act (II, III, IV).
+  * *"a biome where big cities can spawn in with people ... spawned next to the player too ... a beach ... the water
+    ocean deep and I mean DEEP DEEP with custom blocks and structures"*: `city.ts`. **Not a biome**: a custom biome
+    needs the game's Custom Biomes experiment, and the pack runs with none. Cities are raised by the script on real
+    coasts as players explore, and where an operator stands (wheel, `/basiliskra:city`); each has a beach and a sea
+    cut 102 blocks deep, lined, with four new blocks and several structures on its floor.
+  * *"a separate 4th form balisikra for kaiju battles in creative that is much stronger than the survival one"*:
+    the Titan (`titan.ts`, entity `basiliskra:titan`).
+  * *"a specific gun that is made to shoot basiliskra that looks like it's from pixel gun 3d"*: the Seam Lance
+    (`lance.ts`, `tools/kit/gen_lance.py`), an original design in that blocky style.
 * None of it has been seen in game: see `docs/TEST_REPORT.md`.
 
 At model scale he is 27.5 blocks to the top of the skull (33.8 to the wing claws), 54.5 across the wings and 44.5
