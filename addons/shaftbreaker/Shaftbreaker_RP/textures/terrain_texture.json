@@ -21,6 +21,15 @@
     },
     "sb_cairn_top": {
       "textures": "textures/blocks/sb_cairn_top"
+    },
+    "sb_hollow_dust": {
+      "textures": "textures/blocks/sb_hollow_dust"
+    },
+    "sb_hollow_soil": {
+      "textures": "textures/blocks/sb_hollow_soil"
+    },
+    "sb_clawed_stone": {
+      "textures": "textures/blocks/sb_clawed_stone"
     }
   }
 }

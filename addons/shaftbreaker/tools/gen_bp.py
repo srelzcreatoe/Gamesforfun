@@ -6,8 +6,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BP = os.path.join(ROOT, 'Shaftbreaker_BP')
 RP = os.path.join(ROOT, 'Shaftbreaker_RP')
 NS = 'shaftbreaker'
-VERSION = [2, 1, 0]
-MIN_ENGINE = [1, 21, 120]
+VERSION = [3, 0, 0]
+MIN_ENGINE = [1, 26, 30]   # custom biomes (the Hollows) need 1.26.30+
 UUID = {
     'bp_header': '6f1c2b0e-3a5d-4c7e-9b21-5d8e7a4c1f01',
     'bp_data': '6f1c2b0e-3a5d-4c7e-9b21-5d8e7a4c1f02',
@@ -265,6 +265,20 @@ def items():
         'minecraft:max_stack_size': 1,
         'minecraft:hand_equipped': False,
     }, 'equipment'))
+    w(BP, 'items/breakers_wheel.json', item(f'{NS}:breakers_wheel', {
+        'minecraft:icon': 'sb_breakers_wheel',
+        'minecraft:display_name': {'value': 'item.shaftbreaker:breakers_wheel.name'},
+        'minecraft:max_stack_size': 1,
+        'minecraft:hand_equipped': False,
+        'minecraft:glint': False,
+        'minecraft:rarity': 'rare',
+    }, 'equipment'))
+    w(BP, 'recipes/breakers_wheel.json', {'format_version': '1.20.10', 'minecraft:recipe_shaped': {
+        'description': {'identifier': f'{NS}:breakers_wheel'}, 'tags': ['crafting_table'],
+        'pattern': ['I I', ' B ', 'I I'],
+        'key': {'I': {'item': 'minecraft:iron_ingot'}, 'B': {'item': 'minecraft:bone'}},
+        'unlock': [{'item': 'minecraft:bone'}],
+        'result': {'item': f'{NS}:breakers_wheel'}}})
     w(BP, 'items/resonance_shard.json', item(f'{NS}:resonance_shard', {
         'minecraft:icon': 'sb_resonance_shard',
         'minecraft:display_name': {'value': 'item.shaftbreaker:resonance_shard.name'},

@@ -89,6 +89,7 @@ class Dimension {
     if (!hit) return undefined;
     return { block: new Block(this, hit.x, hit.y, hit.z), face: 'Up', faceLocation: { x: hit.fx - hit.x, y: hit.fy - hit.y, z: hit.fz - hit.z } };
   }
+  getBiome(p) { return { id: SIM.biomeAt ? SIM.biomeAt(p) : 'minecraft:plains' }; }
   getTopmostBlock(p) { const y = this.vw.topY(Math.floor(p.x), Math.floor(p.z)); return y === null ? undefined : new Block(this, Math.floor(p.x), y, Math.floor(p.z)); }
   getLightLevel(p) { return this.vw.light(Math.floor(p.x), Math.floor(p.y), Math.floor(p.z)); }
   getSkyLightLevel(p) { return this.vw.sky(Math.floor(p.x), Math.floor(p.y), Math.floor(p.z)); }
@@ -178,6 +179,11 @@ export class Entity {
     if (id === 'minecraft:riding') return self._riding ? { entityRidingOn: self._riding } : undefined;
     if (id === 'minecraft:rideable') return { ejectRiders() { SIM.events.push({ t: tick, ev: 'eject' }); } };
     if (id === 'minecraft:item') return self._item ? { itemStack: self._item } : undefined;
+    if (id === 'minecraft:movement') return { setCurrentValue(v) { self._speed = v; }, get currentValue() { return self._speed ?? 0; } };
+    if (id === 'minecraft:inventory' && this.typeId === 'minecraft:player') {
+      self._inv ||= new Array(36).fill(undefined);
+      return { container: { size: 36, getItem(i) { return self._inv[i]; }, addItem(it) { const i = self._inv.findIndex((x) => !x); if (i >= 0) self._inv[i] = it; SIM.given = (SIM.given || 0) + 1; } } };
+    }
     return undefined;
   }
   get playerPermissionLevel() { return 2; }

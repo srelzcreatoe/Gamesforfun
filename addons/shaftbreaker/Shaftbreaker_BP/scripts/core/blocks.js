@@ -22,7 +22,8 @@ export const DAMAGING = set('lava', 'flowing_lava', 'magma', 'fire', 'soul_fire'
 
 /** natural cave/terrain material the Breaker may move (never player builds, never ores) */
 export const NATURAL_BREAKABLE = set('stone', 'deepslate', 'tuff', 'granite', 'diorite', 'andesite', 'calcite', 'dripstone_block',
-  'dirt', 'coarse_dirt', 'dirt_with_roots', 'gravel', 'clay', 'moss_block', 'web', 'infested_stone', 'infested_deepslate', 'sand', 'red_sand');
+  'dirt', 'coarse_dirt', 'dirt_with_roots', 'gravel', 'clay', 'moss_block', 'web', 'infested_stone', 'infested_deepslate', 'sand', 'red_sand',
+  'shaftbreaker:clawed_stone', 'shaftbreaker:hollow_dust', 'shaftbreaker:hollow_soil');
 
 export const MINESHAFT_WOOD = set('oak_planks', 'oak_fence', 'dark_oak_planks', 'dark_oak_fence', 'web');
 

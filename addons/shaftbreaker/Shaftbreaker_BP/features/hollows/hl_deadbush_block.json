@@ -1,0 +1,27 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:single_block_feature": {
+    "description": {
+      "identifier": "shaftbreaker:hl_deadbush_block"
+    },
+    "places_block": [
+      {
+        "block": "minecraft:deadbush",
+        "weight": 1
+      }
+    ],
+    "enforce_placement_rules": false,
+    "enforce_survivability_rules": false,
+    "may_attach_to": {
+      "bottom": [
+        "shaftbreaker:hollow_dust",
+        "minecraft:coarse_dirt",
+        "minecraft:gravel",
+        "shaftbreaker:hollow_soil"
+      ]
+    },
+    "may_replace": [
+      "minecraft:air"
+    ]
+  }
+}

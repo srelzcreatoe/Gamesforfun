@@ -226,6 +226,7 @@ for m in re.findall(r"'(shaftbreaker:[a-z_]+)'", js):
         name = m.split(':')[1]
         if m in props or m in custom_items or m in custom_blocks or m in bp_entities or m in particles: continue
         if m in ('shaftbreaker:action', 'shaftbreaker:sb', 'shaftbreaker:hanging'): continue
+        if m.startswith('shaftbreaker:fog_') or m == 'shaftbreaker:the_hollows': continue   # checked in the world-generation section
         err(f'script references unknown id {m}')
 for m in set(re.findall(r"`?shaftbreaker:\$\{[a-z]+\}`?", js)):
     pass
@@ -237,14 +238,15 @@ for ev in set(re.findall(r"triggerEvent\('([a-z_:]+)'\)", js)) | {f'sb:mode_{m}'
     if ev not in events: err(f'script triggers unknown entity event {ev}')
 for m in set(re.findall(r"'((?:music\.)?shaftbreaker\.[a-z_]+)'", js)):
     if m not in sdefs: err(f'script sound {m} undefined')
-for m in set(re.findall(r"'(random\.[a-z_]+|dig\.[a-z_]+|open\.[a-z_]+)'", js)):
+for m in set(re.findall(r"'(random\.[a-z_]+|dig\.[a-z_]+|open\.[a-z_]+|step\.[a-z_]+|game\.player\.[a-z_]+)'", js)):
     if vanilla_sounds and m not in vanilla_sounds: err(f'vanilla sound {m} not found')
 for m in set(re.findall(r"getProperty\('([a-z_:]+)'\)", js)) | set(re.findall(r"setProperty\('([a-z_:]+)'", js)):
     if m not in props: err(f'script uses unknown entity property {m}')
 if VD:
     for m in set(re.findall(r"'(minecraft:[a-z0-9_]+)'", js)):
         if js.count(f"startsWith('{m}") and m + '_0' in vanilla_blocks: continue
-        if m in ('minecraft:overworld', 'minecraft:player', 'minecraft:item', 'minecraft:health', 'minecraft:equippable', 'minecraft:riding', 'minecraft:rideable', 'minecraft:cardinal_direction'):
+        if m in ('minecraft:overworld', 'minecraft:player', 'minecraft:item', 'minecraft:health', 'minecraft:equippable', 'minecraft:riding', 'minecraft:rideable', 'minecraft:cardinal_direction',
+                 'minecraft:movement', 'minecraft:inventory'):   # entity component ids, not blocks/items
             continue
         if m not in vanilla_blocks and m not in vanilla_items and m not in vanilla_entities: err(f'script: unknown vanilla id {m}')
     for m in set(re.findall(r"addEffect\('([a-z_]+)'", js)):
@@ -258,6 +260,107 @@ if VD:
 acts = open(os.path.join(BP, 'scripts/generated/acts.js')).read()
 for m in set(re.findall(r'ACT\.([A-Z_]+)', js)):
     if f'  {m}:' not in acts: err(f'script uses unknown ACT.{m}')
+
+# ---------------------------------------------------------------- world generation (the Hollows)
+import struct as _st
+vanilla_biomes = set()
+if VD:
+    vanilla_biomes = set(re.findall(r'"(minecraft:[a-z0-9_]+)"', open(os.path.join(VD, 'lib', 'mojang-biome.d.ts')).read()))
+def block_known(n):
+    n = n if ':' in n else 'minecraft:' + n
+    return n in custom_blocks or not vanilla_blocks or n in vanilla_blocks or n == 'minecraft:air'
+def _nbt_names(path):
+    """palette block names of a .mcstructure (minimal little-endian NBT walk)"""
+    names = []
+    def rd(f, t):
+        if t == 1: f.read(1)
+        elif t == 2: f.read(2)
+        elif t == 3: return _st.unpack('<i', f.read(4))[0]
+        elif t == 4: f.read(8)
+        elif t == 5: f.read(4)
+        elif t == 6: f.read(8)
+        elif t == 7: f.read(_st.unpack('<i', f.read(4))[0])
+        elif t == 8: n = _st.unpack('<H', f.read(2))[0]; return f.read(n).decode()
+        elif t == 9:
+            et = f.read(1)[0]; n = _st.unpack('<i', f.read(4))[0]
+            return [rd(f, et) for _ in range(n)]
+        elif t == 10:
+            d = {}
+            while True:
+                tt = f.read(1)[0]
+                if tt == 0: return d
+                k = f.read(_st.unpack('<H', f.read(2))[0]).decode(); d[k] = rd(f, tt)
+        elif t == 11: f.read(4 * _st.unpack('<i', f.read(4))[0])
+        else: raise ValueError(t)
+    with open(path, 'rb') as f:
+        f.read(1); f.read(_st.unpack('<H', f.read(2))[0])
+        root = rd(f, 10)
+    size = root['size']; blocks = root['structure']['block_indices'][0]
+    pal = root['structure']['palette']['default']['block_palette']
+    if len(blocks) != size[0] * size[1] * size[2]: err(f'{os.path.basename(path)}: index count does not match size')
+    if any(b >= len(pal) for b in blocks): err(f'{os.path.basename(path)}: index beyond palette')
+    return [p['name'] for p in pal]
+structures = {}
+for p in glob.glob(BP + '/structures/**/*.mcstructure', recursive=True):
+    rel = os.path.relpath(p, BP + '/structures').replace(os.sep, '/')[:-len('.mcstructure')]
+    ns, name = rel.split('/', 1)
+    structures[f'{ns}:{name}'] = p
+    for n in _nbt_names(p):
+        if not block_known(n): err(f'structure {rel}: unknown block {n}')
+biome_tags = set()
+for p in glob.glob(BP + '/biomes/*.json'):
+    b = (load(p) or {})['minecraft:biome']; c = b['components']
+    biome_tags |= set(c.get('minecraft:tags', {}).get('tags', []))
+    for r in c.get('minecraft:replace_biomes', {}).get('replacements', []):
+        for t in r['targets']:
+            if vanilla_biomes and t not in vanilla_biomes: err(f'biome {b["description"]["identifier"]}: unknown target biome {t}')
+    sb = c.get('minecraft:surface_builder', {}).get('builder', {})
+    for k in ('top_material', 'mid_material', 'foundation_material', 'sea_floor_material', 'sea_material'):
+        if k in sb and not block_known(sb[k]): err(f'biome surface {k}: unknown block {sb[k]}')
+    for a in c.get('minecraft:surface_material_adjustments', {}).get('adjustments', []):
+        for k, v in a['materials'].items():
+            if not block_known(v): err(f'biome adjustment {k}: unknown block {v}')
+fog_ids = set()
+for p in glob.glob(RP + '/fogs/*.json'):
+    fog_ids.add((load(p) or {})['minecraft:fog_settings']['description']['identifier'])
+music_defs = (load(RP + '/sounds/music_definitions.json') or {}) if os.path.exists(RP + '/sounds/music_definitions.json') else {}
+for p in glob.glob(RP + '/biomes/*.json'):
+    c = (load(p) or {})['minecraft:client_biome']['components']
+    fid = c.get('minecraft:fog_appearance', {}).get('fog_identifier')
+    if fid and fid not in fog_ids: err(f'client biome: fog {fid} missing')
+    amb = c.get('minecraft:ambient_sounds', {})
+    for ev in [amb.get('loop'), amb.get('mood'), (amb.get('addition') or {}).get('asset')]:
+        if ev and ev.startswith('shaftbreaker.') and ev not in sdefs: err(f'client biome: ambient sound {ev} undefined')
+    md = c.get('minecraft:biome_music', {}).get('music_definition')
+    if md and md not in music_defs: err(f'client biome: music definition {md} missing from sounds/music_definitions.json')
+    elif md and music_defs[md]['event_name'] not in sdefs: err(f'music definition {md}: event {music_defs[md]["event_name"]} undefined')
+features = {}
+for p in glob.glob(BP + '/features/**/*.json', recursive=True):
+    d = load(p) or {}
+    kind = [k for k in d if k.startswith('minecraft:')][0]
+    features[d[kind]['description']['identifier']] = (kind, d[kind])
+for fid, (kind, f) in features.items():
+    if kind == 'minecraft:structure_template_feature' and f['structure_name'] not in structures: err(f'feature {fid}: structure {f["structure_name"]} missing')
+    if 'places_feature' in f and f['places_feature'] not in features: err(f'feature {fid}: places unknown feature {f["places_feature"]}')
+    for pb in f.get('places_block', []):
+        n = pb['block']['name'] if isinstance(pb.get('block'), dict) else pb.get('block')
+        if n and not block_known(n): err(f'feature {fid}: unknown block {n}')
+    for rr in f.get('replace_rules', []):
+        if not block_known(rr['places_block']): err(f'feature {fid}: unknown block {rr["places_block"]}')
+for p in glob.glob(BP + '/feature_rules/**/*.json', recursive=True):
+    r = (load(p) or {})['minecraft:feature_rules']
+    pf = r['description']['places_feature']
+    if pf not in features: err(f'feature rule {r["description"]["identifier"]}: unknown feature {pf}')
+    for flt in r['conditions'].get('minecraft:biome_filter', []):
+        if flt.get('test') == 'has_biome_tag' and flt['value'] not in biome_tags: err(f'feature rule {r["description"]["identifier"]}: no biome has tag {flt["value"]}')
+for m in set(re.findall(r"'(shaftbreaker:fog_[a-z_]+)'", js)):
+    if m not in fog_ids: err(f'script uses unknown fog {m}')
+biome_ids = {(load(p) or {})['minecraft:biome']['description']['identifier'] for p in glob.glob(BP + '/biomes/*.json')}
+for m in set(re.findall(r"'(shaftbreaker:the_[a-z_]+)'", js)):
+    if m not in biome_ids: err(f'script uses unknown biome {m}')
+client_biomes = {(load(p) or {})['minecraft:client_biome']['description']['identifier'] for p in glob.glob(RP + '/biomes/*.json')}
+for b in biome_ids:
+    if b not in client_biomes: err(f'biome {b} has no client biome')
 
 print(f'errors: {len(errors)}  warnings: {len(warns)}')
 for e in errors: print('  ERROR', e)

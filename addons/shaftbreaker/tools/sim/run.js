@@ -38,6 +38,8 @@ console.warn = (...a) => { const s = a.join(' '); scriptLog.push(s); if (/\(x\d+
 const vw = new VoxelWorld(SEED);
 world._init(vw);
 SIM.timeOfDay = SCENARIO === 'night' ? 18000 : 6000;
+// the Hollows: the west of the world (surface and the caves under it) in the 'hollows' scenario
+SIM.biomeAt = (p) => (SCENARIO === 'hollows' && p.x < -12 ? 'shaftbreaker:the_hollows' : 'minecraft:plains');
 const dim = world.getDimension('minecraft:overworld');
 
 // ---- protected blocks guard (T11)
@@ -48,6 +50,9 @@ SIM.guardSet = (x, y, z, oldId, newId) => {
 
 // ---- players
 function findStart(i) {
+  if (SCENARIO === 'hollows') {                                     // daytime, on the surface of the Hollows
+    for (let r = 0; r < 4000; r++) { const x = Math.floor(rand2(-45, -18)), z = Math.floor(rand2(-30, 30)); if (vw.standable(x, 61, z) && vw.sky(x, 61, z) > 0) return { x: x + 0.5, y: 61, z: z + 0.5 }; }
+  }
   if (SCENARIO === 'night') {                                       // on the surface near the house and the trees
     for (let r = 0; r < 4000; r++) { const x = Math.floor(rand2(-30, 30)), z = Math.floor(rand2(-30, 30)); if (vw.standable(x, 61, z) && vw.sky(x, 61, z) > 0) return { x: x + 0.5, y: 61, z: z + 0.5 }; }
   }
@@ -274,6 +279,7 @@ SIM.onTeleport = (e, from, to) => {
   tpStats.relocations++;
   e._lastTp = { t: M.system.currentTick, to: { ...to }, stack: new Error().stack.split('\n').slice(2, 7).map((l) => l.trim().replace(/^at /, '').replace(/\(.*scripts\//, '(').replace(/\(file:.*\//, '(')).join(' < ') };
   if (SIM.particles.some((q) => q.id === 'shaftbreaker:vanish' && q.t === M.system.currentTick)) { tpStats.fxVanish = (tpStats.fxVanish || 0) + 1; return; }   // a visible vanish with its dust cloud: by design
+  if (new Error().stack.includes('jumpscare')) { tpStats.scares = (tpStats.scares || 0) + 1; return; }   // its face in yours: by design
   for (const b of bots) {
     for (const [lbl, pos] of [['from', from], ['to', to]]) {
       const head = { x: pos.x, y: pos.y + 2.2, z: pos.z };
@@ -396,6 +402,14 @@ for (const r of log.recent(60)) ALLTEL.add(r);
     const doorOpen = !!vw.getStates(14, 61, 10).open_bit || !!vw.getStates(14, 62, 10).open_bit;
     console.log(`BREACH RESTORE: pending ${brm.pendingBreaches()}, house windows missing ${glassGone.length}, house door left open ${doorOpen} -> ${brm.pendingBreaches() === 0 && !glassGone.length && !doorOpen ? 'OK' : 'FAIL'}`);
   }
+  {
+    const cmds = SIM.commands || [];
+    const cnt = (re) => cmds.filter((c) => re.test(c)).length;
+    const snd = (id) => SIM.sounds.filter((x) => x.id === id).length;
+    const notes = (SIM.messages || []).filter((m) => /\[Field notes\]/.test(String(m)));
+    console.log(`SCARES: fog pushes ${cnt(/fog @s push/)} (rage ${cnt(/fog_rage/)}, near ${cnt(/fog_near/)}, territory ${cnt(/fog_territory/)}), fog removals ${cnt(/fog @s remove/)}, camera shakes ${cnt(/camerashake/)}, jumpscares ${snd('shaftbreaker.jumpscare')}, reveal stings ${snd('shaftbreaker.sting_reveal')}, whispers ${snd('shaftbreaker.whisper')}, eye glints ${SIM.particles.filter((q) => q.id === 'shaftbreaker:eye_glint').length}, mind games ${(SIM.messages || []).filter((m) => /joined the game|\[title:/.test(String(m))).length}, mimicked sounds ${['random.door_open', 'random.chestopen', 'step.stone', 'game.player.hurt', 'random.eat', 'dig.stone'].map(snd).reduce((a, b) => a + b, 0)}, knocks ${snd('shaftbreaker.knock')}`);
+    console.log(`FIELD NOTES unlocked: ${notes.length} ${JSON.stringify(notes.map((m) => String(m).replace(/.*New entry: §f/, '').replace(/§8.*/, '')))}; wheels given ${SIM.given || 0}`);
+  }
   console.log(`STALKER: first show at ${firstShow ? (firstShow.t / 1200).toFixed(1) : '-'} min, first chase at ${firstRage ? (firstRage.t / 1200).toFixed(1) : (rages.length ? 'inline' : '-')} min; damage to players ${SIM.hits.reduce((a, h) => a + h.n, 0).toFixed(0)} in ${SIM.hits.length} hits; deaths ${SIM.deaths || 0}; bot reactions ${JSON.stringify(SIM.reacts || {})}`);
 }
 const hist = ws.ws().history;
@@ -413,7 +427,7 @@ for (const e of SIM.errors.slice(0, 12)) console.log('  ERR', e.split('\n').slic
 console.log(`max simultaneous Shaftbreakers: ${stats.maxCreatures} (singleton ${stats.maxCreatures <= 1 ? 'OK' : 'VIOLATED'})`);
 console.log(`creature spawns: ${stats.spawns}, spawned inside a player's direct view: ${stats.spawnInView.length}`, stats.spawnInView.slice(0, 5));
 console.log(`creature-in-wall ticks: ${stats.creatureInWall}`);
-console.log(`relocations (teleports > 1.5 blocks): ${tpStats.relocations} (${tpStats.fxVanish || 0} visible vanishes with fx), silent ones inside someone's view: ${tpStats.visibleRelocations.length}`, tpStats.visibleRelocations.slice(0, 4));
+console.log(`relocations (teleports > 1.5 blocks): ${tpStats.relocations} (${tpStats.fxVanish || 0} visible vanishes with fx, ${tpStats.scares || 0} jumpscares), silent ones inside someone's view: ${tpStats.visibleRelocations.length}`, tpStats.visibleRelocations.slice(0, 4));
 console.log(`presence: creature around for ${(100 * presence.withCreature / Math.max(1, presence.ugTicks)).toFixed(0)}% of underground time, mean distance ${(presence.distSum / Math.max(1, presence.withCreature)).toFixed(1)} blocks, in view ${(100 * presence.seenTicks / Math.max(1, presence.withCreature)).toFixed(1)}% of that time`);
 console.log('guide moths: ' + Object.values(GUIDES).length + ' ' + JSON.stringify(Object.values(GUIDES).map((g) => ({ den: `${g.start.toFixed(0)}->${g.min.toFixed(0)}`, s: (g.ticks / 20).toFixed(0), solid: g.solid, faceTravel: g.moved ? (g.aligned / g.moved).toFixed(2) : '-', pl: g.followerMin.toFixed(0) }))));
 const denm = await import(pathToFileURL(path.join(build, 'scripts/world/den.js')).href);

@@ -136,6 +136,19 @@ def items():
     d.line((8, 8, 11, 5), fill=(230, 220, 255, 255))
     d.rectangle((7, 7, 8, 8), fill=(170, 120, 230, 255))
     save(img, 'textures/items/sb_resonance_dial.png')
+    # the Breaker's Wheel: a rusted winding wheel, eight spokes, a bone-white eye with a red pupil at the hub
+    img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); d = ImageDraw.Draw(img)
+    d.ellipse((0, 0, 15, 15), outline=(92, 54, 36, 255), width=2)
+    d.ellipse((1, 1, 14, 14), outline=(150, 86, 50, 255))
+    for k in range(8):
+        a = k / 8 * math.tau + 0.2
+        d.line((7.5, 7.5, 7.5 + math.cos(a) * 6.5, 7.5 + math.sin(a) * 6.5), fill=(120, 72, 44, 255))
+    d.ellipse((4, 5, 11, 10), fill=(226, 216, 196, 255), outline=(60, 40, 34, 255))
+    d.rectangle((7, 6, 8, 9), fill=(150, 18, 18, 255))
+    d.point((7, 7), fill=(255, 70, 60, 255))
+    for x, y in [(2, 9), (12, 4), (13, 10), (3, 4)]:
+        img.putpixel((x, y), (176, 96, 46, 255))
+    save(img, 'textures/items/sb_breakers_wheel.png')
     # resonance shard
     img = Image.new('RGBA', (16, 16), (0, 0, 0, 0)); d = ImageDraw.Draw(img)
     d.polygon([(8, 1), (12, 6), (10, 14), (6, 14), (4, 6)], fill=(214, 206, 196, 255), outline=(120, 110, 104, 255))

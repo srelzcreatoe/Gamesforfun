@@ -109,6 +109,12 @@ export function isUnderground(player) {
   } catch { return false; }
 }
 
+export const HOLLOWS = 'shaftbreaker:the_hollows';
+/** is this position inside the Hollows (its own biome)? */
+export function inHollows(dim, pos) {
+  try { return dim.getBiome(floor3(pos)).id === HOLLOWS; } catch { return false; }
+}
+
 export function isChunkLoaded(dim, pos) {
   try { return dim.isChunkLoaded(pos); } catch { return false; }
 }

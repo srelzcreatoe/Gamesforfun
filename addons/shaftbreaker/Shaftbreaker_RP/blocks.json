@@ -19,5 +19,17 @@
   "shaftbreaker:cairn_marker": {
     "sound": "stone",
     "textures": "sb_cairn"
+  },
+  "shaftbreaker:hollow_dust": {
+    "sound": "gravel",
+    "textures": "sb_hollow_dust"
+  },
+  "shaftbreaker:hollow_soil": {
+    "sound": "gravel",
+    "textures": "sb_hollow_soil"
+  },
+  "shaftbreaker:clawed_stone": {
+    "sound": "stone",
+    "textures": "sb_clawed_stone"
   }
 }

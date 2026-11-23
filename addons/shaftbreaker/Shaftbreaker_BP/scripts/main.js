@@ -4,7 +4,9 @@
  * Entry point: event wiring, loops, commands.
  */
 import { world, system, CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus } from '@minecraft/server';
-import { loadConfig, config, setConfig, applyPreset, ENUMS, DEFAULTS, prefs } from './core/config.js';
+import { loadConfig, config, setConfig, applyPreset, ENUMS, DEFAULTS, prefs, diff } from './core/config.js';
+import { tickScares, forgetScares, clearFogs } from './scare.js';
+import { unlockNote } from './notes.js';
 import { safe, valid, now, sec, mins, rand, isOperator, worldTicks, OVERWORLD, reportError, chance } from './core/util.js';
 import { recent, log } from './core/log.js';
 import { isWoodenDoorId } from './core/blocks.js';
@@ -15,7 +17,7 @@ import { SB_ID, creature, tickCreature, adopt, despawnAll, onDefeat, dropLoot } 
 import { onPlayerHitMob, directorTick, fastTick, slowTick, onBreak, onPlace, onDoorUse, onPlayerDeath, onPlayerSpawn, onCreatureHurtByPlayer, armRetaliation, dropPlayer, forceEncounter, stopEncounter, debugLine, pstate, TEMPLATES, running } from './ai/director.js';
 import { profile, evidence, markDirty, resetProfile } from './ai/memory.js';
 import { ws, wsDirty, wsReset } from './ai/worldstate.js';
-import { openDial } from './ui.js';
+import { openDial, openWheel, giveWheel } from './ui.js';
 import { presenceAudio } from './ai/brain.js';
 import { playFor, forgetAudio, stopAllMusic, tickHeart } from './audio.js';
 import { restoreBreaches, pendingBreaches } from './world/breach.js';
@@ -38,6 +40,7 @@ function init() {
   system.runInterval(() => safe('presence', presenceAudio), 20);
   system.runInterval(() => safe('heart', () => { for (const p of world.getAllPlayers()) tickHeart(p); }), 5);
   system.runInterval(() => safe('debug', debugTick), 10);
+  system.runInterval(() => safe('scares', tickScares), 10);
   // everything it opened or smashed during a chase is put back (also after a reload mid-chase)
   system.runTimeout(() => safe('restoreLoad', () => restoreBreaches({ force: true })), 100);
   system.runInterval(() => safe('restore', () => {
@@ -106,7 +109,14 @@ world.afterEvents.entityHurt.subscribe((ev) => safe('hurt', () => {
   if (e.typeId === 'minecraft:player' && ev.damageSource.damagingEntity?.typeId === SB_ID) {
     const s = pstate(/** @type {any} */ (e));
     s.lastHurtBy = now();
-    const c = creature(); if (c) c.lastEngineHit = now();
+    const c = creature();
+    if (c && c.scriptHitAt !== now()) {
+      c.lastEngineHit = now();
+      // its own (engine) attacks follow the Wheel's difficulty too
+      const k = diff().dmg;
+      if (k > 1.01) safe('dmgUp', () => /** @type {any} */ (e).applyDamage(ev.damage * (k - 1), { cause: 'entityAttack' }));
+      else if (k < 0.99) safe('dmgDown', () => { const h = /** @type {any} */ (e).getComponent('minecraft:health'); if (h && h.currentValue > 0) h.setCurrentValue(Math.min(h.effectiveMax, h.currentValue + ev.damage * (1 - k))); });
+    }
   }
 }));
 
@@ -138,6 +148,7 @@ function markDefeat(by) {
   wsDirty();
   if (by && by.typeId === 'minecraft:player') {
     const pf = profile(/** @type {any} */ (by)); pf.defeats++; markDirty(by);
+    safe('noteDefeat', () => unlockNote(/** @type {any} */ (by), 'defeat'));
     safe('msg', () => by.onScreenDisplay.setTitle('§7The Shaftbreaker falls', { subtitle: '§8the tunnels go quiet... for now', fadeInDuration: 10, stayDuration: 60, fadeOutDuration: 20 }));
   }
 }
@@ -145,9 +156,12 @@ function markDefeat(by) {
 world.afterEvents.playerSpawn.subscribe((ev) => safe('spawn', () => {
   onPlayerSpawn(ev.player);
   if (ev.initialSpawn) safe('untag', () => ev.player.removeTag('sb_target'));
+  safe('fogReset', () => clearFogs(ev.player));
+  // the Breaker's Wheel: on first join, and back after every death (world switch)
+  system.runTimeout(() => safe('wheel', () => giveWheel(ev.player, ev.initialSpawn)), 40);
 }));
 
-world.afterEvents.playerLeave.subscribe((ev) => safe('leave', () => { dropPlayer(ev.playerId); forgetAudio(ev.playerId); }));
+world.afterEvents.playerLeave.subscribe((ev) => safe('leave', () => { dropPlayer(ev.playerId); forgetAudio(ev.playerId); forgetScares(ev.playerId); }));
 
 world.afterEvents.playerDimensionChange.subscribe((ev) => safe('dim', () => {
   const r = running();
@@ -177,6 +191,7 @@ world.afterEvents.explosion.subscribe((ev) => safe('explosion', () => {
 
 world.afterEvents.itemUse.subscribe((ev) => safe('itemUse', () => {
   if (ev.itemStack.typeId === 'shaftbreaker:resonance_dial') system.run(() => { openDial(ev.source).catch((e) => reportError('dial', e)); });
+  if (ev.itemStack.typeId === 'shaftbreaker:breakers_wheel') system.run(() => { openWheel(ev.source).catch((e) => reportError('wheel', e)); });
 }));
 
 // ------------------------------------------------------------------ trophy (L83-L87)
@@ -205,13 +220,13 @@ function debugTick() {
 }
 
 // ------------------------------------------------------------------ commands
-const ACTIONS = ['help', 'status', 'menu', 'preset', 'set', 'debug', 'encounter', 'list', 'stop', 'telemetry', 'reset_me', 'reset_world', 'profile'];
+const ACTIONS = ['help', 'status', 'menu', 'wheel', 'preset', 'set', 'debug', 'encounter', 'list', 'stop', 'telemetry', 'reset_me', 'reset_world', 'profile'];
 
 function registerCommands(reg) {
   reg.registerEnum('shaftbreaker:action', ACTIONS);
   reg.registerCommand({
     name: 'shaftbreaker:sb',
-    description: 'Shaftbreaker control: help | status | menu | preset <name> | set <key=value> | debug | encounter <id> | list | stop | telemetry | profile | reset_me | reset_world',
+    description: 'Shaftbreaker control: help | status | menu | wheel | preset <name> | set <key=value> | debug | encounter <id> | list | stop | telemetry | profile | reset_me | reset_world',
     permissionLevel: CommandPermissionLevel.GameDirectors,
     cheatsRequired: false,
     mandatoryParameters: [{ name: 'shaftbreaker:action', type: CustomCommandParamType.Enum }],
@@ -227,7 +242,7 @@ system.afterEvents.scriptEventReceive.subscribe((ev) => safe('scriptevent', () =
   if (!ev.id.startsWith('shaftbreaker:')) return;
   const action = ev.id.slice('shaftbreaker:'.length);
   const src = ev.sourceEntity;
-  if (src && src.typeId === 'minecraft:player' && !isOperator(src) && !['help', 'status', 'menu', 'reset_me', 'profile'].includes(action)) {
+  if (src && src.typeId === 'minecraft:player' && !isOperator(src) && !['help', 'status', 'menu', 'wheel', 'reset_me', 'profile'].includes(action)) {
     /** @type {any} */ (src).sendMessage('§c[Shaftbreaker] operator only'); return;
   }
   runAction(src, action, ev.message.trim());
@@ -252,6 +267,7 @@ function runAction(src, action, value) {
       return;
     }
     case 'menu': if (player) openDial(player).catch((e) => reportError('dial', e)); return;
+    case 'wheel': if (player) openWheel(player).catch((e) => reportError('wheel', e)); return;
     case 'preset': say(src, applyPreset(value) ? `§7preset -> ${value}` : `§cunknown preset (${ENUMS.preset.join(', ')})`); return;
     case 'set': {
       const [k, raw] = value.split('=');

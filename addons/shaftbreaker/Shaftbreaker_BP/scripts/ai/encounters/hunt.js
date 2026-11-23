@@ -12,13 +12,15 @@ import { setDanger, startMusic, stopMusic, caption, playAt } from '../../audio.j
 import { isUnderground, skyLightAt, findSpot, lineOfSight, BlockCache } from '../../world/space.js';
 import { canBreak } from '../../world/protection.js';
 import { breach, barrierAhead, breachAllowed, restoreBreaches, findEntry } from '../../world/breach.js';
+import { pushFog, dropFog, shake, FOG } from '../../scare.js';
+import { diff } from '../../core/config.js';
 import { log } from '../../core/log.js';
 
 function diffMul() {
   try {
     const d = String(world.getDifficulty()).toLowerCase();
-    return d === 'easy' ? 0.6 : d === 'hard' ? 1.4 : d === 'peaceful' ? 0 : 1.0;
-  } catch { return 1; }
+    return (d === 'easy' ? 0.6 : d === 'hard' ? 1.4 : d === 'peaceful' ? 0 : 1.0) * diff().dmg;
+  } catch { return diff().dmg; }
 }
 
 /** is it daytime in the Overworld? (a raging Shaftbreaker follows you onto the surface at night) */
@@ -212,7 +214,7 @@ export function* pursue(ctx, cr, opts = {}) {
     if (el >= maxT) return 'cap';
     if (phase === 'frenzy' && frenzyTicks >= sec(Math.min(30, cfg.maxHuntSeconds))) return 'cap';
     if (d > (rage ? 56 : 48) || (lostLOS > sec(rage ? 15 : 12) && d > (rage ? 28 : 22))) return 'escaped';
-    if (!ctx.manual && !isUnderground(pl) && isDaylight()) {           // it never follows you into daylight
+    if (!ctx.manual && !isUnderground(pl) && isDaylight() && !ctx.ps.hollows) {   // it never follows you into daylight (except in its own land)
       surfaceT += 5;
       if (!cfg.surfaceMode || surfaceT > sec(6)) return 'surface';      // L52 / L53
     } else surfaceT = 0;
@@ -570,7 +572,11 @@ export function* huntSequence(ctx, plan = {}) {
     ctx.tel.notes.push(`rage (${plan.why || 'snapped'})`);
     cr.setAct(ACT.ROAR);
     playAt(cr.dim, 'shaftbreaker.screech', cr.loc, 1.0, rand(0.95, 1.08));
+    playAt(cr.dim, 'shaftbreaker.roar', cr.loc, 0.8, rand(0.95, 1.05));
     caption(pl, 'It screams', cr.loc);
+    pushFog(pl, FOG.rage, 'sb_rage');                                   // the world goes red
+    ctx.rageFog = true;
+    shake(pl, 0.45, 1.1);
     yield W(sec(plan.lunged ? 0.8 : 1.1));
   } else if (quiet) {                                                         // N35: silent hunt, safety tells remain
     ctx.tel.notes.push('N35 silent pursuit');
@@ -581,6 +587,8 @@ export function* huntSequence(ctx, plan = {}) {
     yield W(sec(2.4));
   } else {
     cr.setAct(ACT.ROAR);
+    playAt(cr.dim, 'shaftbreaker.roar', cr.loc, 1.0, rand(0.92, 1.04));
+    shake(pl, 0.4, 1.4);
     caption(pl, 'A roar shakes the tunnel', cr.loc);
     yield W(sec(plan.short ? 1.8 : 2.6));
   }
@@ -592,6 +600,15 @@ export function* huntSequence(ctx, plan = {}) {
   stopMusic(pl);
   if (cr.valid) { cr.releaseTarget(); cr.rage = false; cr.setNav('walk'); }
   ctx.ps.lastHuntEnd = now();
+  if (ctx.rageFog) { dropFog(pl, 'sb_rage'); ctx.rageFog = false; }
+  // it learns how you deal with a chase: runners and fighters are handled differently next time
+  safe('learnReact', () => {
+    const pf = profile(pl);
+    if (!pf.react) pf.react = { stare: 0, charge: 0, flee: 0, fight: 0, hide: 0, ignore: 0, seen: 0 };
+    if (['escaped', 'surface', 'no_path', 'cap'].includes(outcome)) pf.react.flee = Math.min(60, pf.react.flee + 1);
+    if (ctx.provoked || outcome === 'low_health' || outcome === 'defeated') pf.react.fight = Math.min(60, pf.react.fight + 1);
+    markDirty(pl);
+  });
   ctx.later(sec(9), () => restoreBreaches({ keepNear: creature() ? creature().loc : null }));
   learnFromHunt(ctx, outcome);
   addDanger(-30);

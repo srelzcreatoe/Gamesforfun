@@ -1,0 +1,41 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:feature_rules": {
+    "description": {
+      "identifier": "shaftbreaker:hl_dead_timber_3_rule",
+      "places_feature": "shaftbreaker:hl_dead_timber_3"
+    },
+    "conditions": {
+      "placement_pass": "first_pass",
+      "minecraft:biome_filter": [
+        {
+          "test": "has_biome_tag",
+          "operator": "==",
+          "value": "shaftbreaker_hollows"
+        }
+      ]
+    },
+    "distribution": {
+      "iterations": 1,
+      "x": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          12
+        ]
+      },
+      "y": "query.above_top_solid(variable.worldx, variable.worldz)",
+      "z": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          12
+        ]
+      },
+      "scatter_chance": {
+        "numerator": 1,
+        "denominator": 3
+      }
+    }
+  }
+}

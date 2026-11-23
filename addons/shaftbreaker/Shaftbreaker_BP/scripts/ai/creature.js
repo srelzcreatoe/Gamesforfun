@@ -2,7 +2,7 @@
 import { world, system, ItemStack } from '@minecraft/server';
 import { ACT, ACT_SECONDS } from '../generated/acts.js';
 import { now, sec, valid, sub, len, lenXZ, norm, add, floor3, center, dist, yawTo, dirFromYaw, rand, chance, reportError, OVERWORLD, safe } from '../core/util.js';
-import { config } from '../core/config.js';
+import { config, diff } from '../core/config.js';
 import { BlockCache, WalkMap, lightAt, lineOfSight, perceive, bodyPoints } from '../world/space.js';
 import { canBreak } from '../world/protection.js';
 import { playAt } from '../audio.js';
@@ -68,6 +68,7 @@ export class Creature {
     this.resumeMode = null;  // movement mode to restore after a rooted act
     this.lockStance = false;
     this.rage = false;       // rage chase: faster engine mode, scripted fallback at rage speed
+    this.scriptHitAt = -1;
   }
 
   get valid() { return valid(this.e) && !this.defeated; }
@@ -104,7 +105,16 @@ export class Creature {
     if (this.mode === m) return;
     this.mode = m;
     safe('mode', () => this.e.triggerEvent(`sb:mode_${m}`));
-    if (m === 'hunt' || m === 'frenzy' || m === 'rage') this.stop();
+    if (m === 'hunt' || m === 'frenzy' || m === 'rage') {
+      this.stop();
+      // how hard (the Wheel) scales its chase speed
+      const base = m === 'hunt' ? 0.36 : m === 'rage' ? 0.44 : 0.45;
+      const k = diff().speed;
+      if (k !== 1) {
+        const apply = () => safe('speed', () => { const mv = /** @type {any} */ (this.e.getComponent('minecraft:movement')); if (mv && this.mode === m) mv.setCurrentValue(base * k); });
+        apply(); system.run(apply);
+      }
+    }
   }
 
   setGravity(on) { if (this.grav === on) return; this.grav = on; safe('grav', () => this.e.triggerEvent(on ? 'sb:grav_on' : 'sb:grav_off')); }
@@ -236,7 +246,7 @@ export class Creature {
   /** scripted pursuit of a player (harmless preview, or when engine navigation stalls) */
   chase(player, speed = SPEED.fast) {
     this.chaseTarget = player;
-    this.chaseSpeed = speed;
+    this.chaseSpeed = speed * (this.rage ? diff().speed : 1);
     this.nextChasePlan = 0;
   }
 
@@ -410,6 +420,7 @@ export class Creature {
     // fairness: a strike never passes through walls or closed doors
     const l = this.loc; const p = player.location;
     if (!lineOfSight(this.dim, { x: l.x, y: l.y + 1.3, z: l.z }, { x: p.x, y: p.y + 0.9, z: p.z })) return false;
+    this.scriptHitAt = now();                                    // (already scaled by difficulty: main.js must not scale it again)
     return !!safe('strike', () => player.applyDamage(amount, { cause: /** @type {any} */ ('entityAttack'), damagingEntity: this.e }), false);
   }
 

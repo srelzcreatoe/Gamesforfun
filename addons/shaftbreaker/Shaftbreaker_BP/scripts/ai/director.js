@@ -2,21 +2,23 @@
 import { world, system } from '@minecraft/server';
 import { now, sec, mins, rand, randi, chance, dist, distXZ, sub, norm, lenXZ, clamp, weighted, valid, safe, reportError, worldTicks, isPlayableTarget, OVERWORLD, floor3, key } from '../core/util.js';
 import { config, freqMul, intensityMul, prefs } from '../core/config.js';
-import { WalkMap, isUnderground, resetBudget, BlockCache } from '../world/space.js';
+import { WalkMap, isUnderground, resetBudget, BlockCache, inHollows } from '../world/space.js';
 import { profile, evidence, decay, noteEncounter, saveDirty, trait, curious, markDirty, forget, bumpRegion } from './memory.js';
 import { ws, wsDirty, wsSave, addDanger, pushHistory, suppressionAt, pruneSuppression, nearestDen } from './worldstate.js';
 import { creature, despawnAll, seenByAnyone } from './creature.js';
 import { initBrain, brainTick, brainFast, lurkTick, presenceEligible, brainState, brainTarget } from './brain.js';
 import { tickHeart, stopAllFor, maybeRoomTone, setDanger } from '../audio.js';
+import { territoryFog } from '../scare.js';
+import { notesFromEncounter, unlockNote } from '../notes.js';
 import { record, log } from '../core/log.js';
 import { tryGenerateDen, tryGenerateDenFromMap, tickMoths, tickGuides } from '../world/den.js';
 import { MINOR_TEMPLATES } from './encounters/minor.js';
 import { OBSERVE_TEMPLATES } from './encounters/observe.js';
 import { STANDOFF_TEMPLATES } from './encounters/standoff.js';
 import { HUNT_TEMPLATES, isDaylight } from './encounters/hunt.js';
-import { STALK_TEMPLATES, ambushMoment, addTension } from './encounters/stalk.js';
+import { STALK_TEMPLATES, MIND_TEMPLATES, ambushMoment, addTension } from './encounters/stalk.js';
 
-export const TEMPLATES = [...MINOR_TEMPLATES, ...OBSERVE_TEMPLATES, ...STANDOFF_TEMPLATES, ...HUNT_TEMPLATES, ...STALK_TEMPLATES];
+export const TEMPLATES = [...MINOR_TEMPLATES, ...OBSERVE_TEMPLATES, ...STANDOFF_TEMPLATES, ...HUNT_TEMPLATES, ...STALK_TEMPLATES, ...MIND_TEMPLATES];
 const BY_ID = new Map(TEMPLATES.map((t) => [t.id, t]));
 const STATES = ['dormant', 'interested', 'observing', 'provoked', 'hunting'];
 const FAMILY_WEIGHT = { stalk: 30, uncanny: 20, audio: 15, env: 15, standoff: 10, hunt: 8, rare: 2 };
@@ -258,6 +260,7 @@ function finishEncounter(outcome) {
   const m = freqMul();
   ctx.tel.outcome = ctx.tel.outcome || outcome;
   ctx.tel.duration = ((t - ctx.t0) / 20).toFixed(1) + 's';
+  if (valid(pl)) safe('notes', () => notesFromEncounter(pl, tpl.id, ctx.tel));
   record(ctx.tel);
   pushHistory({ id: tpl.id, f: tpl.family, p: ctx.tel.player, t: worldTicks(), o: ctx.tel.outcome });
   const minor = tpl.family === 'audio' || tpl.family === 'env';
@@ -328,6 +331,10 @@ function updatePlayer(p, dt) {
   if (!ug && s.underground) { s.underground = false; }
   // at night it also stalks you on the surface (through the trees, around your house)
   s.night = !ug && !!config().nightStalking && p.dimension.id === OVERWORLD && !isDaylight();
+  // the Hollows are its own land: there it is about by day as well
+  s.hollows = p.dimension.id === OVERWORLD && inHollows(p.dimension, p.location);
+  if (s.hollows) unlockNote(p, 'hollows');
+  if (s.hollows && !ug) s.night = true;
   if (s.night && !s.scheduled) scheduleFresh(s, pf);
   if (s.night) s.ugTicks += dt;
   s.tension = (s.tension || 0) * 0.996;                                   // tension fades over a few quiet minutes
@@ -365,6 +372,8 @@ function updatePlayer(p, dt) {
   s.state = cur && cur.ctx.player.id === p.id && cur.tpl.family === 'hunt' ? 'hunting'
     : prov || s.provocation >= 45 ? 'provoked' : s.interest >= th[1] || (pf.sightings >= 2 && s.interest >= th[0]) ? 'observing' : s.interest >= th[0] ? 'interested' : 'dormant';
   if (ug && s.state !== 'dormant') maybeRoomTone(p, s.interest / 100);
+  // its territory: the air thickens near its dens and in the caves under the Hollows
+  safe('territory', () => territoryFog(p, ug && (s.hollows || !!nearestDen(p.location, 40))));
   if (ug) decay(p, dt / 20);
 }
 
@@ -532,7 +541,7 @@ export function directorTick() {
     // dens grow quietly while nothing else happens
     for (const p of list) {
       const s = pstate(p); const pf = profile(p);
-      if (s.underground && s.ugTicks > mins(2.5) && (!s.lastDenTry || now() - s.lastDenTry > mins(1))) {
+      if (s.underground && s.ugTicks > mins(s.hollows ? 1.2 : 2.5) && (!s.lastDenTry || now() - s.lastDenTry > mins(s.hollows ? 0.5 : 1))) {
         s.lastDenTry = now();
         const bm = brainState();
         safe('den', () => { if (!(bm.map && bm.mapFor === p.id && tryGenerateDenFromMap(p, bm.map))) tryGenerateDen(p); });
@@ -580,6 +589,48 @@ export function forceEncounter(player, id) {
   return `started ${id}`;
 }
 
+// ------------------------------------------------------------------ the Wheel: make it do something, now
+function freshMap(p) {
+  const bm = brainState();
+  if (bm.map && bm.mapFor === p.id && now() - bm.mapT < sec(8)) return bm.map;
+  const m = new WalkMap(p.dimension, p.location, { maxNodes: 1400, maxDist: 46 });
+  m.finish(9000);
+  return m;
+}
+
+/** a sighting of a given kind ('still' 'ledge' 'ceiling' 'behind' 'peek' 'ahead' or 'any'), optionally with a forced reaction */
+export function forceShow(player, kind = 'any', reaction = null) {
+  if (cur) cur.abort('wheel');
+  stepEncounter();
+  const tpl = BY_ID.get('stalk_show');
+  const s = pstate(player);
+  const map = freshMap(player);
+  const ctx = { player, ps: s, map, isolated: s.isolated, forceKind: kind === 'any' ? null : kind };
+  const plan = safe('wheelPlan', () => tpl.plan(ctx), null);
+  if (!plan) return kind === 'ceiling' ? 'no ceiling high enough near you' : kind === 'peek' ? 'nothing to hide behind near you (trees on the surface, pillars underground)' : kind === 'ledge' ? 'no ledge above you' : 'no place for that here';
+  plan.forceReaction = reaction;
+  s.reason = 'wheel';
+  startEncounter(tpl, player, s, map, plan);
+  return `it is coming (${plan.kind}${reaction ? `, ${reaction}` : ''})`;
+}
+
+/** run a named template for this player now (rage, ambush, mimic, knock_door, ...) */
+export function forceById(player, id, plan = null) {
+  if (cur) cur.abort('wheel');
+  stepEncounter();
+  return startById(id, player, plan) ? `started ${id}` : `no way to do '${id}' here`;
+}
+
+/** the moods the Wheel can set */
+export function setMood(player, mood) {
+  const s = pstate(player);
+  const t = now();
+  if (mood === 'calm') { s.tension = 0; s.provocation = 0; s.lastHuntEnd = t; s.nextShow = t + mins(3); s.ambush = null; s.provokedUntil = 0; }
+  if (mood === 'watching') { s.tension = Math.max(s.tension || 0, 20); s.nextShow = t + sec(5); }
+  if (mood === 'angry') { s.tension = 85; s.provocation = 70; s.lastHuntEnd = -1e9; s.nextShow = t + sec(5); s.provokedUntil = t + mins(5); }
+  if (mood === 'ambush') { s.ambush = { at: t + sec(8), why: 'wheel' }; }
+}
+
 export function stopEncounter() { if (cur) cur.abort('stopped'); stepEncounter(); despawnAll(true); brainState().nextArrival = now() + mins(3); }
 
 export function debugLine(p) {
@@ -600,5 +651,5 @@ initBrain({
   pstate,
   running: () => cur,
   provoke,
-  onArrive: (p) => { const s = pstate(p); if (!s.scheduled) scheduleFresh(s, profile(p)); s.arrivedAt = now(); if (s.lastHuntEnd === undefined) s.lastHuntEnd = now(); s.nextShow = now() + sec(rand(18, 35) * freqMul()); },
+  onArrive: (p) => { const s = pstate(p); system.runTimeout(() => safe('noteArrive', () => unlockNote(p, 'arrived')), 400); if (!s.scheduled) scheduleFresh(s, profile(p)); s.arrivedAt = now(); if (s.lastHuntEnd === undefined) s.lastHuntEnd = now(); s.nextShow = now() + sec(rand(18, 35) * freqMul()); },
 });

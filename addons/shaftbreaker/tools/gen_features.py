@@ -100,3 +100,13 @@ print(f'{done}/140 implemented')
 missing = [r for r in rows if 'Not implemented' in r]
 for r in missing:
     print(r)
+
+
+# ---------------------------------------------------------------- FIELD_NOTES.md from the in-game journal (scripts/notes.js)
+notes_js = open(os.path.join(ROOT, 'Shaftbreaker_BP/scripts/notes.js')).read()
+entries = re.findall(r"\{ id: '([a-z_]+)', title: '([^']+)', hint: '([^']+)',\s*text: '((?:[^'\\]|\\.)+)' \}", notes_js)
+out = ['# Field notes', '', 'The same journal you fill in game (use the Breaker\'s Wheel, "Field notes"). Each entry unlocks the first time you witness it; until then only the hint shows.', '']
+for i, (nid, title, hint, text) in enumerate(entries, 1):
+    out += [f'## {i}. {title}', '', text.replace("\\'", "'"), '', f'*To unlock: {hint}*', '']
+open(os.path.join(ROOT, 'FIELD_NOTES.md'), 'w').write('\n'.join(out))
+print(f'{len(entries)} field notes written to FIELD_NOTES.md')

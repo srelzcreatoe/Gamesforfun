@@ -18,9 +18,12 @@ import { ACT } from '../../generated/acts.js';
 import { W, seen, sighted, appear, inAnyonesView, passiveExit, hiddenRetreat } from './common.js';
 import { huntSequence } from './hunt.js';
 import { now, sec, valid, sub, lenXZ, dist, norm, rand, randi, chance, pick, center, floor3, clamp, safe, angleTo, shuffle } from '../../core/util.js';
-import { config, freqMul, intensityMul } from '../../core/config.js';
+import { config, freqMul, intensityMul, diff } from '../../core/config.js';
+import { profile, markDirty } from '../memory.js';
+import { revealSting, jumpscare, canJumpscare, whisper, mindGame, pushFog, dropFog, darkness, shake, FOG } from '../../scare.js';
 import { creature, SPEED, isDamageable } from '../creature.js';
-import { findSpot, lineOfSight, BlockCache } from '../../world/space.js';
+import { findSpot, lineOfSight, BlockCache, skyLightAt, isUnderground } from '../../world/space.js';
+import { isDaylight } from './hunt.js';
 import { playAt, setDanger, caption, startMusic, stopMusic, currentMusic } from '../../audio.js';
 import { log } from '../../core/log.js';
 
@@ -29,7 +32,9 @@ import { log } from '../../core/log.js';
 const isTrunk = (id) => id.endsWith('_log') || id.endsWith('_wood') || id.endsWith('_stem') || id.endsWith('mushroom_stem');
 
 function diffMul() {
-  try { const d = String(world.getDifficulty()).toLowerCase(); return d === 'easy' ? 0.6 : d === 'hard' ? 1.4 : d === 'peaceful' ? 0 : 1.0; } catch { return 1; }
+  let m = 1;
+  try { const d = String(world.getDifficulty()).toLowerCase(); m = d === 'easy' ? 0.6 : d === 'hard' ? 1.4 : d === 'peaceful' ? 0 : 1.0; } catch { /* ignore */ }
+  return m * diff().dmg;
 }
 const canHurt = (ctx) => (pl) => valid(pl) && now() >= ctx.ps.graceUntil && !config().harmless;
 
@@ -37,10 +42,30 @@ const canHurt = (ctx) => (pl) => valid(pl) && now() >= ctx.ps.graceUntil && !con
 export function tension(s) { return s.tension || 0; }
 export function addTension(s, v) { s.tension = clamp((s.tension || 0) + v * intensityMul(), 0, 100); }
 /** a real chase is due once a few minutes have passed since the last one */
-export function huntDue(s) {
+export function huntDue(s, player = null) {
   if (!s.huntGap) s.huntGap = sec(rand(240, 400) * freqMul() / intensityMul());
-  return now() - (s.lastHuntEnd ?? s.arrivedAt ?? now()) >= s.huntGap;
+  let gap = s.huntGap * diff().huntGap;
+  if (player && hpFrac(player) < 0.5) gap *= 0.6;                       // you are hurt: it presses
+  return now() - (s.lastHuntEnd ?? s.arrivedAt ?? now()) >= gap;
 }
+export function hpFrac(p) {
+  try { const h = p.getComponent('minecraft:health'); return h ? h.currentValue / h.effectiveMax : 1; } catch { return 1; }
+}
+
+// ------------------------------------------------------------------ what it has learned about how you react
+/** counters of how this player treats it: stares, charges, flees, fights, hides indoors, ignores it */
+export function reactions(p) {
+  const pf = profile(p);
+  if (!pf.react) pf.react = { stare: 0, charge: 0, flee: 0, fight: 0, hide: 0, ignore: 0, seen: 0 };
+  return pf.react;
+}
+export function noteReaction(p, k, v = 1) {
+  const r = reactions(p);
+  r[k] = Math.min(60, (r[k] || 0) + v);
+  markDirty(p);
+}
+/** share of a reaction among the times it was seen (0..1) */
+function habit(p, k) { const r = reactions(p); return r.seen > 2 ? Math.min(1, (r[k] || 0) / r.seen) : 0; }
 
 // ------------------------------------------------------------------ show placement
 function maxLight(ctx) { return ctx.ps.underground ? 9 : undefined; }
@@ -59,6 +84,27 @@ function planBehind(ctx) {
   const s = findSpot(ctx.map, ctx.player, { minDist: 6, maxDist: 13, los: true, minAngle: 125, crawl: false, maxLight: maxLight(ctx), maxChecks: 80, test: notWatched(ctx) });
   return s && { kind: 'behind', pos: s.pos };
 }
+/** it predicts where you are going and waits there, just around the corner */
+function planAhead(ctx) {
+  const mv = ctx.ps.moves || [];
+  if (mv.length < 4) return null;
+  const a = mv[mv.length - 4], b = mv[mv.length - 1];
+  const hx = b.x - a.x, hz = b.z - a.z;
+  const L = Math.sqrt(hx * hx + hz * hz);
+  if (L < 2.5) return null;                                            // standing still: no path to predict
+  const f = { x: hx / L, z: hz / L };
+  const p = ctx.player.location;
+  const s = findSpot(ctx.map, ctx.player, {
+    minDist: 9, maxDist: 24, los: false, crawl: false, maxLight: maxLight(ctx), maxChecks: 120,
+    test: (n, c) => {
+      const along = (c.x - p.x) * f.x + (c.z - p.z) * f.z;
+      const lateral = Math.abs((c.x - p.x) * f.z - (c.z - p.z) * f.x);
+      return along > 8 && lateral < 4.5 && !inAnyonesView(ctx.player.dimension, c);
+    },
+  });
+  return s && { kind: 'ahead', pos: s.pos };
+}
+
 function planCeiling(ctx) {
   if (!ctx.ps.underground) return null;
   const c = ctx.map.cache;
@@ -113,10 +159,17 @@ function planPeek(ctx) {
 
 function planShow(ctx) {
   const ug = ctx.ps.underground;
+  // it learns: players who keep checking behind them find it ahead instead, and so on
+  const back = habit(ctx.player, 'ignore') + habit(ctx.player, 'flee');
   /** @type {{name:string, fn:(ctx:any)=>any, w:number}[]} */
   const pool = ug
-    ? [{ name: 'still', fn: planStill, w: 2.2 }, { name: 'ledge', fn: planLedge, w: 1.6 }, { name: 'ceiling', fn: planCeiling, w: 1.6 }, { name: 'behind', fn: planBehind, w: 1.3 }, { name: 'peek', fn: planPeek, w: 1.6 }]
-    : [{ name: 'peek', fn: planPeek, w: 4.0 }, { name: 'still', fn: planStill, w: 2.0 }, { name: 'behind', fn: planBehind, w: 1.4 }, { name: 'ledge', fn: planLedge, w: 1.0 }];
+    ? [{ name: 'still', fn: planStill, w: 2.0 }, { name: 'ledge', fn: planLedge, w: 1.5 }, { name: 'ceiling', fn: planCeiling, w: 1.4 }, { name: 'behind', fn: planBehind, w: 1.3 + back }, { name: 'peek', fn: planPeek, w: 1.5 }, { name: 'ahead', fn: planAhead, w: 1.6 + back }]
+    : [{ name: 'peek', fn: planPeek, w: 4.0 }, { name: 'still', fn: planStill, w: 2.0 }, { name: 'behind', fn: planBehind, w: 1.4 + back }, { name: 'ledge', fn: planLedge, w: 1.0 }, { name: 'ahead', fn: planAhead, w: 1.3 + back }];
+  if (ctx.forceKind) {
+    const o = pool.find((q) => q.name === ctx.forceKind) || { name: ctx.forceKind, fn: { still: planStill, ledge: planLedge, ceiling: planCeiling, behind: planBehind, peek: planPeek, ahead: planAhead }[ctx.forceKind] };
+    if (o && o.fn) return safe(`show:${o.name}`, () => o.fn(ctx), null);
+    return null;
+  }
   while (pool.length) {                                                  // weighted order, falling back through the rest
     const tot = pool.reduce((a, o) => a + o.w, 0);
     let r = Math.random() * tot;
@@ -183,6 +236,7 @@ function* lunge(ctx, cr) {
   cr.setAct(ACT.LUNGE);
   playAt(cr.dim, 'shaftbreaker.growl', cr.loc, 1.0, rand(1.1, 1.25));
   setDanger(pl, 0.9);
+  shake(pl, 0.3, 0.5);
   yield W(4);                                                           // the coil: a fifth of a second
   const c = new BlockCache(cr.dim);
   for (let i = 0; i < 14 && cr.valid; i++) {
@@ -284,6 +338,7 @@ function* waitNoticed(ctx, cr, plan) {
     else {
       lookT = Math.max(0, lookT - 2);
       // unnoticed for a while: a little closer (never while anyone is looking at it)
+      if (!ctx.whispered && now() > ctx.t0 + sec(8) && chance(0.03)) { ctx.whispered = true; whisper(pl); }
       if (now() >= nextCreep && creeps < 3 && !s.visible && plan.kind !== 'behind') {
         nextCreep = now() + sec(rand(8, 13));
         if (creepCloser(ctx, cr, 2.5, 6, 7)) creeps++;
@@ -381,8 +436,12 @@ function* standoff(ctx, cr) {
   cr.setEyes(0.95);
   if (currentMusic(pl) !== 'music.shaftbreaker.chase') startMusic(pl, 'music.shaftbreaker.standoff');
   ctx.standoffMusic = true;
+  pushFog(pl, FOG.near, 'sb_near');
+  ctx.nearFog = true;
+  let nextDark = now() + sec(rand(2, 5));
   const T = tension(s);
-  const stareLimit = sec(clamp(rand(6, 10) * (1 - T / 300) / intensityMul(), 3, 11));
+  // players who keep staring it down teach it to lose patience sooner
+  const stareLimit = sec(clamp(rand(6, 10) * (1 - T / 300) * (1 - habit(pl, 'stare') * 0.4) * diff().stare / intensityMul(), 2.2, 13));
   let stare = 0; let away = 0; let crept = false; let lastTest = '';
   let nextTest = now() + sec(rand(1.0, 2.2));
   const hist = [];
@@ -401,6 +460,7 @@ function* standoff(ctx, cr) {
     if (looking) {
       stare += 4; away = 0; crept = false;
       setDanger(pl, clamp(0.45 + (12 - d) / 24, 0.45, 0.8));
+      if (d < 14 && now() >= nextDark) { darkness(pl, 4); nextDark = now() + sec(rand(5, 9)); }
       if (stare >= stareLimit) return 'stared';
       if (now() >= nextTest && !cr.act && !cr.moving) {                // (hanging from the ceiling it only stares)
         lastTest = yield* testYou(ctx, cr, lastTest);
@@ -411,7 +471,7 @@ function* standoff(ctx, cr) {
       away += 4; stare = Math.max(0, stare - 3);
       if (!crept && away >= 10) {                                         // every time you look away it is a little closer
         crept = true;
-        if (creepCloser(ctx, cr)) { ctx.creeps++; addTension(s, 4); }
+        if (creepCloser(ctx, cr)) { ctx.creeps++; addTension(s, 4); if (chance(0.35)) whisper(pl); else if (chance(0.2)) mindGame(pl); }
       }
       if (away > sec(15)) return 'ignored';
     }
@@ -423,12 +483,15 @@ function* standoff(ctx, cr) {
 function reaction(ctx) {
   const s = ctx.ps;
   const T = tension(s);
-  const due = huntDue(s);
+  const due = huntDue(s, ctx.player);
+  const snap = diff().snap;
+  const fights = habit(ctx.player, 'fight');                             // fighters get lunged at; runners get chased
+  const flees = habit(ctx.player, 'flee');
   const w = {
-    vanish: 0.1,
-    flee: 0.06,
-    lunge: 0.09 + T / 700 + (due ? 0.06 : 0),
-    rage: (due ? 0.24 : 0.03 + T / 700) * intensityMul(),
+    vanish: 0.1 / snap,
+    flee: 0.06 / snap,
+    lunge: (0.09 + T / 700 + (due ? 0.06 : 0) + fights * 0.12) * snap,
+    rage: ((due ? 0.24 : 0.03 + T / 700) + flees * 0.08) * intensityMul() * snap,
     standoff: 0,
   };
   w.standoff = Math.max(0.3, 1 - w.vanish - w.flee - w.lunge - w.rage);
@@ -440,7 +503,7 @@ function reaction(ctx) {
 /** after a lunge or close strike: keep coming, or gone */
 function* afterStrike(ctx, cr, pRage) {
   if (!cr.valid) return 'gone';
-  if (chance(huntDue(ctx.ps) ? Math.max(pRage, 0.6) : pRage * 0.6)) return yield* rage(ctx, 'pressed the attack', true);
+  if (chance(Math.min(0.95, (huntDue(ctx.ps, ctx.player) ? Math.max(pRage, 0.6) : pRage * 0.6) * diff().snap))) return yield* rage(ctx, 'pressed the attack', true);
   yield* vanishHere(ctx, cr);
   return 'struck_and_vanished';
 }
@@ -449,8 +512,10 @@ function* afterStrike(ctx, cr, pRage) {
 function* chargedAt(ctx, cr) {
   const s = ctx.ps;
   const T = tension(s);
-  const pAttack = clamp(0.5 + T / 200 + (huntDue(s) ? 0.2 : 0), 0.3, 0.9);
+  // players who keep rushing it teach it to stand its ground
+  const pAttack = clamp((0.5 + T / 200 + (huntDue(s, ctx.player) ? 0.2 : 0) + habit(ctx.player, 'charge') * 0.3) * diff().snap, 0.3, 0.95);
   ctx.tel.notes.push('ran at it');
+  noteReaction(ctx.player, 'charge');
   if (chance(pAttack)) {
     const hit = yield* lunge(ctx, cr);
     return yield* rage(ctx, hit ? 'charged and hit' : 'charged', true);
@@ -509,13 +574,24 @@ export const STALK_TEMPLATES = [
         r = 'spotted';
       }
       sighted(ctx);
+      revealSting(pl);
+      noteReaction(pl, 'seen');
       addTension(s, 12);
+      // turned around and it is RIGHT there
+      if ((plan.kind === 'behind' || plan.kind === 'ahead') && cr.valid && dist(cr.loc, pl.location) < 9 && canJumpscare(pl) && chance(0.45 * diff().scare)) {
+        ctx.tel.notes.push('jumpscare');
+        jumpscare(pl, cr);
+        yield W(sec(0.7));
+        if (chance(0.5)) { yield* closeStrike(ctx, cr); return yield* afterStrike(ctx, cr, 0.5); }
+        yield* vanishHere(ctx, cr); return 'jumpscare';
+      }
       if (r === 'hurt') return yield* rage(ctx, 'struck before the standoff');
       if (r === 'touched') { yield* closeStrike(ctx, cr); return yield* afterStrike(ctx, cr, 0.6); }
       if (r === 'charged') return yield* chargedAt(ctx, cr);
       // ---- spotted: what will it be this time?
-      const what = reaction(ctx);
+      const what = ctx.plan && ctx.plan.forceReaction ? ctx.plan.forceReaction : reaction(ctx);
       ctx.tel.notes.push(`reaction:${what}`);
+      if (what === 'jumpscare') { jumpscare(pl, cr, true); yield W(sec(0.8)); yield* vanishHere(ctx, cr); return 'jumpscare'; }
       if (what === 'vanish') { yield W(sec(rand(0.6, 1.6))); yield* vanishHere(ctx, cr); return 'vanished'; }
       if (what === 'flee') { yield W(sec(rand(0.3, 0.9))); yield* flee(ctx, cr); return 'fled'; }
       if (what === 'lunge') { const hit = yield* lunge(ctx, cr); return yield* afterStrike(ctx, cr, hit ? 0.55 : 0.35); }
@@ -524,17 +600,22 @@ export const STALK_TEMPLATES = [
       const o = yield* standoff(ctx, cr);
       ctx.tel.notes.push(`standoff:${o}`);
       if (ctx.standoffMusic && currentMusic(pl) === 'music.shaftbreaker.standoff') stopMusic(pl);
+      if (ctx.nearFog) { dropFog(pl, 'sb_near'); ctx.nearFog = false; }
+      if (o === 'stared') noteReaction(pl, 'stare');
+      if (o === 'ignored') noteReaction(pl, 'ignore');
+      if (o === 'hurt') noteReaction(pl, 'fight');
       if (o === 'gone') return o;
       if (o === 'hurt') return yield* rage(ctx, 'struck');
       if (o === 'stared') { caption(pl, 'You held its gaze too long'); return yield* rage(ctx, 'stared down'); }
       if (o === 'touched') { yield* closeStrike(ctx, cr); return yield* afterStrike(ctx, cr, 0.6); }
       if (o === 'charged') return yield* chargedAt(ctx, cr);
       if (o === 'close') {                                                // it is right there when you look back
+        if (canJumpscare(pl)) { ctx.tel.notes.push('jumpscare'); jumpscare(pl, cr); yield W(sec(0.5)); yield* closeStrike(ctx, cr); return yield* afterStrike(ctx, cr, 0.6); }
         const hit = yield* lunge(ctx, cr);
         return yield* afterStrike(ctx, cr, hit ? 0.6 : 0.4);
       }
       if (o === 'ignored') {
-        if (huntDue(s) && dist(cr.loc, pl.location) < 16) { const hit = yield* lunge(ctx, cr); return yield* rage(ctx, 'turned your back', hit); }
+        if (huntDue(s, pl) && dist(cr.loc, pl.location) < 16) { const hit = yield* lunge(ctx, cr); return yield* rage(ctx, 'turned your back', hit); }
         cr.vanish(!seen(ctx, cr).visible);
         return 'ignored';
       }
@@ -563,8 +644,113 @@ export const STALK_TEMPLATES = [
       const until = now() + sec(rand(1.2, 2.2));
       while (now() < until) { yield W(3); if (!cr.valid) return 'gone'; const s = seen(ctx, cr); if (s.visible && s.angle < 40) break; }
       sighted(ctx);
+      if (canJumpscare(pl, 30)) { ctx.tel.notes.push('jumpscare'); jumpscare(pl, cr); yield W(sec(0.45)); yield* closeStrike(ctx, cr); return yield* rage(ctx, 'ambush', true); }
       const hit = yield* lunge(ctx, cr);
       return yield* rage(ctx, 'ambush', hit || true);
+    },
+  },
+];
+
+// ------------------------------------------------------------------ mind templates (weighted by the director)
+const MIMIC = {
+  door: ['random.door_open', 'random.door_close'],
+  chest: ['random.chestopen', 'random.chestclosed'],
+  eat: ['random.eat', 'random.eat', 'random.eat'],
+  pickaxe: ['dig.stone', 'dig.stone', 'dig.stone', 'dig.stone'],
+};
+
+/** is this player shut inside something (a roof over their head, on the surface)? */
+export function indoors(p) {
+  try { return !isUnderground(p) && skyLightAt(p.dimension, p.getHeadLocation()) < 6; } catch { return false; }
+}
+
+function findDoor(p) {
+  const c = new BlockCache(p.dimension);
+  const b = floor3(p.location);
+  let best = null; let bd = 1e9;
+  for (let dx = -9; dx <= 9; dx++) for (let dz = -9; dz <= 9; dz++) for (let dy = -1; dy <= 1; dy++) {
+    const id = c.id(b.x + dx, b.y + dy, b.z + dz);
+    if (!(id.endsWith('_door') || id === 'minecraft:wooden_door') || id.includes('#open')) continue;
+    for (const [ox, oz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const out = { x: b.x + dx + ox, y: b.y + dy, z: b.z + dz + oz };
+      const inn = { x: b.x + dx - ox, y: b.y + dy, z: b.z + dz - oz };
+      if (!c.standable(out.x, out.y, out.z) || !c.passable(inn.x, inn.y, inn.z)) continue;
+      const dOut = (out.x - b.x) ** 2 + (out.z - b.z) ** 2, dIn = (inn.x - b.x) ** 2 + (inn.z - b.z) ** 2;
+      if (dOut <= dIn) continue;                                         // the outside is the side away from you
+      const d = dx * dx + dz * dz;
+      if (d < bd) { bd = d; best = { door: { x: b.x + dx, y: b.y + dy, z: b.z + dz }, outside: { x: out.x + 0.5, y: out.y, z: out.z + 0.5 } }; }
+    }
+  }
+  return best;
+}
+
+export const MIND_TEMPLATES = [
+  {
+    family: 'audio', needsCreature: false, id: 'mimic', features: ['N31', 'N33', 'L60'], cooldownMin: 6, minState: 'interested',
+    trigger: 'it has been listening to you for a while', telegraph: 'your own sounds, from where you are not', counterplay: 'stop and listen: the echo is wrong',
+    weight: () => (config().mimicry ? 1.3 : 0),
+    plan(ctx) {
+      const s = findSpot(ctx.map, ctx.player, { minDist: 8, maxDist: 22, los: false, maxChecks: 60 });
+      return s && { pos: { x: s.pos.x, y: s.pos.y + 1, z: s.pos.z } };
+    },
+    *run(ctx, plan) {
+      const pl = ctx.player;
+      const kind = pick(['door', 'chest', 'steps', 'hurt', 'eat', 'pickaxe', 'steps']);
+      ctx.tel.notes.push(`mimic:${kind}`);
+      const at = plan.pos;
+      if (kind === 'steps') {                                             // footsteps coming toward you, then nothing
+        const n = randi(5, 8);
+        for (let i = 0; i < n; i++) {
+          const k = i / n;
+          const q = { x: at.x + (pl.location.x - at.x) * k * 0.6, y: at.y, z: at.z + (pl.location.z - at.z) * k * 0.6 };
+          playAt(pl.dimension, 'step.stone', q, 0.8, rand(0.8, 0.9));
+          yield W(sec(rand(0.42, 0.55)));
+        }
+        return 'played';
+      }
+      if (kind === 'hurt') { playAt(pl.dimension, 'game.player.hurt', at, 0.9, rand(0.85, 0.95)); return 'played'; }
+      for (const snd of MIMIC[kind]) {
+        playAt(pl.dimension, snd, at, 0.9, rand(0.85, 0.98));
+        yield W(sec(kind === 'pickaxe' ? rand(0.4, 0.6) : rand(0.6, 1.4)));
+      }
+      return 'played';
+    },
+  },
+  {
+    family: 'env', needsCreature: false, id: 'knock_door', features: ['L46', 'N24'], cooldownMin: 8, minState: 'interested',
+    trigger: 'night, and you shut yourself in', telegraph: 'knocking on your door', counterplay: 'do not open it',
+    weight: (ctx) => (indoors(ctx.player) && !isDaylight() ? 3 : 0),
+    plan(ctx) { return indoors(ctx.player) ? findDoor(ctx.player) : null; },
+    *run(ctx, plan) {
+      const pl = ctx.player;
+      noteReaction(pl, 'hide');
+      const at = { x: plan.door.x + 0.5, y: plan.door.y + 1, z: plan.door.z + 0.5 };
+      for (const gap of [0.35, 0.35, 1.4, 0.5, 0.5, 2.6, 0.9]) {
+        playAt(pl.dimension, 'shaftbreaker.knock', at, 1.0, rand(0.9, 1.05));
+        yield W(sec(gap));
+      }
+      // then it waits on the other side
+      const cr = creature();
+      if (!cr || inAnyonesView(pl.dimension, plan.outside) || !cr.valid) return 'knocked';
+      const placed = appear(ctx, { pos: plan.outside }, { phase: 'watching', eyes: 1.0 });
+      if (!placed) return 'knocked';
+      placed.halt(); placed.face(at);
+      ctx.tel.notes.push('waiting outside the door');
+      const until = now() + sec(rand(20, 35));
+      while (now() < until) {
+        yield W(5);
+        if (!placed.valid) return 'gone';
+        let open = false;
+        safe('doorState', () => { const b = pl.dimension.getBlock(plan.door); open = !!b && b.permutation.getState('open_bit') === true; });
+        if (open && dist(pl.location, placed.loc) < 5) {
+          sighted(ctx);
+          if (canJumpscare(pl, 20)) { jumpscare(pl, placed); yield W(sec(0.5)); }
+          yield* closeStrike(ctx, placed);
+          return yield* afterStrike(ctx, placed, 0.7);
+        }
+      }
+      placed.vanish(!seen(ctx, placed).visible);
+      return 'waited';
     },
   },
 ];

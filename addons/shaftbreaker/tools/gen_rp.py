@@ -201,6 +201,16 @@ def particles():
         'minecraft:particle_appearance_billboard': {'size': [0.035, 0.035], 'facing_camera_mode': 'lookat_xyz', 'uv': cell(3, 0)},
         'minecraft:particle_appearance_tinting': {'color': [1, 0.95, 0.85, '1.0 - v.particle_age / v.particle_lifetime']},
     }, material='particles_blend')
+    # eyes in the dark: one pale glint (the script places two, a face-width apart, square to your view)
+    P['eye_glint'] = particle('shaftbreaker:eye_glint', {
+        'minecraft:emitter_rate_instant': {'num_particles': 1},
+        'minecraft:emitter_lifetime_once': {'active_time': 0.05},
+        'minecraft:emitter_shape_point': {'offset': [0, 0, 0]},
+        'minecraft:particle_initial_speed': 0.0,
+        'minecraft:particle_lifetime_expression': {'max_lifetime': 1.15},
+        'minecraft:particle_appearance_billboard': {'size': [0.05, 0.035], 'facing_camera_mode': 'lookat_xyz', 'uv': cell(3, 0)},
+        'minecraft:particle_appearance_tinting': {'color': [1.0, 0.86, 0.8, 'math.min(1, v.particle_age * 6) * (1.0 - math.max(0, v.particle_age - 0.85) / 0.3)']},
+    }, material='particles_add')
     P['wisp'] = particle('shaftbreaker:wisp', {
         'minecraft:emitter_rate_instant': {'num_particles': 14},
         'minecraft:emitter_lifetime_once': {'active_time': 0.1},
@@ -262,33 +272,41 @@ def particles():
 def atlases():
     w('textures/terrain_texture.json', {'resource_pack_name': 'shaftbreaker', 'texture_name': 'atlas.terrain', 'padding': 8, 'num_mip_levels': 4,
                                         'texture_data': {k: {'textures': f'textures/blocks/{k}'} for k in
-                                                         ['sb_den_heart', 'sb_den_crack', 'sb_den_dust', 'sb_den_spine', 'sb_cairn', 'sb_cairn_top']}})
+                                                         ['sb_den_heart', 'sb_den_crack', 'sb_den_dust', 'sb_den_spine', 'sb_cairn', 'sb_cairn_top', 'sb_hollow_dust', 'sb_hollow_soil', 'sb_clawed_stone']}})
     w('textures/item_texture.json', {'resource_pack_name': 'shaftbreaker', 'texture_name': 'atlas.items',
                                      'texture_data': {k: {'textures': f'textures/items/{k}'} for k in
-                                                      ['sb_skull', 'sb_resonance_dial', 'sb_resonance_shard', 'sb_cairn_marker']}})
+                                                      ['sb_skull', 'sb_resonance_dial', 'sb_resonance_shard', 'sb_cairn_marker', 'sb_breakers_wheel']}})
     w('blocks.json', {'format_version': '1.19.30',
                       f'{NS}:den_heart': {'sound': 'deepslate', 'textures': 'sb_den_heart'},
                       f'{NS}:den_crack': {'sound': 'stone', 'textures': 'sb_den_crack'},
                       f'{NS}:den_dust': {'sound': 'gravel', 'textures': 'sb_den_dust'},
                       f'{NS}:den_spine': {'sound': 'bone_block', 'textures': 'sb_den_spine'},
-                      f'{NS}:cairn_marker': {'sound': 'stone', 'textures': 'sb_cairn'}})
+                      f'{NS}:cairn_marker': {'sound': 'stone', 'textures': 'sb_cairn'},
+                      f'{NS}:hollow_dust': {'sound': 'gravel', 'textures': 'sb_hollow_dust'},
+                      f'{NS}:hollow_soil': {'sound': 'gravel', 'textures': 'sb_hollow_soil'},
+                      f'{NS}:clawed_stone': {'sound': 'stone', 'textures': 'sb_clawed_stone'}})
 
 
 LANG = {
     'pack.name': 'The Shaftbreaker',
-    'pack.description': 'An adaptive cave dweller that learns how you escape. No experimental toggles required.',
+    'pack.description': 'v3.0  It is in the dark, and it wants to be seen. Use the Breaker\'s Wheel. No experimental toggles required.',
     f'entity.{NS}:shaftbreaker.name': 'Shaftbreaker',
     f'entity.{NS}:shaft_moth.name': 'Shaft Moth',
     f'item.spawn_egg.entity.{NS}:shaftbreaker.name': 'Spawn Shaftbreaker',
     f'item.spawn_egg.entity.{NS}:shaft_moth.name': 'Spawn Shaft Moth',
     f'item.{NS}:shaftbreaker_skull.name': 'Shaftbreaker Skull',
     f'item.{NS}:resonance_dial.name': 'Resonance Dial',
+    f'item.{NS}:breakers_wheel.name': "The Breaker's Wheel",
     f'item.{NS}:resonance_shard.name': 'Resonance Shard',
     f'tile.{NS}:den_heart.name': 'Den Heart',
     f'tile.{NS}:den_crack.name': 'Fractured Den Wall',
     f'tile.{NS}:den_dust.name': 'Den Dust',
     f'tile.{NS}:den_spine.name': 'Den Spine',
     f'tile.{NS}:cairn_marker.name': 'Cairn Marker',
+    f'tile.{NS}:hollow_dust.name': 'Hollow Dust',
+    f'tile.{NS}:hollow_soil.name': 'Hollow Soil',
+    f'tile.{NS}:clawed_stone.name': 'Clawed Stone',
+    'biome.shaftbreaker:the_hollows': 'The Hollows',
 }
 
 

@@ -26,6 +26,7 @@ run('gen_client.py')
 run('gen_bp.py')
 run('gen_rp.py')
 run('gen_textures.py')
+run('gen_world.py')
 if '--audio' in args or not os.path.exists(os.path.join(ROOT, 'Shaftbreaker_RP/sounds/sound_definitions.json')):
     run('gen_audio.py')
 run('gen_features.py')

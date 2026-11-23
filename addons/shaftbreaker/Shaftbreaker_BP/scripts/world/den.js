@@ -9,6 +9,7 @@ import { ws, wsDirty, activeDens, nearestDen } from '../ai/worldstate.js';
 import { profile, evidence } from '../ai/memory.js';
 import { caption } from '../audio.js';
 import { log } from '../core/log.js';
+import { unlockNote } from '../notes.js';
 
 export const MOTH_ID = 'shaftbreaker:shaft_moth';
 
@@ -83,6 +84,7 @@ class AirPath {
 
 /** turn a moth into a guide for a player toward a den */
 export function startGuide(m, den, player) {
+  safe('noteMoth', () => unlockNote(player, 'moth'));
   safe('guide', () => { m.triggerEvent('sb:become_guide'); m.setProperty('shaftbreaker:clue', true); m.setDynamicProperty('sb:den', den.id); });
   guides.set(m.id, { m, den, follower: player.id, born: now(), job: null, route: null, ri: 0, nextPlan: 0, orbit: 0, arrivedAt: 0 });
 }
@@ -150,6 +152,18 @@ export function tickGuides() {
   }
 }
 
+/** the Wheel: a guide moth for this player now (to the nearest den) */
+export function guideNow(p) {
+  const nd = nearestDen(p.location, 400);
+  if (!nd) return 'no den anywhere near: go deeper underground and give it time (or grow one with the Wheel)';
+  const eye = p.getHeadLocation(); const v = p.getViewDirection();
+  let m = null;
+  safe('wheelMoth', () => { m = p.dimension.spawnEntity(MOTH_ID, { x: eye.x + v.x * 2, y: eye.y + 0.2, z: eye.z + v.z * 2 }); });
+  if (!m) return 'the moth would not come';
+  startGuide(m, nd.den, p);
+  return `a moth will lead you to the den (${Math.round(nd.dist)} blocks)`;
+}
+
 /** every 2 s: dens attract moths; a guide appears for underground players when a den exists */
 export function tickMoths(players, pstate) {
   for (const p of players) {
@@ -161,7 +175,7 @@ export function tickMoths(players, pstate) {
       const pf = profile(p);
       const k = `den${nd.den.id}`;
       pf.denSeen = pf.denSeen || {};
-      if (!pf.denSeen[k] || worldTicks() - pf.denSeen[k] > mins(20)) { pf.denSeen[k] = worldTicks(); evidence(p, 'den_interference', 0.5, 'found the den by following moths'); }
+      if (!pf.denSeen[k] || worldTicks() - pf.denSeen[k] > mins(20)) { pf.denSeen[k] = worldTicks(); evidence(p, 'den_interference', 0.5, 'found the den by following moths'); unlockNote(p, 'den'); }
       if (now() % 80 < 40) safe('aura', () => p.dimension.spawnParticle('shaftbreaker:den_aura', { x: nd.den.x + 0.5, y: nd.den.y + 1.2, z: nd.den.z + 0.5 }));
       continue;
     }
@@ -199,8 +213,8 @@ let building = false;
 export function tryGenerateDen(player) {
   const cfg = config();
   if (!cfg.denGeneration || cfg.harmless || building) return false;
-  if (activeDens().length >= 6) return false;
-  if (nearestDen(player.location, 140)) return false;
+  if (activeDens().length >= 10) return false;
+  if (nearestDen(player.location, 110)) return false;
   const dim = player.dimension;
   const eye = player.getHeadLocation();
   const cache = new BlockCache(dim);
@@ -244,7 +258,7 @@ export function tryGenerateDen(player) {
 export function tryGenerateDenFromMap(player, map) {
   const cfg = config();
   if (!cfg.denGeneration || cfg.harmless || building || !map) return false;
-  if (activeDens().length >= 6 || nearestDen(player.location, 140)) return false;
+  if (activeDens().length >= 10 || nearestDen(player.location, 110)) return false;
   const dim = player.dimension;
   const eye = player.getHeadLocation();
   const c = map.cache;
@@ -279,30 +293,62 @@ function buildDen(dim, c, cache) {
   const jobs = [];
   const heart = { x: c.x, y: c.y - 1, z: c.z };
   jobs.push(() => { if (canDress(dim, heart) || NATURAL_BREAKABLE.has(cache.id(heart.x, heart.y, heart.z))) setBlock(dim, heart, 'shaftbreaker:den_heart'); });
+  // the whole chamber around the heart (flood fill over real floor, up to ~7 blocks out)
   const floorCells = [];
-  for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) {
-    for (let dy = -1; dy <= 1; dy++) {
-      const y = c.y + dy;
-      if (cache.floor(c.x + dx, y - 1, c.z + dz) && cache.passable(c.x + dx, y, c.z + dz) && cache.id(c.x + dx, y, c.z + dz).includes('air')) { floorCells.push({ x: c.x + dx, y, z: c.z + dz }); break; }
+  const seen = new Set([key(c)]);
+  const q0 = [{ x: c.x, y: c.y, z: c.z }];
+  while (q0.length && floorCells.length < 240) {
+    const n = q0.shift();
+    if (cache.id(n.x, n.y, n.z).includes('air')) floorCells.push(n);
+    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      for (const dy of [0, 1, -1]) {
+        const m = { x: n.x + dx, y: n.y + dy, z: n.z + dz };
+        if ((m.x - c.x) ** 2 + (m.z - c.z) ** 2 > 56 || seen.has(key(m))) continue;
+        if (cache.floor(m.x, m.y - 1, m.z) && cache.passable(m.x, m.y, m.z) && cache.passable(m.x, m.y + 1, m.z)) { seen.add(key(m)); q0.push(m); break; }
+      }
     }
   }
+  const all = floorCells.slice();
   const pickCells = (n) => { const out = []; for (let i = 0; i < n && floorCells.length; i++) out.push(floorCells.splice(randi(0, floorCells.length - 1), 1)[0]); return out; };
-  for (const q of pickCells(randi(8, 12))) if (!(q.x === c.x && q.z === c.z)) jobs.push(() => setBlock(dim, q, 'shaftbreaker:den_dust'));
-  for (const q of pickCells(randi(2, 4))) jobs.push(() => setBlock(dim, q, 'shaftbreaker:den_spine'));
-  for (const q of pickCells(randi(1, 2))) jobs.push(() => setBlock(dim, q, 'minecraft:bone_block'));
-  for (const q of pickCells(randi(2, 3))) jobs.push(() => setBlock(dim, q, pick(['minecraft:gravel', 'minecraft:cobbled_deepslate', 'minecraft:tuff'])));
-  for (const q of pickCells(1)) jobs.push(() => { if (!setBlock(dim, q, 'minecraft:skeleton_skull')) setBlock(dim, q, 'minecraft:bone_block'); });
-  // hanging spines + cobwebs under the ceiling
-  for (let i = 0; i < 10; i++) {
-    const x = c.x + randi(-3, 3), z = c.z + randi(-3, 3);
-    const h = cache.headroom(x, c.y, z);
-    if (h < 3 || h > 6) continue;
-    const q = { x, y: c.y + h - 1, z };
+  const big = all.length > 60;
+  // a ring of bones around the heart: its nest
+  for (const [dx, dz] of [[2, 0], [-2, 0], [0, 2], [0, -2], [2, 2], [-2, -2], [2, -2], [-2, 2]]) {
+    const q = all.find((f) => f.x === c.x + dx && f.z === c.z + dz);
+    if (q && chance(0.75)) jobs.push(() => setPerm(dim, q, 'minecraft:bone_block', { deprecated: 0, pillar_axis: pick(['x', 'z']) }));
+  }
+  for (const q of pickCells(Math.min(70, Math.round(all.length * 0.35)))) if (!(q.x === c.x && q.z === c.z)) jobs.push(() => setBlock(dim, q, 'shaftbreaker:den_dust'));
+  for (const q of pickCells(randi(4, big ? 10 : 6))) jobs.push(() => setBlock(dim, q, 'shaftbreaker:den_spine'));
+  for (const q of pickCells(randi(3, big ? 9 : 5))) jobs.push(() => setPerm(dim, q, 'minecraft:bone_block', { deprecated: 0, pillar_axis: pick(['x', 'y', 'z']) }));
+  for (const q of pickCells(randi(3, 6))) jobs.push(() => setBlock(dim, q, pick(['minecraft:gravel', 'minecraft:cobbled_deepslate', 'minecraft:tuff'])));
+  for (const q of pickCells(randi(1, 3))) jobs.push(() => { if (!setBlock(dim, q, 'minecraft:skeleton_skull')) setBlock(dim, q, 'minecraft:bone_block'); });
+  // hanging spines and webs under the whole ceiling
+  let hung = 0;
+  for (const f of all) {
+    if (hung >= 36 || !chance(0.3)) continue;
+    const h = cache.headroom(f.x, f.y, f.z);
+    if (h < 3 || h > 7) continue;
+    const q = { x: f.x, y: f.y + h - 1, z: f.z };
+    hung++;
     jobs.push(() => {
-      if (chance(0.6)) setPerm(dim, q, 'shaftbreaker:den_spine', { 'shaftbreaker:hanging': true });
+      if (chance(0.65)) setPerm(dim, q, 'shaftbreaker:den_spine', { 'shaftbreaker:hanging': true });
       else setBlock(dim, q, 'minecraft:web');
     });
   }
+  // the walls are scored with its claws (natural stone only, never anything you placed)
+  let scored = 0;
+  for (const f of all) {
+    if (scored >= 44) break;
+    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      for (const hy of [0, 1, 2]) {
+        const q = { x: f.x + dx, y: f.y + hy, z: f.z + dz };
+        const id = cache.id(q.x, q.y, q.z);
+        if (!/^minecraft:(stone|deepslate|tuff|andesite|diorite|granite)$/.test(id) || wasPlaced(q) || !chance(0.22)) continue;
+        scored++;
+        jobs.push(() => setBlock(dim, q, 'shaftbreaker:clawed_stone'));
+      }
+    }
+  }
+  den.size = all.length;
   // N49 hidden passage: a thin natural wall with open cave behind it becomes a fractured den wall
   for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
     let wallStart = null;
@@ -324,7 +370,7 @@ function buildDen(dim, c, cache) {
   }
   let i = 0;
   const run = () => {
-    for (let k = 0; k < 4 && i < jobs.length; k++, i++) safe('denJob', jobs[i]);
+    for (let k = 0; k < 8 && i < jobs.length; k++, i++) safe('denJob', jobs[i]);
     if (i < jobs.length) system.runTimeout(run, 2); else { building = false; wsDirty(); }
   };
   system.runTimeout(run, 1);

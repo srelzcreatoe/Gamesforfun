@@ -15,6 +15,7 @@ import { ws } from './worldstate.js';
 import { playAt, setDanger, startMusic, stopMusic, currentMusic } from '../audio.js';
 import { inAnyonesView } from './encounters/common.js';
 import { log } from '../core/log.js';
+import { whisper, startEyes, mindGame } from '../scare.js';
 
 const B = {
   targetId: null, map: null, mapT: -1e9, mapJob: null, mapFor: null,
@@ -81,8 +82,15 @@ export function brainTick() {
       for (const p of players) { if (!presenceEligible(p, manual)) continue; const d = dist(p.location, c.loc); if (d < bd) { bd = d; best = p; } }
       t = best;
     } else {
-      let best = null; let bt = -1;
-      for (const p of players) { if (!presenceEligible(p)) continue; const s = api.pstate(p); if (s.ugTicks > bt) { bt = s.ugTicks; best = p; } }
+      // it chooses the weakest: hurt, alone, longest in its dark
+      let best = null; let bt = -1e9;
+      for (const p of players) {
+        if (!presenceEligible(p)) continue;
+        const s = api.pstate(p);
+        let hp = 1; try { const h = p.getComponent('minecraft:health'); hp = h ? h.currentValue / h.effectiveMax : 1; } catch { /* ignore */ }
+        const score = s.ugTicks / 1200 + (1 - hp) * 4 + (s.isolated ? 3 : 0) + (s.hollows ? 1 : 0);
+        if (score > bt) { bt = score; best = p; }
+      }
       t = best;
     }
   }
@@ -224,9 +232,13 @@ export function lurkTick() {
   if (now() >= B.nextCue && d < 40) {                         // presence: it is heard where it really is
     const cue = d < 12 ? pick(['shaftbreaker.breath', 'shaftbreaker.growl', 'shaftbreaker.click'])
       : d < 24 ? pick(['shaftbreaker.click', 'shaftbreaker.scrape', 'shaftbreaker.breath', 'shaftbreaker.creak'])
-        : pick(['shaftbreaker.knock', 'shaftbreaker.scrape', 'shaftbreaker.click', 'shaftbreaker.call']);
+        : chance(0.12) ? 'shaftbreaker.distant_scream' : pick(['shaftbreaker.knock', 'shaftbreaker.scrape', 'shaftbreaker.click', 'shaftbreaker.call']);
     playAt(c.dim, cue, { x: c.loc.x, y: c.loc.y + 1.5, z: c.loc.z }, d < 12 ? 0.6 : 0.85, rand(0.88, 1.05));
     B.nextCue = now() + sec(rand(12, 30) * clamp(1.3 - s.interest / 160, 0.6, 1.3));
+    // between sightings it plays with you
+    if (d > 14 && chance(0.22)) startEyes(p);
+    else if (d < 26 && chance(0.18)) whisper(p);
+    if ((s.tension || 0) > 20 && chance(0.12)) mindGame(p);
   }
 }
 

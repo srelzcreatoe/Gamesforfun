@@ -13,6 +13,9 @@
     },
     "sb_cairn_marker": {
       "textures": "textures/items/sb_cairn_marker"
+    },
+    "sb_breakers_wheel": {
+      "textures": "textures/items/sb_breakers_wheel"
     }
   }
 }
