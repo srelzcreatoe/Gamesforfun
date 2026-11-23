@@ -1,5 +1,28 @@
 # Changelog
 
+## 3.1.0 — its home
+After 3.0 feedback ("it doesn't chase me", "none of the music sounds like Sonic.exe or the Goatwalker", "the roar and jumpscare sound lame", "the music cuts out when I press it in settings"), plus your concept art for an infected cave biome:
+- **Chases by day.** Chases no longer end at sunrise; that was why it never chased you on the surface in daylight. There is a new Wheel switch, *Daylight ends its chases*, to bring the old rule back. It now stalks the surface by day as well (*Day stalking*, on by default), and a *Relentless* frequency was added.
+- **Its home, the infected caves**, from your concept art. Under the Hollows the caves are veinstone and cracked veinstone, fleshstone and pulsing flesh. There are organ chambers with organ cores, rib arches, skeletons, rotted mine supports, organ mounds and watcher nests. Bloodroot vines and dripfang stalactites hang from the ceilings; crimson thorns, glowspore clusters and bloodmoss cover the floors. The pools are blood-red, there is red fog and mist, and blood drips from the ceilings and the walls beat. Rib arches also stand on the surface. 13 new blocks in all.
+  - **Watcher pods** open when you come near and tell it where you are, and it comes, sometimes as an ambush.
+  - **Organ cores** wound it when broken, and it comes for you.
+  - **Crimson thorns** cut and slow you.
+  - **It is stronger at home**: harder hits, faster, sooner and longer chases, less patience, more scares. It heals in the Hollows, and its dens there are made of flesh, organ cores and watcher pods.
+- **New behaviour, inspired by the most popular Java dweller mods** (written from scratch):
+  - It screams or roars every few seconds in a chase (Cave Dweller).
+  - Staring at its face makes it snap (Shy Dweller).
+  - It visits you while you sleep: knocking, a whisper, then standing over your bed. If you don't wake, it strikes (The Knocker).
+  - Chases come sooner the longer you stay underground.
+- **The charge-lunge.** Spotted from far away, it screams and runs the whole distance at you, then lunges. A lunge you ask for on the Wheel always ends in a chase. It now appears right behind you, 3.5–9 blocks away.
+- **New soundtrack: a cursed 16-bit cartridge**, all original. An emulated FM/PSG sound chip plays an original cheerful tune, which is then slowed, dropped in pitch, turned minor, reversed, bit-crushed and cut up by static and tape stops, over deep detuned stabs and a 40 Hz pulse. There are five new tracks: presence, close, standoff, a 170 bpm three-section chase, and the Hollows. They are mastered about 7 dB louder than 3.0, with heavy sub-bass. The Goatwalker pack was used only for measurement; none of its audio is used.
+- **Deeper voice.** The roar is 8 semitones lower and about 5 s long, with a sub layer. The jumpscare has a sub drop to 24 Hz, a slowed bellow and a brass cluster. The rage scream and the reveal sting now have a low body. New sounds: the charge, beating flesh, a watcher pod opening, blood drips, and an organ core bursting.
+- **The Wheel**:
+  - Every action now works where you are standing: it falls back to the nearest workable spot, and forced reactions happen within 4 s.
+  - New action: *Visit me when I sleep*.
+  - Music previews play on without being cut off by the creature's own music cues.
+- **Field notes**: 5 new entries (sleep, its home, watcher pods, organ cores, thorns), 32 in all.
+- Needs Minecraft 1.26.30+, as 3.0 did. The infected caves only generate in newly generated land.
+
 ## 3.0.0 — as dark as it gets
 After 2.1 feedback ("it still feels underwhelming"):
 - **New soundtrack and voice**, all original: a broken lullaby for when it is near, a pounding clustered score when it is close, a winding-down standoff, a 175 bpm chase, and Hollows music; a new layered roar, rage scream and growl; new jumpscare, reveal sting, static, whispers and a distant scream; Hollows ambience (loop, moods, additions).

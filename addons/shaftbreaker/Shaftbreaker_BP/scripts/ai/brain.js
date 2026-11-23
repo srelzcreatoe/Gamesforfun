@@ -114,6 +114,8 @@ export function brainTick() {
   }
   B.withdrawSince = 0;
   c.relocator = () => hiddenSpot(t, 20, 38, true);
+  // in its home it heals
+  if (api.pstate(t).hollows) safe('homeHeal', () => { const h = /** @type {any} */ (c.e.getComponent('minecraft:health')); if (h && h.currentValue < h.effectiveMax) h.setCurrentValue(Math.min(h.effectiveMax, h.currentValue + 2)); });
 }
 
 function arrive(p) {

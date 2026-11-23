@@ -51,6 +51,7 @@ export const GameMode = { Adventure: 'Adventure', Creative: 'Creative', Spectato
 export const EquipmentSlot = { Head: 'Head', Chest: 'Chest', Legs: 'Legs', Feet: 'Feet', Mainhand: 'Mainhand', Offhand: 'Offhand' };
 export class MolangVariableMap { setFloat() {} }
 export class ItemStack { constructor(typeId, amount = 1) { this.typeId = typeId; this.amount = amount; } }
+export class BlockVolume { constructor(from, to) { this.from = { ...from }; this.to = { ...to }; } }
 export class BlockPermutation {
   constructor(id, states = {}) { this.type = { id }; this.states = { ...states }; }
   static resolve(id, states = {}) { return new BlockPermutation(id, states); }
@@ -88,6 +89,17 @@ class Dimension {
     const hit = this.vw.raycast(origin, dir, opts.maxDistance ?? 64, !!opts.includePassableBlocks, !!opts.includeLiquidBlocks);
     if (!hit) return undefined;
     return { block: new Block(this, hit.x, hit.y, hit.z), face: 'Up', faceLocation: { x: hit.fx - hit.x, y: hit.fy - hit.y, z: hit.fz - hit.z } };
+  }
+  getBlocks(vol, filter = {}) {
+    const out = []; const types = filter.includeTypes || null;
+    const a = vol.from, b = vol.to;
+    for (let x = Math.min(a.x, b.x); x <= Math.max(a.x, b.x); x++) for (let y = Math.min(a.y, b.y); y <= Math.max(a.y, b.y); y++) for (let z = Math.min(a.z, b.z); z <= Math.max(a.z, b.z); z++) {
+      if (!this.vw.inBounds(x, y, z)) continue;
+      const id = this.vw.get(x, y, z);
+      if (!types || types.includes(id)) out.push({ x, y, z });
+    }
+    if (types && types.includes('shaftbreaker:watcher_pod')) { SIM.podQ = (SIM.podQ || 0) + 1; SIM.podHits = (SIM.podHits || 0) + out.length; }
+    return { getBlockLocationIterator() { return out[Symbol.iterator](); } };
   }
   getBiome(p) { return { id: SIM.biomeAt ? SIM.biomeAt(p) : 'minecraft:plains' }; }
   getTopmostBlock(p) { const y = this.vw.topY(Math.floor(p.x), Math.floor(p.z)); return y === null ? undefined : new Block(this, Math.floor(p.x), y, Math.floor(p.z)); }

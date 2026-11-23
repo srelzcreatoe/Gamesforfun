@@ -1,0 +1,27 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "shaftbreaker:fleshstone",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 3
+      },
+      "minecraft:map_color": "#7a1620",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "sb_inf_fleshstone",
+          "render_method": "opaque"
+        }
+      }
+    }
+  }
+}

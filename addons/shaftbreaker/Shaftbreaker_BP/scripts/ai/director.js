@@ -1,7 +1,8 @@
 // @ts-check
 import { world, system } from '@minecraft/server';
 import { now, sec, mins, rand, randi, chance, dist, distXZ, sub, norm, lenXZ, clamp, weighted, valid, safe, reportError, worldTicks, isPlayableTarget, OVERWORLD, floor3, key } from '../core/util.js';
-import { config, freqMul, intensityMul, prefs, diff } from '../core/config.js';
+import { config, freqMul, intensityMul, prefs, diff, setHomeBoost } from '../core/config.js';
+import { tickInfected } from '../world/infected.js';
 import { WalkMap, isUnderground, resetBudget, BlockCache, inHollows } from '../world/space.js';
 import { profile, evidence, decay, noteEncounter, saveDirty, trait, curious, markDirty, forget, bumpRegion } from './memory.js';
 import { ws, wsDirty, wsSave, addDanger, pushHistory, suppressionAt, pruneSuppression, nearestDen } from './worldstate.js';
@@ -342,6 +343,9 @@ function updatePlayer(p, dt) {
   // the Hollows are its own land: there it is about by day as well
   s.hollows = p.dimension.id === OVERWORLD && inHollows(p.dimension, p.location);
   if (s.hollows) unlockNote(p, 'hollows');
+  if (s.hollows && ug) unlockNote(p, 'infected');
+  const bt = brainTarget();
+  if (bt && bt.id === p.id) setHomeBoost(s.hollows);
   if (s.hollows && !ug) s.night = true;
   if (s.night && !s.scheduled) scheduleFresh(s, pf);
   if (s.night) { s.ugTicks += dt; pf.undergroundSec += dt / 20; }
@@ -381,7 +385,7 @@ function updatePlayer(p, dt) {
     : prov || s.provocation >= 45 ? 'provoked' : s.interest >= th[1] || (pf.sightings >= 2 && s.interest >= th[0]) ? 'observing' : s.interest >= th[0] ? 'interested' : 'dormant';
   if (ug && s.state !== 'dormant') maybeRoomTone(p, s.interest / 100);
   // its territory: the air thickens near its dens and in the caves under the Hollows
-  safe('territory', () => territoryFog(p, ug && (s.hollows || !!nearestDen(p.location, 40))));
+  safe('territory', () => territoryFog(p, ug && !!nearestDen(p.location, 40) && !s.hollows, ug && s.hollows));
   if (ug) decay(p, dt / 20);
 }
 
@@ -649,6 +653,30 @@ export function setMood(player, mood) {
   if (mood === 'angry') { s.tension = 85; s.provocation = 70; s.lastHuntEnd = -1e9; s.nextShow = t + sec(5); s.provokedUntil = t + mins(5); }
   if (mood === 'ambush') { s.ambush = { at: t + sec(8), why: 'wheel' }; }
 }
+
+// ------------------------------------------------------------------ its home: the infected caves
+/** every 20 ticks: pods, thorns, living walls (world/infected.js) */
+export function infectedTick() {
+  tickInfected(world.getAllPlayers(), pstate, (p, pos) => {
+    const s = pstate(p);
+    s.tension = clamp((s.tension || 0) + 18, 0, 100);
+    s.lastKnown = pos;
+    // the pod has told it where you are: it comes soon, sometimes straight from behind
+    if (!s.ambush && chance(0.22 * diff().snap)) s.ambush = { at: now() + sec(rand(4, 9)), why: 'watcher pod' };
+    else s.nextShow = Math.min(s.nextShow || now() + sec(4), now() + sec(rand(3, 6)));
+  });
+}
+
+/** an organ core was broken: it is wounded, and it knows who did it */
+export function onOrganBroken(player, pos, cracked) {
+  const c = creature();
+  playAtDim(player, 'shaftbreaker.organ_break', pos);
+  unlockNote(player, 'organ');
+  if (c && !c.defeated) safe('organWound', () => c.e.applyDamage(cracked ? 18 : 10, { cause: /** @type {any} */ ('magic') }));
+  addTension(pstate(player), 35);
+  if (!config().harmless) system.runTimeout(() => safe('organRage', () => queueRage(player, 'you broke its organ')), sec(2.5));
+}
+function playAtDim(p, id, pos) { safe('playAtDim', () => p.dimension.playSound(id, { x: pos.x + 0.5, y: pos.y + 0.5, z: pos.z + 0.5 }, { volume: 1.0 })); }
 
 export function stopEncounter() { if (cur) cur.abort('stopped'); stepEncounter(); despawnAll(true); brainState().nextArrival = now() + mins(3); }
 

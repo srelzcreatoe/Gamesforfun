@@ -1,0 +1,100 @@
+{
+  "terrain_texture": {
+    "sb_inf_bloodmoss": "textures/blocks/infected/bloodmoss",
+    "sb_inf_bloodmoss_side": "textures/blocks/infected/bloodmoss_side",
+    "sb_inf_bloodroot_vines": "textures/blocks/infected/bloodroot_vines",
+    "sb_inf_bloodroot_vines_tip": "textures/blocks/infected/bloodroot_vines_tip",
+    "sb_inf_cracked_organ_core": "textures/blocks/infected/cracked_organ_core",
+    "sb_inf_cracked_veinstone": "textures/blocks/infected/cracked_veinstone",
+    "sb_inf_crimson_thorns": "textures/blocks/infected/crimson_thorns",
+    "sb_inf_crimson_thorns_crystal": "textures/blocks/infected/crimson_thorns_crystal",
+    "sb_inf_dripfang": "textures/blocks/infected/dripfang",
+    "sb_inf_dripfang_drop": "textures/blocks/infected/dripfang_drop",
+    "sb_inf_dripfang_wet": "textures/blocks/infected/dripfang_wet",
+    "sb_inf_fleshstone": "textures/blocks/infected/fleshstone",
+    "sb_inf_glowspore_cluster": "textures/blocks/infected/glowspore_cluster",
+    "sb_inf_glowspore_cluster_cap": "textures/blocks/infected/glowspore_cluster_cap",
+    "sb_inf_glowspore_cluster_stem": "textures/blocks/infected/glowspore_cluster_stem",
+    "sb_inf_organ_core": "textures/blocks/infected/organ_core",
+    "sb_inf_organ_core_glow": "textures/blocks/infected/organ_core_glow",
+    "sb_inf_organ_core_root": "textures/blocks/infected/organ_core_root",
+    "sb_inf_pulsing_flesh": "textures/blocks/infected/pulsing_flesh",
+    "sb_inf_ribstone": "textures/blocks/infected/ribstone",
+    "sb_inf_ribstone_top": "textures/blocks/infected/ribstone_top",
+    "sb_inf_veinstone": "textures/blocks/infected/veinstone",
+    "sb_inf_watcher_pod": "textures/blocks/infected/watcher_pod",
+    "sb_inf_watcher_pod_eye": "textures/blocks/infected/watcher_pod_eye",
+    "sb_inf_watcher_pod_inner": "textures/blocks/infected/watcher_pod_inner",
+    "sb_inf_watcher_pod_open": "textures/blocks/infected/watcher_pod_open",
+    "sb_inf_watcher_pod_root": "textures/blocks/infected/watcher_pod_root"
+  },
+  "blocks_json": {
+    "shaftbreaker:veinstone": {
+      "sound": "deepslate",
+      "textures": "sb_inf_veinstone"
+    },
+    "shaftbreaker:cracked_veinstone": {
+      "sound": "deepslate",
+      "textures": "sb_inf_cracked_veinstone"
+    },
+    "shaftbreaker:fleshstone": {
+      "sound": "mud",
+      "textures": "sb_inf_fleshstone"
+    },
+    "shaftbreaker:pulsing_flesh": {
+      "sound": "sculk",
+      "textures": "sb_inf_pulsing_flesh"
+    },
+    "shaftbreaker:organ_core": {
+      "sound": "sculk_catalyst",
+      "textures": "sb_inf_organ_core"
+    },
+    "shaftbreaker:cracked_organ_core": {
+      "sound": "sculk_catalyst",
+      "textures": "sb_inf_cracked_organ_core"
+    },
+    "shaftbreaker:bloodroot_vines": {
+      "sound": "weeping_vines",
+      "textures": "sb_inf_bloodroot_vines"
+    },
+    "shaftbreaker:crimson_thorns": {
+      "sound": "amethyst_cluster",
+      "textures": "sb_inf_crimson_thorns"
+    },
+    "shaftbreaker:glowspore_cluster": {
+      "sound": "fungus",
+      "textures": "sb_inf_glowspore_cluster"
+    },
+    "shaftbreaker:bloodmoss": {
+      "sound": "moss_carpet",
+      "textures": "sb_inf_bloodmoss"
+    },
+    "shaftbreaker:ribstone": {
+      "sound": "bone_block",
+      "textures": "sb_inf_ribstone"
+    },
+    "shaftbreaker:dripfang": {
+      "sound": "pointed_dripstone",
+      "textures": "sb_inf_dripfang"
+    },
+    "shaftbreaker:watcher_pod": {
+      "sound": "nether_wart",
+      "textures": "sb_inf_watcher_pod"
+    }
+  },
+  "lang": {
+    "tile.shaftbreaker:veinstone.name": "Veinstone",
+    "tile.shaftbreaker:cracked_veinstone.name": "Cracked Veinstone",
+    "tile.shaftbreaker:fleshstone.name": "Fleshstone",
+    "tile.shaftbreaker:pulsing_flesh.name": "Pulsing Flesh",
+    "tile.shaftbreaker:organ_core.name": "Organ Core",
+    "tile.shaftbreaker:cracked_organ_core.name": "Cracked Organ Core",
+    "tile.shaftbreaker:bloodroot_vines.name": "Bloodroot Vines",
+    "tile.shaftbreaker:crimson_thorns.name": "Crimson Cave Thorns",
+    "tile.shaftbreaker:glowspore_cluster.name": "Glowspore Cluster",
+    "tile.shaftbreaker:bloodmoss.name": "Bloodmoss",
+    "tile.shaftbreaker:ribstone.name": "Ribstone",
+    "tile.shaftbreaker:dripfang.name": "Dripfang Stalactite",
+    "tile.shaftbreaker:watcher_pod.name": "Watcher Pod"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:feature_rules": {
+    "description": {
+      "identifier": "shaftbreaker:inf_organ_mound_rule",
+      "places_feature": "shaftbreaker:inf_organ_mound"
+    },
+    "conditions": {
+      "placement_pass": "after_underground_pass",
+      "minecraft:biome_filter": [
+        {
+          "test": "has_biome_tag",
+          "operator": "==",
+          "value": "shaftbreaker_hollows"
+        }
+      ]
+    },
+    "distribution": {
+      "iterations": 1,
+      "x": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          16
+        ]
+      },
+      "y": {
+        "distribution": "uniform",
+        "extent": [
+          -50,
+          40
+        ]
+      },
+      "z": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          16
+        ]
+      },
+      "scatter_chance": {
+        "numerator": 1,
+        "denominator": 6
+      }
+    }
+  }
+}

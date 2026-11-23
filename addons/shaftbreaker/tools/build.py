@@ -24,6 +24,7 @@ def opt(name):
 run('author_anims.py')
 run('gen_client.py')
 run('gen_bp.py')
+run('gen_infected.py')     # infected-cave blocks: writes tools/infected_manifest.json, which gen_rp.py merges
 run('gen_rp.py')
 run('gen_textures.py')
 run('gen_world.py')

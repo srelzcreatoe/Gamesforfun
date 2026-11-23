@@ -1,0 +1,26 @@
+{
+  "format_version": "1.13.0",
+  "minecraft:ore_feature": {
+    "description": {
+      "identifier": "shaftbreaker:inf_pulsing"
+    },
+    "count": 8,
+    "replace_rules": [
+      {
+        "places_block": "shaftbreaker:pulsing_flesh",
+        "may_replace": [
+          "shaftbreaker:fleshstone",
+          "shaftbreaker:veinstone",
+          "minecraft:stone",
+          "minecraft:deepslate",
+          "minecraft:tuff",
+          "minecraft:andesite",
+          "minecraft:diorite",
+          "minecraft:granite",
+          "minecraft:calcite",
+          "minecraft:dripstone_block"
+        ]
+      }
+    ]
+  }
+}

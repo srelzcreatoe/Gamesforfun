@@ -1,0 +1,33 @@
+{
+  "format_version": "1.21.10",
+  "minecraft:scatter_feature": {
+    "description": {
+      "identifier": "shaftbreaker:inf_pod_wall"
+    },
+    "places_feature": "shaftbreaker:inf_pod_wall_block",
+    "distribution": {
+      "iterations": 3,
+      "x": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          16
+        ]
+      },
+      "y": {
+        "distribution": "uniform",
+        "extent": [
+          -62,
+          55
+        ]
+      },
+      "z": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          16
+        ]
+      }
+    }
+  }
+}

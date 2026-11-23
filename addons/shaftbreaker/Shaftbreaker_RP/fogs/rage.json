@@ -19,8 +19,8 @@
       },
       "water": {
         "fog_start": 0.0,
-        "fog_end": 40.0,
-        "fog_color": "#1c2a2c",
+        "fog_end": 14.0,
+        "fog_color": "#3a0505",
         "render_distance_type": "fixed"
       }
     },

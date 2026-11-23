@@ -201,6 +201,28 @@ def particles():
         'minecraft:particle_appearance_billboard': {'size': [0.035, 0.035], 'facing_camera_mode': 'lookat_xyz', 'uv': cell(3, 0)},
         'minecraft:particle_appearance_tinting': {'color': [1, 0.95, 0.85, '1.0 - v.particle_age / v.particle_lifetime']},
     }, material='particles_blend')
+    # its home: blood drips from the ceiling, red mist hangs low
+    P['blood_drip'] = particle('shaftbreaker:blood_drip', {
+        'minecraft:emitter_rate_instant': {'num_particles': 1},
+        'minecraft:emitter_lifetime_once': {'active_time': 0.05},
+        'minecraft:emitter_shape_point': {'offset': [0, 0, 0]},
+        'minecraft:particle_initial_speed': 0.0,
+        'minecraft:particle_lifetime_expression': {'max_lifetime': 2.0},
+        'minecraft:particle_motion_dynamic': {'linear_acceleration': [0, 'v.particle_age < 0.5 ? 0 : -14', 0]},
+        'minecraft:particle_motion_collision': {'collision_radius': 0.05, 'expire_on_contact': True},
+        'minecraft:particle_appearance_billboard': {'size': [0.045, '0.045 + math.clamp(v.particle_age - 0.5, 0, 0.2) * 0.3'], 'facing_camera_mode': 'lookat_y', 'uv': cell(3, 0)},
+        'minecraft:particle_appearance_tinting': {'color': [0.5, 0.02, 0.03, 0.95]},
+    }, material='particles_alpha')
+    P['red_mist'] = particle('shaftbreaker:red_mist', {
+        'minecraft:emitter_rate_instant': {'num_particles': 1},
+        'minecraft:emitter_lifetime_once': {'active_time': 0.05},
+        'minecraft:emitter_shape_point': {'offset': [0, 0, 0], 'direction': ['math.random(-1, 1)', 0.05, 'math.random(-1, 1)']},
+        'minecraft:particle_initial_speed': 0.08,
+        'minecraft:particle_lifetime_expression': {'max_lifetime': 'math.random(5, 8)'},
+        'minecraft:particle_motion_dynamic': {'linear_drag_coefficient': 0.4},
+        'minecraft:particle_appearance_billboard': {'size': ['1.1 + v.particle_random_1', '1.1 + v.particle_random_1'], 'facing_camera_mode': 'lookat_xyz', 'uv': cell(3, 0)},
+        'minecraft:particle_appearance_tinting': {'color': [0.42, 0.06, 0.06, 'math.sin(v.particle_age / v.particle_lifetime * 180) * 0.16']},
+    }, material='particles_blend')
     # eyes in the dark: one pale glint (the script places two, a face-width apart, square to your view)
     P['eye_glint'] = particle('shaftbreaker:eye_glint', {
         'minecraft:emitter_rate_instant': {'num_particles': 1},
@@ -269,10 +291,20 @@ def particles():
 
 
 # =============================================================== atlases, block sounds, language
+def infected_manifest():
+    """the infected-cave blocks (tools/gen_infected.py) publish their atlas entries, block sounds and names here"""
+    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'infected_manifest.json')
+    return json.load(open(p)) if os.path.exists(p) else {}
+
+
 def atlases():
+    man = infected_manifest()
+    tex = {k: {'textures': f'textures/blocks/{k}'} for k in
+           ['sb_den_heart', 'sb_den_crack', 'sb_den_dust', 'sb_den_spine', 'sb_cairn', 'sb_cairn_top', 'sb_hollow_dust', 'sb_hollow_soil', 'sb_clawed_stone']}
+    for k, v in man.get('terrain_texture', {}).items():
+        tex[k] = v if isinstance(v, dict) else {'textures': v}
     w('textures/terrain_texture.json', {'resource_pack_name': 'shaftbreaker', 'texture_name': 'atlas.terrain', 'padding': 8, 'num_mip_levels': 4,
-                                        'texture_data': {k: {'textures': f'textures/blocks/{k}'} for k in
-                                                         ['sb_den_heart', 'sb_den_crack', 'sb_den_dust', 'sb_den_spine', 'sb_cairn', 'sb_cairn_top', 'sb_hollow_dust', 'sb_hollow_soil', 'sb_clawed_stone']}})
+                                        'texture_data': tex})
     w('textures/item_texture.json', {'resource_pack_name': 'shaftbreaker', 'texture_name': 'atlas.items',
                                      'texture_data': {k: {'textures': f'textures/items/{k}'} for k in
                                                       ['sb_skull', 'sb_resonance_dial', 'sb_resonance_shard', 'sb_cairn_marker', 'sb_breakers_wheel']}})
@@ -284,7 +316,8 @@ def atlases():
                       f'{NS}:cairn_marker': {'sound': 'stone', 'textures': 'sb_cairn'},
                       f'{NS}:hollow_dust': {'sound': 'gravel', 'textures': 'sb_hollow_dust'},
                       f'{NS}:hollow_soil': {'sound': 'gravel', 'textures': 'sb_hollow_soil'},
-                      f'{NS}:clawed_stone': {'sound': 'stone', 'textures': 'sb_clawed_stone'}})
+                      f'{NS}:clawed_stone': {'sound': 'stone', 'textures': 'sb_clawed_stone'},
+                      **man.get('blocks_json', {})})
 
 
 LANG = {
@@ -311,7 +344,7 @@ LANG = {
 
 
 def lang():
-    txt = '\n'.join(f'{k}={v}' for k, v in LANG.items()) + '\n'
+    txt = '\n'.join(f'{k}={v}' for k, v in {**LANG, **infected_manifest().get('lang', {})}.items()) + '\n'
     for base in (RP, BP):
         os.makedirs(os.path.join(base, 'texts'), exist_ok=True)
         open(os.path.join(base, 'texts/en_US.lang'), 'w').write(txt)

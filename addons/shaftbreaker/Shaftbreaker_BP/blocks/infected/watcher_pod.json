@@ -1,0 +1,120 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "shaftbreaker:watcher_pod",
+      "menu_category": {
+        "category": "nature"
+      },
+      "states": {
+        "shaftbreaker:open": [
+          false,
+          true
+        ]
+      }
+    },
+    "components": {
+      "minecraft:geometry": "geometry.sb_inf_watcher_pod",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "sb_inf_watcher_pod",
+          "render_method": "alpha_test"
+        },
+        "root": {
+          "texture": "sb_inf_watcher_pod_root",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 2
+      },
+      "minecraft:collision_box": {
+        "origin": [
+          -7,
+          0,
+          -7
+        ],
+        "size": [
+          14,
+          14,
+          14
+        ]
+      },
+      "minecraft:selection_box": {
+        "origin": [
+          -7,
+          0,
+          -7
+        ],
+        "size": [
+          14,
+          15,
+          14
+        ]
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:map_color": "#7c1a22",
+      "minecraft:light_emission": 3,
+      "minecraft:placement_filter": {
+        "conditions": [
+          {
+            "allowed_faces": [
+              "up",
+              "side"
+            ],
+            "block_filter": [
+              {
+                "tags": "!q.any_tag('air')"
+              }
+            ]
+          }
+        ]
+      },
+      "minecraft:loot": "loot_tables/blocks/infected/empty.json"
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('shaftbreaker:open') == true",
+        "components": {
+          "minecraft:geometry": "geometry.sb_inf_watcher_pod_open",
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "sb_inf_watcher_pod_open",
+              "render_method": "alpha_test"
+            },
+            "root": {
+              "texture": "sb_inf_watcher_pod_root",
+              "render_method": "alpha_test"
+            },
+            "inner": {
+              "texture": "sb_inf_watcher_pod_inner",
+              "render_method": "alpha_test",
+              "face_dimming": false
+            },
+            "glow": {
+              "texture": "sb_inf_watcher_pod_eye",
+              "render_method": "alpha_test",
+              "face_dimming": false
+            }
+          },
+          "minecraft:light_emission": 12,
+          "minecraft:selection_box": {
+            "origin": [
+              -8,
+              0,
+              -8
+            ],
+            "size": [
+              16,
+              16,
+              16
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

@@ -180,10 +180,12 @@ for p in glob.glob(BP + '/items/*.json'):
     if icon not in itemtex: err(f'{ident}: icon {icon} not in item_texture.json')
     if f'item.{ident}.name' not in lang: err(f'lang: item.{ident}.name missing')
 custom_blocks = set()
-for p in glob.glob(BP + '/blocks/*.json'):
+block_states = {}
+for p in glob.glob(BP + '/blocks/**/*.json', recursive=True):
     d = load(p) or {}
     b = d['minecraft:block']
     ident = b['description']['identifier']; custom_blocks.add(ident)
+    block_states[ident] = b['description'].get('states', {})
     comps = b['components']
     g = comps.get('minecraft:geometry')
     gid = g if isinstance(g, str) else (g or {}).get('identifier')
@@ -339,14 +341,34 @@ for p in glob.glob(BP + '/features/**/*.json', recursive=True):
     d = load(p) or {}
     kind = [k for k in d if k.startswith('minecraft:')][0]
     features[d[kind]['description']['identifier']] = (kind, d[kind])
+def _fblock(fid, ref):
+    """a block reference in a feature: a name, or {name, states}; custom states must be declared on the block"""
+    if isinstance(ref, dict):
+        n, states = ref.get('name'), ref.get('states', {})
+    else:
+        n, states = ref, {}
+    if not n: return
+    if not block_known(n): err(f'feature {fid}: unknown block {n}'); return
+    for k, v in states.items():
+        if n in custom_blocks:
+            if k not in block_states.get(n, {}): err(f'feature {fid}: block {n} has no state {k}')
+            elif isinstance(block_states[n][k], list) and v not in block_states[n][k]: err(f'feature {fid}: {n} state {k} has no value {v!r}')
 for fid, (kind, f) in features.items():
     if kind == 'minecraft:structure_template_feature' and f['structure_name'] not in structures: err(f'feature {fid}: structure {f["structure_name"]} missing')
-    if 'places_feature' in f and f['places_feature'] not in features: err(f'feature {fid}: places unknown feature {f["places_feature"]}')
-    for pb in f.get('places_block', []):
-        n = pb['block']['name'] if isinstance(pb.get('block'), dict) else pb.get('block')
-        if n and not block_known(n): err(f'feature {fid}: unknown block {n}')
+    for key in ('places_feature', 'feature_to_snap'):
+        if key in f and f[key] not in features: err(f'feature {fid}: {key} names unknown feature {f[key]}')
+    pbs = f.get('places_block', [])
+    for pb in (pbs if isinstance(pbs, list) else [pbs]):
+        _fblock(fid, pb['block'] if isinstance(pb, dict) and 'block' in pb else pb)
     for rr in f.get('replace_rules', []):
-        if not block_known(rr['places_block']): err(f'feature {fid}: unknown block {rr["places_block"]}')
+        _fblock(fid, rr['places_block'])
+        for m in rr.get('may_replace', []): _fblock(fid, m)
+    for k in ('filler', 'inner_layer', 'alternate_inner_layer', 'middle_layer', 'outer_layer'):
+        if k in f: _fblock(fid, f[k])
+    for k in f.get('inner_placements', []): _fblock(fid, k)
+    for side in f.get('may_attach_to', {}).values():
+        for m in (side if isinstance(side, list) else []): _fblock(fid, m)
+    for m in f.get('may_replace', []): _fblock(fid, m)
 for p in glob.glob(BP + '/feature_rules/**/*.json', recursive=True):
     r = (load(p) or {})['minecraft:feature_rules']
     pf = r['description']['places_feature']

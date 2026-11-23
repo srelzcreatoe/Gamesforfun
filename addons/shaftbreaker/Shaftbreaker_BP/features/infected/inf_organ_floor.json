@@ -1,0 +1,33 @@
+{
+  "format_version": "1.21.10",
+  "minecraft:scatter_feature": {
+    "description": {
+      "identifier": "shaftbreaker:inf_organ_floor"
+    },
+    "places_feature": "shaftbreaker:inf_organ_floor_block",
+    "distribution": {
+      "iterations": 2,
+      "x": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          16
+        ]
+      },
+      "y": {
+        "distribution": "uniform",
+        "extent": [
+          -62,
+          50
+        ]
+      },
+      "z": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          16
+        ]
+      }
+    }
+  }
+}

@@ -39,7 +39,22 @@ const vw = new VoxelWorld(SEED);
 world._init(vw);
 SIM.timeOfDay = SCENARIO === 'night' ? 18000 : 6000;
 // the Hollows: the west of the world (surface and the caves under it) in the 'hollows' scenario
-SIM.biomeAt = (p) => (SCENARIO === 'hollows' && p.x < -12 ? 'shaftbreaker:the_hollows' : 'minecraft:plains');
+SIM.biomeAt = (p) => ((SCENARIO === 'hollows' || SCENARIO === 'home') && p.x < -12 ? 'shaftbreaker:the_hollows' : 'minecraft:plains');
+if (SCENARIO === 'hollows' || SCENARIO === 'home') {                                          // its home: infected cave floors to the west
+  let n = 0;
+  for (let x = -60; x < -12; x++) for (let z = -60; z < 60; z++) for (let y = -15; y < 50; y++) {
+    if (!vw.standable(x, y, z) || vw.sky(x, y, z) > 0) continue;
+    const r = Math.random();
+    if (r < (SCENARIO === 'home' ? 0.03 : 0.012)) { vw.set(x, y, z, 'shaftbreaker:watcher_pod', { 'shaftbreaker:open': false }); n++; }
+    else if (r < 0.02) vw.set(x, y, z, 'shaftbreaker:crimson_thorns');
+    else if (r < 0.026) vw.set(x, y, z, 'shaftbreaker:organ_core');
+    else if (r < 0.07) vw.set(x, y, z, 'shaftbreaker:bloodmoss');
+  }
+  SIM.pods = n;
+  SIM.firstPod = null;
+  for (let x = -60; x < -12 && !SIM.firstPod; x++) for (let z = -60; z < 60 && !SIM.firstPod; z++) for (let y = -15; y < 50; y++) if (vw.get(x, y, z) === 'shaftbreaker:watcher_pod') { SIM.firstPod = { x, y, z }; break; }
+  if (SIM.firstPod) { const f = SIM.firstPod; const r = world.getDimension('minecraft:overworld').getBlocks(new M.BlockVolume({ x: f.x - 3, y: f.y - 3, z: f.z - 3 }, { x: f.x + 3, y: f.y + 3, z: f.z + 3 }), { includeTypes: ['shaftbreaker:watcher_pod'] }); console.log('PODTEST first pod', JSON.stringify(f), 'found', [...r.getBlockLocationIterator()].length, 'id now', vw.get(f.x, f.y, f.z)); }
+}
 const dim = world.getDimension('minecraft:overworld');
 
 // ---- protected blocks guard (T11)
@@ -50,6 +65,9 @@ SIM.guardSet = (x, y, z, oldId, newId) => {
 
 // ---- players
 function findStart(i) {
+  if (SCENARIO === 'home') {                                        // underground in its home, the infected caves
+    for (let r = 0; r < 6000; r++) { const x = Math.floor(rand2(-58, -14)), z = Math.floor(rand2(-50, 50)), y = Math.floor(rand2(-12, 40)); if (vw.standable(x, y, z) && vw.sky(x, y, z) === 0) return { x: x + 0.5, y, z: z + 0.5 }; }
+  }
   if (SCENARIO === 'hollows') {                                     // daytime, on the surface of the Hollows
     for (let r = 0; r < 4000; r++) { const x = Math.floor(rand2(-45, -18)), z = Math.floor(rand2(-30, 30)); if (vw.standable(x, 61, z) && vw.sky(x, 61, z) > 0) return { x: x + 0.5, y: 61, z: z + 0.5 }; }
   }
@@ -63,6 +81,8 @@ function findStart(i) {
   return { x: 0.5, y: 20, z: 0.5 };
 }
 function rand2(a, b) { return a + Math.random() * (b - a); }
+/** a real player respawns at spawn or a bed, on the surface, not in the cave where it died */
+function findSurfaceWest() { for (let r = 0; r < 4000; r++) { const x = Math.floor(rand2(-45, -18)), z = Math.floor(rand2(-30, 30)); if (vw.standable(x, 61, z) && vw.sky(x, 61, z) > 0) return { x: x + 0.5, y: 61, z: z + 0.5 }; } return { x: -20.5, y: 61, z: 0.5 }; }
 const STRATS = ['stairs', 'door', 'random', 'fighter'];
 const bots = [];
 for (let i = 0; i < NPLAYERS; i++) {
@@ -174,7 +194,7 @@ function botStep(b) {
   const p = b.p; const t = M.system.currentTick;
   if (p._dead) {
     if (!b.deadT) b.deadT = t;
-    if (t - b.deadT > 60) { p._dead = 0; b.deadT = 0; p._hp = 20; p.location = findStart(0); world.afterEvents.playerSpawn.fire({ player: p, initialSpawn: false }); b.mode = 'explore'; b.path = []; }
+    if (t - b.deadT > 60) { p._dead = 0; b.deadT = 0; p._hp = 20; p.location = SCENARIO === 'home' ? findSurfaceWest() : findStart(0); world.afterEvents.playerSpawn.fire({ player: p, initialSpawn: false }); b.mode = 'explore'; b.path = []; }
     return;
   }
   if (t % 80 === 0 && p._hp < 20) p._hp++;
@@ -414,6 +434,7 @@ for (const r of log.recent(60)) ALLTEL.add(r);
     const snd = (id) => SIM.sounds.filter((x) => x.id === id).length;
     const notes = (SIM.messages || []).filter((m) => /\[Field notes\]/.test(String(m)));
     console.log(`SCARES: fog pushes ${cnt(/fog @s push/)} (rage ${cnt(/fog_rage/)}, near ${cnt(/fog_near/)}, territory ${cnt(/fog_territory/)}), fog removals ${cnt(/fog @s remove/)}, camera shakes ${cnt(/camerashake/)}, jumpscares ${snd('shaftbreaker.jumpscare')}, reveal stings ${snd('shaftbreaker.sting_reveal')}, whispers ${snd('shaftbreaker.whisper')}, eye glints ${SIM.particles.filter((q) => q.id === 'shaftbreaker:eye_glint').length}, mind games ${(SIM.messages || []).filter((m) => /joined the game|\[title:/.test(String(m))).length}, mimicked sounds ${['random.door_open', 'random.chestopen', 'step.stone', 'game.player.hurt', 'random.eat', 'dig.stone'].map(snd).reduce((a, b) => a + b, 0)}, knocks ${snd('shaftbreaker.knock')}`);
+    if (SCENARIO === 'hollows' || SCENARIO === 'home') console.log(`HOME: pod queries ${SIM.podQ || 0} found ${SIM.podHits || 0}; pods placed ${SIM.pods}, pod opens ${snd('shaftbreaker.pod_open')}, flesh pulses ${snd('shaftbreaker.flesh_pulse')}, drips ${snd('shaftbreaker.drip')}, infected fog pushes ${cnt(/fog_infected/)}, blood drip particles ${SIM.particles.filter((q) => q.id === 'shaftbreaker:blood_drip').length}, mist ${SIM.particles.filter((q) => q.id === 'shaftbreaker:red_mist').length}`);
     console.log(`FIELD NOTES unlocked: ${notes.length} ${JSON.stringify(notes.map((m) => String(m).replace(/.*New entry: §f/, '').replace(/§8.*/, '')))}; wheels given ${SIM.given || 0}`);
   }
   if (SIM.wheelLog) { const recsW = [...ALLTEL].filter((x) => x.reason === 'wheel'); console.log('WHEEL PRESSES: ' + SIM.wheelLog.map((w, j) => `${w.k}/${w.r || '-'} -> ${w.msg}`).join(' | ')); console.log('WHEEL OUTCOMES: ' + recsW.map((x) => `${x.outcome}[${(x.notes || []).filter((n) => /reaction|charge|lunge|rage \(|jumpscare|show:|close strike/.test(n)).join(',')}]`).join(' | ')); }

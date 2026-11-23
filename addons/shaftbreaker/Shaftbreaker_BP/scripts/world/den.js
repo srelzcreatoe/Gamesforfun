@@ -3,7 +3,7 @@ import { system, BlockPermutation } from '@minecraft/server';
 import { now, sec, mins, rand, randi, chance, pick, dist, distXZ, sub, norm, center, floor3, key, safe, valid, worldTicks, OVERWORLD } from '../core/util.js';
 import { config } from '../core/config.js';
 import { isPlayerMadeHint, NATURAL_BREAKABLE, isPassableId } from '../core/blocks.js';
-import { BlockCache, lineOfSight, lightAt, isChunkLoaded, hiddenAirNear } from './space.js';
+import { BlockCache, lineOfSight, lightAt, isChunkLoaded, hiddenAirNear, inHollows } from './space.js';
 import { canDress, wasPlaced } from './protection.js';
 import { ws, wsDirty, activeDens, nearestDen } from '../ai/worldstate.js';
 import { profile, evidence } from '../ai/memory.js';
@@ -309,14 +309,16 @@ function buildDen(dim, c, cache) {
     }
   }
   const all = floorCells.slice();
+  const home = inHollows(dim, c);                                    // in its home the den is infected flesh
+  const DUST = home ? 'shaftbreaker:bloodmoss' : 'shaftbreaker:den_dust';
   const pickCells = (n) => { const out = []; for (let i = 0; i < n && floorCells.length; i++) out.push(floorCells.splice(randi(0, floorCells.length - 1), 1)[0]); return out; };
   const big = all.length > 60;
   // a ring of bones around the heart: its nest
   for (const [dx, dz] of [[2, 0], [-2, 0], [0, 2], [0, -2], [2, 2], [-2, -2], [2, -2], [-2, 2]]) {
     const q = all.find((f) => f.x === c.x + dx && f.z === c.z + dz);
-    if (q && chance(0.75)) jobs.push(() => setPerm(dim, q, 'minecraft:bone_block', { deprecated: 0, pillar_axis: pick(['x', 'z']) }));
+    if (q && chance(0.75)) jobs.push(() => (home && chance(0.4) ? setBlock(dim, q, pick(['shaftbreaker:organ_core', 'shaftbreaker:watcher_pod'])) : setPerm(dim, q, 'minecraft:bone_block', { deprecated: 0, pillar_axis: pick(['x', 'z']) })));
   }
-  for (const q of pickCells(Math.min(70, Math.round(all.length * 0.35)))) if (!(q.x === c.x && q.z === c.z)) jobs.push(() => setBlock(dim, q, 'shaftbreaker:den_dust'));
+  for (const q of pickCells(Math.min(70, Math.round(all.length * 0.35)))) if (!(q.x === c.x && q.z === c.z)) jobs.push(() => setBlock(dim, q, DUST));
   for (const q of pickCells(randi(4, big ? 10 : 6))) jobs.push(() => setBlock(dim, q, 'shaftbreaker:den_spine'));
   for (const q of pickCells(randi(3, big ? 9 : 5))) jobs.push(() => setPerm(dim, q, 'minecraft:bone_block', { deprecated: 0, pillar_axis: pick(['x', 'y', 'z']) }));
   for (const q of pickCells(randi(3, 6))) jobs.push(() => setBlock(dim, q, pick(['minecraft:gravel', 'minecraft:cobbled_deepslate', 'minecraft:tuff'])));
@@ -330,7 +332,8 @@ function buildDen(dim, c, cache) {
     const q = { x: f.x, y: f.y + h - 1, z: f.z };
     hung++;
     jobs.push(() => {
-      if (chance(0.65)) setPerm(dim, q, 'shaftbreaker:den_spine', { 'shaftbreaker:hanging': true });
+      if (home) setPerm(dim, q, chance(0.55) ? 'shaftbreaker:bloodroot_vines' : 'shaftbreaker:dripfang', { 'shaftbreaker:tip': true });
+      else if (chance(0.65)) setPerm(dim, q, 'shaftbreaker:den_spine', { 'shaftbreaker:hanging': true });
       else setBlock(dim, q, 'minecraft:web');
     });
   }
@@ -344,7 +347,7 @@ function buildDen(dim, c, cache) {
         const id = cache.id(q.x, q.y, q.z);
         if (!/^minecraft:(stone|deepslate|tuff|andesite|diorite|granite)$/.test(id) || wasPlaced(q) || !chance(0.22)) continue;
         scored++;
-        jobs.push(() => setBlock(dim, q, 'shaftbreaker:clawed_stone'));
+        jobs.push(() => setBlock(dim, q, home ? pick(['shaftbreaker:clawed_stone', 'shaftbreaker:cracked_veinstone', 'shaftbreaker:pulsing_flesh', 'shaftbreaker:fleshstone']) : 'shaftbreaker:clawed_stone'));
       }
     }
   }

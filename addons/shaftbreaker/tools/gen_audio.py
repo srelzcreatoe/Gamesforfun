@@ -668,12 +668,22 @@ def band_limit(x, c, wrap=False):
     return x * (c / m) if m > c else x
 
 
-def master_fx(x, level=None, ceil_db=-1.5):
+def hot(x, target, c, iters=6):
+    """a hot master: push to a loudness through a tanh clipper at the ceiling, so the crest factor comes down the
+    way it does on a loud, crushed horror track (and the sub grows harmonics you can hear on small speakers)"""
+    for _ in range(iters):
+        x = c * np.tanh(at_rms(x, target) / c)
+    return x
+
+
+def master_fx(x, level=None, ceil_db=-1.5, sat=False):
     """one-shot mastering: DC/rumble cut, then either peak-normalise or push to a loudness and limit"""
     x = lp(hp(x, 28), 15500, 8)
     c = 10 ** (ceil_db / 20)
     if level is None:
         return norm(x, c * 0.97)
+    if sat:
+        x = hot(x, level, c)
     for _ in range(6):
         x = limiter(at_rms(x, level), c, release=0.06)
     return band_limit(x, c)
@@ -689,9 +699,11 @@ def calm_start(x, look=0.02):
     return np.roll(x, int(r[np.argmin(np.abs(x[k]) + np.abs(x[k] - x[k - 1]))]))
 
 
-def master_music(x, target=MUSIC_LUFSISH, ceil_db=-1.5, wrap=True):
+def master_music(x, target=MUSIC_LUFSISH, ceil_db=-1.5, wrap=True, sat=False):
     x = clp(chp(x, 24), 15500, 8) if wrap else lp(hp(x, 24), 15500, 8)
     c = 10 ** (ceil_db / 20)
+    if sat:
+        x = hot(x, target, c)
     for _ in range(5):
         x = limiter(at_rms(x, target), c, wrap=wrap)
     x = band_limit(x, c, wrap)
@@ -864,8 +876,8 @@ def _scream(d, crack, base=1.0):
     return x + 0.6 * met / (np.abs(met).max() + 1e-9), t
 
 
-def screech(v):
-    """the rage scream before a chase"""
+def screech_hi(v):
+    """the rage scream before a chase (3.0; now the top layer of screech())"""
     d = (1.15, 1.0, 1.2)[v % 3]
     x, t = _scream(d, (0.55, 0.45, 0.62)[v % 3], (1.0, 1.12, 0.9)[v % 3])
     env = np.minimum(1, t / 0.035) * ramp(t, [(0, 1), (d - 0.28, 1), (d, 0)]) ** 1.5
@@ -923,16 +935,6 @@ def roar_dry(v):
     place(pre, ih / (np.abs(ih).max() + 1e-9) * 0.22, 0.0)
     place(pre, rs / (np.abs(rs).max() + 1e-9) * 0.45, 0.0)
     return x + imp * 0.55 + pre, t
-
-
-def roar(v, cut=None):
-    dry, t = roar_dry(v)
-    if cut:   # cut off mid-roar: the throat slams shut, only the tunnel answers for a moment
-        x = dry[:nsamp(cut)].copy(); k = nsamp(0.006); x[-k:] *= np.linspace(1, 0, k)
-        y = reverb(x, 0.12, 0.5, bright=2500)[:nsamp(cut + 0.08)]
-        return fade(master_fx(y, -11), 0.002, 0.03)
-    y = reverb(dry, 0.3, 1.7, bright=3000)[:nsamp(2.7)]
-    return fade(master_fx(y, -11.5), 0.002, 0.3)
 
 
 def growl(v):
@@ -997,8 +999,8 @@ def static_fx(v):
     return fade(master_fx(x, -12), 0.001, 0.03)
 
 
-def jumpscare(v):
-    """instant full-level hit: shriek + roar + static + a cluster stab + a sub drop, all at t=0"""
+def jumpscare_hi(v):
+    """(3.0; now the top layer of jumpscare()) instant full-level hit: shriek + roar + static + a cluster stab + a sub drop, all at t=0"""
     d = (1.25, 1.1)[v % 2]; n = nsamp(d); t = np.arange(n) / SR
     fs = ramp(t, [(0, 980), (0.05, 1250), (0.4, 1150), (0.7, 1350), (d, 900)] if v == 0 else
               [(0, 1400), (0.08, 1100), (0.3, 1500), (0.32, 950), (d, 700)])
@@ -1018,8 +1020,8 @@ def jumpscare(v):
     return fade(master_fx(x, -7.5), 0.0005, 0.05)
 
 
-def sting_reveal(v):
-    """the moment you spot it: a reversed swell sucks into a slam (low piano cluster + violin screech cluster)"""
+def sting_reveal_hi(v):
+    """(3.0; now the top layer of sting_reveal()) the moment you spot it: a reversed swell sucks into a slam (low piano cluster + violin screech cluster)"""
     d = 2.6; hit = (0.8, 0.62)[v % 2]; n = nsamp(d); x = np.zeros(n)
     hi = (88, 89, 94) if v % 2 == 0 else (87, 93, 94)
     pre = sum(piano(m, 2.5, 0.8) for m in (64, 65, 70, 71))
@@ -1204,109 +1206,299 @@ def hollows_addition(v):
     return fade(master_fx(y, -20, ceil_db=-3.0), 0.01, 0.4)     # one shared volume, so one loudness
 
 
-# ----------------------------------------------------------------------------- music
-def presence_music():
-    """It is near. A slowed, detuned music-box lullaby on warped tape, hiss and crackle, a sub drone, reversed
-    piano swells and a far, out-of-tune choir. 24 bars of 3/4 at 56 bpm = 77.1 s, seamless."""
-    beat = 60 / 56; bar = 3 * beat; L = nsamp(24 * bar); d = L / SR; t = np.arange(L) / SR
-    box = np.zeros(L); pads = np.zeros(L); sw = np.zeros(L)
-    # bars 1-8: the lullaby, slowed and sagging
-    a = wow(box_phrase(beat, cents=-35), depth=0.0055, rate=0.31, flutter=0.00007, frate=5.3, drift=0.0025)
-    wplace(box, a, 0.0)
-    # bars 13-20: it comes back broken: notes missing or an octave down, a second comb a quarter-tone off,
-    # two bars of nothing in the middle, and the tape sags and drags at the end
-    sub = LULLABY[0:9] + LULLABY[15:19]
-    b = box_phrase(beat, notes=sub, skip=(1, 5), drop=(3, 10), cents=-55, double=0.35)
-    tb = np.arange(len(b)) / SR
-    b = varispeed(b, 1 - 0.06 * bell(tb, 9.0, 1.6) - 0.1 * np.clip((tb - 19.5) / 5, 0, 1) ** 1.5)
-    wplace(box, wow(b, depth=0.008, rate=0.42, flutter=0.0001, frate=6.1, drift=0.004), 12 * bar)
-    # a single wrong plink in the empty bars
-    wplace(box, tine(83, 3.0, 0.45, 45), 21.5 * bar)
-    # reversed piano swells: into bar 11 (landing on a low cluster) and into the loop point
-    s1 = rev_swell(sum(piano(m, 4.5, 0.75) for m in (35, 41, 48)), 3.6, rt=3.4)
-    wplace(sw, s1, 10 * bar - len(s1) / SR)
-    wplace(sw, reverb(piano(35, 4.0, 0.5) + piano(36, 4.0, 0.45), 0.5, 3.0)[:nsamp(6)] * 0.6, 10 * bar)
-    s2 = rev_swell(sum(piano(m, 4.5, 0.7) for m in (59, 65, 70)), 4.2, rt=3.4)
-    wplace(sw, s2, d - len(s2) / SR)
-    # far choir
-    for at, notes, vw in ((8 * bar, (59, 62, 65), 'u'), (19.5 * bar, (60, 64, 70), 'o')):
-        c = choir(notes, 14.0, vw, voices=3, spread=22) * np.sin(np.pi * np.arange(nsamp(14.0)) / nsamp(14.0)) ** 2
-        wplace(pads, wow(lp(c, 1800), depth=0.006, rate=0.25), at)
-    # sub drone (whole cycles), hiss, crackle
-    part = lambda f, ph=0.0: np.sin(2 * np.pi * round(f * d) / d * t + ph)
-    dr = (part(30.87) * 0.7 + part(32.70) * 0.55 + part(61.74, 1) * 0.3 + part(46.25, 2) * 0.2 + part(92.5, 0.5) * 0.08)
-    dr = drive(dr * (0.7 + 0.3 * np.sin(2 * np.pi * 2 / d * t)) * 0.8, 1.6)
-    mix = at_rms(box, -18) + at_rms(sw, -21) + at_rms(pads, -27) + at_rms(dr, -24)
-    mix = creverb(mix, 0.42, 3.4, 1900)
-    mix = wow(mix, depth=0.0015, rate=0.2, wrap=True)
-    mix = mix + at_rms(cbp(R.standard_normal(L), 1800, 9000), -46) + at_rms(crackle(L, 7, 0.25), -40)
-    return master_music(mix)
+# ============================================================================= 3.1: the cursed cartridge
+# The music is a 16-bit game cartridge that has gone wrong. An emulated sound chip (2-operator FM voices with
+# operator feedback, a square/noise PSG and a 9-bit DAC) plays an original, cheerful 8-bar tune, and then the
+# cartridge breaks: the tape slows and drops in pitch, the key goes minor, notes go missing or wrong, phrases
+# run backwards, the bits crush, and deep stabs, static and a 40 Hz pulse come up from underneath.
+# No melody here is taken from any game or add-on: JINGLE and every riff are written for this add-on.
+
+def fm_op(hz, ratio=1.0, index=1.0, fb=0.0, ratio2=None, index2=0.0):
+    """FM voice for a per-sample frequency: sin(carrier + index * modulator); the modulator is a sine at hz*ratio
+    with self-feedback (fb -> saw-like grit); optional second modulator; index / index2 may be arrays"""
+    ph = 2 * np.pi * np.cumsum(hz) / SR
+    mp = ph * ratio
+    y = ph + index * np.sin(mp + fb * np.sin(mp + fb * np.sin(mp)))
+    if ratio2:
+        y = y + index2 * np.sin(ph * ratio2)
+    return np.sin(y)
 
 
-def heart_hit(f_hi, f_lo, amp=1.0):
-    d = 0.32; n = nsamp(d); t = np.arange(n) / SR
-    f = f_lo + (f_hi - f_lo) * np.exp(-t / 0.035)
-    x = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.085) * np.minimum(1, t / 0.003)
-    return (x + lp(R.standard_normal(n), 160) * np.exp(-t / 0.03) * 0.35) * amp
+def _gate(t, d, rel=0.08, att=0.002):
+    return np.minimum(1, t / att) * np.clip(1 - (t - d) / rel, 0, 1)
 
 
-def close_music():
-    """It is close. A heartbeat ostinato, a tritone/minor-second bass cluster, tremolo string clusters, reversed
-    choir, the lullaby bit-crushed, a ticking mechanism, whispers, and static that cuts everything off.
-    16 bars of 4/4 at 75 bpm = 51.2 s, seamless."""
-    beat = 0.8; bar = 4 * beat; L = nsamp(16 * bar); d = L / SR; t = np.arange(L) / SR
-    heart = np.zeros(L)
-    lub, dub = heart_hit(55, 38, 1.0), heart_hit(48, 34, 0.7)
-    for k in range(64):
-        g = (0.75 + 0.25 * (k >= 32)) * (1.0 if k % 4 == 0 else 0.85)
-        wplace(heart, lub * g, k * beat); wplace(heart, dub * g, k * beat + 0.19)
-    heart = clp(drive(heart * 1.5, 2.0), 320)
-    fw = lambda f: round(f * d) / d
-    drone = sum(saw(np.full(L, fw(f))) * a for f, a in ((55.0, 1.0), (58.27, 0.8), (77.78, 0.6)))
-    drone = cstft(drone, lambda f, tt: 1 / np.sqrt(1 + (f / (160 + 380 * (0.5 - 0.5 * math.cos(2 * math.pi * 2 * tt / d)))) ** 4))
-    strings = np.zeros(L)
-    m = nsamp(4 * bar); tm = np.arange(m) / SR
-    for sb in (4, 8, 12):
-        s = sum(bowed(np.full(m, float(midi(mm))), pont=0.6, depth=0.003) for mm in (64, 65, 70, 71))
-        s = s * (0.55 + 0.45 * np.abs(np.sin(2 * np.pi * 5 * tm))) * ramp(tm, [(0, 0), (9, 1), (12.7, 1), (12.8, 0)])
-        wplace(strings, s, sb * bar)
-    rch = np.zeros(L)
-    for eb in (4, 8, 12, 16):
-        c = choir([62, 63, 68], 3.0, 'a', voices=3, spread=20) * np.hanning(nsamp(3.0))
-        r = rev_swell(c, 3.4, rt=2.2)
-        wplace(rch, r, eb * bar - len(r) / SR)
-    bx = box_phrase(0.8, notes=LULLABY[:9], bass=False, cents=-80)
-    bx = wow(bx, depth=0.012, rate=0.5, drift=0.004)
-    bx = crush(bx / np.abs(bx).max(), 4800, 5)
-    box = np.zeros(L); wplace(box, bx, 8 * bar)
-    ticks = np.zeros(L)
-    for k in range(128):
-        tk = damped(3100 if k % 2 == 0 else 2450, 0.0015, 0.02) + 0.5 * damped(5200, 0.001, 0.02)
-        wplace(ticks, tk * (0.8 + 0.2 * R.random()), k * beat / 2 + R.normal(0, 0.004) + 0.01)
-    wh = np.zeros(L)
-    for at, rev in ((2.5 * bar, False), (6.75 * bar, True), (11.25 * bar, False), (14.0 * bar, True)):
-        p = whisper_phrase(2.4, R.uniform(4.5, 5.5), 0.9)
-        wplace(wh, lp(p[::-1] if rev else p, 6000), at)
-    mix = (at_rms(heart, -19) + at_rms(drone, -24) + at_rms(strings, -25) + at_rms(rch, -24)
-           + at_rms(box, -27) + at_rms(ticks, -36) + at_rms(wh, -31))
-    mix = creverb(mix, 0.3, 2.0, 2400)
-    # static that cuts everything off
+def _note(m, d, cents=0.0):
+    n = nsamp(d); t = np.arange(n) / SR
+    return np.full(n, float(midi(m)) * 2 ** (cents / 1200)), t
+
+
+def fm_bell(m, d, vel=1.0, cents=0.0):
+    """music box / celesta: an inharmonic 3.5 modulator strikes bright and decays to an almost pure tone"""
+    hz, t = _note(m, max(d, 1.7), cents)
+    x = fm_op(hz, 3.5, 2.4 * np.exp(-t / 0.18) + 0.25, 0.0, 1.0, 0.6 * np.exp(-t / 0.5))
+    return x * np.exp(-t / 0.75) * np.minimum(1, t / 0.0015) * vel
+
+
+def fm_ep(m, d, vel=1.0, cents=0.0):
+    """FM electric piano with the tine click"""
+    hz, t = _note(m, d + 0.15, cents)
+    x = fm_op(hz, 1.0, 1.6 * np.exp(-t / 0.22) + 0.25, 0.1) + 0.25 * np.sin(2 * np.pi * hz * 14 * t) * np.exp(-t / 0.015)
+    return x * np.exp(-t / 1.1) * _gate(t, d, 0.15) * vel
+
+
+def fm_slap(m, d, vel=1.0, cents=0.0):
+    """the slap bass every 16-bit cartridge had: a hard, bright attack collapsing to a round low note"""
+    hz, t = _note(m, d + 0.05, cents)
+    x = fm_op(hz, 1.0, 4.5 * np.exp(-t / 0.04) + 0.9, 0.55) + 0.5 * np.sin(2 * np.pi * hz * t)
+    return x * np.exp(-t / 0.5) * _gate(t, d, 0.04) * vel
+
+
+def fm_brass(m, d, vel=1.0, cents=0.0, bend=0.0, grit=0.75):
+    """FM brass / lead: the modulation index swells in on the attack (the 'blat'), a scoop into the note,
+    feedback grit, delayed vibrato, and an optional bend over the second half (semitones)"""
+    n = nsamp(d + 0.12); t = np.arange(n) / SR
+    f = float(midi(m)) * 2 ** (cents / 1200)
+    hz = f * (1 + 0.007 * np.clip((t - 0.16) / 0.2, 0, 1) * np.sin(2 * np.pi * 5.8 * t)) * (1 - 0.03 * np.exp(-t / 0.03))
+    if bend:
+        hz = hz * 2 ** (bend * np.clip((t - 0.5 * d) / (0.5 * d + 1e-9), 0, 1) ** 2 / 12)
+    idx = 0.6 + 2.4 * np.minimum(1, t / 0.05) * (0.75 + 0.25 * np.exp(-t / 0.2))
+    return fm_op(hz, 1.0, idx, grit, 2.0, 0.4) * _gate(t, d, 0.1, 0.012) * vel
+
+
+def psg_sq(m, d, vel=1.0, cents=0.0, duty=0.25):
+    """PSG pulse wave: naive (it aliases, like the chip did) with a stepped 4-bit volume decay"""
+    n = nsamp(d); t = np.arange(n) / SR
+    ph = (float(midi(m)) * 2 ** (cents / 1200) * t) % 1.0
+    return np.where(ph < duty, 1.0, -1.0) * np.floor(15 * np.exp(-t / 0.25)) / 15 * _gate(t, d - 0.006, 0.006, 0.0005) * vel
+
+
+def psg_noise(d, rate=11000, decay=0.05, vel=1.0):
+    n = nsamp(d); t = np.arange(n) / SR; hold = max(1, int(SR / rate))
+    x = np.repeat(R.choice([-1.0, 1.0], n // hold + 1), hold)[:n]
+    return x * np.floor(15 * np.exp(-t / decay)) / 15 * vel
+
+
+def dac(x, bits=9, rate=26000):
+    """the console's coarse DAC: sample-and-hold at ~26 kHz, 9 bits"""
+    pk = np.abs(x).max() + 1e-9
+    return crush(x / pk, rate, bits) * pk
+
+
+def boom(d=1.6, f0=110.0, f1=26.0, k=0.08, amt=1.8):
+    """the deep sub drop: a sine falling to ~26 Hz with a long tail"""
+    n = nsamp(d); t = np.arange(n) / SR
+    f = f1 + (f0 - f1) * np.exp(-t / k)
+    x = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / (d / 3.2)) * np.minimum(1, t / 0.002)
+    return drive(x * 1.4, amt)
+
+
+def chip_kick(deep=1.0):
+    d = 0.5 * deep; n = nsamp(d); t = np.arange(n) / SR
+    f = 40 + 170 * np.exp(-t / 0.02) + 50 * np.exp(-t / 0.09)
+    x = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / (0.2 * deep))
+    k = nsamp(0.006); x[:k] += psg_noise(0.006, 22000, 0.003) * 0.5
+    return drive(x * 1.7, 2.6)
+
+
+def chip_snare():
+    d = 0.28; n = nsamp(d); t = np.arange(n) / SR
+    body = np.sin(2 * np.pi * np.cumsum(190 + 70 * np.exp(-t / 0.01)) / SR) * np.exp(-t / 0.05)
+    nz = psg_noise(d, 15000, 0.09) + 0.6 * bp(R.standard_normal(n), 1800, 9000) * np.exp(-t / 0.08)
+    return drive(body * 0.8 + nz, 2.2)
+
+
+def chip_hat(open_=False):
+    return hp(psg_noise(0.16 if open_ else 0.05, 22050, 0.06 if open_ else 0.012), 5000)
+
+
+def deep_stab(root=24, d=1.8, cluster=(0, 1, 6, 12, 13), vel=1.0):
+    """the cartridge's horror chord: a detuned low FM-brass cluster (minor seconds and a tritone), distorted,
+    over a sub drop. Exactly d seconds long."""
+    n = nsamp(d); x = np.zeros(n)
+    for iv in cluster:
+        place(x, fm_brass(root + iv, d * 0.55, 1.0, R.uniform(-18, 18), grit=1.1), 0.0)
+    x = lp(drive(x / (np.abs(x).max() + 1e-9) * 2.2, 3.0, 0.2), 3200)
+    x = x * np.exp(-np.arange(n) / SR / (d * 0.5))
+    return (x * 0.8 + boom(d, 120, 27) * 0.9) * vel
+
+
+# (midi | None, eighths): an original, bouncy title-screen tune in C major, 8 bars
+JINGLE = [(72, 1), (76, 1), (79, 1), (84, 2), (83, 1), (81, 1), (79, 1),
+          (77, 2), (76, 1), (74, 1), (76, 4),
+          (69, 1), (72, 1), (76, 1), (81, 2), (79, 1), (77, 1), (76, 1),
+          (74, 2), (72, 1), (71, 1), (72, 4),
+          (72, 1), (76, 1), (79, 1), (84, 2), (86, 1), (84, 1), (83, 1),
+          (81, 2), (79, 2), (77, 1), (79, 1), (81, 2),
+          (79, 2), (77, 1), (76, 1), (74, 2), (71, 1), (74, 1),
+          (72, 4), (67, 2), (72, 2)]
+JINGLE_CH = [(36, (60, 64, 67)), (41, (65, 69, 72)), (45, (69, 72, 76)), (43, (67, 71, 74)),
+             (36, (60, 64, 67)), (41, (65, 69, 72)), (43, (67, 71, 74)), (36, (60, 64, 67))]
+
+
+def minor(m):
+    """the same tune in C harmonic minor: E -> Eb, A -> Ab; B stays, so the leading tone still pulls"""
+    return m - 1 if m % 12 in (4, 9) else m
+
+
+def mel_events(mel, e8, at=0.0, tr=0, key=None, wrong=(), drop=(), gate=0.92):
+    ev = []; pos = at
+    for i, (m, n8) in enumerate(mel):
+        if m is not None and i not in drop:
+            ev.append((pos, n8 * e8 * gate, (key(m) if key else m) + tr - (1 if i in wrong else 0)))
+        pos += n8 * e8
+    return ev
+
+
+def play(buf, events, inst, vel=1.0, cents=0.0, detune=0.0, wrap=False, **kw):
+    """render (time, length, midi) events with an instrument; identical notes are rendered once"""
+    memo = {}
+    for at, d, m in events:
+        if detune:
+            x = inst(m, d, 1.0, cents + R.normal(0, detune), **kw)
+        else:
+            key = (m, round(d, 3))
+            if key not in memo:
+                memo[key] = inst(m, d, 1.0, cents, **kw)
+            x = memo[key]
+        (wplace if wrap else place)(buf, x * vel, at)
+    return buf
+
+
+def cartridge(bpm=150, key=None, tr=0, wrong=(), drop=(), lead=fm_bell, parts=('lead', 'ep', 'bass', 'arp', 'drums'), detune=0.0):
+    """the tune as the chip would have played it: dry, one-shot (8 bars + tail), through the DAC"""
+    beat = 60 / bpm; e8 = beat / 2; bar = 4 * beat
+    L = nsamp(8 * bar + 2.5); out = np.zeros(L)
+    k = key or (lambda m: m)
+    if 'lead' in parts:
+        out += at_rms(play(np.zeros(L), mel_events(JINGLE, e8, tr=tr, key=key, wrong=wrong, drop=drop), lead, detune=detune), -16)
+    if 'ep' in parts:   # doubled an octave down on e-piano
+        out += at_rms(play(np.zeros(L), mel_events(JINGLE, e8, tr=tr - 12, key=key, wrong=wrong, drop=drop), fm_ep, detune=detune), -22)
+    bass, arp, dr = [], [], np.zeros(L)
+    K, S, H = chip_kick(0.7), chip_snare(), chip_hat()
+    for b in range(8):
+        r, tri = JINGLE_CH[b]; b0 = b * bar
+        bass += [(b0 + i * e8, e8 * 0.85, k(r + iv) + tr) for i, iv in enumerate((0, 12, 7, 12, 0, 12, 7, 12))]
+        arp += [(b0 + i * beat / 4, beat / 4 * 0.9, k(tri[(0, 1, 2, 1)[i % 4]] + 12) + tr) for i in range(16)]
+        for s in (0, 6, 8):
+            place(dr, K, b0 + s * beat / 4)
+        for s in (4, 12):
+            place(dr, S, b0 + s * beat / 4)
+        for s in range(0, 16, 2):
+            place(dr, H * 0.6, b0 + s * beat / 4)
+    if 'bass' in parts:
+        out += at_rms(play(np.zeros(L), bass, fm_slap), -19)
+    if 'arp' in parts:
+        out += at_rms(play(np.zeros(L), arp, psg_sq), -27)
+    if 'drums' in parts:
+        out += at_rms(dr, -21)
+    return dac(out)
+
+
+def slowed(x, rate=0.6, sag=0.0, wowd=0.006, drift=0.004):
+    """the tape runs slow: pitch and tempo drop together; wow, drift, and an optional sag towards the end"""
+    n = int(len(x) / rate); t = np.arange(n) / SR; d = n / SR
+    r = rate * (1 - sag * (t / d) ** 2) * (1 + wowd * np.sin(2 * np.pi * 0.37 * t) + drift * snoise(n, 0.3))
+    return varispeed(x, r)
+
+
+def crushed(x, rate=6000, bits=5):
+    pk = np.abs(x).max() + 1e-9
+    return crush(x / pk, rate, bits) * pk
+
+
+def static_mask(L, hits):
+    """static bursts that cut everything else off: returns (static, duck mask) for a loop"""
     stat = np.zeros(L); mask = np.zeros(L)
-    for bb, bt, dur in ((3, 2.5, 0.22), (7, 3.5, 0.35), (10, 1.5, 0.18), (14, 3.0, 0.45)):
-        at = bb * bar + bt * beat
+    for at, dur in hits:
         wplace(stat, static_burst(dur) * np.hanning(nsamp(dur)) ** 0.1, at)
         wplace(mask, np.ones(nsamp(dur)), at)
     mask = np.convolve(np.concatenate([mask[-64:], mask, mask[:64]]), np.ones(129) / 129, 'same')[64:64 + L]
-    mix = mix * (1 - 0.85 * mask) + at_rms(stat, -17) * 1.0
-    return master_music(mix)
+    return stat, mask
+
+
+def presence_music():
+    """It is near. The cartridge tune slowed to 60% and dropped in pitch, warped and sagging: once almost as it
+    was, once in a minor key with wrong and missing notes until the tape stops, then a crushed run backwards.
+    A 40 Hz pulse every two slow beats, a sub drone, a deep stab at each turn, hiss and static. 53.3 s, seamless."""
+    bpm = 150; rate = 0.6; pulse = 2 * 60 / bpm / rate
+    L = nsamp(40 * pulse); d = L / SR; t = np.arange(L) / SR
+    tune = np.zeros(L)
+    A = slowed(cartridge(bpm, parts=('lead', 'ep', 'bass', 'arp'), detune=10), rate, wowd=0.008, drift=0.004)
+    wplace(tune, A, 0.0)
+    B = slowed(cartridge(bpm, key=minor, wrong=(5, 13, 22, 30), drop=(9, 26), parts=('lead', 'ep', 'bass'), detune=24), rate, sag=0.1, wowd=0.012)
+    B = tape_stop(B, 16.6, 2.6)[:nsamp(19.4)]
+    wplace(tune, B, 16 * pulse)
+    rv = crushed(A[:nsamp(4 * 8 * 0.2 / rate)][::-1], 5000, 6)
+    rv = rv * np.linspace(0.2, 1, len(rv)) ** 1.5
+    wplace(tune, lp(rv, 2600), 32 * pulse + 0.15)
+    tune = clp(tune, 5200)
+    beats = np.zeros(L)
+    p = boom(0.9, 75, 38, 0.025, 1.4)
+    for k in range(40):
+        wplace(beats, p * (1.0 if k % 2 == 0 else 0.7), k * pulse)
+    stabs = np.zeros(L)
+    for k, at in enumerate((0.0, 16 * pulse, 32 * pulse)):
+        wplace(stabs, deep_stab(24 + (k % 2), 3.2), at)
+    fw = lambda f: round(f * d) / d
+    dr = (np.sin(2 * np.pi * fw(32.7) * t) * 0.8 + np.sin(2 * np.pi * fw(34.65) * t + 1) * 0.5 + np.sin(2 * np.pi * fw(49.0) * t + 2) * 0.35)
+    dr = drive(dr * (0.65 + 0.35 * np.sin(2 * np.pi * fw(1 / 13.3) * t)), 1.6)
+    stat, mask = static_mask(L, [(16 * pulse - 0.45, 0.45), (16 * pulse + 19.2, 0.7), (d - 0.3, 0.3)])
+    mix = at_rms(tune, -14) + at_rms(beats, -16) + at_rms(dr, -20) + at_rms(stabs, -15)
+    mix = creverb(mix, 0.32, 2.8, 2000)
+    mix = wow(mix, depth=0.0012, rate=0.2, wrap=True)
+    mix = mix * (1 - 0.9 * mask) + at_rms(stat, -15)
+    mix = mix + at_rms(cbp(R.standard_normal(L), 2000, 9000), -42) + at_rms(crackle(L, 6, 0.25), -36)
+    return master_music(mix, -8.5, sat=True)
+
+
+def close_music():
+    """It is close. 100 bpm: a 40 Hz heartbeat on every beat, the slap bass grinding a chromatic ostinato, the
+    tune in minor, slowed 20% and bit-crushed, a deep stab every two bars, a PSG tritone alarm, and static that
+    cuts it all off. 16 bars = 38.4 s, seamless."""
+    beat = 0.6; e8 = beat / 2; bar = 4 * beat; L = nsamp(16 * bar); t = np.arange(L) / SR
+    heart = np.zeros(L)
+    lub, dub = boom(0.45, 85, 40, 0.02, 2.0), boom(0.4, 70, 36, 0.02, 2.0) * 0.7
+    for k in range(64):
+        wplace(heart, lub, k * beat); wplace(heart, dub, k * beat + 0.19)
+    roots = (36, 36, 32, 31)
+    bev = []
+    for b in range(16):
+        r = roots[(b // 2) % 4]
+        bev += [(b * bar + i * e8, e8 * 0.8, r + iv) for i, iv in enumerate((0, 12, 0, 11, 0, 12, 1, 13))]
+    bass = drive(play(np.zeros(L), bev, fm_slap, wrap=True) * 0.8, 2.2)
+    tune = np.zeros(L)
+    c = slowed(cartridge(125, key=minor, wrong=(3, 17, 29), parts=('lead', 'ep')), 0.8, wowd=0.01, drift=0.006)
+    wplace(tune, crushed(c, 6000, 5), 4 * bar)
+    rv = crushed(c[:nsamp(4 * bar)][::-1], 3500, 4)
+    wplace(tune, rv * 0.6, 12 * bar)
+    stabs = np.zeros(L)
+    for k, b in enumerate(range(0, 16, 2)):
+        wplace(stabs, deep_stab(24 + (k % 3 == 2), 2.2), b * bar)
+    alarm = np.zeros(L)
+    aev = [(8 * bar + i * beat / 4, beat / 4 * 0.85, (84, 90)[i % 2]) for i in range(8 * 16)]
+    play(alarm, aev, psg_sq, wrap=True, duty=0.5)
+    alarm = alarm * (0.6 + 0.4 * np.sin(2 * np.pi * 7 * t) ** 2)
+    hats = np.zeros(L); H = chip_hat()
+    for k in range(64 * 2):
+        wplace(hats, H * (0.8 if k % 2 else 0.4), k * e8)
+    mix = (at_rms(heart, -13) + at_rms(bass, -17) + at_rms(tune, -16) + at_rms(stabs, -15) + at_rms(alarm, -29)
+           + at_rms(hats, -30))
+    mix = creverb(mix, 0.25, 1.8, 2400)
+    mix = stutter(mix, 7.75 * bar, e8 / 4, 6, crush_rate=4000)
+    mix = stutter(mix, 15.5 * bar, e8 / 3, 6, 0.9, crush_rate=3000)
+    stat, mask = static_mask(L, [(3 * bar + 2.5 * beat, 0.22), (7 * bar + 3.5 * beat, 0.35), (10 * bar + 1.5 * beat, 0.18), (14 * bar + 3 * beat, 0.45)])
+    mix = mix * (1 - 0.88 * mask) + at_rms(stat, -14)
+    return master_music(mix, -6.5, sat=True)
 
 
 def standoff_music():
-    """It is staring at you. A glass whine detuning against itself, a sub throb, the music box slowing down and
-    stopping, glitch stutters, and two near-silences. 40 s, seamless."""
+    """It is staring at you. A glass whine detuning against itself, a 40 Hz pulse that speeds up as it runs out
+    of patience, the tune on a music box at 45% speed tape-stopping, glitches, a near-silence, then something
+    moves: a deep stab. 40 s, seamless."""
     L = nsamp(40.0); d = L / SR; t = np.arange(L) / SR
 
-    def whole(fc):   # scale a frequency curve so it runs a whole number of cycles per loop
+    def whole(fc):
         c = fc.sum() / SR
         return fc * (round(c) / c)
 
@@ -1314,104 +1506,107 @@ def standoff_music():
         return np.sin(2 * np.pi * np.cumsum(whole(fc)) / SR + ph)
     cents = ramp(t, [(0, 0), (29.4, -48), (30.6, 0), (d, 0)])
     amp = ramp(t, [(0, 0.45), (4, 0.75), (29.2, 1.0), (29.6, 0.0), (33.5, 0.0), (37, 0.3), (d, 0.45)])
-    shimmer = 1 + 0.07 * np.sin(2 * np.pi * round(5.1 * d) / d * t)
-    whine = (osc(np.full(L, 1975.5)) + 0.9 * osc(1975.5 * 2 ** (cents / 1200), 1.0) + 0.25 * osc(np.full(L, 987.8 * 2 ** (7 / 1200)), 2.0)) * amp * shimmer
-    fw = lambda f: round(f * d) / d
-    throb = (np.sin(2 * np.pi * fw(36) * t) + np.sin(2 * np.pi * fw(38.5) * t + 1)) * (0.6 + 0.4 * np.sin(2 * np.pi * fw(0.45) * t))
-    throb = drive(throb * 0.7, 1.5)
-    press = clp(pink(L), 300) * ramp(t, [(0, 0.15), (13, 0.15), (28, 1.0), (29.6, 0.15), (d, 0.15)])
+    whine = (osc(np.full(L, 1975.5)) + 0.9 * osc(1975.5 * 2 ** (cents / 1200), 1.0) + 0.25 * osc(np.full(L, 987.8 * 2 ** (7 / 1200)), 2.0)) * amp
+    pulses = np.zeros(L); p = boom(0.6, 70, 36, 0.02, 2.0)
+    at = 0.0; k = 0
+    while at < 29.2:
+        wplace(pulses, p * (0.7 + 0.3 * min(1, at / 29)), at)
+        at += 1.25 - 0.9 * (at / 29.2) ** 1.4; k += 1
+    for at in (34.8, 36.3, 37.7, 39.0):
+        wplace(pulses, p * 0.6, at)
     box = np.zeros(L)
-    f1 = tape_stop(box_phrase(0.95, notes=LULLABY[:9], bass=False, cents=-25), 5.6, 3.6)
-    place(box, wow(f1, depth=0.006, rate=0.4, drift=0.003), 1.4)
-    f2 = tape_stop(box_phrase(1.05, notes=LULLABY[9:15], bass=False, cents=-40), 1.9, 2.4)
-    place(box, wow(f2, depth=0.008, rate=0.5, drift=0.003), 18.0)
-    place(box, tine(95, 3.0, 0.35, 40), 36.2)
-    mix = at_rms(whine, -27) + at_rms(throb, -22) + at_rms(press, -30) + at_rms(box, -18)
-    mix = stutter(mix, 7.1, 0.055, 4)                               # the box skips
+    a = slowed(cartridge(150, parts=('lead',)), 0.45, wowd=0.01, drift=0.004)
+    place(box, tape_stop(a, 9.6, 3.4)[:nsamp(13.2)], 0.6)
+    b = slowed(cartridge(150, key=minor, wrong=(2, 9), parts=('lead', 'ep')), 0.42)
+    b = b[nsamp(5.0):nsamp(15.0)][::-1]
+    place(box, b * np.linspace(0.3, 1, len(b)), 16.5)
+    mix = at_rms(whine, -27) + at_rms(pulses, -15) + at_rms(box, -16)
+    mix = stutter(mix, 7.1, 0.055, 4)
     mix = stutter(mix, 24.0, 0.035, 6, crush_rate=4000)
-    mix = stutter(mix, 29.0, 0.022, 12, 0.93, crush_rate=3000)       # it breaks up right before the silence
+    mix = stutter(mix, 29.0, 0.022, 12, 0.93, crush_rate=3000)
     mix = creverb(mix, 0.3, 2.6, 2200)
-    duck = ramp(t, [(0, 1), (10.75, 1), (10.85, 0.03), (12.7, 0.03), (13.2, 1), (29.55, 1), (29.62, 0.006), (33.4, 0.006), (34.8, 1), (d, 1)])
+    duck = ramp(t, [(0, 1), (29.55, 1), (29.62, 0.006), (33.38, 0.006), (33.4, 1), (d, 1)])
     mix = mix * duck
-    click = np.zeros(L)
-    wplace(click, damped(1300, 0.004, 0.05) + 0.4 * damped(420, 0.01, 0.05), 31.9)   # in the silence: something moved
-    wplace(click, damped(1150, 0.004, 0.05) * 0.8, 32.06)
-    mix = mix + click * 0.02 + at_rms(cbp(R.standard_normal(L), 1500, 8000), -54)
-    return master_music(mix)
+    st = np.zeros(L); wplace(st, deep_stab(23, 4.0), 33.4)
+    wplace(st, static_burst(0.25) * 0.3, 33.4)
+    mix = mix + at_rms(st, -12) * (t >= 33.39) + at_rms(cbp(R.standard_normal(L), 1500, 8000), -50)
+    return master_music(mix, -9.0, sat=True)
 
 
-def ck_kick():
-    d = 0.35; n = nsamp(d); t = np.arange(n) / SR
-    f = 42 + 140 * np.exp(-t / 0.018) + 40 * np.exp(-t / 0.08)
-    x = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.16)
-    k = nsamp(0.004); x[:k] += hp(R.standard_normal(k), 2000) * 0.4
-    return lp(drive(x * 1.8, 3.0), 8000)
-
-
-def ck_snare():
-    d = 0.3; n = nsamp(d); t = np.arange(n) / SR
-    body = np.sin(2 * np.pi * np.cumsum(185 + 60 * np.exp(-t / 0.01)) / SR) * np.exp(-t / 0.06)
-    nz = bp(R.standard_normal(n), 1500, 9000) * np.exp(-t / 0.11)
-    metal = sum(np.sin(2 * np.pi * f * t + R.random() * 6) for f in (523, 812, 1157, 1693, 2433, 3511)) * np.exp(-t / 0.09) * 0.35
-    return drive(body * 0.8 + nz + metal, 2.5)
-
-
-def ck_hat():
-    d = 0.06; n = nsamp(d); t = np.arange(n) / SR
-    x = hp(R.standard_normal(n), 6500) * np.exp(-t / 0.015) + np.sin(2 * np.pi * 7600 * t) * np.exp(-t / 0.01) * 0.3
-    return crush(x / np.abs(x).max(), 16000, 6)
-
-
-def ck_clang():
-    d = 0.6; n = nsamp(d); t = np.arange(n) / SR
-    x = sum(np.sin(2 * np.pi * 310 * r * t + R.random() * 6) * np.exp(-t / (0.4 / r ** 0.5)) for r in (1, 1.47, 2.09, 2.56, 3.14, 3.92, 4.6))
-    x += hp(R.standard_normal(n), 1000) * np.exp(-t / 0.02) * 2
-    return drive(x / np.abs(x).max() * 1.5, 2.0)
-
-
-# the chase motif (original): chromatic neighbours and tritone leaps; (midi | None, eighths, bend semitones)
-LEAD1 = [(71, 2), (72, 2), (71, 1), (70, 1), (67, 2),
-         (76, 4), (77, 1), (76, 1), (75, 2),
-         (71, 2), (72, 2), (75, 1), (76, 1), (79, 2),
-         (78, 6, -1), (None, 2)]
-LEAD2 = [(76, 2), (77, 2), (76, 1), (75, 1), (72, 2),
-         (81, 4), (82, 1), (81, 1), (80, 2),
-         (76, 1), (77, 1), (80, 1), (81, 1), (82, 2), (83, 2),
-         (84, 4), (83, 2, -12), (None, 2)]
-BASS_PAT = [[28] * 6 + [29, 28] + [28] * 4 + [34, 33, 28, 28],
-            [28] * 6 + [29, 28] + [31, 31, 30, 30, 29, 29, 28, 27],
-            [28] * 6 + [29, 28] + [28] * 4 + [34, 35, 34, 28],
-            [28] * 4 + [27] * 4 + [26] * 4 + [25, 25, 26, 27]]
-
-
-def lead_phrase(notes, e8, tr=0):
-    """screaming detuned lead: scooped attacks, glides, delayed vibrato, bends; 3 detuned saws + sub + octave,
-    vowel-ish formants, hard distortion"""
-    total = sum(nt[1] for nt in notes) * e8 + 0.3
-    n = nsamp(total); semi = np.full(n, np.nan); gate = np.zeros(n)
-    pos = 0.0; prev = None
-    for nt in notes:
-        m, n8 = nt[0], nt[1]; bend = nt[2] if len(nt) > 2 else 0
-        i0, i1 = nsamp(pos), nsamp(pos + n8 * e8)
-        if m is not None:
-            tt = np.arange(i1 - i0) / SR; dur = (i1 - i0) / SR
-            start = prev if prev is not None else m + tr - 1.0
-            cv = m + tr + (start - (m + tr)) * np.exp(-tt / 0.022)
-            if bend:
-                cv = cv + bend * np.clip((tt - 0.35 * dur) / (0.65 * dur), 0, 1) ** 2
-            cv = cv + 0.25 * np.clip((tt - 0.15) / 0.2, 0, 1) * np.sin(2 * np.pi * 6.3 * tt)
-            semi[i0:i1] = cv; gate[i0:i1] = 1; prev = cv[-1]
-        else:
-            prev = None
-        pos += n8 * e8
-    idx = np.where(~np.isnan(semi), np.arange(n), 0); idx = np.maximum.accumulate(idx)
-    semi = semi[idx]; semi[np.isnan(semi)] = notes[0][0] + tr
-    k = nsamp(0.012); gate = np.convolve(gate, np.hanning(k) / np.hanning(k).sum(), 'same')
-    hz = 440 * 2 ** ((semi - 69) / 12) * (1 + 0.004 * snoise(n, 8))
-    x = (saw(hz * 2 ** (-17 / 1200)) + saw(hz * 2 ** (4 / 1200)) + saw(hz * 2 ** (21 / 1200)) + 0.45 * saw(hz / 2) + 0.2 * saw(hz * 2))
-    x = spec_filter(x, lambda fq: peaks(fq, [(950, 500, 1.0), (2300, 600, 0.9), (3400, 700, 0.55)]) + 0.12)
-    x = drive(x / np.std(x) * 0.8, 4.5, 0.25)
-    return hp(lp(x, 7500), 220) * gate
+def chase_music():
+    """The chase you cannot win. 170 bpm, three sections:
+    A (bars 1-12): distorted chip drums, a 16th-note slap-bass grind, PSG arpeggios, brass stabs, then the
+       cheerful tune turned into a screaming minor FM lead;
+    B (13-20): it tape-stops into a half-time breakdown: deep stabs on every bar, the tune slowed and backwards
+       underneath, crushed to 4 bits, a scream;
+    C (21-32): a semitone higher and double-time, the lead an octave up, a falling scream of a note, a snare roll
+       and a stutter back to the top. 32 bars = 45.2 s, seamless."""
+    bpm = 170; beat = 60 / bpm; s16 = beat / 4; e8 = beat / 2; bar = 4 * beat; nb = 32
+    L = nsamp(nb * bar); t = np.arange(L) / SR
+    drums = np.zeros(L); bev = []; aev = []; lead = np.zeros(L); stabs = np.zeros(L); fx = np.zeros(L)
+    K, Kd, S, H, HO = chip_kick(1.0), chip_kick(1.6), chip_snare(), chip_hat(), chip_hat(True)
+    roots = (36, 36, 32, 31)
+    BASS16 = (0, 0, 12, 0, 0, 12, 0, 11, 0, 0, 12, 0, 13, 12, 1, 0)
+    for b in range(nb):
+        b0 = b * bar; sec = 'A' if b < 12 else 'B' if b < 20 else 'C'
+        tr = 1 if sec == 'C' else 0
+        r = roots[(b // 2) % 4] + tr
+        tri = [minor(n) + tr for n in ((60, 64, 67), (60, 64, 67), (68, 72, 75), (67, 71, 74))[(b // 2) % 4]]
+        if sec == 'B':
+            for s in (0, 10):
+                wplace(drums, Kd, b0 + s * s16)
+            wplace(drums, S, b0 + 8 * s16)
+            for s in range(0, 16, 2):
+                wplace(drums, H * 0.5, b0 + s * s16)
+            bev.append((b0, 2 * beat * 0.95, r - 12)); bev.append((b0 + 2.5 * beat, 1.4 * beat, r - 12 + (1 if b % 2 else 0)))
+            wplace(stabs, deep_stab(24 + (b % 2), 1.4), b0)
+            continue
+        kicks = (0, 2, 4, 6, 8, 10, 12, 14) if sec == 'C' else (0, 3, 6, 8, 10, 11, 14)
+        for s in kicks:
+            wplace(drums, K * (1.0 if s % 8 == 0 else 0.85), b0 + s * s16)
+        for s in (4, 12):
+            wplace(drums, S, b0 + s * s16)
+        for s in range(16):
+            wplace(drums, (HO if s % 4 == 2 else H) * (0.6 if s % 2 == 0 else 0.35), b0 + s * s16)
+        if b % 4 == 3 or b >= 28:   # fills, and a building roll at the end
+            n_ = 4 if b < 28 else 4 + 4 * (b - 28)
+            for s in range(16 - min(n_, 16), 16):
+                wplace(drums, S * (0.4 + 0.035 * s), b0 + s * s16)
+        bev += [(b0 + i * s16, s16 * 0.8, r + iv) for i, iv in enumerate(BASS16)]
+        aev += [(b0 + i * s16, s16 * 0.9, tri[(0, 1, 2, 1)[i % 4]] + 24) for i in range(16)]
+        if b < 4 or 28 <= b:     # brass stabs on the off-beats before the lead comes in / at the end
+            for s in (0, 3, 6, 10, 13):
+                wplace(stabs, play(np.zeros(nsamp(0.4)), [(0, s16 * 1.6, n + 12) for n in tri], fm_brass) * (1.2 if s == 0 else 0.9), b0 + s * s16)
+    play(lead, mel_events(JINGLE, e8, at=4 * bar, key=minor, tr=-12), fm_brass, wrap=True)
+    play(lead, mel_events(JINGLE, e8, at=20 * bar, key=minor, tr=1), fm_brass, wrap=True, grit=1.0)
+    bell = play(np.zeros(L), mel_events(JINGLE, e8, at=20 * bar, key=minor, tr=13), fm_bell, wrap=True)
+    wplace(lead, fm_brass(85, 3.6 * bar, 1.0, 0.0, bend=-13, grit=1.2) * 1.2, 28 * bar)
+    lead = drive(lead * 0.8, 2.6, 0.2)
+    bass = drive(play(np.zeros(L), bev, fm_slap, wrap=True) * 0.8, 2.5)
+    arp = play(np.zeros(L), aev, psg_sq, wrap=True)
+    arp[nsamp(12 * bar):nsamp(20 * bar)] = 0
+    # B: the tune slowed to half speed and backwards under the breakdown, crushed
+    sl = slowed(cartridge(bpm, key=minor, parts=('lead', 'ep', 'bass')), 0.5, wowd=0.01)
+    sl = crushed(sl[:nsamp(8 * bar)][::-1], 4000, 4) * np.linspace(0.4, 1, nsamp(8 * bar))
+    wplace(fx, at_rms(lp(sl, 3000), -21), 12 * bar)
+    # screams: a deep one on the breakdown, a reversed one sucking into C
+    sc, _ = _scream(1.3, 0.62)
+    sc = drive(sc / np.abs(sc).max(), 3.0)
+    deep = varispeed(sc, np.full(int(len(sc) / 0.7), 0.7))
+    wplace(fx, at_rms(deep, -17), 12 * bar + 0.05)
+    rs = rev_swell(sc, 1.4, rt=1.4)
+    wplace(fx, at_rms(rs, -17), 20 * bar - len(rs) / SR)
+    rise = drive(shepard(L, 27.5, 8) * 0.8, 1.6) * (0.5 + 0.5 * (t > 20 * bar))
+    mix = (at_rms(drums, -14) + at_rms(bass, -16) + at_rms(arp, -26) + at_rms(lead, -15) + at_rms(bell, -26)
+           + at_rms(stabs, -15) + at_rms(rise, -27) + fx)
+    i0, i1 = nsamp(12 * bar), nsamp(20 * bar)
+    mix = tape_region(mix, 12 * bar - 2 * beat, 2 * beat)
+    pk = np.abs(mix[i0:i1]).max()
+    mix[i0:i1] = crush(mix[i0:i1] / pk, 7000, 6) * pk
+    mix = stutter(mix, 20 * bar - beat, s16 / 2, 8)
+    mix = stutter(mix, nb * bar - beat, s16 / 3, 12, 0.95, crush_rate=5000)
+    mix = creverb(mix, 0.16, 1.0, 4000)
+    return master_music(drive(mix / np.abs(mix).max() * 1.5, 1.3), -4.5, ceil_db=-1.0, sat=True)
 
 
 def tape_region(x, at, length):
@@ -1421,107 +1616,181 @@ def tape_region(x, at, length):
     return x
 
 
-def chase_music():
-    """The chase you cannot win: 175 bpm, distorted drums, a chugging chromatic bass, a screaming detuned lead,
-    an endless Shepard riser, tape-stops, stutters and a bit-crushed breakdown. 24 bars = 32.9 s, seamless."""
-    bpm = 175; beat = 60 / bpm; s16 = beat / 4; bar = 4 * beat; nb = 24
-    L = nsamp(nb * bar); d = L / SR; t = np.arange(L) / SR
-    drums = np.zeros(L); bass = np.zeros(L); lead = np.zeros(L); fx = np.zeros(L)
-    K, S, H, C = ck_kick(), ck_snare(), ck_hat(), ck_clang()
-    notes = {}
-    for b in range(nb):
-        b0 = b * bar; brk = 12 <= b < 16; fill = b % 4 == 3
-        kicks = [0, 8] if brk else [0, 3, 6, 8, 11, 14] + ([13, 15] if fill else [])
-        for s in kicks:
-            wplace(drums, K * (1.0 if s in (0, 8) else 0.85), b0 + s * s16)
-        for s in ([8] if brk else [4, 12]):
-            wplace(drums, S * 0.9, b0 + s * s16)
-        if b in (11, 23):    # snare roll into the next section, 32nds at the very end
-            for s in range(8, 16):
-                wplace(drums, S * (0.35 + 0.05 * s), b0 + s * s16)
-            for s in range(12):
-                wplace(drums, S * (0.5 + 0.04 * s), b0 + 3 * beat + s * s16 / 3)
-        for s in range(16):
-            if brk and s % 2:
-                continue
-            wplace(drums, H * (0.55 if s % 4 == 2 else 0.3), b0 + s * s16)
-        if not brk and b % 4 == 0:
-            wplace(drums, C, b0)
-        if not brk and b % 2 == 1:
-            wplace(drums, C * 0.5, b0 + 10 * s16)
-        pat = BASS_PAT[b % 4]
-        for s in range(16):
-            if brk and s % 4:
-                continue
-            m = pat[s] if not brk else 28
-            dur = s16 * (0.9 if not brk else 3.8)
-            key = (m, round(dur, 4))
-            if key not in notes:
-                nn = nsamp(dur); f = float(midi(m)); tt = np.arange(nn) / SR
-                x = saw(np.full(nn, f)) + 0.7 * saw(np.full(nn, f * 1.006)) + 0.4 * saw(np.full(nn, f * 2.003))
-                e = np.minimum(1, tt / 0.002) * np.exp(-tt / (0.09 if not brk else 0.4)); e[-nsamp(0.004):] *= np.linspace(1, 0, nsamp(0.004))
-                notes[key] = x * e
-            wplace(bass, notes[key], b0 + s * s16)
-    bass = clp(drive(clp(bass, 1100) * 0.6, 3.5), 4000)
-    e8 = beat / 2
-    for at, ph, tr in ((4, LEAD1, 0), (8, LEAD2, 0), (16, LEAD1, 1), (20, LEAD2, 1)):
-        wplace(lead, lead_phrase(ph, e8, tr), at * bar)
-    # endless riser + string cluster tremolo over the second half
-    rise = drive(shepard(L, 27.5, 8) * 0.8, 1.6)
-    m = nsamp(8 * bar); tm = np.arange(m) / SR
-    st = sum(bowed(np.full(m, float(midi(mm))), pont=0.8, depth=0.004) for mm in (76, 77, 82, 83))
-    st = st * (0.5 + 0.5 * np.abs(np.sin(2 * np.pi * (1 / (2 * s16)) * tm))) * ramp(tm, [(0, 0.2), (8 * bar - 0.02, 1.0), (8 * bar, 0)])
-    wplace(fx, at_rms(st, -20), 16 * bar)
-    # screams: a reversed one sucking into bar 17, a bit-crushed one on the breakdown
-    sc, _ = _scream(1.3, 0.62)
-    sc = drive(sc / np.abs(sc).max(), 3.0)
-    rs = rev_swell(sc, 1.4, rt=1.4)
-    wplace(fx, at_rms(rs, -18), 16 * bar - len(rs) / SR)
-    wplace(fx, at_rms(crush(sc * np.minimum(1, np.arange(len(sc)) / 400), 6000, 4), -19), 12 * bar)
-    mix = at_rms(drums, -17) + at_rms(bass, -19) + at_rms(lead, -19) + at_rms(rise, -27) + fx
-    mix = tape_region(mix, 12 * bar - 2 * beat, 2 * beat)                     # tape-stop into the breakdown
-    i0, i1 = nsamp(12 * bar), nsamp(16 * bar)
-    pk = np.abs(mix[i0:i1]).max()
-    mix[i0:i1] = crush(mix[i0:i1] / pk, 7000, 6) * pk                         # bit-crushed breakdown
-    mix = stutter(mix, 16 * bar - beat, s16 / 2, 8)                            # buffer-repeat fill into bar 17
-    mix = stutter(mix, 20 * bar - beat / 2, s16 / 3, 6, crush_rate=5000)
-    mix = creverb(mix, 0.18, 1.0, 4000)
-    return master_music(drive(mix / np.abs(mix).max() * 1.6, 1.3))
-
-
 def hollows_music():
-    """Biome music for the Hollows (~2 min): wind in the shafts, a far piano, a low beating drone, a distant
-    choir, the lullaby from very far away winding down, a reversed swell into a low cluster, a metal groan."""
-    d = 120.0; n = nsamp(d); t = np.arange(n) / SR
+    """Biome music for the Hollows (~110 s, not looped): wind in the shafts, a 40 Hz pulse far down, the cartridge
+    tune from somewhere very far away at half speed, a deep stab, then the tune again in minor, backwards, until the
+    tape stops; a whisper, and static at the end."""
+    d = 110.0; n = nsamp(d); t = np.arange(n) / SR
     wind = stft_shape(pink(n), lambda f, tt: peaks(f, [(170 + 40 * math.sin(tt * 0.21) + 15 * math.sin(tt * 0.53), 26, 1.0),
                                                         (390 + 50 * math.sin(tt * 0.17 + 1), 40, 0.4)]) + 0.02, 4096, 1024)
     wind *= np.clip(0.5 + 0.3 * np.sin(2 * np.pi * t / 23 + 1) + 0.2 * np.sin(2 * np.pi * t / 9.7), 0.05, None) ** 1.3
-    drone = (np.sin(2 * np.pi * 55 * t) + 0.8 * np.sin(2 * np.pi * 58.27 * t + 1) + 0.3 * np.sin(2 * np.pi * 82.4 * t))
-    drone = drive(drone * ramp(t, [(0, 0), (6, 1), (40, 0.7), (60, 0.3), (82, 1), (106, 0.8), (d, 0)]) * 0.6, 1.5)
-    pno = np.zeros(n)
-    for at, m, vel in ((8, 76, .6), (8, 45, .4), (10.5, 72, .5), (12.2, 71, .5), (15.5, 77, .55), (15.5, 46, .4), (17.5, 76, .45),
-                       (19.2, 69, .5), (22.5, 68, .55), (22.5, 40, .45), (25, 64, .45), (28.5, 41, .4), (29, 74, .4), (31, 70, .45),
-                       (33.5, 69, .35), (82, 57, .5), (84.5, 58, .45), (87, 52, .5), (98, 64, .3), (101, 63, .3), (104, 57, .35), (112, 88, .25)):
-        place(pno, piano(m, 6.0, vel, cents=R.normal(0, 6)), at + R.normal(0, 0.03))
-    cl = sum(piano(m, 7.0, 0.7) for m in (33, 34, 40))
-    place(pno, rev_swell(cl, 3.5, rt=3.5), 94 - 3.5)
-    place(pno, cl * 0.8, 94)
-    ch = choir([57, 60, 63], 22.0, 'u', voices=3, spread=24) * np.sin(np.pi * np.arange(nsamp(22.0)) / nsamp(22.0)) ** 2
-    chl = np.zeros(n); place(chl, wow(lp(ch, 1600), depth=0.006, rate=0.22), 40)
-    bx = box_phrase(1.15, notes=LULLABY[:12], bass=True, transpose=-2, cents=-45)
-    bx = wow(tape_stop(bx, 12.0, 3.0), depth=0.009, rate=0.35, drift=0.004)
-    box = np.zeros(n); place(box, hp(lp(bx, 2200), 250), 61)
-    tg = np.arange(nsamp(12.0)) / SR
-    mg = sum(np.sin(2 * np.pi * np.cumsum(73 * r * ramp(tg, [(0, 1.0), (12, 0.93)])) / SR + R.random() * 6) * a
-             for r, a in [(1, 1.0), (2.31, 0.6), (3.89, 0.4), (5.12, 0.25), (7.03, 0.15)])
-    met = np.zeros(n); place(met, lp(mg * np.sin(np.pi * tg / 12) ** 2, 1400), 88)
-    whs = np.zeros(n); place(whs, lp(whisper_phrase(2.6, 4.6, 0.7), 4000), 114)
-    mix = (at_rms(wind, -29) + at_rms(drone, -28) + at_rms(pno, -19) + at_rms(chl, -27) + at_rms(box, -24)
-           + at_rms(met, -29) + at_rms(whs, -36))
+    beats = np.zeros(n); p = boom(0.9, 70, 36, 0.03, 1.5)
+    for at in np.arange(4.0, d - 4, 1.6):
+        place(beats, p * (0.5 + 0.5 * math.sin(math.pi * at / d) ** 2), at)
+    tune = np.zeros(n)
+    a = slowed(cartridge(150, parts=('lead', 'ep', 'bass')), 0.5, wowd=0.01, drift=0.005)
+    place(tune, a, 10.0)
+    b = slowed(cartridge(150, key=minor, wrong=(4, 12, 25), parts=('lead', 'ep')), 0.42, sag=0.08)
+    b = tape_stop(b[::-1][nsamp(2.0):], 26.0, 3.5)[:nsamp(29.5)]
+    place(tune, b, 62.0)
+    tune = lp(tune, 1700)
+    st = np.zeros(n); place(st, lp(deep_stab(24, 5.0), 900), 50.0)
+    whs = np.zeros(n); place(whs, lp(whisper_phrase(2.6, 4.6, 0.7), 4000), 95.0)
+    stat = np.zeros(n); place(stat, static_burst(1.2) * np.hanning(nsamp(1.2)), d - 6.0)
+    mix = (at_rms(wind, -26) + at_rms(beats, -20) + at_rms(tune, -16) + at_rms(st, -18) + at_rms(whs, -32) + at_rms(stat, -24))
     mix = reverb(mix, 0.45, 4.5, bright=2000)[:n]
-    mix = mix + at_rms(cbp(R.standard_normal(n), 1800, 9000), -50) + at_rms(crackle(n, 4, 0.15), -44)
+    mix = mix + at_rms(cbp(R.standard_normal(n), 1800, 9000), -46) + at_rms(crackle(n, 4, 0.15), -40)
     mix = mix * np.minimum(1, t / 4.0) * np.clip((d - t) / 6.0, 0, 1)
-    return master_music(mix, wrap=False)
+    return master_music(mix, -10.5, wrap=False, sat=True)
+
+
+# ----------------------------------------------------------------------------- 3.1: deep creature sounds
+def _slow(x, r):
+    return varispeed(x, np.full(int(len(x) / r), r))
+
+
+def roar(v, cut=None):
+    """deep: the dry roar slowed to 62% (8 semitones down, half as long again), the original roar riding on top
+    for the edge, a sub that follows its envelope, chest distortion and a long cave tail"""
+    dry, _ = roar_dry(v)
+    sl = _slow(dry, 0.62); n = len(sl); ts = np.arange(n) / SR
+    T0 = 0.26 / 0.62
+    edge = np.zeros(n); place(edge, dry, T0 - 0.26)
+    env = lp(np.abs(sl), 12); env = np.clip(env / (env.max() + 1e-9), 0, 1)
+    sub = np.sin(2 * np.pi * np.cumsum(ramp(ts, [(0, 44), (T0, 48), (2.2, 40), (ts[-1], 30)])) / SR) * env
+    x = sl / rms(sl) + edge / rms(edge) * 0.32 + sub / rms(sub) * 0.55
+    x = drive(x * 0.4, 2.2, 0.15) * 0.85 + fold(x * 0.1, 1.3) * 0.15
+    if cut:
+        k = nsamp(cut / 0.62); x = x[:k].copy(); f = nsamp(0.006); x[-f:] *= np.linspace(1, 0, f)
+        y = reverb(x, 0.14, 0.7, bright=2200)[:k + nsamp(0.12)]
+        return fade(master_fx(y, -5.5, sat=True), 0.002, 0.04)
+    y = reverb(x, 0.3, 2.3, bright=2400)[:n + nsamp(0.7)]
+    return fade(master_fx(y, -5.5, sat=True), 0.002, 0.45)
+
+
+def screech(v):
+    """the rage scream, with a body: the scream slowed to 72% under itself, and a sub punch on the onset"""
+    hi = screech_hi(v)
+    sl = _slow(hi, 0.72); n = len(sl)
+    top = np.zeros(n); place(top, hi, 0.0)
+    x = sl / rms(sl) + top / rms(top) * 0.55
+    x = drive(x * 0.45, 1.8) + boom(n / SR, 95, 30, 0.04)[:n] * 0.5
+    return fade(master_fx(x, -6.5, sat=True), 0.002, 0.12)
+
+
+def jumpscare(v):
+    """deep and instant: a sub drop to 24 Hz, the roar's peak slowed to a bellow, a low FM-brass cluster stab,
+    the shriek on top for the edge, TV static. Full level from the first millisecond."""
+    d = 1.6; n = nsamp(d); t = np.arange(n) / SR
+    dry, _ = roar_dry(v)
+    pk = ROAR_V[v % 3]['peak']
+    bel = varispeed(dry[nsamp(max(0.3, pk - 0.45)):], np.full(n, 0.66))
+    hi = np.zeros(n); place(hi, jumpscare_hi(v), 0.0)
+    st = deep_stab(24 + v % 2, d)
+    core = bel / rms(bel) + hi / rms(hi) * 0.5 + st / rms(st) * 0.6
+    x = drive(core * 0.45, 3.0, 0.2) * ramp(t, [(0, 1), (0.6, 0.85), (d, 0)]) ** 1.3
+    x = x + boom(d, 150, 24, 0.05, 2.2) * 1.1 + static_burst(d, 6000.0) * ramp(t, [(0, 0.8), (0.2, 0.4), (0.7, 0.1), (d, 0.02)]) * 0.6
+    x *= np.minimum(1, t / 0.001)
+    return fade(master_fx(x, -4.5, sat=True), 0.0005, 0.08)
+
+
+def sting_reveal(v):
+    """the moment you spot it: the old swell-and-slam, with a deep detuned brass cluster and a sub drop under the
+    slam"""
+    hi = sting_reveal_hi(v); hit = (0.8, 0.62)[v % 2]
+    x = hi / rms(hi)
+    st = deep_stab(24 + v % 2, len(hi) / SR - hit)
+    place(x, st / rms(st) * 1.1, hit)
+    return fade(master_fx(x, -7.0, sat=True), 0.005, 0.25)
+
+
+def rush(v):
+    """it charges: the air tearing, heavy footfalls coming faster and closer, a roar swelling up out of it"""
+    d = 1.8; n = nsamp(d); t = np.arange(n) / SR
+    wh = stft_shape(R.standard_normal(n), lambda f, tt: peaks(f, [(250 + 2400 * min(1, tt / 1.5) ** 1.5, 500 + 900 * min(1, tt / 1.5), 1.0)]) + 0.01, 1024, 256)
+    wh *= ramp(t, [(0, 0), (1.3, 1), (d, 0.5)])
+    steps = np.zeros(n)
+    for k, at in enumerate((0.04, 0.4, 0.68, 0.9, 1.08, 1.22, 1.34, 1.44, 1.52, 1.6)):
+        g = 0.4 + 0.6 * k / 9
+        place(steps, (boom(0.3, 130, 42, 0.015, 2.0) + lp(R.standard_normal(nsamp(0.3)), 900) * np.exp(-np.arange(nsamp(0.3)) / SR / 0.02) * 0.6) * g, at)
+    dry, _ = roar_dry(v)
+    gr = _slow(dry[nsamp(0.5):], 0.6)[:n]
+    gr = np.concatenate([gr, np.zeros(n - len(gr))]) * ramp(t, [(0, 0), (0.9, 0.5), (1.6, 1), (d, 1)])
+    x = wh / rms(wh) * 0.5 + steps / rms(steps) * 0.9 + gr / (rms(gr) + 1e-9) * 0.8
+    x = drive(x * 0.4, 2.0)
+    return fade(master_fx(reverb(x, 0.18, 1.0, 2500)[:n + nsamp(0.3)], -6.5, sat=True), 0.003, 0.2)
+
+
+def flesh_pulse(v):
+    """the walls beat: a deep wet lub-dub, tissue squelching with it, a few bubbles"""
+    d = 1.2; n = nsamp(d); t = np.arange(n) / SR
+    x = np.zeros(n)
+    for at, g in ((0.02, 1.0), (0.3, 0.7)):
+        place(x, boom(0.45, 70, 34, 0.02, 1.6) * g, at)
+        sq = stft_shape(R.standard_normal(nsamp(0.4)), lambda f, tt: peaks(f, [(320 + 900 * tt, 260, 1.0), (1100 + 600 * tt, 400, 0.4)]) + 0.005, 512, 128)
+        sq *= np.exp(-np.arange(nsamp(0.4)) / SR / 0.1) * (1 + 0.6 * np.sin(2 * np.pi * 31 * np.arange(nsamp(0.4)) / SR))
+        place(x, sq / (np.abs(sq).max() + 1e-9) * 0.35 * g, at + 0.01)
+    for _ in range(4 + v):
+        m = nsamp(R.uniform(0.01, 0.03)); tt = np.arange(m) / SR
+        b = np.sin(2 * np.pi * np.cumsum(R.uniform(250, 700) * (1 + tt / tt[-1])) / SR) * np.exp(-tt / (m / SR / 3))
+        place(x, b * R.uniform(0.1, 0.25), R.uniform(0.1, d - 0.05))
+    y = reverb(x, 0.25, 1.2, bright=1500)[:n]
+    return fade(master_fx(y, -12.0), 0.003, 0.1)
+
+
+def pod_open(v):
+    """a watcher pod peels open: sticky tearing that speeds up, a wet slurp, a strained creak, then the lid pops
+    and something wet turns to look at you"""
+    d = 1.7; n = nsamp(d); t = np.arange(n) / SR; x = np.zeros(n)
+    for _ in range(160):
+        at = 0.95 * R.random() ** 0.55; m = nsamp(R.uniform(0.001, 0.005))
+        place(x, R.standard_normal(m) * np.hanning(m) * R.uniform(0.2, 1.0), at)
+    x = bp(x, 900, 5500) * 0.7
+    sl = stft_shape(R.standard_normal(n), lambda f, tt: peaks(f, [(350 + 900 * min(1, tt / 1.0), 220, 1.0), (1500 + 500 * min(1, tt), 400, 0.35)]) + 0.004, 1024, 256)
+    x += sl / (np.abs(sl).max() + 1e-9) * bell(t, 0.6, 0.25) * 0.5
+    hz = ramp(t, [(0, 55), (1.0, 80), (d, 60)]) * (1 + 0.04 * snoise(n, 12))
+    cr = lp(fm_op(hz, 1.0, 1.8, 1.3), 1400) * ramp(t, [(0, 0), (0.25, 0.3), (0.95, 0.8), (1.0, 0), (d, 0)])
+    x += cr * 0.45
+    k = nsamp(0.3); tk = np.arange(k) / SR
+    pop = damped(310, 0.03, 0.3) + lp(R.standard_normal(k), 2200) * np.exp(-tk / 0.01) * 0.6
+    place(x, pop * 0.9, 1.0)
+    place(x, boom(0.5, 60, 32, 0.02, 1.4) * 0.6, 1.0)
+    sq = stft_shape(R.standard_normal(nsamp(0.5)), lambda f, tt: peaks(f, [(600 - 400 * tt, 200, 1.0)]) + 0.005, 512, 128) * np.exp(-np.arange(nsamp(0.5)) / SR / 0.15)
+    place(x, sq / (np.abs(sq).max() + 1e-9) * 0.35, 1.08)
+    y = reverb(x, 0.25, 1.4, bright=2000)[:n + nsamp(0.3)]
+    return fade(master_fx(y, -11.0), 0.003, 0.15)
+
+
+def drip(v):
+    """one drop of blood falling into a pool, and the cave giving it back"""
+    f0 = (1150, 1380, 920)[v % 3]; k = nsamp(0.08); tk = np.arange(k) / SR
+    pl = np.sin(2 * np.pi * np.cumsum(f0 * (1 + 0.9 * np.minimum(1, tk / 0.025))) / SR) * np.exp(-tk / 0.018) * np.minimum(1, tk / 0.0008)
+    pl[:nsamp(0.003)] += R.standard_normal(nsamp(0.003)) * 0.3
+    x = np.zeros(nsamp(1.4)); place(x, pl, 0.01)
+    y = reverb(x, 0.45, 1.6, bright=2600)[:nsamp(1.4)]
+    return fade(master_fx(y, -18.0), 0.001, 0.3)
+
+
+def organ_break(v):
+    """an organ core bursts: a wet rupture and crunch, a deep thud, fluid hissing out, and somewhere in the dark it
+    screams back"""
+    d = 2.8; n = nsamp(d); t = np.arange(n) / SR; x = np.zeros(n)
+    k = nsamp(0.9); tk = np.arange(k) / SR
+    rup = bp(R.standard_normal(k), 150, 3200) * np.exp(-tk / 0.22) * (1 + 0.7 * np.sin(2 * np.pi * 23 * tk))
+    place(x, rup, 0.0)
+    for _ in range(45):
+        m = nsamp(R.uniform(0.002, 0.008))
+        place(x, hp(R.standard_normal(m), 1200) * np.hanning(m) * R.uniform(0.3, 1.2), R.exponential(0.08))
+    place(x, boom(1.0, 95, 28, 0.04, 2.0) * 1.2, 0.0)
+    hs = hp(R.standard_normal(nsamp(1.2)), 2200) * np.exp(-np.arange(nsamp(1.2)) / SR / 0.35) * 0.25
+    place(x, hs, 0.12)
+    for _ in range(10):
+        m = nsamp(R.uniform(0.01, 0.03)); tt = np.arange(m) / SR
+        place(x, np.sin(2 * np.pi * np.cumsum(R.uniform(200, 600) * (1 + tt / tt[-1])) / SR) * np.exp(-tt / (m / SR / 3)) * 0.3, R.uniform(0.1, 1.2))
+    sc = screech_hi(v)
+    sc = reverb(lp(sc, 2600), 0.7, 3.0, bright=1200)
+    place(x, sc / (np.abs(sc).max() + 1e-9) * 0.5, 1.0)
+    return fade(master_fx(x, -7.5, sat=True), 0.002, 0.3)
 
 
 # ----------------------------------------------------------------------------- export
@@ -1530,9 +1799,9 @@ SOUNDS = {
     'shaftbreaker.step': (step, 4, 'hostile', {'volume': 0.9, 'min_distance': 2, 'max_distance': 28}),
     'shaftbreaker.scrape': (scrape, 3, 'hostile', {'volume': 0.8, 'max_distance': 32}),
     'shaftbreaker.smash': (smash, 3, 'hostile', {'volume': 1.0, 'max_distance': 48}),
-    'shaftbreaker.screech': (screech, 3, 'hostile', {'volume': 1.0, 'max_distance': 64}),
-    'shaftbreaker.roar': (roar, 3, 'hostile', {'volume': 1.0, 'max_distance': 72}),
-    'shaftbreaker.roar_cut': (lambda v: roar(v, cut=0.92 + 0.08 * v), 2, 'hostile', {'volume': 1.0, 'max_distance': 64}),
+    'shaftbreaker.screech': (screech, 3, 'hostile', {'volume': 1.0, 'max_distance': 64, 'q': 6}),
+    'shaftbreaker.roar': (roar, 3, 'hostile', {'volume': 1.0, 'max_distance': 72, 'q': 6}),
+    'shaftbreaker.roar_cut': (lambda v: roar(v, cut=0.92 + 0.08 * v), 2, 'hostile', {'volume': 1.0, 'max_distance': 64, 'q': 6}),
     'shaftbreaker.swing': (swing, 3, 'hostile', {'volume': 0.7, 'max_distance': 16}),
     'shaftbreaker.growl': (growl, 3, 'hostile', {'volume': 0.85, 'max_distance': 28}),
     'shaftbreaker.collapse': (collapse, 1, 'hostile', {'volume': 1.0, 'max_distance': 48}),
@@ -1556,21 +1825,27 @@ SOUNDS = {
     'shaftbreaker.trophy_hum': (trophy_hum, 1, 'player', {'volume': 0.25}),
     'shaftbreaker.dial': (dial, 1, 'ui', {'volume': 0.6}),
     'shaftbreaker.moth_flutter': (flutter, 2, 'neutral', {'volume': 0.35, 'max_distance': 10}),
-    'music.shaftbreaker.chase': (lambda v: chase_music(), 1, 'music', {'volume': 0.8, 'stream': True}),
-    'music.shaftbreaker.presence': (lambda v: presence_music(), 1, 'music', {'volume': 0.8, 'stream': True}),
-    'music.shaftbreaker.close': (lambda v: close_music(), 1, 'music', {'volume': 0.8, 'stream': True}),
+    'music.shaftbreaker.chase': (lambda v: chase_music(), 1, 'music', {'volume': 1.0, 'stream': True, 'q': 6}),
+    'music.shaftbreaker.presence': (lambda v: presence_music(), 1, 'music', {'volume': 1.0, 'stream': True, 'q': 6}),
+    'music.shaftbreaker.close': (lambda v: close_music(), 1, 'music', {'volume': 1.0, 'stream': True, 'q': 6}),
     'shaftbreaker.step_soft': (step_soft, 4, 'hostile', {'volume': 0.85, 'min_distance': 2, 'max_distance': 30}),
-    'music.shaftbreaker.standoff': (lambda v: standoff_music(), 1, 'music', {'volume': 0.8, 'stream': True}),
+    'music.shaftbreaker.standoff': (lambda v: standoff_music(), 1, 'music', {'volume': 1.0, 'stream': True, 'q': 6}),
     # v3 horror pass
-    'shaftbreaker.jumpscare': (jumpscare, 2, 'player', {'volume': 1.0}),
-    'shaftbreaker.sting_reveal': (sting_reveal, 2, 'player', {'volume': 0.9}),
+    'shaftbreaker.jumpscare': (jumpscare, 2, 'player', {'volume': 1.0, 'q': 6}),
+    'shaftbreaker.sting_reveal': (sting_reveal, 2, 'player', {'volume': 0.9, 'q': 6}),
     'shaftbreaker.static': (static_fx, 3, 'player', {'volume': 0.7}),
     'shaftbreaker.whisper': (whisper, 6, 'hostile', {'volume': 0.75, 'max_distance': 12}),
     'shaftbreaker.distant_scream': (distant_scream, 2, 'ambient', {'volume': 0.9, 'max_distance': 128}),
     'shaftbreaker.ambient.hollows.loop': (hollows_loop, 1, 'ambient', {'volume': 0.7, 'stream': True, 'is3D': False}),
     'shaftbreaker.ambient.hollows.mood': (hollows_mood, 2, 'ambient', {'volume': 0.75}),
     'shaftbreaker.ambient.hollows.additions': (hollows_addition, 5, 'ambient', {'volume': 0.55, 'is3D': False}),
-    'music.shaftbreaker.hollows': (lambda v: hollows_music(), 1, 'music', {'volume': 0.65, 'stream': True}),
+    'music.shaftbreaker.hollows': (lambda v: hollows_music(), 1, 'music', {'volume': 0.85, 'stream': True, 'q': 6}),
+    # 3.1: its home
+    'shaftbreaker.rush': (rush, 2, 'hostile', {'volume': 1.0, 'max_distance': 56, 'q': 6}),
+    'shaftbreaker.flesh_pulse': (flesh_pulse, 3, 'ambient', {'volume': 0.75, 'max_distance': 16}),
+    'shaftbreaker.pod_open': (pod_open, 2, 'hostile', {'volume': 0.9, 'max_distance': 22}),
+    'shaftbreaker.drip': (drip, 3, 'ambient', {'volume': 0.55, 'max_distance': 12}),
+    'shaftbreaker.organ_break': (organ_break, 2, 'hostile', {'volume': 1.0, 'max_distance': 72, 'q': 6}),
 }
 
 # a pack's music_definitions.json replaces the vanilla table, so the vanilla entries are carried over unchanged

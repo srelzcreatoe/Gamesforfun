@@ -259,6 +259,112 @@ def claw_rock(variant):
     return s.save(f'claw_rock_{variant + 1}'), 0
 
 
+# =============================================================== the infected caves (its home)
+INF = lambda n: f'{NS}:{n}'
+
+
+def rib_arch(variant):
+    """a tunnel of rib arches: three ribs of ribstone, the crown of one broken, roots hanging from them"""
+    w_, h_ = 9 + variant * 2, 7 + variant
+    s = Structure(w_, h_ + 1, 6)
+    cx = (w_ - 1) / 2
+    for zi, z in enumerate([0, 2, 4]):
+        broken = (variant + zi) % 3 == 1
+        for x in range(w_):
+            t = (x - cx) / (cx + 0.5)
+            y = int(round((1 - t * t) ** 0.5 * (h_ - 1)))
+            if broken and abs(x - cx) < 1.2:
+                continue
+            for yy in range(max(0, y - (1 if abs(t) > 0.8 else 0)), y + 1):
+                if R.random() > 0.18:
+                    s.set(x, yy, z, INF('ribstone'))
+                else:
+                    s.set(x, yy, z, 'bone_block', deprecated=0, pillar_axis='y' if abs(t) > 0.6 else 'x')
+            if abs(t) < 0.55 and R.random() < 0.45 and y - 1 >= 1:          # roots hang from the crown
+                s.set(x, y - 1, z, INF('bloodroot_vines'), **{f'{NS}:tip': False})
+                if y - 2 >= 1:
+                    s.set(x, y - 2, z, INF('bloodroot_vines'), **{f'{NS}:tip': True})
+    for x in range(w_):
+        for z in range(6):
+            if R.random() < 0.3 and not s.get(x, 0, z):
+                s.set(x, 0, z, INF('bloodmoss'))
+    return s.save(f'rib_arch_{variant + 1}'), 1
+
+
+def skeleton(variant):
+    """the remains of something that came looking for it"""
+    s = Structure(6, 3, 4)
+    for x in range(1, 5):                                            # ribs
+        s.set(x, 1, 1, 'bone_block', deprecated=0, pillar_axis='y')
+        if x % 2:
+            s.set(x, 1, 2, 'bone_block', deprecated=0, pillar_axis='y')
+        else:
+            s.set(x, 0, 2, INF('ribstone'))
+    s.set(0, 0, 1, 'bone_block', deprecated=0, pillar_axis='x')        # spine
+    s.set(5, 0, 1, 'bone_block', deprecated=0, pillar_axis='x')
+    for x in range(0, 6):
+        if R.random() < 0.55 and not s.get(x, 0, 0):
+            s.set(x, 0, 0, INF('bloodmoss'))
+        if R.random() < 0.4 and not s.get(x, 0, 3):
+            s.set(x, 0, 3, INF('bloodmoss'))
+    if variant:
+        s.set(5, 1, 2, INF('organ_core'))
+    return s.save(f'skeleton_{variant + 1}'), 1
+
+
+def mine_support(variant):
+    """an old mine frame the infection has taken over"""
+    s = Structure(5, 5, 3)
+    for x in (0, 4):
+        for y in range(1, 4):
+            log(s, x, y, 1, 'y', LOG_DARK)
+    for x in range(0, 5):
+        log(s, x, 4, 1, 'x', LOG_DARK)
+    for x in (1, 2, 3):
+        if R.random() < 0.7:
+            s.set(x, 3, 1, INF('bloodroot_vines'), **{f'{NS}:tip': False})
+            if R.random() < 0.7:
+                s.set(x, 2, 1, INF('bloodroot_vines'), **{f'{NS}:tip': True})
+    for x in range(5):
+        for z in range(3):
+            if R.random() < 0.45:
+                s.set(x, 0, z, INF('bloodmoss'))
+    if variant:
+        s.set(2, 0, 1, 'bone_block', deprecated=0, pillar_axis='z')
+    return s.save(f'mine_support_{variant + 1}'), 1
+
+
+def organ_mound():
+    """a heap of living flesh with organ cores pushing out of it"""
+    s = Structure(6, 4, 6)
+    for x in range(6):
+        for z in range(6):
+            d = ((x - 2.5) ** 2 + (z - 2.5) ** 2) ** 0.5
+            h = 2 if d < 1.6 else 1 if d < 2.8 else 0
+            for y in range(h):
+                s.set(x, y, z, INF('pulsing_flesh') if R.random() < 0.3 else INF('fleshstone'))
+            if h == 0 and d < 3.4 and R.random() < 0.6:
+                s.set(x, 0, z, INF('bloodmoss'))
+    s.set(2, 2, 2, INF('cracked_organ_core'))
+    s.set(3, 2, 3, INF('organ_core'))
+    s.set(1, 1, 4, INF('organ_core'))
+    s.set(4, 1, 1, INF('crimson_thorns'))
+    return s.save('organ_mound'), 1
+
+
+def watcher_nest():
+    """three pods on a bed of flesh: they open when you come close, and it knows"""
+    s = Structure(5, 2, 5)
+    for x in range(5):
+        for z in range(5):
+            if (x - 2) ** 2 + (z - 2) ** 2 <= 5:
+                s.set(x, 0, z, INF('fleshstone') if R.random() < 0.6 else INF('veinstone'))
+    for (x, z) in [(1, 1), (3, 2), (1, 3)]:
+        s.set(x, 1, z, INF('watcher_pod'), **{f'{NS}:open': False})
+    s.set(3, 1, 4, INF('glowspore_cluster'))
+    return s.save('watcher_nest'), 1
+
+
 # =============================================================== blocks + textures
 def _tile(base, var, seed, size=16):
     r = np.random.default_rng(seed)
@@ -338,7 +444,7 @@ def biome():
                     'amount': 0.7, 'noise_frequency_scale': 0.25}]},
                 'minecraft:surface_builder': {'builder': {
                     'type': 'minecraft:overworld', 'sea_floor_depth': 5,
-                    'sea_floor_material': 'minecraft:gravel', 'foundation_material': 'minecraft:stone',
+                    'sea_floor_material': 'minecraft:gravel', 'foundation_material': f'{NS}:veinstone',
                     'mid_material': f'{NS}:hollow_soil', 'top_material': f'{NS}:hollow_dust', 'sea_material': 'minecraft:water'}},
                 'minecraft:surface_material_adjustments': {'adjustments': [
                     {'materials': {'top_material': 'minecraft:gravel'}, 'noise_frequency_scale': 0.08, 'noise_range': [-0.1, 0.12]},
@@ -355,7 +461,7 @@ def biome():
             'description': {'identifier': BIOME},
             'components': {
                 'minecraft:fog_appearance': {'fog_identifier': f'{NS}:fog_hollows'},
-                'minecraft:water_appearance': {'surface_color': '#1c1a17', 'surface_opacity': 0.95},
+                'minecraft:water_appearance': {'surface_color': '#4a0707', 'surface_opacity': 0.97},   # its pools are blood
                 'minecraft:water_identifier': {'water_identifier': 'minecraft:default_water'},
                 'minecraft:ambient_sounds': {
                     'loop': 'shaftbreaker.ambient.hollows.loop',
@@ -365,9 +471,9 @@ def biome():
                     'underwater_addition': {'asset': 'ambient.underwater.additions', 'chance': 0.01},
                 },
                 'minecraft:biome_music': {'music_definition': 'shaftbreaker_hollows', 'volume_multiplier': 1.0},
-                'minecraft:sky_color': {'sky_color': '#2a2522'},
-                'minecraft:grass_appearance': {'color': '#4a4136'},
-                'minecraft:foliage_appearance': {'color': '#2e2a24'},
+                'minecraft:sky_color': {'sky_color': '#2a1a1a'},
+                'minecraft:grass_appearance': {'color': '#4a3530'},
+                'minecraft:foliage_appearance': {'color': '#2e2020'},
                 'minecraft:precipitation': {'ash': 0.05},
             },
         },
@@ -382,7 +488,7 @@ def fog(ident, start, end, color, weather_end=None, density=0.1):
             'distance': {
                 'air': {'fog_start': start, 'fog_end': end, 'fog_color': color, 'render_distance_type': 'fixed'},
                 'weather': {'fog_start': 0, 'fog_end': weather_end or end * 0.8, 'fog_color': color, 'render_distance_type': 'fixed'},
-                'water': {'fog_start': 0.0, 'fog_end': 40.0, 'fog_color': '#1c2a2c', 'render_distance_type': 'fixed'},
+                'water': {'fog_start': 0.0, 'fog_end': 14.0, 'fog_color': '#3a0505', 'render_distance_type': 'fixed'},
             },
             'volumetric': {
                 'density': {'air': {'max_density': density, 'zero_density_height': 320.0, 'max_density_height': 320.0}},
@@ -394,7 +500,8 @@ def fog(ident, start, end, color, weather_end=None, density=0.1):
 
 
 def fogs():
-    w(RP, 'fogs/hollows.json', fog('fog_hollows', 6, 56, '#3a342f', density=0.09))
+    w(RP, 'fogs/hollows.json', fog('fog_hollows', 6, 52, '#3a2a28', density=0.1))
+    w(RP, 'fogs/infected.json', fog('fog_infected', 0, 30, '#2a0909', density=0.18))   # its home, underground: red mist
     w(RP, 'fogs/near.json', fog('fog_near', 0, 24, '#100e0e', density=0.16))
     w(RP, 'fogs/rage.json', fog('fog_rage', 0, 28, '#3d0505', density=0.2))
     w(RP, 'fogs/territory.json', fog('fog_territory', 2, 38, '#1c1916', density=0.12))
@@ -536,7 +643,141 @@ def features():
     cave_feature('hl_cave_webs', 'minecraft:web', None, 'top', 12, (-56, 56))
     cave_feature('hl_cave_lantern', 'minecraft:soul_lantern', {'hanging': True}, 'top', 2, (-40, 40), chance=3)
     ore_vein('hl_clawed_stone', f'{NS}:clawed_stone', 14, 10, (-56, 72))
+    infected_features(made)
     return made
+
+
+STONES = ['minecraft:stone', 'minecraft:deepslate', 'minecraft:tuff', 'minecraft:andesite', 'minecraft:diorite', 'minecraft:granite',
+          'minecraft:calcite', 'minecraft:dripstone_block']
+INFECTED_ROCK = STONES + [INF('veinstone'), INF('fleshstone'), INF('cracked_veinstone'), INF('ribstone'), INF('pulsing_flesh')]
+
+
+def blob(fid, block, count, iterations, y_range, replace):
+    w(BP, f'features/infected/{fid}.json', {
+        'format_version': '1.13.0',
+        'minecraft:ore_feature': {'description': {'identifier': f'{NS}:{fid}'}, 'count': count,
+                                  'replace_rules': [{'places_block': block, 'may_replace': replace}]}})
+    w(BP, f'feature_rules/infected/{fid}_rule.json', {
+        'format_version': '1.21.60',
+        'minecraft:feature_rules': {
+            'description': {'identifier': f'{NS}:{fid}_rule', 'places_feature': f'{NS}:{fid}'},
+            'conditions': {'placement_pass': 'underground_pass', 'minecraft:biome_filter': [{'test': 'has_biome_tag', 'operator': '==', 'value': TAG}]},
+            'distribution': {'iterations': iterations, 'coordinate_eval_order': 'zyx',
+                             'x': {'distribution': 'uniform', 'extent': [0, 16]},
+                             'y': {'distribution': 'uniform', 'extent': list(y_range)},
+                             'z': {'distribution': 'uniform', 'extent': [0, 16]}}}})
+
+
+def growth(fid, block, states, attach, iterations, y_range, chance=None, sides=False):
+    """a single block grown onto a cave surface: floor (bottom), ceiling (top) or walls"""
+    if sides:
+        att = {'min_sides_must_attach': 1, 'north': INFECTED_ROCK, 'south': INFECTED_ROCK, 'east': INFECTED_ROCK, 'west': INFECTED_ROCK}
+    else:
+        att = {attach: INFECTED_ROCK + (['minecraft:grass_block', 'minecraft:dirt', 'minecraft:gravel', f'{NS}:hollow_dust'] if attach == 'bottom' else [])}
+    w(BP, f'features/infected/{fid}_block.json', {
+        'format_version': '1.21.40',
+        'minecraft:single_block_feature': {
+            'description': {'identifier': f'{NS}:{fid}_block'},
+            'places_block': [{'block': {'name': block, 'states': states} if states else block, 'weight': 1}],
+            'enforce_placement_rules': False, 'enforce_survivability_rules': False,
+            'may_attach_to': att, 'may_replace': ['minecraft:air']}})
+    w(BP, f'features/infected/{fid}.json', {
+        'format_version': '1.21.10',
+        'minecraft:scatter_feature': {'description': {'identifier': f'{NS}:{fid}'}, 'places_feature': f'{NS}:{fid}_block',
+                                      'distribution': {'iterations': iterations,
+                                                       'x': {'distribution': 'uniform', 'extent': [0, 16]},
+                                                       'y': {'distribution': 'uniform', 'extent': list(y_range)},
+                                                       'z': {'distribution': 'uniform', 'extent': [0, 16]}}}})
+    rd = {'iterations': 1, 'x': {'distribution': 'uniform', 'extent': [0, 1]}, 'y': 0, 'z': {'distribution': 'uniform', 'extent': [0, 1]}}
+    if chance:
+        rd['scatter_chance'] = {'numerator': 1, 'denominator': chance}
+    w(BP, f'feature_rules/infected/{fid}_rule.json', {
+        'format_version': '1.21.60',
+        'minecraft:feature_rules': {
+            'description': {'identifier': f'{NS}:{fid}_rule', 'places_feature': f'{NS}:{fid}'},
+            'conditions': {'placement_pass': 'after_underground_pass', 'minecraft:biome_filter': [{'test': 'has_biome_tag', 'operator': '==', 'value': TAG}]},
+            'distribution': rd}})
+
+
+def cave_structure(fid, sname, ground, denom, y_range=(-50, 40)):
+    """a structure dropped onto a real cave floor (snapped down from a random height)"""
+    cons = {'grounded': {}, 'block_intersection': {'block_allowlist': ['minecraft:air'] + INFECTED_ROCK + NATURAL}}
+    w(BP, f'features/infected/{fid}_tpl.json', {
+        'format_version': '1.26.30',
+        'minecraft:structure_template_feature': {
+            'description': {'identifier': f'{NS}:{fid}_tpl'},
+            'structure_name': sname, 'adjustment_radius': 3, 'facing_direction': 'random', 'rotate_around_center': True,
+            'ground_level': ground, 'constraints': cons}})
+    w(BP, f'features/infected/{fid}.json', {
+        'format_version': '1.13.0',
+        'minecraft:snap_to_surface_feature': {'description': {'identifier': f'{NS}:{fid}'}, 'feature_to_snap': f'{NS}:{fid}_tpl',
+                                              'vertical_search_range': 14, 'surface': 'floor'}})
+    w(BP, f'feature_rules/infected/{fid}_rule.json', {
+        'format_version': '1.21.60',
+        'minecraft:feature_rules': {
+            'description': {'identifier': f'{NS}:{fid}_rule', 'places_feature': f'{NS}:{fid}'},
+            'conditions': {'placement_pass': 'after_underground_pass', 'minecraft:biome_filter': [{'test': 'has_biome_tag', 'operator': '==', 'value': TAG}]},
+            'distribution': {'iterations': 1, 'x': {'distribution': 'uniform', 'extent': [0, 16]},
+                             'y': {'distribution': 'uniform', 'extent': list(y_range)},
+                             'z': {'distribution': 'uniform', 'extent': [0, 16]},
+                             'scatter_chance': {'numerator': 1, 'denominator': denom}}}})
+
+
+def infected_features(made):
+    # the walls: most rock turns to veinstone, with flesh, glowing cracks, living flesh and rib seams
+    blob('inf_veinstone', INF('veinstone'), 64, 26, (-62, 72), STONES)
+    blob('inf_fleshstone', INF('fleshstone'), 30, 8, (-62, 56), STONES + [INF('veinstone')])
+    blob('inf_cracked', INF('cracked_veinstone'), 10, 12, (-62, 60), STONES + [INF('veinstone')])
+    blob('inf_pulsing', INF('pulsing_flesh'), 8, 5, (-62, 40), [INF('fleshstone'), INF('veinstone')] + STONES)
+    blob('inf_ribseam', INF('ribstone'), 9, 3, (-62, 50), STONES + [INF('veinstone')])
+    # organ chambers: flesh-lined pockets with organ cores and watcher pods budding inside
+    w(BP, 'features/infected/inf_organ_chamber.json', {
+        'format_version': '1.21.40',
+        'minecraft:geode_feature': {
+            'description': {'identifier': f'{NS}:inf_organ_chamber'},
+            'filler': 'minecraft:air', 'inner_layer': INF('fleshstone'), 'alternate_inner_layer': INF('pulsing_flesh'),
+            'middle_layer': INF('cracked_veinstone'), 'outer_layer': INF('veinstone'),
+            'inner_placements': [INF('organ_core'), INF('watcher_pod'), INF('cracked_organ_core')],
+            'min_outer_wall_distance': 4, 'max_outer_wall_distance': 6, 'min_distribution_points': 3, 'max_distribution_points': 5,
+            'min_point_offset': 1, 'max_point_offset': 3, 'max_radius': 16, 'crack_point_offset': 2.0, 'generate_crack_chance': 0.6,
+            'base_crack_size': 2.0, 'noise_multiplier': 0.05, 'use_potential_placements_chance': 0.12,
+            'use_alternate_layer0_chance': 0.25, 'placements_require_layer0_alternate': False, 'invalid_blocks_threshold': 1}})
+    w(BP, 'feature_rules/infected/inf_organ_chamber_rule.json', {
+        'format_version': '1.21.60',
+        'minecraft:feature_rules': {
+            'description': {'identifier': f'{NS}:inf_organ_chamber_rule', 'places_feature': f'{NS}:inf_organ_chamber'},
+            'conditions': {'placement_pass': 'underground_pass', 'minecraft:biome_filter': [{'test': 'has_biome_tag', 'operator': '==', 'value': TAG}]},
+            'distribution': {'iterations': 1, 'x': {'distribution': 'uniform', 'extent': [0, 16]},
+                             'y': {'distribution': 'uniform', 'extent': [-50, 20]}, 'z': {'distribution': 'uniform', 'extent': [0, 16]},
+                             'scatter_chance': {'numerator': 1, 'denominator': 5}}}})
+    # floors, walls and ceilings
+    growth('inf_bloodmoss', INF('bloodmoss'), None, 'bottom', 46, (-62, 70))
+    growth('inf_glowspore', INF('glowspore_cluster'), None, 'bottom', 7, (-62, 60))
+    growth('inf_thorns', INF('crimson_thorns'), None, 'bottom', 9, (-62, 60))
+    growth('inf_organ_floor', INF('organ_core'), None, 'bottom', 2, (-62, 50))
+    growth('inf_pod_floor', INF('watcher_pod'), {f'{NS}:open': False}, 'bottom', 3, (-62, 55))
+    growth('inf_organ_wall', INF('organ_core'), None, None, 4, (-62, 50), sides=True)
+    growth('inf_pod_wall', INF('watcher_pod'), {f'{NS}:open': False}, None, 3, (-62, 55), sides=True)
+    growth('inf_vines', INF('bloodroot_vines'), {f'{NS}:tip': False}, 'top', 34, (-62, 70))
+    growth('inf_vines_tip', INF('bloodroot_vines'), {f'{NS}:tip': True}, 'top', 20, (-62, 70))
+    growth('inf_fang', INF('dripfang'), {f'{NS}:tip': True}, 'top', 26, (-62, 70))
+    # its works: rib tunnels, remains, old mine frames taken over, organ mounds, watcher nests
+    for v in range(2):
+        sname, g = rib_arch(v)
+        cave_structure(f'inf_rib_arch_{v + 1}', sname, g, 7)
+        structure_feature(f'hl_rib_arch_{v + 1}', sname, g)
+        surface_rule(f'hl_rib_arch_{v + 1}', 16, 8)
+        sname, g = skeleton(v)
+        cave_structure(f'inf_skeleton_{v + 1}', sname, g, 5)
+        sname, g = mine_support(v)
+        cave_structure(f'inf_mine_support_{v + 1}', sname, g, 6)
+        made.append(sname)
+    sname, g = organ_mound()
+    cave_structure('inf_organ_mound', sname, g, 6)
+    sname, g = watcher_nest()
+    cave_structure('inf_watcher_nest', sname, g, 5)
+    # on the surface the infection breaks through in patches
+    surface_scatter('hl_bloodmoss', INF('bloodmoss'), 2, [f'{NS}:hollow_dust', 'minecraft:gravel', 'minecraft:coarse_dirt', f'{NS}:hollow_soil'])
 
 
 if __name__ == '__main__':

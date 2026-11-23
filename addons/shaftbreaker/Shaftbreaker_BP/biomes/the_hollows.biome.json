@@ -45,7 +45,7 @@
           "type": "minecraft:overworld",
           "sea_floor_depth": 5,
           "sea_floor_material": "minecraft:gravel",
-          "foundation_material": "minecraft:stone",
+          "foundation_material": "shaftbreaker:veinstone",
           "mid_material": "shaftbreaker:hollow_soil",
           "top_material": "shaftbreaker:hollow_dust",
           "sea_material": "minecraft:water"

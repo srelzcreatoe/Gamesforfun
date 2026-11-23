@@ -14,7 +14,7 @@ import { loadPlaced, notePlaced, noteRemoved, savePlaced, placedCount } from './
 import { isUnderground } from './world/space.js';
 import { onDenHeartBroken } from './world/den.js';
 import { SB_ID, creature, tickCreature, adopt, despawnAll, onDefeat, dropLoot } from './ai/creature.js';
-import { onPlayerHitMob, directorTick, fastTick, slowTick, onBreak, onPlace, onDoorUse, onPlayerDeath, onPlayerSpawn, onCreatureHurtByPlayer, armRetaliation, dropPlayer, forceEncounter, stopEncounter, debugLine, pstate, TEMPLATES, running } from './ai/director.js';
+import { onPlayerHitMob, directorTick, fastTick, slowTick, onBreak, onPlace, onDoorUse, onPlayerDeath, onPlayerSpawn, onCreatureHurtByPlayer, armRetaliation, dropPlayer, forceEncounter, stopEncounter, debugLine, pstate, TEMPLATES, running, infectedTick, onOrganBroken } from './ai/director.js';
 import { profile, evidence, markDirty, resetProfile } from './ai/memory.js';
 import { ws, wsDirty, wsReset } from './ai/worldstate.js';
 import { openDial, openWheel, giveWheel } from './ui.js';
@@ -41,6 +41,7 @@ function init() {
   system.runInterval(() => safe('heart', () => { for (const p of world.getAllPlayers()) tickHeart(p); }), 5);
   system.runInterval(() => safe('debug', debugTick), 10);
   system.runInterval(() => safe('scares', tickScares), 10);
+  system.runInterval(() => safe('infected', infectedTick), 20);
   // everything it opened or smashed during a chase is put back (also after a reload mid-chase)
   system.runTimeout(() => safe('restoreLoad', () => restoreBreaches({ force: true })), 100);
   system.runInterval(() => safe('restore', () => {
@@ -70,6 +71,7 @@ world.afterEvents.playerBreakBlock.subscribe((ev) => safe('break', () => {
   if (p.dimension.id !== OVERWORLD) return;
   onBreak(p, ev.block.location);
   if (id === 'shaftbreaker:den_heart') onDenHeartBroken(p, ev.block.location, (at) => armRetaliation(p, at));
+  if (id === 'shaftbreaker:organ_core' || id === 'shaftbreaker:cracked_organ_core') onOrganBroken(p, ev.block.location, id === 'shaftbreaker:cracked_organ_core');
 }));
 
 world.afterEvents.playerPlaceBlock.subscribe((ev) => safe('place', () => {

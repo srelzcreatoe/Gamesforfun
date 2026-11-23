@@ -126,7 +126,15 @@ export const DIFFICULTY = Object.freeze({
   hard: { dmg: 1.35, speed: 1.1, huntGap: 0.72, show: 0.8, stare: 0.75, snap: 1.35, scare: 1.3, chase: 32, label: 'Hard', blurb: 'It rarely just leaves. It comes faster, hits harder and loses patience quickly.' },
   nightmare: { dmg: 1.75, speed: 1.2, huntGap: 0.5, show: 0.62, stare: 0.55, snap: 1.8, scare: 1.7, chase: 40, label: 'Nightmare', blurb: 'It wants you dead. Short stares, long chases, no mercy, and it is always close.' },
 });
-export function diff() { return DIFFICULTY[cfg.difficulty] || DIFFICULTY.normal; }
+let homeBoost = false;
+/** the player it is after is in its home (the Hollows and the infected caves): it is stronger there */
+export function setHomeBoost(b) { homeBoost = !!b; }
+export function atHome() { return homeBoost; }
+export function diff() {
+  const d = DIFFICULTY[cfg.difficulty] || DIFFICULTY.normal;
+  if (!homeBoost) return d;
+  return { ...d, dmg: d.dmg * 1.2, speed: d.speed * 1.1, huntGap: d.huntGap * 0.7, show: d.show * 0.75, stare: d.stare * 0.75, snap: d.snap * 1.25, scare: d.scare * 1.3, chase: d.chase + 5 };
+}
 
 export function decayMul() {
   return cfg.memoryDecay === 'fast' ? 2.0 : cfg.memoryDecay === 'slow' ? 0.5 : 1.0;

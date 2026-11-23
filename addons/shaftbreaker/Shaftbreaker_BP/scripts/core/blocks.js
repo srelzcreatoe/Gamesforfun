@@ -16,14 +16,18 @@ export const SOFT = set(
   'resin_clump', 'pale_hanging_moss', 'seagrass', 'kelp', 'frame', 'glow_frame', 'structure_void', 'web', 'pale_moss_carpet',
 );
 
+/** its infected caves: soft growths a body passes through */
+export const INFECTED_SOFT = new Set(['shaftbreaker:bloodmoss', 'shaftbreaker:bloodroot_vines', 'shaftbreaker:crimson_thorns', 'shaftbreaker:glowspore_cluster', 'shaftbreaker:dripfang']);
+
 export const LIQUID = set('water', 'flowing_water', 'lava', 'flowing_lava');
 export const DAMAGING = set('lava', 'flowing_lava', 'magma', 'fire', 'soul_fire', 'campfire', 'soul_campfire', 'sweet_berry_bush',
-  'cactus', 'powder_snow', 'wither_rose', 'pointed_dripstone');
+  'cactus', 'powder_snow', 'wither_rose', 'pointed_dripstone', 'shaftbreaker:crimson_thorns');
 
 /** natural cave/terrain material the Breaker may move (never player builds, never ores) */
 export const NATURAL_BREAKABLE = set('stone', 'deepslate', 'tuff', 'granite', 'diorite', 'andesite', 'calcite', 'dripstone_block',
   'dirt', 'coarse_dirt', 'dirt_with_roots', 'gravel', 'clay', 'moss_block', 'web', 'infested_stone', 'infested_deepslate', 'sand', 'red_sand',
-  'shaftbreaker:clawed_stone', 'shaftbreaker:hollow_dust', 'shaftbreaker:hollow_soil');
+  'shaftbreaker:clawed_stone', 'shaftbreaker:hollow_dust', 'shaftbreaker:hollow_soil',
+  'shaftbreaker:veinstone', 'shaftbreaker:cracked_veinstone', 'shaftbreaker:fleshstone', 'shaftbreaker:ribstone');
 
 export const MINESHAFT_WOOD = set('oak_planks', 'oak_fence', 'dark_oak_planks', 'dark_oak_fence', 'web');
 
@@ -59,7 +63,7 @@ export const MEATS = set('beef', 'porkchop', 'mutton', 'chicken', 'rabbit', 'rot
 export function isAirId(id) { return AIR.has(id); }
 export function isLiquidId(id) { return LIQUID.has(id); }
 /** can a body occupy this cell? */
-export function isPassableId(id) { return AIR.has(id) || id.endsWith('#open') || SOFT.has(id) || id === 'shaftbreaker:den_dust' || id === 'shaftbreaker:den_spine' || id.endsWith('_carpet') || id.endsWith('_button') || id.endsWith('pressure_plate'); }
+export function isPassableId(id) { return AIR.has(id) || INFECTED_SOFT.has(id) || id.endsWith('#open') || SOFT.has(id) || id === 'shaftbreaker:den_dust' || id === 'shaftbreaker:den_spine' || id.endsWith('_carpet') || id.endsWith('_button') || id.endsWith('pressure_plate'); }
 /** does it block a line of sight? (glass and leaves are see-through) */
 export function blocksSight(id) {
   if (isPassableId(id) || LIQUID.has(id)) return false;

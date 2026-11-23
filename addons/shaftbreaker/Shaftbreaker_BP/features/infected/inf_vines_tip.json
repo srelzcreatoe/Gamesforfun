@@ -1,0 +1,33 @@
+{
+  "format_version": "1.21.10",
+  "minecraft:scatter_feature": {
+    "description": {
+      "identifier": "shaftbreaker:inf_vines_tip"
+    },
+    "places_feature": "shaftbreaker:inf_vines_tip_block",
+    "distribution": {
+      "iterations": 20,
+      "x": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          16
+        ]
+      },
+      "y": {
+        "distribution": "uniform",
+        "extent": [
+          -62,
+          70
+        ]
+      },
+      "z": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          16
+        ]
+      }
+    }
+  }
+}

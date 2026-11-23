@@ -1,0 +1,33 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:geode_feature": {
+    "description": {
+      "identifier": "shaftbreaker:inf_organ_chamber"
+    },
+    "filler": "minecraft:air",
+    "inner_layer": "shaftbreaker:fleshstone",
+    "alternate_inner_layer": "shaftbreaker:pulsing_flesh",
+    "middle_layer": "shaftbreaker:cracked_veinstone",
+    "outer_layer": "shaftbreaker:veinstone",
+    "inner_placements": [
+      "shaftbreaker:organ_core",
+      "shaftbreaker:watcher_pod",
+      "shaftbreaker:cracked_organ_core"
+    ],
+    "min_outer_wall_distance": 4,
+    "max_outer_wall_distance": 6,
+    "min_distribution_points": 3,
+    "max_distribution_points": 5,
+    "min_point_offset": 1,
+    "max_point_offset": 3,
+    "max_radius": 16,
+    "crack_point_offset": 2.0,
+    "generate_crack_chance": 0.6,
+    "base_crack_size": 2.0,
+    "noise_multiplier": 0.05,
+    "use_potential_placements_chance": 0.12,
+    "use_alternate_layer0_chance": 0.25,
+    "placements_require_layer0_alternate": false,
+    "invalid_blocks_threshold": 1
+  }
+}

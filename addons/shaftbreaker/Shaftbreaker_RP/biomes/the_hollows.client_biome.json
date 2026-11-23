@@ -9,8 +9,8 @@
         "fog_identifier": "shaftbreaker:fog_hollows"
       },
       "minecraft:water_appearance": {
-        "surface_color": "#1c1a17",
-        "surface_opacity": 0.95
+        "surface_color": "#4a0707",
+        "surface_opacity": 0.97
       },
       "minecraft:water_identifier": {
         "water_identifier": "minecraft:default_water"
@@ -33,13 +33,13 @@
         "volume_multiplier": 1.0
       },
       "minecraft:sky_color": {
-        "sky_color": "#2a2522"
+        "sky_color": "#2a1a1a"
       },
       "minecraft:grass_appearance": {
-        "color": "#4a4136"
+        "color": "#4a3530"
       },
       "minecraft:foliage_appearance": {
-        "color": "#2e2a24"
+        "color": "#2e2020"
       },
       "minecraft:precipitation": {
         "ash": 0.05

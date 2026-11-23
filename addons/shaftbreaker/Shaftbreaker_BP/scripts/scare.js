@@ -12,7 +12,7 @@ import { playFor, playAt } from './audio.js';
 import { lineOfSight, lightAt, BlockCache } from './world/space.js';
 import { unlockNote } from './notes.js';
 
-export const FOG = Object.freeze({ near: 'shaftbreaker:fog_near', rage: 'shaftbreaker:fog_rage', territory: 'shaftbreaker:fog_territory' });
+export const FOG = Object.freeze({ near: 'shaftbreaker:fog_near', rage: 'shaftbreaker:fog_rage', territory: 'shaftbreaker:fog_territory', infected: 'shaftbreaker:fog_infected' });
 
 /** @type {Map<string, {fogs:Set<string>, lastScare:number, lastWhisper:number, lastMind:number, eyes:any, lastEyes:number, mindIdx:number}>} */
 const st = new Map();
@@ -219,8 +219,9 @@ export function tickScares() {
 
 // ------------------------------------------------------------------ territory fog
 /** fog thickens near its dens (underground) */
-export function territoryFog(p, near) {
+export function territoryFog(p, near, infected = false) {
   if (near) pushFog(p, FOG.territory, 'sb_territory'); else dropFog(p, 'sb_territory');
+  if (infected) pushFog(p, FOG.infected, 'sb_infected'); else dropFog(p, 'sb_infected');   // its home: red mist underground
 }
 
 export { playAt };
