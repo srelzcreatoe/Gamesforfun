@@ -3453,9 +3453,9 @@
 },
 "left_arm": {
 "rotation": [
--35.62,
-18.71,
--34.68
+-21.0,
+27.5,
+-42.0
 ]
 },
 "left_ear": {
@@ -3595,16 +3595,16 @@
 },
 "left_forearm": {
 "rotation": [
--94.43,
+-105.0,
 0.0,
 0.0
 ]
 },
 "left_hand": {
 "rotation": [
--0.01,
 0.0,
--0.03
+0.0,
+0.0
 ]
 },
 "left_leg": {
@@ -6781,7 +6781,7 @@
 "loop": false
 }
 },
-"key": "c8d207afef647bd8528b999197809907a2be0696"
+"key": "75a9b28f86f01211bdde5e196fe6e42eb8d9cd11"
 },
 "mirehop": {
 "anims": {
