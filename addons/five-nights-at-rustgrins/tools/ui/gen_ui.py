@@ -22,7 +22,8 @@ data = json.loads(subprocess.check_output(['node', '--input-type=module', '-e', 
 const root = process.argv[1];
 const L = await import(root + '/packs/BP/scripts/data/layout.js');
 const C = await import(root + '/packs/BP/scripts/data/cameras.js');
-console.log(JSON.stringify({ rooms: L.ROOMS, ducts: L.DUCTS, office: L.OFFICE, cams: C.CAMERAS }));
+const P = await import(root + '/packs/BP/scripts/data/cellar_plan.js');
+console.log(JSON.stringify({ rooms: L.ROOMS, ducts: L.DUCTS, office: L.OFFICE, cams: C.CAMERAS, stairs: P.CELLAR_PLAN.stairs }));
 ''', ROOT]).decode())
 
 # ---------------------------------------------------------------- map geometry
@@ -39,8 +40,13 @@ CAM_POS = {               # camera box centres (blocks) on the map
     '1A': (38.5, 5.5), '1B': (50, 25), '1C': (9, 33), '2A': (30, 44), '2B': (28, 64), '3': (20, 49),
     '4A': (44, 44), '4B': (45, 64), '5': (7, 7), '6': (72, 7.5), '7': (73, 20), '8': (7, 21),
     '9': (31, 54), '10': (41, 54),
-    '11': (60, 67),     # the cellar (data/cellar.js): shown where its stairs go down, in Parts & Service
+    '11': (73.75, 67.5),  # the cellar (data/cellar.js): in its inset, beside the stairs that go down from Parts & Service
 }
+# The cellar is not on this floor: it is drawn as an inset in Parts & Service, where its stairs go down
+# (a dashed amber frame, a darker ground, steps and an arrow down, the word CELLAR), with CAM 11 inside it.
+CELLAR_INSET = (57.6, 64.25, 78.75, 70.75)   # x1, z1, x2, z2 in blocks
+CELLAR_LINE = (214, 170, 92, 255)
+CELLAR_FILL = (26, 22, 16, 255)
 cams = data['cams']
 assert set(CAM_POS) == {c['id'] for c in cams}, 'CAM_POS must cover every camera'
 
@@ -53,6 +59,7 @@ LIVE = (96, 196, 92, 255)
 font_path = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
 font = ImageFont.truetype(font_path, 24)
 font_cam = ImageFont.truetype(font_path, 27)   # camera numbers: readable even on the small corner map
+font_small = ImageFont.truetype(font_path, 15)
 
 def rounded_bg(d):
     d.rounded_rectangle([0, 0, W - 1, H - 1], radius=16, fill=BG, outline=(70, 76, 72, 255), width=3)
@@ -82,6 +89,36 @@ def draw_rooms(d):
     ox, oz = px(36.5, 66)
     d.text((ox, oz), 'YOU', font=font, fill=(255, 230, 120, 255), anchor='mm')
 
+def dashed(d, a, b, fill, width=3, dash=8):
+    n = max(1, int(max(abs(b[0] - a[0]), abs(b[1] - a[1])) // dash))
+    for i in range(0, n, 2):
+        t0, t1 = i / n, min(1, (i + 1) / n)
+        d.line([(a[0] + (b[0] - a[0]) * t0, a[1] + (b[1] - a[1]) * t0), (a[0] + (b[0] - a[0]) * t1, a[1] + (b[1] - a[1]) * t1)], fill=fill, width=width)
+
+def draw_cellar(d):
+    st = data['stairs']
+    # the stairs in Parts & Service: a flight of steps along its middle aisle, darker the deeper they go
+    n = st['x2'] - st['x1'] + 1
+    for i in range(n + 1):
+        x = st['x2'] + 1 - i
+        a, b = px(x, st['z'] - 0.6), px(x, st['z'] + 1.6)
+        shade = 205 - i * 20
+        d.line([a, b], fill=(shade, int(shade * 0.82), int(shade * 0.48), 255), width=3)
+    a, b = px(st['x1'], st['z'] - 0.6), px(st['x2'] + 1, st['z'] - 0.6)
+    d.line([a, b], fill=CELLAR_LINE, width=2)
+    a, b = px(st['x1'], st['z'] + 1.6), px(st['x2'] + 1, st['z'] + 1.6)
+    d.line([a, b], fill=CELLAR_LINE, width=2)
+    # the inset
+    x1, z1, x2, z2 = CELLAR_INSET
+    p1, p2 = px(x1, z1), px(x2, z2)
+    d.rectangle([p1[0], p1[1], p2[0], p2[1]], fill=CELLAR_FILL)
+    for a, b in (((p1[0], p1[1]), (p2[0], p1[1])), ((p2[0], p1[1]), (p2[0], p2[1])), ((p2[0], p2[1]), (p1[0], p2[1])), ((p1[0], p2[1]), (p1[0], p1[1]))):
+        dashed(d, a, b, CELLAR_LINE)
+    # an arrow down and the word
+    ax, az = px(x1 + 1.5, (z1 + z2) / 2)
+    d.polygon([(ax - 7, az - 16), (ax + 7, az - 16), (ax + 7, az - 1), (ax + 14, az - 1), (ax, az + 16), (ax - 14, az - 1), (ax - 7, az - 1)], fill=CELLAR_LINE)
+    d.text((px(x1 + 3.1, 0)[0], az + 1), 'CELLAR', font=font_small, fill=CELLAR_LINE, anchor='lm')
+
 def cam_rect(cid):
     cx, cz = CAM_POS[cid]
     a = px(cx - BOX[0] / 2, cz - BOX[1] / 2)
@@ -97,6 +134,7 @@ base = Image.new('RGBA', (W, H), (0, 0, 0, 0))
 d = ImageDraw.Draw(base)
 rounded_bg(d)
 draw_rooms(d)
+draw_cellar(d)
 for c in cams:
     draw_cam(d, c['id'], BOXC, TEXT)
 base.save(os.path.join(OUT, 'cam_map.png'))

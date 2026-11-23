@@ -256,3 +256,33 @@ Cubes and lights in the section A generators, props in `tools/blocks/props/props
 Also: `security_camera` has a `fnar:ceiling` state (a ceiling mount with a drop
 rod) for CAM 1A, and `ceiling_lamp` a `fnar:dim` state (light 11) for the
 office lamp, so its light stops at the office door frames.
+
+## G — the cellar (the Golden Dog Supper Club, 1958 to 1971)
+
+What lies under the pizzeria (`docs/GOLDEN_DOG.md`, `packs/BP/scripts/data/cellar_plan.js`). All of it is built by
+`tools/blocks/cellar/build_cellar.py` with the props' toolkit (`propkit.py`), into its own fragment files
+(`tools/fragments/*_cellar.json`); the raw cellar itself is vanilla brick, cobble and timber.
+
+| name | states | look |
+|---|---|---|
+| `gold_wallpaper`, `torn_gold_wallpaper` | full cubes | old gold damask wallpaper, a brown tide line creeping down it; the torn one has a strip hanging off, plaster, a brick and mould behind |
+| `rotten_panelling` | full cube | dark panelled wainscot gone soft and black at the bottom, a hole eaten through, mould on the stile |
+| `gold_curtain` | full cube | the stage's gold velvet in deep folds, moth-eaten |
+| `gold_room_carpet` | full cube | maroon carpet with small gold medallions, worn through to the backing |
+| `old_plaster_ceiling`, `stained_plaster_ceiling` | full cubes | cracked plaster; the stained one has a water ring and bare laths |
+| `old_office_tile` | full cube | the Other Office's floor: the office's slate tiles decades older, two gone, one cracked, a rust stain |
+| `cellar_concrete`, `cellar_puddle` | full cubes | damp poured concrete; the puddle is in the block itself (glossy in Vibrant Visuals), so nothing lies in the aisle |
+| `ghost_light` | `fnar:lit` (light 12, warm point light); 23 px tall | a theatre's ghost light: one bare caged bulb on a tall stand, left burning on the dark stage beside the Golden Dog's spot. Built lit (`meta.fixtures`) |
+| `bare_bulb` | `fnar:lit` (light 11, warm point light) | a bare bulb on a flex from the top of the cell: the cellar's day lamps (`meta.hanging`, group `cellar`) |
+| `cellar_pipes` | `fnar:kind` 0 a lagged steam pipe and a copper pipe under the ceiling (along the facing's axis), 1 the pair rising up a wall with a red hand wheel; facing | the boiler's pipes; in the Long Hall they run in a chase in each wall |
+| `dead_button` | `fnar:kind` 0 the door's (a cracked red cap), 1 the light's (an empty socket); facing (wall mounted) | the Other Office's buttons: rusted plates, a wire hanging out. No `fnar:control`: they do nothing |
+| `dead_monitor` | `fnar:kind` 0 its carcass flat on the desk, the tube smashed in (4 px tall), 1 a dead set upright; facing | the Other Office's monitors. No `fnar:control` |
+| `club_table` | none | a round supper table under a grey, stained cloth hanging in rags, a dead candle lamp |
+| `club_chair` | `fnar:fallen`; facing | gilt wood, a round back, a red velvet seat gone bald; fallen = on its back |
+| `fallen_chandelier` | facing | the Gold Room's chandelier where it came down on the dance floor: brass stem and arms lying over, dead candles, crystal drops, links of chain (about 24 px across) |
+| `bar_bottles` | `fnar:kind` 0 a row of dusty bottles, 1 glasses, an ashtray, a bottle on its side; facing | the bar |
+| `flood_water` | none | black standing water 12 px up the cell, no collision: the flooded corner (its floor is a block lower) |
+| `floor_decal_paws` | `fnar:kind` 0 gold dust, 1 nearly gone; facing = the way they walk | big dog's paw prints (flat, no collision): the gilding puts them on a hall floor |
+| `sign_golden_dog` | 7 x 2 picture | THE GOLDEN DOG / SUPPER CLUB in gold leaf on a black board in a frame of dead bulbs, over the stage |
+| `poster_golden_dog` | 2 x 3 picture | his show poster: THE GOLDEN DOG over his head in its top hat. The gilding hangs it where the office's Revue poster hangs |
+| `drawing_golden_dog` | 1 x 1 x 2 variants | a child's crayon drawing of a big yellow dog (holding a small child's hand; only his face, the eyes scribbled black) |

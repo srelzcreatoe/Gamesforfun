@@ -66,6 +66,111 @@ const origin = { ...(await import(path.join(ROOT, 'packs/BP/scripts/mc/world_io.
 const Wl = (x, y, z) => ({ x: x + origin.x, y: y + origin.y, z: z + origin.z });
 const blockAt = (x, y, z) => world.getDimension('overworld').getBlock(Wl(x, y, z));
 
+// ================================================================================================
+// THE CELLAR (data/cellar.js, data/cellar_plan.js): what the build really put under the pizzeria.
+// (The Golden Dog himself has his own section; this one is the map's.)
+// ================================================================================================
+const CEL = await import(path.join(ROOT, 'packs/BP/scripts/data/cellar.js'));
+const CELP = await import(path.join(ROOT, 'packs/BP/scripts/data/cellar_plan.js'));
+const cellarLamps = () => game().builder.plan.meta.hanging.filter((h) => h.group === 'cellar');
+const litAt = (c) => blockAt(c.x, c.y, c.z).permutation.getState('fnar:lit');
+{
+  const { CELLAR, CELLAR_BUILT } = CEL;
+  const { CELLAR_PLAN } = CELP;
+  const { OFFICE: OFF } = await import(path.join(ROOT, 'packs/BP/scripts/data/layout.js'));
+  const { CAMERA_BY_ID } = await import(path.join(ROOT, 'packs/BP/scripts/data/cameras.js'));
+  const { PALETTE } = await import(path.join(ROOT, 'packs/BP/scripts/data/palette.js'));
+  const ck = (ok, what) => { if (!ok) mock.errors.push(`check failed: ${what}`); };
+  const type = (x, y, z) => blockAt(x, y, z).typeId;
+  const isAir = (t) => t === 'minecraft:air' || t.startsWith('minecraft:light_block');
+  ck(CELLAR_BUILT, 'CELLAR_BUILT is set');
+  ck((await import(path.join(ROOT, 'packs/BP/scripts/mc/builder.js'))).BUILD_VERSION >= 13, 'the map version was bumped for the cellar (existing worlds rebuild)');
+  // ---- the Other Office against the real office: the same room, cell for cell, 7 blocks lower
+  const o = CELLAR.otherOffice.offset;
+  const [x1, z1, x2, z2] = OFF.box;
+  const gap = CELLAR.openings.desk_gap;
+  const inGap = (x, y, z) => x >= gap[0] && x <= gap[3] && y >= gap[1] && y <= gap[4] && z >= gap[2] && z <= gap[5];
+  const shape = (t) => (isAir(t) ? 'air' : /glass_pane/.test(t) ? 'window' : 'solid');
+  const diffs = [];
+  let cells = 0;
+  for (let x = x1 - 1; x <= x2 + 1; x++) for (let z = z1 - 1; z <= z2 + 1; z++) for (let y = -1; y <= 5; y++) {
+    const X = x + o.x, Y = y + o.y, Z = z + o.z;
+    if (inGap(X, Y, Z)) continue;
+    cells++;
+    const real = type(x, y, z), other = type(X, Y, Z);
+    const ring = x < x1 || x > x2 || z < z1 || z > z2 || y < 0 || y > 4;
+    if (ring ? shape(real) !== shape(other) : isAir(real) && !isAir(other)) diffs.push(`${X},${Y},${Z}: ${other} (the office: ${real})`);
+  }
+  ck(diffs.length === 0, `the Other Office has the real office's shape, ${cells} cells compared (${diffs.slice(0, 4).join('; ')})`);
+  for (const side of ['L', 'R']) {
+    const d = OFF.doors[side], w = OFF.windows[side];
+    ck(isAir(type(d.x, d.y1 + o.y, d.z1)) && isAir(type(d.x, d.y2 + o.y, d.z2)), `the Other Office's ${side} door stands open`);
+    ck(/glass_pane/.test(type(w.x, w.y1 + o.y, w.z1)), `the Other Office has its ${side} window`);
+  }
+  // the desk phone is the real block in its own cell; nothing else down there is one of the guard's controls
+  const ph = CELLAR.otherOffice.phone;
+  ck(type(ph.x, ph.y, ph.z) === 'fnar:desk_phone' && blockAt(ph.x, ph.y, ph.z).permutation.getState('fnar:ringing') === false, `the Other Office's phone is a real fnar:desk_phone, not ringing (${type(ph.x, ph.y, ph.z)})`);
+  ck(ph.x === OFF.phone.x + o.x && ph.y === OFF.phone.y + o.y && ph.z === OFF.phone.z + o.z, 'it stands in the phone\'s own cell, moved by the offset');
+  const controls = [];
+  for (let x = x1 - 1; x <= x2 + 1; x++) for (let z = z1 - 1; z <= z2 + 1; z++) for (let y = -1; y <= 5; y++) {
+    const t = type(x + o.x, y + o.y, z + o.z);
+    if (/^fnar:(door_button|light_button|crt_monitor)$/.test(t)) controls.push(t);
+  }
+  ck(controls.length === 0, `none of the Other Office's buttons or monitors is a control block (${controls.join(', ')})`);
+  for (const b of Object.values(OFF.buttons)) ck(type(b.x + o.x, b.y + o.y, b.z + o.z) === 'fnar:dead_button', `a dead button hangs where the ${b.kind} at ${b.x},${b.y},${b.z} is upstairs (${type(b.x + o.x, b.y + o.y, b.z + o.z)})`);
+  ck(type(OFF.monitor.x + o.x, OFF.monitor.y + o.y, OFF.monitor.z + o.z) === 'fnar:dead_monitor', 'the wreck of the monitor lies in the monitor\'s cell');
+  ck(type(OFF.lamp.x + o.x, OFF.lamp.y + o.y, OFF.lamp.z + o.z) === 'fnar:ceiling_lamp' && litAt({ x: OFF.lamp.x + o.x, y: OFF.lamp.y + o.y, z: OFF.lamp.z + o.z }) === false, 'the Other Office\'s lamp is dead');
+  const seat = CELLAR.otherOffice.spawn;
+  ck(isAir(type(Math.floor(seat.x), seat.y, Math.floor(seat.z))) && isAir(type(Math.floor(seat.x), seat.y + 1, Math.floor(seat.z))) && !isAir(type(Math.floor(seat.x), seat.y - 1, Math.floor(seat.z))), 'the Other Office\'s seat is free, on a floor');
+  // ---- the two openings and the aisle: empty from the stage to the desk, floor to ceiling
+  for (const [id, [ax, ay, az, bx, by, bz]] of Object.entries(CELLAR.openings)) {
+    let open = true;
+    for (let x = ax; x <= bx; x++) for (let y = ay; y <= by; y++) for (let z = az; z <= bz; z++) open &&= isAir(type(x, y, z));
+    ck(open, `the opening ${id} is open`);
+  }
+  const A = CELLAR.aisle;
+  const inAisle = [];
+  for (let x = A.x1; x <= A.x2; x++) for (let z = A.z1; z <= A.z2; z++) {
+    if (isAir(type(x, CELLAR.floorY, z))) inAisle.push(`no floor at ${x},${z}`);
+    for (let y = CELLAR.standY; y < CELLAR.ceilY; y++) if (!isAir(type(x, y, z))) inAisle.push(`${type(x, y, z)} at ${x},${y},${z}`);
+  }
+  ck(inAisle.length === 0, `the aisle is empty from the stage to the desk (${inAisle.slice(0, 3).join('; ')})`);
+  const { NODES: N } = await import(path.join(ROOT, 'packs/BP/scripts/data/nodes.js'));
+  for (const id of CELLAR.walk) {
+    const n = N[id];
+    let clear = !isAir(type(Math.floor(n.x), n.y - 1, Math.floor(n.z)));
+    for (let x = Math.floor(n.x) - 1; x <= Math.floor(n.x) + 1; x++) for (let y = n.y; y < n.y + 4; y++) clear &&= isAir(type(x, y, Math.floor(n.z)));
+    ck(clear, `${id} stands on a floor with room for him (3 wide, 4 tall)`);
+  }
+  // ---- the stairs from Parts & Service
+  const S = CELLAR_PLAN.stairs;
+  ck(isAir(type(S.head, 0, S.z)) && !isAir(type(S.head, -1, S.z)), 'the head of the stairs is on the Parts & Service floor');
+  let steps = 0;
+  for (let x = S.x2, y = -1; x >= S.x1; x--, y--) {
+    const ok = /stairs$/.test(type(x, y, S.z)) && isAir(type(x, y + 1, S.z)) && isAir(type(x, y + 2, S.z)) && !isAir(type(x, y - 1, S.z));
+    if (ok) steps++;
+    for (const z of [S.z - 1, S.z + 1]) ck(type(x, 0, z) === 'minecraft:iron_bars' && !isAir(type(x, -1, z)), `the stairwell has its railing at ${x},0,${z}`);
+  }
+  ck(steps === S.x2 - S.x1 + 1 && S.x2 - S.x1 + 1 === CELLAR.standY * -1, `the stairs: ${steps} steps, one for each block down to y ${CELLAR.standY}`);
+  ck(isAir(type(S.x1 - 1, CELLAR.standY, S.z)) && isAir(type(S.x1 - 1, CELLAR.standY + 1, S.z)) && !isAir(type(S.x1 - 1, CELLAR.floorY, S.z)), 'the stairs end on the landing');
+  ck(type(57, 0, 66) === 'fnar:endo_parts' && type(70, 0, 66) === 'fnar:endo_parts', 'Parts & Service keeps both stands in line');
+  // ---- the stage: the ghost light burns, CAM 11 has its prop, the club's sign hangs over the stage
+  const lamp = CELLAR_PLAN.stageLamp;
+  ck(type(lamp.x, lamp.y, lamp.z) === 'fnar:ghost_light' && litAt(lamp) === true, 'the ghost light on the stage is lit as built');
+  const m = CAMERA_BY_ID[CELLAR.cam].mount;
+  ck(!!m && type(m[0], m[1], m[2]) === 'fnar:security_camera', 'CAM 11 has its camera prop');
+  ck(type(36, CELLAR.ceilY - 1, CELLAR.rooms.GOLD_ROOM[1]) === 'fnar:sign_golden_dog', 'THE GOLDEN DOG SUPPER CLUB hangs over the stage');
+  // ---- the gilding: every key is a palette key; pictures replace pictures, paw prints lie on empty floor
+  for (const g of CELLAR.gild) {
+    const b = PALETTE[g.key];
+    const now = type(g.x, g.y, g.z);
+    ck(!!b && (b.name === 'fnar:floor_decal_paws' ? isAir(now) && !isAir(type(g.x, g.y - 1, g.z)) : /^fnar:(poster_|drawing)/.test(now)), `gild cell ${g.x},${g.y},${g.z}: ${g.key} over ${now}`);
+  }
+  ck(cellarLamps().length >= 8, `the cellar has day lamps (${cellarLamps().length})`);
+  say(`cellar: the Other Office matches the office (${cells} cells), the aisle is clear, ${steps} steps, ${cellarLamps().length} day lamps, ${CELLAR.gild.length} gild cells`);
+}
+// ================================================================================================
+
 // 2. lobby -> NEW GAME button ------------------------------------------------------
 const { LOBBY_BUTTONS } = await import(path.join(ROOT, 'packs/BP/scripts/data/lobby.js'));
 const push = (id) => { const b = LOBBY_BUTTONS.find((x) => x.id === id); world.afterEvents.buttonPush.fire({ source: P, block: blockAt(b.x, 1, b.z), dimension: world.getDimension('overworld') }); };
@@ -76,6 +181,8 @@ check(/only run during a shift/.test(P.actionBar ?? ''), 'tablet in the lobby ex
 push('new_game');
 await waitFor(() => game().state === 'NIGHT', 200, 'night 1 start');
 say(`night 1 started (guard mode ${P.gameMode})`);
+// THE CELLAR at night: only the ghost light on the stage still burns
+check(litAt(CELP.CELLAR_PLAN.stageLamp) === true && cellarLamps().every((c) => litAt(c) === false), 'at night the cellar is dark but for the ghost light on the stage');
 
 // In game a custom block is only clickable when it has a custom component (fnar:control),
 // and only within reach (about 5 blocks in survival / adventure). A click reaches the scripts
@@ -299,6 +406,8 @@ const guestEnts = () => [...mock.entities.values()].filter((e) => e.typeId === '
 push('free_roam');
 await waitFor(() => game().state === 'FREE_ROAM', 50, 'free roam');
 check(P.inventory[4]?.typeId === 'fnar:time_card', 'Free Roam hands out the Time Card');
+// THE CELLAR by day: its few lamps are lit, so a player can find the way down there
+check(cellarLamps().every((c) => litAt(c) === true) && litAt(CELP.CELLAR_PLAN.stageLamp) === true, 'by day the cellar\'s lamps are lit');
 {
   // open for business: people at the tables and the games already, a family on its way in from the lot
   const gs = game().guests;

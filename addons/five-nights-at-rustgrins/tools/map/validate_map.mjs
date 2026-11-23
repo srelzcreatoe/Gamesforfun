@@ -15,8 +15,9 @@
 //   7. the cellar (data/cellar.js, once CELLAR_BUILT): the Golden Dog's nodes and his walk are clear for a body
 //      3 wide and 4 tall, the aisle is empty floor to ceiling, the guard in the Other Office's seat sees his head
 //      and chest on the stage, the Other Office has the real office's shape, a player can walk from the Parts &
-//      Service door down the stairs to the Gold Room and into the Other Office, the stage lamp lights him at
-//      night, and by day the cellar is gloomy but never pitch black.
+//      Service door down the stairs to the Gold Room and into the Other Office, the gilding's cells (CELLAR.gild)
+//      are swappable and in sight, the stage lamp lights him at night, and by day the cellar is gloomy but never
+//      pitch black.
 // Usage: node tools/map/validate_map.mjs   (exit 1 on problems)
 import fs from 'node:fs';
 import path from 'node:path';
@@ -433,7 +434,46 @@ if (CELLAR_BUILT) {
     if (!reach(seatCell).has(key(...start))) report('a player in the Other Office cannot walk back up to the Parts & Service door');
   }
 
-  // 7f. light. At night (as built) the stage lamp lights him on his stage; by day (every lamp the game switches
+  // 7f. the gilding (CELLAR.gild): every key is a palette key; a picture takes the place of a picture (the same
+  // wall cell, so it can be swapped in and out), a floor print lies on an empty cell with a floor under it; the
+  // office's cells are in plain sight of the seat, the halls' in a camera's view.
+  {
+    const { PALETTE } = await import(path.join(ROOT, 'packs/BP/scripts/data/palette.js'));
+    const seatEye = [OFFICE.spawn.x, OFFICE.spawn.y + 1.62, OFFICE.spawn.z];
+    const clearTo = (from, x, y, z) => {
+      const to = [x + 0.5, y + 0.5, z + 0.5];
+      const d = Math.hypot(to[0] - from[0], to[1] - from[1], to[2] - from[2]);
+      const steps = Math.ceil(d / 0.05);
+      for (let i = 1; i < steps; i++) {
+        const q = from.map((v, k) => v + (to[k] - v) * (i / steps));
+        if (Math.floor(q[0]) === x && Math.floor(q[1]) === y && Math.floor(q[2]) === z) return true;
+        if (blocksSight(nameAt(...q))) return false;
+      }
+      return true;
+    };
+    const count = { office: 0, hall: 0 };
+    for (const g of CELLAR.gild) {
+      const at = `${g.x},${g.y},${g.z}`;
+      const b = PALETTE[g.key];
+      if (!b) { report(`gild ${at}: ${g.key} is not a palette key`); continue; }
+      if (!(g.where in count)) { report(`gild ${at}: where must be 'office' or 'hall', not ${g.where}`); continue; }
+      count[g.where]++;
+      const now = cellAt(g.x, g.y, g.z);
+      if (/^fnar:floor_decal/.test(b.name)) {
+        if (!isAir(now)) report(`gild ${at}: the paw print's cell holds ${now}`);
+        if (isAir(cellAt(g.x, g.y - 1, g.z))) report(`gild ${at}: no floor under the paw print`);
+      } else if (!/^fnar:(poster_|drawing)/.test(now)) report(`gild ${at}: ${g.key} would replace ${now}, not a picture`);
+      if (g.where === 'office') {
+        if (!clearTo(seatEye, g.x, g.y, g.z)) report(`gild ${at}: not in sight of the office's seat`);
+      } else if (!CAMERAS.some((c) => !c.audioOnly && inView(c, [g.x + 0.5, g.y + 0.5, g.z + 0.5]) && clearTo(c.loc, g.x, g.y, g.z))) {
+        report(`gild ${at}: no camera sees it`);
+      }
+    }
+    if (!count.office || !count.hall) report(`CELLAR.gild needs cells in the office and in a hall (has ${count.office} and ${count.hall})`);
+    console.log(`  gilding: ${count.office} cells in the office, ${count.hall} in the halls`);
+  }
+
+  // 7g. light. At night (as built) the stage lamp lights him on his stage; by day (every lamp the game switches
   // on) the rooms are gloomy, never pitch black and never bright.
   {
     const emitDefs = new Map();
