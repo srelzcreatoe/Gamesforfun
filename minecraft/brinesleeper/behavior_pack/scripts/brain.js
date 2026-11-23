@@ -22,7 +22,7 @@
 //
 // It learns each player (saved on the player): looking back, carrying light, running, swimming, fighting, where you
 // sleep. It grows bolder with every meeting; then it follows you out of its caves, and at last it comes to your home.
-import { world, system, BlockVolume, ItemStack, GameMode, EntityDamageCause } from '@minecraft/server';
+import { world, system, BlockVolume, ItemStack, GameMode, EntityDamageCause, EasingType } from '@minecraft/server';
 import { config, preset, threat, freq } from './config.js';
 import {
   CREATURE, STAGED, TPS, FORM, rand, randInt, chance, pick, now, sub, add, mul, flat, norm, len,
@@ -31,13 +31,14 @@ import {
 } from './main.js';
 import { inStillwater, press, handoff } from './areas.js';
 import { addEntry } from './notebook.js';
+import { findPath, standable, cellAt } from './path.js';
 
 const S = 1.15;                                                     // the model's scale (horror.py SCALE)
 const DEPTH = { submerged_watch: 2.06 * S, idle_water: 2.06 * S, water_rise: 0.5 * S, emerge_roar: 0.375 * S, emerge: 0.25 * S };
 const CEILING_DROP = 4.6;                                           // ceiling_lurk hangs its body this far above its root
 const LURK_DEPTH = 3.8;
 const STAND = 4;                                                    // blocks of headroom it needs to stand (3.91 tall)
-const SPEED = { stalk: 0.12, slow: 0.05, walk: 0.08, run: 0.3 };    // blocks per tick
+const SPEED = { stalk: 0.12, slow: 0.05, walk: 0.08, run: 0.34 };   // blocks per tick (x the threat level's speed)
 const minds = new Map();
 const LIGHTS_CANDLE = ['minecraft:candle', ...['white', 'orange', 'magenta', 'light_blue', 'yellow', 'lime', 'pink', 'gray', 'light_gray',
   'cyan', 'purple', 'blue', 'brown', 'green', 'red', 'black'].map((c) => `minecraft:${c}_candle`)];
@@ -46,7 +47,8 @@ const LIGHTS_ITEM = { 'minecraft:torch': 'minecraft:torch', 'minecraft:soul_torc
 const LIGHTS_FIRE = ['minecraft:campfire', 'minecraft:soul_campfire'];
 const WHISPERS = ['...the water remembers you...', "...don't look down...", '...you are so close to the edge...', "...it's warmer under the water...",
   '...we heard you splash...', '...stay a while...', '...it saw you first...', '...something is under you...', '...keep swimming...',
-  '...it walks where you walked...', '...one more step than yours...'];
+  '...it walks where you walked...', '...one more step than yours...', '...don\'t turn around...', '...it is closer than it was...',
+  '...it learned your name...', '...look up...'];
 
 const hunter = (p) => { try { const m = p.getGameMode(); return m === GameMode.Survival || m === GameMode.Adventure; } catch (e) { return false; } };
 const watcher = (p) => { try { return p.getGameMode() !== GameMode.Spectator; } catch (e) { return false; } };
@@ -59,6 +61,12 @@ const dark = (dim, pos) => { try { return dim.getLightLevel(pos) <= 4; } catch (
 const spot = (player, kind, minD, maxD, opts = {}) => findSpot(player, kind, minD, maxD, { anywhere: true, ...opts });
 /** a point `d` below a water surface, never deeper than the water is (so it is never put inside the lake bed) */
 const under = (s, d) => ({ x: s.x, y: s.y - Math.min(d, Math.max(0.6, s.depth - 0.25)), z: s.z });
+/** in the water (or at its surface, which the game does not always count) */
+function inWater(c) {
+  if (c.isInWater) return true;
+  const l = c.location;
+  return isWater(block(c.dimension, { x: l.x, y: l.y + 0.2, z: l.z })) || isWater(block(c.dimension, { x: l.x, y: l.y - 0.4, z: l.z }));
+}
 /** under the ground or out at night: where it is willing to go after you */
 function itsHour(p) {
   try {
@@ -278,7 +286,7 @@ function mindOf(c) {
       frozen: false, riseUntil: 0, swim: null, climb: null, hold: null, walk: null, replan: 0, noPath: 0, chaseEnd: 0,
       target: undefined, chased: undefined, spotted: false, walking: false, wasStill: false, mimicUntil: 0, ran: false };
     minds.set(c.id, m);
-    mode(c, m, c.isInWater ? 'hold' : 'observe');
+    mode(c, m, inWater(c) ? 'hold' : 'observe');
   }
   return m;
 }
@@ -311,7 +319,7 @@ function animate(c, m) {
   if (m.climb) a = m.climb.act ?? 'emerge';
   else if (m.swim) a = m.swim.moved === false ? 'idle_water' : 'swim';                // stalled: it treads water
   else if (m.walk) a = m.walk.act ?? 'walk';
-  else a = m.pose || (c.isInWater ? 'idle_water' : 'watch');
+  else a = m.pose || (inWater(c) ? 'idle_water' : 'watch');
   if (a !== m.act) { m.act = a; setAct(c, a); }
 }
 function go(m, state, seconds) {
@@ -348,9 +356,16 @@ function stepWalk(c, m) {
   else if (m.crawl && now() - m.crawlSince > 20 && headroom(c.dimension, pos.x, pos.y, pos.z) >= STAND) crawl(c, m, false);
   let budget = w.speed * threat().speed * (m.crawl ? 0.65 : 1) * (ahead[0]?.w ? 0.8 : 1);
   if (now() < (w.boostUntil ?? 0)) budget *= 2.2;                    // a bound (the lunge)
+  w.climbing = false;
   while (budget > 1e-4 && w.i < w.pts.length) {
     const q = w.pts[w.i];
     const qy = q.w && !q.floor ? q.y - 0.3 : q.y;                    // swimming (not walking the lake bed): a little lower
+    if (q.climb && qy > pos.y + 0.05) {                             // a ledge: it hauls itself up the face, then over
+      pos = { ...pos, y: Math.min(qy, pos.y + 0.24) };
+      w.climbing = true;
+      budget = 0;
+      break;
+    }
     const dh = Math.hypot(q.x - pos.x, q.z - pos.z);
     if (qy > pos.y + 0.05 && !q.w) pos = { ...pos, y: qy };        // a step up: onto it at once, never through its edge
     const dd = Math.hypot(dh, qy - pos.y);
@@ -374,7 +389,7 @@ function stepWalk(c, m) {
   if (now() >= w.shoreAt) { w.shore = nearWater(c.dimension, pos, 2); w.shoreAt = now() + 10; }
   const prev = w.pts[Math.max(0, w.i - 1)];
   const steep = here && prev && Math.abs(here.y - prev.y) > 0.6 && flat(here, prev) < 0.5;
-  w.act = water ? 'swim' : (m.crawl || steep) ? 'tunnel_crawl' : w.style === 'stalk' && w.shore ? 'shoreline_stalk' : GAIT[w.style] ?? 'walk';
+  w.act = w.climbing ? 'emerge' : water ? 'swim' : (m.crawl || steep) ? 'tunnel_crawl' : w.style === 'stalk' && w.shore ? 'shoreline_stalk' : GAIT[w.style] ?? 'walk';
   // its feet: wet steps you can hear, wet marks on the stone
   const every = w.style === 'run' ? 7 : 13;
   if (!water && now() % every === 0) {
@@ -519,12 +534,257 @@ function watchPlace(c, target, minD, maxD) {
     if (nearWater(dim, f, 1)) options.push(['reflection_lurk', f, 3]);
     if (wallBeside) { options.push(['corner_watch', f, 2]); options.push(['behind_cover', f, 2]); }
     if (dark(dim, add(f, { x: 0, y: 1, z: 0 }))) options.push(['shadow_hide', f, 1]);
-    for (const k of ['distant_observer', 'head_tilt', 'patient_strike', 'watch', 'full_stand']) options.push([k, f, 0.6]);
+    for (const k of ['distant_observer', 'head_tilt', 'patient_strike', 'watch', 'full_stand', 'twitch']) options.push([k, f, 0.6]);
+    options.push(['head_turn', f, 1.2]);                            // its back to you, its face to you
   }
   if (!options.length) return water ? ['water', water] : undefined;
   let r = Math.random() * options.reduce((a, o) => a + o[2], 0);
   for (const o of options) { r -= o[2]; if (r <= 0) return [o[0], o[1]]; }
   return [options[0][0], options[0][1]];
+}
+
+// ------------------------------------------------------------------ the way to you (path.js: a search over the blocks, made for its body)
+/** start (or keep) a search for a way to the player; while it runs it keeps moving on what it has */
+function navigate(c, m, target, style, speed) {
+  const t = now();
+  const goal = target.location;
+  const moved = !m.navGoal || flat(m.navGoal, goal) > 2.5 || Math.abs(m.navGoal.y - goal.y) > 2;
+  m.navStyle = style;
+  m.navSpeed = speed;
+  if (!m.plan && (moved || t >= (m.navAt ?? 0) || !m.walk)) {
+    m.navGoal = { x: goal.x, y: goal.y, z: goal.z };
+    m.navAt = t + (style === 'run' ? 12 : 30);
+    m.plan = { gen: findPath(c.dimension, c.location, goal, { max: style === 'run' ? 2600 : 3600, near: style === 'run' ? 1.2 : 2.5 }), t };
+    if (!m.walk) {                                                  // the very first moment: straight at you, if it can be
+      const line = linePath(c.dimension, c.location, goal, 14);
+      if (line) walk(c, m, line, style, { speed });
+    }
+  }
+}
+/** a slice of the search (a few milliseconds a tick); when it is done, it takes the way it found */
+function stepPlan(c, m) {
+  const p = m.plan;
+  if (!p) return;
+  const t0 = Date.now();
+  let r;
+  try { do { r = p.gen.next(); } while (!r.done && Date.now() - t0 < 3); } catch (e) { m.plan = null; return; }
+  if (!r.done) return;
+  m.plan = null;
+  const res = r.value;
+  if (!res || !res.pts.length) { m.lost = (m.lost ?? 0) + 1; return; }
+  m.lost = 0;
+  m.partials = res.complete ? 0 : (m.partials ?? 0) + 1;            // it can only get part of the way to you
+  if (!res.complete) m.navAt = now() + 40;
+  const pos = c.location;                                           // it moved while it searched: join the way where it is now
+  let j = 0, bd = Infinity;
+  for (let i = 0; i < Math.min(res.pts.length, 8); i++) {
+    const dd = flat(res.pts[i], pos) + Math.abs(res.pts[i].y - pos.y);
+    if (dd < bd) { bd = dd; j = i; }
+  }
+  const pts = res.pts.slice(bd < 1.2 ? j + 1 : j);
+  if (!pts.length || !['stalk', 'chase', 'rush', 'standoff'].includes(m.state) || m.frozen || m.climb || m.swim) return;
+  walk(c, m, m.state !== 'stalk' && pts.length > 2 && res.complete ? pts.slice(0, pts.length - 1) : pts, m.navStyle ?? 'stalk', { speed: m.navSpeed });
+}
+/** walk at you: its own search first, your trail when the search finds nothing */
+function pursue(c, m, target, style, speed) {
+  if (m.climb || m.swim) return;
+  if ((m.lost ?? 0) < 2) navigate(c, m, target, style, speed);
+  else if (!m.walk || now() >= m.replan) {
+    const r = routeTo(c, target, 12);
+    if (r && r.length) { walk(c, m, r, style, { speed }); m.lost = 0; }
+    m.replan = now() + 10;
+  }
+  if (!m.walk && !m.plan) { m.noPath += 5; mode(c, m, 'hold'); pose(c, m, m.crawl ? 'crawl_still' : 'hunting_stance'); }
+  else if ((m.partials ?? 0) >= 2 && !m.walk) m.noPath += 10;           // no whole way to you: soon it tries another way
+  else m.noPath = 0;
+}
+/** it cannot reach you the way it is: the next time you see it, it is somewhere ahead of you */
+function ahead(c, m, target) {
+  if (seenByAnyone(c)) return false;
+  const s = spot(target, 'floor', 9, 18, { ahead: 1.1, room: 4, tries: 30, eyeHeight: 3.2 });
+  if (!s) return false;
+  stop(c, m);
+  mode(c, m, 'hold');
+  place(c, m, s, target.getHeadLocation());
+  pose(c, m, m.crawl ? 'crawl_still' : 'hunting_stance');
+  sound(c.dimension, 'mob.brinesleeper.click', s, 1, 0.8);
+  m.navGoal = undefined;
+  m.lost = 0;
+  return true;
+}
+
+// ------------------------------------------------------------------ the jumpscare
+const lastScare = new Map();
+const cameraHeld = new Map();                                       // player id -> tick the camera was taken (always given back)
+const scareReady = (p) => now() - (lastScare.get(p.id) ?? -99999) > Math.round((config.preset === 'nightmare' ? 40 : config.preset === 'relentless' ? 60 : 90) * TPS);
+function giveCameraBack(p) {
+  if (!cameraHeld.has(p.id)) return;
+  cameraHeld.delete(p.id);
+  try { p.camera.clear(); } catch (e) { /* gone */ }
+}
+/**
+ * The moment it is in your face. The music dies; it is there, a body's length in front of you, rearing over you with
+ * its mouth open; your view is wrenched up to its face and the camera lunges into it; a scream, a red flash, a blow.
+ * Then the dark, and it is gone (or it is coming).
+ */
+function jumpscare(c, m, target, after = 'vanish') {
+  if (!c.isValid || !target.isValid) return false;
+  lastScare.set(target.id, now());
+  const dim = c.dimension;
+  const eye = target.getHeadLocation();
+  const v = target.getViewDirection();
+  const f = norm({ x: v.x, y: 0, z: v.z });
+  // right in front of you on the ground; if a wall is there, beside you; if not that, behind you (and you are turned)
+  let at;
+  const yaw = Math.atan2(f.z, f.x), fy = Math.floor(target.location.y + 0.5);
+  search: for (const da of [0, 0.5, -0.5, 1.0, -1.0, 1.6, -1.6, Math.PI]) {
+    for (const r of [1.6, 1.3, 2.0, 2.4]) {
+      const px = target.location.x + Math.cos(yaw + da) * r, pz = target.location.z + Math.sin(yaw + da) * r;
+      const x = Math.floor(px), z = Math.floor(pz);
+      for (const dy of [0, -1, 1]) if (standable(dim, x, fy + dy, z)) { at = { x: px, y: fy + dy, z: pz }; break search; }
+    }
+  }
+  if (!at) return false;                                            // nowhere to stand near you: not now
+  stop(c, m);
+  mode(c, m, 'hold');
+  place(c, m, at, eye);
+  pose(c, m, m.crawl ? 'crawl_still' : 'emerge_roar');
+  animate(c, m);
+  press(target.id, 'silence', now() + 16);                          // the music stops dead
+  go(m, 'scare', 3);
+  system.runTimeout(() => {
+    if (!c.isValid || !target.isValid) return;
+    const face = c.getHeadLocation();
+    try { target.playSound('brine.jumpscare', { volume: 1 }); } catch (e) { /* gone */ }
+    sound(dim, 'mob.brinesleeper.roar', face, 1.6, 1.15);
+    try { target.teleport(target.location, { facingLocation: face }); } catch (e) { /* ok */ }   // your eyes on its face
+    if (config.screen) {
+      const from = target.getHeadLocation();
+      const into = add(face, mul(norm(sub(from, face)), 0.85));
+      try {
+        target.camera.setCamera('minecraft:free', { location: from, facingLocation: face });
+        target.camera.setCamera('minecraft:free', { location: into, facingLocation: face, easeOptions: { easeTime: 0.16, easeType: EasingType.OutExpo } });
+        cameraHeld.set(target.id, now());
+      } catch (e) { /* no camera control here */ }
+      try { target.camera.fade({ fadeTime: { fadeInTime: 0.05, holdTime: 0.12, fadeOutTime: 0.55 }, fadeColor: { red: 0.55, green: 0.0, blue: 0.02 } }); } catch (e) { /* ok */ }
+      shake(target, 1.0, 0.8);
+      try { target.onScreenDisplay.setTitle('§4§k||||||||', { fadeInDuration: 0, stayDuration: 10, fadeOutDuration: 6, subtitle: `§8§o${pick(['found you', 'behind you', target.name, 'too slow', 'it was always here'])}` }); } catch (e) { /* ok */ }
+      try { target.addEffect('nausea', 90, { amplifier: 0, showParticles: false }); } catch (e) { /* ok */ }
+    }
+    if (preset().damage > 0 && hunter(target)) {
+      target.applyDamage(Math.round(threat().melee * preset().damage), { cause: EntityDamageCause.entityAttack, damagingEntity: c });
+      const k = norm(sub(target.location, c.location));
+      try { target.applyKnockback({ x: k.x * 0.9, z: k.z * 0.9 }, 0.3); } catch (e) { /* ok */ }
+    }
+    system.runTimeout(() => {                                       // the view comes back, into the dark
+      giveCameraBack(target);
+      if (config.screen) { try { target.addEffect('darkness', 100, { amplifier: 0, showParticles: false }); } catch (e) { /* ok */ } }
+      if (!c.isValid || !target.isValid) return;
+      if (after === 'chase' && hunter(target)) chase(c, m, target); else vanish(c, m, target);
+    }, 14);
+  }, 4);
+  return true;
+}
+world.afterEvents.playerSpawn.subscribe(({ player }) => { cameraHeld.set(player.id, 0); giveCameraBack(player); });
+system.runInterval(() => {                                          // never leave anyone's camera held
+  for (const p of world.getAllPlayers()) { const at = cameraHeld.get(p.id); if (at !== undefined && now() - at > 40) giveCameraBack(p); }
+}, 10);
+
+// ------------------------------------------------------------------ encounters
+/** what it does next when it is ready, weighted by what it has learned about you */
+function encounter(c, m, target) {
+  const pr = profileOf(target);
+  const land = !target.isInWater;
+  /** @type {[string, number][]} */
+  const opts = [['stalk', 1.0], ['watch', 0.6], ['creep', land ? 0.9 + pr.bold * 0.4 : 0], ['rush', land ? 0.4 + pr.bold * 0.6 : 0],
+    ['ceiling', land ? 0.6 : 0], ['approach', nearWater(target.dimension, target.location, 6) ? 1.0 : 0]];
+  let r = Math.random() * opts.reduce((a, o) => a + o[1], 0);
+  let k = 'stalk';
+  for (const [name, w] of opts) { r -= w; if (r <= 0) { k = name; break; } }
+  debug(`encounter: ${k}`);
+  const ok = k === 'creep' ? creep(c, m, target) : k === 'rush' ? rush(c, m, target) : k === 'ceiling' ? ceiling(c, m, target)
+    : k === 'approach' ? approach(c, m, target, false) : k === 'watch' ? (watch(c, m, target), true) : false;
+  if (!ok) stalk(c, m, target);
+}
+/** a pose that is wrong: its back to you with its head turned all the way round, a twitching stand, a tilted stare */
+function wrongPose(c, m, target, at) {
+  const p = m.crawl ? 'crawl_still' : pick(['head_turn', 'head_turn', 'twitch', 'full_stand', 'head_tilt']);
+  pose(c, m, p);
+  const face = p === 'head_turn' ? add(at, sub(at, target.location)) : target.getHeadLocation();
+  try { c.teleport(at, { facingLocation: { x: face.x, y: at.y + 3, z: face.z } }); } catch (e) { /* ok */ }
+}
+/** "it only moves when you don't look": far off, in a wrong pose; each time you look away, it is closer */
+function creep(c, m, target) {
+  if (seenByAnyone(c)) return false;
+  const s = spot(target, 'floor', 16, 26, { room: 4, sight: true, eyeHeight: 3.2, tries: 30 });
+  if (!s) return false;
+  stop(c, m);
+  mode(c, m, 'hold');
+  place(c, m, s);
+  wrongPose(c, m, target, s);
+  go(m, 'creep', 75);
+  m.steps = 0;
+  m.spotted = false;
+  press(target.id, 'silence', now() + 60);                          // the music goes away first
+  return true;
+}
+/** a place on the ground some blocks nearer to the player */
+function closer(c, target, step) {
+  const dim = c.dimension;
+  const from = c.location, to = target.location;
+  const dd = flat(from, to);
+  if (dd < 2.5) return undefined;
+  const k = Math.min(1, step / dd);
+  const p = { x: from.x + (to.x - from.x) * k, z: from.z + (to.z - from.z) * k };
+  const x = Math.floor(p.x), z = Math.floor(p.z), y = Math.floor(from.y + 0.5 + (to.y - from.y) * k);
+  for (const dy of [0, 1, -1, 2, -2, 3, -3]) if (standable(dim, x, y + dy, z)) return { x: x + 0.5, y: y + dy, z: z + 0.5 };
+  const ts = trailSpot(target, Math.max(2, dd - step - 3), dd - step + 3);
+  return ts ? ts.p : undefined;
+}
+/** out of the dark, far down the cave, it screams and comes at you on all fours, faster than you can run */
+function rush(c, m, target) {
+  if (seenByAnyone(c)) return false;
+  const s = spot(target, 'floor', 18, 30, { room: 4, sight: true, eyeHeight: 3.2, tries: 30 });
+  if (!s) return false;
+  stop(c, m);
+  mode(c, m, 'hold');
+  place(c, m, s, target.getHeadLocation());
+  pose(c, m, m.crawl ? 'crawl_still' : 'hunting_stance');
+  go(m, 'rush', 14);
+  m.rushAt = now() + randInt(20, 50);                               // a still moment first
+  m.rushing = false;
+  m.spotted = false;
+  press(target.id, 'silence', now() + 50);
+  return true;
+}
+/** above you: it hangs from the roof, dripping on you; look up and it drops */
+function ceiling(c, m, target) {
+  if (seenByAnyone(c)) return false;
+  const dim = target.dimension;
+  const p = target.location;
+  const v = target.getViewDirection();
+  for (let i = 0; i < 20; i++) {
+    const a = Math.atan2(v.z, v.x) + rand(-0.9, 0.9), r = rand(2.5, 7);
+    const x = Math.floor(p.x + Math.cos(a) * r), z = Math.floor(p.z + Math.sin(a) * r), fy = Math.floor(p.y + 0.5);
+    for (const dy of [0, -1, 1]) {
+      if (!standable(dim, x, fy + dy, z)) continue;
+      let room = 0;
+      while (room < 12 && cellAt(dim, x, fy + dy + room, z) !== 0) room++;
+      if (room < 5 || room > 9) continue;
+      const at = { x: x + 0.5, y: fy + dy + room - CEILING_DROP, z: z + 0.5 };
+      stop(c, m);
+      m.hold = at;
+      mode(c, m, 'hold');
+      place(c, m, at, target.getHeadLocation());
+      crawl(c, m, false);
+      pose(c, m, 'ceiling_lurk');
+      go(m, 'ceiling', 45);
+      m.floorAt = { x: x + 0.5, y: fy + dy, z: z + 0.5 };
+      press(target.id, 'silence', now() + 80);
+      return true;
+    }
+  }
+  return false;
 }
 
 // ------------------------------------------------------------------ the heartbeat
@@ -615,7 +875,7 @@ function relocate(c, m, target, near = false) {
 function vanish(c, m, target) {
   const pos = c.location;
   stop(c, m);
-  if (c.isInWater || isWater(block(c.dimension, { x: pos.x, y: pos.y + 0.5, z: pos.z }))) {
+  if (inWater(c) || isWater(block(c.dimension, { x: pos.x, y: pos.y + 0.5, z: pos.z }))) {
     pose(c, m, 'submerge');
     const s = surfaceNear(c.dimension, pos, 6, 2);
     if (s) particle(c.dimension, 'brine:ripple', s);
@@ -634,12 +894,12 @@ function vanish(c, m, target) {
   system.runTimeout(() => {
     if (!c.isValid) return;
     const where = target && target.isValid ? relocateAnyway(c, m, target) : false;
-    if (!where && !c.isInWater) wetTrail(c.dimension, pos, add(pos, mul(norm(sub(pos, target ? target.location : pos)), 8)));
+    if (!where && !inWater(c)) wetTrail(c.dimension, pos, add(pos, mul(norm(sub(pos, target ? target.location : pos)), 8)));
     if (!target || !target.isValid) { go(m, 'idle', 1); return; }
-    if (where === 'water' || c.isInWater) lurk(c, m, target);
+    if (where === 'water' || inWater(c)) lurk(c, m, target);
     else if (now() < m.cooldownUntil) { mode(c, m, 'observe'); pose(c, m, 'shadow_hide'); go(m, 'hidden', rand(5, 10)); }
     else stalk(c, m, target);
-  }, c.isInWater ? 8 : 2);
+  }, inWater(c) ? 8 : 2);
   go(m, 'vanishing', 2);
 }
 /** the vanish itself is the cover: it may move even if someone was looking (smoke, or under the water) */
@@ -668,12 +928,12 @@ function lurk(c, m, target, seconds) {
   if (!target) return;
   const s = waterAround(target, 18, 34, { depth: 4, tries: 16 });
   if (!s) {
-    if (!c.isInWater) stalk(c, m, target);
+    if (!inWater(c)) stalk(c, m, target);
     else { stop(c, m); mode(c, m, 'hold'); pose(c, m, 'idle_water'); }
     return;
   }
   pose(c, m, 'idle_water');
-  if (c.isInWater && flat(s, c.location) < 72) {
+  if (inWater(c) && flat(s, c.location) < 72) {
     // another lake, not joined to this one: it is simply there, the next time nobody is looking
     swimTo(c, m, under(s, LURK_DEPTH), 0.2, undefined, () => { if (!seenByAnyone(c)) sink(c, m, s); });
   } else if (!seenByAnyone(c)) sink(c, m, s);
@@ -685,7 +945,7 @@ function watch(c, m, target) {
   const near = 30 - pr.bold * 14, far = 44 - pr.bold * 16;
   const place_ = watchPlace(c, target, near, far);
   if (!place_ || seenByAnyone(c)) {                                 // nowhere to be seen from (or someone is looking): wait
-    if (c.isInWater) lurk(c, m, target, rand(4, 8));
+    if (inWater(c)) lurk(c, m, target, rand(4, 8));
     else if (now() >= m.cooldownUntil) stalk(c, m, target);
     else { stop(c, m); mode(c, m, 'observe'); pose(c, m, 'shadow_hide'); go(m, 'hidden', rand(4, 8)); }
     return;
@@ -705,10 +965,10 @@ function watch(c, m, target) {
     mode(c, m, 'hold');
     pose(c, m, 'ceiling_lurk');
   } else {
-    mode(c, m, 'observe');
+    mode(c, m, kind === 'head_turn' ? 'hold' : 'observe');
     pose(c, m, kind === 'shadow_hide' && chance(0.3) ? 'full_stand' : kind);
   }
-  place(c, m, pos, target.getHeadLocation());
+  place(c, m, pos, kind === 'head_turn' ? add(pos, sub(pos, target.location)) : target.getHeadLocation());
   if (kind === 'ceiling' || kind === 'water') crawl(c, m, false);
   go(m, 'watch', rand(10, 20));
   m.watchNeed = Math.round(8 + pr.bold * 40 + rand(0, 12));         // the bolder it is, the longer it lets you look
@@ -738,7 +998,7 @@ function approach(c, m, target, fallback = true) {
   };
   const haul = () => climbOut(c, m, b.bank, target.getHeadLocation(), () => standoff(c, m, target));
   m.haul = haul;
-  if (!c.isInWater) {
+  if (!inWater(c)) {
     if (seenByAnyone(c)) { stalk(c, m, target); return true; }
     place(c, m, at);
     rise();
@@ -771,14 +1031,14 @@ function standoff(c, m, target) {
   stop(c, m);
   go(m, 'standoff', rand(4, 9));
   m.startDist = flat(target.location, c.location);
-  mode(c, m, c.isInWater ? 'hold' : 'observe');
+  mode(c, m, inWater(c) ? 'hold' : 'observe');
   pose(c, m, m.crawl ? 'crawl_still' : chance(preset().revelation * 2) ? 'full_stand' : pick(['watch', 'head_tilt', 'hunting_stance', 'patient_strike']));
   spotted(c, m, target);
   m.walkAt = chance(0.25 + profileOf(target).bold * 0.4);            // it may simply start walking toward you
   m.walking = false;
   m.frozen = false;
 }
-const runSpeed = (target) => Math.min(0.36, SPEED.run * (1 + 0.04 * Math.min(6, profileOf(target).runs)));
+const runSpeed = (target) => Math.min(0.42, SPEED.run * (1 + 0.04 * Math.min(6, profileOf(target).runs)));
 function chase(c, m, target) {
   stop(c, m);
   go(m, 'chase', 30);
@@ -788,6 +1048,8 @@ function chase(c, m, target) {
   m.chased = target.id;
   m.noPath = 0;
   m.replan = 0;
+  m.lost = 0;
+  m.caught = false;
   mode(c, m, 'hold');
   pose(c, m, 'hunting_stance');
   sound(c.dimension, 'mob.brinesleeper.roar', c.getHeadLocation(), 1.4, rand(0.9, 1));
@@ -803,7 +1065,7 @@ function endChase(c, m) {
   m.cooldownUntil = now() + gap();
 }
 function deep(c, m, target) {
-  if (!c.isInWater) {                                               // it comes up from under you, from the nearest deep water
+  if (!inWater(c)) {                                               // it comes up from under you, from the nearest deep water
     const s = waterAround(target, 7, 16, { depth: 3, tries: 16 });
     if (!s || seenByAnyone(c) || !sink(c, m, s)) { m.cooldownUntil = now() + 5 * TPS; if (m.state !== 'stalk') stalk(c, m, target); return; }
   }
@@ -820,7 +1082,7 @@ function retreat(c, m, target) {
   if (m.state === 'chase' || m.state === 'deep') endChase(c, m);
   go(m, 'retreat', 9);
   m.ran = false;
-  if (c.isInWater) { vanish(c, m, target); return; }
+  if (inWater(c)) { vanish(c, m, target); return; }
   mode(c, m, 'hold');
   pose(c, m, m.crawl ? 'crawl_still' : 'retreat');                                             // it turns away first
   m.retreatRun = now() + 30;
@@ -836,7 +1098,7 @@ function ambush(c, m, target, water) {
   m.ambushAt = water;
   go(m, 'ambush', rand(3, 8));
   const hold = under(water, LURK_DEPTH);
-  if (flat(water, c.location) < 4 || !c.isInWater) {
+  if (flat(water, c.location) < 4 || !inWater(c)) {
     if (seenByAnyone(c)) { lurk(c, m, target); return; }
     stop(c, m);
     m.hold = hold;
@@ -938,7 +1200,7 @@ function pickTarget(c, m) {
 /** nothing to do: it stays where it is, in a pose that fits where it is */
 function rest(c, m) {
   stop(c, m);
-  if (c.isInWater) { mode(c, m, 'hold'); pose(c, m, 'idle_water'); }
+  if (inWater(c)) { mode(c, m, 'hold'); pose(c, m, 'idle_water'); }
   else { mode(c, m, 'observe'); pose(c, m, m.crawl ? 'crawl_still' : 'watch'); }
 }
 
@@ -950,7 +1212,7 @@ function think(c) {
   if (h) {
     handoff.delete(c.id);
     const p = playerById(h.target);
-    if (p && hunter(p)) { if (c.isInWater && !p.isInWater) { const b = bankNear(c, p); if (b) climbOut(c, m, b.bank, p.getHeadLocation(), () => chase(c, m, p)); else chase(c, m, p); } else chase(c, m, p); }
+    if (p && hunter(p)) { if (inWater(c) && !p.isInWater) { const b = bankNear(c, p); if (b) climbOut(c, m, b.bank, p.getHeadLocation(), () => chase(c, m, p)); else chase(c, m, p); } else chase(c, m, p); }
   }
   const target = pickTarget(c, m);
   if (!config.enabled || !target) {
@@ -963,9 +1225,11 @@ function think(c) {
   const d = flat(target.location, c.location);
   const head = c.getHeadLocation();
   const seen = looksAt(target, head, 0.88, 96);
+  const wasUnseen = m.unseenFor;
   m.seenFor = seen ? m.seenFor + 5 : 0;
   m.unseenFor = seen ? 0 : m.unseenFor + 5;
-  const hunting = m.state === 'chase' || m.state === 'deep' || m.state === 'burst';
+  const hunting = m.state === 'chase' || m.state === 'deep' || m.state === 'burst' || (m.state === 'rush' && m.rushing);
+  if (m.state === 'scare') return;                                  // its moment: nothing else happens
   feel(target, d, hunting);
   if (hunting) press(target.id, 'chase', t + 60);
   else if (d < 32 && m.state !== 'idle' && m.state !== 'lurk') press(target.id, 'near', t + 80);
@@ -975,19 +1239,19 @@ function think(c) {
   switch (m.state) {
     case 'idle': {
       if (t < m.cooldownUntil) { if (!m.pose) rest(c, m); break; }
-      if (c.isInWater || nearWater(c.dimension, c.location, 6)) lurk(c, m, target, rand(3, 7));
-      else watch(c, m, target);
+      if (inWater(c) || nearWater(c.dimension, c.location, 6)) lurk(c, m, target, rand(3, 7));
+      else encounter(c, m, target);
       break;
     }
     case 'vanishing': break;
     case 'lurk': {
-      if (!m.swim && t % 60 < 5 && c.isInWater) {
+      if (!m.swim && t % 60 < 5 && inWater(c)) {
         const s = surfaceNear(c.dimension, c.location, 6, 1);
         if (s && chance(0.4)) particle(c.dimension, 'brine:bubbles', s);
       }
       if (target.isInWater && hunter(target) && d < 40 && t >= m.cooldownUntil) { deep(c, m, target); break; }
       // you are standing at the edge of deep water, still: it is already under it
-      if (c.isInWater && !target.isInWater && hunter(target) && t >= m.cooldownUntil && d < 40 && chance(0.06) &&
+      if (inWater(c) && !target.isInWater && hunter(target) && t >= m.cooldownUntil && d < 40 && chance(0.06) &&
           t - (m.lastAmbush ?? -9999) > 60 * TPS) {
         const edge = waterAround(target, 1.5, 4, { depth: 3, allowView: true, tries: 10 });
         if (edge && Math.hypot(target.getVelocity().x, target.getVelocity().z) < 0.05) { m.lastAmbush = t; ambush(c, m, target, edge); break; }
@@ -996,7 +1260,7 @@ function think(c) {
       if (t < m.cooldownUntil) { lurk(c, m, target, rand(8, 16)); if (chance(0.35)) watch(c, m, target); break; }
       const need = config.preset === 'quiet' ? 3 : config.preset === 'nightmare' ? 0 : pr.bold > 0.6 ? 0 : randInt(1, 2);
       if (m.sightings < need) watch(c, m, target);
-      else { m.sightings = 0; if (!approach(c, m, target, false)) stalk(c, m, target); }
+      else { m.sightings = 0; if (nearWater(target.dimension, target.location, 6) && chance(0.6) && approach(c, m, target, false)) break; encounter(c, m, target); }
       break;
     }
     case 'watch': {
@@ -1014,7 +1278,7 @@ function think(c) {
       }
       if (t >= m.until) {
         m.sightings++;
-        if (c.isInWater || m.kind === 'water') lurk(c, m, target);
+        if (inWater(c) || m.kind === 'water') lurk(c, m, target);
         else if (!seenByAnyone(c) && relocate(c, m, target)) stalk(c, m, target);      // it comes down off its ledge unseen
         else stalk(c, m, target);
       }
@@ -1034,8 +1298,8 @@ function think(c) {
       if ((seen && m.seenFor >= 10) || d < 12) { vanish(c, m, target); break; }
       if (t < m.until) break;
       if (t < m.cooldownUntil) { if (chance(0.5)) watch(c, m, target); else go(m, 'hidden', rand(5, 10)); }
-      else if (m.sightings < 1 && pr.bold < 0.6) watch(c, m, target);
-      else { m.sightings = 0; if (nearWater(target.dimension, target.location, 6) && approach(c, m, target, false)) break; stalk(c, m, target); }
+      else if (m.sightings < 1 && pr.bold < 0.6 && chance(0.5)) watch(c, m, target);
+      else { m.sightings = 0; encounter(c, m, target); }
       break;
     }
     case 'standoff': {
@@ -1044,30 +1308,28 @@ function think(c) {
       if (m.seenFor > randInt(70, 110)) { decide(c, m, target, false); break; }
       if (m.unseenFor > 50) { stalk(c, m, target); break; }
       if (m.walkAt && t > m.since + 50 && !m.walking) { m.walking = true; m.replan = 0; }    // it starts walking at you
-      if (m.walking && !c.isInWater && t >= m.replan) {
-        const line = linePath(c.dimension, c.location, target.location, 16);
-        if (line) walk(c, m, line.slice(0, Math.max(1, line.length - 6)), 'slow', { face: () => target.getHeadLocation() });
-        m.replan = t + 15;
-      }
+      if (m.walking && !inWater(c) && d > 4) navigate(c, m, target, 'slow', SPEED.slow);
       if (t >= m.until) { m.walking = false; decide(c, m, target, false); break; }
       if (chance(0.025)) sound(c.dimension, 'mob.brinesleeper.click', head, 0.8, rand(0.7, 0.9));
       break;
     }
     case 'stalk': {
-      if (target.isInWater && c.isInWater && hunter(target) && t >= m.cooldownUntil && !m.frozen) { deep(c, m, target); break; }
+      if (target.isInWater && inWater(c) && hunter(target) && t >= m.cooldownUntil && !m.frozen) { deep(c, m, target); break; }
       const vanishAt = 14 - pr.bold * 6;
       if (d > vanishAt && m.seenFor >= Math.round(15 + pr.bold * 30)) { vanish(c, m, target); break; }
       if (d < m.standoffAt) { standoff(c, m, target); break; }
-      if (c.isInWater && !target.isInWater && !m.climb && (surfaceNear(c.dimension, c.location, 6, 3)?.depth ?? 0) >= 2) {
+      if (inWater(c) && !target.isInWater && !m.climb && (surfaceNear(c.dimension, c.location, 6, 3)?.depth ?? 0) >= 2) {
         if (d < 18 && approach(c, m, target, false)) break;
         if (leaveWater(c, m, target, () => { m.replan = 0; })) break;
       }
+      // you turn around and it is right there
+      if (seen && d < 5 && wasUnseen >= 40 && hunter(target) && scareReady(target)) { jumpscare(c, m, target, chance(0.5) ? 'chase' : 'vanish'); break; }
       // it only comes closer while you are not looking. Look at it and it stops dead; it knows when you look back,
       // and waits longer before it moves again
       if (seen && !m.frozen && m.seenFor >= 5) {
         m.frozen = true;
         stop(c, m);
-        mode(c, m, c.isInWater ? 'hold' : 'observe');
+        mode(c, m, inWater(c) ? 'hold' : 'observe');
         pose(c, m, m.crawl ? 'crawl_still' : pick(['head_tilt', 'hunting_stance', 'watch']));
         spotted(c, m, target);
         m.until += 20;
@@ -1092,19 +1354,10 @@ function think(c) {
       }
       m.wasStill = still;
       if (t < m.mimicUntil) break;
-      // along your trail, or straight at you
-      if (!m.climb && !m.swim && (!m.walk || t >= m.replan)) {
-        const r = routeTo(c, target, 10);
-        if (r && r.length) {
-          walk(c, m, r, pr.bold > 0.55 && d < 20 ? 'slow' : 'stalk', { speed: d > 28 ? 0.17 : d > 16 ? 0.13 : 0.1 });
-          m.noPath = 0;
-        } else {
-          m.noPath += 5;
-          if (!m.walk) { mode(c, m, 'hold'); pose(c, m, m.crawl ? 'crawl_still' : 'hunting_stance'); }
-        }
-        m.replan = t + 20;
-      }
-      if (m.noPath >= 40) { m.noPath = 0; if (!relocate(c, m, target, true)) vanish(c, m, target); break; }  // no way to you from here
+      // the way to you: its own search through the cave (your trail if that finds nothing)
+      pursue(c, m, target, pr.bold > 0.55 && d < 20 ? 'slow' : 'stalk', d > 28 ? 0.19 : d > 16 ? 0.15 : 0.11);
+      if (m.noPath >= 40) { m.noPath = 0; m.lost = 0; if (!relocate(c, m, target, true)) vanish(c, m, target); break; }  // no way to you from here
+      if (!seen && d > 10 && d < 26 && chance(0.01)) mimic(target);
       const mining = t - (busy.get(target.id) ?? -999) < 40;
       if (!seen && d < 8 && chance(mining ? 0.12 : 0.05)) sound(c.dimension, 'mob.brinesleeper.breathe', head, 1.1, rand(0.8, 0.95));
       const snuff = config.lights && t >= m.nextSnuff && !seen && d < 22 && chance(0.1 * (1 + Math.min(4, pr.lights / 3)));
@@ -1116,10 +1369,10 @@ function think(c) {
     case 'chase': {
       if (graspers.get(target.id) === m) { graspTick(c, m, target); break; }
       if (m.climb) break;                                           // hauling itself out onto your bank
-      if (target.isInWater && c.isInWater) { m.chased = undefined; deep(c, m, target); break; }
+      if (target.isInWater && inWater(c)) { m.chased = undefined; deep(c, m, target); break; }
       if (!hunter(target) || d > 48 || t >= m.chaseEnd) { retreat(c, m, target); break; }
       if (target.isSprinting && d > m.runStart + 3) { learn(target, 'runs', 0.2, 3); m.runStart = d; }
-      if (c.isInWater && !target.isInWater) {
+      if (inWater(c) && !target.isInWater) {
         const b = bankNear(c, target);
         const back = () => { m.replan = 0; };
         if (b && flat(b.water, c.location) < 7) climbOut(c, m, b.bank, target.getHeadLocation(), back);
@@ -1128,22 +1381,19 @@ function think(c) {
         break;
       }
       const dy = Math.abs(target.location.y - c.location.y);
+      if (d < 2.4 && dy < 2.6 && !m.caught && scareReady(target)) { m.caught = true; jumpscare(c, m, target, 'chase'); break; }   // it has you
       if (d < 2.7 && dy < 2.6 && t >= m.nextStrike) strike(c, m, target);
       else if (d > 2.7 && d < 6 && t >= m.nextLunge && inSight(target, head, 8)) lunge(c, m, target);
       if (d <= 1.8 && dy < 2.6) {                                   // right on you: it stops and swipes
         stop(c, m); mode(c, m, 'hold'); pose(c, m, m.crawl ? 'crawl_still' : 'hunting_stance');
         try { c.teleport(c.location, { facingLocation: target.getHeadLocation() }); } catch (e) { /* ok */ }
-      } else if (!m.walk || t >= m.replan) {
-        const r = routeTo(c, target, 16);
-        if (r && r.length) { walk(c, m, r.length > 3 ? r.slice(0, r.length - 2) : r, 'run', { speed: runSpeed(target) }); m.noPath = 0; }
-        else {
-          m.noPath += 5;
-          if (!m.walk) { mode(c, m, 'hold'); pose(c, m, m.crawl ? 'crawl_still' : 'hunting_stance'); }
-        }
-        m.replan = t + 8;
-      }
-      // it cannot reach you from here: it goes, and comes back along your trail
-      if (m.noPath >= 50) { m.noPath = 0; if (!relocate(c, m, target, true)) retreat(c, m, target); }
+      } else pursue(c, m, target, 'run', runSpeed(target));
+      // it is close: the dark closes in with it, and you feel its steps
+      if (config.screen && d < 22 && t >= (m.nextDark ?? 0)) { try { target.addEffect('darkness', 70, { amplifier: 0, showParticles: false }); } catch (e) { /* ok */ } m.nextDark = t + 90; }
+      if (d < 12 && m.walk && t % 10 < 5) shake(target, 0.04 + (12 - d) * 0.006, 0.25);
+      if (inSight(target, head)) m.chaseEnd = Math.max(m.chaseEnd, t + 5 * TPS);      // while it can see you, it does not stop
+      // it cannot reach you from here: when you next look, it is ahead of you
+      if (m.noPath >= 30) { m.noPath = 0; m.lost = 0; if (!ahead(c, m, target) && !relocate(c, m, target, true)) retreat(c, m, target); }
       break;
     }
     case 'deep': {
@@ -1190,7 +1440,7 @@ function think(c) {
       break;
     }
     case 'retreat': {
-      if (c.isInWater) { vanish(c, m, target); break; }
+      if (inWater(c)) { vanish(c, m, target); break; }
       if (t >= m.retreatRun && !m.ran) {                            // it runs back the way you came
         m.ran = true;
         const r = routeAway(c, target);
@@ -1199,7 +1449,75 @@ function think(c) {
       if (t >= m.until || (m.ran && !m.walk) || (!inSight(target, head) && d > 14)) { vanish(c, m, target); break; }
       break;
     }
+    case 'scare': break;
+    case 'creep': {                                                 // it moves when you don't look
+      eyes(c, m, d);
+      if (seen && m.seenFor >= 4) spotted(c, m, target);
+      if (seen && d < 5.5 && scareReady(target)) { jumpscare(c, m, target, chance(0.6) ? 'chase' : 'vanish'); break; }
+      if (t >= m.until || m.steps >= 10) { if (hunter(target) && chance(0.5)) chase(c, m, target); else vanish(c, m, target); break; }
+      if (!seen && m.unseenFor >= 10 && !seenByAnyone(c)) {
+        const to = closer(c, target, d < 10 ? rand(2, 3.5) : rand(4, 7));
+        if (to) {
+          place(c, m, to);
+          wrongPose(c, m, target, to);
+          m.steps++;
+          m.unseenFor = 0;
+          m.spotted = false;
+          sound(c.dimension, 'mob.brinesleeper.step', to, 0.8, 0.8);
+          if (d < 14) { try { target.playSound('brine.heartbeat', { volume: 1 }); } catch (e) { /* ok */ } }
+          if (d < 9 && chance(0.4)) whisper(target, pick(["...don't turn around...", '...it is closer than it was...', `...${target.name}...`]));
+        }
+      }
+      break;
+    }
+    case 'rush': {                                                  // out of the dark, screaming, on all fours
+      const dy = Math.abs(target.location.y - c.location.y);
+      if (!m.rushing) {
+        eyes(c, m, d);
+        if (t >= m.rushAt || (seen && m.seenFor >= 10)) {
+          m.rushing = true;
+          sound(c.dimension, 'mob.brinesleeper.roar', head, 1.8, 1.1);
+          try { target.playSound('music.brine.sting', { volume: 1 }); } catch (e) { /* ok */ }
+          press(target.id, 'chase', t + 160);
+          m.spotted = false;
+          spotted(c, m, target);
+        }
+        break;
+      }
+      if (d < 2.6 && dy < 2.6) { if (hunter(target) && scareReady(target)) jumpscare(c, m, target, chance(0.5) ? 'chase' : 'vanish'); else chase(c, m, target); break; }
+      pursue(c, m, target, 'run', 0.5);
+      if (d < 14 && t % 6 < 5) shake(target, 0.12, 0.3);
+      if (t >= m.until || m.noPath >= 20) chase(c, m, target);
+      break;
+    }
+    case 'ceiling': {                                               // above you, dripping on you
+      if (t % 20 < 5) {
+        particle(c.dimension, 'brine:drips', add(target.getHeadLocation(), { x: rand(-0.3, 0.3), y: 0.5, z: rand(-0.3, 0.3) }));
+        if (chance(0.6)) sound(c.dimension, 'brine.fx.drip', target.getHeadLocation(), 0.9, rand(0.9, 1.1));
+      }
+      const up = target.getViewDirection().y > 0.4 && looksAt(target, head, 0.75, 20);
+      if (up || flat(target.location, m.floorAt) < 1.4) {             // you looked up (or walked under it): it drops
+        if (hunter(target) && scareReady(target)) jumpscare(c, m, target, chance(0.5) ? 'chase' : 'vanish');
+        else { stop(c, m); place(c, m, m.floorAt, target.getHeadLocation()); standoff(c, m, target); }
+        break;
+      }
+      if (t >= m.until || d > 14) vanish(c, m, target);
+      break;
+    }
     default: lurk(c, m, target);
+  }
+}
+/** the sounds you make, made again behind you a moment later */
+function mimic(target) {
+  const v = target.getViewDirection();
+  const back = add(target.location, { x: -v.x * rand(8, 14), y: 0, z: -v.z * rand(8, 14) });
+  const kind = pick(['step', 'step', 'dig', 'hurt']);
+  if (kind === 'step') {
+    for (let i = 0; i < 3; i++) system.runTimeout(() => { try { target.dimension.playSound('step.stone', back, { volume: 0.7, pitch: 0.9 }); } catch (e) { /* ok */ } }, i * 7);
+  } else if (kind === 'dig') {
+    try { target.dimension.playSound('dig.stone', back, { volume: 0.8, pitch: 0.85 }); } catch (e) { /* ok */ }
+  } else {
+    try { target.dimension.playSound('game.player.hurt', back, { volume: 0.6, pitch: 0.7 }); } catch (e) { /* ok */ }
   }
 }
 
@@ -1342,7 +1660,7 @@ function murmurs() {
     if (!nextWhisper.has(p.id)) { nextWhisper.set(p.id, t + randInt(90, 200) * TPS); continue; }
     if (t < nextWhisper.get(p.id)) continue;
     nextWhisper.set(p.id, t + Math.round((randInt(120, 300) * TPS) / freq()));
-    if (inStillwater(p.dimension, p.location) && nearWater(p.dimension, p.location, 5)) whisper(p);
+    if (inStillwater(p.dimension, p.location)) whisper(p, chance(0.3) ? `...${p.name}...` : undefined);
   }
 }
 const returns = [];
@@ -1355,7 +1673,7 @@ world.afterEvents.entityHurt.subscribe(({ hurtEntity, damageSource }) => {
   if (!m) return;
   if (graspers.get(p.id) === m) m.graspBroken = true;
   if (['standoff', 'stalk', 'idle', 'watch', 'lurk', 'hidden'].includes(m.state)) {
-    if (hurtEntity.isInWater && hunter(p) && p.isInWater) deep(hurtEntity, m, p);
+    if (inWater(hurtEntity) && hunter(p) && p.isInWater) deep(hurtEntity, m, p);
     else decide(hurtEntity, m, p, true);
   }
 });
@@ -1389,6 +1707,25 @@ function comebacks() {
       whisper(p, "...you didn't think that was the only one...");
     } catch (e) { /* ok */ }
   }
+}
+
+// ------------------------------------------------------------------ testing (the settings wheel): make one happen to you now
+export function provoke(player, kind) {
+  let c = creatures().find((e) => !e.hasTag(STAGED));
+  if (!c) {
+    const s = spot(player, 'floor', 18, 28, { room: 5, eyeHeight: 3.2, tries: 30 }) ?? spot(player, 'floor', 8, 16, { room: 4, allowView: true, tries: 30 });
+    if (!s) return false;
+    try { c = overworld().spawnEntity(CREATURE, s); c.triggerEvent(`brine:threat_${config.threat}`); } catch (e) { return false; }
+  }
+  const m = mindOf(c);
+  lastScare.delete(player.id);
+  m.cooldownUntil = 0;
+  if (kind === 'jumpscare') return jumpscare(c, m, player, 'vanish');
+  if (kind === 'creep') return creep(c, m, player);
+  if (kind === 'rush') return rush(c, m, player);
+  if (kind === 'ceiling') return ceiling(c, m, player);
+  if (kind === 'chase') { chase(c, m, player); return true; }
+  return false;
 }
 
 // ------------------------------------------------------------------ what it knows (the settings wheel and /brine:memory)
@@ -1437,7 +1774,7 @@ function motorTick() {
   for (const c of creatures()) {
     const m = minds.get(c.id);
     if (!m || c.hasTag(STAGED)) continue;
-    try { motor(c, m); animate(c, m); } catch (e) { /* gone */ }
+    try { stepPlan(c, m); motor(c, m); animate(c, m); } catch (e) { /* gone */ }
   }
   stepDeep();
 }

@@ -612,6 +612,186 @@ def chase_loop(seed, sr=SR):
     return master(out, -17.0, -1.0, sub_cut=35.0)
 
 
+# =================================================================== the chase (7.0): fast, distorted, glitching, laughing
+def hz(midi):
+    return 440.0 * 2 ** ((midi - 69) / 12)
+
+
+def square(freq, n, sr=SR, max_h=25, phase=0.0, cap=None):
+    """a band-limited square (odd harmonics), per-sample or fixed frequency"""
+    f = np.broadcast_to(np.asarray(freq, dtype=float), (n,))
+    ph = 2 * np.pi * np.cumsum(f) / sr + phase
+    top = float(np.max(f)) or 1.0
+    K = int(min(max_h, (sr / 2) / top, (cap / top) if cap else 1e9))
+    out = np.zeros(n)
+    for k in range(1, max(1, K) + 1, 2):
+        out += np.sin(k * ph) / k
+    return out * 4 / np.pi
+
+
+def crush(x, bits=6, rate=11025, sr=SR):
+    """lo-fi: fewer levels, and a lower sample rate held between samples"""
+    step = max(1, int(round(sr / rate)))
+    held = np.repeat(x[::step], step)[:len(x)]
+    q = 2 ** (bits - 1)
+    return np.round(held * q) / q
+
+
+def tape_stop(x, sr=SR):
+    """the machine losing power: playback slows to nothing"""
+    n = len(x)
+    t = np.arange(n)
+    pos = t - t ** 2 / (2.0 * n)
+    return np.interp(pos, np.arange(n), x) * np.linspace(1, 0.2, n)
+
+
+def kick(rng, sr=SR):
+    m = int(0.32 * sr)
+    tt = np.arange(m) / sr
+    body = sine(52 + 150 * np.exp(-tt / 0.025), m, sr) * np.exp(-tt / 0.12)
+    click = highpass(white(m, rng), 1500, 2, sr) * np.exp(-tt / 0.004) * 0.9
+    return np.tanh(3.0 * (0.8 * body + click))
+
+
+def snare(rng, sr=SR):
+    m = int(0.28 * sr)
+    tt = np.arange(m) / sr
+    noise = bandpass(white(m, rng), 1400, 7500, 2, sr) * np.exp(-tt / 0.09)
+    body = sine(190 * (1 + 0.3 * np.exp(-tt / 0.01)), m, sr) * np.exp(-tt / 0.045)
+    return np.tanh(2.2 * (noise + 0.8 * body))
+
+
+def hat(rng, open_=False, sr=SR):
+    m = int((0.22 if open_ else 0.05) * sr)
+    tt = np.arange(m) / sr
+    return highpass(white(m, rng), 7000, 2, sr) * np.exp(-tt / (0.09 if open_ else 0.012))
+
+
+def laugh(rng, sr=SR):
+    """a laugh from something with no reason to laugh: low, distorted, bending down"""
+    out = np.zeros(int(1.9 * sr))
+    at = 0.0
+    for i, (ln, f0) in enumerate(((0.2, 150), (0.2, 142), (0.22, 134), (0.5, 118))):
+        v = voice(ln, lambda tt, f0=f0, ln=ln: f0 * (1 - 0.25 * tt / ln), lambda tt: VOWELS['ah'], rng, breath=0.9, jitter=0.15, sub=0.7)
+        place(out, np.tanh(2.5 * v) * env(int(ln * sr), 0.01, ln * 0.5, sr), at, sr)
+        at += ln + (0.05 if i < 2 else 0.08)
+    down = np.interp(np.arange(0, len(out) - 1, 0.7), np.arange(len(out)), out)          # an octave-ish lower, slower
+    return verb(down, 2.0, int(rng.integers(1, 9999)), 0.45, 2500)
+
+
+def exe_chase(seed, sr=SR):
+    """the chase theme (7.0): 174 BPM in E, four-on-the-floor distorted kick, a chromatic bass riff a semitone wide,
+    a detuned square lead that screams and bends, cluster stabs, a half-time breakdown with tremolo strings, a laugh,
+    a stutter, and a tape-stop at the end of the loop (all original; loops seamlessly)"""
+    rng = np.random.default_rng(seed)
+    s16 = 60 / 174 / 4
+    bar = 16 * s16
+    bars = 16
+    dur = bars * bar
+    n = int(round(dur * sr))
+    ev = np.zeros((2, n + int(4 * sr)))
+    put = lambda x, at, g=1.0, pan=0.0: mixin(ev, np.stack([x * np.cos((pan + 1) * np.pi / 4) * np.sqrt(2), x * np.sin((pan + 1) * np.pi / 4) * np.sqrt(2)]), at, g)
+    K, SN, HC, HO = kick(rng), snare(rng), hat(rng), hat(rng, True)
+    riff = [40, 40, 41, 40, 43, 40, 42, 40, 40, 40, 41, 40, 46, 45, 44, 43]
+    turn = [40, 52, 40, 51, 40, 50, 40, 49, 46, 46, 47, 47, 48, 48, 41, 40]
+    for b in range(bars):
+        t0 = b * bar
+        half = 8 <= b < 12                                           # the breakdown
+        last = b % 4 == 3
+        for st in range(16):
+            at = t0 + st * s16
+            if half:
+                if st in (0, 10): put(K, at, 1.0)
+                if st == 8: put(SN, at, 0.9)
+                if st % 4 == 2: put(HC, at, 0.35, 0.3)
+            else:
+                if st % 4 == 0 or (b % 2 and st == 14) or (last and st == 15): put(K, at, 1.0)
+                if st in (4, 12) and not (last and st == 12): put(SN, at, 0.85)
+                if last and st >= 12: put(SN, at, 0.35 + 0.15 * (st - 12))          # a fill into the next bar
+                if st % 2 == 1: put(HC, at, 0.3 if b < 12 else 0.42, 0.35)
+                if st % 4 == 2: put(HO, at, 0.28, -0.3)
+            # the bass: distorted saw a semitone wide, every sixteenth (held through the breakdown)
+            if not half:
+                note = (turn if last else riff)[st]
+                m = int(s16 * 0.9 * sr)
+                v = saw(hz(note), m, sr, 30) + 0.6 * square(hz(note) * 1.004, m, sr) + 0.3 * sine(hz(note - 12), m, sr)
+                put(bandpass(np.tanh(3.5 * v), 60, 2600, 2) * env(m, 0.003, s16 * 0.4), at, 0.42)
+        if half:                                                     # the breakdown: a held low E and a tritone, grinding
+            m = int(bar * sr)
+            v = saw(hz(28), m, sr, 40) + 0.8 * saw(hz(34) * 1.003, m, sr, 40)
+            put(bandpass(np.tanh(4 * v), 50, 1800, 2) * env(m, 0.01, 0.2), t0, 0.5)
+            cl = strings([hz(84 + (b - 8)), hz(85 + (b - 8)), hz(90 + (b - 8))], bar, rng, tremolo=16.0, bright=1.4)   # creeping up
+            put(np.tanh(2 * cl), t0, 0.32, rng.uniform(-0.4, 0.4))
+        if b in (0, 4, 12) or (b < 8 and b % 2 == 0):                # cluster stabs
+            m = int(s16 * 2 * sr)
+            st_ = sum(saw(hz(k), m, sr, 30) for k in (52, 53, 58, 59))
+            put(bandpass(np.tanh(2.5 * st_), 150, 4500, 2) * env(m, 0.002, s16 * 1.5), t0, 0.3)
+        if b in (0, 8):                                              # an impact: the floor drops out
+            m = int(1.6 * sr)
+            tt = np.arange(m) / sr
+            put(sine(62 * np.exp(-tt / 0.6) + 28, m, sr) * np.exp(-tt / 0.5) + 0.4 * lowpass(white(m, rng), 900, 2) * np.exp(-tt / 0.08), t0, 0.8)
+    # the lead: two detuned squares, crushed, screaming, bending down on the held notes
+    phrase = [[(76, 4), (77, 2), (76, 2), (71, 4), (70, 4)], [(71, 6), (72, 2), (71, 4), (65, 4)],
+              [(76, 2), (76, 2), (77, 2), (79, 2), (82, 4), (81, 4)], [(83, 8), (82, 4), (76, 4)]]
+    for b in list(range(2, 8)) + list(range(12, 16)):
+        up = 12 if b >= 12 else 0
+        at = b * bar
+        for note, ln in phrase[b % 4]:
+            dur_ = ln * s16
+            m = int(dur_ * sr)
+            tt = np.arange(m) / sr
+            bend = 2 ** (-np.clip((tt - dur_ * 0.55) / (dur_ * 0.45), 0, 1) * (1.0 if ln >= 4 else 0.0) / 12)
+            vib = 1 + 0.006 * np.sin(2 * np.pi * 6.2 * tt) * np.clip(tt / 0.15, 0, 1)
+            f = hz(note + up) * bend * vib
+            v = square(f * 1.006, m, sr, cap=9000) + square(f * 0.994, m, sr, cap=9000) + 0.35 * saw(f * 2, m, sr, 12)
+            v = crush(np.tanh(1.8 * v) * env(m, 0.004, min(0.06, dur_ * 0.3)), 6, 11025)
+            put(bandpass(v, 350, 6500, 2), at, 0.16 if b < 4 else 0.2, -0.2 if b % 2 else 0.2)
+            at += dur_
+    # the laugh, in the gap before the breakdown and again under the last bars (backwards the second time)
+    la = laugh(rng)
+    put(la, 7 * bar + 8 * s16, 0.55, -0.3)
+    put(la[::-1] * np.linspace(0, 1, len(la)), 14 * bar, 0.4, 0.4)
+    # a noise riser into the last section
+    m = int(bar * sr)
+    tt = np.arange(m) / sr
+    rise = stft_filter(white(m, rng), lambda t_, f: np.exp(-0.5 * ((np.log2(np.maximum(f, 1)) - np.log2(500 + 7000 * np.clip(t_ / (m / sr), 0, 1))) / 0.4) ** 2))
+    put(rise * (tt / tt[-1]) ** 2, 11 * bar, 0.35)
+    out = wrap(ev, dur)
+    # the stutter at the end of bar 8, and the tape-stop at the end of the loop
+    a = int((7 * bar + 12 * s16) * sr)
+    sl = int(s16 * sr)
+    piece = out[:, a:a + sl].copy()
+    for k in range(1, 4):
+        q = piece if k < 3 else np.stack([np.interp(np.arange(0, sl, 1.5), np.arange(sl), ch)[:sl] for ch in piece])
+        q = np.pad(q, ((0, 0), (0, max(0, sl - q.shape[1]))))[:, :sl]
+        out[:, a + k * sl:a + (k + 1) * sl] = q
+    b0 = int((15 * bar + 12 * s16) * sr)
+    out[:, b0:] = np.stack([tape_stop(ch[b0:]) for ch in out])
+    out = 0.8 * out + 0.2 * np.stack([crush(ch, 8, 16000) for ch in out])      # a little grit over everything
+    return master(out, -14.0, -0.8, sub_cut=40.0)
+
+
+def jumpscare_scream(sr=SR):
+    """the moment it is in your face: a breath sucked in, then everything at once, loud"""
+    rng = np.random.default_rng(666)
+    dur = 1.7
+    n = int(dur * sr)
+    out = np.zeros(n)
+    place(out, reverse_swell(0.09, rng) * 0.8, 0.0, sr)
+    hit = 0.08
+    m = int(1.5 * sr)
+    tt = np.arange(m) / sr
+    place(out, highpass(white(m, rng), 300, 2) * np.exp(-tt / 0.14), hit, sr, 0.9)
+    place(out, sine(70 * np.exp(-tt / 0.5) + 30, m, sr) * np.exp(-tt / 0.45), hit, sr, 0.9)
+    sh = voice(1.4, lambda t_: 640 * (1 - 0.3 * t_ / 1.4) * (1 + 0.04 * np.sin(2 * np.pi * 9 * t_)), lambda t_: morph('ee', 'ah', min(1.0, t_ / 0.5)),
+               rng, breath=1.0, jitter=0.25, sub=0.8)
+    place(out, np.tanh(4 * sh / (rms(sh) * 6 + 1e-9)) * env(int(1.4 * sr), 0.004, 0.7, sr), hit, sr, 0.9)
+    place(out, np.tanh(2.5 * strings([1318.5, 1396.9, 1864.7], 1.0, rng, tremolo=22.0, bright=1.4)) * env(int(1.0 * sr), 0.004, 0.6, sr), hit, sr, 0.45)
+    place(out, waterphone(1500, 1.2, rng, bend=3.0), hit, sr, 0.25)
+    out = verb(out, 1.2, 13, 0.25, 4500)[:n]
+    return master(fade(out, 0.002, 0.4), -9.0, -0.5, sub_cut=30.0)
+
+
 # =================================================================== stingers: the moment you see it
 def reverse_swell(dur, rng, sr=SR):
     """something drawn backwards out of the dark, rushing at you"""

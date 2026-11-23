@@ -1,18 +1,22 @@
 // The great halls: every visit finds a vast flooded cavern like the pictures, and one is always near.
 //  - near spawn: when a world first runs, a starter hall is placed deep under the land 140-220 blocks from the world
-//    spawn, with a well (a ring of stone and a ladder shaft) leading down to it, built when someone walks near it
-//  - wherever you go in the Stillwater Caves or the dripstone caves: if no hall is within 100 blocks, one is placed
+//    spawn
+//  - wherever you go in the Stillwater Caves or the dripstone caves: if no hall is within 90 blocks, one is placed
 //    45-48 blocks away along your line, its waterline at your feet, so its tunnel opens in front of you
+//  - (7.0) halls come in complexes: up to two more halls are joined on, a hall's width further along, their tunnels
+//    meeting, so a complex runs up to 240 blocks
+//  - (7.0) every hall gets a shaft to the surface: lined with stone, a ladder all the way from the top to the bottom,
+//    a sinkhole rim with candles and a sign at the top, a tunnel into the hall at the bottom
 //  - inside a hall that world generation put in another biome, the Stillwater fog is pushed onto you
 // Chests are filled with loot as soon as a hall stands (or when its chunks first load).
-import { world, system, BlockVolume, ItemStack, EnchantmentTypes } from '@minecraft/server';
+import { world, system, BlockVolume, BlockPermutation, ItemStack, EnchantmentTypes } from '@minecraft/server';
 import { config } from './config.js';
 import { inBiome, flat, randInt, pick, sound, debug } from './main.js';
 import { HALL, halls, loadHalls, saveHalls, hallAt, biomeAt, BIOME } from './areas.js';
 
 const IDS = ['brine:great_hall_0', 'brine:great_hall_1', 'brine:great_hall_2'];
 const { W, H, D } = HALL;
-const SPACING = 100;
+const SPACING = 90;
 const NATURAL = ['minecraft:stone', 'minecraft:deepslate', 'minecraft:tuff', 'minecraft:andesite', 'minecraft:diorite', 'minecraft:granite',
   'minecraft:calcite', 'minecraft:dripstone_block', 'minecraft:smooth_basalt', 'minecraft:cobbled_deepslate', 'minecraft:dirt',
   'minecraft:grass_block', 'minecraft:coarse_dirt', 'minecraft:podzol', 'minecraft:sand', 'minecraft:red_sand', 'minecraft:sandstone',
@@ -121,7 +125,29 @@ export function buildHall(player, force = false) {
     saveHalls();
     sound(player.dimension, 'brine.fx.splash_far', { x: player.location.x + s.dx * 10, y: player.location.y, z: player.location.z + s.dz * 10 }, 1.2, 0.8);
   }, 10);
+  grow(player.dimension, h, 2);
   return true;
+}
+/** join more halls onto a hall, one hall's width further along (their tunnels meet), one every ten seconds */
+function grow(dim, h, more) {
+  const dirs = [[h.dx || 1, h.dz], [h.dz, h.dx || 1], [-h.dz, -(h.dx || 1)]];
+  let placed = 0;
+  dirs.forEach(([dx, dz], i) => {
+    system.runTimeout(() => {
+      if (placed >= more) return;
+      const x = h.x + dx * W, z = h.z + dz * W, y = h.y;
+      if (halls.some((o) => Math.hypot(o.x - x, o.z - z) < W * 0.9)) return;
+      let top;
+      try { top = dim.getTopmostBlock({ x, z }); } catch (e) { return; }              // not loaded yet: the complex stays smaller
+      if (!top || top.location.y < y + (H - D) + 8) return;                         // too near the surface or the sea floor
+      try { world.structureManager.place(pick(IDS), dim, { x: x - W / 2, y: y - D, z: z - W / 2 }); } catch (e) { return; }
+      placed++;
+      const n = { x, y, z, dx, dz, filled: false, of: halls.indexOf(h) };
+      halls.push(n);
+      saveHalls();
+      debug(`hall joined on at ${x} ${y} ${z}`);
+    }, 200 * (i + 1));
+  });
 }
 
 // ------------------------------------------------------------------ the starter hall near spawn, and its well
@@ -134,42 +160,79 @@ function placeStarter() {
   const x = Math.floor(sp.x + Math.cos(a) * r), z = Math.floor(sp.z + Math.sin(a) * r), y = -24;
   try { world.structureManager.place(pick(IDS), world.getDimension('overworld'), { x: x - W / 2, y: y - D, z: z - W / 2 }); }
   catch (e) { debug(`starter hall failed: ${e}`); return; }
-  halls.push({ x, y, z, dx: 0, dz: 0, filled: false, starter: true, well: false });
+  const h = { x, y, z, dx: 1, dz: 0, filled: false, starter: true, well: false };
+  halls.push(h);
   saveHalls();
+  grow(world.getDimension('overworld'), h, 2);
   debug(`starter hall at ${x} ${y} ${z}`);
 }
 const SOFT = ['minecraft:air', 'minecraft:oak_leaves', 'minecraft:spruce_leaves', 'minecraft:birch_leaves', 'minecraft:jungle_leaves',
   'minecraft:acacia_leaves', 'minecraft:dark_oak_leaves', 'minecraft:mangrove_leaves', 'minecraft:cherry_leaves', 'minecraft:azalea_leaves',
   'minecraft:oak_log', 'minecraft:spruce_log', 'minecraft:birch_log', 'minecraft:jungle_log', 'minecraft:acacia_log', 'minecraft:dark_oak_log',
   'minecraft:short_grass', 'minecraft:tall_grass', 'minecraft:fern', 'minecraft:large_fern', 'minecraft:snow_layer', 'minecraft:vine'];
-function digWell(dim, h) {
-  const wx = h.x + W / 2 + 2, wz = Math.floor(h.z) - 1;            // just past the hall's east tunnel
+/**
+ * A way down from the surface: a 3 x 3 shaft lined with stone, a ladder the whole way from the top to the bottom,
+ * a landing and a tunnel into the hall at the bottom; at the top a sinkhole rim of mossy stone, two red candles and
+ * a sign. Dug beside the hall's east tunnel, once a player is near enough for the whole column to be loaded.
+ */
+function digShaft(dim, h) {
+  const sx = Math.floor(h.x + W / 2 + 3), sz = Math.floor(h.z);
   let top;
-  try { top = dim.getTopmostBlock({ x: wx, z: wz }); } catch (e) { return false; }
+  try { top = dim.getTopmostBlock({ x: sx, z: sz }); } catch (e) { return false; }
   if (!top) return false;
+  if (top.isLiquid) { h.well = true; saveHalls(); return false; }    // under the sea: no shaft
   let gy = top.location.y;
-  while (gy > h.y + 6 && SOFT.includes(dim.getBlock({ x: wx, y: gy, z: wz })?.typeId ?? 'minecraft:air')) gy--;
+  while (gy > h.y + 8 && SOFT.includes(dim.getBlock({ x: sx, y: gy, z: sz })?.typeId ?? 'minecraft:air')) gy--;
+  if (gy < h.y + 10) { h.well = true; saveHalls(); return false; }
+  const vol = (x0, y0, z0, x1, y1, z1) => new BlockVolume({ x: x0, y: y0, z: z0 }, { x: x1, y: y1, z: z1 });
+  const fill = (v, blk) => { try { dim.fillBlocks(v, blk, { ignoreChunkBoundErrors: true }); } catch (e) { /* ok */ } };
   try {
-    dim.fillBlocks(new BlockVolume({ x: wx - 1, y: h.y + 1, z: wz - 1 }, { x: wx + 1, y: gy + 2, z: wz + 1 }), 'minecraft:air',
-      { blockFilter: { includeTypes: [...NATURAL, ...SOFT.filter((b) => b !== 'minecraft:air')] } });
-    for (let y = h.y + 1; y <= gy; y++) {
-      const wall = dim.getBlock({ x: wx, y, z: wz - 2 });
-      if (wall && !wall.isAir && !wall.isLiquid) dim.getBlock({ x: wx, y, z: wz - 1 })?.setType('minecraft:ladder');
+    // the lining: stone all round (it seals off caves and water it passes), deepslate down deep
+    const yb = h.y, ys = Math.min(gy, -1), ya = Math.max(h.y, 0);
+    for (const [y0, y1, blk] of [[yb, ys, 'minecraft:cobbled_deepslate'], [ya, gy, 'minecraft:stone_bricks']]) {
+      if (y1 < y0) continue;
+      fill(vol(sx - 2, y0, sz - 2, sx + 2, y1, sz - 2), blk);
+      fill(vol(sx - 2, y0, sz + 2, sx + 2, y1, sz + 2), blk);
+      fill(vol(sx - 2, y0, sz - 1, sx - 2, y1, sz + 1), blk);
+      fill(vol(sx + 2, y0, sz - 1, sx + 2, y1, sz + 1), blk);
     }
-    for (let y = h.y + 1; y <= gy; y++) {
-      const l = dim.getBlock({ x: wx, y, z: wz - 1 });
-      if (l?.typeId === 'minecraft:ladder') l.setPermutation(l.permutation.withState('facing_direction', 3));
+    fill(vol(sx - 1, h.y + 1, sz - 1, sx + 1, gy + 3, sz + 1), 'minecraft:air');           // the shaft
+    fill(vol(sx - 1, h.y, sz - 1, sx + 1, h.y, sz + 1), 'minecraft:cobbled_deepslate');   // the landing
+    // the ladder, against the north wall, from the landing to the top
+    const ladder = BlockPermutation.resolve('minecraft:ladder', { facing_direction: 3 });
+    for (let y = h.y + 1; y <= gy + 1; y++) dim.getBlock({ x: sx, y, z: sz - 1 })?.setPermutation(ladder);
+    // claw marks and old blood, now and then
+    for (let i = 0; i < 10; i++) {
+      const y = h.y + 2 + Math.floor(Math.random() * Math.max(1, gy - h.y - 4));
+      const [x, z] = pick([[sx - 2, sz], [sx + 2, sz], [sx - 1, sz + 2], [sx + 1, sz + 2]]);
+      dim.getBlock({ x, y, z })?.setType(y < 0 ? pick(['brine:clawed_deepslate', 'brine:bloodstained_deepslate']) : 'minecraft:mossy_stone_bricks');
     }
-    for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {        // the well's ring, with two candles
+    // the way into the hall: through the lining at the bottom, then the hall's east tunnel
+    fill(vol(sx - 2, h.y + 1, sz - 1, sx - 2, h.y + 4, sz + 1), 'minecraft:air');
+    // the sinkhole at the top: the ground cleared round it, a rim of mossy stone, two candles, a sign
+    try { dim.fillBlocks(vol(sx - 3, gy + 1, sz - 3, sx + 3, gy + 4, sz + 3), 'minecraft:air', { blockFilter: { includeTypes: SOFT.filter((b) => b !== 'minecraft:air') } }); } catch (e) { /* ok */ }
+    for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) {
+      if (Math.max(Math.abs(dx), Math.abs(dz)) !== 3) continue;
+      dim.getBlock({ x: sx + dx, y: gy + 1, z: sz + dz })?.setType(Math.random() < 0.5 ? 'minecraft:mossy_cobblestone' : 'minecraft:cobblestone');
+    }
+    for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {
       if (Math.max(Math.abs(dx), Math.abs(dz)) !== 2) continue;
-      dim.getBlock({ x: wx + dx, y: gy + 1, z: wz + dz })?.setType(Math.abs(dx) === 2 && Math.abs(dz) === 2 ? 'minecraft:mossy_cobblestone' : 'minecraft:cobbled_deepslate');
+      const b = dim.getBlock({ x: sx + dx, y: gy, z: sz + dz });
+      if (b && (b.isAir || SOFT.includes(b.typeId))) b.setType('minecraft:mossy_cobblestone');
     }
-    for (const [dx, dz] of [[2, 2], [-2, -2]]) dim.getBlock({ x: wx + dx, y: gy + 2, z: wz + dz })?.setType('minecraft:red_candle');
-  } catch (e) { debug(`well: ${e}`); return false; }
-  openMouth(dim, h, 1, 0, { x: wx, y: h.y + 1, z: wz });
+    const candle = BlockPermutation.resolve('minecraft:red_candle', { lit: true, candles: 2 });
+    for (const [dx, dz] of [[3, 3], [-3, -3]]) dim.getBlock({ x: sx + dx, y: gy + 2, z: sz + dz })?.setPermutation(candle);
+    const sign = dim.getBlock({ x: sx, y: gy + 2, z: sz + 3 });
+    if (sign) {
+      sign.setPermutation(BlockPermutation.resolve('minecraft:standing_sign', { ground_sign_direction: 0 }));
+      sign.getComponent('minecraft:sign')?.setText('§0It is always\n§0darker at the\n§0bottom.\n§4Don\'t go down.');
+    }
+  } catch (e) { debug(`shaft: ${e}`); return false; }
+  openMouth(dim, h, 1, 0, { x: sx - 2, y: h.y + 1, z: sz });
   h.well = true;
-  h.wellAt = { x: wx, y: gy + 1, z: wz };
+  h.wellAt = { x: sx, y: gy + 1, z: sz };
   saveHalls();
+  debug(`shaft to the surface at ${sx} ${gy + 1} ${sz}`);
   return true;
 }
 
@@ -192,7 +255,7 @@ function tick() {
     if (!config.halls) continue;
     for (const h of halls) {
       if (!h.filled && flat(h, p.location) < 70) { h.filled = fillChests(p.dimension, h); if (h.filled) saveHalls(); }
-      if (h.starter && !h.well && flat(h, p.location) < 72) digWell(p.dimension, h);
+      if (!h.well && h.of === undefined && flat(h, p.location) < 72) digShaft(p.dimension, h);
     }
     const b = biomeAt(p.dimension, p.location);
     if (b !== BIOME && b !== 'minecraft:dripstone_caves') continue;

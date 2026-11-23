@@ -6,7 +6,7 @@ import { world } from '@minecraft/server';
 export const BIOME = 'brine:stillwater_caves';
 export const HALL = { W: 80, H: 44, D: 14 };      // biome_shapes.GH_W, GH_H, GH_D
 
-/** @type {{x:number,y:number,z:number,dx:number,dz:number,filled:boolean,starter?:boolean,well?:boolean,wellAt?:{x:number,y:number,z:number}}[]} */
+/** @type {{x:number,y:number,z:number,dx:number,dz:number,filled:boolean,starter?:boolean,well?:boolean,wellAt?:{x:number,y:number,z:number},of?:number}[]} */
 export const halls = [];
 export function loadHalls() {
   halls.length = 0;

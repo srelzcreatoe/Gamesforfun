@@ -409,7 +409,7 @@ if script_mods:
         if mid not in sdefs:
             err(f'script plays music {mid}, which sound_definitions.json lacks')
     for pid in sorted(set(re.findall(r"playSound\('([^']+)'", js))):
-        if pid not in sdefs and not pid.startswith(('game.', 'mob.villager', 'mob.cat', 'random.')):
+        if pid not in sdefs and not pid.startswith(('game.', 'mob.villager', 'mob.cat', 'random.', 'dig.', 'step.')):   # vanilla events
             err(f'script plays {pid} to a player, which sound_definitions.json lacks')
     notes.append(f'script: {len(js.splitlines())} lines; {len(js_acts) - 1} poses, {len(parts)} particles, {len(sdefs)} sound events checked')
 

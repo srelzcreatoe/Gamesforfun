@@ -5,12 +5,12 @@ import { world } from '@minecraft/server';
 export const PRESETS = {
   quiet: { label: 'Quiet Dread', minor: [90, 180], major: [8 * 60, 14 * 60], firstQuiet: [3 * 60, 5 * 60], hunt: 0.2, revelation: 0.06,
     stalkGap: [150, 300], chase: 0.25, deep: [90, 180], damage: 0.8 },
-  balanced: { label: 'Balanced Horror', minor: [35, 80], major: [3 * 60, 6 * 60], firstQuiet: [45, 90], hunt: 0.45, revelation: 0.08,
-    stalkGap: [50, 120], chase: 0.45, deep: [35, 80], damage: 1 },
-  relentless: { label: 'Relentless', minor: [20, 45], major: [90, 180], firstQuiet: [20, 40], hunt: 0.7, revelation: 0.09,
-    stalkGap: [25, 60], chase: 0.65, deep: [20, 45], damage: 1 },
-  nightmare: { label: 'Nightmare', minor: [12, 30], major: [60, 120], firstQuiet: [5, 15], hunt: 0.85, revelation: 0.1,
-    stalkGap: [12, 35], chase: 0.8, deep: [12, 30], damage: 1.25 },
+  balanced: { label: 'Balanced Horror', minor: [30, 70], major: [2 * 60, 4 * 60], firstQuiet: [40, 75], hunt: 0.55, revelation: 0.1,
+    stalkGap: [30, 75], chase: 0.6, deep: [25, 60], damage: 1 },
+  relentless: { label: 'Relentless', minor: [15, 40], major: [60, 140], firstQuiet: [15, 30], hunt: 0.75, revelation: 0.12,
+    stalkGap: [15, 40], chase: 0.8, deep: [15, 35], damage: 1 },
+  nightmare: { label: 'Nightmare', minor: [8, 25], major: [40, 90], firstQuiet: [5, 12], hunt: 0.9, revelation: 0.14,
+    stalkGap: [8, 22], chase: 0.9, deep: [10, 25], damage: 1.25 },
   observation: { label: 'Observation Only', minor: [35, 80], major: [3 * 60, 6 * 60], firstQuiet: [45, 90], hunt: 0, revelation: 0.08,
     stalkGap: [50, 120], chase: 0, deep: [35, 80], damage: 0 },
 };
@@ -18,9 +18,9 @@ export const PRESET_KEYS = Object.keys(PRESETS);
 
 // how dangerous the creature itself is: health and melee come from its entity file (brine:threat_N), the rest from here
 export const THREATS = {
-  1: { label: 'Dangerous', melee: 6, lunge: 10, grasp: 3, speed: 1.0, chaseSeconds: [12, 18] },
-  2: { label: 'Deadly', melee: 8, lunge: 12, grasp: 4, speed: 1.08, chaseSeconds: [14, 22] },
-  3: { label: 'Apex', melee: 11, lunge: 15, grasp: 6, speed: 1.16, chaseSeconds: [16, 26] },
+  1: { label: 'Dangerous', melee: 6, lunge: 10, grasp: 3, speed: 1.0, chaseSeconds: [20, 30] },
+  2: { label: 'Deadly', melee: 8, lunge: 12, grasp: 4, speed: 1.08, chaseSeconds: [25, 40] },
+  3: { label: 'Apex', melee: 11, lunge: 15, grasp: 6, speed: 1.16, chaseSeconds: [30, 50] },
 };
 
 export const DEFAULTS = {

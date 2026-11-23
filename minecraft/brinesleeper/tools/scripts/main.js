@@ -17,7 +17,7 @@ const ACT = {
   none: 0, watch: 1, submerged_watch: 2, shoreline_stalk: 3, corner_watch: 4, distant_observer: 5, full_stand: 6, emerge: 7,
   submerge: 8, ledge_watch: 9, behind_cover: 10, head_tilt: 11, shadow_hide: 12, tunnel_crawl: 13, retreat: 14, water_rise: 15,
   hunting_stance: 16, slow_approach: 17, patient_strike: 18, veil_stalk: 19, reflection_lurk: 20, idle_water: 21, swim: 22,
-  emerge_roar: 23, run: 24, stalk: 25, walk: 26, ceiling_lurk: 27, crawl_still: 28,
+  emerge_roar: 23, run: 24, stalk: 25, walk: 26, ceiling_lurk: 27, crawl_still: 28, head_turn: 29, twitch: 30,
 };
 // how far below the waterline the model's root sits for each water pose (from the pose calibration, 16 px = 1 block)
 const S = 1.15;                    // the model's scale (horror.py SCALE)

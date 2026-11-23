@@ -43,6 +43,7 @@ SNAP_EMBED_FORMAT = '1.26.20'     # snap_to_surface "embed_in_surface" (must sta
 STRUCTURE_FORMAT = '1.21.110'
 BLOCK_FORMAT = '1.26.30'
 AMOUNT, FREQUENCY = 1.0, 0.15      # all of the dripstone caves, in big connected regions
+LUSH = 0.55                         # and this much of the lush caves
 LEVELS = (-24, 12)                # world y of the two waterlines the flooded halls are carved at
 HERE = os.path.dirname(os.path.abspath(__file__))
 AUDIO = os.path.normpath(os.path.join(HERE, '..', '..', '..', 'assets', 'audio'))
@@ -129,9 +130,12 @@ def biome_files(RP, BP):
                 # Targets need the full 'minecraft:' identifier: the game reports "No biome found with name"
                 # for a bare 'dripstone_caves', whatever the docs say. The low noise_frequency_scale makes the
                 # replaced regions big and contiguous (fewer, larger cave systems instead of speckles).
-                'minecraft:replace_biomes': {'replacements': [{
-                    'dimension': 'minecraft:overworld', 'targets': ['minecraft:dripstone_caves'],
-                    'amount': AMOUNT, 'noise_frequency_scale': FREQUENCY}]},
+                'minecraft:replace_biomes': {'replacements': [
+                    {'dimension': 'minecraft:overworld', 'targets': ['minecraft:dripstone_caves'],
+                     'amount': AMOUNT, 'noise_frequency_scale': FREQUENCY},
+                    # 7.0: about half the Lush Caves too, in big connected regions (the biome roughly doubles)
+                    {'dimension': 'minecraft:overworld', 'targets': ['minecraft:lush_caves'],
+                     'amount': LUSH, 'noise_frequency_scale': 0.1}]},
                 # no 'monster' tag: vanilla zombies, skeletons, creepers, spiders, witches, endermen, slimes and
                 # cave spiders cannot spawn; no 'dripstone_caves' tag: no drowned
                 'minecraft:tags': {'tags': ['caves', 'overworld', TAG]},

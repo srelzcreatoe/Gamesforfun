@@ -36,11 +36,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ACTS = ['none', 'watch', 'submerged_watch', 'shoreline_stalk', 'corner_watch', 'distant_observer', 'full_stand', 'emerge',
         'submerge', 'ledge_watch', 'behind_cover', 'head_tilt', 'shadow_hide', 'tunnel_crawl', 'retreat', 'water_rise',
         'hunting_stance', 'slow_approach', 'patient_strike', 'veil_stalk', 'reflection_lurk', 'idle_water', 'swim', 'emerge_roar',
-        'run', 'stalk', 'walk', 'ceiling_lurk', 'crawl_still']
+        'run', 'stalk', 'walk', 'ceiling_lurk', 'crawl_still', 'head_turn', 'twitch']
 # how long the blend into each pose takes: rising onto two legs and dropping back down are slow, deliberate blends
 BLEND = {'full_stand': 1.2, 'hunting_stance': 1.0, 'submerge': 0.6, 'emerge': 0.4, 'water_rise': 0.8, 'retreat': 0.6}
 HOLD = ('emerge', 'submerge', 'water_rise', 'retreat', 'emerge_roar')
-BLEND.update({'emerge_roar': 0.3, 'swim': 0.6, 'run': 0.3, 'stalk': 0.5, 'walk': 0.5, 'tunnel_crawl': 0.5, 'ceiling_lurk': 0.8, 'crawl_still': 0.4})     # one-shot poses keep their last frame
+BLEND.update({'emerge_roar': 0.3, 'swim': 0.6, 'run': 0.3, 'stalk': 0.5, 'walk': 0.5, 'tunnel_crawl': 0.5, 'ceiling_lurk': 0.8, 'crawl_still': 0.4, 'head_turn': 1.0, 'twitch': 0.25})     # one-shot poses keep their last frame
 POSES = ('submerged_watch', 'shoreline_stalk', 'corner_watch', 'ceiling_lurk', 'distant_observer', 'veil_stalk',
          'reflection_lurk', 'tunnel_crawl', 'patient_strike', 'shadow_hide', 'full_stand', 'head_tilt', 'slow_approach',
          'emerge_roar', 'water_rise', 'hunting_stance', 'behind_cover', 'ledge_watch', 'retreat')
@@ -229,6 +229,29 @@ def crawl_still(crawl):
     return {'loop': True, 'animation_length': 6.0, 'bones': bones}
 
 
+def wrong_pose(stand, kind):
+    """two uncanny holds built on its full height:
+    turn: it stands with its back to you and its head turned all the way round to look at you (slowly settling)
+    twitch: it stands still, but its head snaps from angle to angle, never smoothly"""
+    bones = {}
+    for bone, chans in stand['bones'].items():
+        out = {}
+        for ch, v in chans.items():
+            val = _first(v)
+            if isinstance(val, list) and all(isinstance(e, (int, float)) for e in val):
+                out[ch] = [round(e, 3) for e in val]
+        if out:
+            bones[bone] = out
+    hx, hy, hz = bones.get('head', {}).get('rotation', [0, 0, 0])
+    if kind == 'turn':
+        bones.setdefault('head', {})['rotation'] = [f'{hx} + math.sin(query.anim_time * 30) * 3', 180 + hy, f'{hz} + 12 + math.sin(query.anim_time * 17) * 4']
+    else:
+        step = lambda rate, n: f'math.mod(math.floor(query.anim_time * {rate}), {n})'
+        bones.setdefault('head', {})['rotation'] = [f'{hx} + ({step(5.3, 3)} - 1) * 16', f'{hy} + ({step(3.7, 2)} * 2 - 1) * 24',
+                                                    f'{hz} + ({step(6.1, 2)} * 2 - 1) * 28']
+    return {'loop': True, 'animation_length': 6.0, 'bones': bones}
+
+
 def client_files(RP, SRC):
     anims = {
         'watch': 'animation.brinesleeper.watch', 'idle_water': 'animation.brinesleeper.idle_water', 'walk': 'animation.brinesleeper.walk',
@@ -237,6 +260,7 @@ def client_files(RP, SRC):
         'submerge': 'animation.brinesleeper.submerge', 'look_at_target': 'animation.brinesleeper.look_at_target',
         **{n: f'animation.brinesleeper.{n}' for n in POSES},
         'crawl_still': 'animation.brinesleeper.crawl_still',
+        'head_turn': 'animation.brinesleeper.head_turn', 'twitch': 'animation.brinesleeper.twitch',
     }
     write(f'{RP}/entity/brinesleeper.entity.json', {
         'format_version': '1.10.0',
@@ -327,6 +351,9 @@ def client_files(RP, SRC):
         anim['animations'][f'animation.brinesleeper.{n}']['loop'] = 'hold_on_last_frame'
     anim['animations']['animation.brinesleeper.invert'] = {'loop': True, 'bones': {'root': {'rotation': [180, 0, 0]}}}
     anim['animations']['animation.brinesleeper.crawl_still'] = crawl_still(anim['animations']['animation.brinesleeper.tunnel_crawl'])
+    stand = anim['animations']['animation.brinesleeper.full_stand']
+    anim['animations']['animation.brinesleeper.head_turn'] = wrong_pose(stand, 'turn')
+    anim['animations']['animation.brinesleeper.twitch'] = wrong_pose(stand, 'twitch')
     write(f'{RP}/animations/brinesleeper.animation.json', anim)
     # geometry: the full model plus a hand-only copy (every cube removed except the right arm's)
     geo = load(f'{SRC}/brinesleeper.geo.json')
@@ -443,6 +470,7 @@ SOUND_EVENTS = {
     'brine.fx.burst': (['brine_fx/burst'], 1.0, 'hostile'),
     'brine.heartbeat': (['brine_fx/heartbeat'], 1.0, 'player'),
     'brine.spotted': (['brine_fx/spotted'], 1.0, 'hostile'),
+    'brine.jumpscare': (['brine_fx/jumpscare'], 1.0, 'hostile'),
 }
 # the music: five calm tracks for the caves (each with its own character), two "near" loops, the chase loop, stings
 CALM = [(110, 41.2, 'air'), (111, 36.7, 'metal'), (112, 43.65, 'voices'), (113, 38.9, 'deep'), (114, 46.25, 'still')]
@@ -450,7 +478,7 @@ MUSIC = {
     **{f'music/brine/stillwater_{i + 1}': (lambda c=c: dread.calm_track(c[0], c[1], 80.0, c[2])) for i, c in enumerate(CALM)},
     'music/brine/near_1': lambda: dread.near_loop(150),
     'music/brine/near_2': lambda: dread.near_loop(151),
-    'music/brine/chase': lambda: dread.chase_loop(201),
+    'music/brine/chase': lambda: dread.exe_chase(202),
     'music/brine/sting_1': lambda: dread.sting(301),
     'music/brine/sting_2': lambda: dread.sting(302),
     'music/brine/sting_3': lambda: dread.sting(303),
@@ -484,6 +512,7 @@ def sounds(RP, audio):
     """its voice and body, the water, the heartbeat and the spotted sting: mono, positional"""
     fx = dread.creature(_recording(os.path.join(audio, 'splash.wav')), _recording(os.path.join(audio, 'step_stone.wav')))
     fx['brine_fx/spotted'] = dread.spotted()
+    fx['brine_fx/jumpscare'] = dread.jumpscare_scream()
     for rel, x in fx.items():
         fade = np.minimum(1.0, (len(x) - np.arange(len(x))) / (0.25 * dread.SR))
         encode(x * fade, f'{RP}/sounds/{rel}.ogg', dread.SR, 4)

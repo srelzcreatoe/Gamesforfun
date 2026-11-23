@@ -6,7 +6,7 @@ import { config, setConfig, PRESETS, PRESET_KEYS, THREATS } from './config.js';
 import { CREATURE, EVENT_NAMES, creatures, forceEvent, statusText } from './main.js';
 import { buildHall } from './halls.js';
 import { giveNotebook } from './notebook.js';
-import { memoryText, setMemory } from './brain.js';
+import { memoryText, setMemory, provoke } from './brain.js';
 
 const WHEEL = 'brine:config_wheel';
 const isOp = (p) => { try { return p.commandPermissionLevel >= CommandPermissionLevel.GameDirectors; } catch (e) { return false; } };
@@ -92,7 +92,8 @@ function caves(player) {
 }
 
 function test(player) {
-  const names = ['great_hall_here', 'summon_here', 'notebook', 'what_it_knows', 'make_it_bold', 'forget_me', ...EVENT_NAMES];
+  const scares = ['jumpscare', 'creep', 'rush', 'ceiling', 'chase'];
+  const names = ['great_hall_here', 'summon_here', ...scares.map((k) => `scare_${k}`), 'notebook', 'what_it_knows', 'make_it_bold', 'forget_me', ...EVENT_NAMES];
   new ModalFormData().title('Test an encounter')
     .dropdown('Stage now, for you', names.map((n) => n.replace(/_/g, ' ')), { defaultValueIndex: 0 })
     .show(player).then((r) => {
@@ -104,6 +105,8 @@ function test(player) {
         const v = player.getViewDirection();
         try { player.dimension.spawnEntity(CREATURE, { x: player.location.x + v.x * 12, y: player.location.y, z: player.location.z + v.z * 12 }); }
         catch (e) { player.sendMessage('§7No room there.'); }
+      } else if (name.startsWith('scare_')) {
+        if (!provoke(player, name.slice(6))) player.sendMessage('§7No room for that here.');
       } else if (name === 'notebook') giveNotebook(player, true);
       else if (name === 'what_it_knows') player.sendMessage(memoryText(player));
       else if (name === 'make_it_bold') { setMemory(player, 0.75); player.sendMessage('§8It is not afraid of you anymore.'); }

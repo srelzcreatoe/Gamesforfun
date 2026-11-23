@@ -8,8 +8,32 @@ and arms long enough to drag its clawed hands on the ground.
 It comes with its own cave biome, the [Stillwater Caves](#stillwater-caves-biome), where it is
 the only hostile mob that spawns.
 
-**Version 6.0, "Dread"** (details in [ADDON_REPORT.md](ADDON_REPORT.md); listen to
-`preview/brinesleeper_sounds_preview.mp3`):
+**Version 7.0, "Overwhelming"** (details in [ADDON_REPORT.md](ADDON_REPORT.md); listen to
+`preview/brinesleeper_chase_and_jumpscare.mp3`):
+* **Real pathfinding.** It plans its own way to you round pillars and walls. It climbs 2–3 block
+  ledges, drops down, and crawls through 2-high gaps. If it truly can't reach you, it turns up
+  ahead of you instead.
+* **Relentless chases:** faster than you can sprint, the darkness closing in, and it doesn't stop
+  while it can see you.
+* **A real jumpscare.** The music dies, it rears up in front of you, and your view is wrenched to
+  its face as the camera lunges in. Then a scream, a red flash and a blow.
+* **New encounters:**
+  * it moves only when you don't look, closer every time
+  * a screaming charge out of the dark
+  * it hangs from the roof and drops when you look up
+  * it's right behind you when you turn around
+* **Uncanny:**
+  * it stands with its back to you and its head turned all the way round, or with its head
+    twitching
+  * it whispers your name and copies your sounds behind you
+* **A new chase theme:** fast, distorted, glitching, with a laugh and a tape-stop (original, in
+  the aggressive "exe" style).
+* **A bigger biome:** it now also takes over about half the Lush Caves. Great halls join into
+  complexes up to 240 blocks long.
+* **A way down:** every hall gets a stone-lined shaft from the surface, with a ladder all the way
+  to the bottom.
+
+**Version 6.0, "Dread"** (listen to `preview/brinesleeper_sounds_preview.mp3`):
 * **New sounds, all of them.**
   * Calm tracks of sinking drones, howling cave air, bowed metal gliding over the water, and
     voices that aren't words.
@@ -357,7 +381,7 @@ You can also import `resource_pack/models/entity/brinesleeper.geo.json` and the
    water is (or the old well near spawn that leads down to a great hall). You can also use
    `/locate biome brine:stillwater_caves`.
 
-The packs are version 6.0.0, so they import over older versions. They need Minecraft Bedrock **1.26.40 or
+The packs are version 7.0.0, so they import over older versions. They need Minecraft Bedrock **1.26.40 or
 newer**, for the stable `@minecraft/server` 2.9.0 and `@minecraft/server-ui` 2.1.0 script
 modules. The director has not been play-tested in-game yet; ADDON_REPORT.md lists what to check.
 

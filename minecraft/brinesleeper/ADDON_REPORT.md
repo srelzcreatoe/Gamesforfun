@@ -1,4 +1,4 @@
-# The Brinesleeper 6.0: "The Water Remembers"
+# The Brinesleeper 7.0: "The Water Remembers"
 
 The full horror add-on, built on the existing Brinesleeper model and its home biome, the
 [Stillwater Caves](README.md#stillwater-caves-biome). A hidden director script stages every
@@ -9,6 +9,115 @@ almost never chases, and leaves signs that the water is not what it seems.
 [Testing report](#testing-report)). It has **not** been run inside Minecraft from this
 environment. The [runtime checklist](#runtime-checklist-not-yet-verified-in-game) lists what
 still needs an in-game pass.
+
+---
+
+## What's new in 7.0: "Overwhelming"
+
+**Real pathfinding** (`scripts/path.js`). The creature now plans its own way to you with an A*
+search over the blocks around it. The search is built for its body:
+* it walks, wades, steps up one block, climbs ledges of two or three blocks, drops from up to six,
+  crawls through 2-high gaps and stands where there are 4 blocks of room
+* diagonals never cut a corner
+* the world is read one 16 × 16 × 16 section at a time with a single bulk call, and cached, so it
+  never reads block by block
+* each search runs a few milliseconds per tick until it is done
+* paths are pulled straight over flat ground, so it heads for you instead of zig-zagging along
+  the grid; climbs, drops and steps are kept exactly
+* if a search finds nothing, it falls back to following your trail
+* if it truly cannot reach you, it doesn't stand there: the next time you look, it is ahead of
+  you, off to one side
+
+Unit tests in a test cave all pass: open ground, round a pillar, into a 2-block tunnel (crawling),
+into a 3-block corridor, up a step, up a 3-block ledge, refusing a 4-block wall, off a ledge,
+round a lake. Searches take 1 to 13 slices.
+
+**Relentless chases.**
+* It runs faster: 6.8 / 7.3 / 7.9 blocks a second by threat level, versus 5.6 for a sprinting
+  player.
+* Chases last 20–50 s, and they don't end while it can still see you.
+* Within 22 blocks the darkness closes in (the darkness effect), and within 12 you feel its
+  footsteps (screen shake).
+* The presets are more overwhelming: on Balanced, 30–75 s between hunts, a 60% chase chance, and
+  minor events every 30–70 s.
+
+**The jumpscare.** It is set off by the new encounters, by the first time a chase catches you, and
+by turning round to find it right behind you:
+* The music stops dead.
+* It is a body's length in front of you, rearing up to its full height with its mouth open (or
+  low, if the roof is).
+* Your view is wrenched up to its face and the camera lunges into it (`camera.setCamera`).
+* A dedicated scream plays: a shriek, screaming strings, a noise blast and a deep hit.
+* A red flash, a hard shake, flickering obfuscated text with a line under it (sometimes your
+  name), nausea, and a blow.
+* Then darkness, and it is gone, or it is coming.
+
+Safeguards:
+* The camera is always handed back: after 0.7 s, on respawn, and by a check that frees any camera
+  held over 2 seconds.
+* There is at most one jumpscare per 40–90 s, depending on the preset.
+* It never appears inside a wall: it checks in front of you, then beside you, then behind you,
+  and skips the scare if there is no room.
+
+**New encounters.** After its cooldown it picks one, weighted by what it has learned about you:
+* **It moves when you don't look:** far off, in a wrong pose. Every time you look away it is
+  closer, in a new pose. You hear its step and your heart. Up close, the next look is the
+  jumpscare.
+* **The charge:** out of the dark down the cave it holds still a moment, then screams and comes on
+  all fours, faster than you can run, with the screen shaking.
+* **Look up:** it hangs from the roof just ahead of you, dripping on you. Look up, or walk under
+  it, and it drops.
+* **Turn around:** while it stalks you unseen, turn and it is right there.
+* Plus the existing watch, stalk, stand-off, the water ambush and the deep.
+
+**Uncanny.**
+* Two new poses:
+  * `head_turn`: it stands with its back to you, its head turned all the way round to look at you.
+  * `twitch`: standing still, its head snaps from angle to angle.
+* Both are used when it watches you and when it creeps closer.
+* It whispers your name.
+* It copies the sounds you make, behind you: footsteps on stone, a block being dug, a player
+  getting hurt.
+* The music cuts out before something happens.
+
+**A new chase theme**, original and in the aggressive "exe" style of chase music:
+* 174 BPM, with a distorted four-on-the-floor kick
+* a crunchy chromatic bass riff a semitone wide
+* a detuned, bit-crushed square-wave lead that screams and bends down on held notes
+* clashing cluster stabs
+* a half-time breakdown with screeching tremolo strings creeping up
+* a distorted demonic laugh (backwards the second time), a noise riser, a stutter glitch, and a
+  tape-stop at the end of the loop
+* It loops seamlessly. Listen: `preview/brinesleeper_chase_and_jumpscare.mp3`.
+
+**A bigger biome, and a way down from the surface.**
+* The Stillwater Caves now also replace about 55% of the Lush Caves, in large regions (noise
+  scale 0.1), on top of all the Dripstone Caves. That roughly doubles the biome.
+* **Hall complexes:** every great hall now has up to two more joined on, a hall's width further
+  along. Their tunnels meet, so a complex runs up to 240 blocks. The starter hall near spawn grows
+  too. A new hall appears if none is within 90 blocks (was 100).
+* **Shafts to the surface:** every hall (except halls under the sea) gets one when a player comes
+  within 72 blocks:
+  * a 3 × 3 shaft beside its east tunnel, lined with stone (cobbled deepslate down deep, stone
+    bricks higher up), which seals off any caves or water it passes
+  * a ladder on the north wall all the way from the top to the bottom
+  * claw marks and old blood in the lining, and a landing and a tunnel into the hall at the bottom
+  * at the top, a sinkhole rim of mossy stone with two lit red candles and a sign: "It is always
+    darker at the bottom. Don't go down."
+  * the notebook's last page points at the starter hall's shaft
+* **Test buttons:** the settings wheel's test page has scare_jumpscare, scare_creep, scare_rush,
+  scare_ceiling and scare_chase.
+
+**How 7.0 was tested:**
+* typecheck, the pack validator and the schema check (the same known false positives) all pass
+* the pathfinding unit tests above
+* the mock-API simulation over three scenarios of 16,000 ticks each (about 13 minutes):
+  * no script errors, every jumpscare handed the camera back, only one creature
+  * stuck-looking cases at most 2 ticks; inside blocks 3–9 ticks (corner grazing on the test
+    player's trail)
+* the new poses rendered with the preview renderer
+* Not yet play-tested in game: how the camera lunge, the darkness and the music levels feel needs
+  an in-game pass.
 
 ---
 
@@ -400,7 +509,7 @@ for you at once, and `/brine:status` shows the hidden director state. Settings a
 
 | | |
 |---|---|
-| Pack version | 6.0.0. It imports over every earlier version. |
+| Pack version | 7.0.0. It imports over every earlier version. |
 | Minimum game version | Minecraft Bedrock **1.26.40** (manifest `min_engine_version`). |
 | Script modules | `@minecraft/server` **2.9.0** and `@minecraft/server-ui` **2.1.0**, the stable versions that ship with 1.26.40. No beta APIs and no experimental toggles. |
 | Custom biome | Non-experimental `minecraft:replace_biomes`, available since 1.26.30. |
@@ -647,6 +756,10 @@ mechanic.
 | Movement (6.0) | It follows you through a 2-block tunnel on all fours and stands in the open; it never stands on top of pillars or inside ledges; no gait plays while it is still |
 | Teleport smoothness (6.0) | Moving by a teleport every tick should look like walking at 20 fps; check that it reads as smooth on your device |
 | Sounds (6.0) | The calm tracks, near loop and chase feel frightening on phone speakers and headphones; music volume is in line with vanilla |
+| Pathfinding (7.0) | It finds its way round pillars and walls, climbs 2–3 block ledges, drops, crawls into tunnels; no visible hitch while a search runs |
+| Jumpscare (7.0) | The camera lunge and red flash play and the view always comes back; the scream is loud but not clipping |
+| Shafts (7.0) | Every hall gets a lined shaft with a full ladder to the surface; the rim, candles and sign appear at the top |
+| Bigger biome (7.0) | Stillwater Caves appear in place of about half the Lush Caves as well as all the Dripstone Caves (new chunks only) |
 
 ## File structure
 ```
