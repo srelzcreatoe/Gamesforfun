@@ -95,7 +95,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 110 test groups (including setup and a status check) with 564 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 117 test groups (including setup and a status check) with 599 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -154,6 +154,7 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | **final (1.4.0)** | **563** | **1** | the 1.3.0 suite plus its hold — harmless while held (its blow, harm in its name and in no one's: 17 undone, 0 taken), pulled back from you, from far off, from the Nether, from a teleport every single tick (60 of 60), unhidden, untouchable but by you, brought back when deleted or killed, learning the kind, and dangerous when turned loose; cold eyes and the charm; the chase at 5.8 b/s, straight, round a wall, up a pillar, through a door; its pack and the doorway; the Mirror; the Guide; the Procession; Mine first; the rage hunting as one. The one failure, `standoff_shot_provokes`, is a timing race in a 1.0.9 test (the standoff ended — looked away from — a moment before the arrow could land; nothing of 1.4.0 is involved): the standoff group then passed twice in a row on its own, 28 of 28 |
 | targeted (1.5.0: it talks and asks, its puppets glitch, the takeover, the corruption, it cuts ahead of you and waits where you hid, its broken music, the Mire's ruins and their loot; with its puppets, the hold, the chase, its pack, the relentless attack, the standoff and the music) | 97 + 49 + 10 | 4 + 1 + 0 | real: a question nobody answered waited forever (a player who walks away from the screen never closes the form) — it now gives up after a minute, closes the form and takes the silence as an answer (`talk_no_answer_is_an_answer`); cutting ahead of you lived only in the relentless attack, while the pursuit and the test strike ran chase loops of their own — all three now share one (`outthink`). Test-side: the test's flight was too slow to count as running away, and the hiding place was recorded after the test had already moved the player (script events arrive a moment late) |
 | full (1.5.0, first) | 597 | 2 | `talk_it_asks`: a question it had asked on its own was still open when the test asked for one (the test now counts from the start of its group); `music_the_chase_when_it_comes` — real: the test strike (the Config Wheel's *Test an encounter*) chased without the chase music until the rage took over; it now plays it from the first step. The affected groups then passed, 29 of 29 |
+| **final (1.5.0)** | **599** | **0** | all passed: the 1.4.0 suite plus it talks (your name, your coordinates; it asks, takes the silence as an answer, breaks the fourth wall, angers, falls silent when switched off), what it holds glitches (jolts, freezes, snaps, a scrambled name, static — still its, given back whole), the takeover (six of six looking at you, one in your name, the hostile ones then hunting you, names given back), the corruption (12 broken, 12 put back), it is ahead of you and waits where you hid, its broken music and the chase theme, and the five ruins (whole, with their chests, barrels, lecterns and loot). Then, after two small changes, `glitches` three times with `talks takeover puppets_core hold ahead`: 53 + 1 and 62 + 0 — the one a test window too short for the worst case (a scrambled name holds the next glitch back 30 ticks): the window is now 8 s and the test-only mode starts sooner |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -194,6 +195,11 @@ Final run (1.3.0): 102 test groups, 1844 s, minimum TPS between tests 19.9, **0 
 Final run (1.4.0): 110 test groups, 2068 s, minimum TPS between tests 19.6, **0 content-log or script errors**; 563 of
 564 (the one, above, then passed on its own twice). On fresh worlds with every experiment off (no test kit), the add-on
 loaded with 0 errors (`noexp.txt`) and the Weeping Mire generated (`mire_locate.txt`).
+
+Final run (1.5.0): 117 test groups, 2047 s, minimum TPS between tests 18.8 (during *Bait* — like the procession, a dip
+straight after the test spawns its villagers; see §7), **0 content-log or script errors**; 599 of 599. `noexp.txt` on
+the final build: `level.dat` experiments none, 0 errors; `mire_locate.txt` (1.5.0): the Mire at 45 blocks, a surveyors'
+camp 144 blocks and a drowned chapel 80 blocks from spawn.
 
 `noexp.txt` and `mire_locate.txt` re-run on 1.3.0: `level.dat` experiments none, 0 errors.
 `noexp.txt` re-run on 1.2.0 and 1.2.1: `level.dat` experiments none, 0 errors.
@@ -347,6 +353,7 @@ Scenarios `restart_a.txt` then `restart_b.txt` on the same world (re-run after t
 a *Closed Path* is started, the Veil seal placed and the Observer present and watched — then the server is stopped
 mid-encounter (A: 5/5 pass). After restart (B: 2/2 pass): **0 stray Observer bodies** once the chunk loaded, and the
 interrupted encounter's Veil cells were **restored** (0 Veil blocks left) within 30 s.
+Re-run on 1.5.0: A 6/6, B 2/2 (0 stray bodies, 0 Veil blocks left), 0 errors.
 
 ### 5.4 Where the Weeping Mire generates (1.0.8)
 
@@ -551,7 +558,8 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
   and the test strike run chase loops of their own. One shared step now runs in all three (`ahead_it_is_in_front_of_you`).
 * **The test strike had no chase music** until the rage took over; it now plays from its first step
   (`music_the_chase_when_it_comes`).
-* Test-side: the test's flight was too slow to count as running away; the hiding place was recorded only after the
+* Test-side: the glitch test watched for 6 s, too short when a scrambled name (30 ticks) held the next glitch back
+  (8 s now); the test's flight was too slow to count as running away; the hiding place was recorded only after the
   test had moved the player on (script events arrive a moment late — the test now waits); a question it had asked on
   its own was still open when the test asked for one (the test counts from the start of its group).
 * A dip in the tick rate during the procession (18.4 at worst, once in three) was traced with a developer-only step

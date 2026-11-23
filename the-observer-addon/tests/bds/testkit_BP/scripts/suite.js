@@ -4544,7 +4544,8 @@ TESTS.glitches = async () => {
   const m = mark();
   obs("puppet", "take", "Tester");
   let scrambled = false;
-  for (let t = 0; t < 20 * 6; t += 2) {
+  // (a glitch every 15-30 ticks once the last is over — a scrambled name lasts 30 — so 8 s holds three even at worst)
+  for (let t = 0; t < 20 * 8; t += 2) {
     await wait(2);
     if (h.isValid && (h.nameTag ?? "").includes("§k")) scrambled = true;
   }

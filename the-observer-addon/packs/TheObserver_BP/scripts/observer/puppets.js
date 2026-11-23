@@ -177,7 +177,8 @@ export function take(e, why, o = {}) {
     mode: o.mode ?? "stand", keep: o.keep ?? 8, yaw: safe(() => e.getRotation().y, 0) ?? 0, voiceAt: t + Math.round(rand(80, 200)),
     moving: false, quiet: !!o.quiet, home: !!o.home, fx: new Set(), sensedAt: 0, face: o.face, onRelease: o.onRelease,
     at: l, atDim: e.dimension.id, anchor: (o.mode ?? "stand") === "stand" ? l : undefined, strict: strict(e.typeId),
-    crackAt: -1e9, foughtAt: -1e9, backs: [], jumpAt: -1e9, name0: safe(() => e.nameTag, "") ?? "", glitchAt: t + Math.round(rand(20, 80)) };
+    crackAt: -1e9, foughtAt: -1e9, backs: [], jumpAt: -1e9, name0: safe(() => e.nameTag, "") ?? "",
+    glitchAt: t + Math.round(DEBUG.glitch === "always" ? rand(5, 15) : rand(20, 80)) };
   puppets.set(e.id, pp);
   safe(() => e.setDynamicProperty(PROP, JSON.stringify({ why, at: [Math.round(l.x * 10) / 10, Math.round(l.y * 10) / 10, Math.round(l.z * 10) / 10], d: pp.dimId, n: pp.name0 })));
   // it cannot be hidden from you: whatever hid it, it is seen again
