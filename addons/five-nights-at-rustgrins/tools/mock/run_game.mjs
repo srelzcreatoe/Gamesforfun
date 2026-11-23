@@ -1,6 +1,6 @@
 // Runs the real behavior-pack scripts against the strict mock API through a
 // scripted play session: setup + build, lobby, night 1 with a fuzzing guard,
-// 6 AM, night 2 lost on purpose, retry, free roam, custom night (showstopper).
+// 6 AM, night 2 lost on purpose, retry, free roam, the Golden Dog's shifts, custom night (showstopper).
 //   node --import ./tools/mock/register.mjs tools/mock/run_game.mjs [--seed=1] [--quick]
 import fs from 'node:fs';
 import path from 'node:path';
@@ -65,6 +65,23 @@ say(`build: ${tBuild} ticks, ${mock.fills} fills, ${mock.blocks.size} blocks set
 const origin = { ...(await import(path.join(ROOT, 'packs/BP/scripts/mc/world_io.js'))).origin };
 const Wl = (x, y, z) => ({ x: x + origin.x, y: y + origin.y, z: z + origin.z });
 const blockAt = (x, y, z) => world.getDimension('overworld').getBlock(Wl(x, y, z));
+
+// ================================================================================================
+// THE GOLDEN DOG, part 1 of 2: he is switched off for every other section of this session. They script their
+// own nights, and his shifts are not theirs to answer. His own section (part 2, before the Custom Night's)
+// switches him on for the nights it starts.
+// ================================================================================================
+const golden = { on: false };
+{
+  const g0 = game();
+  const start0 = g0.startNight.bind(g0);
+  g0.startNight = (...a) => {
+    const r = start0(...a);
+    if (!golden.on) g0.session?.golden.setLevel(0);
+    return r;
+  };
+}
+// ---- end of part 1
 
 // ================================================================================================
 // THE CELLAR (data/cellar.js, data/cellar_plan.js): what the build really put under the pizzeria.
@@ -1044,6 +1061,536 @@ say('night 5 takeover -> the Final Act');
   check(game().save.endings.includes('curtain_call') && mock.titles.some(([t]) => /CURTAIN CALL/.test(t)), 'the Encore ends with Curtain Call');
   say('storms, co-op, Extras, a challenge and the Encore ok');
 }
+
+// ================================================================================================
+// THE GOLDEN DOG (core/ai/golden_dog.js, mc/golden.js): every shift played through the game layer.
+// The map under him is the cellar's section above; his rules are in tools/sim/golden_checks.mjs.
+// Here: what the player sees and hears, and that everything he bends is put back.
+// ================================================================================================
+{
+  const { CELLAR } = CEL;
+  // (--trace prints a failed check of this section at once, with the tick it failed on)
+  const check = (ok, what) => { if (!ok) { mock.errors.push(`check failed: ${what}`); if (args.trace) say(`  FAILED at tick ${mock.tick}: ${what}`); } };
+  const { NODES } = await import(path.join(ROOT, 'packs/BP/scripts/data/nodes.js'));
+  const { CAMERA_BY_ID } = await import(path.join(ROOT, 'packs/BP/scripts/data/cameras.js'));
+  const { PALETTE } = await import(path.join(ROOT, 'packs/BP/scripts/data/palette.js'));
+  const { CONFIG, GOLDEN, FULL_CAST } = await import(path.join(ROOT, 'packs/BP/scripts/core/config.js'));
+  const STORY = await import(path.join(ROOT, 'packs/BP/scripts/data/story.js'));
+  const { GOLDEN_BODY, GALLERY_SPOT, looksAt } = await import(path.join(ROOT, 'packs/BP/scripts/mc/golden.js'));
+  const G = CONFIG.golden;
+  const T = STORY.GOLDEN;
+  const sess = () => game().session;
+  const gd = () => sess().golden;
+  const GM = () => game().golden;
+  const dog = () => [...mock.entities.values()].find((e) => e.typeId === 'fnar:golden_dog');
+  const ent = (id) => [...mock.entities.values()].find((e) => e.typeId === `fnar:${id}`);
+  const local = (v) => ({ x: v.x - origin.x, y: v.y - origin.y, z: v.z - origin.z });
+  const at = (e, n, tol = 0.01) => !!e && Math.hypot(local(e.location).x - n.x, local(e.location).y - n.y, local(e.location).z - n.z) <= tol;
+  const cnt = (id) => mock.sounds.filter((x) => x === id).length;
+  const face = (yaw, pitch = 0) => { P.rotation = { x: pitch, y: yaw }; };
+  const bar = () => P.actionBar ?? '';
+  const ONLY_HIM = { mirehop: 0, noxbriar: 0, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 0, golden_dog: 20 };
+  /** A night with him awake and nothing else decided for him: he acts only when told to (force). */
+  const night = async (n, ai) => {
+    golden.on = true;
+    game().startNight(P, n, ai ? { ai } : {});
+    golden.on = false;
+    await steps(5);
+    gd().choose = () => null;
+  };
+  /** One shift, the way he starts every one: the watch first. */
+  const force = async (kind) => {
+    const watch = cnt('fnar.golden.watch');
+    check(gd().force(kind), `the Golden Dog can start ${kind} from his stage`);
+    await steps(2);
+    check(cnt('fnar.golden.watch') === watch + 1 && gd().state === 'tell', `${kind}: the pocket watch ticks first`);
+    await waitFor(() => gd().state === kind, G.tell + 10, `the ${kind} shift after its tell`);
+    await steps(1);
+  };
+  const lobby = async () => { debug('lobby'); await steps(4); };
+  const lampLit = () => blockAt(OFFICE.lamp.x, OFFICE.lamp.y, OFFICE.lamp.z).permutation.getState('fnar:lit');
+  const stage = NODES[CELLAR.stage];
+  const behind = NODES[CELLAR.visit];
+  const seatDown = CELLAR.otherOffice.spawn;
+  // (the clickable camera map is answered at random by this session's fuzzing policy: these checks work the
+  // monitor through the session instead, so the map stays off until the fuzzed night at the end)
+  const cursor0 = game().save.settings.camCursor;
+  game().save.settings.camCursor = false;
+
+  // ---- CAM 11 through the week: slumped, head up, standing; not there in the Final Act
+  {
+    const seen = {};
+    for (const n of [1, 2, 3]) {
+      await night(n);
+      const d = dog();
+      seen[n] = d ? { on: at(d, stage), anim: d.props['fnar:anim'], eyes: d.props['fnar:eyes'], pitch: d.props['fnar:look_pitch'] } : null;
+    }
+    check(seen[1]?.on && seen[1].anim === 'slump' && seen[1].eyes === false && seen[1].pitch === 0, `night 1: he is slumped on his stage in the cellar, switched off (${JSON.stringify(seen[1])})`);
+    check(seen[2]?.on && seen[2].anim === 'slump' && seen[2].eyes === true && seen[2].pitch < -20, `night 2: his head is up (${JSON.stringify(seen[2])})`);
+    check(seen[3]?.on && seen[3].anim === 'stand' && seen[3].eyes === true, `from night 3 he stands (${JSON.stringify(seen[3])})`);
+    for (const c of Object.values(sess().chars)) c.baseAi = 0; // (the rest of this night is about him)
+    // CAM 11: a stare turns his head to the lens, and he remembers it; the tell empties the stage
+    sess().input('cams_open', CELLAR.cam);
+    await steps(8);
+    const cam = CAMERA_BY_ID[CELLAR.cam];
+    check(P.cameraState === 'free' && Math.hypot(P.cameraLoc.x - (cam.loc[0] + origin.x), P.cameraLoc.z - (cam.loc[2] + origin.z)) < 0.01, 'CAM 11 shows the cellar');
+    check(/light_block/.test(blockAt(Math.floor(stage.x), stage.y + 3, Math.floor(stage.z)).typeId) || /light_block/.test(blockAt(Math.floor(NODES.CEL_PIT.x), NODES.CEL_PIT.y + 3, Math.floor(NODES.CEL_PIT.z)).typeId), 'the live camera lights what it watches down there');
+    await steps(G.stare.after + 6);
+    const d = dog();
+    check(gd().turned && gd().angry && d.props['fnar:hollow'] === true && (d.props['fnar:look_pitch'] !== 0 || d.props['fnar:look_yaw'] !== 0), `stared at on CAM 11 he turns to the lens (yaw ${d.props['fnar:look_yaw']}, pitch ${d.props['fnar:look_pitch']})`);
+    check(bar().includes(T.caption.stare), 'and the caption says to look away');
+    await force('gild');
+    check(dog().props['fnar:hidden'] === true, 'while he is at work his stage is empty');
+    await waitFor(() => gd().state === 'stage', G.gild.lasts + 10, 'the end of the gilding');
+    await steps(2);
+    check(dog().props['fnar:hidden'] === false && at(dog(), stage), 'and afterwards he is back on it');
+    await lobby();
+    game().startNight(P, 6);
+    await steps(5);
+    check(!dog() && !sess().golden.present, 'he is not in the Final Act');
+    await lobby();
+  }
+
+  // ---- the tell and the hold: the watch, the silence, the cast stopped in its tracks
+  {
+    await night(7, { ...ONLY_HIM, mirehop: 20 });
+    await waitFor(() => game().puppets.isWalking('mirehop'), 900, 'Mirehop to take a walk');
+    await steps(3);
+    const m = ent('mirehop');
+    check(game().audio.loops.has('office') && game().audio.loops.has('building'), 'the building hums as usual');
+    check(gd().force('gild'), 'the watch starts while Mirehop is walking');
+    await steps(5);
+    const p0 = { ...m.location };
+    const t0 = sess().t;
+    check(bar().includes(T.caption.tell) && bar().includes('tick'), `the caption and the HUD say a watch is ticking (${bar().split('\n').slice(-2).join(' / ')})`);
+    await steps(40);
+    check(m.location.x === p0.x && m.location.z === p0.z && sess().t === t0 && game().puppets.frozen, 'while the watch ticks Mirehop stands where he was, mid-step: the cast is held');
+    check(!game().audio.loops.has('office') && !game().audio.loops.has('building') && !game().audio.loops.has('dread_drone'), 'and the building is silent');
+    await waitFor(() => gd().state === 'stage', G.tell + G.gild.lasts + 10, 'the end of the shift');
+    await steps(30);
+    check(!game().puppets.frozen && sess().t > t0 && (m.location.x !== p0.x || m.location.z !== p0.z), 'when he lets go Mirehop walks on');
+    check(game().audio.loops.has('office') && game().audio.loops.has('building'), 'and the building hums again');
+    debug('status');
+    await steps(2);
+    check(mock.chat.some((c) => typeof c === 'string' && /golden:20/.test(c)) && /golden_dog/.test(P.lastMessage ?? ''), 'the status command lists him and what he is doing');
+    game().save.cheats.radar = true;
+    check(/Golden §fCAM 11/.test(game().radarLine() ?? ''), `the radar cheat shows him too (${game().radarLine()})`);
+    game().save.cheats.radar = false;
+    await lobby();
+  }
+
+  // ---- the Ringmaster stops talking when the watch ticks, and finds his voice again
+  {
+    await night(4);
+    for (const c of Object.values(sess().chars)) c.baseAi = 0;
+    check(STORY.CALLS[4].some((l) => /Golden Dog Supper Club, 1958 to 1971/.test(l)), 'on night 4 the Ringmaster has to tell the guard about the cellar');
+    await waitFor(() => (game().phoneSeq?.i ?? -1) >= 2, 600, 'the Ringmaster to be in the middle of his call');
+    const i0 = game().phoneSeq.i;
+    check(gd().force('gild'), 'the watch cuts into the call');
+    await steps(G.tell + 40);
+    check(game().phoneSeq.i === i0, 'he says nothing while the watch runs');
+    await waitFor(() => gd().state === 'stage', G.gild.lasts, 'the end of the shift');
+    await waitFor(() => game().phoneSeq?.i > i0, 200, 'him to speak again');
+    check(T.interrupted.admit.includes(game().phoneSeq.lines[i0]), `and then he says so (${game().phoneSeq.lines[i0]})`);
+    await lobby();
+  }
+
+  // ---- gilding: the map's cells for a moment, and back exactly as found; any list will do
+  {
+    await night(7, ONLY_HIM);
+    const snap = () => CELLAR.gild.map((c) => { const b = blockAt(c.x, c.y, c.z).permutation; return `${b.type}${JSON.stringify(b.states)}`; });
+    const before = snap();
+    await force('gild');
+    const now = CELLAR.gild.map((c) => blockAt(c.x, c.y, c.z).typeId);
+    await steps(4);
+    const office = CELLAR.gild.map((c, i) => [c, i]).filter(([c]) => c.where === 'office');
+    const hall = CELLAR.gild.map((c, i) => [c, i]).filter(([c]) => c.where === 'hall');
+    check(office.length > 0 && office.every(([c, i]) => now[i] === PALETTE[c.key].name), `with the monitor down the office's ${office.length} gild cells are his`);
+    check(hall.every(([, i]) => snap()[i] === before[i]), 'and the hall is left alone (nobody is looking at it)');
+    check(bar().includes(T.caption.gild_office), 'the caption says so');
+    await waitFor(() => gd().state === 'stage', G.gild.lasts + 10, 'the end of the gilding');
+    check(JSON.stringify(snap()) === JSON.stringify(before), 'afterwards every cell is exactly as it was');
+    sess().input('cams_open', '4A');
+    await steps(8);
+    await force('gild');
+    const now2 = CELLAR.gild.map((c) => blockAt(c.x, c.y, c.z).typeId);
+    check(hall.length > 0 && hall.every(([c, i]) => now2[i] === PALETTE[c.key].name) && office.every(([, i]) => snap()[i] === before[i]), `with the monitor up it is the hall's ${hall.length} cells (the paw prints and the drawing)`);
+    await waitFor(() => gd().state === 'stage', G.gild.lasts + 10, 'the end of the gilding');
+    check(JSON.stringify(snap()) === JSON.stringify(before), 'and they are cleared again (the paw prints\' cells are empty as built)');
+    sess().input('cams_close');
+    // a list of somebody else's making: an empty cell, a wall, and a cell that holds a light (left alone)
+    const o = OFFICE.spawn;
+    const fake = [{ x: Math.floor(o.x), y: 3, z: Math.floor(o.z) + 1, key: 'gild_poster_0', where: 'x' }, { x: OFFICE.lamp.x, y: OFFICE.lamp.y, z: OFFICE.lamp.z, key: 'gild_poster_1', where: 'x' }, { x: Math.floor(o.x) + 1, y: 3, z: Math.floor(o.z) + 1, key: 'gild_poster_2', where: 'x' }];
+    blockAt(fake[2].x, fake[2].y, fake[2].z).setPermutation(BlockPermutation.resolve('minecraft:light_block_7'));
+    const fsnap = () => fake.map((c) => { const b = blockAt(c.x, c.y, c.z).permutation; return `${b.type}${JSON.stringify(b.states)}`; });
+    const f0 = fsnap();
+    GM().gild('anything', fake);
+    const f1 = fake.map((c) => blockAt(c.x, c.y, c.z).typeId);
+    check(f1[0] === PALETTE.gild_poster_0.name && f1[1] === PALETTE.gild_poster_1.name && /light_block/.test(f1[2]), `gilding works for any list of cells (${f1.join(', ')}); a light in the way is not his to move`);
+    GM().ungild();
+    check(JSON.stringify(fsnap()) === JSON.stringify(f0), 'and every one of them is put back as found');
+    GM().gild('office', []);
+    GM().ungild();
+    blockAt(fake[2].x, fake[2].y, fake[2].z).setPermutation(BlockPermutation.resolve('minecraft:air'));
+    // a night that ends in the middle of it still puts everything back
+    const gilt = () => CELLAR.gild.filter((c) => { const b = blockAt(c.x, c.y, c.z).permutation; const want = PALETTE[c.key]; return b.type === want.name && Object.entries(want.states ?? {}).every(([k, v]) => b.states[k] === v); }).length;
+    await force('gild');
+    check(gilt() === office.length, `${office.length} cells are gilt`);
+    await lobby();
+    check(gilt() === 0, 'a night abandoned in the middle of a gilding leaves no gold behind');
+  }
+
+  // ---- the false dawn
+  {
+    await night(7, ONLY_HIM);
+    debug('hour', '3');
+    await steps(3);
+    const titles = mock.titles.length;
+    const real = cnt('fnar.clock.6am');
+    await force('dawn');
+    await steps(6);
+    const card = mock.titles.slice(titles).find(([t]) => t === T.dawn.card[0]);
+    check(cnt('fnar.golden.chime') === 1 && !!card && /Custom Night complete/.test(card[1] ?? ''), `the false dawn: the chime (off-key) and the 6 AM card of the real thing (${JSON.stringify(card)})`);
+    check(/6 AM/.test(bar()) && game().state === 'NIGHT' && !sess().result, 'the clock on the HUD says 6 AM, and the night goes on');
+    await waitFor(() => gd().state === 'stage', G.dawn.lasts + 10, 'the false dawn to tear away');
+    await steps(5);
+    check(mock.titles.slice(titles).some(([t]) => t === T.dawn.torn[0]) && /3 AM/.test(bar()), 'it tears away: 3 AM again');
+    check(game().state === 'NIGHT' && cnt('fnar.clock.6am') === real && cnt('fnar.golden.tear') >= 2, 'nothing was won: the real chime never played, and the tear is heard as it starts and as it ends');
+    await lobby();
+  }
+
+  // ---- the wrong feed
+  {
+    await night(7, ONLY_HIM);
+    const cam11 = CAMERA_BY_ID[CELLAR.cam];
+    const on11 = () => P.cameraState === 'free' && Math.hypot(P.cameraLoc.x - (cam11.loc[0] + origin.x), P.cameraLoc.y - (cam11.loc[1] + origin.y), P.cameraLoc.z - (cam11.loc[2] + origin.z)) < 0.01;
+    sess().input('cams_open', '1A');
+    await steps(8);
+    check(!on11(), 'the monitor is on CAM 1A');
+    await force('feed');
+    await steps(5);
+    check(on11() && sess().devices.cams.cam === '1A' && bar().includes('THE GOLD ROOM'), `the wrong feed: CAM 1A shows the cellar's empty stage (${bar().split('\n')[0]})`);
+    check(dog().props['fnar:hidden'] === true && game().camCover() === null, 'the stage on it is empty (he is at work), and nothing covers the picture');
+    sess().input('cam_select', '2A');
+    await steps(5);
+    check(on11() && sess().devices.cams.cam === '2A' && bar().includes(T.caption.pick.split(' (')[0]), 'another camera picked: the cellar again, and something stood up down there');
+    sess().input('cams_close');
+    await steps(4);
+    check(gd().state === 'stage' && P.cameraState === 'default', 'lowering the monitor ends it');
+    await steps(8);
+    sess().input('cams_open', '1A');
+    await steps(8);
+    check(!on11() && P.cameraState === 'free', 'and the cameras are their own again');
+    // three cameras picked in a row bring him up
+    await force('feed');
+    for (const c of ['1B', '2A', '4A']) { sess().input('cam_select', c); await steps(5); }
+    await steps(2);
+    check(gd().state === 'visit' && !sess().devices.cams.open && P.cameraState === 'default' && at(dog(), behind), 'three cameras picked in a row: the monitor drops and he is standing behind the seat');
+    face(OFFICE.spawn.yaw);
+    await waitFor(() => gd().state === 'stage', G.visit.lasts + 10, 'the end of the visit');
+    check(!sess().result, 'eyes forward, the guard is none the worse for it');
+    await lobby();
+  }
+
+  // ---- the mirror
+  {
+    await night(7, ONLY_HIM);
+    await force('mirror');
+    await steps(4);
+    const B = OFFICE.buttons;
+    const lit = (b) => blockAt(b.x, b.y, b.z).permutation.getState('fnar:on');
+    check(bar().includes('LEFT IS RIGHT'), `the HUD says left is right (${bar().split('\n').find((l) => /LEFT/.test(l))})`);
+    click(B.door_l.x, B.door_l.y, B.door_l.z);
+    await steps(8);
+    check(sess().devices.doorR && !sess().devices.doorL && lit(B.door_r) === true && lit(B.door_l) === false, 'the LEFT door button drops the RIGHT door (and the right button lights)');
+    click(B.light_r.x, B.light_r.y, B.light_r.z);
+    await steps(6);
+    check(sess().devices.lightL && !sess().devices.lightR, 'the RIGHT light button lights the LEFT hall');
+    click(B.door_l.x, B.door_l.y, B.door_l.z);
+    await steps(8);
+    click(B.light_r.x, B.light_r.y, B.light_r.z);
+    await waitFor(() => gd().state === 'stage', G.mirror.lasts + 10, 'the mirror to pass');
+    await steps(6);
+    click(B.door_l.x, B.door_l.y, B.door_l.z);
+    await steps(8);
+    check(sess().devices.doorL && !sess().devices.doorR && !bar().includes('LEFT IS RIGHT'), 'ten seconds later left is left again');
+    await lobby();
+  }
+
+  // ---- the visit
+  {
+    await night(7, ONLY_HIM);
+    const breaths = cnt('fnar.golden.breath');
+    await steps(120); // (the night's opening has the lamp out for its first seconds)
+    check(lampLit() === true, `the office lamp is on (${JSON.stringify(blockAt(OFFICE.lamp.x, OFFICE.lamp.y, OFFICE.lamp.z).permutation)})`);
+    await force('visit');
+    await steps(8);
+    const d = dog();
+    check(at(d, behind) && d.props['fnar:anim'] === 'idle' && d.props['fnar:hidden'] === false && d.rotation?.y === behind.yaw, `the visit: he stands behind the seat, facing the guard's back (${JSON.stringify(local(d.location))})`);
+    check(lampLit() === false && cnt('fnar.golden.breath') > breaths, 'the lamp dims, and something breathes');
+    check(bar().includes('DO NOT TURN AROUND') && bar().includes(T.caption.visit), 'the HUD and the caption say what to do');
+    check(sess().usage() <= 2 && !game().audio.loops.has('office'), 'the cast is held: the building is silent and the meter runs on his time');
+    // eyes forward, then a glance to the side: he is at the edge of the screen, not looked at
+    face(OFFICE.spawn.yaw);
+    await steps(10);
+    const yawTo = (Math.atan2(-(behind.x - OFFICE.spawn.x), behind.z - OFFICE.spawn.z) * 180) / Math.PI;
+    face(yawTo + 55);
+    await steps(10);
+    check(gd().shift.looked === 0 && !looksAt(P, behind, 30), 'looking at a door, he is only at the edge of the screen: that is not looking at him');
+    // turning round: he saw it
+    const stings = cnt('fnar.hall.sting');
+    face(yawTo, -10);
+    await steps(6);
+    check(gd().shift.looked >= 4 && gd().shift.seen && cnt('fnar.hall.sting') === stings + 1 && bar().includes('LOOK AWAY'), `turning round to him: he saw the guard look (${gd().shift.looked} ticks), and the HUD says LOOK AWAY`);
+    check(d.props['fnar:look_yaw'] !== undefined, 'his head comes round');
+    face(OFFICE.spawn.yaw);
+    await steps(6);
+    const looked = gd().shift.looked;
+    check(!gd().shift.seen && looked <= G.visit.look, 'looking away in time is forgiven');
+    // the monitor shows only his face
+    sess().input('cams_open', '1A');
+    await steps(8);
+    const eye = { x: behind.x + origin.x, y: behind.y + GOLDEN_BODY.eyeY + origin.y, z: behind.z + origin.z };
+    const lens = Math.hypot(P.cameraLoc.x - eye.x, P.cameraLoc.y - eye.y, P.cameraLoc.z - eye.z);
+    check(P.cameraState === 'free' && lens > 0.8 && lens < 2.2 && bar().includes('HE IS IN THE ROOM') && gd().shift.looked > looked, `raising the monitor shows only his face, and that is looking at him too (the lens ${lens.toFixed(2)} from his eyes)`);
+    sess().input('cams_close');
+    await steps(3);
+    face(OFFICE.spawn.yaw);
+    await waitFor(() => gd().state === 'stage', G.visit.lasts + 10, 'the end of the visit');
+    await steps(3);
+    check(!sess().result && lampLit() === true && at(dog(), stage) && game().audio.loops.has('office'), 'the visit passes: the lamp comes back, the building hums, he is on his stage');
+    // looked at too long: he takes the guard (on a night of the week, to see what the cast remembers of it)
+    await lobby();
+    await night(4);
+    for (const c of Object.values(sess().chars)) c.baseAi = 0;
+    await steps(40);
+    const mem = JSON.stringify(game().save.memory);
+    const js = cnt('fnar.js.golden_dog');
+    await force('visit');
+    face(yawTo, -10);
+    answer(titleHas('GAME OVER'), () => ({ canceled: false, selection: 1 }));
+    await waitFor(() => game().state === 'JUMPSCARE', G.visit.look + 20, 'him to take the guard');
+    await steps(2);
+    const shot = dog();
+    check(sess().killer === GOLDEN && sess().killWay === 'visit' && cnt('fnar.js.golden_dog') === js + 1 && shot?.props['fnar:anim'] === 'jumpscare', 'looked at for more than a second and a half, he takes the guard: his own scream, his own jumpscare');
+    {
+      // framed for a body about 3.5 blocks tall: his eyes on the held frame are level with the lens, his head just short of it
+      const eyeY = local(shot.location).y + GOLDEN_BODY.jumpscareEyeY;
+      const lensY = local(P.cameraLoc).y;
+      const ahead = Math.hypot(shot.location.x - P.cameraLoc.x, shot.location.z - P.cameraLoc.z);
+      check(Math.abs(eyeY - lensY) < 0.05 && Math.abs(ahead - GOLDEN_BODY.jumpscareDist) < 0.01, `the jumpscare is framed on his own eyes (${eyeY.toFixed(2)} against the lens at ${lensY.toFixed(2)}, ${ahead.toFixed(2)} blocks ahead)`);
+    }
+    await waitFor(() => game().state === 'LOBBY', 600, 'the lobby after his jumpscare');
+    const over = mock.forms.filter((f) => f.title.includes('GAME OVER')).at(-1);
+    check(/You looked at him/.test(over?.body ?? ''), `the game-over screen explains it (${over?.body})`);
+    check(game().save.seenJs.includes(GOLDEN) && JSON.stringify(game().save.memory) === mem, `his jumpscare is unlocked in Extras; the week's memory does not track him (a night he ended is not remembered: ${mem})`);
+    check(lampLit() !== undefined && !game().puppets.frozen, 'nothing of his is left behind');
+  }
+
+  // ---- the Other Office
+  {
+    await night(7, ONLY_HIM);
+    const fogPop = () => mock.commands.filter((c) => c === 'fog @a remove fnar_night').length;
+    const fogPush = () => mock.commands.filter((c) => c === 'fog @a push fnar:night fnar_night').length;
+    const hisLights = () => game().golden.lights.length;
+    const pops = fogPop();
+    const pushes = fogPush();
+    check(gd().force('other'), 'the Other Office can start');
+    await waitFor(() => gd().state === 'other', G.tell + 10, 'the lamp to stutter');
+    await steps(4);
+    check(!gd().away && at(P, OFFICE.spawn, 0.6), 'while the lamp stutters the guard is still in the office');
+    await waitFor(() => gd().away, G.other.fade + 10, 'the Other Office');
+    await steps(2);
+    check(at(P, seatDown, 0.01) && P.rotation.y === OFFICE.spawn.yaw, `the guard sits in the Other Office, in the same seat seven blocks down (${JSON.stringify(local(P.location))})`);
+    check(fogPop() > pops, "the night's fog is lifted down there (it ends at 40 blocks, and he is 45 away)");
+    // (the seat faces the hall: the guard arrives looking straight at him, and he has already taken his first step)
+    check(at(dog(), stage, 1) && dog().props['fnar:hidden'] === false && Math.abs(local(dog().location).z - seatDown.z) > 40, `he is on his stage at the far end of the hall, ${Math.abs(local(dog().location).z - seatDown.z).toFixed(1)} blocks away`);
+    check(hisLights() >= 1 && game().audio.loops.has('cellar') && bar().includes('LOOK AT THE DESK'), `there is a little light (${hisLights()} of his), the cellar's air, and the HUD says to look at the desk`);
+    // nothing of the real office answers
+    check(sess().input('door_l').reason === 'away' && sess().input('cams_open').reason === 'away', 'nothing of the real office answers down there');
+    world.afterEvents.itemUse.fire({ source: P, itemStack: { typeId: 'fnar:tablet' } });
+    await steps(5);
+    check(!sess().devices.cams.open && bar().includes(T.message.away), 'the tablet says so');
+    // the seat faces him: he walks while he is watched
+    face(seatDown.yaw ?? OFFICE.spawn.yaw, 0);
+    const steps0 = cnt('fnar.golden.step');
+    await steps(40);
+    const z1 = local(dog().location).z;
+    check(looksAt(P, { x: stage.x, y: stage.y, z: stage.z }, 20) && z1 > stage.z + 4 && dog().props['fnar:anim'] === 'walk' && cnt('fnar.golden.step') > steps0, `watched, he walks down the aisle (${(z1 - stage.z).toFixed(1)} blocks in two seconds), and his steps are heard`);
+    check(game().golden.follow !== null && Math.abs(game().golden.follow[2] - Math.floor(z1)) <= 1 && /light_block/.test(blockAt(...game().golden.follow).typeId), 'his light goes with him, so he can be seen coming');
+    // eyes on the desk: he stops
+    face(seatDown.yaw ?? OFFICE.spawn.yaw, 50);
+    await steps(6);
+    const z2 = local(dog().location).z;
+    await steps(30);
+    check(local(dog().location).z === z2 && dog().props['fnar:anim'] === 'stand' && !sess().looking, 'eyes on the desk: he stops where he is');
+    // the guard is kept in the room
+    P.teleport(Wl(seatDown.x, seatDown.y, seatDown.z - 10));
+    await steps(12);
+    check(at(P, seatDown, 0.01), 'the guard is kept in the Other Office (not sent back upstairs)');
+    // the phone
+    const ph = CELLAR.otherOffice.phone;
+    click(ph.x, ph.y, ph.z);
+    await steps(3);
+    check(gd().away && bar().includes(T.message.quiet), 'the phone is dead until it rings');
+    await waitFor(() => gd().shift.ringing, G.other.phone + 20, 'the phone to ring');
+    await steps(3);
+    check(blockAt(ph.x, ph.y, ph.z).permutation.getState('fnar:ringing') === true && cnt('fnar.golden.phone') >= 1 && bar().includes('PICK UP THE PHONE'), 'the old phone on the desk rings');
+    click(ph.x, ph.y, ph.z);
+    await steps(4);
+    check(!gd().away && gd().state === 'stage' && at(P, OFFICE.spawn, 0.01) && !sess().result, 'picking it up brings the guard back to the real seat');
+    check(fogPush() > pushes && hisLights() === 0 && !game().audio.loops.has('cellar') && blockAt(ph.x, ph.y, ph.z).permutation.getState('fnar:ringing') === false && lampLit() === true, "the night's fog, the lamp and the dark of the cellar are as they were");
+    check(/The Ringmaster/.test(bar()) && at(dog(), stage), 'the voice on the line was the Ringmaster\'s; the Golden Dog is back on his stage');
+    check(sess().input('door_l').ok, 'and the office answers again');
+    await lobby();
+
+    // watched all the way to the desk
+    await night(7, ONLY_HIM);
+    check(gd().force('other'), 'again');
+    await waitFor(() => gd().away, G.tell + G.other.fade + 20, 'the Other Office');
+    face(OFFICE.spawn.yaw, 0);
+    answer(titleHas('GAME OVER'), () => ({ canceled: false, selection: 1 }));
+    await waitFor(() => game().state === 'JUMPSCARE', 400, 'him to reach the desk');
+    check(sess().killer === GOLDEN && sess().killWay === 'other', 'watched all the way to the desk, he takes the guard');
+    await waitFor(() => game().state === 'LOBBY', 600, 'the lobby');
+    check(/watched him all the way to the desk/.test(mock.forms.filter((f) => f.title.includes('GAME OVER')).at(-1)?.body ?? ''), 'and the game-over screen says what to do instead');
+    check(game().golden.lights.length === 0, 'his lights are gone from the cellar');
+
+    // the power goes while the guard sits there: back upstairs for the blackout
+    await night(7, ONLY_HIM);
+    check(gd().force('other'), 'once more');
+    await waitFor(() => gd().away, G.tell + G.other.fade + 20, 'the Other Office');
+    face(OFFICE.spawn.yaw, 50);
+    debug('power', '1');
+    await waitFor(() => !!sess().powerOut, 400, 'the power to run out');
+    await steps(3);
+    check(at(P, OFFICE.spawn, 0.01) && gd().state === 'stage' && game().golden.lights.length === 0, 'if the power goes he lets go: the guard is back in the real office for the blackout');
+    await lobby();
+  }
+
+  // ---- a guard who does everything at random (buttons, monitor, cameras, where they look), with him at 20
+  {
+    game().save.settings.camCursor = cursor0;
+    golden.on = true;
+    game().startNight(P, 7, { ai: ONLY_HIM });
+    golden.on = false;
+    answer(titleHas('GAME OVER'), () => ({ canceled: false, selection: 1 }), true);
+    const mine = answers.at(-1);
+    const shifts = new Set();
+    await steps(3500, (i) => {
+      if (game().state !== 'NIGHT') return;
+      fuzz(i);
+      if (i % 19 === 0) face(rand() * 360 - 180, rand() * 80 - 40);
+      const st = game().session?.golden.state;
+      if (st && st !== 'stage' && st !== 'tell') shifts.add(st);
+      if (i % 29 === 0 && game().session?.golden.away) click(CELLAR.otherOffice.phone.x, CELLAR.otherOffice.phone.y, CELLAR.otherOffice.phone.z, false);
+    });
+    say(`the Golden Dog at 20 against a fuzzing guard: ${[...shifts].join(', ') || 'no shift'} (state ${game().state})`);
+    check(shifts.size >= 1, `a night at level 20 is full of him (${[...shifts].join(', ')})`);
+    answers = answers.filter((a) => a !== mine);
+    if (game().state !== 'LOBBY') await waitFor(() => game().state === 'LOBBY' || game().state === 'NIGHT', 800, 'the fuzzed night to settle');
+    await lobby();
+  }
+
+  // ---- the Custom Night's seventh slider, and its saved value
+  {
+    game().save.beaten = [1, 2, 3, 4, 5, 6];
+    let sliders = null;
+    answer(titleHas('CUSTOM NIGHT'), () => ({ canceled: false, selection: 0 }));
+    answer((f) => f.kind === 'modal' && f._title.includes('CUSTOM NIGHT'), (f) => { sliders = f.controls.map((c) => [c[1], c[2]]); return { canceled: false, formValues: f.controls.map((c, i) => (i === f.controls.length - 1 ? 14 : 0)) }; });
+    golden.on = true;
+    push('custom');
+    await waitFor(() => game().state === 'NIGHT' && game().nightOpts.n === 7, 100, 'the Custom Night');
+    golden.on = false;
+    await steps(5);
+    check(sliders?.length === FULL_CAST.length && sliders.at(-1)[0] === 'The Golden Dog' && sliders.at(-1)[1] === 0, `the Custom Night has a seventh slider, off until it is set (${JSON.stringify(sliders?.at(-1))})`);
+    check(sess().golden.level === 14 && sess().golden.enabled && game().save.custom.golden_dog === 14 && at(dog(), stage) && dog().props['fnar:anim'] === 'stand', 'his level is the night\'s, and it is remembered for next time');
+    await lobby();
+    let again = null;
+    answer(titleHas('CUSTOM NIGHT'), () => ({ canceled: false, selection: 0 }));
+    answer((f) => f.kind === 'modal' && f._title.includes('CUSTOM NIGHT'), (f) => { again = f.controls.at(-1)[2]; return { canceled: true, cancelationReason: 'UserClosed' }; });
+    push('custom');
+    await steps(10);
+    check(again === 14, `the form opens on the saved value (${again})`);
+    check(CONFIG.presets.some((p) => (p.ai.golden_dog ?? 0) > 0) && CONFIG.presets.find((p) => p.id === 'showstopper').ai.golden_dog === undefined, 'one preset is his; the Showstopper is still the six');
+  }
+
+  // ---- Extras: his jumpscare, his place in the cast, the Sound Test
+  {
+    await lobby();
+    check(!dog(), 'he is not in the Gallery');
+    game().save.seenJs = [...new Set([...(game().save.seenJs ?? []), GOLDEN])];
+    let listed = null;
+    let poses = null;
+    answer(titleHas('EXTRAS'), (f) => ({ canceled: false, selection: f.buttons.findIndex((b) => b.startsWith('The Cast')) }));
+    answer(titleHas('THE CAST'), (f) => { listed = [...f.buttons]; return { canceled: false, selection: f.buttons.indexOf('The Golden Dog') }; });
+    answer(titleHas('THE GOLDEN DOG'), () => ({ canceled: false, selection: 0 })); // the info box
+    answer(titleHas('THE GOLDEN DOG'), (f) => { poses = [...f.buttons]; return { canceled: false, selection: f.buttons.indexOf('Powered down') }; });
+    push('extras');
+    await steps(12);
+    check(listed?.includes('The Golden Dog') && poses?.includes('Standing'), `Extras > The Cast lists him (${listed?.join(', ')})`);
+    check(at(dog(), GALLERY_SPOT) && dog().props['fnar:anim'] === 'slump', 'and he can be looked at in the Gallery, in the pose that was picked');
+    check(/Golden Dog Supper Club, 1958 to 1971/.test(mock.forms.filter((f) => f.title.includes('THE GOLDEN DOG')).at(-2)?.body ?? ''), 'with a word about who he is');
+    let shown = null;
+    answer(titleHas('EXTRAS'), (f) => ({ canceled: false, selection: f.buttons.findIndex((b) => b.startsWith('Jumpscares')) }));
+    answer(titleHas('JUMPSCARES'), (f) => { shown = [...f.buttons]; return { canceled: false, selection: f.buttons.indexOf('The Golden Dog') }; });
+    const js = cnt('fnar.js.golden_dog');
+    push('extras');
+    await waitFor(() => game().state === 'EXTRAS', 40, 'his jumpscare replay');
+    await steps(3);
+    check(shown?.includes('The Golden Dog') && cnt('fnar.js.golden_dog') === js + 1 && dog()?.props['fnar:anim'] === 'jumpscare', 'Extras > Jumpscares replays his, once he has been seen');
+    await waitFor(() => game().state === 'LOBBY', 200, 'the lobby after the replay');
+    let tracks = null;
+    answer(titleHas('EXTRAS'), (f) => ({ canceled: false, selection: f.buttons.findIndex((b) => b.startsWith('Sound Test')) }));
+    answer(titleHas('SOUND TEST'), (f) => { tracks = [...f.buttons]; return { canceled: false, selection: f.buttons.indexOf('A pocket watch') }; });
+    const w = cnt('fnar.golden.watch');
+    push('extras');
+    await steps(8);
+    check(tracks?.includes("The Golden Dog's scream") && tracks.includes('The cellar') && cnt('fnar.golden.watch') === w + 1, 'the Sound Test has his watch, the cellar and his scream');
+    await steps(3);
+    check(game().trophies().find((t) => /every jumpscare/.test(t[0]))?.[1] === ['mirehop', 'noxbriar', 'rustgrin', 'cat', 'purple_rat', 'top_hat_rat', GOLDEN, 'rusted'].every((id) => game().save.seenJs.includes(id)), 'the "every jumpscare" trophy counts his too');
+  }
+
+  // ---- Free Roam: he stands on his stage, he does not talk, and he is not quite as he was
+  {
+    game().enterFreeRoam();
+    await steps(5);
+    const d = dog();
+    check(at(d, stage) && d.props['fnar:anim'] === 'stand' && d.props['fnar:eyes'] === false, 'by day he stands on his stage in the Gold Room, switched off');
+    check(!game().audio.loops.has(`cellar_${P.id}`), 'upstairs the pizzeria sounds like the pizzeria');
+    // down the stairs, up the aisle, looking at him
+    P.teleport(Wl(stage.x, stage.y, stage.z + 5), { rotation: { x: -15, y: 180 } });
+    await steps(12);
+    check(game().audio.loops.has(`cellar_${P.id}`) && cnt('fnar.golden.cellar') >= 1, 'in the cellar its own air plays');
+    check(d.props['fnar:look_pitch'] !== 0 || d.props['fnar:look_yaw'] !== 0, `his head follows whoever looks at him (yaw ${d.props['fnar:look_yaw']}, pitch ${d.props['fnar:look_pitch']})`);
+    check(T.silent.some((l) => bar().includes(l)), `he does not talk (${bar().split('\n')[0]})`);
+    check(!Object.keys(STORY.DAY_TALK).includes(GOLDEN), 'he has no lines at all');
+    const was = JSON.stringify([d.props['fnar:anim'], d.props['fnar:eyes'], d.rotation, local(d.location)]);
+    // look away for a few seconds, and back
+    face(0, 0);
+    await steps(60);
+    check(game().golden.roam.changed === true, 'looked away from, he moves');
+    const servo = cnt('fnar.servo.head');
+    face(180, -15);
+    await steps(8);
+    const is = JSON.stringify([d.props['fnar:anim'], d.props['fnar:eyes'], d.rotation, local(d.location)]);
+    check(is !== was && game().golden.roam.changed === false && servo >= 1, `and looked at again he is not quite as he was (${was} -> ${is})`);
+    check(Math.hypot(local(d.location).x - stage.x, local(d.location).z - stage.z) <= 1 && local(d.location).y === stage.y, 'but he never leaves his stage');
+    // a show upstairs: he is not in it
+    game().roam.nextShow = mock.tick + 5;
+    await waitFor(() => game().roam.phase === 'show', 40, 'a show');
+    await steps(5);
+    check(!/perform/.test(d.props['fnar:anim']) && /perform/.test(ent('rustgrin').props['fnar:anim']), 'when the band plays upstairs, he does not perform');
+    P.teleport(Wl(OFFICE.spawn.x, 0, OFFICE.spawn.z), { rotation: { x: 0, y: 0 } });
+    await steps(8);
+    check(!game().audio.loops.has(`cellar_${P.id}`), 'back upstairs the cellar is out of earshot');
+    await lobby();
+    check(!dog() && game().golden.roam === null, 'and when the day is over he is put away with the rest');
+  }
+  say('the Golden Dog: CAM 11, the tell and the hold, gilding, the false dawn, the wrong feed, the mirror, the visit, the Other Office and back, the Custom Night, Extras and Free Roam ok');
+}
+// ================================================================================================
+// ---- end of the Golden Dog's section
 
 // 7. custom night: showstopper ---------------------------------------------------------------
 debug('unlock');

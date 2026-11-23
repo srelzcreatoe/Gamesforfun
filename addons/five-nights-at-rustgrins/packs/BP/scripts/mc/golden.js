@@ -429,10 +429,12 @@ export class Golden {
    * For a few seconds the place is his: every gild cell in what the guard is looking at (`where`: 'office' or
    * 'hall'; all of them when the map lists none for it) gets its alternate block. What stood there is kept as
    * found and put back by ungild(), so it works for any list and for cells the night has already changed.
+   * @param {string} where
+   * @param {readonly { x: number, y: number, z: number, key: string, where?: string }[]} [list] the cells (the map's own)
    */
-  gild(where) {
+  gild(where, list = CELLAR.gild) {
     this.ungild();
-    const all = CELLAR.gild;
+    const all = list;
     const cells = all.some((c) => c.where === where) ? all.filter((c) => c.where === where) : all;
     for (const c of cells) {
       const b = blockAt(c.x, c.y, c.z);
