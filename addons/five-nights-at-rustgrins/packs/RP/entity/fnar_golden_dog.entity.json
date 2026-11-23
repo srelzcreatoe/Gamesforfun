@@ -1,0 +1,60 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "fnar:golden_dog",
+   "materials": {
+    "default": "entity_alphatest",
+    "eyes": "creaking_eyes"
+   },
+   "textures": {
+    "default": "textures/entity/fnar/golden_dog",
+    "eyes": "textures/entity/fnar/golden_dog_eyes",
+    "hollow": "textures/entity/fnar/golden_dog_hollow",
+    "pinprick": "textures/entity/fnar/golden_dog_pinprick"
+   },
+   "geometry": {
+    "default": "geometry.fnar.golden_dog"
+   },
+   "scripts": {
+    "scale": "1.27",
+    "pre_animation": [
+     "variable.fnar_anim = query.property('fnar:anim');",
+     "variable.fnar_eyes = query.property('fnar:eyes');",
+     "variable.fnar_hidden = query.property('fnar:hidden');",
+     "variable.fnar_ly = math.lerp(variable.fnar_ly ?? 0, query.property('fnar:look_yaw'), 0.08);",
+     "variable.fnar_lp = math.lerp(variable.fnar_lp ?? 0, query.property('fnar:look_pitch'), 0.08);"
+    ],
+    "animate": [
+     "ctrl",
+     "look"
+    ]
+   },
+   "animations": {
+    "idle": "animation.fnar.golden_dog.idle",
+    "perform": "animation.fnar.golden_dog.perform_1",
+    "perform2": "animation.fnar.golden_dog.perform_2",
+    "stand": "animation.fnar.golden_dog.idle",
+    "walk": "animation.fnar.golden_dog.walk",
+    "run": "animation.fnar.golden_dog.run",
+    "scurry": "animation.fnar.golden_dog.run",
+    "crawl": "animation.fnar.golden_dog.crawl",
+    "peek": "animation.fnar.golden_dog.peek",
+    "jumpscare": "animation.fnar.golden_dog.jumpscare",
+    "slump": "animation.fnar.golden_dog.pose_2",
+    "pose": "animation.fnar.golden_dog.pose_1",
+    "stoop": "animation.fnar.golden_dog.stoop",
+    "lean": "animation.fnar.golden_dog.lean",
+    "wave": "animation.fnar.golden_dog.wave",
+    "bow": "animation.fnar.golden_dog.bow",
+    "look": "animation.fnar.golden_dog.look",
+    "ctrl": "controller.animation.fnar.golden_dog"
+   },
+   "render_controllers": [
+    "controller.render.fnar.body",
+    "controller.render.fnar.eyes"
+   ],
+   "enable_attachables": false
+  }
+ }
+}

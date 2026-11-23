@@ -1,0 +1,83 @@
+{
+  "format_version": "1.26.50",
+  "minecraft:block": {
+    "description": {
+      "identifier": "fnar:ghost_light",
+      "menu_category": {
+        "category": "construction"
+      },
+      "states": {
+        "fnar:lit": [
+          true,
+          false
+        ]
+      }
+    },
+    "components": {
+      "minecraft:geometry": "geometry.fnar.ghost_light",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "fnar_ghost_light_on",
+          "render_method": "alpha_test"
+        },
+        "bulb": {
+          "texture": "fnar_ghost_light_on",
+          "render_method": "alpha_test",
+          "face_dimming": false,
+          "ambient_occlusion": 0.0
+        }
+      },
+      "minecraft:collision_box": {
+        "origin": [
+          -1.5,
+          0,
+          -1.5
+        ],
+        "size": [
+          3,
+          16,
+          3
+        ]
+      },
+      "minecraft:selection_box": {
+        "origin": [
+          -3,
+          0,
+          -3
+        ],
+        "size": [
+          6,
+          16,
+          6
+        ]
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 3
+      },
+      "minecraft:map_color": "#2a2e34",
+      "minecraft:light_dampening": 0,
+      "minecraft:light_emission": 12
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('fnar:lit') == false",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_ghost_light",
+              "render_method": "alpha_test"
+            },
+            "bulb": {
+              "texture": "fnar_ghost_light",
+              "render_method": "alpha_test"
+            }
+          },
+          "minecraft:light_emission": 0
+        }
+      }
+    ]
+  }
+}

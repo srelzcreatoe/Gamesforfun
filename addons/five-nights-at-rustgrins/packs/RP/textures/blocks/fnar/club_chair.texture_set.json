@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "club_chair",
+    "metalness_emissive_roughness": "club_chair_mer",
+    "heightmap": "club_chair_height"
+  }
+}

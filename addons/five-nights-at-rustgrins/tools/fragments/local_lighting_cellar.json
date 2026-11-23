@@ -1,0 +1,10 @@
+{
+  "fnar:bare_bulb": {
+    "light_color": "#ffc47a",
+    "light_type": "point_light"
+  },
+  "fnar:ghost_light": {
+    "light_color": "#ffd08a",
+    "light_type": "point_light"
+  }
+}

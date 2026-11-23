@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "ghost_light_on",
+    "metalness_emissive_roughness": "ghost_light_on_mer",
+    "heightmap": "ghost_light_on_height"
+  }
+}

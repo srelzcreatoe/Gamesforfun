@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "dead_button_light",
+    "metalness_emissive_roughness": "dead_button_light_mer",
+    "heightmap": "dead_button_light_height"
+  }
+}

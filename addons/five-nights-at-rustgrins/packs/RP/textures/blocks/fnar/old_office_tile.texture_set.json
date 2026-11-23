@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "old_office_tile",
+    "metalness_emissive_roughness": "old_office_tile_mer",
+    "heightmap": "old_office_tile_height"
+  }
+}

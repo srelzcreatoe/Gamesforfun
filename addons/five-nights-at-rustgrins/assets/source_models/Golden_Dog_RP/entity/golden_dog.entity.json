@@ -1,0 +1,37 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "fnaf:golden_dog",
+   "materials": {
+    "default": "entity_alphatest"
+   },
+   "textures": {
+    "default": "textures/entity/golden_dog"
+   },
+   "geometry": {
+    "default": "geometry.golden_dog"
+   },
+   "animations": {
+    "idle": "animation.golden_dog.idle",
+    "perform_1": "animation.golden_dog.perform_1",
+    "perform_2": "animation.golden_dog.perform_2",
+    "walk": "animation.golden_dog.walk",
+    "run": "animation.golden_dog.run",
+    "jumpscare": "animation.golden_dog.jumpscare",
+    "pose_1": "animation.golden_dog.pose_1",
+    "pose_2": "animation.golden_dog.pose_2",
+    "move_controller": "controller.animation.golden_dog.move"
+   },
+   "scripts": {
+    "animate": [
+     "move_controller"
+    ]
+   },
+   "render_controllers": [
+    "controller.render.default"
+   ],
+   "enable_attachables": false
+  }
+ }
+}

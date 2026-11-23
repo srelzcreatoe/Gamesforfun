@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "fallen_chandelier",
+    "metalness_emissive_roughness": "fallen_chandelier_mer",
+    "heightmap": "fallen_chandelier_height"
+  }
+}

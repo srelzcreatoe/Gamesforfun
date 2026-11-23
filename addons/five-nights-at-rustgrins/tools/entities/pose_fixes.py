@@ -76,12 +76,13 @@ RELAXED = {'finger': 10.0, 'mid': 16.0, 'tip': 10.0, 'thumb': [5.0, 0.0, 5.0], '
 ROLL = {'start': 1.10, 'stagger': 0.07, 'mid': 14.0, 'tip': 12.0}
 
 
-def relaxed_fingers(side, roll=True):
+def relaxed_fingers(side, roll=True, fingers=3):
+    """fingers: how many the hand has besides the thumb (the Golden Dog has four)."""
     sg = 1.0 if side == 'left' else -1.0
     out = {}
-    for n in (1, 2, 3):
+    for n in range(1, fingers + 1):
         base = {'': [0.0, 0.0, sg * RELAXED['finger']], '_mid': [0.0, 0.0, sg * RELAXED['mid']], '_tip': [0.0, 0.0, sg * RELAXED['tip']]}
-        t0 = ROLL['start'] + (3 - n) * ROLL['stagger']
+        t0 = ROLL['start'] + (fingers - n) * ROLL['stagger']
         for seg, v in base.items():
             bone = f'{side}_finger{n}{seg}'
             if not roll or seg == '':

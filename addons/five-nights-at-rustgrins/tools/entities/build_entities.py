@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Builds the animatronic entities (BP + RP) from the supplied models.
+"""Builds the animatronic entities (BP + RP) from the source models.
 
 Inputs:  assets/source_models/FNAF_Animatronics_RP and FNAF_Animatronics_2_RP
          (geometry, textures, animations for rustgrin, mirehop, noxbriar,
-         purple_rat, cat, top_hat_rat - supplied by the map owner).
+         purple_rat, cat, top_hat_rat - supplied by the map owner) and
+         assets/source_models/Golden_Dog_RP (the Golden Dog: written by
+         tools/entities/golden_dog.py, which this script runs when it has changed).
 Outputs: packs/RP: models/entity, textures/entity/fnar (+ _eyes, _mer, texture
          sets; the hollow-eyed look: _hollow (+ _mer, _height, texture set) and
          _pinprick), animations, animation_controllers, entity, render_controllers;
@@ -27,9 +29,13 @@ import new_anims  # noqa: E402
 from rig import eye_point  # noqa: E402
 from fk import Skeleton  # noqa: E402
 
+import golden_dog  # noqa: E402
+
 PACK_OF = {'rustgrin': 'FNAF_Animatronics_RP', 'mirehop': 'FNAF_Animatronics_RP', 'noxbriar': 'FNAF_Animatronics_RP',
-           'purple_rat': 'FNAF_Animatronics_2_RP', 'cat': 'FNAF_Animatronics_2_RP', 'top_hat_rat': 'FNAF_Animatronics_2_RP'}
-NAMES = {'rustgrin': 'Rustgrin', 'mirehop': 'Mirehop', 'noxbriar': 'Noxbriar', 'purple_rat': 'Purple Rat', 'cat': 'The Cat', 'top_hat_rat': 'The Ringmaster', 'rusted': 'Rustgrin?'}
+           'purple_rat': 'FNAF_Animatronics_2_RP', 'cat': 'FNAF_Animatronics_2_RP', 'top_hat_rat': 'FNAF_Animatronics_2_RP',
+           'golden_dog': 'Golden_Dog_RP'}
+NAMES = {'rustgrin': 'Rustgrin', 'mirehop': 'Mirehop', 'noxbriar': 'Noxbriar', 'purple_rat': 'Purple Rat', 'cat': 'The Cat', 'top_hat_rat': 'The Ringmaster', 'rusted': 'Rustgrin?',
+         'golden_dog': 'the Golden Dog'}
 
 # fnar:anim enum value -> source animation name (None = generated extra)
 ANIMS = {
@@ -49,6 +55,30 @@ COLLISION = {'width': 0.9, 'height': 3.0}
 VISIBLE_BOUNDS = {'width': 8, 'height': 8, 'offset': [0, 3.5, 0]}
 # The crawl shrinks the model (root bone scale) to fit the 2 x 2 ducts: at most this tall and wide in game.
 CRAWL_MAX = {'height': 1.85, 'width': 1.75}
+
+# Per-model settings; anything a model does not list is the cast's default above.
+#   scale       client entity scripts.scale (everything measured in blocks follows it: the solved poses, the crawl
+#               fit, tools/entities/head_aim.mjs and the preview renderer read it from the client entity)
+#   collision   minecraft:collision_box
+#   bounds      the geometry's culling box
+#   pupils      how the glowing pupils are found on the head's front faces: 'red' (the cast's red pupils), or
+#               'mask' (the source pack carries <id>_pupils.png, white where the pupils are)
+#   halo        colour of the soft halo around the pupils on the eyes layer (RGBA)
+#   glow        (gain, lift RGB) applied to the pupil texels on the eyes layer
+#   fingers     fingers per hand besides the thumb
+# The Golden Dog: 44 model px with his hat, drawn at 1.27 = 3.5 blocks tall where the others stand 3; broader too.
+MODELS = {
+    'golden_dog': {
+        'scale': 1.27, 'collision': {'width': 1.2, 'height': 3.5}, 'bounds': {'width': 9, 'height': 9, 'offset': [0, 4, 0]},
+        'pupils': 'mask', 'halo': [255, 226, 170, 110], 'glow': (1.12, [12, 8, 4]), 'fingers': 4,
+    },
+}
+DEFAULTS = {'scale': SCALE, 'collision': COLLISION, 'bounds': VISIBLE_BOUNDS, 'pupils': 'red', 'halo': [255, 40, 30, 110],
+            'glow': (1.35, [40, 10, 10]), 'fingers': 3}
+
+
+def setting(cid, key):
+    return MODELS.get(cid, {}).get(key, DEFAULTS[key])
 
 
 def write_json(path, obj):
@@ -85,9 +115,14 @@ def north_rect(cube):
     return x0, y0, x1, y1
 
 
-def eye_mask(geo, img):
+def eye_mask(geo, img, pupils=None):
+    """The glowing pupil texels: on the north faces of the head's cubes, the red ones, or (pupils: a bool
+    array from the source pack's <id>_pupils.png) the ones the model's author marked."""
     a = np.asarray(img.convert('RGBA')).astype(int)
-    red = (a[..., 0] > 140) & (a[..., 1] < 90) & (a[..., 2] < 90) & (a[..., 3] > 0)
+    if pupils is not None:
+        red = pupils & (a[..., 3] > 0)
+    else:
+        red = (a[..., 0] > 140) & (a[..., 1] < 90) & (a[..., 2] < 90) & (a[..., 3] > 0)
     mask = np.zeros(red.shape, bool)
     bones = {b['name']: b for b in geo['bones']}
     for bn in head_bones(geo):
@@ -100,23 +135,30 @@ def eye_mask(geo, img):
     return mask
 
 
-def make_eyes(img, mask):
+def make_eyes(img, mask, halo_rgba=(255, 40, 30, 110), glow=(1.35, (40, 10, 10))):
     a = np.asarray(img.convert('RGBA')).astype(float)
     h, w = mask.shape
     out = np.zeros((h, w, 4), np.uint8)
     # a soft 1-2 px halo around the pupils
     m = Image.fromarray((mask * 255).astype(np.uint8))
     halo = np.asarray(m.filter(ImageFilter.MaxFilter(3))).astype(bool) & ~mask
-    out[halo] = [255, 40, 30, 110]
+    out[halo] = list(halo_rgba)
     px = a[mask]
     if len(px):
-        bright = np.clip(px[:, :3] * 1.35 + [40, 10, 10], 0, 255)
+        bright = np.clip(px[:, :3] * glow[0] + list(glow[1]), 0, 255)
         out[mask, :3] = bright.astype(np.uint8)
         out[mask, 3] = 255
     return Image.fromarray(out, 'RGBA')
 
 
-def make_mer(img, mask, metal_boost=0):
+def make_mer(img, mask, metal_boost=0, base=None):
+    """Metalness / emissive / roughness. base: the MER a source pack carries for its model (<id>_mer.png: its
+    metalness and roughness are kept); otherwise both are guessed from the colours."""
+    if base is not None:
+        mer = np.asarray(base.convert('RGB')).copy()
+        mer[..., 0] = np.clip(mer[..., 0].astype(int) + metal_boost, 0, 255)
+        mer[..., 1] = np.where(mask, 255, 0)
+        return Image.fromarray(mer, 'RGB')
     a = np.asarray(img.convert('RGBA')).astype(float)
     rgb = a[..., :3] / 255.0
     mx, mn = rgb.max(-1), rgb.min(-1)
@@ -293,12 +335,12 @@ def make_pinprick(sock, centres):
     return Image.fromarray(out, 'RGBA')
 
 
-def write_hollow(tex_dir, name, img, sock, depth, metal_boost=0):
+def write_hollow(tex_dir, name, img, sock, depth, metal_boost=0, base_mer=None):
     """<name>_hollow.png and its Vibrant Visuals texture set: the body's MER without the pupils' glow, the
     sockets non-metallic and rough, and a heightmap (flat elsewhere) that sinks the sockets in a little."""
     hollow = make_hollow(img, sock, depth)
     hollow.save(os.path.join(tex_dir, f'{name}_hollow.png'))
-    mer = np.asarray(make_mer(hollow, np.zeros(sock.shape, bool), metal_boost)).copy()
+    mer = np.asarray(make_mer(hollow, np.zeros(sock.shape, bool), metal_boost, base_mer)).copy()
     mer[sock] = [0, 0, 245]
     Image.fromarray(mer, 'RGB').save(os.path.join(tex_dir, f'{name}_hollow_mer.png'))
     height = np.full(sock.shape, float(HEIGHT_FLAT))
@@ -307,19 +349,44 @@ def write_hollow(tex_dir, name, img, sock, depth, metal_boost=0):
     write_json(os.path.join(tex_dir, f'{name}_hollow.texture_set.json'), texture_set(f'{name}_hollow', heightmap=True))
 
 
-def rename_anims(anims, cid, geo, eye):
+def base_anims(anims, cid, geo):
+    """The model's animations under their fnar names, plus crawl / peek / look and the pose corrections:
+    everything the solved ones (stoop, lean, wave, bow) start from. Returns (animations, skeleton)."""
     out = {}
     for k, v in anims['animations'].items():
         name = k.split('.')[-1]
-        out[f'animation.fnar.{cid}.{name}'] = v
+        out[f'animation.fnar.{cid}.{name}'] = copy.deepcopy(v)
     skel = Skeleton(geo)
-    out[f'animation.fnar.{cid}.crawl'] = crawl_anim(cid, skel, scale=SCALE, fit=CRAWL_MAX)
+    out[f'animation.fnar.{cid}.crawl'] = crawl_anim(cid, skel, scale=setting(cid, 'scale'), fit=CRAWL_MAX)
     out[f'animation.fnar.{cid}.peek'] = peek_anim(cid, skel)
     out[f'animation.fnar.{cid}.look'] = look_anim()
     # pose / hand corrections (tools/entities/pose_fixes.py)
     pose_fixes.apply(cid, out)
+    return out, skel
+
+
+def relaxed_hand(cid):
+    fingers = setting(cid, 'fingers')
+    return lambda side: pose_fixes.relaxed_fingers(side, roll=False, fingers=fingers)
+
+
+def shape(geo):
+    """A geometry without its texture coordinates: what a solved pose depends on (repainting or repacking a
+    model's texture must not send it through the solver again)."""
+    g = copy.deepcopy(geo)
+    for m in g['minecraft:geometry']:
+        for k in ('texture_width', 'texture_height'):
+            m['description'].pop(k, None)
+        for b in m['bones']:
+            for c in b.get('cubes', []):
+                c.pop('uv', None)
+    return g
+
+
+def rename_anims(anims, cid, geo, eye):
+    out, skel = base_anims(anims, cid, geo)
     # stoop, lean, wave, bow (tools/entities/new_anims.py)
-    new_anims.apply(cid, out, skel, geo, eye, SCALE, lambda side: pose_fixes.relaxed_fingers(side, roll=False))
+    new_anims.apply(cid, out, skel, shape(geo), eye, setting(cid, 'scale'), relaxed_hand(cid))
     return out
 
 
@@ -344,7 +411,7 @@ def controller(cid):
 
 def client_entity(eid, geo_id, tex, eyes_id):
     """tex: the body texture (its _hollow twin is the hollow-eyed body); eyes_id: the model whose _eyes /
-    _pinprick layers fit this geometry."""
+    _pinprick layers fit this geometry. The render scale is the geometry's model's."""
     anims = {v: f'animation.fnar.{geo_id}.{ANIMS[v]}' for v in ANIM_VALUES}
     anims['look'] = f'animation.fnar.{geo_id}.look'
     anims['ctrl'] = f'controller.animation.fnar.{geo_id}'
@@ -362,7 +429,7 @@ def client_entity(eid, geo_id, tex, eyes_id):
                 },
                 'geometry': {'default': f'geometry.fnar.{geo_id}'},
                 'scripts': {
-                    'scale': f'{SCALE}',
+                    'scale': f"{setting(geo_id, 'scale')}",
                     'pre_animation': [
                         "variable.fnar_anim = query.property('fnar:anim');",
                         "variable.fnar_eyes = query.property('fnar:eyes');",
@@ -380,7 +447,8 @@ def client_entity(eid, geo_id, tex, eyes_id):
     }
 
 
-def behavior_entity(eid):
+def behavior_entity(eid, model=None):
+    """model: whose body it has (collision box), when the entity is not named after its model."""
     return {
         'format_version': '1.26.50',
         'minecraft:entity': {
@@ -402,7 +470,7 @@ def behavior_entity(eid):
             },
             'components': {
                 'minecraft:type_family': {'family': ['fnar_animatronic', 'inanimate']},
-                'minecraft:collision_box': dict(COLLISION),
+                'minecraft:collision_box': dict(setting(model or eid, 'collision')),
                 'minecraft:physics': {'has_gravity': False, 'has_collision': False},
                 # (no minecraft:pushable: since 1.26.10 it no longer parses and fails the whole entity;
                 #  leaving out its successors pushable_by_entity / pushable_by_block = not pushable)
@@ -450,31 +518,81 @@ def texture_set(name, heightmap=False):
     return {'format_version': '1.21.30', 'minecraft:texture_set': layers}
 
 
+def load_model(cid):
+    """One model as the build uses it: geometry (renamed, with its culling box), texture, the pupil mask and
+    the eye point, the source pack's own MER if it has one, and its animations."""
+    src = os.path.join(SRC, PACK_OF[cid])
+    geo = json.load(open(os.path.join(src, 'models', 'entity', f'{cid}.geo.json')))
+    tex_src = os.path.join(src, 'textures', 'entity')
+    img = Image.open(os.path.join(tex_src, f'{cid}.png')).convert('RGBA')
+    g = geo['minecraft:geometry'][0]
+    g['description']['identifier'] = f'geometry.fnar.{cid}'
+    # culling box: room for the scaled-up body
+    bounds = setting(cid, 'bounds')
+    g['description']['visible_bounds_width'] = bounds['width']
+    g['description']['visible_bounds_height'] = bounds['height']
+    g['description']['visible_bounds_offset'] = list(bounds['offset'])
+    pupils = None
+    if setting(cid, 'pupils') == 'mask':
+        pupils = np.asarray(Image.open(os.path.join(tex_src, f'{cid}_pupils.png')).convert('L')) > 127
+    mer_file = os.path.join(tex_src, f'{cid}_mer.png')
+    base_mer = Image.open(mer_file).convert('RGB') if os.path.exists(mer_file) else None
+    mask = eye_mask(g, img, pupils)
+    anims = json.load(open(os.path.join(src, 'animations', f'{cid}.animation.json')))
+    return {'geo': geo, 'g': g, 'img': img, 'mask': mask, 'eye': eye_point(g, mask), 'base_mer': base_mer, 'anims': anims}
+
+
+def _solve(cid):
+    """Worker: solves one model's stoop / lean / wave / bow into a cache of its own; returns its cache entry."""
+    import tempfile
+    m = load_model(cid)
+    with tempfile.TemporaryDirectory() as d:
+        new_anims.CACHE_FILE = os.path.join(d, 'solve_cache.json')
+        rename_anims(m['anims'], cid, m['geo'], m['eye'])
+        with open(new_anims.CACHE_FILE) as f:
+            return cid, json.load(f)[cid]
+
+
+def presolve(models):
+    """The solved animations take minutes per model: models that miss the cache are solved side by side."""
+    missing = []
+    for cid, m in models.items():
+        out, _ = base_anims(m['anims'], cid, m['geo'])
+        if not new_anims.cached(cid, out, shape(m['geo']), m['eye'], setting(cid, 'scale')):
+            missing.append(cid)
+    if not missing:
+        return
+    import multiprocessing
+    print(f'solving stoop / lean / wave / bow for {", ".join(missing)} (side by side: this takes a few minutes)', flush=True)
+    # One model per process, always: tools/entities/rig.py keeps its box caches under id(skeleton), and a second
+    # skeleton in the same process can be handed the first one's boxes (the address is reused). A fresh process
+    # per model keeps every solve clean and repeatable.
+    with multiprocessing.Pool(min(len(missing), max(1, (os.cpu_count() or 2))), maxtasksperchild=1) as pool:
+        # each result goes into the cache as it arrives, so an interrupted build keeps what it has solved
+        for cid, entry in pool.imap_unordered(_solve, missing, chunksize=1):
+            cache = new_anims._load_cache()
+            cache[cid] = entry
+            new_anims._save_cache(cache)
+            print(f'   {cid}: solved', flush=True)
+
+
 def main():
     tex_dir = os.path.join(RP, 'textures', 'entity', 'fnar')
     os.makedirs(tex_dir, exist_ok=True)
-    for cid, pk in PACK_OF.items():
-        src = os.path.join(SRC, pk)
-        geo = json.load(open(os.path.join(src, 'models', 'entity', f'{cid}.geo.json')))
-        g = geo['minecraft:geometry'][0]
-        g['description']['identifier'] = f'geometry.fnar.{cid}'
-        # culling box: room for the scaled-up body
-        g['description']['visible_bounds_width'] = VISIBLE_BOUNDS['width']
-        g['description']['visible_bounds_height'] = VISIBLE_BOUNDS['height']
-        g['description']['visible_bounds_offset'] = list(VISIBLE_BOUNDS['offset'])
+    golden_dog.ensure()                 # his source pack is written by code: rewrite it if the code has changed
+    models = {cid: load_model(cid) for cid in PACK_OF}
+    presolve(models)
+    for cid, m in models.items():
+        geo, g, img, mask, eye, base_mer, anims = (m[k] for k in ('geo', 'g', 'img', 'mask', 'eye', 'base_mer', 'anims'))
         write_json(os.path.join(RP, 'models', 'entity', f'fnar_{cid}.geo.json'), geo)
-        img = Image.open(os.path.join(src, 'textures', 'entity', f'{cid}.png')).convert('RGBA')
         img.save(os.path.join(tex_dir, f'{cid}.png'))
-        mask = eye_mask(g, img)
-        eye = eye_point(g, mask)
-        make_eyes(img, mask).save(os.path.join(tex_dir, f'{cid}_eyes.png'))
-        make_mer(img, mask).save(os.path.join(tex_dir, f'{cid}_mer.png'))
+        make_eyes(img, mask, setting(cid, 'halo'), setting(cid, 'glow')).save(os.path.join(tex_dir, f'{cid}_eyes.png'))
+        make_mer(img, mask, base=base_mer).save(os.path.join(tex_dir, f'{cid}_mer.png'))
         write_json(os.path.join(tex_dir, f'{cid}.texture_set.json'), texture_set(cid))
         sock, centres = socket_mask(g, img, mask)
         depth = socket_depth(sock)
-        write_hollow(tex_dir, cid, img, sock, depth)
+        write_hollow(tex_dir, cid, img, sock, depth, base_mer=base_mer)
         make_pinprick(sock, centres).save(os.path.join(tex_dir, f'{cid}_pinprick.png'))
-        anims = json.load(open(os.path.join(src, 'animations', f'{cid}.animation.json')))
         write_json(os.path.join(RP, 'animations', f'fnar_{cid}.animation.json'), {'format_version': anims.get('format_version', '1.8.0'), 'animations': rename_anims(anims, cid, geo, eye)})
         write_json(os.path.join(RP, 'animation_controllers', f'fnar_{cid}.animation_controllers.json'), controller(cid))
         write_json(os.path.join(RP, 'entity', f'fnar_{cid}.entity.json'), client_entity(cid, cid, cid, cid))
@@ -487,11 +605,7 @@ def main():
             write_json(os.path.join(tex_dir, 'rustgrin_rusted.texture_set.json'), texture_set('rustgrin_rusted'))
             write_hollow(tex_dir, 'rustgrin_rusted', rusted, sock, depth, metal_boost=60)
             write_json(os.path.join(RP, 'entity', 'fnar_rusted.entity.json'), client_entity('rusted', 'rustgrin', 'rustgrin_rusted', 'rustgrin'))
-            write_json(os.path.join(BP, 'entities', 'rusted.json'), behavior_entity('rusted'))
-    if 'golden_dog' not in PACK_OF:
-        # PLACEHOLDER until the Golden Dog's model is built (docs/GOLDEN_DOG.md): the server-side entity only,
-        # so the game and its tests can already spawn fnar:golden_dog. Remove this once he is in PACK_OF.
-        write_json(os.path.join(BP, 'entities', 'golden_dog.json'), behavior_entity('golden_dog'))
+            write_json(os.path.join(BP, 'entities', 'rusted.json'), behavior_entity('rusted', 'rustgrin'))
     write_json(os.path.join(RP, 'render_controllers', 'fnar.render_controllers.json'), RENDER)
     print('entities built')
 

@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "rotten_panelling",
+    "metalness_emissive_roughness": "rotten_panelling_mer",
+    "heightmap": "rotten_panelling_height"
+  }
+}
