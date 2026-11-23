@@ -673,6 +673,7 @@ export class Golden {
     // the Other Office: he is where the session has him, his light with him; the phone rings; his steps
     const o = this.other;
     if (o?.there && gd.state === 'other') {
+      this.keep(g); // (every tick down there: the desk is the only wall between the seat and the hall)
       const p = this.hisSpot();
       if (o.walking) {
         game.puppets.teleport(ID, p, NODES[CELLAR.stage].yaw);
