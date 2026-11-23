@@ -47,7 +47,7 @@ export const CALLS = Object.freeze({
     'Nobody leaves at intermission, {name}. It is terribly rude to the performers.',
     'Everyone is restless tonight. Watch the tape on CAM 8, watch the halls, watch the ducts. And if you ever find the old Rustgrin slumped in your office...',
     '...raise the monitor at once. He was never there, and he would very much like you to agree.',
-    'Now. I will say this once, and quietly. There was a house on this lot before ours: the Golden Dog Supper Club, 1958 to 1971. They built us on top of it.',
+    'Now. I will say this once, and quietly. There was a house on this lot before ours: the Golden Dog Supper Club, 1958 to 1971. In 1984 they built us on top of it.',
     'Its host is still down there, on his stage. He is on no list. Not the auction, not the program, not mine. When his watch ticks, the band stops where it stands. So do I.',
     'If he comes up to stand behind you, do not turn around. Do not raise the monitor. Never look at him, {name}. In all these years I never have.',
     'Two more nights. Then the lights go down for good. Or do they?',
@@ -418,7 +418,7 @@ export const TUTORIAL_HINTS = Object.freeze({
   2: 'Tip: keep the show tape on CAM 8 above 30 %, and glance at the Cat often.',
   3: 'Tip: maracas mean the Purple Rat is in a duct. Seal that VENT when the sound is right above you. Three knocks and nobody in the light? It is bait: look again.',
   4: 'Tip: microphone feedback at the right door means Rustgrin. Shut the right door before you raise the monitor. If a feed squeals while you watch him, look away. A watch ticking, then breathing behind you: do not turn around.',
-  5: 'Tip: power is tight tonight. Open doors and vents as soon as the threat has gone, but a soft twang or hum means they only stepped back. A crash in the kitchen is a distraction: check both halls.',
+  5: 'Tip: power is tight tonight. Open doors and vents as soon as the threat has gone, but a soft twang or hum means they only stepped back. A crash in the kitchen is a distraction: check both halls. If the office is ever not your office, look at the desk and pick up the telephone.',
   6: 'Tip: listen to the Ringmaster. Every act starts with a 10-second warning.',
   7: 'Tip: rewind the tape early, and save power for the SPOTLIGHT.',
 });
