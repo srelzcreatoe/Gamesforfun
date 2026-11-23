@@ -97,6 +97,18 @@ gain if they peak above -1 dBFS):
 | `fnar.js.rustgrin`, `fnar.js.mirehop`, `fnar.js.noxbriar`, `fnar.js.purple_rat`, `fnar.js.cat`, `fnar.js.top_hat_rat` | `js/animatronic.ogg` (2.8 s) |
 | `fnar.js.rusted` | `js/rusted.ogg` (3.3 s, the "fredbear" scream) - only the Rusted one uses it |
 
+**The Golden Dog and the cellar** (`recipes_golden.py`; all synthesised, his scream too)
+| event | channels | dur | dist (min/max) | description |
+|---|---|---|---|---|
+| `fnar.golden.watch` | stereo, `hostile` | 2.5 s | - | his tell: a pocket watch held to the ear, ticking faster and faster (5 to 16 beats a second), then the lid snaps. As long as the tell itself (50 ticks). Nothing else in the game ticks |
+| `fnar.golden.tear` | stereo, `hostile` | 0.9 s ×2 | - | a shift starts or ends: the place rips like cloth from one ear to the other, and closes with a low thump |
+| `fnar.golden.breath` | mono, `hostile` | 4 s | 1/9 | the visit: one slow breath of something very big right behind the seat (a long inhale through a muzzle, an exhale with a low growl under it). Silent at both ends: the script plays the next one every 80 ticks |
+| `fnar.golden.chime` | stereo, `ui` | 4.4 s | - | the false dawn: the 6 AM chime a semitone flat from its first bell, wavering and sagging, cut dead before it resolves |
+| `fnar.golden.step` | mono, `hostile` | 0.9 s ×3 | 4/56 | the Other Office: one of his steps on the cellar's old floorboards, heard down the Long Hall |
+| `fnar.golden.phone` | mono, `block` | 2.2 s | 2/20 | the Other Office: one ring of an old two-gong desk telephone, one gong cracked (the script repeats it) |
+| `fnar.golden.cellar` | stereo, `ambient` | 10 s loop (200 ticks) | - | the cellar's own air: a boiler behind a wall, water in old pipes, a slow drip, wood settling. Played to whoever is down there (Free Roam, and in the Other Office) |
+| `fnar.js.golden_dog` | stereo, `hostile` | 2.8 s | - | his jumpscare: the watch races and its spring lets go, then the howl of a very large dog through a blown speaker, and one toll of the wrong bell |
+
 **The Final Act**
 | event | stereo | dur | description |
 |---|---|---|---|

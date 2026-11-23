@@ -30,6 +30,7 @@ Vorbis decoding) and Pillow (spectrograms) are optional extras for the checker.
 | `recipes_final.py` | the Final Act: PA chime, applause, spotlight |
 | `recipes_night.py` | the night shift: the drone and heartbeat beds, breathing, children's voices, the far music box, building noises, knocks, the radio, stingers, the midnight cue |
 | `recipes_day.py` | the pizzeria by day: the guests' murmur, their clapping and cheering, the bell over the front doors |
+| `recipes_golden.py` | the Golden Dog and the cellar: his pocket watch, the tear, his breathing, the off-key 6 AM chime, his steps, the old phone, the cellar's air, his scream |
 | `recipes_music.py` | instruments and the compositions (music box, calliope, 80s band) |
 | `check_sounds.py` | self-check: duration, channels, peak, RMS, DC, edges, loop seams, size, spectrograms |
 | `sound_manifest.json` | generated: exact durations, channels, loop flags, max distance, peaks, pre-fade seam metrics |
@@ -204,7 +205,41 @@ attack and a pin click. Every tine has a fixed detune.
 in `assets/audio/` (`Rec(...)` rows in `gen_sounds.py`): they are copied into the
 pack as they are, or only trimmed in gain and re-encoded at a higher quality when
 they peak above -1 dBFS. `js/animatronic.ogg` serves all six regular animatronics,
-`js/rusted.ogg` the Rusted one, and `music/bgm.ogg` loops during shifts.
+`js/rusted.ogg` the Rusted one, and `music/bgm.ogg` loops during shifts. (The
+Golden Dog's scream is the exception: it is synthesised, see below.)
+
+**The Golden Dog and the cellar** (`recipes_golden.py`). Three rooms of their own: `gold_room`
+(1.9 s, low ceiling, plaster and rotten plush), `gold_hall` (2.6 s, a long slap that comes
+back) and `other_office` (0.9 s, small and damp).
+* `golden.watch` is his tell, and exactly as long as it (2.5 s = `golden.tell`, 50 ticks, in
+  `core/config.js`). One tick is two contact pulses a few milliseconds apart (the pallet drops, the
+  wheel locks) through a small-metal case, a bank of thin high wheel modes and a lower "body" bank;
+  odd ticks are tuned a little flat, so it goes tick-tock. The beat rate is integrated from 5 Hz up
+  to 16 Hz, every tick a little louder and panned on a slow swing from ear to ear, with a thin
+  mainspring whir winding up underneath. The lid snaps at the end. Nothing else in the game ticks.
+* `golden.tear` (2 variants) starts and ends a shift: reversed, reverberated noise swelling into a
+  rip of band-passed noise that is chopped by a fast, irregular click train (threads giving way)
+  while its band slides down, and a falling thump as it closes. It runs from one ear to the other.
+* `golden.breath` is one breath of something very big: formant noise through a vowel track scaled
+  to 0.66 (a long muzzle), a slack voiced growl at 46-33 Hz with glottal fry under the exhale, and
+  low-passed noise for the weight of the lungs. It starts and ends in silence; `mc/golden.js` plays
+  the next one every 80 ticks while he stands behind the seat.
+* `golden.chime` is the real `clock.6am` read back with a speed curve that is a semitone flat from
+  its first bell, wavers, and sags to half speed, with a second copy a quarter-tone under it, a
+  faint watch tick underneath, and a hard cut (the first thread of the tear) before the chord can
+  resolve. The real 6 AM never sounds like it.
+* `golden.step` (3 variants) is a slow heel and toe (two falling thumps, lower than `step.heavy`) on
+  old floorboards (a wood mode set and a joist creak), a low servo groan and the chain at his
+  pocket, in the long hall's IR. It carries 56 blocks.
+* `golden.phone` is one ring of a 1950s two-gong desk telephone: the clapper drags from 27 to 21
+  strikes a second, and the second gong is cracked (every partial split in two and dying sooner).
+* `golden.cellar` is a 10 s stereo loop (the length `mc/audio.js` restarts a loop it has no entry
+  for): a boiler's low burner notes beating slowly, a wandering pipe hiss, a drip that is nearly
+  regular, two joist creaks and a cooling pipe that knocks, all placed with wrap-around.
+* `js.golden_dog` is the only synthesised scream: 0.16 s of the watch racing, the spring letting go
+  (a struck coil shaken at 31 Hz), then a howl of two formant voices an octave apart falling from
+  285 Hz, a snarl, a noise blast and an FM shriek, all through a blown speaker (heavy saturation, a
+  bit crush, two harsh peaks), over a sub hit and one toll of the wrong 6 AM bell.
 
 **The Final Act** (`recipes_final.py`).
 * `final.chime` is a three-note glockenspiel chime (C6, A5, E6) through a band-limited,
@@ -402,6 +437,14 @@ nameN.ogg`, and the definition lists them all, so Minecraft picks one at random.
 | `fnar.day.crowd` | 1 | 14 s | mono | loop | neutral | 44 |
 | `fnar.day.cheer` | 3 | 3.2 s | mono |  | neutral | 44 |
 | `fnar.day.door_chime` | 1 | 1.8 s | mono |  | block | 30 |
+| `fnar.golden.watch` | 1 | 2.5 s | stereo |  | hostile | - |
+| `fnar.golden.tear` | 2 | 0.9 s | stereo |  | hostile | - |
+| `fnar.golden.breath` | 1 | 4 s | mono |  | hostile | 9 |
+| `fnar.golden.chime` | 1 | 4.4 s | stereo |  | ui | - |
+| `fnar.golden.step` | 3 | 0.9 s | mono |  | hostile | 56 |
+| `fnar.golden.phone` | 1 | 2.2 s | mono |  | block | 20 |
+| `fnar.golden.cellar` | 1 | 10 s | stereo | loop | ambient | - |
+| `fnar.js.golden_dog` | 1 | 2.8 s | stereo |  | hostile | - |
 | `fnar.hall.whisper` | 1 | 2 s | stereo |  | hostile | - |
 | `fnar.hall.sting` | 1 | 1.5 s | stereo |  | hostile | - |
 | `fnar.ui.click` | 1 | 0.1 s | stereo |  | ui | - |

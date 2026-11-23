@@ -645,6 +645,86 @@
         }
       ]
     },
+    "fnar.golden.watch": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/golden/watch"
+        }
+      ]
+    },
+    "fnar.golden.tear": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/golden/tear1"
+        },
+        {
+          "name": "sounds/fnar/golden/tear2"
+        }
+      ]
+    },
+    "fnar.golden.breath": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 9.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/golden/breath"
+        }
+      ]
+    },
+    "fnar.golden.chime": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fnar/golden/chime"
+        }
+      ]
+    },
+    "fnar.golden.step": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 56.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/golden/step1"
+        },
+        {
+          "name": "sounds/fnar/golden/step2"
+        },
+        {
+          "name": "sounds/fnar/golden/step3"
+        }
+      ]
+    },
+    "fnar.golden.phone": {
+      "category": "block",
+      "min_distance": 2.0,
+      "max_distance": 20.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/golden/phone"
+        }
+      ]
+    },
+    "fnar.golden.cellar": {
+      "category": "ambient",
+      "sounds": [
+        {
+          "name": "sounds/fnar/golden/cellar"
+        }
+      ]
+    },
+    "fnar.js.golden_dog": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/js/golden_dog",
+          "load_on_low_memory": true
+        }
+      ]
+    },
     "fnar.final.chime": {
       "category": "hostile",
       "sounds": [

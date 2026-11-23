@@ -45,6 +45,7 @@ from fnar_dsp import (N, SR, ampdb, bq, dbamp, dc_block, eq, fade_edges, fit, li
 import recipes_anim as ra  # noqa: E402
 import recipes_day as rd  # noqa: E402
 import recipes_final as rf  # noqa: E402
+import recipes_golden as rg  # noqa: E402
 import recipes_music as rm  # noqa: E402
 import recipes_night as rn  # noqa: E402
 import recipes_office as ro  # noqa: E402
@@ -172,6 +173,19 @@ EVENTS = [
     Rec('js.cat', 'js_animatronic.ogg', 'js/animatronic', cat='hostile', low_mem=True),
     Rec('js.top_hat_rat', 'js_animatronic.ogg', 'js/animatronic', cat='hostile', low_mem=True),
     Rec('js.rusted', 'js_fredbear.ogg', 'js/rusted', cat='hostile', low_mem=True),
+    # --- the Golden Dog and the cellar (recipes_golden) ------------------------------
+    # the tell is 2.5 s = core/config.js golden.tell (50 ticks). One breath is 4 s (mc/golden.js plays the next
+    # one every 80 ticks); the cellar's air is 10 s, the length mc/audio.js restarts a loop it has no entry for
+    Ev('golden.watch', rg.golden_watch, 2.5, stereo=True, cat='hostile', level=('peak', -2.0), fout=0.05,
+       note='his tell: the length of core/config.js golden.tell (50 ticks)'),
+    Ev('golden.tear', rg.golden_tear, 0.9, variants=2, stereo=True, cat='hostile', level=('peak', -2.5), fout=0.1),
+    Ev('golden.breath', rg.golden_breath, 4.0, cat='hostile', dist=(1, 9), level=('lufs', -22), fin=0.02, fout=0.1),
+    Ev('golden.chime', rg.golden_chime, 4.4, stereo=True, cat='ui', level=('peak', -2.5), fout=0.05),
+    Ev('golden.step', rg.golden_step, 0.9, variants=3, cat='hostile', dist=(4, 56), level=('peak', -1.5), fout=0.15),
+    Ev('golden.phone', rg.golden_phone, 2.2, cat='block', dist=(2, 20), level=('peak', -2.5), fout=0.2),
+    Ev('golden.cellar', rg.golden_cellar, 10.0, stereo=True, loop=True, cat='ambient', level=('lufs', -31)),
+    Ev('js.golden_dog', rg.js_golden_dog, 2.8, stereo=True, cat='hostile', level=('rms', -10.5), fout=0.25,
+       low_mem=True),
     # --- the Final Act (night 6) -------------------------------------------------
     Ev('final.chime', rf.pa_chime, 1.9, stereo=True, cat='hostile', level=('peak', -3.0), fout=0.1),
     Ev('final.applause', rf.crowd_applause, 4.5, stereo=True, cat='hostile', level=('lufs', -20), fout=0.3),

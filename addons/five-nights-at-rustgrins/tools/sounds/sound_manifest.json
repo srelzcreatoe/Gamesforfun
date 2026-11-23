@@ -1029,6 +1029,145 @@
     -1.09
    ]
   },
+  "fnar.golden.watch": {
+   "files": [
+    "sounds/fnar/golden/watch.ogg"
+   ],
+   "duration": 2.5,
+   "source": "synthesised",
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "his tell: the length of core/config.js golden.tell (50 ticks)",
+   "peaks_db": [
+    -1.73
+   ]
+  },
+  "fnar.golden.tear": {
+   "files": [
+    "sounds/fnar/golden/tear1.ogg",
+    "sounds/fnar/golden/tear2.ogg"
+   ],
+   "duration": 0.9,
+   "source": "synthesised",
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -2.71,
+    -2.2
+   ]
+  },
+  "fnar.golden.breath": {
+   "files": [
+    "sounds/fnar/golden/breath.ogg"
+   ],
+   "duration": 4.0,
+   "source": "synthesised",
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 9,
+   "note": "",
+   "peaks_db": [
+    -7.11
+   ]
+  },
+  "fnar.golden.chime": {
+   "files": [
+    "sounds/fnar/golden/chime.ogg"
+   ],
+   "duration": 4.4,
+   "source": "synthesised",
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "ui",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -3.0
+   ]
+  },
+  "fnar.golden.step": {
+   "files": [
+    "sounds/fnar/golden/step1.ogg",
+    "sounds/fnar/golden/step2.ogg",
+    "sounds/fnar/golden/step3.ogg"
+   ],
+   "duration": 0.9,
+   "source": "synthesised",
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 56,
+   "note": "",
+   "peaks_db": [
+    -1.4,
+    -1.39,
+    -1.49
+   ]
+  },
+  "fnar.golden.phone": {
+   "files": [
+    "sounds/fnar/golden/phone.ogg"
+   ],
+   "duration": 2.2,
+   "source": "synthesised",
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "block",
+   "max_distance": 20,
+   "note": "",
+   "peaks_db": [
+    -2.52
+   ]
+  },
+  "fnar.golden.cellar": {
+   "files": [
+    "sounds/fnar/golden/cellar.ogg"
+   ],
+   "duration": 10.0,
+   "source": "synthesised",
+   "channels": 2,
+   "loop": true,
+   "positional": false,
+   "category": "ambient",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -17.28
+   ],
+   "seam_prefade": {
+    "step": 0.139,
+    "hf": 1.4,
+    "hf_p99": 1.407
+   }
+  },
+  "fnar.js.golden_dog": {
+   "files": [
+    "sounds/fnar/js/golden_dog.ogg"
+   ],
+   "duration": 2.8,
+   "source": "synthesised",
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -1.14
+   ]
+  },
   "fnar.final.chime": {
    "files": [
     "sounds/fnar/final/chime.ogg"

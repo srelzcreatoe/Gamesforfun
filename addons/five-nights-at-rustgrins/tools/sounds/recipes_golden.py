@@ -7,11 +7,11 @@ stereo (2, n) float array. Everything is synthesised.
                   the tell in core/config.js: golden.tell = 50 ticks). Nothing else in the
                   building ticks.
   golden.tear     a shift starts or ends: the place rips like cloth
-  golden.breath   a visit: slow, huge breathing behind the seat (a silent-ended 4 s loop)
+  golden.breath   a visit: one slow, huge breath behind the seat (4 s; the script plays the next)
   golden.chime    the false dawn: the 6 AM chime, off-key from its first note and sagging
   golden.step     the Other Office: his weight on the cellar's boards, far down the hall
   golden.phone    the Other Office: an old two-gong bell telephone (one ring; the script repeats it)
-  golden.cellar   the cellar's own air: a boiler, pipes, water, wood (a stereo loop)
+  golden.cellar   the cellar's own air: a boiler, pipes, water, wood (a 10 s stereo loop)
   js.golden_dog   his scream: the watch races and breaks, then a howl through a blown speaker
 """
 from __future__ import annotations
@@ -50,15 +50,18 @@ def ir_long_hall():
 def _tick(r, k, bright=1.0):
     """one beat of a lever escapement: the pallet drops (tick), the wheel locks (a softer,
     lower tock a few milliseconds later), ringing in a small gold case"""
-    m = N(0.09)
+    m = N(0.14)
     tock = k % 2
     a = strike(m, 0.0006, 0.00012, 1.0)
     b = strike(m, 0.0006 + (0.0042 if tock else 0.0031), 0.00016, 0.55)
     case = resonators(a + b, small_metal('watch_case%d' % tock))
     wheel = resonators(a, [(f * (0.94 if tock else 1.0), d, g) for f, d, g in
                            ((4310.0, 0.035, 1.0), (6120.0, 0.022, 0.7), (8900.0, 0.014, 0.5), (2630.0, 0.05, 0.35))])
+    # the body of the tick: the plates and the case back, a knock rather than a click
+    body = resonators(a + 0.7 * b, [(f * (0.9 if tock else 1.0), d, g) for f, d, g in
+                                    ((1180.0, 0.07, 1.0), (1730.0, 0.06, 0.8), (790.0, 0.09, 0.5), (3350.0, 0.04, 0.5))])
     click = bw(a + 0.5 * b, 'hp', 2500, 2)
-    return (0.6 * P(case) + 0.9 * bright * P(wheel) + 0.5 * P(click)) * decay(m, 0.06)
+    return (0.55 * P(case) + 0.8 * bright * P(wheel) + 0.9 * P(body) + 0.45 * P(click)) * decay(m, 0.11)
 
 
 def golden_watch(v, r, n):
@@ -87,7 +90,7 @@ def golden_watch(v, r, n):
     # the lid
     lid = hit(n, dur - 0.2, small_metal('watch_lid'), 0.0004) + 0.6 * hit(n, dur - 0.2, frame_modes('watch'), 0.0007)
     place(out, P(lid) * 0.7, 0)
-    out = reverb(out, ir_office(), wet=0.1)
+    out = reverb(sat(P(out) * 1.6, 1.5), ir_office(), wet=0.16)
     hush = 0.02 * bw(white(r, n), 'bp', (300, 2400)) * env_pts(n, [(0, 0), (0.3, 1), (dur - 0.2, 1), (dur - 0.15, 0), (dur, 0)])
     return out + np.stack([hush, hush]) * np.max(np.abs(out))
 
@@ -137,7 +140,7 @@ def golden_tear(v, r, n):
 def golden_breath(v, r, n):
     """one slow breath of something very big standing right behind you: a long, wet
     inhale through a muzzle, a pause, an exhale with a low growl riding under it. It
-    starts and ends in silence, so the script can loop it."""
+    starts and ends in silence: the script plays one after another."""
     dur = n / SR
     t = T(n)
     i0, i1, e0, e1 = 0.10, 1.45, 1.85, 3.72
@@ -271,10 +274,10 @@ def golden_cellar(v, r, n):
         td += 2.9 + 0.35 * r.standard_normal()
         k += 1
     # the building settles on its old joists; a pipe knocks as it cools
-    for i, tc in enumerate([3.7, 9.4, 13.2]):
+    for i, tc in enumerate([3.7, 8.6]):
         c = creak(r, r.uniform(0.7, 1.6), r.uniform(22, 40), r.uniform(55, 100), wood_modes('cellar%d' % i))
         place(ev, P(c) * r.uniform(0.3, 0.5), tc, wrap=True, p=r.uniform(-0.9, 0.9))
-    for i, tk in enumerate([6.2, 6.55, 14.8]):
+    for i, tk in enumerate([5.9, 6.25, 1.6]):
         m = N(0.8)
         pk = resonators(strike(m, 0.001, 0.0006), duct_modes())
         place(ev, P(pk) * (0.16, 0.1, 0.13)[i], tk, wrap=True, p=-0.7)
@@ -319,7 +322,7 @@ def js_golden_dog(v, r, n):
     shriek = servo(r, m, env * 1.0, base=1250, span=1500, ratio=0.71, index=3.2, gear=0.6, grit=0.5) * env
     voice = P(howl) * 1.0 + 0.5 * P(snarl) + 0.4 * P(blast) + 0.22 * P(shriek)
     # the blown speaker
-    voice = sat(voice * 3.2, 2.6)
+    voice = sat(voice * 4.5, 3.0)
     voice = 0.8 * voice + 0.2 * bitcrush(voice, 6, 3)
     voice = eq(voice, ('peak', 1300, 1.4, 5.0), ('peak', 3100, 2.0, 4.0))
     voice = bw(voice, 'bp', (70, 8200), 2)
@@ -336,5 +339,5 @@ def js_golden_dog(v, r, n):
     out[0] *= 1 + 0.12 * np.sin(PI2 * 9.0 * t)
     out[1] *= 1 - 0.12 * np.sin(PI2 * 9.0 * t)
     out = reverb(out, ir_big_st(), wet=0.2)
-    out = sat(out, 1.3)
+    out = sat(P(out) * 2.2, 2.0)
     return out * env_pts(n, [(0, 1), (dur - 0.3, 1), (dur, 0)])
