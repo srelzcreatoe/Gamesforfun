@@ -18,6 +18,8 @@ const CLIENT = {
   renderControllers: ['/packs/RP/render_controllers/basiliskra.render_controllers.json'],
 };
 const ROMAN = { i: 'I', ii: 'II', iii: 'III', iv: 'IV' };
+// The Titan wears Basiliskra IV's body under a client entity of its own (which keeps its seams lit).
+const CLIENT_TITAN = { ...CLIENT, entity: '/packs/RP/entity/basiliskra_titan.entity.json' };
 const lerp = (a, b, u) => a + (b - a) * u;
 
 // ---- what each form is shown doing ---------------------------------------------------------------------------
@@ -71,6 +73,28 @@ const REEL = {
       fx: [{ at: 2.5, kind: 11 }, { at: 5.5, kind: 11 }], sounds: [{ at: 2.5, sound: 'basiliskra.knock.vent', pitch: 0.9 }, { at: 5.5, sound: 'basiliskra.knock.vent', pitch: 1.0 }] },
     { t: 6.5, label: 'Reaching for the seabed, and hauling it in', phase: 'drag', cam: CAM([8, 28], 7, 1.0, 0.4), sounds: [{ at: 0.2, sound: 'basiliskra.iii.growl', pitch: 0.74 }, { at: 4.2, sound: 'basiliskra.roar_short', cut: 2.3 }] },
   ],
+  // (--forms titan: a reel of its own, the moves that only the Titan has)
+  titan: [
+    { t: 4.5, label: 'The Titan: a separate, far stronger Basiliskra IV, made for battles. Its seams never go dark', phase: 'idle', night: true, cam: CAM([35, 80], 8, 1.0) },
+    { t: 7, label: 'It walks a third faster than he does', phase: 'move', speed: 4.3, steps: 'basiliskra.iii.step', stepPitch: 0.68, cam: CAM([0, 50], 9, 1.05, 0.4) },
+    { t: 1.0, label: 'The lunge', phase: 'idle', cam: CAM(18, 8, 1.0) },
+    { t: 1.7, label: 'The lunge: it rears back, then throws its jaws and its right hand forward', phase: 'bite', cam: CAM(18, 8, 1.0), sounds: [{ at: 0, sound: 'basiliskra.iii.growl', pitch: 0.78 }] },
+    { t: 0.9, label: 'The lunge, from in front', phase: 'idle', cam: CAM(118, 6, 0.9, 0.55) },
+    { t: 1.7, label: 'The lunge, from in front', phase: 'bite', cam: CAM(118, 6, 0.9, 0.55), sounds: [{ at: 0, sound: 'basiliskra.iii.growl', pitch: 0.82 }] },
+    { t: 1.0, label: 'The tail', phase: 'idle', cam: CAM(250, 42, 1.25, 0.3) },
+    { t: 2.3, label: 'The tail: it winds away, then lashes round to the side its head has turned to', phase: 'sweep', look: [70, 0], cam: CAM(250, 42, 1.25, 0.3),
+      sounds: [{ at: 0, sound: 'basiliskra.iii.growl', pitch: 0.7 }, { at: 0.65, sound: 'basiliskra.iii.club_plant', pitch: 1.3 }] },
+    { t: 0.9, label: 'The tail, to the other side', phase: 'idle', cam: CAM(290, 30, 1.2, 0.3) },
+    { t: 2.3, label: 'The tail, to the other side', phase: 'sweep', look: [-70, 0], cam: CAM(290, 30, 1.2, 0.3),
+      sounds: [{ at: 0, sound: 'basiliskra.iii.growl', pitch: 0.7 }, { at: 0.65, sound: 'basiliskra.iii.club_plant', pitch: 1.3 }] },
+    { t: 4.5, label: 'Its breath reaches 220 blocks: the charge (shortened here)', phase: 'charge', charge: [0, 18], night: true, cam: CAM([330, 20], 10, 1.05),
+      sounds: [{ at: 0, sound: 'basiliskra.iii.charge', cut: 4.5 }] },
+    { t: 3.2, label: 'The breath', phase: 'fire', charge: 20, night: true, beam: true, cam: CAM([25, 40], 8, 1.15), sounds: [{ at: 0, sound: 'basiliskra.iii.beam', cut: 3.3 }] },
+    { t: 1.7, label: 'A heavy blow from another giant staggers it', phase: 'recoil', cam: CAM(60, 8, 1.15, 0.5), sounds: [{ at: 0.05, sound: 'basiliskra.hurt', pitch: 0.82 }] },
+    { t: 1.0, label: 'Beaten', phase: 'idle', night: true, cam: CAM(40, 8, 1.1) },
+    { t: 6.5, label: 'Beaten: onto its knees, the fire in it failing. Then it is gone', phase: 'fall', night: true, cam: CAM([40, 100], 8, 1.1),
+      sounds: [{ at: 0.05, sound: 'basiliskra.roar_short', pitch: 0.9 }, { at: 2.2, sound: 'basiliskra.iii.step', pitch: 0.45 }] },
+  ],
 };
 const STRIDE = { iii: POSE.stride_iii / 4, iv: 7 }, BEATS = { iii: 4, iv: 2 };
 
@@ -93,7 +117,9 @@ async function main() {
   const started = Date.now();
   const file = (id, n = 0) => { const list = SOUNDS[id].sounds; const e = list[n % list.length]; return path.join(ROOT, 'packs/RP', (typeof e === 'string' ? e : e.name) + '.ogg'); };
 
-  for (const key of forms) {
+  for (const reelKey of forms) {
+    // which model plays this reel (the Titan's is Basiliskra IV's), and which client entity drives it
+    const key = reelKey === 'titan' ? 'iv' : reelKey;
     const scale = SCALE[key];
     // ---- the stage for this form: him, a chequered ground that moves under him, a figure for scale ----
     const info = await s.page.evaluate(async ({ key, scale, files, client }) => {
@@ -128,13 +154,13 @@ async function main() {
         gill: false, fx_kind: 0, fx_seq: 0, tier: 3, vis_lo: 0, vis_hi: 8 })) a.setProperty('basiliskra:' + k, v);
       for (let i = 0; i < 20; i++) a.update(1 / 30);
       return { min: box.min.toArray(), max: box.max.toArray(), missing: [...a.missing] };
-    }, { key, scale, files: { geo: `/packs/RP/models/entity/basiliskra_${key}.geo.json`, tex: `/packs/RP/textures/entity/basiliskra/basiliskra_${key}.png`, glow: `/packs/RP/textures/entity/basiliskra/basiliskra_${key}_glow.png` }, client: CLIENT });
+    }, { key, scale, files: { geo: `/packs/RP/models/entity/basiliskra_${key}.geo.json`, tex: `/packs/RP/textures/entity/basiliskra/basiliskra_${key}.png`, glow: `/packs/RP/textures/entity/basiliskra/basiliskra_${key}_glow.png` }, client: reelKey === 'titan' ? CLIENT_TITAN : CLIENT });
     if (info.missing.length) console.error(key, 'missing bones:', info.missing);
     const size = Math.max(info.max[0] - info.min[0], info.max[1] - info.min[1], (info.max[2] - info.min[2]) * 0.75);
     const height = info.max[1] - info.min[1];
     let distance = 0, landed = 0, gait = key === 'iii' ? 3 : key === 'iv' ? 1 : 2, seq = 0, kind = 0, stepN = 0;
     let dragT = 0;                                           // Form II: where he is in reach / pull / rest
-    for (const seg of REEL[key]) {
+    for (const seg of REEL[reelKey]) {
       const n = Math.round(seg.t * fps);
       const t0 = clock;
       for (const e of seg.sounds || []) audio.push({ at: t0 + e.at, file: file(e.sound, audio.length), pitch: e.pitch ?? 1, vol: e.vol ?? 1, cut: e.cut });
@@ -167,7 +193,7 @@ async function main() {
           night: !!seg.night, beam: !!seg.beam,
           back: seg.skid ? seg.skid * u : seg.held || 0, swing: seg.swing ? seg.swing * (u * u * (3 - 2 * u)) : 0,
           cam: { yaw, pitch: cam.pitch, dist: size * 1.45 * cam.dist, at: height * cam.at },
-          title: `Basiliskra ${ROMAN[key]}`, label: seg.label,
+          title: reelKey === 'titan' ? 'The Titan' : `Basiliskra ${ROMAN[key]}`, label: seg.label,
         };
         const url = await s.page.evaluate((F) => {
           const BK = window.BK, THREE = BK.THREE, R = BK.reel, m = R.m, a = m.animator;

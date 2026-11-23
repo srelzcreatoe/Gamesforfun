@@ -118,6 +118,10 @@ Measured again for 1.3 with the server rig (scenario 15): at the window, with th
 
 `node tools/preview/anim.cjs` plays each form through its phases in the offline viewer, running the shipped client entity's own Molang with the properties the script would set (phase, charge, the foot that landed, the voice pulses), and lays the pack's recordings in at the same moments. It is the only place the poses have been watched in motion: `previews/basiliskra_animations.mp4`. It shows the model, the walk cycles against a tiled ground, the glow passes and the jaw against the roar; it does not show particles, the real beam, terrain, or anything the game's own renderer does differently.
 
+### The Titan's reel (1.6)
+
+`node tools/preview/anim.cjs --forms titan` plays the Titan's own client entity (`basiliskra_titan.entity.json`) through the phases the script sets for it. It is where its always-lit seams, the lunge, the tail whip to each side (the tail goes to the side the head is turned to, as the script assumes) and the collapse with the glow dying were watched. The blows themselves, the other giant, the shove and every particle are the script's and are not in it.
+
 ### Previews
 
 **The previews have not been rendered again for 1.3.** They show 1.2: Form III at his old size, the narrower beam without its smoke, glow and craters, the synthesised charge and beam sounds, and no shockwave.
