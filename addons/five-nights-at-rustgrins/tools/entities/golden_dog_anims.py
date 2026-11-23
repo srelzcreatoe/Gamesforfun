@@ -159,10 +159,10 @@ class Body:
             p = build(x)
             # the sole flat on the floor: undo the leg chain's pitch and roll
             Rw, _ = sk.world(p)[f'{s}_shin']
-            pitch = math.degrees(math.atan2(-Rw[1, 2], Rw[1, 1]))      # how far the shin's up axis tips
-            roll = math.degrees(math.atan2(Rw[1, 0], Rw[1, 1]))
+            pitch = math.degrees(math.atan2(Rw[1, 2], Rw[1, 1]))       # how far the shin's up axis tips
+            roll = math.degrees(math.atan2(-Rw[1, 0], Rw[1, 1]))
             p[f'{s}_foot'] = R(-pitch, 0, -roll)
-        return p
+        return self.ground(p)
 
     def reach(self, pose, side, wrist, elbow, seed, avoid=None, w_elbow=0.3, iters=30):
         """Arm rotations that put the wrist at a point (model pixels) with the elbow near another."""
@@ -258,7 +258,7 @@ def idle(B):
 
 def lapel_hold(B, base):
     """The left hand at the left lapel (elbow out and down), fingers closed on it."""
-    arm = B.reach(base, 'left', (3.9, 26.9, -7.4), (9.6, 23.4, -1.6), [-40.0, 20.0, -6.0, -100.0, 0.0, 0.0])
+    arm = B.reach(base, 'left', (5.4, 26.4, -6.2), (9.6, 23.0, -0.4), [-40.0, 20.0, -6.0, -100.0, 0.0, 0.0])
     return merge(arm, grip('left'))
 
 
@@ -295,7 +295,7 @@ def slump_pose(B):
     """Powered down, standing: the back bent, the head hanging until the chin rests on the chest, the arms
     dead weight, the ears fallen forward past his face."""
     p = stance(B, torso=15.0, head=0.0, knee=9.0)
-    p['waist'] = merge(p, {'waist': R(5, 0, 0)})['waist']
+    p['waist'] = {'rotation': [5.0, 0.0, 0.0], 'position': [0.0, 0.0, 0.0]}
     p['torso'] = R(15, 0, -2.5)
     lean = 20.0
     for s in SIDES:
@@ -308,22 +308,34 @@ def slump_pose(B):
     p['tail_3'] = R(0, 0, -12)
     p['hat'] = R(3, 0, -2)
     p['jaw'] = R(3, 0, 0)
-    # the head: as far down as it goes before the jaw sinks into the chest (the bow tie takes the chin)
-    sk, rg = B.sk, B.rg
-    rest = penetration(sk, sk.world({}), ['head', 'jaw'], ['torso'])       # (the neck runs up into the head)
+    # the head: as far down as it goes before the chin sinks into the bow tie and the chest behind it
+    sk = B.sk
+    tb, tpiv = sk.bones['torso'], np.array(sk.bones['torso']['pivot'], float)
+    chin = [(x, 30.5, z) for x in (-3.0, 0.0, 3.0) for z in (-6.6, -5.6, -4.6, -3.6, -2.6)]
+
+    def sink(q):
+        """How deep the underside of the jaw is in the chest (model pixels), in the torso's own frame."""
+        W = sk.world(q)
+        Rt, Ot = W['torso']
+        worst = 0.0
+        for c in chin:
+            pt = Rt.T @ (sk.point(W, 'jaw', c) - Ot) + tpiv
+            if -6.1 < pt[2] < 3.5 and abs(pt[0]) < 5.5:
+                worst = max(worst, 30.45 - pt[1])
+        return worst
     best = (0.0, {'rotation': [20.0, 0.0, 5.0], 'position': [0.0, 0.0, 0.0]})
-    for pitch in range(22, 62, 2):
-        for fwd in (0.0, 0.6, 1.2, 1.8):
+    for pitch in range(20, 50, 2):
+        for fwd in (0.0, 0.5, 1.0, 1.5):
             q = copy.deepcopy(p)
-            q['head'] = {'rotation': [float(pitch), 0.0, 5.0], 'position': [0.0, 0.25 * fwd, -fwd]}
-            d = penetration(sk, sk.world(q), ['head', 'jaw'], ['torso']) - rest
-            if d <= 0.45 and pitch - 4 * fwd > best[0]:
-                best = (pitch - 4 * fwd, q['head'])
+            q['head'] = {'rotation': [float(pitch), 0.0, 5.0], 'position': [0.0, 0.0, -fwd]}
+            if sink(q) <= 0.35 and pitch - 3 * fwd > best[0]:
+                best = (pitch - 3 * fwd, q['head'])
     p['head'] = best[1]
     hp = best[1]['rotation'][0] + lean
-    p = ears(p, x=-0.82 * hp)                                # gravity: they hang plumb, so forward of the lowered head
-    p['left_ear'] = R(-0.82 * hp, 0, -4)
-    return B.plant(B.ground(p))
+    p = ears(p, x=-0.8 * hp)                                 # gravity: they hang plumb, so forward of the lowered head
+    p['left_ear'] = R(-0.8 * hp, 0, -4)
+    p['waist'] = {'rotation': [5.0, 0.0, 0.0], 'position': [0.0, -1.3, 0.6]}
+    return B.plant(p)
 
 
 def pose_2(B):
@@ -495,52 +507,72 @@ def perform_2(B):
 
 
 def jumpscare(B):
-    """1.6 s, held. He comes down over you: hips forward and low, the jaw off its hinge, arms thrown wide
-    and up; the head thrashes; then it stops dead, and tilts, the way he tilts it when he listens."""
+    """1.6 s, held. He bends down over you: the back folds, the head comes forward and level with your eyes,
+    the jaw drops off its hinge, the hands come up either side of his face, fingers hooked, ears thrown out.
+    The head thrashes; then it stops dead, and tilts, the way he tilts it when he listens."""
     c = Clip(1.6, loop='hold_on_last_frame')
     base = stance(B)
+    sk = B.sk
 
-    def frame(k=1.0, fwd=6.0, drop=3.2, yaw=0.0, roll=0.0, jaw=56.0, arm=0.0, clw=0.3, ear=1.0, nod=0.0, tw=0.0):
+    def body(k, fwd=2.2, drop=2.6, yaw=0.0, roll=0.0, jaw=56.0, nod=0.0, ear=1.0):
         """k: how far into the lunge (0 standing .. 1 over you)."""
         p = copy.deepcopy(base)
-        lean_w, lean_t = 20.0 * k, 16.0 * k
-        p['waist'] = {'rotation': [lean_w, 0.6 * yaw * 0.3, 0.0], 'position': [0.0, -drop * k, -fwd * k]}
+        lean_w, lean_t = 14.0 * k, 26.0 * k
+        p['waist'] = {'rotation': [lean_w, 0.2 * yaw, 0.0], 'position': [0.0, -drop * k, -fwd * k]}
         p['torso'] = R(lean_t, -0.35 * yaw, -0.3 * roll)
-        # the face stays on you: the head lifts by what the back leans, less a little
-        p['head'] = R(-(lean_w + lean_t) * 0.93 + nod, yaw, roll)
-        p['jaw'] = R(jaw * (0.25 + 0.75 * k), 0, 0)
+        # the face stays on you: the head lifts by what the back leans
+        p['head'] = {'rotation': [-(lean_w + lean_t) * 0.97 + nod, yaw, roll], 'position': [0.0, 0.0, -1.2 * k]}
+        p['jaw'] = R(jaw * (0.25 + 0.75 * min(1.0, k)), 0, 0)
         p['hat'] = R(-6.0 * k, 0, -0.4 * roll)
-        for s in SIDES:
-            sg_ = sgn(s)
-            # arms up and wide, elbows bent: the hands come up either side of the face, palms to you
-            p[f'{s}_arm'] = R((-112.0 - arm) * k - 3 * (1 - k), sg_ * -14.0 * k, sg_ * (-44.0 - 0.5 * arm) * k + sg_ * 2 * (1 - k))
-            p[f'{s}_forearm'] = R(-12 - 50.0 * k + 0.4 * arm, 0, 0)
-            p[f'{s}_hand'] = R(-16.0 * k, 0, sg_ * 6.0 * k)
-            p.update(claw(s, clw + (tw if s == 'right' else -tw)))
-        # the ears fly out and back
-        p['right_ear'] = R(26.0 * ear * k, 0, 46.0 * ear * k + 0.5 * roll)
-        p['left_ear'] = R(26.0 * ear * k, 0, -46.0 * ear * k + 0.5 * roll)
+        p['right_ear'] = R(24.0 * ear * k, 0, 44.0 * ear * k + 0.5 * roll)       # the ears fly out and back
+        p['left_ear'] = R(24.0 * ear * k, 0, -44.0 * ear * k + 0.5 * roll)
         p['tail_1'] = R(-40.0 * k, 0, 0)
+        return p
+    # the arms of the full lunge: wrists beside and a little ahead of the face, elbows out and low
+    full = body(1.0)
+    W = sk.world(B.plant(full))
+    hp = sk.point(W, 'head', (0.0, 35.5, -4.0))
+    arms = {}
+    for s_ in SIDES:
+        sg_ = sgn(s_)
+        sh = sk.point(W, f'{s_}_arm', sk.bones[f'{s_}_arm']['pivot'])
+        wrist = hp + np.array([sg_ * 10.6, 2.2, -1.5])
+        elbow = sh + np.array([sg_ * 6.0, -3.6, -3.6])
+        arms[s_] = B.reach(B.plant(full), s_, wrist, elbow, [-80.0, 0.0, sg_ * -70.0, -80.0, 0.0, 0.0],
+                           avoid=['torso', 'head', 'jaw', 'hat', 'right_ear', 'left_ear'], w_elbow=0.5)
+
+    def frame(k=1.0, arm=0.0, clw=0.3, tw=0.0, **kw):
+        p = body(k, **kw)
+        ka = min(1.0, k)
+        for s_ in SIDES:
+            sg_ = sgn(s_)
+            for bone, ch in arms[s_].items():
+                r0 = base.get(bone, {}).get('rotation', [0.0, 0.0, 0.0])
+                r1 = ch['rotation']
+                p[bone] = {'rotation': [a_ + (b_ - a_) * ka for a_, b_ in zip(r0, r1)]}
+            r = p[f'{s_}_arm']['rotation']
+            p[f'{s_}_arm'] = R(r[0] - 0.6 * arm, r[1], r[2] - sg_ * arm)          # the arms jolt with the head
+            p.update(claw(s_, clw + (tw if s_ == 'right' else -tw)))
         return B.plant(p)
-    c.key(0.0, frame(k=0.12, jaw=20, clw=0.0, ear=0.2))
-    c.key(0.07, frame(k=0.8, fwd=6.5, jaw=50, clw=0.0, ear=1.0, arm=-10))
-    c.key(0.12, frame(k=1.06, fwd=6.8, jaw=62, clw=0.05, ear=1.15, arm=8))                # overshoot
+    c.key(0.0, frame(k=0.1, jaw=18, clw=0.0, ear=0.2))
+    c.key(0.07, frame(k=0.8, jaw=50, clw=0.0, ear=1.0, arm=-8))
+    c.key(0.12, frame(k=1.07, jaw=62, clw=0.05, ear=1.15, arm=10, fwd=2.8))               # overshoot
     # the thrash: head side to side, the jaw clattering, the whole body jolting; it dies away
     t, i = 0.17, 0
     while t < 1.0:
         amp = 1.0 - 0.45 * (t - 0.17) / 0.83
         sd = 1 if i % 2 == 0 else -1
-        c.key(t, frame(k=1.0 + 0.03 * sd * amp, fwd=6.4 + 0.5 * sd * amp, yaw=13.0 * sd * amp, roll=-8.0 * sd * amp,
-                       jaw=(60 if i % 2 == 0 else 44), arm=6.0 * sd * amp, clw=0.2 + 0.25 * (i % 2), ear=1.0 + 0.12 * sd,
+        c.key(t, frame(k=1.0 + 0.03 * sd * amp, fwd=2.2 + 0.5 * sd * amp, yaw=13.0 * sd * amp, roll=-8.0 * sd * amp,
+                       jaw=(60 if i % 2 == 0 else 44), arm=7.0 * sd * amp, clw=0.2 + 0.25 * (i % 2), ear=1.0 + 0.12 * sd,
                        nod=3.0 * sd * amp))
         t = round(t + 0.05, 3)
         i += 1
-    c.key(1.02, frame(k=1.0, fwd=6.4, yaw=0, roll=0, jaw=58, clw=0.3, ear=0.9))            # stops dead
-    c.key(1.14, frame(k=1.0, fwd=6.5, yaw=0, roll=0, jaw=58, clw=0.3, ear=0.75))
-    c.key(1.34, frame(k=1.02, fwd=6.9, yaw=5, roll=19, jaw=60, clw=0.5, ear=0.6))          # ...and tilts
-    c.key(1.44, frame(k=1.02, fwd=7.0, yaw=5, roll=17, jaw=60, clw=0.62, ear=0.55, tw=0.06))
-    c.key(1.52, frame(k=1.02, fwd=7.0, yaw=5, roll=17, jaw=60, clw=0.7, ear=0.55, tw=-0.06))
-    c.key(1.6, frame(k=1.02, fwd=7.0, yaw=5, roll=17, jaw=60, clw=0.78, ear=0.55, tw=0.04))
+    c.key(1.02, frame(k=1.0, jaw=58, clw=0.3, ear=0.9))                                    # stops dead
+    c.key(1.14, frame(k=1.0, jaw=58, clw=0.3, ear=0.75))
+    c.key(1.34, frame(k=1.03, fwd=2.6, yaw=5, roll=19, jaw=60, clw=0.5, ear=0.6))          # ...and tilts
+    c.key(1.44, frame(k=1.03, fwd=2.7, yaw=5, roll=17, jaw=60, clw=0.62, ear=0.55, tw=0.06))
+    c.key(1.52, frame(k=1.03, fwd=2.7, yaw=5, roll=17, jaw=60, clw=0.7, ear=0.55, tw=-0.06))
+    c.key(1.6, frame(k=1.03, fwd=2.7, yaw=5, roll=17, jaw=60, clw=0.78, ear=0.55, tw=0.04))
     return c.build()
 
 

@@ -648,5 +648,14 @@ def ensure(pack=PACK, log=print):
     return True
 
 
+def anims_only(pack=PACK):
+    """Rewrites only the animations (for working on them: the stamp is left stale, so the next build writes
+    the whole pack again)."""
+    import golden_dog_anims
+    with open(os.path.join(pack, 'models', 'entity', f'{CID}.geo.json')) as f:
+        geo = json.load(f)
+    write_json(os.path.join(pack, 'animations', f'{CID}.animation.json'), golden_dog_anims.build_all(geo, CID))
+
+
 if __name__ == '__main__':
-    generate()
+    anims_only() if '--anims' in sys.argv else generate()
