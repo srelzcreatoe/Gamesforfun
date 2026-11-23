@@ -68,6 +68,9 @@ def hide_props(rg, keep=()):
 
 # ------------------------------------------------------------------ stoop
 STOOP_MAX = 2.78          # blocks, at the render scale (doorways are 3 tall; the cue says <= 2.85)
+# Long ears that hang by their own weight: there is nothing to fold back under a lintel or lay flat in the
+# lean, so the solvers leave them hanging (the head stays near level in both poses).
+HANGING_EARS = ('golden_dog',)
 STOOP_HALF_WIDTH = 1.3    # blocks: arms (and the cane) within 2.6 blocks across, for 3-wide doorways
 
 
@@ -157,10 +160,11 @@ def stoop_anim(cid, rg, scale, length, base_fingers, keep_props=(), neighbors=()
         c += 0.01 * (P['h'] - 12) ** 2 + 0.0015 * P['ear'] ** 2 + 0.004 * (P['u'] - 12) ** 2 + 0.001 * (P['f'] - 60) ** 2
         return c
 
-    x0 = [20.0, 70.0, 50.0, 12.0, -30.0, 12.0, 60.0, -6.0, -40.0, 14.0, 60.0, 0.0]
+    hang = cid in HANGING_EARS
+    x0 = [20.0, 70.0, 50.0, 12.0, 0.0 if hang else -30.0, 12.0, 60.0, -6.0, -40.0, 14.0, 60.0, 0.0]
     lo = [5.0, 40.0, 20.0, -5.0, -95.0, 0.0, 30.0, -15.0, -95.0, 14.0, -40.0, -60.0]
     hi = [45.0, 120.0, 85.0, 40.0, 0.0, 35.0, 110.0, 20.0, 20.0, 14.0, 110.0, 60.0]
-    steps = [6.0, 10.0, 8.0, 6.0, 15.0, 6.0, 12.0, 4.0, 15.0, 0.0, 15.0 if cane else 0.0, 15.0 if cane else 0.0]
+    steps = [6.0, 10.0, 8.0, 6.0, 0.0 if hang else 15.0, 6.0, 12.0, 4.0, 15.0, 0.0, 15.0 if cane else 0.0, 15.0 if cane else 0.0]
     x, c = minimize(cost, x0, steps, lo, hi, iters=30, restarts=2)
     P = dict(zip(KEYS, x))
     n = 16
@@ -327,7 +331,8 @@ def lean_anim(cid, rg, scale, eye, base_fingers, keep_props=(), neighbors=()):
         c += 0.003 * (P['W'] + P['T'] - 75) ** 2 + 0.002 * (P['b'] - 90) ** 2 + 0.002 * (P['a'] - 0.6 * P['b']) ** 2 + 0.0006 * P['ear'] ** 2
         return c
 
-    x, _ = minimize(cost, [20.0, 50.0, 90.0, 55.0, -60.0 if ears else 0.0], [6.0, 8.0, 10.0, 8.0, 15.0 if ears else 0.0],
+    fold = bool(ears) and cid not in HANGING_EARS
+    x, _ = minimize(cost, [20.0, 50.0, 90.0, 55.0, -60.0 if fold else 0.0], [6.0, 8.0, 10.0, 8.0, 15.0 if fold else 0.0],
                     [0.0, 0.0, 30.0, 20.0, -90.0], [45.0, 95.0, 135.0, 90.0, 0.0], iters=30, restarts=2)
     P = dict(zip(KEYS, x))
     pose = merge_pose(base_fingers, body_pose(P))                   # solve the hands with their final finger shapes
@@ -445,7 +450,8 @@ def lean_anim(cid, rg, scale, eye, base_fingers, keep_props=(), neighbors=()):
 
 
 # ------------------------------------------------------------------ wave
-WAVE_SIDE = {'rustgrin': 'left', 'mirehop': 'right', 'noxbriar': 'right', 'purple_rat': 'left', 'cat': 'right', 'top_hat_rat': 'left'}
+WAVE_SIDE = {'rustgrin': 'left', 'mirehop': 'right', 'noxbriar': 'right', 'purple_rat': 'left', 'cat': 'right', 'top_hat_rat': 'left',
+             'golden_dog': 'right'}
 
 
 def _arm_to(rg, pose, side, wrist_t, elbow_t, seed, avoid, w_elbow=0.4, iters=30):
@@ -510,6 +516,7 @@ BOW = {
     'purple_rat': {'chest': None, 'sweep': ['right', 'left']},
     'cat': {'chest': 'right', 'sweep': ['left']},
     'top_hat_rat': {'chest': None, 'sweep': ['right']},      # the left hand already rests at his lapel
+    'golden_dog': {'chest': None, 'sweep': ['right']},       # and so does his
 }
 
 
@@ -667,6 +674,20 @@ def _save_cache(cache):
 STOOP_KEEP = {'top_hat_rat': ('right_cane',)}
 
 
+def _key(cid, anims, geo, eye, scale):
+    """What the solved animations of a model depend on: its geometry, the poses they start from, the eye
+    point, the render scale and this code."""
+    idle, stage, walk = (static_pose(anims[f'animation.fnar.{cid}.{n}']) for n in ('idle', 'pose_1', 'walk'))
+    key_src = json.dumps([cid, geo, idle, stage, walk, eye, scale, _src_hash()], sort_keys=True, default=str)
+    return hashlib.sha1(key_src.encode()).hexdigest()
+
+
+def cached(cid, anims, geo, eye, scale):
+    """Whether apply() would find this model in the solve cache."""
+    hit = _load_cache().get(cid)
+    return bool(hit) and hit.get('key') == _key(cid, anims, geo, eye, scale)
+
+
 def apply(cid, anims, skel, geo, eye, scale, relaxed, log=print):
     """Adds animation.fnar.<cid>.stoop / lean / wave / bow to anims (the renamed, corrected set)."""
     rg = Rig(skel)
@@ -680,8 +701,7 @@ def apply(cid, anims, skel, geo, eye, scale, relaxed, log=print):
     lean_fingers = {**relaxed('right'), **relaxed('left')}
     if 'right_cane' in keep:
         lean_fingers.update({b: v for b, v in fingers(walk).items() if b.startswith('right')})
-    key_src = json.dumps([cid, geo, idle, stage, walk, eye, scale, _src_hash()], sort_keys=True, default=str)
-    key = hashlib.sha1(key_src.encode()).hexdigest()
+    key = _key(cid, anims, geo, eye, scale)
     cache = _load_cache()
     hit = cache.get(cid)
     if hit and hit.get('key') == key:

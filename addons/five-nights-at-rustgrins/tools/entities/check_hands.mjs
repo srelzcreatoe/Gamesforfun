@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { buildModel, applyAnimation } from '../render/bedrock_model.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const IDS = ['rustgrin', 'mirehop', 'noxbriar', 'purple_rat', 'cat', 'top_hat_rat'];
+const IDS = ['rustgrin', 'mirehop', 'noxbriar', 'purple_rat', 'cat', 'top_hat_rat', 'golden_dog'];
 const PROPS = { microphone: 'right', right_maraca: 'right', left_maraca: 'left', right_cane: 'right' };
 
 /** Which part a bone belongs to. */

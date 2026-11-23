@@ -17,7 +17,7 @@ import { PNG } from '../node_modules/pngjs/lib/png.js';
 import { buildModel, applyAnimation } from '../render/bedrock_model.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const IDS = ['rustgrin', 'mirehop', 'noxbriar', 'purple_rat', 'cat', 'top_hat_rat'];
+const IDS = ['rustgrin', 'mirehop', 'noxbriar', 'purple_rat', 'cat', 'top_hat_rat', 'golden_dog'];
 /** fnar:anim value -> animation name (tools/entities/build_entities.py ANIMS); only poses a head is turned in */
 const ANIMS = { idle: 'idle', stand: 'idle', pose: 'pose_1', slump: 'pose_2', perform: 'perform_1', perform2: 'perform_2', peek: 'peek', lean: 'lean', wave: 'wave', bow: 'bow' };
 const readJ = (f) => JSON.parse(fs.readFileSync(f, 'utf8'));
