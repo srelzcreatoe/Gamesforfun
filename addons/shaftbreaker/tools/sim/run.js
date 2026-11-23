@@ -44,11 +44,17 @@ if (SCENARIO === 'hollows' || SCENARIO === 'home') {                            
   let n = 0;
   for (let x = -60; x < -12; x++) for (let z = -60; z < 60; z++) for (let y = -15; y < 50; y++) {
     if (!vw.standable(x, y, z) || vw.sky(x, y, z) > 0) continue;
-    const r = Math.random();
-    if (r < (SCENARIO === 'home' ? 0.03 : 0.012)) { vw.set(x, y, z, 'shaftbreaker:watcher_pod', { 'shaftbreaker:open': false }); n++; }
-    else if (r < 0.02) vw.set(x, y, z, 'shaftbreaker:crimson_thorns');
-    else if (r < 0.026) vw.set(x, y, z, 'shaftbreaker:organ_core');
-    else if (r < 0.07) vw.set(x, y, z, 'shaftbreaker:bloodmoss');
+    const r = Math.random(); const k = SCENARIO === 'home' ? 0.018 : 0;   // home: denser, as the infected caves are
+    if (r < 0.012 + k) { vw.set(x, y, z, 'shaftbreaker:watcher_pod', { 'shaftbreaker:open': false }); n++; }
+    else if (r < 0.02 + k) vw.set(x, y, z, 'shaftbreaker:crimson_thorns');
+    else if (r < 0.026 + k) vw.set(x, y, z, 'shaftbreaker:organ_core');
+    else if (r < 0.07 + k) vw.set(x, y, z, 'shaftbreaker:bloodmoss');
+  }
+  // living walls: some cave stone next to open air becomes pulsing flesh
+  for (let x = -60; x < -12; x++) for (let z = -60; z < 60; z++) for (let y = -15; y < 50; y++) {
+    if (!/stone|deepslate/.test(vw.get(x, y, z)) || vw.sky(x, y, z) > 0) continue;
+    if (![[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]].some(([dx, dy, dz]) => vw.get(x + dx, y + dy, z + dz) === 'minecraft:air')) continue;
+    if (Math.random() < (SCENARIO === 'home' ? 0.08 : 0.03)) vw.set(x, y, z, 'shaftbreaker:pulsing_flesh');
   }
   SIM.pods = n;
   SIM.firstPod = null;
@@ -162,7 +168,7 @@ function creatureStep(e) {
     const fx = Math.floor(e.location.x), fy = Math.floor(e.location.y), fz = Math.floor(e.location.z);
     if (vw.passable(fx, fy - 1, fz)) { e.location = { ...e.location, y: Math.max(e.location.y - 0.5, fy - 1) }; e.isOnGround = false; } else e.isOnGround = true;
   }
-  if (!(mode === 'hunt' || mode === 'frenzy' || mode === 'rage')) return;
+  if (!(mode === 'hunt' || mode === 'frenzy' || mode === 'rage')) { st.atkHitAt = 0; return; }   // leaving the attack mode cancels a swing in progress, as removing the goal does
   const tp = world._players.find((p) => p.hasTag('sb_target') && p.isValid && !p._dead);
   if (!tp) return;
   st.target = tp;
@@ -174,6 +180,9 @@ function creatureStep(e) {
     st.repath = 10;
   }
   const spd = (mode === 'hunt' ? 0.36 : mode === 'rage' ? 0.44 * 1.3 : 0.45 * 1.12) * 0.5;
+  // like the engine's navigation, a cell that has become blocked since the path was planned (a door shut in its
+  // face) stops it and forces a re-plan instead of being walked through
+  if (st.path.length) { const nx = st.path[0]; const ok = (y) => vw.passable(nx.x, y, nx.z) || (doors && /door/.test(vw.get(nx.x, y, nx.z))); if (!ok(nx.y) || (!crawl && !ok(nx.y + 1))) { st.path = []; st.repath = 0; } }
   if (st.path.length) { moveAlong(e, st.path, spd); faceDir(e, tp.location); }
   // delayed attack (engine goal) on the hunt target
   const t = M.system.currentTick;
@@ -331,6 +340,12 @@ for (let i = 0; i < total; i++) {
     const msg = dir.forceEncounter(b.p, 'hunt');
     learnLog.push(`t=${(i / 1200).toFixed(0)}m strat=${b.strat} ${msg}`);
   }
+  if (SCENARIO === 'home' && i > 0 && i % (20 * 30) === 0 && i - (SIM.organLast || 0) > 20 * 60 * 6 && !bots[0].p._dead && dir.pstate(bots[0].p).underground) {    // underground: break the nearest organ core, as a player would (at most every 6 min)
+    const p = bots[0].p; const f = { x: Math.floor(p.location.x), y: Math.floor(p.location.y), z: Math.floor(p.location.z) }; let best = null;
+    for (let x = f.x - 16; x <= f.x + 16; x++) for (let y = f.y - 4; y <= f.y + 4; y++) for (let z = f.z - 16; z <= f.z + 16; z++) if (vw.get(x, y, z) === 'shaftbreaker:organ_core' && (!best || Math.hypot(x - f.x, z - f.z) < Math.hypot(best.x - f.x, best.z - f.z))) best = { x, y, z };
+    if (!best && vw.passable(f.x + 1, f.y, f.z)) { best = { x: f.x + 1, y: f.y, z: f.z }; vw.set(best.x, best.y, best.z, 'shaftbreaker:organ_core'); }   // none in reach: one grows beside it
+    if (best) { const sb = world.getDimension('minecraft:overworld').getEntities({}).find((e) => e.typeId === 'shaftbreaker:shaftbreaker'); const hp0 = sb ? sb.getComponent('minecraft:health').currentValue : null; vw.set(best.x, best.y, best.z, 'minecraft:air'); world.afterEvents.playerBreakBlock.fire({ player: p, block: world.getDimension('minecraft:overworld').getBlock(best), brokenBlockPermutation: { type: { id: 'shaftbreaker:organ_core' } }, dimension: world.getDimension('minecraft:overworld') }); SIM.organLast = i; (SIM.organ ||= []).push({ t: i, hp0, hp1: sb ? sb.getComponent('minecraft:health').currentValue : null }); }
+  }
   if (SCENARIO === 'learn' && i % (20 * 60 * 3) === 0) { const pf = mem.profile(bots[0].p); learnLog.push(`t=${(i / 1200).toFixed(0)}m stairs=${pf.traits.escape_stairs.s.toFixed(0)}/${pf.traits.escape_stairs.c.toFixed(0)} n${pf.traits.escape_stairs.n} door=${pf.traits.escape_door.s.toFixed(0)}/${pf.traits.escape_door.c.toFixed(0)} n${pf.traits.escape_door.n} surface=${pf.traits.escape_surface.s.toFixed(0)} routes=${pf.routes.map((r) => r.n).join(',')}`); }
   for (const b of bots) botStep(b);
   for (const e of [...world._entities]) if (e.isValid && e.typeId === 'shaftbreaker:shaftbreaker') creatureStep(e);
@@ -357,7 +372,7 @@ for (let i = 0; i < total; i++) {
     if (inBase && !e._inBaseLogged) { e._inBaseLogged = 1; const r = dir.running(); console.log(`DEBUG creature entered base t=${(i / 1200).toFixed(2)}m mode=${e.mode()} act=${e._props['shaftbreaker:act']} enc=${r ? r.tpl.id : '-'} trail=${JSON.stringify((e._trail || []).slice(-8).map((q) => [q.x.toFixed(2), q.y.toFixed(1), q.z.toFixed(2)]))} now=${JSON.stringify(e.location)} groups=${[...e._groups].join(',')}`); }
     e._prev = { ...e.location }; (e._trail ||= []).push({ ...e.location }); if (e._trail.length > 40) e._trail.shift();
     const x = Math.floor(e.location.x), y = Math.floor(e.location.y), z = Math.floor(e.location.z);
-    if (!e._groups.has('sb:grav_off') && vw.solid(x, y, z)) { stats.creatureInWall++; if (stats.creatureInWall <= 3) console.log('INWALL lastTp', JSON.stringify(e._lastTp), JSON.stringify((e._trail || []).slice(-6).map((q) => [q.x.toFixed(2), q.y.toFixed(2), q.z.toFixed(2)])), e.mode(), 'cell', x, y, z, vw.get(x, y, z)); const r = dir.running(); const k = `${r ? r.tpl.id : '-'}:${e.mode()}:act${e._props['shaftbreaker:act']}`; wallWhy[k] = (wallWhy[k] || 0) + 1; }
+    if (!e._groups.has('sb:grav_off') && vw.solid(x, y, z) && !(e._groups.has('sb:nav_doors') && /door/.test(vw.get(x, y, z)))) { /* door-opening navigation walks through wooden doors, as the engine does */ stats.creatureInWall++; if (stats.creatureInWall <= 3) console.log('INWALL lastTp', JSON.stringify(e._lastTp), JSON.stringify((e._trail || []).slice(-6).map((q) => [q.x.toFixed(2), q.y.toFixed(2), q.z.toFixed(2)])), e.mode(), 'cell', x, y, z, vw.get(x, y, z), JSON.stringify(vw.getStates(x, y, z)), [...e._groups].join(','), 'nav', e._nav || ''); const r = dir.running(); const k = `${r ? r.tpl.id : '-'}:${e.mode()}:act${e._props['shaftbreaker:act']}`; wallWhy[k] = (wallWhy[k] || 0) + 1; }
     const act = e._props['shaftbreaker:act'];
     if (act === 35 || act === 16) { if (!huntTell.has(e.id)) huntTell.set(e.id, M.system.currentTick); }
     if (act !== e._lastAct) { if (act === 35 || act === 16) (SIM.huntTells ||= []).push(M.system.currentTick); if (act === 17 || act === 43 || act === 44 || act === 35) (SIM.tells ||= []).push(M.system.currentTick); e._lastAct = act; }
@@ -434,7 +449,7 @@ for (const r of log.recent(60)) ALLTEL.add(r);
     const snd = (id) => SIM.sounds.filter((x) => x.id === id).length;
     const notes = (SIM.messages || []).filter((m) => /\[Field notes\]/.test(String(m)));
     console.log(`SCARES: fog pushes ${cnt(/fog @s push/)} (rage ${cnt(/fog_rage/)}, near ${cnt(/fog_near/)}, territory ${cnt(/fog_territory/)}), fog removals ${cnt(/fog @s remove/)}, camera shakes ${cnt(/camerashake/)}, jumpscares ${snd('shaftbreaker.jumpscare')}, reveal stings ${snd('shaftbreaker.sting_reveal')}, whispers ${snd('shaftbreaker.whisper')}, eye glints ${SIM.particles.filter((q) => q.id === 'shaftbreaker:eye_glint').length}, mind games ${(SIM.messages || []).filter((m) => /joined the game|\[title:/.test(String(m))).length}, mimicked sounds ${['random.door_open', 'random.chestopen', 'step.stone', 'game.player.hurt', 'random.eat', 'dig.stone'].map(snd).reduce((a, b) => a + b, 0)}, knocks ${snd('shaftbreaker.knock')}`);
-    if (SCENARIO === 'hollows' || SCENARIO === 'home') console.log(`HOME: pod queries ${SIM.podQ || 0} found ${SIM.podHits || 0}; pods placed ${SIM.pods}, pod opens ${snd('shaftbreaker.pod_open')}, flesh pulses ${snd('shaftbreaker.flesh_pulse')}, drips ${snd('shaftbreaker.drip')}, infected fog pushes ${cnt(/fog_infected/)}, blood drip particles ${SIM.particles.filter((q) => q.id === 'shaftbreaker:blood_drip').length}, mist ${SIM.particles.filter((q) => q.id === 'shaftbreaker:red_mist').length}`);
+    if (SCENARIO === 'hollows' || SCENARIO === 'home') console.log(`HOME: pod queries ${SIM.podQ || 0} found ${SIM.podHits || 0}; pods placed ${SIM.pods}, pod opens ${snd('shaftbreaker.pod_open')}, flesh pulses ${snd('shaftbreaker.flesh_pulse')}, organ cores broken ${(SIM.organ || []).length} (its health ${(SIM.organ || []).map((o) => `${o.hp0}->${o.hp1}`).join(' ')}; burst sounds ${snd('shaftbreaker.organ_break')}), drips ${snd('shaftbreaker.drip')}, infected fog pushes ${cnt(/fog_infected/)}, blood drip particles ${SIM.particles.filter((q) => q.id === 'shaftbreaker:blood_drip').length}, mist ${SIM.particles.filter((q) => q.id === 'shaftbreaker:red_mist').length}`);
     console.log(`FIELD NOTES unlocked: ${notes.length} ${JSON.stringify(notes.map((m) => String(m).replace(/.*New entry: §f/, '').replace(/§8.*/, '')))}; wheels given ${SIM.given || 0}`);
   }
   if (SIM.wheelLog) { const recsW = [...ALLTEL].filter((x) => x.reason === 'wheel'); console.log('WHEEL PRESSES: ' + SIM.wheelLog.map((w, j) => `${w.k}/${w.r || '-'} -> ${w.msg}`).join(' | ')); console.log('WHEEL OUTCOMES: ' + recsW.map((x) => `${x.outcome}[${(x.notes || []).filter((n) => /reaction|charge|lunge|rage \(|jumpscare|show:|close strike/.test(n)).join(',')}]`).join(' | ')); }

@@ -9,7 +9,7 @@ texture wraps the shape the same way a full block's faces do.
 
 usage: python3 tools/gen_infected.py
 """
-import json, os, math
+import json, os, math, itertools
 import numpy as np
 from PIL import Image
 
@@ -146,14 +146,14 @@ def neigh4(mask, periodic=True):
 STONE = [(44, 33, 38), (60, 46, 52), (77, 60, 66), (95, 75, 81), (114, 91, 96), (136, 110, 113)]
 STONE_W = [0.08, 0.17, 0.28, 0.25, 0.15, 0.07]
 DEEP_STONE = [(30, 22, 26), (42, 32, 37), (55, 42, 48), (68, 53, 59), (84, 66, 72)]
-VEIN_DK, VEIN, VEIN_HI = (78, 12, 20), (122, 20, 30), (170, 40, 46)
+VEIN_DK, VEIN, VEIN_HI = (70, 12, 20), (104, 18, 28), (142, 32, 38)
 HOT = [(110, 14, 14), (176, 30, 20), (226, 62, 28), (252, 112, 46), (255, 170, 96)]
 FLESH = [(64, 9, 15), (88, 14, 21), (112, 21, 28), (136, 30, 36), (160, 42, 46), (186, 60, 60), (212, 88, 84)]
-PLATE = [(88, 22, 28), (114, 32, 38), (138, 46, 50), (160, 60, 62), (182, 78, 76), (204, 100, 94), (226, 132, 122)]
-POD = [(70, 12, 18), (94, 20, 26), (118, 30, 36), (142, 42, 46), (164, 56, 58), (186, 74, 72), (208, 98, 92)]
-ROOT = [(52, 4, 10), (84, 8, 16), (120, 14, 22), (156, 24, 32), (200, 54, 58), (246, 150, 140)]
-BONE = [(118, 92, 82), (156, 126, 112), (190, 160, 142), (214, 188, 168), (236, 216, 198)]
-DRIP = [(104, 90, 88), (130, 114, 110), (154, 138, 132), (178, 162, 154), (200, 186, 176), (222, 210, 200)]
+PLATE = [(100, 32, 38), (126, 46, 50), (150, 60, 62), (170, 74, 74), (190, 90, 88), (210, 110, 104), (230, 138, 130)]
+POD = [(84, 28, 36), (106, 38, 46), (128, 50, 56), (148, 62, 66), (168, 76, 78), (188, 94, 94), (208, 116, 114)]
+ROOT = [(62, 4, 10), (104, 8, 16), (146, 14, 24), (184, 28, 36), (222, 64, 64), (255, 168, 156)]
+BONE = [(124, 94, 86), (162, 128, 116), (194, 162, 146), (218, 190, 172), (238, 218, 202)]
+DRIP = [(104, 80, 78), (130, 104, 98), (154, 126, 118), (176, 148, 138), (196, 170, 158), (216, 194, 180)]
 WET = [(92, 82, 84), (120, 110, 112), (150, 142, 144), (180, 176, 180), (212, 214, 220), (240, 244, 250)]
 MOSS = [(58, 4, 10), (88, 8, 16), (120, 14, 22), (152, 22, 30), (184, 40, 44), (220, 84, 80)]
 CAP = [(204, 100, 58), (238, 136, 82), (255, 164, 104), (255, 190, 136), (255, 216, 172)]
@@ -191,7 +191,7 @@ def draw_veins(rgb, seed, count=1, steps=20, branch=True, cols=(VEIN_DK, VEIN, V
     shadow = np.roll(np.roll(mask, 1, 0), 1, 1) & ~mask          # below-right of a vein: in shadow
     seep = np.roll(np.roll(mask, -1, 0), -1, 1) & ~mask           # above-left: stone stained with blood
     out[shadow] *= 0.74
-    out[seep] = lerp(out[seep], (110, 50, 54), 0.3)
+    out[seep] = lerp(out[seep], (100, 48, 52), 0.22)
     out[mask] = cols[1]
     lone = mask & ~neigh4(mask)
     out[lone] = cols[0]
@@ -234,7 +234,7 @@ def tex_cracked_veinstone():
     dark = r.random((N, N)) < 0.5
     rgb[rim & dark] = (34, 12, 14)
     rgb[rim & ~dark] = lerp(rgb[rim & ~dark], (168, 40, 26), 0.6)
-    rgb[crack] = pal(np.clip(heat[crack], 0, 1), HOT[1:], [0.3, 0.38, 0.22, 0.1])
+    rgb[crack] = pal(np.clip(heat[crack], 0, 1), HOT[1:], [0.34, 0.4, 0.19, 0.07])
     return save_tex('cracked_veinstone', 'cracked_veinstone', opaque(rgb))
 
 
@@ -269,47 +269,42 @@ def seg_dist(px, py, ax, ay, bx, by, n=N):
 def tex_pulsing_flesh():
     r = np.random.default_rng(401)
     ys, xs = np.mgrid[0:N, 0:N] + 0.5
-    # glossy tendrils: tileable tubes, each pixel shaded by where it sits across the tube
-    tubes = []
-    for x0, ph, amp in [(2.0, 0.3, 1.2), (7.5, 2.2, 1.5), (12.5, 4.4, 1.1)]:
-        tubes.append(lambda y, x0=x0, ph=ph, amp=amp: x0 + amp * np.sin(y / N * math.tau + ph) + 0.5 * np.sin(y / N * 2 * math.tau + ph * 1.7))
+    # glossy tendrils: three tileable tubes, each pixel shaded by where it sits across the tube
     best = np.full((N, N), 9.0); signed = np.zeros((N, N))
-    for f in tubes:
-        cx = f(ys)
+    for x0, ph, amp in [(1.5, 0.3, 1.0), (8.0, 2.4, 1.3), (13.5, 4.6, 0.9)]:
+        cx = x0 + amp * np.sin(ys / N * math.tau + ph)
         d = (xs - cx + N / 2) % N - N / 2
         m = np.abs(d) < np.abs(best)
         best[m] = np.abs(d[m]); signed[m] = d[m]
-    for a, b in [((2.5, 5.0), (7.0, 9.0)), ((8.0, 12.5), (12.5, 15.5)), ((12.0, 3.0), (16.5, 6.0))]:   # branches
-        d = seg_dist(xs, ys, *a, *b)
+    for a_, b_ in [((2.0, 8.5), (8.0, 14.0)), ((8.5, 1.0), (13.5, 6.0))]:   # branches joining the tubes
+        d = seg_dist(xs, ys, *a_, *b_)
         m = d < best
-        best[m] = d[m]; signed[m] = (d * np.sign(xs - (a[0] + b[0]) / 2))[m]
-    tube = best < 1.55
-    base = pal(eq(mottle(402)), [(36, 3, 8), (50, 5, 11), (64, 8, 14), (80, 11, 18)], [0.2, 0.35, 0.3, 0.15])
-    eyes = [(4.5, 4.5, 2.3), (11.0, 10.0, 2.6), (4.0, 12.5, 1.7)]
+        best[m] = d[m]; signed[m] = (d * np.sign(ys - xs + (a_[0] - a_[1])))[m]
+    tube = best < 1.3
+    lit = tube & (signed < -0.35); shd = tube & (signed > 0.45); mid = tube & ~lit & ~shd
+    base = pal(eq(mottle(402)), [(34, 3, 8), (48, 5, 11), (62, 8, 14), (78, 12, 18)], [0.2, 0.35, 0.3, 0.15])
+    beside = ~tube & (best < 2.1)
+    eyes = [(5.5, 4.5, 2.5), (11.5, 11.5, 2.5), (3.5, 12.5, 1.6)]
     frames = []
     for k in range(PULSE_FRAMES):
         p = k / (PULSE_FRAMES - 1)
-        rgb = base * (0.9 + 0.25 * p)
-        lit = tube & (signed < -0.45); mid = tube & (np.abs(signed) <= 0.45); shd = tube & (signed > 0.45)
-        rgb[lit] = lerp((150, 30, 36), (236, 88, 80), p)
-        rgb[mid] = lerp((116, 18, 26), (204, 46, 46), p)
-        rgb[shd] = lerp((78, 10, 16), (140, 24, 28), p)
-        spec = lit & ((((ys * 5 + xs * 3).astype(int)) % 9) == 0)
-        rgb[spec] = lerp((206, 120, 116), (255, 226, 214), p)
-        edge = ~tube & (best < 2.3)
-        rgb[edge] *= 0.6                                              # deep shadow beside each tendril
+        rgb = base * (0.9 + 0.3 * p)
+        rgb[beside] *= 0.65                                            # deep shadow along each tendril
+        rgb[lit] = lerp((176, 40, 44), (246, 104, 92), p)
+        rgb[mid] = lerp((132, 22, 30), (212, 52, 50), p)
+        rgb[shd] = lerp((86, 10, 18), (150, 26, 30), p)
+        spec = lit & ((((ys * 5 + xs * 3).astype(int)) % 7) == 0)
+        rgb[spec] = lerp((220, 140, 130), (255, 232, 220), p)
         for (ex, ey, er) in eyes:
-            d = np.hypot(xs - ex, ys - ey) / er
-            halo = (d < 1.7) & (d >= 1.2)
-            rgb[halo] = lerp(rgb[halo], lerp((110, 20, 20), (236, 70, 40), p), 0.35 + 0.35 * p)
-            rgb[(d < 1.2) & (d >= 0.95)] = lerp((44, 4, 8), (70, 8, 10), p)            # lid
-            iris = d < 0.95
-            glow = np.clip(1 - d[iris], 0, 1)[:, None]
-            rgb[iris] = lerp(lerp((150, 26, 18), (255, 96, 40), p), lerp((206, 70, 30), (255, 196, 120), p), glow)
-            pup = iris & (np.abs(xs - ex) < 0.55) & (np.abs(ys - ey) < er * 0.7)
-            rgb[pup] = (24, 0, 2)
-            gl = (np.abs(xs - (ex - er * 0.4)) < 0.5) & (np.abs(ys - (ey - er * 0.4)) < 0.5) & iris
-            rgb[gl] = lerp((230, 160, 120), (255, 246, 222), p)
+            d = np.hypot(xs - ex, ys - ey)
+            halo = (d >= er + 0.6) & (d < er + 1.5)
+            rgb[halo] = lerp(rgb[halo], (236, 70, 40), 0.15 + 0.45 * p)
+            rgb[(d >= er) & (d < er + 0.6)] = (40, 4, 8)                      # the lid
+            iris = d < er
+            t = np.clip(1 - d[iris] / er, 0, 1)[:, None]
+            rgb[iris] = lerp(lerp((196, 44, 26), (255, 96, 40), p), lerp((255, 150, 80), (255, 214, 140), p), t)
+            rgb[iris & (np.abs(xs - ex) < 0.5) & (np.abs(ys - ey) < er * 0.65)] = (26, 0, 2)   # slit pupil
+            rgb[(np.abs(xs - (ex - 1)) < 0.5) & (np.abs(ys - (ey - 1)) < 0.5)] = lerp((255, 200, 170), (255, 248, 230), p)
         frames.append(opaque(rgb))
     return save_tex('pulsing_flesh', 'pulsing_flesh', np.concatenate(frames, 0))
 
@@ -340,9 +335,15 @@ def tex_ribstone():
         bone_band(rgb, -d, th, r, ang * rad)
     side = save_tex('ribstone', 'ribstone', opaque(rgb))
     rgb = stone_base(504, DEEP_STONE, [0.12, 0.28, 0.32, 0.2, 0.08])
-    for y0 in (3.5, 11.5):                                   # from above: the ribs run across the block
-        d = ys - (y0 + 0.8 * np.sin(xs / N * math.tau))
-        bone_band(rgb, d, 4.0, r, xs)
+    rgb, _ = draw_veins(rgb, 505, count=1, steps=12, branch=False)
+    for cx, cy, rad in [(4.5, 4.5, 3.4), (11.5, 11.0, 3.8), (12.5, 3.0, 1.9), (3.5, 12.5, 2.0)]:   # rib ends, cut across
+        d = np.hypot(xs - cx, ys - cy)
+        f = np.clip(1 - (d / rad) * 0.7 - (xs - cx + ys - cy) / rad * 0.25 + r.random((N, N)) * 0.12, 0, 1)
+        bone = d < rad
+        rgb[bone] = pal(f, BONE, [0.14, 0.2, 0.3, 0.24, 0.12])[bone]
+        rgb[d < rad * 0.38] = BONE[0]                                    # marrow
+        ring = (d >= rad) & (d < rad + 0.9)
+        rgb[ring] *= 0.55
     top = save_tex('ribstone_top', 'ribstone_top', opaque(rgb))
     return side, top
 
@@ -359,10 +360,10 @@ def plates(seed, n_pts, cols, crack_col, weights=None, hot=None, spacing=4.4, gr
         if all(tor(p, q) > spacing for q in pts):
             pts.append(p)
     idx, f1, f2, vx, vy = voronoi(N, pts, True)
-    tone = r.normal(0, 0.06, len(pts))
+    tone = r.normal(0, 0.09, len(pts))
     ys, xs = np.mgrid[0:N, 0:N] + 0.5
-    sh = dome(vx, vy, f1, f2) * 0.75 + tone[idx] + r.random((N, N)) * grain + top_light * (1 - ys / N)
-    sh += 0.04 * (((xs.astype(int) // 2 + ys.astype(int) // 2) % 2) - 0.5)                      # fine scales
+    sh = 0.5 + (dome(vx, vy, f1, f2) - 0.5) * 0.45 + tone[idx] + (r.random((N, N)) - 0.5) * grain + top_light * (0.5 - ys / N)
+    sh += 0.03 * (((xs.astype(int) // 2 + ys.astype(int) // 2) % 2) - 0.5)                      # fine scales
     rgb = pal(np.clip(sh, 0, 1), cols, weights)
     e = edges(idx)
     rgb[e] = crack_col
@@ -372,12 +373,12 @@ def plates(seed, n_pts, cols, crack_col, weights=None, hot=None, spacing=4.4, gr
     lip = np.roll(e, -1, 0) & ~e                          # pixel above a crack: lit plate edge
     rgb[lip] = lerp(rgb[lip], (255, 196, 178), 0.2)
     shd = np.roll(e, 1, 0) & ~e                           # pixel below a crack: in its shadow
-    rgb[shd] *= 0.78
+    rgb[shd] *= 0.9
     return rgb, e
 
 
 def tex_organ():
-    rgb, _ = plates(612, 7, PLATE, (58, 8, 14), [0.06, 0.11, 0.2, 0.25, 0.2, 0.12, 0.06], hot=(0.08, (224, 64, 40)))
+    rgb, _ = plates(612, 5, PLATE, (74, 16, 22), [0.06, 0.11, 0.2, 0.25, 0.2, 0.12, 0.06], hot=(0.08, (224, 64, 40)), spacing=5.6)
     shell = save_tex('organ_core', 'organ_core', opaque(rgb))
     # the hot interior: bright at the middle of every face, fibrous towards the edges
     r = np.random.default_rng(602)
@@ -385,25 +386,25 @@ def tex_organ():
     d = np.hypot(xs - 8, ys - 8) / 8
     fib = per_noise(N, 4, 603, 2)
     f = np.clip(1 - d * 1.1 + (fib - 0.5) * 0.5 + r.random((N, N)) * 0.1, 0, 1)
-    rgb = pal(f, [(120, 14, 14), (170, 28, 20), (214, 52, 28), (242, 90, 44), (255, 138, 74), (255, 190, 124)],
-              [0.12, 0.2, 0.24, 0.22, 0.14, 0.08])
+    rgb = pal(f, [(112, 12, 14), (156, 22, 20), (200, 42, 28), (236, 76, 40), (255, 128, 68), (255, 196, 132)],
+              [0.16, 0.22, 0.24, 0.18, 0.12, 0.08])
     glow = save_tex('organ_core_glow', 'organ_core_glow', opaque(rgb))
     # roots: glossy red, streaked so they read on any face
     f = per_noise(N, 4, 604, 2) * 0.55 + r.random((N, N)) * 0.2 + ((xs + ys * 0.6) % 4 < 1.2) * 0.25
     rgb = pal(eq(f), ROOT, [0.1, 0.22, 0.3, 0.24, 0.11, 0.03])
     root = save_tex('organ_core_root', 'organ_core_root', opaque(rgb))
     # cracked core: darker split plates; light leaks through the cracks
-    rgb, e = plates(611, 7, [(56, 10, 16), (78, 16, 22), (100, 26, 30), (124, 38, 40), (148, 52, 52), (172, 70, 66)],
-                    HOT[1], [0.1, 0.16, 0.24, 0.24, 0.16, 0.1], hot=(0.3, HOT[3]))
-    near = neigh4(e, False) & ~e
-    rgb[near] = lerp(rgb[near], (190, 50, 34), 0.4)
+    rgb, e = plates(611, 5, [(62, 16, 22), (84, 24, 30), (106, 34, 38), (128, 46, 48), (150, 60, 60), (172, 76, 74)],
+                    HOT[1], [0.1, 0.16, 0.24, 0.24, 0.16, 0.1], hot=(0.15, HOT[3]), spacing=5.6)
+    near = np.roll(e, -1, 0) & ~e
+    rgb[near] = lerp(rgb[near], (196, 56, 36), 0.2)
     cracked = save_tex('cracked_organ_core', 'cracked_organ_core', opaque(rgb))
     return shell, glow, root, cracked
 
 
 def tex_watcher_pod():
     r = np.random.default_rng(701)
-    rgb, e = plates(705, 6, POD, (36, 3, 9), [0.07, 0.13, 0.21, 0.24, 0.18, 0.11, 0.06], spacing=5.0)
+    rgb, e = plates(705, 5, POD, (52, 12, 18), [0.07, 0.13, 0.21, 0.24, 0.18, 0.11, 0.06], spacing=5.6)
     closed = save_tex('watcher_pod', 'watcher_pod', opaque(rgb))
     rgb2 = rgb.copy()                                              # opened: light leaks out of every crack
     rgb2[e] = HOT[2]
@@ -414,21 +415,19 @@ def tex_watcher_pod():
     # inner flesh of the petals and cup: wet, lit red by the eye
     ys, xs = np.mgrid[0:N, 0:N] + 0.5
     f = per_noise(N, 4, 703, 2) * 0.55 + r.random((N, N)) * 0.2 + 0.25 * (np.sin(xs * 1.1 + ys * 0.5) > 0.6)
-    rgb = pal(eq(f), [(96, 10, 16), (128, 16, 22), (160, 26, 30), (192, 42, 40), (222, 70, 56), (250, 120, 92)],
+    rgb = pal(eq(f), [(76, 8, 14), (104, 12, 20), (132, 20, 26), (162, 32, 34), (194, 52, 46), (226, 88, 70)],
               [0.12, 0.22, 0.28, 0.2, 0.12, 0.06])
     inner = save_tex('watcher_pod_inner', 'watcher_pod_inner', opaque(rgb))
-    # the eye: a slit pupil in a burning iris, centred on every face of the core
-    d = np.hypot(xs - 8, ys - 8)
-    ang = np.arctan2(ys - 8, xs - 8)
-    rgb = pal(np.clip(1 - d / 5.2 + 0.1 * np.sin(ang * 9) + r.random((N, N)) * 0.08, 0, 1),
-              [(110, 8, 12), (160, 20, 20), (214, 50, 30), (246, 94, 44), (255, 150, 80), (255, 204, 140)],
-              [0.32, 0.14, 0.16, 0.16, 0.12, 0.1])
-    veins = (r.random((N, N)) < 0.12) & (d > 4.4)
-    rgb[veins] = (80, 4, 8)
-    ring = (d > 3.4) & (d < 4.3)
-    rgb[ring] = (74, 4, 8)
-    rgb[(np.abs(xs - 8) < 0.9) & (np.abs(ys - 8) < 3.0)] = (16, 0, 2)
-    rgb[(np.abs(xs - 6.0) < 0.5) & (np.abs(ys - 6.0) < 0.5)] = (255, 244, 224)
+    # the eye: a burning iris filling the core's faces, a thin slit pupil, a glint
+    d = np.hypot(xs - 7.5, ys - 7.5)
+    ang = np.arctan2(ys - 7.5, xs - 7.5)
+    rgb = pal(np.clip(1 - d / 4.6 + 0.08 * np.sin(ang * 9) + r.random((N, N)) * 0.06, 0, 1),
+              [(150, 16, 16), (206, 40, 26), (240, 76, 38), (255, 120, 60), (255, 170, 96), (255, 214, 150)],
+              [0.3, 0.16, 0.16, 0.14, 0.12, 0.12])
+    rgb[(d > 4.4) & (r.random((N, N)) < 0.2)] = (96, 6, 10)            # veins in the white of it
+    rgb[(d > 4.0) & (d < 4.7)] = (70, 4, 8)
+    rgb[(np.abs(xs - 7.5) < 0.5) & (np.abs(ys - 7.5) < 2.6)] = (20, 0, 2)
+    rgb[(np.abs(xs - 5.5) < 0.5) & (np.abs(ys - 5.5) < 0.5)] = (255, 246, 228)
     eye = save_tex('watcher_pod_eye', 'watcher_pod_eye', opaque(rgb))
     f = per_noise(N, 4, 704, 2) * 0.55 + r.random((N, N)) * 0.2 + ((xs - ys * 0.5) % 5 < 1.3) * 0.25
     rgb = pal(eq(f), ROOT, [0.1, 0.22, 0.3, 0.24, 0.11, 0.03])
@@ -440,7 +439,7 @@ def tex_dripfang():
     r = np.random.default_rng(801)
     ys, xs = np.mgrid[0:N, 0:N] + 0.5
     band = np.array([r.normal(0, 0.14) for _ in range(N)])[:, None]
-    band[3::4] -= 0.25                                          # ledges between the layers of rock
+    band[3::4] -= 0.18                                          # ledges between the layers of rock
     f = eq(mottle(802)) * 0.6 + band + r.random((N, N)) * 0.1
     rgb = pal(eq(f), DRIP, [0.06, 0.14, 0.24, 0.27, 0.19, 0.1])
     for x in r.choice(N, 4, replace=False):                     # vertical crevices
@@ -456,15 +455,16 @@ def tex_dripfang():
     rgb = pal(eq(f), WET, [0.08, 0.2, 0.3, 0.24, 0.13, 0.05])
     rgb = lerp(rgb, DRIP[3], 0.35)
     wet = save_tex('dripfang_wet', 'dripfang_wet', opaque(rgb))
-    rgb = np.zeros((N, N, 3)) + (196, 208, 220)
-    rgb[(xs + ys) % 5 < 1] = (240, 246, 252)
-    rgb[(xs * 3 + ys) % 7 < 1] = (160, 172, 188)
+    rgb = np.zeros((N, N, 3)) + (190, 178, 182)
+    rgb[(xs + ys) % 5 < 1] = (236, 230, 232)
+    rgb[(xs * 3 + ys) % 7 < 1] = (150, 136, 140)
     drop = save_tex('dripfang_drop', 'dripfang_drop', opaque(rgb))
     return body, wet, drop
 
 
 # =============================================================== alpha (cutout) textures
-STRANDS = [(2.0, 0.0, 0.7), (7.5, 2.1, 0.9), (12.5, 4.0, 0.6)]          # x, phase, sway: three thick glossy strands
+STRANDS = [(1.5, 0.0, 0.6), (7.0, 2.1, 0.8), (12.0, 4.0, 0.6)]          # x, phase, sway: three thick glossy strands
+VINE = [(96, 6, 14), (150, 16, 26), (196, 32, 40), (232, 80, 78), (255, 176, 166)]
 
 
 def strand_x(x0, ph, amp, y):
@@ -472,26 +472,26 @@ def strand_x(x0, ph, amp, y):
 
 
 def paint_strand(img, x0, ph, amp, y_from, y_to, bead=False, knots=()):
-    """a 2px glossy strand: lit left edge, dark right edge, the odd specular pixel"""
+    """a 3px glossy strand of root: lit left edge, red core, dark right edge, the odd wet glint"""
     for y in range(y_from, y_to):
         x = int(math.floor(strand_x(x0, ph, amp, y)))
-        img[y, x % N] = (*ROOT[4], 255)
-        img[y, (x + 1) % N] = (*ROOT[2], 255)
+        img[y, x % N] = (*VINE[3], 255)
+        img[y, (x + 1) % N] = (*VINE[2], 255)
+        img[y, (x + 2) % N] = (*VINE[0], 255)
         if y in knots:                                           # a swollen knot in the vine
-            img[y, (x - 1) % N] = (*ROOT[3], 255); img[y, (x + 2) % N] = (*ROOT[1], 255)
-        if (y * 7 + int(x0) * 3) % 11 == 0:
-            img[y, x % N] = (*ROOT[5], 255)
+            img[y, (x - 1) % N] = (*VINE[1], 255); img[y, (x + 3) % N] = (*VINE[0], 255)
+        if (y * 7 + int(x0) * 3) % 9 == 0:
+            img[y, x % N] = (*VINE[4], 255)
     if bead:                                                     # a fat drop of blood about to fall
         x = int(math.floor(strand_x(x0, ph, amp, y_to - 1)))
-        for dy, (a, b) in enumerate([(-1, 3), (-1, 3), (-1, 3), (0, 2)]):
+        for dy, (a, b) in enumerate([(-1, 5), (-1, 5), (0, 3), (1, 1)]):
             for xx in range(x + a, x + a + b):
                 if y_to + dy < N:
-                    img[y_to + dy, xx % N] = (*(178, 18, 26), 255)
+                    img[y_to + dy, xx % N] = (*VINE[1], 255)
+            if y_to + dy < N:
+                img[y_to + dy, (x + a) % N] = (*VINE[2], 255)
         if y_to + 1 < N:
-            img[y_to, (x - 1) % N] = (*ROOT[4], 255)
-            img[y_to + 1, (x - 1) % N] = (255, 196, 186, 255)
-        if y_to + 3 < N:
-            img[y_to + 3, (x + 1) % N] = (110, 8, 16, 255)
+            img[y_to, x % N] = (*VINE[4], 255)
 
 
 def tex_bloodroot():
@@ -500,10 +500,10 @@ def tex_bloodroot():
         paint_strand(img, x0, ph, amp, 0, N, knots=knots)
     body = save_tex('bloodroot_vines', 'bloodroot_vines', img)
     img = blank()
-    for (x0, ph, amp), end in zip(STRANDS, [8, 11, 6]):
+    for (x0, ph, amp), end in zip(STRANDS, [7, 10, 5]):
         paint_strand(img, x0, ph, amp, 0, end, bead=True, knots=(3,))
-    x = int(strand_x(*STRANDS[2], 6))
-    img[13, x] = (178, 18, 26, 255); img[14, x] = (178, 18, 26, 255); img[13, x - 1] = (255, 196, 186, 255)   # a falling drop
+    x = int(strand_x(*STRANDS[2], 5)) + 1                         # a drop falling from the shortest strand
+    img[12, x] = (*VINE[2], 255); img[13, x] = (*VINE[1], 255); img[12, x - 0] = (*VINE[4], 255)
     tip = save_tex('bloodroot_vines_tip', 'bloodroot_vines_tip', img)
     return body, tip
 
@@ -667,28 +667,45 @@ class Vox:
             self.g[i, j, k] = lab
 
     def cubes(self):
-        g = self.g
+        """greedy-merge voxels of one label into boxes; every axis order is tried, the fewest boxes win"""
+        best = None
+        for order in itertools.permutations((0, 1, 2)):
+            boxes = self._greedy(order)
+            if best is None or len(boxes) < len(best):
+                best = boxes
+        out = [self._box(lab, *lo, *hi) for lab, lo, hi in best]
+        return [c for c in out if c['uv']]
+
+    def _greedy(self, order):
+        g = self.g.transpose(order)
+        seam_ax = order.index(2)                         # wrapped labels never merge across z = 0
         seen = np.zeros(g.shape, bool)
-        out = []
-        for j in range(N):
-            for k in range(N):
-                for i in range(N):
-                    lab = g[i, j, k]
-                    if lab == 0 or seen[i, j, k]:
+        boxes = []
+
+        def free(sl, lab):
+            return np.all(g[sl] == lab) and not seen[sl].any()
+
+        for c in range(N):
+            for b_ in range(N):
+                for a in range(N):
+                    lab = g[a, b_, c]
+                    if lab == 0 or seen[a, b_, c]:
                         continue
                     seam = lab in self.wrap
-                    i1 = i
-                    while i1 + 1 < N and g[i1 + 1, j, k] == lab and not seen[i1 + 1, j, k]:
-                        i1 += 1
-                    k1 = k
-                    while k1 + 1 < N and not (seam and k1 == 7) and np.all(g[i:i1 + 1, j, k1 + 1] == lab) and not seen[i:i1 + 1, j, k1 + 1].any():
-                        k1 += 1
-                    j1 = j
-                    while j1 + 1 < N and np.all(g[i:i1 + 1, j1 + 1, k:k1 + 1] == lab) and not seen[i:i1 + 1, j1 + 1, k:k1 + 1].any():
-                        j1 += 1
-                    seen[i:i1 + 1, j:j1 + 1, k:k1 + 1] = True
-                    out.append(self._box(lab, i, j, k, i1 + 1, j1 + 1, k1 + 1))
-        return [c for c in out if c['uv']]
+                    lo, hi = [a, b_, c], [a + 1, b_ + 1, c + 1]
+                    for ax in range(3):
+                        while hi[ax] < N and not (seam and ax == seam_ax and hi[ax] == 8):
+                            nxt = [slice(lo[t], hi[t]) for t in range(3)]
+                            nxt[ax] = slice(hi[ax], hi[ax] + 1)
+                            if not free(tuple(nxt), lab):
+                                break
+                            hi[ax] += 1
+                    seen[lo[0]:hi[0], lo[1]:hi[1], lo[2]:hi[2]] = True
+                    olo, ohi = [0, 0, 0], [0, 0, 0]
+                    for t in range(3):
+                        olo[order[t]], ohi[order[t]] = lo[t], hi[t]
+                    boxes.append((lab, olo, ohi))
+        return boxes
 
     def _exposed(self, sl):
         """any empty voxel (or outside the grid) in the slab next to a face"""
@@ -772,7 +789,7 @@ def surface_lines(v, lab, c, rad, seed, count, from_top=True, y_min=1.0, thick=1
     r = np.random.default_rng(seed)
     for n in range(count):
         ang = n / count * math.tau + r.uniform(-0.4, 0.4)
-        phi = 0.05 if from_top else 1.4
+        phi = 0.05 if from_top else 1.75
         wob = r.uniform(-0.2, 0.2)
         while phi < math.pi * stop:
             rr = rad + 0.55
@@ -798,7 +815,7 @@ def g_organ_core():
     v = Vox({1: '*', 2: 'root'}, wrap={1})
     ground_roots(v, 2, 1201, count=7, r0=3.6)
     sphere_vox(v, 1, (0, 8.3, 0), 6.75)
-    surface_lines(v, 2, (0, 8.3, 0, 1.0), 6.75, 1203, 5, from_top=False, thick=2)
+    surface_lines(v, 2, (0, 8.3, 0, 1.0), 6.75, 1203, 4, from_top=False, thick=1)
     return geo('geometry.sb_inf_organ_core', v.cubes())
 
 
@@ -818,26 +835,13 @@ def g_cracked_organ_core():
                 if not (5.2 < d <= 6.75):
                     continue
                 ang = math.atan2(p[2], p[0])
-                rim = 11.2 + 1.6 * math.sin(3 * ang + phase) + 0.8 * math.sin(7 * ang)
+                rim = 12.2 + 1.4 * math.sin(3 * ang + phase) + 0.7 * math.sin(7 * ang)
                 if j + 0.5 > rim:
                     continue                                          # the top has burst open
-                gap = any(abs(angdiff(ang, wa)) < 0.06 + max(0, (j - 4.5)) * 0.045 for wa in wedges)
+                gap = any(abs(angdiff(ang, wa)) < 0.04 + max(0, (j - 5.5)) * 0.03 for wa in wedges)
                 if gap and j >= 4:
                     continue                                          # split seams down the sides
                 v.put(i, j, k, 1)
-    # shell fragments pried up and outward around the opening
-    for wa in wedges:
-        for i in range(N):
-            for j in range(N):
-                for k in range(N):
-                    p = (i - 7.5, j + 0.5 - c[1], k - 7.5)
-                    ang = math.atan2(p[2], p[0])
-                    if abs(angdiff(ang, wa + 1.05)) > 0.42:
-                        continue
-                    q = (p[0] - math.cos(ang) * 1.3, p[1] - 1.6, p[2] - math.sin(ang) * 1.3)
-                    d = math.sqrt(q[0] ** 2 + q[1] ** 2 + q[2] ** 2)
-                    if 5.6 < d <= 6.9 and j + 0.5 > 11.5 and j < 15:
-                        v.put(i, j, k, 1)
     surface_lines(v, 2, (0, 8.0, 0, 1.0), 6.75, 1303, 4, from_top=False)
     return geo('geometry.sb_inf_cracked_organ_core', v.cubes())
 
@@ -857,59 +861,85 @@ def g_watcher_pod(opened):
         # veins netted over the pod from its crown, as if it was let down on them
         surface_lines(v, 2, (0, c[1], 0, ry / rx), rx, 1403, 6, from_top=True, y_min=1, thick=2, stop=0.75)
         return geo('geometry.sb_inf_watcher_pod', v.cubes())
-    # opened: a cup of shell, broad petals splayed outward, the eye awake in the middle
+    # opened: a cup of shell, the eye awake in it, and four stepped petals of shell splayed to the corners
     for i in range(N):
         for j in range(N):
             for k in range(N):
                 x, y, z = i - 7.5, j + 0.5 - c[1], k - 7.5
                 e = (x * x + z * z) / rx ** 2 + y * y / ry ** 2
-                if j + 0.5 < 6.6 and e <= 1.0:
+                if j + 0.5 < 6.2 and e <= 1.0:
                     v.put(i, j, k, 1 if e > 0.6 else 3)
-    ph = r.uniform(0, math.tau)
-    tops = [15.6, 13.8, 15.0, 14.2]
-    for i in range(N):
-        for j in range(5, N):
-            for k in range(N):
-                rad, ang = cyl(i, k)
-                for n, top in enumerate(tops):
-                    t = (j + 0.5 - 5.5) / (top - 5.5)
-                    if t < 0 or t > 1:
-                        continue
-                    d = 5.5 + 2.3 * t ** 1.3
-                    pa = ph + n / len(tops) * math.tau
-                    hw = 0.62 * (1 - t ** 2.4) ** 0.55 + 0.05
-                    if abs(angdiff(ang, pa)) < hw and d - 1.5 <= rad <= d + 0.3 and rad < 7.95:
-                        v.put(i, j, k, 1 if rad > d - 0.6 else 3)
-    sphere_vox(v, 4, (0, 8.2, 0), 3.7)
+    sphere_vox(v, 4, (0, 8.6, 0), 4.2, over=False)
     surface_lines(v, 2, (0, c[1], 0, ry / rx), rx, 1404, 5, from_top=False, y_min=1, thick=2)
-    return geo('geometry.sb_inf_watcher_pod_open', v.cubes())
+    cubes = v.cubes()
+    for rot in (45, 135, -45, -135):
+        cubes += petal(rot, PETAL_TALL)
+    for rot in (0, 90, 180, -90):
+        cubes += petal(rot, PETAL_SHORT)
+    return geo('geometry.sb_inf_watcher_pod_open', cubes)
+
+
+def fit_uv(a, s):
+    """shift a planar uv region back inside the 16x16 texture (regions never exceed 16)"""
+    out = []
+    for p, q in zip(a, s):
+        lo = min(p, p + q)
+        sh = -lo if lo < 0 else (16 - max(p, p + q) if max(p, p + q) > 16 else 0)
+        out.append(round(p + sh, 4))
+    return out
+
+
+PETAL_TALL = [(3.0, 4.0, 6.5, 4.2), (2.8, 6.5, 9.0, 5.6), (2.2, 9.0, 11.0, 7.0), (1.4, 11.0, 12.5, 8.0)]   # to the corners
+PETAL_SHORT = [(2.5, 4.0, 6.0, 4.4), (2.2, 6.0, 8.0, 5.4), (1.6, 8.0, 10.0, 6.2)]                       # to the sides
+
+
+def petal(rot, slabs):
+    """one petal of the opened pod: stepped slabs (half-width, y0, y1, z0) built facing +z, then turned
+    about the centre. Only Y rotations by multiples of 45 degrees, so the set looks the same either way round."""
+    cubes = []
+    for hw, y0, y1, z0 in slabs:
+        z1 = z0 + 1.8
+        x0, x1 = -hw, hw
+        uv = {}
+        for f in ('south', 'north', 'east', 'west', 'up'):
+            a, sz = face_uv(f, x0, y0, z0, x1, y1, z1)
+            d = {'uv': fit_uv(a, sz), 'uv_size': sz}
+            if f == 'north':
+                d['material_instance'] = 'inner'                    # the inside of the shell, lit by the eye
+            uv[f] = d
+        cubes.append({'origin': [x0, y0, z0], 'size': [x1 - x0, y1 - y0, round(z1 - z0, 4)], 'pivot': [0, 0, 0],
+                      'rotation': [0, rot, 0], 'uv': uv})
+    return cubes
 
 
 def g_dripfang(tip):
-    r = np.random.default_rng(1501 + tip)
+    """a stalactite of stacked rings of rock (2-3 px tall); the tip tapers to a wet point and a drop"""
+    r = np.random.default_rng(1511 + tip)
     v = Vox({1: '*', 2: 'wet', 3: 'drop'}, wrap={1, 2})
-    ph1, ph2 = r.uniform(0, math.tau, 2)
-    ledges = {4, 9, 13} if not tip else set()
-    for j in range(N):
+    ph = r.uniform(0, math.tau)
+    bands = [(13, 16), (10, 13), (8, 10), (5, 8), (3, 5), (0, 3)]
+    for j0, j1 in bands:
+        jm = (j0 + j1) / 2
         if tip:
-            t = (j - 2.5) / 13.0
+            t = (jm - 2.0) / 13.5
             if t <= 0:
                 continue
-            rad = 0.6 + 4.3 * t ** 1.35
-            rad = math.floor(rad / 0.75) * 0.75 + 0.45                   # stepped like stacked rings of rock
+            rad = 0.7 + 4.3 * t ** 1.25 + r.uniform(-0.25, 0.25)
         else:
-            rad = 4.5 + 0.6 * (j / 15.0) + (0.8 if j in ledges else 0.0)
-        ph1 += r.normal(0, 0.25); ph2 += r.normal(0, 0.25)
-        for i in range(N):
-            for k in range(N):
-                x, z = i - 7.5, k - 7.5
-                a = math.atan2(z, x)
-                rr = math.hypot(x, z) / (1 + 0.1 * math.sin(2 * a + ph1) + 0.07 * math.sin(3 * a + ph2))
-                if rr <= rad:
-                    wet = tip and j < 7 and rr > rad - 1.1
-                    v.put(i, j, k, 2 if wet else 1)
+            rad = 4.8 + 0.9 * (jm / 16.0) + r.uniform(-0.3, 0.3)
+        for j in range(j0, j1):
+            for i in range(N):
+                for k in range(N):
+                    x, z = i - 7.5, k - 7.5
+                    a = math.atan2(z, x)
+                    rr = math.hypot(x, z) / (1 + 0.06 * math.sin(2 * a + ph + j0) + 0.05 * math.sin(3 * a - ph))
+                    if rr <= rad:
+                        wet = tip and j < 7 and rr > rad - 1.1
+                        v.put(i, j, k, 2 if wet else 1)
     if tip:
-        v.put(8, 2, 8, 3); v.put(8, 0, 8, 3)                               # hanging bead and a falling drop
+        for j in (1, 2):
+            v.put(7, j, 7, 2)                                              # the last wet point
+        v.put(7, 0, 7, 3)                                                  # the bead about to fall
     return geo('geometry.sb_inf_dripfang_tip' if tip else 'geometry.sb_inf_dripfang', v.cubes())
 
 
@@ -957,9 +987,9 @@ def g_thorns():
 def g_glowspore():
     cubes = [plane(45), plane(-45)]
 
-    def stem(x, z, h, u):
-        uv = {f: {'uv': [u, 16 - h], 'uv_size': [1, h], 'material_instance': 'stem'} for f in FACES[:4]}
-        return {'origin': [x, 0, z], 'size': [1, h, 1], 'uv': uv}
+    def stem(x, z, h, u, wd=1):
+        uv = {f: {'uv': [u, 16 - h], 'uv_size': [wd, h], 'material_instance': 'stem'} for f in FACES[:4]}
+        return {'origin': [x + 0.5 - wd / 2, 0, z + 0.5 - wd / 2], 'size': [wd, h, wd], 'uv': uv}
 
     def cap(cx, cz, y, s, top_uv, h=2):
         x0, z0 = cx + 0.5 - s / 2, cz + 0.5 - s / 2
@@ -969,7 +999,7 @@ def g_glowspore():
         return {'origin': [x0, y, z0], 'size': [s, h, s], 'uv': uv}
 
     for (x, z, h, s, bump, u) in [(-3, -2, 7, 4, True, 2), (1, 2, 10, 5, True, 6), (3, -4, 5, 3, False, 9), (-5, 3, 3, 3, False, 12)]:
-        cubes.append(stem(x, z, h, u))
+        cubes.append(stem(x, z, h, u, 2 if h >= 7 else 1))
         cubes.append(cap(x, z, h, s, (0, 0) if s == 5 else (5, 0) if s == 4 else (9, 0)))
         if bump:
             cubes.append(cap(x, z, h + 2, s - 2, (5, 4) if s == 5 else (12, 0), h=1))

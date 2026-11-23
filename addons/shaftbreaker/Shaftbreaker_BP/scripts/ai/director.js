@@ -620,7 +620,7 @@ function freshMap(p) {
 }
 
 /** a sighting of a given kind ('still' 'ledge' 'ceiling' 'behind' 'peek' 'ahead' or 'any'), optionally with a forced reaction */
-export function forceShow(player, kind = 'any', reaction = null) {
+export function forceShow(player, kind = 'any', reaction = null, why = null) {
   if (cur) cur.abort('wheel');
   stepEncounter();
   const tpl = BY_ID.get('stalk_show');
@@ -632,6 +632,7 @@ export function forceShow(player, kind = 'any', reaction = null) {
   if (!plan && (reaction || kind === 'any' || kind === 'still' || kind === 'behind' || kind === 'ahead')) plan = safe('wheelRelaxed', () => relaxedSpot(ctx), null);
   if (!plan) return kind === 'ceiling' ? 'no ceiling high enough near you' : kind === 'peek' ? 'nothing to hide behind near you (trees on the surface, pillars underground)' : kind === 'ledge' ? 'no ledge above you' : 'no place for that here';
   plan.forceReaction = reaction;
+  if (why) plan.forceWhy = why;
   s.reason = 'wheel';
   startEncounter(tpl, player, s, map, plan);
   return `it is coming (${plan.kind}${reaction ? `, ${reaction}` : ''})`;
@@ -674,7 +675,15 @@ export function onOrganBroken(player, pos, cracked) {
   unlockNote(player, 'organ');
   if (c && !c.defeated) safe('organWound', () => c.e.applyDamage(cracked ? 18 : 10, { cause: /** @type {any} */ ('magic') }));
   addTension(pstate(player), 35);
-  if (!config().harmless) system.runTimeout(() => safe('organRage', () => queueRage(player, 'you broke its organ')), sec(2.5));
+  // it comes for you: a running sighting turns on you, otherwise it arrives behind you screaming (even if it was not near)
+  if (!config().harmless) system.runTimeout(() => safe('organRage', () => {
+    if (!valid(player) || !eligible(player)) return;
+    if (cur && cur.tpl.family === 'hunt') return;                                   // already coming
+    if (cur && cur.tpl.id === 'stalk_show' && cur.ctx.player.id === player.id) { cur.ctx.provoked = true; return; }
+    const c2 = creature();
+    if (c2 && c2.defeated) return;
+    forceShow(player, 'behind', 'rage', 'you broke its organ');
+  }), sec(2.5));
 }
 function playAtDim(p, id, pos) { safe('playAtDim', () => p.dimension.playSound(id, { x: pos.x + 0.5, y: pos.y + 0.5, z: pos.z + 0.5 }, { volume: 1.0 })); }
 

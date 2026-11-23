@@ -47,11 +47,11 @@ function init() {
   system.runInterval(() => safe('restore', () => {
     if (!pendingBreaches()) return;
     const r = running();
-    if (r && r.tpl.family === 'hunt') return;
     const c = creature();
+    if (r && (r.tpl.family === 'hunt' || (c && c.rage))) return;      // never mid-chase (a rage can run inside a sighting)
     restoreBreaches({ keepNear: c ? c.loc : null });
   }), 60);
-  console.warn(`[Shaftbreaker] ready v2.1 (preset=${config().preset}, templates=${TEMPLATES.length}, night stalking=${config().nightStalking ? 'on' : 'off'}, placed-registry=${placedCount()})`);
+  console.warn(`[Shaftbreaker] ready v3.1 (preset=${config().preset}, templates=${TEMPLATES.length}, night stalking=${config().nightStalking ? 'on' : 'off'}, placed-registry=${placedCount()})`);
 }
 
 // ------------------------------------------------------------------ startup

@@ -620,7 +620,7 @@ export const STALK_TEMPLATES = [
       if (what === 'vanish') { yield W(sec(rand(0.6, 1.6))); yield* vanishHere(ctx, cr); return 'vanished'; }
       if (what === 'flee') { yield W(sec(rand(0.3, 0.9))); yield* flee(ctx, cr); return 'fled'; }
       if (what === 'lunge') { const hit = yield* lunge(ctx, cr); if (ctx.plan && ctx.plan.forceReaction) return yield* rage(ctx, 'lunged', true); return yield* afterStrike(ctx, cr, hit ? 0.55 : 0.35); }
-      if (what === 'rage') return yield* rage(ctx, 'spotted');
+      if (what === 'rage') return yield* rage(ctx, (ctx.plan && ctx.plan.forceWhy) || 'spotted');
       // ---- the standoff
       const o = yield* standoff(ctx, cr);
       ctx.tel.notes.push(`standoff:${o}`);

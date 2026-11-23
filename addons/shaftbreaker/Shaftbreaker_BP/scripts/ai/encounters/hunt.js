@@ -180,7 +180,7 @@ export function* pursue(ctx, cr, opts = {}) {
   if (rage) { phase = 'frenzy'; ctx.tel.phases.push('frenzy'); cr.setPhase('frenzy'); }
   else cr.setPhase('breaker');
   // fairness: no hit can land within ~1.8 s of the scream; it closes in under script control first
-  const armAt = rage ? now() + sec(0.7) : 0;
+  const armAt = rage ? now() + sec(opts.lunged ? 1.0 : 0.7) : 0;      // the scream wait is shorter after a lunge (0.8 s): keep the total at 1.8 s
   if (rage) cr.chase(pl, SPEED.rage); else cr.huntTarget(pl, false);
   let armed = !rage;
   let lastProgress = { t: now(), d: dist(cr.loc, pl.location), pos: { ...cr.loc } };
@@ -599,7 +599,7 @@ export function* huntSequence(ctx, plan = {}) {
   setDanger(pl, 0.85);
   if (!cr.valid) return 'lost';
   cr.clearAct();
-  const outcome = yield* pursue(ctx, cr, { quiet, rage });
+  const outcome = yield* pursue(ctx, cr, { quiet, rage, lunged: !!plan.lunged });
   ctx.tel.outcome = outcome;
   stopMusic(pl);
   if (cr.valid) { cr.releaseTarget(); cr.rage = false; cr.setNav('walk'); }
@@ -613,7 +613,7 @@ export function* huntSequence(ctx, plan = {}) {
     if (ctx.provoked || outcome === 'low_health' || outcome === 'defeated') pf.react.fight = Math.min(60, pf.react.fight + 1);
     markDirty(pl);
   });
-  ctx.later(sec(9), () => restoreBreaches({ keepNear: creature() ? creature().loc : null }));
+  ctx.later(sec(9), () => { const c = creature(); if (!c || !c.rage) restoreBreaches({ keepNear: c ? c.loc : null }); });   // not if a new chase has started
   learnFromHunt(ctx, outcome);
   addDanger(-30);
   ws().lastHuntEnd = now(); wsDirty();
