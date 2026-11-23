@@ -7,7 +7,7 @@ An original survival-horror add-on for Minecraft Bedrock. One creature per save.
 * **Experiments:** none. **Cheats:** none. **Commands:** none needed.
 * **Graphics:** standard Bedrock rendering; Vibrant Visuals supported (PBR texture sets with emissive glow).
 
-> **1.6.1**: **each of his three changes is now a scene of its own**: the water boils (I to II), the sky comes down (II to III), he burns through and his wings tear open (III to IV), each with its own events, length and camera.
+> **1.6.2**: **each of his three changes is now a scene of its own**: the water boils (I to II), the sky comes down (II to III), he burns through and his wings tear open (III to IV), each with its own events, length and camera.
 >
 > **1.6**: **a change now waits on time only** (set the minutes yourself), and every change is a **cinematic scene shot close**: five shots that keep him in the picture. With nothing alive in reach he **goes to the nearest village or city and walks through it**. The pack **raises cities** on real coasts and wherever an operator asks: towers, streets, people, a beach he can walk up, and beyond it a **sea cut a hundred blocks deep** with its own blocks and things on the bottom. There is a gun made for him, the **Seam Lance**. And there is the **Titan**: a separate, far stronger Basiliskra IV for battles in Creative (up to three; they fight each other, and him, with breath, jaws, tail and weight, and they can be killed).
 >
@@ -25,7 +25,7 @@ In game: a **journal** (how angry he is, as a percentage, when he will come, and
 
 | File | What it is |
 |---|---|
-| `dist/Basiliskra-1.6.1.mcaddon` | behaviour pack + resource pack, ready to import |
+| `dist/Basiliskra-1.6.2.mcaddon` | behaviour pack + resource pack, ready to import |
 | `models/basiliskra_i.bbmodel`, `_ii`, `_iii`, `_iv` | the four editable Blockbench models, textures and animations embedded |
 | `docs/SURVIVAL_GUIDE.md` | install, what calls him, the four stages, cities, the Seam Lance, the Titan, the ending, settings |
 | `previews/*.mp4` | reference videos (see below) |

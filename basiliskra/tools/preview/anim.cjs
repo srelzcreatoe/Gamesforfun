@@ -98,21 +98,21 @@ const REEL = {
   // (--forms c1a,c1b,c2a,c2b,c3a,c3b: his three changes, each a scene of its own; what the script adds to them in
   // the world -- the boiling sea, the bolts, the smoke, the glass in the ground -- is not drawn here)
   c1a: [
-    { t: 2.7, label: 'I to II. Three knocks on his gills, as on the night he came', phase: 'knock', cam: CAM([15, -5], 12, 0.62), sounds: knocks('basiliskra.knock.gill', 0), fx: [{ at: 0, kind: 1 }, { at: 0.9, kind: 1 }, { at: 1.8, kind: 1 }] },
+    { t: 2.7, label: 'I to II. Three knocks on his gills, as on the night he came', phase: 'knock', cam: CAM([62, 44], 10, 0.72), sounds: knocks('basiliskra.knock.gill', 0), fx: [{ at: 0, kind: 1 }, { at: 0.9, kind: 1 }, { at: 1.8, kind: 1 }] },
     { t: 3.3, label: 'A spasm runs down him, and the sea round him boils', phase: 'spasm', charge: [0, 7], cam: CAM(60, 62, 1.0), sounds: [{ at: 0, sound: 'basiliskra.i.spasm' }, { at: 0, sound: 'basiliskra.i.gill_catch' }] },
     { t: 1.5, label: 'He rears out of the water', phase: 'rise', charge: [7, 10], cam: CAM([112, 96], 5, 0.9), sounds: [{ at: 0, sound: 'basiliskra.i.surface' }] },
     { t: 1.3, label: 'He rears out of the water', phase: 'evolve', charge: [10, 20], cam: CAM([96, 84], 5, 0.85), sounds: [{ at: 0, sound: 'basiliskra.mutate' }] },
   ],
   c1b: [
     { t: 2.2, label: 'What hauls itself up out of the steam', phase: 'beach', charge: [20, 6], cam: CAM([50, 28], 12, 1.0), sounds: [{ at: 0, sound: 'basiliskra.mutate', pitch: 0.9 }] },
-    { t: 2.8, label: 'Lightning between his horns, for the first time: three arcs, on the beat of the knocks', phase: 'arc', charge: [6, 3], cam: CAM([68, 112], 10, 0.55, 0.62),
+    { t: 2.8, label: 'Lightning between his horns, for the first time: three arcs, on the beat of the knocks', phase: 'arc', charge: [6, 3], cam: CAM([58, 122], 12, 0.8, 0.5),
       fx: [{ at: 0, kind: 2 }, { at: 0.9, kind: 2 }, { at: 1.8, kind: 2 }], sounds: [0, 0.9, 1.8].map((a, k) => ({ at: a, sound: 'basiliskra.ii.arc', pitch: 1 + k * 0.06 })) },
     { t: 1.2, label: 'Basiliskra II', phase: 'idle', cam: CAM([82, 76], 6, 0.75, 0.55) },
     { t: 4.2, label: 'Basiliskra II', phase: 'roar', cam: CAM([76, 62], 6, 0.75, 0.55), fx: [{ at: 0.1, kind: 9 }], sounds: [{ at: 0.1, sound: 'basiliskra.roar_short', pitch: 1.18 }] },
   ],
   c2a: [
-    { t: 2.5, label: 'II to III. Arcs between his horns, and the sky answers', phase: 'arc', night: true, cam: CAM([265, 280], -6, 0.7, 0.75), sounds: [{ at: 0, sound: 'basiliskra.ii.arc' }] },
-    { t: 0.6, label: 'The first bolt finds his horns', phase: 'flinch', charge: 6, night: true, cam: CAM(272, -6, 0.7, 0.75), fx: [{ at: 0, kind: 3 }], sounds: [{ at: 0, sound: 'basiliskra.ii.arc', pitch: 0.8 }] },
+    { t: 2.5, label: 'II to III. Arcs between his horns, and the sky answers', phase: 'arc', night: true, cam: CAM([318, 334], 3, 0.95, 0.55), sounds: [{ at: 0, sound: 'basiliskra.ii.arc' }] },
+    { t: 0.6, label: 'The first bolt finds his horns', phase: 'flinch', charge: 6, night: true, cam: CAM(334, 3, 0.95, 0.55), fx: [{ at: 0, kind: 3 }], sounds: [{ at: 0, sound: 'basiliskra.ii.arc', pitch: 0.8 }] },
     { t: 1.9, label: 'The first bolt finds his horns', phase: 'arc', charge: 6, night: true, cam: CAM(60, 78, 1.1) },
     { t: 0.6, label: 'The second, sooner', phase: 'flinch', charge: 12, night: true, cam: CAM(60, 78, 1.0), fx: [{ at: 0, kind: 3 }], sounds: [{ at: 0, sound: 'basiliskra.ii.arc', pitch: 0.8 }] },
     { t: 1.4, label: 'The second, sooner', phase: 'arc', charge: 12, night: true, cam: CAM([40, 55], 6, 0.6, 0.6) },

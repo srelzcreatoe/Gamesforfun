@@ -30,7 +30,7 @@ model first, then stop for approval**; then everything else.
     the Titan (`titan.ts`, entity `basiliskra:titan`).
   * *"a specific gun that is made to shoot basiliskra that looks like it's from pixel gun 3d"*: the Seam Lance
     (`lance.ts`, `tools/kit/gen_lance.py`), an original design in that blocky style.
-* **1.6.1**: *"make each one of them unique like shin godzilla or other transformations"*: the one shared change
+* **1.6.1 / 1.6.2**: *"make each one of them unique like shin godzilla or other transformations"*: the one shared change
   scene is replaced by three (`change.ts`): the water boils; the sky comes down; he burns through. They are his own
   (gills and knocks, horns and lightning, plates, club and wings), not a copy of any film's.
 * None of it has been seen in game: see `docs/TEST_REPORT.md`.

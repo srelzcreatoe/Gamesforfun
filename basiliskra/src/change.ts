@@ -1,4 +1,8 @@
 /**
+ * (On the shots: a shot's distance is from what it looks at, and he is long.  From in front or behind, look at his
+ * head, not his middle, or the camera stands inside his neck; from the side, keep more than his half-width off.)
+ */
+/**
  * His three changes.  Each is a scene of its own: what happens to him, what it does to the place, what is heard,
  * and where the camera stands are different every time, built out of what that form already is.
  *
@@ -123,7 +127,7 @@ const ONE: Change = {
     // low over the water in front of him as he rears out of it
     { ticks: 56, look: head(c), angle: [-25, 10], dist: [Fo * 0.75, Fo * 0.5], height: [1.5, 2.5] },
     // what is left when the steam goes
-    { ticks: 44, look: body(c), angle: [35, 60], dist: [Fn * 0.6, Fn * 0.95], height: [Fn * 0.15, Fn * 0.3] },
+    { ticks: 44, look: body(c), angle: [42, 66], dist: [Fn * 0.9, Fn * 1.2], height: [Fn * 0.15, Fn * 0.3] },
     // his horns, and what jumps between them
     { ticks: 56, look: () => at(c, "horn_l"), angle: [22, -22], dist: [Fn * 0.34, Fn * 0.3], height: [1.5, 2.5] },
     // his face, for the roar
@@ -204,16 +208,16 @@ const TWO: Change = {
   before: 200, after: 150, hold: 120, nameAt: 0,
   flash: { red: 1, green: 0.94, blue: 0.9, hold: 0.16, fade: 0.9 },
   shots: (c, Fo, Fn) => [
-    // from behind and below him, up past his horns at the sky the first bolt comes out of
-    { ticks: 58, look: () => at(c, "horn_l", 6), angle: [176, 192], dist: [Fo * 0.5, Fo * 0.45], height: [-5, -4] },
+    // from beside his shoulder and below, up past his horns at the sky the first bolt comes out of
+    { ticks: 58, look: () => at(c, "horn_l", 6), angle: [146, 158], dist: [Fo * 0.8, Fo * 0.72], height: [-5, -4] },
     // straight down on him, coming closer, as the second lands
     { ticks: 50, look: body(c), angle: 90, dist: 2, height: [Fo * 1.3, Fo * 0.9] },
     // his face, close, for the third
     { ticks: 52, look: head(c), angle: [60, 40], dist: [Fo * 0.4, Fo * 0.32], height: [1, 0.5] },
     // all of him, low, as it takes hold
-    { ticks: 40, look: body(c), angle: [-30, -10], dist: [Fo * 1.0, Fo * 0.8], height: [0.5, 1] },
+    { ticks: 40, look: head(c), angle: [-32, -12], dist: [Fo * 0.9, Fo * 0.6], height: [0.5, 1.5] },
     // what stands there afterwards, with the charge running out through his club
-    { ticks: 34, look: body(c), angle: [-40, -20], dist: [Fn * 0.75, Fn * 1.0], height: [-Fn * 0.08, Fn * 0.05] },
+    { ticks: 34, look: body(c), angle: [-56, -40], dist: [Fn * 0.95, Fn * 1.1], height: [-Fn * 0.08, Fn * 0.05] },
     // along his back from the tail, as the plates light one by one
     { ticks: 76, look: () => at(c, "plate_tip_5"), angle: [165, 195], dist: [Fn * 0.75, Fn * 0.6], height: [Fn * 0.3, Fn * 0.22] },
     // his face: he shakes the fire out of his plates, and roars
@@ -302,7 +306,7 @@ const THREE: Change = {
     // at his feet: the vent fails, and the ground under him begins to glow
     { ticks: 54, look: () => ({ x: c.pos.x, y: c.pos.y + 2, z: c.pos.z }), angle: [70, 110], dist: [Fo * 0.6, Fo * 0.5], height: [1, 2.5] },
     // all of him, drawing back from it
-    { ticks: 45, look: body(c), angle: [-12, 12], dist: [Fo * 0.7, Fo * 1.05], height: [Fo * 0.1, Fo * 0.2] },
+    { ticks: 45, look: head(c), angle: [-14, 14], dist: [Fo * 0.35, Fo * 0.85], height: [0, Fo * 0.12] },
     // from the ground, up at a dark shape in the smoke
     { ticks: 64, look: body(c), angle: [-20, -8], dist: [Fn * 0.5, Fn * 0.6], height: [-21, -20] },
     // from behind him as the wings come open
