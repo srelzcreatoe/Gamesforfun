@@ -234,8 +234,9 @@ def socket_mat(F):
         out[gl] = (255, 250, 240)
         glow |= sock & (r < 3.2 * tex)
         # the two pale specks at the bottom of the socket (bare endoskeleton catching the light)
-        for ox, w in ((-0.8, 0.25), (0.6, 0.19)):
-            sp = sock & (np.abs(dx - sx * ox) < w) & (dy < -1.0) & (dy > -1.38)
+        # (the muzzle's top hides the lowest part of the sockets: they sit just above it)
+        for ox, w in ((-1.0, 0.25), (0.8, 0.19)):
+            sp = sock & (np.abs(dx - sx * ox) < w) & (dy < -0.36) & (dy > -0.74)
             out[sp] = (226, 220, 204)
     return {'rgb': out, 'glow': glow, 'ao': False, 'rough': 240}
 
@@ -434,7 +435,8 @@ def build_model():
     for sx in (-1, 1):                                                                             # cheeks
         head.rounded(sx * 2.8, 32.7, -4.5, sx * 5.75, 36.7, 2.6, M_FUR, r=0.9, level=2)
     # the face around the eye sockets: the sockets are real hollows, a pixel deep, with stepped corners
-    head.box(-4.0, 34.5, -4.72, 4.0, 38.0, -4.3, socket_mat)                                      # the bottom of the sockets
+    # (nest=False: the whole face stays the eyes' own in the atlas, for the hollow-eye pass of the build)
+    head.box(-4.0, 34.5, -4.72, 4.0, 38.0, -4.3, socket_mat, nest=False)                                      # the bottom of the sockets
     head.rounded(-3.1, 37.8, -5.65, 3.1, 39.5, -3.2, M_FUR, r=(0.5, 0.45, 0.3), level=1, flat=('z+', 'y-'))   # brow
     head.box(-3.4, 39.4, -5.1, 3.4, 40.4, -3.0, M_FUR)                                            # forehead step
     head.box(-0.7, 34.7, -5.65, 0.7, 37.8, -3.2, M_FUR)                                           # the bridge

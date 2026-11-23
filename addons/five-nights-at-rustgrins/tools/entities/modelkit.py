@@ -68,7 +68,7 @@ def fbm(x, y, z, scale, seed=0, octaves=3):
 
 # ------------------------------------------------------------------ model
 class Cube:
-    def __init__(self, origin, size, mat=None, rotation=None, pivot=None, inflate=0.0, dens=None, src=None, tag=None, share=None):
+    def __init__(self, origin, size, mat=None, rotation=None, pivot=None, inflate=0.0, dens=None, src=None, tag=None, share=None, nest=True):
         self.origin = [float(v) for v in origin]
         self.size = [float(v) for v in size]
         self.mat = mat                # callable(Face) -> rgb array, or dict (see paint)
@@ -79,6 +79,7 @@ class Cube:
         self.src = src                # {face: (image, (u, v, us, vs))}: faces copied from an existing texture
         self.tag = tag
         self.share = share            # faces of cubes with the same share key and size share their texels
+        self.nest = nest              # False: no other face is packed into the buried parts of this cube's faces
         self.bone = None
         self.uv = {}
 
@@ -234,7 +235,7 @@ class Model:
         for c in s.cubes:
             o = [-(c.origin[0] + c.size[0]), c.origin[1], c.origin[2]]
             m = Cube(o, c.size, c.mat, [c.rotation[0], -c.rotation[1], -c.rotation[2]] if c.rotation else None,
-                     [-c.pivot[0], c.pivot[1], c.pivot[2]] if c.pivot else None, c.inflate, c.dens, None, c.tag, c.share)
+                     [-c.pivot[0], c.pivot[1], c.pivot[2]] if c.pivot else None, c.inflate, c.dens, None, c.tag, c.share, c.nest)
             if c.src:
                 # a mirrored copy of copied faces: east and west swap, every face flips left to right
                 swap = {'east': 'west', 'west': 'east'}
@@ -368,7 +369,7 @@ def analyse(model, crease=0.55, crease_dark=0.34):
                 # which texels can be seen at all (any of 2 x 2 samples in the open), for the packer: a large
                 # buried rectangle inside a face is room for other faces
                 c.holes[f] = []
-                if vis < 0.8 and w * h >= 160 and c.share is None:
+                if vis < 0.8 and w * h >= 160 and c.share is None and c.nest:
                     Pb = c.to_bone(c.face_points(f, 2 * w, 2 * h, lift=0.03))
                     hid = np.zeros((2 * h, 2 * w), bool)
                     for o in same:

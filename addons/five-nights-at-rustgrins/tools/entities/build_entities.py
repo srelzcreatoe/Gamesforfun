@@ -370,10 +370,23 @@ def relaxed_hand(cid):
     return lambda side: pose_fixes.relaxed_fingers(side, roll=False, fingers=fingers)
 
 
+def shape(geo):
+    """A geometry without its texture coordinates: what a solved pose depends on (repainting or repacking a
+    model's texture must not send it through the solver again)."""
+    g = copy.deepcopy(geo)
+    for m in g['minecraft:geometry']:
+        for k in ('texture_width', 'texture_height'):
+            m['description'].pop(k, None)
+        for b in m['bones']:
+            for c in b.get('cubes', []):
+                c.pop('uv', None)
+    return g
+
+
 def rename_anims(anims, cid, geo, eye):
     out, skel = base_anims(anims, cid, geo)
     # stoop, lean, wave, bow (tools/entities/new_anims.py)
-    new_anims.apply(cid, out, skel, geo, eye, setting(cid, 'scale'), relaxed_hand(cid))
+    new_anims.apply(cid, out, skel, shape(geo), eye, setting(cid, 'scale'), relaxed_hand(cid))
     return out
 
 
@@ -545,7 +558,7 @@ def presolve(models):
     missing = []
     for cid, m in models.items():
         out, _ = base_anims(m['anims'], cid, m['geo'])
-        if not new_anims.cached(cid, out, m['geo'], m['eye'], setting(cid, 'scale')):
+        if not new_anims.cached(cid, out, shape(m['geo']), m['eye'], setting(cid, 'scale')):
             missing.append(cid)
     if len(missing) < 2:
         return

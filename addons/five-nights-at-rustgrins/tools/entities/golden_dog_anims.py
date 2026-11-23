@@ -228,9 +228,10 @@ def idle(B):
         p['torso'] = R(3.0 + 0.9 * breath, 0, 0)
         p['head'] = R(4.0 - 0.6 * breath + nod, yaw, tilt)
         p['jaw'] = R(jaw, 0, 0)
-        # the ears hang: they stay near upright while the head rolls, and the upper one pricks
-        p['right_ear'] = R(0, 0, -0.55 * tilt + min(0.0, ear))
-        p['left_ear'] = R(0, 0, -0.55 * tilt + max(0.0, ear))
+        # the ears hang: they stay near plumb while the head rolls (to his left: the right ear is the upper
+        # one), and the upper one lifts for a moment
+        p['right_ear'] = R(0, 0, -0.55 * tilt + ear)
+        p['left_ear'] = R(0, 0, -0.75 * tilt)
         p['tail_1'] = R(0, tail, 0)
         p['tail_3'] = R(0, 0.6 * tail, 0)
         for s in SIDES:
@@ -470,8 +471,8 @@ def perform_2(B):
     up = merge(base, chest, flat)
     wide = copy.deepcopy(base)
     for s in SIDES:
-        wide[f'{s}_arm'] = R(-34, 0, sgn(s) * -62)
-        wide[f'{s}_forearm'] = R(-22, 0, 0)
+        wide[f'{s}_arm'] = R(-46, 0, sgn(s) * -50)             # (out and forward: clear of the hanging ears)
+        wide[f'{s}_forearm'] = R(-24, 0, 0)
         wide[f'{s}_hand'] = R(-12, 0, 0)
         wide.update(open_hand(s))
     half = copy.deepcopy(base)

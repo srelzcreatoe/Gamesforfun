@@ -39,7 +39,7 @@ const MORE = {
     ['back', 'idle', 0.4, 180, ...DOG_BODY],
     ['listening', 'idle', 3.5, 8, [0, 2.36, 3.25], [0, 2.3, 0], 30, [512, 512]],
     ['slump', 'pose_2', 0.5, -20, ...DOG_BODY],
-    ['jumpscare', 'jumpscare', 1.6, 0, [0, 1.75, 4.6], [0, 1.6, -0.3], 40, [512, 768]],
+    ['jumpscare', 'jumpscare', 1.6, 0, [0, 1.75, 6.2], [0, 1.45, 0.6], 40, [512, 768]],
     ['walk', 'walk', 0.6, 30, ...DOG_BODY],
   ],
 };
@@ -51,15 +51,15 @@ await withRenderer(async (render) => {
   if (ids.includes('golden_dog')) {
     // How big he is: beside Rustgrin, both at the size the game draws them (their client entities' scale), with a
     // 1.8-block guard and a line every block.
-    const bars = [1, 2, 3, 4].map((y) => ({ pos: [0.2, y, -0.7], size: [6.4, 0.025, 0.025], color: '#c8c8d0' }));
+    const bars = [1, 2, 3, 4].map((y) => ({ pos: [-0.1, y, -0.7], size: [7.2, 0.025, 0.025], color: '#c8c8d0' }));
     await render({
       width: 900, height: 760, background: '#3a3d44', exposure: 1.15,
       hemi: { sky: '#ffffff', ground: '#555555', intensity: 1.4 },
       lights: [{ type: 'dir', color: '#ffffff', intensity: 2.4, pos: [2.5, 5, 6], target: [0, 1.4, 0] }, { type: 'dir', color: '#9fb0ff', intensity: 0.7, pos: [-4, 3, -3] }],
       floor: { size: 12, color: '#55555c', grid: '#77777f' },
-      boxes: [...bars, { pos: [-2.55, 0.9, 0], size: [0.6, 1.8, 0.3], color: '#d0c040' }],
+      boxes: [...bars, { pos: [-2.5, 0.9, 0], size: [0.6, 1.8, 0.3], color: '#d0c040' }],
       models: [model('rustgrin', 'idle', 0.4, 0, { pos: [-1.1, 0, 0], scale: scaleOf('rustgrin') }), model('golden_dog', 'idle', 0.4, 0, { pos: [1.5, 0, 0], scale: scaleOf('golden_dog') })],
-      camera: { ortho: 2.15, pos: [0.2, 2.6, 20], target: [0.2, 1.95, 0] },
+      camera: { ortho: 2.3, pos: [-0.1, 2.75, 20], target: [-0.1, 2.1, 0] },
     }, path.join(OUT, 'golden_dog_size.png'));
   }
   for (const id of ids) {
