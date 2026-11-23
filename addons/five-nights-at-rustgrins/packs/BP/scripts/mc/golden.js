@@ -789,7 +789,7 @@ export class Golden {
       if (below && !r.air.has(p.id)) {
         r.air.add(p.id);
         game.audio.loop(key, 'fnar.golden.cellar', null, p, 0.8);
-        this.cap(TEXT.caption.cellar, 60);
+        if (game.save.settings.captions) game.roamSay(p, `§7[${TEXT.caption.cellar}]`, 60);
       } else if (!below && r.air.has(p.id)) {
         r.air.delete(p.id);
         game.audio.stop(key);
