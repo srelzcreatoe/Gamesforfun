@@ -4002,7 +4002,7 @@ TESTS.mire_pages = async () => {
   });
   if (!check("mire_page_brings_it", !!e && ev && ev.why === "page", `${JSON.stringify(since(m, "end"))} tries=${tries}`)) return;
   let d = hdist(e.location, p.location);
-  check("mire_page_behind", offView(p, e.location) >= 110 && d >= 7 && d <= 31, `off view ${offView(p, e.location).toFixed(0)} deg d=${d.toFixed(1)} los=${ev.los}`);
+  check("mire_page_behind", offView(p, e.location) >= 105 && d >= 7 && d <= 31, `off view ${offView(p, e.location).toFixed(0)} deg d=${d.toFixed(1)} los=${ev.los}`);
   await lookAtObserverFor(p, 50);
   let end = await endOf("mire_watcher", m, 200);
   check("mire_page_seen", end && end.outcome === "seen_in_the_mire", end ? end.outcome : "no end");
@@ -4015,7 +4015,8 @@ TESTS.mire_pages = async () => {
   ({ e, ev, m, tries } = await mireAppearance(() => obs("mirepage", "all", "Tester")));
   if (!check("mire_all_pages_bring_it", !!e && ev && ev.why === "all_pages", `${JSON.stringify(since(m, "end"))} tries=${tries}`)) return;
   d = hdist(e.location, p.location);
-  check("mire_all_pages_behind", offView(p, e.location) >= 110 && d >= 7 && d <= 21, `off view ${offView(p, e.location).toFixed(0)} deg d=${d.toFixed(1)} los=${ev.los}`);
+  // (behind: straight behind first, then 140 degrees either side, 30-35 degrees of spread — so at least 105 off your view)
+  check("mire_all_pages_behind", offView(p, e.location) >= 105 && d >= 7 && d <= 21, `off view ${offView(p, e.location).toFixed(0)} deg d=${d.toFixed(1)} los=${ev.los}`);
   await lookAtObserverFor(p, 50);
   end = await endOf("mire_watcher", m, 200);
   check("mire_all_pages_seen", end && end.outcome === "seen_in_the_mire", end ? end.outcome : "no end");
