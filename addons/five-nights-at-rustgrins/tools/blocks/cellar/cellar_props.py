@@ -54,7 +54,7 @@ def ghost_light(out):
 # =============================================================== a bare bulb on its flex
 @prop
 def bare_bulb(out):
-    """A bare bulb on a twisted flex, hanging from the top of the cell. fnar:lit; light 9 (the cellar by day)."""
+    """A bare bulb on a twisted flex, hanging from the top of the cell. fnar:lit; light 11 (the cellar by day)."""
     g = Geo('bare_bulb', 16, 16)
 
     def bulb(r):
@@ -72,7 +72,7 @@ def bare_bulb(out):
     out.tex('bare_bulb_on', g.paint('on'))
     blk = block_json('bare_bulb', geometry='geometry.fnar.bare_bulb', facing=False,
                      materials=mi_set('bare_bulb_on', {'bulb': glow('bare_bulb_on')}), states={'fnar:lit': [True, False]},
-                     collision=False, selection=box(-2, 4, -2, 2, 16, 2), map_color='#4b3817', destroy=0.5, light=9,
+                     collision=False, selection=box(-2, 4, -2, 2, 16, 2), map_color='#4b3817', destroy=0.5, light=11,
                      perms=[(bs('fnar:lit', False), {'minecraft:material_instances': mi_set('bare_bulb', {'bulb': 'bare_bulb'}), 'minecraft:light_emission': 0})])
     out.block('bare_bulb', blk)
     out.light('bare_bulb', '#ffc47a', 'point_light')
