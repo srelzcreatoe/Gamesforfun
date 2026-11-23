@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.0.0 — as dark as it gets
+After 2.1 feedback ("it still feels underwhelming"):
+- **New soundtrack and voice**, all original: a broken lullaby for when it is near, a pounding clustered score when it is close, a winding-down standoff, a 175 bpm chase, and Hollows music; a new layered roar, rage scream and growl; new jumpscare, reveal sting, static, whispers and a distant scream; Hollows ambience (loop, moods, additions).
+- **The Breaker's Wheel**: given on join and after death; makes it do any of 21 things to you on the spot; how hard it is (Easy / Normal / Hard / Nightmare / Harmless: damage, chase speed and length, patience, how readily it snaps) and how often (Rarely / Normal / Often / Relentless); switches for every scare; its mood and what it has learned; sounds and music; finding the Hollows; field notes.
+- **The Hollows**: its own huge biome (windswept hills, stony peaks, savannas, badlands) with original structures: mine headframes over real shafts, dead timber, bone piles, cairns, cart wrecks, sinkholes, clawed boulders, plus lair-dressed caves underneath. Its own fog, colours, ambience and music. It is active by day there, its dens grow fast, and chases do not stop at daylight. Needs Minecraft 1.26.30+ and newly generated land.
+- **Bigger dens**: flood-filled through the whole chamber: dust carpet, bone ring and clusters, skulls, dozens of hanging spines and webs, claw-scored walls.
+- **Scares**: its face in yours (jumpscares), a sting when you spot it, red rage fog and screen shake, a dark fog and darkness pulses in standoffs, thicker air near dens, whispers, words and your name on screen, fourth-wall scares, eyes in the dark that go out when looked at.
+- **Smarter**: waits ahead of you round the corner on your path; learns how you treat it (stare, rush, flee, fight, hide, turn your back) and adapts its patience, reactions and placement; targets the weakest player; presses when you are hurt; mimics your sounds; knocks on the door you hide behind at night, then waits outside it.
+- **Field notes**: a 27-entry in-game journal unlocked as you witness things (FIELD_NOTES.md has the same text).
+- Fixes and checks: engine hits scale with difficulty without double-scaling scripted strikes; the validator now checks biomes, features, structures (NBT palettes), fogs and music definitions; the simulator adds a Hollows scenario and scare/field-note reports.
+
 ## 2.1.0 — it wants to be seen
 After 2.0 feedback ("he doesn't even stalk me at all, nor attack me"), the core loop is rebuilt around being seen and attacked:
 - New visible stalker (`stalk_show`): about every minute or two it appears silently where you will notice it and stays perfectly still — on the ground, on a high ledge, hanging from a cave ceiling, right behind you — or hides behind a real tree trunk / pillar and peeks (ducks when looked at, peeks from the other side when you look away).

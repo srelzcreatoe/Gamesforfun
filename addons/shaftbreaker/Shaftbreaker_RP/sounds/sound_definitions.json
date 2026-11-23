@@ -70,6 +70,10 @@
         {
           "name": "sounds/shaftbreaker/screech_2",
           "volume": 1.0
+        },
+        {
+          "name": "sounds/shaftbreaker/screech_3",
+          "volume": 1.0
         }
       ],
       "max_distance": 64
@@ -83,6 +87,10 @@
         },
         {
           "name": "sounds/shaftbreaker/roar_2",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/shaftbreaker/roar_3",
           "volume": 1.0
         }
       ],
@@ -125,15 +133,15 @@
       "sounds": [
         {
           "name": "sounds/shaftbreaker/growl_1",
-          "volume": 0.8
+          "volume": 0.85
         },
         {
           "name": "sounds/shaftbreaker/growl_2",
-          "volume": 0.8
+          "volume": 0.85
         },
         {
           "name": "sounds/shaftbreaker/growl_3",
-          "volume": 0.8
+          "volume": 0.85
         }
       ],
       "max_distance": 28
@@ -431,7 +439,7 @@
       "sounds": [
         {
           "name": "sounds/shaftbreaker/music_chase",
-          "volume": 0.75,
+          "volume": 0.8,
           "stream": true
         }
       ]
@@ -441,7 +449,7 @@
       "sounds": [
         {
           "name": "sounds/shaftbreaker/music_presence",
-          "volume": 0.7,
+          "volume": 0.8,
           "stream": true
         }
       ]
@@ -451,7 +459,7 @@
       "sounds": [
         {
           "name": "sounds/shaftbreaker/music_close",
-          "volume": 0.75,
+          "volume": 0.8,
           "stream": true
         }
       ]
@@ -484,7 +492,158 @@
       "sounds": [
         {
           "name": "sounds/shaftbreaker/music_standoff",
-          "volume": 0.6,
+          "volume": 0.8,
+          "stream": true
+        }
+      ]
+    },
+    "shaftbreaker.jumpscare": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/jumpscare_1",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/shaftbreaker/jumpscare_2",
+          "volume": 1.0
+        }
+      ]
+    },
+    "shaftbreaker.sting_reveal": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/sting_reveal_1",
+          "volume": 0.9
+        },
+        {
+          "name": "sounds/shaftbreaker/sting_reveal_2",
+          "volume": 0.9
+        }
+      ]
+    },
+    "shaftbreaker.static": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/static_1",
+          "volume": 0.7
+        },
+        {
+          "name": "sounds/shaftbreaker/static_2",
+          "volume": 0.7
+        },
+        {
+          "name": "sounds/shaftbreaker/static_3",
+          "volume": 0.7
+        }
+      ]
+    },
+    "shaftbreaker.whisper": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/whisper_1",
+          "volume": 0.75
+        },
+        {
+          "name": "sounds/shaftbreaker/whisper_2",
+          "volume": 0.75
+        },
+        {
+          "name": "sounds/shaftbreaker/whisper_3",
+          "volume": 0.75
+        },
+        {
+          "name": "sounds/shaftbreaker/whisper_4",
+          "volume": 0.75
+        },
+        {
+          "name": "sounds/shaftbreaker/whisper_5",
+          "volume": 0.75
+        },
+        {
+          "name": "sounds/shaftbreaker/whisper_6",
+          "volume": 0.75
+        }
+      ],
+      "max_distance": 12
+    },
+    "shaftbreaker.distant_scream": {
+      "category": "ambient",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/distant_scream_1",
+          "volume": 0.9
+        },
+        {
+          "name": "sounds/shaftbreaker/distant_scream_2",
+          "volume": 0.9
+        }
+      ],
+      "max_distance": 128
+    },
+    "shaftbreaker.ambient.hollows.loop": {
+      "category": "ambient",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/ambient_hollows_loop",
+          "volume": 0.7,
+          "stream": true,
+          "is3D": false
+        }
+      ]
+    },
+    "shaftbreaker.ambient.hollows.mood": {
+      "category": "ambient",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/ambient_hollows_mood_1",
+          "volume": 0.75
+        },
+        {
+          "name": "sounds/shaftbreaker/ambient_hollows_mood_2",
+          "volume": 0.75
+        }
+      ]
+    },
+    "shaftbreaker.ambient.hollows.additions": {
+      "category": "ambient",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/ambient_hollows_additions_1",
+          "volume": 0.55,
+          "is3D": false
+        },
+        {
+          "name": "sounds/shaftbreaker/ambient_hollows_additions_2",
+          "volume": 0.55,
+          "is3D": false
+        },
+        {
+          "name": "sounds/shaftbreaker/ambient_hollows_additions_3",
+          "volume": 0.55,
+          "is3D": false
+        },
+        {
+          "name": "sounds/shaftbreaker/ambient_hollows_additions_4",
+          "volume": 0.55,
+          "is3D": false
+        },
+        {
+          "name": "sounds/shaftbreaker/ambient_hollows_additions_5",
+          "volume": 0.55,
+          "is3D": false
+        }
+      ]
+    },
+    "music.shaftbreaker.hollows": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/shaftbreaker/music_hollows",
+          "volume": 0.65,
           "stream": true
         }
       ]
