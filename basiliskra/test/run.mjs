@@ -1886,7 +1886,7 @@ console.log('\n== 22. The Titan');
     check('a Titan can be put down: Basiliskra IV\'s body, bound, named, with its own hit volumes', /A Titan stands here/.test(said) && titans.count === 1 && a.form === 4 && a.entity.getProperty(P('form')) === 4
       && a.entity.getProperty(P('bound')) === true && a.entity.nameTag === 'Titan Alpha' && w.sim.count('basiliskra:hitbox') === parts && a.entity.rec.events.includes('basiliskra:bind'), `${said} ${w.sim.count('basiliskra:hitbox')} volumes`);
     check('it is not the one Basiliskra: his story has not begun, and he is nowhere', w.bk.store.rec.stage === 'dormant' && w.bk.ctl.creature === null && w.sim.count(TYPE) === 0 && w.bk.store.rec.entityId === null);
-    check('it has far more health than he has', healthOf(a) === 4000 && healthOf(a) >= 6 * 600, `${healthOf(a)}`);
+    check('it is as strong as the strongest Godzilla add-ons: 100,000 health (his: 600)', healthOf(a) === 100000 && w.bk.titan.TITAN_HEALTH === 100000, `${healthOf(a)}`);
     check('it roars when it arrives', eyes[0].heard.some((q) => q.id === 'basiliskra.roar'));
     // a spawn egg makes another; a fourth is one too many
     w.sim.summon(TITAN, 'minecraft:overworld', { x: 100, y: 64, z: 100 }); w.sim.step(3);
@@ -1936,8 +1936,9 @@ console.log('\n== 22. The Titan');
     const da = dmg(ida), db = dmg(idb);
     seen.beam = eyes[0].heard.filter((q) => q.id === 'basiliskra.iii.beam').length;
     check('two Titans go for each other', acts.has('lock') && (acts.has('beam') || acts.has('ram') || acts.has('pursue')), [...acts].join(' '));
-    check('with their breath: each burns the other, fifteen at a time (half of what it does to anything smaller)', seen.beam >= 2 && da.includes(15) && db.includes(15), `${seen.beam} beams`);
-    check('and with their bodies: jaws and claws, the tail, the whole weight', seen.bite && da.concat(db).includes(85) && seen.sweep && da.concat(db).includes(130) && acts.has('ram') && acts.has('circle'), `closest ${seen.close.toFixed(0)}; acts ${[...acts].join(' ')}`);
+    const BURN = w.bk.titan.TITAN_SPEC.damage * 0.5, BL = w.bk.titan.BLOW;
+    check('with their breath: each burns the other, 375 at a time (blows between giants scaled with their health)', seen.beam >= 2 && BURN === 375 && da.includes(BURN) && db.includes(BURN), `${seen.beam} beams`);
+    check('and with their bodies: jaws and claws, the tail, the whole weight', seen.bite && da.concat(db).includes(BL.lunge) && seen.sweep && da.concat(db).includes(BL.tail) && acts.has('ram') && acts.has('circle'), `closest ${seen.close.toFixed(0)}; acts ${[...acts].join(' ')}`);
     check('a heavy blow staggers the one it lands on', seen.recoil && acts.has('reel'));
     check('they stand off at arm\'s length: neither walks through the other', seen.close > 12, `${seen.close.toFixed(1)} blocks between their middles at the nearest`);
     check('whoever is watching sees how each of them stands', bars);
@@ -1945,7 +1946,7 @@ console.log('\n== 22. The Titan');
     const left = titans.creatures()[0];
     const drops = [...w.sim.save.entities.values()].filter((r) => r.typeId === 'minecraft:item' && r.item).map((r) => r.item.typeId);
     check('what it leaves: crimson shards and a fin, and ground that is poisoned', drops.includes('basiliskra:crimson_shard') && drops.includes('basiliskra:shed_fin') && w.bk.store.rec.fallout.length > 0, drops.join(','));
-    check('the loser\'s hit volumes go with it; the winner keeps its own', w.sim.count('basiliskra:hitbox') === w.bk.creature.partsFor(4).length && left.valid && healthOf(left) > 0 && healthOf(left) < 4000, `winner at ${Math.round(healthOf(left))}`);
+    check('the loser\'s hit volumes go with it; the winner keeps its own', w.sim.count('basiliskra:hitbox') === w.bk.creature.partsFor(4).length && left.valid && healthOf(left) > 0 && healthOf(left) < 100000, `winner at ${Math.round(healthOf(left))}`);
     check('nothing of this touched his story', w.bk.store.rec.stage === 'dormant' && w.sim.count(TYPE) === 0);
   }
 
@@ -1965,7 +1966,7 @@ console.log('\n== 22. The Titan');
     }
     const onHim = w.sim.log.damage.filter((d) => d.id === hid), onIt = w.sim.log.damage.filter((d) => d.id === tid);
     check('a Titan goes for Basiliskra himself, and he answers it', onHim.length > 0 && fought && onIt.some((d) => d.amount === 5.5), `${onHim.length} blows on him, ${onIt.length} on the Titan`);
-    check('it is much the stronger: he is the one driven off, and it is barely marked', away > 0 && healthOf(t) > 3000 && w.sim.count(TYPE) <= 1, `after ${away} ticks; the Titan at ${Math.round(healthOf(t))}`);
+    check('it is much the stronger: he is the one driven off, and it is barely marked', away > 0 && healthOf(t) > 75000 && w.sim.count(TYPE) <= 1, `after ${away} ticks; the Titan at ${Math.round(healthOf(t))}`);
     check('he is never killed by it', !w.sim.log.damage.some((d) => d.id === hid && d.amount >= 600) && w.bk.store.rec.stage !== 'dormant');
   }
 
@@ -1999,7 +2000,7 @@ console.log('\n== 22. The Titan');
     let t0 = w.sim.save.tick;
     p.use('basiliskra:seam_lance'); w.sim.step(2);
     const got = w.sim.log.damage.filter((d) => d.id === tid && d.tick >= t0).map((d) => d.amount);
-    check('the Seam Lance strikes a Titan as it strikes him', got.length === 1 && got[0] === 34 && healthOf(t) === 4000 - 34, JSON.stringify(got));
+    check('the Seam Lance strikes a Titan as it strikes him', got.length === 1 && got[0] === 34 && healthOf(t) === 100000 - 34, JSON.stringify(got));
     // a blow that would kill: it is held back, the Titan goes down, and then it is gone
     t.entity.getComponent('minecraft:health').setCurrentValue(20);
     w.sim.step(14); aimAt(t.middle());
@@ -2015,7 +2016,7 @@ console.log('\n== 22. The Titan');
     const hurt = () => w.sim.log.damage.filter((d) => d.id === s.id).reduce((n, d) => n + d.amount, 0);
     const tookS = until(w, () => hurt() > 0, 2400);
     const first = w.sim.log.damage.find((d) => d.id === s.id);
-    check('somebody in Survival near a Titan is hunted, and what it does to them is three times what he would do', tookS > 0 && t2.might === 3 && first.amount >= 12, `first blow ${first?.amount} after ${tookS} ticks`);
+    check('somebody in Survival near a Titan is hunted, and its first blow kills them outright (100,000)', tookS > 0 && t2.lethal === 100000 && first.amount >= 100000 * w.bk.CONFIG.damage, `first blow ${first?.amount} after ${tookS} ticks`);
   }
 
   // ---- the world closes and opens again ----

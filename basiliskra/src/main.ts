@@ -14,7 +14,7 @@ import { musicJoin } from "./music";
 import { FADES_COMPONENT } from "./generated/blocks";
 import { Controller } from "./controller";
 import { partOwner, type Creature } from "./creature";
-import { titans } from "./titan";
+import { GIANT, titans } from "./titan";
 import { particle, sound } from "./fx";
 import { ANIMALS, recordHabitat, recordKill } from "./harm";
 import { store } from "./store";
@@ -106,8 +106,12 @@ const PASSES = new Set<string>([EntityDamageCause.entityAttack, EntityDamageCaus
   EntityDamageCause.maceSmash, EntityDamageCause.override]);
 
 let forwardTick = -1, forwardKey = "";
-/** How much of a Titan's blow reaches Basiliskra himself. */
-const TITAN_ON_HIM = 0.3;
+/**
+ * How much of a Titan's blow reaches Basiliskra himself.  Its blows between giants were made GIANT times heavier in
+ * 1.7.2 to go with its new health; against him they are kept as they were (he has 600 and is never killed: at full
+ * weight he would be driven off by its first blow, before he could answer it).
+ */
+const TITAN_ON_HIM = 0.3 / GIANT;
 /** The last tick the game itself delivered each player's blow to one of his hit volumes. */
 const struckAt = new Map<string, number>();
 const swungAt = new Map<string, number>();

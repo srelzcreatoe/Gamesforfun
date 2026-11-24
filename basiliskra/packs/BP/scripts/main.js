@@ -531,7 +531,7 @@ var STANCE_MODEL_IV = 67.2;
 var LIFT_IV = 22;
 var WING_FOLD = { "root": [-30, -14], "arm": 118, "fingers": [30, 14, 0, -14] };
 var TAIL_LIFT_III = 4;
-var TITAN_HEALTH = 4e3;
+var TITAN_HEALTH = 1e5;
 var WINDOW_NECK = [32, 28, 20, 0, -24];
 var WINDOW_HEAD = [-62.7, 21.8, -51.8];
 var GAIT_TICKS = [16, 25, 30];
@@ -1436,6 +1436,8 @@ var Creature = class {
     this.tick = 0;
     /** How much harder than Basiliskra himself this body hits, and how much faster it walks (the Titan). */
     this.might = 1;
+    /** If set, what any blow of its does to a player or a creature, whatever the blow (the Titan: they die of it). */
+    this.lethal = 0;
     this.haste = 1;
     this.skelForm = 1;
     // ---- a way round -------------------------------------------------------------------------------
@@ -2251,11 +2253,16 @@ var Creature = class {
   hurt(p, amount, cause = EntityDamageCause2.entityAttack) {
     if (!targetable(p)) return false;
     if (CONFIG.harmlessOnPeaceful && String(world5.getDifficulty()).toLowerCase() === "peaceful") return false;
+    const dealt = this.lethal > 0 ? this.lethal : amount * this.might;
     try {
-      return p.applyDamage(amount * CONFIG.damage * this.might, { cause, damagingEntity: this.entity });
+      return p.applyDamage(dealt * CONFIG.damage, { cause, damagingEntity: this.entity });
     } catch {
       return false;
     }
+  }
+  /** What a blow of `base` does to a creature that is not a giant. */
+  mobHit(base) {
+    return this.lethal > 0 ? this.lethal : base * this.might;
   }
   /** How far his trunk reaches from his middle, on the ground. */
   get girth() {
@@ -2951,7 +2958,7 @@ function beamTick(c, T, t, fade, st, shot = {}) {
         particle(c.dim, "minecraft:huge_explosion_emitter", end, 144);
         sound(c.dim, "random.explode", end, 128, 1.4, 0.7 + hash(t, 3) * 0.2);
       }
-      if (t % 8 === 4) blast(c.dim, end, T.carve + 3.5, 4, 12, 0.8, (p, n) => c.hurt(p, n), c.entity, end);
+      if (t % 8 === 4) blast(c.dim, end, T.carve + 3.5, 4, c.mobHit(12), 0.8, (p, n) => c.hurt(p, n), c.entity, end);
     } else if (t % 6 === 0 && !shot.harmless) shot.scorch?.(hitBlock);
     if (t % 6 === 0 && !shot.harmless) {
       addFallout(st.ground, T.fallout + (smash ? 1 : 0), 0.13);
@@ -2979,7 +2986,7 @@ function beamTick(c, T, t, fade, st, shot = {}) {
       try {
         const big = BIG[e.typeId] ?? 0;
         if (segDist(add(e.location, { x: 0, y: 0.6 + big * 0.4, z: 0 }), from, dir, length) > reach + 0.6 + big) continue;
-        e.applyDamage(T.damage * 2, { cause: EntityDamageCause4.entityAttack, damagingEntity: c.entity });
+        e.applyDamage(c.lethal > 0 ? c.lethal : T.damage * 2, { cause: EntityDamageCause4.entityAttack, damagingEntity: c.entity });
         e.setOnFire(5, true);
       } catch {
       }
@@ -5328,7 +5335,7 @@ var BrainFour = class extends BrainThree {
       } catch {
       }
     }
-    blast(c.dim, ground, 8, 8, 20 * c.might, 1.1, (p, n) => c.hurt(p, n), c.entity, ground);
+    blast(c.dim, ground, 8, 8, c.mobHit(20), 1.1, (p, n) => c.hurt(p, n), c.entity, ground);
     if (wither() && !c.afloat) {
       const P = this.rec.four?.plate;
       const r = P ? Math.min(4.2, Math.hypot(ground.x - P.x - 0.5, ground.z - P.z - 0.5) - 2) : 4.2;
@@ -5701,7 +5708,7 @@ var BrainFour = class extends BrainThree {
         sound(c.dim, "mob.wither.break_block", pivot, 128, 1, 0.5);
         particle(c.dim, "basiliskra:impact_debris", { x: pivot.x, y: c.pos.y + 1, z: pivot.z }, 128);
         particle(c.dim, "basiliskra:impact_ring", { x: pivot.x, y: c.pos.y + 0.3, z: pivot.z }, 128);
-        blast(c.dim, { x: pivot.x, y: c.pos.y + 1, z: pivot.z }, 9, 9, 18 * c.might, 1.3, (p, n) => c.hurt(p, n), c.entity);
+        blast(c.dim, { x: pivot.x, y: c.pos.y + 1, z: pivot.z }, 9, 9, c.mobHit(18), 1.3, (p, n) => c.hurt(p, n), c.entity);
         if (wither()) carve(c.dim, { x: pivot.x, y: c.pos.y, z: pivot.z }, 3, 120, false);
       }
       beamTick(c, this.spec, t, fade, st, { scorch: (hit) => this.scorch(hit) });
@@ -5867,7 +5874,7 @@ var BrainFour = class extends BrainThree {
     sound(c.dim, "mob.wither.break_block", top2, 128, 1, 0.6);
     particle(c.dim, "basiliskra:impact_ring", { x: top2.x, y: P.y + 0.3, z: top2.z }, 128);
     particle(c.dim, "basiliskra:impact_debris", top2, 128);
-    blast(c.dim, top2, 5, 6, 12 * c.might, 0.9, (p, n) => c.hurt(p, n), c.entity);
+    blast(c.dim, top2, 5, 6, c.mobHit(12), 0.9, (p, n) => c.hurt(p, n), c.entity);
     F.plate = P;
     store.touch();
     yield* wait(20);
@@ -6062,7 +6069,7 @@ var BrainFour = class extends BrainThree {
     if (!alive(e)) return false;
     try {
       e.applyKnockback({ x: f.x * 3, z: f.z * 3 }, 0.6);
-      e.applyDamage(6, { cause: EntityDamageCause8.entityAttack, damagingEntity: c.entity });
+      e.applyDamage(c.mobHit(6), { cause: EntityDamageCause8.entityAttack, damagingEntity: c.entity });
       return true;
     } catch {
       return false;
@@ -6073,8 +6080,10 @@ var BrainFour = class extends BrainThree {
 // src/titan.ts
 var TITAN_MAX = 3;
 var TITAN_NAMES = ["Alpha", "Beta", "Gamma"];
-var TITAN_SPEC = { range: 220, radius: 3.4, damage: 30, width: 4.6, carve: 5.2, fallout: 8 };
-var BLOW = { lunge: 85, tail: 130, ram: 110 };
+var LETHAL = 1e5;
+var GIANT = TITAN_HEALTH / 4e3;
+var TITAN_SPEC = { range: 220, radius: 3.4, damage: 30 * GIANT, width: 4.6, carve: 5.2, fallout: 8 };
+var BLOW = { lunge: 85 * GIANT, tail: 130 * GIANT, ram: 110 * GIANT };
 var MIGHT = 3;
 var HASTE = 1.35;
 var TAG = "bk:titan";
@@ -6256,7 +6265,7 @@ var BrainTitan = class extends BrainFour {
           g.shove({ x: g.pos.x - c.pos.x, y: 0, z: g.pos.z - c.pos.z }, 5);
           this.impact(add(c.pos, add(mul(f, c.girth + 5), { x: 0, y: 26, z: 0 })), false);
         }
-        blast(c.dim, front, 9, 10, 30 * c.might, 1.4, (p, n) => c.hurt(p, n), c.entity, c.pos);
+        blast(c.dim, front, 9, 10, c.mobHit(30), 1.4, (p, n) => c.hurt(p, n), c.entity, c.pos);
       }
       yield;
     }
@@ -6291,7 +6300,7 @@ var BrainTitan = class extends BrainFour {
           const f = forwardOf(c.yaw + deg * side);
           const at3 = { x: c.pos.x + f.x * 24, y: c.pos.y + 1.5, z: c.pos.z + f.z * 24 };
           if (!isLoaded(c.dim, at3)) continue;
-          blast(c.dim, at3, 10, 10, 34 * c.might, 1.8, (p, n) => c.hurt(p, n), c.entity, c.pos);
+          blast(c.dim, at3, 10, 10, c.mobHit(34), 1.8, (p, n) => c.hurt(p, n), c.entity, c.pos);
           if (wither()) {
             const got = carve(c.dim, at3, 4.2, 140, false);
             if (got.broken > 10) particle(c.dim, "basiliskra:impact_debris", at3, 128);
@@ -6380,7 +6389,7 @@ var BrainTitan = class extends BrainFour {
         particle(c.dim, "basiliskra:impact_ring", at3, 192);
         particle(c.dim, "basiliskra:step_dust", at3, 160);
         shake(c, 160, 1.6, 0.9);
-        blast(c.dim, at3, 12, 8, 30, 1.6, (p, n) => c.hurt(p, n), c.entity, c.pos);
+        blast(c.dim, at3, 12, 8, c.mobHit(30), 1.6, (p, n) => c.hurt(p, n), c.entity, c.pos);
       }
       yield;
     }
@@ -6501,6 +6510,7 @@ var Titans = class {
     const c = new Creature(e, 4);
     c.might = MIGHT;
     c.haste = HASTE;
+    c.lethal = LETHAL;
     c.resync();
     c.set(PROP.visLo, 0);
     c.set(PROP.visHi, 8);
@@ -10482,7 +10492,7 @@ var PASSES = /* @__PURE__ */ new Set([
 ]);
 var forwardTick = -1;
 var forwardKey = "";
-var TITAN_ON_HIM = 0.3;
+var TITAN_ON_HIM = 0.3 / GIANT;
 var struckAt = /* @__PURE__ */ new Map();
 var swungAt = /* @__PURE__ */ new Map();
 function meleeDamage(id) {

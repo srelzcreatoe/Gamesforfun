@@ -29,10 +29,20 @@ import { clearLine, isLoaded } from "./world";
 /** How many may stand in the world at once (each is sixty hit volumes and a brain). */
 export const TITAN_MAX = 3;
 export const TITAN_NAMES = ["Alpha", "Beta", "Gamma"];
-/** Its breath beside his: half as far again, wider, and nearly three times as hot. */
-export const TITAN_SPEC: BeamSpec = { range: 220, radius: 3.4, damage: 30, width: 4.6, carve: 5.2, fallout: 8 };
+/**
+ * How strong it is (1.7.2: "make the titan as strong as hakaishin godzilla").  That add-on's own page could not be
+ * read from here; the figures found with it are 100,000 health and 100,000 damage, and those are what it has: its
+ * health (TITAN_HEALTH, from tools/kit/gen_client.py), and LETHAL for whatever smaller than a giant it strikes, so
+ * that any blow of its kills a player or a creature outright.  Between giants every blow is scaled by GIANT, its
+ * health against the 4,000 it had, so two Titans still fight for minutes rather than for one blow.
+ */
+export const LETHAL = 100000;
+export { TITAN_HEALTH };
+export const GIANT = TITAN_HEALTH / 4000;
+/** Its breath beside his: half as far again and wider; against another giant, 750 a hit (and LETHAL to anything smaller). */
+export const TITAN_SPEC: BeamSpec = { range: 220, radius: 3.4, damage: 30 * GIANT, width: 4.6, carve: 5.2, fallout: 8 };
 /** What its body does to another giant, and how far it throws it. */
-export const BLOW = { lunge: 85, tail: 130, ram: 110 };
+export const BLOW = { lunge: 85 * GIANT, tail: 130 * GIANT, ram: 110 * GIANT };
 const MIGHT = 3, HASTE = 1.35;
 const TAG = "bk:titan";
 const PROWL = 70;
@@ -205,7 +215,7 @@ export class BrainTitan extends BrainFour {
           this.impact(add(c.pos, add(mul(f, c.girth + 5), { x: 0, y: 26, z: 0 })), false);
         }
         // and whatever small stands under the blow
-        blast(c.dim, front, 9, 10, 30 * c.might, 1.4, (p, n) => c.hurt(p, n), c.entity, c.pos);
+        blast(c.dim, front, 9, 10, c.mobHit(30), 1.4, (p, n) => c.hurt(p, n), c.entity, c.pos);
       }
       yield;
     }
@@ -241,7 +251,7 @@ export class BrainTitan extends BrainFour {
           const f = forwardOf(c.yaw + deg * side);
           const at = { x: c.pos.x + f.x * 24, y: c.pos.y + 1.5, z: c.pos.z + f.z * 24 };
           if (!isLoaded(c.dim, at)) continue;
-          blast(c.dim, at, 10, 10, 34 * c.might, 1.8, (p, n) => c.hurt(p, n), c.entity, c.pos);
+          blast(c.dim, at, 10, 10, c.mobHit(34), 1.8, (p, n) => c.hurt(p, n), c.entity, c.pos);
           if (wither()) { const got = carve(c.dim, at, 4.2, 140, false); if (got.broken > 10) particle(c.dim, "basiliskra:impact_debris", at, 128); }
           particle(c.dim, "basiliskra:step_dust", at, 128);
         }
@@ -333,7 +343,7 @@ export class BrainTitan extends BrainFour {
         particle(c.dim, "basiliskra:impact_ring", at, 192);
         particle(c.dim, "basiliskra:step_dust", at, 160);
         shake(c, 160, 1.6, 0.9);
-        blast(c.dim, at, 12, 8, 30, 1.6, (p, n) => c.hurt(p, n), c.entity, c.pos);
+        blast(c.dim, at, 12, 8, c.mobHit(30), 1.6, (p, n) => c.hurt(p, n), c.entity, c.pos);
       }
       yield;
     }
@@ -415,7 +425,7 @@ export class Titans {
       e.nameTag = `Titan ${TITAN_NAMES[n % TITAN_NAMES.length]}`;
     } catch { return; }
     const c = new Creature(e, 4);
-    c.might = MIGHT; c.haste = HASTE;
+    c.might = MIGHT; c.haste = HASTE; c.lethal = LETHAL;
     c.resync();
     c.set(PROP.visLo, 0);
     c.set(PROP.visHi, 8);

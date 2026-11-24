@@ -167,8 +167,8 @@
     "height": 13.0
    },
    "minecraft:health": {
-    "value": 4000,
-    "max": 4000
+    "value": 100000,
+    "max": 100000
    },
    "minecraft:physics": {
     "has_gravity": false,

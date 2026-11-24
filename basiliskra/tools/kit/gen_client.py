@@ -788,7 +788,7 @@ def write_rig_ts(rigs):
         f.write("\n".join(out) + "\n")
 
 
-TITAN_HEALTH = 4000
+TITAN_HEALTH = 100000      # 1.7.2: as strong as Hakaishin Godzilla (its listing: 100,000 health, 100,000 damage); src/titan.ts
 
 
 def write_titan(entity, pre, glow_list):

@@ -150,7 +150,7 @@ export class BrainFour extends BrainThree {
       const f = 1 - dist(p.location, ground) / 70;
       try { p.runCommand(`camerashake add @s ${(0.08 + 0.3 * f).toFixed(2)} 0.3 positional`); } catch { /* the sound carries it */ }
     }
-    blast(c.dim, ground, 8, 8, 20 * c.might, 1.1, (p, n) => c.hurt(p, n), c.entity, ground);
+    blast(c.dim, ground, 8, 8, c.mobHit(20), 1.1, (p, n) => c.hurt(p, n), c.entity, ground);
     if (wither() && !c.afloat) {
       // (a crater stops short of his own broken plate: it stands where it fell)
       const P = this.rec.four?.plate;
@@ -479,7 +479,7 @@ export class BrainFour extends BrainThree {
         sound(c.dim, "mob.wither.break_block", pivot, 128, 1, 0.5);
         particle(c.dim, "basiliskra:impact_debris", { x: pivot.x, y: c.pos.y + 1, z: pivot.z }, 128);
         particle(c.dim, "basiliskra:impact_ring", { x: pivot.x, y: c.pos.y + 0.3, z: pivot.z }, 128);
-        blast(c.dim, { x: pivot.x, y: c.pos.y + 1, z: pivot.z }, 9, 9, 18 * c.might, 1.3, (p, n) => c.hurt(p, n), c.entity);
+        blast(c.dim, { x: pivot.x, y: c.pos.y + 1, z: pivot.z }, 9, 9, c.mobHit(18), 1.3, (p, n) => c.hurt(p, n), c.entity);
         if (wither()) carve(c.dim, { x: pivot.x, y: c.pos.y, z: pivot.z }, 3, 120, false);
       }
       beamTick(c, this.spec, t, fade, st, { scorch: (hit) => this.scorch(hit) });
@@ -633,7 +633,7 @@ export class BrainFour extends BrainThree {
     sound(c.dim, "mob.wither.break_block", top, 128, 1, 0.6);
     particle(c.dim, "basiliskra:impact_ring", { x: top.x, y: P.y + 0.3, z: top.z }, 128);
     particle(c.dim, "basiliskra:impact_debris", top, 128);
-    blast(c.dim, top, 5, 6, 12 * c.might, 0.9, (p, n) => c.hurt(p, n), c.entity);
+    blast(c.dim, top, 5, 6, c.mobHit(12), 0.9, (p, n) => c.hurt(p, n), c.entity);
     F.plate = P;
     store.touch();
     yield* wait(20);
@@ -797,6 +797,6 @@ export class BrainFour extends BrainThree {
       try { e.applyImpulse({ x: f.x * 2.2, y: 0.55, z: f.z * 2.2 }); return true; } catch { return false; }
     }
     if (!alive(e)) return false;
-    try { e.applyKnockback({ x: f.x * 3, z: f.z * 3 }, 0.6); e.applyDamage(6, { cause: EntityDamageCause.entityAttack, damagingEntity: c.entity }); return true; } catch { return false; }
+    try { e.applyKnockback({ x: f.x * 3, z: f.z * 3 }, 0.6); e.applyDamage(c.mobHit(6), { cause: EntityDamageCause.entityAttack, damagingEntity: c.entity }); return true; } catch { return false; }
   }
 }

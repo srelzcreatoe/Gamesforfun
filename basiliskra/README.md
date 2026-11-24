@@ -7,6 +7,8 @@ An original survival-horror add-on for Minecraft Bedrock. One creature per save.
 * **Experiments:** none. **Cheats:** none. **Commands:** none needed.
 * **Graphics:** standard Bedrock rendering; Vibrant Visuals supported (PBR texture sets with emissive glow).
 
+> **1.7.2**: **the Titan is as strong as the strongest Godzilla add-ons**: 100,000 health, and every blow it lands on a player or a creature does 100,000.
+>
 > **1.7.1** fixes what the content log showed on importing 1.7.0: the pack's blocks (and the recipes that use them) and the townspeople now load, and **a city now rises to the end** (1.7.0 asked the game to keep more ground loaded at once than it allows, and waited for ever). See [docs/TEST_REPORT.md](docs/TEST_REPORT.md).
 >
 > **1.7**: **his breath leaves his open mouth** (the jaw drops as he charges; the beam starts in the middle of the gap) and is **as wide as the form that fires it**, drawn in new layers: white-hot core, plasma, fire, light racing down it, rings, lightning, smoke and embers. **Form IV's palms face inward.** The **Seam Lance** is held in the hand, half as big again, and fires a **thick red laser**. Every footfall sends a **shock rolling on ahead of him** that breaks what stands in front. He **tilts his head back and leads what flies** (the Wither, the Ender Dragon, ghasts). **Cities are half as big again** and **no longer lag** as they are built (at most 6,000 blocks and 4 ms a tick), and their streets are full of **townspeople** of their own who **run when they see a giant**. Called with the wheel, **the rift opens out in deep water off a beach, clear of every block**, and he wades ashore; each form has its own arrival shots.
@@ -29,7 +31,7 @@ In game: a **journal** (how angry he is, as a percentage, when he will come, and
 
 | File | What it is |
 |---|---|
-| `dist/Basiliskra-1.7.1.mcaddon` | behaviour pack + resource pack, ready to import |
+| `dist/Basiliskra-1.7.2.mcaddon` | behaviour pack + resource pack, ready to import |
 | `models/basiliskra_i.bbmodel`, `_ii`, `_iii`, `_iv` | the four editable Blockbench models, textures and animations embedded |
 | `docs/SURVIVAL_GUIDE.md` | install, what calls him, the four stages, cities, the Seam Lance, the Titan, the ending, settings |
 | `previews/*.mp4` | reference videos (see below) |

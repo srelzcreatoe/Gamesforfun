@@ -5,11 +5,11 @@ No experiments, no Beta APIs, no cheats, no commands. It can be added to a survi
 
 ## Install
 
-1. Open `Basiliskra-1.7.1.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
+1. Open `Basiliskra-1.7.2.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
 2. Edit your world → **Behavior Packs** → activate **Basiliskra**. The resource pack is pulled in with it. Leave every toggle under **Experiments** off.
 3. Play. Nothing happens straight away. The story is found by playing; the journal tells you how close it is.
 
-**Updating from an earlier version**: open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.7.1 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself. Settings you chose are kept; a world that never chose how destructive he is gets the new default (he destroys like the Wither).
+**Updating from an earlier version**: open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.7.2 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself. Settings you chose are kept; a world that never chose how destructive he is gets the new default (he destroys like the Wither).
 
 Realms and multiplayer: apply both packs to the world; players download the resource pack on joining. Consoles can use the add-on only through a Realm or a world transferred from another device.
 
@@ -146,13 +146,13 @@ The one weapon made for him: a blocky gun of gunmetal and old bone with a crimso
 A **separate creature** that wears Basiliskra IV's body, made for fights in Creative. It is not the one Basiliskra and has no part in his story: no rift, no changes, no leaving, and making or losing one changes nothing about him.
 
 * **Make one**: the **Spawn Basiliskra Titan** egg (Creative inventory), `/basiliskra:titan` (operators, no cheats), `/summon basiliskra:titan`, or the config wheel's **Put a Titan here**. It stands a short way in front of you. **Up to three at once**: Alpha, Beta and Gamma. `/basiliskra:titan clear` or the wheel's **Remove the Titans** takes them all away.
-* **Much stronger than he is**: 4000 health to his 600; its breath reaches 220 blocks (his: 150) and burns nearly three times as hot; it walks a third faster; and everything it does to a player is tripled.
+* **As strong as the strongest Godzilla add-ons** (from 1.7.2, matched to Hakaishin Godzilla): **100,000 health** (his: 600), and **any blow of its does 100,000** to a player or a creature, so whatever it touches with its breath, its jaws, its tail or its feet dies at once, armour or not. Its breath reaches 220 blocks (his: 150) and it walks a third faster.
 * **You can tell it from him**: its seams never go dark. It smoulders red all the time.
 * **It fights with its body as well as its breath**: a **lunge** (it rears back, then throws its jaws and its right hand forward), its **tail** (it winds away and lashes round to the side its head turns to), a **charge** with its whole weight from a distance, and it **circles** between blows. A heavy blow staggers whoever it lands on and throws them back.
 * **What it fights**: another Titan, or Basiliskra himself, before anything else; then any creature, and players in Survival or Adventure. **Players in Creative are left alone**, so you can stand and watch. Left alone it prowls round the place it was put down.
-* **Titan against Titan**: put two down a hundred blocks apart. They roar at each other, breathe, close, and fight until one goes down: about three minutes. A beam stops on a giant's body. Everyone within 150 blocks sees each Titan's health above the hotbar.
-* **Titan against Basiliskra**: he answers it (as III or IV, with his breath), and he loses: he is driven off through a seam as he always is, never killed.
-* **It can be killed**: by another Titan, or by you (the Seam Lance, or anything else that would hurt him). It goes down onto its knees, the fire in it fails, and it is gone, leaving 24 crimson shards, a fin, and poisoned ground.
+* **Titan against Titan**: put two down a hundred blocks apart. They roar at each other, breathe, close, and fight until one goes down: about four to five minutes (their blows on each other are scaled up with their health: 375 a breath hit, 2,125 a lunge, 3,250 a tail, 2,750 a charge). A beam stops on a giant's body. Everyone within 150 blocks sees each Titan's health above the hotbar.
+* **Titan against Basiliskra**: he answers it (as III or IV, with his breath), and he loses: he is driven off through a seam as he always is, never killed. (Its blows on him are kept at their old weight, so there is still a fight: at full weight its first blow would drive him off before he could answer.)
+* **It can be killed**: by another Titan, or by you, though at 100,000 health that is a long job (the Seam Lance does 34 a shot: about 2,900 shots). `/basiliskra:titan clear` or the wheel's Remove the Titans takes them away at once. It goes down onto its knees, the fire in it fails, and it is gone, leaving 24 crimson shards, a fin, and poisoned ground.
 * Its beams, its feet and its fallout follow the same Settings as his (destruction, damage, Peaceful, fallout).
 
 ## The ending

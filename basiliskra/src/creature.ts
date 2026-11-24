@@ -154,6 +154,8 @@ export class Creature {
 
   /** How much harder than Basiliskra himself this body hits, and how much faster it walks (the Titan). */
   might = 1;
+  /** If set, what any blow of its does to a player or a creature, whatever the blow (the Titan: they die of it). */
+  lethal = 0;
   haste = 1;
 
   constructor(readonly entity: Entity, form: Form = store.rec.form) {
@@ -854,8 +856,11 @@ export class Creature {
   hurt(p: Player, amount: number, cause: EntityDamageCause = EntityDamageCause.entityAttack): boolean {
     if (!targetable(p)) return false;
     if (CONFIG.harmlessOnPeaceful && String(world.getDifficulty()).toLowerCase() === "peaceful") return false;
-    try { return p.applyDamage(amount * CONFIG.damage * this.might, { cause, damagingEntity: this.entity }); } catch { return false; }
+    const dealt = this.lethal > 0 ? this.lethal : amount * this.might;
+    try { return p.applyDamage(dealt * CONFIG.damage, { cause, damagingEntity: this.entity }); } catch { return false; }
   }
+  /** What a blow of `base` does to a creature that is not a giant. */
+  mobHit(base: number): number { return this.lethal > 0 ? this.lethal : base * this.might; }
 
   /** How far his trunk reaches from his middle, on the ground. */
   get girth(): number { return MOVE[this.form].radius; }

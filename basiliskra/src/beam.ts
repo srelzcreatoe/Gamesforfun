@@ -108,7 +108,7 @@ export function beamTick(c: Creature, T: BeamSpec, t: number, fade: number, st: 
         particle(c.dim, "minecraft:huge_explosion_emitter", end, 144);
         sound(c.dim, "random.explode", end, 128, 1.4, 0.7 + hash(t, 3) * 0.2);
       }
-      if (t % 8 === 4) blast(c.dim, end, T.carve + 3.5, 4, 12, 0.8, (p, n) => c.hurt(p, n), c.entity, end);
+      if (t % 8 === 4) blast(c.dim, end, T.carve + 3.5, 4, c.mobHit(12), 0.8, (p, n) => c.hurt(p, n), c.entity, end);
     } else if (t % 6 === 0 && !shot.harmless) shot.scorch?.(hitBlock);
     if (t % 6 === 0 && !shot.harmless) {
       addFallout(st.ground, T.fallout + (smash ? 1 : 0), 0.13);    // where his light lands, the ground is poisoned
@@ -134,7 +134,7 @@ export function beamTick(c: Creature, T: BeamSpec, t: number, fade: number, st: 
       try {
         const big = BIG[e.typeId] ?? 0;
         if (segDist(add(e.location, { x: 0, y: 0.6 + big * 0.4, z: 0 }), from, dir, length) > reach + 0.6 + big) continue;
-        e.applyDamage(T.damage * 2, { cause: EntityDamageCause.entityAttack, damagingEntity: c.entity });
+        e.applyDamage(c.lethal > 0 ? c.lethal : T.damage * 2, { cause: EntityDamageCause.entityAttack, damagingEntity: c.entity });
         e.setOnFire(5, true);
       } catch { /* gone */ }
     }
