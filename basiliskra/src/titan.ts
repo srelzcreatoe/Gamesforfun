@@ -42,7 +42,7 @@ export const GIANT = TITAN_HEALTH / 4000;
 /** Its breath beside his: half as far again and wider; against another giant, 750 a hit (and LETHAL to anything smaller). */
 export const TITAN_SPEC: BeamSpec = { range: 220, radius: 3.4, damage: 30 * GIANT, width: 4.6, carve: 5.2, fallout: 8 };
 /** What its body does to another giant, and how far it throws it. */
-export const BLOW = { lunge: 85 * GIANT, tail: 130 * GIANT, ram: 110 * GIANT };
+export const BLOW = { lunge: 85 * GIANT, tail: 130 * GIANT, ram: 110 * GIANT, swipe: 100 * GIANT };
 const MIGHT = 3, HASTE = 1.35;
 const TAG = "bk:titan";
 const PROWL = 70;
@@ -86,10 +86,11 @@ export class BrainTitan extends BrainFour {
     if (this.reeling) {
       this.reeling = false;
       // a breath being drawn or let go is not broken off by a blow, nor a roar
-      if (["charge", "fire", "skid", "pivot", "roar", "vent", "fall"].includes(this.c.phase)) return null;
+      if (["charge", "fire", "pour", "skid", "pivot", "roar", "vent", "fall", "swipe"].includes(this.c.phase)) return null;
       return { name: "reel", run: this.reel(), limit: 3 * TICKS.second };
     }
-    return null;
+    // with no giant to fight, small things that come within reach of its claws are swiped at (as he does)
+    return this.foe() ? null : super.interrupt();
   }
 
   protected choose(): Choice | null {
@@ -115,6 +116,11 @@ export class BrainTitan extends BrainFour {
       // at arm's length: the tail for what is beside or behind it, jaws and claws for what is in front
       if (Math.abs(bearing) > 55 && this.ready("tail")) { this.rest("tail", 6 * TICKS.second); return { name: "tail", run: this.tail(bearing >= 0 ? 1 : -1), limit: 4 * TICKS.second }; }
       if (this.ready("lunge")) { this.rest("lunge", 3.5 * TICKS.second); return { name: "lunge", run: this.lunge(foe), limit: 5 * TICKS.second }; }
+      // (1.8) its claws, while its jaws are not ready (now and then: it also walks round between blows)
+      if (Math.abs(bearing) <= 60 && this.ready("swipe") && hash(now, 88) < 0.6) {
+        this.rest("swipe", 7 * TICKS.second);
+        return { name: "swipe", run: this.swipe(() => foe.middle(), foe, BLOW.swipe), limit: 4 * TICKS.second };
+      }
       // between blows it walks round the enemy, which brings the enemy to its side: where the tail is
       if (this.ready("circle") && this.ready("tail")) { this.rest("circle", 9 * TICKS.second); return { name: "circle", run: this.circle(foe), limit: 8 * TICKS.second }; }
     }
@@ -135,12 +141,19 @@ export class BrainTitan extends BrainFour {
   /** Its breath is whole every time: nothing fails in its mouth, nothing is swallowed, no plate is shed. */
   protected *breath(target: Quarry): Act {
     const g = giants.get(target.id);
-    const got = yield* this.charge(target, () => (g && g.valid ? g.middle() : aimOf(target)), false);
+    // (where it last was, if it dies or goes while the breath is under way)
+    let last: V3 = { ...target.location };
+    const mark = (): V3 => {
+      try { last = g && g.valid ? g.middle() : target.isValid ? aimOf(target) : last; } catch { /* gone: where it was */ }
+      return last;
+    };
+    const got = yield* this.charge(target, mark, false);
     if (got !== "lock") { this.cutCharge(); return; }
-    yield* this.fire(target);
+    yield* this.fire(target, mark);
     yield* this.vent();
     // the time between two breaths is counted from the end of the first: that is when it uses its body
-    this.rest("beam", 12 * TICKS.second);
+    // (16 s from 1.8: the pour made each breath three seconds longer, and two Titans stopped closing with each other)
+    this.rest("beam", 16 * TICKS.second);
     this.recoverUntil = this.now + 3 * TICKS.second;
     this.c.setPhase("idle");
   }

@@ -1028,7 +1028,9 @@ export class Controller {
         const was = (ev.to - 1) as 1 | 2 | 3, Fo = FRAME[was], Fn = FRAME[ev.to];
         const body = () => ({ x: c.pos.x, y: c.pos.y + BODY_MID[c.form], z: c.pos.z });
         film(c.dim, body, { ticks: OPENING + CH.before + CH.after + CH.hold, radius: 140, dist: Fo, height: 4, cinema: true, facing: () => c.yaw,
-                            shots: [CH.wide(c, Fo), ...CH.shots(c, Fo, Fn)] });
+                            shots: [CH.wide(c, Fo), ...CH.shots(c, Fo, Fn)],
+                            // (1.8) a chapter heading over the establishing shot
+                            cards: [{ at: 4, title: CH.chapter, sub: `§8Basiliskra ${ROMAN[was]}  §7→  §8${ROMAN[ev.to]}`, stay: 40 }] });
         c.say("basiliskra.mutate", c.pos, 96, 0.6, 0.7);
       }
       const t = now - ev.t0 - OPENING;

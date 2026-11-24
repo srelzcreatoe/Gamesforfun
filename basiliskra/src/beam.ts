@@ -36,6 +36,8 @@ export interface BeamShot {
   scorch?: (hit: V3) => void;
   /** Draw and burn, but break and poison nothing (a beam that is only a line of light). */
   harmless?: boolean;
+  /** Break and burn, but leave no fallout (the pour's lift: the poison gathers where the beam comes to rest). */
+  clean?: boolean;
 }
 
 /** Returns where the beam ended, the block it struck (if any) and its length. */
@@ -110,7 +112,7 @@ export function beamTick(c: Creature, T: BeamSpec, t: number, fade: number, st: 
       }
       if (t % 8 === 4) blast(c.dim, end, T.carve + 3.5, 4, c.mobHit(12), 0.8, (p, n) => c.hurt(p, n), c.entity, end);
     } else if (t % 6 === 0 && !shot.harmless) shot.scorch?.(hitBlock);
-    if (t % 6 === 0 && !shot.harmless) {
+    if (t % 6 === 0 && !shot.harmless && !shot.clean) {
       addFallout(st.ground, T.fallout + (smash ? 1 : 0), 0.13);    // where his light lands, the ground is poisoned
       if (CONFIG.fallout !== "off") particle(c.dim, "basiliskra:fallout_ash", end, 64);
     }

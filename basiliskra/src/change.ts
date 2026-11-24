@@ -39,6 +39,8 @@ export interface Change {
   hold: number;
   /** When, after the instant of the change, his new name is shown. */
   nameAt: number;
+  /** The chapter heading shown over the establishing shot (1.8). */
+  chapter: string;
   /** What the screen flashes at that instant: colour, and seconds held and fading. */
   flash: { red: number; green: number; blue: number; hold: number; fade: number };
   shots(c: Creature, Fo: number, Fn: number): Shot[];
@@ -123,6 +125,7 @@ const KNOCKS = [0, 18, 36];
 let top = 0;                 // the water's surface, read now and then
 const ONE: Change = {
   before: 176, after: 134, hold: 90, nameAt: 0,
+  chapter: "§7The water boils",
   flash: { red: 0.92, green: 0.9, blue: 0.95, hold: 0.14, fade: 1.0 },
   // high over the sea, coming down toward the water where he lies
   wide: (c, Fo) => ({ ticks: OPENING, look: body(c), angle: [125, 95], dist: [Fo * 1.45, Fo * 1.15], height: [Fo * 0.7, Fo * 0.45] }),
@@ -138,7 +141,9 @@ const ONE: Change = {
     // his horns, and what jumps between them
     { ticks: 56, look: () => at(c, "horn_l"), angle: [22, -22], dist: [Fn * 0.34, Fn * 0.3], height: [1.5, 2.5] },
     // his face, for the roar
-    { ticks: 34 + 90, look: head(c), angle: [15, 5], dist: [Fn * 0.5, Fn * 0.4], height: [-1, -0.5] },
+    { ticks: 60, look: head(c), angle: [15, 5], dist: [Fn * 0.5, Fn * 0.4], height: [-1, -0.5] },
+    // and round him, slowly, low, while it goes on: the animal he is now (1.8)
+    { ticks: 64, look: body(c), angle: [30, 150], dist: [Fn * 0.95, Fn * 1.05], height: [Fn * 0.06, Fn * 0.2], dip: { red: 0.35, green: 0.02, blue: 0.02, hold: 0.1 } },
   ],
   pre(c, t) {
     if (t === 0 || t % 20 === 0) top = surface(c);
@@ -213,6 +218,7 @@ const ONE: Change = {
 const STRIKES = [50, 100, 140];
 const TWO: Change = {
   before: 200, after: 150, hold: 120, nameAt: 0,
+  chapter: "§7The sky comes down",
   flash: { red: 1, green: 0.94, blue: 0.9, hold: 0.16, fade: 0.9 },
   // low and far: him against the sky that is about to come down on him
   wide: (c, Fo) => ({ ticks: OPENING, look: () => at(c, "horn_l", 4), angle: [205, 185], dist: [Fo * 1.65, Fo * 1.35], height: [-3, -1] }),
@@ -230,7 +236,9 @@ const TWO: Change = {
     // along his back from the tail, as the plates light one by one
     { ticks: 76, look: () => at(c, "plate_tip_5"), angle: [165, 195], dist: [Fn * 0.75, Fn * 0.6], height: [Fn * 0.3, Fn * 0.22] },
     // his face: he shakes the fire out of his plates, and roars
-    { ticks: 40 + 120, look: head(c), angle: [28, 8], dist: [Fn * 0.5, Fn * 0.4], height: [-Fn * 0.1, -Fn * 0.06] },
+    { ticks: 70, look: head(c), angle: [28, 8], dist: [Fn * 0.5, Fn * 0.4], height: [-Fn * 0.1, -Fn * 0.06] },
+    // and the camera goes round him, low, while the roar rolls on (1.8)
+    { ticks: 90, look: body(c), angle: [20, 160], dist: [Fn * 0.85, Fn * 1.0], height: [Fn * 0.04, Fn * 0.22], dip: { red: 0.4, green: 0.03, blue: 0.02, hold: 0.1 } },
   ],
   pre(c, t) {
     if (t === 0) { c.setPhase("arc"); c.say("basiliskra.ii.arc", at(c, "horn_l"), 112); }
@@ -306,14 +314,17 @@ const TWO: Change = {
 const VENTS = [137, 155, 173];
 const THREE: Change = {
   before: 236, after: 210, hold: 0, nameAt: 110,
+  chapter: "§7He burns through",
   flash: { red: 1, green: 1, blue: 1, hold: 0.4, fade: 1.3 },
   // from the ground far off, the whole of him, the light already gathering
   wide: (c, Fo) => ({ ticks: OPENING, look: body(c), angle: [-150, -172], dist: [Fo * 1.38, Fo * 1.15], height: [-Fo * 0.08, 0] }),
   shots: (c, Fo, Fn) => [
     // along his back from the tail as the plates light: a charge, like any other
     { ticks: 70, look: () => at(c, "plate_tip_5"), angle: [160, 195], dist: [Fo * 0.7, Fo * 0.55], height: [Fo * 0.3, Fo * 0.2] },
-    // his face, as it reaches his mouth and he does not fire
-    { ticks: 67, look: head(c), angle: [35, 20], dist: [Fo * 0.36, Fo * 0.28], height: [0.5, -1] },
+    // his eye, very close, as it reaches his mouth (1.8)
+    { ticks: 28, look: () => at(c, "nose", 1.5), angle: [62, 54], dist: [Fo * 0.2, Fo * 0.16], height: [1, 0.6] },
+    // his face, as he does not fire
+    { ticks: 39, look: head(c), angle: [35, 20], dist: [Fo * 0.36, Fo * 0.3], height: [0.5, -1] },
     // at his feet: the vent fails, and the ground under him begins to glow
     { ticks: 54, look: () => ({ x: c.pos.x, y: c.pos.y + 2, z: c.pos.z }), angle: [70, 110], dist: [Fo * 0.6, Fo * 0.5], height: [1, 2.5] },
     // all of him, drawing back from it
@@ -322,8 +333,8 @@ const THREE: Change = {
     { ticks: 64, look: body(c), angle: [-20, -8], dist: [Fn * 0.5, Fn * 0.6], height: [-21, -20] },
     // from behind him as the wings come open
     { ticks: 46, look: body(c), angle: [180, 168], dist: [Fn * 0.85, Fn * 1.0], height: [Fn * 0.05, Fn * 0.2] },
-    // round to the front of him: all of what he is now
-    { ticks: 100, look: body(c), angle: [40, -15], dist: [Fn * 0.7, Fn * 1.0], height: [-Fn * 0.2, Fn * 0.1] },
+    // round to the front of him, slowly, from low: all of what he is now
+    { ticks: 100, look: body(c), angle: [75, -30], dist: [Fn * 0.7, Fn * 1.0], height: [-Fn * 0.2, Fn * 0.1] },
   ],
   pre(c, t) {
     if (t === 0) {

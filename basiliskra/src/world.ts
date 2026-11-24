@@ -182,3 +182,33 @@ export function takesMark(dim: Dimension, at: V3): Block | undefined {
   }
   return b;
 }
+
+/**
+ * The nearest dry land from a place in the water: along each of 24 bearings, the first column with no water in it and
+ * ground under it, out to `reach`.  `edge`: that column; `inland`: `further` blocks on along the same bearing (or the
+ * edge, if that is not dry too).  Null if no dry land is loaded within reach.
+ */
+export function shoreFrom(dim: Dimension, at: V3, further: number, reach = 128, avoid: V3[] = []): { edge: V3; inland: V3; d: number } | null {
+  let best: { edge: V3; inland: V3; d: number } | null = null;
+  const dry = (x: number, z: number): number | null => {
+    const col = waterColumn(dim, x, z, at.y + 4, 14);
+    if (col !== NONE) return null;
+    const g = groundY(dim, x, z, at.y + 24, 48);
+    return typeof g === "number" && !isWaterId(idAt(dim, { x, y: g + 1, z })) ? g : null;
+  };
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * Math.PI * 2, cx = Math.cos(a), cz = Math.sin(a);
+    for (let r = 4; r <= reach && (!best || r < best.d); r += 3) {
+      const x = at.x + cx * r, z = at.z + cz * r;
+      if (!isLoaded(dim, { x, y: at.y, z })) break;
+      const g = dry(x, z);
+      if (g === null) continue;
+      if (avoid.some((q) => Math.hypot(q.x - x, q.z - z) < 14)) break;          // a landing he could not reach
+      const ix = at.x + cx * (r + further), iz = at.z + cz * (r + further);
+      const gi = isLoaded(dim, { x: ix, y: at.y, z: iz }) ? dry(ix, iz) : null;
+      best = { edge: { x, y: g + 1, z }, inland: gi === null ? { x, y: g + 1, z } : { x: ix, y: gi + 1, z: iz }, d: r };
+      break;
+    }
+  }
+  return best;
+}

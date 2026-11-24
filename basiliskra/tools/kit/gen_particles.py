@@ -116,6 +116,21 @@ def draw_beam_sheet() -> np.ndarray:
     put(160, 16, np.ones((32, 32)), star)                                                                  # six-pointed flare
     put(128, 48, np.clip(1.2 - r, 0, 1), np.clip(1 - r ** 2, 0, 1) ** 1.5)                                 # an energy blob, hot in the middle
     put(160, 48, np.ones((32, 32)), np.exp(-((r - 0.8) / 0.12) ** 2))                                      # a ring
+    # three claw marks (1.8): parallel slashes along a shallow arc, tapered at both ends, white-hot down the middle
+    cy, cx = np.mgrid[0:48, 0:64].astype(np.float64)
+    claw = np.zeros((48, 64))
+    for k in (-1, 0, 1):
+        best = np.full((48, 64), 1e9)
+        sbest = np.zeros((48, 64))
+        for s in np.linspace(0, 1, 90):
+            px, py = 6 + 52 * s + 5 * k, 41 - 34 * s - 6 * np.sin(np.pi * s) + 7 * k
+            d = np.hypot(cx - px, cy - py)
+            closer = d < best
+            best = np.where(closer, d, best); sbest = np.where(closer, s, sbest)
+        w = 0.6 + 2.6 * np.sin(np.pi * sbest) ** 0.8
+        claw = np.maximum(claw, np.clip(1.25 - best / w, 0, 1))
+    a[80:128, 128:192, :3] = np.clip(0.55 + 0.6 * claw, 0, 1)[..., None]
+    a[80:128, 128:192, 3] = claw ** 0.8
     return (a * 255).round().astype(np.uint8)
 
 
@@ -128,6 +143,7 @@ def uvb(x, y, w, h, frames=False) -> dict:
 
 PLASMA, CORE = (0, 0, 64, 16, True), (64, 0, 64, 16, True)
 BAND, GLOW, STAR, BLOB, RINGB = (128, 0, 64, 16), (128, 16, 32, 32), (160, 16, 32, 32), (128, 48, 32, 32), (160, 48, 32, 32)
+CLAW = (128, 80, 64, 48)
 
 
 def fxb(name, material, **components):
@@ -392,6 +408,39 @@ EFFECTS = [
     scatter("impact_fountain", "spark", 14, 0.4, RAND(9, 22), RAND(0.6, 1.3), SHRINK(0.34), grad((0, WHITE), (0.3, HOT), (0.7, RED), (1, DEEP)),
             accel=[0, -18, 0], drag=0.4, material="particles_add",
             shape={"minecraft:emitter_shape_sphere": {"radius": 0.4, "direction": [RAND(-0.45, 0.45), 1, RAND(-0.45, 0.45)]}}),
+    # the pour (1.8): before the breath narrows into the beam it floods the ground in front of him.  Fire that rolls
+    # outward along the ground (variable.dir: outward; variable.width: the form's breath), smoke heaped over it,
+    # embers skittering ahead of it
+    scatter("flood_fire", "wisp", 4, 1.5, RAND(4, 9), RAND(0.7, 1.2),
+            [f"(0.6 + 0.9 * {AGE}) * (v.width > 0 ? v.width : 3) * (0.7 + 0.5 * v.particle_random_1)"] * 2, FIRE,
+            accel=[0, 2.2, 0], drag=1.6, material="particles_add",
+            shape={"minecraft:emitter_shape_sphere": {"radius": 1.5, "direction": [f"v.dir.x + {RAND(-0.35, 0.35)}", RAND(0.1, 0.4), f"v.dir.z + {RAND(-0.35, 0.35)}"]}}),
+    scatter("flood_smoke", "puff", 3, 2.0, RAND(1, 3), RAND(3.0, 5.0),
+            [f"(0.8 + 1.6 * {AGE}) * (v.width > 0 ? v.width : 3) * (0.7 + 0.5 * v.particle_random_1)"] * 2, SMOKE, accel=[0, 1.6, 0], drag=0.6,
+            shape={"minecraft:emitter_shape_sphere": {"radius": 2.0, "direction": [f"v.dir.x * 0.6 + {RAND(-0.4, 0.4)}", 1, f"v.dir.z * 0.6 + {RAND(-0.4, 0.4)}"]}}),
+    scatter("flood_ember", "spark", 10, 1.0, RAND(5, 13), RAND(0.5, 1.1), SHRINK(0.3), grad((0, WHITE), (0.3, HOT), (0.75, RED), (1, DEEP)),
+            accel=[0, -7, 0], drag=0.5, material="particles_add",
+            shape={"minecraft:emitter_shape_sphere": {"radius": 1.0, "direction": [f"v.dir.x + {RAND(-0.5, 0.5)}", RAND(0.2, 0.7), f"v.dir.z + {RAND(-0.5, 0.5)}"]}}),
+    # the claw swipe (1.8): three great marks hang in the air where the claws went through it, turned to the way they
+    # went (variable.spin, degrees), as big as the hand that made them (variable.width), and fade
+    fxb("claw_scratch", "particles_add", **ONCE, **burst(1), **{
+        "minecraft:emitter_shape_point": {},
+        "minecraft:particle_initial_speed": 0,
+        "minecraft:particle_initial_spin": {"rotation": "v.spin", "rotation_rate": 0},
+        "minecraft:particle_lifetime_expression": {"max_lifetime": 1.1},
+        "minecraft:particle_motion_dynamic": {},
+        "minecraft:particle_appearance_billboard": {"size": [f"v.width * (1 + 0.12 * {AGE})", f"v.width * 0.75 * (1 + 0.12 * {AGE})"], "facing_camera_mode": "lookat_xyz", "uv": uvb(*CLAW)},
+        "minecraft:particle_appearance_tinting": {"color": grad((0, WHITE), (0.15, (1, 0.55, 0.45, 1)), (0.5, (1, 0.12, 0.08, 0.85)), (1, (0.5, 0.02, 0.03, 0)))}}),
+    fxb("claw_glow", "particles_add", **ONCE, **burst(1), **{
+        "minecraft:emitter_shape_point": {},
+        "minecraft:particle_initial_speed": 0,
+        "minecraft:particle_initial_spin": {"rotation": "v.spin", "rotation_rate": 0},
+        "minecraft:particle_lifetime_expression": {"max_lifetime": 0.45},
+        "minecraft:particle_motion_dynamic": {},
+        "minecraft:particle_appearance_billboard": {"size": [f"v.width * 1.5", f"v.width * 1.1"], "facing_camera_mode": "lookat_xyz", "uv": uvb(*CLAW)},
+        "minecraft:particle_appearance_tinting": {"color": grad((0, (1, 0.35, 0.25, 0.7)), (1, (0.8, 0.05, 0.03, 0)))}}),
+    scatter("claw_sparks", "spark", 16, 1.2, RAND(6, 16), RAND(0.4, 0.9), SHRINK(0.28), grad((0, WHITE), (0.35, HOT), (0.8, RED), (1, DEEP)),
+            accel=[0, -14, 0], drag=0.4, material="particles_add"),
     # the seabed hauled ashore: black water, gravel and weed thrown up along the front of the wave
     scatter("surge", "puff", 9, 1.2, RAND(2, 6), RAND(0.7, 1.4), GROW(1.0, 3.0),
             grad((0, (0.08, 0.10, 0.13, 0.0)), (0.15, (0.08, 0.10, 0.13, 0.9)), (0.6, (0.16, 0.20, 0.22, 0.7)), (1, (0.3, 0.34, 0.36, 0))), accel=[0, -9, 0], drag=0.6,

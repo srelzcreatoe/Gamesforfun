@@ -90,8 +90,8 @@ export function poseOf(form: Form, s: PoseState): PoseAdd {
     // his wings are folded unless something has opened them
     const fold = 1 - (s.wings ?? 0);
     for (const [side, sg] of [["l", 1], ["r", -1]] as const) {
-      set(`wing_${side}`, 0, sg * WING_FOLD.root[0] * fold, sg * WING_FOLD.root[1] * fold);
-      set(`wing_${side}_arm`, 0, 0, sg * WING_FOLD.arm * fold);
+      set(`wing_${side}`, WING_FOLD.root[0] * fold, sg * WING_FOLD.root[1] * fold, sg * WING_FOLD.root[2] * fold);
+      set(`wing_${side}_arm`, 0, sg * WING_FOLD.arm[0] * fold, sg * WING_FOLD.arm[1] * fold);
       WING_FOLD.fingers.forEach((a, i) => set(`wing_${side}_f${i + 1}`, 0, 0, sg * a * fold));
     }
   } else {

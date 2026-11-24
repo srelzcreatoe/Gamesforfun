@@ -14,6 +14,7 @@ import { BeamSpec, BeamState, beamTick, clearRange } from "../beam";
 import { Creature, giantOf, otherGiants, targetable } from "../creature";
 import { beamVars, flash, particle, players, sound, stopSound, witnesses } from "../fx";
 import { STANCE_III, STRIDE_III } from "../generated/rig";
+import { POUR, groundAhead, pourAndLift } from "../pour";
 import { alive, blast, carve, mobsNear, segDist, wither } from "../havoc";
 import { RoarFx, shake } from "../roar";
 import { store } from "../store";
@@ -566,6 +567,11 @@ export class BrainThree extends Brain {
     const flying = !!target && isFlyer(target);
     const aimAt = (): V3 => (target ? aimOf(target) : add(c.anchor("mouth"), mul(c.forward, 30)));
     const pitchMax = flying ? 80 : 40;
+    // (1.8) at anything on the ground his head goes down to the ground in front of him while the breath gathers,
+    // and the shot is poured onto it before it narrows into the beam (pour.ts); what flies is watched instead
+    const pour = !flying;
+    const charging = (): V3 => (pour ? groundAhead(c, aimAt()) : aimAt());
+    const chargeMax = pour ? 80 : pitchMax;
     c.halt();
     // 1. the club plants first, and the breath begins: the charge lasts exactly as long as its sound
     c.setPhase("charge");
@@ -573,7 +579,7 @@ export class BrainThree extends Brain {
     c.say("basiliskra.iii.charge", c.anchor("throat"), 128);
     this.chargeSounding = true;
     this.rodSeen.clear(); this.rodLayer = 0;
-    for (let t = 0; t < PLANT_TICKS; t++) { c.setCharge(t / 7); if (ok()) c.aimAt(aimAt(), 80, pitchMax); this.scanRods(); yield; }
+    for (let t = 0; t < PLANT_TICKS; t++) { c.setCharge(t / 7); if (ok()) c.trackTo(charging(), 3, 80, chargeMax); this.scanRods(); yield; }
     // 2. the ridge lights, tail to shoulders, and the whole hide with it
     let rod: V3 | null = null;
     let lit = 1;
@@ -581,8 +587,8 @@ export class BrainThree extends Brain {
     for (let t = 0; t < light; t++) {
       if (!ok()) return;                     // (onFinish cuts the sound)
       const aim = aimAt();
-      const off = c.aimAt(aim, 80, pitchMax);
-      if (off > 0) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), flying ? 1.4 : 0.6);      // feet shuffle only if the neck cannot reach
+      const off = pour ? c.trackTo(charging(), 2, 80, chargeMax) : c.aimAt(aim, 80, pitchMax);
+      if (off > 0 || (pour && Math.abs(c.lookYaw) > 70)) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), flying ? 1.4 : 0.6);      // feet shuffle only if the neck cannot reach
       c.setCharge(2 + (t / light) * 13.4);                                     // 15 at most: 16 is the lock, and the eye still follows here
       const zone = Math.floor(c.charge / 2);
       if (zone > lit) {
@@ -604,13 +610,17 @@ export class BrainThree extends Brain {
       return;
     }
     const lock = CHARGE_TICKS - LIGHT_END;
+    // (the place he means to hit is fixed here: the pour lifts to it, not to wherever the quarry has gone since)
+    const mark = aimAt();
     for (let t = 0; t < lock; t++) {
       c.setCharge(16 + (t / lock) * 2);
       // (what flies is not given the chance to step aside: his eye keeps after it)
       if (flying && ok()) c.trackTo(aimAt(), 4, 80, 80);
       // a thin line down the path it will take: this is where not to be standing
       if (t % 2 === 0) {
-        const { from, dir } = c.aim();
+        // (his head is down: the line is drawn where the beam will end up, from his mouth to what he means to hit)
+        const { from, dir: d0 } = c.aim();
+        const dir = pour ? norm(sub(aimAt(), from)) : d0;
         particle(c.dim, "basiliskra:beam_aim", from, 128, beamVars(dir, clearRange(c, from, dir, T.range), 0.22 + 0.5 * (t / lock)));
       }
       yield;
@@ -634,7 +644,10 @@ export class BrainThree extends Brain {
     // there, and when his aim moves on, so does the crater
     const st: BeamState = { ground: null };
     const spec: BeamSpec = { ...T, fallout: [0, 3, 4, 5][tier], rough: tier === 1 };
-    for (let t = 0; t < FIRE_FULL + FIRE_FADE; t++) {
+    // the pour: the ground in front of him floods with fire, then the breath narrows and lifts to its mark
+    if (pour) yield* pourAndLift(c, spec, () => mark, st, (hit) => this.scorch(hit));
+    // (the pour is the first three seconds of the shot: it still lasts as long as its recording)
+    for (let t = pour ? POUR.flood + POUR.lift : 0; t < FIRE_FULL + FIRE_FADE; t++) {
       const fade = t < FIRE_FULL ? 1 : 1 - (t - FIRE_FULL) / FIRE_FADE;
       // the focused beam is walked slowly after its quarry; the raw one wanders where it will
       // (never as fast as a player walks sideways at the range he fires from: stepping out of the line still works)

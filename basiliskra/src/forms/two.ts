@@ -9,7 +9,7 @@ import { particle, sound, witnesses } from "../fx";
 import { GAIT_TICKS } from "../generated/rig";
 import { RoarFx } from "../roar";
 import { add, clamp, dist, distXZ, hash, mul, norm, sub, wrapDeg, yawTo, type V3 } from "../vec";
-import { blockAt, furrowOf, idAt, isLoaded, isSolidBlock, isWaterId, takesMark } from "../world";
+import { NONE, UNLOADED, blockAt, furrowOf, idAt, isLoaded, isSolidBlock, isWaterId, shoreFrom, takesMark, waterColumn } from "../world";
 
 /** What a street is lit with: redstone lamps first, and every lantern, bulb and torch a village hangs out. */
 const LAMP = /^minecraft:((lit_)?redstone_lamp|(soul_)?lantern|.*copper_lantern|sea_lantern|glowstone|.*copper_bulb|(soul_|redstone_|copper_)?torch|shroomlight|.*froglight)$/;
@@ -28,6 +28,10 @@ export class BrainTwo extends Brain {
   protected onFinish(): void { this.c.set(PROP.gait, this.gaitStep === 5 ? 5 : 2); }
 
   protected interrupt(): Choice | null {
+    // in the water he swims for land before anything else (1.8: he used to drag along the bed, round the deep water)
+    if (this.now % 10 === 3 && this.actName !== "ashore" && this.actName !== "evolve" && this.ready("ashore") && this.wet()) {
+      return { name: "ashore", run: this.ashore(), limit: 2 * TICKS.minute };
+    }
     if (this.startle && this.actName !== "flinch") {
       const from = this.startle; this.startle = null;
       return { name: "flinch", run: this.flinch(from), limit: 20 * TICKS.second };
@@ -68,6 +72,62 @@ export class BrainTwo extends Brain {
       if (hash(now, 83) < 0.5 && anyoneNear(c, 72)) return { name: "roar", run: this.roar(), limit: 8 * TICKS.second };
     }
     return { name: "wander", run: this.wander(), limit: 90 * TICKS.second };
+  }
+
+  // ---- out of the water ----------------------------------------------------------------------------
+  /** In water deeper than he drags through (afloat, or sunk to the bed): not the shallows of a beach. */
+  private wet(): boolean {
+    const c = this.c;
+    if (c.afloat) return true;
+    const col = waterColumn(c.dim, c.pos.x, c.pos.z, c.pos.y + 3, 6, 40);
+    // (deeper than the 2 blocks he drags through: a beach's shallows are not the sea)
+    return col !== NONE && col !== UNLOADED && col.surface - Math.max(col.floor, c.pos.y) >= 2.6;
+  }
+
+  /**
+   * Newly come out of the change in the sea (or put down in it): he swims for the nearest land, straight there at
+   * the surface, limbs folded back and the tail driving him, and hauls himself out onto it.  Nothing else first.
+   */
+  private *ashore(): Act {
+    const c = this.c;
+    const failed: V3[] = [];
+    let land = shoreFrom(c.dim, c.pos, c.girth + 8, 160);
+    if (!land) { this.rest("ashore", 20 * TICKS.second); yield* wait(40); return; }
+    c.wade = true;
+    c.setPhase("swim");
+    c.say("basiliskra.ii.breath", c.anchor("nose"), 64, 1, 0.9);
+    c.goTo(land.inland, 0.26, 3);
+    let t = 0, out = 0, gain = distXZ(c.pos, land.inland), checked = 0;
+    while (t < 2 * TICKS.minute) {
+      t++;
+      if (t % 6 === 0) {
+        particle(c.dim, "basiliskra:splash", c.anchor("nose"), 64);
+        if (t % 12 === 0) particle(c.dim, "basiliskra:splash", c.anchor("knob_core"), 64);
+      }
+      if (t % 40 === 0) c.say("basiliskra.ii.breath", c.anchor("nose"), 48, 0.8, 0.9);
+      // out of the water by his own length: he is ashore
+      out = this.wet() ? 0 : out + 1;
+      if (out > 20 || c.arrived()) break;
+      // three seconds without getting any nearer (a pier, a reef, a wall in the water): another stretch of shore
+      if (t - checked >= 60) {
+        checked = t;
+        const d = distXZ(c.pos, land.inland);
+        if (d > gain - 1.5) {
+          failed.push(land.edge);
+          const again = shoreFrom(c.dim, c.pos, c.girth + 8, 160, failed);
+          if (again) { land = again; c.goTo(land.inland, 0.26, 3); }
+        }
+        gain = distXZ(c.pos, land.inland);
+      }
+      yield;
+    }
+    c.halt();
+    c.wade = false;
+    // he shakes the sea off and looks about him
+    c.setPhase("idle");
+    c.say("basiliskra.ii.growl", c.anchor("nose"), 96);
+    particle(c.dim, "basiliskra:splash", c.pos, 64);
+    yield* wait(30);
   }
 
   // ---- the dragging gait ------------------------------------------------------------------------

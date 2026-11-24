@@ -41,7 +41,9 @@ PHASE = dict(idle=0, move=1, arrive=2, ram=3, knock=4, rise=5, bite=6, sweep=7, 
              # Basiliskra IV
              stare=29, skid=30, pivot=31, recoil=32, drag=33, swallow=34, carry=35,
              # the Titan (Basiliskra IV's body): it goes down when it is beaten
-             fall=36)
+             fall=36,
+             # 1.8: Form II swimming for the shore; the claw swipe; the breath poured onto the ground before it narrows
+             swim=37, swipe=38, pour=39)
 TAGS = ("i", "ii", "iii", "iv")
 KNOCK_GAP = 0.9          # seconds between the three knocks, everywhere they occur
 GAIT_DUR = (0.8, 1.25, 1.5)     # Form II: reach, pull, rest (seconds)
@@ -65,8 +67,12 @@ STRIDE_IV_MODEL = 7.0
 STRIDE_IV = STRIDE_IV_MODEL * SCALE["iv"]
 BETA_IV = 0.6
 LIFT_IV = 22.0
-# his wings folded: degrees added at the wing root (yaw, roll), the wing's elbow, and each finger
-WING_FOLD = {"root": (-30, -14), "arm": 118, "fingers": (30, 14, 0, -14)}
+# his wings folded: degrees added at the wing root (pitch, yaw, roll), the wing's elbow (yaw, roll), and each finger.
+# 1.8: found by tools/preview/wing_fold_search.cjs against his own trunk, arms, neck and head.  The fold before
+# (root yaw -30, roll -14, elbow 118) carried the wing's forearm forward over the shoulder and down the side of his
+# chest, through his upper arm: the owner saw the wings go through his body.  This one lays the bones over his back,
+# behind it, and hangs the membranes down it.
+WING_FOLD = {"root": (30, -70, -50), "arm": (50, 130), "fingers": (30, 14, 0, -14)}
 
 # share of a look angle taken by each link, eye first (see pre_animation smoothing rates)
 LOOK = {
@@ -277,12 +283,14 @@ def pre_animation():
     weights = {
         "ram": ("ram",), "knockp": ("knock", "wake"), "rise": ("rise",), "bite": ("bite",),
         "sweep": ("sweep",), "jam": ("jam",), "spasmw": ("spasm",), "sleep": ("sleep",), "evolve": ("evolve", "beach"),
-        "drink": ("drink",), "arc": ("arc",), "pin": ("pin",), "chargew": ("charge", "fire", "skid", "pivot"), "fire": ("fire", "skid", "pivot"),
+        "drink": ("drink",), "arc": ("arc",), "pin": ("pin",), "chargew": ("charge", "fire", "skid", "pivot", "pour"), "fire": ("fire", "skid", "pivot", "pour"),
         "vent": ("vent",), "ground": ("grounded",), "scatter": ("scatter",), "roar": ("roar",), "window": ("window", "stalk"),
         "flinch": ("flinch",),
         # Basiliskra IV
         "stare": ("stare",), "skid": ("skid", "pivot"), "pivot": ("pivot",), "recoil": ("recoil",), "drag": ("drag",),
         "shut": ("swallow", "carry"), "fall": ("fall",),
+        # 1.8
+        "swim": ("swim",), "swipe": ("swipe",), "pour": ("pour",),
     }
     for name, phases in weights.items():
         rate = "v.k4" if name == "window" else "v.k2"        # the head comes down to the window slowly
@@ -376,11 +384,12 @@ def pose_ii(rig):
     for s, c in (("l", "v.c"), ("r", "v.cr")):
         sgn = 1 if s == "l" else -1
         lift = f"(({c} < 1) ? math.sin({c} * 180) : 0)"
-        p.rot(f"arm_{s}", x=f"{pl(c, arm)}" + (" - 58 * v.w_pin" if s == "l" else ""), z=f"{sgn} * 5 * {lift}")
-        p.rot(f"forearm_{s}", x=f"{pl(c, fore)} - 12 * {lift}" + (" + 40 * v.w_pin" if s == "l" else ""))
-        p.rot(f"claw_{s}", x=f"-({pl(c, arm)}) - ({pl(c, fore)}) + 14 * {lift}" + (" + 22 * v.w_pin" if s == "l" else ""))
+        # swimming (1.8): the arms fold back along his flanks and the tail drives him
+        p.rot(f"arm_{s}", x=f"{pl(c, arm)} * (1 - v.w_swim) - 62 * v.w_swim" + (" - 58 * v.w_pin" if s == "l" else ""), z=f"{sgn} * (5 * {lift} * (1 - v.w_swim) - 8 * v.w_swim)")
+        p.rot(f"forearm_{s}", x=f"({pl(c, fore)} - 12 * {lift}) * (1 - v.w_swim) + 28 * v.w_swim" + (" + 40 * v.w_pin" if s == "l" else ""))
+        p.rot(f"claw_{s}", x=f"(-({pl(c, arm)}) - ({pl(c, fore)}) + 14 * {lift}) * (1 - v.w_swim) + 30 * v.w_swim" + (" + 22 * v.w_pin" if s == "l" else ""))
         p.pos(f"arm_{s}", y=f"5 * {lift}")
-        p.rot(f"leg_{s}", y=f"{sgn} * 9 * math.sin(v.c * 60)")
+        p.rot(f"leg_{s}", y=f"{sgn} * 9 * math.sin(v.c * 60) * (1 - v.w_swim) + {sgn} * 18 * v.w_swim * math.sin(q.life_time * 260 + {0 if s == 'l' else 180})")
         p.rot(f"foot_{s}", y=f"{sgn} * 7 * math.sin(v.c * 60 - 50)")
         p.pos(f"eye_{s}", z="-v.eye_lead")
         for i in (1, 2, 3):
@@ -391,18 +400,19 @@ def pose_ii(rig):
     p.pos("body", y="-2.6 * v.resting + 1.2 * v.pulling")
     p.rot("chest", x=f"-1.3 * v.breath + 3 * v.pulling + v.lp_neck * {L['pitch']['chest']} + 6 * v.w_drink - 8 * v.w_evolve - 4 * v.w_roar"
                      f" + 1.8 * v.w_evolve * {SHUDDER(1000)}",
-          y=f"v.ly_chest * {L['yaw']['chest']}", z=f"1.5 * v.w_evolve * {SHUDDER(1250, 2)}")
-    p.rot("neck", x=f"0.9 * v.breath + v.lp_neck * {L['pitch']['neck']} + 22 * v.w_drink - 9 * v.w_roar - 13 * v.w_flinch", y=f"v.ly_neck * {L['yaw']['neck']}")
-    p.rot("head", x=f"v.lp_head * {L['pitch']['head']} + 16 * v.w_drink - 12 * v.w_roar - 9 * v.w_flinch - 8 * v.w_bite * math.clamp(1 - math.abs(v.pt - 0.22) * 6, 0, 1)",
+          y=f"v.ly_chest * {L['yaw']['chest']} + 7 * v.w_swim * math.sin(q.life_time * 230)", z=f"1.5 * v.w_evolve * {SHUDDER(1250, 2)}")
+    p.rot("neck", x=f"0.9 * v.breath + v.lp_neck * {L['pitch']['neck']} + 22 * v.w_drink - 9 * v.w_roar - 13 * v.w_flinch - 7 * v.w_swim", y=f"v.ly_neck * {L['yaw']['neck']} - 5 * v.w_swim * math.sin(q.life_time * 230 + 40)")
+    p.rot("head", x=f"v.lp_head * {L['pitch']['head']} + 16 * v.w_drink - 12 * v.w_roar - 9 * v.w_flinch - 8 * v.w_swim - 8 * v.w_bite * math.clamp(1 - math.abs(v.pt - 0.22) * 6, 0, 1)",
           y=f"v.ly_head * {L['yaw']['head']}")
     p.rot("jaw", x="2.5 * v.breath + (5 + 4 * math.sin(q.life_time * 520)) * v.w_drink + 5 * v.w_roar + v.vjaw + 23 * v.roar_env"
                    " + 30 * v.w_bite * math.clamp(1 - math.abs(v.pt - 0.22) * 6, 0, 1) + 9 * v.w_evolve")
-    p.rot("mid", y="-v.bend * 0.5", x="-1.5 * v.pulling")
+    p.rot("mid", y="-v.bend * 0.5 - 6 * v.w_swim * math.sin(q.life_time * 230 - 60)", x="-1.5 * v.pulling")
     # the pelvis lags the chest and catches up while he rests
     p.pos("hips", z="5 * v.pulling")
-    p.rot("hips", y="-v.bend * 0.8")
+    p.rot("hips", y="-v.bend * 0.8 + 9 * v.w_swim * math.sin(q.life_time * 230 - 120)")
     for i in range(1, 7):
-        p.rot(f"tail{i}", y=f"-v.ts * {0.5 + 0.1 * i:.1f} + 2 * math.sin(q.life_time * 40 - {i * 40}) + {2.5 * i} * v.w_arc * math.sin(v.pt * 300 - {i * 25})",
+        p.rot(f"tail{i}", y=f"-v.ts * {0.5 + 0.1 * i:.1f} + 2 * math.sin(q.life_time * 40 - {i * 40}) + {2.5 * i} * v.w_arc * math.sin(v.pt * 300 - {i * 25})"
+                            f" + {5 + 2.5 * i:.1f} * v.w_swim * math.sin(q.life_time * 230 - {i * 40 + 160})",
               x=f"1.2 * v.w_arc * {i}")
     p.rot("knob", z="6 * v.w_arc * math.sin(v.pt * 600)")
     for b in ("plates_chest", "plates_mid", "plates_hips", "plates_neck"):
@@ -471,7 +481,8 @@ def pose_iii(rig):
           x=f"v.lp_head * {L['pitch']['head']} - 4 * v.w_chargew - 24 * v.w_roar + 1.4 * v.roar_env * {SHUDDER(2100, 2)} - 1.5 * v.voice + 14 * v.w_ground + 1.2 * v.w_fire * {SHUDDER(2400)} + {WINDOW_HEAD[0]} * v.w_window",
           z=f"{WINDOW_HEAD[2]} * v.w_window")
     p.pos("head", z=f"1.6 * v.w_fire * {SHUDDER(2700, 1)}", y="2.2 * v.knock")
-    p.rot("jaw", x=f"2.2 * v.breath + v.w_chargew * v.charge * 0.9 + 16 * v.w_fire + 5 * v.w_roar + v.vjaw + 27 * v.roar_env * (1 + 0.05 * {SHUDDER(2900)}) + 6 * v.w_vent + 8 * v.w_ground")
+    # (the pour, 1.8: the jaw opens wider still while the breath floods the ground)
+    p.rot("jaw", x=f"2.2 * v.breath + v.w_chargew * v.charge * 0.9 + 16 * v.w_fire + 8 * v.w_pour + 5 * v.w_roar + v.vjaw + 27 * v.roar_env * (1 + 0.05 * {SHUDDER(2900)}) + 6 * v.w_vent + 8 * v.w_ground")
     for tag in ("fl", "fr", "bl", "br"):
         front = tag[0] == "f"
         rest = leg_iii(rig, tag)[2]
@@ -519,6 +530,11 @@ def pose_iv(rig):
         # the tail (phase `sweep`): it winds away from the side his head has turned to, then lashes round to that side
         f"v.sw_side = (v.pt < 0.15) ? (({P('look_yaw')} >= 0) ? 1 : -1) : v.sw_side;",
         f"v.sw_c = {pl('v.pt', [(0, 0), (0.5, -0.45), (0.72, 1), (1.15, 1), (1.65, 0)])};",
+        # the claw swipe (phase `swipe`, 1.8): the hand on the side his head turned to goes up and out, then tears
+        # across in front of him (the server strikes at 0.6 s)
+        f"v.sp_side = (v.pt < 0.12) ? (({P('look_yaw')} >= 0) ? 1 : -1) : v.sp_side;",
+        f"v.sp_wind = {pl('v.pt', [(0, 0), (0.42, 1), (0.52, 0.7), (0.62, 0)])};",
+        f"v.sp_hit = {pl('v.pt', [(0.42, 0), (0.62, 1), (0.85, 0.85), (1.25, 0)])};",
         # going down (phase `fall`): onto his knees, his head sinking, in a little over two seconds
         "v.fa = math.clamp(v.pt / 2.2, 0, 1);",
         "v.fa2 = v.w_fall * v.fa * v.fa * (3 - 2 * v.fa);",
@@ -553,7 +569,8 @@ def pose_iv(rig):
     p.rot("body", x=f"v.pitch - 3 * v.w_roar - 6 * v.w_skid + 1.2 * v.w_ground * {SHUDDER(1400)}",
           z=f"1.4 * v.walk * math.cos(v.wp4 - 108) + 2.5 * v.w_fall * (1 - v.fa) * {SHUDDER(1300)}")
     # he bends at the waist, so his feet stay where they are
-    p.rot("chest", y=f"v.ly_chest * {L['yaw']['chest']} + 3 * v.walk * math.sin(v.wp4 - 108) + 14 * v.w_sweep * v.sw_side * math.max(v.sw_c, 0)",
+    p.rot("chest", y=f"v.ly_chest * {L['yaw']['chest']} + 3 * v.walk * math.sin(v.wp4 - 108) + 14 * v.w_sweep * v.sw_side * math.max(v.sw_c, 0)"
+                     f" + 16 * v.w_swipe * v.sp_side * (0.7 * v.sp_wind - v.sp_hit)",
           x=f"v.lp_neck * {L['pitch']['chest']} - 1.2 * v.breath + 3 * v.walk - 2 * v.w_fire - 4 * v.w_roar - 6 * v.w_recoil + 5 * v.w_stare"
             f" + 40 * v.w_drag * v.dr_reach - 10 * v.w_drag * v.dr_haul + v.w_bite * (30 * v.st_hit - 9 * v.st_wind) + 42 * v.fa2")
     for i in (1, 2):
@@ -566,7 +583,7 @@ def pose_iv(rig):
             f" + v.w_bite * (5 * v.st_hit - 10 * v.st_wind) + 16 * v.fa2")
     p.pos("head", z=f"1.6 * v.w_fire * {SHUDDER(2700, 1)}")
     # the jaw: open to charge and fire, wide and shaking when the shot fails, clamped shut on a swallowed charge
-    p.rot("jaw", x=f"2.2 * v.breath * (1 - v.w_shut) + v.w_chargew * v.charge * 0.8 + 14 * v.w_fire + 5 * v.w_roar + v.vjaw + 26 * v.roar_env * (1 + 0.05 * {SHUDDER(2900)})"
+    p.rot("jaw", x=f"2.2 * v.breath * (1 - v.w_shut) + v.w_chargew * v.charge * 0.8 + 14 * v.w_fire + 8 * v.w_pour + 5 * v.w_roar + v.vjaw + 26 * v.roar_env * (1 + 0.05 * {SHUDDER(2900)})"
                    f" + 6 * v.w_vent + 8 * v.w_ground + 24 * v.w_recoil * (1 + 0.08 * {SHUDDER(1700)}) - 11 * v.w_shut"
                    f" + v.w_bite * (24 * v.st_wind + 3 * v.st_hit) + 10 * v.w_fall")
     for tag, sgn in (("l", 1), ("r", -1)):
@@ -578,15 +595,19 @@ def pose_iv(rig):
         # arms swing against the legs; reach for the seabed and haul it in; brace for the breath; fly out on the recoil
         # (the lunge: the right hand is drawn back and thrown forward; the left comes up after it)
         swipe = "v.w_bite * (24 * v.st_wind - 72 * v.st_hit)" if tag == "r" else "v.w_bite * (-34 * v.st_hit)"
-        p.rot(f"arm_{tag}", x=f"{sgn} * 8 * v.walk * math.cos(v.wp4) + 6 * v.w_chargew + 10 * v.w_recoil - 62 * v.w_drag * v.dr_reach + 24 * v.w_drag * v.dr_haul + {swipe} + 16 * v.fa2",
-              z=f"{-sgn} * (8 * v.w_roar + 14 * v.w_recoil + 4 * v.w_drag * v.dr_reach + 10 * v.w_bite * v.st_wind + 7 * v.fa2)")
-        p.rot(f"forearm_{tag}", x="40 * v.w_drag * v.dr_reach - 44 * v.w_drag * v.dr_haul - 6 * v.w_roar + 22 * v.w_bite * v.st_hit")
-        p.rot(f"hand_{tag}", x="-12 * v.w_drag * v.dr_reach")
+        # (the claw swipe: this hand if it is on the side he swipes at; the other one braces)
+        mine = f"v.w_swipe * ((v.sp_side == {sgn}) ? 1 : 0)"
+        other = f"v.w_swipe * ((v.sp_side == {sgn}) ? 0 : 1)"
+        p.rot(f"arm_{tag}", x=f"{sgn} * 8 * v.walk * math.cos(v.wp4) + 6 * v.w_chargew + 10 * v.w_recoil - 62 * v.w_drag * v.dr_reach + 24 * v.w_drag * v.dr_haul + {swipe} + 16 * v.fa2"
+                              f" + {mine} * (-150 * v.sp_wind - 58 * v.sp_hit) + {other} * (-14 * v.sp_hit)",
+              z=f"{-sgn} * (8 * v.w_roar + 14 * v.w_recoil + 4 * v.w_drag * v.dr_reach + 10 * v.w_bite * v.st_wind + 7 * v.fa2 + {mine} * (44 * v.sp_wind - 34 * v.sp_hit) + 6 * {other})")
+        p.rot(f"forearm_{tag}", x=f"40 * v.w_drag * v.dr_reach - 44 * v.w_drag * v.dr_haul - 6 * v.w_roar + 22 * v.w_bite * v.st_hit + {mine} * (22 * v.sp_wind - 6 * v.sp_hit)")
+        p.rot(f"hand_{tag}", x=f"-12 * v.w_drag * v.dr_reach + {mine} * (-24 * v.sp_wind + 18 * v.sp_hit)")
         # the wings
-        ry, rz = WING_FOLD["root"]
-        p.rot(f"wing_{tag}", y=f"{sgn * ry} * v.fold",
+        rx, ry, rz = WING_FOLD["root"]
+        p.rot(f"wing_{tag}", x=f"{rx} * v.fold", y=f"{sgn * ry} * v.fold",
               z=f"{sgn * rz} * v.fold + {sgn} * 2.5 * v.wo * math.sin(q.life_time * 170) * (v.w_recoil + v.w_roar) + {sgn} * 1.2 * v.breath * v.fold")
-        p.rot(f"wing_{tag}_arm", z=f"{sgn * WING_FOLD['arm']} * v.fold")
+        p.rot(f"wing_{tag}_arm", y=f"{sgn * WING_FOLD['arm'][0]} * v.fold", z=f"{sgn * WING_FOLD['arm'][1]} * v.fold")
         for i, a in enumerate(WING_FOLD["fingers"], start=1):
             p.rot(f"wing_{tag}_f{i}", z=f"{sgn * a} * v.fold + {sgn} * {1.5 * i} * v.w_recoil * {SHUDDER(1500, i)}")
         for i in (1, 2, 3):
@@ -688,7 +709,7 @@ def particle_controller(tag):
         scatter = [("plate_ember", f"plate_tip_{k}") for k in range(10)]
         idle = [("club_crackle", "spike_tip_1"), ("club_crackle", "spike_tip_4"), ("club_crackle", "spike_tip_11")] + rad((2, 6))
         states = {"idle": idle, "charge": charge, "fire": fire, "vent": vent, "grounded": ground, "scatter": scatter, "roar": roar}
-        cond = {"charge": ph("charge"), "fire": ph("fire"), "vent": ph("vent"), "grounded": ph("grounded"), "scatter": ph("scatter"), "roar": ph("roar")}
+        cond = {"charge": ph("charge"), "fire": ph("fire", "pour"), "vent": ph("vent"), "grounded": ph("grounded"), "scatter": ph("scatter"), "roar": ph("roar")}
     elif tag == "iv":
         tips = range(7)
         rad = lambda ks: [("rad_drift", f"plate_tip_{k}") for k in ks]
@@ -707,7 +728,7 @@ def particle_controller(tag):
         ground = [("club_arc", "spike_tip_0"), ("club_arc", "spike_tip_3"), ("club_arc", "spike_tip_8")]
         idle = [("club_crackle", "spike_tip_1"), ("club_crackle", "spike_tip_4"), ("club_crackle", "spike_tip_11")] + rad((1, 3, 5))
         states = {"idle": idle, "charge": charge, "fire": fire, "vent": vent, "grounded": ground, "roar": roar, "recoil": recoil, "carry": carry, "pivot": pivot}
-        cond = {"charge": ph("charge"), "fire": ph("fire", "skid"), "vent": ph("vent"), "grounded": ph("grounded"), "roar": ph("roar"), "recoil": ph("recoil"),
+        cond = {"charge": ph("charge"), "fire": ph("fire", "skid", "pour"), "vent": ph("vent"), "grounded": ph("grounded"), "roar": ph("roar"), "recoil": ph("recoil"),
                 "carry": ph("swallow", "carry"), "pivot": ph("pivot")}
     elif tag == "ii":
         idle = [("horn_arc", "horn_l")]

@@ -38,6 +38,8 @@ export interface FilmOptions {
   facing?: () => number;
   /** Hide the hotbar and the rest of the HUD while it plays. */
   cinema?: boolean;
+  /** Title cards (a chapter heading, say): shown to every watcher `at` ticks into the film. */
+  cards?: { at: number; title: string; sub?: string; stay?: number }[];
 }
 
 /**
@@ -52,6 +54,10 @@ export interface Shot {
   dist: number | [number, number];
   height: number | [number, number];
   look?: () => V3;
+  /** The cut into this shot dips through a colour for a moment (else the usual blink of black). */
+  dip?: { red: number; green: number; blue: number; hold?: number };
+  /** A shot given one angle or one distance is not held dead still: it drifts a few degrees and creeps in (1.8). Set false to hold it. */
+  still?: boolean;
 }
 const span = (v: number | [number, number], k: number): number => (typeof v === "number" ? v : v[0] + (v[1] - v[0]) * k);
 
@@ -91,16 +97,16 @@ class Film {
     return best;
   }
 
-  /** The shot that is playing, and how far through it the film is (0..1). */
-  private shot(): { s: Shot; k: number; first: boolean } | null {
+  /** The shot that is playing, which it is, and how far through it the film is (0..1). */
+  private shot(): { s: Shot; k: number; first: boolean; i: number } | null {
     const shots = this.o.shots;
     if (!shots || !shots.length) return null;
-    let t = this.t;
+    let t = this.t, i = 0;
     for (const s of shots) {
-      if (t < s.ticks) return { s, k: t / Math.max(1, s.ticks - 1), first: t < 2 };
-      t -= s.ticks;
+      if (t < s.ticks) return { s, k: t / Math.max(1, s.ticks - 1), first: t < 2, i };
+      t -= s.ticks; i++;
     }
-    return { s: shots[shots.length - 1], k: 1, first: false };
+    return { s: shots[shots.length - 1], k: 1, first: false, i: shots.length - 1 };
   }
 
   private aimShot(): void {
@@ -110,8 +116,12 @@ class Film {
     const k = cur.k * cur.k * (3 - 2 * cur.k);                                   // ease in and out of every move
     let look: V3;
     try { look = (s.look ?? this.focus)(); } catch { look = this.focus(); }
-    const f = forwardOf((this.o.facing?.() ?? 0) + span(s.angle, k));
-    const d = span(s.dist, k);
+    // nothing is held dead still: a shot given one angle drifts a few degrees (one way, then the other, shot by
+    // shot), and one given one distance creeps in on him
+    const drift = s.still !== false && typeof s.angle === "number" ? (cur.i % 2 ? 1 : -1) * 7 * (cur.k - 0.5) : 0;
+    const creep = s.still !== false && typeof s.dist === "number" ? 1 - 0.08 * cur.k : 1;
+    const f = forwardOf((this.o.facing?.() ?? 0) + span(s.angle, k) + drift);
+    const d = span(s.dist, k) * creep;
     const at = this.stand({ x: look.x + f.x * d, y: look.y + span(s.height, k), z: look.z + f.z * d }, look);
     if (!at) return;
     for (const { p } of this.cast) {
@@ -119,7 +129,8 @@ class Film {
         if (!p.isValid || p.dimension.id !== this.dim.id) continue;
         // a new shot is a cut: no easing across it, and a blink of black so that it reads as one
         if (first) {
-          if (this.t > 1) p.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0, holdTime: 0.05, fadeOutTime: 0.2 } });
+          if (this.t > 1 && s.dip) p.camera.fade({ fadeColor: { red: s.dip.red, green: s.dip.green, blue: s.dip.blue }, fadeTime: { fadeInTime: 0.05, holdTime: s.dip.hold ?? 0.2, fadeOutTime: 0.45 } });
+          else if (this.t > 1) p.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0, holdTime: 0.05, fadeOutTime: 0.2 } });
           p.camera.setCamera("minecraft:free", { location: at, facingLocation: look });
         } else p.camera.setCamera("minecraft:free", { location: at, facingLocation: look, easeOptions: { easeTime: 0.15, easeType: EasingType.Linear } });
       } catch { /* this watcher has gone, or the engine refused the camera: the others still see it */ }
@@ -152,6 +163,12 @@ class Film {
     if (this.done) return;
     this.t++;
     if (this.t >= this.o.ticks) { this.cut(); return; }
+    for (const card of this.o.cards ?? []) {
+      if (card.at !== this.t) continue;
+      for (const { p } of this.cast) {
+        try { p.onScreenDisplay.setTitle(card.title, { subtitle: card.sub, fadeInDuration: 10, stayDuration: card.stay ?? 50, fadeOutDuration: 16 }); } catch { /* left */ }
+      }
+    }
     if (this.t % 2 === 0 || this.o.shots) this.aim();
   }
 

@@ -99,6 +99,8 @@ export const PHASE = {
   stare: 29, skid: 30, pivot: 31, recoil: 32, drag: 33, swallow: 34, carry: 35,
   // the Titan
   fall: 36,
+  // 1.8: Form II swimming for the shore; the claw swipe (IV and the Titan); the breath poured onto the ground before it narrows
+  swim: 37, swipe: 38, pour: 39,
 } as const;
 export type PhaseName = keyof typeof PHASE;
 

@@ -894,8 +894,8 @@ console.log('\n== 15. Bigger, louder, out of control (1.3)');
     const at = (ph) => (phases.find(([p]) => p === ph) ?? [0, -1])[1];
     const heard = (id) => (a.heard.find((q) => q.id === id && q.tick >= t0) ?? { tick: -1 }).tick - t0;
     const chargeAt = heard('basiliskra.iii.charge'), beamAt = heard('basiliskra.iii.beam');
-    check('the charge lasts as long as the charging part of the recording (6.85 s), and he fires on the tick the shot begins', chargeAt >= 0 && beamAt - chargeAt === 137 && Math.abs(at(19) - beamAt) <= 1, `charge sound ${chargeAt}, beam sound ${beamAt}, fire phase ${at(19)}`);
-    check('he fires for as long as the shot sounds (about 7.7 s), then vents', at(20) - at(19) === 155, JSON.stringify(phases));
+    check('the charge lasts as long as the charging part of the recording (6.85 s), and he fires on the tick the shot begins (with the pour, 1.8)', chargeAt >= 0 && beamAt - chargeAt === 137 && Math.abs(at(39) - beamAt) <= 1 && at(19) - at(39) === 36, `charge sound ${chargeAt}, beam sound ${beamAt}, pour ${at(39)}, beam ${at(19)}`);
+    check('he fires for as long as the shot sounds (about 7.7 s, the pour and the lift among it), then vents', at(20) - at(39) === 155, JSON.stringify(phases));
     check('and after firing he roars', at(23) > at(20) && a.heard.some((q) => q.tick > t0 + at(20) && /basiliskra\.roar/.test(q.id)));
     check('the beam is wider, smokes and glows, and blasts where it lands', a.seen.some((q) => q.id === 'basiliskra:beam_glow') && a.seen.some((q) => q.id === 'basiliskra:beam_smoke') && a.seen.some((q) => q.id === 'basiliskra:impact_smoke') && a.seen.some((q) => q.id === 'minecraft:huge_explosion_emitter'));
     const ground = []; for (let x = 20; x <= 90; x++) for (let z = -100; z <= -60; z++) for (let y = 50; y <= 63; y++) if (w.sim.blockId('minecraft:overworld', x, y, z) === 'minecraft:air') ground.push([x, y, z]);
@@ -2132,8 +2132,11 @@ console.log('\n== 23. Three changes, three scenes');
   check('no two are alike: what he does, how long it takes, and how it is cut', new Set([A, B, C].map((s) => s.phases.join(' '))).size === 3 && new Set([A.ticks, B.ticks, C.ticks]).size === 3
     && A.ticks < B.ticks && B.ticks < C.ticks, `${A.ticks}, ${B.ticks} and ${C.ticks} ticks; ${A.cuts}, ${B.cuts} and ${C.cuts} cuts while he changes`);
   check('each is cut into shots, with him filling the picture', A.cuts >= 4 && B.cuts >= 5 && C.cuts >= 5 && A.far > 4 && A.far <= 30 && B.far <= 40 && C.far <= 50, `furthest the camera stands: ${A.far.toFixed(0)}, ${B.far.toFixed(0)}, ${C.far.toFixed(0)} blocks`);
-  check('each puts the HUD away and gives it back with the player\'s own eyes, and shows his new name', [A, B, C].every((s) => s.hid && s.hudAfter === 'shown' && !s.held) && /BASILISKRA II$/.test(A.op.titles[0]?.title ?? '') && /BASILISKRA III$/.test(B.op.titles[0]?.title ?? ''),
-    [A, B, C].map((s) => `${s.hid}/${s.hudAfter}/${s.held}/${s.op.titles[0]?.title}`).join(' '));
+  check('each puts the HUD away and gives it back with the player\'s own eyes, and shows his new name', [A, B, C].every((s) => s.hid && s.hudAfter === 'shown' && !s.held) && A.op.titles.some((q) => /BASILISKRA II$/.test(q.title)) && B.op.titles.some((q) => /BASILISKRA III$/.test(q.title)),
+    [A, B, C].map((s) => `${s.hid}/${s.hudAfter}/${s.held}/${s.op.titles.map((q) => q.title).join('|')}`).join(' '));
+  check('each opens on a chapter heading over its establishing shot (1.8): the water boils, the sky comes down, he burns through',
+    [[A, /water boils/], [B, /sky comes down/], [C, /burns through/]].every(([s, re]) => s.op.titles.some((q) => re.test(q.title) && q.tick - s.t0 < 20 && /→/.test(q.subtitle))),
+    [A, B, C].map((s) => s.op.titles[0]?.title).join(' | '));
   check('nobody standing near is hurt by any of them', A.hurt === 0 && B.hurt === 0 && C.hurt === 0, `${A.hurt}, ${B.hurt}, ${C.hurt} blows`);
   check('each still lights all of him at its height', A.maxCharge === 20 && B.maxCharge === 20 && C.maxCharge === 20);
 }
@@ -2274,6 +2277,122 @@ console.log('\n== 24. The breath from the mouth, the gun, the walk, the aim, the
     check('called back as Basiliskra III by the sea, the rift opens out in the water, and none of it stands in a block', /out of the water/.test(msg) && !!a && a.water.z < -4 && solid === 0, `${msg} (z ${a?.water.z}, ${solid} solid)`);
     const took = until(w, () => w.bk.store.rec.stage === 'alive', 2500);
     check('he wades ashore through it', took > 0 && w.bk.ctl.creature && w.bk.ctl.creature.pos.z > a.water.z + 10, w.bk.ctl.creature ? `at z ${w.bk.ctl.creature.pos.z.toFixed(0)}` : 'not here');
+  }
+}
+
+console.log('\n== 25. Out of the water, the breath poured, the wings, the claws (1.8)');
+{
+  // ---- Basiliskra II in the sea swims straight for the land and hauls out onto it ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.bay; open(w);
+    const op = w.sim.addPlayer('Op', { x: 0, y: 64, z: 0 }); op.mode = 'Creative';
+    w.bk.ctl.bringHere({ x: 0, y: 63, z: 70 }, 0, 2); w.sim.step(3);
+    const c = w.bk.ctl.creature;
+    const start0 = { ...c.pos };
+    let swam = false, out = -1, far = 0;
+    for (let i = 0; i < 1800 && out < 0; i++) {
+      w.sim.step(1);
+      if (c.entity.getProperty(P('phase')) === 37) swam = true;
+      far = Math.max(far, Math.abs(c.pos.x - start0.x));
+      if (w.bk.ctl.brain.actName !== 'ashore' && swam) out = i + 1;
+    }
+    const z0 = 18 + 4 * Math.sin(c.pos.x / 17) + 2 * Math.sin(c.pos.x / 5.3);              // the bay's shore at his x
+    check('put down as Basiliskra II in the sea, he swims (his own swimming pose) and does not wander the bed first', swam && w.bk.ctl.brain.actName !== 'ashore', `${out} ticks`);
+    check('straight for the nearest land: out of the water and up the beach in under a minute', out > 0 && out < 1200 && c.pos.z < z0 + 4 && far < 20, `ashore at z ${c.pos.z.toFixed(0)} (shore ${z0.toFixed(0)}) after ${(out / 20).toFixed(0)} s, ${far.toFixed(0)} blocks off his line at most`);
+    w.sim.step(600);
+    check('and once out he stays on land', c.pos.z < z0 + 6, `z ${c.pos.z.toFixed(0)} half a minute later`);
+  }
+  // ---- the breath: head down to the ground while it charges, poured onto it, then narrowed and lifted ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const a = w.sim.addPlayer('Ana', { x: 70, y: 64, z: -80 }); a.health = 1e6;
+    const c = standThree(w, { x: 0, y: 64, z: -80 }, -90, 3);
+    w.sim.step(5);
+    w.bk.ctl.brain.forced = { name: 'beam', run: w.bk.ctl.brain.beam(a), limit: 2000 };
+    let down = -99, phases = [], last = -1;
+    for (let i = 0; i < 420; i++) {
+      w.sim.step(1);
+      const ph = c.entity.getProperty(P('phase'));
+      if (ph === 18) down = Math.max(down, c.lookPitch);                 // (a look pitch above 0 is down)
+      if (ph !== last) { phases.push(ph); last = ph; }
+    }
+    check('while the breath gathers his head goes down to the ground in front of him (he looks at it, not at you)', down > 15, `head ${down.toFixed(0)} degrees down`);
+    check('the shot begins poured, then narrows into the beam: phases charge, pour, fire, vent', phases.join(' ').includes('18 39 19 20'), phases.join(' '));
+    check('the pour floods the ground with fire: rolling fire, smoke and embers', ['flood_fire', 'flood_smoke', 'flood_ember'].every((k) => a.seen.some((q) => q.id === 'basiliskra:' + k)));
+    let fire = 0; for (let x = 10; x <= 80; x++) for (let z = -110; z <= -50; z++) for (let y = 60; y <= 66; y++) if (w.sim.blockId('minecraft:overworld', x, y, z) === 'minecraft:fire') fire++;
+    check('and what will burn in front of him catches', fire >= 3, `${fire} fires`);
+    const hits = a.seen.filter((q) => q.id === 'basiliskra:beam_core');
+    check('the beam is drawn wide while it narrows, then at its own width', hits.length > 10 && Math.max(...hits.map((q) => q.vars['variable.width'])) > 1.6 * Math.min(...hits.map((q) => q.vars['variable.width'])));
+  }
+  // ---- Basiliskra IV and the Titan pour their breath too ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    w.sim.addPlayer('Watch', { x: 0, y: 64, z: 40 }).mode = 'Creative';
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 4); w.sim.step(3);
+    w.bk.store.rec.four = { debut: true, shots: 0, plate: { x: 900, y: 0, z: 900, uses: 0, burnt: false } };
+    const c = w.bk.ctl.creature;
+    const cow = w.sim.summon('minecraft:cow', 'minecraft:overworld', { x: 0, y: 64, z: 75 }); cow.rec.family = ['mob'];
+    w.bk.ctl.brain.forced = { name: 'beam', run: w.bk.ctl.brain.breath(cow), limit: 4000 };
+    let down = -99, poured = false;
+    for (let i = 0; i < 400; i++) { w.sim.step(1); if (c.phase === 'charge') down = Math.max(down, c.lookPitch); if (c.phase === 'pour') poured = true; }
+    check('Basiliskra IV looks down at the ground as he charges, and pours his breath onto it', down > 15 && poured, `head ${down.toFixed(0)} degrees down`);
+  }
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    w.sim.addPlayer('Watch', { x: 0, y: 64, z: 40 }).mode = 'Creative';
+    const T = w.bk.titan.titans;
+    T.spawn(w.sim.dims.get('minecraft:overworld'), { x: 0, y: 64, z: 0 }, 0); w.sim.step(2);
+    const t = T.creatures()[0], b = T.list.get(t.entity.id).brain;
+    const pig = w.sim.summon('minecraft:pig', 'minecraft:overworld', { x: 0, y: 64, z: 80 }); pig.rec.family = ['mob'];
+    b.forced = { name: 'beam', run: b.breath(pig), limit: 4000 };
+    let tPoured = false; for (let i = 0; i < 400; i++) { w.sim.step(1); if (t.phase === 'pour') tPoured = true; }
+    check('so does the Titan', tPoured);
+  }
+  // ---- the wings folded: behind his back, not through his shoulder ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    w.sim.addPlayer('Watch', { x: 0, y: 64, z: -80 }).mode = 'Creative';
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 4); w.sim.step(3);
+    const c = w.bk.ctl.creature;
+    c.setPhase('idle');
+    const chest = c.point('chest', [0, 300, 0]), f = c.forward;
+    const ahead = (q) => (q.x - chest.x) * f.x + (q.z - chest.z) * f.z;
+    const tips = ['wing_tip_l', 'wing_tip_r'].map((k) => c.anchor(k));
+    check('his wings fold behind him: the wing claws are behind his back, not in front of his chest (the 1.7 fold ran them through his shoulders)',
+      tips.every((q) => ahead(q) < -2), tips.map((q) => ahead(q).toFixed(1)).join(', ') + ' blocks ahead of his chest');
+  }
+  // ---- the claws ----
+  {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    w.bk.CONFIG.terrain = 'wither';
+    w.sim.addPlayer('Watch', { x: 0, y: 64, z: -70 }).mode = 'Creative';
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 4); w.sim.step(3);
+    w.bk.store.rec.four = { debut: true, shots: 0, plate: null };
+    w.bk.ctl.brain.finish();                                             // (his entrance is not what this is about)
+    const c = w.bk.ctl.creature;
+    const f = c.forward;
+    const p = w.sim.addPlayer('Near', { x: f.x * (c.girth + 9), y: 64, z: f.z * (c.girth + 9) }); p.health = 1000;
+    const before = w.sim.save.edits.size;
+    let swiped = -1, side = 0;
+    for (let i = 0; i < 400 && swiped < 0; i++) { w.sim.step(1); if (c.phase === 'swipe') { swiped = i; side = c.entity.getProperty(P('look_yaw')); } }
+    w.sim.step(30);
+    const marks = p.seen.filter((q) => q.id === 'basiliskra:claw_scratch');
+    check('something within reach in front of Basiliskra IV: he swipes at it with his claws', swiped >= 0, `after ${swiped} ticks`);
+    check('three great claw marks hang in the air where his claws went, as big as his hand', marks.length === 3 && marks.every((q) => q.vars['variable.width'] >= 8), marks.map((q) => q.vars['variable.width']?.toFixed(1)).join(', '));
+    check('it strikes and throws whoever it catches', p.health < 1000, `${1000 - p.health} lost`);
+    check('and tears three gouges in the ground', w.sim.save.edits.size - before > 20, `${w.sim.save.edits.size - before} blocks changed`);
+  }
+  {
+    // two Titans, toe to toe: their claws are among their blows
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const eye = w.sim.addPlayer('Eye', { x: 40, y: 64, z: 0 }); eye.mode = 'Creative';
+    const T = w.bk.titan.titans, dim = w.sim.dims.get('minecraft:overworld');
+    T.spawn(dim, { x: 0, y: 64, z: -30 }, 0); T.spawn(dim, { x: 0, y: 64, z: 30 }, 180); w.sim.step(2);
+    const ids = T.creatures().map((t) => t.entity.id);
+    let swipes = 0;
+    for (let i = 0; i < 4000 && T.count === 2; i++) { w.sim.step(1); for (const t of T.list.values()) if (t.brain.actName === 'swipe' && t.c.phase === 'swipe' && t.c.entity.getProperty(P('phase')) === 38) swipes++; }
+    const clawed = w.sim.log.damage.filter((d) => ids.includes(d.id) && d.amount === w.bk.titan.BLOW.swipe).length;
+    check('two Titans at arm\'s length swipe at each other: each swipe a heavy blow (2,500) and the marks it leaves', swipes > 0 && clawed > 0 && eye.seen.some((q) => q.id === 'basiliskra:claw_scratch'), `${clawed} claw blows landed`);
   }
 }
 

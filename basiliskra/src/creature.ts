@@ -79,8 +79,8 @@ export function partsFor(form: Form): PartDef[] {
 }
 
 /** How far Basiliskra IV's wings stand open in each phase (the client eases to the same figures), and when his club is in the ground. */
-const WINGS: Partial<Record<PhaseName, number>> = { recoil: 1, roar: 0.85, evolve: 1, rise: 0.7, fire: 0.3, pivot: 0.45, bite: 0.5, fall: 0.6 };
-const PLANTED = new Set<PhaseName>(["charge", "fire", "pivot", "skid"]);
+const WINGS: Partial<Record<PhaseName, number>> = { recoil: 1, roar: 0.85, evolve: 1, rise: 0.7, fire: 0.3, pour: 0.3, pivot: 0.45, bite: 0.5, fall: 0.6 };
+const PLANTED = new Set<PhaseName>(["charge", "fire", "pour", "pivot", "skid"]);
 /** Where each leg is in the four-beat cycle, relative to the left hind (the same offsets as the client walk). */
 const LEG_PHASE: Record<Leg, number> = { bl: 0, fl: 270, br: 180, fr: 90, l: 0, r: 180 };
 
@@ -223,15 +223,16 @@ export class Creature {
    */
   private breathPose(): { charge: number; jaw: number; lean: number; chest: number; body: number[] } {
     const ph = this.phase, f = this.form;
-    const charging = ph === "charge" || ph === "fire" || (f === 4 && (ph === "skid" || ph === "pivot"));
-    const firing = ph === "fire" || (f === 4 && (ph === "skid" || ph === "pivot"));
+    const charging = ph === "charge" || ph === "fire" || ph === "pour" || (f === 4 && (ph === "skid" || ph === "pivot"));
+    const firing = ph === "fire" || ph === "pour" || (f === 4 && (ph === "skid" || ph === "pivot"));
+    const pour = ph === "pour" ? 8 : 0;
     const skid = f === 4 && (ph === "skid" || ph === "pivot");
     if (f === 3) {
-      return { charge: charging ? 1 : 0, jaw: (charging ? this.charge * 0.9 : 0) + (firing ? 16 : 0) + (ph === "vent" ? 6 : 0) + (ph === "grounded" ? 8 : 0),
+      return { charge: charging ? 1 : 0, jaw: (charging ? this.charge * 0.9 : 0) + (firing ? 16 : 0) + pour + (ph === "vent" ? 6 : 0) + (ph === "grounded" ? 8 : 0),
                lean: 0, chest: firing ? -1.5 : 0, body: [0, charging ? -3 : 0, 0] };
     }
     if (f === 4) {
-      return { charge: charging ? 1 : 0, jaw: (charging ? this.charge * 0.8 : 0) + (firing ? 14 : 0) + (ph === "vent" ? 6 : 0) + (ph === "grounded" ? 8 : 0) + (ph === "recoil" ? 24 : 0),
+      return { charge: charging ? 1 : 0, jaw: (charging ? this.charge * 0.8 : 0) + (firing ? 14 : 0) + pour + (ph === "vent" ? 6 : 0) + (ph === "grounded" ? 8 : 0) + (ph === "recoil" ? 24 : 0),
                lean: skid ? -6 : 0, chest: firing ? -2 : 0, body: [0, (charging ? -4 : 0) + (skid ? -5 : 0), skid ? 5 : 0] };
     }
     return { charge: 0, jaw: 0, lean: 0, chest: 0, body: [0, 0, 0] };

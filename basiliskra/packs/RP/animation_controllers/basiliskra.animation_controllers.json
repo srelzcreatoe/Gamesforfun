@@ -242,7 +242,7 @@
        "charge": "(v.phase == 18)"
       },
       {
-       "fire": "(v.phase == 19)"
+       "fire": "(v.phase == 19 || v.phase == 39)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -283,7 +283,7 @@
     "charge": {
      "transitions": [
       {
-       "fire": "(v.phase == 19)"
+       "fire": "(v.phase == 19 || v.phase == 39)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -366,7 +366,7 @@
        "roar": "(v.phase == 23)"
       },
       {
-       "idle": "!(v.phase == 19)"
+       "idle": "!(v.phase == 19 || v.phase == 39)"
       }
      ],
      "particle_effects": [
@@ -458,7 +458,7 @@
        "charge": "(v.phase == 18)"
       },
       {
-       "fire": "(v.phase == 19)"
+       "fire": "(v.phase == 19 || v.phase == 39)"
       },
       {
        "grounded": "(v.phase == 21)"
@@ -526,7 +526,7 @@
        "charge": "(v.phase == 18)"
       },
       {
-       "fire": "(v.phase == 19)"
+       "fire": "(v.phase == 19 || v.phase == 39)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -562,7 +562,7 @@
        "charge": "(v.phase == 18)"
       },
       {
-       "fire": "(v.phase == 19)"
+       "fire": "(v.phase == 19 || v.phase == 39)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -626,7 +626,7 @@
        "charge": "(v.phase == 18)"
       },
       {
-       "fire": "(v.phase == 19)"
+       "fire": "(v.phase == 19 || v.phase == 39)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -663,7 +663,7 @@
        "charge": "(v.phase == 18)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 30)"
+       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -714,7 +714,7 @@
     "charge": {
      "transitions": [
       {
-       "fire": "(v.phase == 19 || v.phase == 30)"
+       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -801,7 +801,7 @@
        "pivot": "(v.phase == 31)"
       },
       {
-       "idle": "!(v.phase == 19 || v.phase == 30)"
+       "idle": "!(v.phase == 19 || v.phase == 30 || v.phase == 39)"
       }
      ],
      "particle_effects": [
@@ -877,7 +877,7 @@
        "charge": "(v.phase == 18)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 30)"
+       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
       },
       {
        "grounded": "(v.phase == 21)"
@@ -939,7 +939,7 @@
        "charge": "(v.phase == 18)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 30)"
+       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -981,7 +981,7 @@
        "charge": "(v.phase == 18)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 30)"
+       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -1019,7 +1019,7 @@
        "charge": "(v.phase == 18)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 30)"
+       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -1109,7 +1109,7 @@
        "charge": "(v.phase == 18)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 30)"
+       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -1159,7 +1159,7 @@
        "charge": "(v.phase == 18)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 30)"
+       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
       },
       {
        "vent": "(v.phase == 20)"

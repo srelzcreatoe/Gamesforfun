@@ -21,15 +21,16 @@
  * He is Basiliskra III grown: the same brain underneath (so the last crossing still sends him home), with
  * these on top.
  */
-import { Entity, EntityDamageCause, Player, world } from "@minecraft/server";
+import { Entity, EntityDamageCause, MolangVariableMap, Player, world } from "@minecraft/server";
 import { BeamSpec, BeamState, beamTick, clearRange } from "../beam";
 import { Act, Choice, anyoneNear, nearbyPlayers, settlementNear, wait, watchersNear } from "../brain";
 import { CONFIG, CRYSTAL_BLOCK, PROP, SLAG_COLD_BLOCK, TICKS, TRINITITE_BLOCK } from "../config";
-import { Creature, targetable } from "../creature";
+import { Creature, otherGiants, targetable } from "../creature";
 import { addFallout, glassify } from "../fallout";
 import { beamVars, flash, particle, sound, stopSound, witnesses } from "../fx";
 import { STRIDE_IV } from "../generated/rig";
-import { alive, blast, carve, wither } from "../havoc";
+import { groundAhead, pourAndLift } from "../pour";
+import { alive, blast, carve, mobsNear, wither } from "../havoc";
 import { RoarFx, shake } from "../roar";
 import { store, type Rec } from "../store";
 import { add, clamp, dist, distXZ, hash, leftOf, mul, norm, sub, turnTowards, wrapDeg, yawTo, type V3 } from "../vec";
@@ -76,6 +77,25 @@ export class BrainFour extends BrainThree {
     this.c.wade = false;
   }
 
+  /** What is close enough in front of him to swipe at: the nearest player he can hurt, creature or other giant. */
+  protected withinClaw(): { at: () => V3; giant: Creature | null } | null {
+    const c = this.c, reach = c.girth + 18;
+    const inFront = (p: V3, extra = 0): boolean => distXZ(p, c.pos) <= reach + extra && Math.abs(wrapDeg(yawTo(c.pos, p) - c.yaw)) <= 80 && Math.abs(p.y - c.pos.y) < 40;
+    for (const g of otherGiants(c)) if (inFront(g.pos, g.girth)) return { at: () => g.middle(), giant: g };
+    for (const p of nearbyPlayers(c, reach + 4)) if (targetable(p) && inFront(p.location)) return { at: () => p.location, giant: null };
+    for (const e of this.creatures()) { try { if (inFront(e.location)) return { at: () => e.location, giant: null }; } catch { /* gone */ } }
+    return null;
+  }
+
+  /** Walking at something, or across the world, and something comes within reach of his claws: he swipes at it. */
+  protected interrupt(): Choice | null {
+    if (this.now % 5 !== 2 || !["pursue", "roam", "raze", "wander"].includes(this.actName) || !this.ready("swipe") || this.now < this.recoverUntil) return null;
+    const hit = this.withinClaw();
+    if (!hit) return null;
+    this.rest("swipe", 5 * TICKS.second);
+    return { name: "swipe", run: this.swipe(hit.at, hit.giant), limit: 4 * TICKS.second };
+  }
+
   protected choose(): Choice | null {
     const c = this.c, now = this.now, F = this.four();
     // the ending borrows him for a charge beside the seam, as it did when he was Basiliskra III
@@ -90,6 +110,11 @@ export class BrainFour extends BrainThree {
     }
     if (now >= this.recoverUntil) {
       const eye = c.anchor("nose");
+      // within reach of his claws: he tears at it (1.8)
+      if (this.ready("swipe")) {
+        const hit = this.withinClaw();
+        if (hit) { this.rest("swipe", 5 * TICKS.second); return { name: "swipe", run: this.swipe(hit.at, hit.giant), limit: 4 * TICKS.second }; }
+      }
       // the stare
       if (this.ready("stare")) {
         const p = near.find((q) => dist(q.location, c.pos) <= 130 && clearLine(c.dim, eye, headOf(q)));
@@ -124,6 +149,96 @@ export class BrainFour extends BrainThree {
     const town = settlementNear(c, now);
     if (town) return { name: "raze", run: this.raze(town), limit: 150 * TICKS.second };
     return { name: "roam", run: this.roam(), limit: 90 * TICKS.second };
+  }
+
+  // ---- the claws (1.8) ------------------------------------------------------------------------------------------
+  /**
+   * A swipe of the claws: the hand on the side of what he swipes at goes up and out, then tears across in front of
+   * him.  Three great marks hang in the air where the claws went through it, three gouges are torn in the ground
+   * under them, and whatever was in the way is struck and thrown.  `giant`: another giant in the way, if that is what
+   * he swipes at (it takes `giantBlow`).
+   */
+  protected *swipe(at: () => V3, giant: Creature | null, giantBlow = 60): Act {
+    const c = this.c;
+    c.halt();
+    const bearing = clamp(wrapDeg(yawTo(c.pos, at()) - c.yaw), -70, 70);
+    const side = bearing >= 0 ? 1 : -1;                                 // +1: his left hand
+    c.lookYaw = clamp(bearing * 0.6, -45, 45) || side * 6;
+    c.lookPitch = -8;
+    c.setPhase("swipe");
+    c.say("basiliskra.iii.growl", c.anchor("nose"), 128, 1, 0.82);
+    for (let t = 0; t < 26; t++) {
+      if (t === 8) sound(c.dim, "basiliskra.iii.club_swing", c.anchor(side > 0 ? "hand_l" : "hand_r"), 128, 1, 0.8);
+      if (t === 12) this.tear(side, giant, giantBlow);
+      yield;
+    }
+    c.setPhase("idle");
+    yield* wait(6);
+  }
+
+  /** The moment the claws go through: the marks, the gouges, and the blow. */
+  private tear(side: number, giant: Creature | null, giantBlow: number): void {
+    const c = this.c, f = c.forward, l = leftOf(c.yaw);
+    const reach = c.girth + 10, height = c.pos.y + (c.form === 4 ? 26 : 10) * (c.scale / 2);
+    const size = this.spec.width * 2.4;                                  // as big as the hand that made them
+    // three marks along the arc the hand went through, from his own side across the front of him
+    for (let k = 0; k < 3; k++) {
+      const a = (side * 55 - side * 45 * k) * Math.PI / 180;
+      const dir = { x: f.x * Math.cos(a) + l.x * Math.sin(a), y: 0, z: f.z * Math.cos(a) + l.z * Math.sin(a) };
+      const at = { x: c.pos.x + dir.x * reach, y: height - k * 3, z: c.pos.z + dir.z * reach };
+      const v = new MolangVariableMap();
+      v.setFloat("variable.width", size);
+      v.setFloat("variable.spin", side > 0 ? -28 + k * 6 : 208 - k * 6);
+      particle(c.dim, "basiliskra:claw_scratch", at, 192, v);
+      if (k === 1) particle(c.dim, "basiliskra:claw_glow", at, 192, v);
+      particle(c.dim, "basiliskra:claw_sparks", at, 160);
+    }
+    // three gouges torn across the ground in front of him, the way the hand went
+    if (CONFIG.terrain !== "none") {
+      const across = { x: -side * l.x, y: 0, z: -side * l.z };
+      for (let g = -1; g <= 1; g++) {
+        const off = mul(f, g * 3.2);
+        for (let s = -9; s <= 9; s += 1.5) {
+          const p = add(add(c.pos, mul(f, reach * 0.8)), add(off, mul(across, s)));
+          if (!isLoaded(c.dim, p)) continue;
+          const gy = groundY(c.dim, p.x, p.z, c.pos.y + 6, 14);
+          if (typeof gy !== "number") continue;
+          const q = { x: p.x, y: gy, z: p.z };
+          if (wither()) carve(c.dim, q, 1.2, 12, true);
+          else this.scorch(q);
+        }
+      }
+      particle(c.dim, "basiliskra:impact_debris", add(c.pos, mul(f, reach * 0.8)), 160);
+    }
+    sound(c.dim, "basiliskra.iii.beam_impact", add(c.pos, mul(f, reach)), 160, 1, 1.4);
+    shake(c, 96, 0.7, 0.5);
+    // what was in the way
+    const inArc = (p: V3): boolean => {
+      const d = distXZ(p, c.pos);
+      if (d > c.girth + 20 || Math.abs(p.y - c.pos.y) > 40) return false;
+      return Math.abs(wrapDeg(yawTo(c.pos, p) - c.yaw)) <= 85;
+    };
+    for (const p of nearbyPlayers(c, c.girth + 22)) {
+      try {
+        if (!targetable(p) || !inArc(p.location)) continue;
+        c.hurt(p, 26);
+        const away = norm({ x: p.location.x - c.pos.x, y: 0, z: p.location.z - c.pos.z });
+        p.applyKnockback({ x: away.x * 3.2, z: away.z * 3.2 }, 0.8);
+      } catch { /* left */ }
+    }
+    for (const e of mobsNear(c.dim, add(c.pos, mul(f, c.girth + 8)), c.girth + 14)) {
+      try {
+        if (!inArc(e.location)) continue;
+        e.applyDamage(c.mobHit(30), { cause: EntityDamageCause.entityAttack, damagingEntity: c.entity });
+        const away = norm({ x: e.location.x - c.pos.x, y: 0, z: e.location.z - c.pos.z });
+        e.applyKnockback({ x: away.x * 3, z: away.z * 3 }, 0.7);
+      } catch { /* gone */ }
+    }
+    for (const g of otherGiants(c)) {
+      if (g !== giant && !(distXZ(g.pos, c.pos) <= c.girth + g.girth + 18 && inArc(g.pos))) continue;
+      g.takeBlow(c, giantBlow, true);
+      g.shove({ x: g.pos.x - c.pos.x, y: 0, z: g.pos.z - c.pos.z }, 2);
+    }
   }
 
   // ---- two feet, and what is under them -----------------------------------------------------------------
@@ -341,25 +456,28 @@ export class BrainFour extends BrainThree {
    * "cover" if the quarry got something solid between them while he was still following (see the swallow), and
    * "gone" if there is nothing left to fire at.
    */
-  protected *charge(target: Quarry | null, aimAt: () => V3, watchCover: boolean): Generator<void, "lock" | "cover" | "gone", void> {
+  protected *charge(target: Quarry | null, aimAt: () => V3, watchCover: boolean, pour = true): Generator<void, "lock" | "cover" | "gone", void> {
     const c = this.c;
     const ok = () => { try { return !target || (target.isValid && target.dimension.id === c.dim.id); } catch { return false; } };
     const flying = !!target && isFlyer(target);
     const pitchMax = flying ? 80 : 50;
+    // (1.8) his head goes down to the ground in front of him while it gathers: the shot is poured there first (pour.ts)
+    const down = pour && !flying;
+    const gather = (): V3 => (down ? groundAhead(c, aimAt()) : aimAt());
     c.halt();
     c.setPhase("charge");
     c.say("basiliskra.iii.club_plant", c.anchor("club_core"), 128);
     c.say("basiliskra.iii.charge", c.anchor("throat"), 160);
     this.chargeSounding = true;
     this.rodSeen.clear(); this.rodLayer = 0;
-    for (let t = 0; t < PLANT_TICKS; t++) { c.setCharge(t / 7); if (ok()) c.aimAt(aimAt(), 80, pitchMax); this.scanRods(); yield; }
+    for (let t = 0; t < PLANT_TICKS; t++) { c.setCharge(t / 7); if (ok()) { if (down) c.trackTo(gather(), 3, 80, 80); else c.aimAt(aimAt(), 80, pitchMax); } this.scanRods(); yield; }
     const light = LIGHT_END - PLANT_TICKS;
     let hidden = 0, lit = 1;
     for (let t = 0; t < light; t++) {
       if (!ok()) return "gone";
       const aim = aimAt();
-      const off = c.aimAt(aim, 80, pitchMax);
-      if (off > 0) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), flying ? 1.2 : 0.5);
+      const off = down ? c.trackTo(gather(), 2, 80, 80) : c.aimAt(aim, 80, pitchMax);
+      if (off > 0 && (!down || Math.abs(c.lookYaw) > 60)) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), flying ? 1.2 : 0.5);
       c.setCharge(2 + (t / light) * 13.4);
       const zone = Math.floor(c.charge / 2);
       if (zone > lit) { lit = zone; sound(c.dim, "basiliskra.iii.charge_tick", c.anchor(zone >= 6 ? "throat" : "club_core"), 96, 0.55, 0.6 + zone * 0.08); }
@@ -378,7 +496,9 @@ export class BrainFour extends BrainThree {
       c.setCharge(16 + (t / lock) * 2);
       if (flying && ok()) c.trackTo(aimAt(), 4, 80, 80);              // what flies is followed to the last
       if (t % 2 === 0) {
-        const { from, dir } = c.aim();
+        // (his head is down: the line is drawn where the beam will end up)
+        const { from, dir: d0 } = c.aim();
+        const dir = down ? norm(sub(aimAt(), from)) : d0;
         particle(c.dim, "basiliskra:beam_aim", from, 160, beamVars(dir, clearRange(c, from, dir, this.spec.range), 0.3 + 0.7 * (t / lock)));
       }
       this.plateGlow(LIGHT_END + t);
@@ -421,7 +541,7 @@ export class BrainFour extends BrainThree {
   }
 
   /** 2. The shot, the skid, and the turn on the buried club. */
-  protected *fire(target: Quarry | null): Act {
+  protected *fire(target: Quarry | null, aim?: () => V3): Act {
     const c = this.c, F = this.four();
     c.setPhase("fire");
     c.setCharge(20);
@@ -434,6 +554,12 @@ export class BrainFour extends BrainThree {
     let side = 0;                               // which way he will swing: +1 to his left, -1 to his right
     let pivot: V3 | null = null;                // the club, in the ground
     const flying = !!target && isFlyer(target);
+    // the pour: the ground in front of him floods with fire, then the breath narrows and lifts to its mark
+    if (!flying) {
+      // (to the place he meant when his eye stopped following: stepping out of the line still works)
+      const fixed = live() ? aimOf(target!) : add(c.anchor("mouth"), mul(c.forward, 40));
+      yield* pourAndLift(c, this.spec, aim ?? (() => fixed), st, (hit) => this.scorch(hit));
+    }
     for (let t = 0; t < FIRE; t++) {
       const fade = t < FIRE - 16 ? 1 : (FIRE - t) / 16;
       if (flying) {
@@ -659,7 +785,7 @@ export class BrainFour extends BrainThree {
     const c = this.c, F = this.four();
     const top = this.plateTop();
     if (!top || !F.plate) return;
-    const got = yield* this.charge(null, () => top, false);
+    const got = yield* this.charge(null, () => top, false, false);
     if (got !== "lock") { this.cutCharge(); return; }
     c.setPhase("fire");
     c.setCharge(20);

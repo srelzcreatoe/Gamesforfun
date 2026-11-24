@@ -21,7 +21,7 @@ export const STRIDE_IV = 14.0;
 export const BETA_IV = 0.6;
 export const STANCE_MODEL_IV = 67.2;
 export const LIFT_IV = 22.0;
-export const WING_FOLD = {"root": [-30, -14], "arm": 118, "fingers": [30, 14, 0, -14]};
+export const WING_FOLD = {"root": [30, -70, -50], "arm": [50, 130], "fingers": [30, 14, 0, -14]};
 export const TAIL_LIFT_III = 4.0;
 /** The Titan's health (the behaviour-pack entity is written with the same number). */
 export const TITAN_HEALTH = 100000;
