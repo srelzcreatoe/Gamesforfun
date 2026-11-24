@@ -95,7 +95,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 122 test groups (including setup and a status check) with 619 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 125 test groups (including setup and a status check) with 659 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -170,6 +170,7 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | targeted (1.6.0: the rift group, first) | 30 | 1 | test-side: walking out puts you back at the rift you walked into (a step out of it), and the test compared with where you had stood 14 blocks off before walking in |
 | targeted (1.6.0: the rift and rift_levels groups) | 33 | 1 | test-side: the stick dropped to check that what you drop stays lay within the simulated player's reach, who picked it up (now out of reach). The levels: level 1 closes in at 4.6 b/s and its first blow is 4; level 5, 8.3 b/s and 13 |
 | `noexp.txt` (1.6.0) | — | 0 | every experiment off, no test kit: the three dwellers, the rift's portal entity and the whole realm (25/25 pieces in 3.2 s) load and run with 0 content-log or script errors |
+| **final (1.6.0)** | **657** | **2** | the 1.5.1 suite plus its dwellers (23), the Rift (31: a rift opens near you, the realm laid out, the portal there, lit, facing you; in at the stones with the way out beside you; nothing lives there, what you drop stays; lightning; the void puts you back; its hunt toys with you, charges at the Rift's pace and strikes; out where you went in, its hunt over; it shuts and its light goes) and the levels (5). Real, both failures one cause: on *rarely* its charge started on top of one of the landing's standing stones — the hunt asked for "surface" spots, the topmost block, and in the Rift that can be a stone, a boulder or a tree's crown — and it never got down to the player before the charge ran out. Its spots are now on the ground at the player's own height (within 2.5 blocks), and a charge from up high starts with a blink down. Re-run of the Rift, the levels twice and the dwellers: 47 of 47 (level 1: 4.6 b/s, a blow of 4; level 5: 8.3 and 8.6 b/s, a blow of 13) |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -210,6 +211,11 @@ Final run (1.3.0): 102 test groups, 1844 s, minimum TPS between tests 19.9, **0 
 Final run (1.4.0): 110 test groups, 2068 s, minimum TPS between tests 19.6, **0 content-log or script errors**; 563 of
 564 (the one, above, then passed on its own twice). On fresh worlds with every experiment off (no test kit), the add-on
 loaded with 0 errors (`noexp.txt`) and the Weeping Mire generated (`mire_locate.txt`).
+
+Final run (1.6.0): 125 test groups, 2181 s, minimum TPS between tests 17.7 (while the Rift's realm was laid out: 25
+pieces, ~130-180 ms a step for about 4 s; elsewhere 19.8+), **0 content-log or script errors**; 657 of 659 (the two,
+one cause, above, fixed; re-run 47 of 47). `noexp.txt` on the final build: `level.dat` experiments none, 0 errors, the
+realm laid out (25/25 in 3.4 s).
 
 Final run (1.5.1): 122 test groups, 2226 s, minimum TPS between tests 19.8, **0 content-log or script errors**; 617 of
 619 (the two, test measurements, above, then passed: 30 of 30). `noexp.txt` on the final build: `level.dat` experiments

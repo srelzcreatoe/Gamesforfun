@@ -81,12 +81,25 @@ export function forget(pid) {
 
 // ---------------------------------------------------------------- what it does between its charges
 
+/**
+ * A place for it on the ground about their own height — never up on a standing stone, a boulder or a tree's crown
+ * (the woods are full of them, and from up there it cannot get down to them in time). @param {Player} p
+ * @param {import("../world/space.js").SpotSpec} spec
+ */
+function onGround(p, spec) {
+  for (let k = 0; k < 3; k++) {
+    const s = findSpot(p, { ...spec, yMode: "near" });
+    if (s && Math.abs(s.loc.y - p.location.y) <= 2.5) return s;
+  }
+  return undefined;
+}
+
 /** @param {Encounter} enc */
 async function glimpse(enc) {
   const p = enc.p;
   // between the trees, in front of them, half hidden — looking at them
   const tree = hideSpot(p, { minDist: 14, maxDist: 26, samples: 30, treesOnly: true });
-  const spot = tree ?? findSpot(p, { minDist: 14, maxDist: 26, bearings: [0, 35, -35], spread: 25, concealment: "visible", needLOS: true, yMode: "surface" });
+  const spot = tree ?? onGround(p, { minDist: 14, maxDist: 26, bearings: [0, 35, -35], spread: 25, concealment: "visible", needLOS: true });
   if (!spot) return false;
   const b = enc.spawnBody(spot.loc, { state: tree ? "peek" : "watch", hide: tree?.hide, silent: true });
   if (!b) return false;
@@ -163,7 +176,7 @@ function bleed(enc) {
 /** Lightning — and in the flash it is standing there, close, in plain sight. Gone when the light goes. @param {Encounter} enc */
 async function flash(enc) {
   const p = enc.p;
-  const spot = findSpot(p, { minDist: 7, maxDist: 12, bearings: [0, 25, -25], spread: 15, concealment: "visible", yMode: "surface" });
+  const spot = onGround(p, { minDist: 7, maxDist: 12, bearings: [0, 25, -25], spread: 15, concealment: "visible" });
   sky.lightning(p, spot ? 0.9 : 0.5);
   if (!spot) return true;
   if (!enc.spawnBody(spot.loc, { state: "stare", silent: true })) return true;
@@ -195,7 +208,7 @@ function chargeFrom(enc, c) {
   // at the chests: it was waiting in there
   const chest = nearChest(enc, 12);
   if (chest && chance(c.ambush)) {
-    const st = findSpot(p, { minDist: 5, maxDist: 10, bearings: [180, 120, -120], spread: 40, concealment: "hidden", yMode: "near" });
+    const st = onGround(p, { minDist: 5, maxDist: 10, bearings: [180, 120, -120], spread: 40, concealment: "hidden" });
     if (st) {
       talk.react(p, "rift_loot", 0.8);
       return { loc: st.loc, how: "ambush" };
@@ -203,8 +216,8 @@ function chargeFrom(enc, c) {
   }
   // from behind, out of sight; or ahead of them, cutting them off
   const ahead = chance(0.35);
-  const spot = findSpot(p, { minDist: ahead ? 14 : 12, maxDist: ahead ? 22 : 20, bearings: ahead ? [0, 30, -30] : [180, 140, -140], spread: 30,
-    concealment: ahead ? "any" : "hidden", yMode: "surface" });
+  const spot = onGround(p, { minDist: ahead ? 14 : 12, maxDist: ahead ? 22 : 20, bearings: ahead ? [0, 30, -30] : [180, 140, -140], spread: 30,
+    concealment: ahead ? "any" : "hidden" });
   return spot ? { loc: spot.loc, how: ahead ? "ahead" : "behind" } : undefined;
 }
 
@@ -232,6 +245,11 @@ async function charge(enc, c, from) {
     if (!enc.spawnBody(at, { state: "stare", silent: true })) return "no_body";
   }
   body.setBoost(boostOf(c));
+  if (at.y - p.location.y > 2.5) {
+    // (up on something: down to the ground first, a blink)
+    const st = standNear(enc.dim, at.x, at.z, p.location.y);
+    if (st && Math.abs(st.loc.y - p.location.y) <= 2.5 && body.moveTo(st.loc, p.getHeadLocation())) at = st.loc;
+  }
   enc.emit("rift", { what: "charge", how, level: level(), d: Math.round(V.dist(at, p.location)) });
   // the warning: a stare and its hum (lower levels), or only its shriek
   if (c.warn > 0) {
