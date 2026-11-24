@@ -840,6 +840,10 @@ stretch 160,000-190,000 square blocks), the Taiga 4-25 %.
 
 ## 27. The Rift (1.6.0)
 
+Previews drawn offline from the pack's own files (`tools/preview_structure.py`, the portal's textures composed as its
+render controllers layer them): [media/1.6.0/](media/1.6.0/) — the rift, the church and the castle (whole and cut away),
+a woods piece, the landing, a corner of the edge, and a whole realm from above.
+
 **The dimension** (`rift/dimension.js`): `system.beforeEvents.startup` → `dimensionRegistry.registerCustomDimension(
 "observer:rift")` — the stable custom-dimension API, a void world (y −64…320, reads as `minecraft:ocean`), no
 experiments; nothing spawns there of itself (a minute on a stone floor in the dark: nothing). Ticking areas, `fill`,

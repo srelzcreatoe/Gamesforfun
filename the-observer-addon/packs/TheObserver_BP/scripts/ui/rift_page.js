@@ -26,7 +26,8 @@ export async function riftPage(p) {
     : tr("observer.rift.next", st.next < 0 ? "?" : Math.max(1, Math.round(st.next / 60)));
   const f = new ActionFormData()
     .title(tr("observer.rift.title"))
-    .body(raw(tr("observer.rift.body"), "\n\n", tr("observer.rift.now", tr(`observer.rift.often.${lv}`), tr(`observer.rift.level.${lv}`), when)));
+    .body(raw(tr("observer.rift.body"), "\n\n", tr("observer.rift.body2"), "\n\n", tr("observer.rift.now_often", tr(`observer.rift.often.${lv}`)), "\n",
+      tr("observer.rift.now_level", tr(`observer.rift.level.${lv}`)), "\n", when));
   /** @type {(() => any)[]} */
   const acts = [];
   const add = (/** @type {string} */ key, /** @type {() => any} */ fn) => {

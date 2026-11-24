@@ -152,7 +152,7 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   often they open, the harder, faster, stronger and cleverer it is in there** (from 4.6 blocks a second and 2 hearts a
   blow on *rarely* to 8+ blocks a second and 6½ hearts on *constantly*, cutting you off, guarding the way out, waiting
   at the chests). The stones where you land are the way back. The realm is laid out afresh, shuffled and restocked,
-  each time a rift opens.
+  each time a rift opens. Previews (drawn offline from the pack's own files): [docs/media/1.6.0/](docs/media/1.6.0/).
 * **Its voice and its music** (1.1.2, your recordings): while it is around, its own theme replaces the game's music
   — *lurking* in the Weeping Mire, its home — and the game's music fades back once it has gone. A sting when you spot
   it, a scream when it snaps or comes for you (and over the blow that kills), a grunt as it arrives out of nowhere, its

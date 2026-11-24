@@ -194,9 +194,9 @@ export async function openNear(p, o = {}) {
   save();
   trace(`rift opening near ${p.name} at ${V.str(at)} in ${d.id}`);
   emit("rift", { what: "opening", player: p.name, dim: d.id, x: at.x, y: at.y, z: at.z });
-  // the other side, laid out afresh (unless someone is in there now)
+  // the other side, laid out afresh (unless someone is in there now — or it was never laid out at all)
   let ok = true;
-  if (!realm.occupied()) ok = await realm.build();
+  if (!realm.occupied() || !realm.current()) ok = await realm.build();
   const wait = Math.max(0, (open?.openAt ?? 0) - now());
   if (wait > 0) await system.waitTicks(Math.ceil(wait * 20));
   opening = false;
