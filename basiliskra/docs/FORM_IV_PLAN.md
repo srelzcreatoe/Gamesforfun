@@ -49,6 +49,7 @@ model first, then stop for approval**; then everything else.
   there onto land"*, *"for the charge up for the atomic breath, have basiliskra look down to the floor and do the same
   thing shin godzilla does but in his own style"*.  All done (see the 1.8 section of `docs/DESIGN.md`).  The breath is
   his own: red, his plates and knocks; no split jaw, no violet, nothing from his back.
+* **1.9.0**: the owner, with a clip and their own Godzilla add-on: *"you didn't get what I meant, when basiliskra chargers up, he's supposed to do what godzilla did in this video also he still isn't strong, so ima send my fanmade godzilla addon to you and look at the code"*.  The breath now has the clip's four movements in his own way (head down, black smoke onto the ground that catches into a flood of fire, the rear back to the sky, the slam into the ground and the sweep up to the mark); the Titan has 1,000,000 health, the add-on's immunities and its killing charge, and fights other add-ons' giants.  The add-on was read for its numbers and timings only; nothing from it is in this pack.  See the 1.9 section of `docs/DESIGN.md`.
 * None of it has been seen in game: see `docs/TEST_REPORT.md`.
 
 At model scale he is 27.5 blocks to the top of the skull (33.8 to the wing claws), 54.5 across the wings and 44.5

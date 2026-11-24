@@ -29,7 +29,7 @@ import { Creature, otherGiants, targetable } from "../creature";
 import { addFallout, glassify } from "../fallout";
 import { beamVars, flash, particle, sound, stopSound, witnesses } from "../fx";
 import { STRIDE_IV } from "../generated/rig";
-import { groundAhead, pourAndLift } from "../pour";
+import { PourState, freshPour, groundAhead, pourTick, rearTick, slamAndLift } from "../pour";
 import { alive, blast, carve, mobsNear, wither } from "../havoc";
 import { RoarFx, shake } from "../roar";
 import { store, type Rec } from "../store";
@@ -456,12 +456,18 @@ export class BrainFour extends BrainThree {
    * "cover" if the quarry got something solid between them while he was still following (see the swallow), and
    * "gone" if there is nothing left to fire at.
    */
+  /** What the breath being drawn has poured and where it means to go (1.9): its charge sets them, its shot uses them. */
+  protected ps: PourState = freshPour();
+  protected markAt: V3 | null = null;
+
   protected *charge(target: Quarry | null, aimAt: () => V3, watchCover: boolean, pour = true): Generator<void, "lock" | "cover" | "gone", void> {
     const c = this.c;
+    this.ps = freshPour(); this.markAt = null;
     const ok = () => { try { return !target || (target.isValid && target.dimension.id === c.dim.id); } catch { return false; } };
     const flying = !!target && isFlyer(target);
     const pitchMax = flying ? 80 : 50;
-    // (1.8) his head goes down to the ground in front of him while it gathers: the shot is poured there first (pour.ts)
+    // (1.9) his head goes down to the ground in front of him while it gathers; black smoke pours out onto it and
+    // catches; he rears back to the sky; then the shot (pour.ts)
     const down = pour && !flying;
     const gather = (): V3 => (down ? groundAhead(c, aimAt()) : aimAt());
     c.halt();
@@ -473,11 +479,16 @@ export class BrainFour extends BrainThree {
     for (let t = 0; t < PLANT_TICKS; t++) { c.setCharge(t / 7); if (ok()) { if (down) c.trackTo(gather(), 3, 80, 80); else c.aimAt(aimAt(), 80, pitchMax); } this.scanRods(); yield; }
     const light = LIGHT_END - PLANT_TICKS;
     let hidden = 0, lit = 1;
+    if (down) c.setPhase("pour");
     for (let t = 0; t < light; t++) {
       if (!ok()) return "gone";
       const aim = aimAt();
-      const off = down ? c.trackTo(gather(), 2, 80, 80) : c.aimAt(aim, 80, pitchMax);
-      if (off > 0 && (!down || Math.abs(c.lookYaw) > 60)) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), flying ? 1.2 : 0.5);
+      let off: number;
+      if (down) {
+        pourTick(c, this.spec, this.ps, t, light, aimAt, (hit) => this.scorch(hit));
+        off = Math.abs(c.lookYaw) > 60 ? 1 : 0;
+      } else off = c.aimAt(aim, 80, pitchMax);
+      if (off > 0) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), flying ? 1.2 : 0.5);
       c.setCharge(2 + (t / light) * 13.4);
       const zone = Math.floor(c.charge / 2);
       if (zone > lit) { lit = zone; sound(c.dim, "basiliskra.iii.charge_tick", c.anchor(zone >= 6 ? "throat" : "club_core"), 96, 0.55, 0.6 + zone * 0.08); }
@@ -492,8 +503,11 @@ export class BrainFour extends BrainThree {
       yield;
     }
     const lock = CHARGE_TICKS - LIGHT_END;
+    // the place he means to hit is fixed now; he rears back, head to the sky, wings and arms up, light in his mouth
+    if (down) { this.markAt = aimAt(); c.setPhase("rear"); }
     for (let t = 0; t < lock; t++) {
       c.setCharge(16 + (t / lock) * 2);
+      if (down && this.markAt) rearTick(c, this.spec, this.ps, t, lock, this.markAt);
       if (flying && ok()) c.trackTo(aimAt(), 4, 80, 80);              // what flies is followed to the last
       if (t % 2 === 0) {
         // (his head is down: the line is drawn where the beam will end up)
@@ -555,10 +569,11 @@ export class BrainFour extends BrainThree {
     let pivot: V3 | null = null;                // the club, in the ground
     const flying = !!target && isFlyer(target);
     // the pour: the ground in front of him floods with fire, then the breath narrows and lifts to its mark
-    if (!flying) {
-      // (to the place he meant when his eye stopped following: stepping out of the line still works)
-      const fixed = live() ? aimOf(target!) : add(c.anchor("mouth"), mul(c.forward, 40));
-      yield* pourAndLift(c, this.spec, aim ?? (() => fixed), st, (hit) => this.scorch(hit));
+    if (!flying && this.ps.origin) {
+      // he slams forward: into the burning ground, and the beam sweeps up to the place he meant when his eye stopped
+      // following (stepping out of the line still works)
+      const fixed = this.markAt ?? (live() ? aimOf(target!) : add(c.anchor("mouth"), mul(c.forward, 40)));
+      yield* slamAndLift(c, this.spec, this.ps, st, aim ?? (() => fixed), (hit) => this.scorch(hit));
     }
     for (let t = 0; t < FIRE; t++) {
       const fade = t < FIRE - 16 ? 1 : (FIRE - t) / 16;

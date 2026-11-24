@@ -239,10 +239,10 @@
     "idle": {
      "transitions": [
       {
-       "charge": "(v.phase == 18)"
+       "charge": "(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 39)"
+       "fire": "(v.phase == 19)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -283,7 +283,7 @@
     "charge": {
      "transitions": [
       {
-       "fire": "(v.phase == 19 || v.phase == 39)"
+       "fire": "(v.phase == 19)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -298,7 +298,7 @@
        "roar": "(v.phase == 23)"
       },
       {
-       "idle": "!(v.phase == 18)"
+       "idle": "!(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       }
      ],
      "particle_effects": [
@@ -351,7 +351,7 @@
     "fire": {
      "transitions": [
       {
-       "charge": "(v.phase == 18)"
+       "charge": "(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -366,7 +366,7 @@
        "roar": "(v.phase == 23)"
       },
       {
-       "idle": "!(v.phase == 19 || v.phase == 39)"
+       "idle": "!(v.phase == 19)"
       }
      ],
      "particle_effects": [
@@ -455,10 +455,10 @@
     "vent": {
      "transitions": [
       {
-       "charge": "(v.phase == 18)"
+       "charge": "(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 39)"
+       "fire": "(v.phase == 19)"
       },
       {
        "grounded": "(v.phase == 21)"
@@ -523,10 +523,10 @@
     "grounded": {
      "transitions": [
       {
-       "charge": "(v.phase == 18)"
+       "charge": "(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 39)"
+       "fire": "(v.phase == 19)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -559,10 +559,10 @@
     "scatter": {
      "transitions": [
       {
-       "charge": "(v.phase == 18)"
+       "charge": "(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 39)"
+       "fire": "(v.phase == 19)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -623,10 +623,10 @@
     "roar": {
      "transitions": [
       {
-       "charge": "(v.phase == 18)"
+       "charge": "(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 39)"
+       "fire": "(v.phase == 19)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -660,10 +660,10 @@
     "idle": {
      "transitions": [
       {
-       "charge": "(v.phase == 18)"
+       "charge": "(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
+       "fire": "(v.phase == 19 || v.phase == 30)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -714,7 +714,7 @@
     "charge": {
      "transitions": [
       {
-       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
+       "fire": "(v.phase == 19 || v.phase == 30)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -735,7 +735,7 @@
        "pivot": "(v.phase == 31)"
       },
       {
-       "idle": "!(v.phase == 18)"
+       "idle": "!(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       }
      ],
      "particle_effects": [
@@ -780,7 +780,7 @@
     "fire": {
      "transitions": [
       {
-       "charge": "(v.phase == 18)"
+       "charge": "(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -801,7 +801,7 @@
        "pivot": "(v.phase == 31)"
       },
       {
-       "idle": "!(v.phase == 19 || v.phase == 30 || v.phase == 39)"
+       "idle": "!(v.phase == 19 || v.phase == 30)"
       }
      ],
      "particle_effects": [
@@ -874,10 +874,10 @@
     "vent": {
      "transitions": [
       {
-       "charge": "(v.phase == 18)"
+       "charge": "(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
+       "fire": "(v.phase == 19 || v.phase == 30)"
       },
       {
        "grounded": "(v.phase == 21)"
@@ -936,10 +936,10 @@
     "grounded": {
      "transitions": [
       {
-       "charge": "(v.phase == 18)"
+       "charge": "(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
+       "fire": "(v.phase == 19 || v.phase == 30)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -978,10 +978,10 @@
     "roar": {
      "transitions": [
       {
-       "charge": "(v.phase == 18)"
+       "charge": "(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
+       "fire": "(v.phase == 19 || v.phase == 30)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -1016,10 +1016,10 @@
     "recoil": {
      "transitions": [
       {
-       "charge": "(v.phase == 18)"
+       "charge": "(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
+       "fire": "(v.phase == 19 || v.phase == 30)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -1106,10 +1106,10 @@
     "carry": {
      "transitions": [
       {
-       "charge": "(v.phase == 18)"
+       "charge": "(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
+       "fire": "(v.phase == 19 || v.phase == 30)"
       },
       {
        "vent": "(v.phase == 20)"
@@ -1156,10 +1156,10 @@
     "pivot": {
      "transitions": [
       {
-       "charge": "(v.phase == 18)"
+       "charge": "(v.phase == 18 || v.phase == 39 || v.phase == 40)"
       },
       {
-       "fire": "(v.phase == 19 || v.phase == 30 || v.phase == 39)"
+       "fire": "(v.phase == 19 || v.phase == 30)"
       },
       {
        "vent": "(v.phase == 20)"

@@ -130,12 +130,13 @@ const SCENES = {
       const cr = bk.ctl.creature, ph = cr.phase;
       const charge = cr.entity.getProperty('basiliskra:charge');
       // the player's part: stand, and step sideways once the eye stops following
-      if (ph === 'charge' && fired === 0 && charge >= 16 && !dodged) { dodged = true; }
+      const gathering = ph === 'charge' || ph === 'pour' || ph === 'rear';
+      if (gathering && fired === 0 && charge >= 16 && !dodged) { dodged = true; }
       if (dodged && fired === 0 && ana.loc.z < 1) ana.moveTo({ x: ana.loc.x, y: 64, z: ana.loc.z + 0.42 });
       if (ph === 'fire' && lastPhase !== 'fire') fired++;
       if (fired === 1 && ph === 'idle' && lastPhase === 'vent') { brain().cooldown.clear(); brain().recoverUntil = 0; }   // (preview only) skip the long recovery
       // second charge: a rod goes down beside the planted club
-      if (fired === 1 && ph === 'charge' && !rod && charge >= 3) {
+      if (fired === 1 && gathering && !rod && charge >= 3) {
         const k = cr.anchor('club_core');
         rod = { x: Math.floor(k.x) + 2, y: 64, z: Math.floor(k.z) - 4 };
         sim.setBlock(OW, rod.x, rod.y, rod.z, 'minecraft:copper_block');

@@ -483,7 +483,7 @@ class MockEntity {
   get dimension() { this.need(); return this.sim.dims.get(this.rec.dim); }
   get isInWater() { return this.sim.blockId(this.rec.dim, this.rec.loc.x, this.rec.loc.y, this.rec.loc.z) === 'minecraft:water'; }
   getRotation() { this.need(); return { ...this.rec.rot }; }
-  getHeadLocation() { this.need(); return { x: this.rec.loc.x, y: this.rec.loc.y + 1.6, z: this.rec.loc.z }; }
+  getHeadLocation() { this.need(); return { x: this.rec.loc.x, y: this.rec.loc.y + (this.rec.height ?? 1.6), z: this.rec.loc.z }; }
   setRotation(r) { this.need(); this.rec.rot = { x: r.x, y: r.y }; }
   getVelocity() { this.need(); return { ...this.rec.vel }; }
   applyImpulse(v) { this.need(); if (![v.x, v.y, v.z].every(Number.isFinite)) throw new Error('ArgumentOutOfBoundsError'); this.rec.vel.x += v.x; this.rec.vel.y += v.y; this.rec.vel.z += v.z; }
@@ -511,7 +511,7 @@ class MockEntity {
   getComponent(id) {
     this.need();
     const rec = this.rec, sim = this.sim, self = this;
-    if (id === 'minecraft:health') return { get currentValue() { return rec.health; }, setCurrentValue(v) { rec.health = v; }, effectiveMax: rec.typeId === 'basiliskra:titan' ? TITAN_HEALTH : 600 };
+    if (id === 'minecraft:health') return { get currentValue() { return rec.health; }, setCurrentValue(v) { rec.health = v; }, effectiveMax: rec.maxHealth ?? (rec.typeId === 'basiliskra:titan' ? TITAN_HEALTH : 600) };
     if (id === 'minecraft:item') return rec.item ? { itemStack: rec.item } : undefined;
     if (id === 'minecraft:rideable') return { getRiders: () => rec.riders };
     if (id === 'minecraft:riding') return undefined;

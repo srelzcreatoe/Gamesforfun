@@ -36,7 +36,7 @@ export interface BeamShot {
   scorch?: (hit: V3) => void;
   /** Draw and burn, but break and poison nothing (a beam that is only a line of light). */
   harmless?: boolean;
-  /** Break and burn, but leave no fallout (the pour's lift: the poison gathers where the beam comes to rest). */
+  /** Break and burn, but leave no fallout or slag (the pour's lift: the poison gathers where the beam comes to rest). */
   clean?: boolean;
 }
 
@@ -104,7 +104,8 @@ export function beamTick(c: Creature, T: BeamSpec, t: number, fade: number, st: 
       if (t % 4 === 0 && dist(st.ground, hitBlock) <= CRATER) {
         const got = carve(c.dim, hitBlock, T.carve * fade + 0.5, 110, true);
         if (got.broken) particle(c.dim, "basiliskra:impact_debris", end, 128);
-        sear(c.dim, got.floor, 5);                    // rock runs to glowing slag, sand fuses
+        // rock runs to glowing slag, sand fuses (not on the sweep: slag cools only as the fallout round it fades)
+        if (!shot.clean) sear(c.dim, got.floor, 5);
       }
       if (t % 12 === 0) {
         particle(c.dim, "minecraft:huge_explosion_emitter", end, 144);
@@ -134,8 +135,12 @@ export function beamTick(c: Creature, T: BeamSpec, t: number, fade: number, st: 
     // and every creature in its path (the big ones by the whole of their bodies, not the point they stand at)
     for (const e of mobsNear(c.dim, add(from, mul(dir, length / 2)), length / 2 + 10)) {
       try {
-        const big = BIG[e.typeId] ?? 0;
-        if (segDist(add(e.location, { x: 0, y: 0.6 + big * 0.4, z: 0 }), from, dir, length) > reach + 0.6 + big) continue;
+        // (the whole height of a tall one, another add-on's giant say, not only its feet)
+        let tall = 1.6;
+        try { tall = Math.max(1, e.getHeadLocation().y - e.location.y); } catch { /* no head */ }
+        const big = BIG[e.typeId] ?? (tall > 6 ? Math.min(6, 1.5 + tall * 0.12) : 0);
+        const heights = tall > 4 ? [0.6, tall * 0.5, tall * 0.9] : [0.6 + big * 0.4];
+        if (Math.min(...heights.map((h) => segDist(add(e.location, { x: 0, y: h, z: 0 }), from, dir, length))) > reach + 0.6 + big) continue;
         e.applyDamage(c.lethal > 0 ? c.lethal : T.damage * 2, { cause: EntityDamageCause.entityAttack, damagingEntity: c.entity });
         e.setOnFire(5, true);
       } catch { /* gone */ }

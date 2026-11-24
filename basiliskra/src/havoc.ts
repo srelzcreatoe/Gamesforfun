@@ -301,10 +301,25 @@ export function shatterRing(dim: Dimension, center: V3, r0: number, r1: number, 
 }
 
 // ---- who is in the way ------------------------------------------------------------------------------------
-/** Creatures (not players, not him) near a point. */
+/** Creatures (not players, not him) near a point: anything of the mob family, and other add-ons' monsters that are not (1.9). */
 export function mobsNear(dim: Dimension, at: V3, r: number): Entity[] {
   try {
-    return dim.getEntities({ location: at, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
+    const out = dim.getEntities({ location: at, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
+    const seen = new Set(out.map((e) => e.id));
+    for (const e of dim.getEntities({ location: at, maxDistance: r, families: ["monster"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY, "mob"] })) {
+      if (!seen.has(e.id)) out.push(e);
+    }
+    return out;
+  } catch { return []; }
+}
+
+/** Health at which a creature from another add-on counts as a giant (no vanilla one comes near: the Wither has 600). */
+export const GIANT_HEALTH = 2000;
+/** Another add-on's giant monster (a Godzilla, say): not one of ours, of the monster family, with a giant's health. */
+export function foreignGiantsNear(dim: Dimension, at: V3, r: number): Entity[] {
+  try {
+    return dim.getEntities({ location: at, maxDistance: r, families: ["monster"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY] })
+      .filter((e) => { try { return (e.getComponent("minecraft:health")?.effectiveMax ?? 0) >= GIANT_HEALTH; } catch { return false; } });
   } catch { return []; }
 }
 

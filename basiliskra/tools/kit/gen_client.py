@@ -43,7 +43,9 @@ PHASE = dict(idle=0, move=1, arrive=2, ram=3, knock=4, rise=5, bite=6, sweep=7, 
              # the Titan (Basiliskra IV's body): it goes down when it is beaten
              fall=36,
              # 1.8: Form II swimming for the shore; the claw swipe; the breath poured onto the ground before it narrows
-             swim=37, swipe=38, pour=39)
+             swim=37, swipe=38, pour=39,
+             # 1.9: thrown back, head to the sky, before the breath is let go
+             rear=40)
 TAGS = ("i", "ii", "iii", "iv")
 KNOCK_GAP = 0.9          # seconds between the three knocks, everywhere they occur
 GAIT_DUR = (0.8, 1.25, 1.5)     # Form II: reach, pull, rest (seconds)
@@ -283,14 +285,14 @@ def pre_animation():
     weights = {
         "ram": ("ram",), "knockp": ("knock", "wake"), "rise": ("rise",), "bite": ("bite",),
         "sweep": ("sweep",), "jam": ("jam",), "spasmw": ("spasm",), "sleep": ("sleep",), "evolve": ("evolve", "beach"),
-        "drink": ("drink",), "arc": ("arc",), "pin": ("pin",), "chargew": ("charge", "fire", "skid", "pivot", "pour"), "fire": ("fire", "skid", "pivot", "pour"),
+        "drink": ("drink",), "arc": ("arc",), "pin": ("pin",), "chargew": ("charge", "fire", "skid", "pivot", "pour", "rear"), "fire": ("fire", "skid", "pivot"),
         "vent": ("vent",), "ground": ("grounded",), "scatter": ("scatter",), "roar": ("roar",), "window": ("window", "stalk"),
         "flinch": ("flinch",),
         # Basiliskra IV
         "stare": ("stare",), "skid": ("skid", "pivot"), "pivot": ("pivot",), "recoil": ("recoil",), "drag": ("drag",),
         "shut": ("swallow", "carry"), "fall": ("fall",),
         # 1.8
-        "swim": ("swim",), "swipe": ("swipe",), "pour": ("pour",),
+        "swim": ("swim",), "swipe": ("swipe",), "pour": ("pour",), "rear": ("rear",),
     }
     for name, phases in weights.items():
         rate = "v.k4" if name == "window" else "v.k2"        # the head comes down to the window slowly
@@ -469,7 +471,7 @@ def pose_iii(rig):
     # weight moves over the legs that stay down just before the opposite foot lifts
     p.pos("body", x="1.5 * v.walk * math.cos(v.wp - 110)", y="v.by")
     p.rot("body", z="0.8 * v.walk * math.cos(v.wp - 110)", x=f"v.pitch - 2 * v.w_roar + 1.2 * v.w_ground * {SHUDDER(1400)}")
-    p.rot("chest", y=f"v.ly_chest * {L['yaw']['chest']}", x=f"-1.0 * v.breath - 1.5 * v.w_fire")
+    p.rot("chest", y=f"v.ly_chest * {L['yaw']['chest']}", x=f"-1.0 * v.breath - 1.5 * v.w_fire + 3 * v.w_pour - 8 * v.w_rear")
     p.rot("hips", y="-v.bend * 0.3")
     for i in range(1, 6):
         p.rot(f"neck{i}", y=f"v.ly_neck * {L['yaw'][f'neck{i}']}",
@@ -482,7 +484,7 @@ def pose_iii(rig):
           z=f"{WINDOW_HEAD[2]} * v.w_window")
     p.pos("head", z=f"1.6 * v.w_fire * {SHUDDER(2700, 1)}", y="2.2 * v.knock")
     # (the pour, 1.8: the jaw opens wider still while the breath floods the ground)
-    p.rot("jaw", x=f"2.2 * v.breath + v.w_chargew * v.charge * 0.9 + 16 * v.w_fire + 8 * v.w_pour + 5 * v.w_roar + v.vjaw + 27 * v.roar_env * (1 + 0.05 * {SHUDDER(2900)}) + 6 * v.w_vent + 8 * v.w_ground")
+    p.rot("jaw", x=f"2.2 * v.breath + v.w_chargew * v.charge * 0.9 + 16 * v.w_fire + 10 * v.w_pour + 22 * v.w_rear + 5 * v.w_roar + v.vjaw + 27 * v.roar_env * (1 + 0.05 * {SHUDDER(2900)}) + 6 * v.w_vent + 8 * v.w_ground")
     for tag in ("fl", "fr", "bl", "br"):
         front = tag[0] == "f"
         rest = leg_iii(rig, tag)[2]
@@ -523,7 +525,7 @@ def pose_iv(rig):
         f"v.wp4 = math.mod(v.wp4 + v.dd * {180 / half:.4f} + math.clamp(v.werr4, -40 * v.dt, 40 * v.dt) * math.clamp(v.dd / (v.dt + 0.0001) / 0.8, 0, 1) + 360, 360);",
         "v.p_l = math.mod(v.wp4, 360) / 360;", "v.p_r = math.mod(v.wp4 + 180, 360) / 360;",
         # the wings slam open and fold slowly
-        "v.wo_t = math.max(v.w_recoil, math.max(0.85 * v.w_roar, math.max(v.w_evolve, math.max(0.7 * v.w_rise, math.max(0.3 * v.w_fire, math.max(0.45 * v.w_pivot, math.max(0.5 * v.w_bite, 0.6 * v.w_fall)))))));",
+        "v.wo_t = math.max(v.w_rear, math.max(v.w_recoil, math.max(0.85 * v.w_roar, math.max(v.w_evolve, math.max(0.7 * v.w_rise, math.max(0.3 * v.w_fire, math.max(0.45 * v.w_pivot, math.max(0.5 * v.w_bite, 0.6 * v.w_fall))))))));",
         # the lunge (phase `bite`): he rears back for a third of a second, then throws his jaws and his right hand forward
         f"v.st_wind = {pl('v.pt', [(0, 0), (0.32, 1), (0.46, 0)])};",
         f"v.st_hit = {pl('v.pt', [(0.32, 0), (0.46, 1), (0.72, 1), (1.15, 0)])};",
@@ -572,7 +574,8 @@ def pose_iv(rig):
     p.rot("chest", y=f"v.ly_chest * {L['yaw']['chest']} + 3 * v.walk * math.sin(v.wp4 - 108) + 14 * v.w_sweep * v.sw_side * math.max(v.sw_c, 0)"
                      f" + 16 * v.w_swipe * v.sp_side * (0.7 * v.sp_wind - v.sp_hit)",
           x=f"v.lp_neck * {L['pitch']['chest']} - 1.2 * v.breath + 3 * v.walk - 2 * v.w_fire - 4 * v.w_roar - 6 * v.w_recoil + 5 * v.w_stare"
-            f" + 40 * v.w_drag * v.dr_reach - 10 * v.w_drag * v.dr_haul + v.w_bite * (30 * v.st_hit - 9 * v.st_wind) + 42 * v.fa2")
+            f" + 40 * v.w_drag * v.dr_reach - 10 * v.w_drag * v.dr_haul + v.w_bite * (30 * v.st_hit - 9 * v.st_wind) + 42 * v.fa2"
+            f" + 12 * v.w_pour - 30 * v.w_rear")
     for i in (1, 2):
         p.rot(f"neck{i}", y=f"v.ly_neck * {L['yaw'][f'neck{i}']}",
               x=f"v.lp_neck * {L['pitch'][f'neck{i}']} + 0.5 * v.breath - 2 * v.w_chargew - 6 * v.w_roar + 4 * v.w_ground + 6 * v.w_stare - 12 * v.w_drag * v.dr_reach"
@@ -583,7 +586,7 @@ def pose_iv(rig):
             f" + v.w_bite * (5 * v.st_hit - 10 * v.st_wind) + 16 * v.fa2")
     p.pos("head", z=f"1.6 * v.w_fire * {SHUDDER(2700, 1)}")
     # the jaw: open to charge and fire, wide and shaking when the shot fails, clamped shut on a swallowed charge
-    p.rot("jaw", x=f"2.2 * v.breath * (1 - v.w_shut) + v.w_chargew * v.charge * 0.8 + 14 * v.w_fire + 8 * v.w_pour + 5 * v.w_roar + v.vjaw + 26 * v.roar_env * (1 + 0.05 * {SHUDDER(2900)})"
+    p.rot("jaw", x=f"2.2 * v.breath * (1 - v.w_shut) + v.w_chargew * v.charge * 0.8 + 14 * v.w_fire + 10 * v.w_pour + 22 * v.w_rear + 5 * v.w_roar + v.vjaw + 26 * v.roar_env * (1 + 0.05 * {SHUDDER(2900)})"
                    f" + 6 * v.w_vent + 8 * v.w_ground + 24 * v.w_recoil * (1 + 0.08 * {SHUDDER(1700)}) - 11 * v.w_shut"
                    f" + v.w_bite * (24 * v.st_wind + 3 * v.st_hit) + 10 * v.w_fall")
     for tag, sgn in (("l", 1), ("r", -1)):
@@ -599,8 +602,8 @@ def pose_iv(rig):
         mine = f"v.w_swipe * ((v.sp_side == {sgn}) ? 1 : 0)"
         other = f"v.w_swipe * ((v.sp_side == {sgn}) ? 0 : 1)"
         p.rot(f"arm_{tag}", x=f"{sgn} * 8 * v.walk * math.cos(v.wp4) + 6 * v.w_chargew + 10 * v.w_recoil - 62 * v.w_drag * v.dr_reach + 24 * v.w_drag * v.dr_haul + {swipe} + 16 * v.fa2"
-                              f" + {mine} * (-150 * v.sp_wind - 58 * v.sp_hit) + {other} * (-14 * v.sp_hit)",
-              z=f"{-sgn} * (8 * v.w_roar + 14 * v.w_recoil + 4 * v.w_drag * v.dr_reach + 10 * v.w_bite * v.st_wind + 7 * v.fa2 + {mine} * (44 * v.sp_wind - 34 * v.sp_hit) + 6 * {other})")
+                              f" + {mine} * (-150 * v.sp_wind - 58 * v.sp_hit) + {other} * (-14 * v.sp_hit) - 40 * v.w_pour - 95 * v.w_rear",
+              z=f"{-sgn} * (8 * v.w_roar + 14 * v.w_recoil + 4 * v.w_drag * v.dr_reach + 10 * v.w_bite * v.st_wind + 7 * v.fa2 + {mine} * (44 * v.sp_wind - 34 * v.sp_hit) + 6 * {other} + 34 * v.w_rear)")
         p.rot(f"forearm_{tag}", x=f"40 * v.w_drag * v.dr_reach - 44 * v.w_drag * v.dr_haul - 6 * v.w_roar + 22 * v.w_bite * v.st_hit + {mine} * (22 * v.sp_wind - 6 * v.sp_hit)")
         p.rot(f"hand_{tag}", x=f"-12 * v.w_drag * v.dr_reach + {mine} * (-24 * v.sp_wind + 18 * v.sp_hit)")
         # the wings
@@ -709,7 +712,7 @@ def particle_controller(tag):
         scatter = [("plate_ember", f"plate_tip_{k}") for k in range(10)]
         idle = [("club_crackle", "spike_tip_1"), ("club_crackle", "spike_tip_4"), ("club_crackle", "spike_tip_11")] + rad((2, 6))
         states = {"idle": idle, "charge": charge, "fire": fire, "vent": vent, "grounded": ground, "scatter": scatter, "roar": roar}
-        cond = {"charge": ph("charge"), "fire": ph("fire", "pour"), "vent": ph("vent"), "grounded": ph("grounded"), "scatter": ph("scatter"), "roar": ph("roar")}
+        cond = {"charge": ph("charge", "pour", "rear"), "fire": ph("fire"), "vent": ph("vent"), "grounded": ph("grounded"), "scatter": ph("scatter"), "roar": ph("roar")}
     elif tag == "iv":
         tips = range(7)
         rad = lambda ks: [("rad_drift", f"plate_tip_{k}") for k in ks]
@@ -728,7 +731,7 @@ def particle_controller(tag):
         ground = [("club_arc", "spike_tip_0"), ("club_arc", "spike_tip_3"), ("club_arc", "spike_tip_8")]
         idle = [("club_crackle", "spike_tip_1"), ("club_crackle", "spike_tip_4"), ("club_crackle", "spike_tip_11")] + rad((1, 3, 5))
         states = {"idle": idle, "charge": charge, "fire": fire, "vent": vent, "grounded": ground, "roar": roar, "recoil": recoil, "carry": carry, "pivot": pivot}
-        cond = {"charge": ph("charge"), "fire": ph("fire", "skid", "pour"), "vent": ph("vent"), "grounded": ph("grounded"), "roar": ph("roar"), "recoil": ph("recoil"),
+        cond = {"charge": ph("charge", "pour", "rear"), "fire": ph("fire", "skid"), "vent": ph("vent"), "grounded": ph("grounded"), "roar": ph("roar"), "recoil": ph("recoil"),
                 "carry": ph("swallow", "carry"), "pivot": ph("pivot")}
     elif tag == "ii":
         idle = [("horn_arc", "horn_l")]
@@ -809,7 +812,12 @@ def write_rig_ts(rigs):
         f.write("\n".join(out) + "\n")
 
 
-TITAN_HEALTH = 100000      # 1.7.2: as strong as Hakaishin Godzilla (its listing: 100,000 health, 100,000 damage); src/titan.ts
+# 1.9: as strong as Hakaishin Godzilla, read from that add-on's own files (the owner sent it): 1,000,000 health (1.7.2 had
+# taken 100,000 from a listing); src/titan.ts
+TITAN_HEALTH = 1000000
+# what the Titan takes no harm from, besides what he takes none from: magic (that add-on's breath carries an instant-damage
+# effect that would kill anything not immune to it), wither, and blasts
+TITAN_IMMUNE = ("magic", "wither", "entity_explosion", "block_explosion")
 
 
 def write_titan(entity, pre, glow_list):
@@ -843,7 +851,8 @@ def write_titan(entity, pre, glow_list):
     props[f"{NS}:tier"]["default"] = 3
     components = {**e["components"], **e["component_groups"][f"{NS}:form_4"],
                   "minecraft:type_family": {"family": [f"{NS}_titan", "mob"]},
-                  "minecraft:health": {"value": TITAN_HEALTH, "max": TITAN_HEALTH}}
+                  "minecraft:health": {"value": TITAN_HEALTH, "max": TITAN_HEALTH},
+                  "minecraft:damage_sensor": {"triggers": e["components"]["minecraft:damage_sensor"]["triggers"] + [{"cause": c, "deals_damage": "no"} for c in TITAN_IMMUNE]}}
     kit.write_json(os.path.join(bp_dir, f"{NS}_titan.json"), {"format_version": story["format_version"], "minecraft:entity": {
         "description": {**e["description"], "identifier": f"{NS}:titan", "properties": props},
         # like him, one that no script has claimed within two seconds of appearing is gone (a pack without its script)

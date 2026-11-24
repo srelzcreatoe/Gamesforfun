@@ -167,8 +167,8 @@
     "height": 13.0
    },
    "minecraft:health": {
-    "value": 100000,
-    "max": 100000
+    "value": 1000000,
+    "max": 1000000
    },
    "minecraft:physics": {
     "has_gravity": false,
@@ -252,6 +252,22 @@
      },
      {
       "cause": "void",
+      "deals_damage": "no"
+     },
+     {
+      "cause": "magic",
+      "deals_damage": "no"
+     },
+     {
+      "cause": "wither",
+      "deals_damage": "no"
+     },
+     {
+      "cause": "entity_explosion",
+      "deals_damage": "no"
+     },
+     {
+      "cause": "block_explosion",
       "deals_damage": "no"
      }
     ]

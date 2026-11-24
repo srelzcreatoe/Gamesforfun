@@ -7,6 +7,8 @@ An original survival-horror add-on for Minecraft Bedrock. One creature per save.
 * **Experiments:** none. **Cheats:** none. **Commands:** none needed.
 * **Graphics:** standard Bedrock rendering; Vibrant Visuals supported (PBR texture sets with emissive glow).
 
+> **1.9**: **the breath is choreographed** like the clip the owner sent, in Basiliskra's own way (III, IV and the Titan): his head goes down and **black smoke pours out of his mouth onto the ground**, heaps and rolls outward, then **catches into a flood of his red fire**; he **rears back, head to the sky** (Form IV spreads his wings and lifts his arms) while the light gathers in his mouth; then he **slams forward and fires into the burning ground**, and the beam sweeps up to the place the red line showed. **The Titan matches Hakaishin Godzilla**: **1,000,000 health**, blows of 100,000, **immune to magic, wither and explosions** (as well as fire, lava, falling and being crushed), its charge **kills anything small within thirty blocks** of it, and it **fights other add-ons' giant monsters** as well as Titans and Basiliskra.
+>
 > **1.8**: Basiliskra II **swims straight out of the sea** onto land. **The breath is poured**, in his own way: his head goes down to the ground while it charges, the shot floods that ground with fire, then narrows into the beam and lifts to its mark (III, IV and the Titan). **Form IV's wings fold over his back** and no longer pass through his shoulders. Form IV and the Titan **swipe with their claws**, leaving three great glowing claw marks in the air and gouges in the ground. The changes open on **chapter headings**, every shot moves, and the camera goes round the new animal while he roars.
 >
 > **1.7.2**: **the Titan is as strong as the strongest Godzilla add-ons**: 100,000 health, and every blow it lands on a player or a creature does 100,000.
@@ -33,7 +35,7 @@ In game: a **journal** (how angry he is, as a percentage, when he will come, and
 
 | File | What it is |
 |---|---|
-| `dist/Basiliskra-1.8.0.mcaddon` | behaviour pack + resource pack, ready to import |
+| `dist/Basiliskra-1.9.0.mcaddon` | behaviour pack + resource pack, ready to import |
 | `models/basiliskra_i.bbmodel`, `_ii`, `_iii`, `_iv` | the four editable Blockbench models, textures and animations embedded |
 | `docs/SURVIVAL_GUIDE.md` | install, what calls him, the four stages, cities, the Seam Lance, the Titan, the ending, settings |
 | `previews/*.mp4` | reference videos (see below) |
@@ -45,6 +47,8 @@ In game: a **journal** (how angry he is, as a percentage, when he will come, and
 **`previews/titan_moves.mp4`** (40 s, with sound) plays the Titan through what only it does, driven by its own client entity: at rest with its seams lit, walking, the lunge from two sides, the tail to each side, a shortened charge and the breath, the stagger, and going down as its fire fails (`node tools/preview/anim.cjs --forms titan`). Like the reel above it is an offline render, not in-game capture.
 
 **`previews/transformations.mp4`** (about a minute, with sound) plays him through the three changes as the script poses him, with the pack's sounds where the script plays them (`node tools/preview/anim.cjs --forms c1a,c1b,c2a,c2b,c3a,c3b`). What the script adds in the world (the boiling sea, the bolts, the smoke, the glass in the ground) and the game's own thunder are not in it, and the camera is the preview tool's, not the cutscene's.
+
+New for 1.9 (offline render, not the game): **`previews/breath.mp4`** (18 s, with sound) is cut for the new breath, from a fresh recording of the real script: head down and the smoke pouring onto the ground, the flood of fire, the rear back to the sky, the slam into the ground and the sweep up to the mark.
 
 New for 1.8 (offline renders, not the game): **`previews/breath.mp4`** is cut again for the poured breath (head down, the flood of fire, the beam lifting out of it); **`previews/form_iv_wings.png`** (his wings folded over his back, from four sides) and **`previews/form_iv_swipe.png`** (the claw swipe, five moments; the claw marks are particles, not in this still).
 

@@ -344,6 +344,7 @@ RAD = ((0, WHITE), (0.25, (1.0, 0.36, 0.30, 1.0)), (0.7, RED), (1, DEEP))
 
 SMOKE = grad((0, (0.42, 0.09, 0.07, 0.0)), (0.08, (0.40, 0.10, 0.08, 0.8)), (0.4, (0.20, 0.17, 0.17, 0.65)), (1, (0.10, 0.09, 0.09, 0)))
 FIRE = grad((0, WHITE), (0.2, HOT), (0.55, RED), (1, DEEP))
+SOOT = grad((0, (0.03, 0.02, 0.025, 0.0)), (0.12, (0.05, 0.035, 0.04, 0.92)), (0.55, (0.09, 0.07, 0.075, 0.8)), (1, (0.16, 0.14, 0.14, 0)))
 DUST = grad((0, (0.50, 0.45, 0.39, 0.0)), (0.1, (0.50, 0.45, 0.39, 0.8)), (1, (0.42, 0.38, 0.33, 0)))
 GROW = lambda a, b: [f"({a} + ({b} - {a}) * v.particle_age / v.particle_lifetime) * (0.8 + 0.4 * v.particle_random_1)"] * 2
 
@@ -421,6 +422,20 @@ EFFECTS = [
     scatter("flood_ember", "spark", 10, 1.0, RAND(5, 13), RAND(0.5, 1.1), SHRINK(0.3), grad((0, WHITE), (0.3, HOT), (0.75, RED), (1, DEEP)),
             accel=[0, -7, 0], drag=0.5, material="particles_add",
             shape={"minecraft:emitter_shape_sphere": {"radius": 1.0, "direction": [f"v.dir.x + {RAND(-0.5, 0.5)}", RAND(0.2, 0.7), f"v.dir.z + {RAND(-0.5, 0.5)}"]}}),
+    # the black smoke (1.9): before the breath catches it pours out of his mouth as soot, heaps on the ground in front
+    # of him and rolls outward, embers glinting dark red in it (variable.dir: the way it goes; variable.width: his breath)
+    scatter("soot_stream", "puff", 3, 0.6, RAND(5, 11), RAND(0.6, 1.1),
+            [f"(0.4 + 0.9 * {AGE}) * (v.width > 0 ? v.width : 3) * (0.7 + 0.5 * v.particle_random_1)"] * 2, SOOT, accel=[0, 1.0, 0], drag=1.8,
+            shape={"minecraft:emitter_shape_sphere": {"radius": 0.6, "direction": [f"v.dir.x + {RAND(-0.25, 0.25)}", f"v.dir.y + {RAND(-0.2, 0.2)}", f"v.dir.z + {RAND(-0.25, 0.25)}"]}}),
+    # (and once it catches: fire gushing out of his mouth onto the ground, the same stream alight)
+    scatter("fire_stream", "wisp", 4, 0.7, RAND(7, 13), RAND(0.45, 0.8),
+            [f"(0.5 + 1.1 * {AGE}) * (v.width > 0 ? v.width : 3) * (0.7 + 0.5 * v.particle_random_1)"] * 2, FIRE, accel=[0, 1.5, 0], drag=1.6, material="particles_add",
+            shape={"minecraft:emitter_shape_sphere": {"radius": 0.7, "direction": [f"v.dir.x + {RAND(-0.2, 0.2)}", f"v.dir.y + {RAND(-0.15, 0.15)}", f"v.dir.z + {RAND(-0.2, 0.2)}"]}}),
+    scatter("soot_billow", "puff", 3, 2.2, RAND(1.5, 4), RAND(2.5, 4.5),
+            [f"(0.9 + 1.8 * {AGE}) * (v.width > 0 ? v.width : 3) * (0.7 + 0.5 * v.particle_random_1)"] * 2, SOOT, accel=[0, 0.9, 0], drag=0.8,
+            shape={"minecraft:emitter_shape_sphere": {"radius": 2.2, "direction": [f"v.dir.x * 0.8 + {RAND(-0.4, 0.4)}", RAND(0.2, 0.7), f"v.dir.z * 0.8 + {RAND(-0.4, 0.4)}"]}}),
+    scatter("soot_ember", "spark", 6, 1.2, RAND(1, 4), RAND(0.8, 1.6), SHRINK(0.22), grad((0, (1, 0.35, 0.2, 1)), (0.5, (0.75, 0.08, 0.05, 1)), (1, (0.3, 0.02, 0.02, 0))),
+            accel=[0, 2.0, 0], drag=0.6, material="particles_add"),
     # the claw swipe (1.8): three great marks hang in the air where the claws went through it, turned to the way they
     # went (variable.spin, degrees), as big as the hand that made them (variable.width), and fade
     fxb("claw_scratch", "particles_add", **ONCE, **burst(1), **{

@@ -141,7 +141,9 @@ var PHASE = {
   // 1.8: Form II swimming for the shore; the claw swipe (IV and the Titan); the breath poured onto the ground before it narrows
   swim: 37,
   swipe: 38,
-  pour: 39
+  pour: 39,
+  // 1.9: thrown back, head to the sky, before the breath is let go
+  rear: 40
 };
 var TICKS = { second: 20, minute: 1200, day: 24e3 };
 var KNOCK_GAP_TICKS = 18;
@@ -559,7 +561,7 @@ var STANCE_MODEL_IV = 67.2;
 var LIFT_IV = 22;
 var WING_FOLD = { "root": [30, -70, -50], "arm": [50, 130], "fingers": [30, 14, 0, -14] };
 var TAIL_LIFT_III = 4;
-var TITAN_HEALTH = 1e5;
+var TITAN_HEALTH = 1e6;
 var WINDOW_NECK = [32, 28, 20, 0, -24];
 var WINDOW_HEAD = [-62.7, 21.8, -51.8];
 var GAIT_TICKS = [16, 25, 30];
@@ -1102,7 +1104,26 @@ function shatterRing(dim, center, r0, r1, samples, seed) {
 }
 function mobsNear(dim, at3, r) {
   try {
-    return dim.getEntities({ location: at3, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
+    const out = dim.getEntities({ location: at3, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
+    const seen = new Set(out.map((e) => e.id));
+    for (const e of dim.getEntities({ location: at3, maxDistance: r, families: ["monster"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY, "mob"] })) {
+      if (!seen.has(e.id)) out.push(e);
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+var GIANT_HEALTH = 2e3;
+function foreignGiantsNear(dim, at3, r) {
+  try {
+    return dim.getEntities({ location: at3, maxDistance: r, families: ["monster"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY] }).filter((e) => {
+      try {
+        return (e.getComponent("minecraft:health")?.effectiveMax ?? 0) >= GIANT_HEALTH;
+      } catch {
+        return false;
+      }
+    });
   } catch {
     return [];
   }
@@ -1404,8 +1425,8 @@ function partsFor(form) {
   partCache.set(form, out);
   return out;
 }
-var WINGS = { recoil: 1, roar: 0.85, evolve: 1, rise: 0.7, fire: 0.3, pour: 0.3, pivot: 0.45, bite: 0.5, fall: 0.6 };
-var PLANTED = /* @__PURE__ */ new Set(["charge", "fire", "pour", "pivot", "skid"]);
+var WINGS = { recoil: 1, roar: 0.85, evolve: 1, rise: 0.7, fire: 0.3, rear: 1, pivot: 0.45, bite: 0.5, fall: 0.6 };
+var PLANTED = /* @__PURE__ */ new Set(["charge", "fire", "pour", "rear", "pivot", "skid"]);
 var LEG_PHASE = { bl: 0, fl: 270, br: 180, fr: 90, l: 0, r: 180 };
 var MOVE = {
   1: { turn: 2.2, accel: 0.02, radius: 3 },
@@ -1603,16 +1624,16 @@ var Creature = class {
    */
   breathPose() {
     const ph = this.phase, f = this.form;
-    const charging = ph === "charge" || ph === "fire" || ph === "pour" || f === 4 && (ph === "skid" || ph === "pivot");
-    const firing = ph === "fire" || ph === "pour" || f === 4 && (ph === "skid" || ph === "pivot");
-    const pour = ph === "pour" ? 8 : 0;
+    const charging = ph === "charge" || ph === "fire" || ph === "pour" || ph === "rear" || f === 4 && (ph === "skid" || ph === "pivot");
+    const firing = ph === "fire" || f === 4 && (ph === "skid" || ph === "pivot");
+    const pour = ph === "pour" ? 10 : ph === "rear" ? 22 : 0;
     const skid = f === 4 && (ph === "skid" || ph === "pivot");
     if (f === 3) {
       return {
         charge: charging ? 1 : 0,
         jaw: (charging ? this.charge * 0.9 : 0) + (firing ? 16 : 0) + pour + (ph === "vent" ? 6 : 0) + (ph === "grounded" ? 8 : 0),
         lean: 0,
-        chest: firing ? -1.5 : 0,
+        chest: (firing ? -1.5 : 0) + (ph === "pour" ? 3 : ph === "rear" ? -8 : 0),
         body: [0, charging ? -3 : 0, 0]
       };
     }
@@ -1621,7 +1642,7 @@ var Creature = class {
         charge: charging ? 1 : 0,
         jaw: (charging ? this.charge * 0.8 : 0) + (firing ? 14 : 0) + pour + (ph === "vent" ? 6 : 0) + (ph === "grounded" ? 8 : 0) + (ph === "recoil" ? 24 : 0),
         lean: skid ? -6 : 0,
-        chest: firing ? -2 : 0,
+        chest: (firing ? -2 : 0) + (ph === "pour" ? 12 : ph === "rear" ? -30 : 0),
         body: [0, (charging ? -4 : 0) + (skid ? -5 : 0), skid ? 5 : 0]
       };
     }
@@ -1691,6 +1712,10 @@ var Creature = class {
   lookAhead() {
     this.lookYaw = 0;
     this.lookPitch = 0;
+  }
+  /** The look was set by hand: the skeleton (and so the muzzle) is posed afresh. */
+  relook() {
+    this.skel = null;
   }
   /**
    * Turn the head toward a point, but no faster than `rate` degrees a tick on each axis (what is aimed at moves; a
@@ -2981,7 +3006,7 @@ function beamTick(c, T, t, fade, st, shot = {}) {
       if (t % 4 === 0 && dist(st.ground, hitBlock) <= CRATER) {
         const got = carve(c.dim, hitBlock, T.carve * fade + 0.5, 110, true);
         if (got.broken) particle(c.dim, "basiliskra:impact_debris", end, 128);
-        sear(c.dim, got.floor, 5);
+        if (!shot.clean) sear(c.dim, got.floor, 5);
       }
       if (t % 12 === 0) {
         particle(c.dim, "minecraft:huge_explosion_emitter", end, 144);
@@ -3013,8 +3038,14 @@ function beamTick(c, T, t, fade, st, shot = {}) {
     }
     for (const e of mobsNear(c.dim, add(from, mul(dir, length / 2)), length / 2 + 10)) {
       try {
-        const big = BIG[e.typeId] ?? 0;
-        if (segDist(add(e.location, { x: 0, y: 0.6 + big * 0.4, z: 0 }), from, dir, length) > reach + 0.6 + big) continue;
+        let tall = 1.6;
+        try {
+          tall = Math.max(1, e.getHeadLocation().y - e.location.y);
+        } catch {
+        }
+        const big = BIG[e.typeId] ?? (tall > 6 ? Math.min(6, 1.5 + tall * 0.12) : 0);
+        const heights = tall > 4 ? [0.6, tall * 0.5, tall * 0.9] : [0.6 + big * 0.4];
+        if (Math.min(...heights.map((h) => segDist(add(e.location, { x: 0, y: h, z: 0 }), from, dir, length))) > reach + 0.6 + big) continue;
         e.applyDamage(c.lethal > 0 ? c.lethal : T.damage * 2, { cause: EntityDamageCause4.entityAttack, damagingEntity: c.entity });
         e.setOnFire(5, true);
       } catch {
@@ -4478,7 +4509,11 @@ var RoarFx = class {
 };
 
 // src/pour.ts
-var POUR = { flood: 36, lift: 24 };
+var POUR = { smoke: 42, lift: 20 };
+var REAR_PITCH = -68;
+var SLAM_PITCH = 72;
+var CHARGE_KILLS = 30;
+var freshPour = () => ({ down: null, origin: null, heading: 0 });
 function groundAhead(c, target) {
   const m = c.anchor("mouth");
   const h = norm({ x: target.x - c.pos.x, y: 0, z: target.z - c.pos.z });
@@ -4488,42 +4523,85 @@ function groundAhead(c, target) {
   return { x, y: (typeof g === "number" ? g : c.pos.y - 1) + 0.6, z };
 }
 var floodReach = (spec) => spec.width * 10;
-function* pourAndLift(c, spec, aimAt, st, scorch) {
-  c.setPhase("pour");
-  const reach = floodReach(spec);
-  const down = groundAhead(c, aimAt());
-  let origin = null, heading = c.yaw;
-  for (let t = 0; t < POUR.flood; t++) {
-    c.aimAt(down, 80, 80);
-    const { from, dir } = c.aim();
-    const length = clearRange(c, from, dir, 90);
-    const hit = add(from, mul(dir, length));
-    if (!origin) {
-      origin = hit;
-      heading = Math.atan2(-(down.x - c.pos.x), down.z - c.pos.z) * 180 / Math.PI;
-      particle(c.dim, "basiliskra:impact_blast", hit, 192);
-      particle(c.dim, "basiliskra:impact_ring", hit, 192);
-    }
-    drawBeam(c.dim, from, dir, length, spec.width * (2.1 + 0.25 * Math.sin(t * 0.9)), t, true, hit);
-    flood(c, spec, origin, heading, reach * easeOut((t + 1) / POUR.flood), t, scorch);
-    if (t % 6 === 0) shake(c, 96, 0.5, 0.5);
-    yield;
+var easeOut = (k) => 1 - (1 - k) * (1 - k);
+var smooth = (k) => k * k * (3 - 2 * k);
+function pourTick(c, spec, ps, t, n, aimAt, scorch) {
+  if (!ps.down) ps.down = groundAhead(c, aimAt());
+  c.trackTo(ps.down, 3, 80, 80);
+  const { from, dir } = c.aim();
+  const length = clearRange(c, from, dir, 90);
+  const hit = add(from, mul(dir, length));
+  if (!ps.origin) {
+    ps.origin = hit;
+    ps.heading = yawTo(c.pos, ps.down);
+    sound(c.dim, "random.fizz", hit, 160, 2, 0.4);
   }
-  c.setPhase("fire");
-  const start = origin ?? down;
+  const reach = floodReach(spec);
+  if (t < POUR.smoke) {
+    if (t % 2 === 0) for (let k = 0; k < 3; k++) particle(c.dim, "basiliskra:soot_stream", add(from, mul(dir, length * k / 3)), 192, beamVars(dir, 1, spec.width));
+    soot(c, spec, ps.origin, ps.heading, 5 + reach * 0.75 * easeOut((t + 1) / POUR.smoke), t);
+    if (t % 10 === 0) sound(c.dim, "mob.blaze.breathe", from, 128, 1.6, 0.45);
+  } else {
+    if (t === POUR.smoke) {
+      particle(c.dim, "basiliskra:impact_blast", ps.origin, 192);
+      particle(c.dim, "basiliskra:impact_ring", ps.origin, 192);
+      sound(c.dim, "mob.ghast.fireball", ps.origin, 192, 2, 0.5);
+      flash(c.dim, ps.origin, 48, { red: 1, green: 0.35, blue: 0.2 }, 0.03, 0.05, 0.4);
+      shake(c, 128, 0.8, 0.6);
+    }
+    for (let k = 0; k < 3; k++) particle(c.dim, "basiliskra:fire_stream", add(from, mul(dir, length * k / 3)), 192, beamVars(dir, 1, spec.width));
+    if (t % 4 === 0) particle(c.dim, "basiliskra:impact_fire", hit, 160);
+    flood(c, spec, ps.origin, ps.heading, reach * easeOut((t - POUR.smoke + 1) / Math.max(1, n - POUR.smoke)), t, scorch);
+    if (t % 3 === 0) soot(c, spec, ps.origin, ps.heading, reach, t, 0.4);
+  }
+  if (t % 6 === 0) shake(c, 96, 0.35, 0.5);
+  if (c.lethal > 0 && t % 10 === 0) killRound(c, spec);
+}
+function rearTick(c, spec, ps, t, n, mark) {
+  c.lookPitch += clamp(REAR_PITCH - c.lookPitch, -7, 7);
+  c.relook();
+  c.lookYaw += clamp(clamp(wrapDeg(yawTo(c.pos, mark) - c.yaw), -45, 45) - c.lookYaw, -2, 2);
+  const mouth = c.anchor("mouth");
+  if (t % 3 === 0) particle(c.dim, "basiliskra:mouth_star", mouth, 192);
+  if (t % 4 === 1) particle(c.dim, "basiliskra:impact_glare", mouth, 192);
+  if (t % 6 === 0) sound(c.dim, "basiliskra.iii.charge_tick", mouth, 128, 0.8, 1.2 + t / n * 0.8);
+  if (ps.origin && t % 2 === 0) flood(c, spec, ps.origin, ps.heading, floodReach(spec), 1e3 + t, () => {
+  }, 0.45);
+  if (t % 5 === 0) shake(c, 128, 0.3 + 0.5 * (t / n), 0.5);
+  if (c.lethal > 0 && t % 10 === 0) killRound(c, spec);
+}
+function* slamAndLift(c, spec, ps, st, mark, scorch) {
+  shake(c, 160, 1.1, 0.6);
   for (let t = 0; t < POUR.lift; t++) {
     const k = smooth((t + 1) / POUR.lift);
-    const goal = aimAt();
-    c.aimAt({ x: start.x + (goal.x - start.x) * k, y: start.y + (goal.y - start.y) * k, z: start.z + (goal.z - start.z) * k }, 80, 80);
+    const goal = mark();
+    c.aimAt(goal, 80, 80);
+    const ahead = clamp(wrapDeg(yawTo(c.pos, goal) - c.yaw), -80, 80);
+    if (Math.abs(wrapDeg(c.lookYaw - ahead)) > 25) c.lookYaw = ahead;
+    c.lookPitch += (Math.max(c.lookPitch, SLAM_PITCH) - c.lookPitch) * (1 - k);
+    c.relook();
     beamTick(c, { ...spec, width: spec.width * (2 - k), damage: spec.damage * 0.3 }, t, 1, st, { scorch, clean: true });
-    if (origin && t % 3 === 0) flood(c, spec, origin, heading, reach, POUR.flood + t, scorch, 0.5);
+    if (ps.origin && t % 3 === 0) flood(c, spec, ps.origin, ps.heading, floodReach(spec), 2e3 + t, scorch, 0.5);
     if (t % 8 === 0) shake(c, 96, 0.45, 0.5);
     yield;
   }
   st.ground = null;
 }
-var easeOut = (k) => 1 - (1 - k) * (1 - k);
-var smooth = (k) => k * k * (3 - 2 * k);
+function soot(c, spec, origin, heading, r, t, share = 1) {
+  const dim = c.dim;
+  const n = Math.round((t % 2 === 0 ? 6 : 2) * share);
+  for (let i = 0; i < n; i++) {
+    const a = (heading + (hash(c.tick, i, 61) - 0.5) * 110) * Math.PI / 180;
+    const d = r * (i < n * 0.6 ? 0.7 + 0.3 * hash(c.tick, i, 62) : hash(c.tick, i, 63));
+    const x = origin.x - Math.sin(a) * d, z = origin.z + Math.cos(a) * d;
+    if (!isLoaded(dim, { x, y: origin.y, z })) continue;
+    const g = groundY(dim, x, z, origin.y + 10, 24);
+    if (typeof g !== "number") continue;
+    const out = norm({ x: -Math.sin(a), y: 0, z: Math.cos(a) });
+    particle(dim, "basiliskra:soot_billow", { x, y: g + 1.5, z }, 192, beamVars(out, 1, spec.width));
+    if (i % 3 === 0) particle(dim, "basiliskra:soot_ember", { x, y: g + 1, z }, 128, beamVars(out, 1, spec.width));
+  }
+}
 function flood(c, spec, origin, heading, r, t, scorch, share = 1) {
   const dim = c.dim;
   const n = Math.round((t % 2 === 0 ? 7 : 3) * share);
@@ -4574,6 +4652,22 @@ function flood(c, spec, origin, heading, r, t, scorch, share = 1) {
       if (!near(e.location)) continue;
       e.applyDamage(c.mobHit(spec.damage), { cause: EntityDamageCause7.fire, damagingEntity: c.entity });
       e.setOnFire(6, true);
+    } catch {
+    }
+  }
+}
+function killRound(c, spec) {
+  const r = CHARGE_KILLS + c.girth;
+  for (const p of players()) {
+    try {
+      if (p.dimension.id !== c.dim.id || !targetable(p) || dist(p.location, c.pos) > r) continue;
+      c.hurt(p, spec.damage, EntityDamageCause7.fire);
+    } catch {
+    }
+  }
+  for (const e of mobsNear(c.dim, c.pos, r)) {
+    try {
+      e.applyDamage(c.lethal, { cause: EntityDamageCause7.fire, damagingEntity: c.entity });
     } catch {
     }
   }
@@ -4675,6 +4769,8 @@ var BrainThree = class extends Brain {
     this.chargeSounding = false;
     /** From how far he knows of another giant. */
     this.giantSight = 160;
+    this.foreign = [];
+    this.foreignAt = -999;
     /** Rods seen near the club during this charge, by layer: the whole reach is read once every twelve ticks. */
     this.rodSeen = /* @__PURE__ */ new Map();
     this.rodLayer = 0;
@@ -4689,7 +4785,12 @@ var BrainThree = class extends Brain {
   }
   /** Creatures he could go after (not players): cached, the entity query runs every two seconds at most. */
   creatures() {
-    const big = otherGiants(this.c).filter((g) => dist(g.pos, this.c.pos) < this.giantSight).sort((a, b) => dist(a.pos, this.c.pos) - dist(b.pos, this.c.pos)).map((g) => g.entity);
+    const ours = otherGiants(this.c).filter((g) => dist(g.pos, this.c.pos) < this.giantSight).sort((a, b) => dist(a.pos, this.c.pos) - dist(b.pos, this.c.pos)).map((g) => g.entity);
+    if (this.now - this.foreignAt >= 40) {
+      this.foreignAt = this.now;
+      this.foreign = foreignGiantsNear(this.c.dim, this.c.pos, this.giantSight);
+    }
+    const big = [...ours, ...this.foreign.filter(alive)];
     if (!CONFIG.huntMobs) return big;
     if (this.now - this.mobsAt >= 40) {
       this.mobsAt = this.now;
@@ -5186,8 +5287,10 @@ var BrainThree = class extends Brain {
     const aimAt = () => target ? aimOf(target) : add(c.anchor("mouth"), mul(c.forward, 30));
     const pitchMax = flying2 ? 80 : 40;
     const pour = !flying2;
+    const ps = freshPour();
     const charging = () => pour ? groundAhead(c, aimAt()) : aimAt();
     const chargeMax = pour ? 80 : pitchMax;
+    const spec = { ...T, fallout: [0, 3, 4, 5][tier], rough: tier === 1 };
     c.halt();
     c.setPhase("charge");
     c.say("basiliskra.iii.club_plant", c.anchor("club_core"), 112);
@@ -5204,11 +5307,16 @@ var BrainThree = class extends Brain {
     let rod = null;
     let lit = 1;
     const light = LIGHT_END - PLANT_TICKS;
+    if (pour) c.setPhase("pour");
     for (let t = 0; t < light; t++) {
       if (!ok()) return;
       const aim = aimAt();
-      const off = pour ? c.trackTo(charging(), 2, 80, chargeMax) : c.aimAt(aim, 80, pitchMax);
-      if (off > 0 || pour && Math.abs(c.lookYaw) > 70) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), flying2 ? 1.4 : 0.6);
+      let off;
+      if (pour) {
+        pourTick(c, spec, ps, t, light, aimAt, (hit) => this.scorch(hit));
+        off = Math.abs(c.lookYaw) > 70 ? 1 : 0;
+      } else off = c.aimAt(aim, 80, pitchMax);
+      if (off > 0) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), flying2 ? 1.4 : 0.6);
       c.setCharge(2 + t / light * 13.4);
       const zone = Math.floor(c.charge / 2);
       if (zone > lit) {
@@ -5230,8 +5338,10 @@ var BrainThree = class extends Brain {
     }
     const lock = CHARGE_TICKS - LIGHT_END;
     const mark = aimAt();
+    if (pour) c.setPhase("rear");
     for (let t = 0; t < lock; t++) {
       c.setCharge(16 + t / lock * 2);
+      if (pour) rearTick(c, spec, ps, t, lock, mark);
       if (flying2 && ok()) c.trackTo(aimAt(), 4, 80, 80);
       if (t % 2 === 0) {
         const { from, dir: d0 } = c.aim();
@@ -5254,9 +5364,8 @@ var BrainThree = class extends Brain {
       shake(c, 96, 0.9, 0.5);
     }
     const st = { ground: null };
-    const spec = { ...T, fallout: [0, 3, 4, 5][tier], rough: tier === 1 };
-    if (pour) yield* pourAndLift(c, spec, () => mark, st, (hit) => this.scorch(hit));
-    for (let t = pour ? POUR.flood + POUR.lift : 0; t < FIRE_FULL + FIRE_FADE; t++) {
+    if (pour) yield* slamAndLift(c, spec, ps, st, () => mark, (hit) => this.scorch(hit));
+    for (let t = pour ? POUR.lift : 0; t < FIRE_FULL + FIRE_FADE; t++) {
       const fade = t < FIRE_FULL ? 1 : 1 - (t - FIRE_FULL) / FIRE_FADE;
       if (flying2 && target && ok() && (!isPlayer(target) || targetable(target))) {
         c.trackTo(aimOf(target), tier === 1 ? 2.2 : 3.2, 80, 80);
@@ -5383,6 +5492,14 @@ var BrainFour = class extends BrainThree {
     this.heading = -1;
     /** His breath (the Titan's is its own). */
     this.spec = SPEC;
+    /**
+     * He charges, following `aimAt` with his eye until the lock.  Returns "lock" when the charge is whole,
+     * "cover" if the quarry got something solid between them while he was still following (see the swallow), and
+     * "gone" if there is nothing left to fire at.
+     */
+    /** What the breath being drawn has poured and where it means to go (1.9): its charge sets them, its shot uses them. */
+    this.ps = freshPour();
+    this.markAt = null;
     c.set(PROP.tier, 3);
     c.set(PROP.gill, !!this.four().plate);
   }
@@ -5791,13 +5908,10 @@ var BrainFour = class extends BrainThree {
     particle(this.c.dim, "basiliskra:rad_glint", { x: top2.x, y: top2.y + 2, z: top2.z }, 96);
     if (t % 20 === 0) sound(this.c.dim, "basiliskra.iii.charge_tick", top2, 64, 0.5, 0.7);
   }
-  /**
-   * He charges, following `aimAt` with his eye until the lock.  Returns "lock" when the charge is whole,
-   * "cover" if the quarry got something solid between them while he was still following (see the swallow), and
-   * "gone" if there is nothing left to fire at.
-   */
   *charge(target, aimAt, watchCover, pour = true) {
     const c = this.c;
+    this.ps = freshPour();
+    this.markAt = null;
     const ok = () => {
       try {
         return !target || target.isValid && target.dimension.id === c.dim.id;
@@ -5827,11 +5941,16 @@ var BrainFour = class extends BrainThree {
     }
     const light = LIGHT_END - PLANT_TICKS;
     let hidden = 0, lit = 1;
+    if (down) c.setPhase("pour");
     for (let t = 0; t < light; t++) {
       if (!ok()) return "gone";
       const aim = aimAt();
-      const off = down ? c.trackTo(gather(), 2, 80, 80) : c.aimAt(aim, 80, pitchMax);
-      if (off > 0 && (!down || Math.abs(c.lookYaw) > 60)) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), flying2 ? 1.2 : 0.5);
+      let off;
+      if (down) {
+        pourTick(c, this.spec, this.ps, t, light, aimAt, (hit) => this.scorch(hit));
+        off = Math.abs(c.lookYaw) > 60 ? 1 : 0;
+      } else off = c.aimAt(aim, 80, pitchMax);
+      if (off > 0) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), flying2 ? 1.2 : 0.5);
       c.setCharge(2 + t / light * 13.4);
       const zone = Math.floor(c.charge / 2);
       if (zone > lit) {
@@ -5848,8 +5967,13 @@ var BrainFour = class extends BrainThree {
       yield;
     }
     const lock = CHARGE_TICKS - LIGHT_END;
+    if (down) {
+      this.markAt = aimAt();
+      c.setPhase("rear");
+    }
     for (let t = 0; t < lock; t++) {
       c.setCharge(16 + t / lock * 2);
+      if (down && this.markAt) rearTick(c, this.spec, this.ps, t, lock, this.markAt);
       if (flying2 && ok()) c.trackTo(aimAt(), 4, 80, 80);
       if (t % 2 === 0) {
         const { from, dir: d0 } = c.aim();
@@ -5925,9 +6049,9 @@ var BrainFour = class extends BrainThree {
     let side = 0;
     let pivot = null;
     const flying2 = !!target && isFlyer(target);
-    if (!flying2) {
-      const fixed = live() ? aimOf(target) : add(c.anchor("mouth"), mul(c.forward, 40));
-      yield* pourAndLift(c, this.spec, aim ?? (() => fixed), st, (hit) => this.scorch(hit));
+    if (!flying2 && this.ps.origin) {
+      const fixed = this.markAt ?? (live() ? aimOf(target) : add(c.anchor("mouth"), mul(c.forward, 40)));
+      yield* slamAndLift(c, this.spec, this.ps, st, aim ?? (() => fixed), (hit) => this.scorch(hit));
     }
     for (let t = 0; t < FIRE; t++) {
       const fade = t < FIRE - 16 ? 1 : (FIRE - t) / 16;

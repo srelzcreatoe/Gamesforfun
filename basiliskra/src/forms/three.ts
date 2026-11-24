@@ -14,8 +14,8 @@ import { BeamSpec, BeamState, beamTick, clearRange } from "../beam";
 import { Creature, giantOf, otherGiants, targetable } from "../creature";
 import { beamVars, flash, particle, players, sound, stopSound, witnesses } from "../fx";
 import { STANCE_III, STRIDE_III } from "../generated/rig";
-import { POUR, groundAhead, pourAndLift } from "../pour";
-import { alive, blast, carve, mobsNear, segDist, wither } from "../havoc";
+import { POUR, freshPour, groundAhead, pourTick, rearTick, slamAndLift } from "../pour";
+import { alive, blast, carve, foreignGiantsNear, mobsNear, segDist, wither } from "../havoc";
 import { RoarFx, shake } from "../roar";
 import { store } from "../store";
 import { addFallout, fuse, sear } from "../fallout";
@@ -107,14 +107,19 @@ export class BrainThree extends Brain {
 
   /** Creatures he could go after (not players): cached, the entity query runs every two seconds at most. */
   protected creatures(): Entity[] {
-    // another giant in his world is never beneath his notice, whatever the setting says about animals
-    const big = otherGiants(this.c).filter((g) => dist(g.pos, this.c.pos) < this.giantSight).sort((a, b) => dist(a.pos, this.c.pos) - dist(b.pos, this.c.pos)).map((g) => g.entity);
+    // another giant in his world is never beneath his notice, whatever the setting says about animals: ours, and from
+    // 1.9 another add-on's (a Godzilla with a million health, say)
+    const ours = otherGiants(this.c).filter((g) => dist(g.pos, this.c.pos) < this.giantSight).sort((a, b) => dist(a.pos, this.c.pos) - dist(b.pos, this.c.pos)).map((g) => g.entity);
+    if (this.now - this.foreignAt >= 40) { this.foreignAt = this.now; this.foreign = foreignGiantsNear(this.c.dim, this.c.pos, this.giantSight); }
+    const big = [...ours, ...this.foreign.filter(alive)];
     if (!CONFIG.huntMobs) return big;
     if (this.now - this.mobsAt >= 40) { this.mobsAt = this.now; this.mobs = mobsNear(this.c.dim, this.c.pos, this.c.form >= 4 ? 130 : 72); }
     return [...big, ...this.mobs.filter(alive)];
   }
   /** From how far he knows of another giant. */
   protected giantSight = 160;
+  private foreign: Entity[] = [];
+  private foreignAt = -999;
 
   tier(): 1 | 2 | 3 {
     const b = this.rec.mut.beams;
@@ -567,11 +572,13 @@ export class BrainThree extends Brain {
     const flying = !!target && isFlyer(target);
     const aimAt = (): V3 => (target ? aimOf(target) : add(c.anchor("mouth"), mul(c.forward, 30)));
     const pitchMax = flying ? 80 : 40;
-    // (1.8) at anything on the ground his head goes down to the ground in front of him while the breath gathers,
-    // and the shot is poured onto it before it narrows into the beam (pour.ts); what flies is watched instead
+    // (1.9) at anything on the ground: his head goes down, black smoke pours out onto the ground and catches, he
+    // rears back to the sky, and slams forward into the shot (pour.ts); what flies is watched instead
     const pour = !flying;
+    const ps = freshPour();
     const charging = (): V3 => (pour ? groundAhead(c, aimAt()) : aimAt());
     const chargeMax = pour ? 80 : pitchMax;
+    const spec: BeamSpec = { ...T, fallout: [0, 3, 4, 5][tier], rough: tier === 1 };
     c.halt();
     // 1. the club plants first, and the breath begins: the charge lasts exactly as long as its sound
     c.setPhase("charge");
@@ -584,11 +591,17 @@ export class BrainThree extends Brain {
     let rod: V3 | null = null;
     let lit = 1;
     const light = LIGHT_END - PLANT_TICKS;
+    if (pour) c.setPhase("pour");
     for (let t = 0; t < light; t++) {
       if (!ok()) return;                     // (onFinish cuts the sound)
       const aim = aimAt();
-      const off = pour ? c.trackTo(charging(), 2, 80, chargeMax) : c.aimAt(aim, 80, pitchMax);
-      if (off > 0 || (pour && Math.abs(c.lookYaw) > 70)) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), flying ? 1.4 : 0.6);      // feet shuffle only if the neck cannot reach
+      let off: number;
+      if (pour) {
+        // the smoke, then the fire, poured onto the ground in front of him
+        pourTick(c, spec, ps, t, light, aimAt, (hit) => this.scorch(hit));
+        off = Math.abs(c.lookYaw) > 70 ? 1 : 0;
+      } else off = c.aimAt(aim, 80, pitchMax);
+      if (off > 0) c.yaw = turnTowards(c.yaw, yawTo(c.pos, aim), flying ? 1.4 : 0.6);      // feet shuffle only if the neck cannot reach
       c.setCharge(2 + (t / light) * 13.4);                                     // 15 at most: 16 is the lock, and the eye still follows here
       const zone = Math.floor(c.charge / 2);
       if (zone > lit) {
@@ -610,10 +623,13 @@ export class BrainThree extends Brain {
       return;
     }
     const lock = CHARGE_TICKS - LIGHT_END;
-    // (the place he means to hit is fixed here: the pour lifts to it, not to wherever the quarry has gone since)
+    // (the place he means to hit is fixed here: the beam sweeps up to it, not to wherever the quarry has gone since)
     const mark = aimAt();
+    // he rears back: head thrown up to the sky, the light gathering in his mouth
+    if (pour) c.setPhase("rear");
     for (let t = 0; t < lock; t++) {
       c.setCharge(16 + (t / lock) * 2);
+      if (pour) rearTick(c, spec, ps, t, lock, mark);
       // (what flies is not given the chance to step aside: his eye keeps after it)
       if (flying && ok()) c.trackTo(aimAt(), 4, 80, 80);
       // a thin line down the path it will take: this is where not to be standing
@@ -643,11 +659,10 @@ export class BrainThree extends Brain {
     // where the beam is landing: it blasts out a crater there (it does not bore on for ever), the poison gathers
     // there, and when his aim moves on, so does the crater
     const st: BeamState = { ground: null };
-    const spec: BeamSpec = { ...T, fallout: [0, 3, 4, 5][tier], rough: tier === 1 };
-    // the pour: the ground in front of him floods with fire, then the breath narrows and lifts to its mark
-    if (pour) yield* pourAndLift(c, spec, () => mark, st, (hit) => this.scorch(hit));
-    // (the pour is the first three seconds of the shot: it still lasts as long as its recording)
-    for (let t = pour ? POUR.flood + POUR.lift : 0; t < FIRE_FULL + FIRE_FADE; t++) {
+    // he slams forward: the beam goes into the burning ground in front of him and sweeps up to its mark
+    if (pour) yield* slamAndLift(c, spec, ps, st, () => mark, (hit) => this.scorch(hit));
+    // (the sweep is the start of the shot: it still lasts as long as its recording)
+    for (let t = pour ? POUR.lift : 0; t < FIRE_FULL + FIRE_FADE; t++) {
       const fade = t < FIRE_FULL ? 1 : 1 - (t - FIRE_FULL) / FIRE_FADE;
       // the focused beam is walked slowly after its quarry; the raw one wanders where it will
       // (never as fast as a player walks sideways at the range he fires from: stepping out of the line still works)

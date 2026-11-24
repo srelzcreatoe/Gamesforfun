@@ -250,11 +250,11 @@ console.log('\n== 7. A player joining during a beam charge');
   const stand = () => { const f = { x: -Math.sin(c().yaw * Math.PI / 180), z: Math.cos(c().yaw * Math.PI / 180) }; const x = c().pos.x + f.x * 54, z = c().pos.z + f.z * 54; let y = 90; while (y > 40 && w.sim.blockId('minecraft:overworld', x, y - 1, z) === 'minecraft:air') y--; return { x, y: Math.max(y, 63), z }; };      // on the ground (or the water) in front of him
   w.bk.ctl.brain.finish();
   ana.moveTo(stand());
-  const t = until(w, () => { if (c().phase !== 'charge' && c().phase !== 'fire') ana.moveTo(stand()); return e().getProperty(P('phase')) === 18 && e().getProperty(P('charge')) >= 6; }, 3000);
+  const t = until(w, () => { if (c().phase !== 'charge' && c().phase !== 'fire') ana.moveTo(stand()); return [18, 39].includes(e().getProperty(P('phase'))) && e().getProperty(P('charge')) >= 6; }, 3000);
   check('he plants the club and the ridge begins to light, tail first', t > 0, `charge ${e().getProperty(P('charge'))}`);
   const late = w.sim.addPlayer('Late joiner', { x: ana.loc.x + 3, y: ana.loc.y, z: ana.loc.z + 3 });
   const seen = { form: e().getProperty(P('form')), phase: e().getProperty(P('phase')), charge: e().getProperty(P('charge')), bound: e().getProperty(P('bound')) };
-  check('the late joiner reads the same form and attack phase from the entity itself', seen.form === 3 && seen.phase === 18 && seen.charge >= 6 && seen.bound === true, JSON.stringify(seen));
+  check('the late joiner reads the same form and attack phase from the entity itself', seen.form === 3 && [18, 39].includes(seen.phase) && seen.charge >= 6 && seen.bound === true, JSON.stringify(seen));
   const locked = { x: ana.loc.x, y: ana.loc.y, z: ana.loc.z };
   until(w, () => e().getProperty(P('charge')) >= 16, 400);
   // the eye has stopped following: one player steps sideways out of the line, the other stays put
@@ -268,8 +268,9 @@ console.log('\n== 7. A player joining during a beam charge');
   check('the player who stepped sideways in the window is missed', ana.health === hpA, `${hpA} -> ${ana.health}`);
   check('the player standing in the locked line is hit', late.health < hpL, `${hpL} -> ${late.health}`);
   check('beam particles and sound reached the late joiner too', late.seen.some((s) => s.id === 'basiliskra:beam_core') && late.heard.some((s) => s.id === 'basiliskra.iii.beam'));
-  const core = late.seen.find((s) => s.id === 'basiliskra:beam_core');
-  check('the drawn beam carries the length the server measured', core && core.vars['variable.len'] > 1 && core.vars['variable.len'] <= 40);
+  // (its first segments go into the ground right in front of him: the slam; then it lifts to the mark)
+  const cores = late.seen.filter((s) => s.id === 'basiliskra:beam_core').map((s) => s.vars['variable.len']);
+  check('the drawn beam carries the length the server measured', cores.length > 0 && cores.every((n) => n > 0 && n <= 40) && cores.some((n) => n > 8), `${cores.length} segments, ${Math.min(...cores)}..${Math.max(...cores)}`);
   until(w, () => e().getProperty(P('phase')) === 20, 100);
   const k0 = ana.heard.filter((s) => s.id === 'basiliskra.knock.vent').length;
   until(w, () => e().getProperty(P('charge')) === 0, 200);
@@ -894,8 +895,10 @@ console.log('\n== 15. Bigger, louder, out of control (1.3)');
     const at = (ph) => (phases.find(([p]) => p === ph) ?? [0, -1])[1];
     const heard = (id) => (a.heard.find((q) => q.id === id && q.tick >= t0) ?? { tick: -1 }).tick - t0;
     const chargeAt = heard('basiliskra.iii.charge'), beamAt = heard('basiliskra.iii.beam');
-    check('the charge lasts as long as the charging part of the recording (6.85 s), and he fires on the tick the shot begins (with the pour, 1.8)', chargeAt >= 0 && beamAt - chargeAt === 137 && Math.abs(at(39) - beamAt) <= 1 && at(19) - at(39) === 36, `charge sound ${chargeAt}, beam sound ${beamAt}, pour ${at(39)}, beam ${at(19)}`);
-    check('he fires for as long as the shot sounds (about 7.7 s, the pour and the lift among it), then vents', at(20) - at(39) === 155, JSON.stringify(phases));
+    check('the charge lasts as long as the charging part of the recording (6.85 s): the smoke and fire poured, the rear, and he fires on the tick the shot begins (1.9)',
+      chargeAt >= 0 && beamAt - chargeAt === 137 && Math.abs(at(19) - beamAt) <= 1 && Math.abs(at(39) - chargeAt - 14) <= 1 && Math.abs(at(40) - chargeAt - 112) <= 1,
+      `charge sound ${chargeAt}, pour ${at(39)}, rear ${at(40)}, beam sound ${beamAt}, beam ${at(19)}`);
+    check('he fires for as long as the shot sounds (about 7.7 s, the sweep among it), then vents', at(20) - at(19) === 155, JSON.stringify(phases));
     check('and after firing he roars', at(23) > at(20) && a.heard.some((q) => q.tick > t0 + at(20) && /basiliskra\.roar/.test(q.id)));
     check('the beam is wider, smokes and glows, and blasts where it lands', a.seen.some((q) => q.id === 'basiliskra:beam_glow') && a.seen.some((q) => q.id === 'basiliskra:beam_smoke') && a.seen.some((q) => q.id === 'basiliskra:impact_smoke') && a.seen.some((q) => q.id === 'minecraft:huge_explosion_emitter'));
     const ground = []; for (let x = 20; x <= 90; x++) for (let z = -100; z <= -60; z++) for (let y = 50; y <= 63; y++) if (w.sim.blockId('minecraft:overworld', x, y, z) === 'minecraft:air') ground.push([x, y, z]);
@@ -1886,7 +1889,7 @@ console.log('\n== 22. The Titan');
     check('a Titan can be put down: Basiliskra IV\'s body, bound, named, with its own hit volumes', /A Titan stands here/.test(said) && titans.count === 1 && a.form === 4 && a.entity.getProperty(P('form')) === 4
       && a.entity.getProperty(P('bound')) === true && a.entity.nameTag === 'Titan Alpha' && w.sim.count('basiliskra:hitbox') === parts && a.entity.rec.events.includes('basiliskra:bind'), `${said} ${w.sim.count('basiliskra:hitbox')} volumes`);
     check('it is not the one Basiliskra: his story has not begun, and he is nowhere', w.bk.store.rec.stage === 'dormant' && w.bk.ctl.creature === null && w.sim.count(TYPE) === 0 && w.bk.store.rec.entityId === null);
-    check('it is as strong as the strongest Godzilla add-ons: 100,000 health (his: 600)', healthOf(a) === 100000 && w.bk.titan.TITAN_HEALTH === 100000, `${healthOf(a)}`);
+    check('it is as strong as the strongest Godzilla add-ons: 1,000,000 health (his: 600)', healthOf(a) === 1000000 && w.bk.titan.TITAN_HEALTH === 1000000, `${healthOf(a)}`);
     check('it roars when it arrives', eyes[0].heard.some((q) => q.id === 'basiliskra.roar'));
     // a spawn egg makes another; a fourth is one too many
     w.sim.summon(TITAN, 'minecraft:overworld', { x: 100, y: 64, z: 100 }); w.sim.step(3);
@@ -1937,7 +1940,7 @@ console.log('\n== 22. The Titan');
     seen.beam = eyes[0].heard.filter((q) => q.id === 'basiliskra.iii.beam').length;
     check('two Titans go for each other', acts.has('lock') && (acts.has('beam') || acts.has('ram') || acts.has('pursue')), [...acts].join(' '));
     const BURN = w.bk.titan.TITAN_SPEC.damage * 0.5, BL = w.bk.titan.BLOW;
-    check('with their breath: each burns the other, 375 at a time (blows between giants scaled with their health)', seen.beam >= 2 && BURN === 375 && da.includes(BURN) && db.includes(BURN), `${seen.beam} beams`);
+    check('with their breath: each burns the other, 3,750 at a time (blows between giants scaled with their health)', seen.beam >= 2 && BURN === 3750 && da.includes(BURN) && db.includes(BURN), `${seen.beam} beams`);
     check('and with their bodies: jaws and claws, the tail, the whole weight', seen.bite && da.concat(db).includes(BL.lunge) && seen.sweep && da.concat(db).includes(BL.tail) && acts.has('ram') && acts.has('circle'), `closest ${seen.close.toFixed(0)}; acts ${[...acts].join(' ')}`);
     check('a heavy blow staggers the one it lands on', seen.recoil && acts.has('reel'));
     check('they stand off at arm\'s length: neither walks through the other', seen.close > 12, `${seen.close.toFixed(1)} blocks between their middles at the nearest`);
@@ -1946,7 +1949,7 @@ console.log('\n== 22. The Titan');
     const left = titans.creatures()[0];
     const drops = [...w.sim.save.entities.values()].filter((r) => r.typeId === 'minecraft:item' && r.item).map((r) => r.item.typeId);
     check('what it leaves: crimson shards and a fin, and ground that is poisoned', drops.includes('basiliskra:crimson_shard') && drops.includes('basiliskra:shed_fin') && w.bk.store.rec.fallout.length > 0, drops.join(','));
-    check('the loser\'s hit volumes go with it; the winner keeps its own', w.sim.count('basiliskra:hitbox') === w.bk.creature.partsFor(4).length && left.valid && healthOf(left) > 0 && healthOf(left) < 100000, `winner at ${Math.round(healthOf(left))}`);
+    check('the loser\'s hit volumes go with it; the winner keeps its own', w.sim.count('basiliskra:hitbox') === w.bk.creature.partsFor(4).length && left.valid && healthOf(left) > 0 && healthOf(left) < 1000000, `winner at ${Math.round(healthOf(left))}`);
     check('nothing of this touched his story', w.bk.store.rec.stage === 'dormant' && w.sim.count(TYPE) === 0);
   }
 
@@ -1966,7 +1969,7 @@ console.log('\n== 22. The Titan');
     }
     const onHim = w.sim.log.damage.filter((d) => d.id === hid), onIt = w.sim.log.damage.filter((d) => d.id === tid);
     check('a Titan goes for Basiliskra himself, and he answers it', onHim.length > 0 && fought && onIt.some((d) => d.amount === 5.5), `${onHim.length} blows on him, ${onIt.length} on the Titan`);
-    check('it is much the stronger: he is the one driven off, and it is barely marked', away > 0 && healthOf(t) > 75000 && w.sim.count(TYPE) <= 1, `after ${away} ticks; the Titan at ${Math.round(healthOf(t))}`);
+    check('it is much the stronger: he is the one driven off, and it is barely marked', away > 0 && healthOf(t) > 750000 && w.sim.count(TYPE) <= 1, `after ${away} ticks; the Titan at ${Math.round(healthOf(t))}`);
     check('he is never killed by it', !w.sim.log.damage.some((d) => d.id === hid && d.amount >= 600) && w.bk.store.rec.stage !== 'dormant');
   }
 
@@ -2000,7 +2003,7 @@ console.log('\n== 22. The Titan');
     let t0 = w.sim.save.tick;
     p.use('basiliskra:seam_lance'); w.sim.step(2);
     const got = w.sim.log.damage.filter((d) => d.id === tid && d.tick >= t0).map((d) => d.amount);
-    check('the Seam Lance strikes a Titan as it strikes him', got.length === 1 && got[0] === 34 && healthOf(t) === 100000 - 34, JSON.stringify(got));
+    check('the Seam Lance strikes a Titan as it strikes him', got.length === 1 && got[0] === 34 && healthOf(t) === 1000000 - 34, JSON.stringify(got));
     // a blow that would kill: it is held back, the Titan goes down, and then it is gone
     t.entity.getComponent('minecraft:health').setCurrentValue(20);
     w.sim.step(14); aimAt(t.middle());
@@ -2309,15 +2312,19 @@ console.log('\n== 25. Out of the water, the breath poured, the wings, the claws 
     const c = standThree(w, { x: 0, y: 64, z: -80 }, -90, 3);
     w.sim.step(5);
     w.bk.ctl.brain.forced = { name: 'beam', run: w.bk.ctl.brain.beam(a), limit: 2000 };
-    let down = -99, phases = [], last = -1;
+    let down = -99, up = 99, phases = [], last = -1;
     for (let i = 0; i < 420; i++) {
       w.sim.step(1);
       const ph = c.entity.getProperty(P('phase'));
-      if (ph === 18) down = Math.max(down, c.lookPitch);                 // (a look pitch above 0 is down)
+      if (ph === 39) down = Math.max(down, c.lookPitch);                 // (a look pitch above 0 is down)
+      if (ph === 40) up = Math.min(up, c.lookPitch);
       if (ph !== last) { phases.push(ph); last = ph; }
     }
     check('while the breath gathers his head goes down to the ground in front of him (he looks at it, not at you)', down > 15, `head ${down.toFixed(0)} degrees down`);
-    check('the shot begins poured, then narrows into the beam: phases charge, pour, fire, vent', phases.join(' ').includes('18 39 19 20'), phases.join(' '));
+    check('he rears back before he fires: head thrown up to the sky (1.9)', up < -40, `head ${(-up).toFixed(0)} degrees up`);
+    check('the order of it: charge, pour (smoke, then fire), rear, fire, vent', phases.join(' ').includes('18 39 40 19 20'), phases.join(' '));
+    check('black smoke pours out of his mouth and heaps on the ground before it catches', ['soot_stream', 'soot_billow', 'soot_ember'].every((k) => a.seen.some((q) => q.id === 'basiliskra:' + k))
+      && a.seen.findIndex((q) => q.id === 'basiliskra:soot_stream') < a.seen.findIndex((q) => q.id === 'basiliskra:flood_fire'));
     check('the pour floods the ground with fire: rolling fire, smoke and embers', ['flood_fire', 'flood_smoke', 'flood_ember'].every((k) => a.seen.some((q) => q.id === 'basiliskra:' + k)));
     let fire = 0; for (let x = 10; x <= 80; x++) for (let z = -110; z <= -50; z++) for (let y = 60; y <= 66; y++) if (w.sim.blockId('minecraft:overworld', x, y, z) === 'minecraft:fire') fire++;
     check('and what will burn in front of him catches', fire >= 3, `${fire} fires`);
@@ -2331,11 +2338,12 @@ console.log('\n== 25. Out of the water, the breath poured, the wings, the claws 
     w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, 4); w.sim.step(3);
     w.bk.store.rec.four = { debut: true, shots: 0, plate: { x: 900, y: 0, z: 900, uses: 0, burnt: false } };
     const c = w.bk.ctl.creature;
-    const cow = w.sim.summon('minecraft:cow', 'minecraft:overworld', { x: 0, y: 64, z: 75 }); cow.rec.family = ['mob'];
+    const cow = w.sim.summon('minecraft:cow', 'minecraft:overworld', { x: 0, y: 64, z: 75 }); cow.rec.family = ['mob']; cow.rec.health = 1e6;
     w.bk.ctl.brain.forced = { name: 'beam', run: w.bk.ctl.brain.breath(cow), limit: 4000 };
     let down = -99, poured = false;
-    for (let i = 0; i < 400; i++) { w.sim.step(1); if (c.phase === 'charge') down = Math.max(down, c.lookPitch); if (c.phase === 'pour') poured = true; }
-    check('Basiliskra IV looks down at the ground as he charges, and pours his breath onto it', down > 15 && poured, `head ${down.toFixed(0)} degrees down`);
+    let reared = false;
+    for (let i = 0; i < 400; i++) { w.sim.step(1); if (c.phase === 'pour') { down = Math.max(down, c.lookPitch); poured = true; } if (c.phase === 'rear') reared = true; }
+    check('Basiliskra IV looks down at the ground as he charges, pours smoke and fire onto it, and rears back before he fires', down > 15 && poured && reared, `head ${down.toFixed(0)} degrees down`);
   }
   {
     const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
@@ -2392,8 +2400,32 @@ console.log('\n== 25. Out of the water, the breath poured, the wings, the claws 
     let swipes = 0;
     for (let i = 0; i < 4000 && T.count === 2; i++) { w.sim.step(1); for (const t of T.list.values()) if (t.brain.actName === 'swipe' && t.c.phase === 'swipe' && t.c.entity.getProperty(P('phase')) === 38) swipes++; }
     const clawed = w.sim.log.damage.filter((d) => ids.includes(d.id) && d.amount === w.bk.titan.BLOW.swipe).length;
-    check('two Titans at arm\'s length swipe at each other: each swipe a heavy blow (2,500) and the marks it leaves', swipes > 0 && clawed > 0 && eye.seen.some((q) => q.id === 'basiliskra:claw_scratch'), `${clawed} claw blows landed`);
+    check('two Titans at arm\'s length swipe at each other: each swipe a heavy blow (25,000) and the marks it leaves', swipes > 0 && clawed > 0 && eye.seen.some((q) => q.id === 'basiliskra:claw_scratch'), `${clawed} claw blows landed`);
   }
+}
+
+console.log('\n== 26. The Titan against another add-on\'s Godzilla (1.9)');
+{
+  const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+  const eye = w.sim.addPlayer('Eye', { x: 40, y: 64, z: 0 }); eye.mode = 'Creative';
+  const T = w.bk.titan.titans, dim = w.sim.dims.get('minecraft:overworld');
+  // (a stand-in for the one the owner sent: of the monster family and not the mob family, a million health, 38 blocks tall)
+  const god = w.sim.summon('z:hakaishin', 'minecraft:overworld', { x: 0, y: 64, z: 70 });
+  Object.assign(god.rec, { family: ['hakaishin', 'monster'], health: 1000000, maxHealth: 1000000, height: 36 });
+  T.spawn(dim, { x: 0, y: 64, z: -20 }, 0); w.sim.step(2);
+  const t = T.creatures()[0];
+  const titanJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities/basiliskra_titan.json'), 'utf8'))['minecraft:entity'].components;
+  const immune = titanJson['minecraft:damage_sensor'].triggers.filter((q) => q.deals_damage === 'no').map((q) => q.cause);
+  check('the Titan has the health of the one it is matched with (1,000,000), and takes no harm from magic, wither, blasts, fire or contact',
+    titanJson['minecraft:health'].max === 1000000 && ['magic', 'wither', 'entity_explosion', 'block_explosion', 'fire', 'contact'].every((k) => immune.includes(k)), immune.join(' '));
+  let acts = new Set(), hit = 0;
+  for (let i = 0; i < 1400 && god.rec.health > 0; i++) {
+    w.sim.step(1);
+    for (const x of T.list.values()) acts.add(x.brain.actName);
+  }
+  const dealt = w.sim.log.damage.filter((d) => d.id === god.id).map((d) => d.amount);
+  check('it takes another add-on\'s giant for an enemy (no mob family, a giant\'s health) and goes for it: breath and claws', (acts.has('beam') || acts.has('swipe')) && dealt.length > 0, `${[...acts].join(' ')}; ${dealt.length} blows`);
+  check('and its blows on it are blows of 100,000: the beam finds a body that tall, not only its feet', dealt.some((d) => d >= 100000), `${Math.max(0, ...dealt)} at most`);
 }
 
 console.log(`\n${results.length - failures}/${results.length} checks passed`);

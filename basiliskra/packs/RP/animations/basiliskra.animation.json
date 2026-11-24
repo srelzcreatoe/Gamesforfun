@@ -691,7 +691,7 @@
     },
     "chest": {
      "rotation": [
-      "(-1.0 * v.breath - 1.5 * v.w_fire)",
+      "(-1.0 * v.breath - 1.5 * v.w_fire + 3 * v.w_pour - 8 * v.w_rear)",
       "(v.ly_chest * 0.1)",
       0
      ]
@@ -752,7 +752,7 @@
     },
     "jaw": {
      "rotation": [
-      "(2.2 * v.breath + v.w_chargew * v.charge * 0.9 + 16 * v.w_fire + 8 * v.w_pour + 5 * v.w_roar + v.vjaw + 27 * v.roar_env * (1 + 0.05 * math.sin(q.life_time * 2900 + 0)) + 6 * v.w_vent + 8 * v.w_ground)",
+      "(2.2 * v.breath + v.w_chargew * v.charge * 0.9 + 16 * v.w_fire + 10 * v.w_pour + 22 * v.w_rear + 5 * v.w_roar + v.vjaw + 27 * v.roar_env * (1 + 0.05 * math.sin(q.life_time * 2900 + 0)) + 6 * v.w_vent + 8 * v.w_ground)",
       0,
       0
      ]
@@ -1183,7 +1183,7 @@
     },
     "chest": {
      "rotation": [
-      "(v.lp_neck * 0.1 - 1.2 * v.breath + 3 * v.walk - 2 * v.w_fire - 4 * v.w_roar - 6 * v.w_recoil + 5 * v.w_stare + 40 * v.w_drag * v.dr_reach - 10 * v.w_drag * v.dr_haul + v.w_bite * (30 * v.st_hit - 9 * v.st_wind) + 42 * v.fa2)",
+      "(v.lp_neck * 0.1 - 1.2 * v.breath + 3 * v.walk - 2 * v.w_fire - 4 * v.w_roar - 6 * v.w_recoil + 5 * v.w_stare + 40 * v.w_drag * v.dr_reach - 10 * v.w_drag * v.dr_haul + v.w_bite * (30 * v.st_hit - 9 * v.st_wind) + 42 * v.fa2 + 12 * v.w_pour - 30 * v.w_rear)",
       "(v.ly_chest * 0.2 + 3 * v.walk * math.sin(v.wp4 - 108) + 14 * v.w_sweep * v.sw_side * math.max(v.sw_c, 0) + 16 * v.w_swipe * v.sp_side * (0.7 * v.sp_wind - v.sp_hit))",
       0
      ]
@@ -1216,7 +1216,7 @@
     },
     "jaw": {
      "rotation": [
-      "(2.2 * v.breath * (1 - v.w_shut) + v.w_chargew * v.charge * 0.8 + 14 * v.w_fire + 8 * v.w_pour + 5 * v.w_roar + v.vjaw + 26 * v.roar_env * (1 + 0.05 * math.sin(q.life_time * 2900 + 0)) + 6 * v.w_vent + 8 * v.w_ground + 24 * v.w_recoil * (1 + 0.08 * math.sin(q.life_time * 1700 + 0)) - 11 * v.w_shut + v.w_bite * (24 * v.st_wind + 3 * v.st_hit) + 10 * v.w_fall)",
+      "(2.2 * v.breath * (1 - v.w_shut) + v.w_chargew * v.charge * 0.8 + 14 * v.w_fire + 10 * v.w_pour + 22 * v.w_rear + 5 * v.w_roar + v.vjaw + 26 * v.roar_env * (1 + 0.05 * math.sin(q.life_time * 2900 + 0)) + 6 * v.w_vent + 8 * v.w_ground + 24 * v.w_recoil * (1 + 0.08 * math.sin(q.life_time * 1700 + 0)) - 11 * v.w_shut + v.w_bite * (24 * v.st_wind + 3 * v.st_hit) + 10 * v.w_fall)",
       0,
       0
      ]
@@ -1244,9 +1244,9 @@
     },
     "arm_l": {
      "rotation": [
-      "(1 * 8 * v.walk * math.cos(v.wp4) + 6 * v.w_chargew + 10 * v.w_recoil - 62 * v.w_drag * v.dr_reach + 24 * v.w_drag * v.dr_haul + v.w_bite * (-34 * v.st_hit) + 16 * v.fa2 + v.w_swipe * ((v.sp_side == 1) ? 1 : 0) * (-150 * v.sp_wind - 58 * v.sp_hit) + v.w_swipe * ((v.sp_side == 1) ? 0 : 1) * (-14 * v.sp_hit))",
+      "(1 * 8 * v.walk * math.cos(v.wp4) + 6 * v.w_chargew + 10 * v.w_recoil - 62 * v.w_drag * v.dr_reach + 24 * v.w_drag * v.dr_haul + v.w_bite * (-34 * v.st_hit) + 16 * v.fa2 + v.w_swipe * ((v.sp_side == 1) ? 1 : 0) * (-150 * v.sp_wind - 58 * v.sp_hit) + v.w_swipe * ((v.sp_side == 1) ? 0 : 1) * (-14 * v.sp_hit) - 40 * v.w_pour - 95 * v.w_rear)",
       0,
-      "(-1 * (8 * v.w_roar + 14 * v.w_recoil + 4 * v.w_drag * v.dr_reach + 10 * v.w_bite * v.st_wind + 7 * v.fa2 + v.w_swipe * ((v.sp_side == 1) ? 1 : 0) * (44 * v.sp_wind - 34 * v.sp_hit) + 6 * v.w_swipe * ((v.sp_side == 1) ? 0 : 1)))"
+      "(-1 * (8 * v.w_roar + 14 * v.w_recoil + 4 * v.w_drag * v.dr_reach + 10 * v.w_bite * v.st_wind + 7 * v.fa2 + v.w_swipe * ((v.sp_side == 1) ? 1 : 0) * (44 * v.sp_wind - 34 * v.sp_hit) + 6 * v.w_swipe * ((v.sp_side == 1) ? 0 : 1) + 34 * v.w_rear))"
      ]
     },
     "forearm_l": {
@@ -1356,9 +1356,9 @@
     },
     "arm_r": {
      "rotation": [
-      "(-1 * 8 * v.walk * math.cos(v.wp4) + 6 * v.w_chargew + 10 * v.w_recoil - 62 * v.w_drag * v.dr_reach + 24 * v.w_drag * v.dr_haul + v.w_bite * (24 * v.st_wind - 72 * v.st_hit) + 16 * v.fa2 + v.w_swipe * ((v.sp_side == -1) ? 1 : 0) * (-150 * v.sp_wind - 58 * v.sp_hit) + v.w_swipe * ((v.sp_side == -1) ? 0 : 1) * (-14 * v.sp_hit))",
+      "(-1 * 8 * v.walk * math.cos(v.wp4) + 6 * v.w_chargew + 10 * v.w_recoil - 62 * v.w_drag * v.dr_reach + 24 * v.w_drag * v.dr_haul + v.w_bite * (24 * v.st_wind - 72 * v.st_hit) + 16 * v.fa2 + v.w_swipe * ((v.sp_side == -1) ? 1 : 0) * (-150 * v.sp_wind - 58 * v.sp_hit) + v.w_swipe * ((v.sp_side == -1) ? 0 : 1) * (-14 * v.sp_hit) - 40 * v.w_pour - 95 * v.w_rear)",
       0,
-      "(1 * (8 * v.w_roar + 14 * v.w_recoil + 4 * v.w_drag * v.dr_reach + 10 * v.w_bite * v.st_wind + 7 * v.fa2 + v.w_swipe * ((v.sp_side == -1) ? 1 : 0) * (44 * v.sp_wind - 34 * v.sp_hit) + 6 * v.w_swipe * ((v.sp_side == -1) ? 0 : 1)))"
+      "(1 * (8 * v.w_roar + 14 * v.w_recoil + 4 * v.w_drag * v.dr_reach + 10 * v.w_bite * v.st_wind + 7 * v.fa2 + v.w_swipe * ((v.sp_side == -1) ? 1 : 0) * (44 * v.sp_wind - 34 * v.sp_hit) + 6 * v.w_swipe * ((v.sp_side == -1) ? 0 : 1) + 34 * v.w_rear))"
      ]
     },
     "forearm_r": {

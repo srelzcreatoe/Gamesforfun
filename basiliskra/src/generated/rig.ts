@@ -24,7 +24,7 @@ export const LIFT_IV = 22.0;
 export const WING_FOLD = {"root": [30, -70, -50], "arm": [50, 130], "fingers": [30, 14, 0, -14]};
 export const TAIL_LIFT_III = 4.0;
 /** The Titan's health (the behaviour-pack entity is written with the same number). */
-export const TITAN_HEALTH = 100000;
+export const TITAN_HEALTH = 1000000;
 export const WINDOW_NECK = [32, 28, 20, 0, -24];
 export const WINDOW_HEAD = [-62.7, 21.8, -51.8];
 export const GAIT_TICKS = [16, 25, 30];

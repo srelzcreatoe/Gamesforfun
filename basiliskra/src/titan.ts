@@ -39,7 +39,7 @@ export const TITAN_NAMES = ["Alpha", "Beta", "Gamma"];
 export const LETHAL = 100000;
 export { TITAN_HEALTH };
 export const GIANT = TITAN_HEALTH / 4000;
-/** Its breath beside his: half as far again and wider; against another giant, 750 a hit (and LETHAL to anything smaller). */
+/** Its breath beside his: half as far again and wider; against another giant 30 x GIANT, half of it a hit as it burns (3,750), and LETHAL to anything smaller. */
 export const TITAN_SPEC: BeamSpec = { range: 220, radius: 3.4, damage: 30 * GIANT, width: 4.6, carve: 5.2, fallout: 8 };
 /** What its body does to another giant, and how far it throws it. */
 export const BLOW = { lunge: 85 * GIANT, tail: 130 * GIANT, ram: 110 * GIANT, swipe: 100 * GIANT };
