@@ -1,0 +1,351 @@
+{
+ "format_version": "1.12.0",
+ "minecraft:geometry": [
+  {
+   "description": {
+    "identifier": "geometry.observer.rift_hanged_lower",
+    "texture_width": 16,
+    "texture_height": 16,
+    "visible_bounds_width": 3,
+    "visible_bounds_height": 2,
+    "visible_bounds_offset": [
+     0,
+     0.5,
+     0
+    ]
+   },
+   "bones": [
+    {
+     "name": "root",
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -4,
+        4,
+        -2.5
+       ],
+       "size": [
+        8,
+        12,
+        5
+       ],
+       "uv": {
+        "north": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "cloth"
+        },
+        "south": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "cloth"
+        },
+        "east": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "cloth"
+        },
+        "west": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "cloth"
+        },
+        "up": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "cloth"
+        },
+        "down": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "cloth"
+        }
+       }
+      },
+      {
+       "origin": [
+        -3,
+        0,
+        -1.5
+       ],
+       "size": [
+        2,
+        4,
+        3
+       ],
+       "uv": {
+        "north": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "south": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "east": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "west": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "up": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "down": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        }
+       }
+      },
+      {
+       "origin": [
+        1,
+        1,
+        -1.5
+       ],
+       "size": [
+        2,
+        3,
+        3
+       ],
+       "uv": {
+        "north": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "south": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "east": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "west": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "up": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "down": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        }
+       }
+      },
+      {
+       "origin": [
+        4,
+        6,
+        -1
+       ],
+       "size": [
+        1.5,
+        9,
+        2
+       ],
+       "uv": {
+        "north": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "south": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "east": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "west": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "up": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        },
+        "down": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skin"
+        }
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

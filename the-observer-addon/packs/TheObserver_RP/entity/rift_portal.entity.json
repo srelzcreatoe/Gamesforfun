@@ -1,0 +1,51 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "observer:rift_portal",
+      "materials": {
+        "void": "entity_alphatest",
+        "halo": "entity_alphablend",
+        "eye": "entity_alphablend"
+      },
+      "textures": {
+        "f0": "textures/entity/rift_portal/void_0",
+        "f1": "textures/entity/rift_portal/void_1",
+        "f2": "textures/entity/rift_portal/void_2",
+        "f3": "textures/entity/rift_portal/void_3",
+        "f4": "textures/entity/rift_portal/void_4",
+        "f5": "textures/entity/rift_portal/void_5",
+        "f6": "textures/entity/rift_portal/void_6",
+        "f7": "textures/entity/rift_portal/void_7",
+        "halo": "textures/entity/rift_portal/halo",
+        "eye": "textures/entity/rift_portal/eye"
+      },
+      "geometry": {
+        "default": "geometry.observer.rift_portal"
+      },
+      "render_controllers": [
+        "controller.render.observer.rift_portal_halo",
+        "controller.render.observer.rift_portal_void",
+        "controller.render.observer.rift_portal_eye"
+      ],
+      "animations": {
+        "grow": "animation.observer.rift_portal.grow",
+        "full": "animation.observer.rift_portal.full",
+        "shrink": "animation.observer.rift_portal.shrink",
+        "idle": "animation.observer.rift_portal.idle",
+        "phase": "controller.animation.observer.rift_portal.phase"
+      },
+      "scripts": {
+        "animate": [
+          "idle",
+          "phase"
+        ]
+      },
+      "particle_effects": {
+        "sparks": "observer:rift_sparks",
+        "motes": "observer:rift_motes"
+      },
+      "enable_attachables": false
+    }
+  }
+}

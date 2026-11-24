@@ -253,7 +253,7 @@ export function start(def, p, c, force = false) {
     active = enc;
     W.active = { enc: id, type: def.id, target: p.id, started: t };
   } else personal.set(p.id, enc);
-  if (!def.preview) W.globalCooldownUntil = t + GLOBAL_GAP * (def.needsBody ? 1.5 : 0.6);
+  if (!def.preview && !def.rift) W.globalCooldownUntil = t + GLOBAL_GAP * (def.needsBody ? 1.5 : 0.6);
   if (enc.s.ambush?.armed && def.tier >= 2 && !force) {
     emit("ambush", { what: "sprung", player: p.name, type: def.id });
     delete enc.s.ambush;
@@ -320,8 +320,9 @@ function finish(enc) {
   if (personal.get(enc.pid) === enc) personal.delete(enc.pid);
   // the silence lasts until its encounter is over
   if (!hush.get(enc.pid) && hush.isSilenced(enc.pid)) hush.end(enc.p.isValid ? enc.p : undefined, enc.pid, "encounter_over");
-  if (enc.def.preview) {
-    // a preview from the Config Wheel is not part of the story: no history, pacing or progress
+  if (enc.def.preview || enc.def.rift) {
+    // a preview from the Config Wheel is not part of the story: no history, pacing or progress (nor is a round of its
+    // hunt in the Rift: that has its own pace, scripts/rift/hunt.js)
     markWorldDirty();
     trace(`END enc=${enc.id} type=${enc.def.id} outcome=${enc.outcome || "done"} (preview)`);
     emit("end", { enc: enc.id, type: enc.def.id, outcome: enc.outcome || "done", noticed: enc.noticed, target: enc.p.isValid ? enc.p.name : enc.pid, aborted: enc.aborted });
@@ -382,6 +383,7 @@ function finish(enc) {
 export function tryManual(id, p, o = {}) {
   const def = byId(id);
   if (!def || !S().enabled || !typeOn(id)) return null;
+  if (p.dimension.id === "observer:rift" && !def.rift) return null;
   const s = ps(p);
   const t = now();
   if (def.minStage > s.stage || (def.minManip ?? 0) > manip()) return null;

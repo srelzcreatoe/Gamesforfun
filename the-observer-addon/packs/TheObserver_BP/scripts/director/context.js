@@ -57,7 +57,8 @@ export function context(p) {
   return {
     p,
     d,
-    eligible: (mode === GameMode.Survival || mode === GameMode.Adventure) && hp > 0 && !safe(() => p.isSleeping, false),
+    // (in the Rift it has its own hunt for them: scripts/rift/hunt.js; nothing else of its happens there)
+    eligible: (mode === GameMode.Survival || mode === GameMode.Adventure) && hp > 0 && !safe(() => p.isSleeping, false) && p.dimension.id !== "observer:rift",
     night: d === 0 && tod > 12800 && tod < 23200,
     light,
     sky,

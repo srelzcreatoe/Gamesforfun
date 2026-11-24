@@ -1,0 +1,79 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.observer.rift_portal_void": {
+      "arrays": {
+        "textures": {
+          "Array.frames": [
+            "Texture.f0",
+            "Texture.f1",
+            "Texture.f2",
+            "Texture.f3",
+            "Texture.f4",
+            "Texture.f5",
+            "Texture.f6",
+            "Texture.f7"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.void"
+        }
+      ],
+      "textures": [
+        "Array.frames[math.mod(math.floor(q.life_time * 7), 8)]"
+      ],
+      "ignore_lighting": true,
+      "part_visibility": [
+        {
+          "*": false
+        },
+        {
+          "void": true
+        }
+      ]
+    },
+    "controller.render.observer.rift_portal_halo": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.halo"
+        }
+      ],
+      "textures": [
+        "Texture.halo"
+      ],
+      "ignore_lighting": true,
+      "part_visibility": [
+        {
+          "*": false
+        },
+        {
+          "halo": true
+        }
+      ]
+    },
+    "controller.render.observer.rift_portal_eye": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.eye"
+        }
+      ],
+      "textures": [
+        "Texture.eye"
+      ],
+      "ignore_lighting": true,
+      "part_visibility": [
+        {
+          "*": false
+        },
+        {
+          "eye": true
+        }
+      ]
+    }
+  }
+}

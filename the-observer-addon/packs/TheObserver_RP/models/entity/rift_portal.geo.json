@@ -1,0 +1,239 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.observer.rift_portal",
+        "texture_width": 80,
+        "texture_height": 112,
+        "visible_bounds_width": 10,
+        "visible_bounds_height": 11,
+        "visible_bounds_offset": [
+          0,
+          4,
+          0
+        ]
+      },
+      "bones": [
+        {
+          "name": "root",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "halo",
+          "parent": "root",
+          "pivot": [
+            0,
+            64,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -56,
+                -8,
+                -0.06
+              ],
+              "size": [
+                112,
+                144,
+                0
+              ],
+              "uv": {
+                "north": {
+                  "uv": [
+                    0,
+                    0
+                  ],
+                  "uv_size": [
+                    80,
+                    112
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    80,
+                    0
+                  ],
+                  "uv_size": [
+                    -80,
+                    112
+                  ]
+                }
+              }
+            },
+            {
+              "origin": [
+                -56,
+                -8,
+                0.06
+              ],
+              "size": [
+                112,
+                144,
+                0
+              ],
+              "uv": {
+                "north": {
+                  "uv": [
+                    0,
+                    0
+                  ],
+                  "uv_size": [
+                    80,
+                    112
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    80,
+                    0
+                  ],
+                  "uv_size": [
+                    -80,
+                    112
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "void",
+          "parent": "root",
+          "pivot": [
+            0,
+            64,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -40,
+                8,
+                0
+              ],
+              "size": [
+                80,
+                112,
+                0
+              ],
+              "uv": {
+                "north": {
+                  "uv": [
+                    0,
+                    0
+                  ],
+                  "uv_size": [
+                    80,
+                    112
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    80,
+                    0
+                  ],
+                  "uv_size": [
+                    -80,
+                    112
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "eye",
+          "parent": "root",
+          "pivot": [
+            0,
+            64,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -40,
+                8,
+                -0.3
+              ],
+              "size": [
+                80,
+                112,
+                0
+              ],
+              "uv": {
+                "north": {
+                  "uv": [
+                    0,
+                    0
+                  ],
+                  "uv_size": [
+                    80,
+                    112
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    80,
+                    0
+                  ],
+                  "uv_size": [
+                    -80,
+                    112
+                  ]
+                }
+              }
+            },
+            {
+              "origin": [
+                -40,
+                8,
+                0.3
+              ],
+              "size": [
+                80,
+                112,
+                0
+              ],
+              "uv": {
+                "north": {
+                  "uv": [
+                    0,
+                    0
+                  ],
+                  "uv_size": [
+                    80,
+                    112
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    80,
+                    0
+                  ],
+                  "uv_size": [
+                    -80,
+                    112
+                  ]
+                }
+              }
+            }
+          ],
+          "locators": {
+            "center": [
+              0,
+              64,
+              0
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.observer.rift_portal.phase": {
+      "initial_state": "start",
+      "states": {
+        "start": {
+          "transitions": [
+            {
+              "opening": "q.property('observer:phase') == 0"
+            },
+            {
+              "open": "q.property('observer:phase') == 1"
+            },
+            {
+              "closing": "q.property('observer:phase') == 2"
+            }
+          ]
+        },
+        "opening": {
+          "animations": [
+            "grow"
+          ],
+          "transitions": [
+            {
+              "open": "q.property('observer:phase') == 1 && q.all_animations_finished"
+            },
+            {
+              "closing": "q.property('observer:phase') == 2"
+            }
+          ]
+        },
+        "open": {
+          "animations": [
+            "full"
+          ],
+          "transitions": [
+            {
+              "closing": "q.property('observer:phase') == 2"
+            }
+          ]
+        },
+        "closing": {
+          "animations": [
+            "shrink"
+          ]
+        }
+      }
+    }
+  }
+}

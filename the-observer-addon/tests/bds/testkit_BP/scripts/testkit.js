@@ -16,7 +16,8 @@ system.afterEvents.scriptEventReceive.subscribe((ev) => {
   if (ev.id === "otest:states") {
     for (const id of ev.message.trim().split(/[\s,]+/)) {
       try {
-        console.warn(`[OTEST] states ${id} ${JSON.stringify(BlockPermutation.resolve(id).getAllStates())}`);
+        const perm = BlockPermutation.resolve(id);
+        console.warn(`[OTEST] states ${id} ${JSON.stringify(perm.getAllStates())} TYPE ${perm.type.id}`);
       } catch (e) {
         console.warn(`[OTEST] states ${id} ERROR ${e}`);
       }
@@ -227,3 +228,146 @@ async function mireMap(half, step) {
 }
 
 system.run(() => console.warn("[OTEST] testkit loaded"));
+
+// dev (1.6.0): which way the rift's pieces turn. Lays rift:edge_1 down four times (no turn, 90, 180, 270) and reports
+// which side of each has no ground (the edge is drawn on the north side), and the lip's barrier count.
+system.afterEvents.scriptEventReceive.subscribe((ev) => {
+  if (ev.id !== "otest:riftedge") return;
+  riftEdge().catch(fail("riftedge"));
+});
+async function riftEdge() {
+  const say = (m) => console.warn(`[OTEST] riftedge ${m}`);
+  const d = world.getDimension("observer:rift");
+  const rots = ["None", "Rotate90", "Rotate180", "Rotate270"];
+  for (let k = 0; k < 4; k++) {
+    const x0 = 2000 + k * 64, z0 = 2000;
+    d.runCommand(`tickingarea add ${x0} 0 ${z0} ${x0 + 47} 0 ${z0 + 47} redge${k} true`);
+  }
+  for (let w = 0; w < 400 && ![0, 1, 2, 3].every((k) => d.isChunkLoaded({ x: 2000 + k * 64 + 40, y: 64, z: 2040 })); w++) await new Promise((r) => system.runTimeout(r, 2));
+  for (let k = 0; k < 4; k++) {
+    const x0 = 2000 + k * 64, z0 = 2000;
+    const t0 = Date.now();
+    world.structureManager.place("rift:edge_1", d, { x: x0, y: 48, z: z0 }, { rotation: rots[k], includeEntities: false });
+    const ms = Date.now() - t0;
+    // ground at y 64 along each side, 4 blocks in, over the middle 20 blocks
+    const side = (f) => {
+      let n = 0;
+      for (let i = 14; i < 34; i++) {
+        const [x, z] = f(i);
+        const b = d.getBlock({ x: x0 + x, y: 63, z: z0 + z });
+        if (b && !b.isAir) n++;
+      }
+      return n;
+    };
+    const north = side((i) => [i, 4]), south = side((i) => [i, 43]), west = side((i) => [4, i]), east = side((i) => [43, i]);
+    say(`${rots[k]} ms=${ms} ground north=${north} south=${south} west=${west} east=${east}`);
+  }
+  for (let k = 0; k < 4; k++) d.runCommand(`tickingarea remove redge${k}`);
+  say("DONE");
+}
+
+// dev (1.6.0): the rift's realm as laid out — every piece down (ground under each cell's middle), the chests, barrels and
+// lecterns in each inner cell, anything unknown, and what a chest holds before anyone opens it
+system.afterEvents.scriptEventReceive.subscribe((ev) => {
+  if (ev.id !== "otest:riftcheck") return;
+  riftCheck().catch(fail("riftcheck"));
+});
+async function riftCheck() {
+  const { BlockVolume } = await import("@minecraft/server");
+  const say = (m) => console.warn(`[OTEST] riftcheck ${m}`);
+  const d = world.getDimension("observer:rift");
+  const O = { x: -128, z: -128 }, C = 48;
+  for (let k = 0; k < 3; k++) d.runCommand(`tickingarea add ${O.x + k * 80} 0 ${O.z} ${O.x + k * 80 + 79} 0 ${O.z + 239} rcheck${k} true`);
+  for (let w = 0; w < 600; w++) {
+    let ok = true;
+    for (let i = 0; i < 5 && ok; i++) for (let j = 0; j < 5 && ok; j++) ok = d.isChunkLoaded({ x: O.x + i * C + 24, y: 64, z: O.z + j * C + 24 });
+    if (ok) break;
+    await new Promise((r) => system.runTimeout(r, 2));
+  }
+  let empty = 0;
+  const rows = [];
+  for (let j = 0; j < 5; j++) {
+    let row = "";
+    for (let i = 0; i < 5; i++) {
+      const x0 = O.x + i * C, z0 = O.z + j * C;
+      let ground = 0, n = 0;
+      for (let dx = 4; dx < C; dx += 8) for (let dz = 4; dz < C; dz += 8) {
+        n++;
+        const top = d.getTopmostBlock({ x: x0 + dx, z: z0 + dz });
+        if (top && top.y >= 55) ground++;
+      }
+      if (i > 0 && i < 4 && j > 0 && j < 4 && ground < n * 0.9) empty++;
+      let chests = 0, barrels = 0, lecterns = 0, unknown = 0;
+      try {
+        const vol = new BlockVolume({ x: x0, y: 40, z: z0 }, { x: x0 + C - 1, y: 100, z: z0 + C - 1 });
+        const it = (types) => {
+          let c = 0;
+          for (const _ of d.getBlocks(vol, { includeTypes: types }, true).getBlockLocationIterator()) c++;
+          return c;
+        };
+        chests = it(["minecraft:chest"]);
+        barrels = it(["minecraft:barrel"]);
+        lecterns = it(["minecraft:lectern"]);
+        unknown = it(["minecraft:unknown"]);
+        if (chests && !globalThis.__riftChestSeen) {
+          const loc = d.getBlocks(vol, { includeTypes: ["minecraft:chest"] }, true).getBlockLocationIterator().next().value;
+          const inv = d.getBlock(loc)?.getComponent("minecraft:inventory")?.container;
+          say(`a chest at ${JSON.stringify(loc)} holds ${inv ? inv.size - inv.emptySlotsCount : "?"} stacks before it is opened`);
+          globalThis.__riftChestSeen = true;
+        }
+      } catch (e) {
+        say(`cell ${i},${j} scan failed ${e}`);
+      }
+      say(`cell ${i},${j} ground ${ground}/${n} chests ${chests} barrels ${barrels} lecterns ${lecterns} unknown ${unknown}`);
+      row += ground >= n * 0.9 ? "#" : ground > 0 ? "+" : ".";
+    }
+    rows.push(row);
+  }
+  say(`map ${rows.join("|")}`);
+  say(empty ? `FAIL inner cells without ground: ${empty}` : "PASS every inner cell has its ground");
+  for (let k = 0; k < 3; k++) d.runCommand(`tickingarea remove rcheck${k}`);
+  say("DONE");
+}
+
+// dev (1.6.0): what the rift's loot tables give — each spawned three times; the items, their enchantments, and any
+// table that gives nothing
+system.afterEvents.scriptEventReceive.subscribe((ev) => {
+  if (ev.id !== "otest:riftloot") return;
+  riftLoot(ev.message.trim().split(/\s+/)).catch(fail("riftloot"));
+});
+async function riftLoot(tables) {
+  const say = (m) => console.warn(`[OTEST] riftloot ${m}`);
+  const d = world.getDimension("overworld");
+  const at = { x: 0, y: 200, z: 0 };
+  d.runCommand("tickingarea add circle 0 0 0 1 rloot true");
+  for (let w = 0; w < 200 && !d.isChunkLoaded(at); w++) await new Promise((r) => system.runTimeout(r, 2));
+  for (const t of tables) {
+    const seen = new Map();
+    let stacks = 0, enchanted = 0;
+    const ench = new Set();
+    for (let k = 0; k < 3; k++) {
+      for (const e of d.getEntities({ type: "minecraft:item", location: at, maxDistance: 8 })) e.remove();
+      try {
+        d.runCommand(`loot spawn ${at.x} ${at.y} ${at.z} loot "rift/${t}"`);
+      } catch (e) {
+        say(`FAIL ${t} command ${e}`);
+        break;
+      }
+      await new Promise((r) => system.runTimeout(r, 2));
+      for (const e of d.getEntities({ type: "minecraft:item", location: at, maxDistance: 8 })) {
+        const it = e.getComponent("minecraft:item")?.itemStack;
+        if (!it) continue;
+        stacks++;
+        seen.set(it.typeId, (seen.get(it.typeId) ?? 0) + it.amount);
+        const en = it.getComponent("minecraft:enchantable")?.getEnchantments() ?? [];
+        if (en.length) enchanted++;
+        for (const x of en) ench.add(`${x.type.id}${x.level}`);
+        e.remove();
+      }
+    }
+    say(`${stacks ? "PASS" : "FAIL"} ${t}: ${stacks} stacks, ${enchanted} enchanted; ${[...seen].map(([k, v]) => `${k.replace("minecraft:", "")}x${v}`).join(" ")}`);
+    say(`${t} enchantments: ${[...ench].join(" ")}`);
+  }
+  d.runCommand("tickingarea remove rloot");
+  say("DONE");
+}

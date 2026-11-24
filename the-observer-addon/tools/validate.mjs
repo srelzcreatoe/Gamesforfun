@@ -289,6 +289,12 @@ for (const f of walk(path.join(BP, "scripts", "encounters"))) {
   }
 }
 for (const m of scriptText("ui/forms.js").matchAll(/tr\("(observer\.(?:set|ui)\.[\w.]+)"/g)) if (!langKeys.has(m[1])) fail(`lang key ${m[1]} missing (ui/forms.js)`);
+// the Config Wheel's pages (1.5.1 sound test, 1.6.0 dwellers and the Rift): every fixed key, and the Rift's six settings
+for (const f of ["ui/wheel.js", "ui/sounds.js", "ui/dwellers_page.js", "ui/rift_page.js"]) {
+  for (const m of scriptText(f).matchAll(/tr\("(observer\.[\w.]+)"/g)) if (!langKeys.has(m[1])) fail(`lang key ${m[1]} missing (${f})`);
+}
+for (let i = 0; i <= 5; i++) for (const k of [`observer.rift.often.${i}`, `observer.rift.level.${i}`]) if (!langKeys.has(k)) fail(`lang key ${k} missing`);
+for (const m of scriptText("ui/rift_page.js").split("const RESULTS = {")[1].split("};")[0].matchAll(/:\s*"(\w+)"/g)) if (!langKeys.has(`observer.rift.r.${m[1]}`)) fail(`lang key observer.rift.r.${m[1]} missing`);
 
 // ---------------------------------------------------------------- 3. IDs used by scripts
 const entityIds = new Set(walk(path.join(BP, "entities")).map((f) => readJSON(f)["minecraft:entity"].description.identifier));
@@ -305,10 +311,13 @@ for (const m of block("FOGS").matchAll(/:\s*"([^"]+)"/g)) if (!fogIds.has(m[1]))
 for (const m of block("ITEMS").matchAll(/:\s*"([^"]+)"/g)) if (!itemIds.has(m[1])) fail(`script item ${m[1]} not defined`);
 for (const m of block("BLOCKS").matchAll(/:\s*"([^"]+)"/g)) if (!blockIds.has(m[1])) fail(`script block ${m[1]} not defined`);
 const entityEvents = new Set(walk(path.join(BP, "entities")).flatMap((f) => Object.keys(readJSON(f)["minecraft:entity"].events ?? {})));
+// properties defined on our entities (observer:state, the rift's observer:phase …)
+const entityProps = new Set(walk(path.join(BP, "entities")).flatMap((f) => Object.keys(readJSON(f)["minecraft:entity"].description.properties ?? {})));
 for (const m of src.matchAll(/"(observer:[a-z_]+)"/g)) {
   const id = m[1];
-  if (entityEvents.has(id)) continue; // events defined on our entities (e.g. observer:steps_off)
-  if (/^observer:(the_observer|encounter|preset|state|stoop|side|afloat|paralysis|puppet|enc|world|player|clock|dark|ledger|probe|dread|dread_soft|vigil|rift)$/.test(id)) continue;
+  if (entityEvents.has(id) || entityProps.has(id)) continue; // events and properties defined on our entities (e.g. observer:steps_off)
+  // dynamic property keys, the rift dimension's id, and the like
+  if (/^observer:(the_observer|encounter|preset|state|stoop|side|afloat|paralysis|puppet|enc|world|player|clock|dark|ledger|probe|dread|dread_soft|vigil|rift|rift_open|rift_return|rift_realm)$/.test(id)) continue;
   if (!itemIds.has(id) && !blockIds.has(id) && !particleIds.has(id) && !fogIds.has(id) && !entityIds.has(id)) fail(`script references unknown id ${id}`);
 }
 // entity properties and events used by scripts

@@ -17,6 +17,8 @@ export const DISCOVERIES = [
   "its_puppets", "who_knocks", "the_voice_in_the_dark", "one_of_them", "what_was_left", "the_night_they_turned",
   "it_brings_them_back", "they_hunt_as_one", "the_mirror", "the_guide", "the_procession", "mine_first", "cold_eyes",
   "the_takeover", "it_speaks", "wrong_way", "the_corruption",
+  // the Rift (1.6.0)
+  "the_rift", "right_behind_you", "out_of_the_rift",
 ];
 export const VIGIL_REQUIREMENT = 12;
 /** Called when a player reaches a new stage (1.5.0: it says something). @type {((p:Player, stage:number)=>void)[]} */

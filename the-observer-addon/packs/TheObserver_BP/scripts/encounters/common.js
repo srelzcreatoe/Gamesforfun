@@ -151,7 +151,10 @@ export function wantsLunge(enc) {
  * It does not run: it floats at them a block off the ground (surging, silent but for a rush of air) and
  * strikes from the air. A wall with a gap, a door, glass in the way: it finds its own way through
  * (observer/squeeze.js). Provoked (rage), it comes faster than a sprint, screeching and groaning.
- * @param {Encounter} enc @param {{maxTicks?:number, rage?:boolean}} [o]
+ * In the Rift (1.6.0) its hunt sets how far it lets them go (loseAt), how it thinks ahead of them (think), how quickly
+ * it comes again after a blow (recover), and that it never strikes once and leaves (always).
+ * @param {Encounter} enc
+ * @param {{maxTicks?:number, rage?:boolean, loseAt?:number, think?:{aheads:number, gap:number}, recover?:number, always?:boolean}} [o]
  * @returns {Promise<string>} outcome
  */
 export async function relentless(enc, o = {}) {
@@ -172,11 +175,11 @@ export async function relentless(enc, o = {}) {
   }
   let hits = 0;
   const end = o.maxTicks ?? 20 * 40;
-  const loseAt = 64 + outrunBonus(enc);
+  const loseAt = o.loseAt ?? 64 + outrunBonus(enc);
   const mode = o.rage ? "rage" : "pursue";
   const track = { best: Infinity, since: 0 };
   // 1.5.0: it does not stay behind you — and its music says so
-  const flee = chaseState(enc);
+  const flee = chaseState(enc, o.think);
   hush.chase(p.id, true);
   talk.react(p, "chase", o.rage ? 1 : 0.6);
   try {
@@ -226,11 +229,11 @@ export async function relentless(enc, o = {}) {
     // in its rage it is never clean: it tears and flickers as it comes
     if (o.rage && t % 20 === 0) safe(() => enc.dim.spawnParticle(PARTICLES.glitchBurst, l));
     if (d <= 2.8) {
-      const r = await body.strike(p, { recover: 8 });
+      const r = await body.strike(p, { recover: o.recover ?? 8 });
       if (r === "hit") hits++;
       enc.result(hits ? "struck" : "dodged", true);
       enc.emit("relentless", { hits, result: r });
-      if (aggression() === 1) {
+      if (aggression() === 1 && !o.always) {
         await enc.wait(10);
         body.despawn("struck");
         return enc.outcome;
@@ -262,12 +265,14 @@ export async function relentless(enc, o = {}) {
 }
 
 /**
- * How a chase is going, for outthink() (1.5.0). @param {Encounter} enc
- * @returns {{last:number, checkAt:number, lastAhead:number, aheads:number, stallAt:number, stallD:number, stallCheck:number}}
+ * How a chase is going, for outthink() (1.5.0). think (1.6.0, the Rift): how many times it may cut ahead of them in
+ * this chase, and how long it leaves between (ticks), whatever the aggression setting.
+ * @param {Encounter} enc @param {{aheads:number, gap:number}} [think]
+ * @returns {{last:number, checkAt:number, lastAhead:number, aheads:number, stallAt:number, stallD:number, stallCheck:number, think?:{aheads:number, gap:number}}}
  */
-export function chaseState(enc) {
+export function chaseState(enc, think) {
   const l = body.loc();
-  return { last: l ? V.dist(l, enc.p.location) : Infinity, checkAt: -1e9, lastAhead: -1e9, aheads: 0, stallAt: 0, stallD: Infinity, stallCheck: -1e9 };
+  return { last: l ? V.dist(l, enc.p.location) : Infinity, checkAt: -1e9, lastAhead: -1e9, aheads: 0, stallAt: 0, stallD: Infinity, stallCheck: -1e9, think };
 }
 
 /**
@@ -279,12 +284,14 @@ export function chaseState(enc) {
  * @param {boolean} [rage]
  */
 export function outthink(enc, st, t, d, rage = false) {
-  if (DEBUG.ahead === "never" || aggression() < 2) return false;
+  if (DEBUG.ahead === "never" || (aggression() < 2 && !st.think)) return false;
   if (t - st.checkAt >= 20) {
     const grow = d - st.last;
     st.last = d;
     st.checkAt = t;
-    if (grow > 0.4 && d > 12 && t - st.lastAhead > (rage ? 100 : 140) && st.aheads < (aggression() >= 3 ? 4 : 3) && cutAhead(enc)) {
+    const gap = st.think?.gap ?? (rage ? 100 : 140);
+    const most = st.think?.aheads ?? (aggression() >= 3 ? 4 : 3);
+    if (grow > 0.4 && d > 12 && t - st.lastAhead > gap && st.aheads < most && cutAhead(enc)) {
       st.lastAhead = t;
       st.aheads++;
       st.stallAt = t;

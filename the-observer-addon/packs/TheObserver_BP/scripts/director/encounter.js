@@ -27,6 +27,8 @@ import { GazeTracker } from "../world/sight.js";
  * @property {boolean} [preview]    Config Wheel preview/practice: runs in any game mode, even when switched off; no progress
  * @property {boolean} [reactNear]  false: walking up to it does not make it vanish/strike (it is meant to be close)
  * @property {boolean} [testOnly]   listed under Config Wheel → Test an encounter only (never chosen by the director)
+ * @property {boolean} [rift]       its hunt in the Rift (1.6.0): started by scripts/rift/hunt.js, ends when they leave the
+ *                                  Rift; no history, pacing or progress, and no pause for the other players
  * @property {(c:import("./context.js").Ctx, s:any)=>number} weight  0 = not eligible here
  * @property {(e:Encounter)=>Promise<boolean|void>|boolean|void} [prepare]  return false to defer
  * @property {(e:Encounter)=>Promise<void>} run
@@ -77,7 +79,7 @@ export class Encounter {
     if (this.aborted) throw new AbortError(this.aborted);
     const p = this.p;
     if (!p.isValid) this.abort("target_left");
-    else if (p.dimension.id !== this.dimId && (!this.def.manual || this.def.preview)) this.abort("dimension");
+    else if (p.dimension.id !== this.dimId && (!this.def.manual || this.def.preview || this.def.rift)) this.abort("dimension");
     else {
       const gm = safe(() => p.getGameMode(), GameMode.Survival);
       if (!this.def.preview && (gm === GameMode.Creative || gm === GameMode.Spectator)) this.abort("gamemode");

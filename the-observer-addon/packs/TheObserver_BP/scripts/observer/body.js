@@ -45,6 +45,13 @@ import { standNear, hideAt, hiddenBehind } from "../world/space.js";
  * @property {number} [paceSpeed]   the speed it is coming at them now, blocks a second (1.5.1)
  * @property {{trunk:Vec, side:number, peek:Vec, alt?:{loc:Vec, side:number, peek:Vec}, seen:number, duckUntil:number,
  *             caught:Record<string, number>}} [hide]  behind a tree, looking round it (space.hideSpot)
+ * @property {Boost} [boost]  in the Rift (1.6.0): its own pace, blow and wind-up there
+ */
+
+/**
+ * How it hunts in the Rift (1.6.0; scripts/rift/hunt.js sets it by how often rifts open): its pace coming at someone
+ * ([slowest b/s, times their speed, fastest b/s]), how hard it hits, and how long a blow takes to come (ticks).
+ * @typedef {{pace:[number, number, number], dmg:number, windup:number}} Boost
  */
 
 /** @type {Body|null} */
@@ -175,17 +182,25 @@ function pace(b, run) {
     if (sp < 30) b.theirSpeed = b.theirSpeed === undefined ? sp : b.theirSpeed * 0.45 + sp * 0.55;
   }
   b.paceAt = { x: l.x, z: l.z, t };
-  const cfg = PACE[/** @type {keyof typeof PACE} */ (b.mode)];
-  if (!cfg || DEBUG.pace === "off") return;
+  const own = PACE[/** @type {keyof typeof PACE} */ (b.mode)];
+  if (!own || DEBUG.pace === "off") return;
+  // in the Rift it keeps the Rift's pace, whichever way it comes (1.6.0)
+  const cfg = b.boost?.pace ?? own;
   const m = GOAL_MULT[/** @type {keyof typeof GOAL_MULT} */ (b.mode)];
   const fixed = Number(DEBUG.pace);
   // ...and at arm's length it no longer drifts: within 6 blocks it closes at full speed (it creeps up on you, then lunges)
   const close = V.dist(b.e.location, l) < 6 && b.mode !== "approach";
-  const want = Math.max(close ? CLOSE_SPEED : cfg[0], Math.min(cfg[2], (b.theirSpeed ?? 0) * cfg[1]));
+  const want = Math.max(close ? Math.max(CLOSE_SPEED, cfg[0]) : cfg[0], Math.min(cfg[2], (b.theirSpeed ?? 0) * cfg[1]));
   const v = Number.isFinite(fixed) && fixed > 0 ? fixed : Math.sqrt(want / PACE_K) / m;
   b.paceSpeed = Number.isFinite(fixed) && fixed > 0 ? speedAt(v, m) : want;
   safe(() => b.e.getComponent("minecraft:movement")?.setCurrentValue(v));
   if (run % 4 === 0) emit("pace", { mode: b.mode, theirs: Math.round((b.theirSpeed ?? 0) * 100) / 100, want: Math.round(b.paceSpeed * 100) / 100, v: Math.round(v * 1000) / 1000 });
+}
+
+/** Its pace, blow and wind-up in the Rift (undefined: its own). @param {Boost|undefined} boost */
+export function setBoost(boost) {
+  const b = get();
+  if (b) b.boost = boost;
 }
 
 /** @param {"still"|"approach"|"pursue"|"retreat"|"rage"} m */
@@ -293,7 +308,7 @@ export async function strike(target, opts = {}) {
   setMode("still");
   faceTo(target.getHeadLocation());
   setState("attack");
-  await system.waitTicks(12);
+  await system.waitTicks(b.boost?.windup ?? 12);
   if (!get() || !target.isValid || b.repelled) return "none";
   const o = b.e.location;
   const tl = target.location;
@@ -305,13 +320,14 @@ export async function strike(target, opts = {}) {
   const reach = d <= 3.3 && Math.abs(tl.y - o.y) < 2.5;
   const clear = lineOfSight(b.e.dimension, { x: o.x, y: o.y + 2.2, z: o.z }, target.getHeadLocation()).clear;
   let result = "miss";
-  const dmg = strikeDamage();
+  // (in the Rift its blow is the Rift's — but never on aggression "never")
+  const dmg = b.boost && aggression() > 0 ? b.boost.dmg : strikeDamage();
   if (inFront && reach && clear && dmg > 0) {
     const hp = target.getComponent("minecraft:health");
     let amount = dmg;
     // on Low aggression a strike never takes more than 70% of current health above half health;
     // on Standard and High it hits at full strength (and keeps attacking — see common.relentless)
-    if (aggression() === 1 && hp && hp.currentValue > hp.effectiveMax * 0.5) amount = Math.min(amount, Math.max(1, Math.floor(hp.currentValue * 0.7)));
+    if (aggression() === 1 && !b.boost && hp && hp.currentValue > hp.effectiveMax * 0.5) amount = Math.min(amount, Math.max(1, Math.floor(hp.currentValue * 0.7)));
     safe(() => target.applyDamage(amount, { cause: EntityDamageCause.entityAttack, damagingEntity: b.e }));
     safe(() => target.applyKnockback({ x: to.x * 0.9, z: to.z * 0.9 }, 0.35));
     safe(() => b.e.dimension.playSound(SOUNDS.strike, tl, { volume: 1 }));

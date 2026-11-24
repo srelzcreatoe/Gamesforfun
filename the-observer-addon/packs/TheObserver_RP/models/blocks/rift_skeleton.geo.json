@@ -1,0 +1,831 @@
+{
+ "format_version": "1.12.0",
+ "minecraft:geometry": [
+  {
+   "description": {
+    "identifier": "geometry.observer.rift_skeleton",
+    "texture_width": 16,
+    "texture_height": 16,
+    "visible_bounds_width": 3,
+    "visible_bounds_height": 2,
+    "visible_bounds_offset": [
+     0,
+     0.5,
+     0
+    ]
+   },
+   "bones": [
+    {
+     "name": "root",
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -2.5,
+        0,
+        -13
+       ],
+       "size": [
+        5,
+        4,
+        4
+       ],
+       "uv": {
+        "north": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "skull"
+        },
+        "south": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "east": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "west": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "up": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "down": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        }
+       }
+      },
+      {
+       "origin": [
+        -0.5,
+        0,
+        -9
+       ],
+       "size": [
+        1,
+        1,
+        10
+       ],
+       "uv": {
+        "north": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "south": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "east": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "west": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "up": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "down": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        }
+       }
+      },
+      {
+       "origin": [
+        -3.5,
+        0.5,
+        -8
+       ],
+       "size": [
+        7,
+        1,
+        1
+       ],
+       "uv": {
+        "north": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "south": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "east": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "west": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "up": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "down": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        }
+       }
+      },
+      {
+       "origin": [
+        -3.5,
+        0.5,
+        -6
+       ],
+       "size": [
+        7,
+        1,
+        1
+       ],
+       "uv": {
+        "north": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "south": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "east": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "west": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "up": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "down": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        }
+       }
+      },
+      {
+       "origin": [
+        -3.5,
+        0.5,
+        -4
+       ],
+       "size": [
+        7,
+        1,
+        1
+       ],
+       "uv": {
+        "north": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "south": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "east": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "west": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "up": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "down": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        }
+       }
+      },
+      {
+       "origin": [
+        -3,
+        0,
+        1
+       ],
+       "size": [
+        6,
+        2,
+        3
+       ],
+       "uv": {
+        "north": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "south": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "east": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "west": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "up": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "down": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        }
+       }
+      },
+      {
+       "origin": [
+        -2.5,
+        0,
+        4
+       ],
+       "size": [
+        1,
+        1,
+        10
+       ],
+       "uv": {
+        "north": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "south": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "east": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "west": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "up": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "down": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        }
+       }
+      },
+      {
+       "origin": [
+        1.5,
+        0,
+        4
+       ],
+       "size": [
+        1,
+        1,
+        9
+       ],
+       "uv": {
+        "north": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "south": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "east": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "west": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "up": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "down": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        }
+       }
+      },
+      {
+       "origin": [
+        -6,
+        0,
+        -8
+       ],
+       "size": [
+        1,
+        1,
+        8
+       ],
+       "uv": {
+        "north": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "south": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "east": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "west": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "up": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "down": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        }
+       }
+      },
+      {
+       "origin": [
+        5,
+        0,
+        -7
+       ],
+       "size": [
+        1,
+        1,
+        7
+       ],
+       "uv": {
+        "north": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "south": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "east": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "west": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "up": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        },
+        "down": {
+         "uv": [
+          0,
+          0
+         ],
+         "uv_size": [
+          16,
+          16
+         ],
+         "material_instance": "bone"
+        }
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

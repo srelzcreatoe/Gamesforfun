@@ -73,6 +73,9 @@ import "./encounters/mirrored.js";
 import "./encounters/guide.js";
 import "./encounters/tests.js";
 import * as riftDim from "./rift/dimension.js";
+import * as riftPortal from "./rift/portal.js";
+import * as riftHunt from "./rift/hunt.js";
+import * as riftSky from "./rift/atmosphere.js";
 import * as dwellers from "./link/dwellers.js";
 
 let ready = false;
@@ -378,7 +381,8 @@ world.afterEvents.playerDimensionChange.subscribe((ev) => {
   const p = ev.player;
   director.abortFor(p.id, "dimension");
   const s = ps(p);
-  if (s.stage >= 2 && !s.witnessed) {
+  // (through a rift and back is not a portal it follows you through: the Rift has its own hunt)
+  if (s.stage >= 2 && !s.witnessed && ev.fromDimension.id !== riftDim.RIFT_ID && ev.toDimension.id !== riftDim.RIFT_ID) {
     s.followAt = now() + 60 + Math.random() * 90;
     s.followFrom = [dimIndex(ev.toDimension.id), Math.floor(ev.toLocation.x), Math.floor(ev.toLocation.y), Math.floor(ev.toLocation.z)];
     markPlayerDirty(p);
@@ -401,6 +405,8 @@ system.beforeEvents.shutdown.subscribe(() => {
 /** Is it around this player: an encounter of theirs running, or its body within 64 blocks? @param {import("@minecraft/server").Player} p */
 function isAround(p) {
   if (director.encounterFor(p.id)) return true;
+  // the Rift is its: it is always around in there (1.6.0)
+  if (riftDim.inRift(p)) return true;
   const b = body.get();
   if (b && b.e.dimension.id === p.dimension.id && V.dist(b.e.location, p.location) <= 64) return true;
   // one of its puppets near them is it, near them (1.3.0)
@@ -414,6 +420,8 @@ system.runInterval(() => {
   if (!ready) return;
   fastRuns++;
   timed("body.maintain", () => body.maintain(fastRuns));
+  // the rift: walked into, walked out of, turned to face you (1.6.0)
+  timed("rift.fast", () => riftPortal.fastTick(fastRuns));
   // asleep long enough to wake in the night? (decided once per sleep, before the night is skipped)
   for (const p of allPlayers()) safe(() => paralysis.watchSleep(p));
   if (fastRuns % 2 === 0) timed("ledger.scan", () => ledger.scan(new Set(director.running().map((e) => e.id))));
@@ -455,8 +463,13 @@ system.runInterval(() => {
   timed("talk.tick", () => talk.tick());
   // its dwellers near it answer to it (1.6.0)
   timed("dwellers.tick", () => dwellers.tick());
+  // the Rift (1.6.0): its weather and its rules, the rifts opening and shutting, its hunt in there
+  timed("rift.sky", () => riftSky.tick());
+  timed("rift.portal", () => riftPortal.tick());
+  timed("rift.hunt", () => riftHunt.tick());
+  if (slowRuns % 5 === 0) timed("rift.sweep", () => riftPortal.sweep());
   // the Mire's eyeblooms watch you (1.5.1)
-  timed("eyebloom.tick", () => eyebloom.tick((p) => inMireBefore.get(p.id) === true));
+  timed("eyebloom.tick", () => eyebloom.tick((p) => inMireBefore.get(p.id) === true || riftDim.inRift(p)));
   for (const p of allPlayers()) {
     const s = ps(p);
     if (DEBUG.ambient !== "never" && s.stage >= 4 && !director.encounterFor(p.id) && now() - (s.corruptAt ?? -1e9) > 600 && Math.random() < 1 / 900) {
@@ -465,7 +478,7 @@ system.runInterval(() => {
     }
   }
   // while it is around you, your music is cut; when it is gone, it fades back
-  timed("hush.presence", () => hush.presence(now(), isAround, (p) => mire.inMire(p)));
+  timed("hush.presence", () => hush.presence(now(), isAround, (p) => mire.inMire(p) || riftDim.inRift(p)));
   if (slowRuns % 5 === 0) timed("returns.tick", () => returns.tick());
   // its puppets: the marked ones, the one cow, its guards, the night they turn; and what was left of its rivals (1.3.0)
   timed("possession.tick", () => possession.tick());

@@ -69,7 +69,8 @@ export function tick(inMire) {
   const t = system.currentTick;
   for (const [k, until] of shutUntil) if (until < t - 200) shutUntil.delete(k);
   for (const p of allPlayers()) {
-    if (p.dimension.id !== "minecraft:overworld" || (DEBUG.eyes !== "always" && !inMire(p))) continue;
+    // (the Mire's, and the Rift's: 1.6.0)
+    if ((p.dimension.id !== "minecraft:overworld" && p.dimension.id !== "observer:rift") || (DEBUG.eyes !== "always" && !inMire(p))) continue;
     const dim = p.dimension;
     const l = p.location;
     const found = safe(() => dim.getBlocks(new BlockVolume({ x: l.x - 20, y: l.y - 8, z: l.z - 20 }, { x: l.x + 20, y: l.y + 10, z: l.z + 20 }), { includeTypes: [HEAD] }, true));

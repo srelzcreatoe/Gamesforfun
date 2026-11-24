@@ -28,6 +28,7 @@ import { S, updateSettings, PRESETS } from "../core/settings.js";
 import { DEBUG, safe, V, dimIndex, allPlayers, emit } from "../core/util.js";
 import { ITEMS } from "../core/constants.js";
 import * as soundTest from "../ui/sounds.js";
+import * as realm from "../rift/realm.js";
 import * as riftDim from "../rift/dimension.js";
 import * as dwellerLink from "../link/dwellers.js";
 import * as channel from "../link/shared.js";
@@ -436,6 +437,15 @@ export function run(name, args, caller) {
       else if (args[0] === "take") channel.observerTake(p);
       else if (args[0] === "release") channel.observerRelease(p);
       return `channel ${args.join(" ")}`;
+    }
+    case "rift": {
+      // rift build | status (1.6.0): lay the Rift's realm out again; where things are
+      if (args[0] === "build") {
+        realm.build().then((ok) => emit("rift", { what: "build_done", ok }));
+        return "rift: laying it out";
+      }
+      const r = realm.current();
+      return `rift: gen ${r?.gen ?? "-"} built ${!!r?.builtAt} church ${JSON.stringify(r?.church)} castle ${JSON.stringify(r?.castle)} building ${realm.isBuilding()}`;
     }
     case "riftprobe": {
       // riftprobe: is the rift dimension there? (1.6.0)

@@ -414,6 +414,63 @@
     },
     "sb_inf_watcher_pod_root": {
       "textures": "textures/blocks/infected/watcher_pod_root"
+    },
+    "observer_rift_bark": {
+      "textures": "textures/blocks/rift/rift_bark"
+    },
+    "observer_rift_bark_top": {
+      "textures": "textures/blocks/rift/rift_bark_top"
+    },
+    "observer_rift_needles": {
+      "textures": "textures/blocks/rift/rift_needles"
+    },
+    "observer_rift_moss_top": {
+      "textures": "textures/blocks/rift/rift_moss_top"
+    },
+    "observer_rift_moss_side": {
+      "textures": "textures/blocks/rift/rift_moss_side"
+    },
+    "observer_rift_soil": {
+      "textures": "textures/blocks/rift/rift_soil"
+    },
+    "observer_rift_bricks": {
+      "textures": "textures/blocks/rift/rift_bricks"
+    },
+    "observer_rift_bricks_cracked": {
+      "textures": "textures/blocks/rift/rift_bricks_cracked"
+    },
+    "observer_rift_glass": {
+      "textures": "textures/blocks/rift/rift_glass"
+    },
+    "observer_rift_lamp": {
+      "textures": "textures/blocks/rift/rift_lamp"
+    },
+    "observer_blood_0": {
+      "textures": "textures/blocks/rift/blood_0"
+    },
+    "observer_blood_1": {
+      "textures": "textures/blocks/rift/blood_1"
+    },
+    "observer_blood_2": {
+      "textures": "textures/blocks/rift/blood_2"
+    },
+    "observer_blood_3": {
+      "textures": "textures/blocks/rift/blood_3"
+    },
+    "observer_corpse_cloth": {
+      "textures": "textures/blocks/rift/corpse_cloth"
+    },
+    "observer_corpse_skin": {
+      "textures": "textures/blocks/rift/corpse_skin"
+    },
+    "observer_skeleton_bone": {
+      "textures": "textures/blocks/rift/skeleton_bone"
+    },
+    "observer_skull_face": {
+      "textures": "textures/blocks/rift/skull_face"
+    },
+    "observer_gravestone": {
+      "textures": "textures/blocks/rift/gravestone"
     }
   }
 }

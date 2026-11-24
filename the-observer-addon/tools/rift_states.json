@@ -1,0 +1,673 @@
+{
+ "brine:bloodstained_deepslate": {
+  "states": {},
+  "type": "brine:bloodstained_deepslate"
+ },
+ "goatwalker:ashen_podzol": {
+  "states": {},
+  "type": "goatwalker:ashen_podzol"
+ },
+ "goatwalker:bleeding_shrub": {
+  "states": {},
+  "type": "goatwalker:bleeding_shrub"
+ },
+ "goatwalker:bleeding_stone": {
+  "states": {},
+  "type": "goatwalker:bleeding_stone"
+ },
+ "goatwalker:blood_ash": {
+  "states": {
+   "goatwalker:fade": 0,
+   "goatwalker:ichor": false
+  },
+  "type": "goatwalker:blood_ash"
+ },
+ "goatwalker:cracked_rift_stone": {
+  "states": {},
+  "type": "goatwalker:cracked_rift_stone"
+ },
+ "goatwalker:hanging_moss": {
+  "states": {},
+  "type": "goatwalker:hanging_moss"
+ },
+ "goatwalker:hanging_moss_tip": {
+  "states": {},
+  "type": "goatwalker:hanging_moss_tip"
+ },
+ "goatwalker:mooncap": {
+  "states": {},
+  "type": "goatwalker:mooncap"
+ },
+ "goatwalker:rift_fern": {
+  "states": {},
+  "type": "goatwalker:rift_fern"
+ },
+ "goatwalker:rift_stone": {
+  "states": {},
+  "type": "goatwalker:rift_stone"
+ },
+ "goatwalker:ritual_marking_floor": {
+  "states": {
+   "minecraft:cardinal_direction": "south"
+  },
+  "type": "goatwalker:ritual_marking_floor"
+ },
+ "goatwalker:stellar_grass": {
+  "states": {},
+  "type": "goatwalker:stellar_grass"
+ },
+ "goatwalker:stellar_soil": {
+  "states": {},
+  "type": "goatwalker:stellar_soil"
+ },
+ "goatwalker:tattered_cloth": {
+  "states": {
+   "minecraft:cardinal_direction": "south"
+  },
+  "type": "goatwalker:tattered_cloth"
+ },
+ "goatwalker:trophy_head": {
+  "states": {
+   "minecraft:cardinal_direction": "south"
+  },
+  "type": "goatwalker:trophy_head"
+ },
+ "goatwalker:void_crystal": {
+  "states": {
+   "minecraft:block_face": "down"
+  },
+  "type": "goatwalker:void_crystal"
+ },
+ "goatwalker:void_leaves": {
+  "states": {
+   "goatwalker:persistent": false
+  },
+  "type": "goatwalker:void_leaves"
+ },
+ "goatwalker:void_log": {
+  "states": {
+   "minecraft:block_face": "down"
+  },
+  "type": "goatwalker:void_log"
+ },
+ "goatwalker:void_planks": {
+  "states": {},
+  "type": "goatwalker:void_planks"
+ },
+ "minecraft:air": {
+  "states": {},
+  "type": "minecraft:air"
+ },
+ "minecraft:anvil": {
+  "states": {
+   "direction": 0,
+   "minecraft:cardinal_direction": "south",
+   "damage": "undamaged"
+  },
+  "type": "minecraft:anvil"
+ },
+ "minecraft:barrel": {
+  "states": {
+   "open_bit": false,
+   "facing_direction": 0
+  },
+  "type": "minecraft:barrel"
+ },
+ "minecraft:barrier": {
+  "states": {},
+  "type": "minecraft:barrier"
+ },
+ "minecraft:bedrock": {
+  "states": {
+   "infiniburn_bit": false
+  },
+  "type": "minecraft:bedrock"
+ },
+ "minecraft:bell": {
+  "states": {
+   "attachment": "standing",
+   "toggle_bit": false,
+   "direction": 0
+  },
+  "type": "minecraft:bell"
+ },
+ "minecraft:black_candle": {
+  "states": {
+   "candles": 0,
+   "lit": false
+  },
+  "type": "minecraft:black_candle"
+ },
+ "minecraft:black_carpet": {
+  "states": {
+   "color": "black"
+  },
+  "type": "minecraft:black_carpet"
+ },
+ "minecraft:black_concrete": {
+  "states": {
+   "color": "black"
+  },
+  "type": "minecraft:black_concrete"
+ },
+ "minecraft:black_wool": {
+  "states": {
+   "color": "black"
+  },
+  "type": "minecraft:black_wool"
+ },
+ "minecraft:blackstone": {
+  "states": {},
+  "type": "minecraft:blackstone"
+ },
+ "minecraft:bone_block": {
+  "states": {
+   "pillar_axis": "y",
+   "deprecated": 0
+  },
+  "type": "minecraft:bone_block"
+ },
+ "minecraft:bookshelf": {
+  "states": {},
+  "type": "minecraft:bookshelf"
+ },
+ "minecraft:brown_mushroom": {
+  "states": {},
+  "type": "minecraft:brown_mushroom"
+ },
+ "minecraft:cauldron": {
+  "states": {
+   "cauldron_liquid": "water",
+   "fill_level": 0
+  },
+  "type": "minecraft:cauldron"
+ },
+ "minecraft:chain": {
+  "states": {
+   "pillar_axis": "y"
+  },
+  "type": "minecraft:iron_chain"
+ },
+ "minecraft:chest": {
+  "states": {
+   "minecraft:cardinal_direction": "north",
+   "facing_direction": 2
+  },
+  "type": "minecraft:chest"
+ },
+ "minecraft:chiseled_deepslate": {
+  "states": {},
+  "type": "minecraft:chiseled_deepslate"
+ },
+ "minecraft:coarse_dirt": {
+  "states": {
+   "dirt_type": "coarse"
+  },
+  "type": "minecraft:coarse_dirt"
+ },
+ "minecraft:cobblestone": {
+  "states": {},
+  "type": "minecraft:cobblestone"
+ },
+ "minecraft:cracked_deepslate_bricks": {
+  "states": {},
+  "type": "minecraft:cracked_deepslate_bricks"
+ },
+ "minecraft:cracked_stone_bricks": {
+  "states": {
+   "stone_brick_type": "cracked"
+  },
+  "type": "minecraft:cracked_stone_bricks"
+ },
+ "minecraft:crying_obsidian": {
+  "states": {},
+  "type": "minecraft:crying_obsidian"
+ },
+ "minecraft:dark_oak_fence": {
+  "states": {
+   "minecraft:connection_west": false,
+   "minecraft:connection_east": false,
+   "minecraft:connection_north": false,
+   "minecraft:connection_south": false,
+   "wood_type": "dark_oak"
+  },
+  "type": "minecraft:dark_oak_fence"
+ },
+ "minecraft:dark_oak_log": {
+  "states": {
+   "pillar_axis": "y",
+   "new_log_type": "dark_oak"
+  },
+  "type": "minecraft:dark_oak_log"
+ },
+ "minecraft:dark_oak_planks": {
+  "states": {
+   "wood_type": "dark_oak"
+  },
+  "type": "minecraft:dark_oak_planks"
+ },
+ "minecraft:dark_oak_slab": {
+  "states": {
+   "minecraft:vertical_half": "bottom",
+   "top_slot_bit": false,
+   "wood_type": "dark_oak"
+  },
+  "type": "minecraft:dark_oak_slab"
+ },
+ "minecraft:dark_oak_stairs": {
+  "states": {
+   "minecraft:corner": "none",
+   "weirdo_direction": 0,
+   "upside_down_bit": false
+  },
+  "type": "minecraft:dark_oak_stairs"
+ },
+ "minecraft:dark_oak_trapdoor": {
+  "states": {
+   "upside_down_bit": false,
+   "open_bit": false,
+   "direction": 0
+  },
+  "type": "minecraft:dark_oak_trapdoor"
+ },
+ "minecraft:deadbush": {
+  "states": {},
+  "type": "minecraft:deadbush"
+ },
+ "minecraft:deepslate_brick_slab": {
+  "states": {
+   "minecraft:vertical_half": "bottom",
+   "top_slot_bit": false
+  },
+  "type": "minecraft:deepslate_brick_slab"
+ },
+ "minecraft:deepslate_brick_stairs": {
+  "states": {
+   "minecraft:corner": "none",
+   "weirdo_direction": 0,
+   "upside_down_bit": false
+  },
+  "type": "minecraft:deepslate_brick_stairs"
+ },
+ "minecraft:deepslate_brick_wall": {
+  "states": {
+   "wall_connection_type_east": "none",
+   "wall_connection_type_north": "none",
+   "wall_connection_type_south": "none",
+   "wall_connection_type_west": "none",
+   "wall_post_bit": false
+  },
+  "type": "minecraft:deepslate_brick_wall"
+ },
+ "minecraft:deepslate_bricks": {
+  "states": {},
+  "type": "minecraft:deepslate_bricks"
+ },
+ "minecraft:deepslate_tiles": {
+  "states": {},
+  "type": "minecraft:deepslate_tiles"
+ },
+ "minecraft:diamond_block": {
+  "states": {},
+  "type": "minecraft:diamond_block"
+ },
+ "minecraft:dirt": {
+  "states": {
+   "dirt_type": "normal"
+  },
+  "type": "minecraft:dirt"
+ },
+ "minecraft:fern": {
+  "states": {
+   "tall_grass_type": "fern"
+  },
+  "type": "minecraft:fern"
+ },
+ "minecraft:gold_block": {
+  "states": {},
+  "type": "minecraft:gold_block"
+ },
+ "minecraft:gravel": {
+  "states": {},
+  "type": "minecraft:gravel"
+ },
+ "minecraft:hay_block": {
+  "states": {
+   "pillar_axis": "y",
+   "deprecated": 0
+  },
+  "type": "minecraft:hay_block"
+ },
+ "minecraft:iron_bars": {
+  "states": {
+   "minecraft:connection_west": false,
+   "minecraft:connection_south": false,
+   "minecraft:connection_east": false,
+   "minecraft:connection_north": false
+  },
+  "type": "minecraft:iron_bars"
+ },
+ "minecraft:ladder": {
+  "states": {
+   "facing_direction": 0
+  },
+  "type": "minecraft:ladder"
+ },
+ "minecraft:lantern": {
+  "states": {
+   "hanging": false
+  },
+  "type": "minecraft:lantern"
+ },
+ "minecraft:large_fern": {
+  "states": {
+   "upper_block_bit": false,
+   "double_plant_type": "fern"
+  },
+  "type": "minecraft:large_fern"
+ },
+ "minecraft:lectern": {
+  "states": {
+   "minecraft:cardinal_direction": "south",
+   "powered_bit": false,
+   "direction": 0
+  },
+  "type": "minecraft:lectern"
+ },
+ "minecraft:moss_block": {
+  "states": {},
+  "type": "minecraft:moss_block"
+ },
+ "minecraft:mossy_cobblestone": {
+  "states": {},
+  "type": "minecraft:mossy_cobblestone"
+ },
+ "minecraft:mossy_stone_bricks": {
+  "states": {
+   "stone_brick_type": "mossy"
+  },
+  "type": "minecraft:mossy_stone_bricks"
+ },
+ "minecraft:mud": {
+  "states": {},
+  "type": "minecraft:mud"
+ },
+ "minecraft:netherite_block": {
+  "states": {},
+  "type": "minecraft:netherite_block"
+ },
+ "minecraft:pale_hanging_moss": {
+  "states": {
+   "tip": false
+  },
+  "type": "minecraft:pale_hanging_moss"
+ },
+ "minecraft:podzol": {
+  "states": {},
+  "type": "minecraft:podzol"
+ },
+ "minecraft:polished_blackstone": {
+  "states": {},
+  "type": "minecraft:polished_blackstone"
+ },
+ "minecraft:polished_blackstone_brick_stairs": {
+  "states": {
+   "minecraft:corner": "none",
+   "weirdo_direction": 0,
+   "upside_down_bit": false
+  },
+  "type": "minecraft:polished_blackstone_brick_stairs"
+ },
+ "minecraft:polished_blackstone_bricks": {
+  "states": {},
+  "type": "minecraft:polished_blackstone_bricks"
+ },
+ "minecraft:polished_deepslate": {
+  "states": {},
+  "type": "minecraft:polished_deepslate"
+ },
+ "minecraft:red_candle": {
+  "states": {
+   "candles": 0,
+   "lit": false
+  },
+  "type": "minecraft:red_candle"
+ },
+ "minecraft:red_carpet": {
+  "states": {
+   "color": "red"
+  },
+  "type": "minecraft:red_carpet"
+ },
+ "minecraft:red_concrete": {
+  "states": {
+   "color": "red"
+  },
+  "type": "minecraft:red_concrete"
+ },
+ "minecraft:red_stained_glass_pane": {
+  "states": {
+   "color": "red",
+   "minecraft:connection_east": false,
+   "minecraft:connection_north": false,
+   "minecraft:connection_south": false,
+   "minecraft:connection_west": false
+  },
+  "type": "minecraft:red_stained_glass_pane"
+ },
+ "minecraft:red_wool": {
+  "states": {
+   "color": "red"
+  },
+  "type": "minecraft:red_wool"
+ },
+ "minecraft:redstone_wire": {
+  "states": {
+   "redstone_signal": 0
+  },
+  "type": "minecraft:redstone_wire"
+ },
+ "minecraft:short_grass": {
+  "states": {
+   "tall_grass_type": "default"
+  },
+  "type": "minecraft:short_grass"
+ },
+ "minecraft:skeleton_skull": {
+  "states": {
+   "facing_direction": 0
+  },
+  "type": "minecraft:skeleton_skull"
+ },
+ "minecraft:smooth_stone": {
+  "states": {},
+  "type": "minecraft:smooth_stone"
+ },
+ "minecraft:smooth_stone_slab": {
+  "states": {
+   "minecraft:vertical_half": "bottom",
+   "stone_slab_type": "smooth_stone",
+   "top_slot_bit": false
+  },
+  "type": "minecraft:smooth_stone_slab"
+ },
+ "minecraft:soul_campfire": {
+  "states": {
+   "minecraft:cardinal_direction": "south",
+   "extinguished": false,
+   "direction": 0
+  },
+  "type": "minecraft:soul_campfire"
+ },
+ "minecraft:soul_lantern": {
+  "states": {
+   "hanging": false
+  },
+  "type": "minecraft:soul_lantern"
+ },
+ "minecraft:soul_sand": {
+  "states": {},
+  "type": "minecraft:soul_sand"
+ },
+ "minecraft:soul_torch": {
+  "states": {
+   "torch_facing_direction": "unknown"
+  },
+  "type": "minecraft:soul_torch"
+ },
+ "minecraft:spruce_log": {
+  "states": {
+   "old_log_type": "spruce",
+   "pillar_axis": "y"
+  },
+  "type": "minecraft:spruce_log"
+ },
+ "minecraft:stone": {
+  "states": {
+   "stone_type": "stone"
+  },
+  "type": "minecraft:stone"
+ },
+ "minecraft:stone_brick_stairs": {
+  "states": {
+   "minecraft:corner": "none",
+   "weirdo_direction": 0,
+   "upside_down_bit": false
+  },
+  "type": "minecraft:stone_brick_stairs"
+ },
+ "minecraft:stone_bricks": {
+  "states": {
+   "stone_brick_type": "default"
+  },
+  "type": "minecraft:stone_bricks"
+ },
+ "minecraft:stripped_dark_oak_log": {
+  "states": {
+   "pillar_axis": "y"
+  },
+  "type": "minecraft:stripped_dark_oak_log"
+ },
+ "minecraft:stripped_spruce_log": {
+  "states": {
+   "pillar_axis": "y"
+  },
+  "type": "minecraft:stripped_spruce_log"
+ },
+ "minecraft:tinted_glass": {
+  "states": {},
+  "type": "minecraft:tinted_glass"
+ },
+ "minecraft:tuff": {
+  "states": {},
+  "type": "minecraft:tuff"
+ },
+ "minecraft:water": {
+  "states": {
+   "liquid_depth": 0
+  },
+  "type": "minecraft:water"
+ },
+ "minecraft:web": {
+  "states": {},
+  "type": "minecraft:web"
+ },
+ "observer:blood": {
+  "states": {
+   "observer:splash": 0
+  },
+  "type": "observer:blood"
+ },
+ "observer:corpse": {
+  "states": {
+   "minecraft:cardinal_direction": "south"
+  },
+  "type": "observer:corpse"
+ },
+ "observer:gravestone": {
+  "states": {
+   "minecraft:cardinal_direction": "south"
+  },
+  "type": "observer:gravestone"
+ },
+ "observer:hanged": {
+  "states": {
+   "observer:part": 0,
+   "minecraft:cardinal_direction": "south"
+  },
+  "type": "observer:hanged"
+ },
+ "observer:rift_bark": {
+  "states": {
+   "minecraft:block_face": "down"
+  },
+  "type": "observer:rift_bark"
+ },
+ "observer:rift_bricks": {
+  "states": {},
+  "type": "observer:rift_bricks"
+ },
+ "observer:rift_bricks_cracked": {
+  "states": {},
+  "type": "observer:rift_bricks_cracked"
+ },
+ "observer:rift_glass": {
+  "states": {},
+  "type": "observer:rift_glass"
+ },
+ "observer:rift_lamp": {
+  "states": {},
+  "type": "observer:rift_lamp"
+ },
+ "observer:rift_moss": {
+  "states": {},
+  "type": "observer:rift_moss"
+ },
+ "observer:rift_needles": {
+  "states": {},
+  "type": "observer:rift_needles"
+ },
+ "observer:skeleton": {
+  "states": {
+   "minecraft:cardinal_direction": "south"
+  },
+  "type": "observer:skeleton"
+ },
+ "wmire:bone_grass": {
+  "states": {},
+  "type": "wmire:bone_grass"
+ },
+ "wmire:bone_sprout": {
+  "states": {},
+  "type": "wmire:bone_sprout"
+ },
+ "wmire:eyebloom": {
+  "states": {
+   "wmire:shut": false,
+   "minecraft:cardinal_direction": "south"
+  },
+  "type": "wmire:eyebloom"
+ },
+ "wmire:eyebloom_stalk": {
+  "states": {},
+  "type": "wmire:eyebloom_stalk"
+ },
+ "wmire:mire_moss": {
+  "states": {},
+  "type": "wmire:mire_moss"
+ },
+ "wmire:weeping_leaves": {
+  "states": {},
+  "type": "wmire:weeping_leaves"
+ },
+ "wmire:weeping_log": {
+  "states": {
+   "minecraft:block_face": "down"
+  },
+  "type": "wmire:weeping_log"
+ },
+ "wmire:weeping_tendril": {
+  "states": {},
+  "type": "wmire:weeping_tendril"
+ }
+}

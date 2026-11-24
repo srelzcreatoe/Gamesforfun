@@ -101,7 +101,8 @@ export const DWELLER_TYPES = new Set(["goatwalker:goatwalker", "brine:brinesleep
 
 export const FOGS = { dread: "observer:dread", soft: "observer:dread_soft", vigil: "observer:vigil" };
 
-export const DIMENSIONS = ["minecraft:overworld", "minecraft:nether", "minecraft:the_end"];
+// (1.6.0: the Rift is the fourth, so what happens there is never filed under the overworld)
+export const DIMENSIONS = ["minecraft:overworld", "minecraft:nether", "minecraft:the_end", "observer:rift"];
 
 const WOODS = ["acacia", "bamboo", "birch", "cherry", "crimson", "dark_oak", "jungle", "mangrove", "pale_oak", "poplar", "spruce", "warped"];
 const COPPER = ["", "exposed_", "weathered_", "oxidized_", "waxed_", "waxed_exposed_", "waxed_weathered_", "waxed_oxidized_"];

@@ -299,5 +299,41 @@
   "shaftbreaker:watcher_pod": {
     "sound": "nether_wart",
     "textures": "sb_inf_watcher_pod"
+  },
+  "observer:rift_bark": {
+    "sound": "wood"
+  },
+  "observer:rift_needles": {
+    "sound": "grass"
+  },
+  "observer:rift_moss": {
+    "sound": "grass"
+  },
+  "observer:rift_bricks": {
+    "sound": "stone"
+  },
+  "observer:rift_bricks_cracked": {
+    "sound": "stone"
+  },
+  "observer:rift_glass": {
+    "sound": "glass"
+  },
+  "observer:rift_lamp": {
+    "sound": "glass"
+  },
+  "observer:blood": {
+    "sound": "slime"
+  },
+  "observer:corpse": {
+    "sound": "cloth"
+  },
+  "observer:skeleton": {
+    "sound": "bone_block"
+  },
+  "observer:gravestone": {
+    "sound": "stone"
+  },
+  "observer:hanged": {
+    "sound": "cloth"
   }
 }

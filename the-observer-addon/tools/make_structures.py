@@ -149,7 +149,7 @@ def block_entity(be, x, y, z):
     pos = {"x": (N.INT, x), "y": (N.INT, y), "z": (N.INT, z)}
     if kind in ("Chest", "Barrel"):
         out = {"id": (N.STRING, kind), "isMovable": (N.BYTE, 1), "Findable": (N.BYTE, 0),
-               "LootTable": (N.STRING, f"loot_tables/wmire/{data}.json"), "LootTableSeed": (N.INT, 0),
+               "LootTable": (N.STRING, data if data.startswith("loot_tables/") else f"loot_tables/wmire/{data}.json"), "LootTableSeed": (N.INT, 0),
                "Items": (N.LIST, (N.COMPOUND, []))}
         out.update(pos)
         return out

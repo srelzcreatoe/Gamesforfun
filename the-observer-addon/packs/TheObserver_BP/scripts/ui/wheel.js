@@ -16,6 +16,7 @@ import * as puppets from "../observer/puppets.js";
 import { isOperator, openSettings } from "./forms.js";
 import { openSoundTest } from "./sounds.js";
 import { dwellersPage } from "./dwellers_page.js";
+import { riftPage } from "./rift_page.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
 /** @typedef {import("@minecraft/server").RawMessage} RawMessage */
@@ -89,6 +90,8 @@ export async function openWheel(p) {
     add("observer.wheel.btn_creatures", () => creatures(p));
     // 1.6.0: its dwellers — the Goatwalker, the Brinesleeper, the Shaftbreaker — each on or off, and how
     add("observer.wheel.btn_dwellers", () => dwellersPage(p));
+    // 1.6.0: the Rift — how often it opens (and so how deadly it is in there), one opened now
+    add("observer.wheel.btn_rift", () => riftPage(p));
     add("observer.wheel.btn_undo", () => undoChanges(p));
   }
   // 1.5.1: hear every piece of its music and every sound it makes (for everyone: it changes nothing)
