@@ -20,6 +20,7 @@
       "minecraft:tags": [
         "minecraft:is_pickaxe_item_destructible"
       ],
+      "minecraft:geometry": "geometry.basiliskra.crimson_crystal",
       "minecraft:material_instances": {
         "*": {
           "texture": "basiliskra_crimson_crystal",
@@ -30,7 +31,6 @@
       },
       "minecraft:loot": "loot_tables/blocks/basiliskra_crimson_crystal.json",
       "basiliskra:fades": {},
-      "minecraft:geometry": "geometry.basiliskra.crimson_crystal",
       "minecraft:collision_box": false,
       "minecraft:selection_box": {
         "origin": [

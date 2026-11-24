@@ -353,6 +353,9 @@ def block(ident, display, textures, light, mining, tag, map_color, loot=None, wa
         "minecraft:light_emission": light,
         "minecraft:map_color": map_color,
         "minecraft:tags": [tag],
+        # 1.26.60 will not load a block that names its textures without naming its shape: "Block needs both a
+        # 'geometry' and 'material_instances' component" (the owner's content log, 1.7.0).  A plain cube.
+        "minecraft:geometry": "minecraft:geometry.full_block",
         "minecraft:material_instances": {face: {"texture": tex, "render_method": method} for face, tex in textures.items()},
     }
     if loot:

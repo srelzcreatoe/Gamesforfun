@@ -3524,18 +3524,46 @@ function plan(S) {
 }
 var AREA = "bk_city";
 var BUILD = { volume: 6e3, pieces: 20, ms: 4 };
+var AREAS = { chunks: 10, slots: 8, settle: 40 };
+function byGround(ops) {
+  const out = [];
+  for (const op of ops) {
+    if (op.k !== "set" || op.at.length < 2) {
+      out.push(op);
+      continue;
+    }
+    const cells = /* @__PURE__ */ new Map();
+    for (const q of op.at) {
+      const key = `${Math.floor(q[0] / 16)},${Math.floor(q[2] / 16)}`;
+      const list = cells.get(key);
+      if (list) list.push(q);
+      else cells.set(key, [q]);
+    }
+    for (const at3 of cells.values()) out.push({ ...op, at: at3 });
+  }
+  return out;
+}
 var Build = class {
   constructor(S, dim) {
     this.S = S;
     this.dim = dim;
     this.held = false;
     this.waited = 0;
+    /** The site cut into areas the game will hold, which of them each of our areas holds now, and when one last moved. */
+    this.tiles = [];
+    this.holding = /* @__PURE__ */ new Map();
+    this.moved = -1e9;
+    this.ticks = 0;
+    /** The last quarter of the work that was announced. */
+    this.told = 0;
     /** Everything before this is done (so a tick does not walk the whole plan to find its work). */
     this.first = 0;
     this.failed = 0;
-    this.ops = plan(S);
+    this.ops = byGround(plan(S));
     this.done = new Uint8Array(this.ops.length);
-    this.left = this.ops.length;
+    this.first = Math.max(0, Math.min(this.ops.length, S.from ?? 0));
+    this.done.fill(1, 0, this.first);
+    this.left = this.ops.length - this.first;
   }
   get finished() {
     return this.left <= 0;
@@ -3543,35 +3571,74 @@ var Build = class {
   get progress() {
     return 1 - this.left / Math.max(1, this.ops.length);
   }
-  /** Ask the game to keep the whole site loaded while it is built (four areas; if it will not, the plan waits for players). */
+  /** The tiles: the site's chunks, cut into rectangles of at most AREAS.chunks a side. */
+  cut() {
+    const L = layout(planOf(this.S));
+    const a = toWorld2(this.S, L.uMin - 2, 0, -2), b = toWorld2(this.S, L.uMax + 2, 0, L.vEnd + 4);
+    const cx0 = Math.floor(Math.min(a.x, b.x) / 16), cx1 = Math.floor(Math.max(a.x, b.x) / 16);
+    const cz0 = Math.floor(Math.min(a.z, b.z) / 16), cz1 = Math.floor(Math.max(a.z, b.z) / 16);
+    const out = [];
+    for (let cx = cx0; cx <= cx1; cx += AREAS.chunks) for (let cz = cz0; cz <= cz1; cz += AREAS.chunks) {
+      out.push({ x0: cx * 16, z0: cz * 16, x1: Math.min(cx1, cx + AREAS.chunks - 1) * 16 + 15, z1: Math.min(cz1, cz + AREAS.chunks - 1) * 16 + 15 });
+    }
+    return out;
+  }
+  unhold(slot) {
+    try {
+      this.dim.runCommand(`tickingarea remove ${AREA}_${slot}`);
+    } catch {
+    }
+    this.holding.delete(slot);
+  }
+  /** Point one of our areas at a rectangle.  False if the game would not have it (the world's ten are taken, or not allowed). */
+  place(slot, t) {
+    this.unhold(slot);
+    try {
+      const r = this.dim.runCommand(`tickingarea add ${t.x0} 0 ${t.z0} ${t.x1} 0 ${t.z1} ${AREA}_${slot}`);
+      if (r && typeof r.successCount === "number" && r.successCount < 1) return false;
+    } catch {
+      return false;
+    }
+    this.holding.set(slot, t);
+    return true;
+  }
+  /** Ask the game to keep the site loaded while it is built: every tile at once if it will (a full city is six). */
   hold() {
     if (this.held) return;
     this.held = true;
-    const L = layout(planOf(this.S));
-    const a = toWorld2(this.S, L.uMin - 2, 0, -2), b = toWorld2(this.S, L.uMax + 2, 0, L.vEnd + 4);
-    const x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), z0 = Math.min(a.z, b.z), z1 = Math.max(a.z, b.z);
-    const mx = Math.floor((x0 + x1) / 2), mz = Math.floor((z0 + z1) / 2);
-    const quads = [[x0, z0, mx, mz], [mx + 1, z0, x1, mz], [x0, mz + 1, mx, z1], [mx + 1, mz + 1, x1, z1]];
-    quads.forEach(([ax, az, bx, bz], k) => {
-      try {
-        this.dim.runCommand(`tickingarea remove ${AREA}_${k}`);
-      } catch {
-      }
-      try {
-        this.dim.runCommand(`tickingarea add ${Math.floor(ax)} 0 ${Math.floor(az)} ${Math.floor(bx)} 0 ${Math.floor(bz)} ${AREA}_${k}`);
-      } catch {
-      }
-    });
+    this.tiles = this.cut();
+    for (let k = 0; k < AREAS.slots; k++) this.unhold(k);
+    for (let k = 0; k < Math.min(AREAS.slots, this.tiles.length); k++) if (!this.place(k, this.tiles[k])) break;
+    this.moved = this.ticks;
+  }
+  /**
+   * The work is waiting on ground nobody holds (the game gave fewer areas than there are tiles): move the area we have
+   * held longest onto the ground that work stands on (centred on it, so a piece that straddles two tiles is wholly
+   * inside), and give it time to load before moving any again.
+   */
+  follow(b) {
+    if (this.ticks - this.moved < AREAS.settle) return;
+    const cx0 = Math.floor(b.lo.x / 16), cx1 = Math.floor(b.hi.x / 16), cz0 = Math.floor(b.lo.z / 16), cz1 = Math.floor(b.hi.z / 16);
+    const inside = (t2) => t2.x0 <= cx0 * 16 && t2.x1 >= cx1 * 16 + 15 && t2.z0 <= cz0 * 16 && t2.z1 >= cz1 * 16 + 15;
+    if ([...this.holding.values()].some(inside)) return;
+    const n = AREAS.chunks;
+    const from = (a, z) => a - Math.max(0, Math.floor((n - (z - a + 1)) / 2));
+    const ax = from(cx0, cx1), az = from(cz0, cz1);
+    const t = { x0: ax * 16, z0: az * 16, x1: (ax + n - 1) * 16 + 15, z1: (az + n - 1) * 16 + 15 };
+    this.moved = this.ticks;
+    const ours = [...this.holding.keys()];
+    const slot = ours.length ? ours[0] : 0;
+    this.place(slot, t);
   }
   release() {
     if (!this.held) return;
     this.held = false;
-    for (let k = 0; k < 4; k++) {
-      try {
-        this.dim.runCommand(`tickingarea remove ${AREA}_${k}`);
-      } catch {
-      }
-    }
+    for (let k = 0; k < AREAS.slots; k++) this.unhold(k);
+  }
+  /** How many areas the game is holding for it, and how many chunks the largest is (for the test report). */
+  get areas() {
+    const size = (t) => (t.x1 - t.x0 + 1) / 16 * ((t.z1 - t.z0 + 1) / 16);
+    return { held: this.holding.size, tiles: this.tiles.length, chunks: Math.max(0, ...this.tiles.map(size), ...[...this.holding.values()].map(size)) };
   }
   box(op) {
     const pts = op.k === "fill" ? [op.a, op.b] : op.k === "set" ? op.at : [op.at];
@@ -3593,6 +3660,7 @@ var Build = class {
    * everything over the same ground.  (A city is millions of blocks: it is raised over a minute or two, not at once.)
    */
   tick() {
+    this.ticks++;
     this.hold();
     let volume = 0, small = 0, any = false;
     const started = Date.now();
@@ -3643,11 +3711,16 @@ var Build = class {
       any = true;
     }
     while (this.first < this.ops.length && this.done[this.first]) this.first++;
+    if (this.ticks % 100 === 0 && this.S.from !== this.first) {
+      this.S.from = this.first;
+      store.touch();
+    }
     this.waited = any ? 0 : this.waited + 1;
+    if (!any && blocked.length) this.follow(blocked[0]);
   }
   /** Nothing could be done for a long while: the ground is not loading (the plan stays, and is taken up again when someone is near). */
   get stalled() {
-    return this.waited > 30 * TICKS.second;
+    return this.waited > 60 * TICKS.second;
   }
 };
 var building = null;
@@ -3737,6 +3810,17 @@ function seekCoast(dim, p) {
 function cityTick(now) {
   if (building) {
     building.tick();
+    const quarter = Math.floor(building.progress * 4);
+    if (!building.finished && quarter > building.told) {
+      building.told = quarter;
+      const m = landmarks(building.S);
+      for (const p of players()) {
+        try {
+          if (p.dimension.id === OVERWORLD && dist(p.location, m.centre) < 400) p.sendMessage(`§7[Basiliskra] The city is ${quarter * 25}% built.`);
+        } catch {
+        }
+      }
+    }
     if (building.finished) {
       building.S.done = true;
       store.touch();
@@ -6945,7 +7029,7 @@ async function cityForm(p) {
     p.sendMessage("§7[Basiliskra] Cities stand in the Overworld.");
     return;
   }
-  const f = new ActionFormData().title("Raise a city here").body("§7You will be standing on its promenade. §fBehind you§7: streets, towers, houses, people. §fAhead of you§7 (the way you are looking): a beach, and beyond it a sea cut a hundred blocks deep, with things on the bottom.\n§cEverything in that area is replaced§7: about 180 by 160 blocks of city and beach, and 200 by 140 of sea. It takes under a minute.").button("A full city (175 by 119)").button("A small one (91 by 63)").button("Not here");
+  const f = new ActionFormData().title("Raise a city here").body("§7You will be standing on its promenade. §fBehind you§7: streets, towers, houses, people. §fAhead of you§7 (the way you are looking): a beach, and beyond it a sea cut a hundred blocks deep, with things on the bottom.\n§cEverything in that area is replaced§7: about 265 by 215 blocks of city and beach, and 265 by 140 of sea (a small one: 95 by 100, and 95 by 80). A full city takes about two minutes to rise, a small one about twenty seconds; you are told as each quarter is done.").button("A full city (259 by 175)").button("A small one (91 by 63)").button("Not here");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || r.selection === void 0 || r.selection > 1) return;
   let v = { x: 0, y: 0, z: 1 };

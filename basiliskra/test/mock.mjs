@@ -364,7 +364,9 @@ class MockDimension {
     if (add) {
       if (this.sim.refuseAreas || this.sim.areas.size >= 10) throw new Error('CommandError: ticking area refused');
       const [x0, z0, x1, z1] = add.slice(1, 5).map(Number);
-      if ((Math.abs(x1 - x0) / 16 + 1) * (Math.abs(z1 - z0) / 16 + 1) > 100) throw new Error('CommandError: a ticking area holds 100 chunks at most');
+      // the game counts the chunks the two corners span, ends included, and refuses more than 100
+      const span = (a, b) => Math.abs(Math.floor(b / 16) - Math.floor(a / 16)) + 1;
+      if (span(x0, x1) * span(z0, z1) > 100) throw new Error('CommandError: a ticking area holds 100 chunks at most');
       this.sim.areas.set(add[5], { x0: Math.min(x0, x1), x1: Math.max(x0, x1), z0: Math.min(z0, z1), z1: Math.max(z0, z1) });
     }
     if (rem) { if (!this.sim.areas.delete(rem[1])) throw new Error('CommandError: no such area'); }

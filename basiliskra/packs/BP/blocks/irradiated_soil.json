@@ -28,6 +28,7 @@
       "minecraft:tags": [
         "minecraft:is_shovel_item_destructible"
       ],
+      "minecraft:geometry": "minecraft:geometry.full_block",
       "minecraft:material_instances": {
         "*": {
           "texture": "basiliskra_irradiated_soil_side",

@@ -143,6 +143,43 @@ if have_schemas:
                 check(k, "/server/block/1.26.60/Blocks.json", d["minecraft:block"])
             elif "particle_effect" in d:
                 check(k, "/client/particles/1.21.10/Particle%20Effect%20Data.json", d["particle_effect"])
+
+        # The published component lists accept any name (no additionalProperties), so a component the game no longer
+        # knows passes them: minecraft:pushable did, and the civilians failed to load in game (1.7.0).  Every
+        # component an entity or block names must be one the 1.26.60 lists define.
+        def known(schema_id):
+            sch = by_id.get(schema_id) or {}
+            return set(sch.get("properties", {})), [re.compile(x) for x in sch.get("patternProperties", {})]
+        ent_known, ent_pat = known("/server/entity/1.26.60/Entity%20component%20definitions.json")
+        blk_known, blk_pat = known("/server/block_components/1.26.60/Block%20Components.json")
+        for k, d in docs.items():
+            if not isinstance(d, dict):
+                continue
+            if "minecraft:entity" in d and ent_known:
+                e = d["minecraft:entity"]
+                for where, comps in [("components", e.get("components", {}))] + [(f"component_groups/{g}", c) for g, c in e.get("component_groups", {}).items()]:
+                    for name in comps:
+                        if name not in ent_known and not any(r.match(name) for r in ent_pat):
+                            err(f"{k}: {where}: {name} is not an entity component in 1.26.60 (the game will refuse the entity)")
+                        else:
+                            ok("entity components known to 1.26.60")
+            if "minecraft:block" in d and blk_known:
+                b = d["minecraft:block"]
+                for where, comps in [("components", b.get("components", {}))] + [(f"permutations/{i}", q.get("components", {})) for i, q in enumerate(b.get("permutations", []))]:
+                    for name in comps:
+                        if name.startswith(f"{NS}:"):
+                            continue                                  # the pack's own custom components
+                        if name not in blk_known:
+                            err(f"{k}: {where}: {name} is not a block component in 1.26.60")
+                        else:
+                            ok("block components known to 1.26.60")
+                # not in the schema, but the game says it: "Block needs both a 'geometry' and 'material_instances'
+                # component" (the owner's content log, 1.7.0: all ten blocks refused, and the recipes that use them)
+                c = b.get("components", {})
+                if ("minecraft:geometry" in c) != ("minecraft:material_instances" in c):
+                    err(f"{k}: a block needs both minecraft:geometry and minecraft:material_instances, or neither")
+                else:
+                    ok("blocks with a shape and textures")
     except ImportError:
         notes.append("python package 'jsonschema' not installed: schema validation skipped")
 else:
@@ -175,6 +212,11 @@ for k, d in docs.items():
         bones = {b["name"]: b for b in g.get("bones", [])}
         locs = {l for b in g.get("bones", []) for l in b.get("locators", {})}
         geos[desc["identifier"]] = {"bones": bones, "locators": locs, "desc": desc, "file": k}
+        # the game makes armor_offset.* for every geometry itself, before it reads the file's own: one declared here
+        # is always skipped, with an error in the content log (1.7.0, in every form and in the Titan)
+        for l in locs:
+            if l.startswith("armor_offset."):
+                err(f"{k}: declares the locator {l}, which the game makes itself (it would be skipped, with an error)")
         for b in g.get("bones", []):
             if "parent" in b and b["parent"] not in bones:
                 err(f"{k}: bone {b['name']} has unknown parent {b['parent']}")

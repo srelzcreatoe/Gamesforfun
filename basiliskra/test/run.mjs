@@ -1708,7 +1708,8 @@ console.log('\n== 21. A city by the sea, and the deep');
     check('a city can be raised where an operator stands: the promenade under them, the sea the way they look', /rising/.test(said) && S.dir === 0 && Math.abs(S.x + L.cityU / 2) <= 1 && Math.abs(S.z + L.vProm + 3) <= 1, said);
     check('only one is built at a time', /still being built/.test(C.raiseCity({ x: 300, y: 64, z: 300 }, 0, true)));
     w.sim.step(3);
-    check('the ground it needs is kept loaded while it is built', w.sim.log.commands.filter((c) => /^tickingarea add .* bk_city_\d$/.test(c)).length === 4 && w.sim.areas.size === 4);
+    const A = C.cityBuild().areas;
+    check('the ground it needs is kept loaded while it is built, in areas the game accepts (100 chunks each at most)', A.held === A.tiles && A.chunks <= 100 && w.sim.areas.size === A.tiles, JSON.stringify(A));
     // (and never at a cost anybody would feel: a few thousand blocks a tick at most, however much is left to do)
     let worst = 0, took = -1;
     for (let i = 0; i < 4000; i++) { w.sim.work = { blocks: 0, queries: 0, rays: 0, fills: 0 }; w.sim.step(1); worst = Math.max(worst, w.sim.work.fills ?? 0); if (S.done === true) { took = i + 1; break; } }
@@ -1818,6 +1819,46 @@ console.log('\n== 21. A city by the sea, and the deep');
     check('with the setting off none rise by themselves', w.bk.store.rec.cities.length === n0);
     w.bk.CONFIG.cities = true;
     void shore;
+  }
+}
+
+console.log('\n== 21b. A full city, built to the end (1.7.1)');
+{
+  // 1.7.0 asked the game for four areas a quarter of a full city each: over 100 chunks, refused, and the build waited
+  // for ground that never loaded.  The owner pressed the button and waited seven minutes.
+  const build = (preTaken) => {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const op = w.sim.addPlayer('Op', { x: 0, y: 64, z: 0 }); op.mode = 'Creative'; op.view = { x: 0, y: 0, z: 1 }; op.playerPermissionLevel = 2;
+    w.sim.areas = new Map();
+    for (let k = 0; k < preTaken; k++) w.sim.areas.set(`theirs_${k}`, { x0: 5000 + k * 200, x1: 5010 + k * 200, z0: 5000, z1: 5010 });
+    const C = w.bk.city;
+    const said = C.raiseCity({ x: 0, y: 64, z: 0 }, 0, false);
+    const S = w.bk.store.rec.cities[0];
+    w.sim.step(3);
+    const A = C.cityBuild()?.areas;
+    let took = -1, worst = 0;
+    for (let i = 0; i < 12000; i++) { w.sim.step(1); worst = Math.max(worst, w.sim.areas.size); if (S.done === true) { took = i + 1; break; } }
+    const ours = [...w.sim.areas.keys()].filter((k) => k.startsWith('bk_city'));
+    return { w, op, said, A, took, worst, ours, S, C };
+  };
+  {
+    const r = build(0);
+    const L = r.C.layout(r.C.FULL);
+    check('the wheel raises a full city: 259 by 175 blocks of streets', /rising: 259 by 175/.test(r.said), r.said);
+    check('its ground is held in areas of 100 chunks at most, all of it at once', r.A && r.A.held === r.A.tiles && r.A.tiles <= 8 && r.A.chunks <= 100, JSON.stringify(r.A));
+    check('it is built to the end with the operator standing on its promenade', r.took > 0, `${r.took} ticks (${(r.took / 20).toFixed(0)} s)`);
+    check('and it says how far it has got, every quarter, then that it stands', [25, 50, 75].every((q) => r.op.messages.some((m) => m.includes(`${q}% built`))) && r.op.messages.some((m) => /The city stands/.test(m)));
+    check('its areas are let go', r.ours.length === 0, r.ours.join(' '));
+    check('sixty townspeople in its streets', r.w.sim.count('basiliskra:civilian') === r.C.FULL.people, `${r.w.sim.count('basiliskra:civilian')}`);
+    const id = (u, y, v) => r.w.sim.blockId('minecraft:overworld', r.S.x + u, y, r.S.z + v);
+    check('the far corner of its streets and the far end of its sea are built too', id(L.cityU - 3, r.S.y, 2) !== 'minecraft:grass_block' && /water|basalt/.test(id(L.uS0 + 4, r.C.FULL.floor + 1, L.vEnd - 4)), `${id(L.cityU - 3, r.S.y, 2)}, ${id(L.uS0 + 4, r.C.FULL.floor + 1, L.vEnd - 4)}`);
+    r.w.__full = r.took;
+    globalThis.__fullCityTicks = r.took;
+  }
+  {
+    const r = build(8);
+    check('with only two areas left in the world, it moves them along as it builds and still finishes', r.took > 0 && r.worst <= 10, `${r.took} ticks (${(r.took / 20).toFixed(0)} s), at most ${r.worst} areas in the world`);
+    check('and leaves the world\'s own areas alone', [...r.w.sim.areas.keys()].filter((k) => k.startsWith('theirs_')).length === 8 && r.ours.length === 0);
   }
 }
 

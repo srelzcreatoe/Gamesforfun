@@ -260,7 +260,7 @@ def main():
             "minecraft:type_family": {"family": [f"{NS}_{NAME}", "mob"]},
             "minecraft:health": {"value": 20, "max": 20},
             "minecraft:collision_box": {"width": 0.6, "height": 1.8},
-            "minecraft:physics": {}, "minecraft:pushable": {"is_pushable": True, "is_pushable_by_piston": True},
+            "minecraft:physics": {}, "minecraft:pushable_by_entity": {}, "minecraft:pushable_by_block": {},     # 1.26.60 split minecraft:pushable in two
             "minecraft:movement": {"value": 0.25}, "minecraft:movement.basic": {}, "minecraft:jump.static": {},
             "minecraft:navigation.walk": {"avoid_water": True, "can_open_doors": True, "can_pass_doors": True, "can_path_over_water": False},
             "minecraft:annotation.open_door": {},

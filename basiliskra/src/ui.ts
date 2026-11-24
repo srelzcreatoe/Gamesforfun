@@ -369,8 +369,8 @@ export async function cityForm(p: Player): Promise<void> {
   if (!canAdmin(p)) { p.sendMessage("§7[Basiliskra] Only an operator can raise a city."); return; }
   if (p.dimension.id !== OVERWORLD) { p.sendMessage("§7[Basiliskra] Cities stand in the Overworld."); return; }
   const f = new ActionFormData().title("Raise a city here")
-    .body("§7You will be standing on its promenade. §fBehind you§7: streets, towers, houses, people. §fAhead of you§7 (the way you are looking): a beach, and beyond it a sea cut a hundred blocks deep, with things on the bottom.\n§cEverything in that area is replaced§7: about 180 by 160 blocks of city and beach, and 200 by 140 of sea. It takes under a minute.")
-    .button("A full city (175 by 119)").button("A small one (91 by 63)").button("Not here");
+    .body("§7You will be standing on its promenade. §fBehind you§7: streets, towers, houses, people. §fAhead of you§7 (the way you are looking): a beach, and beyond it a sea cut a hundred blocks deep, with things on the bottom.\n§cEverything in that area is replaced§7: about 265 by 215 blocks of city and beach, and 265 by 140 of sea (a small one: 95 by 100, and 95 by 80). A full city takes about two minutes to rise, a small one about twenty seconds; you are told as each quarter is done.")
+    .button("A full city (259 by 175)").button("A small one (91 by 63)").button("Not here");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || r.selection === undefined || r.selection > 1) return;
   let v = { x: 0, y: 0, z: 1 };

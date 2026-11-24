@@ -22,7 +22,8 @@ import { store } from "./store";
 import { dist, hash, type V3 } from "./vec";
 import { NONE, UNLOADED, blockAt, groundY, idAt, isLoaded, isWaterId, overworld, waterColumn } from "./world";
 
-export interface Site { x: number; y: number; z: number; dir: 0 | 1 | 2 | 3; small?: boolean; done: boolean; t: number }
+/** `from`: how far its building had got (every operation before it is done), so a build taken up again carries on. */
+export interface Site { x: number; y: number; z: number; dir: 0 | 1 | 2 | 3; small?: boolean; done: boolean; t: number; from?: number }
 export interface Plan { lotsU: number; lotsV: number; trenchU: number; trenchV: number; floor: number; people: number }
 export const FULL: Plan = { lotsU: 9, lotsV: 6, trenchU: 240, trenchV: 100, floor: -40, people: 60 };
 export const SMALL: Plan = { lotsU: 3, lotsV: 2, trenchU: 56, trenchV: 40, floor: -40, people: 8 };
@@ -298,41 +299,123 @@ export function plan(S: Site): Op[] {
 const AREA = "bk_city";
 /** What one tick of building may cost: blocks of volume, pieces, and milliseconds of the script's time. */
 export const BUILD = { volume: 6000, pieces: 20, ms: 4 };
+/**
+ * Keeping its ground loaded.  The game holds at most 100 chunks in one ticking area and ten areas in a world, so the
+ * site is cut into tiles of at most 10 x 10 chunks (a full city is six) and at most `slots` of them are asked for at
+ * once.  1.7.0 asked for four areas a quarter of the site each; the bigger city made each one more than 100 chunks,
+ * the game refused them all, and the build waited for ground that never loaded.
+ */
+export const AREAS = { chunks: 10, slots: 8, settle: 40 };
+type Tile = { x0: number; z0: number; x1: number; z1: number };
+/**
+ * One operation sets blocks all over the site (the lamps, the lights in the towers): split it, in the order given, by
+ * the 16 x 16 column of ground each block stands in, so that no piece of work needs more ground loaded than one area holds.
+ */
+function byGround(ops: Op[]): Op[] {
+  const out: Op[] = [];
+  for (const op of ops) {
+    if (op.k !== "set" || op.at.length < 2) { out.push(op); continue; }
+    const cells = new Map<string, [number, number, number][]>();
+    for (const q of op.at) {
+      const key = `${Math.floor(q[0] / 16)},${Math.floor(q[2] / 16)}`;
+      const list = cells.get(key);
+      if (list) list.push(q); else cells.set(key, [q]);
+    }
+    for (const at of cells.values()) out.push({ ...op, at });
+  }
+  return out;
+}
+
 class Build {
   private ops: Op[];
   private done: Uint8Array;
   private left: number;
   private held = false;
   private waited = 0;
+  /** The site cut into areas the game will hold, which of them each of our areas holds now, and when one last moved. */
+  private tiles: Tile[] = [];
+  private holding = new Map<number, Tile>();
+  private moved = -1e9;
+  private ticks = 0;
+  /** The last quarter of the work that was announced. */
+  told = 0;
   /** Everything before this is done (so a tick does not walk the whole plan to find its work). */
   private first = 0;
   failed = 0;
   constructor(readonly S: Site, private readonly dim: Dimension) {
-    this.ops = plan(S);
+    this.ops = byGround(plan(S));
     this.done = new Uint8Array(this.ops.length);
-    this.left = this.ops.length;
+    // taken up again: what was done stays done (and the people it put in the streets are not put there twice)
+    this.first = Math.max(0, Math.min(this.ops.length, S.from ?? 0));
+    this.done.fill(1, 0, this.first);
+    this.left = this.ops.length - this.first;
   }
   get finished(): boolean { return this.left <= 0; }
   get progress(): number { return 1 - this.left / Math.max(1, this.ops.length); }
 
-  /** Ask the game to keep the whole site loaded while it is built (four areas; if it will not, the plan waits for players). */
+  /** The tiles: the site's chunks, cut into rectangles of at most AREAS.chunks a side. */
+  private cut(): Tile[] {
+    const L = layout(planOf(this.S));
+    const a = toWorld(this.S, L.uMin - 2, 0, -2), b = toWorld(this.S, L.uMax + 2, 0, L.vEnd + 4);
+    const cx0 = Math.floor(Math.min(a.x, b.x) / 16), cx1 = Math.floor(Math.max(a.x, b.x) / 16);
+    const cz0 = Math.floor(Math.min(a.z, b.z) / 16), cz1 = Math.floor(Math.max(a.z, b.z) / 16);
+    const out: Tile[] = [];
+    for (let cx = cx0; cx <= cx1; cx += AREAS.chunks) for (let cz = cz0; cz <= cz1; cz += AREAS.chunks) {
+      out.push({ x0: cx * 16, z0: cz * 16, x1: Math.min(cx1, cx + AREAS.chunks - 1) * 16 + 15, z1: Math.min(cz1, cz + AREAS.chunks - 1) * 16 + 15 });
+    }
+    return out;
+  }
+  private unhold(slot: number): void {
+    try { this.dim.runCommand(`tickingarea remove ${AREA}_${slot}`); } catch { /* there was none */ }
+    this.holding.delete(slot);
+  }
+  /** Point one of our areas at a rectangle.  False if the game would not have it (the world's ten are taken, or not allowed). */
+  private place(slot: number, t: Tile): boolean {
+    this.unhold(slot);
+    try {
+      const r = this.dim.runCommand(`tickingarea add ${t.x0} 0 ${t.z0} ${t.x1} 0 ${t.z1} ${AREA}_${slot}`);
+      if (r && typeof r.successCount === "number" && r.successCount < 1) return false;
+    } catch { return false; }
+    this.holding.set(slot, t);
+    return true;
+  }
+  /** Ask the game to keep the site loaded while it is built: every tile at once if it will (a full city is six). */
   private hold(): void {
     if (this.held) return;
     this.held = true;
-    const L = layout(planOf(this.S));
-    const a = toWorld(this.S, L.uMin - 2, 0, -2), b = toWorld(this.S, L.uMax + 2, 0, L.vEnd + 4);
-    const x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), z0 = Math.min(a.z, b.z), z1 = Math.max(a.z, b.z);
-    const mx = Math.floor((x0 + x1) / 2), mz = Math.floor((z0 + z1) / 2);
-    const quads = [[x0, z0, mx, mz], [mx + 1, z0, x1, mz], [x0, mz + 1, mx, z1], [mx + 1, mz + 1, x1, z1]];
-    quads.forEach(([ax, az, bx, bz], k) => {
-      try { this.dim.runCommand(`tickingarea remove ${AREA}_${k}`); } catch { /* there was none */ }
-      try { this.dim.runCommand(`tickingarea add ${Math.floor(ax)} 0 ${Math.floor(az)} ${Math.floor(bx)} 0 ${Math.floor(bz)} ${AREA}_${k}`); } catch { /* full, or not allowed: it waits for players */ }
-    });
+    this.tiles = this.cut();
+    for (let k = 0; k < AREAS.slots; k++) this.unhold(k);          // what an earlier run may have left
+    for (let k = 0; k < Math.min(AREAS.slots, this.tiles.length); k++) if (!this.place(k, this.tiles[k])) break;
+    this.moved = this.ticks;
+  }
+  /**
+   * The work is waiting on ground nobody holds (the game gave fewer areas than there are tiles): move the area we have
+   * held longest onto the ground that work stands on (centred on it, so a piece that straddles two tiles is wholly
+   * inside), and give it time to load before moving any again.
+   */
+  private follow(b: { lo: V3; hi: V3 }): void {
+    if (this.ticks - this.moved < AREAS.settle) return;
+    const cx0 = Math.floor(b.lo.x / 16), cx1 = Math.floor(b.hi.x / 16), cz0 = Math.floor(b.lo.z / 16), cz1 = Math.floor(b.hi.z / 16);
+    const inside = (t: Tile): boolean => t.x0 <= cx0 * 16 && t.x1 >= cx1 * 16 + 15 && t.z0 <= cz0 * 16 && t.z1 >= cz1 * 16 + 15;
+    if ([...this.holding.values()].some(inside)) return;          // ours already: its ground is still loading
+    const n = AREAS.chunks;
+    const from = (a: number, z: number): number => a - Math.max(0, Math.floor((n - (z - a + 1)) / 2));
+    const ax = from(cx0, cx1), az = from(cz0, cz1);
+    const t: Tile = { x0: ax * 16, z0: az * 16, x1: (ax + n - 1) * 16 + 15, z1: (az + n - 1) * 16 + 15 };
+    this.moved = this.ticks;
+    const ours = [...this.holding.keys()];
+    const slot = ours.length ? ours[0] : 0;                         // the one held longest goes (they take turns)
+    this.place(slot, t);
   }
   release(): void {
     if (!this.held) return;
     this.held = false;
-    for (let k = 0; k < 4; k++) { try { this.dim.runCommand(`tickingarea remove ${AREA}_${k}`); } catch { /* gone */ } }
+    for (let k = 0; k < AREAS.slots; k++) this.unhold(k);
+  }
+  /** How many areas the game is holding for it, and how many chunks the largest is (for the test report). */
+  get areas(): { held: number; tiles: number; chunks: number } {
+    const size = (t: Tile): number => ((t.x1 - t.x0 + 1) / 16) * ((t.z1 - t.z0 + 1) / 16);
+    return { held: this.holding.size, tiles: this.tiles.length, chunks: Math.max(0, ...this.tiles.map(size), ...[...this.holding.values()].map(size)) };
   }
 
   private box(op: Op): { lo: V3; hi: V3 } {
@@ -352,6 +435,7 @@ class Build {
    * everything over the same ground.  (A city is millions of blocks: it is raised over a minute or two, not at once.)
    */
   tick(): void {
+    this.ticks++;
     this.hold();
     let volume = 0, small = 0, any = false;
     const started = Date.now();
@@ -388,10 +472,12 @@ class Build {
       this.done[i] = 1; this.left--; small++; any = true;
     }
     while (this.first < this.ops.length && this.done[this.first]) this.first++;
+    if (this.ticks % 100 === 0 && this.S.from !== this.first) { this.S.from = this.first; store.touch(); }
     this.waited = any ? 0 : this.waited + 1;
+    if (!any && blocked.length) this.follow(blocked[0]);
   }
   /** Nothing could be done for a long while: the ground is not loading (the plan stays, and is taken up again when someone is near). */
-  get stalled(): boolean { return this.waited > 30 * TICKS.second; }
+  get stalled(): boolean { return this.waited > 60 * TICKS.second; }
 }
 
 let building: Build | null = null;
@@ -444,6 +530,9 @@ export function nearestCity(at: V3): { site: Site; centre: V3; distance: number;
   return best;
 }
 export const cityBuilding = (): number | null => (building ? building.progress : null);
+/** The build under way, for the test report: its progress, its areas, how many operations failed. */
+export const cityBuild = (): { progress: number; areas: { held: number; tiles: number; chunks: number }; failed: number } | null =>
+  (building ? { progress: building.progress, areas: building.areas, failed: building.failed } : null);
 /** Stop work on the city being built (it stays on record, unfinished, and is taken up again when someone is near it). */
 export function stopBuilding(): void { if (building) { building.release(); building = null; } }
 
@@ -483,6 +572,14 @@ function seekCoast(dim: Dimension, p: Player): string | null {
 export function cityTick(now: number): void {
   if (building) {
     building.tick();
+    const quarter = Math.floor(building.progress * 4);
+    if (!building.finished && quarter > building.told) {
+      building.told = quarter;
+      const m = landmarks(building.S);
+      for (const p of players()) {
+        try { if (p.dimension.id === OVERWORLD && dist(p.location, m.centre) < 400) p.sendMessage(`§7[Basiliskra] The city is ${quarter * 25}% built.`); } catch { /* left */ }
+      }
+    }
     if (building.finished) {
       building.S.done = true;
       store.touch();

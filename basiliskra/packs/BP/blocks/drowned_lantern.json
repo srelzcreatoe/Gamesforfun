@@ -20,6 +20,7 @@
       "minecraft:tags": [
         "minecraft:is_pickaxe_item_destructible"
       ],
+      "minecraft:geometry": "minecraft:geometry.full_block",
       "minecraft:material_instances": {
         "*": {
           "texture": "basiliskra_drowned_lantern",

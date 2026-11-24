@@ -103,9 +103,10 @@ def value_noise(p: np.ndarray, period: float, seed: int = 0) -> np.ndarray:
 
 
 # ----------------------------------------------------------------------------- model
-# Locators the engine otherwise derives from each geometry by itself (and then reports as conflicting
-# between the three forms).  Declared identically, on the root bone, in every form.
-SHARED_LOCATORS = {"armor_offset.default_neck": [0.0, 0.0, 0.0]}
+# Locators declared identically in every form.  None now: 1.1 declared armor_offset.default_neck here, but the game
+# makes that one itself for every geometry before it reads the file's own, so the declaration was always skipped
+# with an error ("model already has a locator armor_offset.default_neck...", in every form and in the Titan, 1.7.0).
+SHARED_LOCATORS: dict = {}
 
 
 @dataclass

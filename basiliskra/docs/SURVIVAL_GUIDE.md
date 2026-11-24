@@ -5,11 +5,11 @@ No experiments, no Beta APIs, no cheats, no commands. It can be added to a survi
 
 ## Install
 
-1. Open `Basiliskra-1.7.0.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
+1. Open `Basiliskra-1.7.1.mcaddon` on the device (double-click on Windows, "Open in Minecraft" on phone or tablet). Both packs import.
 2. Edit your world → **Behavior Packs** → activate **Basiliskra**. The resource pack is pulled in with it. Leave every toggle under **Experiments** off.
 3. Play. Nothing happens straight away. The story is found by playing; the journal tells you how close it is.
 
-**Updating from an earlier version**: open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.7.0 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself. Settings you chose are kept; a world that never chose how destructive he is gets the new default (he destroys like the Wither).
+**Updating from an earlier version**: open the world's settings, remove Basiliskra from Behavior Packs and Resource Packs, save, and leave the world. In Settings → Storage, delete the old Basiliskra packs. Then import 1.7.1 and add it to the world again. Nothing in the world is lost: the story is kept in the world itself. Settings you chose are kept; a world that never chose how destructive he is gets the new default (he destroys like the Wither).
 
 Realms and multiplayer: apply both packs to the world; players download the resource pack on joining. Consoles can use the add-on only through a Realm or a world transferred from another device.
 
@@ -124,7 +124,7 @@ With nothing alive in reach, Basiliskra II, III and IV do not wander: **they go 
 
 **Cities.** The pack raises its own: streets on a grid, towers of concrete and glass lit from inside (the tallest by the water), houses, parks, a stadium, a big wheel, street lamps, and **people** in the streets (townspeople of its own: see below). In front of every city is a **promenade and a wide beach** that shelves gently into the water, so that he can walk up out of the sea, and beyond the beach **the sea is cut a hundred blocks deep**: straight down, wall to wall, to a floor of abyssal basalt.
 
-* **They rise by themselves on real coasts** as you explore: where there is land behind and open sea ahead, never where anything built already stands, and never within 900 blocks of another city. You are told when one starts ("A city is rising..."). A full city takes about a minute and a half; it is built a little at a time (never more than 6,000 blocks, nor more than 4 milliseconds of the game's time, in any tick), so the game does not stall while it rises, as 1.6's did. Settings → **Cities rise on coasts** switches this off.
+* **They rise by themselves on real coasts** as you explore: where there is land behind and open sea ahead, never where anything built already stands, and never within 900 blocks of another city. You are told when one starts ("A city is rising..."). A full city takes about two minutes (a small one about twenty seconds), and you are told as each quarter is done; it is built a little at a time (never more than 6,000 blocks, nor more than 4 milliseconds of the game's time, in any tick), so the game does not stall while it rises, as 1.6's did. While it is built the pack asks the game to keep its ground loaded (up to six ticking areas, given back when it is finished); if the world has few to spare it uses what it gets and takes a little longer. Settings → **Cities rise on coasts** switches this off.
 * **Or put one where you stand**: the config wheel's **Raise a city here**, or `/basiliskra:city` (operators, no cheats). The sea goes the way you are looking, the streets behind you, and you are stood on the promenade. A full city is 259 by 175 blocks of streets with sixty townspeople; a small one 91 by 63, with eight. One is built at a time. **This one is built whatever is there**, so choose the place.
 * **The deep.** On the floor of the cut: seam vents that glow, drowned spires hung with lanterns, the ribs of something far larger than he is, a pit deeper still with a broken ring of crying obsidian at the bottom of it, and a ruin at the foot of the drop with a chest. Four new blocks are down there (abyssal basalt, seam vent, drowned lantern, old bone); all can be mined and placed.
 
