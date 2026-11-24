@@ -100,7 +100,7 @@ export function* hold(ctx, cr, o = {}) {
     const s = seen(ctx, cr);
     ctx.lastSeen = s;
     if (s.visible && s.angle < 60) setDanger(ctx.player, Math.max(0.15, Math.min(0.55, 1.2 - s.dist / 40)));
-    if (s.dist < 2.4) return 'touched';
+    if (s.dist < 3.4) return 'touched';
     if (o.approachDist && s.dist < o.approachDist) return 'approach';
     if (s.visible && s.angle < (o.spotAngle ?? 24)) {
       lookTicks += o.every ?? 4;

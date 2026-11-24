@@ -116,7 +116,7 @@ export function brainTick() {
   B.withdrawSince = 0;
   c.relocator = () => hiddenSpot(t, 20, 38, true);
   // in its home it heals
-  if (api.pstate(t).hollows) safe('homeHeal', () => { const h = /** @type {any} */ (c.e.getComponent('minecraft:health')); if (h && h.currentValue < h.effectiveMax) h.setCurrentValue(Math.min(h.effectiveMax, h.currentValue + 2)); });
+  if (api.pstate(t).hollows) safe('homeHeal', () => { const h = /** @type {any} */ (c.e.getComponent('minecraft:health')); if (h && h.currentValue < h.effectiveMax) h.setCurrentValue(Math.min(h.effectiveMax, h.currentValue + 9)); });
 }
 
 function arrive(p) {
@@ -178,6 +178,17 @@ export function lurkTick() {
   const s = api.pstate(p);
   const d = dist(c.loc, p.location);
   const seen = seenByAnyone(c);
+  if (seen && d < 12) { if (!B.staredAt) B.staredAt = now(); } else B.staredAt = 0;
+  const stared = B.staredAt && now() - B.staredAt > sec(3.5);
+  if ((d < 4.2 || stared) && now() >= (B.closeReactAt || 0)) {
+    B.closeReactAt = now() + sec(6); B.staredAt = 0;
+    const s0 = api.pstate(p);
+    const attack = !config().harmless && api.rage && chance(Math.min(0.9, (stared ? 0.5 : 0.6) + (s0.provocation || 0) / 200 + (s0.state === 'provoked' ? 0.15 : 0)));
+    c.halt(); c.face(p.getHeadLocation());
+    if (attack) { api.provoke(p, 20, stared ? 'held its stare' : 'right up against it'); playAt(c.dim, 'shaftbreaker.screech', { x: c.loc.x, y: c.loc.y + 2, z: c.loc.z }, 1, rand(0.8, 0.95)); api.rage(p, stared ? 'stare' : 'too close'); return; }
+    playAt(c.dim, 'shaftbreaker.jumpscare', { x: c.loc.x, y: c.loc.y + 2, z: c.loc.z }, 1, rand(0.9, 1.05));
+    setDanger(p, 0.9); c.vanish(false); B.shyUntil = now() + sec(40); return;
+  }
   if (seen) {
     B.lastSeenTick = now();
     if (!c.act && now() > B.caughtUntil) {                  // caught lurking: it freezes, then slips away

@@ -371,3 +371,166 @@ async function riftLoot(tables) {
   d.runCommand("tickingarea remove rloot");
   say("DONE");
 }
+
+// dev (1.7.0): what lies underground — the cave biomes. otest:cavemap [half] [step] [y,y,…]: loads the square ±half round
+// 0,0 window by window and counts the biome at each sample height every step blocks (the Hollows, the Stillwater Caves,
+// dripstone and lush caves, the deep dark, the rest), and the Hollows' share at each height
+system.afterEvents.scriptEventReceive.subscribe((ev) => {
+  if (ev.id !== "otest:cavemap") return;
+  const [h, st, ys] = ev.message.trim().split(/\s+/);
+  caveMap(Number(h) || 480, Number(st) || 16, (ys || "-40,-20,0,20,40").split(",").map(Number)).catch(fail("cavemap"));
+});
+async function caveMap(half, step, ys) {
+  const dim = world.getDimension("overworld");
+  const counts = {};
+  const byY = {};
+  let total = 0;
+  const W = 480, span = 160;
+  for (let wx = -half; wx < half; wx += W) for (let wz = -half; wz < half; wz += W) {
+    const areas = [];
+    for (let x = wx; x < Math.min(half, wx + W); x += span) for (let z = wz; z < Math.min(half, wz + W); z += span) areas.push([x, z]);
+    areas.forEach(([x, z], i) => {
+      try {
+        dim.runCommand(`tickingarea add ${x} 0 ${z} ${Math.min(half, x + span) - 1} 0 ${Math.min(half, z + span) - 1} cm${i} true`);
+      } catch (e) {
+        console.warn(`[OTEST] cavemap area ${i} failed ${e}`);
+      }
+    });
+    const cols = [];
+    for (let x = wx + 4; x < Math.min(half, wx + W); x += step) for (let z = wz + 4; z < Math.min(half, wz + W); z += step) cols.push({ x, z });
+    for (let t = 0; t < 900; t++) {
+      let ok = 0, tot = 0;
+      for (let k = 0; k < cols.length; k += 23) {
+        tot++;
+        if (dim.isChunkLoaded({ x: cols[k].x, y: 0, z: cols[k].z })) ok++;
+      }
+      if (ok >= tot) break;
+      await new Promise((r) => system.runTimeout(r, 20));
+    }
+    for (const c of cols) for (const y of ys) {
+      let id = "?";
+      try {
+        id = dim.getBiome({ x: c.x, y, z: c.z })?.id ?? "?";
+      } catch {}
+      const k = /hollows|stillwater|dripstone|lush|deep_dark/.test(id) ? id.replace(/^[a-z_]+:/, "") : "other";
+      counts[k] = (counts[k] ?? 0) + 1;
+      byY[y] ??= {};
+      byY[y][k] = (byY[y][k] ?? 0) + 1;
+      total++;
+    }
+    areas.forEach((_, i) => {
+      try {
+        dim.runCommand(`tickingarea remove cm${i}`);
+      } catch {}
+    });
+    await new Promise((r) => system.runTimeout(r, 40));
+  }
+  const pct = (o, n) => Object.entries(o).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}=${((100 * v) / n).toFixed(1)}%`).join(" ");
+  console.warn(`[OTEST] cavemap all (${total} samples): ${pct(counts, total)}`);
+  for (const y of ys) {
+    const n = Object.values(byY[y] ?? {}).reduce((a, b) => a + b, 0);
+    console.warn(`[OTEST] cavemap y=${y}: ${pct(byY[y] ?? {}, n)}`);
+  }
+  console.warn("[OTEST] cavemap DONE");
+}
+
+// dev (1.7.0): the cave biomes over a wide area, sparsely: otest:cavewide [half] [step] — one chunk loaded per sample column
+// (ten at a time), the biome at y -30, 0 and 20
+system.afterEvents.scriptEventReceive.subscribe((ev) => {
+  if (ev.id !== "otest:cavewide") return;
+  const [h, st] = ev.message.trim().split(/\s+/).map(Number);
+  caveWide(h || 1024, st || 64).catch(fail("cavewide"));
+});
+async function caveWide(half, step) {
+  const dim = world.getDimension("overworld");
+  const cols = [];
+  for (let x = -half; x < half; x += step) for (let z = -half; z < half; z += step) cols.push({ x: x + 8, z: z + 8 });
+  const counts = {};
+  let total = 0;
+  for (let i = 0; i < cols.length; i += 10) {
+    const batch = cols.slice(i, i + 10);
+    batch.forEach((c, k) => {
+      try {
+        dim.runCommand(`tickingarea add circle ${c.x} 0 ${c.z} 0 cw${k} true`);
+      } catch {}
+    });
+    for (let t = 0; t < 200 && !batch.every((c) => dim.isChunkLoaded({ x: c.x, y: 0, z: c.z })); t++) await new Promise((r) => system.runTimeout(r, 2));
+    for (const c of batch) for (const y of [-30, 0, 20]) {
+      let id = "?";
+      try {
+        id = dim.getBiome({ x: c.x, y, z: c.z })?.id ?? "?";
+      } catch {}
+      const k = /hollows|stillwater|dripstone|lush|deep_dark/.test(id) ? id.replace(/^[a-z_]+:/, "") : "other";
+      counts[k] = (counts[k] ?? 0) + 1;
+      total++;
+    }
+    batch.forEach((_, k) => {
+      try {
+        dim.runCommand(`tickingarea remove cw${k}`);
+      } catch {}
+    });
+  }
+  console.warn(`[OTEST] cavewide ${2 * half} blocks (${total} samples): ${Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}=${((100 * v) / total).toFixed(1)}%`).join(" ")}`);
+  console.warn("[OTEST] cavewide DONE");
+}
+
+// dev (1.7.0): the Hollows underground — found by sampling outward from 0,0 (/locate does not take custom biomes), then
+// what it is made of round there: its painted walls, its flesh, its organs, its great chambers' bone (ribstone)
+system.afterEvents.scriptEventReceive.subscribe((ev) => {
+  if (ev.id !== "otest:hollows") return;
+  hollowsCheck(Number(ev.message.trim()) || 3).catch(fail("hollows"));
+});
+async function hollowsCheck(want) {
+  const { BlockVolume } = await import("@minecraft/server");
+  const say = (m) => console.warn(`[OTEST] hollows ${m}`);
+  const dim = world.getDimension("overworld");
+  const found = [];
+  const cols = [];
+  for (let r = 0; r <= 1536; r += 96) for (let a = 0; a < 360; a += r ? Math.max(6, 6000 / r) : 360) cols.push({ x: Math.round(r * Math.cos((a * Math.PI) / 180)), z: Math.round(r * Math.sin((a * Math.PI) / 180)) });
+  for (let i = 0; i < cols.length && found.length < want; i += 10) {
+    const batch = cols.slice(i, i + 10);
+    batch.forEach((c, k) => {
+      try {
+        dim.runCommand(`tickingarea add circle ${c.x} 0 ${c.z} 0 hs${k} true`);
+      } catch {}
+    });
+    for (let t = 0; t < 200 && !batch.every((c) => dim.isChunkLoaded({ x: c.x, y: 0, z: c.z })); t++) await new Promise((r) => system.runTimeout(r, 2));
+    for (const c of batch) for (const y of [-30, -10, 10, 30]) {
+      let id = "";
+      try {
+        id = dim.getBiome({ x: c.x, y, z: c.z })?.id ?? "";
+      } catch {}
+      if (id === "shaftbreaker:the_hollows" && !found.some((f) => Math.hypot(f.x - c.x, f.z - c.z) < 200)) found.push({ x: c.x, y, z: c.z });
+    }
+    batch.forEach((_, k) => {
+      try {
+        dim.runCommand(`tickingarea remove hs${k}`);
+      } catch {}
+    });
+  }
+  say(`found ${found.length}: ${JSON.stringify(found)}`);
+  const types = ["shaftbreaker:veinstone", "shaftbreaker:fleshstone", "shaftbreaker:cracked_veinstone", "shaftbreaker:pulsing_flesh", "shaftbreaker:ribstone",
+    "shaftbreaker:organ_core", "shaftbreaker:bloodmoss", "shaftbreaker:bloodroot_vines", "shaftbreaker:dripfang", "shaftbreaker:watcher_pod", "shaftbreaker:glowspore_cluster",
+    "minecraft:air", "minecraft:water"];
+  let total = 0;
+  for (const f of found) {
+    dim.runCommand(`tickingarea add circle ${f.x} 0 ${f.z} 3 hsx true`);
+    for (let t = 0; t < 300 && !dim.isChunkLoaded({ x: f.x + 40, y: 0, z: f.z + 40 }); t++) await new Promise((r) => system.runTimeout(r, 2));
+    const vol = new BlockVolume({ x: f.x - 40, y: Math.max(-60, f.y - 24), z: f.z - 40 }, { x: f.x + 40, y: f.y + 24, z: f.z + 40 });
+    const counts = {};
+    for (const ty of types) {
+      let n = 0;
+      try {
+        for (const _ of dim.getBlocks(vol, { includeTypes: [ty] }, true).getBlockLocationIterator()) n++;
+      } catch (e) {
+        n = -1;
+      }
+      counts[ty.replace(/^[a-z_]+:/, "")] = n;
+    }
+    total += counts.veinstone > 0 ? 1 : 0;
+    say(`at ${f.x},${f.y},${f.z}: ${JSON.stringify(counts)}`);
+    dim.runCommand("tickingarea remove hsx");
+  }
+  say(found.length && total === found.length ? "PASS every Hollows found has its walls" : `FAIL ${total}/${found.length} with walls`);
+  say("DONE");
+}

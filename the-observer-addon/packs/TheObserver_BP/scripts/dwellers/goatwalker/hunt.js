@@ -564,8 +564,8 @@ export class Hunt extends Enc {
       if (this.state === "chase" && !this.hold && chance(0.4 + 0.5 * coverBias(M))) this.startMan("cover", this.pd);
       return;
     }
-    const hp = safe(() => w.e.getComponent("minecraft:health").currentValue, 80);
-    if (hp < 26 && this.state === "chase") {
+    const hp = safe(() => w.e.getComponent("minecraft:health").currentValue, 500);
+    if (hp < 162 && this.state === "chase") {
       w.vanish({ ash: true, blood: true });
       this.backIn = rnd(8, 12);
       this.go("away");

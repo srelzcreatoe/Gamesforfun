@@ -420,10 +420,12 @@ def main():
         made.append(write(f"glitch{v + 1}", glitch(v), 0.7))
     for v in range(2):
         made.append(write(f"static{v + 1}", static(v), 0.6))
-    made.append(write("music/stalk", track_stalk(), 0.8))
-    made.append(write("music/chase", track_chase(), 0.85))
-    made.append(write("music/mire", track_mire(), 0.8))
-    made.append(write("music/end", track_end(), 0.85))
+    # (1.7.0: its four tracks are made over by tools/synth_dark.py; the 1.5.0 versions stay here, written only on request)
+    if "--old-tracks" in sys.argv:
+        made.append(write("music/stalk", track_stalk(), 0.8))
+        made.append(write("music/chase", track_chase(), 0.85))
+        made.append(write("music/mire", track_mire(), 0.8))
+        made.append(write("music/end", track_end(), 0.85))
     for path, dur in made:
         print(f"{os.path.relpath(path, ROOT)}  {dur:.1f}s  {os.path.getsize(path)} bytes")
 

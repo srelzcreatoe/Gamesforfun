@@ -58,7 +58,7 @@ const watcher = (p) => { try { return p.getGameMode() !== GameMode.Spectator; } 
 const seenByAnyone = (c) => __dw.players("brinesleeper").some((p) => p.dimension.id === c.dimension.id &&
   (looksAt(p, c.getHeadLocation(), 0.5, 96) || looksAt(p, add(c.location, { x: 0, y: 0.5, z: 0 }), 0.5, 96)));
 const playerById = (id) => __dw.players("brinesleeper").find((p) => p.id === id);
-const gap = () => Math.round(randInt(...preset().stalkGap) * TPS / freq());
+const gap = () => Math.round(randInt(...preset().stalkGap) * TPS / (freq() * 1.6));
 const dark = (dim, pos) => { try { return dim.getLightLevel(pos) <= 4; } catch (e) { return false; } };
 const spot = (player, kind, minD, maxD, opts = {}) => findSpot(player, kind, minD, maxD, { anywhere: true, ...opts });
 /** a point `d` below a water surface, never deeper than the water is (so it is never put inside the lake bed) */
@@ -235,7 +235,7 @@ function trailSpot(target, minBack = 16, maxBack = 40) {
 }
 
 // ------------------------------------------------------------------ what it has learned about each player
-const PROFILE = { bold: 0.1, looks: 0, lights: 0, runs: 0, swims: 0, fights: 0, kills: 0, meets: 0, followed: 0 };
+const PROFILE = { bold: 0.45, looks: 0, lights: 0, runs: 0, swims: 0, fights: 0, kills: 0, meets: 0, followed: 0 };
 const profiles = new Map();
 function profileOf(p) {
   let pr = profiles.get(p.id);
@@ -1092,9 +1092,9 @@ function retreat(c, m, target) {
 }
 function decide(c, m, target, provoked) {
   const pr = profileOf(target);
-  const p = preset().chase + (provoked ? 0.25 : 0) + pr.bold * 0.3 + 0.03 * Math.min(8, pr.fights);
+  const p = 0.2 + preset().chase + (provoked ? 0.25 : 0) + pr.bold * 0.3 + 0.03 * Math.min(8, pr.fights);
   if (hunter(target) && chance(p)) chase(c, m, target);
-  else { if (pr.bold < 0.5 || chance(0.5)) retreat(c, m, target); else stalk(c, m, target); }
+  else { if (pr.bold < 0.3 && chance(0.5)) retreat(c, m, target); else stalk(c, m, target); }
 }
 function ambush(c, m, target, water) {
   m.ambushAt = water;
@@ -1258,6 +1258,8 @@ function think(c) {
         const edge = waterAround(target, 1.5, 4, { depth: 3, allowView: true, tries: 10 });
         if (edge && Math.hypot(target.getVelocity().x, target.getVelocity().z) < 0.05) { m.lastAmbush = t; ambush(c, m, target, edge); break; }
       }
+      // (1.7.0) come within a few blocks of the water it lies in and it rises for you
+      if (d < 7 && hunter(target) && t - (m.lastRise ?? -9999) > 20 * TPS) { m.lastRise = t; if (inWater(c)) approach(c, m, target); else standoff(c, m, target); break; }
       if (t < m.until) break;
       if (t < m.cooldownUntil) { lurk(c, m, target, rand(8, 16)); if (chance(0.35)) watch(c, m, target); break; }
       const need = config.preset === 'quiet' ? 3 : config.preset === 'nightmare' ? 0 : pr.bold > 0.6 ? 0 : randInt(1, 2);
@@ -1271,7 +1273,8 @@ function think(c) {
       const tooClose = d < 16 - pr.bold * 8;
       if (m.seenFor >= m.watchNeed || tooClose) {
         if (m.seenFor > 0) bolder(target, 0.004);                   // you saw it, and nothing happened: it learns
-        if (pr.bold > 0.7 && tooClose && chance(0.4)) {            // it no longer runs from you
+        if (tooClose && hunter(target) && d < 6 && chance(0.6)) { chase(c, m, target); break; }   // (1.7.0) right up to it: it comes
+        if (tooClose && (pr.bold > 0.35 || chance(0.6))) {        // it no longer runs from you
           if (m.kind === 'water') approach(c, m, target); else standoff(c, m, target);
           break;
         }
@@ -1297,7 +1300,8 @@ function think(c) {
       break;
     }
     case 'hidden': {                                                // out of sight, far off: waiting for its moment
-      if ((seen && m.seenFor >= 10) || d < 12) { vanish(c, m, target); break; }
+      if (d < 6 && hunter(target) && chance(0.6)) { chase(c, m, target); break; }          // (1.7.0)
+      if ((seen && m.seenFor >= 10) || d < 12) { if (chance(0.55)) { if (inWater(c)) approach(c, m, target); else standoff(c, m, target); } else vanish(c, m, target); break; }
       if (t < m.until) break;
       if (t < m.cooldownUntil) { if (chance(0.5)) watch(c, m, target); else go(m, 'hidden', rand(5, 10)); }
       else if (m.sightings < 1 && pr.bold < 0.6 && chance(0.5)) watch(c, m, target);

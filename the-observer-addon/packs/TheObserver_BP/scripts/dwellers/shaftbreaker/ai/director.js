@@ -23,7 +23,7 @@ import { STALK_TEMPLATES, MIND_TEMPLATES, SLEEP_TEMPLATES, ambushMoment, addTens
 export const TEMPLATES = [...MINOR_TEMPLATES, ...OBSERVE_TEMPLATES, ...STANDOFF_TEMPLATES, ...HUNT_TEMPLATES, ...STALK_TEMPLATES, ...MIND_TEMPLATES, ...SLEEP_TEMPLATES];
 const BY_ID = new Map(TEMPLATES.map((t) => [t.id, t]));
 const STATES = ['dormant', 'interested', 'observing', 'provoked', 'hunting'];
-const FAMILY_WEIGHT = { stalk: 30, uncanny: 20, audio: 15, env: 15, standoff: 10, hunt: 8, rare: 2 };
+const FAMILY_WEIGHT = { stalk: 30, uncanny: 20, audio: 12, env: 12, standoff: 14, hunt: 14, rare: 2 };
 
 // ------------------------------------------------------------------ per-player director state
 /** @type {Map<string, any>} */
@@ -237,7 +237,7 @@ function stalkerClock() {
 function eligibleAsleep(p) {
   const cfg = config();
   if (!cfg.enabled || !cfg.naturalEncounters || p.dimension.id !== OVERWORLD) return false;
-  return now() >= pstate(p).graceUntil;
+  return now() >= pstate(p).graceUntil && worldTicks() < (profile(p).followUntil || 0);
 }
 
 let pendingRage = null;
@@ -340,14 +340,14 @@ function updatePlayer(p, dt) {
   if (!ug && s.underground) { s.underground = false; }
   // at night it also stalks you on the surface (through the trees, around your house)
   const cfgN = config();
-  s.night = !ug && p.dimension.id === OVERWORLD && (!!cfgN.dayStalking || (!!cfgN.nightStalking && !isDaylight()));
+  s.night = !ug && p.dimension.id === OVERWORLD && worldTicks() < (pf.followUntil || 0) && (!!cfgN.dayStalking || (!!cfgN.nightStalking && !isDaylight()));
   // the Hollows are its own land: there it is about by day as well
   s.hollows = p.dimension.id === OVERWORLD && inHollows(p.dimension, p.location);
   if (s.hollows) unlockNote(p, 'hollows');
   if (s.hollows && ug) unlockNote(p, 'infected');
   const bt = brainTarget();
   if (bt && bt.id === p.id) setHomeBoost(s.hollows);
-  if (s.hollows && !ug) s.night = true;
+  if (s.hollows && !ug && worldTicks() < (pf.followUntil || 0)) s.night = true;
   if (s.night && !s.scheduled) scheduleFresh(s, pf);
   if (s.night) { s.ugTicks += dt; pf.undergroundSec += dt / 20; }
   s.tension = (s.tension || 0) * 0.996;                                   // tension fades over a few quiet minutes
@@ -674,7 +674,7 @@ export function onOrganBroken(player, pos, cracked) {
   const c = creature();
   playAtDim(player, 'shaftbreaker.organ_break', pos);
   unlockNote(player, 'organ');
-  if (c && !c.defeated) safe('organWound', () => c.e.applyDamage(cracked ? 18 : 10, { cause: /** @type {any} */ ('magic') }));
+  if (c && !c.defeated) safe('organWound', () => c.e.applyDamage(cracked ? 80 : 45, { cause: /** @type {any} */ ('magic') }));
   addTension(pstate(player), 35);
   // it comes for you: a running sighting turns on you, otherwise it arrives behind you screaming (even if it was not near)
   if (!config().harmless) system.runTimeout(() => safe('organRage', () => {
@@ -708,5 +708,6 @@ initBrain({
   pstate,
   running: () => cur,
   provoke,
+  rage: (p, why) => queueRage(p, why),
   onArrive: (p) => { const s = pstate(p); system.runTimeout(() => safe('noteArrive', () => unlockNote(p, 'arrived')), 400); if (!s.scheduled) scheduleFresh(s, profile(p)); s.arrivedAt = now(); if (s.lastHuntEnd === undefined) s.lastHuntEnd = now(); s.nextShow = now() + sec(rand(18, 35) * freqMul()); },
 });

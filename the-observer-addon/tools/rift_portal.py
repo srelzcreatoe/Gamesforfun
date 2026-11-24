@@ -386,9 +386,17 @@ def particles():
 
 
 def fog():
-    rift = {"fog_start": 2, "fog_end": 30, "fog_color": "#17131d", "render_distance_type": "fixed"}
-    return {"format_version": "1.16.100", "minecraft:fog_settings": {"description": {"identifier": "observer:rift"}, "distance": {
-        "air": rift, "weather": rift, "water": {"fog_start": 0, "fog_end": 10, "fog_color": "#0d0a14", "render_distance_type": "fixed"}}}}
+    """The Rift's mist (1.7.0): grey like the Weeping Mire's, but darker and closer — it closes in from a fraction of the
+    render distance, so the sky goes the fog's colour and the woods fade into it."""
+    air = {"fog_start": 0.02, "fog_end": 0.42, "fog_color": "#2c2e34", "render_distance_type": "render"}
+    weather = {"fog_start": 0.0, "fog_end": 0.32, "fog_color": "#23252a", "render_distance_type": "render"}
+    return {"format_version": "1.21.90", "minecraft:fog_settings": {"description": {"identifier": "observer:rift"},
+        "distance": {"air": air, "weather": weather,
+                     "water": {"fog_start": 0, "fog_end": 9, "fog_color": "#121317", "render_distance_type": "fixed"}},
+        "volumetric": {
+            "density": {"air": {"max_density": 0.09, "max_density_height": 60.0, "zero_density_height": 190.0}},
+            "media_coefficients": {"air": {"scattering": [0.13, 0.135, 0.15], "absorption": [0.08, 0.08, 0.075]}},
+            "henyey_greenstein_g": {"air": {"henyey_greenstein_g": 0.6}}}}}
 
 
 def lang():

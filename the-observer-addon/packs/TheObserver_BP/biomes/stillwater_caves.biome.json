@@ -78,17 +78,9 @@
           {
             "dimension": "minecraft:overworld",
             "targets": [
-              "minecraft:dripstone_caves"
-            ],
-            "amount": 1.0,
-            "noise_frequency_scale": 0.15
-          },
-          {
-            "dimension": "minecraft:overworld",
-            "targets": [
               "minecraft:lush_caves"
             ],
-            "amount": 0.55,
+            "amount": 0.75,
             "noise_frequency_scale": 0.1
           }
         ]

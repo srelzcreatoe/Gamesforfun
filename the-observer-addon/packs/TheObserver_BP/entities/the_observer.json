@@ -251,11 +251,33 @@
         "height": 2.9
       },
       "minecraft:health": {
-        "value": 400,
-        "max": 400
+        "value": 600,
+        "max": 600
       },
       "minecraft:damage_sensor": {
         "triggers": [
+          {
+            "on_damage": {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "player"
+              }
+            },
+            "cause": "entity_attack",
+            "deals_damage": "yes"
+          },
+          {
+            "on_damage": {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "player"
+              }
+            },
+            "cause": "projectile",
+            "deals_damage": "yes"
+          },
           {
             "cause": "all",
             "deals_damage": "no"

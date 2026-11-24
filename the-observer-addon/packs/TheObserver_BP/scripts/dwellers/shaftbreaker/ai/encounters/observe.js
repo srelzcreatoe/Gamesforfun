@@ -19,7 +19,7 @@ function* react(ctx, cr, r, o = {}) {
     cr.face(ctx.player.getHeadLocation());
     const r2 = yield* hold(ctx, cr, { ticks: holdT(2.5, 7), returnOnSpot: false, approachDist: o.approach ?? 9, stareLimit: sec(rand(6, 10)) });
     if (r2 === 'contact' && wantsHunt(ctx, o.huntChance ?? 0.08)) { ctx.tel.notes.push('L25 escalated from a stare'); return yield* huntSequence(ctx, {}); }
-    if (r2 === 'touched' && wantsHunt(ctx, 0.35)) { ctx.tel.notes.push('L21 contact provoked it'); return yield* huntSequence(ctx, { short: true }); }
+    if (r2 === 'touched' && wantsHunt(ctx, 0.65)) { ctx.tel.notes.push('L21 contact provoked it'); return yield* huntSequence(ctx, { short: true }); }
   }
   yield* passiveExit(ctx, cr, o.exit || (chance(0.35) ? 'glance' : 'auto'));
   return r;

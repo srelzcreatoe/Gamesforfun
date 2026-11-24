@@ -1,0 +1,132 @@
+{
+ "minecraft:air": {
+  "states": {},
+  "type": "minecraft:air"
+ },
+ "minecraft:bone_block": {
+  "states": {
+   "pillar_axis": "y",
+   "deprecated": 0
+  },
+  "type": "minecraft:bone_block"
+ },
+ "minecraft:dark_oak_log": {
+  "states": {
+   "pillar_axis": "y",
+   "new_log_type": "dark_oak"
+  },
+  "type": "minecraft:dark_oak_log"
+ },
+ "minecraft:deepslate": {
+  "states": {
+   "pillar_axis": "y"
+  },
+  "type": "minecraft:deepslate"
+ },
+ "minecraft:iron_chain": {
+  "states": {
+   "pillar_axis": "y"
+  },
+  "type": "minecraft:iron_chain"
+ },
+ "minecraft:lantern": {
+  "states": {
+   "hanging": false
+  },
+  "type": "minecraft:lantern"
+ },
+ "minecraft:rail": {
+  "states": {
+   "rail_direction": 0
+  },
+  "type": "minecraft:rail"
+ },
+ "minecraft:skeleton_skull": {
+  "states": {
+   "facing_direction": 0
+  },
+  "type": "minecraft:skeleton_skull"
+ },
+ "minecraft:water": {
+  "states": {
+   "liquid_depth": 0
+  },
+  "type": "minecraft:water"
+ },
+ "observer:blood": {
+  "states": {
+   "observer:splash": 0
+  },
+  "type": "observer:blood"
+ },
+ "observer:corpse": {
+  "states": {
+   "minecraft:cardinal_direction": "south"
+  },
+  "type": "observer:corpse"
+ },
+ "observer:skeleton": {
+  "states": {
+   "minecraft:cardinal_direction": "south"
+  },
+  "type": "observer:skeleton"
+ },
+ "shaftbreaker:bloodmoss": {
+  "states": {},
+  "type": "shaftbreaker:bloodmoss"
+ },
+ "shaftbreaker:bloodroot_vines": {
+  "states": {
+   "shaftbreaker:tip": false
+  },
+  "type": "shaftbreaker:bloodroot_vines"
+ },
+ "shaftbreaker:cracked_organ_core": {
+  "states": {},
+  "type": "shaftbreaker:cracked_organ_core"
+ },
+ "shaftbreaker:cracked_veinstone": {
+  "states": {},
+  "type": "shaftbreaker:cracked_veinstone"
+ },
+ "shaftbreaker:crimson_thorns": {
+  "states": {},
+  "type": "shaftbreaker:crimson_thorns"
+ },
+ "shaftbreaker:dripfang": {
+  "states": {
+   "shaftbreaker:tip": false
+  },
+  "type": "shaftbreaker:dripfang"
+ },
+ "shaftbreaker:fleshstone": {
+  "states": {},
+  "type": "shaftbreaker:fleshstone"
+ },
+ "shaftbreaker:glowspore_cluster": {
+  "states": {},
+  "type": "shaftbreaker:glowspore_cluster"
+ },
+ "shaftbreaker:organ_core": {
+  "states": {},
+  "type": "shaftbreaker:organ_core"
+ },
+ "shaftbreaker:pulsing_flesh": {
+  "states": {},
+  "type": "shaftbreaker:pulsing_flesh"
+ },
+ "shaftbreaker:ribstone": {
+  "states": {},
+  "type": "shaftbreaker:ribstone"
+ },
+ "shaftbreaker:veinstone": {
+  "states": {},
+  "type": "shaftbreaker:veinstone"
+ },
+ "shaftbreaker:watcher_pod": {
+  "states": {
+   "shaftbreaker:open": false
+  },
+  "type": "shaftbreaker:watcher_pod"
+ }
+}

@@ -3,8 +3,8 @@
 import { world, system, MolangVariableMap } from "@minecraft/server";
 import { W, loadWorld, saveWorld, savePlayers, savePlayer, ps, now, dropPlayer, markPlayerDirty, markWorldDirty } from "./core/state.js";
 import { S } from "./core/settings.js";
-import { DEBUG, safe, trace, dimIndex, V, allPlayers } from "./core/util.js";
-import { PARTICLES, TARGET_TAG, ITEMS, SOUNDS } from "./core/constants.js";
+import { DEBUG, safe, trace, dimIndex, V, allPlayers, emit } from "./core/util.js";
+import { PARTICLES, TARGET_TAG, ITEMS, SOUNDS, OBSERVER_ID } from "./core/constants.js";
 import * as ledger from "./world/ledger.js";
 import * as body from "./observer/body.js";
 import * as memory from "./observer/memory.js";
@@ -356,6 +356,27 @@ world.beforeEvents.playerLeave.subscribe((ev) => {
 world.afterEvents.entityHurt.subscribe((ev) => {
   if (ready && puppets.get(ev.hurtEntity.id)) safe(() => possession.onHurt(ev.hurtEntity, ev.damageSource.damagingEntity));
 });
+
+// 1.7.0: it can be hurt now — 600 health, by players' blows and shots only (nothing else harms it). Worn down to its last
+// tenth, it is torn apart where it stands and its encounter is over; it comes back whole, as it always does.
+world.afterEvents.entityHurt.subscribe(
+  (ev) => {
+    if (!ready) return;
+    const e = ev.hurtEntity;
+    const hp = safe(() => e.getComponent("minecraft:health")?.currentValue, 600) ?? 600;
+    emit("body", { what: "hurt", damage: ev.damage, hp });
+    if (hp > 60) return;
+    const b = body.get();
+    if (!b || b.e.id !== e.id) return safe(() => e.remove());
+    const enc = director.running().find((x) => x.id === b.enc);
+    if (enc) {
+      enc.result("torn_down", true);
+      enc.abort("struck");
+    } else body.despawn("unravel");
+    emit("body", { what: "torn_down", by: ev.damageSource.damagingEntity?.typeId ?? "" });
+  },
+  { entityTypes: [OBSERVER_ID] },
+);
 
 // it does not share: a creature that hurts a player may find it standing behind it (1.2.0)
 world.afterEvents.entityHurt.subscribe(

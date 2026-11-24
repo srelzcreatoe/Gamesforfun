@@ -377,8 +377,8 @@
         ]
       },
       "minecraft:health": {
-        "value": 112,
-        "max": 112
+        "value": 500,
+        "max": 500
       },
       "minecraft:attack": {
         "damage": 6
@@ -441,7 +441,7 @@
                     "test": "actor_health",
                     "subject": "self",
                     "operator": "<=",
-                    "value": 22
+                    "value": 98
                   },
                   {
                     "test": "bool_property",

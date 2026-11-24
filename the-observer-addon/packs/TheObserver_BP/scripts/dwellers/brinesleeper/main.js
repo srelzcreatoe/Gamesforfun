@@ -363,7 +363,7 @@ function* sceneWaterline(player) {
   while (now() < end && c.isValid && player.isValid) {
     hold(c, where);
     const d = flat(player.location, s);
-    if (d < 9) break;                                        // too close: it sinks without a sound
+    if (d < 9) { if (__brineTurns(player)) { yield* __turnOn(c, player, s); return; } break; }   // too close: it sinks without a sound — or turns on you
     watched = looksAt(player, add(s, { x: 0, y: 0.4, z: 0 }), 0.96) ? watched + 4 : 0;
     if (watched > 4 * TPS) break;                            // stared at long enough: it sinks slowly
     if (watched === 0 && chance(0.02)) sound(c.dimension, 'mob.brinesleeper.breathe', s, 0.5, rand(0.8, 0.95));
@@ -418,6 +418,7 @@ function* sceneObserver(player) {
   while (now() < end && c.isValid && player.isValid) {
     const head = add(s, { x: 0, y: 2.8, z: 0 });
     const seenNow = looksAt(player, head, 0.88);
+    if (flat(player.location, s) < 10 && __brineTurns(player)) { yield* __turnOn(c, player, s); return; }
     if (flat(player.location, s) < 10) {                   // it never lets you walk up to it
       sound(c.dimension, 'mob.brinesleeper.click', s, 0.8, 0.9);
       yield* slipAway(c, player);
@@ -1012,3 +1013,22 @@ export {
   waterSurface, floorAt, nearWater, findSpot, creatures, setMode, setAct, removeQuietly, spawnShade, overworld,
   watchOf, huntable, health, sting, forceEvent, statusText, wetTrail,
 };
+
+// ---------------------------------------------------------------- merged into The Observer (1.7.0)
+/** Walked right up to in one of its scenes: does it turn on them? (more often than not, if they can be hunted) */
+function __brineTurns(player) {
+  try { const m = player.getGameMode(); if (m !== GameMode.Survival && m !== GameMode.Adventure) return false; } catch (e) { return false; }
+  return config.enabled && preset().chase > 0 && Math.random() < 0.6;
+}
+/** It turns on them: it rises with a roar, and from here its own mind (brain.js) hunts them down. */
+function* __turnOn(c, player, s) {
+  if (!c.isValid || !player.isValid) return;
+  sound(c.dimension, 'mob.brinesleeper.roar', s, 1.2, 0.9);
+  sting(player, 0.9);
+  press(player.id, 'chase', now() + 60);
+  try { player.playSound('brine.spotted', { volume: 1 }); } catch (e) { /* ok */ }
+  handoff.set(c.id, { state: 'chase', target: player.id });
+  c.removeTag(STAGED);
+  if (scene && scene.creature && scene.creature.id === c.id) scene.creature = undefined;
+  yield 1;
+}

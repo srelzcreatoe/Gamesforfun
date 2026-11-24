@@ -20,7 +20,7 @@ What happens to each file of their packs:
   * everything else — biomes, blocks, entities, items, features, structures, loot, recipes, models, textures, sounds,
     particles, fogs, the Goatwalker's lighting and colour grading — copied as it is.
   * the biomes' replace_biomes rules are tuned so the Stellar Taiga, the Weeping Mire and the Hollows each keep land of
-    their own and do not run into one another (BIOME_TUNING).
+    their own and do not run into one another, and each dweller has 500 health (JSON_TUNING).
 
 Usage: python3 tools/merge_dwellers.py           merge (safe to re-run: it rewrites everything it owns)
        python3 tools/merge_dwellers.py --check   verify the packs hold exactly what the merge would write
@@ -42,6 +42,24 @@ DWELLERS = [
     ("shaftbreaker", "Shaftbreaker.mcaddon", "Shaftbreaker_BP", "Shaftbreaker_RP"),
 ]
 SKIP = {"manifest.json", "pack_icon.png", "README.txt", "texts/languages.json"}
+
+# (1.7.0) the Brinesleeper's music and voice made over (tools/synth_dark.py: darker, in the old horror fan-games' vein):
+# its sound ids now point at the new files, and its old ones are not copied in
+_BV = "sounds/mob/brinesleeper_dark/"
+_BM = "sounds/music/brine_dark/"
+SOUND_OVERRIDES = {"brinesleeper": {
+    "music.brine.stillwater": [_BM + f"stillwater_{i}" for i in (1, 2, 3)],
+    "music.brine.near": [_BM + "near_1", _BM + "near_2"],
+    "music.brine.chase": [_BM + "chase"],
+    "music.brine.sting": [_BM + f"sting_{i}" for i in (1, 2, 3)],
+    "brine.spotted": [_BV + "spotted"], "brine.jumpscare": [_BV + "jumpscare"],
+    **{f"mob.brinesleeper.{k}": [_BV + k] for k in ("breathe", "call", "death", "emerge", "grasp", "hiss", "hurt", "lunge", "moan", "roar", "submerge")},
+    "mob.brinesleeper.click": [_BV + "click1", _BV + "click2"], "mob.brinesleeper.step": [_BV + "step1", _BV + "step2"],
+}}
+SKIP_FILES = {("brinesleeper", "RP", r) for r in (
+    [f"sounds/music/brine/{n}.ogg" for n in ("stillwater_1", "stillwater_2", "stillwater_3", "stillwater_4", "stillwater_5", "near_1", "near_2", "chase", "sting_1", "sting_2", "sting_3")]
+    + [f"sounds/mob/brinesleeper/{n}.ogg" for n in ("breathe", "call", "death", "emerge", "grasp", "hiss", "hurt", "lunge", "moan", "roar", "submerge", "click1", "click2", "step1", "step2")]
+    + ["sounds/brine_fx/spotted.ogg", "sounds/brine_fx/jumpscare.ogg"])}
 RENAME = {
     ("goatwalker", "BP", "entities/flare.json"): "entities/gw_flare.json",
     ("goatwalker", "RP", "entity/flare.entity.json"): "entity/gw_flare.entity.json",
@@ -54,14 +72,128 @@ MERGED = {
 }
 LINK = "scripts/link/shared.js"
 
-# The three surface biomes, each on land of its own (1.6.0): the Goatwalker's woods take the taigas, the oak and flower
-# forests, the groves and meadows (the birch and dark forests and the plains go to the Mire), the Shaftbreaker's
-# Hollows the hills, savannas and badlands, and the Weeping Mire (tools/merge_weeping_mire.py) the swamps, rivers,
-# plains, jungles, deserts and gardens. The Brinesleeper's Stillwater Caves are underground and unchanged.
-BIOME_TUNING = {
-    ("goatwalker", "biomes/stellar_taiga.biome.json"): {"drop": ["minecraft:plains", "minecraft:sunflower_plains", "minecraft:birch_forest",
+# The biomes, each on ground of its own (no vanilla biome is claimed by two: where two claim the same one, neither
+# appears — measured on a dedicated server, 1.7.0). On the surface: the Goatwalker's Stellar Taiga takes the taigas, the
+# oak and flower forests, the groves and meadows (the birch and dark forests and the plains go to the Weeping Mire,
+# tools/merge_weeping_mire.py, with the swamps, rivers, jungles, deserts and gardens). Underground (1.7.0): the
+# Shaftbreaker's Hollows is a cave biome now — it takes the dripstone caves, and paints its walls with veinstone, flesh and
+# bone; the Brinesleeper's Stillwater Caves give the dripstone caves up and take three quarters of the lush caves instead
+# (a little less of them over a whole map: measured with otest:cavewide over 3 km squares on two seeds).
+def _drop_targets(drop):
+    def f(d):
+        rule = d["minecraft:biome"]["components"]["minecraft:replace_biomes"]["replacements"][0]
+        rule["targets"] = [t for t in rule["targets"] if t not in drop]
+    return f
+
+
+HOLLOWS_TARGETS = [{"dimension": "minecraft:overworld", "targets": ["minecraft:dripstone_caves"], "amount": 1.0, "noise_frequency_scale": 0.15}]
+STILLWATER_TARGETS = [{"dimension": "minecraft:overworld", "targets": ["minecraft:lush_caves"], "amount": 0.75, "noise_frequency_scale": 0.1}]
+
+
+def _hollows(d):
+    d["format_version"] = "1.26.30"   # (the wall painter, as the Stillwater Caves use it, needs this version)
+    c = d["minecraft:biome"]["components"]
+    c["minecraft:replace_biomes"] = {"replacements": HOLLOWS_TARGETS}
+    c["minecraft:tags"] = {"tags": ["caves", "overworld", "monster", "shaftbreaker_hollows"]}
+    # its walls: veinstone, with bands of flesh, cracked veinstone glowing, seams of bone, a little deepslate
+    c["minecraft:subsurface_builder"] = {"builder": {
+        "type": "minecraft:noise_gradient",
+        "noise_descriptor": {"name": "shaftbreaker:hollow_walls", "first_octave": -5, "amplitudes": [1.0, 0.6, 0.3]},
+        "non_replaceable_blocks": ["minecraft:bedrock"],
+        "noise_block_specifiers": [
+            {"range": {"min": -1.0, "max": -0.45}, "block": "minecraft:deepslate"},
+            {"range": {"min": -0.45, "max": -0.1}, "block": "shaftbreaker:veinstone"},
+            {"range": {"min": -0.1, "max": 0.02}, "block": "shaftbreaker:fleshstone"},
+            {"range": {"min": 0.02, "max": 0.3}, "block": "shaftbreaker:veinstone"},
+            {"range": {"min": 0.3, "max": 0.36}, "block": "shaftbreaker:cracked_veinstone"},
+            {"range": {"min": 0.36, "max": 0.52}, "block": "shaftbreaker:veinstone"},
+            {"range": {"min": 0.52, "max": 0.6}, "block": "shaftbreaker:ribstone"},
+            {"range": {"min": 0.6, "max": 0.72}, "block": "shaftbreaker:fleshstone"},
+            {"range": {"min": 0.72, "max": 1.0}, "block": "shaftbreaker:veinstone"}]}}
+    c.setdefault("minecraft:overworld_height", {"noise_type": "default"})
+
+
+def _stillwater(d):
+    d["minecraft:biome"]["components"]["minecraft:replace_biomes"] = {"replacements": STILLWATER_TARGETS}
+
+
+def _health(n, extra=None):
+    """Every health component of an entity set to n (its threat groups too), then anything else it needs."""
+    def f(d):
+        e = d["minecraft:entity"]
+
+        def walk(o):
+            if isinstance(o, dict):
+                for k, v in o.items():
+                    if k == "minecraft:health" and isinstance(v, dict):
+                        v["value"] = n
+                        v["max"] = n
+                    else:
+                        walk(v)
+            elif isinstance(o, list):
+                for v in o:
+                    walk(v)
+        walk(e)
+        if extra:
+            extra(e)
+    return f
+
+
+def _shaft_defeat(e):
+    """Its defeat comes at a fifth of its health, as before (22 of 112 then; 98 of 500 now)."""
+    hits = 0
+
+    def walk(o):
+        nonlocal hits
+        if isinstance(o, dict):
+            if o.get("test") == "actor_health" and o.get("value") == 22:
+                o["value"] = 98
+                hits += 1
+            for v in o.values():
+                walk(v)
+        elif isinstance(o, list):
+            for v in o:
+                walk(v)
+    walk(e)
+    if hits != 1:
+        sys.exit(f"the Shaftbreaker's defeat threshold: {hits} found, 1 expected")
+
+
+def _denser(times=1, scatter=None):
+    """A feature rule placed more often: iterations × times, and/or a scatter chance of 1 in `scatter`."""
+    def f(d):
+        dist = d["minecraft:feature_rules"]["distribution"]
+        dist["iterations"] = int(dist.get("iterations", 1)) * times
+        if scatter:
+            dist["scatter_chance"] = {"numerator": 1, "denominator": scatter}
+    return f
+
+
+# (1.7.0) the Hollows fouler: its flesh, organs, vines, fangs, pods, thorns and the dead far more often
+_HOLLOWS_DENSER = {
+    "inf_bloodmoss_rule": _denser(3), "inf_vines_rule": _denser(3), "inf_vines_tip_rule": _denser(3), "inf_fang_rule": _denser(3),
+    "inf_glowspore_rule": _denser(2), "inf_thorns_rule": _denser(3), "inf_organ_floor_rule": _denser(3), "inf_pod_floor_rule": _denser(3),
+    "inf_pulsing_rule": _denser(3), "inf_fleshstone_rule": _denser(2), "inf_cracked_rule": _denser(2), "inf_ribseam_rule": _denser(2),
+    "inf_organ_chamber_rule": _denser(1, 2), "inf_organ_mound_rule": _denser(1, 3), "inf_watcher_nest_rule": _denser(1, 2),
+    "inf_rib_arch_1_rule": _denser(1, 3), "inf_rib_arch_2_rule": _denser(1, 3), "inf_skeleton_1_rule": _denser(1, 2),
+    "inf_skeleton_2_rule": _denser(1, 2), "inf_mine_support_1_rule": _denser(1, 3), "inf_mine_support_2_rule": _denser(1, 3),
+}
+
+# (dweller, path in its pack) -> a function that changes the parsed JSON (1.7.0; the Stellar Taiga's since 1.6.0)
+JSON_TUNING = {
+    **{("shaftbreaker", f"feature_rules/infected/{k}.json"): fn for k, fn in _HOLLOWS_DENSER.items()},
+    ("goatwalker", "biomes/stellar_taiga.biome.json"): _drop_targets(["minecraft:plains", "minecraft:sunflower_plains", "minecraft:birch_forest",
         "minecraft:birch_forest_hills", "minecraft:birch_forest_mutated", "minecraft:birch_forest_hills_mutated",
-        "minecraft:roofed_forest", "minecraft:roofed_forest_mutated"]},
+        "minecraft:roofed_forest", "minecraft:roofed_forest_mutated"]),
+    ("shaftbreaker", "biomes/the_hollows.biome.json"): _hollows,
+    # (1.7.0) underground now: its mist the deep red of its infested caves
+    ("shaftbreaker", "biomes/the_hollows.client_biome.json"): lambda d: d["minecraft:client_biome"]["components"]["minecraft:fog_appearance"].update(
+        {"fog_identifier": "shaftbreaker:fog_infected"}),
+    ("brinesleeper", "biomes/stillwater_caves.biome.json"): _stillwater,
+    # each of them 500 health (1.7.0)
+    ("goatwalker", "entities/goatwalker.json"): _health(500),
+    ("brinesleeper", "entities/brinesleeper.json"): _health(500),
+    ("shaftbreaker", "entities/shaftbreaker.json"): _health(500, _shaft_defeat),
 }
 
 # (dweller, file under scripts/, old, new) — each old must occur exactly once in the original
@@ -80,6 +212,10 @@ PATCHES = [
      "      if (track) safe(() => p.playMusic(track, { fade: 0.5, volume: 1.0, loop: false }));",
      "      if (track) safe(() => __dw.musicPlay(\"goatwalker\", p, track, { fade: 0.5, volume: 1.0, loop: false }));"),
     ("goatwalker", "main.js", "const WHEEL_API = {", "export const WHEEL_API = {"),
+    # (1.7.0: 500 health — he still gives up a chase at about a third of it)
+    ("goatwalker", "hunt.js",
+     "    const hp = safe(() => w.e.getComponent(\"minecraft:health\").currentValue, 80);\n    if (hp < 26 && this.state === \"chase\") {",
+     "    const hp = safe(() => w.e.getComponent(\"minecraft:health\").currentValue, 500);\n    if (hp < 162 && this.state === \"chase\") {"),
     # --- The Brinesleeper
     ("brinesleeper", "music.js",
      "    const w = config.music ? want(p, t) : 'none';",
@@ -96,10 +232,113 @@ PATCHES = [
     ("brinesleeper", "music.js",
      "      } else p.stopMusic();",
      "      } else __dw.musicStop('brinesleeper', p);"),
+    # (1.7.0) on high alert. It starts out bold (it no longer has to learn to stand its ground); come close and it stands
+    # and stares you down, or it comes for you — it is only now and then simply gone; and in a standoff, more often
+    # than not, it attacks
+    ("brinesleeper", "brain.js",
+     "const PROFILE = { bold: 0.1, looks: 0,",
+     "const PROFILE = { bold: 0.45, looks: 0,"),
+    ("brinesleeper", "brain.js",
+     "        if (pr.bold > 0.7 && tooClose && chance(0.4)) {            // it no longer runs from you\n"
+     "          if (m.kind === 'water') approach(c, m, target); else standoff(c, m, target);\n"
+     "          break;\n"
+     "        }",
+     "        if (tooClose && hunter(target) && d < 6 && chance(0.6)) { chase(c, m, target); break; }   // (1.7.0) right up to it: it comes\n"
+     "        if (tooClose && (pr.bold > 0.35 || chance(0.6))) {        // it no longer runs from you\n"
+     "          if (m.kind === 'water') approach(c, m, target); else standoff(c, m, target);\n"
+     "          break;\n"
+     "        }"),
+    ("brinesleeper", "brain.js",
+     "      if ((seen && m.seenFor >= 10) || d < 12) { vanish(c, m, target); break; }",
+     "      if (d < 6 && hunter(target) && chance(0.6)) { chase(c, m, target); break; }          // (1.7.0)\n"
+     "      if ((seen && m.seenFor >= 10) || d < 12) { if (chance(0.55)) { if (inWater(c)) approach(c, m, target); else standoff(c, m, target); } else vanish(c, m, target); break; }"),
+    ("brinesleeper", "brain.js",
+     "      if (t < m.until) break;\n      if (t < m.cooldownUntil) { lurk(c, m, target, rand(8, 16)); if (chance(0.35)) watch(c, m, target); break; }",
+     "      // (1.7.0) come within a few blocks of the water it lies in and it rises for you\n"
+     "      if (d < 7 && hunter(target) && t - (m.lastRise ?? -9999) > 20 * TPS) { m.lastRise = t; if (inWater(c)) approach(c, m, target); else standoff(c, m, target); break; }\n"
+     "      if (t < m.until) break;\n      if (t < m.cooldownUntil) { lurk(c, m, target, rand(8, 16)); if (chance(0.35)) watch(c, m, target); break; }"),
+    ("brinesleeper", "brain.js",
+     "  const p = preset().chase + (provoked ? 0.25 : 0) + pr.bold * 0.3 + 0.03 * Math.min(8, pr.fights);\n"
+     "  if (hunter(target) && chance(p)) chase(c, m, target);\n"
+     "  else { if (pr.bold < 0.5 || chance(0.5)) retreat(c, m, target); else stalk(c, m, target); }",
+     "  const p = 0.2 + preset().chase + (provoked ? 0.25 : 0) + pr.bold * 0.3 + 0.03 * Math.min(8, pr.fights);\n"
+     "  if (hunter(target) && chance(p)) chase(c, m, target);\n"
+     "  else { if (pr.bold < 0.3 && chance(0.5)) retreat(c, m, target); else stalk(c, m, target); }"),
+    ("brinesleeper", "brain.js",
+     "const gap = () => Math.round(randInt(...preset().stalkGap) * TPS / freq());",
+     "const gap = () => Math.round(randInt(...preset().stalkGap) * TPS / (freq() * 1.6));"),
+    # (1.7.0) its staged scenes: walk up to it and, more often than not, it turns on you instead of slipping away
+    ("brinesleeper", "main.js",
+     "    if (d < 9) break;                                        // too close: it sinks without a sound",
+     "    if (d < 9) { if (__brineTurns(player)) { yield* __turnOn(c, player, s); return; } break; }   // too close: it sinks without a sound — or turns on you"),
+    ("brinesleeper", "main.js",
+     "    if (flat(player.location, s) < 10) {                   // it never lets you walk up to it",
+     "    if (flat(player.location, s) < 10 && __brineTurns(player)) { yield* __turnOn(c, player, s); return; }\n"
+     "    if (flat(player.location, s) < 10) {                   // it never lets you walk up to it"),
     ("brinesleeper", "menu.js",
      "  if (!initialSpawn || !isOp(player) || player.getDynamicProperty('brine:wheel')) return;",
      "  if (!initialSpawn || !isOp(player) || player.getDynamicProperty('brine:wheel') || !__dw.GIVE_OWN_WHEELS) return;"),
     # --- The Shaftbreaker
+    # (1.7.0: 500 health — its home heals it, and a broken organ wounds it, in the same proportion as before)
+    ("shaftbreaker", "ai/brain.js",
+     "h.setCurrentValue(Math.min(h.effectiveMax, h.currentValue + 2)); });",
+     "h.setCurrentValue(Math.min(h.effectiveMax, h.currentValue + 9)); });"),
+    ("shaftbreaker", "ai/director.js",
+     "c.e.applyDamage(cracked ? 18 : 10, { cause: /** @type {any} */ ('magic') })",
+     "c.e.applyDamage(cracked ? 80 : 45, { cause: /** @type {any} */ ('magic') })"),
+    # (1.7.0) it lives in the caves: above ground only once it has followed you up, after you have got away from it three
+    # times; then for twelve minutes it is on the surface too (by day or night as its own settings say)
+    ("shaftbreaker", "ai/director.js",
+     "  s.night = !ug && p.dimension.id === OVERWORLD && (!!cfgN.dayStalking || (!!cfgN.nightStalking && !isDaylight()));",
+     "  s.night = !ug && p.dimension.id === OVERWORLD && worldTicks() < (pf.followUntil || 0) && (!!cfgN.dayStalking || (!!cfgN.nightStalking && !isDaylight()));"),
+    ("shaftbreaker", "ai/director.js",
+     "  if (s.hollows && !ug) s.night = true;",
+     "  if (s.hollows && !ug && worldTicks() < (pf.followUntil || 0)) s.night = true;"),
+    ("shaftbreaker", "ai/director.js",
+     "  if (!cfg.enabled || !cfg.naturalEncounters || p.dimension.id !== OVERWORLD) return false;\n  return now() >= pstate(p).graceUntil;",
+     "  if (!cfg.enabled || !cfg.naturalEncounters || p.dimension.id !== OVERWORLD) return false;\n  return now() >= pstate(p).graceUntil && worldTicks() < (profile(p).followUntil || 0);"),
+    ("shaftbreaker", "ai/encounters/hunt.js",
+     "import { now, sec, valid, sub, len, lenXZ, dist, norm, rand, chance, pick, center, floor3, clamp, safe } from '../../core/util.js';",
+     "import { now, sec, mins, worldTicks, valid, sub, len, lenXZ, dist, norm, rand, chance, pick, center, floor3, clamp, safe } from '../../core/util.js';"),
+    ("shaftbreaker", "ai/encounters/hunt.js",
+     "  if (outcome === 'caught') pf.huntsCaught++;",
+     "  if (outcome === 'caught') pf.huntsCaught++;\n"
+     "  // (1.7.0) every third time you get away, it follows you up out of the caves for a while\n"
+     "  if (escaped) {\n"
+     "    pf.escapesSinceFollow = (pf.escapesSinceFollow || 0) + 1;\n"
+     "    if (pf.escapesSinceFollow >= 3) { pf.escapesSinceFollow = 0; pf.followUntil = worldTicks() + mins(12); ctx.tel.notes.push('it follows you up'); }\n"
+     "  }"),
+    # (1.7.0) up close it never just stands there: it tears into you, or with a shriek in your face it is gone; and held
+    # in a stare up close, it snaps
+    ("shaftbreaker", "ai/brain.js",
+     "  const seen = seenByAnyone(c);\n  if (seen) {\n    B.lastSeenTick = now();",
+     "  const seen = seenByAnyone(c);\n"
+     "  if (seen && d < 12) { if (!B.staredAt) B.staredAt = now(); } else B.staredAt = 0;\n"
+     "  const stared = B.staredAt && now() - B.staredAt > sec(3.5);\n"
+     "  if ((d < 4.2 || stared) && now() >= (B.closeReactAt || 0)) {\n"
+     "    B.closeReactAt = now() + sec(6); B.staredAt = 0;\n"
+     "    const s0 = api.pstate(p);\n"
+     "    const attack = !config().harmless && api.rage && chance(Math.min(0.9, (stared ? 0.5 : 0.6) + (s0.provocation || 0) / 200 + (s0.state === 'provoked' ? 0.15 : 0)));\n"
+     "    c.halt(); c.face(p.getHeadLocation());\n"
+     "    if (attack) { api.provoke(p, 20, stared ? 'held its stare' : 'right up against it'); playAt(c.dim, 'shaftbreaker.screech', { x: c.loc.x, y: c.loc.y + 2, z: c.loc.z }, 1, rand(0.8, 0.95)); api.rage(p, stared ? 'stare' : 'too close'); return; }\n"
+     "    playAt(c.dim, 'shaftbreaker.jumpscare', { x: c.loc.x, y: c.loc.y + 2, z: c.loc.z }, 1, rand(0.9, 1.05));\n"
+     "    setDanger(p, 0.9); c.vanish(false); B.shyUntil = now() + sec(40); return;\n"
+     "  }\n"
+     "  if (seen) {\n    B.lastSeenTick = now();"),
+    ("shaftbreaker", "ai/director.js",
+     "initBrain({\n  pstate,\n  running: () => cur,\n  provoke,",
+     "initBrain({\n  pstate,\n  running: () => cur,\n  provoke,\n  rage: (p, why) => queueRage(p, why),"),
+    # (1.7.0) when it is watching you and you come right up to it, it comes for you more often than not
+    ("shaftbreaker", "ai/encounters/common.js",
+     "    if (s.dist < 2.4) return 'touched';",
+     "    if (s.dist < 3.4) return 'touched';"),
+    ("shaftbreaker", "ai/encounters/observe.js",
+     "    if (r2 === 'touched' && wantsHunt(ctx, 0.35)) {",
+     "    if (r2 === 'touched' && wantsHunt(ctx, 0.65)) {"),
+    # (1.7.0) more of its standoffs and hunts in the mix
+    ("shaftbreaker", "ai/director.js",
+     "const FAMILY_WEIGHT = { stalk: 30, uncanny: 20, audio: 15, env: 15, standoff: 10, hunt: 8, rare: 2 };",
+     "const FAMILY_WEIGHT = { stalk: 30, uncanny: 20, audio: 12, env: 12, standoff: 14, hunt: 14, rare: 2 };"),
     ("shaftbreaker", "core/config.js",
      "  giveWheel: true,                    // players get the Breaker's Wheel when they first join and after dying",
      "  giveWheel: false,                   // players get the Breaker's Wheel when they first join and after dying (merged into The Observer: off)"),
@@ -128,6 +367,26 @@ REGEX_PATCHES = [
 
 # appended to a dweller's script: what the Observer calls (switching it off, opening its own settings, sending it)
 APPEND = {
+    ("brinesleeper", "main.js"): '''
+// ---------------------------------------------------------------- merged into The Observer (1.7.0)
+/** Walked right up to in one of its scenes: does it turn on them? (more often than not, if they can be hunted) */
+function __brineTurns(player) {
+  try { const m = player.getGameMode(); if (m !== GameMode.Survival && m !== GameMode.Adventure) return false; } catch (e) { return false; }
+  return config.enabled && preset().chase > 0 && Math.random() < 0.6;
+}
+/** It turns on them: it rises with a roar, and from here its own mind (brain.js) hunts them down. */
+function* __turnOn(c, player, s) {
+  if (!c.isValid || !player.isValid) return;
+  sound(c.dimension, 'mob.brinesleeper.roar', s, 1.2, 0.9);
+  sting(player, 0.9);
+  press(player.id, 'chase', now() + 60);
+  try { player.playSound('brine.spotted', { volume: 1 }); } catch (e) { /* ok */ }
+  handoff.set(c.id, { state: 'chase', target: player.id });
+  c.removeTag(STAGED);
+  if (scene && scene.creature && scene.creature.id === c.id) scene.creature = undefined;
+  yield 1;
+}
+''',
     ("goatwalker", "main.js"): '''
 // ---------------------------------------------------------------- merged into The Observer (1.6.0)
 /** Switched off on the Config Wheel: whatever he is doing ends, and he is gone. */
@@ -273,7 +532,12 @@ def merged_text(side, rel, ours_raw, parts):
         return (json.dumps(base, indent=2) + "\n").encode("utf-8")
     depth = {"blocks.json": 1, "sounds.json": 3, "sounds/sound_definitions.json": 2, "sounds/music_definitions.json": 1}[rel]
     for name, raw in parts:
-        merge_dict(base, load_json(raw), f"{side}/{rel} ({name})", depth)
+        d = load_json(raw)
+        if rel == "sounds/sound_definitions.json":
+            for k, files in SOUND_OVERRIDES.get(name, {}).items():
+                d["sound_definitions"][k]["sounds"] = list(files)
+                base.get("sound_definitions", {}).pop(k, None)   # (an earlier merge's entry, made over)
+        merge_dict(base, d, f"{side}/{rel} ({name})", depth)
     return (json.dumps(base, indent=2) + "\n").encode("utf-8")
 
 
@@ -292,7 +556,7 @@ def plan():
                 side = "BP" if top == bp_dir else "RP" if top == rp_dir else None
                 if side is None:
                     sys.exit(f"unexpected folder in {archive}: {top}")
-                if rel in SKIP:
+                if rel in SKIP or (name, side, rel) in SKIP_FILES:
                     continue
                 data = z.read(n)
                 if rel in MERGED[side]:
@@ -309,10 +573,9 @@ def plan():
                 rel2 = RENAME.get((name, side, rel), rel)
                 if side == "BP" and rel.startswith("blocks/") and rel.endswith(".json") and b"bone_visibility" in data:
                     data = fix_bone_visibility(data)
-                if (name, rel) in BIOME_TUNING:
+                if (name, rel) in JSON_TUNING:
                     d = load_json(data)
-                    rule = d["minecraft:biome"]["components"]["minecraft:replace_biomes"]["replacements"][0]
-                    rule["targets"] = [t for t in rule["targets"] if t not in BIOME_TUNING[(name, rel)]["drop"]]
+                    JSON_TUNING[(name, rel)](d)
                     data = (json.dumps(d, indent=2) + "\n").encode("utf-8")
                 dest = os.path.join(root, rel2)
                 if dest in out and out[dest] != data:
@@ -359,7 +622,14 @@ def main():
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         with open(dest, "wb") as f:
             f.write(data)
-    print(f"merged {len(out)} files from {len(DWELLERS)} dwellers")
+    # files an earlier merge wrote that this one no longer does (made over since): removed
+    now_listed = {os.path.relpath(d, ROOT).replace(os.sep, "/") for d in out}
+    gone = sorted(before - now_listed)
+    for rel in gone:
+        p = os.path.join(ROOT, rel)
+        if os.path.exists(p):
+            os.remove(p)
+    print(f"merged {len(out)} files from {len(DWELLERS)} dwellers" + (f"; {len(gone)} no longer used, removed" if gone else ""))
 
 
 if __name__ == "__main__":

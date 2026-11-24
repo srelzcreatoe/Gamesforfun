@@ -1,0 +1,70 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:structure_template_feature": {
+    "description": {
+      "identifier": "shaftbreaker:hl_flesh_cavern_1"
+    },
+    "structure_name": "hollows:flesh_cavern_1",
+    "adjustment_radius": 0,
+    "facing_direction": "random",
+    "rotate_around_center": true,
+    "constraints": {
+      "block_intersection": {
+        "block_allowlist": [
+          "minecraft:air",
+          "minecraft:cave_air",
+          "minecraft:stone",
+          "minecraft:deepslate",
+          "minecraft:tuff",
+          "minecraft:andesite",
+          "minecraft:diorite",
+          "minecraft:granite",
+          "minecraft:calcite",
+          "minecraft:dirt",
+          "minecraft:gravel",
+          "minecraft:clay",
+          "minecraft:smooth_basalt",
+          "minecraft:dripstone_block",
+          "minecraft:pointed_dripstone",
+          "minecraft:water",
+          "minecraft:flowing_water",
+          "minecraft:glow_lichen",
+          "minecraft:cobbled_deepslate",
+          "minecraft:infested_deepslate",
+          "minecraft:infested_stone",
+          "minecraft:coal_ore",
+          "minecraft:iron_ore",
+          "minecraft:copper_ore",
+          "minecraft:gold_ore",
+          "minecraft:redstone_ore",
+          "minecraft:lapis_ore",
+          "minecraft:diamond_ore",
+          "minecraft:emerald_ore",
+          "minecraft:deepslate_coal_ore",
+          "minecraft:deepslate_iron_ore",
+          "minecraft:deepslate_copper_ore",
+          "minecraft:deepslate_gold_ore",
+          "minecraft:deepslate_redstone_ore",
+          "minecraft:deepslate_lapis_ore",
+          "minecraft:deepslate_diamond_ore",
+          "minecraft:deepslate_emerald_ore",
+          "minecraft:raw_iron_block",
+          "minecraft:raw_copper_block",
+          "shaftbreaker:veinstone",
+          "shaftbreaker:cracked_veinstone",
+          "shaftbreaker:fleshstone",
+          "shaftbreaker:pulsing_flesh",
+          "shaftbreaker:ribstone",
+          "shaftbreaker:bloodmoss",
+          "shaftbreaker:bloodroot_vines",
+          "shaftbreaker:dripfang",
+          "shaftbreaker:crimson_thorns",
+          "shaftbreaker:glowspore_cluster",
+          "shaftbreaker:organ_core",
+          "shaftbreaker:cracked_organ_core",
+          "shaftbreaker:watcher_pod"
+        ]
+      }
+    }
+  }
+}

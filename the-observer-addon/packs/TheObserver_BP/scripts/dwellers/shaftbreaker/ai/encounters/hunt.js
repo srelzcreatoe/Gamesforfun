@@ -3,7 +3,7 @@ import * as __dw from "../../../../link/shared.js";
 import { world, system } from '@minecraft/server';
 import { ACT } from '../../generated/acts.js';
 import { W, seen, sighted, appear, hiddenRetreat, passiveExit, sfx, scratchNear, soundSpot } from './common.js';
-import { now, sec, valid, sub, len, lenXZ, dist, norm, rand, chance, pick, center, floor3, clamp, safe } from '../../core/util.js';
+import { now, sec, mins, worldTicks, valid, sub, len, lenXZ, dist, norm, rand, chance, pick, center, floor3, clamp, safe } from '../../core/util.js';
 import { config } from '../../core/config.js';
 import { MEATS, DAMAGING, isWoodenDoorId } from '../../core/blocks.js';
 import { creature, SPEED } from '../creature.js';
@@ -426,6 +426,11 @@ export function learnFromHunt(ctx, outcome) {
   const log8 = (ctx.huntLog || []).slice(-16);
   const escaped = outcome === 'escaped' || outcome === 'cap' || outcome === 'surface' || outcome === 'no_path';
   if (outcome === 'caught') pf.huntsCaught++;
+  // (1.7.0) every third time you get away, it follows you up out of the caves for a while
+  if (escaped) {
+    pf.escapesSinceFollow = (pf.escapesSinceFollow || 0) + 1;
+    if (pf.escapesSinceFollow >= 3) { pf.escapesSinceFollow = 0; pf.followUntil = worldTicks() + mins(12); ctx.tel.notes.push('it follows you up'); }
+  }
   if (escaped && log8.length >= 2) {
     pf.huntsEscaped++;
     const minY = Math.min(...log8.map((q) => q.y));

@@ -16,7 +16,7 @@
       ]
     },
     "distribution": {
-      "iterations": 1,
+      "iterations": 3,
       "x": {
         "distribution": "uniform",
         "extent": [
