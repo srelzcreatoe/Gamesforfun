@@ -489,7 +489,7 @@ system.runInterval(() => {
   timed("rift.portal", () => riftPortal.tick());
   timed("rift.hunt", () => riftHunt.tick());
   if (slowRuns % 5 === 0) timed("rift.sweep", () => riftPortal.sweep());
-  // the Mire's eyeblooms watch you (1.5.1)
+  // the eyeblooms watch you, in the Rift and in the Mire (1.5.1; found here once a second, turned below)
   timed("eyebloom.tick", () => eyebloom.tick((p) => inMireBefore.get(p.id) === true || riftDim.inRift(p)));
   for (const p of allPlayers()) {
     const s = ps(p);
@@ -534,6 +534,11 @@ system.runInterval(() => {
 system.runInterval(() => {
   if (ready) timed("body.tickPuppets", () => body.tickPuppets());
 }, 10);
+
+// the eyeblooms' eyes follow every step you take (1.7.0)
+system.runInterval(() => {
+  if (ready) timed("eyebloom.track", () => eyebloom.track());
+}, 3);
 
 // its presence, felt: a heartbeat only the player hears, and a light tremor when it is close and meaning harm
 system.runInterval(() => {

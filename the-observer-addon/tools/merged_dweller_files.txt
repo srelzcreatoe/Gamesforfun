@@ -986,11 +986,6 @@ packs/TheObserver_RP/sounds/shaftbreaker/knock_1.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/knock_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/moth_flutter_1.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/moth_flutter_2.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/music_chase.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/music_close.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/music_hollows.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/music_presence.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/music_standoff.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/neck_crack_1.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/neck_crack_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/organ_break_1.ogg

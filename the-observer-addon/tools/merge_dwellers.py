@@ -55,11 +55,15 @@ SOUND_OVERRIDES = {"brinesleeper": {
     "brine.spotted": [_BV + "spotted"], "brine.jumpscare": [_BV + "jumpscare"],
     **{f"mob.brinesleeper.{k}": [_BV + k] for k in ("breathe", "call", "death", "emerge", "grasp", "hiss", "hurt", "lunge", "moan", "roar", "submerge")},
     "mob.brinesleeper.click": [_BV + "click1", _BV + "click2"], "mob.brinesleeper.step": [_BV + "step1", _BV + "step2"],
+}, "shaftbreaker": {
+    # (1.7.0) its music made over darker (tools/synth_dark.py)
+    f"music.shaftbreaker.{k}": [f"sounds/music/shaft_dark/{k}"] for k in ("presence", "hollows", "close", "standoff", "chase")
 }}
 SKIP_FILES = {("brinesleeper", "RP", r) for r in (
     [f"sounds/music/brine/{n}.ogg" for n in ("stillwater_1", "stillwater_2", "stillwater_3", "stillwater_4", "stillwater_5", "near_1", "near_2", "chase", "sting_1", "sting_2", "sting_3")]
     + [f"sounds/mob/brinesleeper/{n}.ogg" for n in ("breathe", "call", "death", "emerge", "grasp", "hiss", "hurt", "lunge", "moan", "roar", "submerge", "click1", "click2", "step1", "step2")]
-    + ["sounds/brine_fx/spotted.ogg", "sounds/brine_fx/jumpscare.ogg"])}
+    + ["sounds/brine_fx/spotted.ogg", "sounds/brine_fx/jumpscare.ogg"])} | {
+    ("shaftbreaker", "RP", f"sounds/shaftbreaker/music_{k}.ogg") for k in ("presence", "hollows", "close", "standoff", "chase")}
 RENAME = {
     ("goatwalker", "BP", "entities/flare.json"): "entities/gw_flare.json",
     ("goatwalker", "RP", "entity/flare.entity.json"): "entity/gw_flare.entity.json",
@@ -535,7 +539,10 @@ def merged_text(side, rel, ours_raw, parts):
         d = load_json(raw)
         if rel == "sounds/sound_definitions.json":
             for k, files in SOUND_OVERRIDES.get(name, {}).items():
-                d["sound_definitions"][k]["sounds"] = list(files)
+                # each a full entry (the schema's form), keeping the settings the old first sound had (stream, volume, ...)
+                was = d["sound_definitions"][k].get("sounds") or [{}]
+                keep = {a: v for a, v in (was[0] if isinstance(was[0], dict) else {}).items() if a != "name"}
+                d["sound_definitions"][k]["sounds"] = [{"name": f, **keep} for f in files]
                 base.get("sound_definitions", {}).pop(k, None)   # (an earlier merge's entry, made over)
         merge_dict(base, d, f"{side}/{rel} ({name})", depth)
     return (json.dumps(base, indent=2) + "\n").encode("utf-8")

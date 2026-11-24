@@ -10,6 +10,33 @@
         "wmire:shut": [
           false,
           true
+        ],
+        "wmire:aimed": [
+          false,
+          true
+        ],
+        "wmire:aim": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "wmire:tilt": [
+          0,
+          1,
+          2
         ]
       },
       "traits": {
@@ -84,7 +111,7 @@
     },
     "permutations": [
       {
-        "condition": "q.block_state('minecraft:cardinal_direction') == 'north'",
+        "condition": "!q.block_state('wmire:aimed') && q.block_state('minecraft:cardinal_direction') == 'north'",
         "components": {
           "minecraft:transformation": {
             "rotation": [
@@ -96,7 +123,7 @@
         }
       },
       {
-        "condition": "q.block_state('minecraft:cardinal_direction') == 'west'",
+        "condition": "!q.block_state('wmire:aimed') && q.block_state('minecraft:cardinal_direction') == 'west'",
         "components": {
           "minecraft:transformation": {
             "rotation": [
@@ -108,7 +135,7 @@
         }
       },
       {
-        "condition": "q.block_state('minecraft:cardinal_direction') == 'south'",
+        "condition": "!q.block_state('wmire:aimed') && q.block_state('minecraft:cardinal_direction') == 'south'",
         "components": {
           "minecraft:transformation": {
             "rotation": [
@@ -120,7 +147,7 @@
         }
       },
       {
-        "condition": "q.block_state('minecraft:cardinal_direction') == 'east'",
+        "condition": "!q.block_state('wmire:aimed') && q.block_state('minecraft:cardinal_direction') == 'east'",
         "components": {
           "minecraft:transformation": {
             "rotation": [
@@ -129,6 +156,294 @@
               0
             ]
           }
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 0 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_0_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 0 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_0_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 0 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_0_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 1 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_1_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 1 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_1_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 1 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_1_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 2 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_2_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 2 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_2_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 2 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_2_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 3 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_3_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 3 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_3_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 3 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_3_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 4 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_4_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 4 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_4_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 4 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_4_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 5 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_5_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 5 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_5_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 5 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_5_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 6 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_6_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 6 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_6_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 6 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_6_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 7 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_7_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 7 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_7_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 7 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_7_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 8 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_8_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 8 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_8_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 8 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_8_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 9 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_9_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 9 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_9_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 9 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_9_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 10 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_10_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 10 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_10_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 10 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_10_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 11 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_11_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 11 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_11_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 11 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_11_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 12 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_12_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 12 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_12_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 12 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_12_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 13 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_13_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 13 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_13_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 13 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_13_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 14 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_14_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 14 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_14_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 14 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_14_2"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 15 && q.block_state('wmire:tilt') == 0",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_15_0"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 15 && q.block_state('wmire:tilt') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_15_1"
+        }
+      },
+      {
+        "condition": "q.block_state('wmire:aimed') && q.block_state('wmire:aim') == 15 && q.block_state('wmire:tilt') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.wmire.eyebloom_15_2"
         }
       },
       {

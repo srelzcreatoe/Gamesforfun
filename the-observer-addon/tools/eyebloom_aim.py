@@ -4,8 +4,9 @@ up, down), so its eye can follow every move you make. A block can only be turned
 done inside its model: 48 variants of its geometry, the head turned on a pivot in its middle, the stem left standing.
 
   RP models/blocks/eyebloom.geo.json   the base geometry (kept) and geometry.wmire.eyebloom_<heading>_<tilt>
-  BP blocks/eyebloom.json              states wmire:aim (0 = as placed: its cardinal facing, as before; 1-16 = a heading)
-                                       and wmire:tilt (0 level, 1 up, 2 down); a permutation picks the geometry
+  BP blocks/eyebloom.json              states wmire:aimed (false = as placed: its cardinal facing, as before), wmire:aim
+                                       (a heading, 0-15) and wmire:tilt (0 level, 1 up, 2 down); a permutation picks the
+                                       geometry (a block state holds at most 16 values, hence the flag)
 
 scripts/mire/eyebloom.js turns them (every few ticks, toward the nearest player, in the Rift and the Mire).
 Usage: python3 tools/eyebloom_aim.py
@@ -17,8 +18,10 @@ import os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GEO = os.path.join(ROOT, "packs", "TheObserver_RP", "models", "blocks", "eyebloom.geo.json")
 BLOCK = os.path.join(ROOT, "packs", "TheObserver_BP", "blocks", "eyebloom.json")
+# Heading k looks k*22.5 degrees clockwise from north, seen from above (north, then east at 4, south at 8, west at 12):
+# a positive y rotation in a geometry file turns it that way (the opposite of minecraft:transformation's).
 HEADINGS = 16
-TILTS = (0, -28, 28)        # level, up, down (rotation about x on the head's pivot)
+TILTS = (0, -28, 28)        # level, up, down (a negative x rotation lifts a north-facing face)
 PIVOT = [0, 8, 0]
 
 
@@ -29,9 +32,11 @@ def variants(base):
     out = []
     for k in range(HEADINGS):
         for t, tilt in enumerate(TILTS):
+            # turned first (about y), then tilted in its own frame (the child bone's x), so the two never mix up
             g = {"description": dict(base["description"], identifier=f"geometry.wmire.eyebloom_{k}_{t}"),
                  "bones": [{"name": "stem", "pivot": [0, 0, 0], "cubes": copy.deepcopy(stalk)},
-                           {"name": "head", "parent": "stem", "pivot": PIVOT, "rotation": [tilt, k * 360 / HEADINGS, 0],
+                           {"name": "turn", "parent": "stem", "pivot": PIVOT, "rotation": [0, k * 360 / HEADINGS, 0]},
+                           {"name": "head", "parent": "turn", "pivot": PIVOT, "rotation": [tilt, 0, 0],
                             "cubes": copy.deepcopy(head)}]}
             out.append(g)
     return out
@@ -46,16 +51,17 @@ def main():
         f.write("\n")
     blk = json.load(open(BLOCK))
     b = blk["minecraft:block"]
-    b["description"]["states"] = {"wmire:shut": [False, True], "wmire:aim": list(range(HEADINGS + 1)), "wmire:tilt": [0, 1, 2]}
+    b["description"]["states"] = {"wmire:shut": [False, True], "wmire:aimed": [False, True], "wmire:aim": list(range(HEADINGS)),
+                                  "wmire:tilt": [0, 1, 2]}
     perms = [p for p in b.get("permutations", []) if "cardinal_direction" not in p["condition"] and "wmire:aim" not in p["condition"]]
     cardinal = []
     for d, r in (("north", 0), ("west", 90), ("south", 180), ("east", -90)):
-        cardinal.append({"condition": f"q.block_state('wmire:aim') == 0 && q.block_state('minecraft:cardinal_direction') == '{d}'",
+        cardinal.append({"condition": f"!q.block_state('wmire:aimed') && q.block_state('minecraft:cardinal_direction') == '{d}'",
                          "components": {"minecraft:transformation": {"rotation": [0, r, 0]}}})
     aimed = []
     for k in range(HEADINGS):
         for t in range(len(TILTS)):
-            aimed.append({"condition": f"q.block_state('wmire:aim') == {k + 1} && q.block_state('wmire:tilt') == {t}",
+            aimed.append({"condition": f"q.block_state('wmire:aimed') && q.block_state('wmire:aim') == {k} && q.block_state('wmire:tilt') == {t}",
                           "components": {"minecraft:geometry": f"geometry.wmire.eyebloom_{k}_{t}"}})
     b["permutations"] = cardinal + aimed + perms
     with open(BLOCK, "w") as f:

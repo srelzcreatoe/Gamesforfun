@@ -2835,36 +2835,6 @@
       ],
       "max_distance": 10
     },
-    "music.shaftbreaker.chase": {
-      "category": "music",
-      "sounds": [
-        {
-          "name": "sounds/shaftbreaker/music_chase",
-          "volume": 1.0,
-          "stream": true
-        }
-      ]
-    },
-    "music.shaftbreaker.presence": {
-      "category": "music",
-      "sounds": [
-        {
-          "name": "sounds/shaftbreaker/music_presence",
-          "volume": 1.0,
-          "stream": true
-        }
-      ]
-    },
-    "music.shaftbreaker.close": {
-      "category": "music",
-      "sounds": [
-        {
-          "name": "sounds/shaftbreaker/music_close",
-          "volume": 1.0,
-          "stream": true
-        }
-      ]
-    },
     "shaftbreaker.step_soft": {
       "category": "hostile",
       "sounds": [
@@ -2887,16 +2857,6 @@
       ],
       "max_distance": 30,
       "min_distance": 2
-    },
-    "music.shaftbreaker.standoff": {
-      "category": "music",
-      "sounds": [
-        {
-          "name": "sounds/shaftbreaker/music_standoff",
-          "volume": 1.0,
-          "stream": true
-        }
-      ]
     },
     "shaftbreaker.jumpscare": {
       "category": "player",
@@ -3039,16 +2999,6 @@
         }
       ]
     },
-    "music.shaftbreaker.hollows": {
-      "category": "music",
-      "sounds": [
-        {
-          "name": "sounds/shaftbreaker/music_hollows",
-          "volume": 0.85,
-          "stream": true
-        }
-      ]
-    },
     "shaftbreaker.rush": {
       "category": "hostile",
       "sounds": [
@@ -3170,7 +3120,11 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/breathe"
+        {
+          "name": "sounds/mob/brinesleeper_dark/breathe",
+          "volume": 0.8,
+          "load_on_low_memory": true
+        }
       ]
     },
     "mob.brinesleeper.click": {
@@ -3178,8 +3132,16 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/click1",
-        "sounds/mob/brinesleeper_dark/click2"
+        {
+          "name": "sounds/mob/brinesleeper_dark/click1",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/mob/brinesleeper_dark/click2",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
       ]
     },
     "mob.brinesleeper.call": {
@@ -3187,7 +3149,11 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/call"
+        {
+          "name": "sounds/mob/brinesleeper_dark/call",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
       ]
     },
     "mob.brinesleeper.lunge": {
@@ -3195,7 +3161,11 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/lunge"
+        {
+          "name": "sounds/mob/brinesleeper_dark/lunge",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
       ]
     },
     "mob.brinesleeper.grasp": {
@@ -3203,7 +3173,11 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/grasp"
+        {
+          "name": "sounds/mob/brinesleeper_dark/grasp",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
       ]
     },
     "mob.brinesleeper.hurt": {
@@ -3211,7 +3185,11 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/hurt"
+        {
+          "name": "sounds/mob/brinesleeper_dark/hurt",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
       ]
     },
     "mob.brinesleeper.death": {
@@ -3219,7 +3197,11 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/death"
+        {
+          "name": "sounds/mob/brinesleeper_dark/death",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
       ]
     },
     "mob.brinesleeper.emerge": {
@@ -3227,7 +3209,11 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/emerge"
+        {
+          "name": "sounds/mob/brinesleeper_dark/emerge",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
       ]
     },
     "mob.brinesleeper.submerge": {
@@ -3235,7 +3221,11 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/submerge"
+        {
+          "name": "sounds/mob/brinesleeper_dark/submerge",
+          "volume": 0.9,
+          "load_on_low_memory": true
+        }
       ]
     },
     "mob.brinesleeper.step": {
@@ -3243,8 +3233,16 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/step1",
-        "sounds/mob/brinesleeper_dark/step2"
+        {
+          "name": "sounds/mob/brinesleeper_dark/step1",
+          "volume": 0.75,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/mob/brinesleeper_dark/step2",
+          "volume": 0.75,
+          "load_on_low_memory": true
+        }
       ]
     },
     "mob.brinesleeper.roar": {
@@ -3252,7 +3250,11 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/roar"
+        {
+          "name": "sounds/mob/brinesleeper_dark/roar",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
       ]
     },
     "mob.brinesleeper.hiss": {
@@ -3260,7 +3262,11 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/hiss"
+        {
+          "name": "sounds/mob/brinesleeper_dark/hiss",
+          "volume": 0.8,
+          "load_on_low_memory": true
+        }
       ]
     },
     "mob.brinesleeper.moan": {
@@ -3268,7 +3274,11 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/moan"
+        {
+          "name": "sounds/mob/brinesleeper_dark/moan",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
       ]
     },
     "brine.spotted": {
@@ -3276,7 +3286,11 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/spotted"
+        {
+          "name": "sounds/mob/brinesleeper_dark/spotted",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
       ]
     },
     "brine.jumpscare": {
@@ -3284,36 +3298,123 @@
       "max_distance": 48.0,
       "min_distance": 2.0,
       "sounds": [
-        "sounds/mob/brinesleeper_dark/jumpscare"
+        {
+          "name": "sounds/mob/brinesleeper_dark/jumpscare",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
       ]
     },
     "music.brine.stillwater": {
       "category": "music",
       "sounds": [
-        "sounds/music/brine_dark/stillwater_1",
-        "sounds/music/brine_dark/stillwater_2",
-        "sounds/music/brine_dark/stillwater_3"
+        {
+          "name": "sounds/music/brine_dark/stillwater_1",
+          "stream": true,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/music/brine_dark/stillwater_2",
+          "stream": true,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/music/brine_dark/stillwater_3",
+          "stream": true,
+          "volume": 1.0
+        }
       ]
     },
     "music.brine.near": {
       "category": "music",
       "sounds": [
-        "sounds/music/brine_dark/near_1",
-        "sounds/music/brine_dark/near_2"
+        {
+          "name": "sounds/music/brine_dark/near_1",
+          "stream": true,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/music/brine_dark/near_2",
+          "stream": true,
+          "volume": 1.0
+        }
       ]
     },
     "music.brine.chase": {
       "category": "music",
       "sounds": [
-        "sounds/music/brine_dark/chase"
+        {
+          "name": "sounds/music/brine_dark/chase",
+          "stream": true,
+          "volume": 1.0
+        }
       ]
     },
     "music.brine.sting": {
       "category": "music",
       "sounds": [
-        "sounds/music/brine_dark/sting_1",
-        "sounds/music/brine_dark/sting_2",
-        "sounds/music/brine_dark/sting_3"
+        {
+          "name": "sounds/music/brine_dark/sting_1",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/music/brine_dark/sting_2",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/music/brine_dark/sting_3",
+          "volume": 1.0
+        }
+      ]
+    },
+    "music.shaftbreaker.chase": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/music/shaft_dark/chase",
+          "volume": 1.0,
+          "stream": true
+        }
+      ]
+    },
+    "music.shaftbreaker.presence": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/music/shaft_dark/presence",
+          "volume": 1.0,
+          "stream": true
+        }
+      ]
+    },
+    "music.shaftbreaker.close": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/music/shaft_dark/close",
+          "volume": 1.0,
+          "stream": true
+        }
+      ]
+    },
+    "music.shaftbreaker.standoff": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/music/shaft_dark/standoff",
+          "volume": 1.0,
+          "stream": true
+        }
+      ]
+    },
+    "music.shaftbreaker.hollows": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/music/shaft_dark/hollows",
+          "volume": 0.85,
+          "stream": true
+        }
       ]
     }
   }

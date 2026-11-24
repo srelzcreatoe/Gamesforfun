@@ -9,12 +9,13 @@ everything drowned in an enormous reverb, with static, breath and a heartbeat un
 brutal: pounding drums, a distorted tritone bass, organ stabs, strings shrieking upward.
 
   Observer       stalk (its presence), chase, mire (its home), end (the fifth stage)
+  Shaftbreaker   presence (something below), hollows (its home, alive), close, standoff, chase
   Brinesleeper   stillwater_1..3 (calm, deep water), near_1..2 (it is near), chase, sting_1..3,
                  and its voice: clicks, breath, call, moan, hiss, roar, lunge, grasp, emerge, submerge, step,
                  hurt, death, spotted, jumpscare
 
 Requires numpy and ffmpeg with libvorbis. Deterministic (seeded).
-Usage: python3 tools/synth_dark.py [observer|brine|voice ...]   (default: all)
+Usage: python3 tools/synth_dark.py [observer|brine|voice|shaft ...]   (default: all)
 """
 import os
 import sys
@@ -558,6 +559,158 @@ def voice():
     return v
 
 
+# ----------------------------------------------------------------------------- the Shaftbreaker
+
+def creak(dur, note=40, level=1.0):
+    """A beam taking weight in the dark: a slow, rough, falling groan of wood."""
+    n = secs(dur)
+    t = np.arange(n) / SR
+    f = midi(note) * (1 + 0.04 * np.sin(2 * np.pi * 3.3 * t)) * np.linspace(1.0, 0.82, n)
+    x = osc("saw", f, dur) * (0.6 + 0.4 * (rng.random(n) > 0.6))
+    x = bandpass(x, midi(note) * 4, 500) * swell(n, 0.3, 0.4)
+    return x * level
+
+
+def strike(level=1.0, note=70):
+    """A pickaxe on rock, far down a shaft: a hard metallic tick and its ring."""
+    t = np.arange(secs(1.2)) / SR
+    ring = (np.sin(2 * np.pi * midi(note) * t) + 0.5 * np.sin(2 * np.pi * midi(note) * 2.76 * t)) * np.exp(-t * 7)
+    tick = highpass(rng.standard_normal(len(t)), 2500, 1) * np.exp(-t * 60)
+    return (ring * 0.5 + tick * 0.8) * level
+
+
+def shaft_presence():
+    """Something below: a drone in C sharp, picks striking far down the shafts in no rhythm a man would keep, beams
+    creaking, water dripping, a lullaby on a piano played backwards, low voices. 56 s, loops."""
+    L = 56.0
+    n = secs(L)
+    m = np.zeros(n)
+    m += sub_drone(L, 25, 0.17, 0.9)
+    add(m, pad([49, 50, 55], 28, cents=18, bright=600, a=0.5, r=0.45) * 0.45, 0)
+    add(m, pad([48, 49, 55, 56], 28, cents=18, bright=600, a=0.5, r=0.45) * 0.45, 28)
+    for at in (1.7, 2.4, 9.8, 10.3, 10.9, 21.5, 30.2, 30.6, 41.0, 41.5, 49.7):
+        add(m, strike(0.32, 68 + int(rng.integers(0, 4))), at)
+    for at in (6, 25, 44):
+        add(m, creak(3.0, 40 + int(rng.integers(-2, 3)), 0.5), at)
+    for at in rng.uniform(0, L - 1, 22):
+        t = np.arange(secs(0.25)) / SR
+        add(m, np.sin(2 * np.pi * (1500 - 1100 * t / 0.25) * t) * np.exp(-t * 28) * 0.1, at)
+    line = np.zeros(secs(9))
+    for i, nt in enumerate([73, 76, 72, 71, 68, 67]):
+        add(line, piano(nt, 2.4) * 0.5, i * 1.2)
+    for at in (14, 42):
+        add(m, backwards(line) * 0.4, at)
+    add(m, choir([37, 40, 44], 20, "o") * 0.45, 18)
+    for at in np.arange(0.5, L, 1.9):
+        add(m, heartbeat(0.16), at)
+    m = SM.wow(m, depth=0.004, rate=0.25)
+    return tail_into_start(wide(m, 6.0, 0.55, 2600), n)
+
+
+def shaft_hollows():
+    """The Hollows: the walls are alive. A wet pulse under everything, breath swelling out of the rock, a cluster of
+    voices that never resolves, bells gone out of tune, something screaming three tunnels away. 110 s, loops."""
+    L = 110.0
+    n = secs(L)
+    m = np.zeros(n)
+    m += sub_drone(L, 24, 0.12, 0.85)
+    for at in np.arange(0, L, 2.1):
+        add(m, lowpass(wet(0.5, 0.5), 600, 2), at)
+        add(m, heartbeat(0.14), at + 0.05)
+    for k, at in enumerate(range(0, 110, 22)):
+        chord = [[48, 49, 54], [47, 48, 53, 54], [48, 51, 54], [46, 47, 53], [48, 49, 55]][k % 5]
+        add(m, choir(chord, 25, "u" if k % 2 else "o") * 0.42, at)
+    for at in (8, 38, 66, 95):
+        add(m, breath(5.5, 0.32, 300, 1500), at)
+    for i, at in enumerate(np.arange(5, L, 11)):
+        add(m, bell([60, 59, 55, 54, 61][i % 5], 6.0, 0.5) * 0.22, at + rng.uniform(-0.3, 0.3))
+    for at in (31, 84):
+        add(m, scream(4.5, 70, 58, "a", 0.06), at)
+    for at in (52, 102):
+        add(m, creak(4.0, 37, 0.45), at)
+    m = lowpass(m, 2000, 2)
+    m = SM.wow(m, depth=0.005, rate=0.2)
+    return tail_into_start(wide(m, 7.0, 0.6, 2000), n)
+
+
+def shaft_close():
+    """It is close: the heartbeat quickens, strings crawl upward a quarter-tone at a time, a bass pulse on a tritone,
+    its jaw clicking, whispering in the walls. 38.4 s, loops."""
+    L = 38.4
+    n = secs(L)
+    m = np.zeros(n)
+    m += sub_drone(L, 26, 0.33, 0.7)
+    for at in np.arange(0, L, 0.8):
+        add(m, heartbeat(0.32), at)
+    for i, at in enumerate(np.arange(0, L, 1.6)):
+        nt = 38 if (i // 4) % 2 == 0 else 44
+        note = np.tanh(lowpass(osc("saw", detune(nt, 0), 0.55), 700, 2) * 3) * SM.env(secs(0.55), a=0.005, d=0.2, s=0.5, r=0.1)
+        add(m, note * 0.22, at)
+    add(m, pad([62, 63, 68], L, cents=26, bright=1700, a=0.95, r=0.05) * 0.38, 0)
+    for at in np.arange(0.9, L, 1.85):
+        add(m, click(int(rng.integers(0, 3))) * 0.16, at + rng.uniform(-0.12, 0.12))
+    for at in (5, 19, 31):
+        add(m, bandpass(breath(2.5, 0.5), 1800, 900), at)
+    for at in (12.8, 32.0):
+        add(m, strike(0.4, 74), at)
+    return tail_into_start(wide(m, 3.2, 0.4, 3200), n)
+
+
+def shaft_standoff():
+    """Neither of you moves: a thin high tone that will not stop, the dark ticking like a clock, the sub-bass pulsing
+    slow, one bell. 40 s, loops."""
+    L = 40.0
+    n = secs(L)
+    m = np.zeros(n)
+    m += sub_drone(L, 25, 0.5, 0.75)
+    t = np.arange(n) / SR
+    m += np.sin(2 * np.pi * midi(93) * t * (1 + 0.002 * np.sin(2 * np.pi * 0.3 * t))) * 0.025 * swell(n, 0.2, 0.05)
+    for at in np.arange(0, L, 0.5):
+        add(m, click(1) * (0.12 if int(at * 2) % 2 == 0 else 0.07), at)
+    for at in np.arange(0, L, 2.5):
+        k = kick(0.4)
+        add(m, lowpass(k, 120, 2), at)
+    for at in (10, 30):
+        add(m, bell(49, 8.0, 0.4) * 0.3, at)
+    add(m, choir([61, 62], 18, "u") * 0.25, 20)
+    for at in (17, 37):
+        add(m, breath(2.2, 0.28), at)
+    return tail_into_start(wide(m, 4.0, 0.45, 3000), n)
+
+
+def shaft_chase():
+    """It is coming up the shaft: 170 bpm, metal on rock for drums, a distorted bass sliding down a tritone, organ
+    stabs, a screech every four bars, the choir crying out. 32 bars, about 45 s, loops."""
+    bpm = 170.0
+    beat = 60 / bpm
+    bars = 32
+    L = bars * 4 * beat
+    n = secs(L)
+    m = np.zeros(n)
+    for b in range(bars):
+        t0 = b * 4 * beat
+        for i in (0, 1, 2, 2.5, 3):
+            add(m, kick(0.9), t0 + i * beat)
+        for i in (1, 3):
+            add(m, anvil(72 if b % 2 else 77, 0.3), t0 + i * beat)
+        for i in np.arange(0, 4, 0.5):
+            add(m, strike(0.12, 80), t0 + (i + 0.25) * beat)
+        root = [37, 37, 43, 36][b % 4]
+        f = np.concatenate([np.full(secs(beat * 3), midi(root)), np.geomspace(midi(root), midi(root - 6), secs(beat))])
+        bass = np.tanh(lowpass(osc("saw", f, 4 * beat) + osc("square", f * 0.5, 4 * beat, duty=0.3), 1000, 2) * 4)
+        add(m, bass * 0.3, t0)
+        stab = [49, 52, 55] if b % 8 < 4 else [48, 51, 54]
+        for i in (0.5, 2.75):
+            add(m, organ(stab, beat * 0.5, a=0.01, r=0.1, bright=1.4) * 0.45, t0 + i * beat)
+        if b % 4 == 3:
+            add(m, screech(4 * beat, 60, 90, 0.28), t0)
+        if b % 8 == 0:
+            add(m, choir([61, 64, 67], 8 * beat, "a", a=0.05, r=0.7) * 0.55, t0)
+    m = SM.stutter(m, L - beat, 0.05, 6)
+    m = np.tanh(m * 1.35)
+    return tail_into_start(wide(m, 2.2, 0.26, 5200), n)
+
+
 # ----------------------------------------------------------------------------- out
 
 def write_stereo(path, x, peak=0.8, q=4):
@@ -581,10 +734,11 @@ def write_stereo(path, x, peak=0.8, q=4):
 OBS = os.path.join(RP, "sounds", "observer", "music")
 BRINE_MUSIC = os.path.join(RP, "sounds", "music", "brine_dark")
 BRINE_VOICE = os.path.join(RP, "sounds", "mob", "brinesleeper_dark")
+SHAFT_MUSIC = os.path.join(RP, "sounds", "music", "shaft_dark")
 
 
 def main():
-    want = set(sys.argv[1:]) or {"observer", "brine", "voice"}
+    want = set(sys.argv[1:]) or {"observer", "brine", "voice", "shaft"}
     out = []
     if "observer" in want:
         for name, fn in (("stalk", obs_stalk), ("chase", obs_chase), ("mire", obs_mire), ("end", obs_end)):
@@ -596,6 +750,12 @@ def main():
         for v in range(2):
             out.append(write_stereo(os.path.join(BRINE_MUSIC, f"near_{v + 1}.ogg"), brine_near(v)))
         out.append(write_stereo(os.path.join(BRINE_MUSIC, "chase.ogg"), brine_chase()))
+    if "shaft" in want:
+        global rng
+        rng = np.random.default_rng(17500)   # (its own seed: the same tracks whatever else is rendered with it)
+        for name, fn in (("presence", shaft_presence), ("hollows", shaft_hollows), ("close", shaft_close), ("standoff", shaft_standoff),
+                         ("chase", shaft_chase)):
+            out.append(write_stereo(os.path.join(SHAFT_MUSIC, f"{name}.ogg"), fn()))
     if "voice" in want:
         for name, x in voice().items():
             out.append(write_stereo(os.path.join(BRINE_VOICE, f"{name}.ogg"), x, peak=0.72 if name == "jumpscare" else 0.82))

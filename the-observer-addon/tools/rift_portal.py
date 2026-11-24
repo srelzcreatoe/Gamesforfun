@@ -386,10 +386,11 @@ def particles():
 
 
 def fog():
-    """The Rift's mist (1.7.0): grey like the Weeping Mire's, but darker and closer — it closes in from a fraction of the
-    render distance, so the sky goes the fog's colour and the woods fade into it."""
-    air = {"fog_start": 0.02, "fog_end": 0.42, "fog_color": "#2c2e34", "render_distance_type": "render"}
-    weather = {"fog_start": 0.0, "fog_end": 0.32, "fog_color": "#23252a", "render_distance_type": "render"}
+    """The Rift's mist (1.7.0): grey like the Weeping Mire's sky, but darker. The Rift's own sky is the game's (the
+    dimension has no biome of ours to colour it), so the mist is what colours it: a fixed distance, well short of the
+    sky, so all of the sky is the mist's grey, while the woods and the buildings fade into it from ~5 blocks to ~80."""
+    air = {"fog_start": 5, "fog_end": 80, "fog_color": "#3a3d44", "render_distance_type": "fixed"}
+    weather = {"fog_start": 3, "fog_end": 62, "fog_color": "#303338", "render_distance_type": "fixed"}
     return {"format_version": "1.21.90", "minecraft:fog_settings": {"description": {"identifier": "observer:rift"},
         "distance": {"air": air, "weather": weather,
                      "water": {"fog_start": 0, "fog_end": 9, "fog_color": "#121317", "render_distance_type": "fixed"}},

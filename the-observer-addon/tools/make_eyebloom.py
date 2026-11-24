@@ -8,7 +8,8 @@ Writes (all original, drawn pixel by pixel with its own seeded generator):
   RP textures/blocks/wmire/eyebloom_eye.png     its eye, a flipbook strip of 8 frames (16x128): looking ahead, left,
                                                 right, up, half shut, shut, down, and the pupil wide
   RP textures/blocks/wmire/eyebloom_shut.png    the lid, shut tight (when you stare at it)
-  BP structures/wmire/eyebloom.mcstructure      stalk, stalk, flower: what the Mire's worldgen places
+  BP structures/wmire/eyebloom.mcstructure      stalk, stalk, flower (the Mire grew these until 1.7.0; the Rift's are
+                                                laid by tools/rift_world.py; its turning head: tools/eyebloom_aim.py)
 
 Usage: python3 tools/make_eyebloom.py
 """
@@ -172,7 +173,8 @@ def shut():
 def structure():
     """A 1x3x1 template: stalk, stalk, flower (facing north; the feature turns it at random)."""
     states_stalk = {}
-    states_head = {"minecraft:cardinal_direction": (N.STRING, "north"), "wmire:shut": (N.BYTE, 0)}
+    states_head = {"minecraft:cardinal_direction": (N.STRING, "north"), "wmire:shut": (N.BYTE, 0), "wmire:aimed": (N.BYTE, 0), "wmire:aim": (N.INT, 0),
+                   "wmire:tilt": (N.INT, 0)}
     palette = [
         {"name": (N.STRING, "wmire:eyebloom_stalk"), "states": (N.COMPOUND, states_stalk), "version": (N.INT, 18184192)},
         {"name": (N.STRING, "wmire:eyebloom"), "states": (N.COMPOUND, states_head), "version": (N.INT, 18184192)},

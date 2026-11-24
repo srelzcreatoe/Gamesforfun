@@ -273,22 +273,24 @@ system.afterEvents.scriptEventReceive.subscribe((ev) => {
   riftCheck().catch(fail("riftcheck"));
 });
 async function riftCheck() {
+  // (1.7.0: seven by seven pieces, one column of them loaded at a time)
   const { BlockVolume } = await import("@minecraft/server");
   const say = (m) => console.warn(`[OTEST] riftcheck ${m}`);
   const d = world.getDimension("observer:rift");
-  const O = { x: -128, z: -128 }, C = 48;
-  for (let k = 0; k < 3; k++) d.runCommand(`tickingarea add ${O.x + k * 80} 0 ${O.z} ${O.x + k * 80 + 79} 0 ${O.z + 239} rcheck${k} true`);
-  for (let w = 0; w < 600; w++) {
-    let ok = true;
-    for (let i = 0; i < 5 && ok; i++) for (let j = 0; j < 5 && ok; j++) ok = d.isChunkLoaded({ x: O.x + i * C + 24, y: 64, z: O.z + j * C + 24 });
-    if (ok) break;
-    await new Promise((r) => system.runTimeout(r, 2));
-  }
+  const G = 7, O = { x: -176, z: -176 }, C = 48;
   let empty = 0;
-  const rows = [];
-  for (let j = 0; j < 5; j++) {
-    let row = "";
-    for (let i = 0; i < 5; i++) {
+  const cols = [];
+  const totals = { chests: 0, barrels: 0, lecterns: 0, eyes: 0, unknown: 0 };
+  for (let i = 0; i < G; i++) {
+    d.runCommand(`tickingarea add ${O.x + i * C} 0 ${O.z} ${O.x + i * C + C - 1} 0 ${O.z + G * C - 1} rcheck true`);
+    for (let w = 0; w < 600; w++) {
+      let ok = true;
+      for (let j = 0; j < G && ok; j++) ok = d.isChunkLoaded({ x: O.x + i * C + 24, y: 64, z: O.z + j * C + 24 });
+      if (ok) break;
+      await new Promise((r) => system.runTimeout(r, 2));
+    }
+    let col = "";
+    for (let j = 0; j < G; j++) {
       const x0 = O.x + i * C, z0 = O.z + j * C;
       let ground = 0, n = 0;
       for (let dx = 4; dx < C; dx += 8) for (let dz = 4; dz < C; dz += 8) {
@@ -296,8 +298,8 @@ async function riftCheck() {
         const top = d.getTopmostBlock({ x: x0 + dx, z: z0 + dz });
         if (top && top.y >= 55) ground++;
       }
-      if (i > 0 && i < 4 && j > 0 && j < 4 && ground < n * 0.9) empty++;
-      let chests = 0, barrels = 0, lecterns = 0, unknown = 0;
+      if (i > 0 && i < G - 1 && j > 0 && j < G - 1 && ground < n * 0.9) empty++;
+      let chests = 0, barrels = 0, lecterns = 0, eyes = 0, unknown = 0;
       try {
         const vol = new BlockVolume({ x: x0, y: 40, z: z0 }, { x: x0 + C - 1, y: 100, z: z0 + C - 1 });
         const it = (types) => {
@@ -308,6 +310,7 @@ async function riftCheck() {
         chests = it(["minecraft:chest"]);
         barrels = it(["minecraft:barrel"]);
         lecterns = it(["minecraft:lectern"]);
+        eyes = it(["wmire:eyebloom"]);
         unknown = it(["minecraft:unknown"]);
         if (chests && !globalThis.__riftChestSeen) {
           const loc = d.getBlocks(vol, { includeTypes: ["minecraft:chest"] }, true).getBlockLocationIterator().next().value;
@@ -318,14 +321,20 @@ async function riftCheck() {
       } catch (e) {
         say(`cell ${i},${j} scan failed ${e}`);
       }
-      say(`cell ${i},${j} ground ${ground}/${n} chests ${chests} barrels ${barrels} lecterns ${lecterns} unknown ${unknown}`);
-      row += ground >= n * 0.9 ? "#" : ground > 0 ? "+" : ".";
+      Object.assign(totals, { chests: totals.chests + chests, barrels: totals.barrels + barrels, lecterns: totals.lecterns + lecterns,
+        eyes: totals.eyes + eyes, unknown: totals.unknown + unknown });
+      say(`cell ${i},${j} ground ${ground}/${n} chests ${chests} barrels ${barrels} lecterns ${lecterns} eyes ${eyes} unknown ${unknown}`);
+      col += ground >= n * 0.9 ? "#" : ground > 0 ? "+" : ".";
     }
-    rows.push(row);
+    cols.push(col);
+    d.runCommand("tickingarea remove rcheck");
   }
+  // rows of the map, north to south
+  const rows = [];
+  for (let j = 0; j < G; j++) rows.push(cols.map((c) => c[j]).join(""));
   say(`map ${rows.join("|")}`);
+  say(`totals ${JSON.stringify(totals)}`);
   say(empty ? `FAIL inner cells without ground: ${empty}` : "PASS every inner cell has its ground");
-  for (let k = 0; k < 3; k++) d.runCommand(`tickingarea remove rcheck${k}`);
   say("DONE");
 }
 

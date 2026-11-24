@@ -4853,8 +4853,9 @@ TESTS.ahead = async () => {
 };
 
 TESTS.eyebloom = async () => {
-  // 1.5.1: the Mire Eyebloom — three blocks tall; it turns to you only while you are not looking at it; stared at, it
-  // shuts its eye; look away and it opens and turns to you; break its eye and the whole plant comes down
+  // 1.5.1, 1.7.0: the Eyebloom — three blocks tall; its eye follows you every step (16 headings, tilted up or down to
+  // you), whether you look at it or not; stared at from close by, it shuts its eye, and opens it once you look away;
+  // break its eye and the whole plant comes down. They grow in the Rift now, not in the Mire.
   obs("eyes", "always");
   const base = { x: FIELD.x + 6, y: Y, z: FIELD.z - 10 };
   const headAt = { x: base.x, y: base.y + 2, z: base.z };
@@ -4865,27 +4866,38 @@ TESTS.eyebloom = async () => {
   if (!check("eyebloom_three_blocks_tall", parts.join() === "wmire:eyebloom_stalk,wmire:eyebloom_stalk,wmire:eyebloom", parts.join(","))) return obs("eyes", "auto");
   const st = () => {
     const pm = ow().getBlock(headAt)?.permutation;
-    return { dir: pm?.getState("minecraft:cardinal_direction"), shut: pm?.getState("wmire:shut") };
+    return { aimed: pm?.getState("wmire:aimed"), aim: pm?.getState("wmire:aim"), tilt: pm?.getState("wmire:tilt"), shut: pm?.getState("wmire:shut") };
   };
-  // to its east, looking away: it turns to face you
+  const until = async (ok, ticks) => {
+    for (let t = 0; t < ticks && !ok(st()); t += 3) await wait(3);
+    return ok(st());
+  };
+  // to its east, looking away: it looks east (heading 4)
   const p = await freshTarget("Tester", { x: base.x + 8.5, y: Y, z: base.z + 0.5 }, { x: base.x + 40, y: Y + 1.6, z: base.z + 0.5 }, 2);
   isolate(p);
-  for (let t = 0; t < 80 && st().dir !== "east"; t += 5) await wait(5);
-  check("eyebloom_turns_to_you_unwatched", st().dir === "east", JSON.stringify(st()));
-  // round to its south, looking straight at it from close by: it does not turn while watched — and it shuts its eye
-  p.teleport({ x: base.x + 0.5, y: Y, z: base.z + 7.5 }, { facingLocation: { x: base.x + 0.5, y: Y + 2.5, z: base.z + 0.5 } });
+  check("eyebloom_follows_you_east", await until((s) => s.aimed && s.aim === 4 && s.tilt === 0, 60), JSON.stringify(st()));
+  // walk round it: south-east (6), then south (8), looking straight at it from afar: it keeps following
+  p.teleport({ x: base.x + 6.5, y: Y, z: base.z + 6.5 }, { facingLocation: { x: base.x + 0.5, y: Y + 2.5, z: base.z + 0.5 } });
+  check("eyebloom_follows_you_south_east", await until((s) => s.aim === 6, 30), JSON.stringify(st()));
+  p.teleport({ x: base.x + 0.5, y: Y, z: base.z + 9.5 }, { facingLocation: { x: base.x + 0.5, y: Y + 2.5, z: base.z + 0.5 } });
+  check("eyebloom_follows_you_while_watched", await until((s) => s.aim === 8 && !s.shut, 30), JSON.stringify(st()));
+  // up on a pillar to its west: it looks west (12) and up
+  ow().runCommand(`fill ${base.x - 3} ${Y} ${base.z} ${base.x - 3} ${Y + 5} ${base.z} stone`);
+  p.teleport({ x: base.x - 2.5, y: Y + 6, z: base.z + 0.5 });
+  check("eyebloom_looks_up_at_you", await until((s) => s.aim === 12 && s.tilt === 1, 30), JSON.stringify(st()));
+  ow().runCommand(`fill ${base.x - 3} ${Y} ${base.z} ${base.x - 3} ${Y + 5} ${base.z} air`);
+  // close by to its north, staring at it: it shuts its eye
+  p.teleport({ x: base.x + 0.5, y: Y, z: base.z - 3.5 }, { facingLocation: { x: base.x + 0.5, y: Y + 2.5, z: base.z + 0.5 } });
   let shut = false;
-  for (let t = 0; t < 60; t += 5) {
-    await wait(5);
+  for (let t = 0; t < 80 && !shut; t += 4) {
+    await wait(4);
     p.lookAtLocation({ x: base.x + 0.5, y: Y + 2.5, z: base.z + 0.5 });
     if (st().shut) shut = true;
   }
-  check("eyebloom_still_while_watched", st().dir === "east", JSON.stringify(st()));
-  check("eyebloom_shuts_when_stared_at", shut, JSON.stringify(st()));
-  // look away: it opens its eye, and turns to you
-  p.lookAtLocation({ x: base.x + 0.5, y: Y + 1.6, z: base.z + 40 });
-  for (let t = 0; t < 100 && (st().dir !== "south" || st().shut); t += 5) await wait(5);
-  check("eyebloom_opens_and_turns_when_you_look_away", st().dir === "south" && !st().shut, JSON.stringify(st()));
+  check("eyebloom_shuts_when_stared_at", shut && st().aim === 0, JSON.stringify(st()));
+  // look away: it opens its eye, still on you
+  p.lookAtLocation({ x: base.x + 0.5, y: Y + 1.6, z: base.z - 40 });
+  check("eyebloom_opens_when_you_look_away", await until((s) => !s.shut && s.aim === 0, 80), JSON.stringify(st()));
   // break its eye: the whole plant comes down
   const m = mark();
   p.teleport({ x: base.x + 0.5, y: Y, z: base.z + 2.5 }, { facingLocation: { x: base.x + 0.5, y: Y + 2.5, z: base.z + 0.5 } });
@@ -4895,16 +4907,13 @@ TESTS.eyebloom = async () => {
   const left = [0, 1, 2].map((dy) => ow().getBlock({ x: base.x, y: base.y + dy, z: base.z })?.typeId ?? "?");
   check("eyebloom_falls_as_one", left.every((id) => id === "minecraft:air"), `${left.join(",")}; ${JSON.stringify(since(m, "eyebloom").find((d) => d.what === "fell") ?? {})}`);
   obs("eyes", "auto");
-  // and they grow in the Mire: whole plants, stalk, stalk, eye
+  // and the Mire grows no new ones: none in fresh ground round its stand
   const ms = await findMireStand();
-  if (!ms) return check("eyebloom_grows_in_the_mire", false, "no Mire stand");
+  if (!ms) return check("eyebloom_not_in_the_mire", false, "no Mire stand");
   const found = ow().getBlocks(new BlockVolume({ x: ms.x - 48, y: ms.y - 20, z: ms.z - 48 }, { x: ms.x + 48, y: ms.y + 20, z: ms.z + 48 }), { includeTypes: ["wmire:eyebloom"] }, true);
-  let heads = 0, whole = 0;
-  for (const l of found.getBlockLocationIterator()) {
-    heads++;
-    if (ow().getBlock({ x: l.x, y: l.y - 1, z: l.z })?.typeId === "wmire:eyebloom_stalk" && ow().getBlock({ x: l.x, y: l.y - 2, z: l.z })?.typeId === "wmire:eyebloom_stalk") whole++;
-  }
-  check("eyebloom_grows_in_the_mire", heads >= 1 && whole === heads, `${heads} eyes within 48 blocks of ${ms.x},${ms.z}, ${whole} whole`);
+  let heads = 0;
+  for (const _ of found.getBlockLocationIterator()) heads++;
+  check("eyebloom_not_in_the_mire", heads === 0, `${heads} eyes within 48 blocks of ${ms.x},${ms.z}`);
 };
 
 TESTS.dwellers = async () => {
@@ -4985,7 +4994,7 @@ TESTS.dwellers = async () => {
 
 TESTS.rift = async () => {
   // 1.6.0: the Rift. A rift opens near you (room for it, light round it, facing you); the realm on the other side is laid
-  // out (25 pieces); walk in and you are at the stones, the way out beside you; nothing lives there; the void puts you
+  // out (49 pieces since 1.7.0, every place in it once, somewhere new each time); walk in and you are at the stones, the way out beside you; nothing lives there; the void puts you
   // back; its hunt comes for you there and strikes at the Rift's own strength; walk out and you are back where you went
   // in, its hunt over; it shuts, and its light goes with it. Off (0), none opens.
   const RIFT = world.getDimension("observer:rift");
@@ -5003,8 +5012,13 @@ TESTS.rift = async () => {
   obs("rift", "open", "Tester");
   const opening = await waitEvent("rift", (d) => d.what === "opening", 60, m);
   check("rift_opens_near_you", !!opening && hdist(opening, p.location) >= 7 && hdist(opening, p.location) <= 17, opening ? `d=${hdist(opening, p.location).toFixed(1)}` : "none");
-  const built = await waitEvent("rift", (d) => d.what === "built", 600, m);
-  check("rift_realm_laid_out", !!built && built.placed === 25 && built.of === 25, JSON.stringify(built ?? {}));
+  const built = await waitEvent("rift", (d) => d.what === "built", 1500, m);
+  check("rift_realm_laid_out", !!built && built.placed === 49 && built.of === 49, JSON.stringify(built ?? {}).slice(0, 300));
+  const places = built?.places ?? {};
+  const cells = Object.values(places).map((c) => c.join(","));
+  check("rift_realm_every_place", ["church", "castle", "observatory", "eye_garden", "graveyard", "watchtower", "camp"].every((k) => !!places[k]) &&
+    ["hamlet_1", "hamlet_2"].every((k) => !!places[k]) && new Set(cells).size === cells.length && !cells.includes("3,3") &&
+    Object.values(places).every((c) => c[0] >= 1 && c[0] <= 5 && c[1] >= 1 && c[1] <= 5), JSON.stringify(places));
   const opened = await waitEvent("rift", (d) => d.what === "open", 400, m);
   if (!check("rift_stands_open", !!opened)) return obs("rift", "close");
   const portal = ow().getEntities({ type: "observer:rift_portal" })[0];
@@ -5111,7 +5125,7 @@ TESTS.rift_levels = async () => {
   isolate(p);
   let m = mark();
   obs("rift", "build");
-  await waitEvent("rift", (d) => d.what === "built", 600, m);
+  await waitEvent("rift", (d) => d.what === "built", 1500, m);
   obs("rift", "hunting", "on");
   const out = {};
   for (const lv of [1, 5]) {
@@ -5150,25 +5164,40 @@ TESTS.rift_levels = async () => {
 };
 
 TESTS.sound_test = async () => {
-  // 1.5.1: the Sound Test plays every track of its music (looping, on the player's music channel) and every sound
+  // 1.5.1, 1.7.0: the Sound Test, by creature — every track of each one's music (looping, on the player's music
+  // channel), each one's whole playlist, and every sound
   const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
   isolate(p);
+  const PAGES = { observer: [6, 16], goatwalker: [10, 16], shaftbreaker: [5, 16], brinesleeper: [4, 16] };
   const m = mark();
   for (let i = 0; i < 6; i++) {
     obs("sounds", "track", String(i), "Tester");
-    await wait(6);
+    await wait(4);
   }
-  for (let i = 0; i < 16; i++) {
-    obs("sounds", "sound", String(i), "Tester");
-    await wait(3);
+  for (const [who, [nt, ns]] of Object.entries(PAGES)) {
+    for (let i = 0; i < nt; i++) {
+      obs("sounds", "of", who, "track", String(i), "Tester");
+      await wait(4);
+    }
+    for (let i = 0; i < ns; i++) {
+      obs("sounds", "of", who, "sound", String(i), "Tester");
+      await wait(2);
+    }
+    obs("sounds", "all", who, "Tester");
+    await wait(4);
   }
   obs("sounds", "stop", "Tester");
   await wait(6);
   const ev = since(m, "sounds");
-  const tracks = ev.filter((d) => d.what === "track");
-  const sounds = ev.filter((d) => d.what === "sound");
-  check("sound_test_every_track_plays", tracks.length === 6 && tracks.every((d) => d.ok) && new Set(tracks.map((d) => d.id)).size === 6, tracks.map((d) => `${d.id}:${d.ok}`).join(" "));
-  check("sound_test_every_sound_plays", sounds.length === 16 && sounds.every((d) => d.ok), `${sounds.filter((d) => d.ok).length}/${sounds.length}`);
+  for (const [who, [nt, ns]] of Object.entries(PAGES)) {
+    const tracks = ev.filter((d) => d.what === "track" && d.who === who);
+    const sounds = ev.filter((d) => d.what === "sound" && d.who === who);
+    const list = ev.find((d) => d.what === "playlist" && d.who === who);
+    const want = who === "observer" ? nt * 2 : nt;
+    check(`sound_test_${who}_tracks`, tracks.length === want && tracks.every((d) => d.ok) && new Set(tracks.map((d) => d.id)).size === nt, tracks.map((d) => `${d.id}:${d.ok}`).join(" "));
+    check(`sound_test_${who}_sounds`, sounds.length === ns && sounds.every((d) => d.ok) && new Set(sounds.map((d) => d.id)).size === ns, `${sounds.filter((d) => d.ok).length}/${sounds.length}`);
+    check(`sound_test_${who}_playlist`, !!list && list.ok && list.n === nt, JSON.stringify(list ?? {}));
+  }
   check("sound_test_stops", ev.some((d) => d.what === "stop"));
 };
 

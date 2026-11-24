@@ -128,7 +128,15 @@ export function run(name, args, caller) {
       director.abortAll("dev");
       return "aborted";
     case "sounds": {
-      // sounds track <i> | sounds sound <i> | sounds stop | sounds list — the Sound Test, without its page (1.5.1)
+      // sounds track <i> | sounds sound <i> | sounds stop | sounds list — the Sound Test, without its page (1.5.1);
+      // (1.7.0) sounds of <creature> track|sound <i> [name] | sounds all <creature> [name]: any creature's page
+      if (args[0] === "of" || args[0] === "all") {
+        const q = pick(args[0] === "of" ? 4 : 2);
+        if (!q) return "no player";
+        if (args[0] === "all") return `playlist ${soundTest.playAll(q, args[1])}`;
+        const i = parseInt(args[3], 10) || 0;
+        return args[2] === "sound" ? `sound ${soundTest.playEffectOf(q, args[1], i)}` : `track ${soundTest.playTrackOf(q, args[1], i)}`;
+      }
       const p = pick(2);
       if (!p) return "no player";
       if (args[0] === "track") return `track ${soundTest.playTrack(p, parseInt(args[1], 10) || 0)}`;
@@ -137,7 +145,7 @@ export function run(name, args, caller) {
         soundTest.stop(p);
         return "stopped";
       }
-      return `${soundTest.TRACKS.length} tracks, ${soundTest.EFFECTS.length} sounds`;
+      return soundTest.CREATURES.map((c) => `${c.key}: ${c.tracks.length} tracks, ${c.effects.length} sounds`).join("; ");
     }
     case "debug":
       updateSettings({ dev: args[0] === "on" || args[0] === "true" });
@@ -472,7 +480,7 @@ export function run(name, args, caller) {
       }
       const r = realm.current();
       const st = riftPortal.status();
-      emit("rift", { what: "status", ...st, level: riftHunt.level(), setting: S().rift, gen: r?.gen ?? 0, church: r?.church, castle: r?.castle });
+      emit("rift", { what: "status", ...st, level: riftHunt.level(), setting: S().rift, gen: r?.gen ?? 0, church: r?.church, castle: r?.castle, places: r?.places });
       return `rift: open ${st.open} phase ${st.phase} next ${st.next}s; realm gen ${r?.gen ?? "-"} church ${JSON.stringify(r?.church)} castle ${JSON.stringify(r?.castle)} building ${realm.isBuilding()}`;
     }
     case "riftprobe": {
