@@ -4,7 +4,7 @@
 // areas and (optionally) liquid surfaces. findSpot() samples candidates around a
 // player and scores them by concealment, cover and distance.
 import { BlockVolume, BlockTypes } from "@minecraft/server";
-import { DANGER, TRUNKS, MIRE_TRUNKS } from "../core/constants.js";
+import { DANGER, TRUNKS, MIRE_TRUNKS, RIFT_TRUNKS } from "../core/constants.js";
 import { V, safe, dimIndex, rand, yawDelta } from "../core/util.js";
 import { W } from "../core/state.js";
 import { visibility, lineOfSight, bodyPoints } from "./sight.js";
@@ -268,8 +268,8 @@ export function corridorBehind(p, travelDir, minD = 3, maxD = 7) {
   return best;
 }
 
-/** Tree trunks (and the Weeping Mire's): what it hides behind. */
-const TRUNK_IDS = [...TRUNKS, ...MIRE_TRUNKS];
+/** Tree trunks (and the Weeping Mire's, and the Rift's): what it hides behind. */
+const TRUNK_IDS = [...TRUNKS, ...MIRE_TRUNKS, ...RIFT_TRUNKS];
 const TRUNK_SET = new Set(TRUNK_IDS);
 const LOOK_THROUGH = /^minecraft:(air|short_grass|tall_grass|fern|large_fern|vine|.+_leaves)$|^wmire:(weeping_leaves|weeping_tendril)$/;
 

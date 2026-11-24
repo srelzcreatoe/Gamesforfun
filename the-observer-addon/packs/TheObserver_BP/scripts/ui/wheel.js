@@ -32,7 +32,8 @@ const raw = (...parts) => ({ rawtext: parts.map((p) => (typeof p === "string" ? 
 const say = (p, m) => safe(() => p.sendMessage(m));
 
 /** Encounter types players can switch on and off (not the vigil, the preview or the test-only behaviours). */
-export const TOGGLEABLE = () => director.REGISTRY.filter((d) => !d.preview && d.id !== "vigil");
+// (its hunt in the Rift is not one: the Rift page sets it, 1.6.0)
+export const TOGGLEABLE = () => director.REGISTRY.filter((d) => !d.preview && !d.rift && d.id !== "vigil");
 /** Test menu: the single behaviours first (strike, lunge, peeking, vigil practice), then every encounter. */
 export const TESTABLE = () => [...director.REGISTRY.filter((d) => d.testOnly), ...TOGGLEABLE()];
 

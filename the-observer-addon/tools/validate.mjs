@@ -317,7 +317,7 @@ for (const m of src.matchAll(/"(observer:[a-z_]+)"/g)) {
   const id = m[1];
   if (entityEvents.has(id) || entityProps.has(id)) continue; // events and properties defined on our entities (e.g. observer:steps_off)
   // dynamic property keys, the rift dimension's id, and the like
-  if (/^observer:(the_observer|encounter|preset|state|stoop|side|afloat|paralysis|puppet|enc|world|player|clock|dark|ledger|probe|dread|dread_soft|vigil|rift|rift_open|rift_return|rift_realm)$/.test(id)) continue;
+  if (/^observer:(the_observer|encounter|preset|state|stoop|side|afloat|paralysis|puppet|enc|world|player|clock|dark|ledger|probe|dread|dread_soft|vigil|rift|rift_open|rift_return|rift_realm|rift_gen)$/.test(id)) continue;
   if (!itemIds.has(id) && !blockIds.has(id) && !particleIds.has(id) && !fogIds.has(id) && !entityIds.has(id)) fail(`script references unknown id ${id}`);
 }
 // entity properties and events used by scripts

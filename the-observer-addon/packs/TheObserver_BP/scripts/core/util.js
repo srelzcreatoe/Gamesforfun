@@ -166,6 +166,8 @@ export const DEBUG = {
   pace: /** @type {string} */ ("auto"),
   /** tests: "always" makes the Mire's eyeblooms watch players anywhere, not just in the Mire; "never" stills them (1.5.1) */
   eyes: "auto",
+  /** tests: "on" lets its hunt in the Rift go on while the director is paused (1.6.0) */
+  riftHunt: "auto",
   /** low-volume lifecycle lines (encounter start/end); enabled in dev mode and by the test kit */
   trace: false,
   /** @param {string} msg */

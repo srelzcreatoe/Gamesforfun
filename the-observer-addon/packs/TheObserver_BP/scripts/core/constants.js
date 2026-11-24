@@ -207,4 +207,6 @@ export const TRUNKS = new Set([
 ]);
 /** ...and the Weeping Mire's (its own add-on's blocks, not vanilla). */
 export const MIRE_TRUNKS = ["wmire:weeping_log", "wmire:weeping_wood"];
+/** ...and the Rift's dead pines, and the Goatwalker's void trees (1.6.0). */
+export const RIFT_TRUNKS = ["observer:rift_bark", "goatwalker:void_log"];
 

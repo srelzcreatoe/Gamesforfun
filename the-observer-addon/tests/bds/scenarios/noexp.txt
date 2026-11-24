@@ -22,3 +22,11 @@ cmd kill @e[type=observer:the_observer]
 cmd kill @e[type=observer:shadow]
 cmd kill @e[type=observer:flare]
 wait 3
+# 1.6.0: the rift's portal entity, and the Rift's realm laid out in the rift dimension (no experiments)
+cmd summon observer:rift_portal 6 200 0
+wait 2
+cmd kill @e[type=observer:rift_portal]
+cmd scriptevent observer:rift build
+expect \[Observer\] rift realm .* laid out: 25/25 120
+cmd scriptevent observer:rift status
+expect rift: open false 20

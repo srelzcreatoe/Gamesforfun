@@ -29,6 +29,8 @@ import { DEBUG, safe, V, dimIndex, allPlayers, emit } from "../core/util.js";
 import { ITEMS } from "../core/constants.js";
 import * as soundTest from "../ui/sounds.js";
 import * as realm from "../rift/realm.js";
+import * as riftPortal from "../rift/portal.js";
+import * as riftHunt from "../rift/hunt.js";
 import * as riftDim from "../rift/dimension.js";
 import * as dwellerLink from "../link/dwellers.js";
 import * as channel from "../link/shared.js";
@@ -439,13 +441,39 @@ export function run(name, args, caller) {
       return `channel ${args.join(" ")}`;
     }
     case "rift": {
-      // rift build | status (1.6.0): lay the Rift's realm out again; where things are
-      if (args[0] === "build") {
+      // rift build | open [player] | close | enter [player] | leave [player] | hunt [player] | hunting on|auto | status
+      // (1.6.0): lay the realm out again; a rift opened near them now; shut; through it and back at once; its next
+      // round in there now; its hunt going on while the director is paused (tests); where things stand
+      const sub = args[0] ?? "status";
+      const p = pick(1);
+      if (sub === "build") {
         realm.build().then((ok) => emit("rift", { what: "build_done", ok }));
         return "rift: laying it out";
       }
+      if (sub === "open") {
+        if (!p) return "no player";
+        riftPortal.openNear(p, { force: true }).then((r) => emit("rift", { what: "open_result", result: r }));
+        return `rift: opening near ${p.name}`;
+      }
+      if (sub === "close") {
+        riftPortal.close("command");
+        return "rift: closed";
+      }
+      if (sub === "enter") return p ? `rift enter: ${riftPortal.testEnter(p)}` : "no player";
+      if (sub === "leave") return p ? `rift leave: ${riftPortal.testLeave(p)}` : "no player";
+      if (sub === "hunt") {
+        if (!p) return "no player";
+        riftHunt.hurry(p);
+        return `rift: its next round for ${p.name} now`;
+      }
+      if (sub === "hunting") {
+        DEBUG.riftHunt = args[1] === "on" ? "on" : "auto";
+        return `rift hunting ${DEBUG.riftHunt}`;
+      }
       const r = realm.current();
-      return `rift: gen ${r?.gen ?? "-"} built ${!!r?.builtAt} church ${JSON.stringify(r?.church)} castle ${JSON.stringify(r?.castle)} building ${realm.isBuilding()}`;
+      const st = riftPortal.status();
+      emit("rift", { what: "status", ...st, level: riftHunt.level(), setting: S().rift, gen: r?.gen ?? 0, church: r?.church, castle: r?.castle });
+      return `rift: open ${st.open} phase ${st.phase} next ${st.next}s; realm gen ${r?.gen ?? "-"} church ${JSON.stringify(r?.church)} castle ${JSON.stringify(r?.castle)} building ${realm.isBuilding()}`;
     }
     case "riftprobe": {
       // riftprobe: is the rift dimension there? (1.6.0)

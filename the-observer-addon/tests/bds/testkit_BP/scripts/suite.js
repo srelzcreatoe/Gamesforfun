@@ -217,6 +217,8 @@ TESTS.setup = async () => {
   // 1.6.0: its dwellers off for the older groups (the dwellers group switches them on)
   obs("dwellers", "off", "all");
   obs("preset", "standard");
+  // 1.6.0: no rifts opening on their own in the middle of the groups (the rift group opens its own)
+  obs("set", "rift", "0");
   await wait(20);
   const p = spawn("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
   await wait(20);
@@ -4979,6 +4981,172 @@ TESTS.dwellers = async () => {
   obs("dwellers", "off", "all");
   await wait(6);
   check("dwellers_off_again_gone", !g.isValid);
+};
+
+TESTS.rift = async () => {
+  // 1.6.0: the Rift. A rift opens near you (room for it, light round it, facing you); the realm on the other side is laid
+  // out (25 pieces); walk in and you are at the stones, the way out beside you; nothing lives there; the void puts you
+  // back; its hunt comes for you there and strikes at the Rift's own strength; walk out and you are back where you went
+  // in, its hunt over; it shuts, and its light goes with it. Off (0), none opens.
+  const RIFT = world.getDimension("observer:rift");
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  const p = await freshTarget("Tester", stand, { x: stand.x, y: Y + 1.6, z: stand.z - 30 }, 3);
+  isolate(p);
+  obs("set", "rift", "0");
+  let m = mark();
+  obs("rift", "status");
+  let st = await waitEvent("rift", (d) => d.what === "status", 20, m);
+  check("rift_never_when_off", !!st && st.setting === 0 && !st.open, JSON.stringify(st ?? {}));
+  obs("set", "rift", "3");
+  // it opens near you
+  m = mark();
+  obs("rift", "open", "Tester");
+  const opening = await waitEvent("rift", (d) => d.what === "opening", 60, m);
+  check("rift_opens_near_you", !!opening && hdist(opening, p.location) >= 7 && hdist(opening, p.location) <= 17, opening ? `d=${hdist(opening, p.location).toFixed(1)}` : "none");
+  const built = await waitEvent("rift", (d) => d.what === "built", 600, m);
+  check("rift_realm_laid_out", !!built && built.placed === 25 && built.of === 25, JSON.stringify(built ?? {}));
+  const opened = await waitEvent("rift", (d) => d.what === "open", 400, m);
+  if (!check("rift_stands_open", !!opened)) return obs("rift", "close");
+  const portal = ow().getEntities({ type: "observer:rift_portal" })[0];
+  check("rift_portal_there", !!portal && portal.getProperty("observer:phase") === 1);
+  let lights = 0;
+  for (let dx = -3; dx <= 3; dx++) for (let dy = 0; dy <= 6; dy++) for (let dz = -3; dz <= 3; dz++) {
+    const b = ow().getBlock({ x: Math.floor(portal.location.x) + dx, y: Math.floor(portal.location.y) + dy, z: Math.floor(portal.location.z) + dz });
+    if (b && /light_block/.test(b.typeId)) lights++;
+  }
+  check("rift_light_round_it", lights >= 3, `${lights}`);
+  await wait(30);
+  const want = (Math.atan2(-(p.location.x - portal.location.x), p.location.z - portal.location.z) * 180) / Math.PI;
+  const off = Math.abs(((((portal.getRotation().y - want) % 360) + 540) % 360) - 180);
+  check("rift_faces_you", off < 30, `off=${off.toFixed(0)}`);
+  // walk into it
+  const wentIn = { ...p.location };
+  m = mark();
+  p.teleport({ x: portal.location.x, y: portal.location.y + 0.1, z: portal.location.z });
+  const ent = await waitEvent("rift", (d) => d.what === "enter" && d.player === "Tester", 60, m);
+  await wait(10);
+  check("rift_walk_in", !!ent && p.dimension.id === "observer:rift", p.dimension.id);
+  const ARRIVE = { x: -8 + 0.5, y: 65, z: -8 + 6.5 };
+  check("rift_land_at_the_stones", hdist(p.location, ARRIVE) < 3 && Math.abs(p.location.y - 65) < 2, JSON.stringify(p.location));
+  const ground = RIFT.getBlock({ x: Math.floor(p.location.x), y: Math.floor(p.location.y) - 1, z: Math.floor(p.location.z) });
+  check("rift_ground_under_you", !!ground && !ground.isAir, ground?.typeId);
+  let exit;
+  for (let t = 0; t < 100 && !exit; t += 5) {
+    exit = RIFT.getEntities({ type: "observer:rift_portal", tags: ["observer_rift_exit"] })[0];
+    await wait(5);
+  }
+  check("rift_way_out_beside_you", !!exit && hdist(exit.location, p.location) < 9);
+  check("rift_discovery_the_rift", discovered(m, "the_rift"));
+  // nothing lives there; what you drop stays
+  const pig = RIFT.spawnEntity("minecraft:pig", { x: p.location.x + 3, y: p.location.y + 1, z: p.location.z });
+  // (out of the test player's reach: they would pick it up)
+  const stick = RIFT.spawnItem(new ItemStack("minecraft:stick", 1), { x: p.location.x - 6, y: p.location.y + 0.5, z: p.location.z + 1 });
+  await wait(50);
+  check("rift_nothing_lives_there", !pig.isValid);
+  check("rift_what_you_drop_stays", stick.isValid && !since(m, "rift").some((d) => d.what === "removed" && d.type === "minecraft:item"));
+  // weather: lightning comes
+  const bolt = await waitEvent("rift", (d) => d.what === "lightning" && d.player === "Tester", 900, m);
+  check("rift_lightning", !!bolt);
+  // the void puts you back at the stones
+  m = mark();
+  p.teleport({ x: -8.5, y: 30, z: -8.5 });
+  const back = await waitEvent("rift", (d) => d.what === "void_back" && d.player === "Tester", 60, m);
+  await wait(4);
+  check("rift_void_puts_you_back", !!back && hdist(p.location, ARRIVE) < 3, JSON.stringify(p.location));
+  // its hunt: a round now (the director stays paused for everything else)
+  obs("rift", "hunting", "on");
+  m = mark();
+  const dmg = trackDamage(p);
+  obs("rift", "hunt", "Tester");
+  const round = await waitEvent("start", (d) => d.type === "rift_hunt" && d.target === "Tester", 80, m);
+  check("rift_hunt_starts", !!round);
+  const chargeEv = await waitEvent("rift", (d) => d.what === "charge", 900, m);
+  check("rift_hunt_charges", !!chargeEv, JSON.stringify(chargeEv ?? {}));
+  const body = RIFT.getEntities({ type: OBS })[0];
+  check("rift_hunt_it_is_in_the_rift", !!body);
+  const hit = await waitEvent("strike", (d) => d.result === "hit", 600, m);
+  await wait(4);
+  check("rift_hunt_strikes", !!hit && dmg.total >= 7, `dmg=${dmg.total}`);
+  const pace = since(m, "pace").filter((d) => d.mode === "pursue" || d.mode === "rage");
+  check("rift_hunt_its_pace", pace.length > 0 && pace.every((d) => d.want >= 6.3), pace.slice(0, 4).map((d) => d.want).join(" "));
+  const stalk = since(m, "rift").filter((d) => ["glimpse", "behind", "sounds", "bleed", "flash"].includes(d.what)).map((d) => d.what);
+  check("rift_hunt_toys_with_you_first", stalk.length >= 1 || chargeEv?.how === "behind_you", stalk.join(","));
+  dmg.stop();
+  heal(p);
+  // walk out: back where you went in, its hunt over
+  m = mark();
+  const ex = RIFT.getEntities({ type: "observer:rift_portal", tags: ["observer_rift_exit"] })[0];
+  if (ex) p.teleport({ x: ex.location.x, y: ex.location.y + 0.1, z: ex.location.z });
+  const left = await waitEvent("rift", (d) => d.what === "leave" && d.player === "Tester", 60, m);
+  await wait(10);
+  // (back at the rift you walked into, a step out of it)
+  check("rift_walk_out", !!left && p.dimension.id === "minecraft:overworld" && hdist(p.location, portal.location) < 5 && hdist(p.location, wentIn) < 20, `${p.dimension.id} d=${hdist(p.location, portal.location).toFixed(1)}`);
+  const over = await waitEvent("end", (d) => d.type === "rift_hunt", 60, m);
+  check("rift_hunt_ends_when_you_leave", !!over && RIFT.getEntities({ type: OBS }).length === 0, JSON.stringify(over ?? {}));
+  check("rift_discovery_out", discovered(m, "out_of_the_rift"));
+  obs("rift", "hunting", "auto");
+  // it shuts, and its light goes with it
+  m = mark();
+  const at = { ...portal.location };
+  obs("rift", "close");
+  await wait(60);
+  lights = 0;
+  for (let dx = -3; dx <= 3; dx++) for (let dy = 0; dy <= 6; dy++) for (let dz = -3; dz <= 3; dz++) {
+    const b = ow().getBlock({ x: Math.floor(at.x) + dx, y: Math.floor(at.y) + dy, z: Math.floor(at.z) + dz });
+    if (b && /light_block/.test(b.typeId)) lights++;
+  }
+  check("rift_shuts", ow().getEntities({ type: "observer:rift_portal" }).length === 0 && lights === 0, `lights=${lights}`);
+  await wait(40);
+  check("rift_way_out_gone_when_empty", RIFT.getEntities({ type: "observer:rift_portal" }).length === 0);
+  obs("set", "rift", "0");
+};
+
+TESTS.rift_levels = async () => {
+  // 1.6.0: the more often rifts open, the harder, faster and stronger it is in there: one charge on "rarely" (1) and one
+  // on "constantly" (5) — how fast it really closes in (measured), and how hard its first blow lands
+  const RIFT = world.getDimension("observer:rift");
+  const ARRIVE = { x: -7.5, y: 65, z: -1.5 };
+  const stand = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+  const p = await freshTarget("Tester", stand, { x: stand.x, y: Y + 1.6, z: stand.z - 30 }, 3);
+  isolate(p);
+  let m = mark();
+  obs("rift", "build");
+  await waitEvent("rift", (d) => d.what === "built", 600, m);
+  obs("rift", "hunting", "on");
+  const out = {};
+  for (const lv of [1, 5]) {
+    heal(p);
+    p.teleport(ARRIVE, { dimension: RIFT, facingLocation: { x: ARRIVE.x, y: ARRIVE.y + 1.6, z: ARRIVE.z + 20 } });
+    obs("set", "rift", String(lv));
+    await wait(20);
+    m = mark();
+    const dmg = trackDamage(p);
+    obs("rift", "hunt", "Tester");
+    const ch = await waitEvent("rift", (d) => d.what === "charge", 900, m);
+    // how fast it closes in: over half-second windows while it is still more than 6 blocks off
+    let best = 0;
+    let prev;
+    for (let t = 0; t < 140; t += 5) {
+      const b = RIFT.getEntities({ type: OBS })[0];
+      if (b && prev && hdist(b.location, p.location) > 6 && hdist(prev, p.location) > 6) best = Math.max(best, (hdist(prev, b.location) * 20) / 5);
+      prev = b ? { ...b.location } : undefined;
+      if (b && hdist(b.location, p.location) <= 6) break;
+      await wait(5);
+    }
+    const hit = await waitEvent("strike", (d) => d.result === "hit", 500, m);
+    await wait(3);
+    dmg.stop();
+    out[lv] = { charged: !!ch, speed: Math.round(best * 10) / 10, hit: !!hit, first: dmg.total };
+    obs("abort");
+    p.teleport(stand, { dimension: ow() });
+    await wait(30);
+  }
+  log(`[OTEST] rift_levels ${JSON.stringify(out)}`);
+  check("rift_levels_both_charge", out[1].charged && out[5].charged && out[1].hit && out[5].hit, JSON.stringify(out));
+  check("rift_levels_faster", out[5].speed >= out[1].speed * 1.35 && out[5].speed >= 8, `${out[1].speed} -> ${out[5].speed}`);
+  check("rift_levels_stronger", out[1].first >= 3 && out[1].first <= 5 && out[5].first >= 11, `${out[1].first} -> ${out[5].first}`);
+  obs("rift", "hunting", "auto");
+  obs("set", "rift", "0");
 };
 
 TESTS.sound_test = async () => {

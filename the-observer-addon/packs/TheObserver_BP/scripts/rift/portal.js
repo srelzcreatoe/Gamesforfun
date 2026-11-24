@@ -26,6 +26,8 @@ export const PORTAL = "observer:rift_portal";
 const EXIT_TAG = "observer_rift_exit";
 const RECORD = "observer:rift_open";
 const RETURN = "observer:rift_return";
+/** Which laying-out of the realm a player went into (back after it was laid out again: to the stones). */
+const GEN = "observer:rift_gen";
 /** How long it stands open (seconds). */
 export const OPEN_FOR = 150;
 /** The Rift setting's average wait between rifts (minutes): never, rarely, sometimes, often, very often, constantly. */
@@ -87,13 +89,35 @@ function light(d, at) {
   }
   return out;
 }
-/** @param {Dimension|undefined} d @param {number[][]} cells */
+/**
+ * Its light taken away. Where that part of the world is not loaded now, the light is taken away the next time it is
+ * (kept with the world). @param {Dimension|undefined} d @param {number[][]} cells
+ */
 function unlight(d, cells) {
-  if (!d) return;
+  if (!d || !cells.length) return;
+  const left = [];
   for (const [x, y, z] of cells) {
+    if (!safe(() => d.isChunkLoaded({ x, y, z }), false)) {
+      left.push([x, y, z]);
+      continue;
+    }
     const b = safe(() => d.getBlock({ x, y, z }));
     if (b && /light_block/.test(b.typeId)) safe(() => b.setType("minecraft:air"));
   }
+  if (left.length) {
+    const w = /** @type {any} */ (W);
+    (w.riftUnlight ??= []).push([d.id, left]);
+    markWorldDirty();
+  }
+}
+/** Light left behind where it shut, taken away once that part of the world is loaded. */
+function unlightLater() {
+  const w = /** @type {any} */ (W);
+  if (!w.riftUnlight?.length) return;
+  const was = w.riftUnlight;
+  w.riftUnlight = [];
+  for (const [id, cells] of was) unlight(dimOf(id), cells);
+  if (w.riftUnlight.length !== was.length || was.some((x, i) => x[1].length !== w.riftUnlight[i]?.[1].length)) markWorldDirty();
 }
 
 // ---------------------------------------------------------------- where it opens
@@ -221,6 +245,7 @@ export function enter(p) {
   back.x += away.x * 2.5;
   back.z += away.z * 2.5;
   safe(() => p.setDynamicProperty(RETURN, JSON.stringify(back)));
+  safe(() => p.setDynamicProperty(GEN, realm.current()?.gen ?? 0));
   realm.holdLanding(true);
   const ok = safe(() => {
     p.teleport(realm.ARRIVE, { dimension: d, facingLocation: { x: realm.ARRIVE.x, y: realm.ARRIVE.y + 1.5, z: realm.ARRIVE.z + 10 } });
@@ -263,6 +288,7 @@ export function leave(p) {
   if (!ok) return false;
   justCrossed.set(p.id, now());
   safe(() => p.setDynamicProperty(RETURN, undefined));
+  safe(() => p.setDynamicProperty(GEN, undefined));
   safe(() => p.camera.fade({ fadeColor: { red: 0.25, green: 0.05, blue: 0.4 }, fadeTime: { fadeInTime: 0, holdTime: 0.3, fadeOutTime: 1.2 } }));
   sky.leave(p);
   hunt.forget(p.id);
@@ -349,6 +375,7 @@ export function tick() {
     if (x) safe(() => x.remove());
     if (!realm.isBuilding()) realm.holdLanding(false);
   }
+  if (Math.floor(t) % 10 === 0) unlightLater();
   if (open && !opening) {
     const e = entityOf();
     if (t >= open.closeAt) close("time");
@@ -421,6 +448,12 @@ world.afterEvents.playerSpawn.subscribe((ev) => {
   system.runTimeout(() => {
     if (!p.isValid) return;
     if (sky.isIn(p)) {
+      // the realm was laid out again while they were away: back to the stones (not inside whatever stands there now)
+      const gen = safe(() => p.getDynamicProperty(GEN));
+      if (gen !== (realm.current()?.gen ?? 0)) {
+        safe(() => p.teleport(realm.ARRIVE, { facingLocation: { x: realm.ARRIVE.x, y: realm.ARRIVE.y + 1, z: realm.ARRIVE.z + 10 } }));
+        safe(() => p.setDynamicProperty(GEN, realm.current()?.gen ?? 0));
+      }
       sky.enter(p);
       hunt.arrived(p);
     } else sky.leave(p);

@@ -13,12 +13,12 @@
 // Each round is one encounter of the director's (rift_hunt: no history, no pacing, no pause for anyone else); this
 // module starts them, one after another, for whoever is in the Rift.
 import { system, GameMode } from "@minecraft/server";
-import { register, start, encounterFor, activeEncounter, byId } from "../director/director.js";
+import { register, start, encounterFor, activeEncounter, byId, control } from "../director/director.js";
 import * as body from "../observer/body.js";
 import * as talk from "../observer/talk.js";
 import { SOUNDS, PARTICLES } from "../core/constants.js";
 import { S } from "../core/settings.js";
-import { V, safe, emit, rand, randInt, chance, allPlayers } from "../core/util.js";
+import { V, safe, emit, rand, randInt, chance, allPlayers, DEBUG } from "../core/util.js";
 import { now } from "../core/state.js";
 import { findSpot, hideSpot, standNear } from "../world/space.js";
 import { relentless, sighting } from "../encounters/common.js";
@@ -305,7 +305,7 @@ register({
 /** Every second: start the next round for whoever in the Rift is due one. */
 export function tick() {
   const def = byId("rift_hunt");
-  if (!def || !S().enabled) return;
+  if (!def || !S().enabled || (control.paused && DEBUG.riftHunt !== "on")) return;
   const t = now();
   const inside = allPlayers().filter((p) => safe(() => p.dimension.id === RIFT_ID, false));
   for (const p of inside) {
