@@ -1220,6 +1220,241 @@
      ]
     }
    }
+  },
+  "controller.animation.basiliskra.v.fx": {
+   "initial_state": "idle",
+   "states": {
+    "idle": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "roar": "(v.phase == 23)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "club_crackle",
+       "locator": "spike_tip_0_v"
+      },
+      {
+       "effect": "club_crackle",
+       "locator": "spike_tip_2_v"
+      }
+     ]
+    },
+    "charge": {
+     "transitions": [
+      {
+       "fire": "(v.phase == 19)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "roar": "(v.phase == 23)"
+      },
+      {
+       "idle": "!(v.phase == 18)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "charge_spark",
+       "locator": "club_core_v"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_0_v"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_2_v"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_4_v"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_6_v"
+      },
+      {
+       "effect": "plate_ember",
+       "locator": "plate_tip_8_v"
+      },
+      {
+       "effect": "throat_glow",
+       "locator": "mouth_v"
+      },
+      {
+       "effect": "charge_gather",
+       "locator": "muzzle_v"
+      }
+     ]
+    },
+    "fire": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "roar": "(v.phase == 23)"
+      },
+      {
+       "idle": "!(v.phase == 19)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "mouth_flare",
+       "locator": "muzzle_v"
+      },
+      {
+       "effect": "mouth_flare",
+       "locator": "mouth_v"
+      },
+      {
+       "effect": "throat_glow",
+       "locator": "throat_v"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_0_v"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_1_v"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_2_v"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_3_v"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_4_v"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_5_v"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_6_v"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_7_v"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_8_v"
+      },
+      {
+       "effect": "plate_blaze",
+       "locator": "plate_tip_9_v"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_1_v"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_4_v"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_7_v"
+      }
+     ]
+    },
+    "vent": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19)"
+      },
+      {
+       "roar": "(v.phase == 23)"
+      },
+      {
+       "idle": "!(v.phase == 20)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "gill_steam",
+       "locator": "gill_l_v"
+      },
+      {
+       "effect": "gill_steam",
+       "locator": "gill_r_v"
+      },
+      {
+       "effect": "mouth_smoke",
+       "locator": "mouth_v"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_0_v"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_3_v"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_6_v"
+      },
+      {
+       "effect": "plate_smoke",
+       "locator": "plate_tip_9_v"
+      }
+     ]
+    },
+    "roar": {
+     "transitions": [
+      {
+       "charge": "(v.phase == 18)"
+      },
+      {
+       "fire": "(v.phase == 19)"
+      },
+      {
+       "vent": "(v.phase == 20)"
+      },
+      {
+       "idle": "!(v.phase == 23)"
+      }
+     ],
+     "particle_effects": [
+      {
+       "effect": "roar_haze",
+       "locator": "mouth_v"
+      },
+      {
+       "effect": "roar_haze",
+       "locator": "muzzle_v"
+      }
+     ]
+    }
+   }
   }
  }
 }

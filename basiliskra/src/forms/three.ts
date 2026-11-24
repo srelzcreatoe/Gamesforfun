@@ -104,6 +104,8 @@ export class BrainThree extends Brain {
     if (this.chargeSounding) { this.chargeSounding = false; stopSound(this.c.dim, "basiliskra.iii.charge", this.c.pos); }
   }
   protected chargeSounding = false;
+  /** His footfall and his grunt (Vathrok, which walks as he does, has its own). */
+  protected voices = { step: "basiliskra.iii.step", grunt: "basiliskra.iii.grunt" };
 
   /** Creatures he could go after (not players): cached, the entity query runs every two seconds at most. */
   protected creatures(): Entity[] {
@@ -248,7 +250,7 @@ export class BrainThree extends Brain {
     const foot = add(c.anchor(FEET[k]), mul(c.forward, STANCE_III / 2));       // it lands half a stance ahead of the hip
     this.beat++;
     this.rec.mut.overland += STRIDE_III / 4;
-    sound(c.dim, "basiliskra.iii.step", foot, 112, 1, 0.86 + (this.beat & 3) * 0.03);
+    sound(c.dim, this.voices.step, foot, 112, 1, 0.86 + (this.beat & 3) * 0.03);
     const ground = { x: foot.x, y: c.pos.y + 0.1, z: foot.z };
     particle(c.dim, "basiliskra:step_dust", ground, 72);
     for (const p of witnesses(c.dim, foot, 40)) {
@@ -456,7 +458,7 @@ export class BrainThree extends Brain {
       c.lookAt(headOf(g), 60, 25);
       this.footfalls();
       if (dist(at, c.pos) < keep + 1) break;
-      if (t % 100 === 50) c.say("basiliskra.iii.grunt", c.anchor("nose"), 72, 1, 0.92 + hash(t) * 0.1);
+      if (t % 100 === 50) c.say(this.voices.grunt, c.anchor("nose"), 72, 1, 0.92 + hash(t) * 0.1);
       yield;
     }
     c.halt();

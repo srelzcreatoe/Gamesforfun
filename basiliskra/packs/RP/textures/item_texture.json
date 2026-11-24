@@ -22,6 +22,15 @@
     },
     "basiliskra_seam_lance": {
       "textures": "textures/items/basiliskra_seam_lance"
+    },
+    "basiliskra_vathrok_scale": {
+      "textures": "textures/items/basiliskra_vathrok_scale"
+    },
+    "basiliskra_vathrok_heart": {
+      "textures": "textures/items/basiliskra_vathrok_heart"
+    },
+    "basiliskra_vathrok_lure": {
+      "textures": "textures/items/basiliskra_vathrok_lure"
     }
   }
 }

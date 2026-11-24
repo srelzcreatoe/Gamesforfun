@@ -1,0 +1,260 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "basiliskra:vathrok_titan",
+   "materials": {
+    "default": "entity_alphatest",
+    "glow": "warden_bioluminescent_layer"
+   },
+   "textures": {
+    "v": "textures/entity/basiliskra/vathrok",
+    "v_glow": "textures/entity/basiliskra/vathrok_glow"
+   },
+   "geometry": {
+    "v": "geometry.basiliskra.v"
+   },
+   "scripts": {
+    "initialize": [
+     "v.dt = 0; v.form = 0; v.phase = 0; v.k1 = 0; v.k2 = 0; v.k3 = 0; v.k4 = 0; v.pt = 0; v.phase_prev = -1; v.left_move = 0; v.ly_t = 0; v.lp_t = 0; v.ly_eye = 0; v.ly_head = 0; v.ly_neck = 0; v.ly_chest = 0; v.lp_head = 0; v.lp_neck = 0; v.eye_lead = 0; v.bend_t = 0; v.bend = 0; v.pitch = 0; v.tsv = 0; v.ts = 0; v.charge = 0; v.flick = 0; v.over = 0; v.spasm = 0; v.kn = 0; v.knock = 0; v.gill_open = 0; v.breath = 0; v.walk = 0; v.gait = 0; v.gt = 0; v.gait_prev = -1; v.gd0 = 0; v.gd4 = 0; v.fx_new = 0; v.fx_prev = 0; v.fx_in = 0; v.fx_flash = 0; v.fx_kind = 0; v.fxp = 0; v.vo_k = 0; v.vo_t = 0; v.vo_d = 0; v.voice = 0; v.vjaw = 0; v.ro_k = 0; v.ro_t = 0; v.roar_env = 0; v.g0 = 0; v.g1 = 0; v.g2 = 0; v.g3 = 0; v.g4 = 0; v.g5 = 0; v.g6 = 0; v.g7 = 0; v.g8 = 0; v.w_ram = 0; v.w_knockp = 0; v.w_rise = 0; v.w_bite = 0; v.w_sweep = 0; v.w_jam = 0; v.w_spasmw = 0; v.w_sleep = 0; v.w_evolve = 0; v.w_drink = 0; v.w_arc = 0; v.w_pin = 0; v.w_chargew = 0; v.w_fire = 0; v.w_vent = 0; v.w_ground = 0; v.w_scatter = 0; v.w_roar = 0; v.w_window = 0; v.w_flinch = 0; v.w_stare = 0; v.w_skid = 0; v.w_pivot = 0; v.w_recoil = 0; v.w_drag = 0; v.w_shut = 0; v.w_fall = 0; v.w_swim = 0; v.w_swipe = 0; v.w_pour = 0; v.w_rear = 0; v.g_ribs = 0; v.g_veins = 0; v.wt = 0; v.dd = 0; v.dprev = 0; v.werr = 0; v.wp = 0; v.p_bl = 0; v.p_fl = 0; v.p_br = 0; v.p_fr = 0; v.kopen = 0; v.sw_side = 0; v.sw_c = 0; v.sp_side = 0; v.sp_wind = 0; v.sp_hit = 0; v.st_wind = 0; v.st_hit = 0; v.fa = 0; v.fa2 = 0; v.by = 0; v.su_fl = 0; v.lx_fl = 0; v.lh_fl = 0; v.ld_fl = 0; v.lg_fl = 0; v.la_fl = 0; v.lk_fl = 0; v.lu_fl = 0; v.ll_fl = 0; v.su_fr = 0; v.lx_fr = 0; v.lh_fr = 0; v.ld_fr = 0; v.lg_fr = 0; v.la_fr = 0; v.lk_fr = 0; v.lu_fr = 0; v.ll_fr = 0; v.su_bl = 0; v.lx_bl = 0; v.lh_bl = 0; v.ld_bl = 0; v.lg_bl = 0; v.la_bl = 0; v.lk_bl = 0; v.lu_bl = 0; v.ll_bl = 0; v.su_br = 0; v.lx_br = 0; v.lh_br = 0; v.ld_br = 0; v.lg_br = 0; v.la_br = 0; v.lk_br = 0; v.lu_br = 0; v.ll_br = 0; v.pose = 0;"
+    ],
+    "pre_animation": [
+     "v.dt = math.min(q.delta_time, 0.1);",
+     "v.form = q.property('basiliskra:form');",
+     "v.phase = q.property('basiliskra:phase');",
+     "v.k1 = math.min(1, v.dt * 14);",
+     "v.k2 = math.min(1, v.dt * 6);",
+     "v.k3 = math.min(1, v.dt * 3);",
+     "v.k4 = math.min(1, v.dt * 1.5);",
+     "v.pt = (v.phase != v.phase_prev) ? 0 : v.pt + v.dt;",
+     "v.left_move = (v.phase_prev == 1 && v.phase != 1) ? 1 : 0;",
+     "v.phase_prev = v.phase;",
+     "v.ly_t = q.property('basiliskra:look_yaw');",
+     "v.lp_t = q.property('basiliskra:look_pitch');",
+     "v.ly_eye = v.ly_eye + (v.ly_t - v.ly_eye) * v.k1;",
+     "v.ly_head = v.ly_head + (v.ly_t - v.ly_head) * v.k2;",
+     "v.ly_neck = v.ly_neck + (v.ly_t - v.ly_neck) * v.k3;",
+     "v.ly_chest = v.ly_chest + (v.ly_t - v.ly_chest) * v.k4;",
+     "v.lp_head = v.lp_head + (v.lp_t - v.lp_head) * v.k2;",
+     "v.lp_neck = v.lp_neck + (v.lp_t - v.lp_neck) * v.k3;",
+     "v.eye_lead = math.clamp((v.ly_eye - v.ly_head) * 0.05, -0.9, 0.9);",
+     "v.bend_t = q.property('basiliskra:bend');",
+     "v.bend = v.bend + (v.bend_t - v.bend) * v.k3;",
+     "v.pitch = v.pitch + (q.property('basiliskra:pitch') - v.pitch) * v.k3;",
+     "v.tsv = v.tsv + ((v.bend_t - v.ts) * 55 - v.tsv * 4.6) * v.dt + v.left_move * 26;",
+     "v.ts = math.clamp(v.ts + v.tsv * v.dt, -40, 40);",
+     "v.charge = v.charge + (q.property('basiliskra:charge') - v.charge) * math.min(1, v.dt * 12);",
+     "v.flick = 0.86 + 0.14 * math.sin(q.life_time * 1900) * math.cos(q.life_time * 523);",
+     "v.over = math.clamp(v.charge - 18, 0, 2) * 0.5;",
+     "v.spasm = (v.phase == 9 || v.phase == 12 || v.phase == 13) ? 1 : 0;",
+     "v.kn = (v.pt < 2.6) ? math.clamp(1 - math.abs(math.mod(v.pt, 0.9) - 0.08) * 9, 0, 1) : 0;",
+     "v.knock = (v.phase == 4 || v.phase == 11 || v.phase == 20) ? v.kn : 0;",
+     "v.gill_open = q.property('basiliskra:gill') ? 1 : 0;",
+     "v.breath = math.sin(q.life_time * 72);",
+     "v.walk = v.walk + (((v.phase == 1 || v.phase == 24 || v.phase == 25 || v.phase == 28 || v.phase == 35) ? 1 : 0) - v.walk) * v.k3;",
+     "v.gait = q.property('basiliskra:gait');",
+     "v.gt = (v.gait != v.gait_prev) ? 0 : v.gt + v.dt;",
+     "v.gd0 = (v.gait != v.gait_prev) ? q.modified_distance_moved - math.clamp(q.modified_distance_moved - v.gd0 - 2.975, 0, 1.4875) : v.gd0;",
+     "v.gd4 = (v.gait != v.gait_prev) ? q.modified_distance_moved - math.clamp(q.modified_distance_moved - v.gd4 - 7.0, 0, 3.5) : v.gd4;",
+     "v.gait_prev = v.gait;",
+     "v.fx_new = (q.property('basiliskra:fx_seq') != v.fx_prev) ? 1 : 0;",
+     "v.fx_in = q.property('basiliskra:fx_kind');",
+     "v.fx_flash = (v.fx_new && (v.fx_in <= 3 || v.fx_in == 11)) ? 1 : 0;",
+     "v.fx_kind = v.fx_flash ? v.fx_in : v.fx_kind;",
+     "v.fxp = v.fx_flash ? 1 : math.max(0, v.fxp - v.dt * ((v.fx_kind == 11) ? 1.6 : 3.2));",
+     "v.fx_prev = q.property('basiliskra:fx_seq');",
+     "v.vo_k = (v.fx_new && v.fx_in >= 4 && v.fx_in <= 7) ? v.fx_in : v.vo_k;",
+     "v.vo_t = (v.fx_new && v.fx_in >= 4 && v.fx_in <= 7) ? 0 : v.vo_t + v.dt;",
+     "v.vo_d = (v.vo_k == 4 ? 1.9 : (v.vo_k == 5 ? 3.3 : (v.vo_k == 6 ? 1.3 : 1.4))) * (v.form == 1 ? 1.11 : (v.form == 2 ? 0.87 : 1.04));",
+     "v.voice = (v.vo_k > 0 && v.vo_t < v.vo_d) ? math.clamp(v.vo_t * 7, 0, 1) * math.clamp((v.vo_d - v.vo_t) * 4, 0, 1) : 0;",
+     "v.vjaw = v.voice * (v.vo_k == 4 ? 11 : (v.vo_k == 5 ? 15 : (v.vo_k == 6 ? 5 : 17))) * (1 + 0.12 * math.sin(q.life_time * 2300));",
+     "v.ro_k = (v.fx_new && v.fx_in >= 8 && v.fx_in <= 10) ? v.fx_in : v.ro_k;",
+     "v.ro_t = (v.fx_new && v.fx_in >= 8 && v.fx_in <= 10) ? 0 : v.ro_t + v.dt * (v.form == 2 ? 1.18 : 1);",
+     "v.roar_env = (v.ro_k == 0 || v.ro_t > 10.3) ? 0 : (v.ro_k == 8 ? (0.53 * math.clamp((v.ro_t - 0.0) * 20.0, 0, 1) + 0.24 * math.clamp((v.ro_t - 0.05) * 1.667, 0, 1) + 0.03 * math.clamp((v.ro_t - 0.65) * 1.25, 0, 1) + 0.2 * math.clamp((v.ro_t - 1.45) * 3.333, 0, 1) + -0.25 * math.clamp((v.ro_t - 1.75) * 0.625, 0, 1) + 0.05 * math.clamp((v.ro_t - 3.35) * 5.0, 0, 1) + 0.2 * math.clamp((v.ro_t - 3.55) * 5.0, 0, 1) + -0.19 * math.clamp((v.ro_t - 3.75) * 2.5, 0, 1) + 0.11 * math.clamp((v.ro_t - 4.15) * 1.667, 0, 1) + -0.17 * math.clamp((v.ro_t - 4.75) * 3.333, 0, 1) + -0.13 * math.clamp((v.ro_t - 5.05) * 0.714, 0, 1) + -0.18 * math.clamp((v.ro_t - 6.45) * 2.0, 0, 1) + -0.28 * math.clamp((v.ro_t - 6.95) * 2.5, 0, 1) + -0.16 * math.clamp((v.ro_t - 7.35) * 0.909, 0, 1)) : (v.ro_k == 9 ? (0.38 * math.clamp((v.ro_t - 0.0) * 6.667, 0, 1) + 0.41 * math.clamp((v.ro_t - 0.15) * 10.0, 0, 1) + 0.21 * math.clamp((v.ro_t - 0.25) * 10.0, 0, 1) + -0.23 * math.clamp((v.ro_t - 0.35) * 0.588, 0, 1) + -0.22 * math.clamp((v.ro_t - 2.05) * 2.0, 0, 1) + -0.35 * math.clamp((v.ro_t - 2.55) * 2.5, 0, 1) + -0.2 * math.clamp((v.ro_t - 2.95) * 1.429, 0, 1)) : (0.44 * math.clamp((v.ro_t - 0.0) * 20.0, 0, 1) + 0.07 * math.clamp((v.ro_t - 0.05) * 10.0, 0, 1) + 0.15 * math.clamp((v.ro_t - 0.15) * 1.667, 0, 1) + -0.01 * math.clamp((v.ro_t - 0.75) * 1.667, 0, 1) + 0.35 * math.clamp((v.ro_t - 1.35) * 2.5, 0, 1) + -0.19 * math.clamp((v.ro_t - 1.75) * 3.333, 0, 1) + -0.07 * math.clamp((v.ro_t - 2.05) * 2.0, 0, 1) + 0.13 * math.clamp((v.ro_t - 2.55) * 5.0, 0, 1) + -0.16 * math.clamp((v.ro_t - 2.75) * 2.0, 0, 1) + 0.05 * math.clamp((v.ro_t - 3.25) * 3.333, 0, 1) + 0.24 * math.clamp((v.ro_t - 3.55) * 5.0, 0, 1) + -0.21 * math.clamp((v.ro_t - 3.75) * 2.5, 0, 1) + 0.12 * math.clamp((v.ro_t - 4.15) * 1.667, 0, 1) + -0.19 * math.clamp((v.ro_t - 4.75) * 3.333, 0, 1) + -0.09 * math.clamp((v.ro_t - 5.05) * 2.0, 0, 1) + -0.02 * math.clamp((v.ro_t - 5.55) * 1.111, 0, 1) + -0.61 * math.clamp((v.ro_t - 6.45) * 1.111, 0, 1))));",
+     "v.g0 = math.clamp((math.clamp(v.charge * 0.5 - 0, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 8 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0.9 : (v.fx_kind == 11 ? 0 : 0.4))), 0, 1);",
+     "v.g1 = math.clamp((math.clamp(v.charge * 0.5 - 1, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 7 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0.9 : (v.fx_kind == 11 ? 0 : 0.4))), 0, 1);",
+     "v.g2 = math.clamp((math.clamp(v.charge * 0.5 - 2, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 6 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0 : (v.fx_kind == 11 ? 0 : 0.4))), 0, 1);",
+     "v.g3 = math.clamp((math.clamp(v.charge * 0.5 - 3, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 5 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0 : (v.fx_kind == 11 ? 0 : 0.4))), 0, 1);",
+     "v.g4 = math.clamp((math.clamp(v.charge * 0.5 - 4, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 4 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0 : (v.fx_kind == 11 ? 0 : 0.4))), 0, 1);",
+     "v.g5 = math.clamp((math.clamp(v.charge * 0.5 - 5, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 3 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0 : (v.fx_kind == 11 ? 0 : 0.4))), 0, 1);",
+     "v.g6 = math.clamp((math.clamp(v.charge * 0.5 - 6, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 2 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0 : (v.fx_kind == 11 ? 1 : 0.4))), 0, 1);",
+     "v.g7 = math.clamp((math.clamp(v.charge * 0.5 - 7, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 1 * 0.42 - 0.3) * 1.5, 0, 1) + v.knock + v.fxp * (v.fx_kind == 1 ? 1 : (v.fx_kind == 2 ? 0 : (v.fx_kind == 11 ? 1 : 0.4))), 0, 1);",
+     "v.g8 = math.clamp((math.clamp(v.charge * 0.5 - 8, 0, 1) + v.over * 0.25) * v.flick + 0.55 * v.spasm * math.clamp(1 - math.abs(v.pt * 2.2 - 0 * 0.42 - 0.3) * 1.5, 0, 1) + v.fxp * (v.fx_kind == 1 ? 0 : (v.fx_kind == 2 ? 0 : (v.fx_kind == 11 ? 0 : 0.4))), 0, 1);",
+     "v.w_ram = v.w_ram + (((v.phase == 3) ? 1 : 0) - v.w_ram) * v.k2;",
+     "v.w_knockp = v.w_knockp + (((v.phase == 4 || v.phase == 11) ? 1 : 0) - v.w_knockp) * v.k2;",
+     "v.w_rise = v.w_rise + (((v.phase == 5) ? 1 : 0) - v.w_rise) * v.k2;",
+     "v.w_bite = v.w_bite + (((v.phase == 6) ? 1 : 0) - v.w_bite) * v.k2;",
+     "v.w_sweep = v.w_sweep + (((v.phase == 7) ? 1 : 0) - v.w_sweep) * v.k2;",
+     "v.w_jam = v.w_jam + (((v.phase == 8) ? 1 : 0) - v.w_jam) * v.k2;",
+     "v.w_spasmw = v.w_spasmw + (((v.phase == 9) ? 1 : 0) - v.w_spasmw) * v.k2;",
+     "v.w_sleep = v.w_sleep + (((v.phase == 10) ? 1 : 0) - v.w_sleep) * v.k2;",
+     "v.w_evolve = v.w_evolve + (((v.phase == 12 || v.phase == 13) ? 1 : 0) - v.w_evolve) * v.k2;",
+     "v.w_drink = v.w_drink + (((v.phase == 14) ? 1 : 0) - v.w_drink) * v.k2;",
+     "v.w_arc = v.w_arc + (((v.phase == 15) ? 1 : 0) - v.w_arc) * v.k2;",
+     "v.w_pin = v.w_pin + (((v.phase == 16) ? 1 : 0) - v.w_pin) * v.k2;",
+     "v.w_chargew = v.w_chargew + (((v.phase == 18 || v.phase == 19 || v.phase == 30 || v.phase == 31 || v.phase == 39 || v.phase == 40) ? 1 : 0) - v.w_chargew) * v.k2;",
+     "v.w_fire = v.w_fire + (((v.phase == 19 || v.phase == 30 || v.phase == 31) ? 1 : 0) - v.w_fire) * v.k2;",
+     "v.w_vent = v.w_vent + (((v.phase == 20) ? 1 : 0) - v.w_vent) * v.k2;",
+     "v.w_ground = v.w_ground + (((v.phase == 21) ? 1 : 0) - v.w_ground) * v.k2;",
+     "v.w_scatter = v.w_scatter + (((v.phase == 22) ? 1 : 0) - v.w_scatter) * v.k2;",
+     "v.w_roar = v.w_roar + (((v.phase == 23) ? 1 : 0) - v.w_roar) * v.k2;",
+     "v.w_window = v.w_window + (((v.phase == 27 || v.phase == 28) ? 1 : 0) - v.w_window) * v.k4;",
+     "v.w_flinch = v.w_flinch + (((v.phase == 26) ? 1 : 0) - v.w_flinch) * v.k2;",
+     "v.w_stare = v.w_stare + (((v.phase == 29) ? 1 : 0) - v.w_stare) * v.k2;",
+     "v.w_skid = v.w_skid + (((v.phase == 30 || v.phase == 31) ? 1 : 0) - v.w_skid) * v.k2;",
+     "v.w_pivot = v.w_pivot + (((v.phase == 31) ? 1 : 0) - v.w_pivot) * v.k2;",
+     "v.w_recoil = v.w_recoil + (((v.phase == 32) ? 1 : 0) - v.w_recoil) * v.k2;",
+     "v.w_drag = v.w_drag + (((v.phase == 33) ? 1 : 0) - v.w_drag) * v.k2;",
+     "v.w_shut = v.w_shut + (((v.phase == 34 || v.phase == 35) ? 1 : 0) - v.w_shut) * v.k2;",
+     "v.w_fall = v.w_fall + (((v.phase == 36) ? 1 : 0) - v.w_fall) * v.k2;",
+     "v.w_swim = v.w_swim + (((v.phase == 37) ? 1 : 0) - v.w_swim) * v.k2;",
+     "v.w_swipe = v.w_swipe + (((v.phase == 38) ? 1 : 0) - v.w_swipe) * v.k2;",
+     "v.w_pour = v.w_pour + (((v.phase == 39) ? 1 : 0) - v.w_pour) * v.k2;",
+     "v.w_rear = v.w_rear + (((v.phase == 40) ? 1 : 0) - v.w_rear) * v.k2;",
+     "v.g_ribs = math.clamp(v.g5 + 0.95 * v.w_shut * (0.75 + 0.25 * math.sin(q.life_time * 400)), 0, 1);",
+     "v.g_veins = math.clamp(v.g5 * 0.6 + v.w_recoil * (0.7 + 0.3 * math.sin(q.life_time * 2600)), 0, 1);",
+     "v.wt = (v.gait + math.clamp((q.modified_distance_moved - v.gd0) / 2.975, 0, 1.15)) * 90;",
+     "v.dd = math.clamp(q.modified_distance_moved - v.dprev, 0, 0.6);",
+     "v.dprev = q.modified_distance_moved;",
+     "v.werr = math.mod(math.mod(v.wt - v.wp, 360) + 540, 360) - 180;",
+     "v.wp = math.mod(v.wp + v.dd * 30.2521 + math.clamp(v.werr, -40 * v.dt, 40 * v.dt) * math.clamp(v.dd / (v.dt + 0.0001) / 0.8, 0, 1) + 360, 360);",
+     "v.p_bl = math.mod(v.wp, 360) / 360;",
+     "v.p_fl = math.mod(v.wp + 270, 360) / 360;",
+     "v.p_br = math.mod(v.wp + 180, 360) / 360;",
+     "v.p_fr = math.mod(v.wp + 90, 360) / 360;",
+     "v.kopen = v.w_vent;",
+     "v.sw_side = (v.pt < 0.15) ? ((q.property('basiliskra:look_yaw') >= 0) ? 1 : -1) : v.sw_side;",
+     "v.sw_c = (v.pt < 0.5 ? math.lerp(0, -0.45, (v.pt - 0) / 0.5) : (v.pt < 0.72 ? math.lerp(-0.45, 1, (v.pt - 0.5) / 0.21999999999999997) : (v.pt < 1.15 ? 1 : (v.pt < 1.65 ? math.lerp(1, 0, (v.pt - 1.15) / 0.5) : 0))));",
+     "v.sp_side = (v.pt < 0.12) ? ((q.property('basiliskra:look_yaw') >= 0) ? 1 : -1) : v.sp_side;",
+     "v.sp_wind = (v.pt < 0.42 ? math.lerp(0, 1, (v.pt - 0) / 0.42) : (v.pt < 0.52 ? math.lerp(1, 0.7, (v.pt - 0.42) / 0.10000000000000003) : (v.pt < 0.62 ? math.lerp(0.7, 0, (v.pt - 0.52) / 0.09999999999999998) : 0)));",
+     "v.sp_hit = (v.pt < 0.62 ? math.lerp(0, 1, (v.pt - 0.42) / 0.2) : (v.pt < 0.85 ? math.lerp(1, 0.85, (v.pt - 0.62) / 0.22999999999999998) : (v.pt < 1.25 ? math.lerp(0.85, 0, (v.pt - 0.85) / 0.4) : 0)));",
+     "v.st_wind = (v.pt < 0.32 ? math.lerp(0, 1, (v.pt - 0) / 0.32) : (v.pt < 0.46 ? math.lerp(1, 0, (v.pt - 0.32) / 0.14) : 0));",
+     "v.st_hit = (v.pt < 0.46 ? math.lerp(0, 1, (v.pt - 0.32) / 0.14) : (v.pt < 0.72 ? 1 : (v.pt < 1.15 ? math.lerp(1, 0, (v.pt - 0.72) / 0.42999999999999994) : 0)));",
+     "v.fa = math.clamp(v.pt / 2.2, 0, 1);",
+     "v.fa2 = v.w_fall * v.fa * v.fa * (3 - 2 * v.fa);",
+     "v.by = -9.0 + 1.4 * v.breath * (1 - v.walk) - 1.3 * v.walk * math.abs(math.sin(v.wp * 2)) - 6 * v.w_chargew - 5 * v.w_bite * v.st_wind - 70 * v.fa2 + 10 * v.w_swipe * v.sp_wind;",
+     "v.su_fl = (v.p_fl > 0.75) ? (v.p_fl - 0.75) / 0.25 : 0;",
+     "v.lx_fl = (v.p_fl < 0.75) ? 7.179 + 84.0 * (0.5 - v.p_fl / 0.75) : -34.821 + 84.0 * v.su_fl * v.su_fl * (3 - 2 * v.su_fl);",
+     "v.lh_fl = 157.666 + v.by - 16.0 * math.sin(180 * v.su_fl) * v.walk;",
+     "v.ld_fl = math.min(math.sqrt(v.lx_fl * v.lx_fl + v.lh_fl * v.lh_fl), 161.5);",
+     "v.lg_fl = math.atan2(v.lx_fl, v.lh_fl);",
+     "v.la_fl = math.acos(math.clamp((972.0 + v.ld_fl * v.ld_fl) / (168.0 * v.ld_fl), -1, 1));",
+     "v.lk_fl = math.acos(math.clamp((13140.0 - v.ld_fl * v.ld_fl) / 13104.0, -1, 1));",
+     "v.lu_fl = v.lg_fl - v.la_fl;",
+     "v.ll_fl = v.lu_fl + 180 - v.lk_fl;",
+     "v.su_fr = (v.p_fr > 0.75) ? (v.p_fr - 0.75) / 0.25 : 0;",
+     "v.lx_fr = (v.p_fr < 0.75) ? 7.179 + 84.0 * (0.5 - v.p_fr / 0.75) : -34.821 + 84.0 * v.su_fr * v.su_fr * (3 - 2 * v.su_fr);",
+     "v.lh_fr = 157.666 + v.by - 16.0 * math.sin(180 * v.su_fr) * v.walk;",
+     "v.ld_fr = math.min(math.sqrt(v.lx_fr * v.lx_fr + v.lh_fr * v.lh_fr), 161.5);",
+     "v.lg_fr = math.atan2(v.lx_fr, v.lh_fr);",
+     "v.la_fr = math.acos(math.clamp((972.0 + v.ld_fr * v.ld_fr) / (168.0 * v.ld_fr), -1, 1));",
+     "v.lk_fr = math.acos(math.clamp((13140.0 - v.ld_fr * v.ld_fr) / 13104.0, -1, 1));",
+     "v.lu_fr = v.lg_fr - v.la_fr;",
+     "v.ll_fr = v.lu_fr + 180 - v.lk_fr;",
+     "v.su_bl = (v.p_bl > 0.75) ? (v.p_bl - 0.75) / 0.25 : 0;",
+     "v.lx_bl = (v.p_bl < 0.75) ? 6.122 + 84.0 * (0.5 - v.p_bl / 0.75) : -35.878 + 84.0 * v.su_bl * v.su_bl * (3 - 2 * v.su_bl);",
+     "v.lh_bl = 88.226 + v.by - 16.0 * math.sin(180 * v.su_bl) * v.walk;",
+     "v.ld_bl = math.min(math.sqrt(v.lx_bl * v.lx_bl + v.lh_bl * v.lh_bl), 95.5);",
+     "v.lg_bl = math.atan2(v.lx_bl, v.lh_bl);",
+     "v.la_bl = math.acos(math.clamp((384.0 + v.ld_bl * v.ld_bl) / (100.0 * v.ld_bl), -1, 1));",
+     "v.lk_bl = math.acos(math.clamp((4616.0 - v.ld_bl * v.ld_bl) / 4600.0, -1, 1));",
+     "v.lu_bl = v.lg_bl + v.la_bl;",
+     "v.ll_bl = v.lu_bl - 180 + v.lk_bl;",
+     "v.su_br = (v.p_br > 0.75) ? (v.p_br - 0.75) / 0.25 : 0;",
+     "v.lx_br = (v.p_br < 0.75) ? 6.122 + 84.0 * (0.5 - v.p_br / 0.75) : -35.878 + 84.0 * v.su_br * v.su_br * (3 - 2 * v.su_br);",
+     "v.lh_br = 88.226 + v.by - 16.0 * math.sin(180 * v.su_br) * v.walk;",
+     "v.ld_br = math.min(math.sqrt(v.lx_br * v.lx_br + v.lh_br * v.lh_br), 95.5);",
+     "v.lg_br = math.atan2(v.lx_br, v.lh_br);",
+     "v.la_br = math.acos(math.clamp((384.0 + v.ld_br * v.ld_br) / (100.0 * v.ld_br), -1, 1));",
+     "v.lk_br = math.acos(math.clamp((4616.0 - v.ld_br * v.ld_br) / 4600.0, -1, 1));",
+     "v.lu_br = v.lg_br + v.la_br;",
+     "v.ll_br = v.lu_br - 180 + v.lk_br;",
+     "v.g0 = math.max(v.g0, (0.22 + 0.08 * math.sin(q.life_time * 70 + 0))) * (1 - v.fa2);",
+     "v.g1 = math.max(v.g1, (0.22 + 0.08 * math.sin(q.life_time * 70 + 40))) * (1 - v.fa2);",
+     "v.g2 = math.max(v.g2, (0.22 + 0.08 * math.sin(q.life_time * 70 + 80))) * (1 - v.fa2);",
+     "v.g3 = math.max(v.g3, (0.22 + 0.08 * math.sin(q.life_time * 70 + 120))) * (1 - v.fa2);",
+     "v.g4 = math.max(v.g4, (0.22 + 0.08 * math.sin(q.life_time * 70 + 160))) * (1 - v.fa2);",
+     "v.g5 = math.max(v.g5, (0.22 + 0.08 * math.sin(q.life_time * 70 + 200))) * (1 - v.fa2);",
+     "v.g6 = math.max(v.g6, (0.22 + 0.08 * math.sin(q.life_time * 70 + 240))) * (1 - v.fa2);",
+     "v.g7 = math.max(v.g7, (0.22 + 0.08 * math.sin(q.life_time * 70 + 280))) * (1 - v.fa2);",
+     "v.g8 = math.max(v.g8, (0.22 + 0.08 * math.sin(q.life_time * 70 + 320))) * (1 - v.fa2);",
+     "v.g0 = math.max(v.g0, 0.5 * (1 - v.fa2));",
+     "v.g1 = math.max(v.g1, 0.5 * (1 - v.fa2));",
+     "v.g2 = math.max(v.g2, 0.5 * (1 - v.fa2));",
+     "v.g3 = math.max(v.g3, 0.5 * (1 - v.fa2));",
+     "v.g4 = math.max(v.g4, 0.5 * (1 - v.fa2));",
+     "v.g5 = math.max(v.g5, 0.5 * (1 - v.fa2));",
+     "v.g6 = math.max(v.g6, 0.5 * (1 - v.fa2));",
+     "v.g7 = math.max(v.g7, 0.5 * (1 - v.fa2));",
+     "v.g8 = math.max(v.g8, 0.5 * (1 - v.fa2));"
+    ],
+    "animate": [
+     {
+      "pose_v": "1"
+     },
+     {
+      "fx_v": "q.property('basiliskra:bound')"
+     }
+    ],
+    "scale": "1.955",
+    "should_update_bones_and_effects_offscreen": "1.0",
+    "should_update_effects_offscreen": "1.0"
+   },
+   "animations": {
+    "pose_v": "animation.basiliskra.v.pose",
+    "fx_v": "controller.animation.basiliskra.v.fx"
+   },
+   "particle_effects": {
+    "charge_spark": "basiliskra:v_charge_spark",
+    "plate_ember": "basiliskra:v_plate_ember",
+    "throat_glow": "basiliskra:v_throat_glow",
+    "mouth_flare": "basiliskra:v_mouth_flare",
+    "gill_steam": "basiliskra:v_gill_steam",
+    "club_crackle": "basiliskra:v_club_crackle",
+    "plate_blaze": "basiliskra:v_plate_blaze",
+    "plate_smoke": "basiliskra:v_plate_smoke",
+    "mouth_smoke": "basiliskra:v_mouth_smoke",
+    "roar_haze": "basiliskra:v_roar_haze",
+    "charge_gather": "basiliskra:v_charge_gather"
+   },
+   "render_controllers": [
+    {
+     "controller.render.basiliskra.v.base": "v.form == 5"
+    },
+    {
+     "controller.render.basiliskra.v.glow0": "q.property('basiliskra:bound') && v.form == 5 && v.g0 > 0.01 && 0 >= q.property('basiliskra:vis_lo') && 0 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.v.glow1": "q.property('basiliskra:bound') && v.form == 5 && v.g1 > 0.01 && 1 >= q.property('basiliskra:vis_lo') && 1 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.v.glow2": "q.property('basiliskra:bound') && v.form == 5 && v.g2 > 0.01 && 2 >= q.property('basiliskra:vis_lo') && 2 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.v.glow3": "q.property('basiliskra:bound') && v.form == 5 && v.g3 > 0.01 && 3 >= q.property('basiliskra:vis_lo') && 3 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.v.glow4": "q.property('basiliskra:bound') && v.form == 5 && v.g4 > 0.01 && 4 >= q.property('basiliskra:vis_lo') && 4 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.v.glow5": "q.property('basiliskra:bound') && v.form == 5 && v.g5 > 0.01 && 5 >= q.property('basiliskra:vis_lo') && 5 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.v.glow6": "q.property('basiliskra:bound') && v.form == 5 && v.g6 > 0.01 && 6 >= q.property('basiliskra:vis_lo') && 6 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.v.glow7": "q.property('basiliskra:bound') && v.form == 5 && v.g7 > 0.01 && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "controller.render.basiliskra.v.glow8": "q.property('basiliskra:bound') && v.form == 5 && v.g8 > 0.01 && 8 >= q.property('basiliskra:vis_lo') && 8 <= q.property('basiliskra:vis_hi')"
+    }
+   ],
+   "enable_attachables": false,
+   "hide_armor": true,
+   "spawn_egg": {
+    "base_color": "#1b211d",
+    "overlay_color": "#d8f25a"
+   }
+  }
+ }
+}

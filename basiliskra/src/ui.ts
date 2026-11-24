@@ -16,6 +16,7 @@ import { store } from "./store";
 import type { V3 } from "./vec";
 import { NONE, UNLOADED, groundY, overworld } from "./world";
 import { TITAN_MAX, titans } from "./titan";
+import { VATHROK_MAX, vathroks } from "./vathrok";
 
 const ROMAN = ["", "I", "II", "III", "IV"];
 const FALLOUT = ["off", "visual", "land"] as const;
@@ -200,7 +201,7 @@ export async function openJournal(p: Player, ctl: Controller): Promise<void> {
 export function placeFor(p: Player, form: number): { at: V3; yaw: number } {
   const v = p.getViewDirection();
   const n = Math.hypot(v.x, v.z) || 1;
-  const d = [0, 15, 24, 46, 52][form] ?? 30;            // his head reaches this far in front of his middle (II and III are drawn larger)
+  const d = [0, 15, 24, 46, 52, 56][form] ?? 30;            // (5: Vathrok)            // his head reaches this far in front of his middle (II and III are drawn larger)
   const pl = p.location;
   const pos = { x: pl.x + (v.x / n) * d, y: pl.y, z: pl.z + (v.z / n) * d };
   // the ground there, however high above it the caller is (flying): searched all the way down
@@ -272,12 +273,14 @@ async function settingsForm(p: Player): Promise<void> {
     .dropdown("Minutes in each form before he changes (time is all it takes)", MINUTES.map((m) => (m ? `${m} minutes` : "The story's timing: 40, 40, 60 (at story speed 1)")),
       { defaultValueIndex: Math.max(0, MINUTES.indexOf(CONFIG.changeMinutes)) })
     .toggle("Cities rise on coasts as you explore (never over anything built)", { defaultValue: CONFIG.cities })
+    .toggle("Vathrok in survival (comes up at night now and then, and to its lure; can be beaten)", { defaultValue: CONFIG.vathrok })
+    .toggle("The Vathrok Titan for battles (its egg, the command, the wheel)", { defaultValue: CONFIG.vathrokTitan })
     .toggle("§cRestore every default", { defaultValue: false })
     .submitButton("Save");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || !r.formValues) return;
   const v = r.formValues;
-  if (v[20] === true) { resetSettings(); p.sendMessage("§7[Basiliskra] Settings restored to the defaults."); return; }
+  if (v[22] === true) { resetSettings(); p.sendMessage("§7[Basiliskra] Settings restored to the defaults."); return; }
   const pacing = pickNumber(SPEEDS, v[0], v[1], CONFIG.pacing, 0.25, 4);
   const damage = pickNumber(DAMAGES, v[5], v[6], CONFIG.damage, 0, 4);
   const bad = typedBad(v[1], 0.25, 4) || typedBad(v[6], 0, 4);
@@ -286,6 +289,7 @@ async function settingsForm(p: Player): Promise<void> {
     harmlessOnPeaceful: v[7] === true, huntMobs: v[8] === true, allowSummon: v[9] === true, spawnForm: (Number(v[10]) as 0 | 1 | 2 | 3 | 4),
     giveJournal: v[11] === true, giveWheel: v[12] === true, debug: v[13] === true, fallout: FALLOUT[Number(v[14])] ?? "land", sickness: v[15] === true,
     cutscenes: v[16] === true, music: v[17] === true, changeMinutes: MINUTES[Number(v[18])] ?? 0, cities: v[19] === true,
+    vathrok: v[20] === true, vathrokTitan: v[21] === true,
   });
   p.sendMessage(`§7[Basiliskra] Settings saved with this world. Story speed §fx${CONFIG.pacing}§7, damage §fx${CONFIG.damage}§7.`);
   if (bad) p.sendMessage("§7[Basiliskra] A number you typed was not in range, so the choice above it was used.");
@@ -326,7 +330,10 @@ export async function openWheel(p: Player, ctl: Controller): Promise<void> {
     .button("§cReset the story")
     .button("Raise a city here (a beach, and a very deep sea)")
     .button(`Put a Titan here (for battles: ${titans.count} of ${TITAN_MAX})`)
-    .button("Remove the Titans");
+    .button("Remove the Titans")
+    .button(`Put a Vathrok Titan here (for battles: ${vathroks.count(true)} of ${VATHROK_MAX.battle})`)
+    .button("Call Vathrok (the one met in survival)")
+    .button("Remove every Vathrok");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled) return;
   switch (r.selection) {
@@ -337,6 +344,12 @@ export async function openWheel(p: Player, ctl: Controller): Promise<void> {
       break;
     }
     case 10: p.sendMessage(`§7[Basiliskra] ${titans.clear()} Titan(s) removed.`); break;
+    case 11: case 12: {
+      const place = placeFor(p, 5);
+      p.sendMessage(`§7[Basiliskra] ${vathroks.spawn(p.dimension, place.at, place.yaw, r.selection === 11)}`);
+      break;
+    }
+    case 13: p.sendMessage(`§7[Basiliskra] ${vathroks.clear()} Vathrok(s) removed.`); break;
     case 0: await settingsForm(p); break;
     case 1: {
       if (p.dimension.id !== OVERWORLD) { p.sendMessage("§7[Basiliskra] He only lives in the Overworld."); break; }

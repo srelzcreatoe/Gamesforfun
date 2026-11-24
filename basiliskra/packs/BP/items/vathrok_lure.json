@@ -1,0 +1,26 @@
+{
+  "format_version": "1.26.30",
+  "minecraft:item": {
+    "description": {
+      "identifier": "basiliskra:vathrok_lure",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:display_name": {
+        "value": "item.basiliskra:vathrok_lure.name"
+      },
+      "minecraft:icon": {
+        "textures": {
+          "default": "basiliskra_vathrok_lure"
+        }
+      },
+      "minecraft:max_stack_size": 16,
+      "minecraft:use_modifiers": {
+        "use_duration": 1.6,
+        "movement_modifier": 0.35
+      }
+    }
+  }
+}

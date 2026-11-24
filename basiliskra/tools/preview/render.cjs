@@ -36,10 +36,12 @@ async function open() {
   return { srv, browser, page, close: async () => { await browser.close(); srv.close(); } };
 }
 
+// (Vathrok, 2.0, is the form-five model under its own name)
+const FILE_NAME = (f) => (f === 'v' ? 'vathrok' : `basiliskra_${f}`);
 const FORM_FILES = (f) => ({
-  geo: `/packs/RP/models/entity/basiliskra_${f}.geo.json`,
-  tex: `/packs/RP/textures/entity/basiliskra/basiliskra_${f}.png`,
-  glow: `/packs/RP/textures/entity/basiliskra/basiliskra_${f}_glow.png`,
+  geo: `/packs/RP/models/entity/${FILE_NAME(f)}.geo.json`,
+  tex: `/packs/RP/textures/entity/basiliskra/${FILE_NAME(f)}.png`,
+  glow: `/packs/RP/textures/entity/basiliskra/${FILE_NAME(f)}_glow.png`,
 });
 
 function arg(args, name, def) {

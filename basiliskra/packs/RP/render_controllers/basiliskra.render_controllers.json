@@ -2211,6 +2211,577 @@
     "a": "v.g8"
    }
   },
+  "controller.render.basiliskra.v.base": {
+   "geometry": "Geometry.v",
+   "materials": [
+    {
+     "*": "Material.default"
+    }
+   ],
+   "textures": [
+    "Texture.v"
+   ],
+   "part_visibility": [
+    {
+     "*": "q.property('basiliskra:bound')"
+    },
+    {
+     "body": "q.property('basiliskra:bound') && 4 >= q.property('basiliskra:vis_lo') && 4 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "chest": "q.property('basiliskra:bound') && 5 >= q.property('basiliskra:vis_lo') && 5 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_chest": "q.property('basiliskra:bound') && 5 >= q.property('basiliskra:vis_lo') && 5 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_mid": "q.property('basiliskra:bound') && 4 >= q.property('basiliskra:vis_lo') && 4 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "hips": "q.property('basiliskra:bound') && 3 >= q.property('basiliskra:vis_lo') && 3 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_hips": "q.property('basiliskra:bound') && 3 >= q.property('basiliskra:vis_lo') && 3 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "neck1": "q.property('basiliskra:bound') && 6 >= q.property('basiliskra:vis_lo') && 6 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_neck1": "q.property('basiliskra:bound') && 6 >= q.property('basiliskra:vis_lo') && 6 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "neck2": "q.property('basiliskra:bound') && 6 >= q.property('basiliskra:vis_lo') && 6 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_neck2": "q.property('basiliskra:bound') && 6 >= q.property('basiliskra:vis_lo') && 6 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "neck3": "q.property('basiliskra:bound') && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_neck3": "q.property('basiliskra:bound') && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "neck4": "q.property('basiliskra:bound') && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_neck4": "q.property('basiliskra:bound') && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "neck5": "q.property('basiliskra:bound') && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_neck5": "q.property('basiliskra:bound') && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "head": "q.property('basiliskra:bound') && 8 >= q.property('basiliskra:vis_lo') && 8 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "eye_l": "q.property('basiliskra:bound') && 8 >= q.property('basiliskra:vis_lo') && 8 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "eye_r": "q.property('basiliskra:bound') && 8 >= q.property('basiliskra:vis_lo') && 8 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_head": "q.property('basiliskra:bound') && 8 >= q.property('basiliskra:vis_lo') && 8 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "jaw": "q.property('basiliskra:bound') && 8 >= q.property('basiliskra:vis_lo') && 8 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "gill_l1": "q.property('basiliskra:bound') && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "gill_l2": "q.property('basiliskra:bound') && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "gill_l3": "q.property('basiliskra:bound') && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "gill_r1": "q.property('basiliskra:bound') && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "gill_r2": "q.property('basiliskra:bound') && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "gill_r3": "q.property('basiliskra:bound') && 7 >= q.property('basiliskra:vis_lo') && 7 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "leg_fl": "q.property('basiliskra:bound') && 5 >= q.property('basiliskra:vis_lo') && 5 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "leg_fl_lower": "q.property('basiliskra:bound') && 5 >= q.property('basiliskra:vis_lo') && 5 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "foot_fl": "q.property('basiliskra:bound') && 5 >= q.property('basiliskra:vis_lo') && 5 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "leg_fr": "q.property('basiliskra:bound') && 5 >= q.property('basiliskra:vis_lo') && 5 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "leg_fr_lower": "q.property('basiliskra:bound') && 5 >= q.property('basiliskra:vis_lo') && 5 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "foot_fr": "q.property('basiliskra:bound') && 5 >= q.property('basiliskra:vis_lo') && 5 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "leg_bl": "q.property('basiliskra:bound') && 3 >= q.property('basiliskra:vis_lo') && 3 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "leg_bl_lower": "q.property('basiliskra:bound') && 3 >= q.property('basiliskra:vis_lo') && 3 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "foot_bl": "q.property('basiliskra:bound') && 3 >= q.property('basiliskra:vis_lo') && 3 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "leg_br": "q.property('basiliskra:bound') && 3 >= q.property('basiliskra:vis_lo') && 3 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "leg_br_lower": "q.property('basiliskra:bound') && 3 >= q.property('basiliskra:vis_lo') && 3 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "foot_br": "q.property('basiliskra:bound') && 3 >= q.property('basiliskra:vis_lo') && 3 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "tail1": "q.property('basiliskra:bound') && 2 >= q.property('basiliskra:vis_lo') && 2 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_tail1": "q.property('basiliskra:bound') && 2 >= q.property('basiliskra:vis_lo') && 2 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "tail2": "q.property('basiliskra:bound') && 2 >= q.property('basiliskra:vis_lo') && 2 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_tail2": "q.property('basiliskra:bound') && 2 >= q.property('basiliskra:vis_lo') && 2 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "tail3": "q.property('basiliskra:bound') && 2 >= q.property('basiliskra:vis_lo') && 2 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_tail3": "q.property('basiliskra:bound') && 2 >= q.property('basiliskra:vis_lo') && 2 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "tail4": "q.property('basiliskra:bound') && 1 >= q.property('basiliskra:vis_lo') && 1 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_tail4": "q.property('basiliskra:bound') && 1 >= q.property('basiliskra:vis_lo') && 1 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "tail5": "q.property('basiliskra:bound') && 1 >= q.property('basiliskra:vis_lo') && 1 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_tail5": "q.property('basiliskra:bound') && 1 >= q.property('basiliskra:vis_lo') && 1 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "tail6": "q.property('basiliskra:bound') && 1 >= q.property('basiliskra:vis_lo') && 1 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_tail6": "q.property('basiliskra:bound') && 1 >= q.property('basiliskra:vis_lo') && 1 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "tail7": "q.property('basiliskra:bound') && 1 >= q.property('basiliskra:vis_lo') && 1 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_tail7": "q.property('basiliskra:bound') && 1 >= q.property('basiliskra:vis_lo') && 1 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "tail8": "q.property('basiliskra:bound') && 1 >= q.property('basiliskra:vis_lo') && 1 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "plates_tail8": "q.property('basiliskra:bound') && 1 >= q.property('basiliskra:vis_lo') && 1 <= q.property('basiliskra:vis_hi')"
+    },
+    {
+     "club": "q.property('basiliskra:bound') && 0 >= q.property('basiliskra:vis_lo') && 0 <= q.property('basiliskra:vis_hi')"
+    }
+   ],
+   "is_hurt_color": {
+    "r": 0.0,
+    "g": 0.0,
+    "b": 0.0,
+    "a": 0.0
+   },
+   "on_fire_color": {
+    "r": 0.0,
+    "g": 0.0,
+    "b": 0.0,
+    "a": 0.0
+   }
+  },
+  "controller.render.basiliskra.v.glow0": {
+   "geometry": "Geometry.v",
+   "materials": [
+    {
+     "*": "Material.glow"
+    }
+   ],
+   "textures": [
+    "Texture.v_glow"
+   ],
+   "ignore_lighting": true,
+   "part_visibility": [
+    {
+     "*": false
+    },
+    {
+     "club": true
+    }
+   ],
+   "color": {
+    "r": 1.0,
+    "g": 1.0,
+    "b": 1.0,
+    "a": "v.g0"
+   }
+  },
+  "controller.render.basiliskra.v.glow1": {
+   "geometry": "Geometry.v",
+   "materials": [
+    {
+     "*": "Material.glow"
+    }
+   ],
+   "textures": [
+    "Texture.v_glow"
+   ],
+   "ignore_lighting": true,
+   "part_visibility": [
+    {
+     "*": false
+    },
+    {
+     "tail4": true
+    },
+    {
+     "plates_tail4": true
+    },
+    {
+     "tail5": true
+    },
+    {
+     "plates_tail5": true
+    },
+    {
+     "tail6": true
+    },
+    {
+     "plates_tail6": true
+    },
+    {
+     "tail7": true
+    },
+    {
+     "plates_tail7": true
+    },
+    {
+     "tail8": true
+    },
+    {
+     "plates_tail8": true
+    }
+   ],
+   "color": {
+    "r": 1.0,
+    "g": 1.0,
+    "b": 1.0,
+    "a": "v.g1"
+   }
+  },
+  "controller.render.basiliskra.v.glow2": {
+   "geometry": "Geometry.v",
+   "materials": [
+    {
+     "*": "Material.glow"
+    }
+   ],
+   "textures": [
+    "Texture.v_glow"
+   ],
+   "ignore_lighting": true,
+   "part_visibility": [
+    {
+     "*": false
+    },
+    {
+     "tail1": true
+    },
+    {
+     "plates_tail1": true
+    },
+    {
+     "tail2": true
+    },
+    {
+     "plates_tail2": true
+    },
+    {
+     "tail3": true
+    },
+    {
+     "plates_tail3": true
+    }
+   ],
+   "color": {
+    "r": 1.0,
+    "g": 1.0,
+    "b": 1.0,
+    "a": "v.g2"
+   }
+  },
+  "controller.render.basiliskra.v.glow3": {
+   "geometry": "Geometry.v",
+   "materials": [
+    {
+     "*": "Material.glow"
+    }
+   ],
+   "textures": [
+    "Texture.v_glow"
+   ],
+   "ignore_lighting": true,
+   "part_visibility": [
+    {
+     "*": false
+    },
+    {
+     "hips": true
+    },
+    {
+     "plates_hips": true
+    },
+    {
+     "leg_bl": true
+    },
+    {
+     "leg_bl_lower": true
+    },
+    {
+     "foot_bl": true
+    },
+    {
+     "leg_br": true
+    },
+    {
+     "leg_br_lower": true
+    },
+    {
+     "foot_br": true
+    }
+   ],
+   "color": {
+    "r": 1.0,
+    "g": 1.0,
+    "b": 1.0,
+    "a": "v.g3"
+   }
+  },
+  "controller.render.basiliskra.v.glow4": {
+   "geometry": "Geometry.v",
+   "materials": [
+    {
+     "*": "Material.glow"
+    }
+   ],
+   "textures": [
+    "Texture.v_glow"
+   ],
+   "ignore_lighting": true,
+   "part_visibility": [
+    {
+     "*": false
+    },
+    {
+     "body": true
+    },
+    {
+     "plates_mid": true
+    }
+   ],
+   "color": {
+    "r": 1.0,
+    "g": 1.0,
+    "b": 1.0,
+    "a": "v.g4"
+   }
+  },
+  "controller.render.basiliskra.v.glow5": {
+   "geometry": "Geometry.v",
+   "materials": [
+    {
+     "*": "Material.glow"
+    }
+   ],
+   "textures": [
+    "Texture.v_glow"
+   ],
+   "ignore_lighting": true,
+   "part_visibility": [
+    {
+     "*": false
+    },
+    {
+     "chest": true
+    },
+    {
+     "plates_chest": true
+    },
+    {
+     "leg_fl": true
+    },
+    {
+     "leg_fl_lower": true
+    },
+    {
+     "foot_fl": true
+    },
+    {
+     "leg_fr": true
+    },
+    {
+     "leg_fr_lower": true
+    },
+    {
+     "foot_fr": true
+    }
+   ],
+   "color": {
+    "r": 1.0,
+    "g": 1.0,
+    "b": 1.0,
+    "a": "v.g5"
+   }
+  },
+  "controller.render.basiliskra.v.glow6": {
+   "geometry": "Geometry.v",
+   "materials": [
+    {
+     "*": "Material.glow"
+    }
+   ],
+   "textures": [
+    "Texture.v_glow"
+   ],
+   "ignore_lighting": true,
+   "part_visibility": [
+    {
+     "*": false
+    },
+    {
+     "neck1": true
+    },
+    {
+     "plates_neck1": true
+    },
+    {
+     "neck2": true
+    },
+    {
+     "plates_neck2": true
+    }
+   ],
+   "color": {
+    "r": 1.0,
+    "g": 1.0,
+    "b": 1.0,
+    "a": "v.g6"
+   }
+  },
+  "controller.render.basiliskra.v.glow7": {
+   "geometry": "Geometry.v",
+   "materials": [
+    {
+     "*": "Material.glow"
+    }
+   ],
+   "textures": [
+    "Texture.v_glow"
+   ],
+   "ignore_lighting": true,
+   "part_visibility": [
+    {
+     "*": false
+    },
+    {
+     "neck3": true
+    },
+    {
+     "plates_neck3": true
+    },
+    {
+     "neck4": true
+    },
+    {
+     "plates_neck4": true
+    },
+    {
+     "neck5": true
+    },
+    {
+     "plates_neck5": true
+    },
+    {
+     "gill_l1": true
+    },
+    {
+     "gill_l2": true
+    },
+    {
+     "gill_l3": true
+    },
+    {
+     "gill_r1": true
+    },
+    {
+     "gill_r2": true
+    },
+    {
+     "gill_r3": true
+    }
+   ],
+   "color": {
+    "r": 1.0,
+    "g": 1.0,
+    "b": 1.0,
+    "a": "v.g7"
+   }
+  },
+  "controller.render.basiliskra.v.glow8": {
+   "geometry": "Geometry.v",
+   "materials": [
+    {
+     "*": "Material.glow"
+    }
+   ],
+   "textures": [
+    "Texture.v_glow"
+   ],
+   "ignore_lighting": true,
+   "part_visibility": [
+    {
+     "*": false
+    },
+    {
+     "head": true
+    },
+    {
+     "eye_l": true
+    },
+    {
+     "eye_r": true
+    },
+    {
+     "plates_head": true
+    },
+    {
+     "jaw": true
+    }
+   ],
+   "color": {
+    "r": 1.0,
+    "g": 1.0,
+    "b": 1.0,
+    "a": "v.g8"
+   }
+  },
   "controller.render.basiliskra.none": {
    "geometry": "Geometry.default",
    "materials": [

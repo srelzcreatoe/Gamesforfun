@@ -84,6 +84,7 @@ LOOK = {
             "pitch": {"head": 0.40, "neck1": 0.12, "neck2": 0.12, "neck3": 0.12, "neck4": 0.12, "neck5": 0.12}},
     "iv": {"yaw": {"head": 0.40, "neck2": 0.20, "neck1": 0.20, "chest": 0.20}, "pitch": {"head": 0.45, "neck2": 0.25, "neck1": 0.20, "chest": 0.10}},
 }
+LOOK["v"] = LOOK["iii"]
 
 
 def ph(*names):
@@ -629,14 +630,130 @@ def pose_iv(rig):
     return pre, p.bones(rig["bones"])
 
 
+# ---- Vathrok (2.0) ---------------------------------------------------------------------
+# The other kaiju.  Its skeleton has Form III's bone names, so its walk is his (the same solver, its own legs: the rig
+# says how long they are) at the same scale, in step with the same footfalls from the server.  What it does besides
+# walking is its own: it braces on its arms to charge, throws its whole head forward to bite, rears on its hind legs
+# to rake with an arm, lashes its tail, staggers, and goes down.  The moments the server strikes are Form IV's
+# (bite 0.45 s, tail 0.75 s, claws 0.6 s).
+VATHROK = "vathrok"
+# the battle Vathrok is the Titan's equal; the one met in survival can be beaten (src/vathrok.ts)
+VATHROK_BOSS_HEALTH = 1500
+
+
+def pose_v(rig):
+    p = Pose()
+    quarter = STRIDE_III / 4
+    stance = STRIDE_III_MODEL * BETA_III * 16
+    pre = [
+        f"v.wt = (v.gait + math.clamp((q.modified_distance_moved - v.gd0) / {quarter}, 0, 1.15)) * 90;",
+        "v.dd = math.clamp(q.modified_distance_moved - v.dprev, 0, 0.6);",
+        "v.dprev = q.modified_distance_moved;",
+        "v.werr = math.mod(math.mod(v.wt - v.wp, 360) + 540, 360) - 180;",
+        f"v.wp = math.mod(v.wp + v.dd * {90 / quarter:.4f} + math.clamp(v.werr, -40 * v.dt, 40 * v.dt) * math.clamp(v.dd / (v.dt + 0.0001) / 0.8, 0, 1) + 360, 360);",
+        "v.p_bl = math.mod(v.wp, 360) / 360;", "v.p_fl = math.mod(v.wp + 270, 360) / 360;",
+        "v.p_br = math.mod(v.wp + 180, 360) / 360;", "v.p_fr = math.mod(v.wp + 90, 360) / 360;",
+        "v.kopen = v.w_vent;",
+        # the tail (phase `sweep`): winds away from the side its head has turned to, then lashes round to that side
+        f"v.sw_side = (v.pt < 0.15) ? (({P('look_yaw')} >= 0) ? 1 : -1) : v.sw_side;",
+        f"v.sw_c = {pl('v.pt', [(0, 0), (0.5, -0.45), (0.72, 1), (1.15, 1), (1.65, 0)])};",
+        # the claws (phase `swipe`): it rears on its hind legs, the arm on the side its head turned to goes up, then rakes down
+        f"v.sp_side = (v.pt < 0.12) ? (({P('look_yaw')} >= 0) ? 1 : -1) : v.sp_side;",
+        f"v.sp_wind = {pl('v.pt', [(0, 0), (0.42, 1), (0.52, 0.7), (0.62, 0)])};",
+        f"v.sp_hit = {pl('v.pt', [(0.42, 0), (0.62, 1), (0.85, 0.85), (1.25, 0)])};",
+        # the bite (phase `bite`): head drawn back and jaws wide, then thrown forward with the whole body behind it
+        f"v.st_wind = {pl('v.pt', [(0, 0), (0.32, 1), (0.46, 0)])};",
+        f"v.st_hit = {pl('v.pt', [(0.32, 0), (0.46, 1), (0.72, 1), (1.15, 0)])};",
+        # going down (phase `fall`): it sinks onto its belly over two seconds
+        "v.fa = math.clamp(v.pt / 2.2, 0, 1);",
+        "v.fa2 = v.w_fall * v.fa * v.fa * (3 - 2 * v.fa);",
+        f"v.by = -{DROP_III} + 1.4 * v.breath * (1 - v.walk) - 1.3 * v.walk * math.abs(math.sin(v.wp * 2)) - 6 * v.w_chargew"
+        " - 5 * v.w_bite * v.st_wind - 70 * v.fa2 + 10 * v.w_swipe * v.sp_wind;",
+    ]
+    for tag in ("fl", "fr", "bl", "br"):
+        la, lb, rest = leg_iii(rig, tag)
+        fu, fl = -rest[0], -(rest[0] + rest[1])
+        xm = la * math.sin(math.radians(fu)) + lb * math.sin(math.radians(fl))
+        h0 = la * math.cos(math.radians(fu)) + lb * math.cos(math.radians(fl))
+        P_ = f"v.p_{tag}"
+        pre += [
+            f"v.su_{tag} = ({P_} > {BETA_III}) ? ({P_} - {BETA_III}) / {1 - BETA_III} : 0;",
+            f"v.lx_{tag} = ({P_} < {BETA_III}) ? {xm:.3f} + {stance} * (0.5 - {P_} / {BETA_III}) : {xm - stance / 2:.3f} + {stance} * v.su_{tag} * v.su_{tag} * (3 - 2 * v.su_{tag});",
+            f"v.lh_{tag} = {h0 - 1.2:.3f} + v.by - {LIFT_III} * math.sin(180 * v.su_{tag}) * v.walk;",
+            f"v.ld_{tag} = math.min(math.sqrt(v.lx_{tag} * v.lx_{tag} + v.lh_{tag} * v.lh_{tag}), {la + lb - 0.5});",
+            f"v.lg_{tag} = math.atan2(v.lx_{tag}, v.lh_{tag});",
+            f"v.la_{tag} = math.acos(math.clamp(({la * la - lb * lb} + v.ld_{tag} * v.ld_{tag}) / ({2 * la} * v.ld_{tag}), -1, 1));",
+            f"v.lk_{tag} = math.acos(math.clamp(({la * la + lb * lb} - v.ld_{tag} * v.ld_{tag}) / {2 * la * lb}, -1, 1));",
+        ]
+        if tag[0] == "f":
+            pre += [f"v.lu_{tag} = v.lg_{tag} - v.la_{tag};", f"v.ll_{tag} = v.lu_{tag} + 180 - v.lk_{tag};"]
+        else:
+            pre += [f"v.lu_{tag} = v.lg_{tag} + v.la_{tag};", f"v.ll_{tag} = v.lu_{tag} - 180 + v.lk_{tag};"]
+    L = LOOK["v"]
+    p.pos("body", x="1.5 * v.walk * math.cos(v.wp - 110)", y="v.by", z="-16 * v.w_bite * v.st_hit + 6 * v.w_bite * v.st_wind")
+    p.rot("body", z=f"0.8 * v.walk * math.cos(v.wp - 110) + 2.5 * v.fa2 * {SHUDDER(1300)}",
+          x=f"v.pitch - 3 * v.w_roar - 14 * v.w_swipe * v.sp_wind + 5 * v.w_swipe * v.sp_hit + 3 * v.w_bite * (v.st_hit - v.st_wind)"
+            f" - 4 * v.w_recoil * (1 + 0.1 * {SHUDDER(1900)}) + 3 * v.fa2 + 1.2 * v.w_ground * {SHUDDER(1400)}")
+    p.rot("chest", y=f"v.ly_chest * {L['yaw']['chest']} + 12 * v.w_swipe * v.sp_side * (0.6 * v.sp_wind - v.sp_hit)",
+          x="-1.0 * v.breath - 2 * v.w_fire + 3 * v.w_chargew")
+    p.rot("hips", y="-v.bend * 0.3 - 8 * v.w_sweep * v.sw_side * v.sw_c")
+    for i in range(1, 6):
+        p.rot(f"neck{i}", y=f"v.ly_neck * {L['yaw'][f'neck{i}']}",
+              x=f"v.lp_neck * {L['pitch'][f'neck{i}']} + 0.5 * v.breath + 3 * v.w_chargew - 5 * v.w_roar"
+                f" + 0.8 * v.walk * math.sin(v.wp * 2 - {i * 30}) + v.w_bite * (5 * v.st_hit - 6 * v.st_wind) - 3 * v.w_recoil + 5 * v.fa2")
+    p.rot("head", y=f"v.ly_head * {L['yaw']['head']}",
+          x=f"v.lp_head * {L['pitch']['head']} + 6 * v.w_chargew - 24 * v.w_roar + 1.4 * v.w_roar * {SHUDDER(2100, 2)} - 1.5 * v.voice"
+            f" + 1.2 * v.w_fire * {SHUDDER(2400)} + v.w_bite * (10 * v.st_hit - 18 * v.st_wind) - 16 * v.w_recoil + 14 * v.fa2")
+    p.pos("head", z=f"1.6 * v.w_fire * {SHUDDER(2700, 1)}", y="2.2 * v.knock")
+    p.rot("jaw", x=f"2.2 * v.breath + v.w_chargew * v.charge * 0.8 + 28 * v.w_fire + v.vjaw + 30 * v.w_roar * (0.8 + 0.2 * {SHUDDER(900)})"
+                   " + 8 * v.w_vent + v.w_bite * (42 * v.st_wind + 4 * v.st_hit) + 18 * v.w_recoil + 22 * v.fa2 + 10 * v.w_swipe * v.sp_hit")
+    for tag in ("fl", "fr", "bl", "br"):
+        front = tag[0] == "f"
+        sgn = 1 if tag[1] == "l" else -1
+        rest = leg_iii(rig, tag)[2]
+        undo_x = " + 1.0 * v.breath + 2 * v.w_fire - 3 * v.w_chargew" if front else ""
+        undo_y = f"-v.ly_chest * {L['yaw']['chest']}" if front else "v.bend * 0.3"
+        if front:
+            mine = f"v.w_swipe * ((v.sp_side == {sgn}) ? 1 : 0)"
+            # the raking arm goes up and forward, out to its side, then tears down across in front; to charge, both
+            # arms are braced wide
+            p.rot(f"leg_{tag}", x=f"-v.lu_{tag} - {rest[0]}{undo_x} + {mine} * (-100 * v.sp_wind - 24 * v.sp_hit)",
+                  y=undo_y, z=f"{-sgn} * (7 * v.w_chargew + {mine} * (26 * v.sp_wind - 14 * v.sp_hit) + 8 * v.fa2)")
+            p.rot(f"leg_{tag}_lower", x=f"v.lu_{tag} - v.ll_{tag} - {rest[1]} + {mine} * (30 * v.sp_wind - 6 * v.sp_hit)")
+            p.rot(f"foot_{tag}", x=f"v.ll_{tag} - {rest[2]} + 14 * math.sin(180 * v.su_{tag}) * v.walk + {mine} * (-40 * v.sp_wind + 30 * v.sp_hit)")
+        else:
+            p.rot(f"leg_{tag}", x=f"-v.lu_{tag} - {rest[0]}", y=undo_y)
+            p.rot(f"leg_{tag}_lower", x=f"v.lu_{tag} - v.ll_{tag} - {rest[1]}")
+            p.rot(f"foot_{tag}", x=f"v.ll_{tag} - {rest[2]} + 14 * math.sin(180 * v.su_{tag}) * v.walk")
+    for i in range(1, 9):
+        p.rot(f"tail{i}", y=f"-v.ts * {0.35 + 0.09 * i:.2f} + 2.4 * v.walk * math.sin(v.wp - {i * 50}) + 1.2 * math.sin(q.life_time * 30 - {i * 35})"
+                             f" - {5 + 2.4 * i:.1f} * v.w_sweep * v.sw_side * v.sw_c",
+              x="-1.7 * v.w_chargew + 0.25 * v.breath" + (f" + {TAIL_LIFT_III}" if i == 1 else "") + (" - 3 * v.fa2" if i <= 3 else ""))
+    p.rot("club", z="4 * v.w_chargew * math.sin(q.life_time * 2100)")
+    for s, sgn in (("l", 1), ("r", -1)):
+        for i in (1, 2, 3):
+            p.rot(f"gill_{s}{i}", y=f"{sgn} * 40 * v.kopen * (0.7 + 0.3 * v.knock)")
+        p.pos(f"eye_{s}", z="-v.eye_lead")
+    for b in rig["bones"]:
+        if b.startswith("plates_"):
+            p.scl(b, y="(1 + 0.015 * v.breath + 0.06 * v.w_chargew)")
+    # its spines are never quite dark (they smoulder green), and go dark as it dies
+    pre_glow = [f"v.g{k} = math.max(v.g{k}, (0.22 + 0.08 * math.sin(q.life_time * 70 + {k * 40}))) * (1 - v.fa2);" for k in range(9)]
+    return pre, pre_glow, p.bones(rig["bones"])
+
+
 # ---- files -----------------------------------------------------------------------------
-def render_controllers(rigs):
+FORM_NO = {"i": 1, "ii": 2, "iii": 3, "iv": 4, "v": 5}
+
+
+def render_controllers(rigs, tags=TAGS):
     rc = {}
     base_list = []
     # Basiliskra IV's broken dorsal plate is its own bone: once it has cracked off (the gill property, which only
     # Basiliskra I otherwise uses) it is no longer drawn on his back
     whole = lambda tag, bone: f" && !{P('gill')}" if tag == "iv" and bone == "plate_break" else ""
-    for fi, tag in enumerate(TAGS, start=1):
+    for tag in tags:
+        fi = FORM_NO[tag]
         vis = [{"*": f"{P('bound')}"}]
         for bone, bd in rigs[tag]["bones"].items():
             if bd["zone"] is not None:
@@ -665,7 +782,8 @@ def render_controllers(rigs):
         }
         listing.append({name: f"{P('bound')} && v.form == {fi} && {alpha} > 0.01 && {z} >= {P('vis_lo')} && {z} <= {P('vis_hi')}"})
 
-    for fi, tag in enumerate(TAGS, start=1):
+    for tag in tags:
+        fi = FORM_NO[tag]
         zones = rigs[tag]["glow_zones"]
         for z in range(9):
             bones = zones.get(str(z), [])
@@ -733,6 +851,16 @@ def particle_controller(tag):
         states = {"idle": idle, "charge": charge, "fire": fire, "vent": vent, "grounded": ground, "roar": roar, "recoil": recoil, "carry": carry, "pivot": pivot}
         cond = {"charge": ph("charge", "pour", "rear"), "fire": ph("fire", "skid"), "vent": ph("vent"), "grounded": ph("grounded"), "roar": ph("roar"), "recoil": ph("recoil"),
                 "carry": ph("swallow", "carry"), "pivot": ph("pivot")}
+    elif tag == "v":
+        # Vathrok: sparks and embers off its spines as it charges, green fire at its mouth, steam from its vents
+        charge = [("charge_spark", "club_core")] + [("plate_ember", f"plate_tip_{k}") for k in (0, 2, 4, 6, 8)] + [("throat_glow", "mouth"), ("charge_gather", "muzzle")]
+        fire = ([("mouth_flare", "muzzle"), ("mouth_flare", "mouth"), ("throat_glow", "throat")] + [("plate_blaze", f"plate_tip_{k}") for k in range(10)]
+                + [("plate_smoke", f"plate_tip_{k}") for k in (1, 4, 7)])
+        vent = [("gill_steam", "gill_l"), ("gill_steam", "gill_r"), ("mouth_smoke", "mouth")] + [("plate_smoke", f"plate_tip_{k}") for k in (0, 3, 6, 9)]
+        roar = [("roar_haze", "mouth"), ("roar_haze", "muzzle")]
+        idle = [("club_crackle", "spike_tip_0"), ("club_crackle", "spike_tip_2")]
+        states = {"idle": idle, "charge": charge, "fire": fire, "vent": vent, "roar": roar}
+        cond = {"charge": ph("charge"), "fire": ph("fire"), "vent": ph("vent"), "roar": ph("roar")}
     elif tag == "ii":
         idle = [("horn_arc", "horn_l")]
         arc = [("horn_arc_big", "horn_l"), ("horn_arc_big", "horn_r"), ("club_crackle", "knob_core"), ("rad_drift", "knob_core"), ("rad_drift", "heart")]
@@ -769,7 +897,8 @@ def write_rig_ts(rigs):
            "export interface RigData { bones: Record<string, RigBone>; locators: Record<string, { bone: string; pos: number[] }>; meta: Record<string, number>; zones: Record<string, string[]>; boxes: Record<string, number[][]> }",
            ""]
     data = {}
-    for n, tag in enumerate(TAGS, start=1):
+    for tag in TAGS + ("v",):
+        n = FORM_NO[tag]
         r = rigs[tag]
         zones = {}
         for name, bd in r["bones"].items():
@@ -777,9 +906,9 @@ def write_rig_ts(rigs):
                 zones.setdefault(str(bd["zone"]), []).append(name)
         data[n] = {"bones": r["bones"], "locators": r["locators"], "meta": {k: v for k, v in r["meta"].items() if isinstance(v, (int, float))}, "zones": zones,
                    "boxes": r.get("boxes", {})}
-    out.append("export const RIGS: Record<1 | 2 | 3 | 4, RigData> = " + json.dumps(data, separators=(",", ":")) + ";")
-    look = {n: LOOK[t] for n, t in enumerate(TAGS, start=1)}
-    out.append("export const LOOK: Record<1 | 2 | 3 | 4, { yaw: Record<string, number>; pitch: Record<string, number> }> = " + json.dumps(look, separators=(",", ":")) + ";")
+    out.append("export const RIGS: Record<1 | 2 | 3 | 4 | 5, RigData> = " + json.dumps(data, separators=(",", ":")) + ";")
+    look = {FORM_NO[t]: LOOK[t] for t in TAGS + ("v",)}
+    out.append("export const LOOK: Record<1 | 2 | 3 | 4 | 5, { yaw: Record<string, number>; pitch: Record<string, number> }> = " + json.dumps(look, separators=(",", ":")) + ";")
     out.append(f"export const STRIDE_III = {STRIDE_III};")
     out.append(f"/** Blocks a planted sole travels under the body; a foot lands half of this ahead of where it stands at rest. */")
     out.append(f"export const STANCE_III = {STRIDE_III * BETA_III};")
@@ -790,7 +919,7 @@ def write_rig_ts(rigs):
     out.append(f"export const LIFT_III = {LIFT_III};")
     out.append(f"export const STANCE_MODEL_III = {STRIDE_III_MODEL * BETA_III * 16};")
     out.append(f"/** Drawn size over modelled size, per form. */")
-    out.append(f"export const SCALE: Record<1 | 2 | 3 | 4, number> = {{ 1: {SCALE['i']}, 2: {SCALE['ii']}, 3: {SCALE['iii']}, 4: {SCALE['iv']} }};")
+    out.append(f"export const SCALE: Record<1 | 2 | 3 | 4 | 5, number> = {{ 1: {SCALE['i']}, 2: {SCALE['ii']}, 3: {SCALE['iii']}, 4: {SCALE['iv']}, 5: {SCALE['v']} }};")
     out.append("/** Basiliskra IV: blocks covered by one full cycle of his walk (two footfalls); the part of it a foot is down; the wing fold (degrees). */")
     out.append(f"export const STRIDE_IV = {STRIDE_IV};")
     out.append(f"export const BETA_IV = {BETA_IV};")
@@ -800,6 +929,9 @@ def write_rig_ts(rigs):
     out.append(f"export const TAIL_LIFT_III = {TAIL_LIFT_III};")
     out.append(f"/** The Titan's health (the behaviour-pack entity is written with the same number). */")
     out.append(f"export const TITAN_HEALTH = {TITAN_HEALTH};")
+    out.append(f"/** Vathrok's health (2.0): the battle one the Titan's equal, the one met in survival beatable. */")
+    out.append(f"export const VATHROK_HEALTH = {TITAN_HEALTH};")
+    out.append(f"export const VATHROK_BOSS_HEALTH = {VATHROK_BOSS_HEALTH};")
     out.append(f"export const WINDOW_NECK = {json.dumps(WINDOW_NECK)};")
     out.append(f"export const WINDOW_HEAD = {json.dumps(WINDOW_HEAD)};")
     out.append(f"export const GAIT_TICKS = {json.dumps([int(round(d * 20)) for d in GAIT_DUR])};")
@@ -865,8 +997,79 @@ def write_titan(entity, pre, glow_list):
         }}})
 
 
+def write_vathrok(pre_all, rigs, rc_all):
+    """
+    Vathrok's two entities (2.0): `basiliskra:vathrok`, met in survival and beatable, and `basiliskra:vathrok_titan`,
+    for battles, as strong as the Titan.  Both wear the one model with the one pose; the battle one is drawn a little
+    bigger and its spines burn brighter.  Their behaviour-pack entities are the story entity's, with Form III's box,
+    their own health and families, and Vathrok's form number.
+    """
+    tag = "v"
+    rc, listing = render_controllers(rigs, ("v",))
+    rc_all["render_controllers"].update(rc["render_controllers"])
+    pre_v, glow_v, bones = pose_v(rigs[tag])
+    anim = {f"animation.{NS}.v.pose": {"loop": True, "bones": bones}}
+    pre = pre_all + pre_v + glow_v
+    names = []
+    for text in pre + [json.dumps(anim)]:
+        for n in re.findall(r"\bv\.([a-z_0-9]+)", text):
+            if n not in names:
+                names.append(n)
+    special = {"phase_prev": -1, "gait_prev": -1}
+    init = " ".join(f"v.{n} = {special.get(n, 0)};" for n in names)
+    for ident, k, egg, brighter in ((f"{NS}:vathrok", SCALE["v"], {"base_color": "#1b211d", "overlay_color": "#5fcf3e"}, False),
+                                    (f"{NS}:vathrok_titan", SCALE["v"] * 1.15, {"base_color": "#1b211d", "overlay_color": "#d8f25a"}, True)):
+        extra = [f"v.g{z} = math.max(v.g{z}, 0.5 * (1 - v.fa2));" for z in range(9)] if brighter else []
+        ent = {"format_version": "1.10.0", "minecraft:client_entity": {"description": {
+            "identifier": ident,
+            "materials": {"default": "entity_alphatest", "glow": "warden_bioluminescent_layer"},
+            "textures": {"v": f"textures/entity/{NS}/{VATHROK}", "v_glow": f"textures/entity/{NS}/{VATHROK}_glow"},
+            "geometry": {"v": f"geometry.{NS}.v"},
+            "scripts": {"initialize": [init], "pre_animation": pre + extra,
+                        "animate": [{"pose_v": "1"}, {"fx_v": f"{P('bound')}"}], "scale": f"{k:.3f}",
+                        "should_update_bones_and_effects_offscreen": "1.0", "should_update_effects_offscreen": "1.0"},
+            "animations": {"pose_v": f"animation.{NS}.v.pose", "fx_v": f"controller.animation.{NS}.v.fx"},
+            "particle_effects": {n: f"{NS}:v_{n}" for n in V_PARTICLES},
+            "render_controllers": listing,
+            "enable_attachables": False, "hide_armor": True,
+            "spawn_egg": egg,
+        }}}
+        kit.write_json(os.path.join(RP, "entity", f"{ident.split(':')[1]}.entity.json"), ent)
+
+    bp_dir = os.path.join(ROOT, "packs", "BP", "entities")
+    story = json.load(open(os.path.join(bp_dir, f"{NS}.json")))
+    e = story["minecraft:entity"]
+    for ident, health, families, immune, boss in ((f"{NS}:vathrok", VATHROK_BOSS_HEALTH, ["basiliskra_vathrok", "monster", "mob"], (), True),
+                                                  (f"{NS}:vathrok_titan", TITAN_HEALTH, ["basiliskra_vathrok", "basiliskra_vathrok_titan", "monster", "mob"], TITAN_IMMUNE, False)):
+        props = {k: dict(v) for k, v in e["description"]["properties"].items()}
+        props[f"{NS}:form"].update(range=[1, 5], default=5)
+        props[f"{NS}:tier"]["default"] = 3
+        comps = {**e["components"], **e["component_groups"][f"{NS}:form_3"],
+                 "minecraft:type_family": {"family": families},
+                 "minecraft:health": {"value": health, "max": health},
+                 "minecraft:damage_sensor": {"triggers": e["components"]["minecraft:damage_sensor"]["triggers"] + [{"cause": c, "deals_damage": "no"} for c in immune]}}
+        comps.pop("minecraft:nameable", None)
+        if boss:
+            # met in survival: a boss bar for everyone near
+            comps["minecraft:boss"] = {"should_darken_sky": False, "hud_range": 96, "name": "Vathrok"}
+        kit.write_json(os.path.join(bp_dir, f"{ident.split(':')[1]}.json"), {"format_version": story["format_version"], "minecraft:entity": {
+            "description": {**e["description"], "identifier": ident, "is_spawnable": True, "is_summonable": True, "properties": props},
+            "component_groups": {f"{NS}:unbound": e["component_groups"][f"{NS}:unbound"], f"{NS}:gone": e["component_groups"][f"{NS}:gone"]},
+            "components": comps,
+            "events": {
+                "minecraft:entity_spawned": {"add": {"component_groups": [f"{NS}:unbound"]}},
+                f"{NS}:expire": {"add": {"component_groups": [f"{NS}:gone"]}},
+                f"{NS}:bind": {"remove": {"component_groups": [f"{NS}:unbound"]}},
+            }}})
+    return anim
+
+
+V_PARTICLES = ["charge_spark", "plate_ember", "throat_glow", "mouth_flare", "gill_steam", "club_crackle", "plate_blaze", "plate_smoke",
+               "mouth_smoke", "roar_haze", "charge_gather"]
+
+
 def main():
-    rigs = {t: json.load(open(os.path.join(OUT, f"rig_{t}.json"))) for t in TAGS}
+    rigs = {t: json.load(open(os.path.join(OUT, f"rig_{t}.json"))) for t in TAGS + ("v",)}
     rc, glow_list = render_controllers(rigs)
     anims = {}
     pre_all = pre_animation()
@@ -912,6 +1115,7 @@ def main():
     os.makedirs(os.path.join(RP, "entity"), exist_ok=True)
     kit.write_json(os.path.join(RP, "entity", f"{NS}.entity.json"), entity)
     write_titan(entity, pre_all + pre_form, glow_list)
+    anims.update(write_vathrok(pre_all, rigs, rc))
     os.makedirs(os.path.join(RP, "render_controllers"), exist_ok=True)
     kit.write_json(os.path.join(RP, "render_controllers", f"{NS}.render_controllers.json"), rc)
     os.makedirs(os.path.join(RP, "animations"), exist_ok=True)
@@ -919,7 +1123,7 @@ def main():
     os.makedirs(os.path.join(RP, "animation_controllers"), exist_ok=True)
     kit.write_json(os.path.join(RP, "animation_controllers", f"{NS}.animation_controllers.json"), {
         "format_version": "1.10.0",
-        "animation_controllers": {f"controller.animation.{NS}.{t}.fx": particle_controller(t) for t in TAGS}})
+        "animation_controllers": {f"controller.animation.{NS}.{t}.fx": particle_controller(t) for t in TAGS + ("v",)}})
 
     # the invisible hit-volume helper
     # (their client entities, one per size, are written by gen_hitbox.py; the empty geometry and its controller are here)
@@ -935,7 +1139,7 @@ def main():
     # shared with the server rig and the Blockbench projects
     kit.write_json(os.path.join(OUT, "pose.json"), {"look": LOOK, "phase": PHASE, "knock_gap": KNOCK_GAP, "gait_dur": GAIT_DUR,
                                                     "stride_iii": STRIDE_III, "scale": SCALE})
-    for tag in TAGS:
+    for tag in TAGS + ("v",):
         a = anims[f"animation.{NS}.{tag}.pose"]
         kit.write_json(os.path.join(OUT, f"bb_anims_{tag}.json"), {f"animation.{NS}.{tag}.pose": a})
     write_rig_ts(rigs)

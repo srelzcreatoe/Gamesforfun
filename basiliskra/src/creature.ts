@@ -10,7 +10,7 @@
 import { Dimension, Entity, EntityDamageCause, GameMode, Player, system, world } from "@minecraft/server";
 import { CONFIG, PHASE, PROP, hitboxId, type PhaseName } from "./config";
 import { particle, sound, witnesses } from "./fx";
-import { Skeleton, drawScale, poseOf, toWorld, type Form, type PoseAdd } from "./rig";
+import { Skeleton, drawScale, poseOf, quad, toWorld, type Form, type PoseAdd } from "./rig";
 import { BETA_III, BETA_IV, LIFT_III, LIFT_IV, RIGS, STANCE_MODEL_III, STANCE_MODEL_IV, VOICE_KIND } from "./generated/rig";
 import { crush, ploughBox, ploughNoise, wither } from "./havoc";
 import { Planner } from "./path";
@@ -65,7 +65,7 @@ export function partsFor(form: Form): PartDef[] {
     const n = d.map((len) => Math.max(1, Math.ceil((len - edge * (big ? 0.35 : 0.2)) / edge)));
     const tag: PartTag = /^(head|jaw|neck)/.test(bone) ? "head" : /^(tail|club|knob|seg(8|9|10)$|tailfin)/.test(bone) ? "tail"
       : /^(leg|foot|arm|forearm|claw|hand|wing|fin)/.test(bone) ? "limb" : "body";
-    const lm = form === 3 ? /^(?:leg|foot)_(fl|fr|bl|br)(_lower)?$/.exec(bone) : form === 4 ? /^(?:leg|foot)_(l|r)(_lower)?$/.exec(bone) : null;
+    const lm = quad(form) ? /^(?:leg|foot)_(fl|fr|bl|br)(_lower)?$/.exec(bone) : form === 4 ? /^(?:leg|foot)_(l|r)(_lower)?$/.exec(bone) : null;
     const leg = lm ? (lm[1] as Leg) : undefined;
     const swing = lm ? (bone.startsWith("foot") ? 1 : lm[2] ? 0.55 : 0.25) : undefined;
     for (let ix = 0; ix < n[0]; ix++) for (let iy = 0; iy < n[1]; iy++) for (let iz = 0; iz < n[2]; iz++) {
@@ -90,6 +90,8 @@ const MOVE = {
   2: { turn: 1.4, accel: 0.03, radius: 3.1 },
   3: { turn: 1.0, accel: 0.011, radius: 6.0 },
   4: { turn: 0.75, accel: 0.012, radius: 9.0 },
+  // Vathrok (2.0): longer and taller than Form III, on the same four-beat walk
+  5: { turn: 0.95, accel: 0.012, radius: 7.0 },
 } as const;
 /**
  * What stops a body on land.  `built` and `cliff` are heights above his feet (see trunkBlocked);
@@ -102,8 +104,9 @@ const BODY = {
   2: { built: [1.8, 3.2], cliff: 4.5, front: 4.4, look: [0.6, 2, 5, 9, 13], wade: 2, climb: 2.0, top: 4 },
   3: { built: [4.2, 6.1], cliff: 8.2, front: 9.4, look: [0.6, 3, 10, 17, 24], wade: 8, climb: 5.4, top: 10 },
   4: { built: [6, 11], cliff: 15, front: 11, look: [0.6, 4, 14, 24, 34], wade: 16, climb: 7.4, top: 24 },
+  5: { built: [5, 8.5], cliff: 10, front: 12, look: [0.6, 3, 12, 20, 28], wade: 10, climb: 6.0, top: 16 },
 } as const;
-type Walker = 2 | 3 | 4;
+type Walker = 2 | 3 | 4 | 5;
 
 export class Creature {
   readonly dim: Dimension;
@@ -156,6 +159,8 @@ export class Creature {
   might = 1;
   /** If set, what any blow of its does to a player or a creature, whatever the blow (the Titan: they die of it). */
   lethal = 0;
+  /** Whose colours its breath is drawn in: "" his red, "v" Vathrok's green (beam.ts tint). */
+  hue = "";
   haste = 1;
 
   constructor(readonly entity: Entity, form: Form = store.rec.form) {
@@ -284,6 +289,7 @@ export class Creature {
   /** Turn the head (not the feet) towards a point; returns how far off the limit it is. */
   lookAt(target: V3, maxYaw = 80, maxPitch = 40): number {
     const base = this.form === 1 ? this.anchor("throat")
+      : this.form === 5 ? this.point("neck1", RIGS[5].bones.neck1.pivot)
       : this.point(this.form === 2 ? "neck" : "neck1", this.form === 2 ? [0, 84, -32] : this.form === 4 ? [0, 336, -22] : [0, 114, -126]);
     const want = wrapDeg(yawTo(base, target) - this.yaw);
     const flat = Math.max(0.5, distXZ(base, target));
@@ -787,7 +793,7 @@ export class Creature {
   volumes(): { at: V3; r: number; tag: PartTag }[] {
     const k = this.scale;
     const out = partsFor(this.form).map((d) => ({ at: this.point(d.bone, d.at), r: SIZES[d.si] / 2, tag: d.tag as PartTag }));
-    const trunk = this.form === 1 ? { h: 4.4, r: 3.0 } : this.form === 2 ? { h: 7.2 * k, r: 3.3 * k } : this.form === 4 ? { h: 20 * k, r: 5 * k } : { h: 9.6 * k, r: 4.3 * k };
+    const trunk = this.form === 1 ? { h: 4.4, r: 3.0 } : this.form === 2 ? { h: 7.2 * k, r: 3.3 * k } : this.form === 4 ? { h: 20 * k, r: 5 * k } : this.form === 5 ? { h: 12 * k, r: 5 * k } : { h: 9.6 * k, r: 4.3 * k };
     out.push({ at: { x: this.pos.x, y: this.pos.y + trunk.h / 2, z: this.pos.z }, r: trunk.r, tag: "body" });
     return out;
   }
@@ -850,8 +856,8 @@ export class Creature {
   /** A sound from him.  If it is his voice, his mouth moves with it (the client times the jaw to the recording). */
   say(id: string, at?: V3, range = 56, volume = 1, pitch = 1): void {
     sound(this.dim, id, at ?? this.pos, range, volume, pitch);
-    const m = /^basiliskra\.(?:[a-z]+\.)?(grunt|growl|breath|hurt|roar|roar_short|roar_under)$/.exec(id);
-    if (m) this.pulse(VOICE_KIND[m[1] as keyof typeof VOICE_KIND]);
+    const m = /^basiliskra\.(?:[a-z]+\.)?(grunt|growl|breath|huff|hurt|roar|roar_short|roar_under)$/.exec(id);
+    if (m) this.pulse(VOICE_KIND[(m[1] === "huff" ? "breath" : m[1]) as keyof typeof VOICE_KIND]);
   }
   emit(id: string, at: V3, range = 56): void { particle(this.dim, id, at, range); }
 
@@ -879,7 +885,7 @@ export class Creature {
 
   /** The middle of his trunk: what another giant aims at. */
   middle(): V3 {
-    const h = this.form === 1 ? 2.2 : this.form === 2 ? 3.6 * this.scale : this.form === 4 ? 12 * this.scale : 4.8 * this.scale;
+    const h = this.form === 1 ? 2.2 : this.form === 2 ? 3.6 * this.scale : this.form === 4 ? 12 * this.scale : this.form === 5 ? 8.5 * this.scale : 4.8 * this.scale;
     return { x: this.pos.x, y: this.pos.y + h, z: this.pos.z };
   }
 

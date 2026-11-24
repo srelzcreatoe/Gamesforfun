@@ -1,0 +1,86 @@
+{
+ "format_version": "1.26.10",
+ "particle_effect": {
+  "description": {
+   "identifier": "basiliskra:v_impact_blast",
+   "basic_render_parameters": {
+    "material": "particles_add",
+    "texture": "textures/particle/basiliskra_particles"
+   }
+  },
+  "components": {
+   "minecraft:emitter_lifetime_once": {
+    "active_time": 0.05
+   },
+   "minecraft:emitter_rate_instant": {
+    "num_particles": 5
+   },
+   "minecraft:emitter_shape_sphere": {
+    "radius": 0.8,
+    "direction": "outwards"
+   },
+   "minecraft:particle_initial_speed": "math.random(1, 4)",
+   "minecraft:particle_lifetime_expression": {
+    "max_lifetime": "math.random(0.35, 0.6)"
+   },
+   "minecraft:particle_motion_dynamic": {
+    "linear_acceleration": [
+     0,
+     0,
+     0
+    ],
+    "linear_drag_coefficient": 2.0
+   },
+   "minecraft:particle_appearance_billboard": {
+    "size": [
+     "(1.6 + (4.2 - 1.6) * v.particle_age / v.particle_lifetime) * (0.8 + 0.4 * v.particle_random_1)",
+     "(1.6 + (4.2 - 1.6) * v.particle_age / v.particle_lifetime) * (0.8 + 0.4 * v.particle_random_1)"
+    ],
+    "facing_camera_mode": "lookat_xyz",
+    "uv": {
+     "texture_width": 64,
+     "texture_height": 64,
+     "uv": [
+      48,
+      48
+     ],
+     "uv_size": [
+      16,
+      16
+     ]
+    }
+   },
+   "minecraft:particle_appearance_tinting": {
+    "color": {
+     "gradient": {
+      "0.00": [
+       0.86,
+       1.0,
+       0.7769,
+       1.0
+      ],
+      "0.20": [
+       0.3,
+       1.0,
+       0.3867,
+       1.0
+      ],
+      "0.55": [
+       0.3533,
+       1.0,
+       0.09,
+       1.0
+      ],
+      "1.00": [
+       0.2233,
+       0.55,
+       0.03,
+       0.0
+      ]
+     },
+     "interpolant": "v.particle_age / v.particle_lifetime"
+    }
+   }
+  }
+ }
+}

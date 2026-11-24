@@ -2,7 +2,7 @@
 
 
 // src/main.ts
-import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause10, EntitySwingSource, GameMode as GameMode2, system as system6, world as world15 } from "@minecraft/server";
+import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause as EntityDamageCause11, EntitySwingSource, GameMode as GameMode2, system as system6, world as world16 } from "@minecraft/server";
 
 // src/config.ts
 var CONFIG = {
@@ -57,13 +57,25 @@ var CONFIG = {
   /** Short cutscenes (a camera that shows the rift opening, him coming through, and each transformation). */
   cutscenes: true,
   /** His themes play when he is near, fighting, or in his last form. */
-  music: true
+  music: true,
+  /**
+   * Vathrok (2.0), the other kaiju, met in survival: now and then at night it comes up out of the ground near a
+   * player, and whenever its lure is used; it can be beaten.  Off: it never comes, and one that is about goes.
+   */
+  vathrok: true,
+  /** The Vathrok Titan, for battles (its egg, /basiliskra:vathrok titan, the wheel): as strong as the Titan.  Off: none can be made, and those there are go. */
+  vathrokTitan: true
 };
-var SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music", "changeMinutes", "cities"];
+var SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music", "changeMinutes", "cities", "vathrok", "vathrokTitan"];
 var SETTINGS_KEY = "bk:cfg";
 var NS = "basiliskra";
 var TYPE = `${NS}:basiliskra`;
 var TITAN = `${NS}:titan`;
+var VATHROK = `${NS}:vathrok`;
+var VATHROK_TITAN = `${NS}:vathrok_titan`;
+var VATHROK_SCALE_ITEM = `${NS}:vathrok_scale`;
+var VATHROK_HEART_ITEM = `${NS}:vathrok_heart`;
+var VATHROK_LURE_ITEM = `${NS}:vathrok_lure`;
 var CIVILIAN = `${NS}:civilian`;
 var hitboxId = (size) => `${NS}:hitbox_${size}`;
 var isHitbox = (typeId) => typeId.startsWith(`${NS}:hitbox_`);
@@ -212,7 +224,7 @@ function resetSettings() {
 }
 
 // src/ui.ts
-import { ItemStack as ItemStack3, PlayerPermissionLevel, system as system2, world as world10 } from "@minecraft/server";
+import { ItemStack as ItemStack4, PlayerPermissionLevel, system as system2, world as world11 } from "@minecraft/server";
 import { ActionFormData, FormCancelationReason, MessageFormData, ModalFormData } from "@minecraft/server-ui";
 
 // src/creature.ts
@@ -545,8 +557,8 @@ function flash(dim, at3, range, color, fadeIn = 0.05, hold = 0.1, fadeOut = 0.5)
 }
 
 // src/generated/rig.ts
-var RIGS = { "1": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 36, 0], "rot": [0, 0, 0], "zone": 6 }, "chest": { "parent": "body", "pivot": [0, 36, 0], "rot": [0, 0, 0], "zone": 6 }, "gill_l1": { "parent": "chest", "pivot": [48, 36, -17], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "chest", "pivot": [48, 36, -7], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "chest", "pivot": [48, 36, 3], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "chest", "pivot": [-48, 36, -17], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "chest", "pivot": [-48, 36, -7], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "chest", "pivot": [-48, 36, 3], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "chest", "pivot": [0, 36, -24], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 32, -34], "rot": [4, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [27.4, 45.6, -78], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-27.4, 45.6, -78], "rot": [0, 0, 0], "zone": 8 }, "fin_l": { "parent": "chest", "pivot": [40, 13, 16], "rot": [0, -34, 30], "zone": 6 }, "fin_l_tip": { "parent": "fin_l", "pivot": [74, 13, 16], "rot": [0, 0, 0], "zone": 6 }, "fin_r": { "parent": "chest", "pivot": [-40, 13, 16], "rot": [0, 34, -30], "zone": 6 }, "fin_r_tip": { "parent": "fin_r", "pivot": [-74, 13, 16], "rot": [0, 0, 0], "zone": 6 }, "ribbon0": { "parent": "chest", "pivot": [0, 72, 6], "rot": [0, 0, 0], "zone": 6 }, "seg1": { "parent": "chest", "pivot": [0, 36, 24], "rot": [0, 0, 0], "zone": 5 }, "ribbon1": { "parent": "seg1", "pivot": [0, 72, 40], "rot": [0, 0, 0], "zone": 5 }, "seg2": { "parent": "seg1", "pivot": [0, 36, 56], "rot": [0, 0, 0], "zone": 5 }, "ribbon2": { "parent": "seg2", "pivot": [0, 71.5, 72], "rot": [0, 0, 0], "zone": 5 }, "seg3": { "parent": "seg2", "pivot": [0, 36, 88], "rot": [0, 0, 0], "zone": 5 }, "ribbon3": { "parent": "seg3", "pivot": [0, 70.5, 104], "rot": [0, 0, 0], "zone": 5 }, "seg4": { "parent": "seg3", "pivot": [0, 36, 120], "rot": [0, 0, 0], "zone": 4 }, "ribbon4": { "parent": "seg4", "pivot": [0, 69, 136], "rot": [0, 0, 0], "zone": 4 }, "seg5": { "parent": "seg4", "pivot": [0, 36, 152], "rot": [0, 0, 0], "zone": 4 }, "ribbon5": { "parent": "seg5", "pivot": [0, 67, 168], "rot": [0, 0, 0], "zone": 4 }, "seg6": { "parent": "seg5", "pivot": [0, 36, 184], "rot": [0, 0, 0], "zone": 3 }, "ribbon6": { "parent": "seg6", "pivot": [0, 64.5, 200], "rot": [0, 0, 0], "zone": 3 }, "vribbon6": { "parent": "seg6", "pivot": [0, 7.5, 200], "rot": [0, 0, 0], "zone": 3 }, "seg7": { "parent": "seg6", "pivot": [0, 36, 216], "rot": [0, 0, 0], "zone": 3 }, "ribbon7": { "parent": "seg7", "pivot": [0, 61, 232], "rot": [0, 0, 0], "zone": 3 }, "vribbon7": { "parent": "seg7", "pivot": [0, 11, 232], "rot": [0, 0, 0], "zone": 3 }, "seg8": { "parent": "seg7", "pivot": [0, 36, 248], "rot": [0, 0, 0], "zone": 2 }, "ribbon8": { "parent": "seg8", "pivot": [0, 57, 264], "rot": [0, 0, 0], "zone": 2 }, "vribbon8": { "parent": "seg8", "pivot": [0, 15, 264], "rot": [0, 0, 0], "zone": 2 }, "seg9": { "parent": "seg8", "pivot": [0, 36, 280], "rot": [0, 0, 0], "zone": 1 }, "ribbon9": { "parent": "seg9", "pivot": [0, 53, 296], "rot": [0, 0, 0], "zone": 1 }, "vribbon9": { "parent": "seg9", "pivot": [0, 19, 296], "rot": [0, 0, 0], "zone": 1 }, "seg10": { "parent": "seg9", "pivot": [0, 36, 312], "rot": [0, 0, 0], "zone": 1 }, "ribbon10": { "parent": "seg10", "pivot": [0, 49.5, 328], "rot": [0, 0, 0], "zone": 1 }, "vribbon10": { "parent": "seg10", "pivot": [0, 22.5, 328], "rot": [0, 0, 0], "zone": 1 }, "tailfin": { "parent": "seg10", "pivot": [0, 36, 344], "rot": [0, 0, 0], "zone": 0 } }, "locators": { "back": { "bone": "chest", "pos": [0, 72, 0] }, "belly": { "bone": "chest", "pos": [0, 0, 0] }, "spine_0": { "bone": "chest", "pos": [0, 72, 0] }, "gill_l": { "bone": "chest", "pos": [49, 36, -7] }, "gill_r": { "bone": "chest", "pos": [-49, 36, -7] }, "muzzle": { "bone": "head", "pos": [0, 34, -114] }, "nose": { "bone": "head", "pos": [0, 40, -112] }, "throat": { "bone": "head", "pos": [0, 28, -32] }, "mouth": { "bone": "jaw", "pos": [0, 31, -94] }, "eye_l": { "bone": "eye_l", "pos": [27.9, 45.6, -78] }, "eye_r": { "bone": "eye_r", "pos": [-27.9, 45.6, -78] }, "fin_l": { "bone": "fin_l_tip", "pos": [120, 13, 22] }, "fin_r": { "bone": "fin_r_tip", "pos": [-120, 13, 22] }, "spine_1": { "bone": "seg1", "pos": [0, 72, 40] }, "spine_2": { "bone": "seg2", "pos": [0, 71.5, 72] }, "spine_3": { "bone": "seg3", "pos": [0, 70.5, 104] }, "spine_4": { "bone": "seg4", "pos": [0, 69, 136] }, "spine_5": { "bone": "seg5", "pos": [0, 67, 168] }, "spine_6": { "bone": "seg6", "pos": [0, 64.5, 200] }, "spine_7": { "bone": "seg7", "pos": [0, 61, 232] }, "spine_8": { "bone": "seg8", "pos": [0, 57, 264] }, "spine_9": { "bone": "seg9", "pos": [0, 53, 296] }, "spine_10": { "bone": "seg10", "pos": [0, 49.5, 328] }, "knob_u": { "bone": "tailfin", "pos": [0, 100, 409] }, "knob_d": { "bone": "tailfin", "pos": [0, -28, 409] }, "tail_notch": { "bone": "tailfin", "pos": [2.5, 76, 405] }, "tail_tip": { "bone": "tailfin", "pos": [0, 36, 410] } }, "meta": { "glow_y0": 10, "glow_y1": 74, "wetness": 0.8, "bounds_margin": 6, "form": 1 }, "zones": { "6": ["body", "chest", "fin_l", "fin_l_tip", "fin_r", "fin_r_tip", "ribbon0"], "7": ["gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "jaw", "eye_l", "eye_r"], "5": ["seg1", "ribbon1", "seg2", "ribbon2", "seg3", "ribbon3"], "4": ["seg4", "ribbon4", "seg5", "ribbon5"], "3": ["seg6", "ribbon6", "vribbon6", "seg7", "ribbon7", "vribbon7"], "2": ["seg8", "ribbon8", "vribbon8"], "1": ["seg9", "ribbon9", "vribbon9", "seg10", "ribbon10", "vribbon10"], "0": ["tailfin"] }, "boxes": { "chest": [[-48, 0, -33], [48, 72, 33]], "head": [[-43, 32, -110.5], [43, 68, -20]], "jaw": [[-41, 7, -107.6], [41, 30.8, -19.2]], "fin_l": [[34, 8.5, 0], [74, 17.5, 32]], "fin_l_tip": [[70, 10.8, -3], [126, 15.2, 34]], "fin_r": [[-74, 8.5, 0], [-34, 17.5, 32]], "fin_r_tip": [[-126, 10.8, -3], [-70, 15.2, 34]], "seg1": [[-47.5, 0, 15], [47.5, 72, 57]], "seg2": [[-46.5, 0.5, 47], [46.5, 71.5, 89]], "seg3": [[-45, 1.5, 79], [45, 70.5, 121]], "seg4": [[-42.5, 3, 111], [42.5, 69, 153]], "seg5": [[-39.5, 5, 143], [39.5, 67, 185]], "seg6": [[-35.5, 7.5, 175], [35.5, 64.5, 217]], "seg7": [[-30.5, 11, 207], [30.5, 61, 249]], "seg8": [[-25, 15, 239], [25, 57, 281]], "seg9": [[-19, 19, 271], [19, 53, 313]], "seg10": [[-13.5, 22.5, 303], [13.5, 49.5, 345]], "tailfin": [[-5, -33, 338], [5, 105, 412]] } }, "2": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 44, 0], "rot": [0, 0, 0], "zone": 5 }, "chest": { "parent": "body", "pivot": [0, 78, 0], "rot": [0, 0, 0], "zone": 5 }, "plates_chest": { "parent": "chest", "pivot": [0, 122, 0], "rot": [0, 0, 0], "zone": 5 }, "neck": { "parent": "chest", "pivot": [0, 84, -32], "rot": [3, 0, 0], "zone": 6 }, "plates_neck": { "parent": "neck", "pivot": [0, 116, -46], "rot": [0, 0, 0], "zone": 6 }, "gill_l1": { "parent": "neck", "pivot": [37, 84, -56], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "neck", "pivot": [37, 84, -47], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "neck", "pivot": [37, 84, -38], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "neck", "pivot": [-37, 84, -56], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "neck", "pivot": [-37, 84, -47], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "neck", "pivot": [-37, 84, -38], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "neck", "pivot": [0, 84, -62], "rot": [4, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [28.08, 91.46, -97.7], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-28.08, 91.46, -97.7], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 71, -75], "rot": [9, 0, 0], "zone": 8 }, "arm_l": { "parent": "chest", "pivot": [54, 102, -14], "rot": [14, 0, 10], "zone": 5 }, "forearm_l": { "parent": "arm_l", "pivot": [54, 54, -14], "rot": [-38, 0, -10], "zone": 5 }, "claw_l": { "parent": "forearm_l", "pivot": [54, 4, -14], "rot": [24, 0, 0], "zone": 5 }, "arm_r": { "parent": "chest", "pivot": [-54, 102, -14], "rot": [14, 0, -10], "zone": 5 }, "forearm_r": { "parent": "arm_r", "pivot": [-54, 54, -14], "rot": [-38, 0, 10], "zone": 5 }, "claw_r": { "parent": "forearm_r", "pivot": [-54, 4, -14], "rot": [24, 0, 0], "zone": 5 }, "mid": { "parent": "body", "pivot": [0, 66, 30], "rot": [0, 0, 0], "zone": 4 }, "plates_mid": { "parent": "mid", "pivot": [0, 100, 66], "rot": [0, 0, 0], "zone": 4 }, "hips": { "parent": "mid", "pivot": [0, 36, 104], "rot": [0, 0, 0], "zone": 3 }, "plates_hips": { "parent": "hips", "pivot": [0, 72, 126], "rot": [0, 0, 0], "zone": 3 }, "leg_l": { "parent": "hips", "pivot": [40, 24, 126], "rot": [0, -40, 24], "zone": 3 }, "foot_l": { "parent": "leg_l", "pivot": [70, 20, 126], "rot": [0, 0, -24], "zone": 3 }, "leg_r": { "parent": "hips", "pivot": [-40, 24, 126], "rot": [0, 40, -24], "zone": 3 }, "foot_r": { "parent": "leg_r", "pivot": [-70, 20, 126], "rot": [0, 0, 24], "zone": 3 }, "tail1": { "parent": "hips", "pivot": [0, 32, 150], "rot": [0, 0, 0], "zone": 2 }, "plates_tail1": { "parent": "tail1", "pivot": [0, 62, 164], "rot": [0, 0, 0], "zone": 2 }, "tail2": { "parent": "tail1", "pivot": [0, 30, 178], "rot": [0, 0, 0], "zone": 2 }, "plates_tail2": { "parent": "tail2", "pivot": [0, 58, 192], "rot": [0, 0, 0], "zone": 2 }, "tail3": { "parent": "tail2", "pivot": [0, 28, 206], "rot": [0, 0, 0], "zone": 2 }, "plates_tail3": { "parent": "tail3", "pivot": [0, 54, 220], "rot": [0, 0, 0], "zone": 2 }, "tail4": { "parent": "tail3", "pivot": [0, 26, 234], "rot": [0, 0, 0], "zone": 1 }, "plates_tail4": { "parent": "tail4", "pivot": [0, 50, 248], "rot": [0, 0, 0], "zone": 1 }, "tail5": { "parent": "tail4", "pivot": [0, 24, 262], "rot": [0, 0, 0], "zone": 1 }, "plates_tail5": { "parent": "tail5", "pivot": [0, 46, 276], "rot": [0, 0, 0], "zone": 1 }, "tail6": { "parent": "tail5", "pivot": [0, 23, 290], "rot": [0, 0, 0], "zone": 1 }, "plates_tail6": { "parent": "tail6", "pivot": [0, 44, 304], "rot": [0, 0, 0], "zone": 1 }, "knob": { "parent": "tail6", "pivot": [0, 23, 318], "rot": [0, 0, 0], "zone": 0 } }, "locators": { "heart": { "bone": "chest", "pos": [0, 78, 0] }, "gill_l": { "bone": "neck", "pos": [38, 84, -47] }, "gill_r": { "bone": "neck", "pos": [-38, 84, -47] }, "muzzle": { "bone": "head", "pos": [0, 77.5, -176.4] }, "nose": { "bone": "head", "pos": [0, 90.5, -173.8] }, "throat": { "bone": "head", "pos": [0, 77.5, -69.8] }, "eye_l": { "bone": "eye_l", "pos": [28.58, 91.46, -97.7] }, "eye_r": { "bone": "eye_r", "pos": [-28.58, 91.46, -97.7] }, "mouth": { "bone": "jaw", "pos": [0, 76.2, -153] }, "claw_l": { "bone": "claw_l", "pos": [54, -6, -44] }, "claw_r": { "bone": "claw_r", "pos": [-54, -6, -44] }, "hip_l": { "bone": "hips", "pos": [30, 0, 140] }, "hip_r": { "bone": "hips", "pos": [-30, 0, 140] }, "foot_l": { "bone": "foot_l", "pos": [86, 11, 126] }, "foot_r": { "bone": "foot_r", "pos": [-86, 11, 126] }, "tail_notch": { "bone": "tail6", "pos": [29.5, 23, 305] }, "knob_core": { "bone": "knob", "pos": [0, 32, 358] }, "horn_l": { "bone": "knob", "pos": [19.3621, 76.8737, 367.5747] }, "horn_r": { "bone": "knob", "pos": [-19.3621, 76.8737, 367.5747] } }, "meta": { "glow_y0": 10, "glow_y1": 104, "wetness": 0.5, "bounds_margin": 6, "form": 2 }, "zones": { "5": ["body", "chest", "plates_chest", "arm_l", "forearm_l", "claw_l", "arm_r", "forearm_r", "claw_r"], "6": ["neck", "plates_neck"], "7": ["gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "eye_l", "eye_r", "jaw"], "4": ["mid", "plates_mid"], "3": ["hips", "plates_hips", "leg_l", "foot_l", "leg_r", "foot_r"], "2": ["tail1", "plates_tail1", "tail2", "plates_tail2", "tail3", "plates_tail3"], "1": ["tail4", "plates_tail4", "tail5", "plates_tail5", "tail6", "plates_tail6"], "0": ["knob"] }, "boxes": { "chest": [[-54, 35, -37], [54, 125, 33]], "neck": [[-37, 51, -63], [37, 117, -23]], "head": [[-33.8, 67.1, -172.5], [33.8, 110, -54.2]], "jaw": [[-23.4, 55.4, -167.3], [23.4, 71, -64.6]], "arm_l": [[30, 49, -41], [78, 113, 13]], "forearm_l": [[30.5, 0, -38], [77.5, 65, 14]], "claw_l": [[27.4, -6, -58.7], [80.6, 11, 10]], "arm_r": [[-78, 49, -41], [-30, 113, 13]], "forearm_r": [[-77.5, 0, -38], [-30.5, 65, 14]], "claw_r": [[-80.6, -6, -58.7], [-27.4, 11, 10]], "mid": [[-48, 22.9, 29], [48, 108, 105]], "hips": [[-44, 12.2, 101], [44, 73, 151]], "leg_l": [[36, 13, 116], [70, 35, 136]], "foot_l": [[68.8, 11, 111.1], [100, 16, 140.9]], "leg_r": [[-70, 13, 116], [-36, 35, 136]], "foot_r": [[-100, 11, 111.1], [-68.8, 16, 140.9]], "tail1": [[-40, 10.4, 141], [40, 62, 179]], "tail2": [[-37, 9.8, 169], [37, 58, 207]], "tail3": [[-34, 9.3, 197], [34, 54, 235]], "tail4": [[-31, 8.7, 225], [31, 50, 263]], "tail5": [[-28.5, 8.2, 253], [28.5, 46, 291]], "tail6": [[-26.5, 7.9, 281], [29.3, 44, 319]], "knob": [[-38.2, 0.8, 317], [38.2, 77.4, 406]] } }, "3": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 112, 0], "rot": [0, 0, 0], "zone": 4 }, "plates_mid": { "parent": "body", "pivot": [0, 151, -12], "rot": [0, 0, 0], "zone": 4 }, "chest": { "parent": "body", "pivot": [0, 108, -60], "rot": [0, 0, 0], "zone": 5 }, "plates_chest": { "parent": "chest", "pivot": [0, 148, -92], "rot": [0, 0, 0], "zone": 5 }, "hips": { "parent": "body", "pivot": [0, 110, 36], "rot": [0, 0, 0], "zone": 3 }, "plates_hips": { "parent": "hips", "pivot": [0, 151, 70], "rot": [0, 0, 0], "zone": 3 }, "neck1": { "parent": "chest", "pivot": [0, 114, -126], "rot": [4, 0, 0], "zone": 6 }, "plates_neck1": { "parent": "neck1", "pivot": [0, 150, -134.5], "rot": [0, 0, 0], "zone": 6 }, "neck2": { "parent": "neck1", "pivot": [0, 114, -143], "rot": [3, 0, 0], "zone": 6 }, "plates_neck2": { "parent": "neck2", "pivot": [0, 146.5, -151.5], "rot": [0, 0, 0], "zone": 6 }, "neck3": { "parent": "neck2", "pivot": [0, 114, -160], "rot": [2, 0, 0], "zone": 7 }, "plates_neck3": { "parent": "neck3", "pivot": [0, 143, -168.5], "rot": [0, 0, 0], "zone": 7 }, "neck4": { "parent": "neck3", "pivot": [0, 114, -177], "rot": [0, 0, 0], "zone": 7 }, "plates_neck4": { "parent": "neck4", "pivot": [0, 140, -185.5], "rot": [0, 0, 0], "zone": 7 }, "neck5": { "parent": "neck4", "pivot": [0, 114, -194], "rot": [-2, 0, 0], "zone": 7 }, "plates_neck5": { "parent": "neck5", "pivot": [0, 137.5, -202.5], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "neck5", "pivot": [0, 114, -211], "rot": [-3, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [26.368, 120.608, -247.4], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-26.368, 120.608, -247.4], "rot": [0, 0, 0], "zone": 8 }, "plates_head": { "parent": "head", "pivot": [0, 133.2, -223.8], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 101.2, -223.8], "rot": [7, 0, 0], "zone": 8 }, "gill_l1": { "parent": "neck5", "pivot": [19.92, 113, -208.5], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "neck5", "pivot": [19.92, 113, -203.1], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "neck5", "pivot": [19.92, 113, -197.7], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "neck5", "pivot": [-19.92, 113, -208.5], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "neck5", "pivot": [-19.92, 113, -203.1], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "neck5", "pivot": [-19.92, 113, -197.7], "rot": [0, 0, 0], "zone": 7 }, "leg_fl": { "parent": "chest", "pivot": [40, 104, -100], "rot": [20, 0, 0], "zone": 5 }, "leg_fl_lower": { "parent": "leg_fl", "pivot": [40, 54, -100], "rot": [-35, 0, 0], "zone": 5 }, "foot_fl": { "parent": "leg_fl_lower", "pivot": [40, 7, -100], "rot": [15, 0, 0], "zone": 5 }, "leg_fr": { "parent": "chest", "pivot": [-40, 104, -100], "rot": [20, 0, 0], "zone": 5 }, "leg_fr_lower": { "parent": "leg_fr", "pivot": [-40, 54, -100], "rot": [-35, 0, 0], "zone": 5 }, "foot_fr": { "parent": "leg_fr_lower", "pivot": [-40, 7, -100], "rot": [15, 0, 0], "zone": 5 }, "leg_bl": { "parent": "hips", "pivot": [40, 104, 84], "rot": [-22, 0, 0], "zone": 3 }, "leg_bl_lower": { "parent": "leg_bl", "pivot": [40, 52, 84], "rot": [40, 0, 0], "zone": 3 }, "foot_bl": { "parent": "leg_bl_lower", "pivot": [40, 6, 84], "rot": [-18, 0, 0], "zone": 3 }, "leg_br": { "parent": "hips", "pivot": [-40, 104, 84], "rot": [-22, 0, 0], "zone": 3 }, "leg_br_lower": { "parent": "leg_br", "pivot": [-40, 52, 84], "rot": [40, 0, 0], "zone": 3 }, "foot_br": { "parent": "leg_br_lower", "pivot": [-40, 6, 84], "rot": [-18, 0, 0], "zone": 3 }, "tail1": { "parent": "hips", "pivot": [0, 112, 112], "rot": [-8, 0, 0], "zone": 2 }, "plates_tail1": { "parent": "tail1", "pivot": [0, 144, 127.5], "rot": [0, 0, 0], "zone": 2 }, "tail2": { "parent": "tail1", "pivot": [0, 112, 143], "rot": [-6, 0, 0], "zone": 2 }, "plates_tail2": { "parent": "tail2", "pivot": [0, 140, 158.5], "rot": [0, 0, 0], "zone": 2 }, "tail3": { "parent": "tail2", "pivot": [0, 112, 174], "rot": [-4, 0, 0], "zone": 2 }, "plates_tail3": { "parent": "tail3", "pivot": [0, 136, 189], "rot": [0, 0, 0], "zone": 2 }, "tail4": { "parent": "tail3", "pivot": [0, 112, 204], "rot": [-2, 0, 0], "zone": 1 }, "plates_tail4": { "parent": "tail4", "pivot": [0, 132, 219], "rot": [0, 0, 0], "zone": 1 }, "tail5": { "parent": "tail4", "pivot": [0, 112, 234], "rot": [2, 0, 0], "zone": 1 }, "plates_tail5": { "parent": "tail5", "pivot": [0, 129, 249], "rot": [0, 0, 0], "zone": 1 }, "tail6": { "parent": "tail5", "pivot": [0, 112, 264], "rot": [5, 0, 0], "zone": 1 }, "plates_tail6": { "parent": "tail6", "pivot": [0, 126.5, 278.5], "rot": [0, 0, 0], "zone": 1 }, "tail7": { "parent": "tail6", "pivot": [0, 112, 293], "rot": [7, 0, 0], "zone": 1 }, "plates_tail7": { "parent": "tail7", "pivot": [0, 124.5, 307.5], "rot": [0, 0, 0], "zone": 1 }, "tail8": { "parent": "tail7", "pivot": [0, 112, 322], "rot": [6, 0, 0], "zone": 1 }, "plates_tail8": { "parent": "tail8", "pivot": [0, 123, 336], "rot": [0, 0, 0], "zone": 1 }, "club": { "parent": "tail8", "pivot": [0, 112, 350], "rot": [0, 0, 0], "zone": 0 } }, "locators": { "heart": { "bone": "body", "pos": [0, 112, -20] }, "plate_tip_3": { "bone": "plates_mid", "pos": [0, 218.3, -21.8] }, "plate_tip_4": { "bone": "plates_mid", "pos": [0, 228.8, 7.2] }, "plate_tip_5": { "bone": "plates_mid", "pos": [0, 235.5, 35] }, "plate_tip_6": { "bone": "plates_mid", "pos": [0, 235.5, 61] }, "plate_tip_0": { "bone": "plates_chest", "pos": [0, 177.2, -105.2] }, "plate_tip_1": { "bone": "plates_chest", "pos": [0, 193.5, -79] }, "plate_tip_2": { "bone": "plates_chest", "pos": [0, 205.9, -51.4] }, "plate_tip_7": { "bone": "plates_hips", "pos": [0, 229.8, 85.2] }, "plate_tip_8": { "bone": "plates_hips", "pos": [0, 218.3, 106.2] }, "plate_tip_9": { "bone": "plates_hips", "pos": [0, 204.9, 124.6] }, "gill_l": { "bone": "neck5", "pos": [21, 113, -201.5] }, "gill_r": { "bone": "neck5", "pos": [-21, 113, -201.5] }, "muzzle": { "bone": "head", "pos": [0, 107.6, -303.16] }, "throat": { "bone": "head", "pos": [0, 107.6, -218.68] }, "nose": { "bone": "head", "pos": [0, 121.68, -300.6] }, "eye_l": { "bone": "eye_l", "pos": [26.868, 120.608, -247.4] }, "eye_r": { "bone": "eye_r", "pos": [-26.868, 120.608, -247.4] }, "mouth": { "bone": "jaw", "pos": [0, 106.32, -282.68] }, "foot_fl": { "bone": "foot_fl", "pos": [40, -5, -108] }, "foot_fr": { "bone": "foot_fr", "pos": [-40, -5, -108] }, "foot_bl": { "bone": "foot_bl", "pos": [40, -6, 76] }, "foot_br": { "bone": "foot_br", "pos": [-40, -6, 76] }, "tail_notch": { "bone": "tail7", "pos": [11.5, 112, 306] }, "club_core": { "bone": "club", "pos": [0, 112, 374] }, "spike_tip_0": { "bone": "club", "pos": [41.2571, 135.8198, 369.7336] }, "spike_tip_1": { "bone": "club", "pos": [0, 165.2182, 369.1757] }, "spike_tip_2": { "bone": "club", "pos": [-40.6907, 135.4928, 369.799] }, "spike_tip_3": { "bone": "club", "pos": [-43.335, 86.9805, 369.4936] }, "spike_tip_4": { "bone": "club", "pos": [0, 58.6562, 369.1631] }, "spike_tip_5": { "bone": "club", "pos": [46.0464, 85.4151, 369.1805] }, "spike_tip_6": { "bone": "club", "pos": [22.5857, 143.0865, 405.9264] }, "spike_tip_7": { "bone": "club", "pos": [-22.3364, 142.7435, 405.5367] }, "spike_tip_8": { "bone": "club", "pos": [-32.3061, 101.5031, 401.8313] }, "spike_tip_9": { "bone": "club", "pos": [0, 73.6781, 405.8316] }, "spike_tip_10": { "bone": "club", "pos": [32.359, 101.4859, 401.8824] }, "spike_tip_11": { "bone": "club", "pos": [0, 114.8643, 426.2925] } }, "meta": { "glow_y0": 64, "glow_y1": 156, "wetness": 0.15, "bounds_margin": 6, "form": 3 }, "zones": { "4": ["body", "plates_mid"], "5": ["chest", "plates_chest", "leg_fl", "leg_fl_lower", "foot_fl", "leg_fr", "leg_fr_lower", "foot_fr"], "3": ["hips", "plates_hips", "leg_bl", "leg_bl_lower", "foot_bl", "leg_br", "leg_br_lower", "foot_br"], "6": ["neck1", "plates_neck1", "neck2", "plates_neck2"], "7": ["neck3", "plates_neck3", "neck4", "plates_neck4", "neck5", "plates_neck5", "gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "eye_l", "eye_r", "plates_head", "jaw"], "2": ["tail1", "plates_tail1", "tail2", "plates_tail2", "tail3", "plates_tail3"], "1": ["tail4", "plates_tail4", "tail5", "plates_tail5", "tail6", "plates_tail6", "tail7", "plates_tail7", "tail8", "plates_tail8"], "0": ["club"] }, "boxes": { "body": [[-46, 66, -61], [46, 152.5, 37]], "chest": [[-52, 63, -131], [52, 149, -59]], "hips": [[-52, 68, 35], [52, 152, 115]], "neck1": [[-38, 78, -144], [38, 150, -116]], "neck2": [[-34, 81.5, -161], [34, 146.5, -133]], "neck3": [[-30.5, 85, -178], [30.5, 143, -150]], "neck4": [[-27, 88, -195], [27, 140, -167]], "neck5": [[-24.5, 90.5, -212], [24.5, 137.5, -184]], "head": [[-32, 96.1, -299.3], [32, 139, -203.3]], "jaw": [[-21.8, 85.8, -294.2], [21.8, 101.2, -213.6]], "gill_l1": [[19.4, 102.8, -210.9], [20.4, 123.2, -201.9]], "gill_l2": [[19.4, 102.8, -205.5], [20.4, 123.2, -196.5]], "gill_l3": [[19.4, 102.8, -200.1], [20.4, 123.2, -191.1]], "gill_r1": [[-20.4, 102.8, -210.9], [-19.4, 123.2, -201.9]], "gill_r2": [[-20.4, 102.8, -205.5], [-19.4, 123.2, -196.5]], "gill_r3": [[-20.4, 102.8, -200.1], [-19.4, 123.2, -191.1]], "leg_fl": [[15, 49, -133.7], [65, 113, -67]], "leg_fl_lower": [[18, 3, -124], [62, 64, -70]], "foot_fl": [[16.4, -5, -140.7], [63.6, 14, -76]], "leg_fr": [[-65, 49, -133.7], [-15, 113, -67]], "leg_fr_lower": [[-62, 3, -124], [-18, 64, -70]], "foot_fr": [[-63.6, -5, -140.7], [-16.4, 14, -76]], "leg_bl": [[13, 47, 47], [67, 113, 122.5]], "leg_bl_lower": [[18, 2, 56], [62, 62, 112]], "foot_bl": [[16.4, -6, 43.3], [63.6, 13, 108]], "leg_br": [[-67, 47, 47], [-13, 113, 122.5]], "leg_br_lower": [[-62, 2, 56], [-18, 62, 112]], "foot_br": [[-63.6, -6, 43.3], [-16.4, 13, 108]], "tail1": [[-34, 80, 103], [34, 144, 144]], "tail2": [[-29.5, 84, 134], [29.5, 140, 175]], "tail3": [[-25, 88, 165], [25, 136, 205]], "tail4": [[-21, 92, 195], [21, 132, 235]], "tail5": [[-17.5, 95, 225], [17.5, 129, 265]], "tail6": [[-14.5, 97.5, 255], [14.5, 126.5, 294]], "tail7": [[-12, 99.5, 284], [12.2, 124.5, 323]], "tail8": [[-10, 101, 313], [10, 123, 351]], "club": [[-26, 86, 348], [26, 138, 394]] } }, "4": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 170, 6], "rot": [0, 0, 0], "zone": 4 }, "plates_mid": { "parent": "body", "pivot": [0, 226, 58], "rot": [0, 0, 0], "zone": 4 }, "hips": { "parent": "body", "pivot": [0, 166, 10], "rot": [0, 0, 0], "zone": 3 }, "plates_hips": { "parent": "hips", "pivot": [0, 176, 68], "rot": [0, 0, 0], "zone": 3 }, "chest": { "parent": "body", "pivot": [0, 250, -6], "rot": [0, 0, 0], "zone": 5 }, "plates_chest": { "parent": "chest", "pivot": [0, 300, 50], "rot": [0, 0, 0], "zone": 5 }, "ribs_l": { "parent": "chest", "pivot": [82, 280, -10], "rot": [0, 0, 0], "zone": 5 }, "neck1": { "parent": "chest", "pivot": [0, 336, -22], "rot": [0, 0, 0], "zone": 6 }, "neck2": { "parent": "neck1", "pivot": [0, 366, -28], "rot": [0, 0, 0], "zone": 7 }, "plates_neck1": { "parent": "neck1", "pivot": [0, 352, 12], "rot": [0, 0, 0], "zone": 6 }, "plates_neck2": { "parent": "neck2", "pivot": [0, 382, 2], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "neck2", "pivot": [0, 398, -28], "rot": [8, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [32.96, 405.94, -75.1], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-32.96, 405.94, -75.1], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 382, -40.8], "rot": [13, 0, 0], "zone": 8 }, "plates_head": { "parent": "head", "pivot": [0, 423.6, -37.6], "rot": [0, 0, 0], "zone": 8 }, "gill_l1": { "parent": "neck2", "pivot": [35.86, 378, -44.5], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "neck2", "pivot": [35.86, 378, -37.5], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "neck2", "pivot": [35.86, 378, -30.5], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "neck2", "pivot": [-35.86, 378, -44.5], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "neck2", "pivot": [-35.86, 378, -37.5], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "neck2", "pivot": [-35.86, 378, -30.5], "rot": [0, 0, 0], "zone": 7 }, "leg_l": { "parent": "hips", "pivot": [68, 170, 6], "rot": [-28, 0, 0], "zone": 3 }, "leg_l_lower": { "parent": "leg_l", "pivot": [68, 86, 6], "rot": [44, 0, 0], "zone": 3 }, "foot_l": { "parent": "leg_l_lower", "pivot": [68, 12, 6], "rot": [-16, 0, 0], "zone": 3 }, "leg_r": { "parent": "hips", "pivot": [-68, 170, 6], "rot": [-28, 0, 0], "zone": 3 }, "leg_r_lower": { "parent": "leg_r", "pivot": [-68, 86, 6], "rot": [44, 0, 0], "zone": 3 }, "foot_r": { "parent": "leg_r_lower", "pivot": [-68, 12, 6], "rot": [-16, 0, 0], "zone": 3 }, "arm_l": { "parent": "chest", "pivot": [102, 302, -16], "rot": [14, 0, -15], "zone": 5 }, "forearm_l": { "parent": "arm_l", "pivot": [102, 230, -16], "rot": [-52, 0, 0], "zone": 5 }, "hand_l": { "parent": "forearm_l", "pivot": [102, 164, -16], "rot": [34, 0, 0], "zone": 5 }, "arm_r": { "parent": "chest", "pivot": [-102, 302, -16], "rot": [14, 0, 15], "zone": 5 }, "forearm_r": { "parent": "arm_r", "pivot": [-102, 230, -16], "rot": [-52, 0, 0], "zone": 5 }, "hand_r": { "parent": "forearm_r", "pivot": [-102, 164, -16], "rot": [34, 0, 0], "zone": 5 }, "wing_l": { "parent": "chest", "pivot": [46, 322, 40], "rot": [0, -32, -62], "zone": 5 }, "wing_l_arm": { "parent": "wing_l", "pivot": [166, 322, 40], "rot": [0, 0, 27.3], "zone": 5 }, "wing_l_f1": { "parent": "wing_l_arm", "pivot": [336, 322, 40], "rot": [0, 0, -7.4], "zone": 5 }, "wing_l_f2": { "parent": "wing_l_arm", "pivot": [336, 322, 40], "rot": [0, 0, 9.4], "zone": 5 }, "wing_l_f3": { "parent": "wing_l_arm", "pivot": [336, 322, 40], "rot": [0, 0, 25.9], "zone": 5 }, "wing_l_f4": { "parent": "wing_l_arm", "pivot": [336, 322, 40], "rot": [0, 0, 41.3], "zone": 5 }, "wing_r": { "parent": "chest", "pivot": [-46, 322, 40], "rot": [0, 32, 62], "zone": 5 }, "wing_r_arm": { "parent": "wing_r", "pivot": [-166, 322, 40], "rot": [0, 0, -27.3], "zone": 5 }, "wing_r_f1": { "parent": "wing_r_arm", "pivot": [-336, 322, 40], "rot": [0, 0, 7.4], "zone": 5 }, "wing_r_f2": { "parent": "wing_r_arm", "pivot": [-336, 322, 40], "rot": [0, 0, -9.4], "zone": 5 }, "wing_r_f3": { "parent": "wing_r_arm", "pivot": [-336, 322, 40], "rot": [0, 0, -25.9], "zone": 5 }, "wing_r_f4": { "parent": "wing_r_arm", "pivot": [-336, 322, 40], "rot": [0, 0, -41.3], "zone": 5 }, "tail1": { "parent": "hips", "pivot": [0, 152, 62], "rot": [-32, 0, 0], "zone": 2 }, "plates_tail1": { "parent": "tail1", "pivot": [0, 207, 87], "rot": [0, 0, 0], "zone": 2 }, "tail2": { "parent": "tail1", "pivot": [0, 152, 112], "rot": [-12, 0, 0], "zone": 2 }, "plates_tail2": { "parent": "tail2", "pivot": [0, 200, 137], "rot": [0, 0, 0], "zone": 2 }, "tail3": { "parent": "tail2", "pivot": [0, 152, 162], "rot": [5, 0, 0], "zone": 2 }, "plates_tail3": { "parent": "tail3", "pivot": [0, 193, 186], "rot": [0, 0, 0], "zone": 2 }, "tail4": { "parent": "tail3", "pivot": [0, 152, 210], "rot": [16, 0, 0], "zone": 2 }, "plates_tail4": { "parent": "tail4", "pivot": [0, 186, 234], "rot": [0, 0, 0], "zone": 2 }, "tail5": { "parent": "tail4", "pivot": [0, 152, 258], "rot": [13, 0, 0], "zone": 1 }, "plates_tail5": { "parent": "tail5", "pivot": [0, 180, 281], "rot": [0, 0, 0], "zone": 1 }, "tail6": { "parent": "tail5", "pivot": [0, 152, 304], "rot": [9, 0, 0], "zone": 1 }, "plates_tail6": { "parent": "tail6", "pivot": [0, 176, 327], "rot": [0, 0, 0], "zone": 1 }, "tail7": { "parent": "tail6", "pivot": [0, 152, 350], "rot": [7, 0, 0], "zone": 1 }, "plates_tail7": { "parent": "tail7", "pivot": [0, 173, 372], "rot": [0, 0, 0], "zone": 1 }, "tail8": { "parent": "tail7", "pivot": [0, 152, 394], "rot": [6, 0, 0], "zone": 1 }, "plates_tail8": { "parent": "tail8", "pivot": [0, 170, 416], "rot": [0, 0, 0], "zone": 1 }, "tail9": { "parent": "tail8", "pivot": [0, 152, 438], "rot": [5, 0, 0], "zone": 1 }, "plates_tail9": { "parent": "tail9", "pivot": [0, 167.5, 459], "rot": [0, 0, 0], "zone": 1 }, "tail10": { "parent": "tail9", "pivot": [0, 152, 480], "rot": [4, 0, 0], "zone": 1 }, "plates_tail10": { "parent": "tail10", "pivot": [0, 165.5, 500], "rot": [0, 0, 0], "zone": 1 }, "club": { "parent": "tail10", "pivot": [0, 152, 520], "rot": [0, 0, 0], "zone": 0 }, "plate_break": { "parent": "plates_mid", "pivot": [0, 240, 64], "rot": [0, 0, 0], "zone": 4 } }, "locators": { "heart": { "bone": "body", "pos": [0, 280, -30] }, "plate_tip_3": { "bone": "plates_mid", "pos": [0, 280.5, 134.1481] }, "plate_tip_4": { "bone": "plates_mid", "pos": [0, 254.5, 136.1481] }, "plate_tip_5": { "bone": "plates_hips", "pos": [0, 224.9, 137.9127] }, "plate_tip_6": { "bone": "plates_hips", "pos": [0, 195.5, 130.5596] }, "plate_tip_0": { "bone": "plates_chest", "pos": [0, 345.9, 86.3242] }, "plate_tip_1": { "bone": "plates_chest", "pos": [0, 325.3, 111.6773] }, "plate_tip_2": { "bone": "plates_chest", "pos": [0, 303.8, 121.4715] }, "ribs": { "bone": "ribs_l", "pos": [92, 280, -12] }, "gill_l": { "bone": "neck2", "pos": [40, 378, -36] }, "gill_r": { "bone": "neck2", "pos": [-40, 378, -36] }, "muzzle": { "bone": "head", "pos": [0, 390, -143.2] }, "throat": { "bone": "head", "pos": [0, 390, -37.6] }, "nose": { "bone": "head", "pos": [0, 407.6, -140] }, "eye_l": { "bone": "eye_l", "pos": [33.46, 405.94, -75.1] }, "eye_r": { "bone": "eye_r", "pos": [-33.46, 405.94, -75.1] }, "mouth": { "bone": "jaw", "pos": [0, 388.4, -117.6] }, "foot_l": { "bone": "foot_l", "pos": [68, -12, -8] }, "heel_l": { "bone": "foot_l", "pos": [68, -12, 46] }, "foot_r": { "bone": "foot_r", "pos": [-68, -12, -8] }, "heel_r": { "bone": "foot_r", "pos": [-68, -12, 46] }, "hand_l": { "bone": "hand_l", "pos": [92, 126, -16] }, "hand_r": { "bone": "hand_r", "pos": [-92, 126, -16] }, "wing_tip_l": { "bone": "wing_l_arm", "pos": [336, 362, 40] }, "wing_vein_l0": { "bone": "wing_l_f1", "pos": [336, 50.32, 40] }, "wing_vein_l1": { "bone": "wing_l_f2", "pos": [336, 30.16, 40] }, "wing_vein_l2": { "bone": "wing_l_f3", "pos": [336, 20.56, 40] }, "wing_vein_l3": { "bone": "wing_l_f4", "pos": [336, 12.88, 40] }, "wing_tip_r": { "bone": "wing_r_arm", "pos": [-336, 362, 40] }, "wing_vein_r0": { "bone": "wing_r_f1", "pos": [-336, 50.32, 40] }, "wing_vein_r1": { "bone": "wing_r_f2", "pos": [-336, 30.16, 40] }, "wing_vein_r2": { "bone": "wing_r_f3", "pos": [-336, 20.56, 40] }, "wing_vein_r3": { "bone": "wing_r_f4", "pos": [-336, 12.88, 40] }, "tail_notch": { "bone": "tail9", "pos": [15.5, 152, 454] }, "club_core": { "bone": "club", "pos": [0, 152, 551.68] }, "spike_tip_0": { "bone": "club", "pos": [54.875, 183.6821, 546.0003] }, "spike_tip_1": { "bone": "club", "pos": [0, 217.8263, 545.7541] }, "spike_tip_2": { "bone": "club", "pos": [-59.9753, 186.6268, 545.4114] }, "spike_tip_3": { "bone": "club", "pos": [-59.2924, 117.7675, 545.4902] }, "spike_tip_4": { "bone": "club", "pos": [0, 81.1796, 545.2547] }, "spike_tip_5": { "bone": "club", "pos": [58.4937, 118.2286, 545.5825] }, "spike_tip_6": { "bone": "club", "pos": [30.7834, 194.3697, 595.3397] }, "spike_tip_7": { "bone": "club", "pos": [-29.1209, 192.0815, 592.7407] }, "spike_tip_8": { "bone": "club", "pos": [-47.8792, 136.4431, 593.4756] }, "spike_tip_9": { "bone": "club", "pos": [0, 102.2913, 592.8926] }, "spike_tip_10": { "bone": "club", "pos": [49.0644, 136.058, 594.6207] }, "spike_tip_11": { "bone": "club", "pos": [0, 155.8957, 623.002] }, "plate_break": { "bone": "plate_break", "pos": [0, 240, 72] } }, "meta": { "glow_y0": 40, "glow_y1": 430, "wetness": 0.12, "bounds_margin": 8, "form": 4 }, "zones": { "4": ["body", "plates_mid", "plate_break"], "3": ["hips", "plates_hips", "leg_l", "leg_l_lower", "foot_l", "leg_r", "leg_r_lower", "foot_r"], "5": ["chest", "plates_chest", "ribs_l", "arm_l", "forearm_l", "hand_l", "arm_r", "forearm_r", "hand_r", "wing_l", "wing_l_arm", "wing_l_f1", "wing_l_f2", "wing_l_f3", "wing_l_f4", "wing_r", "wing_r_arm", "wing_r_f1", "wing_r_f2", "wing_r_f3", "wing_r_f4"], "6": ["neck1", "plates_neck1"], "7": ["neck2", "plates_neck2", "gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "eye_l", "eye_r", "jaw", "plates_head"], "2": ["tail1", "plates_tail1", "tail2", "plates_tail2", "tail3", "plates_tail3", "tail4", "plates_tail4"], "1": ["tail5", "plates_tail5", "tail6", "plates_tail6", "tail7", "plates_tail7", "tail8", "plates_tail8", "tail9", "plates_tail9", "tail10", "plates_tail10"], "0": ["club"] }, "boxes": { "body": [[-78, 195, -71], [78, 263, 66]], "hips": [[-92, 127, -56], [92, 205, 76]], "chest": [[-102, 249, -82], [102, 345, 58]], "ribs_l": [[82.5, 251.4, -50], [89.5, 309.5, 26.7]], "neck1": [[-45, 327, -69], [45, 371, 17]], "neck2": [[-41, 361, -71], [41, 403, 7]], "head": [[-40, 375.6, -138.4], [40, 434.8, -15.2]], "jaw": [[-28, 361.2, -132], [28, 382, -28]], "gill_l1": [[35.4, 366.8, -47.1], [36.4, 389.2, -37.7]], "gill_l2": [[35.4, 366.8, -40.1], [36.4, 389.2, -30.7]], "gill_l3": [[35.4, 366.8, -33.1], [36.4, 389.2, -23.7]], "gill_r1": [[-36.4, 366.8, -47.1], [-35.4, 389.2, -37.7]], "gill_r2": [[-36.4, 366.8, -40.1], [-35.4, 389.2, -30.7]], "gill_r3": [[-36.4, 366.8, -33.1], [-35.4, 389.2, -23.7]], "leg_l": [[25, 79, -54], [111, 187, 60]], "leg_l_lower": [[32, 7, -43], [104, 100, 47]], "foot_l": [[22.5, -12, -83.2], [113.5, 22, 46]], "leg_r": [[-111, 79, -54], [-25, 187, 60]], "leg_r_lower": [[-104, 7, -43], [-32, 100, 47]], "foot_r": [[-113.5, -12, -83.2], [-22.5, 22, 46]], "arm_l": [[71, 225, -52], [133, 325, 20]], "forearm_l": [[77, 161, -43], [127, 244, 19]], "hand_l": [[81, 115.5, -47.4], [117, 170, 11.5]], "arm_r": [[-133, 225, -52], [-71, 325, 20]], "forearm_r": [[-127, 161, -43], [-77, 244, 19]], "hand_r": [[-117, 115.5, -47.4], [-81, 170, 11.5]], "wing_l": [[37, 295, 13], [171, 349, 67]], "wing_l_arm": [[155, 305, 23], [348, 339, 57]], "wing_l_f1": [[330.5, 39, 34.5], [341.5, 323.5, 45.5]], "wing_l_f2": [[330.9, 18, 34.9], [341.1, 323.5, 45.1]], "wing_l_f3": [[331.3, 8, 35.3], [340.7, 323.5, 44.7]], "wing_l_f4": [[331.7, 0, 35.7], [340.3, 323.5, 44.3]], "wing_r": [[-171, 295, 13], [-37, 349, 67]], "wing_r_arm": [[-348, 305, 23], [-155, 339, 57]], "wing_r_f1": [[-341.5, 39, 34.5], [-330.5, 323.5, 45.5]], "wing_r_f2": [[-341.1, 18, 34.9], [-330.9, 323.5, 45.1]], "wing_r_f3": [[-340.7, 8, 35.3], [-331.3, 323.5, 44.7]], "wing_r_f4": [[-340.3, 0, 35.7], [-331.7, 323.5, 44.3]], "tail1": [[-60, 97, 51], [60, 207, 113]], "tail2": [[-52, 104, 101], [52, 200, 163]], "tail3": [[-44, 111, 151], [44, 193, 211]], "tail4": [[-37, 118, 199], [37, 186, 259]], "tail5": [[-31, 124, 247], [31, 180, 305]], "tail6": [[-26, 128, 293], [26, 176, 351]], "tail7": [[-22, 131, 339], [22, 173, 395]], "tail8": [[-18.5, 134, 383], [18.5, 170, 439]], "tail9": [[-15.5, 136.5, 427], [15.9, 167.5, 481]], "tail10": [[-13, 138.5, 469], [13, 165.5, 521]], "club": [[-34.3, 117.7, 517.4], [34.3, 186.3, 578.1]] } } };
-var LOOK = { "1": { "yaw": { "head": 0.6, "chest": 0.4 }, "pitch": { "head": 0.6, "chest": 0.4 } }, "2": { "yaw": { "head": 0.45, "neck": 0.4, "chest": 0.15 }, "pitch": { "head": 0.5, "neck": 0.4, "chest": 0.1 } }, "3": { "yaw": { "head": 0.35, "neck1": 0.11, "neck2": 0.11, "neck3": 0.11, "neck4": 0.11, "neck5": 0.11, "chest": 0.1 }, "pitch": { "head": 0.4, "neck1": 0.12, "neck2": 0.12, "neck3": 0.12, "neck4": 0.12, "neck5": 0.12 } }, "4": { "yaw": { "head": 0.4, "neck2": 0.2, "neck1": 0.2, "chest": 0.2 }, "pitch": { "head": 0.45, "neck2": 0.25, "neck1": 0.2, "chest": 0.1 } } };
+var RIGS = { "1": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 36, 0], "rot": [0, 0, 0], "zone": 6 }, "chest": { "parent": "body", "pivot": [0, 36, 0], "rot": [0, 0, 0], "zone": 6 }, "gill_l1": { "parent": "chest", "pivot": [48, 36, -17], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "chest", "pivot": [48, 36, -7], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "chest", "pivot": [48, 36, 3], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "chest", "pivot": [-48, 36, -17], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "chest", "pivot": [-48, 36, -7], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "chest", "pivot": [-48, 36, 3], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "chest", "pivot": [0, 36, -24], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 32, -34], "rot": [4, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [27.4, 45.6, -78], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-27.4, 45.6, -78], "rot": [0, 0, 0], "zone": 8 }, "fin_l": { "parent": "chest", "pivot": [40, 13, 16], "rot": [0, -34, 30], "zone": 6 }, "fin_l_tip": { "parent": "fin_l", "pivot": [74, 13, 16], "rot": [0, 0, 0], "zone": 6 }, "fin_r": { "parent": "chest", "pivot": [-40, 13, 16], "rot": [0, 34, -30], "zone": 6 }, "fin_r_tip": { "parent": "fin_r", "pivot": [-74, 13, 16], "rot": [0, 0, 0], "zone": 6 }, "ribbon0": { "parent": "chest", "pivot": [0, 72, 6], "rot": [0, 0, 0], "zone": 6 }, "seg1": { "parent": "chest", "pivot": [0, 36, 24], "rot": [0, 0, 0], "zone": 5 }, "ribbon1": { "parent": "seg1", "pivot": [0, 72, 40], "rot": [0, 0, 0], "zone": 5 }, "seg2": { "parent": "seg1", "pivot": [0, 36, 56], "rot": [0, 0, 0], "zone": 5 }, "ribbon2": { "parent": "seg2", "pivot": [0, 71.5, 72], "rot": [0, 0, 0], "zone": 5 }, "seg3": { "parent": "seg2", "pivot": [0, 36, 88], "rot": [0, 0, 0], "zone": 5 }, "ribbon3": { "parent": "seg3", "pivot": [0, 70.5, 104], "rot": [0, 0, 0], "zone": 5 }, "seg4": { "parent": "seg3", "pivot": [0, 36, 120], "rot": [0, 0, 0], "zone": 4 }, "ribbon4": { "parent": "seg4", "pivot": [0, 69, 136], "rot": [0, 0, 0], "zone": 4 }, "seg5": { "parent": "seg4", "pivot": [0, 36, 152], "rot": [0, 0, 0], "zone": 4 }, "ribbon5": { "parent": "seg5", "pivot": [0, 67, 168], "rot": [0, 0, 0], "zone": 4 }, "seg6": { "parent": "seg5", "pivot": [0, 36, 184], "rot": [0, 0, 0], "zone": 3 }, "ribbon6": { "parent": "seg6", "pivot": [0, 64.5, 200], "rot": [0, 0, 0], "zone": 3 }, "vribbon6": { "parent": "seg6", "pivot": [0, 7.5, 200], "rot": [0, 0, 0], "zone": 3 }, "seg7": { "parent": "seg6", "pivot": [0, 36, 216], "rot": [0, 0, 0], "zone": 3 }, "ribbon7": { "parent": "seg7", "pivot": [0, 61, 232], "rot": [0, 0, 0], "zone": 3 }, "vribbon7": { "parent": "seg7", "pivot": [0, 11, 232], "rot": [0, 0, 0], "zone": 3 }, "seg8": { "parent": "seg7", "pivot": [0, 36, 248], "rot": [0, 0, 0], "zone": 2 }, "ribbon8": { "parent": "seg8", "pivot": [0, 57, 264], "rot": [0, 0, 0], "zone": 2 }, "vribbon8": { "parent": "seg8", "pivot": [0, 15, 264], "rot": [0, 0, 0], "zone": 2 }, "seg9": { "parent": "seg8", "pivot": [0, 36, 280], "rot": [0, 0, 0], "zone": 1 }, "ribbon9": { "parent": "seg9", "pivot": [0, 53, 296], "rot": [0, 0, 0], "zone": 1 }, "vribbon9": { "parent": "seg9", "pivot": [0, 19, 296], "rot": [0, 0, 0], "zone": 1 }, "seg10": { "parent": "seg9", "pivot": [0, 36, 312], "rot": [0, 0, 0], "zone": 1 }, "ribbon10": { "parent": "seg10", "pivot": [0, 49.5, 328], "rot": [0, 0, 0], "zone": 1 }, "vribbon10": { "parent": "seg10", "pivot": [0, 22.5, 328], "rot": [0, 0, 0], "zone": 1 }, "tailfin": { "parent": "seg10", "pivot": [0, 36, 344], "rot": [0, 0, 0], "zone": 0 } }, "locators": { "back": { "bone": "chest", "pos": [0, 72, 0] }, "belly": { "bone": "chest", "pos": [0, 0, 0] }, "spine_0": { "bone": "chest", "pos": [0, 72, 0] }, "gill_l": { "bone": "chest", "pos": [49, 36, -7] }, "gill_r": { "bone": "chest", "pos": [-49, 36, -7] }, "muzzle": { "bone": "head", "pos": [0, 34, -114] }, "nose": { "bone": "head", "pos": [0, 40, -112] }, "throat": { "bone": "head", "pos": [0, 28, -32] }, "mouth": { "bone": "jaw", "pos": [0, 31, -94] }, "eye_l": { "bone": "eye_l", "pos": [27.9, 45.6, -78] }, "eye_r": { "bone": "eye_r", "pos": [-27.9, 45.6, -78] }, "fin_l": { "bone": "fin_l_tip", "pos": [120, 13, 22] }, "fin_r": { "bone": "fin_r_tip", "pos": [-120, 13, 22] }, "spine_1": { "bone": "seg1", "pos": [0, 72, 40] }, "spine_2": { "bone": "seg2", "pos": [0, 71.5, 72] }, "spine_3": { "bone": "seg3", "pos": [0, 70.5, 104] }, "spine_4": { "bone": "seg4", "pos": [0, 69, 136] }, "spine_5": { "bone": "seg5", "pos": [0, 67, 168] }, "spine_6": { "bone": "seg6", "pos": [0, 64.5, 200] }, "spine_7": { "bone": "seg7", "pos": [0, 61, 232] }, "spine_8": { "bone": "seg8", "pos": [0, 57, 264] }, "spine_9": { "bone": "seg9", "pos": [0, 53, 296] }, "spine_10": { "bone": "seg10", "pos": [0, 49.5, 328] }, "knob_u": { "bone": "tailfin", "pos": [0, 100, 409] }, "knob_d": { "bone": "tailfin", "pos": [0, -28, 409] }, "tail_notch": { "bone": "tailfin", "pos": [2.5, 76, 405] }, "tail_tip": { "bone": "tailfin", "pos": [0, 36, 410] } }, "meta": { "glow_y0": 10, "glow_y1": 74, "wetness": 0.8, "bounds_margin": 6, "form": 1 }, "zones": { "6": ["body", "chest", "fin_l", "fin_l_tip", "fin_r", "fin_r_tip", "ribbon0"], "7": ["gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "jaw", "eye_l", "eye_r"], "5": ["seg1", "ribbon1", "seg2", "ribbon2", "seg3", "ribbon3"], "4": ["seg4", "ribbon4", "seg5", "ribbon5"], "3": ["seg6", "ribbon6", "vribbon6", "seg7", "ribbon7", "vribbon7"], "2": ["seg8", "ribbon8", "vribbon8"], "1": ["seg9", "ribbon9", "vribbon9", "seg10", "ribbon10", "vribbon10"], "0": ["tailfin"] }, "boxes": { "chest": [[-48, 0, -33], [48, 72, 33]], "head": [[-43, 32, -110.5], [43, 68, -20]], "jaw": [[-41, 7, -107.6], [41, 30.8, -19.2]], "fin_l": [[34, 8.5, 0], [74, 17.5, 32]], "fin_l_tip": [[70, 10.8, -3], [126, 15.2, 34]], "fin_r": [[-74, 8.5, 0], [-34, 17.5, 32]], "fin_r_tip": [[-126, 10.8, -3], [-70, 15.2, 34]], "seg1": [[-47.5, 0, 15], [47.5, 72, 57]], "seg2": [[-46.5, 0.5, 47], [46.5, 71.5, 89]], "seg3": [[-45, 1.5, 79], [45, 70.5, 121]], "seg4": [[-42.5, 3, 111], [42.5, 69, 153]], "seg5": [[-39.5, 5, 143], [39.5, 67, 185]], "seg6": [[-35.5, 7.5, 175], [35.5, 64.5, 217]], "seg7": [[-30.5, 11, 207], [30.5, 61, 249]], "seg8": [[-25, 15, 239], [25, 57, 281]], "seg9": [[-19, 19, 271], [19, 53, 313]], "seg10": [[-13.5, 22.5, 303], [13.5, 49.5, 345]], "tailfin": [[-5, -33, 338], [5, 105, 412]] } }, "2": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 44, 0], "rot": [0, 0, 0], "zone": 5 }, "chest": { "parent": "body", "pivot": [0, 78, 0], "rot": [0, 0, 0], "zone": 5 }, "plates_chest": { "parent": "chest", "pivot": [0, 122, 0], "rot": [0, 0, 0], "zone": 5 }, "neck": { "parent": "chest", "pivot": [0, 84, -32], "rot": [3, 0, 0], "zone": 6 }, "plates_neck": { "parent": "neck", "pivot": [0, 116, -46], "rot": [0, 0, 0], "zone": 6 }, "gill_l1": { "parent": "neck", "pivot": [37, 84, -56], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "neck", "pivot": [37, 84, -47], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "neck", "pivot": [37, 84, -38], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "neck", "pivot": [-37, 84, -56], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "neck", "pivot": [-37, 84, -47], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "neck", "pivot": [-37, 84, -38], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "neck", "pivot": [0, 84, -62], "rot": [4, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [28.08, 91.46, -97.7], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-28.08, 91.46, -97.7], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 71, -75], "rot": [9, 0, 0], "zone": 8 }, "arm_l": { "parent": "chest", "pivot": [54, 102, -14], "rot": [14, 0, 10], "zone": 5 }, "forearm_l": { "parent": "arm_l", "pivot": [54, 54, -14], "rot": [-38, 0, -10], "zone": 5 }, "claw_l": { "parent": "forearm_l", "pivot": [54, 4, -14], "rot": [24, 0, 0], "zone": 5 }, "arm_r": { "parent": "chest", "pivot": [-54, 102, -14], "rot": [14, 0, -10], "zone": 5 }, "forearm_r": { "parent": "arm_r", "pivot": [-54, 54, -14], "rot": [-38, 0, 10], "zone": 5 }, "claw_r": { "parent": "forearm_r", "pivot": [-54, 4, -14], "rot": [24, 0, 0], "zone": 5 }, "mid": { "parent": "body", "pivot": [0, 66, 30], "rot": [0, 0, 0], "zone": 4 }, "plates_mid": { "parent": "mid", "pivot": [0, 100, 66], "rot": [0, 0, 0], "zone": 4 }, "hips": { "parent": "mid", "pivot": [0, 36, 104], "rot": [0, 0, 0], "zone": 3 }, "plates_hips": { "parent": "hips", "pivot": [0, 72, 126], "rot": [0, 0, 0], "zone": 3 }, "leg_l": { "parent": "hips", "pivot": [40, 24, 126], "rot": [0, -40, 24], "zone": 3 }, "foot_l": { "parent": "leg_l", "pivot": [70, 20, 126], "rot": [0, 0, -24], "zone": 3 }, "leg_r": { "parent": "hips", "pivot": [-40, 24, 126], "rot": [0, 40, -24], "zone": 3 }, "foot_r": { "parent": "leg_r", "pivot": [-70, 20, 126], "rot": [0, 0, 24], "zone": 3 }, "tail1": { "parent": "hips", "pivot": [0, 32, 150], "rot": [0, 0, 0], "zone": 2 }, "plates_tail1": { "parent": "tail1", "pivot": [0, 62, 164], "rot": [0, 0, 0], "zone": 2 }, "tail2": { "parent": "tail1", "pivot": [0, 30, 178], "rot": [0, 0, 0], "zone": 2 }, "plates_tail2": { "parent": "tail2", "pivot": [0, 58, 192], "rot": [0, 0, 0], "zone": 2 }, "tail3": { "parent": "tail2", "pivot": [0, 28, 206], "rot": [0, 0, 0], "zone": 2 }, "plates_tail3": { "parent": "tail3", "pivot": [0, 54, 220], "rot": [0, 0, 0], "zone": 2 }, "tail4": { "parent": "tail3", "pivot": [0, 26, 234], "rot": [0, 0, 0], "zone": 1 }, "plates_tail4": { "parent": "tail4", "pivot": [0, 50, 248], "rot": [0, 0, 0], "zone": 1 }, "tail5": { "parent": "tail4", "pivot": [0, 24, 262], "rot": [0, 0, 0], "zone": 1 }, "plates_tail5": { "parent": "tail5", "pivot": [0, 46, 276], "rot": [0, 0, 0], "zone": 1 }, "tail6": { "parent": "tail5", "pivot": [0, 23, 290], "rot": [0, 0, 0], "zone": 1 }, "plates_tail6": { "parent": "tail6", "pivot": [0, 44, 304], "rot": [0, 0, 0], "zone": 1 }, "knob": { "parent": "tail6", "pivot": [0, 23, 318], "rot": [0, 0, 0], "zone": 0 } }, "locators": { "heart": { "bone": "chest", "pos": [0, 78, 0] }, "gill_l": { "bone": "neck", "pos": [38, 84, -47] }, "gill_r": { "bone": "neck", "pos": [-38, 84, -47] }, "muzzle": { "bone": "head", "pos": [0, 77.5, -176.4] }, "nose": { "bone": "head", "pos": [0, 90.5, -173.8] }, "throat": { "bone": "head", "pos": [0, 77.5, -69.8] }, "eye_l": { "bone": "eye_l", "pos": [28.58, 91.46, -97.7] }, "eye_r": { "bone": "eye_r", "pos": [-28.58, 91.46, -97.7] }, "mouth": { "bone": "jaw", "pos": [0, 76.2, -153] }, "claw_l": { "bone": "claw_l", "pos": [54, -6, -44] }, "claw_r": { "bone": "claw_r", "pos": [-54, -6, -44] }, "hip_l": { "bone": "hips", "pos": [30, 0, 140] }, "hip_r": { "bone": "hips", "pos": [-30, 0, 140] }, "foot_l": { "bone": "foot_l", "pos": [86, 11, 126] }, "foot_r": { "bone": "foot_r", "pos": [-86, 11, 126] }, "tail_notch": { "bone": "tail6", "pos": [29.5, 23, 305] }, "knob_core": { "bone": "knob", "pos": [0, 32, 358] }, "horn_l": { "bone": "knob", "pos": [19.3621, 76.8737, 367.5747] }, "horn_r": { "bone": "knob", "pos": [-19.3621, 76.8737, 367.5747] } }, "meta": { "glow_y0": 10, "glow_y1": 104, "wetness": 0.5, "bounds_margin": 6, "form": 2 }, "zones": { "5": ["body", "chest", "plates_chest", "arm_l", "forearm_l", "claw_l", "arm_r", "forearm_r", "claw_r"], "6": ["neck", "plates_neck"], "7": ["gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "eye_l", "eye_r", "jaw"], "4": ["mid", "plates_mid"], "3": ["hips", "plates_hips", "leg_l", "foot_l", "leg_r", "foot_r"], "2": ["tail1", "plates_tail1", "tail2", "plates_tail2", "tail3", "plates_tail3"], "1": ["tail4", "plates_tail4", "tail5", "plates_tail5", "tail6", "plates_tail6"], "0": ["knob"] }, "boxes": { "chest": [[-54, 35, -37], [54, 125, 33]], "neck": [[-37, 51, -63], [37, 117, -23]], "head": [[-33.8, 67.1, -172.5], [33.8, 110, -54.2]], "jaw": [[-23.4, 55.4, -167.3], [23.4, 71, -64.6]], "arm_l": [[30, 49, -41], [78, 113, 13]], "forearm_l": [[30.5, 0, -38], [77.5, 65, 14]], "claw_l": [[27.4, -6, -58.7], [80.6, 11, 10]], "arm_r": [[-78, 49, -41], [-30, 113, 13]], "forearm_r": [[-77.5, 0, -38], [-30.5, 65, 14]], "claw_r": [[-80.6, -6, -58.7], [-27.4, 11, 10]], "mid": [[-48, 22.9, 29], [48, 108, 105]], "hips": [[-44, 12.2, 101], [44, 73, 151]], "leg_l": [[36, 13, 116], [70, 35, 136]], "foot_l": [[68.8, 11, 111.1], [100, 16, 140.9]], "leg_r": [[-70, 13, 116], [-36, 35, 136]], "foot_r": [[-100, 11, 111.1], [-68.8, 16, 140.9]], "tail1": [[-40, 10.4, 141], [40, 62, 179]], "tail2": [[-37, 9.8, 169], [37, 58, 207]], "tail3": [[-34, 9.3, 197], [34, 54, 235]], "tail4": [[-31, 8.7, 225], [31, 50, 263]], "tail5": [[-28.5, 8.2, 253], [28.5, 46, 291]], "tail6": [[-26.5, 7.9, 281], [29.3, 44, 319]], "knob": [[-38.2, 0.8, 317], [38.2, 77.4, 406]] } }, "3": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 112, 0], "rot": [0, 0, 0], "zone": 4 }, "plates_mid": { "parent": "body", "pivot": [0, 151, -12], "rot": [0, 0, 0], "zone": 4 }, "chest": { "parent": "body", "pivot": [0, 108, -60], "rot": [0, 0, 0], "zone": 5 }, "plates_chest": { "parent": "chest", "pivot": [0, 148, -92], "rot": [0, 0, 0], "zone": 5 }, "hips": { "parent": "body", "pivot": [0, 110, 36], "rot": [0, 0, 0], "zone": 3 }, "plates_hips": { "parent": "hips", "pivot": [0, 151, 70], "rot": [0, 0, 0], "zone": 3 }, "neck1": { "parent": "chest", "pivot": [0, 114, -126], "rot": [4, 0, 0], "zone": 6 }, "plates_neck1": { "parent": "neck1", "pivot": [0, 150, -134.5], "rot": [0, 0, 0], "zone": 6 }, "neck2": { "parent": "neck1", "pivot": [0, 114, -143], "rot": [3, 0, 0], "zone": 6 }, "plates_neck2": { "parent": "neck2", "pivot": [0, 146.5, -151.5], "rot": [0, 0, 0], "zone": 6 }, "neck3": { "parent": "neck2", "pivot": [0, 114, -160], "rot": [2, 0, 0], "zone": 7 }, "plates_neck3": { "parent": "neck3", "pivot": [0, 143, -168.5], "rot": [0, 0, 0], "zone": 7 }, "neck4": { "parent": "neck3", "pivot": [0, 114, -177], "rot": [0, 0, 0], "zone": 7 }, "plates_neck4": { "parent": "neck4", "pivot": [0, 140, -185.5], "rot": [0, 0, 0], "zone": 7 }, "neck5": { "parent": "neck4", "pivot": [0, 114, -194], "rot": [-2, 0, 0], "zone": 7 }, "plates_neck5": { "parent": "neck5", "pivot": [0, 137.5, -202.5], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "neck5", "pivot": [0, 114, -211], "rot": [-3, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [26.368, 120.608, -247.4], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-26.368, 120.608, -247.4], "rot": [0, 0, 0], "zone": 8 }, "plates_head": { "parent": "head", "pivot": [0, 133.2, -223.8], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 101.2, -223.8], "rot": [7, 0, 0], "zone": 8 }, "gill_l1": { "parent": "neck5", "pivot": [19.92, 113, -208.5], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "neck5", "pivot": [19.92, 113, -203.1], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "neck5", "pivot": [19.92, 113, -197.7], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "neck5", "pivot": [-19.92, 113, -208.5], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "neck5", "pivot": [-19.92, 113, -203.1], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "neck5", "pivot": [-19.92, 113, -197.7], "rot": [0, 0, 0], "zone": 7 }, "leg_fl": { "parent": "chest", "pivot": [40, 104, -100], "rot": [20, 0, 0], "zone": 5 }, "leg_fl_lower": { "parent": "leg_fl", "pivot": [40, 54, -100], "rot": [-35, 0, 0], "zone": 5 }, "foot_fl": { "parent": "leg_fl_lower", "pivot": [40, 7, -100], "rot": [15, 0, 0], "zone": 5 }, "leg_fr": { "parent": "chest", "pivot": [-40, 104, -100], "rot": [20, 0, 0], "zone": 5 }, "leg_fr_lower": { "parent": "leg_fr", "pivot": [-40, 54, -100], "rot": [-35, 0, 0], "zone": 5 }, "foot_fr": { "parent": "leg_fr_lower", "pivot": [-40, 7, -100], "rot": [15, 0, 0], "zone": 5 }, "leg_bl": { "parent": "hips", "pivot": [40, 104, 84], "rot": [-22, 0, 0], "zone": 3 }, "leg_bl_lower": { "parent": "leg_bl", "pivot": [40, 52, 84], "rot": [40, 0, 0], "zone": 3 }, "foot_bl": { "parent": "leg_bl_lower", "pivot": [40, 6, 84], "rot": [-18, 0, 0], "zone": 3 }, "leg_br": { "parent": "hips", "pivot": [-40, 104, 84], "rot": [-22, 0, 0], "zone": 3 }, "leg_br_lower": { "parent": "leg_br", "pivot": [-40, 52, 84], "rot": [40, 0, 0], "zone": 3 }, "foot_br": { "parent": "leg_br_lower", "pivot": [-40, 6, 84], "rot": [-18, 0, 0], "zone": 3 }, "tail1": { "parent": "hips", "pivot": [0, 112, 112], "rot": [-8, 0, 0], "zone": 2 }, "plates_tail1": { "parent": "tail1", "pivot": [0, 144, 127.5], "rot": [0, 0, 0], "zone": 2 }, "tail2": { "parent": "tail1", "pivot": [0, 112, 143], "rot": [-6, 0, 0], "zone": 2 }, "plates_tail2": { "parent": "tail2", "pivot": [0, 140, 158.5], "rot": [0, 0, 0], "zone": 2 }, "tail3": { "parent": "tail2", "pivot": [0, 112, 174], "rot": [-4, 0, 0], "zone": 2 }, "plates_tail3": { "parent": "tail3", "pivot": [0, 136, 189], "rot": [0, 0, 0], "zone": 2 }, "tail4": { "parent": "tail3", "pivot": [0, 112, 204], "rot": [-2, 0, 0], "zone": 1 }, "plates_tail4": { "parent": "tail4", "pivot": [0, 132, 219], "rot": [0, 0, 0], "zone": 1 }, "tail5": { "parent": "tail4", "pivot": [0, 112, 234], "rot": [2, 0, 0], "zone": 1 }, "plates_tail5": { "parent": "tail5", "pivot": [0, 129, 249], "rot": [0, 0, 0], "zone": 1 }, "tail6": { "parent": "tail5", "pivot": [0, 112, 264], "rot": [5, 0, 0], "zone": 1 }, "plates_tail6": { "parent": "tail6", "pivot": [0, 126.5, 278.5], "rot": [0, 0, 0], "zone": 1 }, "tail7": { "parent": "tail6", "pivot": [0, 112, 293], "rot": [7, 0, 0], "zone": 1 }, "plates_tail7": { "parent": "tail7", "pivot": [0, 124.5, 307.5], "rot": [0, 0, 0], "zone": 1 }, "tail8": { "parent": "tail7", "pivot": [0, 112, 322], "rot": [6, 0, 0], "zone": 1 }, "plates_tail8": { "parent": "tail8", "pivot": [0, 123, 336], "rot": [0, 0, 0], "zone": 1 }, "club": { "parent": "tail8", "pivot": [0, 112, 350], "rot": [0, 0, 0], "zone": 0 } }, "locators": { "heart": { "bone": "body", "pos": [0, 112, -20] }, "plate_tip_3": { "bone": "plates_mid", "pos": [0, 218.3, -21.8] }, "plate_tip_4": { "bone": "plates_mid", "pos": [0, 228.8, 7.2] }, "plate_tip_5": { "bone": "plates_mid", "pos": [0, 235.5, 35] }, "plate_tip_6": { "bone": "plates_mid", "pos": [0, 235.5, 61] }, "plate_tip_0": { "bone": "plates_chest", "pos": [0, 177.2, -105.2] }, "plate_tip_1": { "bone": "plates_chest", "pos": [0, 193.5, -79] }, "plate_tip_2": { "bone": "plates_chest", "pos": [0, 205.9, -51.4] }, "plate_tip_7": { "bone": "plates_hips", "pos": [0, 229.8, 85.2] }, "plate_tip_8": { "bone": "plates_hips", "pos": [0, 218.3, 106.2] }, "plate_tip_9": { "bone": "plates_hips", "pos": [0, 204.9, 124.6] }, "gill_l": { "bone": "neck5", "pos": [21, 113, -201.5] }, "gill_r": { "bone": "neck5", "pos": [-21, 113, -201.5] }, "muzzle": { "bone": "head", "pos": [0, 107.6, -303.16] }, "throat": { "bone": "head", "pos": [0, 107.6, -218.68] }, "nose": { "bone": "head", "pos": [0, 121.68, -300.6] }, "eye_l": { "bone": "eye_l", "pos": [26.868, 120.608, -247.4] }, "eye_r": { "bone": "eye_r", "pos": [-26.868, 120.608, -247.4] }, "mouth": { "bone": "jaw", "pos": [0, 106.32, -282.68] }, "foot_fl": { "bone": "foot_fl", "pos": [40, -5, -108] }, "foot_fr": { "bone": "foot_fr", "pos": [-40, -5, -108] }, "foot_bl": { "bone": "foot_bl", "pos": [40, -6, 76] }, "foot_br": { "bone": "foot_br", "pos": [-40, -6, 76] }, "tail_notch": { "bone": "tail7", "pos": [11.5, 112, 306] }, "club_core": { "bone": "club", "pos": [0, 112, 374] }, "spike_tip_0": { "bone": "club", "pos": [41.2571, 135.8198, 369.7336] }, "spike_tip_1": { "bone": "club", "pos": [0, 165.2182, 369.1757] }, "spike_tip_2": { "bone": "club", "pos": [-40.6907, 135.4928, 369.799] }, "spike_tip_3": { "bone": "club", "pos": [-43.335, 86.9805, 369.4936] }, "spike_tip_4": { "bone": "club", "pos": [0, 58.6562, 369.1631] }, "spike_tip_5": { "bone": "club", "pos": [46.0464, 85.4151, 369.1805] }, "spike_tip_6": { "bone": "club", "pos": [22.5857, 143.0865, 405.9264] }, "spike_tip_7": { "bone": "club", "pos": [-22.3364, 142.7435, 405.5367] }, "spike_tip_8": { "bone": "club", "pos": [-32.3061, 101.5031, 401.8313] }, "spike_tip_9": { "bone": "club", "pos": [0, 73.6781, 405.8316] }, "spike_tip_10": { "bone": "club", "pos": [32.359, 101.4859, 401.8824] }, "spike_tip_11": { "bone": "club", "pos": [0, 114.8643, 426.2925] } }, "meta": { "glow_y0": 64, "glow_y1": 156, "wetness": 0.15, "bounds_margin": 6, "form": 3 }, "zones": { "4": ["body", "plates_mid"], "5": ["chest", "plates_chest", "leg_fl", "leg_fl_lower", "foot_fl", "leg_fr", "leg_fr_lower", "foot_fr"], "3": ["hips", "plates_hips", "leg_bl", "leg_bl_lower", "foot_bl", "leg_br", "leg_br_lower", "foot_br"], "6": ["neck1", "plates_neck1", "neck2", "plates_neck2"], "7": ["neck3", "plates_neck3", "neck4", "plates_neck4", "neck5", "plates_neck5", "gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "eye_l", "eye_r", "plates_head", "jaw"], "2": ["tail1", "plates_tail1", "tail2", "plates_tail2", "tail3", "plates_tail3"], "1": ["tail4", "plates_tail4", "tail5", "plates_tail5", "tail6", "plates_tail6", "tail7", "plates_tail7", "tail8", "plates_tail8"], "0": ["club"] }, "boxes": { "body": [[-46, 66, -61], [46, 152.5, 37]], "chest": [[-52, 63, -131], [52, 149, -59]], "hips": [[-52, 68, 35], [52, 152, 115]], "neck1": [[-38, 78, -144], [38, 150, -116]], "neck2": [[-34, 81.5, -161], [34, 146.5, -133]], "neck3": [[-30.5, 85, -178], [30.5, 143, -150]], "neck4": [[-27, 88, -195], [27, 140, -167]], "neck5": [[-24.5, 90.5, -212], [24.5, 137.5, -184]], "head": [[-32, 96.1, -299.3], [32, 139, -203.3]], "jaw": [[-21.8, 85.8, -294.2], [21.8, 101.2, -213.6]], "gill_l1": [[19.4, 102.8, -210.9], [20.4, 123.2, -201.9]], "gill_l2": [[19.4, 102.8, -205.5], [20.4, 123.2, -196.5]], "gill_l3": [[19.4, 102.8, -200.1], [20.4, 123.2, -191.1]], "gill_r1": [[-20.4, 102.8, -210.9], [-19.4, 123.2, -201.9]], "gill_r2": [[-20.4, 102.8, -205.5], [-19.4, 123.2, -196.5]], "gill_r3": [[-20.4, 102.8, -200.1], [-19.4, 123.2, -191.1]], "leg_fl": [[15, 49, -133.7], [65, 113, -67]], "leg_fl_lower": [[18, 3, -124], [62, 64, -70]], "foot_fl": [[16.4, -5, -140.7], [63.6, 14, -76]], "leg_fr": [[-65, 49, -133.7], [-15, 113, -67]], "leg_fr_lower": [[-62, 3, -124], [-18, 64, -70]], "foot_fr": [[-63.6, -5, -140.7], [-16.4, 14, -76]], "leg_bl": [[13, 47, 47], [67, 113, 122.5]], "leg_bl_lower": [[18, 2, 56], [62, 62, 112]], "foot_bl": [[16.4, -6, 43.3], [63.6, 13, 108]], "leg_br": [[-67, 47, 47], [-13, 113, 122.5]], "leg_br_lower": [[-62, 2, 56], [-18, 62, 112]], "foot_br": [[-63.6, -6, 43.3], [-16.4, 13, 108]], "tail1": [[-34, 80, 103], [34, 144, 144]], "tail2": [[-29.5, 84, 134], [29.5, 140, 175]], "tail3": [[-25, 88, 165], [25, 136, 205]], "tail4": [[-21, 92, 195], [21, 132, 235]], "tail5": [[-17.5, 95, 225], [17.5, 129, 265]], "tail6": [[-14.5, 97.5, 255], [14.5, 126.5, 294]], "tail7": [[-12, 99.5, 284], [12.2, 124.5, 323]], "tail8": [[-10, 101, 313], [10, 123, 351]], "club": [[-26, 86, 348], [26, 138, 394]] } }, "4": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 170, 6], "rot": [0, 0, 0], "zone": 4 }, "plates_mid": { "parent": "body", "pivot": [0, 226, 58], "rot": [0, 0, 0], "zone": 4 }, "hips": { "parent": "body", "pivot": [0, 166, 10], "rot": [0, 0, 0], "zone": 3 }, "plates_hips": { "parent": "hips", "pivot": [0, 176, 68], "rot": [0, 0, 0], "zone": 3 }, "chest": { "parent": "body", "pivot": [0, 250, -6], "rot": [0, 0, 0], "zone": 5 }, "plates_chest": { "parent": "chest", "pivot": [0, 300, 50], "rot": [0, 0, 0], "zone": 5 }, "ribs_l": { "parent": "chest", "pivot": [82, 280, -10], "rot": [0, 0, 0], "zone": 5 }, "neck1": { "parent": "chest", "pivot": [0, 336, -22], "rot": [0, 0, 0], "zone": 6 }, "neck2": { "parent": "neck1", "pivot": [0, 366, -28], "rot": [0, 0, 0], "zone": 7 }, "plates_neck1": { "parent": "neck1", "pivot": [0, 352, 12], "rot": [0, 0, 0], "zone": 6 }, "plates_neck2": { "parent": "neck2", "pivot": [0, 382, 2], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "neck2", "pivot": [0, 398, -28], "rot": [8, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [32.96, 405.94, -75.1], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-32.96, 405.94, -75.1], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 382, -40.8], "rot": [13, 0, 0], "zone": 8 }, "plates_head": { "parent": "head", "pivot": [0, 423.6, -37.6], "rot": [0, 0, 0], "zone": 8 }, "gill_l1": { "parent": "neck2", "pivot": [35.86, 378, -44.5], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "neck2", "pivot": [35.86, 378, -37.5], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "neck2", "pivot": [35.86, 378, -30.5], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "neck2", "pivot": [-35.86, 378, -44.5], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "neck2", "pivot": [-35.86, 378, -37.5], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "neck2", "pivot": [-35.86, 378, -30.5], "rot": [0, 0, 0], "zone": 7 }, "leg_l": { "parent": "hips", "pivot": [68, 170, 6], "rot": [-28, 0, 0], "zone": 3 }, "leg_l_lower": { "parent": "leg_l", "pivot": [68, 86, 6], "rot": [44, 0, 0], "zone": 3 }, "foot_l": { "parent": "leg_l_lower", "pivot": [68, 12, 6], "rot": [-16, 0, 0], "zone": 3 }, "leg_r": { "parent": "hips", "pivot": [-68, 170, 6], "rot": [-28, 0, 0], "zone": 3 }, "leg_r_lower": { "parent": "leg_r", "pivot": [-68, 86, 6], "rot": [44, 0, 0], "zone": 3 }, "foot_r": { "parent": "leg_r_lower", "pivot": [-68, 12, 6], "rot": [-16, 0, 0], "zone": 3 }, "arm_l": { "parent": "chest", "pivot": [102, 302, -16], "rot": [14, 0, -15], "zone": 5 }, "forearm_l": { "parent": "arm_l", "pivot": [102, 230, -16], "rot": [-52, 0, 0], "zone": 5 }, "hand_l": { "parent": "forearm_l", "pivot": [102, 164, -16], "rot": [34, 0, 0], "zone": 5 }, "arm_r": { "parent": "chest", "pivot": [-102, 302, -16], "rot": [14, 0, 15], "zone": 5 }, "forearm_r": { "parent": "arm_r", "pivot": [-102, 230, -16], "rot": [-52, 0, 0], "zone": 5 }, "hand_r": { "parent": "forearm_r", "pivot": [-102, 164, -16], "rot": [34, 0, 0], "zone": 5 }, "wing_l": { "parent": "chest", "pivot": [46, 322, 40], "rot": [0, -32, -62], "zone": 5 }, "wing_l_arm": { "parent": "wing_l", "pivot": [166, 322, 40], "rot": [0, 0, 27.3], "zone": 5 }, "wing_l_f1": { "parent": "wing_l_arm", "pivot": [336, 322, 40], "rot": [0, 0, -7.4], "zone": 5 }, "wing_l_f2": { "parent": "wing_l_arm", "pivot": [336, 322, 40], "rot": [0, 0, 9.4], "zone": 5 }, "wing_l_f3": { "parent": "wing_l_arm", "pivot": [336, 322, 40], "rot": [0, 0, 25.9], "zone": 5 }, "wing_l_f4": { "parent": "wing_l_arm", "pivot": [336, 322, 40], "rot": [0, 0, 41.3], "zone": 5 }, "wing_r": { "parent": "chest", "pivot": [-46, 322, 40], "rot": [0, 32, 62], "zone": 5 }, "wing_r_arm": { "parent": "wing_r", "pivot": [-166, 322, 40], "rot": [0, 0, -27.3], "zone": 5 }, "wing_r_f1": { "parent": "wing_r_arm", "pivot": [-336, 322, 40], "rot": [0, 0, 7.4], "zone": 5 }, "wing_r_f2": { "parent": "wing_r_arm", "pivot": [-336, 322, 40], "rot": [0, 0, -9.4], "zone": 5 }, "wing_r_f3": { "parent": "wing_r_arm", "pivot": [-336, 322, 40], "rot": [0, 0, -25.9], "zone": 5 }, "wing_r_f4": { "parent": "wing_r_arm", "pivot": [-336, 322, 40], "rot": [0, 0, -41.3], "zone": 5 }, "tail1": { "parent": "hips", "pivot": [0, 152, 62], "rot": [-32, 0, 0], "zone": 2 }, "plates_tail1": { "parent": "tail1", "pivot": [0, 207, 87], "rot": [0, 0, 0], "zone": 2 }, "tail2": { "parent": "tail1", "pivot": [0, 152, 112], "rot": [-12, 0, 0], "zone": 2 }, "plates_tail2": { "parent": "tail2", "pivot": [0, 200, 137], "rot": [0, 0, 0], "zone": 2 }, "tail3": { "parent": "tail2", "pivot": [0, 152, 162], "rot": [5, 0, 0], "zone": 2 }, "plates_tail3": { "parent": "tail3", "pivot": [0, 193, 186], "rot": [0, 0, 0], "zone": 2 }, "tail4": { "parent": "tail3", "pivot": [0, 152, 210], "rot": [16, 0, 0], "zone": 2 }, "plates_tail4": { "parent": "tail4", "pivot": [0, 186, 234], "rot": [0, 0, 0], "zone": 2 }, "tail5": { "parent": "tail4", "pivot": [0, 152, 258], "rot": [13, 0, 0], "zone": 1 }, "plates_tail5": { "parent": "tail5", "pivot": [0, 180, 281], "rot": [0, 0, 0], "zone": 1 }, "tail6": { "parent": "tail5", "pivot": [0, 152, 304], "rot": [9, 0, 0], "zone": 1 }, "plates_tail6": { "parent": "tail6", "pivot": [0, 176, 327], "rot": [0, 0, 0], "zone": 1 }, "tail7": { "parent": "tail6", "pivot": [0, 152, 350], "rot": [7, 0, 0], "zone": 1 }, "plates_tail7": { "parent": "tail7", "pivot": [0, 173, 372], "rot": [0, 0, 0], "zone": 1 }, "tail8": { "parent": "tail7", "pivot": [0, 152, 394], "rot": [6, 0, 0], "zone": 1 }, "plates_tail8": { "parent": "tail8", "pivot": [0, 170, 416], "rot": [0, 0, 0], "zone": 1 }, "tail9": { "parent": "tail8", "pivot": [0, 152, 438], "rot": [5, 0, 0], "zone": 1 }, "plates_tail9": { "parent": "tail9", "pivot": [0, 167.5, 459], "rot": [0, 0, 0], "zone": 1 }, "tail10": { "parent": "tail9", "pivot": [0, 152, 480], "rot": [4, 0, 0], "zone": 1 }, "plates_tail10": { "parent": "tail10", "pivot": [0, 165.5, 500], "rot": [0, 0, 0], "zone": 1 }, "club": { "parent": "tail10", "pivot": [0, 152, 520], "rot": [0, 0, 0], "zone": 0 }, "plate_break": { "parent": "plates_mid", "pivot": [0, 240, 64], "rot": [0, 0, 0], "zone": 4 } }, "locators": { "heart": { "bone": "body", "pos": [0, 280, -30] }, "plate_tip_3": { "bone": "plates_mid", "pos": [0, 280.5, 134.1481] }, "plate_tip_4": { "bone": "plates_mid", "pos": [0, 254.5, 136.1481] }, "plate_tip_5": { "bone": "plates_hips", "pos": [0, 224.9, 137.9127] }, "plate_tip_6": { "bone": "plates_hips", "pos": [0, 195.5, 130.5596] }, "plate_tip_0": { "bone": "plates_chest", "pos": [0, 345.9, 86.3242] }, "plate_tip_1": { "bone": "plates_chest", "pos": [0, 325.3, 111.6773] }, "plate_tip_2": { "bone": "plates_chest", "pos": [0, 303.8, 121.4715] }, "ribs": { "bone": "ribs_l", "pos": [92, 280, -12] }, "gill_l": { "bone": "neck2", "pos": [40, 378, -36] }, "gill_r": { "bone": "neck2", "pos": [-40, 378, -36] }, "muzzle": { "bone": "head", "pos": [0, 390, -143.2] }, "throat": { "bone": "head", "pos": [0, 390, -37.6] }, "nose": { "bone": "head", "pos": [0, 407.6, -140] }, "eye_l": { "bone": "eye_l", "pos": [33.46, 405.94, -75.1] }, "eye_r": { "bone": "eye_r", "pos": [-33.46, 405.94, -75.1] }, "mouth": { "bone": "jaw", "pos": [0, 388.4, -117.6] }, "foot_l": { "bone": "foot_l", "pos": [68, -12, -8] }, "heel_l": { "bone": "foot_l", "pos": [68, -12, 46] }, "foot_r": { "bone": "foot_r", "pos": [-68, -12, -8] }, "heel_r": { "bone": "foot_r", "pos": [-68, -12, 46] }, "hand_l": { "bone": "hand_l", "pos": [92, 126, -16] }, "hand_r": { "bone": "hand_r", "pos": [-92, 126, -16] }, "wing_tip_l": { "bone": "wing_l_arm", "pos": [336, 362, 40] }, "wing_vein_l0": { "bone": "wing_l_f1", "pos": [336, 50.32, 40] }, "wing_vein_l1": { "bone": "wing_l_f2", "pos": [336, 30.16, 40] }, "wing_vein_l2": { "bone": "wing_l_f3", "pos": [336, 20.56, 40] }, "wing_vein_l3": { "bone": "wing_l_f4", "pos": [336, 12.88, 40] }, "wing_tip_r": { "bone": "wing_r_arm", "pos": [-336, 362, 40] }, "wing_vein_r0": { "bone": "wing_r_f1", "pos": [-336, 50.32, 40] }, "wing_vein_r1": { "bone": "wing_r_f2", "pos": [-336, 30.16, 40] }, "wing_vein_r2": { "bone": "wing_r_f3", "pos": [-336, 20.56, 40] }, "wing_vein_r3": { "bone": "wing_r_f4", "pos": [-336, 12.88, 40] }, "tail_notch": { "bone": "tail9", "pos": [15.5, 152, 454] }, "club_core": { "bone": "club", "pos": [0, 152, 551.68] }, "spike_tip_0": { "bone": "club", "pos": [54.875, 183.6821, 546.0003] }, "spike_tip_1": { "bone": "club", "pos": [0, 217.8263, 545.7541] }, "spike_tip_2": { "bone": "club", "pos": [-59.9753, 186.6268, 545.4114] }, "spike_tip_3": { "bone": "club", "pos": [-59.2924, 117.7675, 545.4902] }, "spike_tip_4": { "bone": "club", "pos": [0, 81.1796, 545.2547] }, "spike_tip_5": { "bone": "club", "pos": [58.4937, 118.2286, 545.5825] }, "spike_tip_6": { "bone": "club", "pos": [30.7834, 194.3697, 595.3397] }, "spike_tip_7": { "bone": "club", "pos": [-29.1209, 192.0815, 592.7407] }, "spike_tip_8": { "bone": "club", "pos": [-47.8792, 136.4431, 593.4756] }, "spike_tip_9": { "bone": "club", "pos": [0, 102.2913, 592.8926] }, "spike_tip_10": { "bone": "club", "pos": [49.0644, 136.058, 594.6207] }, "spike_tip_11": { "bone": "club", "pos": [0, 155.8957, 623.002] }, "plate_break": { "bone": "plate_break", "pos": [0, 240, 72] } }, "meta": { "glow_y0": 40, "glow_y1": 430, "wetness": 0.12, "bounds_margin": 8, "form": 4 }, "zones": { "4": ["body", "plates_mid", "plate_break"], "3": ["hips", "plates_hips", "leg_l", "leg_l_lower", "foot_l", "leg_r", "leg_r_lower", "foot_r"], "5": ["chest", "plates_chest", "ribs_l", "arm_l", "forearm_l", "hand_l", "arm_r", "forearm_r", "hand_r", "wing_l", "wing_l_arm", "wing_l_f1", "wing_l_f2", "wing_l_f3", "wing_l_f4", "wing_r", "wing_r_arm", "wing_r_f1", "wing_r_f2", "wing_r_f3", "wing_r_f4"], "6": ["neck1", "plates_neck1"], "7": ["neck2", "plates_neck2", "gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "eye_l", "eye_r", "jaw", "plates_head"], "2": ["tail1", "plates_tail1", "tail2", "plates_tail2", "tail3", "plates_tail3", "tail4", "plates_tail4"], "1": ["tail5", "plates_tail5", "tail6", "plates_tail6", "tail7", "plates_tail7", "tail8", "plates_tail8", "tail9", "plates_tail9", "tail10", "plates_tail10"], "0": ["club"] }, "boxes": { "body": [[-78, 195, -71], [78, 263, 66]], "hips": [[-92, 127, -56], [92, 205, 76]], "chest": [[-102, 249, -82], [102, 345, 58]], "ribs_l": [[82.5, 251.4, -50], [89.5, 309.5, 26.7]], "neck1": [[-45, 327, -69], [45, 371, 17]], "neck2": [[-41, 361, -71], [41, 403, 7]], "head": [[-40, 375.6, -138.4], [40, 434.8, -15.2]], "jaw": [[-28, 361.2, -132], [28, 382, -28]], "gill_l1": [[35.4, 366.8, -47.1], [36.4, 389.2, -37.7]], "gill_l2": [[35.4, 366.8, -40.1], [36.4, 389.2, -30.7]], "gill_l3": [[35.4, 366.8, -33.1], [36.4, 389.2, -23.7]], "gill_r1": [[-36.4, 366.8, -47.1], [-35.4, 389.2, -37.7]], "gill_r2": [[-36.4, 366.8, -40.1], [-35.4, 389.2, -30.7]], "gill_r3": [[-36.4, 366.8, -33.1], [-35.4, 389.2, -23.7]], "leg_l": [[25, 79, -54], [111, 187, 60]], "leg_l_lower": [[32, 7, -43], [104, 100, 47]], "foot_l": [[22.5, -12, -83.2], [113.5, 22, 46]], "leg_r": [[-111, 79, -54], [-25, 187, 60]], "leg_r_lower": [[-104, 7, -43], [-32, 100, 47]], "foot_r": [[-113.5, -12, -83.2], [-22.5, 22, 46]], "arm_l": [[71, 225, -52], [133, 325, 20]], "forearm_l": [[77, 161, -43], [127, 244, 19]], "hand_l": [[81, 115.5, -47.4], [117, 170, 11.5]], "arm_r": [[-133, 225, -52], [-71, 325, 20]], "forearm_r": [[-127, 161, -43], [-77, 244, 19]], "hand_r": [[-117, 115.5, -47.4], [-81, 170, 11.5]], "wing_l": [[37, 295, 13], [171, 349, 67]], "wing_l_arm": [[155, 305, 23], [348, 339, 57]], "wing_l_f1": [[330.5, 39, 34.5], [341.5, 323.5, 45.5]], "wing_l_f2": [[330.9, 18, 34.9], [341.1, 323.5, 45.1]], "wing_l_f3": [[331.3, 8, 35.3], [340.7, 323.5, 44.7]], "wing_l_f4": [[331.7, 0, 35.7], [340.3, 323.5, 44.3]], "wing_r": [[-171, 295, 13], [-37, 349, 67]], "wing_r_arm": [[-348, 305, 23], [-155, 339, 57]], "wing_r_f1": [[-341.5, 39, 34.5], [-330.5, 323.5, 45.5]], "wing_r_f2": [[-341.1, 18, 34.9], [-330.9, 323.5, 45.1]], "wing_r_f3": [[-340.7, 8, 35.3], [-331.3, 323.5, 44.7]], "wing_r_f4": [[-340.3, 0, 35.7], [-331.7, 323.5, 44.3]], "tail1": [[-60, 97, 51], [60, 207, 113]], "tail2": [[-52, 104, 101], [52, 200, 163]], "tail3": [[-44, 111, 151], [44, 193, 211]], "tail4": [[-37, 118, 199], [37, 186, 259]], "tail5": [[-31, 124, 247], [31, 180, 305]], "tail6": [[-26, 128, 293], [26, 176, 351]], "tail7": [[-22, 131, 339], [22, 173, 395]], "tail8": [[-18.5, 134, 383], [18.5, 170, 439]], "tail9": [[-15.5, 136.5, 427], [15.9, 167.5, 481]], "tail10": [[-13, 138.5, 469], [13, 165.5, 521]], "club": [[-34.3, 117.7, 517.4], [34.3, 186.3, 578.1]] } }, "5": { "bones": { "root": { "parent": null, "pivot": [0, 0, 0], "rot": [0, 0, 0], "zone": null }, "body": { "parent": "root", "pivot": [0, 124, 0], "rot": [0, 0, 0], "zone": 4 }, "chest": { "parent": "body", "pivot": [0, 157.4, -60], "rot": [0, 0, 0], "zone": 5 }, "plates_chest": { "parent": "chest", "pivot": [0, 214, -100], "rot": [0, 0, 0], "zone": 5 }, "plates_mid": { "parent": "body", "pivot": [0, 186, -10], "rot": [0, 0, 0], "zone": 4 }, "hips": { "parent": "body", "pivot": [0, 128.4, 40], "rot": [0, 0, 0], "zone": 3 }, "plates_hips": { "parent": "hips", "pivot": [0, 156, 66], "rot": [0, 0, 0], "zone": 3 }, "neck1": { "parent": "chest", "pivot": [0, 172, -138], "rot": [3, 0, 0], "zone": 6 }, "plates_neck1": { "parent": "neck1", "pivot": [0, 210, -143.5], "rot": [0, 0, 0], "zone": 6 }, "neck2": { "parent": "neck1", "pivot": [0, 172, -149], "rot": [2, 0, 0], "zone": 6 }, "plates_neck2": { "parent": "neck2", "pivot": [0, 207, -154.5], "rot": [0, 0, 0], "zone": 6 }, "neck3": { "parent": "neck2", "pivot": [0, 172, -160], "rot": [1, 0, 0], "zone": 7 }, "plates_neck3": { "parent": "neck3", "pivot": [0, 204, -165.5], "rot": [0, 0, 0], "zone": 7 }, "neck4": { "parent": "neck3", "pivot": [0, 172, -171], "rot": [0, 0, 0], "zone": 7 }, "plates_neck4": { "parent": "neck4", "pivot": [0, 201, -176.5], "rot": [0, 0, 0], "zone": 7 }, "neck5": { "parent": "neck4", "pivot": [0, 172, -182], "rot": [0, 0, 0], "zone": 7 }, "plates_neck5": { "parent": "neck5", "pivot": [0, 199, -187], "rot": [0, 0, 0], "zone": 7 }, "head": { "parent": "neck5", "pivot": [0, 172, -192], "rot": [2, 0, 0], "zone": 8 }, "eye_l": { "parent": "head", "pivot": [25.75, 177.25, -237.5], "rot": [0, 0, 0], "zone": 8 }, "eye_r": { "parent": "head", "pivot": [-25.75, 177.25, -237.5], "rot": [0, 0, 0], "zone": 8 }, "plates_head": { "parent": "head", "pivot": [0, 192, -209.5], "rot": [0, 0, 0], "zone": 8 }, "jaw": { "parent": "head", "pivot": [0, 159.5, -209.5], "rot": [6, 0, 0], "zone": 8 }, "gill_l1": { "parent": "neck5", "pivot": [25.8, 170, -189.5], "rot": [0, 0, 0], "zone": 7 }, "gill_l2": { "parent": "neck5", "pivot": [25.8, 170, -183.9], "rot": [0, 0, 0], "zone": 7 }, "gill_l3": { "parent": "neck5", "pivot": [25.8, 170, -178.3], "rot": [0, 0, 0], "zone": 7 }, "gill_r1": { "parent": "neck5", "pivot": [-25.8, 170, -189.5], "rot": [0, 0, 0], "zone": 7 }, "gill_r2": { "parent": "neck5", "pivot": [-25.8, 170, -183.9], "rot": [0, 0, 0], "zone": 7 }, "gill_r3": { "parent": "neck5", "pivot": [-25.8, 170, -178.3], "rot": [0, 0, 0], "zone": 7 }, "leg_fl": { "parent": "chest", "pivot": [46, 172, -98], "rot": [8, 0, 0], "zone": 5 }, "leg_fl_lower": { "parent": "leg_fl", "pivot": [46, 88, -98], "rot": [-22, 0, 0], "zone": 5 }, "foot_fl": { "parent": "leg_fl_lower", "pivot": [46, 10, -98], "rot": [14, 0, 0], "zone": 5 }, "leg_fr": { "parent": "chest", "pivot": [-46, 172, -98], "rot": [8, 0, 0], "zone": 5 }, "leg_fr_lower": { "parent": "leg_fr", "pivot": [-46, 88, -98], "rot": [-22, 0, 0], "zone": 5 }, "foot_fr": { "parent": "leg_fr_lower", "pivot": [-46, 10, -98], "rot": [14, 0, 0], "zone": 5 }, "leg_bl": { "parent": "hips", "pivot": [40, 102, 72], "rot": [-24, 0, 0], "zone": 3 }, "leg_bl_lower": { "parent": "leg_bl", "pivot": [40, 52, 72], "rot": [42, 0, 0], "zone": 3 }, "foot_bl": { "parent": "leg_bl_lower", "pivot": [40, 6, 72], "rot": [-18, 0, 0], "zone": 3 }, "leg_br": { "parent": "hips", "pivot": [-40, 102, 72], "rot": [-24, 0, 0], "zone": 3 }, "leg_br_lower": { "parent": "leg_br", "pivot": [-40, 52, 72], "rot": [42, 0, 0], "zone": 3 }, "foot_br": { "parent": "leg_br_lower", "pivot": [-40, 6, 72], "rot": [-18, 0, 0], "zone": 3 }, "tail1": { "parent": "hips", "pivot": [0, 109, 106], "rot": [-6, 0, 0], "zone": 2 }, "plates_tail1": { "parent": "tail1", "pivot": [0, 137, 121], "rot": [0, 0, 0], "zone": 2 }, "tail2": { "parent": "tail1", "pivot": [0, 109, 136], "rot": [-4, 0, 0], "zone": 2 }, "plates_tail2": { "parent": "tail2", "pivot": [0, 134, 151], "rot": [0, 0, 0], "zone": 2 }, "tail3": { "parent": "tail2", "pivot": [0, 109, 166], "rot": [-3, 0, 0], "zone": 2 }, "plates_tail3": { "parent": "tail3", "pivot": [0, 131, 180.5], "rot": [0, 0, 0], "zone": 2 }, "tail4": { "parent": "tail3", "pivot": [0, 109, 195], "rot": [-1, 0, 0], "zone": 1 }, "plates_tail4": { "parent": "tail4", "pivot": [0, 128, 209.5], "rot": [0, 0, 0], "zone": 1 }, "tail5": { "parent": "tail4", "pivot": [0, 109, 224], "rot": [1, 0, 0], "zone": 1 }, "plates_tail5": { "parent": "tail5", "pivot": [0, 125, 238], "rot": [0, 0, 0], "zone": 1 }, "tail6": { "parent": "tail5", "pivot": [0, 109, 252], "rot": [2, 0, 0], "zone": 1 }, "plates_tail6": { "parent": "tail6", "pivot": [0, 122.5, 265.5], "rot": [0, 0, 0], "zone": 1 }, "tail7": { "parent": "tail6", "pivot": [0, 109, 279], "rot": [3, 0, 0], "zone": 1 }, "plates_tail7": { "parent": "tail7", "pivot": [0, 120, 292], "rot": [0, 0, 0], "zone": 1 }, "tail8": { "parent": "tail7", "pivot": [0, 109, 305], "rot": [3, 0, 0], "zone": 1 }, "plates_tail8": { "parent": "tail8", "pivot": [0, 118, 317.5], "rot": [0, 0, 0], "zone": 1 }, "club": { "parent": "tail8", "pivot": [0, 109, 330], "rot": [0, 0, 0], "zone": 0 } }, "locators": { "heart": { "bone": "body", "pos": [0, 148.7, -30] }, "back": { "bone": "body", "pos": [0, 194.6, -40] }, "plate_tip_0": { "bone": "plates_chest", "pos": [0, 259.5, -119] }, "plate_tip_1": { "bone": "plates_chest", "pos": [0, 277.7343, -90.5] }, "plate_tip_2": { "bone": "plates_chest", "pos": [0, 284.9457, -62.5] }, "plate_tip_3": { "bone": "plates_mid", "pos": [0, 281.9914, -35] }, "plate_tip_4": { "bone": "plates_mid", "pos": [0, 269.5371, -10] }, "plate_tip_5": { "bone": "plates_mid", "pos": [0, 253.2829, 14] }, "plate_tip_6": { "bone": "plates_mid", "pos": [0, 235.1286, 37.5] }, "plate_tip_7": { "bone": "plates_hips", "pos": [0, 217.64, 59] }, "plate_tip_8": { "bone": "plates_hips", "pos": [0, 202.0514, 81] }, "plate_tip_9": { "bone": "plates_hips", "pos": [0, 184.5629, 102.5] }, "gill_l": { "bone": "neck5", "pos": [27, 170, -182.5] }, "gill_r": { "bone": "neck5", "pos": [-27, 170, -182.5] }, "horn_l": { "bone": "head", "pos": [30.5098, 202.6179, -170.548] }, "horn_r": { "bone": "head", "pos": [-30.5098, 202.6179, -170.548] }, "muzzle": { "bone": "head", "pos": [0, 165.75, -314.5] }, "throat": { "bone": "head", "pos": [0, 165.75, -202] }, "nose": { "bone": "head", "pos": [0, 177, -309.5] }, "eye_l": { "bone": "eye_l", "pos": [26.25, 177.25, -237.5] }, "eye_r": { "bone": "eye_r", "pos": [-26.25, 177.25, -237.5] }, "mouth": { "bone": "jaw", "pos": [0, 164.5, -294.5] }, "claw_l": { "bone": "foot_fl", "pos": [46, 2, -158] }, "foot_fl": { "bone": "foot_fl", "pos": [46, -2, -106] }, "claw_r": { "bone": "foot_fr", "pos": [-46, 2, -158] }, "foot_fr": { "bone": "foot_fr", "pos": [-46, -2, -106] }, "foot_bl": { "bone": "foot_bl", "pos": [40, -6, 64] }, "foot_br": { "bone": "foot_br", "pos": [-40, -6, 64] }, "tail_notch": { "bone": "tail7", "pos": [10, 109, 317] }, "club_core": { "bone": "club", "pos": [0, 109, 350] }, "spike_tip_0": { "bone": "club", "pos": [23.2066, 111.881, 359.286] }, "spike_tip_1": { "bone": "club", "pos": [-23.2066, 111.881, 359.286] }, "spike_tip_2": { "bone": "club", "pos": [0, 109, 396] }, "spike_tip_3": { "bone": "club", "pos": [0, 129, 340] }, "spike_tip_4": { "bone": "club", "pos": [0, 126, 351] }, "spike_tip_5": { "bone": "club", "pos": [0, 123, 362] }, "spike_tip_6": { "bone": "club", "pos": [0, 120, 373] }, "spike_tip_7": { "bone": "club", "pos": [0, 89, 340] }, "spike_tip_8": { "bone": "club", "pos": [0, 92, 351] }, "spike_tip_9": { "bone": "club", "pos": [0, 95, 362] }, "spike_tip_10": { "bone": "club", "pos": [0, 98, 373] }, "spike_tip_11": { "bone": "club", "pos": [0, 109, 360] } }, "meta": { "glow_y0": 130, "glow_y1": 300, "wetness": 0.1, "bounds_margin": 6, "form": 5, "veins": 0.3 }, "zones": { "4": ["body", "plates_mid"], "5": ["chest", "plates_chest", "leg_fl", "leg_fl_lower", "foot_fl", "leg_fr", "leg_fr_lower", "foot_fr"], "3": ["hips", "plates_hips", "leg_bl", "leg_bl_lower", "foot_bl", "leg_br", "leg_br_lower", "foot_br"], "6": ["neck1", "plates_neck1", "neck2", "plates_neck2"], "7": ["neck3", "plates_neck3", "neck4", "plates_neck4", "neck5", "plates_neck5", "gill_l1", "gill_l2", "gill_l3", "gill_r1", "gill_r2", "gill_r3"], "8": ["head", "eye_l", "eye_r", "plates_head", "jaw"], "2": ["tail1", "plates_tail1", "tail2", "plates_tail2", "tail3", "plates_tail3"], "1": ["tail4", "plates_tail4", "tail5", "plates_tail5", "tail6", "plates_tail6", "tail7", "plates_tail7", "tail8", "plates_tail8"], "0": ["club"] }, "boxes": { "body": [[-51.4, 93.7, -72.3], [51.4, 199.1, 35.7]], "chest": [[-61.1, 114.6, -153.2], [61.1, 224.9, -47.3]], "plates_chest": [[-27.2, 185.9, -148.5], [27.2, 224.6, -65]], "plates_mid": [[-27.2, 151.3, -76.5], [27.2, 206.2, 38.8]], "hips": [[-48.9, 73.3, 12.7], [48.9, 171.2, 116.7]], "plates_hips": [[-4.5, 137.2, 25.5], [4.5, 169.1, 110.4]], "neck1": [[-42, 134, -150], [42, 210, -127]], "plates_neck1": [[-3.5, 199.8, -151.5], [3.5, 209.2, -136.1]], "neck2": [[-39, 137, -161], [39, 207, -138]], "plates_neck2": [[-3.5, 196.8, -162.5], [3.5, 206.5, -147]], "neck3": [[-36, 140, -172], [36, 204, -149]], "plates_neck3": [[-3.5, 193.8, -173.5], [3.5, 203.8, -158]], "neck4": [[-33, 143, -183], [33, 201, -160]], "plates_neck4": [[-3.5, 190.8, -184.5], [3.5, 201.1, -168.9]], "neck5": [[-30, 145, -193], [30, 199, -171]], "plates_neck5": [[-3.5, 188.8, -195], [3.5, 199.4, -179.4]], "head": [[-31.9, 155.8, -310.8], [31.9, 203.6, -169.7]], "plates_head": [[-2.5, 184.1, -218.3], [2.5, 192.8, -206.4]], "jaw": [[-23.8, 144.5, -315.8], [23.8, 160.8, -199.5]], "gill_l1": [[25.3, 158.8, -192.1], [26.3, 181.2, -182.7]], "gill_l2": [[25.3, 158.8, -186.5], [26.3, 181.2, -177.1]], "gill_l3": [[25.3, 158.8, -180.9], [26.3, 181.2, -171.5]], "gill_r1": [[-26.3, 158.8, -192.1], [-25.3, 181.2, -182.7]], "gill_r2": [[-26.3, 158.8, -186.5], [-25.3, 181.2, -177.1]], "gill_r3": [[-26.3, 158.8, -180.9], [-25.3, 181.2, -171.5]], "leg_fl": [[22, 83, -128.6], [70, 183, -68]], "leg_fl_lower": [[23, 6, -123], [69, 98, -68]], "foot_fl": [[22, -2, -138.6], [70, 17, -74]], "leg_fr": [[-70, 83, -128.6], [-22, 183, -68]], "leg_fr_lower": [[-69, 6, -123], [-23, 98, -68]], "foot_fr": [[-70, -2, -138.6], [-22, 17, -74]], "leg_bl": [[15, 47, 38], [65, 113, 107.4]], "leg_bl_lower": [[17, 2, 43], [63, 62, 100]], "foot_bl": [[18, -6, 33.4], [62, 13, 96]], "leg_br": [[-65, 47, 38], [-15, 113, 107.4]], "leg_br_lower": [[-63, 2, 43], [-17, 62, 100]], "foot_br": [[-62, -6, 33.4], [-18, 13, 96]], "tail1": [[-32, 81, 97], [32, 137, 137]], "plates_tail1": [[-4, 125.7, 108.5], [4, 139.9, 133.4]], "tail2": [[-28, 84, 127], [28, 134, 167]], "plates_tail2": [[-4, 122.9, 139.4], [4, 136.3, 162.4]], "tail3": [[-24.7, 87, 157], [24.7, 131, 196]], "plates_tail3": [[-4, 120.1, 169.8], [4, 132.6, 190.9]], "tail4": [[-21.5, 90, 186], [21.5, 128, 225]], "plates_tail4": [[-4, 117.2, 199.7], [4, 129, 219]], "tail5": [[-18.7, 93, 215], [18.7, 125, 253]], "plates_tail5": [[-3, 114.4, 229], [3, 125.3, 246.5]], "tail6": [[-15.9, 95.5, 243], [15.9, 122.5, 280]], "plates_tail6": [[-3, 112.1, 257.4], [3, 122.1, 273]], "tail7": [[-12.5, 98, 270], [12.5, 120, 306]], "plates_tail7": [[-3, 109.8, 284.8], [3, 119, 298.5]], "tail8": [[-10, 100, 296], [10, 118, 331]], "plates_tail8": [[-3, 108, 311.2], [3, 116.3, 323]], "club": [[-23.9, 97, 328], [23.9, 121, 360.1]] } } };
+var LOOK = { "1": { "yaw": { "head": 0.6, "chest": 0.4 }, "pitch": { "head": 0.6, "chest": 0.4 } }, "2": { "yaw": { "head": 0.45, "neck": 0.4, "chest": 0.15 }, "pitch": { "head": 0.5, "neck": 0.4, "chest": 0.1 } }, "3": { "yaw": { "head": 0.35, "neck1": 0.11, "neck2": 0.11, "neck3": 0.11, "neck4": 0.11, "neck5": 0.11, "chest": 0.1 }, "pitch": { "head": 0.4, "neck1": 0.12, "neck2": 0.12, "neck3": 0.12, "neck4": 0.12, "neck5": 0.12 } }, "4": { "yaw": { "head": 0.4, "neck2": 0.2, "neck1": 0.2, "chest": 0.2 }, "pitch": { "head": 0.45, "neck2": 0.25, "neck1": 0.2, "chest": 0.1 } }, "5": { "yaw": { "head": 0.35, "neck1": 0.11, "neck2": 0.11, "neck3": 0.11, "neck4": 0.11, "neck5": 0.11, "chest": 0.1 }, "pitch": { "head": 0.4, "neck1": 0.12, "neck2": 0.12, "neck3": 0.12, "neck4": 0.12, "neck5": 0.12 } } };
 var STRIDE_III = 11.9;
 var STANCE_III = 8.925;
 var BODY_DROP_III = 9;
@@ -554,7 +566,7 @@ var WINDOW_CROUCH_III = 6.5;
 var BETA_III = 0.75;
 var LIFT_III = 16;
 var STANCE_MODEL_III = 84;
-var SCALE = { 1: 1, 2: 1.25, 3: 1.7, 4: 2 };
+var SCALE = { 1: 1, 2: 1.25, 3: 1.7, 4: 2, 5: 1.7 };
 var STRIDE_IV = 14;
 var BETA_IV = 0.6;
 var STANCE_MODEL_IV = 67.2;
@@ -562,6 +574,7 @@ var LIFT_IV = 22;
 var WING_FOLD = { "root": [30, -70, -50], "arm": [50, 130], "fingers": [30, 14, 0, -14] };
 var TAIL_LIFT_III = 4;
 var TITAN_HEALTH = 1e6;
+var VATHROK_HEALTH = 1e6;
 var WINDOW_NECK = [32, 28, 20, 0, -24];
 var WINDOW_HEAD = [-62.7, 21.8, -51.8];
 var GAIT_TICKS = [16, 25, 30];
@@ -569,6 +582,7 @@ var ROAR_ENV = { "long": [0.53, 0.57, 0.63, 0.66, 0.7, 0.74, 0.77, 0.78, 0.79, 0
 var VOICE_KIND = { grunt: 4, growl: 5, breath: 6, hurt: 7, roar: 8, roar_short: 9, roar_under: 10 };
 
 // src/rig.ts
+var quad = (f) => f === 3 || f === 5;
 function rotation(rx, ry, rz) {
   const ax = -rx * D2R, ay = ry * D2R, az = -rz * D2R;
   const cx = Math.cos(ax), sx = Math.sin(ax), cy = Math.cos(ay), sy = Math.sin(ay), cz = Math.cos(az), sz = Math.sin(az);
@@ -679,7 +693,7 @@ var Skeleton = class {
     const add2 = this.pose[name];
     const R = rotation(b.rot[0] + (add2 ? add2[0] : 0), b.rot[1] + (add2 ? add2[1] : 0), b.rot[2] + (add2 ? add2[2] : 0));
     const local = about(R, b.pivot);
-    if (this.form === 3 && name === "body") local[7] -= BODY_DROP_III + WINDOW_CROUCH_III * this.window;
+    if (quad(this.form) && name === "body") local[7] -= BODY_DROP_III + WINDOW_CROUCH_III * this.window;
     if (name === "body") {
       local[3] += this.body[0];
       local[7] += this.body[1];
@@ -1104,7 +1118,7 @@ function shatterRing(dim, center, r0, r1, samples, seed) {
 }
 function mobsNear(dim, at3, r) {
   try {
-    const out = dim.getEntities({ location: at3, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
+    const out = dim.getEntities({ location: at3, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, TITAN, VATHROK, VATHROK_TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
     const seen = new Set(out.map((e) => e.id));
     for (const e of dim.getEntities({ location: at3, maxDistance: r, families: ["monster"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY, "mob"] })) {
       if (!seen.has(e.id)) out.push(e);
@@ -1413,7 +1427,7 @@ function partsFor(form) {
     const half = SIZES[si] / 2 / k;
     const n = d.map((len2) => Math.max(1, Math.ceil((len2 - edge * (big ? 0.35 : 0.2)) / edge)));
     const tag = /^(head|jaw|neck)/.test(bone) ? "head" : /^(tail|club|knob|seg(8|9|10)$|tailfin)/.test(bone) ? "tail" : /^(leg|foot|arm|forearm|claw|hand|wing|fin)/.test(bone) ? "limb" : "body";
-    const lm = form === 3 ? /^(?:leg|foot)_(fl|fr|bl|br)(_lower)?$/.exec(bone) : form === 4 ? /^(?:leg|foot)_(l|r)(_lower)?$/.exec(bone) : null;
+    const lm = quad(form) ? /^(?:leg|foot)_(fl|fr|bl|br)(_lower)?$/.exec(bone) : form === 4 ? /^(?:leg|foot)_(l|r)(_lower)?$/.exec(bone) : null;
     const leg = lm ? lm[1] : void 0;
     const swing = lm ? bone.startsWith("foot") ? 1 : lm[2] ? 0.55 : 0.25 : void 0;
     for (let ix = 0; ix < n[0]; ix++) for (let iy = 0; iy < n[1]; iy++) for (let iz = 0; iz < n[2]; iz++) {
@@ -1432,13 +1446,16 @@ var MOVE = {
   1: { turn: 2.2, accel: 0.02, radius: 3 },
   2: { turn: 1.4, accel: 0.03, radius: 3.1 },
   3: { turn: 1, accel: 0.011, radius: 6 },
-  4: { turn: 0.75, accel: 0.012, radius: 9 }
+  4: { turn: 0.75, accel: 0.012, radius: 9 },
+  // Vathrok (2.0): longer and taller than Form III, on the same four-beat walk
+  5: { turn: 0.95, accel: 0.012, radius: 7 }
 };
 var DROP = 30;
 var BODY = {
   2: { built: [1.8, 3.2], cliff: 4.5, front: 4.4, look: [0.6, 2, 5, 9, 13], wade: 2, climb: 2, top: 4 },
   3: { built: [4.2, 6.1], cliff: 8.2, front: 9.4, look: [0.6, 3, 10, 17, 24], wade: 8, climb: 5.4, top: 10 },
-  4: { built: [6, 11], cliff: 15, front: 11, look: [0.6, 4, 14, 24, 34], wade: 16, climb: 7.4, top: 24 }
+  4: { built: [6, 11], cliff: 15, front: 11, look: [0.6, 4, 14, 24, 34], wade: 16, climb: 7.4, top: 24 },
+  5: { built: [5, 8.5], cliff: 10, front: 12, look: [0.6, 3, 12, 20, 28], wade: 10, climb: 6, top: 16 }
 };
 var Creature = class {
   constructor(entity, form = store.rec.form) {
@@ -1487,6 +1504,8 @@ var Creature = class {
     this.might = 1;
     /** If set, what any blow of its does to a player or a creature, whatever the blow (the Titan: they die of it). */
     this.lethal = 0;
+    /** Whose colours its breath is drawn in: "" his red, "v" Vathrok's green (beam.ts tint). */
+    this.hue = "";
     this.haste = 1;
     this.skelForm = 1;
     // ---- a way round -------------------------------------------------------------------------------
@@ -1701,7 +1720,7 @@ var Creature = class {
   }
   /** Turn the head (not the feet) towards a point; returns how far off the limit it is. */
   lookAt(target, maxYaw = 80, maxPitch = 40) {
-    const base = this.form === 1 ? this.anchor("throat") : this.point(this.form === 2 ? "neck" : "neck1", this.form === 2 ? [0, 84, -32] : this.form === 4 ? [0, 336, -22] : [0, 114, -126]);
+    const base = this.form === 1 ? this.anchor("throat") : this.form === 5 ? this.point("neck1", RIGS[5].bones.neck1.pivot) : this.point(this.form === 2 ? "neck" : "neck1", this.form === 2 ? [0, 84, -32] : this.form === 4 ? [0, 336, -22] : [0, 114, -126]);
     const want = wrapDeg(yawTo(base, target) - this.yaw);
     const flat = Math.max(0.5, distXZ(base, target));
     const pitch = Math.atan2(base.y - target.y, flat) * 180 / Math.PI;
@@ -2235,7 +2254,7 @@ var Creature = class {
   volumes() {
     const k = this.scale;
     const out = partsFor(this.form).map((d) => ({ at: this.point(d.bone, d.at), r: SIZES[d.si] / 2, tag: d.tag }));
-    const trunk = this.form === 1 ? { h: 4.4, r: 3 } : this.form === 2 ? { h: 7.2 * k, r: 3.3 * k } : this.form === 4 ? { h: 20 * k, r: 5 * k } : { h: 9.6 * k, r: 4.3 * k };
+    const trunk = this.form === 1 ? { h: 4.4, r: 3 } : this.form === 2 ? { h: 7.2 * k, r: 3.3 * k } : this.form === 4 ? { h: 20 * k, r: 5 * k } : this.form === 5 ? { h: 12 * k, r: 5 * k } : { h: 9.6 * k, r: 4.3 * k };
     out.push({ at: { x: this.pos.x, y: this.pos.y + trunk.h / 2, z: this.pos.z }, r: trunk.r, tag: "body" });
     return out;
   }
@@ -2297,8 +2316,8 @@ var Creature = class {
   /** A sound from him.  If it is his voice, his mouth moves with it (the client times the jaw to the recording). */
   say(id, at3, range = 56, volume = 1, pitch = 1) {
     sound(this.dim, id, at3 ?? this.pos, range, volume, pitch);
-    const m = /^basiliskra\.(?:[a-z]+\.)?(grunt|growl|breath|hurt|roar|roar_short|roar_under)$/.exec(id);
-    if (m) this.pulse(VOICE_KIND[m[1]]);
+    const m = /^basiliskra\.(?:[a-z]+\.)?(grunt|growl|breath|huff|hurt|roar|roar_short|roar_under)$/.exec(id);
+    if (m) this.pulse(VOICE_KIND[m[1] === "huff" ? "breath" : m[1]]);
   }
   emit(id, at3, range = 56) {
     particle(this.dim, id, at3, range);
@@ -2337,7 +2356,7 @@ var Creature = class {
   }
   /** The middle of his trunk: what another giant aims at. */
   middle() {
-    const h = this.form === 1 ? 2.2 : this.form === 2 ? 3.6 * this.scale : this.form === 4 ? 12 * this.scale : 4.8 * this.scale;
+    const h = this.form === 1 ? 2.2 : this.form === 2 ? 3.6 * this.scale : this.form === 4 ? 12 * this.scale : this.form === 5 ? 8.5 * this.scale : 4.8 * this.scale;
     return { x: this.pos.x, y: this.pos.y + h, z: this.pos.z };
   }
   /** Thrown back by a blow from something his own size: he gives ground if there is ground to give. */
@@ -2939,6 +2958,9 @@ var BIG = {
   "minecraft:elder_guardian": 1.2,
   "minecraft:sniffer": 1
 };
+function tint(hue, id) {
+  return hue && id.startsWith("basiliskra:") ? `basiliskra:${hue}_${id.slice(11)}` : id;
+}
 var CRATER = 6;
 function beamTick(c, T, t, fade, st, shot = {}) {
   const aim = shot.from && shot.dir ? { from: shot.from, dir: shot.dir } : c.aim();
@@ -2975,31 +2997,31 @@ function beamTick(c, T, t, fade, st, shot = {}) {
   }
   const end = add(from, mul(dir, length));
   if (struck) {
-    if (t % 3 === 0) particle(c.dim, "basiliskra:beam_impact", end, 128);
-    if (t % 4 === 2) particle(c.dim, "basiliskra:impact_glare", end, 160);
-    if (t % 7 === 0) particle(c.dim, "basiliskra:impact_fire", end, 128);
-    if (t % 6 === 3) particle(c.dim, "basiliskra:impact_smoke", end, 144);
+    if (t % 3 === 0) particle(c.dim, tint(c.hue, "basiliskra:beam_impact"), end, 128);
+    if (t % 4 === 2) particle(c.dim, tint(c.hue, "basiliskra:impact_glare"), end, 160);
+    if (t % 7 === 0) particle(c.dim, tint(c.hue, "basiliskra:impact_fire"), end, 128);
+    if (t % 6 === 3) particle(c.dim, tint(c.hue, "basiliskra:impact_smoke"), end, 144);
     if (t % 10 === 0) sound(c.dim, "basiliskra.iii.beam_impact", end, 128);
     if (t % 4 === 0) struck.takeBlow(c, T.damage * 0.5 * Math.max(0.3, fade));
   }
   const w = T.width * fade * (T.rough ? 0.85 + hash(t) * 0.4 : 1) * (1 + 0.14 * Math.sin(t * 1.25));
-  drawBeam(c.dim, from, dir, length, w, t, hitBlock !== null || struck !== null, end);
+  drawBeam(c.dim, from, dir, length, w, t, hitBlock !== null || struck !== null, end, void 0, void 0, c.hue);
   const side = norm({ x: -dir.z, y: 0, z: dir.x });
   const up = norm({ x: dir.y * side.z - dir.z * side.y, y: dir.z * side.x - dir.x * side.z, z: dir.x * side.y - dir.y * side.x });
   for (let i = 0; i < 4; i++) {
     const along = (t * 2.3 + i * (length / 4)) % length;
     const a = along * 1.1 + t * 0.9;
     const r = w * 0.45 + 0.3;
-    particle(c.dim, "basiliskra:beam_spiral", add(add(from, mul(dir, along)), add(mul(side, Math.cos(a) * r), mul(up, Math.sin(a) * r))), 112);
+    particle(c.dim, tint(c.hue, "basiliskra:beam_spiral"), add(add(from, mul(dir, along)), add(mul(side, Math.cos(a) * r), mul(up, Math.sin(a) * r))), 112);
   }
   if (hitBlock) {
-    if (t % 3 === 0) particle(c.dim, "basiliskra:beam_impact", end, 112);
-    if (t % 5 === 0) particle(c.dim, "basiliskra:impact_blast", end, 128);
-    if (t % 6 === 3) particle(c.dim, "basiliskra:impact_smoke", end, 144);
-    if (t % 7 === 0) particle(c.dim, "basiliskra:impact_fire", end, 112);
-    if (t % 4 === 2) particle(c.dim, "basiliskra:impact_glare", end, 160);
-    if (t % 10 === 5) particle(c.dim, "basiliskra:impact_ring", { x: end.x, y: end.y + 0.4, z: end.z }, 144);
-    if (t % 8 === 1) particle(c.dim, "basiliskra:impact_fountain", end, 144);
+    if (t % 3 === 0) particle(c.dim, tint(c.hue, "basiliskra:beam_impact"), end, 112);
+    if (t % 5 === 0) particle(c.dim, tint(c.hue, "basiliskra:impact_blast"), end, 128);
+    if (t % 6 === 3) particle(c.dim, tint(c.hue, "basiliskra:impact_smoke"), end, 144);
+    if (t % 7 === 0) particle(c.dim, tint(c.hue, "basiliskra:impact_fire"), end, 112);
+    if (t % 4 === 2) particle(c.dim, tint(c.hue, "basiliskra:impact_glare"), end, 160);
+    if (t % 10 === 5) particle(c.dim, tint(c.hue, "basiliskra:impact_ring"), { x: end.x, y: end.y + 0.4, z: end.z }, 144);
+    if (t % 8 === 1) particle(c.dim, tint(c.hue, "basiliskra:impact_fountain"), end, 144);
     if (t % 10 === 0) sound(c.dim, "basiliskra.iii.beam_impact", end, 112);
     if (!st.ground || dist(st.ground, hitBlock) > CRATER + 3) st.ground = hitBlock;
     if (smash) {
@@ -3054,10 +3076,10 @@ function beamTick(c, T, t, fade, st, shot = {}) {
   }
   return { end, hit: hitBlock, length, from, dir, struck };
 }
-function drawBeam(dim, from, dir, length, w, t, landed, end, to, but) {
+function drawBeam(dim, from, dir, length, w, t, landed, end, to, but, hue = "") {
   const show = (id, at3, range, vars2) => {
-    if (to) particleFor(to, id, at3, vars2);
-    else particle(dim, id, at3, range, vars2, but);
+    if (to) particleFor(to, tint(hue, id), at3, vars2);
+    else particle(dim, tint(hue, id), at3, range, vars2, but);
   };
   const v = beamVars(dir, length, w);
   if (t % 2 === 0) {
@@ -4102,8 +4124,12 @@ var Brain = class {
     if (now < this.voiceAt) return;
     this.voiceAt = now + Math.round((10 + 12 * hash(now, 71)) * 20);
     if (!VOICED.has(c.phase) || !anyoneNear(c, 80)) return;
-    const tag = ["", "i", "ii", "iii", "iii"][c.form];
     const r = hash(now, 72);
+    if (c.form === 5) {
+      c.say(r < 0.6 ? "basiliskra.vathrok.huff" : "basiliskra.vathrok.growl", c.anchor("nose"), 96, 0.95, 0.94 + 0.12 * hash(now, 73));
+      return;
+    }
+    const tag = ["", "i", "ii", "iii", "iii"][c.form];
     const id = c.form === 1 ? r < 0.75 ? "i.grunt" : "i.breath" : r < 0.6 ? `${tag}.grunt` : r < 0.85 ? `${tag}.breath` : `${tag}.growl`;
     const pitch = (c.form === 1 ? 0.9 : c.form === 2 ? 1.15 : c.form === 4 ? 0.84 : 0.96) * (0.96 + 0.08 * hash(now, 73));
     c.say(`basiliskra.${id}`, c.anchor("nose"), c.form >= 3 ? 80 : 64, 0.95, pitch);
@@ -4767,6 +4793,8 @@ var BrainThree = class extends Brain {
     /** The ending asks for a charge aimed at nothing in particular, beside the seam. */
     this.wantCharge = false;
     this.chargeSounding = false;
+    /** His footfall and his grunt (Vathrok, which walks as he does, has its own). */
+    this.voices = { step: "basiliskra.iii.step", grunt: "basiliskra.iii.grunt" };
     /** From how far he knows of another giant. */
     this.giantSight = 160;
     this.foreign = [];
@@ -4924,7 +4952,7 @@ var BrainThree = class extends Brain {
     const foot = add(c.anchor(FEET[k]), mul(c.forward, STANCE_III / 2));
     this.beat++;
     this.rec.mut.overland += STRIDE_III / 4;
-    sound(c.dim, "basiliskra.iii.step", foot, 112, 1, 0.86 + (this.beat & 3) * 0.03);
+    sound(c.dim, this.voices.step, foot, 112, 1, 0.86 + (this.beat & 3) * 0.03);
     const ground = { x: foot.x, y: c.pos.y + 0.1, z: foot.z };
     particle(c.dim, "basiliskra:step_dust", ground, 72);
     for (const p of witnesses(c.dim, foot, 40)) {
@@ -5153,7 +5181,7 @@ var BrainThree = class extends Brain {
       c.lookAt(headOf(g), 60, 25);
       this.footfalls();
       if (dist(at3, c.pos) < keep + 1) break;
-      if (t % 100 === 50) c.say("basiliskra.iii.grunt", c.anchor("nose"), 72, 1, 0.92 + hash(t) * 0.1);
+      if (t % 100 === 50) c.say(this.voices.grunt, c.anchor("nose"), 72, 1, 0.92 + hash(t) * 0.1);
       yield;
     }
     c.halt();
@@ -6824,6 +6852,8 @@ function tellNear(dim, at3, msg) {
 var Titans = class {
   constructor() {
     this.list = /* @__PURE__ */ new Map();
+    /** More rows for the health line: the Vathrok Titans' (2.0; set from main.ts, so neither module loads the other). */
+    this.extraRows = () => [];
     this.hurtCry = /* @__PURE__ */ new Map();
   }
   get count() {
@@ -7022,6 +7052,7 @@ var Titans = class {
       const k = Math.max(0, Math.min(10, Math.ceil(h / TITAN_HEALTH * 10)));
       rows.push({ c: t.c, text: `§4${TITAN_NAMES[t.n % TITAN_NAMES.length]} §c${"█".repeat(k)}§8${"█".repeat(10 - k)} §7${Math.max(0, Math.round(h))}` });
     }
+    rows.push(...this.extraRows());
     if (!rows.length) return;
     for (const p of players()) {
       try {
@@ -7051,7 +7082,7 @@ var Titans = class {
       }
       t.c.update();
     }
-    if (now % 10 === 3 && this.list.size) this.hud();
+    if (now % 10 === 3) this.hud();
   }
 };
 function worldTitans() {
@@ -7063,8 +7094,903 @@ function worldTitans() {
 }
 var titans = new Titans();
 
+// src/vathrok.ts
+import { EntityDamageCause as EntityDamageCause10, ItemStack as ItemStack3, MolangVariableMap as MolangVariableMap5, world as world10 } from "@minecraft/server";
+var VATHROK_MAX = { boss: 1, battle: 3 };
+var ROMAN = ["I", "II", "III", "IV", "V"];
+var BATTLE_SPEC = { range: 220, radius: 3.4, damage: 30 * GIANT, width: 4.2, carve: 5, fallout: 0 };
+var BOSS_SPEC = { range: 130, radius: 2.2, damage: 8, width: 3.4, carve: 3.2, fallout: 0 };
+var BOSS_HIT = { bite: 18, claws: 15, tail: 16, ram: 20 };
+var BOSS_BLOW = { lunge: 60, tail: 90, ram: 80, swipe: 70 };
+var TAG2 = "bk:vathrok";
+var PROWL2 = 70;
+var NEXT_KEY = "bk:vathrok_next";
+var BrainVathrok = class extends BrainThree {
+  constructor(c, own, home, battle) {
+    super(c, own);
+    this.dying = false;
+    this.gone = false;
+    this.reeling = false;
+    this.bigAt = -999;
+    this.big = [];
+    this.chargeOn = false;
+    this.battle = battle;
+    this.home = { ...home };
+    this.breathSpec = battle ? BATTLE_SPEC : BOSS_SPEC;
+    this.giantSight = battle ? 240 : 140;
+    this.voices = { step: "basiliskra.vathrok.step", grunt: "basiliskra.vathrok.huff" };
+    c.set(PROP.gill, false);
+  }
+  onBlow(_by, _amount, heavy) {
+    this.hurtAt = this.now;
+    if (heavy && this.ready("reel")) {
+      this.rest("reel", 5 * TICKS.second);
+      this.reeling = true;
+    }
+  }
+  onFinish() {
+    super.onFinish();
+    if (this.chargeOn) {
+      this.chargeOn = false;
+      stopSound(this.c.dim, "basiliskra.vathrok.charge", this.c.pos);
+    }
+  }
+  n(blow) {
+    return this.battle ? BLOW[blow] : BOSS_BLOW[blow];
+  }
+  hit(kind) {
+    return this.battle ? LETHAL : BOSS_HIT[kind];
+  }
+  /** The nearest giant of ours that is not itself (the survival one minds only those that come near). */
+  foe() {
+    let best = null, bd = this.battle ? this.giantSight : 110;
+    for (const g of otherGiants(this.c)) {
+      const d = dist(g.pos, this.c.pos);
+      if (d < bd) {
+        bd = d;
+        best = g;
+      }
+    }
+    return best;
+  }
+  /** Whatever else it goes for: another add-on's giant, players (the survival one: these first), creatures. */
+  quarry() {
+    const c = this.c;
+    if (this.now - this.bigAt >= 40) {
+      this.bigAt = this.now;
+      this.big = foreignGiantsNear(c.dim, c.pos, this.giantSight);
+    }
+    const alive2 = (e) => {
+      try {
+        return e.isValid;
+      } catch {
+        return false;
+      }
+    };
+    const big = this.big.filter(alive2);
+    const near = nearbyPlayers(c, this.battle ? 170 : 160);
+    const order = this.battle ? [big, near] : [near, big];
+    for (const list of order) if (list.length) return list[0];
+    if (!CONFIG.huntMobs) return null;
+    const mobs = mobsNear(c.dim, c.pos, 90).filter((e) => !giants.has(e.id));
+    mobs.sort((a, b) => dist(a.location, c.pos) - dist(b.location, c.pos));
+    return mobs[0] ?? null;
+  }
+  interrupt() {
+    if (this.dying) return this.actName === "fall" ? null : { name: "fall", run: this.fall(), limit: 12 * TICKS.second };
+    if (this.reeling) {
+      this.reeling = false;
+      if (["charge", "fire", "roar", "vent", "fall", "swipe"].includes(this.c.phase)) return null;
+      return { name: "reel", run: this.reel(), limit: 3 * TICKS.second };
+    }
+    return null;
+  }
+  choose() {
+    const c = this.c, now = this.now;
+    const g = this.foe();
+    const e = g ? g.entity : this.quarry();
+    if (!e) {
+      if (this.ready("rroar") && hash(now, 93) < 0.35) {
+        this.rest("rroar", (60 + 80 * hash(now, 92)) * TICKS.second);
+        return { name: "roar", run: this.vroar(), limit: 10 * TICKS.second };
+      }
+      return { name: "roam", run: this.roam(), limit: 60 * TICKS.second };
+    }
+    const foe = { giant: g, e };
+    const at3 = this.where(foe);
+    const d = distXZ(at3, c.pos), reach = c.girth + (g ? g.girth : 2);
+    const bearing = wrapDeg(yawTo(c.pos, at3) - c.yaw);
+    if (e.id !== this.lastQuarry) {
+      this.lastQuarry = e.id;
+      if (this.ready("lockroar")) {
+        this.rest("lockroar", 40 * TICKS.second);
+        return { name: "lock", run: this.challenge(foe), limit: 12 * TICKS.second };
+      }
+    }
+    if (d < reach + 14) {
+      if (Math.abs(bearing) > 55 && this.ready("tail")) {
+        this.rest("tail", 6 * TICKS.second);
+        return { name: "tail", run: this.tail(bearing >= 0 ? 1 : -1), limit: 4 * TICKS.second };
+      }
+      if (this.ready("lunge")) {
+        this.rest("lunge", 3.5 * TICKS.second);
+        return { name: "lunge", run: this.lunge(foe), limit: 5 * TICKS.second };
+      }
+      if (Math.abs(bearing) <= 60 && this.ready("swipe")) {
+        this.rest("swipe", 6 * TICKS.second);
+        return { name: "swipe", run: this.rake(foe), limit: 4 * TICKS.second };
+      }
+      if (g && this.ready("circle") && this.ready("tail")) {
+        this.rest("circle", 9 * TICKS.second);
+        return { name: "circle", run: this.circle(g), limit: 8 * TICKS.second };
+      }
+    }
+    if (this.ready("beam") && now >= this.recoverUntil && d < this.breathSpec.range - 10 && d >= reach + 10) {
+      if (clearLine(c.dim, c.anchor("mouth"), g ? g.middle() : aimOf(e))) {
+        this.rest("beam", 15 * TICKS.second);
+        return { name: "beam", run: this.breath(foe), limit: 20 * TICKS.second };
+      }
+    }
+    if (g && d > reach + 34 && this.ready("ram")) {
+      this.rest("ram", 22 * TICKS.second);
+      return { name: "ram", run: this.ram(g), limit: 30 * TICKS.second };
+    }
+    if (d >= reach + 8) return { name: "pursue", run: this.close(foe), limit: 20 * TICKS.second };
+    return { name: "square", run: this.square(foe), limit: 2 * TICKS.second };
+  }
+  where(f) {
+    try {
+      return f.giant && f.giant.valid ? f.giant.pos : f.e.location;
+    } catch {
+      return this.c.pos;
+    }
+  }
+  middleOf(f) {
+    try {
+      return f.giant && f.giant.valid ? f.giant.middle() : aimOf(f.e);
+    } catch {
+      return this.c.pos;
+    }
+  }
+  alive(f) {
+    try {
+      if (f.giant) return f.giant.valid && f.giant.dim.id === this.c.dim.id;
+      return f.e.isValid && f.e.dimension.id === this.c.dim.id && (!isPlayer(f.e) || targetable(f.e));
+    } catch {
+      return false;
+    }
+  }
+  *turnTo(at3, rate = 1.2, limit = 240) {
+    const c = this.c;
+    c.halt();
+    for (let t = 0; t < limit; t++) {
+      const want = yawTo(c.pos, at3);
+      if (Math.abs(wrapDeg(want - c.yaw)) < 4) break;
+      c.yaw = turnTowards(c.yaw, want, rate);
+      c.setPhase(Math.abs(wrapDeg(want - c.yaw)) > 25 ? "move" : "idle");
+      yield;
+    }
+    c.setPhase("idle");
+  }
+  /** Its roar: head up, jaws wide, the ground carrying it. */
+  *vroar() {
+    const c = this.c;
+    c.halt();
+    c.setPhase("roar");
+    c.say("basiliskra.vathrok.roar", c.anchor("mouth"), 224);
+    const fx = new RoarFx(c, true, 36, 6);
+    for (let t = 0; t < 104; t++) {
+      fx.tick();
+      yield;
+    }
+    c.setPhase("idle");
+  }
+  *challenge(f) {
+    yield* this.turnTo(this.where(f), 2.5, 60);
+    this.c.lookAt(this.middleOf(f), 80, 40);
+    yield* this.vroar();
+  }
+  /** Up to it, to within reach of its jaws. */
+  *close(f) {
+    const c = this.c;
+    c.smash = true;
+    for (let t = 0; t < 400 && this.alive(f); t++) {
+      const at3 = this.where(f);
+      const reach = c.girth + (f.giant ? f.giant.girth : 2) + 6;
+      c.setPhase("move");
+      c.goTo(at3, this.battle ? 0.22 : 0.18, reach);
+      c.lookAt(this.middleOf(f), 60, 35);
+      this.footfalls();
+      if (distXZ(at3, c.pos) < reach + 1 || c.blocked > 60) break;
+      if (t % 100 === 50) c.say("basiliskra.vathrok.growl", c.anchor("nose"), 96, 1, 0.95 + hash(t) * 0.1);
+      yield;
+    }
+    c.halt();
+    c.smash = false;
+  }
+  *square(f) {
+    const c = this.c;
+    c.halt();
+    c.setPhase("idle");
+    for (let t = 0; t < 14 && this.alive(f); t++) {
+      c.yaw = turnTowards(c.yaw, yawTo(c.pos, this.where(f)), 2.5);
+      c.lookAt(this.middleOf(f), 70, 40);
+      yield;
+    }
+  }
+  /** A quarter of the way round another giant, at arm's length: it ends side-on to it, where its tail is. */
+  *circle(foe) {
+    const c = this.c;
+    const side = hash(this.now, 83) < 0.5 ? 1 : -1;
+    const r = c.girth + foe.girth + 8;
+    const a = Math.atan2(c.pos.z - foe.pos.z, c.pos.x - foe.pos.x) + side * 1.25;
+    const to = { x: foe.pos.x + Math.cos(a) * r, y: c.pos.y, z: foe.pos.z + Math.sin(a) * r };
+    for (let t = 0; t < 130 && foe.valid; t++) {
+      c.setPhase("move");
+      c.goTo(to, 0.2, 3);
+      c.lookAt(foe.middle(), 80, 40);
+      this.footfalls();
+      if (distXZ(to, c.pos) < 4 || c.blocked > 30) break;
+      if (t > 30 && Math.abs(wrapDeg(yawTo(c.pos, foe.pos) - c.yaw)) > 65 && distXZ(foe.pos, c.pos) < r + 6) break;
+      yield;
+    }
+    c.halt();
+  }
+  /** Where a blow lands: the noise of it, the shake, the green fire, the ground under it. */
+  impact(at3, big) {
+    const c = this.c;
+    sound(c.dim, "random.explode", at3, 160, 1.6, big ? 0.5 : 0.62);
+    sound(c.dim, "basiliskra.vathrok.step", at3, 160, 1, 0.6);
+    particle(c.dim, "basiliskra:v_impact_blast", at3, 160);
+    particle(c.dim, "basiliskra:impact_debris", at3, 128);
+    particle(c.dim, "basiliskra:v_impact_ring", { x: at3.x, y: c.pos.y + 0.4, z: at3.z }, 160);
+    particle(c.dim, "minecraft:huge_explosion_emitter", at3, 160);
+    shake(c, 128, big ? 1.2 : 0.8, 0.5);
+  }
+  /** A blow on whatever stands in front of it: another giant there takes `giantN` and is thrown back. */
+  strikeGiants(maxAngle, range, giantN, throwBack, sideOf = 0) {
+    const c = this.c;
+    let struck = false;
+    for (const g of otherGiants(c)) {
+      const b = wrapDeg(yawTo(c.pos, g.pos) - c.yaw);
+      if (distXZ(g.pos, c.pos) > c.girth + g.girth + range) continue;
+      if (sideOf ? b * sideOf < 35 : Math.abs(b) > maxAngle) continue;
+      g.takeBlow(c, giantN, true);
+      g.shove({ x: g.pos.x - c.pos.x, y: 0, z: g.pos.z - c.pos.z }, throwBack);
+      this.impact({ x: (g.pos.x + c.pos.x) / 2, y: c.pos.y + 16, z: (g.pos.z + c.pos.z) / 2 }, throwBack > 6);
+      struck = true;
+    }
+    return struck;
+  }
+  /** Its jaws: head drawn back, thrown forward with its whole body behind it. */
+  *lunge(f) {
+    const c = this.c;
+    c.halt();
+    yield* this.turnTo(this.where(f), 3, 24);
+    c.lookAhead();
+    c.setPhase("bite");
+    c.say("basiliskra.vathrok.growl", c.anchor("nose"), 128, 1, 0.9);
+    for (let t = 0; t < 25; t++) {
+      if (t === 9) {
+        const fw = forwardOf(c.yaw);
+        const front = { x: c.pos.x + fw.x * (c.girth + 9), y: c.pos.y + 1, z: c.pos.z + fw.z * (c.girth + 9) };
+        c.say("basiliskra.vathrok.bite", c.anchor("mouth"), 128);
+        this.strikeGiants(60, 15, this.n("lunge"), 5);
+        blast(c.dim, front, 9, this.hit("bite"), c.mobHit(30), 1.4, (p, n) => c.hurt(p, n), c.entity, c.pos);
+        if (!f.giant && this.alive(f) && dist(f.e.location, front) < 11 && !isPlayer(f.e)) {
+          try {
+            f.e.applyDamage(c.mobHit(30), { cause: EntityDamageCause10.entityAttack, damagingEntity: c.entity });
+          } catch {
+          }
+        }
+      }
+      yield;
+    }
+    c.setPhase("idle");
+  }
+  /** Its claws: it rears on its hind legs and rakes down with the arm on the side its head is turned to. */
+  *rake(f) {
+    const c = this.c;
+    c.halt();
+    yield* this.turnTo(this.where(f), 3, 20);
+    const bearing = wrapDeg(yawTo(c.pos, this.where(f)) - c.yaw);
+    const side = bearing >= 0 ? 1 : -1;
+    c.lookYaw = 30 * side;
+    c.lookPitch = 0;
+    c.setPhase("swipe");
+    for (let t = 0; t < 30; t++) {
+      c.lookYaw = 30 * side;
+      if (t === 8) c.say("basiliskra.vathrok.claw", c.anchor("mouth"), 128);
+      if (t === 12) {
+        const fw = forwardOf(c.yaw), l = leftOf(c.yaw);
+        const reach = c.girth + 8;
+        for (let k = -1; k <= 1; k++) {
+          const at3 = add(c.pos, add(mul(fw, reach), mul(l, side * 6 + k * 4)));
+          const mid = { x: at3.x, y: c.pos.y + 6 * c.scale / 1.7, z: at3.z };
+          const v = new MolangVariableMap5();
+          v.setFloat("variable.width", 4.2 * 2.4);
+          v.setFloat("variable.spin", side * (40 + k * 6));
+          particle(c.dim, "basiliskra:v_claw_scratch", mid, 192, v);
+          if (k === 0) {
+            particle(c.dim, "basiliskra:v_claw_glow", mid, 160, v);
+            particle(c.dim, "basiliskra:v_claw_sparks", mid, 160, v);
+          }
+          const ground = { x: at3.x, y: c.pos.y + 1, z: at3.z };
+          if (isLoaded(c.dim, ground) && wither()) carve(c.dim, ground, 3.2, 60, false);
+          particle(c.dim, "basiliskra:v_step_dust", ground, 128);
+        }
+        this.strikeGiants(65, 16, this.n("swipe"), 3);
+        blast(c.dim, add(c.pos, mul(fw, reach)), 10, this.hit("claws"), c.mobHit(28), 1.6, (p, n) => c.hurt(p, n), c.entity, c.pos);
+        shake(c, 96, 0.6, 0.4);
+      }
+      yield;
+    }
+    c.lookAhead();
+    c.setPhase("idle");
+  }
+  /** The tail: it winds away, then lashes round to the side its head has turned to. */
+  *tail(side) {
+    const c = this.c;
+    c.halt();
+    c.lookYaw = 70 * side;
+    c.lookPitch = 0;
+    c.setPhase("sweep");
+    c.say("basiliskra.vathrok.growl", c.anchor("nose"), 128, 1, 0.85);
+    for (let t = 0; t < 36; t++) {
+      c.lookYaw = 70 * side;
+      if (t === 13) sound(c.dim, "basiliskra.vathrok.claw", c.anchor("club_core"), 160, 1, 0.7);
+      if (t === 15) {
+        const struck = this.strikeGiants(180, 30, this.n("tail"), 9, side);
+        for (const deg of [65, 105, 145]) {
+          const fw = forwardOf(c.yaw + deg * side);
+          const at3 = { x: c.pos.x + fw.x * 26, y: c.pos.y + 1.5, z: c.pos.z + fw.z * 26 };
+          if (!isLoaded(c.dim, at3)) continue;
+          blast(c.dim, at3, 10, this.hit("tail"), c.mobHit(34), 1.8, (p, n) => c.hurt(p, n), c.entity, c.pos);
+          if (wither()) carve(c.dim, at3, 4, 120, false);
+          particle(c.dim, "basiliskra:v_step_dust", at3, 128);
+        }
+        if (!struck) shake(c, 96, 0.5, 0.4);
+      }
+      yield;
+    }
+    c.lookAhead();
+    c.setPhase("idle");
+  }
+  /** Its whole weight at a run, at another giant: it does not stop until it has hit it or lost it. */
+  *ram(foe) {
+    const c = this.c;
+    yield* this.turnTo(foe.pos, 2.5, 50);
+    c.say("basiliskra.vathrok.growl", c.anchor("mouth"), 192, 1, 0.8);
+    c.smash = true;
+    for (let t = 0; t < 420; t++) {
+      if (!foe.valid || foe.dim.id !== c.dim.id) break;
+      const reach = c.girth + foe.girth;
+      c.setPhase("move");
+      c.goTo(foe.pos, 0.3, reach + 2);
+      c.lookAt(foe.middle(), 60, 40);
+      this.footfalls();
+      if (distXZ(foe.pos, c.pos) < reach + 5) {
+        const away = norm({ x: foe.pos.x - c.pos.x, y: 0, z: foe.pos.z - c.pos.z });
+        foe.takeBlow(c, this.n("ram") * Math.min(1, 0.5 + c.speed / 0.5), true);
+        foe.shove(away, 11);
+        this.impact({ x: (foe.pos.x + c.pos.x) / 2, y: c.pos.y + 18, z: (foe.pos.z + c.pos.z) / 2 }, true);
+        break;
+      }
+      if (c.blocked > 60) break;
+      yield;
+    }
+    c.halt();
+    c.smash = false;
+    c.setPhase("idle");
+    for (let t = 0; t < 12; t++) yield;
+  }
+  /** Its breath: braced on its arms, spines lighting from the tail up; a green line shows where it will go; then a
+   *  torrent of green corroding fire, raked side to side across that place. */
+  *breath(f) {
+    const c = this.c, spec = this.breathSpec;
+    let last = this.middleOf(f);
+    const mark = () => {
+      if (this.alive(f)) last = this.middleOf(f);
+      return last;
+    };
+    yield* this.turnTo(this.where(f), 2.5, 50);
+    c.setPhase("charge");
+    c.say("basiliskra.vathrok.charge", c.anchor("mouth"), 192);
+    this.chargeOn = true;
+    let fixed = mark();
+    for (let t = 0; t < 80; t++) {
+      c.setCharge(Math.min(18, t / 70 * 18));
+      if (t < 56) fixed = mark();
+      c.trackTo(t < 56 ? fixed : fixed, 2.5, 80, 60);
+      if (t % 4 === 0) particle(c.dim, "basiliskra:v_charge_gather", c.anchor("muzzle"), 160);
+      if (t % 8 === 0) particle(c.dim, "basiliskra:v_plate_blaze", c.anchor(`plate_tip_${9 - Math.min(9, Math.floor(t / 8))}`), 160);
+      if (t >= 56 && t % 2 === 0) {
+        const { from } = c.aim();
+        const dir = norm(sub(fixed, from));
+        particle(c.dim, "basiliskra:v_beam_aim", from, 160, beamVars(dir, clearRange(c, from, dir, spec.range), 0.25 + 0.5 * ((t - 56) / 24)));
+      }
+      if (this.dying) return;
+      yield;
+    }
+    this.chargeOn = false;
+    stopSound(c.dim, "basiliskra.vathrok.charge", c.pos);
+    c.setPhase("fire");
+    c.setCharge(20);
+    c.say("basiliskra.vathrok.beam", c.anchor("mouth"), 224);
+    particle(c.dim, "basiliskra:v_muzzle_shock", c.anchor("muzzle"), 192);
+    shake(c, 160, 0.9, 0.5);
+    const st = { ground: null };
+    const across = leftOf(yawTo(c.pos, fixed));
+    const sweep = this.battle ? 14 : 8;
+    for (let t = 0; t < 100; t++) {
+      const goal = f.giant && f.giant.valid ? mark() : fixed;
+      const k = Math.sin(t / 100 * Math.PI * 2) * Math.min(1, t / 15);
+      c.trackTo(add(goal, mul(across, k * sweep)), 5, 80, 70);
+      const fade = t < 85 ? 1 : (100 - t) / 15;
+      beamTick(c, spec, t, fade, st, { scorch: (at3) => this.scorch(at3), clean: true });
+      if (t % 10 === 0) shake(c, 128, 0.5, 0.4);
+      if (this.dying) return;
+      yield;
+    }
+    c.setCharge(0);
+    c.setPhase("vent");
+    c.say("basiliskra.vathrok.huff", c.anchor("nose"), 96);
+    for (let t = 0; t < 30; t++) yield;
+    c.setPhase("idle");
+    this.rest("beam", (this.battle ? 16 : 22) * TICKS.second);
+    this.recoverUntil = this.now + 3 * TICKS.second;
+  }
+  *reel() {
+    const c = this.c;
+    c.halt();
+    c.setPhase("recoil");
+    c.say("basiliskra.vathrok.hurt", c.anchor("nose"), 128);
+    for (let t = 0; t < 18; t++) yield;
+    c.setPhase("idle");
+  }
+  /** Round the place it was put down, or came up. */
+  *roam() {
+    const c = this.c, now = this.now;
+    const a = hash(now, 51) * Math.PI * 2, r = 20 + hash(now, 52) * (PROWL2 - 20);
+    const to = { x: this.home.x + Math.cos(a) * r, y: c.pos.y, z: this.home.z + Math.sin(a) * r };
+    yield* this.walk(to, 0.14, 8, 900);
+    c.setPhase("idle");
+    for (let t = 0; t < 100; t++) {
+      if (t === 30) c.say(hash(now, 17) < 0.5 ? "basiliskra.vathrok.huff" : "basiliskra.vathrok.growl", c.anchor("nose"), 96, 0.9);
+      if (this.foe() || t % 20 === 0 && this.quarry()) break;
+      yield;
+    }
+  }
+  /** Come up out of the ground: the ground shakes, splits and smokes, and it roars. */
+  *emerge() {
+    const c = this.c;
+    c.halt();
+    c.setPhase("idle");
+    for (let t = 0; t < 50; t++) {
+      if (t % 4 === 0) {
+        const a = hash(this.now, t) * Math.PI * 2, r = c.girth * (0.6 + hash(t, 7));
+        const at3 = { x: c.pos.x + Math.cos(a) * r, y: c.pos.y + 0.5, z: c.pos.z + Math.sin(a) * r };
+        particle(c.dim, "basiliskra:impact_debris", at3, 160);
+        particle(c.dim, "basiliskra:v_step_dust", at3, 160);
+        particle(c.dim, "basiliskra:v_impact_smoke", at3, 160);
+      }
+      if (t % 10 === 0) {
+        shake(c, 192, 0.8, 0.6);
+        sound(c.dim, "basiliskra.vathrok.step", c.pos, 192, 1, 0.5 + t * 4e-3);
+      }
+      yield;
+    }
+    particle(c.dim, "basiliskra:v_impact_ring", { x: c.pos.x, y: c.pos.y + 0.4, z: c.pos.z }, 192);
+    particle(c.dim, "minecraft:huge_explosion_emitter", c.pos, 192);
+    yield* this.vroar();
+  }
+  /** Beaten: it sinks onto its belly with a long groan, the light in its spines going out; then it is gone. */
+  *fall() {
+    const c = this.c;
+    c.halt();
+    c.smash = false;
+    c.setCharge(0);
+    c.lookAhead();
+    c.setPhase("fall");
+    c.say("basiliskra.vathrok.death", c.anchor("mouth"), 224);
+    for (let t = 0; t < 96; t++) {
+      c.setPhase("fall");
+      if (t % 7 === 3) {
+        const v = c.volumes();
+        const at3 = v[Math.floor(hash(this.now, t) * v.length)].at;
+        particle(c.dim, "basiliskra:v_impact_fire", at3, 160);
+        particle(c.dim, "basiliskra:v_impact_smoke", at3, 160);
+      }
+      if (t === 72) {
+        const fw = forwardOf(c.yaw);
+        const at3 = { x: c.pos.x + fw.x * 6, y: c.pos.y + 0.5, z: c.pos.z + fw.z * 6 };
+        particle(c.dim, "basiliskra:v_impact_ring", at3, 192);
+        particle(c.dim, "basiliskra:v_step_dust", at3, 160);
+        shake(c, 160, 1.4, 0.8);
+        blast(c.dim, at3, 12, this.battle ? 8 : 6, c.mobHit(20), 1.6, (p, n) => c.hurt(p, n), c.entity, c.pos);
+      }
+      yield;
+    }
+    const mid = c.middle();
+    for (const v of c.volumes()) if (hash(v.at.z, v.at.y) < 0.3) particle(c.dim, "basiliskra:v_impact_smoke", v.at, 192);
+    particle(c.dim, "basiliskra:v_impact_glare", mid, 224);
+    sound(c.dim, "random.explode", mid, 224, 2, 0.45);
+    try {
+      const n = this.battle ? 24 : 10 + Math.floor(hash(this.now, 5) * 6);
+      c.dim.spawnItem(new ItemStack3(VATHROK_SCALE_ITEM, n), { x: c.pos.x, y: c.pos.y + 1.5, z: c.pos.z });
+      c.dim.spawnItem(new ItemStack3(VATHROK_HEART_ITEM, 1), { x: c.pos.x + 1, y: c.pos.y + 1.5, z: c.pos.z });
+      if (!this.battle) for (let k = 0; k < 24; k++) c.dim.spawnEntity("minecraft:xp_orb", { x: c.pos.x + (hash(k, 1) - 0.5) * 6, y: c.pos.y + 1.5, z: c.pos.z + (hash(k, 2) - 0.5) * 6 });
+    } catch {
+    }
+    this.gone = true;
+    yield;
+  }
+};
+function tellNear2(dim, at3, msg) {
+  for (const p of witnesses(dim, at3, 128)) {
+    try {
+      p.sendMessage(msg);
+    } catch {
+    }
+  }
+}
+var isVathrok = (id) => id === VATHROK || id === VATHROK_TITAN;
+var Vathroks = class {
+  constructor() {
+    this.list = /* @__PURE__ */ new Map();
+    this.hurtCry = /* @__PURE__ */ new Map();
+    this.comingAt = -1;
+    this.pending = null;
+  }
+  creatures() {
+    return [...this.list.values()].map((v) => v.c);
+  }
+  count(battle) {
+    let n = 0;
+    for (const v of this.list.values()) if (v.battle === battle) n++;
+    return n;
+  }
+  of(e) {
+    try {
+      return this.list.get(e.id);
+    } catch {
+      return void 0;
+    }
+  }
+  /** Is any of them at something just now (for the music)? */
+  fighting() {
+    for (const v of this.list.values()) if (v.c.valid && (v.brain.foe() || ["lock", "beam", "lunge", "swipe", "tail", "ram", "pursue"].includes(v.brain.actName))) return v.c;
+    return null;
+  }
+  inspect(e) {
+    let id, typeId, dimId, at3;
+    try {
+      if (!e.isValid) return;
+      typeId = e.typeId;
+      if (!isVathrok(typeId)) return;
+      id = e.id;
+      dimId = e.dimension.id;
+      at3 = { ...e.location };
+    } catch {
+      return;
+    }
+    if (this.list.has(id)) return;
+    const battle = typeId === VATHROK_TITAN;
+    const refuse = (why) => {
+      tellNear2(e.dimension, at3, `§7${why}`);
+      try {
+        e.remove();
+      } catch {
+      }
+    };
+    if (battle ? !CONFIG.vathrokTitan : !CONFIG.vathrok) return refuse(battle ? "The Vathrok Titan is turned off in the settings." : "Vathrok is turned off in the settings.");
+    if (dimId !== OVERWORLD) return refuse("Vathrok can only stand in the Overworld.");
+    const max = battle ? VATHROK_MAX.battle : VATHROK_MAX.boss;
+    if (this.count(battle) >= max) return refuse(battle ? `There are ${max} Vathrok Titans in the world already: that is as many as there can be.` : "Vathrok is in the world already: there is only one.");
+    this.adopt(e, at3, battle, false);
+  }
+  adopt(e, at3, battle, rising) {
+    let saved = null;
+    try {
+      const s = e.getDynamicProperty(TAG2);
+      if (typeof s === "string") saved = JSON.parse(s);
+    } catch {
+      saved = null;
+    }
+    const taken = new Set([...this.list.values()].filter((v) => v.battle === battle).map((v) => v.n));
+    let n = saved && Number.isInteger(saved.n) && !taken.has(saved.n) ? saved.n : -1;
+    if (n < 0) for (n = 0; taken.has(n); n++) {
+    }
+    const home = saved && Array.isArray(saved.home) ? { x: saved.home[0], y: saved.home[1], z: saved.home[2] } : at3;
+    const fresh = !saved;
+    const name = battle ? `Vathrok Titan ${ROMAN[n % ROMAN.length]}` : "Vathrok";
+    try {
+      e.triggerEvent("basiliskra:bind");
+      e.setDynamicProperty(TAG2, JSON.stringify({ n, home: [Math.round(home.x), Math.round(home.y), Math.round(home.z)] }));
+      e.nameTag = name;
+    } catch {
+      return;
+    }
+    const c = new Creature(e, 5);
+    c.might = battle ? 3 : 1;
+    c.haste = battle ? 1.35 : 1.1;
+    c.lethal = battle ? LETHAL : 0;
+    c.hue = "v";
+    c.resync();
+    c.set(PROP.visLo, 0);
+    c.set(PROP.visHi, 8);
+    c.set(PROP.gait, 1);
+    const rec = freshRecord();
+    rec.stage = "alive";
+    rec.form = 3;
+    rec.home = home;
+    rec.born = rec.mut.formSince = store.rec.clock;
+    const brain = new BrainVathrok(c, rec, home, battle);
+    c.onBlow = (by, amount, heavy) => brain.onBlow(by, amount, heavy);
+    this.list.set(e.id, { c, brain, rec, battle, n });
+    if (fresh) {
+      tellNear2(e.dimension, at3, battle ? `§2${name}§7 stands here. (${this.count(true)} of ${VATHROK_MAX.battle}.)` : "§2Vathrok§7 has come up out of the ground.");
+      brain.forced = rising || !battle ? { name: "emerge", run: brain.emerge(), limit: 12 * TICKS.second } : { name: "roar", run: brain.vroar(), limit: 10 * TICKS.second };
+    }
+  }
+  /** Make one here (the command, the wheel, the lure).  Returns what happened, in words. */
+  spawn(dim, at3, yaw, battle) {
+    if (battle ? !CONFIG.vathrokTitan : !CONFIG.vathrok) return battle ? "The Vathrok Titan is turned off in the settings." : "Vathrok is turned off in the settings.";
+    if (dim.id !== OVERWORLD) return "Vathrok can only stand in the Overworld.";
+    const max = battle ? VATHROK_MAX.battle : VATHROK_MAX.boss;
+    if (this.count(battle) >= max) return battle ? `There are ${max} Vathrok Titans in the world already.` : "Vathrok is in the world already: there is only one.";
+    if (!isLoaded(dim, at3)) return "That place is not loaded.";
+    const before = this.list.size;
+    try {
+      const e = dim.spawnEntity(battle ? VATHROK_TITAN : VATHROK, at3, { initialRotation: yaw });
+      this.inspect(e);
+    } catch {
+      return "Vathrok could not be made here.";
+    }
+    if (this.list.size <= before) return "Vathrok could not be made here.";
+    return battle ? "A Vathrok Titan stands here." : "Vathrok is coming up out of the ground.";
+  }
+  /**
+   * The lure, used by a player: the ground shakes, and a few seconds later Vathrok comes up out of it some way off.
+   * Returns false (and says why) if it cannot come.
+   */
+  lure(p) {
+    const say = (m) => {
+      try {
+        p.sendMessage(`§7[Basiliskra] ${m}`);
+      } catch {
+      }
+    };
+    if (!CONFIG.vathrok) {
+      say("Vathrok is turned off in the settings.");
+      return false;
+    }
+    if (p.dimension.id !== OVERWORLD) {
+      say("Vathrok only lives in the Overworld.");
+      return false;
+    }
+    if (this.count(false) >= VATHROK_MAX.boss || this.comingAt >= 0) {
+      say("Vathrok is already in the world.");
+      return false;
+    }
+    const at3 = this.groundNear(p.dimension, p.location, 50, 70);
+    if (!at3) {
+      say("The ground here will not let it up. Try in the open.");
+      return false;
+    }
+    this.comingAt = store.rec.clock;
+    for (const w of witnesses(p.dimension, p.location, 96)) {
+      try {
+        w.sendMessage("§2The ground is shaking...");
+        w.runCommand("camerashake add @s 0.3 4 positional");
+      } catch {
+      }
+    }
+    sound(p.dimension, "basiliskra.vathrok.growl", at3, 192, 1, 0.6);
+    const dim = p.dimension, yaw = yawTo(at3, p.location);
+    this.pending = { dim, at: at3, yaw, t: store.rec.clock + 80 };
+    return true;
+  }
+  /** A place on open ground between `r0` and `r1` blocks from `from` (the first of twelve bearings that has one). */
+  groundNear(dim, from, r0, r1) {
+    for (let k = 0; k < 12; k++) {
+      const a = k / 12 * Math.PI * 2 + hash(store.rec.clock, 3) * 6.28;
+      const r = r0 + (r1 - r0) * hash(k, store.rec.clock);
+      const x = from.x + Math.cos(a) * r, z = from.z + Math.sin(a) * r;
+      if (!isLoaded(dim, { x, y: from.y, z })) continue;
+      const g = groundY(dim, x, z, from.y + 30, 60);
+      if (typeof g !== "number") continue;
+      try {
+        const b = dim.getBlock({ x: Math.floor(x), y: Math.floor(g) - 1, z: Math.floor(z) });
+        if (!b || b.isLiquid || b.typeId.includes("water")) continue;
+      } catch {
+        continue;
+      }
+      return { x, y: g, z };
+    }
+    return null;
+  }
+  /** Take them out of the world: `which` the survival one, the battle ones, or both.  Returns how many there were. */
+  clear(which = "all") {
+    let n = 0;
+    for (const v of [...this.list.values()]) {
+      if (which === "all" || which === "battle" === v.battle) {
+        this.drop(v, true);
+        n++;
+      }
+    }
+    return n;
+  }
+  drop(v, remove) {
+    let id = "";
+    for (const [k, x] of this.list) if (x === v) id = k;
+    v.c.dropParts();
+    if (id) {
+      this.list.delete(id);
+      giants.delete(id);
+      this.hurtCry.delete(id);
+    }
+    if (remove) {
+      try {
+        v.c.entity.setProperty(PROP.bound, false);
+        v.c.entity.remove();
+      } catch {
+      }
+    }
+  }
+  onRemoving(e) {
+    const v = this.of(e);
+    if (v) this.drop(v, false);
+  }
+  /** A blow is about to land: all of it, or, when it would kill, none (it goes down in its own time). */
+  beforeHurt(e, damage) {
+    const v = this.of(e);
+    if (!v) return damage;
+    if (v.brain.dying) return 0;
+    let health = 1;
+    try {
+      health = e.getComponent("minecraft:health")?.currentValue ?? 1;
+    } catch {
+      health = 1;
+    }
+    if (damage >= health - 1) {
+      v.brain.dying = true;
+      return 0;
+    }
+    return damage;
+  }
+  onHurt(e, by, amount) {
+    const v = this.of(e);
+    if (!v || amount <= 0) return;
+    let player;
+    try {
+      if (by && by.typeId === "minecraft:player") player = by;
+    } catch {
+      player = void 0;
+    }
+    v.brain.onHurt(player);
+    v.brain.hurtAt = store.rec.clock;
+    const now = store.rec.clock;
+    if (amount >= (v.battle ? 20 : 6) && now - (this.hurtCry.get(e.id) ?? -999) > 90 && !v.brain.dying) {
+      this.hurtCry.set(e.id, now);
+      v.c.say("basiliskra.vathrok.hurt", v.c.anchor("nose"), 128);
+    }
+  }
+  /** Rows for the health line over the hotbar (the battle ones; the survival one has a boss bar). */
+  rows() {
+    const out = [];
+    for (const v of this.list.values()) {
+      if (!v.battle) continue;
+      let h = 0;
+      try {
+        h = v.c.entity.getComponent("minecraft:health")?.currentValue ?? 0;
+      } catch {
+        continue;
+      }
+      if (v.brain.dying) h = 0;
+      const k = Math.max(0, Math.min(10, Math.ceil(h / VATHROK_HEALTH * 10)));
+      out.push({ c: v.c, text: `§2Vathrok ${ROMAN[v.n % ROMAN.length]} §a${"█".repeat(k)}§8${"█".repeat(10 - k)} §7${Math.max(0, Math.round(h))}` });
+    }
+    return out;
+  }
+  /**
+   * Now and then, at night, the survival one comes by itself: at most once every three in-game days, and then only
+   * one night in four, near a player in Survival or Adventure standing on land in the Overworld.
+   */
+  natural(now) {
+    if (!CONFIG.vathrok || this.count(false) > 0 || this.pending) return;
+    let tod = 0;
+    try {
+      tod = world10.getTimeOfDay();
+    } catch {
+      return;
+    }
+    if (tod < 15e3 || tod > 21e3) return;
+    let next = 0;
+    try {
+      next = Number(world10.getDynamicProperty(NEXT_KEY) ?? 0);
+    } catch {
+      next = 0;
+    }
+    if (now < next) return;
+    const night = 3 * TICKS.day;
+    try {
+      world10.setDynamicProperty(NEXT_KEY, now + (hash(now, 61) < 0.25 ? night : TICKS.day));
+    } catch {
+      return;
+    }
+    if (hash(now, 62) >= 0.25) return;
+    const ps = players().filter((p2) => {
+      try {
+        return p2.dimension.id === OVERWORLD && targetable(p2);
+      } catch {
+        return false;
+      }
+    });
+    if (!ps.length) return;
+    const p = ps[Math.floor(hash(now, 63) * ps.length)];
+    const at3 = this.groundNear(p.dimension, p.location, 60, 90);
+    if (!at3) return;
+    for (const w of witnesses(p.dimension, p.location, 128)) {
+      try {
+        w.sendMessage("§2The ground is shaking...");
+      } catch {
+      }
+    }
+    this.pending = { dim: p.dimension, at: at3, yaw: yawTo(at3, p.location), t: now + 80 };
+  }
+  tick(now) {
+    if (now % 20 === 11) {
+      try {
+        for (const e of store.loaded ? worldVathroks() : []) this.inspect(e);
+      } catch {
+      }
+      for (const v of [...this.list.values()]) {
+        if (v.battle ? !CONFIG.vathrokTitan : !CONFIG.vathrok) {
+          tellNear2(v.c.dim, v.c.pos, v.battle ? "§7The Vathrok Titan is turned off: it is gone." : "§7Vathrok is turned off: it is gone.");
+          this.drop(v, true);
+        }
+      }
+    }
+    if (now % 600 === 300) this.natural(now);
+    if (this.pending && now >= this.pending.t) {
+      const { dim, at: at3, yaw } = this.pending;
+      this.pending = null;
+      this.comingAt = -1;
+      try {
+        if (CONFIG.vathrok && this.count(false) === 0 && isLoaded(dim, at3)) {
+          const e = dim.spawnEntity(VATHROK, at3, { initialRotation: yaw });
+          this.inspect(e);
+        }
+      } catch {
+      }
+    }
+    for (const v of [...this.list.values()]) {
+      if (!v.c.valid) {
+        this.drop(v, false);
+        continue;
+      }
+      v.brain.tick();
+      if (v.brain.gone) {
+        this.drop(v, true);
+        continue;
+      }
+      v.c.update();
+    }
+  }
+};
+function worldVathroks() {
+  try {
+    const d = world10.getDimension(OVERWORLD);
+    return [...d.getEntities({ type: VATHROK }), ...d.getEntities({ type: VATHROK_TITAN })];
+  } catch {
+    return [];
+  }
+}
+var vathroks = new Vathroks();
+
 // src/ui.ts
-var ROMAN = ["", "I", "II", "III", "IV"];
+var ROMAN2 = ["", "I", "II", "III", "IV"];
 var FALLOUT = ["off", "visual", "land"];
 var DUSK = 11800;
 function canAdmin(p) {
@@ -7073,7 +7999,7 @@ function canAdmin(p) {
   } catch {
   }
   try {
-    return world10.getAllPlayers().length <= 1;
+    return world11.getAllPlayers().length <= 1;
   } catch {
     return false;
   }
@@ -7139,8 +8065,8 @@ function evolveLines() {
   if (rec.form < 4) {
     const need = changeTicks(rec.form), since = Math.max(0, now - rec.mut.formSince), f = Math.min(1, since / need);
     const left = Math.max(0, need - since);
-    L.push(`§fBecoming Basiliskra ${ROMAN[rec.form + 1]}: ${bar(f, rec.form === 3 ? "§4" : "§6")} §l${pct(f)}§r`);
-    L.push(f >= 1 ? "  §aThe time is up: he changes as soon as he is free to." : `  §7Only time: §f${left >= TICKS.minute ? `${Math.ceil(left / TICKS.minute)} min` : `${Math.ceil(left / TICKS.second)} s`}§7 left of ${Math.round(need / TICKS.minute)} min as Basiliskra ${ROMAN[rec.form]}.`);
+    L.push(`§fBecoming Basiliskra ${ROMAN2[rec.form + 1]}: ${bar(f, rec.form === 3 ? "§4" : "§6")} §l${pct(f)}§r`);
+    L.push(f >= 1 ? "  §aThe time is up: he changes as soon as he is free to." : `  §7Only time: §f${left >= TICKS.minute ? `${Math.ceil(left / TICKS.minute)} min` : `${Math.ceil(left / TICKS.second)} s`}§7 left of ${Math.round(need / TICKS.minute)} min as Basiliskra ${ROMAN2[rec.form]}.`);
     L.push("  §8Nothing else is needed. The config wheel can set the minutes, or make him change at once.");
   } else L.push("§4Basiliskra IV is his last form.");
   if (rec.form >= 3) {
@@ -7151,7 +8077,7 @@ function evolveLines() {
 }
 function comingLines(p, ctl2) {
   const rec = store.rec, now = rec.clock, L = [];
-  const tod = world10.getTimeOfDay();
+  const tod = world11.getTimeOfDay();
   const toDusk = tod >= DUSK && tod < 13800 ? 0 : (DUSK - tod + 24e3) % 24e3;
   switch (rec.stage) {
     case "dormant":
@@ -7182,13 +8108,13 @@ function comingLines(p, ctl2) {
           if (h) hp = ` §7Health §f${Math.ceil(h.currentValue)}/${h.effectiveMax}`;
         } catch {
         }
-        L.push(`§cBasiliskra ${ROMAN[rec.form]} is here§7, ${compass2(p.location, c.pos)}.${hp}`);
+        L.push(`§cBasiliskra ${ROMAN2[rec.form]} is here§7, ${compass2(p.location, c.pos)}.${hp}`);
       } else if (rec.entityId === null && rec.down !== null) {
         const left = pace(TICKS.day) - (now - rec.down);
         L.push(`§7Driven off. He comes back through the seam at §f${rec.rift ? at(rec.rift) : "the old place"}§7 in §f${mins(left)}§7, when someone is near it.`);
       } else if (rec.last) {
-        L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach. Last seen near §f${at(rec.last)}§7 (${compass2(p.location, rec.last)}), ${mins(now - rec.last.t)} ago.`);
-      } else L.push(`§7Basiliskra ${ROMAN[rec.form]} is out of reach.`);
+        L.push(`§7Basiliskra ${ROMAN2[rec.form]} is out of reach. Last seen near §f${at(rec.last)}§7 (${compass2(p.location, rec.last)}), ${mins(now - rec.last.t)} ago.`);
+      } else L.push(`§7Basiliskra ${ROMAN2[rec.form]} is out of reach.`);
       if (rec.guiltyName) L.push(`§7He remembers §f${rec.guiltyName}§7.`);
       break;
     }
@@ -7268,7 +8194,7 @@ async function openJournal(p, ctl2) {
 function placeFor(p, form) {
   const v = p.getViewDirection();
   const n = Math.hypot(v.x, v.z) || 1;
-  const d = [0, 15, 24, 46, 52][form] ?? 30;
+  const d = [0, 15, 24, 46, 52, 56][form] ?? 30;
   const pl = p.location;
   const pos = { x: pl.x + v.x / n * d, y: pl.y, z: pl.z + v.z / n * d };
   const dimension = overworld();
@@ -7318,11 +8244,11 @@ async function settingsForm(p) {
     "Minutes in each form before he changes (time is all it takes)",
     MINUTES.map((m) => m ? `${m} minutes` : "The story's timing: 40, 40, 60 (at story speed 1)"),
     { defaultValueIndex: Math.max(0, MINUTES.indexOf(CONFIG.changeMinutes)) }
-  ).toggle("Cities rise on coasts as you explore (never over anything built)", { defaultValue: CONFIG.cities }).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
+  ).toggle("Cities rise on coasts as you explore (never over anything built)", { defaultValue: CONFIG.cities }).toggle("Vathrok in survival (comes up at night now and then, and to its lure; can be beaten)", { defaultValue: CONFIG.vathrok }).toggle("The Vathrok Titan for battles (its egg, the command, the wheel)", { defaultValue: CONFIG.vathrokTitan }).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || !r.formValues) return;
   const v = r.formValues;
-  if (v[20] === true) {
+  if (v[22] === true) {
     resetSettings();
     p.sendMessage("§7[Basiliskra] Settings restored to the defaults.");
     return;
@@ -7348,14 +8274,16 @@ async function settingsForm(p) {
     cutscenes: v[16] === true,
     music: v[17] === true,
     changeMinutes: MINUTES[Number(v[18])] ?? 0,
-    cities: v[19] === true
+    cities: v[19] === true,
+    vathrok: v[20] === true,
+    vathrokTitan: v[21] === true
   });
   p.sendMessage(`§7[Basiliskra] Settings saved with this world. Story speed §fx${CONFIG.pacing}§7, damage §fx${CONFIG.damage}§7.`);
   if (bad) p.sendMessage("§7[Basiliskra] A number you typed was not in range, so the choice above it was used.");
 }
 async function bringForm(p, ctl2) {
   const f = new ActionFormData().title("Bring him here").body(`§7The one Basiliskra comes to you: moved here if he is about, made here if he is not. There is never more than one.
-§7Now: ${store.rec.born > 0 ? `Basiliskra ${ROMAN[store.rec.form]}` : "he has never come"}.`).button("As he is in the story").button("Basiliskra I (the water)").button("Basiliskra II (the shore)").button("Basiliskra III (four footfalls)").button("Basiliskra IV (the last form)");
+§7Now: ${store.rec.born > 0 ? `Basiliskra ${ROMAN2[store.rec.form]}` : "he has never come"}.`).button("As he is in the story").button("Basiliskra I (the water)").button("Basiliskra II (the shore)").button("Basiliskra III (four footfalls)").button("Basiliskra IV (the last form)");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || r.selection === void 0) return;
   if (p.dimension.id !== OVERWORLD) {
@@ -7378,8 +8306,8 @@ async function openWheel(p, ctl2) {
   }
   const rec = store.rec;
   const here = ctl2.creature && ctl2.creature.valid;
-  const state = here ? `§cBasiliskra ${ROMAN[rec.form]} is here` : rec.stage === "arriving" ? "§ehe is coming through" : rec.stage === "alive" ? `§7Basiliskra ${ROMAN[rec.form]} is away, owed back` : "§7he is not in this world";
-  const f = new ActionFormData().title("Basiliskra Config Wheel").body(`${state}§7 · Story speed §fx${CONFIG.pacing}§7 · Damage §fx${CONFIG.damage}`).button("Settings").button("Call him now (the rift opens)").button("Bring him here (no rift, pick a form)").button("Make him change now (next form)").button("Send him away (until he is called)").button("Skip to dusk").button("Journal").button("§cReset the story").button("Raise a city here (a beach, and a very deep sea)").button(`Put a Titan here (for battles: ${titans.count} of ${TITAN_MAX})`).button("Remove the Titans");
+  const state = here ? `§cBasiliskra ${ROMAN2[rec.form]} is here` : rec.stage === "arriving" ? "§ehe is coming through" : rec.stage === "alive" ? `§7Basiliskra ${ROMAN2[rec.form]} is away, owed back` : "§7he is not in this world";
+  const f = new ActionFormData().title("Basiliskra Config Wheel").body(`${state}§7 · Story speed §fx${CONFIG.pacing}§7 · Damage §fx${CONFIG.damage}`).button("Settings").button("Call him now (the rift opens)").button("Bring him here (no rift, pick a form)").button("Make him change now (next form)").button("Send him away (until he is called)").button("Skip to dusk").button("Journal").button("§cReset the story").button("Raise a city here (a beach, and a very deep sea)").button(`Put a Titan here (for battles: ${titans.count} of ${TITAN_MAX})`).button("Remove the Titans").button(`Put a Vathrok Titan here (for battles: ${vathroks.count(true)} of ${VATHROK_MAX.battle})`).button("Call Vathrok (the one met in survival)").button("Remove every Vathrok");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled) return;
   switch (r.selection) {
@@ -7390,6 +8318,15 @@ async function openWheel(p, ctl2) {
     }
     case 10:
       p.sendMessage(`§7[Basiliskra] ${titans.clear()} Titan(s) removed.`);
+      break;
+    case 11:
+    case 12: {
+      const place2 = placeFor(p, 5);
+      p.sendMessage(`§7[Basiliskra] ${vathroks.spawn(p.dimension, place2.at, place2.yaw, r.selection === 11)}`);
+      break;
+    }
+    case 13:
+      p.sendMessage(`§7[Basiliskra] ${vathroks.clear()} Vathrok(s) removed.`);
       break;
     case 0:
       await settingsForm(p);
@@ -7415,7 +8352,7 @@ async function openWheel(p, ctl2) {
       }
       break;
     case 5:
-      world10.setTimeOfDay(DUSK + 100);
+      world11.setTimeOfDay(DUSK + 100);
       p.sendMessage("§7[Basiliskra] Dusk.");
       break;
     case 6:
@@ -7471,7 +8408,7 @@ function giveStarterItems(p) {
   if (CONFIG.giveWheel && canAdmin(p)) items.push(WHEEL_ITEM);
   for (const id of items) {
     try {
-      const left = p.getComponent("minecraft:inventory")?.container?.addItem(new ItemStack3(id, 1));
+      const left = p.getComponent("minecraft:inventory")?.container?.addItem(new ItemStack4(id, 1));
       if (left) p.dimension.spawnItem(left, p.location);
     } catch {
     }
@@ -7761,10 +8698,10 @@ function musicStop() {
 }
 
 // src/controller.ts
-import { ItemStack as ItemStack4, system as system5, world as world14 } from "@minecraft/server";
+import { ItemStack as ItemStack5, system as system5, world as world15 } from "@minecraft/server";
 
 // src/change.ts
-import { MolangVariableMap as MolangVariableMap5 } from "@minecraft/server";
+import { MolangVariableMap as MolangVariableMap6 } from "@minecraft/server";
 function at2(c, name, up = 0) {
   try {
     if (name in RIGS[c.form].locators) {
@@ -7794,7 +8731,7 @@ function surface(c) {
   return y + 1;
 }
 function reachVars(reach) {
-  const m = new MolangVariableMap5();
+  const m = new MolangVariableMap6();
   m.setFloat("variable.reach", reach);
   return m;
 }
@@ -8506,7 +9443,7 @@ var Ending = class {
 };
 
 // src/forms/one.ts
-import { world as world11 } from "@minecraft/server";
+import { world as world12 } from "@minecraft/server";
 function boatOf(p) {
   try {
     const r = p.getComponent("minecraft:riding");
@@ -8537,7 +9474,7 @@ var BrainOne = class extends Brain {
   }
   choose() {
     const c = this.c, now = this.now, rec = this.rec;
-    const tod = world11.getTimeOfDay();
+    const tod = world12.getTimeOfDay();
     const p = Math.max(0.25, 1 / Math.max(0.1, 1));
     if (!rec.evolve && now - rec.mut.formSince >= changeTicks(1) && this.ready("beach")) {
       this.rest("beach", 2 * TICKS.minute);
@@ -8921,7 +9858,7 @@ var BrainOne = class extends Brain {
     c.bendHold = 19;
     c.setPhase("sleep");
     let t = 0;
-    while (isNight(world11.getTimeOfDay()) && t++ < 9e3) {
+    while (isNight(world12.getTimeOfDay()) && t++ < 9e3) {
       const head2 = c.anchor("muzzle");
       let woke = this.now - this.hurtAt < 40;
       for (const p of nearbyPlayers(c, 40)) if (dist(p.location, head2) < 7) woke = true;
@@ -8995,7 +9932,7 @@ var BrainOne = class extends Brain {
 };
 
 // src/forms/two.ts
-import { world as world12 } from "@minecraft/server";
+import { world as world13 } from "@minecraft/server";
 var LAMP = /^minecraft:((lit_)?redstone_lamp|(soul_)?lantern|.*copper_lantern|sea_lantern|glowstone|.*copper_bulb|(soul_|redstone_|copper_)?torch|shroomlight|.*froglight)$/;
 var STONE2 = /^minecraft:(stone|cobblestone|mossy_cobblestone|stone_bricks|andesite|diorite|granite|deepslate|tuff|.*_slab|stone_.*|polished_.*|smooth_stone|gravel)$/;
 var BrainTwo = class extends Brain {
@@ -9030,7 +9967,7 @@ var BrainTwo = class extends Brain {
   }
   choose() {
     const c = this.c, rec = this.rec, now = this.now;
-    const tod = world12.getTimeOfDay();
+    const tod = world13.getTimeOfDay();
     if (!rec.evolve && now - rec.mut.formSince >= changeTicks(2)) {
       rec.evolve = { to: 3, step: 0, t0: now, at: { ...c.pos } };
       return { name: "evolve", run: wait(900), limit: 900 };
@@ -9419,9 +10356,9 @@ var BrainTwo = class extends Brain {
 };
 
 // src/rift.ts
-import { MolangVariableMap as MolangVariableMap6 } from "@minecraft/server";
+import { MolangVariableMap as MolangVariableMap7 } from "@minecraft/server";
 function vars(size) {
-  const m = new MolangVariableMap6();
+  const m = new MolangVariableMap7();
   m.setFloat("variable.size", size);
   return m;
 }
@@ -9464,7 +10401,7 @@ function riftClose(dim, at3, size) {
 var RIFT_SIZE = [0, 14, 16, 30, 46];
 
 // src/civilians.ts
-import { world as world13 } from "@minecraft/server";
+import { world as world14 } from "@minecraft/server";
 var SIGHT = 110;
 var FELT = 36;
 var FRIGHT = 300;
@@ -9522,7 +10459,7 @@ function civiliansTick(now, giants2) {
     frightened.delete(id);
     let e;
     try {
-      e = world13.getEntity(id);
+      e = world14.getEntity(id);
     } catch {
       e = void 0;
     }
@@ -9532,8 +10469,8 @@ function civiliansTick(now, giants2) {
 
 // src/controller.ts
 var TOKEN = "bk:token";
-var ROMAN2 = ["", "I", "II", "III", "IV"];
-function tellNear2(dimId, at3, msg) {
+var ROMAN3 = ["", "I", "II", "III", "IV"];
+function tellNear3(dimId, at3, msg) {
   for (const p of players()) {
     try {
       if (p.dimension.id === dimId && dist(p.location, at3) < 64) p.sendMessage(msg);
@@ -9639,11 +10576,11 @@ var Controller = class {
     }
     if (dimId !== OVERWORLD) {
       this.quarantine(e);
-      tellNear2(dimId, at3, "§7Basiliskra lives in the Overworld. He cannot be called here.");
+      tellNear3(dimId, at3, "§7Basiliskra lives in the Overworld. He cannot be called here.");
       return;
     }
     const said = this.bringHere(at3, yaw, CONFIG.spawnForm, e);
-    tellNear2(dimId, at3, `§7${said}`);
+    tellNear3(dimId, at3, `§7${said}`);
   }
   /**
    * Bring the one Basiliskra to `at`, in `want` form (0 = his stage in the story).  If he is loaded he is moved
@@ -9689,7 +10626,7 @@ var Controller = class {
       } catch {
       }
       store.save();
-      return `Basiliskra ${ROMAN2[form]} has come.`;
+      return `Basiliskra ${ROMAN3[form]} has come.`;
     }
     let made = false;
     if (!body2) {
@@ -9739,7 +10676,7 @@ var Controller = class {
       } catch {
       }
     }
-    return this.creature ? `Basiliskra ${ROMAN2[form]} has come.` : "He could not come there.";
+    return this.creature ? `Basiliskra ${ROMAN3[form]} has come.` : "He could not come there.";
   }
   /** Which form a call makes. */
   formFor(want, at3) {
@@ -9904,7 +10841,7 @@ var Controller = class {
     rec.arrival = { step: 0, t0: this.now, water: { ...place2.at }, yaw: place2.yaw, land: true };
     rec.home = { ...place2.at };
     store.save();
-    return fromSea ? `The rift is opening in the sea ${Math.round(dist(place2.at, site))} blocks from you. Basiliskra ${ROMAN2[form]} is coming out of the water.` : `The rift is opening on open ground in front of you. Basiliskra ${ROMAN2[form]} is coming through.`;
+    return fromSea ? `The rift is opening in the sea ${Math.round(dist(place2.at, site))} blocks from you. Basiliskra ${ROMAN3[form]} is coming out of the water.` : `The rift is opening on open ground in front of you. Basiliskra ${ROMAN3[form]} is coming through.`;
   }
   /** The heading out of a seam in the water with the longest clear, deep run ahead of it (for his first swim). */
   openHeading(w) {
@@ -9967,11 +10904,11 @@ var Controller = class {
     const c = this.creature, rec = store.rec;
     if (!c || !c.valid || rec.stage !== "alive") return "He is not here to change.";
     if (rec.evolve) return "He is changing already.";
-    if (rec.form >= MAX_FORM) return `Basiliskra ${ROMAN2[rec.form]} is his last form.`;
+    if (rec.form >= MAX_FORM) return `Basiliskra ${ROMAN3[rec.form]} is his last form.`;
     this.ending.reset();
     rec.evolve = { to: rec.form + 1, step: 0, t0: this.now, at: { ...c.pos } };
     store.save();
-    return `Basiliskra ${ROMAN2[rec.form]} is changing into Basiliskra ${ROMAN2[rec.form + 1]}.`;
+    return `Basiliskra ${ROMAN3[rec.form]} is changing into Basiliskra ${ROMAN3[rec.form + 1]}.`;
   }
   /** The config wheel: forget everything, as if the pack had just been added. */
   resetStory() {
@@ -10034,7 +10971,7 @@ var Controller = class {
   /** The stage of his life is his name: Basiliskra I, II, III.  It is what a death message says. */
   nameHim(e) {
     try {
-      e.nameTag = `Basiliskra ${ROMAN2[store.rec.form]}`;
+      e.nameTag = `Basiliskra ${ROMAN3[store.rec.form]}`;
     } catch {
     }
   }
@@ -10072,7 +11009,7 @@ var Controller = class {
     for (const id of [OVERWORLD, "minecraft:nether", "minecraft:the_end"]) {
       let dim;
       try {
-        dim = world14.getDimension(id);
+        dim = world15.getDimension(id);
       } catch {
         continue;
       }
@@ -10211,12 +11148,14 @@ var Controller = class {
     beginTick(now);
     filmTick();
     falloutTick(now);
-    const lead = this.creature ?? titans.creatures().find((t) => t.valid) ?? null;
-    musicTick(lead, now, this.brain?.actName ?? "", this.brain?.hurtAt ?? -1, titans.fighting());
+    const vfight = vathroks.fighting();
+    const lead = this.creature ?? titans.creatures().find((t) => t.valid) ?? vfight ?? null;
+    musicTick(lead, now, this.brain?.actName ?? "", this.brain?.hurtAt ?? -1, titans.fighting() || !!vfight);
     cityTick(now);
     titans.tick(now);
+    vathroks.tick(now);
     separateGiants();
-    civiliansTick(now, this.creature ? [this.creature, ...titans.creatures()] : titans.creatures());
+    civiliansTick(now, [...this.creature ? [this.creature] : [], ...titans.creatures(), ...vathroks.creatures()]);
     lanceTick();
     if (this.creature && !this.creature.valid) {
       this.creature.dropParts();
@@ -10370,7 +11309,7 @@ var Controller = class {
             }
           }
         }
-        const tod = world14.getTimeOfDay();
+        const tod = world15.getTimeOfDay();
         if (near && (isDusk(tod) || t > pace(1.2 * TICKS.day))) this.setStep(1);
         break;
       }
@@ -10681,7 +11620,7 @@ var Controller = class {
     const dim = overworld();
     if (rec.entityId !== null) {
       try {
-        const e = world14.getEntity(rec.entityId);
+        const e = world15.getEntity(rec.entityId);
         if (e) {
           this.inspect(e);
           return;
@@ -10750,7 +11689,7 @@ var Controller = class {
           facing: () => c.yaw,
           shots: [CH.wide(c, Fo), ...CH.shots(c, Fo, Fn)],
           // (1.8) a chapter heading over the establishing shot
-          cards: [{ at: 4, title: CH.chapter, sub: `§8Basiliskra ${ROMAN2[was]}  §7→  §8${ROMAN2[ev.to]}`, stay: 40 }]
+          cards: [{ at: 4, title: CH.chapter, sub: `§8Basiliskra ${ROMAN3[was]}  §7→  §8${ROMAN3[ev.to]}`, stay: 40 }]
         });
         c.say("basiliskra.mutate", c.pos, 96, 0.6, 0.7);
       }
@@ -10830,14 +11769,14 @@ var Controller = class {
     for (const p of players()) {
       try {
         if (p.dimension.id !== c.dim.id || dist(p.location, c.pos) > 160) continue;
-        p.onScreenDisplay.setTitle(`§4BASILISKRA ${ROMAN2[form]}`, { subtitle, fadeInDuration: 12, stayDuration: 60, fadeOutDuration: 24 });
+        p.onScreenDisplay.setTitle(`§4BASILISKRA ${ROMAN3[form]}`, { subtitle, fadeInDuration: 12, stayDuration: 60, fadeOutDuration: 24 });
       } catch {
       }
     }
   }
   dropFin(dim, at3) {
     try {
-      dim.spawnItem(new ItemStack4(FIN_ITEM, 1), { x: at3.x, y: at3.y + 1, z: at3.z });
+      dim.spawnItem(new ItemStack5(FIN_ITEM, 1), { x: at3.x, y: at3.y + 1, z: at3.z });
       store.rec.learned.fragments++;
       store.rec.learned.fragmentAt = this.now;
       store.touch();
@@ -10869,6 +11808,8 @@ var Controller = class {
 };
 
 // src/main.ts
+titans.extraRows = () => vathroks.rows();
+var isVathrok2 = (id) => id === VATHROK || id === VATHROK_TITAN;
 var ctl = new Controller();
 var ready = false;
 var lastFault2 = "";
@@ -10897,7 +11838,7 @@ function trackSplashes() {
     if (done) flying.splice(i, 1);
   }
 }
-world15.afterEvents.worldLoad.subscribe(() => {
+world16.afterEvents.worldLoad.subscribe(() => {
   loadSettings();
   ctl.init();
   ready = true;
@@ -10927,16 +11868,17 @@ system6.beforeEvents.shutdown.subscribe(() => {
   } catch {
   }
 });
-world15.afterEvents.entityLoad.subscribe((ev) => {
+world16.afterEvents.entityLoad.subscribe((ev) => {
   if (!ready) return;
   try {
     if (ev.entity.typeId === TYPE) ctl.inspect(ev.entity);
     else if (ev.entity.typeId === TITAN) titans.inspect(ev.entity);
+    else if (isVathrok2(ev.entity.typeId)) vathroks.inspect(ev.entity);
     else if (isHitbox(ev.entity.typeId) && !partOwner.has(ev.entity.id)) ev.entity.remove();
   } catch {
   }
 });
-world15.afterEvents.entitySpawn.subscribe((ev) => {
+world16.afterEvents.entitySpawn.subscribe((ev) => {
   if (!ready) return;
   try {
     const id = ev.entity.typeId;
@@ -10948,6 +11890,10 @@ world15.afterEvents.entitySpawn.subscribe((ev) => {
       titans.inspect(ev.entity);
       return;
     }
+    if (isVathrok2(id)) {
+      vathroks.inspect(ev.entity);
+      return;
+    }
     if (isHitbox(id)) {
       if (!partOwner.has(ev.entity.id)) ev.entity.remove();
       return;
@@ -10956,25 +11902,26 @@ world15.afterEvents.entitySpawn.subscribe((ev) => {
   } catch {
   }
 });
-world15.beforeEvents.entityRemove.subscribe((ev) => {
+world16.beforeEvents.entityRemove.subscribe((ev) => {
   try {
     const id = ev.removedEntity.typeId;
     if (id === TYPE) ctl.onRemoving(ev.removedEntity);
     else if (id === TITAN) titans.onRemoving(ev.removedEntity);
+    else if (isVathrok2(id)) vathroks.onRemoving(ev.removedEntity);
     else if (isHitbox(id)) partOwner.delete(ev.removedEntity.id);
   } catch {
   }
 });
 var PASSES = /* @__PURE__ */ new Set([
-  EntityDamageCause10.entityAttack,
-  EntityDamageCause10.projectile,
-  EntityDamageCause10.entityExplosion,
-  EntityDamageCause10.blockExplosion,
-  EntityDamageCause10.magic,
-  EntityDamageCause10.thorns,
-  EntityDamageCause10.sonicBoom,
-  EntityDamageCause10.maceSmash,
-  EntityDamageCause10.override
+  EntityDamageCause11.entityAttack,
+  EntityDamageCause11.projectile,
+  EntityDamageCause11.entityExplosion,
+  EntityDamageCause11.blockExplosion,
+  EntityDamageCause11.magic,
+  EntityDamageCause11.thorns,
+  EntityDamageCause11.sonicBoom,
+  EntityDamageCause11.maceSmash,
+  EntityDamageCause11.override
 ]);
 var forwardTick = -1;
 var forwardKey = "";
@@ -10992,8 +11939,8 @@ function meleeDamage(id) {
   if (id === "minecraft:mace") return 6;
   return 1;
 }
-var everyGiant = () => [...ctl.creature ? [ctl.creature] : [], ...titans.creatures()];
-world15.afterEvents.playerSwingStart.subscribe((ev) => {
+var everyGiant = () => [...ctl.creature ? [ctl.creature] : [], ...titans.creatures(), ...vathroks.creatures()];
+world16.afterEvents.playerSwingStart.subscribe((ev) => {
   if (!ready || !everyGiant().length) return;
   if (ev.swingSource !== EntitySwingSource.Attack) return;
   const p = ev.player;
@@ -11019,12 +11966,12 @@ world15.afterEvents.playerSwingStart.subscribe((ev) => {
       if (hit.dist > 0.3 && !clearLine(c.dim, from, { x: from.x + dir.x * hit.dist, y: from.y + dir.y * hit.dist, z: from.z + dir.z * hit.dist })) return;
       swungAt.set(p.id, store.rec.clock);
       const amount = meleeDamage(held) * (hit.tag === "head" ? 1.25 : hit.tag === "tail" ? 0.6 : 1);
-      c.entity.applyDamage(amount, { cause: EntityDamageCause10.entityAttack, damagingEntity: p });
+      c.entity.applyDamage(amount, { cause: EntityDamageCause11.entityAttack, damagingEntity: p });
     } catch {
     }
   }, 2);
 });
-world15.beforeEvents.entityHurt.subscribe((ev) => {
+world16.beforeEvents.entityHurt.subscribe((ev) => {
   let type;
   try {
     type = ev.hurtEntity.typeId;
@@ -11059,13 +12006,22 @@ world15.beforeEvents.entityHurt.subscribe((ev) => {
     if (titans.beforeHurt(ev.hurtEntity, ev.damage) <= 0) ev.cancel = true;
     return;
   }
+  if (isVathrok2(type)) {
+    if (!PASSES.has(ev.damageSource.cause)) {
+      ev.cancel = true;
+      return;
+    }
+    if (vathroks.beforeHurt(ev.hurtEntity, ev.damage) <= 0) ev.cancel = true;
+    return;
+  }
   if (type !== TYPE) return;
   if (!PASSES.has(ev.damageSource.cause)) {
     ev.cancel = true;
     return;
   }
   try {
-    if (ev.damageSource.damagingEntity?.typeId === TITAN) ev.damage *= TITAN_ON_HIM;
+    const t = ev.damageSource.damagingEntity?.typeId;
+    if (t === TITAN || t === VATHROK_TITAN) ev.damage *= TITAN_ON_HIM;
   } catch {
   }
   let health = 1;
@@ -11084,10 +12040,14 @@ world15.beforeEvents.entityHurt.subscribe((ev) => {
     system6.run(() => ctl.driveOff());
   }
 });
-world15.afterEvents.entityHurt.subscribe((ev) => {
+world16.afterEvents.entityHurt.subscribe((ev) => {
   try {
     if (ev.hurtEntity.typeId === TITAN) {
       titans.onHurt(ev.hurtEntity, ev.damageSource.damagingEntity, ev.damage);
+      return;
+    }
+    if (isVathrok2(ev.hurtEntity.typeId)) {
+      vathroks.onHurt(ev.hurtEntity, ev.damageSource.damagingEntity, ev.damage);
       return;
     }
     if (ev.hurtEntity.typeId !== TYPE) return;
@@ -11096,7 +12056,7 @@ world15.afterEvents.entityHurt.subscribe((ev) => {
   } catch {
   }
 });
-world15.afterEvents.entityDie.subscribe((ev) => {
+world16.afterEvents.entityDie.subscribe((ev) => {
   let type;
   try {
     type = ev.deadEntity.typeId;
@@ -11117,7 +12077,7 @@ world15.afterEvents.entityDie.subscribe((ev) => {
   } catch {
   }
 });
-world15.afterEvents.playerBreakBlock.subscribe((ev) => {
+world16.afterEvents.playerBreakBlock.subscribe((ev) => {
   try {
     if (ev.dimension.id !== OVERWORLD) return;
     const t = recordHabitat(ev.block.location, ev.brokenBlockPermutation.type.id, ev.player.id, ev.player.name, store.rec.clock);
@@ -11125,7 +12085,7 @@ world15.afterEvents.playerBreakBlock.subscribe((ev) => {
   } catch {
   }
 });
-world15.afterEvents.playerInteractWithBlock.subscribe((ev) => {
+world16.afterEvents.playerInteractWithBlock.subscribe((ev) => {
   try {
     const id = ev.block.typeId, at3 = ev.block.location;
     if (id === "minecraft:bell") ctl.brain?.onBell(at3, ev.player);
@@ -11144,27 +12104,40 @@ world15.afterEvents.playerInteractWithBlock.subscribe((ev) => {
   } catch {
   }
 });
-world15.afterEvents.weatherChange.subscribe((ev) => {
+world16.afterEvents.weatherChange.subscribe((ev) => {
   const w = String(ev.newWeather).toLowerCase();
   store.rec.weather = w.includes("thunder") ? "thunder" : w.includes("rain") ? "rain" : "clear";
   store.touch();
 });
-world15.afterEvents.itemUse.subscribe((ev) => {
+world16.afterEvents.itemUse.subscribe((ev) => {
   try {
     const id = ev.itemStack.typeId;
     if (id === JOURNAL_ITEM) void openJournal(ev.source, ctl);
     else if (id === WHEEL_ITEM) void openWheel(ev.source, ctl);
     else if (id === LANCE_ITEM) fireLance(ev.source, everyGiant(), store.rec.clock);
+    else if (id === VATHROK_LURE_ITEM) {
+      const p = ev.source;
+      if (vathroks.lure(p) && p.getGameMode() !== GameMode2.Creative) {
+        const inv = p.getComponent("minecraft:inventory")?.container, slot = p.selectedSlotIndex;
+        const st = inv?.getItem(slot);
+        if (inv && st && st.typeId === VATHROK_LURE_ITEM) {
+          if (st.amount > 1) {
+            st.amount -= 1;
+            inv.setItem(slot, st);
+          } else inv.setItem(slot);
+        }
+      }
+    }
   } catch {
   }
 });
-world15.afterEvents.itemCompleteUse.subscribe((ev) => {
+world16.afterEvents.itemCompleteUse.subscribe((ev) => {
   try {
     if (isIodine(ev.itemStack?.typeId)) takeIodine(ev.source);
   } catch {
   }
 });
-world15.afterEvents.playerSpawn.subscribe((ev) => {
+world16.afterEvents.playerSpawn.subscribe((ev) => {
   releaseStale(ev.player);
   if (!ev.initialSpawn) return;
   falloutJoin(ev.player);
@@ -11268,6 +12241,30 @@ system6.beforeEvents.startup.subscribe((ev) => {
       });
       return { status: CustomCommandStatus.Success };
     });
+    reg.registerEnum(`${NS}:vathrok_do`, ["boss", "titan", "clear"]);
+    reg.registerCommand({
+      name: `${NS}:vathrok`,
+      description: "Vathrok, the other kaiju: call the one met in survival (boss), put a Vathrok Titan where you look (titan), or clear them all.",
+      permissionLevel: CommandPermissionLevel.GameDirectors,
+      cheatsRequired: false,
+      optionalParameters: [{ name: `${NS}:vathrok_do`, type: CustomCommandParamType.Enum }]
+    }, (origin, what) => {
+      const p = who(origin);
+      if (!p) return fail("Run this as a player.");
+      system6.run(() => {
+        try {
+          if (what === "clear") {
+            p.sendMessage(`§7[Basiliskra] ${vathroks.clear()} Vathrok(s) removed.`);
+            return;
+          }
+          const place2 = placeFor(p, 5);
+          p.sendMessage(`§7[Basiliskra] ${vathroks.spawn(p.dimension, place2.at, place2.yaw, what !== "boss")}`);
+        } catch (e) {
+          p.sendMessage(`§c[Basiliskra] ${e}`);
+        }
+      });
+      return { status: CustomCommandStatus.Success };
+    });
     reg.registerCommand({
       name: `${NS}:city`,
       description: "Raise a city where you stand: streets behind you, a beach and a very deep sea ahead.",
@@ -11291,7 +12288,7 @@ system6.afterEvents.scriptEventReceive.subscribe((ev) => {
   const rec = store.rec;
   const src = ev.sourceEntity;
   if (cmd === "status") {
-    world15.sendMessage(`[${NS}] stage=${rec.stage} form=${rec.form} id=${rec.entityId} loaded=${!!ctl.creature} act=${ctl.brain?.actName} quarantined=${ctl.quarantined}`);
+    world16.sendMessage(`[${NS}] stage=${rec.stage} form=${rec.form} id=${rec.entityId} loaded=${!!ctl.creature} act=${ctl.brain?.actName} quarantined=${ctl.quarantined}`);
   } else if (cmd === "arrive" && src) {
     ctl.requestArrival({ region: "debug", site: src.location, guilty: src.id, guiltyName: src.name ?? null });
   } else if (cmd === "stats") {
@@ -11302,7 +12299,7 @@ system6.afterEvents.scriptEventReceive.subscribe((ev) => {
     rec.mut.beams = Number(arg ?? rec.mut.beams);
     store.save();
   } else if (cmd === "dusk") {
-    world15.setTimeOfDay(12200);
+    world16.setTimeOfDay(12200);
   }
 }, { namespaces: [NS] });
 export {

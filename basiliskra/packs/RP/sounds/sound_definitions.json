@@ -604,6 +604,156 @@
         }
       ]
     },
+    "basiliskra.vathrok.roar": {
+      "category": "hostile",
+      "min_distance": 20.0,
+      "max_distance": 192.0,
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/vathrok_roar",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "basiliskra.vathrok.growl": {
+      "category": "hostile",
+      "min_distance": 10.0,
+      "max_distance": 96.0,
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/vathrok_growl_1",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/basiliskra/vathrok_growl_2",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "basiliskra.vathrok.huff": {
+      "category": "hostile",
+      "min_distance": 6.0,
+      "max_distance": 64.0,
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/vathrok_huff_1",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/basiliskra/vathrok_huff_2",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "basiliskra.vathrok.charge": {
+      "category": "hostile",
+      "min_distance": 16.0,
+      "max_distance": 160.0,
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/vathrok_charge",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "basiliskra.vathrok.beam": {
+      "category": "hostile",
+      "min_distance": 20.0,
+      "max_distance": 192.0,
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/vathrok_beam",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "basiliskra.vathrok.step": {
+      "category": "hostile",
+      "min_distance": 8.0,
+      "max_distance": 96.0,
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/vathrok_step_1",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/basiliskra/vathrok_step_2",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/basiliskra/vathrok_step_3",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "basiliskra.vathrok.hurt": {
+      "category": "hostile",
+      "min_distance": 8.0,
+      "max_distance": 80.0,
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/vathrok_hurt_1",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/basiliskra/vathrok_hurt_2",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "basiliskra.vathrok.death": {
+      "category": "hostile",
+      "min_distance": 20.0,
+      "max_distance": 192.0,
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/vathrok_death",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "basiliskra.vathrok.claw": {
+      "category": "hostile",
+      "min_distance": 10.0,
+      "max_distance": 96.0,
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/vathrok_claw_1",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        },
+        {
+          "name": "sounds/basiliskra/vathrok_claw_2",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "basiliskra.vathrok.bite": {
+      "category": "hostile",
+      "min_distance": 8.0,
+      "max_distance": 80.0,
+      "sounds": [
+        {
+          "name": "sounds/basiliskra/vathrok_bite",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
     "basiliskra.fin_pulse": {
       "category": "neutral",
       "min_distance": 1.0,

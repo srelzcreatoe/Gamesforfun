@@ -15,6 +15,12 @@ const TITAN_JSON = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities
 const TITAN_PROPS = TITAN_JSON.description.properties;
 const TITAN_EVENTS = Object.keys(TITAN_JSON.events);
 const TITAN_HEALTH = TITAN_JSON.components['minecraft:health'].max;
+// Vathrok (2.0): two entities, read from the pack like the Titan
+const VATH = {};
+for (const n of ['vathrok', 'vathrok_titan']) {
+  const j = JSON.parse(fs.readFileSync(path.join(ROOT, `packs/BP/entities/${n}.json`), 'utf8'))['minecraft:entity'];
+  VATH[`basiliskra:${n}`] = { props: j.description.properties, events: Object.keys(j.events), health: j.components['minecraft:health'].max, family: j.components['minecraft:type_family'].family };
+}
 const CIV_JSON = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities/basiliskra_civilian.json'), 'utf8'))['minecraft:entity'];
 const CIV_PROPS = CIV_JSON.description.properties;
 const CIV_EVENTS = Object.keys(CIV_JSON.events);
@@ -194,11 +200,12 @@ export class Sim {
     const props = {};
     if (typeId === 'basiliskra:basiliskra') for (const [k, d] of Object.entries(PROPS)) props[k] = d.default;
     if (typeId === 'basiliskra:titan') for (const [k, d] of Object.entries(TITAN_PROPS)) props[k] = d.default;
+    if (VATH[typeId]) for (const [k, d] of Object.entries(VATH[typeId].props)) props[k] = d.default;
     if (typeId === 'basiliskra:civilian') for (const [k, d] of Object.entries(CIV_PROPS)) props[k] = d.default;
-    const rec = { id, typeId, dim, loc: { ...loc }, rot: { x: 0, y: rot }, vel: { x: 0, y: 0, z: 0 }, props, dyn: {}, health: typeId.startsWith('basiliskra:hitbox') ? 1000 : typeId === 'basiliskra:basiliskra' ? 600 : typeId === 'basiliskra:titan' ? TITAN_HEALTH : 10, events: [], item: null, riders: [],
+    const rec = { id, typeId, dim, loc: { ...loc }, rot: { x: 0, y: rot }, vel: { x: 0, y: 0, z: 0 }, props, dyn: {}, health: typeId.startsWith('basiliskra:hitbox') ? 1000 : typeId === 'basiliskra:basiliskra' ? 600 : typeId === 'basiliskra:titan' ? TITAN_HEALTH : VATH[typeId] ? VATH[typeId].health : 10, events: [], item: null, riders: [],
       family: typeId.startsWith('basiliskra:hitbox') ? ['basiliskra_part', 'inanimate'] : typeId === 'basiliskra:basiliskra' ? ['basiliskra', 'mob']
         : typeId === 'basiliskra:titan' ? [...TITAN_JSON.components['minecraft:type_family'].family]
-        : typeId === 'basiliskra:civilian' ? [...CIV_JSON.components['minecraft:type_family'].family] : [] };
+        : typeId === 'basiliskra:civilian' ? [...CIV_JSON.components['minecraft:type_family'].family] : VATH[typeId] ? [...VATH[typeId].family] : [] };
     this.save.entities.set(id, rec);
     return rec;
   }
@@ -493,7 +500,7 @@ class MockEntity {
   getProperty(k) { this.need(); return this.rec.props[k]; }
   setProperty(k, v) {
     this.need();
-    const d = (this.rec.typeId === 'basiliskra:titan' ? TITAN_PROPS : this.rec.typeId === 'basiliskra:civilian' ? CIV_PROPS : PROPS)[k];
+    const d = (this.rec.typeId === 'basiliskra:titan' ? TITAN_PROPS : VATH[this.rec.typeId] ? VATH[this.rec.typeId].props : this.rec.typeId === 'basiliskra:civilian' ? CIV_PROPS : PROPS)[k];
     if (!d) throw new Error(`property ${k} is not defined on ${this.rec.typeId}`);
     if (d.type === 'bool' && typeof v !== 'boolean') throw new Error(`property ${k} expects bool, got ${v}`);
     if (d.type === 'int' && (!Number.isInteger(v) || v < d.range[0] || v > d.range[1])) throw new Error(`property ${k}=${v} outside ${d.range}`);
@@ -504,14 +511,14 @@ class MockEntity {
   triggerEvent(n) {
     this.need();
     const known = this.rec.typeId === 'basiliskra:basiliskra' ? EVENTS : this.rec.typeId === 'basiliskra:titan' ? TITAN_EVENTS
-      : this.rec.typeId === 'basiliskra:civilian' ? CIV_EVENTS : HIT_EVENTS;
+      : VATH[this.rec.typeId] ? VATH[this.rec.typeId].events : this.rec.typeId === 'basiliskra:civilian' ? CIV_EVENTS : HIT_EVENTS;
     if (!known.includes(n)) throw new Error(`event ${n} is not defined on ${this.rec.typeId}`);
     this.rec.events.push(n);
   }
   getComponent(id) {
     this.need();
     const rec = this.rec, sim = this.sim, self = this;
-    if (id === 'minecraft:health') return { get currentValue() { return rec.health; }, setCurrentValue(v) { rec.health = v; }, effectiveMax: rec.maxHealth ?? (rec.typeId === 'basiliskra:titan' ? TITAN_HEALTH : 600) };
+    if (id === 'minecraft:health') return { get currentValue() { return rec.health; }, setCurrentValue(v) { rec.health = v; }, effectiveMax: rec.maxHealth ?? (rec.typeId === 'basiliskra:titan' ? TITAN_HEALTH : VATH[rec.typeId] ? VATH[rec.typeId].health : 600) };
     if (id === 'minecraft:item') return rec.item ? { itemStack: rec.item } : undefined;
     if (id === 'minecraft:rideable') return { getRiders: () => rec.riders };
     if (id === 'minecraft:riding') return undefined;

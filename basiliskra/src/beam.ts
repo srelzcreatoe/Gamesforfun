@@ -17,6 +17,14 @@ import { clearLine, isLoaded } from "./world";
 const BIG: Record<string, number> = { "minecraft:ender_dragon": 6, "minecraft:ghast": 2.5, "minecraft:happy_ghast": 2.5, "minecraft:wither": 1.4,
   "minecraft:ravager": 1.2, "minecraft:iron_golem": 0.8, "minecraft:warden": 0.8, "minecraft:elder_guardian": 1.2, "minecraft:sniffer": 1.0 };
 
+/**
+ * A beam effect in the colour of whoever breathes it: Vathrok's (2.0) are its own acid-green copies of these effects
+ * (`basiliskra:v_beam_core` and so on, made by tools/kit/gen_particles.py).  `hue` "" is his own red.
+ */
+export function tint(hue: string, id: string): string {
+  return hue && id.startsWith("basiliskra:") ? `basiliskra:${hue}_${id.slice(11)}` : id;
+}
+
 /** How deep a crater one landing place of the beam is blown to (blocks from where it first struck). */
 export const CRATER = 6;
 
@@ -69,17 +77,17 @@ export function beamTick(c: Creature, T: BeamSpec, t: number, fade: number, st: 
   }
   const end = add(from, mul(dir, length));
   if (struck) {
-    if (t % 3 === 0) particle(c.dim, "basiliskra:beam_impact", end, 128);
-    if (t % 4 === 2) particle(c.dim, "basiliskra:impact_glare", end, 160);
-    if (t % 7 === 0) particle(c.dim, "basiliskra:impact_fire", end, 128);
-    if (t % 6 === 3) particle(c.dim, "basiliskra:impact_smoke", end, 144);
+    if (t % 3 === 0) particle(c.dim, tint(c.hue, "basiliskra:beam_impact"), end, 128);
+    if (t % 4 === 2) particle(c.dim, tint(c.hue, "basiliskra:impact_glare"), end, 160);
+    if (t % 7 === 0) particle(c.dim, tint(c.hue, "basiliskra:impact_fire"), end, 128);
+    if (t % 6 === 3) particle(c.dim, tint(c.hue, "basiliskra:impact_smoke"), end, 144);
     if (t % 10 === 0) sound(c.dim, "basiliskra.iii.beam_impact", end, 128);
     // (half of it: a body that size soaks up light, and giants that only stood off and burned each other would never close)
     if (t % 4 === 0) struck.takeBlow(c, T.damage * 0.5 * Math.max(0.3, fade));
   }
   // it throbs, about as fast as a heart racing (the width is the breath's: drawn to fill the mouth it leaves by)
   const w = T.width * fade * (T.rough ? 0.85 + hash(t) * 0.4 : 1) * (1 + 0.14 * Math.sin(t * 1.25));
-  drawBeam(c.dim, from, dir, length, w, t, hitBlock !== null || struck !== null, end);
+  drawBeam(c.dim, from, dir, length, w, t, hitBlock !== null || struck !== null, end, undefined, undefined, c.hue);
   // scarlet winding round the core
   const side = norm({ x: -dir.z, y: 0, z: dir.x });
   const up = norm({ x: dir.y * side.z - dir.z * side.y, y: dir.z * side.x - dir.x * side.z, z: dir.x * side.y - dir.y * side.x });
@@ -87,16 +95,16 @@ export function beamTick(c: Creature, T: BeamSpec, t: number, fade: number, st: 
     const along = ((t * 2.3 + i * (length / 4)) % length);
     const a = along * 1.1 + t * 0.9;
     const r = w * 0.45 + 0.3;
-    particle(c.dim, "basiliskra:beam_spiral", add(add(from, mul(dir, along)), add(mul(side, Math.cos(a) * r), mul(up, Math.sin(a) * r))), 112);
+    particle(c.dim, tint(c.hue, "basiliskra:beam_spiral"), add(add(from, mul(dir, along)), add(mul(side, Math.cos(a) * r), mul(up, Math.sin(a) * r))), 112);
   }
   if (hitBlock) {
-    if (t % 3 === 0) particle(c.dim, "basiliskra:beam_impact", end, 112);
-    if (t % 5 === 0) particle(c.dim, "basiliskra:impact_blast", end, 128);
-    if (t % 6 === 3) particle(c.dim, "basiliskra:impact_smoke", end, 144);
-    if (t % 7 === 0) particle(c.dim, "basiliskra:impact_fire", end, 112);
-    if (t % 4 === 2) particle(c.dim, "basiliskra:impact_glare", end, 160);
-    if (t % 10 === 5) particle(c.dim, "basiliskra:impact_ring", { x: end.x, y: end.y + 0.4, z: end.z }, 144);
-    if (t % 8 === 1) particle(c.dim, "basiliskra:impact_fountain", end, 144);
+    if (t % 3 === 0) particle(c.dim, tint(c.hue, "basiliskra:beam_impact"), end, 112);
+    if (t % 5 === 0) particle(c.dim, tint(c.hue, "basiliskra:impact_blast"), end, 128);
+    if (t % 6 === 3) particle(c.dim, tint(c.hue, "basiliskra:impact_smoke"), end, 144);
+    if (t % 7 === 0) particle(c.dim, tint(c.hue, "basiliskra:impact_fire"), end, 112);
+    if (t % 4 === 2) particle(c.dim, tint(c.hue, "basiliskra:impact_glare"), end, 160);
+    if (t % 10 === 5) particle(c.dim, tint(c.hue, "basiliskra:impact_ring"), { x: end.x, y: end.y + 0.4, z: end.z }, 144);
+    if (t % 8 === 1) particle(c.dim, tint(c.hue, "basiliskra:impact_fountain"), end, 144);
     if (t % 10 === 0) sound(c.dim, "basiliskra.iii.beam_impact", end, 112);
     if (!st.ground || dist(st.ground, hitBlock) > CRATER + 3) st.ground = hitBlock;
     if (smash) {
@@ -156,10 +164,10 @@ export function beamTick(c: Creature, T: BeamSpec, t: number, fade: number, st: 
  * players are shown it (the Seam Lance draws its shooter's own view separately); `but`: everyone else.
  */
 export function drawBeam(dim: Dimension, from: V3, dir: V3, length: number, w: number, t: number, landed: boolean, end: V3,
-                         to?: Player[], but?: Player): void {
+                         to?: Player[], but?: Player, hue = ""): void {
   const show = (id: string, at: V3, range: number, vars?: MolangVariableMap) => {
-    if (to) particleFor(to, id, at, vars);
-    else particle(dim, id, at, range, vars, but);
+    if (to) particleFor(to, tint(hue, id), at, vars);
+    else particle(dim, tint(hue, id), at, range, vars, but);
   };
   const v = beamVars(dir, length, w);
   if (t % 2 === 0) {

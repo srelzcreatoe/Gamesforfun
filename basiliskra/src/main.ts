@@ -3,7 +3,7 @@
  * No experiments, no beta APIs, no commands a survival player needs to type.
  */
 import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, EntityDamageCause, EntitySwingSource, GameMode, Player, system, world } from "@minecraft/server";
-import { CONFIG, JOURNAL_ITEM, NS, OVERWORLD, TITAN, TYPE, WHEEL_ITEM, isHitbox } from "./config";
+import { CONFIG, JOURNAL_ITEM, NS, OVERWORLD, TITAN, TYPE, VATHROK, VATHROK_LURE_ITEM, VATHROK_TITAN, WHEEL_ITEM, isHitbox } from "./config";
 import { loadSettings } from "./settings";
 import { canAdmin, giveStarterItems, openJournal, openWheel, placeFor, cityForm } from "./ui";
 import { clearLine } from "./world";
@@ -15,6 +15,11 @@ import { FADES_COMPONENT } from "./generated/blocks";
 import { Controller } from "./controller";
 import { partOwner, type Creature } from "./creature";
 import { GIANT, titans } from "./titan";
+import { vathroks } from "./vathrok";
+
+// the Vathrok Titans share the Titans' health line over the hotbar
+titans.extraRows = () => vathroks.rows();
+const isVathrok = (id: string): boolean => id === VATHROK || id === VATHROK_TITAN;
 import { particle, sound } from "./fx";
 import { ANIMALS, recordHabitat, recordKill } from "./harm";
 import { store } from "./store";
@@ -75,6 +80,7 @@ world.afterEvents.entityLoad.subscribe((ev) => {
   try {
     if (ev.entity.typeId === TYPE) ctl.inspect(ev.entity);
     else if (ev.entity.typeId === TITAN) titans.inspect(ev.entity);
+    else if (isVathrok(ev.entity.typeId)) vathroks.inspect(ev.entity);
     else if (isHitbox(ev.entity.typeId) && !partOwner.has(ev.entity.id)) ev.entity.remove();
   } catch { /* gone */ }
 });
@@ -85,6 +91,7 @@ world.afterEvents.entitySpawn.subscribe((ev) => {
     const id = ev.entity.typeId;
     if (id === TYPE) { ctl.inspect(ev.entity); return; }
     if (id === TITAN) { titans.inspect(ev.entity); return; }
+    if (isVathrok(id)) { vathroks.inspect(ev.entity); return; }
     if (isHitbox(id)) { if (!partOwner.has(ev.entity.id)) ev.entity.remove(); return; }
     if (SPLASHERS.has(id) && ev.entity.dimension.id === OVERWORLD && ctl.creature && flying.length < 16
       && dist(ev.entity.location, ctl.creature.pos) < 64) flying.push({ e: ev.entity, born: store.rec.clock });
@@ -96,6 +103,7 @@ world.beforeEvents.entityRemove.subscribe((ev) => {
     const id = ev.removedEntity.typeId;
     if (id === TYPE) ctl.onRemoving(ev.removedEntity);
     else if (id === TITAN) titans.onRemoving(ev.removedEntity);
+    else if (isVathrok(id)) vathroks.onRemoving(ev.removedEntity);
     else if (isHitbox(id)) partOwner.delete(ev.removedEntity.id);
   } catch { /* gone */ }
 });
@@ -133,7 +141,7 @@ function meleeDamage(id: string | undefined): number {
 // blow: the swing's own line is tried against his volumes.  (Which entity a swing lands on is decided on the
 // player's device; this does not depend on that.)
 /** Every giant there is to hit: Basiliskra himself, and the Titans. */
-const everyGiant = (): Creature[] => [...(ctl.creature ? [ctl.creature] : []), ...titans.creatures()];
+const everyGiant = (): Creature[] => [...(ctl.creature ? [ctl.creature] : []), ...titans.creatures(), ...vathroks.creatures()];
 
 world.afterEvents.playerSwingStart.subscribe((ev) => {
   if (!ready || !everyGiant().length) return;
@@ -192,10 +200,16 @@ world.beforeEvents.entityHurt.subscribe((ev) => {
     if (titans.beforeHurt(ev.hurtEntity, ev.damage) <= 0) ev.cancel = true;
     return;
   }
+  if (isVathrok(type)) {
+    // Vathrok can be beaten: the blow that would kill it is held back, and it goes down in its own time
+    if (!PASSES.has(ev.damageSource.cause)) { ev.cancel = true; return; }
+    if (vathroks.beforeHurt(ev.hurtEntity, ev.damage) <= 0) ev.cancel = true;
+    return;
+  }
   if (type !== TYPE) return;
   if (!PASSES.has(ev.damageSource.cause)) { ev.cancel = true; return; }
   // what a Titan does to him is turned by the same hide it has itself: he is outmatched, not swatted
-  try { if (ev.damageSource.damagingEntity?.typeId === TITAN) ev.damage *= TITAN_ON_HIM; } catch { /* gone */ }
+  try { const t = ev.damageSource.damagingEntity?.typeId; if (t === TITAN || t === VATHROK_TITAN) ev.damage *= TITAN_ON_HIM; } catch { /* gone */ }
   // he cannot be killed here, only driven off: the blow is trimmed so he keeps his last breath
   let health = 1;
   try { health = ev.hurtEntity.getComponent("minecraft:health")?.currentValue ?? 1; } catch { health = 1; }
@@ -206,6 +220,7 @@ world.beforeEvents.entityHurt.subscribe((ev) => {
 world.afterEvents.entityHurt.subscribe((ev) => {
   try {
     if (ev.hurtEntity.typeId === TITAN) { titans.onHurt(ev.hurtEntity, ev.damageSource.damagingEntity, ev.damage); return; }
+    if (isVathrok(ev.hurtEntity.typeId)) { vathroks.onHurt(ev.hurtEntity, ev.damageSource.damagingEntity, ev.damage); return; }
     if (ev.hurtEntity.typeId !== TYPE) return;
     const by = ev.damageSource.damagingEntity;
     ctl.onHurt(by && by.typeId === "minecraft:player" ? (by as Player) : undefined, ev.damage);
@@ -263,6 +278,15 @@ world.afterEvents.itemUse.subscribe((ev) => {
     if (id === JOURNAL_ITEM) void openJournal(ev.source, ctl);
     else if (id === WHEEL_ITEM) void openWheel(ev.source, ctl);
     else if (id === LANCE_ITEM) fireLance(ev.source, everyGiant(), store.rec.clock);
+    else if (id === VATHROK_LURE_ITEM) {
+      // the lure: used up when it calls (a player in Creative keeps it)
+      const p = ev.source;
+      if (vathroks.lure(p) && p.getGameMode() !== GameMode.Creative) {
+        const inv = p.getComponent("minecraft:inventory")?.container, slot = p.selectedSlotIndex;
+        const st = inv?.getItem(slot);
+        if (inv && st && st.typeId === VATHROK_LURE_ITEM) { if (st.amount > 1) { st.amount -= 1; inv.setItem(slot, st); } else inv.setItem(slot); }
+      }
+    }
   } catch { /* left */ }
 });
 
@@ -342,6 +366,23 @@ system.beforeEvents.startup.subscribe((ev) => {
           if (what === "clear") { p.sendMessage(`§7[Basiliskra] ${titans.clear()} Titan(s) removed.`); return; }
           const place = placeFor(p, 4);
           p.sendMessage(`§7[Basiliskra] ${titans.spawn(p.dimension, place.at, place.yaw)}`);
+        } catch (e) { p.sendMessage(`§c[Basiliskra] ${e}`); }
+      });
+      return { status: CustomCommandStatus.Success };
+    });
+    reg.registerEnum(`${NS}:vathrok_do`, ["boss", "titan", "clear"]);
+    reg.registerCommand({
+      name: `${NS}:vathrok`, description: "Vathrok, the other kaiju: call the one met in survival (boss), put a Vathrok Titan where you look (titan), or clear them all.",
+      permissionLevel: CommandPermissionLevel.GameDirectors, cheatsRequired: false,
+      optionalParameters: [{ name: `${NS}:vathrok_do`, type: CustomCommandParamType.Enum }],
+    }, (origin, what?: string) => {
+      const p = who(origin);
+      if (!p) return fail("Run this as a player.");
+      system.run(() => {
+        try {
+          if (what === "clear") { p.sendMessage(`§7[Basiliskra] ${vathroks.clear()} Vathrok(s) removed.`); return; }
+          const place = placeFor(p, 5);
+          p.sendMessage(`§7[Basiliskra] ${vathroks.spawn(p.dimension, place.at, place.yaw, what !== "boss")}`);
         } catch (e) { p.sendMessage(`§c[Basiliskra] ${e}`); }
       });
       return { status: CustomCommandStatus.Success };

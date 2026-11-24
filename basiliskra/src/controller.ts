@@ -24,6 +24,7 @@ import { addFallout, clearFallout, falloutTick } from "./fallout";
 import { cityTick, landmarks, nearestCity } from "./city";
 import { musicStop, musicTick, sceneTheme } from "./music";
 import { titans } from "./titan";
+import { vathroks } from "./vathrok";
 import { lanceTick } from "./lance";
 import { civiliansTick } from "./civilians";
 import { freshRecord, newToken, store } from "./store";
@@ -568,12 +569,15 @@ export class Controller {
     filmTick();
     falloutTick(now);
     // (with Basiliskra himself not about, a Titan is what the music follows; and Titans fighting is a fight)
-    const lead = this.creature ?? titans.creatures().find((t) => t.valid) ?? null;
-    musicTick(lead, now, this.brain?.actName ?? "", this.brain?.hurtAt ?? -1, titans.fighting());
+    // (a Vathrok that is fighting is a battle for the music, as giants at each other are)
+    const vfight = vathroks.fighting();
+    const lead = this.creature ?? titans.creatures().find((t) => t.valid) ?? vfight ?? null;
+    musicTick(lead, now, this.brain?.actName ?? "", this.brain?.hurtAt ?? -1, titans.fighting() || !!vfight);
     cityTick(now);
     titans.tick(now);
+    vathroks.tick(now);
     separateGiants();
-    civiliansTick(now, this.creature ? [this.creature, ...titans.creatures()] : titans.creatures());
+    civiliansTick(now, [...(this.creature ? [this.creature] : []), ...titans.creatures(), ...vathroks.creatures()]);
     lanceTick();
     if (this.creature && !this.creature.valid) { this.creature.dropParts(); this.creature = null; this.brain = null; this.runner = null; }
     if (now % 20 === 0) this.sweep();

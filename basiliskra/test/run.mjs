@@ -2428,6 +2428,96 @@ console.log('\n== 26. The Titan against another add-on\'s Godzilla (1.9)');
   check('and its blows on it are blows of 100,000: the beam finds a body that tall, not only its feet', dealt.some((d) => d >= 100000), `${Math.max(0, ...dealt)} at most`);
 }
 
+console.log('\n== 27. Vathrok, the other kaiju: in survival, and for battles (2.0)');
+{
+  const readEnt = (n) => JSON.parse(fs.readFileSync(path.join(ROOT, `packs/BP/entities/${n}.json`), 'utf8'))['minecraft:entity'];
+  const boss = readEnt('vathrok'), bat = readEnt('vathrok_titan');
+  const immune = (j) => j.components['minecraft:damage_sensor'].triggers.filter((q) => q.deals_damage === 'no').map((q) => q.cause);
+  check('the survival Vathrok can be beaten (1,500 health) and has a boss bar; the Vathrok Titan has the Titan\'s 1,000,000 and its immunities',
+    boss.components['minecraft:health'].max === 1500 && !!boss.components['minecraft:boss'] && bat.components['minecraft:health'].max === 1000000
+    && ['magic', 'wither', 'entity_explosion', 'block_explosion', 'fire'].every((k) => immune(bat).includes(k)), `${boss.components['minecraft:health'].max} / ${bat.components['minecraft:health'].max}`);
+  const defs = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/RP/sounds/sound_definitions.json'), 'utf8')).sound_definitions;
+  check('it has a voice of its own (roar, growl, huff, charge, breath, steps, hurt, death, claws, bite)',
+    ['roar', 'growl', 'huff', 'charge', 'beam', 'step', 'hurt', 'death', 'claw', 'bite'].every((k) => defs[`basiliskra.vathrok.${k}`]));
+
+  // ---- the battle one against a Titan
+  const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+  const eye = w.sim.addPlayer('Eye', { x: 60, y: 64, z: 20 }); eye.mode = 'Creative';
+  const V = w.bk.vathrok.vathroks, T = w.bk.titan.titans, dim = w.sim.dims.get('minecraft:overworld');
+  T.spawn(dim, { x: 0, y: 64, z: -30 }, 0);
+  const said = V.spawn(dim, { x: 0, y: 64, z: 70 }, 180, true); w.sim.step(2);
+  const vt = [...V.list.values()][0];
+  check('a Vathrok Titan is made: bound, form 5, named, its body in hit volumes, its breath to be drawn green', !!vt && vt.c.form === 5 && vt.c.entity.getProperty('basiliskra:form') === 5
+    && vt.c.entity.nameTag === 'Vathrok Titan I' && vt.c.volumes().length > 20 && vt.c.hue === 'v' && vt.c.lethal === 100000, `${said}; ${vt && vt.c.volumes().length} volumes`);
+  const acts = new Set(); let tBlows = 0;
+  const tHealth0 = T.creatures()[0].entity.getComponent('minecraft:health').currentValue;
+  for (let i = 0; i < 2600; i++) {
+    w.sim.step(1);
+    for (const x of V.list.values()) acts.add(x.brain.actName);
+  }
+  const titanNow = T.creatures()[0]?.entity.getComponent('minecraft:health').currentValue ?? 0;
+  const vNow = vt.c.valid ? vt.c.entity.getComponent('minecraft:health').currentValue : 0;
+  check('it takes the Titan for an enemy and fights it with its own moves: roar, breath, jaws, claws or tail', acts.has('lock') && (acts.has('beam') || acts.has('lunge') || acts.has('swipe') || acts.has('tail')), [...acts].join(' '));
+  check('and they hurt each other with the blows of giants', titanNow < tHealth0 && vNow < 1000000, `Titan ${tHealth0} -> ${titanNow}, Vathrok ${vNow}`);
+  check('its breath is drawn in its own green, not his red', eye.seen.some((q) => q.id === 'basiliskra:v_beam_core'), `${eye.seen.filter((q) => q.id.startsWith('basiliskra:v_')).length} green effects seen`);
+  check('its footfalls are its own', eye.heard.some((q) => q.id === 'basiliskra.vathrok.step') && eye.heard.some((q) => q.id === 'basiliskra.vathrok.roar'));
+  // the cap, and the setting
+  const at3 = [{ x: 40, y: 64, z: 40 }, { x: -40, y: 64, z: 40 }, { x: 20, y: 64, z: -10 }].filter(() => V.count(true) < 3);
+  for (const at of at3) V.spawn(dim, at, 0, true);
+  const fourth = V.spawn(dim, { x: -20, y: 64, z: -10 }, 0, true);
+  check('three Vathrok Titans at most', V.count(true) <= 3 && /3 Vathrok Titans/.test(fourth), fourth);
+  w.bk.CONFIG.vathrokTitan = false;
+  w.sim.step(25);
+  const refused = V.spawn(dim, { x: 0, y: 64, z: 160 }, 0, true);
+  check('turned off in the settings, the Vathrok Titans go and no more can be made', V.count(true) === 0 && /turned off/.test(refused), refused);
+  w.bk.CONFIG.vathrokTitan = true;
+  T.clear();
+
+  // ---- the survival one: the lure, the hunt, beaten, its drops
+  const w2 = start(); w2.sim.terrainFn = TERRAINS.flat; open(w2);
+  const ana = w2.sim.addPlayer('Ana', { x: 0, y: 64, z: 0 }); ana.health = 1e6;
+  const V2 = w2.bk.vathrok.vathroks, dim2 = w2.sim.dims.get('minecraft:overworld');
+  ana.messages.length = 0;
+  ana.use('basiliskra:vathrok_lure');
+  w2.sim.step(4);
+  check('its lure shakes the ground', ana.messages.some((m) => /ground is shaking/.test(m)), ana.messages.slice(-1)[0]);
+  w2.sim.step(90);
+  const b = [...V2.list.values()][0];
+  const far = b ? Math.hypot(b.c.pos.x, b.c.pos.z) : 0;
+  check('and Vathrok comes up out of the ground 50 to 70 blocks away: one of it, named, with its boss bar\'s health', !!b && !b.battle && far >= 45 && far <= 75 && b.c.entity.nameTag === 'Vathrok'
+    && b.c.entity.getComponent('minecraft:health').currentValue === 1500, `${b ? Math.round(far) : '-'} blocks`);
+  ana.messages.length = 0; ana.use('basiliskra:vathrok_lure'); w2.sim.step(3);
+  check('a second lure does nothing while it is about', V2.count(false) === 1 && ana.messages.some((m) => /already/.test(m)), ana.messages.slice(-1)[0]);
+  const acts2 = new Set(); const h0 = ana.health;
+  for (let i = 0; i < 1800; i++) { w2.sim.step(1); for (const x of V2.list.values()) acts2.add(x.brain.actName); }
+  check('it comes up roaring, and goes for the player in Survival: it closes, bites, rakes or breathes', acts2.has('emerge') && (acts2.has('lunge') || acts2.has('swipe') || acts2.has('beam') || acts2.has('tail')) && ana.health < h0,
+    `${[...acts2].join(' ')}; ${h0} -> ${ana.health}`);
+  // beaten
+  for (let k = 0; k < 8 && b.c.valid; k++) { b.c.entity.applyDamage(250, { cause: 'entityAttack', damagingEntity: ana }); w2.sim.step(2); }
+  const going = b.brain.dying;
+  for (let i = 0; i < 160; i++) w2.sim.step(1);
+  const items = [...w2.sim.save.entities.values()].filter((r) => r.typeId === 'minecraft:item').map((r) => r.item?.typeId);
+  const orbs = [...w2.sim.save.entities.values()].filter((r) => r.typeId === 'minecraft:xp_orb').length;
+  check('it can be beaten: it goes down, is gone, and leaves its scales, its heart and experience', going && V2.count(false) === 0 && items.includes('basiliskra:vathrok_scale') && items.includes('basiliskra:vathrok_heart') && orbs > 10,
+    `${items.join(' ')}; ${orbs} orbs`);
+
+  // ---- now and then by itself, at night, near a player in Survival (never with the setting off, never by day)
+  const tries = (n) => { let got = false; for (let k = 0; k < n && !got; k++) { w2.sim.save.worldProps.delete('bk:vathrok_next'); V2.natural(w2.bk.store.rec.clock + k * 600); got = !!V2.pending; } return got; };
+  w2.sim.save.timeOfDay = 6000;
+  const byDay = tries(40);
+  w2.sim.save.timeOfDay = 17000;
+  w2.bk.CONFIG.vathrok = false;
+  const offAtNight = tries(40);
+  w2.bk.CONFIG.vathrok = true;
+  const atNight = tries(60);
+  if (V2.pending) V2.pending.t = w2.bk.store.rec.clock + 80;     // (it was asked about a later night: it comes in four seconds)
+  w2.sim.step(100);
+  check('at night it comes by itself now and then (never by day, never with the setting off)', !byDay && !offAtNight && atNight && V2.count(false) === 1, `${byDay} ${offAtNight} ${atNight}`);
+  w2.bk.CONFIG.vathrok = false; w2.sim.step(25);
+  check('turned off, the survival one goes', V2.count(false) === 0);
+  w2.bk.CONFIG.vathrok = true;
+}
+
 console.log(`\n${results.length - failures}/${results.length} checks passed`);
 fs.mkdirSync(path.join(ROOT, 'build'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, 'build/test-results.json'), JSON.stringify({ when: new Date().toISOString(), passed: results.length - failures, total: results.length, results }, null, 1));

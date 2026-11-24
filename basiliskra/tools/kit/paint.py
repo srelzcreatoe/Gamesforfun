@@ -36,6 +36,22 @@ PAL = {
     "g_white": C(255, 238, 216), "g_orange": C(255, 132, 64), "g_red": C(255, 40, 30), "g_deep": C(200, 16, 22),
 }
 
+# Vathrok (2.0): slate-green hide, acid-green crystal where he has crimson, a stained yellow mouth, yellow eyes
+PALETTES = {
+    "vathrok": {
+        "crevice": C(11, 13, 12), "dark": C(27, 31, 29), "mid": C(42, 47, 44), "light": C(63, 69, 64), "chip": C(96, 102, 92),
+        "belly_dark": C(48, 52, 40), "belly_mid": C(72, 74, 56), "belly_light": C(98, 98, 76),
+        "crim_deep": C(10, 30, 18), "crim_dark": C(18, 64, 32), "crim": C(40, 122, 48), "crim_bright": C(108, 198, 70),
+        "crim_hot": C(178, 240, 110),
+        "mouth_dark": C(24, 26, 10), "mouth": C(64, 60, 22), "tongue": C(96, 92, 40),
+        "eye_pale": C(222, 240, 110), "eye_shadow": C(150, 178, 50), "pupil": C(8, 10, 6), "glint": C(250, 255, 230),
+        "scar": C(150, 160, 130), "scar_dark": C(100, 110, 90),
+        "web": C(40, 96, 46), "web_dark": C(22, 56, 28),
+        "rock_dark": C(30, 30, 27), "rock": C(50, 49, 44), "rock_light": C(76, 74, 66),
+        "g_white": C(236, 255, 200), "g_orange": C(176, 255, 90), "g_red": C(86, 232, 64), "g_deep": C(24, 150, 44),
+    },
+}
+
 FACE_SHADE = {"up": 1.06, "down": 0.84, "north": 1.0, "south": 1.0, "east": 0.97, "west": 0.97}
 
 
@@ -216,6 +232,7 @@ def _veins(ctx: Ctx, gap, strength=1.0):
     net2 = value_noise(ctx.P, 7.0, ctx.seed + 53)
     live = (net * 0.7 + net2 * 0.3) > (0.60 - 0.22 * spine)
     vein = gap & live
+    strength = strength * m.get("veins", 1.0)
     inten = np.clip(0.35 + 0.65 * spine, 0, 1) * strength
     rgb = ramp([(0.0, PAL["g_deep"]), (0.55, PAL["g_red"]), (1.0, PAL["g_orange"])], inten)
     alpha = np.where(vein, np.clip(0.45 + 0.5 * inten, 0, 0.95), 0.0)
@@ -391,7 +408,12 @@ def m_eye(ctx: Ctx):
     gl = (ctx.iu == gu) & (ctx.iv == gv)
     rgb = np.where(gl[..., None], PAL["glint"], rgb)
     rough = np.where(ball, 0.08, 0.7)
-    return rgb, 1.0, np.zeros(ctx.L.shape[:-1] + (4,)), (0.0, rough, 0.0)
+    glow = np.zeros(ctx.L.shape[:-1] + (4,))
+    if ctx.model.meta.get("palette") == "vathrok":
+        # his eyes glow (the pupil stays dark)
+        lit = ball & ~pup
+        glow = np.concatenate([np.where(lit[..., None], PAL["eye_pale"], 0.0), np.where(lit, 0.9, 0.0)[..., None]], -1)
+    return rgb, 1.0, glow, (0.0, rough, 0.0)
 
 
 def m_rock(ctx: Ctx):
@@ -430,6 +452,19 @@ MATERIALS = {
 
 # ----------------------------------------------------------------------------- driver
 def paint(model: Model, ao_strength: float = 1.0):
+    """Paint with the model's own palette, if it names one (the table is put back afterwards)."""
+    own = PALETTES.get(model.meta.get("palette"))
+    saved = dict(PAL)
+    if own:
+        PAL.update(own)
+    try:
+        return _paint(model, ao_strength)
+    finally:
+        PAL.clear()
+        PAL.update(saved)
+
+
+def _paint(model: Model, ao_strength: float = 1.0):
     W, H = model.tex_w, model.tex_h
     color = np.zeros((H, W, 4), dtype=np.float64)
     glow = np.zeros((H, W, 4), dtype=np.float64)

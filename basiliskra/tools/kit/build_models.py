@@ -23,7 +23,9 @@ import paint
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 RP = os.path.join(ROOT, "packs", "RP")
-FORMS = {"i": "form1", "ii": "form2", "iii": "form3", "iv": "form4"}
+FORMS = {"i": "form1", "ii": "form2", "iii": "form3", "iv": "form4", "v": "form5"}
+# (Vathrok, 2.0, is another animal: its files carry its own name)
+NAMES = {"v": "vathrok"}
 
 
 def build(tag: str):
@@ -34,7 +36,7 @@ def build(tag: str):
     hidden = m.cull_hidden()
     fill = m.pack()
     color, glow, mers, gmers = paint.paint(m)
-    name = f"basiliskra_{tag}"
+    name = NAMES.get(tag, f"basiliskra_{tag}")
     tex_dir = os.path.join(RP, "textures", "entity", "basiliskra")
     os.makedirs(tex_dir, exist_ok=True)
     os.makedirs(os.path.join(RP, "models", "entity"), exist_ok=True)

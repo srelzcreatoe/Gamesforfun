@@ -1,0 +1,36 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "basiliskra:vathrok_lure"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "BSB",
+      "SES",
+      "BSB"
+    ],
+    "key": {
+      "B": {
+        "item": "minecraft:bone_block"
+      },
+      "S": {
+        "item": "minecraft:slime_ball"
+      },
+      "E": {
+        "item": "minecraft:emerald"
+      }
+    },
+    "unlock": [
+      {
+        "item": "minecraft:emerald"
+      }
+    ],
+    "result": {
+      "item": "basiliskra:vathrok_lure",
+      "count": 1
+    }
+  }
+}

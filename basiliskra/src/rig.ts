@@ -9,7 +9,9 @@
 import { BODY_DROP_III, RIGS, LOOK, SCALE, TAIL_LIFT_III, WINDOW_CROUCH_III, WINDOW_HEAD, WINDOW_NECK, WING_FOLD } from "./generated/rig";
 import { D2R, forwardOf, leftOf, type V3 } from "./vec";
 
-export type Form = 1 | 2 | 3 | 4;
+export type Form = 1 | 2 | 3 | 4 | 5;
+/** Form III and Vathrok (5, 2.0) walk on four legs, with one set of bone names and one walk. */
+export const quad = (f: Form): boolean => f === 3 || f === 5;
 export type PoseAdd = Record<string, [number, number, number]>;
 type Mat = number[];   // 3x4, row-major
 
@@ -118,7 +120,7 @@ export class Skeleton {
     const R = rotation(b.rot[0] + (add ? add[0] : 0), b.rot[1] + (add ? add[1] : 0), b.rot[2] + (add ? add[2] : 0));
     const local = about(R, b.pivot);
     // he rides this far below the bind pose (see gen_client.py), and lower still at a window
-    if (this.form === 3 && name === "body") local[7] -= BODY_DROP_III + WINDOW_CROUCH_III * this.window;
+    if (quad(this.form) && name === "body") local[7] -= BODY_DROP_III + WINDOW_CROUCH_III * this.window;
     if (name === "body") { local[3] += this.body[0]; local[7] += this.body[1]; local[11] += this.body[2]; }
     const m = b.parent ? mulM(this.bone(b.parent), local) : local;
     this.cache.set(name, m);

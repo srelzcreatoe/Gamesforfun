@@ -55,16 +55,29 @@ export const CONFIG = {
   cutscenes: true,
   /** His themes play when he is near, fighting, or in his last form. */
   music: true,
+  /**
+   * Vathrok (2.0), the other kaiju, met in survival: now and then at night it comes up out of the ground near a
+   * player, and whenever its lure is used; it can be beaten.  Off: it never comes, and one that is about goes.
+   */
+  vathrok: true,
+  /** The Vathrok Titan, for battles (its egg, /basiliskra:vathrok titan, the wheel): as strong as the Titan.  Off: none can be made, and those there are go. */
+  vathrokTitan: true,
 };
 
 /** The settings a player may change in game (the config wheel); saved with the world, over the defaults above. */
-export const SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music", "changeMinutes", "cities"] as const;
+export const SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music", "changeMinutes", "cities", "vathrok", "vathrokTitan"] as const;
 export const SETTINGS_KEY = "bk:cfg";
 
 export const NS = "basiliskra";
 export const TYPE = `${NS}:basiliskra`;
 /** The Titan: Basiliskra IV's body as an entity of its own, for battles (see titan.ts). */
 export const TITAN = `${NS}:titan`;
+/** Vathrok (2.0), the other kaiju: the one met in survival, and the one made for battles (see vathrok.ts). */
+export const VATHROK = `${NS}:vathrok`;
+export const VATHROK_TITAN = `${NS}:vathrok_titan`;
+export const VATHROK_SCALE_ITEM = `${NS}:vathrok_scale`;
+export const VATHROK_HEART_ITEM = `${NS}:vathrok_heart`;
+export const VATHROK_LURE_ITEM = `${NS}:vathrok_lure`;
 /** The people of his cities (see civilians.ts). */
 export const CIVILIAN = `${NS}:civilian`;
 /** His hit volumes: one entity type per size (hitbox_0 .. hitbox_9), all of one family. */

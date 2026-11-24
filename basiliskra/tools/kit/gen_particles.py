@@ -605,6 +605,34 @@ def draw_journal_icon() -> np.ndarray:
     return draw_rows(rows, col)
 
 
+def draw_vathrok_scale_icon() -> np.ndarray:
+    """16x16: one of Vathrok's scutes, slate with a green crystal edge."""
+    rows = ["................", "......kkkk......", "....kkssssk.....", "...kssmmmssk....", "..ksmmllmmmsk...", "..ksmllllmmsk...",
+            ".ksmmllmmmmsgk..", ".ksmmmmmmmsggk..", ".kssmmmmmssgGk..", "..kssmmmssggk...", "..kgssssggGk....", "...kggggGGk.....",
+            "....kkGGkk......", "......kk........", "................", "................"]
+    col = {"k": (12, 15, 13, 255), "s": (34, 40, 36, 255), "m": (52, 60, 54, 255), "l": (78, 88, 78, 255),
+           "g": (60, 160, 60, 255), "G": (170, 236, 100, 255)}
+    return draw_rows(rows, col)
+
+
+def draw_vathrok_heart_icon() -> np.ndarray:
+    """16x16: Vathrok's heart, dark, with acid-green light in its veins."""
+    rows = ["................", "...kkk...kkk....", "..kddgk.kddgk...", ".kdddggkddggdk..", ".kddgGgggddgdk..", ".kdggGGGggdddk..",
+            ".kddgGGGGgddgk..", "..kdggGGgddgk...", "..kddgggddgdk...", "...kddgddddk....", "....kddgddk.....", ".....kdddk......",
+            "......kdk.......", ".......k........", "................", "................"]
+    col = {"k": (10, 14, 10, 255), "d": (36, 46, 34, 255), "g": (70, 180, 64, 255), "G": (200, 250, 120, 255)}
+    return draw_rows(rows, col)
+
+
+def draw_vathrok_lure_icon() -> np.ndarray:
+    """16x16: a lure of bone bound with green-lit cord: what calls Vathrok up out of the ground."""
+    rows = ["................", ".......ww.......", "......wbbw......", "......wbbw......", ".....gwbbwg.....", "....gGwbbwGg....",
+            ".....gwbbwg.....", "......wbbw......", ".....gwbbwg.....", "....gGwbbwGg....", ".....gwbbwg.....", "......wbbw......",
+            ".....wwbbww.....", "....wbbbbbbw....", "....wwwwwwww....", "................"]
+    col = {"w": (120, 112, 96, 255), "b": (214, 206, 182, 255), "g": (64, 150, 60, 255), "G": (180, 240, 110, 255)}
+    return draw_rows(rows, col)
+
+
 def draw_wheel_icon() -> np.ndarray:
     """16x16: a copper gear wheel with a crimson hub."""
     rows = ["................", ".......cc.......", "...c..cCCc..c...", "..cCccCddCccCc..", "...cCdddddddCc..",
@@ -639,6 +667,59 @@ def draw_pack_icon(seed=5) -> np.ndarray:
     return big
 
 
+# ---- Vathrok (2.0) ---------------------------------------------------------------------
+# Vathrok's breath and glow are his effects in another colour: every tint is turned round the colour wheel from his
+# red and orange to acid green and yellow-green (white stays nearly white, a little green).  The sprites are grey, so
+# the tint is all the colour there is.
+VENOM = [
+    "beam_glow", "beam_halo", "beam_heat", "beam_core", "beam_pulse", "mouth_burst", "beam_smoke", "beam_sparks", "beam_embers",
+    "mouth_star", "beam_ring", "beam_arc", "impact_flash", "beam_spiral", "beam_impact", "impact_glare", "impact_fire",
+    "impact_smoke", "impact_blast", "impact_ring", "impact_fountain", "beam_aim", "charge_spark", "plate_ember", "throat_glow",
+    "mouth_flare", "charge_gather", "plate_blaze", "plate_smoke", "mouth_smoke", "roar_haze", "gill_steam", "club_crackle",
+    "claw_scratch", "claw_glow", "claw_sparks", "muzzle_shock", "step_dust",
+]
+
+
+def _turn(rgb):
+    """One colour of his, turned to Vathrok's: hue +100 degrees (red -> green, orange -> yellow-green), a little blue off whites."""
+    import colorsys
+    r, g, b = (max(0.0, min(1.0, float(v))) for v in rgb[:3])
+    h, l, sat = colorsys.rgb_to_hls(r, g, b)
+    if sat > 0.08 and l < 0.97:
+        h = (h + 100.0 / 360.0) % 1.0
+    r, g, b = colorsys.hls_to_rgb(h, l, sat)
+    if l > 0.8:
+        b *= 0.86
+    return [round(r, 4), round(g, 4), round(b, 4)] + [v for v in rgb[3:]]
+
+
+def _venom_colour(c):
+    if isinstance(c, list) and 3 <= len(c) <= 4 and all(isinstance(v, (int, float)) for v in c):
+        return _turn(c)
+    if isinstance(c, str) and c.startswith("#") and len(c) in (7, 9):
+        hexs = c[1:]
+        a, rgb = (hexs[:2], hexs[2:]) if len(hexs) == 8 else ("", hexs)
+        vals = [int(rgb[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+        out = _turn(vals)
+        return "#" + a + "".join(f"{int(round(v * 255)):02x}" for v in out[:3])
+    if isinstance(c, dict):
+        return {k: _venom_colour(v) for k, v in c.items()}
+    if isinstance(c, list):
+        return [_venom_colour(v) for v in c]
+    return c
+
+
+def venom(data, name):
+    import copy
+    d = copy.deepcopy(data)
+    eff = d["particle_effect"]
+    eff["description"]["identifier"] = f"{NS}:v_{name}"
+    tint = eff["components"].get("minecraft:particle_appearance_tinting")
+    if tint and "color" in tint:
+        tint["color"] = _venom_colour(tint["color"])
+    return d
+
+
 def main():
     os.makedirs(os.path.join(RP, "textures", "particle"), exist_ok=True)
     os.makedirs(os.path.join(RP, "textures", "items"), exist_ok=True)
@@ -648,6 +729,8 @@ def main():
     Image.fromarray(draw_fin_icon(), "RGBA").save(os.path.join(RP, "textures", "items", f"{NS}_shed_fin.png"))
     Image.fromarray(draw_journal_icon(), "RGBA").save(os.path.join(RP, "textures", "items", f"{NS}_journal.png"))
     Image.fromarray(draw_wheel_icon(), "RGBA").save(os.path.join(RP, "textures", "items", f"{NS}_config_wheel.png"))
+    for n, fn in (("vathrok_scale", draw_vathrok_scale_icon), ("vathrok_heart", draw_vathrok_heart_icon), ("vathrok_lure", draw_vathrok_lure_icon)):
+        Image.fromarray(fn(), "RGBA").save(os.path.join(RP, "textures", "items", f"{NS}_{n}.png"))
     icon = Image.fromarray(draw_pack_icon(), "RGBA")
     icon.save(os.path.join(RP, "pack_icon.png"))
     icon.save(os.path.join(ROOT, "packs", "BP", "pack_icon.png"))
@@ -659,6 +742,14 @@ def main():
             json.dump(data, f, indent=1)
             f.write("\n")
         names.append(name)
+    # Vathrok's (2.0): the same shapes in its own acid green
+    by_name = {name: data for name, data, _ in EFFECTS}
+    for name in VENOM:
+        data = venom(by_name[name], name)
+        with open(os.path.join(RP, "particles", f"{NS}_v_{name}.particle.json"), "w") as f:
+            json.dump(data, f, indent=1)
+            f.write("\n")
+        names.append(f"v_{name}")
     print(f"{len(names)} particle effects, sprite sheet {SHEET}x{SHEET}, item icon, pack icons")
     return names
 

@@ -387,6 +387,8 @@ function tellNear(dim: Dimension, at: V3, msg: string): void {
 
 export class Titans {
   readonly list = new Map<string, Titan>();
+  /** More rows for the health line: the Vathrok Titans' (2.0; set from main.ts, so neither module loads the other). */
+  extraRows: () => { c: Creature; text: string }[] = () => [];
   private hurtCry = new Map<string, number>();
 
   get count(): number { return this.list.size; }
@@ -526,6 +528,7 @@ export class Titans {
       const k = Math.max(0, Math.min(10, Math.ceil((h / TITAN_HEALTH) * 10)));
       rows.push({ c: t.c, text: `§4${TITAN_NAMES[t.n % TITAN_NAMES.length]} §c${"█".repeat(k)}§8${"█".repeat(10 - k)} §7${Math.max(0, Math.round(h))}` });
     }
+    rows.push(...this.extraRows());
     if (!rows.length) return;
     for (const p of players()) {
       try {
@@ -548,7 +551,7 @@ export class Titans {
       if (t.brain.gone) { this.drop(t, true); continue; }
       t.c.update();
     }
-    if (now % 10 === 3 && this.list.size) this.hud();
+    if (now % 10 === 3) this.hud();
   }
 }
 

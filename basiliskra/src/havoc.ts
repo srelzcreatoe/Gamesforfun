@@ -8,7 +8,7 @@
  * or writes an unloaded chunk.
  */
 import { BlockVolume, Dimension, Entity, EntityDamageCause, Player } from "@minecraft/server";
-import { CONFIG, PART_FAMILY, TITAN, TYPE } from "./config";
+import { CONFIG, PART_FAMILY, TITAN, TYPE, VATHROK, VATHROK_TITAN } from "./config";
 import { particle, sound, witnesses } from "./fx";
 import { add, dist, norm, type V3 } from "./vec";
 import { NATURAL_IDS, NEVER_IDS, STORAGE_IDS } from "./generated/ids";
@@ -304,7 +304,7 @@ export function shatterRing(dim: Dimension, center: V3, r0: number, r1: number, 
 /** Creatures (not players, not him) near a point: anything of the mob family, and other add-ons' monsters that are not (1.9). */
 export function mobsNear(dim: Dimension, at: V3, r: number): Entity[] {
   try {
-    const out = dim.getEntities({ location: at, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
+    const out = dim.getEntities({ location: at, maxDistance: r, families: ["mob"], excludeTypes: [TYPE, TITAN, VATHROK, VATHROK_TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY] });
     const seen = new Set(out.map((e) => e.id));
     for (const e of dim.getEntities({ location: at, maxDistance: r, families: ["monster"], excludeTypes: [TYPE, TITAN, "minecraft:player"], excludeFamilies: [PART_FAMILY, "mob"] })) {
       if (!seen.has(e.id)) out.push(e);

@@ -1725,6 +1725,169 @@ def s_hurt(v, rng):
     return np.tanh(0.5 * (y + 1.2 * th)) * 2.0
 
 
+
+# =====================================================================================
+# 14b. Vathrok (2.0): the other kaiju.  Nothing of his voice (which is a recording): a rattling reptile throat,
+#      lower and rougher, with an acid hiss in it; crystal that rings as its spines light.
+# =====================================================================================
+
+def _v_throat(d, f0, rng, sub=0.85, tilt=0.9, jitter=0.09, fmax=4800.0, F=(230.0, 560.0, 1150.0, 2400.0), move=1.0):
+    """Vathrok's voice: a huge, rough throat (strong period-doubling) with low formants."""
+    fmts = [(env(d, [(0, F[0]), (d * 0.5, F[0] * (1 + 0.25 * move)), (d, F[0] * 0.92)]), 110.0, 1.0),
+            (env(d, [(0, F[1]), (d * 0.5, F[1] * (1 + 0.2 * move)), (d, F[1] * 0.9)]), 200.0, 0.75),
+            (F[2], 380.0, 0.4), (F[3], 700.0, 0.16)]
+    return voice(d, f0, fmts, rng, tilt=tilt, jitter=jitter, jit_fc=24.0, sub=sub, fmax=fmax), fmts
+
+
+def _v_hiss(d, rng, amp, lo=1400.0, hi=5200.0):
+    """The acid in its breath: a hiss with a sizzle running through it."""
+    n = N(d)
+    h = band_noise(d, rng, math.sqrt(lo * hi), math.log2(hi / lo), slope=-1.5)
+    cr = crackle(d, 60.0, rng, 2500.0, 9000.0)
+    return (0.8 * nr(h) + 0.35 * nr(cr)) * amp
+
+
+def s_v_roar(v, rng):
+    d = 5.2
+    n = N(d)
+    # a dry rattle in the throat, then the bellow rises in two pushes and falls into a gurgle
+    f0 = env(d, [(0, 30), (0.5, 34), (1.1, 52), (1.9, 47), (2.4, 58), (3.6, 50), (4.4, 36), (d, 28)], 'exp', sm=0.06)
+    g, fmts = _v_throat(d, f0, rng, sub=env(d, [(0, 1.0), (1.2, 0.7), (2.6, 0.9), (d, 1.0)]))
+    amp = env(d, [(0, 0), (0.25, 0.35), (1.0, 0.85), (1.8, 0.75), (2.5, 1.0), (3.7, 0.9), (4.6, 0.3), (d, 0)], sm=0.05)
+    trem = 1.0 + 0.32 * np.sin(TAU * np.cumsum(curve(n, env(d, [(0, 17), (2.5, 21), (d, 13)]))) / SR)
+    pt = pulse_times(d, env(d, [(0, 22), (0.9, 26), (d, 18)]), rng, jitter=0.35)
+    rattle = filt(impulses(n, pt, rng.lognormal(0.0, 0.5, len(pt))), BANK([(700.0, 5.0, 1.0), (1300.0, 6.0, 0.6), (2300.0, 6.0, 0.3)]))
+    rattle = nr(rattle) * env(d, [(0, 1.0), (0.9, 0.7), (1.3, 0.2), (4.2, 0.2), (4.7, 0.8), (d, 0.3)])
+    air = formant_noise(d, rng, fmts)
+    hiss = _v_hiss(d, rng, env(d, [(0, 0), (1.0, 0.2), (2.6, 0.55), (3.8, 0.4), (d, 0)], sm=0.05))
+    gurgle = nr(bubbles(d, 18.0, rng, 250.0, 1200.0)) * env(d, [(0, 0), (3.8, 0), (4.4, 0.8), (d, 0.4)])
+    low = nr(sine(0.5 * curve(n, f0))) * 0.5
+    y = (nr(g) * trem + 0.45 * rattle + 0.3 * air + 0.45 * hiss + 0.35 * gurgle + low) * amp
+    y = np.tanh(0.6 * y) * 1.8
+    return reverb(y, rng, t60=1.4, wet=0.22, lp=5000.0, hp=60.0, pre=0.02)
+
+
+def s_v_growl(v, rng):
+    d = 2.4
+    n = N(d)
+    f0 = env(d, [(0, 32 + 3 * v), (0.6, 40 + 3 * v), (1.6, 37), (d, 30)], 'exp', sm=0.05)
+    g, fmts = _v_throat(d, f0, rng, sub=0.9, move=0.6)
+    amp = env(d, [(0, 0), (0.3, 0.7), (1.1, 1.0), (1.9, 0.6), (d, 0)], sm=0.03) * (1.0 + 0.2 * lfo_noise(n, 8.0, rng))
+    pt = pulse_times(d, env(d, [(0, 20), (d, 15)]), rng, jitter=0.35)
+    rat = filt(impulses(n, pt, rng.lognormal(0.0, 0.5, len(pt))), BANK([(650.0, 5.0, 1.0), (1250.0, 6.0, 0.6)]))
+    y = (nr(g) + 0.4 * nr(rat) + 0.25 * formant_noise(d, rng, fmts) + 0.2 * nr(bubbles(d, 10.0, rng, 300.0, 1400.0))) * amp
+    return np.tanh(0.55 * y) * 2.0
+
+
+def s_v_huff(v, rng):
+    d = 1.4
+    n = N(d)
+    fmts = [(320.0, 160.0, 1.0), (900.0, 300.0, 0.6), (2200.0, 700.0, 0.3)]
+    air = formant_noise(d, rng, fmts, slope=-2.0)
+    amp = env(d, [(0, 0), (0.06, 1.0), (0.35, 0.6), (0.9, 0.15), (d, 0)], sm=0.01)
+    rum = nr(filt(colored(n, rng, -6.0), LP(90.0, 3))) * env(d, [(0, 0), (0.05, 1.0), (0.6, 0.3), (d, 0)])
+    hiss = _v_hiss(d, rng, env(d, [(0, 0), (0.05, 0.4), (0.5, 0.1), (d, 0)]))
+    return (nr(air) * (0.9 if v == 1 else 0.7) + 0.6 * rum + 0.4 * hiss) * amp
+
+
+def s_v_charge(v, rng):
+    d = 4.0
+    n = N(d)
+    # the spines light from the tail up: a rising run of crystal rings over a hum climbing to a whine, the acid
+    # bubbling in its throat
+    hum_f = env(d, [(0, 55), (d, 165)], 'exp')
+    hum = nr(sine(hum_f) + 0.5 * sine(2.01 * curve(n, hum_f)) + 0.25 * sine(3.02 * curve(n, hum_f)))
+    hum = hum * env(d, [(0, 0), (0.4, 0.3), (d * 0.9, 1.0), (d, 0.6)])
+    y = np.zeros(n)
+    for k in range(18):
+        t0 = 0.12 + k * (d - 0.5) / 18 + rng.uniform(-0.03, 0.03)
+        f = 1400.0 * (1.045 ** k) * rng.uniform(0.97, 1.03)
+        place(y, modal(0.6, [(f, 0.35, 1.0), (f * 2.76, 0.18, 0.4), (f * 5.4, 0.1, 0.15)]) * (0.5 + 0.5 * k / 18), t0)
+    bub = nr(bubbles(d, env(d, [(0, 6), (d, 30)]), rng, 300.0, 2200.0)) * env(d, [(0, 0.2), (d, 1.0)])
+    hiss = _v_hiss(d, rng, env(d, [(0, 0), (1.5, 0.2), (d, 0.8)]))
+    g, _ = _v_throat(d, env(d, [(0, 30), (d, 36)]), rng, sub=1.0, move=0.2)
+    growl = nr(g) * env(d, [(0, 0), (0.5, 0.35), (d, 0.5)])
+    out = 0.8 * hum + 0.55 * nr(y) + 0.35 * bub + 0.45 * hiss + 0.45 * growl
+    return reverb(np.tanh(0.7 * out) * 1.5, rng, t60=1.0, wet=0.2, lp=7000.0, hp=50.0)
+
+
+def s_v_beam(v, rng):
+    d = 6.0
+    n = N(d)
+    # the breath let go: a roaring torrent of hiss over a deep throat roar, sizzling, then dying
+    amp = env(d, [(0, 0), (0.08, 1.0), (4.6, 0.95), (5.4, 0.35), (d, 0)], sm=0.02)
+    torrent = nr(band_noise(d, rng, 900.0, 3.2, slope=-1.2)) * (1.0 + 0.25 * lfo_noise(n, 12.0, rng))
+    hiss = _v_hiss(d, rng, 1.0, 1800.0, 7000.0)
+    g, _ = _v_throat(d, env(d, [(0, 40), (0.3, 50), (4.8, 46), (d, 34)], 'exp'), rng, sub=0.9)
+    rum = nr(filt(colored(n, rng, -6.0), LP(110.0, 3)))
+    crack = np.zeros(n)
+    place(crack, burst(0.4, rng, 0.05, LP(1800.0, 2)), 0.0)
+    y = (0.9 * torrent + 0.6 * hiss + 0.6 * nr(g) + 0.5 * rum) * amp + 1.4 * nr(crack)
+    return reverb(np.tanh(0.6 * y) * 1.7, rng, t60=1.3, wet=0.2, lp=8000.0, hp=50.0)
+
+
+def s_v_step(v, rng):
+    d = 1.0
+    n = N(d)
+    ti = 0.03
+    f0 = (42.0, 47.0, 39.0)[v - 1]
+    y = np.zeros(n)
+    th = thump(0.9, f0, f0 * 1.15, 0.025, rng.uniform(0.45, 0.55), drive=1.8)
+    place(y, th, ti)
+    knuck = np.zeros(n)                                        # the knuckles cracking down on stone
+    place(knuck, pk(burst(0.12, rng, 0.006, BP(rng.uniform(1600.0, 2200.0), 1.4))), ti + 0.004)
+    dens = env(d, [(0, 0), (ti, 0), (ti + 0.008, 1000), (ti + 0.15, 260), (ti + 0.4, 40), (0.85, 0), (d, 0)])
+    cr = crunch(d, dens, rng, 450.0, 6000.0)
+    rum = nr(filt(colored(n, rng, -6.0), LP(80.0, 3))) * env(d, [(0, 0), (ti, 0), (ti + 0.05, 1.0), (0.6, 0.3), (d, 0)])
+    return 4.2 * pk(y) + 0.9 * pk(knuck) + 1.3 * pk(cr) + 0.35 * rum
+
+
+def s_v_hurt(v, rng):
+    d = 1.3
+    n = N(d)
+    f0 = env(d, [(0, 60), (0.08, 95 + 10 * v), (0.4, 70), (d, 40)], 'exp', sm=0.01)
+    g, fmts = _v_throat(d, f0, rng, sub=0.7, F=(300.0, 760.0, 1500.0, 2700.0))
+    amp = env(d, [(0, 0), (0.03, 1.0), (0.35, 0.7), (0.9, 0.15), (d, 0)], sm=0.005)
+    y = (nr(g) + 0.3 * formant_noise(d, rng, fmts) + 0.3 * _v_hiss(d, rng, 1.0)) * amp
+    return np.tanh(0.6 * y) * 1.8
+
+
+def s_v_death(v, rng):
+    d = 5.0
+    n = N(d)
+    f0 = env(d, [(0, 70), (0.3, 82), (1.5, 52), (3.0, 34), (d, 24)], 'exp', sm=0.05)
+    g, fmts = _v_throat(d, f0, rng, sub=1.0, move=-0.6)
+    amp = env(d, [(0, 0), (0.15, 1.0), (1.6, 0.8), (3.2, 0.45), (4.4, 0.1), (d, 0)], sm=0.04)
+    gur = nr(bubbles(d, 14.0, rng, 200.0, 1000.0)) * env(d, [(0, 0), (2.0, 0.3), (3.5, 0.8), (d, 0.2)])
+    fall = np.zeros(n)
+    place(fall, thump(1.4, 36.0, 60.0, 0.03, 0.7, drive=2.0), 3.6)
+    place(fall, pk(crunch(1.2, env(1.2, [(0, 900), (0.3, 200), (1.2, 0)]), rng, 400.0, 5000.0)), 3.6)
+    y = (nr(g) + 0.3 * formant_noise(d, rng, fmts) + 0.4 * gur) * amp + 2.5 * pk(fall)
+    return reverb(np.tanh(0.6 * y) * 1.7, rng, t60=1.5, wet=0.24, lp=5000.0, hp=40.0)
+
+
+def s_v_claw(v, rng):
+    d = 1.0
+    n = N(d)
+    sweep = swept_noise(env(d, [(0, 260), (0.3, 1100 + 150 * v), (0.55, 300), (d, 200)]), 500.0, rng)
+    whoosh = nr(sweep) * env(d, [(0, 0), (0.2, 0.6), (0.33, 1.0), (0.5, 0.2), (d, 0)])
+    hit = np.zeros(n)
+    place(hit, thump(0.6, 50.0, 70.0, 0.02, 0.35, drive=1.6), 0.34)
+    place(hit, pk(burst(0.25, rng, 0.03, LP(2400.0, 2))), 0.34)
+    rake = nr(crunch(d, env(d, [(0, 0), (0.34, 0), (0.36, 1200), (0.6, 100), (d, 0)]), rng, 900.0, 7000.0))
+    return 1.0 * whoosh + 3.0 * pk(hit) + 0.8 * rake
+
+
+def s_v_bite(v, rng):
+    d = 0.8
+    n = N(d)
+    snap = np.zeros(n)
+    place(snap, modal(0.25, [(1900.0, 0.03, 1.0), (3100.0, 0.02, 0.6), (5200.0, 0.015, 0.3)]), 0.02)
+    place(snap, pk(burst(0.08, rng, 0.004, HP(1200.0, 2))), 0.02)
+    place(snap, thump(0.5, 70.0, 90.0, 0.015, 0.2, drive=1.4), 0.02)
+    g, _ = _v_throat(d, env(d, [(0, 45), (0.2, 60), (d, 38)]), rng, sub=0.8)
+    return 2.5 * pk(snap) + 0.5 * nr(g) * env(d, [(0, 0), (0.05, 1.0), (0.4, 0.3), (d, 0)])
+
 # =====================================================================================
 # 15. registry
 # =====================================================================================
@@ -1816,6 +1979,27 @@ SPEC = [
      'Strangled rising voiced choke (170->255 Hz, cut at 0.25 s), two coughs (formant noise + rough voiced burst + throat thump), last sparks, faint wheeze'),
     ('basiliskra.iii.scatter', 1, 3.0, 'hostile', 12, 112, -15.0, s_iii_scatter, {'fo': 0.03},
      'Nine detuned pairs of thin tones (1.9-7.2 kHz) with staggered onsets, individual 6-14 Hz shimmer and narrow-band sizzle noise, crackle, faint 92 Hz bed'),
+    # ---- Vathrok (2.0) --------------------------------------------------------------
+    ('basiliskra.vathrok.roar', 1, 5.2, 'hostile', 20, 192, -13.0, s_v_roar, {'fo': 0.3},
+     'Vathrok: dry throat rattle (22-26/s pulses through 0.7/1.3/2.3 kHz), then a rough bellow 30->52->58->28 Hz with strong period-doubling, low formants, 17-21 Hz tremolo, rising acid hiss and sizzle, falling into a gurgle; 1.4 s reverb'),
+    ('basiliskra.vathrok.growl', 2, 2.4, 'hostile', 10, 96, -15.0, s_v_growl, {'fo': 0.2},
+     'Vathrok: low rough growl (32-43 Hz), 15-20/s rattle, bubbling'),
+    ('basiliskra.vathrok.huff', 2, 1.4, 'hostile', 6, 64, -18.0, s_v_huff, {'fo': 0.1},
+     'Vathrok: exhale through low formants, sub-90 Hz chest rumble, a little hiss'),
+    ('basiliskra.vathrok.charge', 1, 4.0, 'hostile', 16, 160, -14.0, s_v_charge, {'fo': 0.05},
+     'Vathrok charging: hum climbing 55->165 Hz with partials, eighteen crystal rings rising from 1.4 kHz (the spines lighting tail to head), bubbling acid, growing hiss, throat growl'),
+    ('basiliskra.vathrok.beam', 1, 6.0, 'hostile', 20, 192, -12.0, s_v_beam, {'fo': 0.4},
+     'Vathrok breath: crack, then a torrent of band noise round 900 Hz with a 1.8-7 kHz sizzle over a 40-50 Hz throat roar and rumble; dies away over the last second'),
+    ('basiliskra.vathrok.step', 3, 1.0, 'hostile', 8, 96, -15.0, s_v_step, {'fo': 0.03},
+     'Vathrok footfall: saturated 39-47 Hz thud, knuckle crack (1.6-2.2 kHz burst), gravel crunch, ground rumble'),
+    ('basiliskra.vathrok.hurt', 2, 1.3, 'hostile', 8, 80, -15.0, s_v_hurt, {'fo': 0.05},
+     'Vathrok hurt: short rough cry 60->105->40 Hz, higher formants, hiss'),
+    ('basiliskra.vathrok.death', 1, 5.0, 'hostile', 20, 192, -13.0, s_v_death, {'fo': 0.3},
+     'Vathrok beaten: a long falling groan 82->24 Hz, gurgling, and the body coming down at 3.6 s (36 Hz thud, crunch)'),
+    ('basiliskra.vathrok.claw', 2, 1.0, 'hostile', 10, 96, -14.0, s_v_claw, {'fo': 0.05},
+     'Vathrok claws: whoosh swept 260->1.2 kHz, a 50 Hz blow and a rake of grit at 0.34 s'),
+    ('basiliskra.vathrok.bite', 1, 0.8, 'hostile', 8, 80, -15.0, s_v_bite, {'fo': 0.05},
+     'Vathrok bite: tooth clack (1.9/3.1/5.2 kHz modes) on a 70 Hz thump, a grunt'),
     # ---- misc ---------------------------------------------------------------------
     ('basiliskra.fin_pulse', 1, 0.4, 'neutral', 1, 12, -24.0, s_fin_pulse, {'fo': 0.02},
      'Two soft saturated sine beats (88->58 Hz, then 92->66 Hz at 0.7 level) with low noise puffs, low-passed at 700 Hz'),

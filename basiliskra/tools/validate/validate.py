@@ -198,6 +198,12 @@ events.update(titan_bp.get("events", {}))
 civ_bp = docs.get("packs/BP/entities/basiliskra_civilian.json", {}).get("minecraft:entity", {})
 civ_ce = docs.get("packs/RP/entity/basiliskra_civilian.entity.json", {}).get("minecraft:client_entity", {}).get("description", {})
 civ_props = civ_bp.get("description", {}).get("properties", {})
+# Vathrok (2.0): the other kaiju, two entities on one model
+vath_bp = docs.get("packs/BP/entities/vathrok.json", {}).get("minecraft:entity", {})
+vath_ce = docs.get("packs/RP/entity/vathrok.entity.json", {}).get("minecraft:client_entity", {}).get("description", {})
+vtitan_bp = docs.get("packs/BP/entities/vathrok_titan.json", {}).get("minecraft:entity", {})
+vtitan_ce = docs.get("packs/RP/entity/vathrok_titan.entity.json", {}).get("minecraft:client_entity", {}).get("description", {})
+events.update(vath_bp.get("events", {}))
 
 
 def tex_exists(rel):
@@ -291,7 +297,7 @@ for k, d in docs.items():
     anims.update(d.get("animations", {}) if "format_version" in d and "animations" in d and "minecraft:client_entity" not in d else {})
     actrl.update(d.get("animation_controllers", {}))
     rctrl.update(d.get("render_controllers", {}))
-tag_of = {t: f"geometry.{NS}.{t}" for t in ("i", "ii", "iii", "iv")}
+tag_of = {t: f"geometry.{NS}.{t}" for t in ("i", "ii", "iii", "iv", "v")}
 for short, aid in ent.get("animations", {}).items():
     if aid.startswith("controller."):
         if aid not in actrl:
@@ -310,9 +316,11 @@ for aid, a in anims.items():
 for cid, c in actrl.items():
     tag = cid.split(".")[3]
     locs = geos.get(tag_of.get(tag, ""), {}).get("locators", set())
+    # (Vathrok's controller is played by its own client entities, with its own effects)
+    owner = vath_ce if tag == "v" else ent
     for sname, s in c.get("states", {}).items():
         for pe in s.get("particle_effects", []):
-            if pe["effect"] not in ent.get("particle_effects", {}):
+            if pe["effect"] not in owner.get("particle_effects", {}):
                 err(f"{cid}.{sname}: particle {pe['effect']} not declared on the client entity")
             if pe.get("locator") and pe["locator"] not in locs:
                 err(f"{cid}.{sname}: locator {pe['locator']} is not in {tag_of.get(tag)}")
@@ -620,6 +628,55 @@ else:
     if not th or int(th.group(1)) != tc.get("minecraft:health", {}).get("max"):
         err("the script's figure for the Titan's health is not the entity's")
     ok("the Titan (entity, client entity, names)")
+
+# Vathrok: both entities have his synchronised properties (one pose draws them) with form 5, Vathrok's family and not
+# his, the box and the events the script binds and removes them with; the battle one the Titan's health and
+# immunities, the survival one far less and a boss bar; client entities whose every reference exists; eggs and names
+for name, vb, vc in (("vathrok", vath_bp, vath_ce), ("vathrok_titan", vtitan_bp, vtitan_ce)):
+    ident = f"{NS}:{name}"
+    if vb.get("description", {}).get("identifier") != ident or vc.get("identifier") != ident:
+        err(f"{ident} has no behaviour-pack entity or no client entity")
+        continue
+    vp = vb["description"].get("properties", {})
+    if set(vp) != set(props) or vp.get(f"{NS}:form", {}).get("default") != 5:
+        err(f"{ident}'s properties differ from his, or it does not start as form 5")
+    vcomp = vb.get("components", {})
+    fam = vcomp.get("minecraft:type_family", {}).get("family", [])
+    if f"{NS}_vathrok" not in fam or NS in fam or f"{NS}_part" in fam or f"{NS}_titan" in fam:
+        err(f"{ident}'s families are {fam}")
+    if "minecraft:collision_box" not in vcomp or f"{NS}:bind" not in vb.get("events", {}) or f"{NS}:expire" not in vb.get("events", {}):
+        err(f"{ident} lacks its box, or the events the script binds and removes it with")
+    hp = vcomp.get("minecraft:health", {}).get("max", 0)
+    if name == "vathrok_titan":
+        if hp != titan_bp.get("components", {}).get("minecraft:health", {}).get("max"):
+            err("the Vathrok Titan's health is not the Titan's")
+        immune = {t["cause"] for t in vcomp.get("minecraft:damage_sensor", {}).get("triggers", []) if t.get("deals_damage") == "no"}
+        if not {"magic", "wither", "entity_explosion", "block_explosion"} <= immune:
+            err("the Vathrok Titan lacks the Titan's immunities")
+    elif not (600 <= hp <= 5000) or "minecraft:boss" not in vcomp:
+        err(f"the survival Vathrok should be beatable, with a boss bar (health {hp})")
+    for short, ref in vc.get("textures", {}).items():
+        if not tex_exists(ref):
+            err(f"{ident} texture {short} = {ref} missing")
+    for short, ref in vc.get("geometry", {}).items():
+        if ref not in geos:
+            err(f"{ident} geometry {ref} is not defined")
+    for short, ref in vc.get("animations", {}).items():
+        if ref not in anims and ref not in actrl:
+            err(f"{ident} animation {ref} missing")
+    for short, ref in vc.get("particle_effects", {}).items():
+        if not os.path.exists(os.path.join(RP, "particles", ref.replace(":", "_") + ".particle.json")):
+            err(f"{ident} particle {short} = {ref} has no file")
+    for r in vc.get("render_controllers", []):
+        rid = next(iter(r)) if isinstance(r, dict) else r
+        if rid not in rctrl or ".v." not in rid:
+            err(f"{ident}'s render controller {rid} is missing or not Vathrok's")
+    for a in vc.get("scripts", {}).get("animate", []):
+        if (next(iter(a)) if isinstance(a, dict) else a) not in vc.get("animations", {}):
+            err(f"{ident} animates {a}, which it does not define")
+    if "spawn_egg" not in vc or f"item.spawn_egg.entity.{ident}.name=" not in rp_lang or f"entity.{ident}.name=" not in rp_lang:
+        err(f"{ident}'s spawn egg or name is missing")
+    ok("Vathrok (entities, client entities, names)")
 
 vanilla_items = set()
 if SAMPLES and os.path.exists(os.path.join(SAMPLES, "metadata/vanilladata_modules/mojang-items.json")):
