@@ -372,8 +372,8 @@ broken glass dome and a telescope aimed at a sky that is not there, the **Garden
 hundreds of eyeblooms round a great eye that looks every way at once), a **barrow field** (rows and rows of graves, a
 chapel of bones over a vault), **two hamlets** of abandoned cottages round a well and a gallows, a **watchtower** with a
 soul fire burning on its top, and an expedition's **camp** — each with chests of its own. The sky is grey, darker than
-the Mire's; **rocks hang in the air** over the woods with void crystals and amethyst growing on them, and the ground is
-starlit in patches, like the Goatwalker's woods; and the **eyeblooms grow there now — and their eyes follow you**.
+the Mire's; **rocks hang in the air** over the woods with void crystals and amethyst growing on them, stardust drifts
+down round you and the ground is starlit in patches, like the Goatwalker's woods; and the **eyeblooms grow there now — and their eyes follow you**.
 
 **Nothing lives there but it.** Anything you bring in alive is gone; what you drop, throw or shoot stays. And in
 there it does not wait for anything: it is glimpsed between the trees, it laughs somewhere off in the rain, its steps

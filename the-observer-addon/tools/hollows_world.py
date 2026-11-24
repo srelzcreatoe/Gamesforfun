@@ -418,7 +418,7 @@ PIECES = {
 # the Shaftbreaker's den. (Measured in a Hollows on seed 7777: without its clawed stone, sculk, sculk veins and magma
 # in this list hardly any chamber could go down; 1.7.0.)
 ROCK = ["minecraft:air", "minecraft:stone", "minecraft:deepslate", "minecraft:tuff", "minecraft:andesite", "minecraft:diorite",
-        "minecraft:granite", "minecraft:calcite", "minecraft:dirt", "minecraft:coarse_dirt", "minecraft:rooted_dirt", "minecraft:gravel",
+        "minecraft:granite", "minecraft:calcite", "minecraft:dirt", "minecraft:coarse_dirt", "minecraft:dirt_with_roots", "minecraft:gravel",
         "minecraft:clay", "minecraft:smooth_basalt", "minecraft:magma",
         "minecraft:dripstone_block", "minecraft:pointed_dripstone", "minecraft:water", "minecraft:flowing_water", "minecraft:glow_lichen",
         "minecraft:moss_block", "minecraft:moss_carpet", "minecraft:hanging_roots",

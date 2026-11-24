@@ -2,7 +2,8 @@
 // The Rift's weather and its rules (1.6.0):
 //   * its mist (fog observer:rift), on while you are in there, gone when you leave (or die there);
 //   * rain that does not stop (particles round you that end on whatever they hit, so roofs keep it off; the sound of
-//     it), embers drifting up from the ground, and lightning: a flash (Camera effects setting) and thunder;
+//     it), embers drifting up from the ground, stardust drifting down (1.7.0), and lightning: a flash (Camera effects
+//     setting) and thunder;
 //   * nothing lives there but it: any creature brought in (a mob on a lead, out of an egg or a spawner) is gone; what
 //     is dropped, thrown or shot stays;
 //   * the void: fall off the edge of the woods and the Rift puts you back at the stones.
@@ -84,6 +85,8 @@ export function tick() {
     safe(() => p.spawnParticle("observer:rift_rain", { x: l.x, y: l.y, z: l.z }));
     safe(() => p.playSound("ambient.weather.rain", { location: { x: l.x, y: l.y + 4, z: l.z }, volume: 0.35, pitch: rand(0.85, 1) }));
     if (Math.random() < 0.5) safe(() => p.spawnParticle("observer:rift_embers", { x: l.x, y: l.y, z: l.z }));
+    // (1.7.0) and stardust drifting down round you, as in the Goatwalker's starlit woods
+    if (Math.random() < 0.7) safe(() => p.spawnParticle("goatwalker:stardust", { x: l.x, y: l.y + 3, z: l.z }));
     if (t >= (boltAt.get(p.id) ?? 0)) {
       lightning(p, Math.random() * 0.8);
       boltAt.set(p.id, t + rand(14, 40));

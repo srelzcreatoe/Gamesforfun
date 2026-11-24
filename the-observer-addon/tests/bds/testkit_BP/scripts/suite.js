@@ -4955,7 +4955,10 @@ TESTS.dwellers = async () => {
   obs("dwellers", "off", "goatwalker");
   await wait(10);
   // one music channel (two test sources; every dweller off, so only these calls use it): a dweller plays; the Observer takes it (the next track waits); let go, the newest plays again;
-  // that stops, the older one plays again; that stops, silence
+  // that stops, the older one plays again; that stops, silence. (From a free channel: an earlier group can leave the
+  // Observer's silence or theme still holding it for a while — 1.7.0's full run.)
+  obs("channel", "release", "Tester");
+  await wait(4);
   m = mark();
   obs("channel", "play", "test_a", "music.shaftbreaker.presence", "Tester");
   await wait(2);

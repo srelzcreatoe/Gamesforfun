@@ -526,7 +526,9 @@ async function hollowsCheck(want) {
   for (const f of found) {
     // (every chunk of the sample loaded first: 1.6.0 waited for one corner only, and read nothing where it was not)
     const R = 56;
-    dim.runCommand(`tickingarea add ${f.x - R} 0 ${f.z - R} ${f.x + R} 0 ${f.z + R} hsx true`);
+    // (a name of its own each time: re-adding one just removed was refused every other time)
+    const area = `hsx${found.indexOf(f)}`;
+    dim.runCommand(`tickingarea add ${f.x - R} 0 ${f.z - R} ${f.x + R} 0 ${f.z + R} ${area} true`);
     const corners = [[-R, -R], [R, -R], [-R, R], [R, R], [0, 0]];
     for (let t = 0; t < 400 && !corners.every(([dx, dz]) => dim.isChunkLoaded({ x: f.x + dx, y: 0, z: f.z + dz })); t++) await new Promise((r) => system.runTimeout(r, 2));
     const vol = new BlockVolume({ x: f.x - R, y: -58, z: f.z - R }, { x: f.x + R, y: 20, z: f.z + R });
@@ -544,7 +546,7 @@ async function hollowsCheck(want) {
     // (only the chambers bring the Observer's dead and blood down there)
     chambers += counts.corpse + counts.skeleton + counts.blood > 0 ? 1 : 0;
     say(`at ${f.x},${f.y},${f.z}: ${JSON.stringify(counts)}`);
-    dim.runCommand("tickingarea remove hsx");
+    dim.runCommand(`tickingarea remove ${area}`);
   }
   say(found.length && total === found.length ? "PASS every Hollows found has its walls" : `FAIL ${total}/${found.length} with walls`);
   say(`chambers: ${chambers}/${found.length} of the places sampled show one (the dead and blood only the chambers bring down there)`);

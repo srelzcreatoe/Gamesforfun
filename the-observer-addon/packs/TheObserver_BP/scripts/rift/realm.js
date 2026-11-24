@@ -206,7 +206,9 @@ export async function build(o = {}) {
         }
         if (ok) placed++;
         else console.warn(`[Observer] the rift: ${pl.id} could not be laid down at ${pl.i},${pl.j}`);
-        await system.waitTicks(1);
+        // (a piece takes ~100 ms: three ticks between them keep the server near its pace — one tick apart, 49 of them
+        // pulled it down to 11 ticks a second for the few seconds of laying out)
+        await system.waitTicks(3);
       }
       for (const i of wave) column(i, false);
       pending = pending.filter((i) => !wave.includes(i));

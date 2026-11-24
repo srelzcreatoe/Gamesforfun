@@ -1033,13 +1033,15 @@ kinds now). Each place has its own loot table (`loot_tables/rift/observatory|gar
 **Spacier**, like the Goatwalker's starlit woods: patches of its stellar soil with stellar grass, ferns and mooncaps;
 rocks torn loose and hanging in the air over the woods (`isle()`: a flat top of stellar soil and its grass, a long
 tapering underside of rift stone, calcite, obsidian and amethyst, void crystals and amethyst growing on it and hanging
-under it, now and then a shard of starlight — an end rod — sticking out). **A grey sky, darker than the Mire's**: the
+under it, now and then a shard of starlight — an end rod — sticking out), and the Goatwalker's stardust drifting
+down round you (`rift/atmosphere.js`). **A grey sky, darker than the Mire's**: the
 dimension reads as `minecraft:ocean` and has no biome of ours to colour its sky, so its mist does it — fixed distance
 fog from 5 to 80 blocks in `#3a3d44` (rain `#303338`, 3 to 62), well short of the sky, so all of the sky is the mist's
 grey while the woods and buildings fade into it. **Laid out in waves**: one ticking area per column of pieces (48 × 336,
 63 chunks); all seven at once when the game has room (it allows ten in a world), else as many as it will take, those
-columns laid down and let go, then the rest — so a player's own ticking areas are never touched (about 7 s for all 49
-on a dedicated server; one column at a time took thirty times as long, each area taking seconds to come in). The
+columns laid down and let go, then the rest — so a player's own ticking areas are never touched; the pieces go down
+three ticks apart (about 9-10 s for all 49 on a dedicated server, the server near 17 ticks a second meanwhile; one tick
+apart pulled it down to 11; one column at a time took thirty times as long, each area taking seconds to come in). The
 layout's shuffle was being thrown away in 1.6.0 (`shuffle()` returns a shuffled copy), so the church and the castle had
 always stood in the same two cells; now every place lands somewhere new each time.
 

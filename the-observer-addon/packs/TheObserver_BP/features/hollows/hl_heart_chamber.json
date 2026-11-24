@@ -21,7 +21,7 @@
           "minecraft:calcite",
           "minecraft:dirt",
           "minecraft:coarse_dirt",
-          "minecraft:rooted_dirt",
+          "minecraft:dirt_with_roots",
           "minecraft:gravel",
           "minecraft:clay",
           "minecraft:smooth_basalt",

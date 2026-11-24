@@ -248,19 +248,19 @@ Mire grows no new eyeblooms).
 | `TheObserver_BP/loot_tables/rift/watchtower.json` | original — tools/rift_world.py (1.7.0) | `a5481d2b2a1bf0f1` |
 | `TheObserver_BP/loot_tables/rift/camp.json` | original — tools/rift_world.py (1.7.0) | `9898155d0aa66a4f` |
 | `TheObserver_BP/structures/hollows/flesh_cavern_0.mcstructure` | original — written block by block by tools/hollows_world.py (1.7.0, from the Shaftbreaker's own blocks): a cavern of veinstone and pulsing flesh under arching ribs | `aebb03ded8a5576b` |
-| `TheObserver_BP/features/hollows/hl_flesh_cavern_0.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `af23857033c4fb3e` |
+| `TheObserver_BP/features/hollows/hl_flesh_cavern_0.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `216564747192a344` |
 | `TheObserver_BP/structures/hollows/flesh_cavern_1.mcstructure` | original — written block by block by tools/hollows_world.py (1.7.0, from the Shaftbreaker's own blocks): a second flesh cavern | `5e0d8ba370cf1a20` |
-| `TheObserver_BP/features/hollows/hl_flesh_cavern_1.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `4a6c038d4f4abcf1` |
+| `TheObserver_BP/features/hollows/hl_flesh_cavern_1.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `beaf84cac7d806c1` |
 | `TheObserver_BP/structures/hollows/rib_hall_0.mcstructure` | original — written block by block by tools/hollows_world.py (1.7.0, from the Shaftbreaker's own blocks): a nave of ribstone ribs | `3cae851183d88ccc` |
-| `TheObserver_BP/features/hollows/hl_rib_hall_0.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `ae25763be5320235` |
+| `TheObserver_BP/features/hollows/hl_rib_hall_0.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `daabab01fb831858` |
 | `TheObserver_BP/structures/hollows/rib_hall_1.mcstructure` | original — written block by block by tools/hollows_world.py (1.7.0, from the Shaftbreaker's own blocks): a second rib hall | `0a16cf1becef7e58` |
-| `TheObserver_BP/features/hollows/hl_rib_hall_1.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `a76ac1800950c7bc` |
+| `TheObserver_BP/features/hollows/hl_rib_hall_1.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `9f6aaa16842b38a8` |
 | `TheObserver_BP/structures/hollows/heart_chamber.mcstructure` | original — written block by block by tools/hollows_world.py (1.7.0, from the Shaftbreaker's own blocks): a great organ in a cavity of flesh | `9818802bb1056998` |
-| `TheObserver_BP/features/hollows/hl_heart_chamber.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `6ec365eb1868957f` |
+| `TheObserver_BP/features/hollows/hl_heart_chamber.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `36126141fe648057` |
 | `TheObserver_BP/structures/hollows/mine_collapse.mcstructure` | original — written block by block by tools/hollows_world.py (1.7.0, from the Shaftbreaker's own blocks): a collapsed mine: rails, timber frames, the dead | `5b4b4207cf07c506` |
-| `TheObserver_BP/features/hollows/hl_mine_collapse.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `7e721c7d8f11c5e9` |
+| `TheObserver_BP/features/hollows/hl_mine_collapse.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `dd4f4311e59682d0` |
 | `TheObserver_BP/features/hollows/hl_great_chamber.json` | original — tools/hollows_world.py (1.7.0): one of the six chambers | `2266acb075a7a943` |
-| `TheObserver_BP/feature_rules/hollows/hl_great_chamber_rule.json` | original — tools/hollows_world.py (1.7.0): one Hollows chunk in 14, y −48…8 | `24e567170049530b` |
+| `TheObserver_BP/feature_rules/hollows/hl_great_chamber_rule.json` | original — tools/hollows_world.py (1.7.0): one Hollows chunk in 14, y −48…8 | `600aa43526ee542b` |
 | `TheObserver_RP/sounds/music/shaft_dark/presence.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Shaftbreaker's own track): something below: a drone, picks striking far down the shafts, beams creaking, a lullaby backwards | `c7638131733b99b9` |
 | `TheObserver_RP/sounds/music/shaft_dark/hollows.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Shaftbreaker's own track): the Hollows: a wet pulse, the walls breathing, voices that never resolve, bells out of tune | `e9bda88fdaa359fd` |
 | `TheObserver_RP/sounds/music/shaft_dark/close.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Shaftbreaker's own track): it is close: a quickening heartbeat, strings crawling upward, a tritone bass pulse, clicking | `58ac2125ebdefac6` |
