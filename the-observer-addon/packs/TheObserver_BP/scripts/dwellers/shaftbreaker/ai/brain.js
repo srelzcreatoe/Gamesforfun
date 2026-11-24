@@ -185,6 +185,7 @@ export function lurkTick() {
     const s0 = api.pstate(p);
     const attack = !config().harmless && api.rage && chance(Math.min(0.9, (stared ? 0.5 : 0.6) + (s0.provocation || 0) / 200 + (s0.state === 'provoked' ? 0.15 : 0)));
     c.halt(); c.face(p.getHeadLocation());
+    __dw.note('shaftbreaker', { what: 'close', how: attack ? 'rage' : 'vanish', why: stared ? 'stare' : 'close', d: Math.round(d * 10) / 10, player: p.name });
     if (attack) { api.provoke(p, 20, stared ? 'held its stare' : 'right up against it'); playAt(c.dim, 'shaftbreaker.screech', { x: c.loc.x, y: c.loc.y + 2, z: c.loc.z }, 1, rand(0.8, 0.95)); api.rage(p, stared ? 'stare' : 'too close'); return; }
     playAt(c.dim, 'shaftbreaker.jumpscare', { x: c.loc.x, y: c.loc.y + 2, z: c.loc.z }, 1, rand(0.9, 1.05));
     setDanger(p, 0.9); c.vanish(false); B.shyUntil = now() + sec(40); return;

@@ -9,7 +9,8 @@ footsteps and your habits; it rearranges your home, seals the tunnel behind you,
 your light — always deliberately, always reversibly — and watches what you do about it. It has a home: the
 **Weeping Mire**, a swamp of weeping trees and bone roots where it watches from between the trunks. Since 1.6.0 three
 creatures of yours answer to it — the Goatwalker, the Shaftbreaker and the Brinesleeper — and now and then a rift tears
-open into **the Rift**, a world of its own where it hunts whoever comes for its loot.
+open into **the Rift**, a world of its own where it hunts whoever comes for its loot (twice the size since 1.7.0, with
+far more in it).
 
 ![animation states](docs/media/animation_states.png)
 
@@ -153,6 +154,19 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   blow on *rarely* to 8+ blocks a second and 6½ hearts on *constantly*, cutting you off, guarding the way out, waiting
   at the chests). The stones where you land are the way back. The realm is laid out afresh, shuffled and restocked,
   each time a rift opens. Previews (drawn offline from the pack's own files): [docs/media/1.6.0/](docs/media/1.6.0/).
+* **1.7.0 — deeper and darker**: **the Hollows are a cave biome** now — in place of the dripstone caves, walls of
+  veinstone, flesh and bone hung with vines, fangs and pods, and great chambers hollowed out of the rock (caverns of
+  flesh under arching ribs, rib halls, a heart chamber, a collapsed mine); the Stillwater Caves are a little rarer. **The
+  Shaftbreaker lives in the caves** — it follows you up to the surface only after you have got away from it three
+  times — and **up close it never just stands there**: walk up to it and it tears into you or is gone with a shriek;
+  hold it in a stare and it snaps. **The Brinesleeper is on high alert**: it stalks, stands off, chases and attacks
+  instead of sinking away. Both have **new, darker music** (and the Brinesleeper a new voice), all original, in the
+  vein of the old horror fan-games. **Each dweller has 500 health, the Observer 600** — and you can hurt it now: wear
+  it down and it is torn apart. **The Rift is twice the size**, with an **observatory**, the **Garden of Eyes**, a
+  **barrow field**, **two hamlets**, a **watchtower** and a **camp** among the woods (each with loot), rocks hanging in
+  the air with void crystals, starlit ground and a grey sky; **the eyeblooms grow there now, and their eyes follow
+  your every step**. The Rift's textures are redrawn in the game's own style, and the **Sound Test has a page for each
+  creature**, with its whole playlist. Previews: [docs/media/1.7.0/](docs/media/1.7.0/).
 * **Its voice and its music** (1.1.2, your recordings): while it is around, its own theme replaces the game's music
   — *lurking* in the Weeping Mire, its home — and the game's music fades back once it has gone. A sting when you spot
   it, a scream when it snaps or comes for you (and over the blow that kills), a grunt as it arrives out of nowhere, its

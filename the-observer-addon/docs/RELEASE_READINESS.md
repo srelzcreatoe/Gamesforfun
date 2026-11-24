@@ -99,6 +99,14 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   checked on the server for ground, chests, lecterns and unknown blocks); the hanged bodies, corpses, skeletons and
   gravestones (new block models); the dwellers' Config Wheel page and the Rift page as forms; their music sharing one
   channel at the player's music volume; the Goatwalker's fourth-wall scares alongside the Observer's own.
+* 1.7.0: **the eyeblooms' turning heads** — their 48 geometries and the states that pick them are tested on the server
+  (16 headings and 3 tilts follow a test player round and up), but which way a turn in a geometry file goes on screen
+  follows Blockbench's convention and must be seen once in a client (if the eyes look the mirror way round, the fix is
+  one sign in `tools/eyebloom_aim.py`); **the Rift's grey sky** (its mist is a fixed distance well short of the sky;
+  whether every device draws the whole sky in its colour); the Rift's seven new places, its floating rocks and its
+  redrawn textures in a client; the Hollows' walls, organic features and great chambers as they look underground; the
+  new Shaftbreaker and Brinesleeper music and the Brinesleeper's voice at the player's volume; the Sound Test's pages
+  as forms.
 * 1.5.1: the Mire Eyebloom in a client (its model and flipbook eye, the rotations, the shut lid, the drops and spores);
   the Sound Test's tracks at the player's music volume; a peek round the corner of a real house in a real village; the
   bigger Mire on the user's own world (only newly generated land changes).
@@ -203,6 +211,10 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 | The god-tier loot unbalances a survival world (1.6.0) | medium | the user asked for it; it is behind the Rift's hunt, and the Rift setting decides how often it can be had (and how deadly it is to get) |
 | The Rift's stutter as it is laid out (1.6.0) | low–medium | spread over ticks (one piece every other tick); only when a rift opens with nobody inside |
 | A dweller misbehaves after the merge (1.6.0) | low–medium | each can be switched off on its own; `tools/merge_dwellers.py --check`; the noexp run loads all of them with no errors; the dwellers group in the suite |
+| The Shaftbreaker or the Brinesleeper is now too aggressive (1.7.0) | medium | the user asked for it; each dweller's own "how dangerous" (and its own *harmless* preset) still applies — harmless, the Shaftbreaker only vanishes up close; each can be switched off; the Shaftbreaker comes up out of the caves only after three escapes, for twelve minutes |
+| The Observer can be killed off too easily, or not at all (1.7.0) | low–medium | 600 health, players' blows and shots only; torn down at 60 it simply leaves (its encounter ends) and comes back whole later — nothing is lost and its story goes on |
+| The bigger Rift is heavy to lay out on a weak device (1.7.0) | low–medium | 49 pieces in about 7 s on a dedicated server, spread over ticks, only when a rift opens with nobody inside; within the game's ten ticking areas, in waves if a player holds some of their own |
+| The Hollows' chambers wreck something underground (1.7.0) | low | each carves only where its whole volume is rock, ore, water, the caves' growths or the Hollows' own blocks — never lava, a mineshaft, a dungeon, a spawner, a chest, an ancient city or a trial chamber; only in the Hollows |
 | Pack removed without restoring | low | documented; Veil/Effigy would remain as unknown blocks |
 
 ## 3. Marketplace readiness (evidence-based, not a certification)

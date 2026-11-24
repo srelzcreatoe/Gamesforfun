@@ -957,3 +957,111 @@ while it stalks, the chase while it comes), the Mire's eyeblooms watch in the Ri
 dead pines and the Goatwalker's void trees as it does behind any trunk. Its lines there (`talk.js`: `rift_arrive`,
 `rift_taunt`, `rift_loot`, `rift_guard`, `rift_back`, `rift_left`) and three discoveries: *The Rift*, *Right Behind You*,
 *Out of the Rift*.
+
+## 28. Deeper and darker: the Hollows underground, wary dwellers, a Rift twice the size (1.7.0)
+
+**The Hollows, a cave biome** (`tools/merge_dwellers.py`, `JSON_TUNING`): the Shaftbreaker's biome no longer takes
+surface biomes; it replaces every **dripstone cave** (`replace_biomes`, amount 1.0, noise scale 0.15) and paints its
+walls with a `noise_gradient` subsurface builder — deepslate banded with veinstone, fleshstone, cracked veinstone and
+ribstone (biome format 1.26.30, which the builder needs). Two biomes claiming the same vanilla biome make *neither*
+appear (measured on a dedicated server), so the Brinesleeper's Stillwater Caves give up the dripstone caves and take
+three quarters of the lush caves instead (a touch less of them than before: 2.3 % of the sampled cave volume on seed
+424242 against 2.4 % for the Hollows, 1.5 % against 5.1 % on seed 7777, `otest:cavewide`, 3 km squares). Its mist
+underground is the deep red of its infested caves (`shaftbreaker:fog_infected`). Its own organic features — flesh,
+pulsing flesh, organs, bloodroot vines, dripfangs, watcher pods, thorns, rib seams and arches, the dead and the broken
+mine supports — are placed two to three times as often (`_HOLLOWS_DENSER`), and **great chambers** are hollowed out
+of the rock (`tools/hollows_world.py`): two flesh caverns (64 × 36 × 64, walls of veinstone and pulsing flesh, floors of
+bloodmoss and blood pools, ribs arching overhead, organ cores, watcher pods), two rib halls (30 × 26 × 64, a nave of
+ribstone ribs), a heart chamber (44 × 34 × 44, a great organ in a cavity of flesh) and a collapsed mine (48 × 18 × 24,
+rails, timber frames, the dead). Each is a `structure_template_feature` that only carves where its whole volume is
+rock (`constraints.block_intersection`: stone, deepslate, tuff and their kin, ores, water, magma, sculk and amethyst,
+the caves' growths, and the Hollows' own blocks — never lava, a mineshaft's timber, a dungeon, a spawner, a chest, an
+ancient city, a trial chamber or the Shaftbreaker's den), tried in the first pass in one Hollows chunk in nine, between
+y −32 and 6 (where the Hollows lie; below them is the deep dark). Block states are the server's own
+(`tools/hollows_states.json`). The first list left out the Hollows' own clawed stone, sculk, sculk veins and magma —
+some of which is in nearly every chamber-sized volume there — and almost nothing went down (`otest:chambers`: the
+server's `place feature` placed one chamber in twelve tries); with them, chambers generate of themselves (on seed
+7777 three of four probe spots already held one).
+
+**The Shaftbreaker lives in the caves.** Above ground it no longer comes for you by day or night of its own accord
+(`director.js`: `s.night` and `eligibleAsleep` now need `profile.followUntil`); **every third time you get away from
+it in a hunt it follows you up**, and for twelve minutes it may stalk you on the surface as its own settings allow
+(`learnFromHunt`: `escapesSinceFollow`, `followUntil`). **Up close it never just stands there**: in `lurkTick`, within
+4.2 blocks — or held in a stare from within 12 blocks for 3.5 seconds — it stops, turns to you, and either tears into
+you (a screech, then `queueRage`: its hunt; 60 % up close and 50 % for a stare, more the more you have provoked it, up
+to 90 %) or, with a shriek in your face, it is gone (and keeps a wider berth for 40 seconds); six seconds between
+reactions. Watching you in its encounters, it counts you as having touched it from 3.4 blocks (was 2.4) and then
+comes for you two times in three (was one in three); more of its standoffs and hunts come up (weights 14 and 14, was
+10 and 8). Its music is made over darker (`tools/synth_dark.py`: *something below*, *the Hollows*, *close*, *the
+standoff*, *the chase*) in the old horror fan-games' vein: drones that beat, clusters of minor seconds, picks striking
+far down the shafts, beams creaking, a lullaby played backwards, the walls breathing, a pounding chase at 170 bpm with
+metal on rock for drums.
+
+**The Brinesleeper is on high alert** (`brain.js`, `main.js` patches): it starts out bold (0.45, was 0.1, so it no
+longer has to learn to stand its ground); come within six blocks and, more often than not, it comes for you; within
+twelve it more often stands and stares you down (or rises out of the water at you) than sinks away; seven blocks from
+the water it lies in, it rises for you; its decisions lean to the chase (+20 %), it stalks instead of retreating, and
+it comes round half again as often. In its staged scenes, walked up to, it turns on you three times in five (a roar,
+a sting, the chase) instead of slipping away. Its soundtrack and voice are wholly new (`tools/synth_dark.py`): still
+water (a drone far below, sonar pings, something enormous moaning far off, a glass melody), *it is near* (a slow
+heartbeat, a string cluster creeping up, its jaw clicking), the chase (160 bpm, a distorted bass gliding a tritone,
+metal hits, a choir crying out, a screech every four bars), four stings, and its clicks, breath, call, moan, hiss,
+roar, lunge, grasp, rise, sinking, steps, hurt, death, *spotted* and jumpscare. All of it is original: written note
+by note and rendered from oscillators and noise, nothing sampled or transcribed.
+
+**Health**: each dweller has 500 (the Shaftbreaker's home heals it and a broken organ wounds it in the same
+proportion as before: +9 a tick of healing, 80 or 45 a broken organ; its defeat threshold scales with it). The
+Observer has 600 and can be hurt now — by a player's blow or a player's shot only (`damage_sensor`); nothing else
+touches it. Worn down to its last tenth (60), it is torn apart where it stands and its encounter ends (`main.js`,
+`entityHurt` for `observer:the_observer`); it comes back whole, as it always does.
+
+**The Rift, twice the size** (`rift/realm.js`, `tools/rift_world.py`): 7 × 7 pieces (336 × 336 blocks from −176, −176;
+the landing still at −8, −8, so the way out has not moved). In the five by five round the landing stand, one of each,
+shuffled each time: the church, the castle, an **observatory** (a round tower of rift bricks, a dome of tinted and
+crimson glass broken open on one side, a telescope on its pier aimed out of the slit, a star chart of lamps set in a
+black floor, shelves, three chests and *Star Charts*, and rocks hanging in the air all round it), the **Garden of Eyes**
+(a sunken garden in a wall with soul lanterns, rings of eyeblooms by the hundred, and in the middle on a plinth a great
+eye of white and crimson that looks every way at once, the dead kneeling round it, a chest in an alcove under it and
+*The Garden*), a **barrow field** (a walled graveyard of a hundred and sixty stones in rows, some dug open, a chapel
+lined with bones and skulls over a vault of chests reached by stairs through its floor, a gate with a body hanged
+from its arch), **two hamlets** (four to six cottages round a square — some roofless, some fallen in — with a well, a
+gallows, a cart, fences and lanterns, barrels of their stores and *Last Entry*), a **watchtower** (thirty blocks of
+stone with a ladder through four floors, a soul fire and a bell on its top, chests, a watchman hanged off its side, a
+palisade round its foot, rocks hanging level with its top) and a **camp** (tents round a fire gone blue, stores under
+a canvas, the dead in the tents, a trail of blood into the trees, *Expedition Notes*). The rest is the dead woods (six
+kinds now). Each place has its own loot table (`loot_tables/rift/observatory|garden|barrow|hamlet|watchtower|camp`).
+**Spacier**, like the Goatwalker's starlit woods: patches of its stellar soil with stellar grass, ferns and mooncaps;
+rocks torn loose and hanging in the air over the woods (`isle()`: a flat top of stellar soil and its grass, a long
+tapering underside of rift stone, calcite, obsidian and amethyst, void crystals and amethyst growing on it and hanging
+under it, now and then a shard of starlight — an end rod — sticking out). **A grey sky, darker than the Mire's**: the
+dimension reads as `minecraft:ocean` and has no biome of ours to colour its sky, so its mist does it — fixed distance
+fog from 5 to 80 blocks in `#3a3d44` (rain `#303338`, 3 to 62), well short of the sky, so all of the sky is the mist's
+grey while the woods and buildings fade into it. **Laid out in waves**: one ticking area per column of pieces (48 × 336,
+63 chunks); all seven at once when the game has room (it allows ten in a world), else as many as it will take, those
+columns laid down and let go, then the rest — so a player's own ticking areas are never touched (about 7 s for all 49
+on a dedicated server; one column at a time took thirty times as long, each area taking seconds to come in). The
+layout's shuffle was being thrown away in 1.6.0 (`shuffle()` returns a shuffled copy), so the church and the castle had
+always stood in the same two cells; now every place lands somewhere new each time.
+
+**The eyeblooms are the Rift's**, and **their eyes follow you**: the Mire grows no new ones (its feature and rule are
+gone; those already grown there still watch), and they grow in the Rift — in its moss and the Mire's moss, in the
+Garden of Eyes by the hundred, and in every piece. A block can only be turned in quarter turns, so the turning is done
+in its model (`tools/eyebloom_aim.py`): 48 variants of its geometry, the head (eye and petals) turned to one of 16
+headings and tilted level, up or down on a pivot in its middle, the stem left standing; block states `wmire:aimed`,
+`wmire:aim` (0-15; a state holds at most 16 values, hence the flag) and `wmire:tilt` pick one (`!aimed` keeps the old
+quarter-turn facing, for those already placed). `mire/eyebloom.js` finds the eyes within 26 blocks of each player in
+the Rift or the Mire once a second and turns each to the nearest player every three ticks — while you look at it or
+not; stared at from within 6 blocks for a second and a half, it shuts its eye, and opens it once you look away.
+
+**The Rift's textures, redrawn in the game's own manner** (`tools/rift_assets.py`): each a palette of four or five
+shades laid in clusters by noise that wraps at the edges (so it tiles without a seam): bark in ridges and furrows with
+pale peeled patches, a log's top in rings with its bark round the edge and a dry split, dead needles in clumps with
+holes through them, moss, soil with pebbles and a moss side with a shadowed edge, bricks in courses bevelled light at
+the top and dark at the foot and seeping red at the joints (and cracked), crimson glass with a pale rim and glints, the
+lamp in an iron frame with bolts and a cage over a blotched glow, coarse woven sacking with old stains, dead skin,
+bone with pits, a skull with deep sockets, a headstone of clustered grey with a cross cut into it and lichen climbing
+from the ground.
+
+**The Sound Test, by creature** (`ui/sounds.js`): pick the Observer, the Goatwalker, the Shaftbreaker or the
+Brinesleeper, then any track of its music (looping), its whole **playlist** (every track once, one after the other:
+`playMusic` then `queueMusic`), or any of its sounds (16 each). 35 tracks and 64 sounds in all.

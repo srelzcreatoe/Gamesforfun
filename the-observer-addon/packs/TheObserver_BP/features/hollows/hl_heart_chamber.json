@@ -12,7 +12,6 @@
       "block_intersection": {
         "block_allowlist": [
           "minecraft:air",
-          "minecraft:cave_air",
           "minecraft:stone",
           "minecraft:deepslate",
           "minecraft:tuff",
@@ -21,14 +20,28 @@
           "minecraft:granite",
           "minecraft:calcite",
           "minecraft:dirt",
+          "minecraft:coarse_dirt",
+          "minecraft:rooted_dirt",
           "minecraft:gravel",
           "minecraft:clay",
           "minecraft:smooth_basalt",
+          "minecraft:magma",
           "minecraft:dripstone_block",
           "minecraft:pointed_dripstone",
           "minecraft:water",
           "minecraft:flowing_water",
           "minecraft:glow_lichen",
+          "minecraft:moss_block",
+          "minecraft:moss_carpet",
+          "minecraft:hanging_roots",
+          "minecraft:sculk",
+          "minecraft:sculk_vein",
+          "minecraft:amethyst_block",
+          "minecraft:budding_amethyst",
+          "minecraft:amethyst_cluster",
+          "minecraft:large_amethyst_bud",
+          "minecraft:medium_amethyst_bud",
+          "minecraft:small_amethyst_bud",
           "minecraft:cobbled_deepslate",
           "minecraft:infested_deepslate",
           "minecraft:infested_stone",
@@ -48,6 +61,8 @@
           "minecraft:deepslate_lapis_ore",
           "minecraft:deepslate_diamond_ore",
           "minecraft:deepslate_emerald_ore",
+          "minecraft:lit_redstone_ore",
+          "minecraft:lit_deepslate_redstone_ore",
           "minecraft:raw_iron_block",
           "minecraft:raw_copper_block",
           "shaftbreaker:veinstone",
@@ -62,7 +77,11 @@
           "shaftbreaker:glowspore_cluster",
           "shaftbreaker:organ_core",
           "shaftbreaker:cracked_organ_core",
-          "shaftbreaker:watcher_pod"
+          "shaftbreaker:watcher_pod",
+          "shaftbreaker:clawed_stone",
+          "shaftbreaker:cairn_marker",
+          "shaftbreaker:hollow_dust",
+          "shaftbreaker:hollow_soil"
         ]
       }
     }

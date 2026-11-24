@@ -334,6 +334,24 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Deadlier the more often | `HUNT` table by the Rift setting | the setting | level 1: 4.6 b/s, a blow of 4; level 5: 8.3 b/s, a blow of 13 | `rift_levels_faster`, `rift_levels_stronger` | ✅ Runtime |
 | How often, on the Config Wheel | `ui/rift_page.js`, setting `rift` 0-5 | the wheel | never … constantly; open one now; close it | `rift_never_when_off` (the form itself ❔) | ✅ Runtime |
 
+## 1.7.0: the Hollows underground; wary dwellers; a Rift twice the size; eyes that follow you
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| The Hollows, a cave biome | `merge_dwellers.py` `_hollows` (dripstone caves, `noise_gradient` walls), `_HOLLOWS_DENSER` | world generation | in the dripstone caves' place, walls of veinstone and flesh, its organic features 2-3× as often | `otest:cavemap`/`otest:cavewide` (2 seeds), `otest:hollows` | ✅ Runtime (the look ❔) |
+| Its great chambers | `tools/hollows_world.py`, `structures/hollows/*`, `features/hollows/*`, `hl_great_chamber_rule` | world generation (tried in 1 Hollows chunk in 9, y −32…6) | flesh caverns, rib halls, a heart chamber, a collapsed mine, carved only into rock | `otest:chambers`, `otest:hollows` (seed 7777) | ✅ Runtime (the look ❔) |
+| The Stillwater Caves a little rarer | `_stillwater` (75 % of the lush caves) | world generation | both cave biomes generate, never on the same ground | `otest:cavewide` | ✅ Runtime |
+| The Shaftbreaker lives in the caves | director `s.night`/`eligibleAsleep` need `followUntil`; `learnFromHunt` | getting away from it | not on the surface until the third escape; then twelve minutes up there | `shaftbreaker_not_on_the_surface`, `shaftbreaker_two_escapes_not_yet`, `shaftbreaker_third_escape_it_follows`, `shaftbreaker_on_the_surface_while_it_follows` | ✅ Runtime |
+| It reacts up close, and to a stare | `brain.js` `lurkTick` (patched) | within 4.2 blocks, or a 3.5 s stare within 12 | it rages (its hunt) or vanishes with a shriek | `shaftbreaker_reacts_up_close`, `shaftbreaker_snaps_when_stared_at` | ✅ Runtime |
+| The Brinesleeper on high alert | `brain.js`, `main.js` patches | coming close | stands its ground, rises at you or comes for you; turns on you in its scenes | `brinesleeper_on_high_alert` | ✅ Runtime |
+| Darker music and voices | `tools/synth_dark.py`, `SOUND_OVERRIDES` | their music and sounds | the Brinesleeper's and the Shaftbreaker's new tracks and voice play | `sound_test_*` | ✅ Runtime (the sound ❔) |
+| 500 and 600 health; it can be hurt | `JSON_TUNING` `_health`, `the_observer.json` `damage_sensor`, `main.js` `entityHurt` | blows | dwellers 500; the Observer 600, hurt by players only, torn apart at 60 | `dwellers_500_health`, `observer_600_health`, `observer_hurt_only_by_players`, `observer_torn_down_at_its_last_tenth` | ✅ Runtime |
+| A Rift twice the size, with more in it | `rift/realm.js` (7 × 7, `PLACES`), `tools/rift_world.py` | each rift with nobody inside | 49 pieces; church, castle, observatory, Garden of Eyes, barrow field, two hamlets, watchtower, camp, once each, somewhere new each time | `rift_realm_laid_out`, `rift_realm_every_place`, `otest:riftcheck` | ✅ Runtime (the look ❔) |
+| Laid out within the ticking-area limit | `realm.column`, waves | building | a player's own ticking areas untouched; all 49 placed | `build17b` (six areas of a player's own: 2 waves, 6.8 s) | ✅ Runtime |
+| Spacier, and a grey sky | `isle()`, stellar soil in `ground_kind`, `fogs/rift.json` (fixed 5-80, `#3a3d44`) | in the Rift | rocks in the air with crystals; the sky the mist's grey | — | ❔ in a client |
+| The eyeblooms are the Rift's, and follow you | `mire/eyebloom.js` `tick`/`track`, `tools/eyebloom_aim.py` (48 geometries) | a player near | 16 headings, 3 tilts, watched or not; shuts when stared at; none new in the Mire | `eyebloom_follows_you_*`, `eyebloom_looks_up_at_you`, `eyebloom_shuts_when_stared_at`, `eyebloom_opens_when_you_look_away`, `eyebloom_not_in_the_mire` | ✅ Runtime (the turning ❔ in a client) |
+| The Rift's textures redrawn | `tools/rift_assets.py` | — | vanilla-like palettes and clusters, tiling | previews | ❔ in a client |
+| Sound Test by creature | `ui/sounds.js` `CREATURES`, `playAll` | the Config Wheel | a page each, a playlist each, 35 tracks and 64 sounds | `sound_test_observer_*`, `sound_test_goatwalker_*`, `sound_test_shaftbreaker_*`, `sound_test_brinesleeper_*` | ✅ Runtime (the forms ❔) |
+
 ## Performance
 | Measure | Result | Test |
 |---|---|---|

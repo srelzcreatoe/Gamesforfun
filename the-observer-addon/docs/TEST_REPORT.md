@@ -849,6 +849,28 @@ players in its own name and in no one's)
   each name's type).
 * **Its peeks in the Rift**: the Rift's dead pines and the Goatwalker's void trees were not trunks to it — they are now.
 
+**Found in 1.7.0** (making the Hollows a cave biome, growing the Rift, and the tests written for them)
+* **Two biomes on one vanilla biome**: the Hollows and the Stillwater Caves both claimed the dripstone caves, and
+  *neither* appeared — the Stillwater Caves take the lush caves now.
+* **A subsurface builder needs biome format 1.26.30**: at 1.21.110 the biome registry refused the Hollows' walls (the
+  "format_version must be 1.21.110" lines that followed were only a cascade of that refusal).
+* **A `structure_template_feature` needs `constraints`**: the chambers' features were refused until they carried a
+  `block_intersection` allowlist.
+* **`/locate biome` refused the Hollows' id** with a syntax error: the cave biomes are found by sampling instead
+  (`otest:cavemap`, `otest:cavewide`, `otest:hollows`).
+* **A block state holds at most 16 values**: the eyebloom's 17-value heading was refused, and with it the whole block —
+  16 headings and an `aimed` flag now.
+* **The realm's shuffle was thrown away**: `shuffle()` returns a shuffled copy, and the layout shuffled and then used
+  the unshuffled list — the church and the castle had always stood in the same two cells (1.6.0).
+* **Ten ticking areas in a world**: with the test kit's own areas held, some of the realm's seven columns were refused
+  and the build waited 40 s for chunks that never came (44 s for 49 pieces) — it now lays out as many columns as the
+  game will hold, then the rest, and never touches anyone else's areas (6.8 s with six of a player's own areas held).
+  Loading one column at a time instead took 96 s: each area takes seconds to come in.
+* **`minecraft:spectral_arrow` is not a Bedrock item**: the watchtower's loot gives a crossbow instead.
+* **The Brinesleeper's new sound entries** were written as bare strings, which the schema refuses — full entries now,
+  keeping each old entry's settings (stream, volume).
+* **The Hollows sampler read empty ground**: it waited for one corner of its sample to load — it waits for all of them.
+
 ## 8. Not verified
 
 * Anything a client shows or plays: model, animations, the glowing eyes, wisp aura and vanish burst, other particles,
@@ -872,4 +894,11 @@ players in its own name and in no one's)
   cannot reconnect), two real players in the Rift at once, a rift opening in the Nether or the End on its own schedule
   (opening is tested in the overworld; the placement code is the same), and how the dwellers' own encounters play
   alongside the Observer over hours of play.
+* 1.7.0: how the eyeblooms' turned heads look (the states and permutations are tested; which way a geometry turn goes
+  on screen follows Blockbench's convention and needs a look in a client), the grey sky (the mist is fixed-distance;
+  whether the whole sky takes its colour on every device), the Rift's new textures and places in a client, the new
+  music and voices as heard, the Shaftbreaker following someone up out of the caves after a real hunt (the rule is
+  tested by counting escapes; real hunts in a cave were not run to their end three times), and a real player walking
+  up to a Shaftbreaker in the middle of one of its scripted scenes (those have their own reactions, unchanged but for
+  reaching a little further).
 * Phones, consoles, low-end devices, and Realms.

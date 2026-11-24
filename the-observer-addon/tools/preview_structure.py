@@ -14,6 +14,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import nbt_le as N  # noqa: E402
 
 COLORS = [
+    ("cracked_veinstone", (70, 40, 44)), ("veinstone", (84, 46, 50)), ("pulsing_flesh", (190, 40, 52)), ("fleshstone", (150, 74, 76)),
+    ("ribstone", (214, 204, 182)), ("organ_core", (120, 10, 24)), ("bloodmoss", (110, 18, 22)), ("bloodroot", (90, 12, 18)),
+    ("dripfang", (226, 220, 200)), ("watcher_pod", (240, 200, 60)), ("glowspore", (150, 230, 120)), ("crimson_thorns", (130, 20, 30)),
+    ("rail", (150, 130, 100)), ("tinted_glass", (40, 30, 50)),
     ("white_concrete", (225, 225, 225)), ("red_concrete", (150, 25, 25)), ("black_concrete", (14, 14, 18)), ("white_wool", (220, 220, 215)),
     ("gray_wool", (90, 90, 95)), ("brown_wool", (110, 75, 45)), ("calcite", (215, 215, 210)), ("amethyst", (150, 100, 210)),
     ("obsidian", (25, 15, 40)), ("end_rod", (250, 245, 230)), ("stellar", (40, 36, 60)), ("spruce", (100, 74, 44)),

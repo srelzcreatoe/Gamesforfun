@@ -192,13 +192,15 @@ Presets) is above Relentless: almost no rest at all. *Atmosphere* is still there
   walk; sprint and it comes fast — always a little faster than you. Within a few blocks of you, it lunges. (In its rage it is always faster than a sprint.)
 * **The Weeping Mire is much bigger**: long unbroken stretches several hundred blocks across instead of scattered
   patches, still close to where a world starts. (Only new parts of a world change: land already generated stays as it is.)
-* **The Mire Eyebloom.** Three blocks tall, a black stalk with drooping red-veined leaves, and for a flower a single eye
+* **The Eyebloom.** Three blocks tall, a black stalk with drooping red-veined leaves, and for a flower a single eye
   in a halo of dark petals. The eye is never still — it looks about, blinks, its pupil widens — and it weeps red drops
-  and drifting spores. They turn to look at you, but only while you are not looking at them: look back, and they are
-  all already facing you. Stare at one from close by and it shuts its eye. Break any part and the whole plant falls
-  (the eye sometimes leaves a spider eye).
+  and drifting spores. **Since 1.7.0 its eye follows your every step**, watched or not: its head turns to you (sixteen
+  ways round) and tilts up or down to you. Stare at one from close by and it shuts its eye. Break any part and the
+  whole plant falls (the eye sometimes leaves a spider eye). Since 1.7.0 they grow in the Rift, not the Mire (those
+  already grown in your Mire stay, and watch).
 * **Sound Test** (Config Wheel, for everyone): hear every piece of its music — its two themes, and its own stalking,
-  Mire, chase and end themes — and every sound it makes, whenever you like.
+  Mire, chase and end themes — and every sound it makes, whenever you like. Since 1.7.0 it has a page for each
+  creature (see the Config Wheel table below).
 
 **The animals know.** When it comes — whether you have seen it or not — the animals near it stop what they are
 doing and turn to face it, quite still: the nearest first, the rest a moment later. After a while cows, sheep, pigs,
@@ -311,8 +313,23 @@ haunts, its own music, its own settings:
 
 * **The Goatwalker** — its servant of the woods, at home in the **Stellar Taiga**. Its fourth-wall scares (lines in
   the chat, a player "joining the game") are kept.
-* **The Shaftbreaker** — its servant of the caves, from **the Hollows**.
-* **The Brinesleeper** — its servant of the water, from **the Stillwater Caves**.
+* **The Shaftbreaker** — its servant of the caves, from **the Hollows**. Since 1.7.0 the Hollows are **a cave biome**:
+  they take the place of dripstone caves, and their walls are veinstone, flesh and bone, hung with bloodroot vines,
+  fangs, pods and pulsing flesh, with great chambers hollowed out of the rock — caverns of flesh under arching ribs, rib
+  halls, a heart chamber round a great organ, a collapsed mine. **It lives in the caves now**: it no longer comes for
+  you on the surface of its own accord — but **get away from it three times and it follows you up**, and for twelve
+  minutes it may come for you up there too. **Up close it never just stands there**: walk right up to it and it tears
+  into you, or with a shriek in your face it is gone; hold it in a stare and it snaps. In its scenes, come too close
+  and it comes for you more often than not. Its music is new and darker.
+* **The Brinesleeper** — its servant of the water, from **the Stillwater Caves** (since 1.7.0 a little rarer: three
+  quarters of the lush caves). Since 1.7.0 it is **on high alert**: come close and it no longer simply sinks away — it
+  stands and stares you down, rises out of the water at you, or comes for you; it stalks you, stands off with you,
+  chases you and attacks, in its own drowned way. Its music and its voice are new: deep, slow and wrong in the still
+  water, brutal in the chase.
+
+**Since 1.7.0 each of them has 500 health, and the Observer 600** — and the Observer can be hurt now, by your blows and
+your shots only (nothing else harms it). Wear it down to its last tenth and it is torn apart where it stands, and
+whatever it was doing to you is over. It comes back whole, as it always does.
 
 **Config Wheel → Its dwellers** (operators) lists them. For each: switch it **on or off** (off, it sees nobody,
 whatever it was doing ends, its music stops and its creatures are gone, and stay gone, until you switch it back on);
@@ -327,8 +344,9 @@ has come for. None of them is ever seen in the Rift — that is the Observer's a
 
 Every biome of the four still generates. The Stellar Taiga, the Hollows and the Weeping Mire never overlap or merge:
 each takes its ground from different vanilla biomes (the Stillwater Caves lie underground). To find them with cheats
-on: `/locate biome wmire:weeping_mire`, `/locate biome goatwalker:stellar_taiga`, `/locate biome shaftbreaker:the_hollows`,
-`/locate biome brine:stillwater_caves`.
+on: `/locate biome wmire:weeping_mire` or `/locate biome goatwalker:stellar_taiga`. The two cave biomes are where
+dripstone caves (the Hollows) and lush caves (the Stillwater Caves) would be; the server's `/locate biome` did not
+accept the Hollows' name in our tests.
 
 ## The Rift (1.6.0)
 Now and then **a tear opens in the world** near someone, in any dimension: a tall oval of violet void, five blocks wide
@@ -349,6 +367,14 @@ netherite blocks, and books of Mending, Sharpness V, Protection IV and more — 
 will need. The crimson lamps on the spire and the tower can be seen through the mist. The woods end at a crumbling
 edge over the void; fall off and the Rift puts you back where you came in.
 
+**Since 1.7.0 the Rift is twice the size** (336 blocks across) and there is far more in it: an **observatory** with a
+broken glass dome and a telescope aimed at a sky that is not there, the **Garden of Eyes** (a sunken garden of
+hundreds of eyeblooms round a great eye that looks every way at once), a **barrow field** (rows and rows of graves, a
+chapel of bones over a vault), **two hamlets** of abandoned cottages round a well and a gallows, a **watchtower** with a
+soul fire burning on its top, and an expedition's **camp** — each with chests of its own. The sky is grey, darker than
+the Mire's; **rocks hang in the air** over the woods with void crystals and amethyst growing on them, and the ground is
+starlit in patches, like the Goatwalker's woods; and the **eyeblooms grow there now — and their eyes follow you**.
+
 **Nothing lives there but it.** Anything you bring in alive is gone; what you drop, throw or shoot stays. And in
 there it does not wait for anything: it is glimpsed between the trees, it laughs somewhere off in the rain, its steps
 go round you, the trees bleed, it is standing right behind you when the lightning flashes — and then it comes through
@@ -358,9 +384,8 @@ the stones instead.
 
 **The way back is the ring of stones where you land**: the same tear, standing in the middle of them. Walk into it
 and you are back where you went in. It stays open as long as anyone is in the Rift, whatever happened to the rift you
-came through. Each time a rift opens and nobody is inside, the realm on the other side is laid out again — the church
-and the castle somewhere else, the woods turned another way, every chest full again, and anything built or left there
-gone.
+came through. Each time a rift opens and nobody is inside, the realm on the other side is laid out again — every place
+somewhere else, the woods turned another way, every chest full again, and anything built or left there gone.
 
 **How often a rift opens is up to you** (Config Wheel → **The Rift**, operators): never, rarely (about every 90
 minutes), sometimes (45 minutes, the default), often (25), very often (12) or constantly (5). **The more often rifts
@@ -396,7 +421,7 @@ Players who are not operators only see the status, the Sound Test and their own 
 | **Its dwellers** (1.6.0) | the Goatwalker, the Shaftbreaker and the Brinesleeper: each on or off, how often, how dangerous, its own settings, its own wheel, sent after you now (above) |
 | **The Rift** (1.6.0) | how often a rift opens (and so how deadly it is in there), when the next one comes, open one near you now, close the open one (above) |
 | **Undo its changes** | puts back every block it changed and ends whatever it is doing |
-| **Sound Test** (everyone) | its music — *It is around*, *Lurking* (your recordings), *Stalking*, *Its home*, *The chase*, *The end* — looping on your music channel until you stop it (turn your Music volume up), and every sound it makes; only you hear them, and nothing changes |
+| **Sound Test** (everyone) | a page for each creature — **the Observer** (*It is around*, *Lurking* — your recordings — *Stalking*, *Its home*, *The chase*, *The end*), **the Goatwalker** (ten tracks), **the Shaftbreaker** (five) and **the Brinesleeper** (four) — with **▶ Play all** to hear its whole playlist one track after another, any one track looping on your music channel until you stop it (turn your Music volume up), and sixteen of its sounds; only you hear them, and nothing changes |
 | **Sound captions** | your own caption setting |
 
 Encounters only come for players in **Survival or Adventure**; in Creative it leaves you alone (the preview still works).

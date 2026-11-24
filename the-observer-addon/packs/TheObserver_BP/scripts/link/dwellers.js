@@ -26,6 +26,10 @@ import * as sbCfg from "../dwellers/shaftbreaker/core/config.js";
 import * as sbCreature from "../dwellers/shaftbreaker/ai/creature.js";
 import * as sbDirector from "../dwellers/shaftbreaker/ai/director.js";
 import * as sbUi from "../dwellers/shaftbreaker/ui.js";
+import * as sbBrain from "../dwellers/shaftbreaker/ai/brain.js";
+import * as sbMemory from "../dwellers/shaftbreaker/ai/memory.js";
+import * as sbHunt from "../dwellers/shaftbreaker/ai/encounters/hunt.js";
+import { worldTicks as sbTicks } from "../dwellers/shaftbreaker/core/util.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
 /** @typedef {import("@minecraft/server").Entity} Entity */
@@ -211,3 +215,32 @@ world.beforeEvents.playerLeave.subscribe((ev) => {
 /** Players the dwellers see (tests). */
 export const seen = (name) => shared.players(name).map((p) => p.name);
 export { allPlayers };
+
+/**
+ * The Shaftbreaker and the surface (1.7.0; tests): where it stands with this player — underground or on the surface,
+ * whether it may come for them where they are, and how long it will follow them up out of the caves.
+ * @param {Player} p
+ */
+export function sbWits(p) {
+  const s = sbDirector.pstate(p);
+  const pf = sbMemory.profile(p);
+  const left = Math.max(0, (pf.followUntil || 0) - sbTicks());
+  return { underground: !!s.underground, surface: !!s.night, may: sbBrain.presenceEligible(p), followsFor: Math.round(left / 20), escapes: pf.escapesSinceFollow || 0 };
+}
+
+/** As if this player had got away from it n times (0: it stops following them up). @param {Player} p @param {number} n */
+export function sbEscaped(p, n) {
+  const pf = sbMemory.profile(p);
+  if (!n) {
+    pf.followUntil = 0;
+    pf.escapesSinceFollow = 0;
+    return sbWits(p);
+  }
+  for (let i = 0; i < n; i++) sbHunt.learnFromHunt({ player: p, huntLog: [], tel: { notes: [] }, ps: {} }, "escaped");
+  return sbWits(p);
+}
+
+/** Whatever the Shaftbreaker is doing ends, and it is gone (tests). */
+export function sbStop() {
+  safe(() => sbDirector.stopEncounter());
+}

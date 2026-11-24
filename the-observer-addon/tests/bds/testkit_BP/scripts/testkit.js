@@ -520,12 +520,16 @@ async function hollowsCheck(want) {
   say(`found ${found.length}: ${JSON.stringify(found)}`);
   const types = ["shaftbreaker:veinstone", "shaftbreaker:fleshstone", "shaftbreaker:cracked_veinstone", "shaftbreaker:pulsing_flesh", "shaftbreaker:ribstone",
     "shaftbreaker:organ_core", "shaftbreaker:bloodmoss", "shaftbreaker:bloodroot_vines", "shaftbreaker:dripfang", "shaftbreaker:watcher_pod", "shaftbreaker:glowspore_cluster",
-    "minecraft:air", "minecraft:water"];
-  let total = 0;
+    "minecraft:air", "minecraft:water", "minecraft:rail", "minecraft:dark_oak_log", "minecraft:bone_block", "minecraft:iron_chain",
+    "observer:corpse", "observer:skeleton", "observer:blood"];
+  let total = 0, chambers = 0;
   for (const f of found) {
-    dim.runCommand(`tickingarea add circle ${f.x} 0 ${f.z} 3 hsx true`);
-    for (let t = 0; t < 300 && !dim.isChunkLoaded({ x: f.x + 40, y: 0, z: f.z + 40 }); t++) await new Promise((r) => system.runTimeout(r, 2));
-    const vol = new BlockVolume({ x: f.x - 40, y: Math.max(-60, f.y - 24), z: f.z - 40 }, { x: f.x + 40, y: f.y + 24, z: f.z + 40 });
+    // (every chunk of the sample loaded first: 1.6.0 waited for one corner only, and read nothing where it was not)
+    const R = 56;
+    dim.runCommand(`tickingarea add ${f.x - R} 0 ${f.z - R} ${f.x + R} 0 ${f.z + R} hsx true`);
+    const corners = [[-R, -R], [R, -R], [-R, R], [R, R], [0, 0]];
+    for (let t = 0; t < 400 && !corners.every(([dx, dz]) => dim.isChunkLoaded({ x: f.x + dx, y: 0, z: f.z + dz })); t++) await new Promise((r) => system.runTimeout(r, 2));
+    const vol = new BlockVolume({ x: f.x - R, y: -58, z: f.z - R }, { x: f.x + R, y: 20, z: f.z + R });
     const counts = {};
     for (const ty of types) {
       let n = 0;
@@ -537,9 +541,74 @@ async function hollowsCheck(want) {
       counts[ty.replace(/^[a-z_]+:/, "")] = n;
     }
     total += counts.veinstone > 0 ? 1 : 0;
+    // (only the chambers bring the Observer's dead and blood down there)
+    chambers += counts.corpse + counts.skeleton + counts.blood > 0 ? 1 : 0;
     say(`at ${f.x},${f.y},${f.z}: ${JSON.stringify(counts)}`);
     dim.runCommand("tickingarea remove hsx");
   }
   say(found.length && total === found.length ? "PASS every Hollows found has its walls" : `FAIL ${total}/${found.length} with walls`);
+  say(`chambers: ${chambers}/${found.length} of the places sampled show one (the dead and blood only the chambers bring down there)`);
+  say("DONE");
+}
+
+// dev (1.7.0): do the Hollows' great chambers go down? otest:chambers x z — loads round x,z, then at a few depths asks
+// the server to place each chamber (place feature) and the rule (place featurerule, its biome test included), and
+// counts the chambers' blocks before and after
+system.afterEvents.scriptEventReceive.subscribe((ev) => {
+  if (ev.id !== "otest:chambers") return;
+  const [x, z] = ev.message.trim().split(/\s+/).map(Number);
+  chambersCheck(x, z).catch(fail("chambers"));
+});
+async function chambersCheck(cx, cz) {
+  const { BlockVolume } = await import("@minecraft/server");
+  const say = (m) => console.warn(`[OTEST] chambers ${m}`);
+  const dim = world.getDimension("overworld");
+  const R = 72;
+  dim.runCommand(`tickingarea add ${cx - R} 0 ${cz - R} ${cx + R} 0 ${cz + R} chx true`);
+  const corners = [[-R, -R], [R, -R], [-R, R], [R, R], [0, 0]];
+  for (let t = 0; t < 400 && !corners.every(([dx, dz]) => dim.isChunkLoaded({ x: cx + dx, y: 0, z: cz + dz })); t++) await new Promise((r) => system.runTimeout(r, 2));
+  const count = (x, y, z, types) => {
+    const vol = new BlockVolume({ x: x - 34, y: y - 4, z: z - 34 }, { x: x + 34, y: y + 40, z: z + 34 });
+    let n = 0;
+    for (const _ of dim.getBlocks(vol, { includeTypes: types }, true).getBlockLocationIterator()) n++;
+    return n;
+  };
+  const MARK = ["shaftbreaker:ribstone", "shaftbreaker:organ_core", "shaftbreaker:pulsing_flesh", "minecraft:rail", "minecraft:air"];
+  const run = (cmd) => {
+    try {
+      const r = dim.runCommand(cmd);
+      return `ok ${r.successCount}`;
+    } catch (e) {
+      return `err ${String(e).slice(0, 160)}`;
+    }
+  };
+  // what fills a chamber-sized volume here, at a few heights (to know what the chambers must be allowed to cut through)
+  const kinds = new Map();
+  for (const y of [-24, -8, 8]) {
+    const biome = dim.getBiome({ x: cx, y: y + 10, z: cz })?.id;
+    for (let x = cx - 32; x < cx + 32; x += 1) for (let yy = y; yy < y + 36; yy += 1) for (let z = cz - 32; z < cz + 32; z += 2) {
+      const id = dim.getBlock({ x, y: yy, z })?.typeId ?? "?";
+      kinds.set(id, (kinds.get(id) ?? 0) + 1);
+    }
+    say(`at y ${y}: biome ${biome}`);
+  }
+  say(`kinds ${JSON.stringify([...kinds].sort((a, b) => b[1] - a[1]))}`);
+  let i = 0;
+  for (const f of ["hl_heart_chamber", "hl_rib_hall_0", "hl_flesh_cavern_0", "hl_mine_collapse"]) {
+    for (const y of [-20, -4, 8]) {
+      const x = cx + [-40, 40, -40, 40][i], z = cz + [-40, -40, 40, 40][i];
+      const before = MARK.map((t) => count(x, y, z, [t]));
+      const r = run(`place feature shaftbreaker:${f} ${x} ${y} ${z}`);
+      await new Promise((res) => system.runTimeout(res, 4));
+      const after = MARK.map((t) => count(x, y, z, [t]));
+      say(`feature ${f} at ${x},${y},${z}: ${r}; ribs/organs/flesh/rails/air ${before.join("/")} -> ${after.join("/")} biome ${dim.getBiome({ x, y, z })?.id}`);
+    }
+    i++;
+  }
+  for (const y of [-20, -4, 8]) {
+    const r = run(`place featurerule shaftbreaker:hl_great_chamber_rule ${cx} ${y} ${cz}`);
+    say(`rule at ${cx},${y},${cz}: ${r}; biome ${dim.getBiome({ x: cx, y, z: cz })?.id}`);
+  }
+  dim.runCommand("tickingarea remove chx");
   say("DONE");
 }

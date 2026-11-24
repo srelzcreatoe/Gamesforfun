@@ -128,10 +128,22 @@ python3 tools/merge_dwellers.py               # merge the three archived dweller
 python3 tools/merge_dwellers.py --check       # every merged dweller file is what the tool writes (the patches and
                                               # renames listed in the tool; DESIGN.md §26)
 python3 tools/rift_assets.py                  # the Rift's blocks: textures, models, definitions, names (1.6.0)
-python3 tools/rift_world.py                   # the Rift's 12 pieces (.mcstructure) and its loot tables (1.6.0)
+python3 tools/rift_world.py                   # the Rift's 21 pieces (.mcstructure) and its 14 loot tables (1.6.0; the
+                                              # observatory, Garden of Eyes, barrow field, hamlets, watchtower, camp 1.7.0)
+python3 tools/rift_world.py camp watchtower   # only the pieces named
 python3 tools/rift_world.py --names           # every block name the pieces use (ask the server for their states:
                                               # scriptevent otest:states <names>, batches of ten; then tools/rift_states.json)
 python3 tools/rift_portal.py                  # the rift: its textures, model, entity, animations, particles, fog (1.6.0)
+python3 tools/hollows_world.py                # the Hollows' great chambers and their feature and rule (1.7.0; states:
+                                              # tools/hollows_states.json, asked of the server like the Rift's)
+python3 tools/eyebloom_aim.py                 # the eyebloom's 48 turned geometries and the states and permutations that
+                                              # pick them (1.7.0; re-run after changing its model)
+python3 tools/make_eyebloom.py                # the eyebloom's textures and its 1 x 3 x 1 structure
+python3 tools/synth_dark.py [observer|brine|voice|shaft]
+                                              # the dark music and voices (1.7.0: the Observer's four tracks, the
+                                              # Brinesleeper's soundtrack and voice, the Shaftbreaker's music); then
+                                              # python3 tools/merge_dwellers.py to point the dwellers' sound ids at them
+python3 tools/synth_music.py [--old-tracks]   # its glitch and static (the old chiptune tracks only with --old-tracks)
 python3 tools/preview_structure.py FILE.mcstructure OUT.png [--cut-y N] [--rot 0-3]
                                               # a quick isometric picture of a piece (cut away to see inside)
 python3 tools/render_model.py GEO TEX out.png --anim FILE NAME TIME --view side --debug-colors
@@ -167,8 +179,15 @@ for the baseline). 1.6.0 adds the `dwellers`, `rift` and `rift_levels` groups to
 portal entity and a full realm laid out to `noexp.txt`), and four dev probes in the test kit: `otest:riftprobe` (the
 dimension), `otest:riftedge` (which way a quarter turn takes a piece's edge), `otest:riftcheck` (every cell of the
 realm: ground, chests, barrels, lecterns, unknown blocks) and `otest:riftloot <tables>` (each loot table spawned three
-times: items and enchantments); and `otest:states <names>` (each block's default states and current id). Results and
-the manual client procedure are in [TEST_REPORT.md](TEST_REPORT.md).
+times: items and enchantments); and `otest:states <names>` (each block's default states and current id). 1.7.0 adds
+the `dweller_wits` group (their health, the Observer's, the Shaftbreaker on the surface and up close, the Brinesleeper
+on alert — with the dev commands `dwellers sb_wits | sb_escaped <n> | sb_stop` and the dwellers' decisions reported as
+`dweller` events through `link/shared.note`), rewrites `eyebloom` (its eye following you) and `sound_test` (every
+creature's page), grows `rift` to the 49-piece realm (`rift_realm_every_place`), makes `otest:riftcheck` read the 7 × 7
+realm a column at a time (and count eyeblooms), and adds three probes for the cave biomes: `otest:cavemap [half step
+ys]` (the cave biomes' shares round 0,0), `otest:cavewide [half step]` (sparse, over kilometres) and `otest:hollows
+[n]` (finds n Hollows, loads ±56 blocks round each, counts its walls, its organic features and its chambers' blocks).
+Results and the manual client procedure are in [TEST_REPORT.md](TEST_REPORT.md).
 
 The harness patches the **installed test copy** of the BP to import
 `@minecraft/server-gametest` so simulated players are visible to the add-on's script context; the shipped manifest is

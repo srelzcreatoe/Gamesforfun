@@ -419,7 +419,7 @@ export function run(name, args, caller) {
       DEBUG.ahead = args[0] === "never" ? "never" : "auto";
       return `ahead ${DEBUG.ahead}`;
     case "dwellers": {
-      // dwellers on|off [name|all] | status | send <name> [player] (1.6.0)
+      // dwellers on|off [name|all] | status | send <name> [player] (1.6.0) | sb_wits | sb_escaped (1.7.0)
       const sub = args[0] ?? "status";
       if (sub === "on" || sub === "off") {
         const names = !args[1] || args[1] === "all" ? dwellerLink.DWELLERS.map((d) => d.name) : [args[1]];
@@ -435,6 +435,19 @@ export function run(name, args, caller) {
         const p = pick(2);
         if (!p) return "no player";
         return `send ${args[1]}: ${String(dwellerLink.sendNow(args[1], p))}`;
+      }
+      if (sub === "sb_stop") {
+        // dwellers sb_stop (1.7.0, tests): whatever the Shaftbreaker is doing ends, and it is gone
+        dwellerLink.sbStop();
+        return "shaftbreaker stopped";
+      }
+      if (sub === "sb_wits" || sub === "sb_escaped") {
+        // dwellers sb_wits [player] | sb_escaped <n> [player] (1.7.0, tests): the Shaftbreaker and the surface
+        const p = pick(sub === "sb_wits" ? 1 : 2);
+        if (!p) return "no player";
+        const w = sub === "sb_wits" ? dwellerLink.sbWits(p) : dwellerLink.sbEscaped(p, parseInt(args[1], 10) || 0);
+        emit("dweller", { what: "sb_wits", name: "shaftbreaker", player: p.name, ...w });
+        return `shaftbreaker and ${p.name}: ${JSON.stringify(w)}`;
       }
       return dwellerLink.DWELLERS.map((d) => `${d.name}=${dwellerLink.isOn(d) ? "on" : "off"} often=${d.getOften()} danger=${d.getDanger()}`).join(" ");
     }

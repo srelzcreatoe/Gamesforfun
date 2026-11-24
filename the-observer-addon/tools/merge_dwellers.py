@@ -243,6 +243,9 @@ PATCHES = [
      "const PROFILE = { bold: 0.1, looks: 0,",
      "const PROFILE = { bold: 0.45, looks: 0,"),
     ("brinesleeper", "brain.js",
+     "  m.seenFor = 0;\n  debug(`brinesleeper: ${state}`);",
+     "  m.seenFor = 0;\n  debug(`brinesleeper: ${state}`);\n  __dw.note('brinesleeper', { what: 'state', state });"),
+    ("brinesleeper", "brain.js",
      "        if (pr.bold > 0.7 && tooClose && chance(0.4)) {            // it no longer runs from you\n"
      "          if (m.kind === 'water') approach(c, m, target); else standoff(c, m, target);\n"
      "          break;\n"
@@ -324,6 +327,7 @@ PATCHES = [
      "    const s0 = api.pstate(p);\n"
      "    const attack = !config().harmless && api.rage && chance(Math.min(0.9, (stared ? 0.5 : 0.6) + (s0.provocation || 0) / 200 + (s0.state === 'provoked' ? 0.15 : 0)));\n"
      "    c.halt(); c.face(p.getHeadLocation());\n"
+     "    __dw.note('shaftbreaker', { what: 'close', how: attack ? 'rage' : 'vanish', why: stared ? 'stare' : 'close', d: Math.round(d * 10) / 10, player: p.name });\n"
      "    if (attack) { api.provoke(p, 20, stared ? 'held its stare' : 'right up against it'); playAt(c.dim, 'shaftbreaker.screech', { x: c.loc.x, y: c.loc.y + 2, z: c.loc.z }, 1, rand(0.8, 0.95)); api.rage(p, stared ? 'stare' : 'too close'); return; }\n"
      "    playAt(c.dim, 'shaftbreaker.jumpscare', { x: c.loc.x, y: c.loc.y + 2, z: c.loc.z }, 1, rand(0.9, 1.05));\n"
      "    setDanger(p, 0.9); c.vanish(false); B.shyUntil = now() + sec(40); return;\n"

@@ -1,6 +1,6 @@
 // Integration tests for The Observer, driven by GameTest simulated players on a dedicated server.
 // Every check prints "[OTEST] PASS <name> ..." or "[OTEST] FAIL <name> ...".
-import { world, system, GameMode, ItemStack, Direction, BlockVolume, BlockPermutation, InputPermissionCategory } from "@minecraft/server";
+import { world, system, GameMode, ItemStack, Direction, BlockVolume, BlockPermutation, InputPermissionCategory, EntityDamageCause } from "@minecraft/server";
 import * as gt from "@minecraft/server-gametest";
 import { trail } from "./rival.js";
 import { build, resetHouse, buildCages, Y, FIELD, HOUSE, TUNNEL, NETHER, POOL, PILLAR, CAVE, CAGES, RIDGE, YARD } from "./arenas.js";
@@ -4990,6 +4990,127 @@ TESTS.dwellers = async () => {
   obs("dwellers", "off", "all");
   await wait(6);
   check("dwellers_off_again_gone", !g.isValid);
+};
+
+TESTS.dweller_wits = async () => {
+  // 1.7.0: tougher (each dweller 500 health, the Observer 600, hurt now by players' blows and shots only, torn apart
+  // at its last tenth); the Shaftbreaker lives in the caves and comes up only after you have got away from it three
+  // times; up close it never just stands there (it tears into you, or it is gone), and held in a stare it snaps; the
+  // Brinesleeper is on high alert: come close and it stands its ground or comes for you
+  const p = await freshTarget("Tester", AT_FIELD, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
+  isolate(p);
+  obs("dwellers", "on", "all");
+  await wait(6);
+  // their health
+  const hp = {};
+  for (const [id, dz] of [["goatwalker:goatwalker", -14], ["brine:brinesleeper", -18], ["shaftbreaker:shaftbreaker", -22]]) {
+    const e = ow().spawnEntity(id, { x: FIELD.x + 12.5, y: Y, z: FIELD.z + dz + 0.5 });
+    await wait(2);
+    const h = e.isValid ? e.getComponent("minecraft:health") : undefined;
+    hp[id] = h ? `${h.currentValue}/${h.effectiveMax}` : "gone";
+    if (e.isValid) e.remove();
+  }
+  check("dwellers_500_health", Object.values(hp).every((v) => v === "500/500"), JSON.stringify(hp));
+  // the Observer: 600; a player's blow hurts it, nothing else does; at its last tenth it is torn apart
+  let m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  const o = await waitObserver(60);
+  if (check("observer_there", !!o)) {
+    const h = o.getComponent("minecraft:health");
+    const max = h?.effectiveMax;
+    o.applyDamage(30, { cause: EntityDamageCause.lava });
+    await wait(2);
+    const afterLava = h?.currentValue;
+    o.applyDamage(30, { cause: EntityDamageCause.entityAttack, damagingEntity: p });
+    await wait(2);
+    const afterBlow = h?.currentValue;
+    check("observer_600_health", max === 600, String(max));
+    check("observer_hurt_only_by_players", afterLava === 600 && afterBlow === 570, `lava ${afterLava}, blow ${afterBlow}`);
+    await wait(14); // (past the half second after a blow in which nothing hurts it again)
+    h?.setCurrentValue(70);
+    o.applyDamage(20, { cause: EntityDamageCause.entityAttack, damagingEntity: p });
+    const torn = await waitEvent("body", (d) => d.what === "torn_down", 40, m);
+    await observerGone(60);
+    check("observer_torn_down_at_its_last_tenth", !!torn && !observerEntity(), JSON.stringify(torn ?? {}));
+  }
+  // the Shaftbreaker and the surface: not up here (by day or night) until you have got away from it three times
+  ow().runCommand("time set midnight");
+  obs("dwellers", "sb_escaped", "0", "Tester");
+  await wait(45);
+  m = mark();
+  obs("dwellers", "sb_wits", "Tester");
+  let w = await waitEvent("dweller", (d) => d.what === "sb_wits", 20, m);
+  check("shaftbreaker_not_on_the_surface", !!w && !w.underground && !w.surface && w.followsFor === 0, JSON.stringify(w ?? {}));
+  m = mark();
+  obs("dwellers", "sb_escaped", "2", "Tester");
+  w = await waitEvent("dweller", (d) => d.what === "sb_wits", 20, m);
+  check("shaftbreaker_two_escapes_not_yet", !!w && w.followsFor === 0 && w.escapes === 2, JSON.stringify(w ?? {}));
+  m = mark();
+  obs("dwellers", "sb_escaped", "1", "Tester");
+  w = await waitEvent("dweller", (d) => d.what === "sb_wits", 20, m);
+  check("shaftbreaker_third_escape_it_follows", !!w && w.followsFor > 600 && w.escapes === 0, JSON.stringify(w ?? {}));
+  await wait(45);
+  m = mark();
+  obs("dwellers", "sb_wits", "Tester");
+  w = await waitEvent("dweller", (d) => d.what === "sb_wits", 20, m);
+  check("shaftbreaker_on_the_surface_while_it_follows", !!w && w.surface, JSON.stringify(w ?? {}));
+  obs("dwellers", "sb_escaped", "0", "Tester");
+  // up close it reacts: it tears into you, or it is gone
+  const reacts = [];
+  for (let k = 0; k < 2; k++) {
+    heal(p);
+    p.teleport(AT_FIELD, { facingLocation: { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 } });
+    obs("dwellers", "sb_stop"); // (a creature summoned while one of its own scenes runs is turned away)
+    await wait(4);
+    m = mark();
+    const sb = ow().spawnEntity("shaftbreaker:shaftbreaker", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 3.5 });
+    const r = await waitEvent("dweller", (d) => d.name === "shaftbreaker" && d.what === "close", 120, m);
+    reacts.push(r ? `${r.how}@${r.d}` : "nothing");
+    await wait(30);
+    obs("abort");
+    for (const e of ow().getEntities({ type: "shaftbreaker:shaftbreaker" })) e.remove();
+    await wait(10);
+    if (!sb) break;
+  }
+  check("shaftbreaker_reacts_up_close", reacts.every((x) => /^(rage|vanish)@/.test(x)), reacts.join(" "));
+  // held in a stare from further off, it snaps
+  heal(p);
+  obs("dwellers", "sb_stop");
+  await wait(4);
+  m = mark();
+  ow().spawnEntity("shaftbreaker:shaftbreaker", { x: FIELD.x + 0.5, y: Y, z: FIELD.z - 8.5 });
+  let stare;
+  for (let t = 0; t < 200 && !stare; t += 4) {
+    p.lookAtLocation({ x: FIELD.x + 0.5, y: Y + 1.8, z: FIELD.z - 8.5 });
+    stare = since(m, "dweller").find((d) => d.name === "shaftbreaker" && d.what === "close");
+    await wait(4);
+  }
+  check("shaftbreaker_snaps_when_stared_at", !!stare && stare.why === "stare", JSON.stringify(stare ?? {}));
+  await wait(20);
+  obs("abort");
+  for (const e of ow().getEntities({ type: "shaftbreaker:shaftbreaker" })) e.remove();
+  // the Brinesleeper, close by: it does not simply sink away
+  heal(p);
+  const states = [];
+  for (let k = 0; k < 3 && !states.some((x) => /chase|standoff|approach/.test(x)); k++) {
+    m = mark();
+    ow().spawnEntity("brine:brinesleeper", { x: FIELD.x + 0.5, y: Y, z: FIELD.z - 5.5 });
+    for (let t = 0; t < 240; t += 10) {
+      p.lookAtLocation({ x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z + 30 });
+      await wait(10);
+      if (since(m, "dweller").some((d) => d.name === "brinesleeper" && /chase|standoff|approach/.test(d.state ?? ""))) break;
+    }
+    states.push(since(m, "dweller").filter((d) => d.name === "brinesleeper" && d.what === "state").map((d) => d.state).join(">"));
+    for (const e of ow().getEntities({ type: "brine:brinesleeper" })) e.remove();
+    await wait(20);
+  }
+  check("brinesleeper_on_high_alert", states.some((x) => /chase|standoff|approach/.test(x)), states.join(" | "));
+  obs("dwellers", "sb_stop");
+  obs("dwellers", "off", "all");
+  obs("abort");
+  ow().runCommand("time set noon");
+  await observerGone(200);
+  await wait(80); // (its hold on the music let go)
 };
 
 TESTS.rift = async () => {

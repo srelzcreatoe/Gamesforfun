@@ -144,43 +144,43 @@ them is in the packs. Vanilla sounds used by name only: `ambient.weather.rain`, 
 | `TheObserver_BP/blocks/rift/rift_moss.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `da5b6d9463a9b3a1` |
 | `TheObserver_BP/blocks/rift/rift_needles.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `36b97dca297e87ba` |
 | `TheObserver_BP/blocks/rift/skeleton.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `7f2490fcc4927fb1` |
-| `TheObserver_RP/textures/blocks/rift/blood_0.png` | original — drawn by tools/rift_assets.py (1.6.0) | `5ded00e4ab1ea68d` |
-| `TheObserver_RP/textures/blocks/rift/blood_1.png` | original — drawn by tools/rift_assets.py (1.6.0) | `1b8363926b42ec72` |
-| `TheObserver_RP/textures/blocks/rift/blood_2.png` | original — drawn by tools/rift_assets.py (1.6.0) | `9f9677c964a4bafb` |
-| `TheObserver_RP/textures/blocks/rift/blood_3.png` | original — drawn by tools/rift_assets.py (1.6.0) | `4ba749b9e51a4fbc` |
-| `TheObserver_RP/textures/blocks/rift/corpse_cloth.png` | original — drawn by tools/rift_assets.py (1.6.0) | `a710933c13a6529a` |
-| `TheObserver_RP/textures/blocks/rift/corpse_skin.png` | original — drawn by tools/rift_assets.py (1.6.0) | `f55f1945d2f49b6a` |
-| `TheObserver_RP/textures/blocks/rift/gravestone.png` | original — drawn by tools/rift_assets.py (1.6.0) | `9eaf298275d6f505` |
-| `TheObserver_RP/textures/blocks/rift/rift_bark.png` | original — drawn by tools/rift_assets.py (1.6.0) | `5a0b39fc2d22ea31` |
-| `TheObserver_RP/textures/blocks/rift/rift_bark_top.png` | original — drawn by tools/rift_assets.py (1.6.0) | `a8d34a2bf59e1798` |
-| `TheObserver_RP/textures/blocks/rift/rift_bricks.png` | original — drawn by tools/rift_assets.py (1.6.0) | `f4102bcc2ef653aa` |
-| `TheObserver_RP/textures/blocks/rift/rift_bricks_cracked.png` | original — drawn by tools/rift_assets.py (1.6.0) | `011a7d25d9cf86f3` |
-| `TheObserver_RP/textures/blocks/rift/rift_glass.png` | original — drawn by tools/rift_assets.py (1.6.0) | `7c5a2525963d6f65` |
-| `TheObserver_RP/textures/blocks/rift/rift_lamp.png` | original — drawn by tools/rift_assets.py (1.6.0) | `eb981ff02827d953` |
-| `TheObserver_RP/textures/blocks/rift/rift_moss_side.png` | original — drawn by tools/rift_assets.py (1.6.0) | `c1c6eeea4e412265` |
-| `TheObserver_RP/textures/blocks/rift/rift_moss_top.png` | original — drawn by tools/rift_assets.py (1.6.0) | `045238cce079adee` |
-| `TheObserver_RP/textures/blocks/rift/rift_needles.png` | original — drawn by tools/rift_assets.py (1.6.0) | `9ac109f0a0b60e20` |
-| `TheObserver_RP/textures/blocks/rift/rift_soil.png` | original — drawn by tools/rift_assets.py (1.6.0) | `27adaf07c806d96c` |
-| `TheObserver_RP/textures/blocks/rift/skeleton_bone.png` | original — drawn by tools/rift_assets.py (1.6.0) | `f41d297433a72166` |
-| `TheObserver_RP/textures/blocks/rift/skull_face.png` | original — drawn by tools/rift_assets.py (1.6.0) | `97f40d6db5da7770` |
+| `TheObserver_RP/textures/blocks/rift/blood_0.png` | original — drawn by tools/rift_assets.py (1.6.0) | `ba3eb7e591a81487` |
+| `TheObserver_RP/textures/blocks/rift/blood_1.png` | original — drawn by tools/rift_assets.py (1.6.0) | `c5deb92ca5ba8ad0` |
+| `TheObserver_RP/textures/blocks/rift/blood_2.png` | original — drawn by tools/rift_assets.py (1.6.0) | `3b8890ba0fe7fc0a` |
+| `TheObserver_RP/textures/blocks/rift/blood_3.png` | original — drawn by tools/rift_assets.py (1.6.0) | `9fe7863013c2d683` |
+| `TheObserver_RP/textures/blocks/rift/corpse_cloth.png` | original — drawn by tools/rift_assets.py (1.6.0) | `d7e885b672b62f30` |
+| `TheObserver_RP/textures/blocks/rift/corpse_skin.png` | original — drawn by tools/rift_assets.py (1.6.0) | `08d18fa3d8a1ce5f` |
+| `TheObserver_RP/textures/blocks/rift/gravestone.png` | original — drawn by tools/rift_assets.py (1.6.0) | `ff5749cb5ed3e82f` |
+| `TheObserver_RP/textures/blocks/rift/rift_bark.png` | original — drawn by tools/rift_assets.py (1.6.0) | `371855df695cf920` |
+| `TheObserver_RP/textures/blocks/rift/rift_bark_top.png` | original — drawn by tools/rift_assets.py (1.6.0) | `7d25d77d702d975b` |
+| `TheObserver_RP/textures/blocks/rift/rift_bricks.png` | original — drawn by tools/rift_assets.py (1.6.0) | `16f69c7f68faa3b9` |
+| `TheObserver_RP/textures/blocks/rift/rift_bricks_cracked.png` | original — drawn by tools/rift_assets.py (1.6.0) | `14adf4ff8652b41d` |
+| `TheObserver_RP/textures/blocks/rift/rift_glass.png` | original — drawn by tools/rift_assets.py (1.6.0) | `1a6904798915440e` |
+| `TheObserver_RP/textures/blocks/rift/rift_lamp.png` | original — drawn by tools/rift_assets.py (1.6.0) | `82fe3fe04be3468a` |
+| `TheObserver_RP/textures/blocks/rift/rift_moss_side.png` | original — drawn by tools/rift_assets.py (1.6.0) | `93d45d334197c8d2` |
+| `TheObserver_RP/textures/blocks/rift/rift_moss_top.png` | original — drawn by tools/rift_assets.py (1.6.0) | `e3707a5c775c54f6` |
+| `TheObserver_RP/textures/blocks/rift/rift_needles.png` | original — drawn by tools/rift_assets.py (1.6.0) | `566d26ee071fe120` |
+| `TheObserver_RP/textures/blocks/rift/rift_soil.png` | original — drawn by tools/rift_assets.py (1.6.0) | `682f649c675c923e` |
+| `TheObserver_RP/textures/blocks/rift/skeleton_bone.png` | original — drawn by tools/rift_assets.py (1.6.0) | `b11e1d186afe5ee6` |
+| `TheObserver_RP/textures/blocks/rift/skull_face.png` | original — drawn by tools/rift_assets.py (1.6.0) | `77bb5ce8a5e12983` |
 | `TheObserver_RP/models/blocks/rift_corpse.geo.json` | original — tools/rift_assets.py (1.6.0): a block model | `b9aeb3720073e8b9` |
 | `TheObserver_RP/models/blocks/rift_decal.geo.json` | original — tools/rift_assets.py (1.6.0): a block model | `308e3e1706a73ad6` |
 | `TheObserver_RP/models/blocks/rift_gravestone.geo.json` | original — tools/rift_assets.py (1.6.0): a block model | `8e161bab477ddbed` |
 | `TheObserver_RP/models/blocks/rift_hanged_lower.geo.json` | original — tools/rift_assets.py (1.6.0): a block model | `9448f4c000c58f1f` |
 | `TheObserver_RP/models/blocks/rift_hanged_upper.geo.json` | original — tools/rift_assets.py (1.6.0): a block model | `48b60600f0930ba9` |
 | `TheObserver_RP/models/blocks/rift_skeleton.geo.json` | original — tools/rift_assets.py (1.6.0): a block model | `8bdfb4750bcc7093` |
-| `TheObserver_BP/structures/rift/castle.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `c8b996e65af04145` |
-| `TheObserver_BP/structures/rift/church.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `aa69a45cd05e511b` |
-| `TheObserver_BP/structures/rift/corner_1.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `b94d951dcf02a34c` |
-| `TheObserver_BP/structures/rift/corner_2.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `253982e2aa8aae8e` |
-| `TheObserver_BP/structures/rift/edge_1.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `e7e9c31ee33257f1` |
-| `TheObserver_BP/structures/rift/edge_2.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `1cf38b4d60b0aca9` |
-| `TheObserver_BP/structures/rift/edge_3.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `0b662c00bb8b21b6` |
-| `TheObserver_BP/structures/rift/landing.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `285aa8bac4f7cafb` |
-| `TheObserver_BP/structures/rift/woods_1.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `f6b4d1d10394771b` |
-| `TheObserver_BP/structures/rift/woods_2.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `cfedd8c44ccf01ba` |
-| `TheObserver_BP/structures/rift/woods_3.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `4cb82bff0c3833e3` |
-| `TheObserver_BP/structures/rift/woods_4.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `52c118389e6cfd87` |
+| `TheObserver_BP/structures/rift/castle.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `30fa324b52db0294` |
+| `TheObserver_BP/structures/rift/church.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `8956cc6ffa5cf4ce` |
+| `TheObserver_BP/structures/rift/corner_1.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `a81da3c9ee0421c2` |
+| `TheObserver_BP/structures/rift/corner_2.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `9cd7f8afd3b2ed67` |
+| `TheObserver_BP/structures/rift/edge_1.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `6b49a265392688a3` |
+| `TheObserver_BP/structures/rift/edge_2.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `07651034104a3d02` |
+| `TheObserver_BP/structures/rift/edge_3.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `bf821f4295b76271` |
+| `TheObserver_BP/structures/rift/landing.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `b63b5400dd6cc291` |
+| `TheObserver_BP/structures/rift/woods_1.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `22d40324bc64bd6d` |
+| `TheObserver_BP/structures/rift/woods_2.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `c5c3bcd1feaf1ae1` |
+| `TheObserver_BP/structures/rift/woods_3.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `a8636dc579ac1a1e` |
+| `TheObserver_BP/structures/rift/woods_4.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `c8954fe487482130` |
 | `TheObserver_BP/loot_tables/rift/bones.json` | original — tools/rift_world.py / rift_assets.py (1.6.0) | `280bde4112caae57` |
 | `TheObserver_BP/loot_tables/rift/castle_armoury.json` | original — tools/rift_world.py / rift_assets.py (1.6.0) | `bbe266c46b668a22` |
 | `TheObserver_BP/loot_tables/rift/castle_lord.json` | original — tools/rift_world.py / rift_assets.py (1.6.0) | `1bc87385fc16962d` |
@@ -195,7 +195,7 @@ them is in the packs. Vanilla sounds used by name only: `ambient.weather.rain`, 
 | `TheObserver_RP/entity/rift_portal.entity.json` | original — tools/rift_portal.py (1.6.0) | `5c879f90407f31cf` |
 | `TheObserver_RP/models/entity/rift_portal.geo.json` | original — tools/rift_portal.py (1.6.0) | `a75b7946eb03876e` |
 | `TheObserver_RP/render_controllers/rift_portal.render_controllers.json` | original — tools/rift_portal.py (1.6.0) | `40c31efb813a6ddc` |
-| `TheObserver_RP/animations/rift_portal.animation.json` | original — tools/rift_portal.py (1.6.0) | `2135a15eb3494536` |
+| `TheObserver_RP/animations/rift_portal.animation.json` | original — tools/rift_portal.py (1.6.0) | `f7f01c802a34370a` |
 | `TheObserver_RP/animation_controllers/rift_portal.animation_controllers.json` | original — tools/rift_portal.py (1.6.0) | `c29d2fa63f775cef` |
 | `TheObserver_RP/textures/entity/rift_portal/eye.png` | original — drawn by tools/rift_portal.py (1.6.0) | `b669354ee00c2c9a` |
 | `TheObserver_RP/textures/entity/rift_portal/halo.png` | original — drawn by tools/rift_portal.py (1.6.0) | `ba1e5892dafd5667` |
@@ -214,7 +214,84 @@ them is in the packs. Vanilla sounds used by name only: `ambient.weather.rain`, 
 | `TheObserver_RP/particles/rift_sparks.json` | original — tools/rift_portal.py (1.6.0) | `b12412262cd3763e` |
 | `TheObserver_RP/textures/particle/observer/rift_rain.png` | original — drawn by tools/rift_portal.py (1.6.0) | `92b3367c95e168b1` |
 | `TheObserver_RP/textures/particle/observer/rift_spark.png` | original — drawn by tools/rift_portal.py (1.6.0) | `d8a3ec1202c41d65` |
-| `TheObserver_RP/fogs/rift.json` | original — tools/rift_portal.py (1.6.0): the Rift's mist | `cf9dd76db212858c` |
+| `TheObserver_RP/fogs/rift.json` | original — tools/rift_portal.py (1.6.0): the Rift's mist | `54c5fcfd13501fe3` |
+
+## 1.7.0: all original
+
+Everything new in 1.7.0 is made by this project's own tools from code alone: the Rift's seven new pieces and two more
+kinds of woods, and their loot (`tools/rift_world.py`); the Hollows' great chambers, from the Shaftbreaker's own blocks
+(`tools/hollows_world.py`); the eyeblooms' 48 turned geometries (`tools/eyebloom_aim.py`, from its 1.5.1 model); the
+Rift's textures, redrawn (`tools/rift_assets.py`); the Observer's four tracks made over, and the Shaftbreaker's music
+and the Brinesleeper's soundtrack and voice, made new (`tools/synth_dark.py`: written note by note, rendered from
+oscillators and noise — the "in the style of" the old horror fan-games the user asked for; nothing sampled,
+transcribed or imitated note for note). The concept images sent with the request (the Shaftbreaker's infested caves, an
+asset sheet) were looked at as references for mood only; nothing of them is in the packs. The Brinesleeper's and the
+Shaftbreaker's replaced files are no longer shipped (`SKIP_FILES` in `tools/merge_dwellers.py`). Removed in 1.7.0:
+`TheObserver_BP/features/eyebloom_feature.json` and `TheObserver_BP/feature_rules/weeping_mire_eyeblooms.json` (the
+Mire grows no new eyeblooms).
+
+| File | Provenance | SHA-256 (16) |
+|---|---|---|
+| `TheObserver_BP/structures/rift/observatory.mcstructure` | original — written block by block by tools/rift_world.py (1.7.0): an observatory: a round tower, a broken dome, a telescope, a star chart, rocks hanging in the air | `ce9a95556ba41f74` |
+| `TheObserver_BP/structures/rift/eye_garden.mcstructure` | original — written block by block by tools/rift_world.py (1.7.0): the Garden of Eyes: a sunken garden of eyeblooms round a great eye | `b3ea7ed5f703d235` |
+| `TheObserver_BP/structures/rift/graveyard.mcstructure` | original — written block by block by tools/rift_world.py (1.7.0): a barrow field: rows of graves, a chapel of bones over a vault | `3500ac84a490d2ad` |
+| `TheObserver_BP/structures/rift/hamlet_1.mcstructure` | original — written block by block by tools/rift_world.py (1.7.0): an abandoned hamlet: cottages round a well and a gallows | `229591a7d00725b5` |
+| `TheObserver_BP/structures/rift/hamlet_2.mcstructure` | original — written block by block by tools/rift_world.py (1.7.0): a second hamlet, laid out differently | `bc3bf996a8364d0d` |
+| `TheObserver_BP/structures/rift/watchtower.mcstructure` | original — written block by block by tools/rift_world.py (1.7.0): a watchtower: four floors, a soul fire and a bell on its top, a palisade | `84ffef582d0769e5` |
+| `TheObserver_BP/structures/rift/camp.mcstructure` | original — written block by block by tools/rift_world.py (1.7.0): an expedition's camp: tents round a fire gone blue, its stores, the dead | `91e30f4e02a11e87` |
+| `TheObserver_BP/structures/rift/woods_5.mcstructure` | original — written block by block by tools/rift_world.py (1.7.0): the dead woods (a fifth kind), with rocks hanging over them | `00587451556645b2` |
+| `TheObserver_BP/structures/rift/woods_6.mcstructure` | original — written block by block by tools/rift_world.py (1.7.0): the dead woods (a sixth kind) | `1612031b1dcd4327` |
+| `TheObserver_BP/loot_tables/rift/observatory.json` | original — tools/rift_world.py (1.7.0) | `993ee47010697212` |
+| `TheObserver_BP/loot_tables/rift/garden.json` | original — tools/rift_world.py (1.7.0) | `5cec412f28ae54ef` |
+| `TheObserver_BP/loot_tables/rift/barrow.json` | original — tools/rift_world.py (1.7.0) | `0f27b184dfc3e38b` |
+| `TheObserver_BP/loot_tables/rift/hamlet.json` | original — tools/rift_world.py (1.7.0) | `46daa3325d3fe482` |
+| `TheObserver_BP/loot_tables/rift/watchtower.json` | original — tools/rift_world.py (1.7.0) | `a5481d2b2a1bf0f1` |
+| `TheObserver_BP/loot_tables/rift/camp.json` | original — tools/rift_world.py (1.7.0) | `9898155d0aa66a4f` |
+| `TheObserver_BP/structures/hollows/flesh_cavern_0.mcstructure` | original — written block by block by tools/hollows_world.py (1.7.0, from the Shaftbreaker's own blocks): a cavern of veinstone and pulsing flesh under arching ribs | `aebb03ded8a5576b` |
+| `TheObserver_BP/features/hollows/hl_flesh_cavern_0.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `af23857033c4fb3e` |
+| `TheObserver_BP/structures/hollows/flesh_cavern_1.mcstructure` | original — written block by block by tools/hollows_world.py (1.7.0, from the Shaftbreaker's own blocks): a second flesh cavern | `5e0d8ba370cf1a20` |
+| `TheObserver_BP/features/hollows/hl_flesh_cavern_1.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `4a6c038d4f4abcf1` |
+| `TheObserver_BP/structures/hollows/rib_hall_0.mcstructure` | original — written block by block by tools/hollows_world.py (1.7.0, from the Shaftbreaker's own blocks): a nave of ribstone ribs | `3cae851183d88ccc` |
+| `TheObserver_BP/features/hollows/hl_rib_hall_0.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `ae25763be5320235` |
+| `TheObserver_BP/structures/hollows/rib_hall_1.mcstructure` | original — written block by block by tools/hollows_world.py (1.7.0, from the Shaftbreaker's own blocks): a second rib hall | `0a16cf1becef7e58` |
+| `TheObserver_BP/features/hollows/hl_rib_hall_1.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `a76ac1800950c7bc` |
+| `TheObserver_BP/structures/hollows/heart_chamber.mcstructure` | original — written block by block by tools/hollows_world.py (1.7.0, from the Shaftbreaker's own blocks): a great organ in a cavity of flesh | `9818802bb1056998` |
+| `TheObserver_BP/features/hollows/hl_heart_chamber.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `6ec365eb1868957f` |
+| `TheObserver_BP/structures/hollows/mine_collapse.mcstructure` | original — written block by block by tools/hollows_world.py (1.7.0, from the Shaftbreaker's own blocks): a collapsed mine: rails, timber frames, the dead | `5b4b4207cf07c506` |
+| `TheObserver_BP/features/hollows/hl_mine_collapse.json` | original — tools/hollows_world.py (1.7.0): carves the chamber into rock only | `7e721c7d8f11c5e9` |
+| `TheObserver_BP/features/hollows/hl_great_chamber.json` | original — tools/hollows_world.py (1.7.0): one of the six chambers | `2266acb075a7a943` |
+| `TheObserver_BP/feature_rules/hollows/hl_great_chamber_rule.json` | original — tools/hollows_world.py (1.7.0): one Hollows chunk in 14, y −48…8 | `24e567170049530b` |
+| `TheObserver_RP/sounds/music/shaft_dark/presence.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Shaftbreaker's own track): something below: a drone, picks striking far down the shafts, beams creaking, a lullaby backwards | `c7638131733b99b9` |
+| `TheObserver_RP/sounds/music/shaft_dark/hollows.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Shaftbreaker's own track): the Hollows: a wet pulse, the walls breathing, voices that never resolve, bells out of tune | `e9bda88fdaa359fd` |
+| `TheObserver_RP/sounds/music/shaft_dark/close.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Shaftbreaker's own track): it is close: a quickening heartbeat, strings crawling upward, a tritone bass pulse, clicking | `58ac2125ebdefac6` |
+| `TheObserver_RP/sounds/music/shaft_dark/standoff.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Shaftbreaker's own track): the standoff: a thin high tone, the dark ticking, a slow sub pulse, one bell | `a5e0e9e1e2712cca` |
+| `TheObserver_RP/sounds/music/shaft_dark/chase.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Shaftbreaker's own track): the chase: 170 bpm, metal on rock for drums, a distorted bass sliding down a tritone, a screech every four bars | `236f08725746ec71` |
+| `TheObserver_RP/sounds/music/brine_dark/stillwater_1.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own track) | `70eb13c13186ed5a` |
+| `TheObserver_RP/sounds/music/brine_dark/stillwater_2.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own track) | `c06b0c11962ac0f9` |
+| `TheObserver_RP/sounds/music/brine_dark/stillwater_3.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own track) | `f699ed3c7d202a29` |
+| `TheObserver_RP/sounds/music/brine_dark/near_1.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own track) | `72cba5cd5ae6daee` |
+| `TheObserver_RP/sounds/music/brine_dark/near_2.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own track) | `ca05988d160623c0` |
+| `TheObserver_RP/sounds/music/brine_dark/chase.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own track) | `3030f379697b4a2a` |
+| `TheObserver_RP/sounds/music/brine_dark/sting_1.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own track) | `961794c2d47b9c18` |
+| `TheObserver_RP/sounds/music/brine_dark/sting_2.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own track) | `64cd97a8134c301c` |
+| `TheObserver_RP/sounds/music/brine_dark/sting_3.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own track) | `7793f4c73abf1d8d` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/breathe.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `a31f6ddbf3671659` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/call.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `4f2a5a124702d2c9` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/click1.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `a0c6500b71fff93f` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/click2.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `36918d89b07efe05` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/death.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `d64242be0cecb863` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/emerge.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `8b31085668e2cb0f` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/grasp.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `3035e764d8c9ea9c` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/hiss.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `11e65ee822ea7850` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/hurt.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `bada3b7d34daf2db` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/jumpscare.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `989bd581efa9b85d` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/lunge.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `80b8123ceb8253d3` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/moan.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `c9119d88b87979e1` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/roar.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `8434c10e437c5f5c` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/spotted.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `8900c04114920e38` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/step1.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `041b78a683971bc3` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/step2.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `8d78b2a7b47a2762` |
+| `TheObserver_RP/sounds/mob/brinesleeper_dark/submerge.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `1369477d92f1e70a` |
 
 ## Shipped resource files
 
@@ -308,10 +385,10 @@ them is in the packs. Vanilla sounds used by name only: `ambient.weather.rain`, 
 | `TheObserver_RP/sounds/observer/glitch3.ogg` | original — synthesized by tools/synth_music.py (1.5.0): a third glitch variant (shorter) | `fa9e56ad4adad447` |
 | `TheObserver_RP/sounds/observer/static1.ogg` | original — synthesized by tools/synth_music.py (1.5.0): static with a mains hum: the corruption, a scrambled name | `226810c58cc0e5b8` |
 | `TheObserver_RP/sounds/observer/static2.ogg` | original — synthesized by tools/synth_music.py (1.5.0): a shorter burst of static | `51296887237e8cf5` |
-| `TheObserver_RP/sounds/observer/music/stalk.ogg` | original — synthesized by tools/synth_music.py (1.5.0; melodies written in the script, no samples, no existing songs): its stalking theme from the fourth stage — a warped music box in A harmonic minor over a beating drone, an original cheerful tune drifting in far too slow, detuned, crushed and partly backwards, static and drop-outs (loop) | `0bebd789dad62a74` |
-| `TheObserver_RP/sounds/observer/music/chase.ogg` | original — synthesized by tools/synth_music.py (1.5.0; melodies written in the script, no samples, no existing songs): the chase theme — 152 bpm, a driven bass on E and B-flat, a heartbeat kick, the same tune turned minor and fast, stutters, tape-stops and static | `ebcd8983510b52f1` |
-| `TheObserver_RP/sounds/observer/music/mire.ogg` | original — synthesized by tools/synth_music.py (1.5.0; melodies written in the script, no samples, no existing songs): its theme in the Mire from the fourth stage — a low drone, faint filtered-noise voices, slow out-of-tune bells, the tune as if from underwater (loop) | `aa9c7615b3fa962b` |
-| `TheObserver_RP/sounds/observer/music/end.ogg` | original — synthesized by tools/synth_music.py (1.5.0; melodies written in the script, no samples, no existing songs): the fifth-stage theme — the cheerful tune six times over, each slower, lower and more broken (crushed, warped, reversed, dropping out), until a tape-stop and a drone | `53d41429b5c7c277` |
+| `TheObserver_RP/sounds/observer/music/stalk.ogg` | original — synthesized by tools/synth_dark.py (1.7.0, made over darker; written note by note, no samples): its presence: a beating drone, a swelling cluster, a bell melody played backwards, a far choir, its heartbeat | `55ad7d4eaaf36ea9` |
+| `TheObserver_RP/sounds/observer/music/chase.ogg` | original — synthesized by tools/synth_dark.py (1.7.0, made over darker; written note by note, no samples): the chase: 150 bpm, pounding drums, a distorted tritone bass, organ stabs, strings shrieking upward | `3a04f7b34fc015a6` |
+| `TheObserver_RP/sounds/observer/music/mire.ogg` | original — synthesized by tools/synth_dark.py (1.7.0, made over darker; written note by note, no samples): its home: low voices, slow wrong bells, water dripping in the dark, as if heard underwater | `3909350fd2ae9787` |
+| `TheObserver_RP/sounds/observer/music/end.ogg` | original — synthesized by tools/synth_dark.py (1.7.0, made over darker; written note by note, no samples): the fifth stage: an organ dirge and choir falling a semitone at a time, a music-box tune going wrong, sinking into the drone | `edd0a7837c36c79d` |
 | `TheObserver_RP/textures/particle/observer/glitch.png` | original — drawn by tools/make_textures.py (1.5.0): glitch fragments for the aura round what it holds and the bursts | `69368823bc97f3ac` |
 | `TheObserver_RP/particles/glitch_aura.json` | original — written for 1.5.0 (one-shot; its own glitch texture) | `b57602aad7a6529a` |
 | `TheObserver_RP/particles/glitch_burst.json` | original — written for 1.5.0 (one-shot; its own glitch texture) | `4f50fb8c5746f37d` |
@@ -342,15 +419,13 @@ them is in the packs. Vanilla sounds used by name only: `ambient.weather.rain`, 
 | `TheObserver_RP/textures/blocks/wmire/eyebloom_white.png` | original — drawn by tools/make_eyebloom.py (1.5.1): the eyeball: off-white, shaded, red veins | `25ee64e77396a2c9` |
 | `TheObserver_RP/textures/blocks/wmire/eyebloom_eye.png` | original — drawn by tools/make_eyebloom.py (1.5.1): its eye, a flipbook strip of 8 frames (16×128): ahead, left, right, up, half shut, shut, down, the pupil wide | `56659331bb82687b` |
 | `TheObserver_RP/textures/blocks/wmire/eyebloom_shut.png` | original — drawn by tools/make_eyebloom.py (1.5.1): the lid, shut tight, weeping | `f02ef8af557e9faa` |
-| `TheObserver_RP/models/blocks/eyebloom.geo.json` | original — written for 1.5.1: the Eyebloom's flower (a stem, a halo of petals, an eyeball) | `2a5bec7f23c8538e` |
-| `TheObserver_RP/textures/flipbook_textures.json` | original — 1.5.1: the eye's flipbook (its frames and timing) | `ba98a58af438d6c2` |
+| `TheObserver_RP/models/blocks/eyebloom.geo.json` | original — written for 1.5.1: the Eyebloom's flower (a stem, a halo of petals, an eyeball) | `bd3fe5c3f848571f` |
+| `TheObserver_RP/textures/flipbook_textures.json` | original — 1.5.1: the eye's flipbook (its frames and timing) | `0aa7fc32818e0e7f` |
 | `TheObserver_RP/particles/eye_drip.json` | original — written for 1.5.1 (one-shot; its existing mote texture, tinted): a red drop falling from the eye | `d30fa55c74874ff4` |
 | `TheObserver_RP/particles/eye_spore.json` | original — written for 1.5.1 (one-shot; its existing mote texture, tinted): red spores drifting up | `0b74fdd4eded489a` |
-| `TheObserver_BP/blocks/eyebloom.json` | original — 1.5.1: the Eyebloom's flower | `e888c1aabc76090c` |
+| `TheObserver_BP/blocks/eyebloom.json` | original — 1.5.1: the Eyebloom's flower | `923437115b25c01b` |
 | `TheObserver_BP/blocks/eyebloom_stalk.json` | original — 1.5.1: the Eyebloom's stalk | `3a5816ebcd58281e` |
-| `TheObserver_BP/structures/wmire/eyebloom.mcstructure` | original — written by tools/make_eyebloom.py (1.5.1): stalk, stalk, flower | `66bc676a8ec03d0b` |
-| `TheObserver_BP/features/eyebloom_feature.json` | original — 1.5.1 | `819e45170d21fc67` |
-| `TheObserver_BP/feature_rules/weeping_mire_eyeblooms.json` | original — 1.5.1: the Eyebloom in the Mire | `60c2fbb1c482923e` |
+| `TheObserver_BP/structures/wmire/eyebloom.mcstructure` | original — written by tools/make_eyebloom.py (1.5.1): stalk, stalk, flower | `6a569aa8988f19a0` |
 | `TheObserver_BP/loot_tables/wmire/eyebloom.json` | original — 1.5.1: the eye may leave a spider eye | `db124c85f935250d` |
 | `TheObserver_BP/loot_tables/wmire/eyebloom_stalk.json` | original — 1.5.1: nothing | `d19c6266c7122cab` |
 

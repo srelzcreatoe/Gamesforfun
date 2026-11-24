@@ -330,6 +330,7 @@ function go(m, state, seconds) {
   m.until = now() + Math.round((seconds ?? 10) * TPS);
   m.seenFor = 0;
   debug(`brinesleeper: ${state}`);
+  __dw.note('brinesleeper', { what: 'state', state });
 }
 /** the sound you hear the moment it has you in its eyes */
 function spotted(c, m, target) {

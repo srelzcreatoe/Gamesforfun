@@ -413,22 +413,33 @@ PIECES = {
 
 # ----------------------------------------------------------------------------- world generation
 
-ROCK = ["minecraft:air", "minecraft:cave_air", "minecraft:stone", "minecraft:deepslate", "minecraft:tuff", "minecraft:andesite", "minecraft:diorite",
-        "minecraft:granite", "minecraft:calcite", "minecraft:dirt", "minecraft:gravel", "minecraft:clay", "minecraft:smooth_basalt",
+# What a chamber may cut through: the caves' own rock, ores, water, the Hollows' own blocks and what grows deep down —
+# never lava, a mineshaft's timber and rails, a dungeon's cobble, a spawner, a chest, an ancient city, a trial chamber,
+# the Shaftbreaker's den. (Measured in a Hollows on seed 7777: without its clawed stone, sculk, sculk veins and magma
+# in this list hardly any chamber could go down; 1.7.0.)
+ROCK = ["minecraft:air", "minecraft:stone", "minecraft:deepslate", "minecraft:tuff", "minecraft:andesite", "minecraft:diorite",
+        "minecraft:granite", "minecraft:calcite", "minecraft:dirt", "minecraft:coarse_dirt", "minecraft:rooted_dirt", "minecraft:gravel",
+        "minecraft:clay", "minecraft:smooth_basalt", "minecraft:magma",
         "minecraft:dripstone_block", "minecraft:pointed_dripstone", "minecraft:water", "minecraft:flowing_water", "minecraft:glow_lichen",
+        "minecraft:moss_block", "minecraft:moss_carpet", "minecraft:hanging_roots",
+        "minecraft:sculk", "minecraft:sculk_vein", "minecraft:amethyst_block", "minecraft:budding_amethyst", "minecraft:amethyst_cluster",
+        "minecraft:large_amethyst_bud", "minecraft:medium_amethyst_bud", "minecraft:small_amethyst_bud",
         "minecraft:cobbled_deepslate", "minecraft:infested_deepslate", "minecraft:infested_stone",
         "minecraft:coal_ore", "minecraft:iron_ore", "minecraft:copper_ore", "minecraft:gold_ore", "minecraft:redstone_ore", "minecraft:lapis_ore",
         "minecraft:diamond_ore", "minecraft:emerald_ore", "minecraft:deepslate_coal_ore", "minecraft:deepslate_iron_ore",
         "minecraft:deepslate_copper_ore", "minecraft:deepslate_gold_ore", "minecraft:deepslate_redstone_ore", "minecraft:deepslate_lapis_ore",
-        "minecraft:deepslate_diamond_ore", "minecraft:deepslate_emerald_ore", "minecraft:raw_iron_block", "minecraft:raw_copper_block",
+        "minecraft:deepslate_diamond_ore", "minecraft:deepslate_emerald_ore", "minecraft:lit_redstone_ore", "minecraft:lit_deepslate_redstone_ore",
+        "minecraft:raw_iron_block", "minecraft:raw_copper_block",
         "shaftbreaker:veinstone", "shaftbreaker:cracked_veinstone", "shaftbreaker:fleshstone", "shaftbreaker:pulsing_flesh",
         "shaftbreaker:ribstone", "shaftbreaker:bloodmoss", "shaftbreaker:bloodroot_vines", "shaftbreaker:dripfang",
         "shaftbreaker:crimson_thorns", "shaftbreaker:glowspore_cluster", "shaftbreaker:organ_core", "shaftbreaker:cracked_organ_core",
-        "shaftbreaker:watcher_pod"]
+        "shaftbreaker:watcher_pod", "shaftbreaker:clawed_stone", "shaftbreaker:cairn_marker", "shaftbreaker:hollow_dust",
+        "shaftbreaker:hollow_soil"]
 
 
 def worldgen():
-    """The chambers placed in the Hollows: one in about every fourteen chunks of it, deep, before anything else."""
+    """The chambers placed in the Hollows: tried in one chunk of it in nine, between y −32 and 6 (where the Hollows lie:
+    below them is the deep dark), before anything else; it goes down only where nothing but rock is in its way."""
     out = {}
     feats = []
     for name in PIECES:
@@ -447,9 +458,9 @@ def worldgen():
                        "minecraft:biome_filter": [{"test": "has_biome_tag", "operator": "==", "value": "shaftbreaker_hollows"}]},
         "distribution": {"iterations": 1, "coordinate_eval_order": "zyx",
                          "x": {"distribution": "uniform", "extent": [0, 16]},
-                         "y": {"distribution": "uniform", "extent": [-48, 8]},
+                         "y": {"distribution": "uniform", "extent": [-32, 6]},
                          "z": {"distribution": "uniform", "extent": [0, 16]},
-                         "scatter_chance": {"numerator": 1, "denominator": 14}}}}
+                         "scatter_chance": {"numerator": 1, "denominator": 9}}}}
     return out
 
 

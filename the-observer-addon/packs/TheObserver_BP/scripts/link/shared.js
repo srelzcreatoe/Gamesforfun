@@ -135,3 +135,8 @@ export function forget(pid) {
   playing.delete(pid);
   held.delete(pid);
 }
+
+/** What a dweller just decided, for the record (tests; 1.7.0). @param {string} name @param {Record<string, any>} data */
+export function note(name, data) {
+  emit("dweller", { name, ...data });
+}
