@@ -20,6 +20,9 @@ const CLIENT = {
 const ROMAN = { i: 'I', ii: 'II', iii: 'III', iv: 'IV' };
 // The Titan wears Basiliskra IV's body under a client entity of its own (which keeps its seams lit).
 const CLIENT_TITAN = { ...CLIENT, entity: '/packs/RP/entity/basiliskra_titan.entity.json' };
+// Vathrok (2.0): its own model and client entity
+const CLIENT_VATHROK = { ...CLIENT, entity: '/packs/RP/entity/vathrok.entity.json' };
+const FILE = (k) => (k === 'v' ? 'vathrok' : `basiliskra_${k}`);
 const lerp = (a, b, u) => a + (b - a) * u;
 
 // ---- what each form is shown doing ---------------------------------------------------------------------------
@@ -95,6 +98,27 @@ const REEL = {
     { t: 6.5, label: 'Beaten: onto its knees, the fire in it failing. Then it is gone', phase: 'fall', night: true, cam: CAM([40, 100], 8, 1.1),
       sounds: [{ at: 0.05, sound: 'basiliskra.roar_short', pitch: 0.9 }, { at: 2.2, sound: 'basiliskra.iii.step', pitch: 0.45 }] },
   ],
+  // (--forms vathrok: the other kaiju, 2.0)
+  vathrok: [
+    { t: 4.5, label: 'Vathrok: another kaiju, not Basiliskra. Its spines are never quite dark', phase: 'idle', night: true, cam: CAM([35, 85], 10, 1.0) },
+    { t: 7, label: 'It walks on its knuckles', phase: 'move', speed: 3.2, steps: 'basiliskra.vathrok.step', stepPitch: 1.0, cam: CAM([0, 50], 9, 1.05, 0.4) },
+    { t: 5.3, label: 'Its roar', phase: 'roar', cam: CAM([100, 120], 6, 0.95, 0.65), sounds: [{ at: 0, sound: 'basiliskra.vathrok.roar' }] },
+    { t: 0.8, label: 'Its jaws', phase: 'idle', cam: CAM(30, 8, 1.0) },
+    { t: 1.7, label: 'Its jaws: drawn back, then thrown forward with its whole body behind them', phase: 'bite', cam: CAM(30, 8, 1.0),
+      sounds: [{ at: 0, sound: 'basiliskra.vathrok.growl', pitch: 0.9 }, { at: 0.45, sound: 'basiliskra.vathrok.bite' }] },
+    { t: 0.8, label: 'Its claws', phase: 'idle', cam: CAM(110, 8, 1.0, 0.55) },
+    { t: 1.8, label: 'Its claws: it rears on its hind legs and rakes down', phase: 'swipe', look: [30, 0], cam: CAM(110, 8, 1.0, 0.55), sounds: [{ at: 0.4, sound: 'basiliskra.vathrok.claw' }] },
+    { t: 0.8, label: 'Its tail', phase: 'idle', cam: CAM(250, 40, 1.25, 0.3) },
+    { t: 2.3, label: 'Its tail: it winds away, then lashes round to the side its head has turned to', phase: 'sweep', look: [70, 0], cam: CAM(250, 40, 1.25, 0.3),
+      sounds: [{ at: 0, sound: 'basiliskra.vathrok.growl', pitch: 0.85 }, { at: 0.65, sound: 'basiliskra.vathrok.claw', pitch: 0.7 }] },
+    { t: 4.0, label: 'Its breath: braced on its arms, the spines light from the tail up', phase: 'charge', charge: [0, 18], night: true, cam: CAM([330, 20], 10, 1.05),
+      sounds: [{ at: 0, sound: 'basiliskra.vathrok.charge' }] },
+    { t: 4.0, label: 'A green, corroding breath, raked across where it aims', phase: 'fire', charge: 20, night: true, beam: true, cam: CAM([25, 40], 8, 1.15), sounds: [{ at: 0, sound: 'basiliskra.vathrok.beam', cut: 4.2 }] },
+    { t: 1.5, label: 'A heavy blow staggers it', phase: 'recoil', cam: CAM(60, 8, 1.15, 0.5), sounds: [{ at: 0.05, sound: 'basiliskra.vathrok.hurt' }] },
+    { t: 1.0, label: 'Beaten', phase: 'idle', night: true, cam: CAM(40, 8, 1.1) },
+    { t: 5.0, label: 'Beaten: it sinks onto its belly and the light in its spines goes out', phase: 'fall', night: true, cam: CAM([40, 100], 8, 1.1),
+      sounds: [{ at: 0.05, sound: 'basiliskra.vathrok.death' }] },
+  ],
   // (--forms c1a,c1b,c2a,c2b,c3a,c3b: his three changes, each a scene of its own; what the script adds to them in
   // the world -- the boiling sea, the bolts, the smoke, the glass in the ground -- is not drawn here)
   c1a: [
@@ -142,9 +166,9 @@ const REEL = {
   ],
 };
 // which model plays each reel, and what it is called on screen
-const MODEL = { titan: 'iv', c1a: 'i', c1b: 'ii', c2a: 'ii', c2b: 'iii', c3a: 'iii', c3b: 'iv' };
-const TITLE = { titan: 'The Titan', c1a: 'The water boils', c1b: 'The water boils', c2a: 'The sky comes down', c2b: 'The sky comes down', c3a: 'He burns through', c3b: 'He burns through' };
-const STRIDE = { iii: POSE.stride_iii / 4, iv: 7 }, BEATS = { iii: 4, iv: 2 };
+const MODEL = { titan: 'iv', vathrok: 'v', c1a: 'i', c1b: 'ii', c2a: 'ii', c2b: 'iii', c3a: 'iii', c3b: 'iv' };
+const TITLE = { titan: 'The Titan', vathrok: 'Vathrok', c1a: 'The water boils', c1b: 'The water boils', c2a: 'The sky comes down', c2b: 'The sky comes down', c3a: 'He burns through', c3b: 'He burns through' };
+const STRIDE = { iii: POSE.stride_iii / 4, iv: 7, v: POSE.stride_iii / 4 }, BEATS = { iii: 4, iv: 2, v: 4 };
 
 async function main() {
   const args = process.argv.slice(2);
@@ -193,20 +217,21 @@ async function main() {
       dummy.position.set(box.min.x - 2.5, key === 'i' ? -3 : 0, box.min.z + 2);
       const beam = new THREE.Group();
       const mk = (r, c, o) => new THREE.Mesh(new THREE.CylinderGeometry(r, r, 1, 12, 1, true), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-      beam.add(mk(0.5, 0xfff0e0, 0.95), mk(1.1, 0xff2a1a, 0.55), mk(2.3, 0xe01410, 0.22));
+      if (key === 'v') beam.add(mk(0.5, 0xf0ffd8, 0.95), mk(1.1, 0x6ef03a, 0.55), mk(2.3, 0x2ec41e, 0.22));
+      else beam.add(mk(0.5, 0xfff0e0, 0.95), mk(1.1, 0xff2a1a, 0.55), mk(2.3, 0xe01410, 0.22));
       beam.visible = false;
       BK.scene.add(ground, dummy, beam);
       BK.reel = { key, m, ground, dummy, beam, tex, world: 2 * TILE, overlay: document.createElement('canvas'), seq: 0, sea: key === 'i' };
       const a = m.animator;
-      for (const [k, v] of Object.entries({ form: { i: 1, ii: 2, iii: 3, iv: 4 }[key], bound: true, phase: 0, charge: 0, look_yaw: 0, look_pitch: 0, bend: 0, pitch: 0, gait: key === 'iii' ? 3 : key === 'iv' ? 1 : 2,
+      for (const [k, v] of Object.entries({ form: { i: 1, ii: 2, iii: 3, iv: 4, v: 5 }[key], bound: true, phase: 0, charge: 0, look_yaw: 0, look_pitch: 0, bend: 0, pitch: 0, gait: key === 'iii' || key === 'v' ? 3 : key === 'iv' ? 1 : 2,
         gill: false, fx_kind: 0, fx_seq: 0, tier: 3, vis_lo: 0, vis_hi: 8 })) a.setProperty('basiliskra:' + k, v);
       for (let i = 0; i < 20; i++) a.update(1 / 30);
       return { min: box.min.toArray(), max: box.max.toArray(), missing: [...a.missing] };
-    }, { key, scale, files: { geo: `/packs/RP/models/entity/basiliskra_${key}.geo.json`, tex: `/packs/RP/textures/entity/basiliskra/basiliskra_${key}.png`, glow: `/packs/RP/textures/entity/basiliskra/basiliskra_${key}_glow.png` }, client: reelKey === 'titan' ? CLIENT_TITAN : CLIENT });
+    }, { key, scale, files: { geo: `/packs/RP/models/entity/${FILE(key)}.geo.json`, tex: `/packs/RP/textures/entity/basiliskra/${FILE(key)}.png`, glow: `/packs/RP/textures/entity/basiliskra/${FILE(key)}_glow.png` }, client: reelKey === 'titan' ? CLIENT_TITAN : reelKey === 'vathrok' ? CLIENT_VATHROK : CLIENT });
     if (info.missing.length) console.error(key, 'missing bones:', info.missing);
     const size = Math.max(info.max[0] - info.min[0], info.max[1] - info.min[1], (info.max[2] - info.min[2]) * 0.75);
     const height = info.max[1] - info.min[1];
-    let distance = 0, landed = 0, gait = key === 'iii' ? 3 : key === 'iv' ? 1 : 2, seq = 0, kind = 0, stepN = 0;
+    let distance = 0, landed = 0, gait = key === 'iii' || key === 'v' ? 3 : key === 'iv' ? 1 : 2, seq = 0, kind = 0, stepN = 0;
     let dragT = 0;                                           // Form II: where he is in reach / pull / rest
     for (const seg of REEL[reelKey]) {
       const n = Math.round(seg.t * fps);

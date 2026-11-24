@@ -7,6 +7,8 @@ An original survival-horror add-on for Minecraft Bedrock. One creature per save.
 * **Experiments:** none. **Cheats:** none. **Commands:** none needed.
 * **Graphics:** standard Bedrock rendering; Vibrant Visuals supported (PBR texture sets with emissive glow).
 
+> **2.0**: **Vathrok, a second kaiju** (asked for as "a mobzilla like kaiju"; an original animal, not Basiliskra and not a copy of anyone's). It walks on four legs on the knuckles of long arms, high-shouldered, with a long low head, four green eyes, tusks and horns, one row of acid-green crystal spines and a bladed tail, and it breathes a **green corroding breath** raked across what it aims at; its voice is its own. It comes in **two versions, each with its own on/off setting**: **Vathrok** in survival (now and then it comes up out of the ground at night near a player, and whenever its **lure** is used; 1,500 health and a boss bar; it can be beaten, and leaves its scales, its heart and a great deal of experience) and the **Vathrok Titan** for battles (the Titan's equal: 1,000,000 health, blows of 100,000, the same immunities; up to three). Both fight Titans, Basiliskra and other add-ons' giant monsters: jaws, claws, tail, a charge, the breath. `/basiliskra:vathrok [boss|titan|clear]`, spawn eggs, and the config wheel.
+>
 > **1.9**: **the breath is choreographed** like the clip the owner sent, in Basiliskra's own way (III, IV and the Titan): his head goes down and **black smoke pours out of his mouth onto the ground**, heaps and rolls outward, then **catches into a flood of his red fire**; he **rears back, head to the sky** (Form IV spreads his wings and lifts his arms) while the light gathers in his mouth; then he **slams forward and fires into the burning ground**, and the beam sweeps up to the place the red line showed. **The Titan matches Hakaishin Godzilla**: **1,000,000 health**, blows of 100,000, **immune to magic, wither and explosions** (as well as fire, lava, falling and being crushed), its charge **kills anything small within thirty blocks** of it, and it **fights other add-ons' giant monsters** as well as Titans and Basiliskra.
 >
 > **1.8**: Basiliskra II **swims straight out of the sea** onto land. **The breath is poured**, in his own way: his head goes down to the ground while it charges, the shot floods that ground with fire, then narrows into the beam and lifts to its mark (III, IV and the Titan). **Form IV's wings fold over his back** and no longer pass through his shoulders. Form IV and the Titan **swipe with their claws**, leaving three great glowing claw marks in the air and gouges in the ground. The changes open on **chapter headings**, every shot moves, and the camera goes round the new animal while he roars.
@@ -29,14 +31,14 @@ An original survival-horror add-on for Minecraft Bedrock. One creature per save.
 
 **Music:** three themes of his own ("He is near", "He is fighting", "The last form"), about two and three quarter minutes each, written and rendered for this pack from code (modelled strings, brass, choir, percussion and organ in a synthetic hall; no samples, nothing borrowed).
 
-In game: a **journal** (how angry he is, as a percentage, when he will come, and the minutes left before he changes), a **config wheel** for operators (settings saved with the world; bring, call, send back, reset, raise a city, put down or remove Titans), **spawn eggs** for him and for the Titan, and `/basiliskra:spawn`, `/basiliskra:titan`, `/basiliskra:city`, `/basiliskra:journal`, `/basiliskra:config` (no cheats needed). See the [survival guide](docs/SURVIVAL_GUIDE.md).
+In game: a **journal** (how angry he is, as a percentage, when he will come, and the minutes left before he changes), a **config wheel** for operators (settings saved with the world; bring, call, send back, reset, raise a city, put down or remove Titans), **spawn eggs** for him and for the Titan, and `/basiliskra:spawn`, `/basiliskra:titan`, `/basiliskra:vathrok`, `/basiliskra:city`, `/basiliskra:journal`, `/basiliskra:config` (no cheats needed). See the [survival guide](docs/SURVIVAL_GUIDE.md).
 
 ## Get it
 
 | File | What it is |
 |---|---|
-| `dist/Basiliskra-1.9.0.mcaddon` | behaviour pack + resource pack, ready to import |
-| `models/basiliskra_i.bbmodel`, `_ii`, `_iii`, `_iv` | the four editable Blockbench models, textures and animations embedded |
+| `dist/Basiliskra-2.0.0.mcaddon` | behaviour pack + resource pack, ready to import |
+| `models/basiliskra_i.bbmodel`, `_ii`, `_iii`, `_iv`, `models/vathrok.bbmodel` | the editable Blockbench models (his four forms, and Vathrok), textures and animations embedded |
 | `docs/SURVIVAL_GUIDE.md` | install, what calls him, the four stages, cities, the Seam Lance, the Titan, the ending, settings |
 | `previews/*.mp4` | reference videos (see below) |
 
@@ -47,6 +49,8 @@ In game: a **journal** (how angry he is, as a percentage, when he will come, and
 **`previews/titan_moves.mp4`** (40 s, with sound) plays the Titan through what only it does, driven by its own client entity: at rest with its seams lit, walking, the lunge from two sides, the tail to each side, a shortened charge and the breath, the stagger, and going down as its fire fails (`node tools/preview/anim.cjs --forms titan`). Like the reel above it is an offline render, not in-game capture.
 
 **`previews/transformations.mp4`** (about a minute, with sound) plays him through the three changes as the script poses him, with the pack's sounds where the script plays them (`node tools/preview/anim.cjs --forms c1a,c1b,c2a,c2b,c3a,c3b`). What the script adds in the world (the boiling sea, the bolts, the smoke, the glass in the ground) and the game's own thunder are not in it, and the camera is the preview tool's, not the cutscene's.
+
+New for 2.0 (offline renders, not the game): **`previews/vathrok_moves.mp4`** (40 s, with its own sounds: Vathrok walking, roaring, biting, raking, lashing its tail, charging and breathing, staggered and beaten), **`previews/vathrok_views.png`** (from four sides) and **`previews/vathrok_poses.png`** (thirteen moments of its moves).
 
 New for 1.9 (offline render, not the game): **`previews/breath.mp4`** (18 s, with sound) is cut for the new breath, from a fresh recording of the real script: head down and the smoke pouring onto the ground, the flood of fire, the rear back to the sky, the slam into the ground and the sweep up to the mark.
 

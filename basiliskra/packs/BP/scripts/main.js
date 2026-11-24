@@ -7913,13 +7913,6 @@ var Vathroks = class {
       next = 0;
     }
     if (now < next) return;
-    const night = 3 * TICKS.day;
-    try {
-      world10.setDynamicProperty(NEXT_KEY, now + (hash(now, 61) < 0.25 ? night : TICKS.day));
-    } catch {
-      return;
-    }
-    if (hash(now, 62) >= 0.25) return;
     const ps = players().filter((p2) => {
       try {
         return p2.dimension.id === OVERWORLD && targetable(p2);
@@ -7928,9 +7921,22 @@ var Vathroks = class {
       }
     });
     if (!ps.length) return;
+    const comes = hash(now, 62) < 0.25;
+    try {
+      world10.setDynamicProperty(NEXT_KEY, now + (comes ? 3 : 1) * TICKS.day - 2e3);
+    } catch {
+      return;
+    }
+    if (!comes) return;
     const p = ps[Math.floor(hash(now, 63) * ps.length)];
     const at3 = this.groundNear(p.dimension, p.location, 60, 90);
-    if (!at3) return;
+    if (!at3) {
+      try {
+        world10.setDynamicProperty(NEXT_KEY, now + 600);
+      } catch {
+      }
+      return;
+    }
     for (const w of witnesses(p.dimension, p.location, 128)) {
       try {
         w.sendMessage("§2The ground is shaking...");

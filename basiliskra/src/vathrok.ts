@@ -734,15 +734,16 @@ export class Vathroks {
     let next = 0;
     try { next = Number(world.getDynamicProperty(NEXT_KEY) ?? 0); } catch { next = 0; }
     if (now < next) return;
-    // one night in four: decided once for the night
-    const night = 3 * TICKS.day;
-    try { world.setDynamicProperty(NEXT_KEY, now + (hash(now, 61) < 0.25 ? night : TICKS.day)); } catch { return; }
-    if (hash(now, 62) >= 0.25) return;
+    // one night in four, decided once for the night: on the others it is not asked again until the next night, and
+    // after it has come, not for three days
     const ps = players().filter((p) => { try { return p.dimension.id === OVERWORLD && targetable(p); } catch { return false; } });
     if (!ps.length) return;
+    const comes = hash(now, 62) < 0.25;
+    try { world.setDynamicProperty(NEXT_KEY, now + (comes ? 3 : 1) * TICKS.day - 2000); } catch { return; }
+    if (!comes) return;
     const p = ps[Math.floor(hash(now, 63) * ps.length)];
     const at = this.groundNear(p.dimension, p.location, 60, 90);
-    if (!at) return;
+    if (!at) { try { world.setDynamicProperty(NEXT_KEY, now + 600); } catch { /* closing */ } return; }
     for (const w of witnesses(p.dimension, p.location, 128)) { try { w.sendMessage("§2The ground is shaking..."); } catch { /* left */ } }
     this.pending = { dim: p.dimension, at, yaw: yawTo(at, p.location), t: now + 80 };
   }

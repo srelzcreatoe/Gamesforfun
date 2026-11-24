@@ -196,7 +196,7 @@
       "fx_v": "q.property('basiliskra:bound')"
      }
     ],
-    "scale": "1.955",
+    "scale": "1.700",
     "should_update_bones_and_effects_offscreen": "1.0",
     "should_update_effects_offscreen": "1.0"
    },

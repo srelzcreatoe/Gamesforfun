@@ -159,6 +159,31 @@ A **separate creature** that wears Basiliskra IV's body, made for fights in Crea
 * **It can be killed**: by another Titan, by another add-on's monster, or by you, though at 1,000,000 health that is a very long job (the Seam Lance does 34 a shot: about 29,000 shots). `/basiliskra:titan clear` or the wheel's Remove the Titans takes them away at once. It goes down onto its knees, the fire in it fails, and it is gone, leaving 24 crimson shards, a fin, and poisoned ground.
 * Its beams, its feet and its fallout follow the same Settings as his (destruction, damage, Peaceful, fallout).
 
+## Vathrok (the other kaiju)
+
+From 2.0 the worlds have a second kaiju in them. **Vathrok is not Basiliskra** and has no part in his story: an animal of its own. It walks on four legs, on the knuckles of two long, heavy arms, so its shoulders stand high and its back slopes down to small hips and a long tail; its head is long and low, with an underbite, two tusks, four small green eyes and two horns swept back; one row of tall crystal spines runs down its back and tail, and they glow acid green; its tail ends in a flat bony blade. Its breath is its own: green, corroding, raked from side to side across where it aims. It has a voice of its own too.
+
+It comes in **two versions**, and the Settings turn each on or off on its own (**Vathrok in survival**, **The Vathrok Titan for battles**). Turned off, none of that kind can come or be made, and any there are go.
+
+### Vathrok, in survival
+
+* **How it comes.** Now and then, at night, it comes up out of the ground near a player in Survival or Adventure in the Overworld (at most once every three days, and then only one night in four): the ground shakes for a few seconds and it rises roaring, sixty to ninety blocks away. And whenever its **lure** is used: craft a **Vathrok Lure** (bone blocks in the corners, slime balls on the sides, an emerald in the middle) and use it on open ground: the ground shakes and it comes up fifty to seventy blocks away. There is only ever one at a time.
+* **How it fights.** It goes for players in Survival or Adventure first (players in Creative are left alone), then for another giant that comes near, then for creatures. **Its jaws**: it draws its head back, then throws it forward with its whole body behind it. **Its claws**: it rears on its hind legs and rakes down with one arm, leaving three green claw marks in the air and gouges in the ground. **Its tail**: it winds away, then lashes round to the side its head has turned to (everything on that side, from its shoulder round to behind it). **Its breath**: it braces on its arms and its spines light from the tail up; then **a thin green line shows where the breath will go** and it is fixed there; then a torrent of green fire is raked from side to side across that place for five seconds. **Get well out of the line, sideways, or behind something solid.** It does not leave Basiliskra's fallout.
+* **Beating it.** It has **1,500 health** and a **boss bar**. Every part of its body can be hit (sword, axe, arrows, the Seam Lance). When it is beaten it sinks onto its belly with a long groan, the light in its spines goes out, and it is gone, leaving **ten to fifteen Vathrok Scales, a Vathrok Heart and a great deal of experience**.
+* Its blows: about 18 for its jaws, 15 for its claws, 16 for its tail, and its breath 8 at a time (all times the damage setting). It follows the same destruction setting as he does.
+
+### The Vathrok Titan, for battles
+
+* **Make one**: its spawn egg (Creative inventory), `/basiliskra:vathrok titan` (operators, no cheats), `/summon basiliskra:vathrok_titan`, or the config wheel's **Put a Vathrok Titan here**. **Up to three**: Vathrok Titan I, II and III.
+* **As strong as the Titan**: **1,000,000 health**, any blow of its does **100,000** to a player or a creature, and only blows and shots hurt it (fire, lava, falling, magic, wither and explosions do nothing). Between giants its blows are the Titan's (21,250 its jaws, 25,000 its claws, 32,500 its tail, 27,500 a charge, 3,750 a breath hit).
+* **What it fights**: a Titan, Basiliskra, another Vathrok, or another add-on's giant monster, from as far as it can see them; then players in Survival or Adventure and creatures. Left alone it prowls round where it was put down. **Titan against Vathrok Titan** is an even match: put them down a hundred blocks apart and they roar, breathe, close and fight until one goes down. Everyone within 150 blocks sees their health above the hotbar.
+* When it is beaten it goes down like the survival one and leaves 24 scales and its heart.
+
+### Commands and the wheel
+
+* `/basiliskra:vathrok boss` calls the survival one to where you look; `/basiliskra:vathrok titan` (or no word) puts a Vathrok Titan there; `/basiliskra:vathrok clear` removes every Vathrok. Operators, no cheats.
+* The config wheel: **Put a Vathrok Titan here**, **Call Vathrok (the one met in survival)**, **Remove every Vathrok**.
+
 ## The ending
 
 It needs Form III, a **shed fin**, **note blocks**, and a **lightning rod**.
@@ -268,6 +293,8 @@ In game: the config wheel's **Settings**. The defaults below are in `scripts/mai
 | His music (`music`) | on | His three themes. |
 | Minutes in each form before he changes (`changeMinutes`) | the story's own timing | Or 1, 2, 5, 10, 20, 30 or 60 minutes for every change. |
 | Cities rise on coasts (`cities`) | on | Off: a city is only raised where an operator asks for one. |
+| Vathrok in survival (`vathrok`) | on | Vathrok, the other kaiju, comes up now and then at night and to its lure, and can be beaten. Off: it never comes, and one that is about goes. |
+| The Vathrok Titan for battles (`vathrokTitan`) | on | Its egg, the command and the wheel make one. Off: none can be made, and those there are go. |
 
 There are no sliders (they could not be dragged on some phones): every number is a list to pick from, with a box to type your own.
 

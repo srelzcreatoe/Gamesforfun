@@ -1001,7 +1001,7 @@ def write_vathrok(pre_all, rigs, rc_all):
     """
     Vathrok's two entities (2.0): `basiliskra:vathrok`, met in survival and beatable, and `basiliskra:vathrok_titan`,
     for battles, as strong as the Titan.  Both wear the one model with the one pose; the battle one is drawn a little
-    bigger and its spines burn brighter.  Their behaviour-pack entities are the story entity's, with Form III's box,
+    the same size (its body on the server is measured at that size) and its spines burn brighter.  Their behaviour-pack entities are the story entity's, with Form III's box,
     their own health and families, and Vathrok's form number.
     """
     tag = "v"
@@ -1018,7 +1018,7 @@ def write_vathrok(pre_all, rigs, rc_all):
     special = {"phase_prev": -1, "gait_prev": -1}
     init = " ".join(f"v.{n} = {special.get(n, 0)};" for n in names)
     for ident, k, egg, brighter in ((f"{NS}:vathrok", SCALE["v"], {"base_color": "#1b211d", "overlay_color": "#5fcf3e"}, False),
-                                    (f"{NS}:vathrok_titan", SCALE["v"] * 1.15, {"base_color": "#1b211d", "overlay_color": "#d8f25a"}, True)):
+                                    (f"{NS}:vathrok_titan", SCALE["v"], {"base_color": "#1b211d", "overlay_color": "#d8f25a"}, True)):
         extra = [f"v.g{z} = math.max(v.g{z}, 0.5 * (1 - v.fa2));" for z in range(9)] if brighter else []
         ent = {"format_version": "1.10.0", "minecraft:client_entity": {"description": {
             "identifier": ident,
