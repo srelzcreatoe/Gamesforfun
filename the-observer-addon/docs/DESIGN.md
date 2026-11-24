@@ -794,3 +794,162 @@ abilities that chill, and for it to talk with the player; and for the Weeping Mi
   flowers, pages, eyeblooms would drop off and not come back); within 2.5 blocks the lens takes a 70° look instead of 15°.
 * **The Sound Test** (`ui/sounds.js`): the six tracks by `playMusic` (looping, this player only) and sixteen sounds by
   `playSound`; a stop button. Open to every player.
+
+## 26. Its dwellers: the Goatwalker, the Shaftbreaker and the Brinesleeper, merged in (1.6.0)
+
+The user's own three add-ons (supplied as `.mcaddon` files, kept with their hashes in `source_assets/supplied_dwellers/`)
+are merged into this one pack by `tools/merge_dwellers.py`, each still itself — its own entities, blocks, items,
+biome, encounters, music and settings wheel — with as few changes to their code as the merge needs, every one of them
+made by the tool (re-runnable; `--check` reports any merged file that differs from what the tool would write; the list
+of merged files is `tools/merged_dweller_files.txt`):
+
+* **One namespace for slash commands.** A pack may register custom commands under one namespace only: the
+  Brinesleeper's `brine:*` commands become `observer:brine_*` (its enum `observer:brine_encounter_name`), the
+  Shaftbreaker's `shaftbreaker:sb` / `shaftbreaker:action` become `observer:sb` / `observer:sb_action`.
+* **Merged resource files**: `blocks.json`, `sound_definitions.json`, `music_definitions.json`, the texture lists of
+  `terrain_texture.json` and `item_texture.json` (not their headers), `flipbook_textures.json`, and the language files
+  (each dweller's lines in a marked block). The Goatwalker's `void_fence` had booleans in `bone_visibility`, which this
+  game version rejects: they become Molang strings.
+* **Who they see**: every `world.getAllPlayers()` in their code becomes `__dw.players("<name>")` (`link/shared.js`):
+  nobody while that dweller is switched off, and never anyone in the Rift.
+* **One music channel** (`link/shared.js`): their `playMusic`/`stopMusic` calls become `musicPlay(src, …)` /
+  `musicStop(src, …)`. A dweller stopping its music does not cut off another's; the newest track still wanted plays
+  again when the one playing stops; the Observer's silence and themes (`observer/hush.js`) take the channel first
+  (`observerTake`) and give it back (`observerRelease`).
+* **Their own wheels** are no longer handed out unasked (`GIVE_OWN_WHEELS = false`); the Config Wheel opens them.
+* **Hooks appended** to the Goatwalker's `main.js` so it can be switched off cleanly (`__shutdown`: its encounters
+  finished, its creatures removed, its fogs cleared), sent after someone (`__command`) and its wheel opened (`__open`).
+
+`link/dwellers.js` holds the three together: per dweller, its creatures, its own on/off flag (kept in step with the
+Observer's settings `dwGoatwalker`/`dwBrinesleeper`/`dwShaftbreaker`), "how often" and "how dangerous" as fixed lists
+taken from its own settings (the Goatwalker's pace and aggression names; the Brinesleeper's frequency 50/75/100/150/200
+and threat 1-3; the Shaftbreaker's frequency and difficulty enums), its wheel, shutdown and command. Off: its shutdown
+runs, its music is silenced, its creatures in every dimension are removed and any that turns up later (natural
+spawning, an egg, its own scripts) is removed on `entitySpawn`. **They answer to it**: every second, a dweller's main
+creature within 48 blocks of the Observer's body gets Strength II, Speed I, Resistance I and Regeneration I for three
+seconds (renewed while it is near), its glitch and its servants' eyes; and, if the Observer has a target within 96
+blocks of it, it is sent after them (at most every 75 s per dweller and player). The Observer's dominion and its
+possession never claim a dweller's creature unless the player marked it *Its puppet*.
+
+**The biomes kept apart**: the Weeping Mire (`tools/merge_weeping_mire.py`), the Stellar Taiga and the Hollows each take
+their ground from a different set of vanilla biomes (`replace_biomes` targets): the Mire 25 (plains, sunflower plains,
+dappled forest, the swamps, the river, pale garden, cherry grove, the jungles, bamboo, the deserts, the birch, roofed and
+hilly birch forests), the Taiga 16, the Hollows 16 — no target in two lists, so they can never be laid over each other
+or blended into one. Measured with `otest:miremap` on two seeds: the Mire 20-22 % of a 960-block square (its biggest
+stretch 160,000-190,000 square blocks), the Taiga 4-25 %.
+
+## 27. The Rift (1.6.0)
+
+**The dimension** (`rift/dimension.js`): `system.beforeEvents.startup` → `dimensionRegistry.registerCustomDimension(
+"observer:rift")` — the stable custom-dimension API, a void world (y −64…320, reads as `minecraft:ocean`), no
+experiments; nothing spawns there of itself (a minute on a stone floor in the dark: nothing). Ticking areas, `fill`,
+structure placement, teleporting a player in with `{ dimension }`, and fog all work there (verified on BDS 1.26.52).
+`constants.DIMENSIONS` lists it fourth, so nothing that happens there is filed under the overworld.
+
+**The realm** (`rift/realm.js`; pieces drawn by `tools/rift_world.py`): a 5 × 5 grid of 48 × 52 × 48 pieces (world
+y 48-99, the ground at 64) from (−128, −128): the landing in the middle, the church and the castle in two of the eight
+cells round it, the dead woods (four kinds) in the other six, and the edge pieces (three kinds) and corner pieces (two)
+all the way round, turned so their crumbling edge faces out (a quarter turn takes the drawn north to east — checked by
+`otest:riftedge`). Every cell of a piece is written, air included, so laying it down again restores it exactly. Each
+time a rift opens with nobody inside, the realm is laid out again, shuffled (church and castle elsewhere, every inner
+piece turned at random): three ticking areas of 80 × 240 (75 chunks each) hold it, everything but players lying in it
+is removed, and the pieces go down one every other tick — about 100 ms each, 3.2-3.5 s for all 25 on BDS. The layout
+is kept in a world property (`observer:rift_realm`).
+
+**What it is made of** (`tools/rift_world.py`; block states are the server's own defaults, `tools/rift_states.json`,
+asked of a dedicated server with `otest:states`, which also gives each name's current id — `minecraft:chain` is
+`minecraft:iron_chain` now): ground from two noises tapered to exactly 64 at every piece's border (so pieces meet in any
+arrangement), a mosaic of the Rift's moss, podzol, the Goatwalker's ashen podzol, coarse dirt, the Mire's moss and
+gravel; puddles (water at the lowest ground round them, mud under and round them); boulders of stone, cobble, tuff and
+the Goatwalker's rift stone; trees on a Poisson disc 3.6 apart — dead pines (78 %: grey bark 13-25 high, bare
+branches, dead needles thinning at the top, a fifth of them snapped), the Mire's weeping trees with their tendrils
+(8 %), the Goatwalker's void trees with hanging moss (7 %), fallen logs (7 %); plants only on soils their placement
+rules accept (ferns, grass, dead bushes; the Goatwalker's ferns, stellar grass, mooncaps and bleeding shrubs; the
+Mire's bone grass and eyeblooms); and the dead (blood, bodies, skeletons, the Goatwalker's blood ash, skulls on stakes,
+bodies hanged from branches). Edge pieces: the ground ends along a ragged line about 16 blocks in (exactly 16 at both
+ends), thinning to a crumbling lip; an invisible barrier rail along the lip; torn rocks hanging in the void beyond,
+some with void crystals. **The church**: a nave 15 × 27 of rift bricks with buttresses, tall pointed windows of crimson
+glass, a steep broken roof, pews, an aisle of red carpet and a trail of blood to an altar on a raised chancel with a
+body on it and candles round it; behind the altar a window of crimson glass shaped as an eye, two chests, a lectern
+(*The Rift*); a crypt under the nave (stairs down in the corner, niches with the dead, sarcophagi, an ossuary wall, a
+chest, *Ossuary*); a bell tower with a ringing chamber, an open belfry with a bell, a rose window, a spire and a crimson
+lamp on its tip; a graveyard (stones in rows, open graves, a fence of bars, a gate), a mausoleum with a chest, dead
+trees with the hanged. **The castle**: curtain walls two thick and twelve high with a walk and battlements, arrow slits,
+four corner towers 8 × 8 with ladders and doors onto the walls, a gatehouse with a rusted portcullis, stairs up to the
+walk, a courtyard with a gallows and three hanged, a well, a pyre of the dead, cages, a dead tree; a keep 24 × 20 of
+three floors — the great hall (a throne on a dais under a crimson eye, feast tables with skulls and candles, the
+Goatwalker's trophies and torn cloth on the walls, a hearth of soul fire), the armoury (barrels, an anvil, racks) and
+the treasury behind bars (three chests, gold, a diamond and a netherite block, dead thieves), the lord's chamber (a
+body in the bed, a chest) and the library (shelves, *The Castellan's Account*, a ritual drawn on the floor) — a roof,
+a tower on it with a crimson lamp, and a dungeon below (a corridor, cells behind bars with the dead, chains, the
+warden's chest, a cauldron of lava). Bars, panes, fences and walls are joined to their neighbours as drawn.
+**Loot** (`loot_tables/rift/`): altar, crypt, mausoleum, treasury, armoury, lord, dungeon and traveller tables, 5-12
+rolls of riches (diamonds, netherite, blocks of emerald, gold and diamond, enchanted golden apples, totems, ender
+pearls, bottles of experience) plus 1-4 rolls of maxed gear (`specific_enchants`: netherite sword, axe, pickaxe and
+armour, bow, crossbow, trident, mace, elytra) and enchanted books; the treasury adds nether stars, beacons, hearts of
+the sea, shulker shells. Every table checked with `/loot spawn` (`otest:riftloot`).
+
+**New blocks** (`tools/rift_assets.py`, all original): Rift Bark (a log), Dead Needles, Rift Moss, Rift Bricks and
+Cracked Rift Bricks, Crimson Glass, a Crimson Lamp (light 12), Blood (four splashes), a Corpse, a Hanged Body (two
+blocks: `observer:part`), a Skeleton and a Gravestone (the last four turn with the cardinal placement trait).
+
+**The rift** (`rift/portal.js`; art by `tools/rift_portal.py`): the entity `observer:rift_portal` (no gravity, no
+collision, invulnerable, persistent; property `observer:phase` 0 growing, 1 open, 2 shutting). Its model is three
+pairs of planes: the void (80 × 112 model pixels — five blocks by seven; `entity_alphatest`, lit by nothing but
+itself), an eight-frame flipbook chosen by its render controller (`Array.frames[math.mod(math.floor(q.life_time * 7),
+8)]`): a torn oval, deep purple turning round a dark middle, stars that come and go, crimson veins running in from the
+rim; a halo round it (`entity_alphablend`), pulsing; and a crimson eye in the middle (`entity_alphablend`) whose scale
+opens it for a moment about every nine seconds. An animation controller grows it from a crack over six seconds, holds
+it, and shrinks it back into one. Sparks off its rim and motes round it are its own looping particles (additive). It
+opens on open ground 8-15 blocks from the player, mostly ahead of them (three wide and seven high clear; plants do not
+count), with six invisible light blocks (level 14) in the air round it, taken away when it shuts (where the chunk is
+not loaded then, the next time it is: `riftUnlight` in the world state). Opening: the realm is laid out (unless someone
+is inside), then it opens (6 s), stands for 150 s, and shuts. Every 12 ticks it turns up to 12° toward the nearest
+player. A player within 1.5 blocks of its middle (and within its height) is through: their way back is stored on them
+(`observer:rift_return`: where they went in, a step out of the rift), and they arrive at the stones, a few steps from
+the way out, facing away from it. **The way out** is the same entity with the tag `observer_rift_exit` in the middle of
+the landing, there while anyone is inside (a ticking area holds its chunks), gone when nobody is. A player who comes
+back into the world inside the Rift after it was laid out again (`observer:rift_gen` ≠ the realm's) is put back at the
+stones. **The schedule**: the Rift setting 0-5 — the average wait [never, 90, 45, 24, 12, 5] minutes of play, each wait
+× 0.6-1.4 at random; when it is due, a rift opens near a random player who can go (Survival or Adventure, alive, not
+asleep, not already in the Rift); no room there, it tries again in 30 s. The Config Wheel's *The Rift* page sets it and
+can open one now (forced) or shut the open one.
+
+**Its weather and rules** (`rift/atmosphere.js`, every second): the fog `observer:rift` (grey-violet, 2-30 blocks) for
+everyone in the Rift and off again when they leave or die there; rain (a particle emitter 26 × 26 round each player,
+260 streaks a second falling at 22 b/s that end on whatever they hit, so roofs keep it off) and the sound of it; embers
+drifting up; lightning every 14-40 s — thunder near or far and, on the camera-effects setting, a flash (a pale camera
+fade of a quarter to two-thirds of a second); anything in the Rift that is not a player, its own (`observer:*`) or a
+thing dropped, thrown or shot (`STAYS`) is removed; a player below y 42 or more than 14 blocks outside the realm is put
+back at the stones (with a moment of slow falling).
+
+**Its hunt** (`rift/hunt.js`): rounds of the encounter `rift_hunt` (manual; `rift: true` — no history, pacing or
+progress, no global cooldown for anyone else, ended when they leave the Rift), started one after another by the
+module's own tick for whoever in the Rift is due (the one waiting longest first; forced: the body leaves whatever it
+was doing elsewhere). A round: first it toys with them for a while — every 2.5-4.5 s one of: a glimpse (behind a trunk
+14-26 blocks ahead, peeking, gone when looked at for half a second or after 3-4 s), right behind them (3.5-6 blocks;
+if they turn round in time it shrieks and charges from there), a laugh or a whisper off in the rain or its steps
+circling them, the trees bleeding round them (red drops down a trunk, blood at its foot), or lightning with it standing
+7-12 blocks off in the flash — then it charges: between them and the way out if they are heading for it (by chance by
+level), at the chests if they are near one, else from behind them out of sight or ahead of them; a warning (a stare and
+its hum, shorter by level; none at the top); then `common.relentless` with the Rift's options — how far they must get
+to lose it, how often it cuts ahead (`chaseState`'s `think`), how soon it strikes again — and the body's **boost**
+(`body.setBoost`): its pace [slowest, × theirs, fastest] whichever way it comes, its blow (never on aggression *never*:
+then a catch throws them back to the stones) and its wind-up. By level (the Rift setting):
+
+| Level | toys | rests | pace b/s | blow | wind-up | lose it at | cut-aheads | behind / ambush / guard | warning |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 rarely | 13-20 s | 21-32 s | 4.6, ×1.0, 6.0 | 4 | 12 t | 72 | 1 | 15 / 15 / 0 % | 2 s |
+| 2 sometimes | 10-16 s | 16-25 s | 5.4, ×1.08, 7.2 | 6 | 11 t | 96 | 2 | 30 / 25 / 20 % | 1.5 s |
+| 3 often | 7-12 s | 11-18 s | 6.4, ×1.16, 8.6 | 8 | 10 t | 140 | 3 | 45 / 40 / 45 % | 0.9 s |
+| 4 very often | 4.5-8.5 s | 7-13 s | 7.4, ×1.25, 10.2 | 10 | 8 t | never | 5 | 60 / 55 / 70 % (enraged) | 0.4 s |
+| 5 constantly | 2.5-5.5 s | 3.5-7.5 s | 8.6, ×1.35, 12.0 | 13 | 7 t | never | 8 | 75 / 70 / 90 % (enraged) | none |
+
+Measured on BDS (`rift_levels`): closing in at 4.6 b/s and a first blow of 4 on level 1; 8.3 b/s and 13 on level 5.
+Driven off (a flare, the lens, a blow), the next round waits 1.6 times as long. Elsewhere: the director's context makes
+nobody in the Rift eligible for its other encounters, `tryManual` starts nothing there but its hunt, a trip through a
+rift and back is not a portal it follows you through, its theme plays in there (`isAround`, the Mire's *lurking* theme
+while it stalks, the chase while it comes), the Mire's eyeblooms watch in the Rift too, and it hides behind the Rift's
+dead pines and the Goatwalker's void trees as it does behind any trunk. Its lines there (`talk.js`: `rift_arrive`,
+`rift_taunt`, `rift_loot`, `rift_guard`, `rift_back`, `rift_left`) and three discoveries: *The Rift*, *Right Behind You*,
+*Out of the Rift*.

@@ -66,6 +66,16 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   restored.
 * A piston can push a *mimic* stone out of its recorded cell. The ledger then treats the cell as player-changed and the
   pushed block stays where it is (one ordinary natural block).
+* **The Rift (1.6.0)** is laid out afresh whenever a rift opens with nobody inside: anything built or left in there is
+  lost then (by design: it is not the player's world). Laying it out costs the server about 3.5 s of work spread over
+  ~2.5 s of ticks (25 pieces of ~100 ms each); a player may notice a brief stutter as a rift tears open. One rift is
+  open at a time; one Observer hunts in the Rift, one player at a time (it takes turns), and while it is hunting in
+  there, nothing that needs its body happens to anyone outside. Dying in the Rift wakes you at your own spawn; what you
+  carried stays in the Rift until the next rift lays it out again. A rift needs open ground (three wide, seven high) near
+  the player; with none, it tries again 30 s later. In the Rift it ignores the aggression setting's strength (the Rift
+  setting decides) except *Never attacks*, which still never hurts you.
+* **Its dwellers (1.6.0)** keep their own behaviour, settings and music; the merge changes only what is listed in
+  ASSET_RECORDS.md. Their own wheels and slash commands still work (commands now under `observer:`).
 * English text only (`en_US.lang`).
 * Requires Bedrock 1.26.50+ (`@minecraft/server` 2.10.0).
 
@@ -81,6 +91,14 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   list and are not verifiable on a server.
 * Forms (Field Notes — including "Pages I didn't write" and what it has learned — settings), action-bar captions, title
   cards, camera fades and shakes (the fade API and the `camerashake` command were accepted by the server).
+* 1.6.0: **the rift in a client** — its oval, its eight-frame swirl and stars, the halo, the crimson eye opening,
+  the sparks and motes, how it grows from a crack and shuts (it was drawn and previewed offline as composites of its
+  textures; the server only shows that it opens, stands, turns to face you and shuts, and that its light is there);
+  **the Rift's look** — the mist (fog `observer:rift`: whether the sky goes the fog's colour by day), the rain stopping at
+  roofs, the lightning flash, the embers; the twelve pieces seen from inside (previewed offline as isometric renders and
+  checked on the server for ground, chests, lecterns and unknown blocks); the hanged bodies, corpses, skeletons and
+  gravestones (new block models); the dwellers' Config Wheel page and the Rift page as forms; their music sharing one
+  channel at the player's music volume; the Goatwalker's fourth-wall scares alongside the Observer's own.
 * 1.5.1: the Mire Eyebloom in a client (its model and flipbook eye, the rotations, the shut lid, the drops and spores);
   the Sound Test's tracks at the player's music volume; a peek round the corner of a real house in a real village; the
   bigger Mire on the user's own world (only newly generated land changes).
@@ -180,12 +198,17 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 | A new player is moved on arrival | low | only on their first spawn, only at the world spawn, only if it is inside the Mire; they land facing it, a few blocks outside its edge |
 | The Mire's look depends on `pbr` | low–medium | the RP declares the `pbr` capability the Mire's texture sets and lighting use; to be confirmed in a client (§1) |
 | Players dislike base intrusion | — | Ward Lantern, manipulation levels, `/observer:restore`, Atmosphere preset |
+| The Rift is too hard (1.6.0) | medium | the Rift setting is the difficulty: *rarely* is slower than a sprint and hits for 2 hearts; the way out is never closed while anyone is inside; the lens, a flare and a blow still drive it off; *Never attacks* never hurts; and nobody has to go in |
+| A rift opens somewhere awkward (1.6.0) | low | only on open ground 8-15 blocks from a player, room three wide and seven high; it places nothing but invisible light, taken away when it shuts; the Config Wheel can shut it or set *Never* |
+| The god-tier loot unbalances a survival world (1.6.0) | medium | the user asked for it; it is behind the Rift's hunt, and the Rift setting decides how often it can be had (and how deadly it is to get) |
+| The Rift's stutter as it is laid out (1.6.0) | low–medium | spread over ticks (one piece every other tick); only when a rift opens with nobody inside |
+| A dweller misbehaves after the merge (1.6.0) | low–medium | each can be switched off on its own; `tools/merge_dwellers.py --check`; the noexp run loads all of them with no errors; the dwellers group in the suite |
 | Pack removed without restoring | low | documented; Veil/Effigy would remain as unknown blocks |
 
 ## 3. Marketplace readiness (evidence-based, not a certification)
 | Area | Status | Evidence / gap |
 |---|---|---|
-| Original content | ✅ for everything generated here; ✅ the creature model, texture, animations, the two particle sheets and the Weeping Mire biome were made by the user, who owns them. A third-party add-on offered for reuse was not used | [ASSET_RECORDS.md](ASSET_RECORDS.md) |
+| Original content | ✅ for everything generated here (the Rift entirely); ✅ the creature model, texture, animations, the two particle sheets, the Weeping Mire biome and the three dwellers (the Goatwalker, the Shaftbreaker, the Brinesleeper) were made by the user, who owns them. Third-party add-ons offered for reuse were not used | [ASSET_RECORDS.md](ASSET_RECORDS.md) |
 | Stable APIs, no experiments | ✅ | manifests; `noexp.txt`: fresh world, every experiment off (checked in `level.dat` before and after), no test kit — scripts ran, all entities/items/recipes loaded, zero content-log errors |
 | Namespacing / no vanilla overrides | ✅ | all identifiers `observer:` (the merged Weeping Mire keeps its own `wmire:`); no vanilla files replaced |
 | Performance | ✅ server: 20.00 TPS with and without the add-on (see TEST_REPORT §4); ❔ client frame time on low-end devices untested |

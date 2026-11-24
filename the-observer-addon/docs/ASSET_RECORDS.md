@@ -95,6 +95,127 @@ creature (`otest:rival_dweller`, `scripts/rival.js`) is development-only and nev
 from another creature). 1.2.1 adds one original particle definition, `particles/servant_eyes.json` (two glints of its existing `glint` texture
 for the eyes it puts in the creatures that are its). 1.2.0 adds no asset files (its rule over other creatures reuses its own vanish particle and sounds).
 
+## Its dwellers (supplied by the user with the 1.6.0 request)
+
+The user's own three add-ons, sent to be merged into this one pack: *The Goatwalker* 3.1, *Shaftbreaker* and
+*Brinesleeper*. The archives are preserved unmodified in `source_assets/supplied_dwellers/` with `SHA256SUMS.txt`:
+
+| Archive | SHA-256 |
+|---|---|
+| `The_Goatwalker_v3.1.mcaddon` | `f89dbdace1c573f90d5aca45b250ca10cbb45309a4724cad28ed9623fc4b6b47` |
+| `Shaftbreaker.mcaddon` | `e7cd1c8e13dd26ee6c7ee8876a96ba691364220b184ee13f454b4511d98f1325` |
+| `Brinesleeper.mcaddon` | `0544a360beb8cbf3d7e17ae0e150e65696fd526bf2e460fc70ed3472026d300b` |
+
+`tools/merge_dwellers.py` copies their files into the packs under their own namespaces (`goatwalker:`, `shaftbreaker:`,
+`brine:`; their scripts under `scripts/dwellers/<name>/`): the 1,257 files it writes whole are listed in
+`tools/merged_dweller_files.txt`, and with the nine shared files it merges into, `python3 tools/merge_dwellers.py
+--check` verifies 1,267 files against what the tool writes from the archives. What it changes, and only where the merge needs it (every change made by the tool, listed in
+it): their slash commands moved under the one namespace a pack may use (`observer:brine_*`, `observer:sb`,
+`observer:sb_action`); their `getAllPlayers()` calls and their music calls routed through `link/shared.js` (who each
+sees; one music channel); their own wheels no longer handed out unasked; the Goatwalker's `void_fence` booleans in
+`bone_visibility` made Molang strings (this game version rejects booleans there); shutdown/command/open hooks appended
+to the Goatwalker's `main.js`; the Stellar Taiga's `replace_biomes` targets narrowed so it never shares a vanilla
+biome with the Weeping Mire; and a `// @ts-nocheck` line on their scripts. Merged into existing files: their entries
+in RP `blocks.json`, `sounds.json`, `sound_definitions.json`, `music_definitions.json`, the texture lists of
+`terrain_texture.json` and `item_texture.json`, `flipbook_textures.json`, and their lines in both packs'
+`texts/en_US.lang` (each in a marked block). Not merged: their manifests, pack icons and pack names.
+
+## The Rift (1.6.0): all original
+
+Every file of the Rift is made by this project's own tools, from nothing but code: its blocks and their textures and
+models (`tools/rift_assets.py`), its twelve pieces drawn block by block and its loot tables and books
+(`tools/rift_world.py`; the pieces use vanilla blocks, the Goatwalker's and the Mire's blocks, and the Rift's own), and
+the rift itself, its particles and its mist (`tools/rift_portal.py`). The two images sent with the request (a purple
+rift full of stars; a misty wood of dead pines in the rain) were looked at as references for mood only; nothing of
+them is in the packs. Vanilla sounds used by name only: `ambient.weather.rain`, `ambient.weather.thunder`,
+`ambient.weather.lightning.impact`, `portal.portal`, `portal.trigger`, `beacon.deactivate`, `mob.endermen.portal`.
+
+| File | Provenance | SHA-256 (16) |
+|---|---|---|
+| `TheObserver_BP/blocks/rift/blood.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `ec0202b09527c26f` |
+| `TheObserver_BP/blocks/rift/corpse.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `af2ada63ab7a0966` |
+| `TheObserver_BP/blocks/rift/gravestone.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `ef755c3ec8e2fb7f` |
+| `TheObserver_BP/blocks/rift/hanged.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `80ab249d71e6d46c` |
+| `TheObserver_BP/blocks/rift/rift_bark.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `992075ff909d6d27` |
+| `TheObserver_BP/blocks/rift/rift_bricks.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `2e0d96f3fcc2138d` |
+| `TheObserver_BP/blocks/rift/rift_bricks_cracked.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `252ed442ddc2d68e` |
+| `TheObserver_BP/blocks/rift/rift_glass.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `f60d43801ed482c0` |
+| `TheObserver_BP/blocks/rift/rift_lamp.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `85edfff1f5a1a072` |
+| `TheObserver_BP/blocks/rift/rift_moss.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `da5b6d9463a9b3a1` |
+| `TheObserver_BP/blocks/rift/rift_needles.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `36b97dca297e87ba` |
+| `TheObserver_BP/blocks/rift/skeleton.json` | original — tools/rift_assets.py (1.6.0): a Rift block | `7f2490fcc4927fb1` |
+| `TheObserver_RP/textures/blocks/rift/blood_0.png` | original — drawn by tools/rift_assets.py (1.6.0) | `5ded00e4ab1ea68d` |
+| `TheObserver_RP/textures/blocks/rift/blood_1.png` | original — drawn by tools/rift_assets.py (1.6.0) | `1b8363926b42ec72` |
+| `TheObserver_RP/textures/blocks/rift/blood_2.png` | original — drawn by tools/rift_assets.py (1.6.0) | `9f9677c964a4bafb` |
+| `TheObserver_RP/textures/blocks/rift/blood_3.png` | original — drawn by tools/rift_assets.py (1.6.0) | `4ba749b9e51a4fbc` |
+| `TheObserver_RP/textures/blocks/rift/corpse_cloth.png` | original — drawn by tools/rift_assets.py (1.6.0) | `a710933c13a6529a` |
+| `TheObserver_RP/textures/blocks/rift/corpse_skin.png` | original — drawn by tools/rift_assets.py (1.6.0) | `f55f1945d2f49b6a` |
+| `TheObserver_RP/textures/blocks/rift/gravestone.png` | original — drawn by tools/rift_assets.py (1.6.0) | `9eaf298275d6f505` |
+| `TheObserver_RP/textures/blocks/rift/rift_bark.png` | original — drawn by tools/rift_assets.py (1.6.0) | `5a0b39fc2d22ea31` |
+| `TheObserver_RP/textures/blocks/rift/rift_bark_top.png` | original — drawn by tools/rift_assets.py (1.6.0) | `a8d34a2bf59e1798` |
+| `TheObserver_RP/textures/blocks/rift/rift_bricks.png` | original — drawn by tools/rift_assets.py (1.6.0) | `f4102bcc2ef653aa` |
+| `TheObserver_RP/textures/blocks/rift/rift_bricks_cracked.png` | original — drawn by tools/rift_assets.py (1.6.0) | `011a7d25d9cf86f3` |
+| `TheObserver_RP/textures/blocks/rift/rift_glass.png` | original — drawn by tools/rift_assets.py (1.6.0) | `7c5a2525963d6f65` |
+| `TheObserver_RP/textures/blocks/rift/rift_lamp.png` | original — drawn by tools/rift_assets.py (1.6.0) | `eb981ff02827d953` |
+| `TheObserver_RP/textures/blocks/rift/rift_moss_side.png` | original — drawn by tools/rift_assets.py (1.6.0) | `c1c6eeea4e412265` |
+| `TheObserver_RP/textures/blocks/rift/rift_moss_top.png` | original — drawn by tools/rift_assets.py (1.6.0) | `045238cce079adee` |
+| `TheObserver_RP/textures/blocks/rift/rift_needles.png` | original — drawn by tools/rift_assets.py (1.6.0) | `9ac109f0a0b60e20` |
+| `TheObserver_RP/textures/blocks/rift/rift_soil.png` | original — drawn by tools/rift_assets.py (1.6.0) | `27adaf07c806d96c` |
+| `TheObserver_RP/textures/blocks/rift/skeleton_bone.png` | original — drawn by tools/rift_assets.py (1.6.0) | `f41d297433a72166` |
+| `TheObserver_RP/textures/blocks/rift/skull_face.png` | original — drawn by tools/rift_assets.py (1.6.0) | `97f40d6db5da7770` |
+| `TheObserver_RP/models/blocks/rift_corpse.geo.json` | original — tools/rift_assets.py (1.6.0): a block model | `b9aeb3720073e8b9` |
+| `TheObserver_RP/models/blocks/rift_decal.geo.json` | original — tools/rift_assets.py (1.6.0): a block model | `308e3e1706a73ad6` |
+| `TheObserver_RP/models/blocks/rift_gravestone.geo.json` | original — tools/rift_assets.py (1.6.0): a block model | `8e161bab477ddbed` |
+| `TheObserver_RP/models/blocks/rift_hanged_lower.geo.json` | original — tools/rift_assets.py (1.6.0): a block model | `9448f4c000c58f1f` |
+| `TheObserver_RP/models/blocks/rift_hanged_upper.geo.json` | original — tools/rift_assets.py (1.6.0): a block model | `48b60600f0930ba9` |
+| `TheObserver_RP/models/blocks/rift_skeleton.geo.json` | original — tools/rift_assets.py (1.6.0): a block model | `8bdfb4750bcc7093` |
+| `TheObserver_BP/structures/rift/castle.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `c8b996e65af04145` |
+| `TheObserver_BP/structures/rift/church.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `aa69a45cd05e511b` |
+| `TheObserver_BP/structures/rift/corner_1.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `b94d951dcf02a34c` |
+| `TheObserver_BP/structures/rift/corner_2.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `253982e2aa8aae8e` |
+| `TheObserver_BP/structures/rift/edge_1.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `e7e9c31ee33257f1` |
+| `TheObserver_BP/structures/rift/edge_2.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `1cf38b4d60b0aca9` |
+| `TheObserver_BP/structures/rift/edge_3.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `0b662c00bb8b21b6` |
+| `TheObserver_BP/structures/rift/landing.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `285aa8bac4f7cafb` |
+| `TheObserver_BP/structures/rift/woods_1.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `f6b4d1d10394771b` |
+| `TheObserver_BP/structures/rift/woods_2.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `cfedd8c44ccf01ba` |
+| `TheObserver_BP/structures/rift/woods_3.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `4cb82bff0c3833e3` |
+| `TheObserver_BP/structures/rift/woods_4.mcstructure` | original — drawn block by block by tools/rift_world.py (1.6.0) | `52c118389e6cfd87` |
+| `TheObserver_BP/loot_tables/rift/bones.json` | original — tools/rift_world.py / rift_assets.py (1.6.0) | `280bde4112caae57` |
+| `TheObserver_BP/loot_tables/rift/castle_armoury.json` | original — tools/rift_world.py / rift_assets.py (1.6.0) | `bbe266c46b668a22` |
+| `TheObserver_BP/loot_tables/rift/castle_lord.json` | original — tools/rift_world.py / rift_assets.py (1.6.0) | `1bc87385fc16962d` |
+| `TheObserver_BP/loot_tables/rift/castle_treasury.json` | original — tools/rift_world.py / rift_assets.py (1.6.0) | `6e25d41ef7010b16` |
+| `TheObserver_BP/loot_tables/rift/church_altar.json` | original — tools/rift_world.py / rift_assets.py (1.6.0) | `5fdb087207a2aaa2` |
+| `TheObserver_BP/loot_tables/rift/crypt.json` | original — tools/rift_world.py / rift_assets.py (1.6.0) | `ad4c7a06ed565a92` |
+| `TheObserver_BP/loot_tables/rift/dungeon.json` | original — tools/rift_world.py / rift_assets.py (1.6.0) | `2c9c74f313ff5659` |
+| `TheObserver_BP/loot_tables/rift/mausoleum.json` | original — tools/rift_world.py / rift_assets.py (1.6.0) | `2fda6f54f540044a` |
+| `TheObserver_BP/loot_tables/rift/nothing.json` | original — tools/rift_world.py / rift_assets.py (1.6.0) | `d19c6266c7122cab` |
+| `TheObserver_BP/loot_tables/rift/traveller.json` | original — tools/rift_world.py / rift_assets.py (1.6.0) | `a5e0b13382b601ba` |
+| `TheObserver_BP/entities/rift_portal.json` | original — tools/rift_portal.py (1.6.0): the rift | `49883af1fe3164b4` |
+| `TheObserver_RP/entity/rift_portal.entity.json` | original — tools/rift_portal.py (1.6.0) | `5c879f90407f31cf` |
+| `TheObserver_RP/models/entity/rift_portal.geo.json` | original — tools/rift_portal.py (1.6.0) | `a75b7946eb03876e` |
+| `TheObserver_RP/render_controllers/rift_portal.render_controllers.json` | original — tools/rift_portal.py (1.6.0) | `40c31efb813a6ddc` |
+| `TheObserver_RP/animations/rift_portal.animation.json` | original — tools/rift_portal.py (1.6.0) | `2135a15eb3494536` |
+| `TheObserver_RP/animation_controllers/rift_portal.animation_controllers.json` | original — tools/rift_portal.py (1.6.0) | `c29d2fa63f775cef` |
+| `TheObserver_RP/textures/entity/rift_portal/eye.png` | original — drawn by tools/rift_portal.py (1.6.0) | `b669354ee00c2c9a` |
+| `TheObserver_RP/textures/entity/rift_portal/halo.png` | original — drawn by tools/rift_portal.py (1.6.0) | `ba1e5892dafd5667` |
+| `TheObserver_RP/textures/entity/rift_portal/void_0.png` | original — drawn by tools/rift_portal.py (1.6.0) | `f5d84ff06a6f8aa7` |
+| `TheObserver_RP/textures/entity/rift_portal/void_1.png` | original — drawn by tools/rift_portal.py (1.6.0) | `ed40f2b249b21b57` |
+| `TheObserver_RP/textures/entity/rift_portal/void_2.png` | original — drawn by tools/rift_portal.py (1.6.0) | `b68b754ce4101af0` |
+| `TheObserver_RP/textures/entity/rift_portal/void_3.png` | original — drawn by tools/rift_portal.py (1.6.0) | `d12a4a34f0aee39d` |
+| `TheObserver_RP/textures/entity/rift_portal/void_4.png` | original — drawn by tools/rift_portal.py (1.6.0) | `6b6c139b876423e1` |
+| `TheObserver_RP/textures/entity/rift_portal/void_5.png` | original — drawn by tools/rift_portal.py (1.6.0) | `b20dd70e5ae1df4a` |
+| `TheObserver_RP/textures/entity/rift_portal/void_6.png` | original — drawn by tools/rift_portal.py (1.6.0) | `50060f0b7e4c80ef` |
+| `TheObserver_RP/textures/entity/rift_portal/void_7.png` | original — drawn by tools/rift_portal.py (1.6.0) | `56aa92dbd41980de` |
+| `TheObserver_RP/particles/rift_burst.json` | original — tools/rift_portal.py (1.6.0) | `ac4989d0ee0b7645` |
+| `TheObserver_RP/particles/rift_embers.json` | original — tools/rift_portal.py (1.6.0) | `9d6c4db67eaa7d1d` |
+| `TheObserver_RP/particles/rift_motes.json` | original — tools/rift_portal.py (1.6.0) | `e2ec0ece67908f8e` |
+| `TheObserver_RP/particles/rift_rain.json` | original — tools/rift_portal.py (1.6.0) | `8ea4f43f7d8641ef` |
+| `TheObserver_RP/particles/rift_sparks.json` | original — tools/rift_portal.py (1.6.0) | `b12412262cd3763e` |
+| `TheObserver_RP/textures/particle/observer/rift_rain.png` | original — drawn by tools/rift_portal.py (1.6.0) | `92b3367c95e168b1` |
+| `TheObserver_RP/textures/particle/observer/rift_spark.png` | original — drawn by tools/rift_portal.py (1.6.0) | `d8a3ec1202c41d65` |
+| `TheObserver_RP/fogs/rift.json` | original — tools/rift_portal.py (1.6.0): the Rift's mist | `cf9dd76db212858c` |
+
 ## Shipped resource files
 
 | File | Provenance | SHA-256 (first 16) |

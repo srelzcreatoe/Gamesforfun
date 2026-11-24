@@ -305,6 +305,78 @@ Some useful habits (no spoilers beyond what the game tells you early):
   nobody is watching it.
 * **Light** helps. So does a friend watching your back.
 
+## Its dwellers (1.6.0)
+Three creatures of your own are part of this pack now, each still itself — its own encounters, its own biome or
+haunts, its own music, its own settings:
+
+* **The Goatwalker** — its servant of the woods, at home in the **Stellar Taiga**. Its fourth-wall scares (lines in
+  the chat, a player "joining the game") are kept.
+* **The Shaftbreaker** — its servant of the caves, from **the Hollows**.
+* **The Brinesleeper** — its servant of the water, from **the Stillwater Caves**.
+
+**Config Wheel → Its dwellers** (operators) lists them. For each: switch it **on or off** (off, it sees nobody,
+whatever it was doing ends, its music stops and its creatures are gone, and stay gone, until you switch it back on);
+choose **how often** and **how dangerous** from its own fixed steps (nothing can be set out of range, and no number can
+be typed wrong); open **its own full settings**; take **its own wheel** if you want to keep one; or **send it after
+you** now, to see it. None of them hands you its own wheel unasked any more. Their music shares one channel, so one
+never cuts another off, and the Observer's silence and themes come first.
+
+**When the Observer is near one of them, it answers to it**: within 48 blocks of the Observer a dweller is stronger,
+faster and harder to hurt (it glitches and its eyes glow), and every 75 seconds it is sent after the one the Observer
+has come for. None of them is ever seen in the Rift — that is the Observer's alone.
+
+Every biome of the four still generates. The Stellar Taiga, the Hollows and the Weeping Mire never overlap or merge:
+each takes its ground from different vanilla biomes (the Stillwater Caves lie underground). To find them with cheats
+on: `/locate biome wmire:weeping_mire`, `/locate biome goatwalker:stellar_taiga`, `/locate biome shaftbreaker:the_hollows`,
+`/locate biome brine:stillwater_caves`.
+
+## The Rift (1.6.0)
+Now and then **a tear opens in the world** near someone, in any dimension: a tall oval of violet void, five blocks wide
+and seven high, swirling and full of stars, glowing and throwing sparks, a crimson eye opening in it now and then. It
+grows out of a crack in the air, turns to face whoever is nearest, stands open for **two and a half minutes**, and
+shuts. You will hear it: a crack, then a low hum.
+
+**Walk into it** and you are in **the Rift** — a world of its own (a dimension; no experiments needed). It is the
+Goatwalker's Stellar Taiga and the Weeping Mire torn into one: dead pines in mist and rain that never stops,
+lightning, puddles, boulders, the Goatwalker's void trees and the Mire's weeping trees among them, ferns and bone
+grass and eyeblooms — and the dead: bodies, blood, skeletons, and bodies hanged from the branches. Somewhere in the
+woods stand a **ruined church** (pews, an altar with a body on it, a bell tower with a crimson lamp on its spire, a
+crypt under the nave, a graveyard, a mausoleum) and a **castle** (curtain walls and corner towers, a gatehouse, a
+gallows in the courtyard, a keep with a throne room, a treasury, an armoury, a library and a lord's chamber, a tower
+with a crimson lamp, and a dungeon). Their chests hold **the best loot in the game**: netherite gear enchanted as far
+as it goes, elytra, maces, tridents, crossbows, totems, enchanted golden apples, nether stars, beacons, diamond and
+netherite blocks, and books of Mending, Sharpness V, Protection IV and more — and flares and Witness Lenses, which you
+will need. The crimson lamps on the spire and the tower can be seen through the mist. The woods end at a crumbling
+edge over the void; fall off and the Rift puts you back where you came in.
+
+**Nothing lives there but it.** Anything you bring in alive is gone; what you drop, throw or shoot stays. And in
+there it does not wait for anything: it is glimpsed between the trees, it laughs somewhere off in the rain, its steps
+go round you, the trees bleed, it is standing right behind you when the lightning flashes — and then it comes through
+the air at you and strikes, and strikes again. Its blow still has a wind-up you can step out of, and the Witness Lens,
+a flare or a good blow still drive it off for a while. On aggression *never* it never hurts you: it throws you back to
+the stones instead.
+
+**The way back is the ring of stones where you land**: the same tear, standing in the middle of them. Walk into it
+and you are back where you went in. It stays open as long as anyone is in the Rift, whatever happened to the rift you
+came through. Each time a rift opens and nobody is inside, the realm on the other side is laid out again — the church
+and the castle somewhere else, the woods turned another way, every chest full again, and anything built or left there
+gone.
+
+**How often a rift opens is up to you** (Config Wheel → **The Rift**, operators): never, rarely (about every 90
+minutes), sometimes (45 minutes, the default), often (25), very often (12) or constantly (5). **The more often rifts
+open, the deadlier it is in there**:
+
+| Setting | In the Rift it is… |
+|---|---|
+| Rarely | slow and forgiving: about 4.6 blocks a second (you can outrun it), a blow of 2 hearts, long rests between its charges |
+| Sometimes | about as fast as you, a blow of 3 hearts |
+| Often | faster than you (6.4+ blocks a second), a blow of 4 hearts; it cuts you off and waits at the chests |
+| Very often | much faster, enraged, a blow of 5 hearts; it guards the way out and you can no longer outrun it |
+| Constantly | relentless: 8+ blocks a second, a blow of 6½ hearts, a few seconds between charges; it never loses you |
+
+The same page can **open one near you now** (it needs open ground: somewhere three blocks wide and seven high) or
+close the open one.
+
 ## The Config Wheel
 The **Observer Config Wheel** (an iron gear with an eye) opens every setting and test tool. You get one the first time
 you join a world as its only player or as an operator; anyone can craft one from *iron ingot + redstone + stick*.
@@ -321,6 +393,8 @@ Players who are not operators only see the status, the Sound Test and their own 
 | **Encounter toggles** | one switch per encounter type (with the stage it unlocks at); switched-off types are never chosen |
 | **Test an encounter** | starts something on you right now. First the single behaviours (red): **The Vigil (practice)** (three rounds, no reward, nothing recorded), **The Strike** (it floats at you and keeps attacking from the air until you die or drive it off — Low aggression: one strike), **The Lunge** (look at it and it comes at you), **Peeking from cover** (behind a tree, a wall or the corner of a house within 20 blocks — all of it hidden, only its head looking round; with nothing like that in reach it says so), **Taiga shadow** (the illusion, here anywhere), **Getting too close** (walk up to it), **The Flare** (it stares; throw a flare near it — you get one if you have none), **The world goes quiet** (20 s of silence, then nothing), **A page you didn't write** (one appears in your Field Notes now), **It returns what you threw away** (needs a home it knows: drop something and walk 10 blocks away), **The floating chase** (it floats at you and tears apart 3 blocks short), **Climbing after you** (stand on something 3+ blocks high: it climbs up to you, then lets go). Then every encounter. If the place is unsuitable it tells you what that one needs (for example, *The Closed Path* needs a tunnel at least 3 blocks high). Tests never count toward your story |
 | **Other creatures** | look at a creature first: mark its kind *Answers to it*, *Its rival*, *Its puppet* or *Leave it alone* (or back to the default), or forget every mark; it also says whether it has that one right now |
+| **Its dwellers** (1.6.0) | the Goatwalker, the Shaftbreaker and the Brinesleeper: each on or off, how often, how dangerous, its own settings, its own wheel, sent after you now (above) |
+| **The Rift** (1.6.0) | how often a rift opens (and so how deadly it is in there), when the next one comes, open one near you now, close the open one (above) |
 | **Undo its changes** | puts back every block it changed and ends whatever it is doing |
 | **Sound Test** (everyone) | its music — *It is around*, *Lurking* (your recordings), *Stalking*, *Its home*, *The chase*, *The end* — looping on your music channel until you stop it (turn your Music volume up), and every sound it makes; only you hear them, and nothing changes |
 | **Sound captions** | your own caption setting |
@@ -383,11 +457,15 @@ its quiet cues (footsteps, breath, chimes) are heard only by the person it is fo
 * Every change is recorded and reverted later (its signs after 20 minutes). If you change the block yourself, your
   change wins.
 * Blocks it places drop nothing when broken.
+* **The Rift is not your world**: it is laid out again every time a rift opens with nobody inside, so anything built or
+  left in there is gone then. A rift standing in your world places nothing but a little invisible light round itself,
+  taken away when it shuts.
 
 ## Removing the add-on
 1. As an operator, use Config Wheel → *Undo its changes* (or run `/observer:restore`) to revert every recorded change.
 2. Wait a minute in the areas you have visited so unloaded areas can be restored too, then remove the packs.
-If the packs are removed first, any Veil or Effigy blocks still standing become unknown blocks.
+If the packs are removed first, any Veil or Effigy blocks still standing become unknown blocks. Leave the Rift before
+removing the add-on: without it, the Rift is gone.
 
 ## Commands
 | Command | Who | What |
@@ -398,3 +476,5 @@ If the packs are removed first, any Veil or Effigy blocks still standing become 
 | `/observer:restore` | operators | revert all recorded changes now |
 | `/observer:preset <atmosphere\|standard\|relentless>` | operators | apply a preset |
 | `/observer:trigger <encounter> [player]` etc. | operators, cheats on | developer/testing commands (see DEVELOPER_GUIDE.md) |
+| `/observer:brine_wheel`, `/observer:brine_settings`, `/observer:brine_status` … | operators | the Brinesleeper's own commands (1.6.0: moved under `observer:`) |
+| `/observer:sb <action>` | operators | the Shaftbreaker's own command (1.6.0: was `/shaftbreaker:sb`) |

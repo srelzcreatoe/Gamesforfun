@@ -256,10 +256,10 @@ def render_controllers():
 
 def animations():
     a = {}
-    a["animation.observer.rift_portal.grow"] = {"animation_length": 6.0, "hold_on_last_frame": True, "bones": {"root": {"scale": {
+    a["animation.observer.rift_portal.grow"] = {"animation_length": 6.0, "loop": "hold_on_last_frame", "bones": {"root": {"scale": {
         "0.0": [0.03, 0.2, 1], "1.2": [0.06, 0.75, 1], "3.0": [0.35, 0.92, 1], "4.8": [0.85, 1.0, 1], "6.0": [1, 1, 1]}}}}
     a["animation.observer.rift_portal.full"] = {"loop": True, "bones": {"root": {"scale": [1, 1, 1]}}}
-    a["animation.observer.rift_portal.shrink"] = {"animation_length": 1.6, "hold_on_last_frame": True, "bones": {"root": {"scale": {
+    a["animation.observer.rift_portal.shrink"] = {"animation_length": 1.6, "loop": "hold_on_last_frame", "bones": {"root": {"scale": {
         "0.0": [1, 1, 1], "0.5": [1.1, 1.04, 1], "1.3": [0.05, 0.5, 1], "1.6": [0, 0, 0]}}}}
     a["animation.observer.rift_portal.idle"] = {"loop": True, "animation_length": 2.0, "bones": {
         "halo": {"scale": ["1 + math.sin(q.life_time * 150) * 0.045", "1 + math.sin(q.life_time * 150) * 0.03", 1]},
@@ -267,7 +267,7 @@ def animations():
         # the eye opens now and then (about every nine seconds), and looks
         "eye": {"scale": [1, "math.clamp(math.sin(q.life_time * 40) * 3.2 - 2.2, 0, 1)", 1],
                 "position": ["math.sin(q.life_time * 90) * 2", 0, 0]}},
-        "particle_effects": {"0.0": [{"effect": "sparks", "locator": "center"}, {"effect": "motes", "locator": "center"}]}}
+        "particle_effects": {"0.0": {"effect": "sparks", "locator": "center"}, "0.05": {"effect": "motes", "locator": "center"}}}
     return {"format_version": "1.8.0", "animations": a}
 
 

@@ -11,6 +11,8 @@ the-observer-addon/
 │   │   ├── blocks/                        veil, effigy, ward_lantern; the Weeping Mire's 12 wmire: blocks
 │   │   ├── items/  recipes/  loot_tables/
 │   │   ├── biomes/  features/  feature_rules/  worldgen/  structures/wmire/   the Weeping Mire (merged, 1.0.7)
+│   │   ├── structures/rift/  blocks/rift/  loot_tables/rift/  entities/rift_portal.json   the Rift (1.6.0)
+│   │   ├── scripts/dwellers/{goatwalker,brinesleeper,shaftbreaker}/   its dwellers' own code (merged, 1.6.0)
 │   │   └── scripts/                       all game logic (ES modules, @minecraft/server 2.10.0)
 │   └── TheObserver_RP/            resource pack (shipped)
 │       ├── models/entity/the_observer.geo.json         supplied geometry (namespaced copy)
@@ -21,6 +23,7 @@ the-observer-addon/
 │       └── biomes/  atmospherics/  color_grading/  lighting/  water/   the Weeping Mire's look (merged, 1.0.7)
 ├── source_assets/supplied/        the ZIP's contents, untouched, with SHA256SUMS.txt
 ├── source_assets/supplied_weeping_mire/   the user's Weeping_Mire_v1.2.6.mcaddon, untouched, with SHA256SUMS.txt
+├── source_assets/supplied_dwellers/       the user's Goatwalker, Shaftbreaker and Brinesleeper .mcaddons (1.6.0), untouched
 ├── tools/                         asset pipeline, validator, packager, offline renderer
 ├── tests/bds/                     dedicated-server harness + GameTest test kit (dev only)
 ├── docs/                          this documentation
@@ -84,6 +87,16 @@ the-observer-addon/
 | `ui/wheel.js` | the Config Wheel menu: status, preview, start now, presets, settings, encounter toggles, test, undo |
 | `encounters/showcase.js` | the *See it now* preview (`preview: true`: any game mode, no progress, no block changes) |
 | `dev/commands.js` | `/observer:*` commands and `/scriptevent observer:*` equivalents |
+| `link/shared.js` | its dwellers (1.6.0): who each sees (`players`), the one music channel (`musicPlay`, `musicStop`, `observerTake`, `observerRelease`, `silence`) |
+| `link/dwellers.js` | its dwellers (1.6.0): `DWELLERS` (each one's creatures, fixed choices, open, shutdown, command), `sync`, `setOn`, `tick` (they answer to it), `sendNow` |
+| `ui/dwellers_page.js` | the Config Wheel's *Its dwellers* page (1.6.0) |
+| `scripts/dwellers/*` | the Goatwalker, the Brinesleeper and the Shaftbreaker, as merged by `tools/merge_dwellers.py` (do not edit by hand: change the tool) |
+| `rift/dimension.js` | the Rift (1.6.0): registers `observer:rift` at startup; `rift()`, `inRift()` |
+| `rift/realm.js` | the Rift's realm: `layout` (a shuffle), `build` (ticking areas, the 25 pieces), `holdLanding`, `EXIT`, `ARRIVE`, `within`, `occupied` |
+| `rift/portal.js` | the rift: `openNear`, `close`, `enter`, `leave`, the way out, `fastTick` (through it; facing you), `tick` (the schedule, shutting), `sweep`, `status`, `reschedule` |
+| `rift/atmosphere.js` | the Rift's weather and rules: fog, rain, embers, `lightning`, nothing living, the void |
+| `rift/hunt.js` | its hunt in the Rift: `HUNT` (by level), the `rift_hunt` encounter (glimpse, behind, sounds, bleed, flash, charge), `tick` (whose round), `arrived`, `hurry` |
+| `ui/rift_page.js` | the Config Wheel's *The Rift* page (how often; open one now; close it) |
 
 ## 2. Tooling
 
@@ -111,6 +124,16 @@ python3 -I tools/prepare_supplied_sounds.py <wav dir> packs/TheObserver_RP/sound
 python3 tools/merge_weeping_mire.py           # merge the archived Weeping Mire into the packs (re-runnable)
 python3 tools/merge_weeping_mire.py --check   # every merged Mire file matches the archive (byte for byte; the
                                               # biome as tuned by tune_biome, so it generates near the player)
+python3 tools/merge_dwellers.py               # merge the three archived dwellers into the packs (1.6.0, re-runnable)
+python3 tools/merge_dwellers.py --check       # every merged dweller file is what the tool writes (the patches and
+                                              # renames listed in the tool; DESIGN.md §26)
+python3 tools/rift_assets.py                  # the Rift's blocks: textures, models, definitions, names (1.6.0)
+python3 tools/rift_world.py                   # the Rift's 12 pieces (.mcstructure) and its loot tables (1.6.0)
+python3 tools/rift_world.py --names           # every block name the pieces use (ask the server for their states:
+                                              # scriptevent otest:states <names>, batches of ten; then tools/rift_states.json)
+python3 tools/rift_portal.py                  # the rift: its textures, model, entity, animations, particles, fog (1.6.0)
+python3 tools/preview_structure.py FILE.mcstructure OUT.png [--cut-y N] [--rot 0-3]
+                                              # a quick isometric picture of a piece (cut away to see inside)
 python3 tools/render_model.py GEO TEX out.png --anim FILE NAME TIME --view side --debug-colors
 ```
 
@@ -140,7 +163,12 @@ generates and its old watcher is gone; run without `--testkit`, with `--require-
 `tunnel_repeat.txt` (the Closed Path tests ten times over), `illusion_repeat.txt` (the shadow tests eight times over), `flare_seq.txt` (the flare tests twice back to back), `house_seq.txt` (every test that uses the arena house, in suite order — they share it), `noexp.txt` (no experiments; run **without** `--testkit` and with `--require-no-experiments`, which
 fails the run if the world's `level.dat` has any experiment on), `restart_a.txt` +
 `restart_b.txt` (interrupted encounter across a server restart), `tps.txt` (tick rate; run once more with `--no-addon`
-for the baseline). Results and the manual client procedure are in [TEST_REPORT.md](TEST_REPORT.md).
+for the baseline). 1.6.0 adds the `dwellers`, `rift` and `rift_levels` groups to `suite_full.txt` (and the rift's
+portal entity and a full realm laid out to `noexp.txt`), and four dev probes in the test kit: `otest:riftprobe` (the
+dimension), `otest:riftedge` (which way a quarter turn takes a piece's edge), `otest:riftcheck` (every cell of the
+realm: ground, chests, barrels, lecterns, unknown blocks) and `otest:riftloot <tables>` (each loot table spawned three
+times: items and enchantments); and `otest:states <names>` (each block's default states and current id). Results and
+the manual client procedure are in [TEST_REPORT.md](TEST_REPORT.md).
 
 The harness patches the **installed test copy** of the BP to import
 `@minecraft/server-gametest` so simulated players are visible to the add-on's script context; the shipped manifest is

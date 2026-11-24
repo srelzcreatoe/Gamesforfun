@@ -162,6 +162,14 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | full (1.5.1, first) | 611 | 5 | real: the line-of-sight fix made a line *to* a block (the pumpkin it turns) count the block itself as in the way — *Something Facing You* found nothing it could turn (a line to a point inside a block is no longer blocked by that block); its rage followed a standing player's pace down to 4.1 b/s (its rage is now always faster than a sprint, 8.0-9.4 b/s; and within 6 blocks, pursuing or enraged, it closes at 6.5 b/s at least — it creeps up, then lunges). Test-side: `pursuit_runs` still expected the old rush at a player standing still (it creeps now, by design). The tick rate dipped to 17.9 while other tests ran on a second server beside it |
 | targeted (1.5.1: those groups, the block-target encounters, the peeks, the corruption twice, the eyebloom, the takeover, talking; then the chases and the rage) | 73 + 56 + 32 + 38 | 0 + 0 + 1 + 1 | all passed but `relentless_lens_drives_it_off`, twice: test order only — the lens had been used by the group just before (standoff, or relentless itself) and was still in its 20-second cooldown. Also found: at point-blank (its body overlapping yours) the lens's narrow look could miss it; within 2.5 blocks a wide look is enough now. And the corruption (1.5.0) broke ground that grass, flowers, pages or an eyebloom stood on — they dropped off and were not put back; it now only takes bare ground (`corruption_leaves_what_stands_on_the_ground`: 10/10 flowers kept, twice) |
 | **final (1.5.1)** | **617** | **2** | the 1.5.0 suite plus peeking only from behind real cover (a column between you, a trunk, a house corner — all of it hidden by planks and logs, its head in sight round the edge — and never from a bush), its pace (it creeps, drifts at a walk, comes fast at a sprint; its rage faster than a sprint), the Sound Test (6 tracks, 16 sounds), the Mire Eyebloom (three tall, turns unwatched, shuts when stared at, falls as one, 11 whole within 48 blocks of the test Mire), and the corruption leaving what stands on the ground. The two failures were the tests' own measurements: `pace_drifts_at_a_walk` started measuring before its wind-up was over (2.80 b/s — it now waits until it is coming: 4.56, 4.72, 4.65 in three runs after), and `mire_all_pages_behind` asked for 110 degrees off your view where the placement allows 105 (its fallbacks are 140 degrees either side, ±35; it came 110 off — now 117 and 115). Both groups then passed, 30 of 30 |
+| targeted (1.6.0: the rift dimension) | 1 probe | 0 | `registerCustomDimension("observer:rift")` at startup with every experiment off: a void world (y −64…320, reads as `minecraft:ocean`); ticking areas, `fill`, structure placement, teleporting a simulated player in, fog — all work; nothing spawned in a minute on a stone floor in the dark |
+| targeted (1.6.0: the three dwellers merged; the dwellers group) | 23 | 0 | off sees nobody and its creatures do not stay; on sees you but not in the Rift; one music channel (play, the Observer takes it, the next waits, let go, older resumes, silence); near the Observer a Goatwalker is strengthened and sent after its target; off again, gone. On the way: two packs' commands in two namespaces are refused (one per pack: all moved under `observer:`); the Goatwalker's fence had booleans in `bone_visibility` (refused by this version); a music channel resumed a dweller that was switched off |
+| targeted (1.6.0: the biomes apart — `otest:miremap` on two seeds) | 2 maps | 0 | first cut, the Mire gave up every forest to the Taiga and shrank to 4 %: the birch and dark forests went back to it; then the Mire 20-22 % (biggest stretch 160,000-190,000 square blocks), the Taiga 4-25 %, no target shared |
+| targeted (1.6.0: the realm — `otest:riftedge`, `rift build`, `otest:riftcheck`) | 4 + 1 + 26 | 0 | a quarter turn takes a piece's north edge east (None/90/180/270: the ground missing north/east/south/west); 25/25 pieces in 3.3 s (~100 ms each); every inner cell has its ground; the church 4 chests and 2 lecterns, the castle 5 chests, 2 barrels and a lectern, barrels by the dead in the woods; no unknown blocks; a chest holds nothing until opened (its loot table fills it then) |
+| targeted (1.6.0: the loot — `otest:riftloot`, every table three times) | 8 | 0 | 14-48 stacks a table; netherite swords (Sharpness V, Looting III, Fire Aspect II, Mending), armour (Protection IV, Feather Falling IV, Swift Sneak III …), bows (Power V, Infinity), tridents (Loyalty III, Impaling V, Channeling), maces (Density V, Wind Burst III), crossbows, elytra, totems, enchanted golden apples, nether stars, beacons, books |
+| targeted (1.6.0: the rift group, first) | 30 | 1 | test-side: walking out puts you back at the rift you walked into (a step out of it), and the test compared with where you had stood 14 blocks off before walking in |
+| targeted (1.6.0: the rift and rift_levels groups) | 33 | 1 | test-side: the stick dropped to check that what you drop stays lay within the simulated player's reach, who picked it up (now out of reach). The levels: level 1 closes in at 4.6 b/s and its first blow is 4; level 5, 8.3 b/s and 13 |
+| `noexp.txt` (1.6.0) | — | 0 | every experiment off, no test kit: the three dwellers, the rift's portal entity and the whole realm (25/25 pieces in 3.2 s) load and run with 0 content-log or script errors |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -553,6 +561,23 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
    Test: play each track (Music volume up) and each sound; stop. Walk into new land of the Weeping Mire: long unbroken
    stretches; find an Eyebloom: watch its eye move and blink, look away and back (it has turned to you), stare at it
    from close (it shuts), break the stalk (the whole plant falls).
+23. **1.6.0 — its dwellers.** Config Wheel → *Its dwellers*: switch the Goatwalker off (its music stops, it is gone),
+   set the Brinesleeper "Twice as often" and the Shaftbreaker's danger to its highest, open each one's own settings from
+   there. Find the Stellar Taiga (`/locate biome goatwalker:stellar_taiga`) at night: when the Observer comes near the
+   Goatwalker, the Goatwalker should glow with its glitch and come for you. Its music and the Observer's should never
+   play over each other.
+24. **1.6.0 — the Rift.** Config Wheel → *The Rift* → *Open one near me now* on open ground: a crack in the air should
+   grow over six seconds into a tall violet oval (five by seven blocks) of swirling stars with a glowing rim, sparks
+   and motes round it, now and then a crimson eye opening in it; it should turn to face you as you walk round it and
+   light the ground round it. Walk into it: a violet flash and you are at a ring of standing stones in dead pines, mist
+   and rain (the rain should not fall under a roof), lightning now and then (a flash, thunder). Check the sky is the
+   mist's colour and not bright blue by day. The way out stands in the middle of the stones. Find the church (its
+   crimson lamp on the spire) and the castle (the lamp on its tower): pews, the body on the altar, the eye window, the
+   crypt, the graveyard; the gatehouse, the gallows, the throne under the crimson eye, the treasury behind bars, the
+   library, the dungeon. Open a chest. Meanwhile it should be glimpsed in the trees, laugh off in the rain, stand behind
+   you, bleed the trees, and charge — on *Rarely* you can outrun it, on *Constantly* you cannot. Throw a flare at it.
+   Walk off the edge into the void: you are back at the stones. Walk into the way out: you are back where you went in.
+   Set *Never*: no rift opens.
 
 ## 7. Bugs found and fixed
 
@@ -803,6 +828,21 @@ players in its own name and in no one's)
 * The vigil could be started from a stale form (day, already running, someone else's encounter) → re-validated.
 * Witness Lens cooldown was 2 s in script but 20 s in the item and docs → 20 s.
 
+**Found in 1.6.0** (merging the dwellers, building the Rift, and the tests written for them)
+* **One namespace for a pack's commands**: the Brinesleeper's `brine:*` commands were refused next to the Observer's
+  `observer:*` ones (a pack may register custom commands under one namespace) — moved under `observer:` by the merge.
+* **`bone_visibility` booleans**: the Goatwalker's void fence used `true`/`false`, which this game version refuses —
+  Molang strings now.
+* **The texture lists' headers**: merging whole `terrain_texture.json` files clashed on their header keys — only the
+  texture lists are merged.
+* **A switched-off dweller's music came back**: when the music playing stopped, the channel resumed the newest track
+  any dweller wanted, including one switched off since — it skips them now.
+* **The Mire shrank to 4 %** when the Stellar Taiga kept every forest: the birch and dark forests went back to the Mire.
+* **Block names**: `minecraft:dead_bush` is `minecraft:deadbush` here, and `minecraft:chain` resolves to
+  `minecraft:iron_chain` — the pieces are written with the ids the server itself reports (`otest:states` now prints
+  each name's type).
+* **Its peeks in the Rift**: the Rift's dead pines and the Goatwalker's void trees were not trunks to it — they are now.
+
 ## 8. Not verified
 
 * Anything a client shows or plays: model, animations, the glowing eyes, wisp aura and vanish burst, other particles,
@@ -821,4 +861,9 @@ players in its own name and in no one's)
 * 1.0.8: how the strike and recoil look in mid-air (the server shows the `observer:afloat` property set on every
   strike in the tests; the look is an offline preview), and a real client's first spawn in a new world whose spawn is
   inside the Mire (the move is tested with simulated players; a real join goes through the same `playerSpawn` event).
+* 1.6.0: anything the rift and the Rift show or play in a client (§6, 24), a real player disconnecting inside the
+  Rift and coming back after it was laid out again (the code path is the same `playerSpawn` one; simulated players
+  cannot reconnect), two real players in the Rift at once, a rift opening in the Nether or the End on its own schedule
+  (opening is tested in the overworld; the placement code is the same), and how the dwellers' own encounters play
+  alongside the Observer over hours of play.
 * Phones, consoles, low-end devices, and Realms.

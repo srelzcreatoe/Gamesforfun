@@ -3,7 +3,7 @@
   "animations": {
     "animation.observer.rift_portal.grow": {
       "animation_length": 6.0,
-      "hold_on_last_frame": true,
+      "loop": "hold_on_last_frame",
       "bones": {
         "root": {
           "scale": {
@@ -50,7 +50,7 @@
     },
     "animation.observer.rift_portal.shrink": {
       "animation_length": 1.6,
-      "hold_on_last_frame": true,
+      "loop": "hold_on_last_frame",
       "bones": {
         "root": {
           "scale": {
@@ -110,16 +110,14 @@
         }
       },
       "particle_effects": {
-        "0.0": [
-          {
-            "effect": "sparks",
-            "locator": "center"
-          },
-          {
-            "effect": "motes",
-            "locator": "center"
-          }
-        ]
+        "0.0": {
+          "effect": "sparks",
+          "locator": "center"
+        },
+        "0.05": {
+          "effect": "motes",
+          "locator": "center"
+        }
       }
     }
   }

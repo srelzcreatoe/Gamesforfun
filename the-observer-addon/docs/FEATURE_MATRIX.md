@@ -314,6 +314,26 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | The Mire Eyebloom | `blocks/eyebloom*.json`, `mire/eyebloom.js`, flipbook eye, `eye_drip`/`eye_spore`, `feature_rules/weeping_mire_eyeblooms.json` | world generation in the Mire; you nearby | three blocks tall; turns to you only unwatched; shuts when stared at; weeps; falls as one | `eyebloom_*` | ✅ Runtime (the look ❔) |
 | Sound Test | `ui/sounds.js`, Config Wheel | the wheel, anyone | every track (looping, music channel) and every sound | `sound_test_*` | ✅ Runtime (the sound ❔) |
 
+## 1.6.0: its dwellers; the Rift
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| Three dwellers in one pack | `tools/merge_dwellers.py` (`--check`), `scripts/dwellers/*`, merged RP files | always | the Goatwalker, the Shaftbreaker, the Brinesleeper load with the Observer, no experiments, no errors; one namespace of commands | `noexp.txt` (0 errors), `dwellers_*` | ✅ Runtime |
+| Each on or off; how often, how dangerous | `link/dwellers.js`, `ui/dwellers_page.js`, settings `dw*` | the Config Wheel | off: sees nobody, its creatures gone and kept gone; fixed choices only | `dwellers_off_sees_nobody`, `dwellers_off_creature_gone`, `dwellers_on_sees_you`, `dwellers_off_again_gone` | ✅ Runtime (the forms ❔) |
+| One music channel | `link/shared.js`, `hush.js` | their music, its silence | one never cuts another off; the Observer first | `dwellers_one_music_channel` | ✅ Runtime |
+| They answer to it | `dwellers.tick` | within 48 blocks of the Observer | stronger, faster, harder to hurt; sent after its target | `dwellers_strengthened_near_it`, `dwellers_sent_after_its_target` | ✅ Runtime |
+| Their own wheels not handed out | `GIVE_OWN_WHEELS` | first join | no dweller wheel unasked | `dwellers_no_wheels_unasked` | ✅ Runtime |
+| The biomes kept apart | `merge_weeping_mire.py` targets, `BIOME_TUNING` | world generation | Mire, Stellar Taiga and Hollows never share a vanilla target; all four biomes generate | `otest:miremap` (2 seeds), `noexp.txt` | ✅ Runtime |
+| The rift dimension | `rift/dimension.js` | startup | `observer:rift` registered without experiments | `riftprobe`, `noexp.txt` | ✅ Runtime |
+| The realm | `rift/realm.js`, `tools/rift_world.py`, `structures/rift/*` | each rift that opens with nobody inside | 25 pieces laid out, shuffled, every chest refilled; edges face out | `rift_realm_laid_out`, `otest:riftedge`, `otest:riftcheck` | ✅ Runtime (the look ❔) |
+| The church, the castle, the dead | `tools/rift_world.py`, `tools/rift_assets.py` | — | chests, lecterns, the dead, no unknown blocks | `otest:riftcheck` (church 4 chests 2 lecterns; castle 5 chests 2 barrels 1 lectern; 0 unknown) | ✅ Runtime (the look ❔) |
+| God-tier loot | `loot_tables/rift/*` | opening a chest | maxed netherite gear, elytra, maces, tridents, totems, golden apples, nether stars, beacons, books | `otest:riftloot` (all 8 tables) | ✅ Runtime |
+| The rift itself | `rift/portal.js`, `tools/rift_portal.py`, `observer:rift_portal` | the schedule, the Config Wheel | opens near you (room for it), grows, glows, sparks, turns to you, light round it, shuts after 150 s and its light goes | `rift_opens_near_you`, `rift_stands_open`, `rift_portal_there`, `rift_light_round_it`, `rift_faces_you`, `rift_shuts` | ✅ Runtime (the look ❔) |
+| Through it and back | `portal.enter`/`leave`, the way out | walking into it | at the stones, the way out beside you; back where you went in | `rift_walk_in`, `rift_land_at_the_stones`, `rift_way_out_beside_you`, `rift_walk_out`, `rift_way_out_gone_when_empty` | ✅ Runtime |
+| Its weather and rules | `rift/atmosphere.js`, `fogs/rift.json`, `particles/rift_*` | in the Rift | mist, rain, embers, lightning; nothing lives there; the void puts you back | `rift_lightning`, `rift_nothing_lives_there`, `rift_what_you_drop_stays`, `rift_void_puts_you_back` | ✅ Runtime (the look ❔) |
+| Its hunt there | `rift/hunt.js`, `body.setBoost`, `common.relentless` options | in the Rift | toys with you, then charges and strikes; ends when you leave | `rift_hunt_starts`, `rift_hunt_toys_with_you_first`, `rift_hunt_charges`, `rift_hunt_strikes`, `rift_hunt_its_pace`, `rift_hunt_ends_when_you_leave` | ✅ Runtime |
+| Deadlier the more often | `HUNT` table by the Rift setting | the setting | level 1: 4.6 b/s, a blow of 4; level 5: 8.3 b/s, a blow of 13 | `rift_levels_faster`, `rift_levels_stronger` | ✅ Runtime |
+| How often, on the Config Wheel | `ui/rift_page.js`, setting `rift` 0-5 | the wheel | never … constantly; open one now; close it | `rift_never_when_off` (the form itself ❔) | ✅ Runtime |
+
 ## Performance
 | Measure | Result | Test |
 |---|---|---|

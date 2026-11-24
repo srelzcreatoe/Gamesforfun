@@ -7,7 +7,9 @@ The Observer is a tall, mouthless figure (the supplied *Hollow Dweller* model an
 at a time. It follows you across the overworld, caves, water, sky bases, the Nether and the End; it imitates your
 footsteps and your habits; it rearranges your home, seals the tunnel behind you, changes your familiar routes and takes
 your light — always deliberately, always reversibly — and watches what you do about it. It has a home: the
-**Weeping Mire**, a swamp of weeping trees and bone roots where it watches from between the trunks.
+**Weeping Mire**, a swamp of weeping trees and bone roots where it watches from between the trunks. Since 1.6.0 three
+creatures of yours answer to it — the Goatwalker, the Shaftbreaker and the Brinesleeper — and now and then a rift tears
+open into **the Rift**, a world of its own where it hunts whoever comes for its loot.
 
 ![animation states](docs/media/animation_states.png)
 
@@ -129,6 +131,28 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   yours** (you stand, it creeps; you sprint, it comes fast); the **Weeping Mire is far bigger** and unbroken; the
   **Mire Eyebloom**, three blocks tall with an eye for a flower that looks about, blinks, weeps red, and turns to face
   you whenever you are not looking; and a **Sound Test** in the Config Wheel to hear all of its music and sounds.
+* **1.6.0 — its dwellers**: three creatures of your own are merged into this one pack, each still itself — the
+  **Goatwalker** (its servant of the woods, with the Stellar Taiga, and its fourth-wall scares), the **Shaftbreaker**
+  (of the caves, with the Hollows) and the **Brinesleeper** (of the water, with the Stillwater Caves). On the Config
+  Wheel (*Its dwellers*) each can be switched on or off on its own, with "how often" and "how dangerous" chosen from
+  its own fixed steps (nothing can be set out of range) and its own full settings one tap away; their music shares
+  one channel, so none cuts another off. **Whenever the Observer is near one, it answers to it**: stronger, faster,
+  harder to hurt, glitching with its glow, and sent after the one it has come for. The Stellar Taiga, the Hollows and
+  the Weeping Mire never overlap any more (each takes different vanilla biomes); every biome still generates.
+* **1.6.0 — the Rift**: now and then a tear opens in the world near someone — a tall oval of violet void full of
+  stars, glowing and sparking, a crimson eye opening in it. Walk in and you are in **the Rift**, a dimension of its own
+  (no experiments): the Stellar Taiga and the Mire torn into one — dead pines in mist and endless rain, lightning,
+  puddles and boulders, void trees and weeping trees among them, bodies, blood, skeletons and the hanged; a **ruined
+  church** (crypt, bell tower, graveyard, mausoleum) and a **castle** (gatehouse, gallows, a keep with a throne room,
+  treasury, armoury and library, and a dungeon), with chests of **the best loot in the game** (maxed netherite gear,
+  elytra, maces, tridents, totems, enchanted golden apples, nether stars, beacons, Mending books). Nothing lives there
+  but it, and in there it never stops: glimpsed in the trees, laughing in the rain, right behind you when the
+  lightning flashes, the trees bleeding round you, then coming through the air and striking. The Config Wheel's
+  *The Rift* page sets how often rifts open — never, rarely, sometimes, often, very often, constantly — and **the more
+  often they open, the harder, faster, stronger and cleverer it is in there** (from 4.6 blocks a second and 2 hearts a
+  blow on *rarely* to 8+ blocks a second and 6½ hearts on *constantly*, cutting you off, guarding the way out, waiting
+  at the chests). The stones where you land are the way back. The realm is laid out afresh, shuffled and restocked,
+  each time a rift opens.
 * **Its voice and its music** (1.1.2, your recordings): while it is around, its own theme replaces the game's music
   — *lurking* in the Weeping Mire, its home — and the game's music fades back once it has gone. A sting when you spot
   it, a scream when it snaps or comes for you (and over the blow that kills), a grunt as it arrives out of nowhere, its
@@ -180,7 +204,7 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   toggle per encounter type, *Test an encounter*, and *Undo its changes*.
 * **47 original synthesized sounds**, 10 particles of its own (two from user-supplied sprite sheets), 3 fogs, original
   item and block art; plus the Weeping Mire's 12 blocks, 5 particles, fog, lighting, colour grading and water.
-* **No experiments**: stable script APIs only; verified on a fresh world with every experiment toggle off.
+* **No experiments**: stable script APIs only (the Rift too); verified on a fresh world with every experiment toggle off.
 
 ## Documentation
 | Document | Contents |
@@ -192,7 +216,7 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
 | [docs/FEATURE_MATRIX.md](docs/FEATURE_MATRIX.md) | feature → files → trigger → expected → test → status |
 | [docs/TEST_REPORT.md](docs/TEST_REPORT.md) | what was tested, how, and the results; manual in-game procedure |
 | [docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md) | known limitations and an honest release assessment |
-| [docs/ASSET_RECORDS.md](docs/ASSET_RECORDS.md) | provenance of every shipped asset |
+| [docs/ASSET_RECORDS.md](docs/ASSET_RECORDS.md) | provenance of every shipped asset (the dwellers' archives and hashes; the Rift's files) |
 
 ## Build and verify
 ```bash
