@@ -1,0 +1,88 @@
+{
+  "format_version": "1.21.110",
+  "minecraft:biome": {
+    "description": {
+      "identifier": "goatwalker:stellar_taiga"
+    },
+    "components": {
+      "minecraft:climate": {
+        "downfall": 0.7,
+        "snow_accumulation": [
+          0.0,
+          0.0
+        ],
+        "temperature": 0.28
+      },
+      "minecraft:replace_biomes": {
+        "replacements": [
+          {
+            "dimension": "minecraft:overworld",
+            "targets": [
+              "minecraft:taiga",
+              "minecraft:taiga_hills",
+              "minecraft:taiga_mutated",
+              "minecraft:mega_taiga",
+              "minecraft:mega_taiga_hills",
+              "minecraft:redwood_taiga_mutated",
+              "minecraft:redwood_taiga_hills_mutated",
+              "minecraft:cold_taiga",
+              "minecraft:cold_taiga_hills",
+              "minecraft:cold_taiga_mutated",
+              "minecraft:forest",
+              "minecraft:forest_hills",
+              "minecraft:flower_forest",
+              "minecraft:ice_plains",
+              "minecraft:grove",
+              "minecraft:meadow"
+            ],
+            "amount": 0.6,
+            "noise_frequency_scale": 0.35
+          }
+        ]
+      },
+      "minecraft:surface_builder": {
+        "builder": {
+          "type": "minecraft:overworld",
+          "sea_floor_depth": 6,
+          "sea_floor_material": "goatwalker:stellar_dirt",
+          "foundation_material": "minecraft:stone",
+          "mid_material": "goatwalker:stellar_dirt",
+          "top_material": "goatwalker:stellar_soil",
+          "sea_material": "minecraft:water"
+        }
+      },
+      "minecraft:surface_material_adjustments": {
+        "adjustments": [
+          {
+            "materials": {
+              "top_material": "goatwalker:ashen_podzol"
+            },
+            "noise_frequency_scale": 0.0625,
+            "noise_range": [
+              -0.12,
+              0.2
+            ]
+          },
+          {
+            "materials": {
+              "top_material": "goatwalker:rift_stone",
+              "mid_material": "goatwalker:rift_stone"
+            },
+            "noise_frequency_scale": 0.11,
+            "noise_range": [
+              0.62,
+              1.0
+            ]
+          }
+        ]
+      },
+      "minecraft:tags": {
+        "tags": [
+          "overworld",
+          "monster",
+          "goatwalker_stellar"
+        ]
+      }
+    }
+  }
+}

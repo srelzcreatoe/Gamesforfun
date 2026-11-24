@@ -1,0 +1,120 @@
+{
+  "format_version": "1.21.80",
+  "minecraft:block": {
+    "description": {
+      "identifier": "goatwalker:splintered_wood",
+      "menu_category": {
+        "category": "nature"
+      },
+      "states": {
+        "goatwalker:wood": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.goatwalker.splintered_wood.name",
+      "minecraft:geometry": "geometry.gw_splinters",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "gw_planks_oak",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -7,
+          0,
+          -7
+        ],
+        "size": [
+          14,
+          3,
+          14
+        ]
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:replaceable": {},
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.1
+      },
+      "minecraft:loot": "loot_tables/blocks/gw_splintered_wood.json",
+      "minecraft:map_color": "#8f6f3f"
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('goatwalker:wood') == 1",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "gw_planks_spruce",
+              "render_method": "alpha_test",
+              "ambient_occlusion": 1.0,
+              "face_dimming": true
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:wood') == 2",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "gw_planks_birch",
+              "render_method": "alpha_test",
+              "ambient_occlusion": 1.0,
+              "face_dimming": true
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:wood') == 3",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "gw_planks_jungle",
+              "render_method": "alpha_test",
+              "ambient_occlusion": 1.0,
+              "face_dimming": true
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:wood') == 4",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "gw_planks_acacia",
+              "render_method": "alpha_test",
+              "ambient_occlusion": 1.0,
+              "face_dimming": true
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:wood') == 5",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "gw_planks_dark_oak",
+              "render_method": "alpha_test",
+              "ambient_occlusion": 1.0,
+              "face_dimming": true
+            }
+          }
+        }
+      }
+    ]
+  }
+}

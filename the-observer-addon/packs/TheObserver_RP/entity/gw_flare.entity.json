@@ -1,0 +1,20 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "goatwalker:flare",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/items/st_flare"
+      },
+      "geometry": {
+        "default": "geometry.goatwalker_flare"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ]
+    }
+  }
+}

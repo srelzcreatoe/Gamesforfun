@@ -1,0 +1,32 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "goatwalker:field_kit"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "ingredients": [
+      {
+        "item": "goatwalker:rope"
+      },
+      {
+        "item": "minecraft:paper"
+      },
+      {
+        "item": "goatwalker:mooncap_spore"
+      },
+      {
+        "item": "goatwalker:stellar_resin"
+      }
+    ],
+    "unlock": {
+      "context": "AlwaysUnlocked"
+    },
+    "result": {
+      "item": "goatwalker:field_kit",
+      "count": 1
+    }
+  }
+}

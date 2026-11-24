@@ -1,0 +1,45 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:block": {
+    "description": {
+      "identifier": "goatwalker:stellar_soil",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.goatwalker.stellar_soil.name",
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "st_stellar_soil_side",
+          "render_method": "opaque",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        },
+        "up": {
+          "texture": "st_stellar_soil_top",
+          "render_method": "opaque",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        },
+        "down": {
+          "texture": "st_stellar_dirt",
+          "render_method": "opaque",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.6
+      },
+      "minecraft:tags": [
+        "minecraft:is_shovel_item_destructible",
+        "dirt",
+        "grass"
+      ],
+      "minecraft:loot": "loot_tables/stellar/stellar_soil.json",
+      "minecraft:map_color": "#2a2633"
+    }
+  }
+}

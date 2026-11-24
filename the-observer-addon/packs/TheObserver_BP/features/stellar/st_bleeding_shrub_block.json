@@ -1,0 +1,24 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:single_block_feature": {
+    "description": {
+      "identifier": "goatwalker:st_bleeding_shrub_block"
+    },
+    "places_block": "goatwalker:bleeding_shrub",
+    "enforce_placement_rules": true,
+    "enforce_survivability_rules": true,
+    "may_attach_to": {
+      "bottom": [
+        "goatwalker:stellar_soil",
+        "goatwalker:ashen_podzol",
+        "goatwalker:stellar_dirt",
+        "minecraft:grass_block",
+        "minecraft:dirt",
+        "minecraft:podzol"
+      ]
+    },
+    "may_replace": [
+      "minecraft:air"
+    ]
+  }
+}

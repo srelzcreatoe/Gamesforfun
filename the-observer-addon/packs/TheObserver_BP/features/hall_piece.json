@@ -1,0 +1,50 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:weighted_random_feature": {
+    "description": {
+      "identifier": "brine:hall_piece"
+    },
+    "features": [
+      [
+        "brine:hall_lake_wide_0",
+        5
+      ],
+      [
+        "brine:hall_lake_wide_1",
+        5
+      ],
+      [
+        "brine:hall_lake_deep_0",
+        3
+      ],
+      [
+        "brine:hall_lake_deep_1",
+        3
+      ],
+      [
+        "brine:hall_lake_pillar_0",
+        2
+      ],
+      [
+        "brine:hall_lake_pillar_1",
+        2
+      ],
+      [
+        "brine:hall_shore_dome_0",
+        3
+      ],
+      [
+        "brine:hall_shore_dome_1",
+        3
+      ],
+      [
+        "brine:hall_shore_pillar_0",
+        2
+      ],
+      [
+        "brine:hall_shore_pillar_1",
+        2
+      ]
+    ]
+  }
+}

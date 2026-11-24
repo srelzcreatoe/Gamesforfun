@@ -1,0 +1,17 @@
+{
+  "format_version": "1.21.110",
+  "minecraft:structure_template_feature": {
+    "description": {
+      "identifier": "brine:ribcage_1"
+    },
+    "structure_name": "brine:ribcage_1",
+    "facing_direction": "random",
+    "constraints": {
+      "grounded": {},
+      "unburied": {}
+    },
+    "rotate_around_center": true,
+    "ground_level": 1,
+    "adjustment_radius": 8
+  }
+}

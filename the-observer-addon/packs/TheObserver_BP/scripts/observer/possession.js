@@ -40,7 +40,7 @@ import { primaryHaunt } from "./memory.js";
 import { S } from "../core/settings.js";
 import { W, ps, now, markPlayerDirty } from "../core/state.js";
 import { V, safe, emit, rand, allPlayers, DEBUG } from "../core/util.js";
-import { SOUNDS } from "../core/constants.js";
+import { SOUNDS, DWELLER_TYPES } from "../core/constants.js";
 import { findSpot, hideSpot, standNear } from "../world/space.js";
 import { seenByAny, visibility, lineOfSight } from "../world/sight.js";
 import { discover } from "../progression/discoveries.js";
@@ -61,6 +61,8 @@ const dur = (ticks) => (DEBUG.possess === "always" ? Math.max(20, Math.round(tic
 
 /** Is this creature free to be taken (not someone's, not already used)? @param {Entity} e */
 function free(e) {
+  // its dwellers are its servants, not its puppets — unless their kind is marked "Its puppet" by hand (1.6.0)
+  if (DWELLER_TYPES.has(e.typeId) && S().marks?.[e.typeId] !== "puppet") return false;
   return e.isValid && !puppets.isPuppet(e) && !isHeld(e.id) && !safe(() => e.nameTag, "") && !safe(() => e.hasComponent("minecraft:is_tamed"), false)
     && (safe(() => e.getComponent("minecraft:rideable")?.getRiders().length, 0) ?? 0) === 0;
 }

@@ -1,0 +1,464 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.goatwalker.main": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "animations": [
+            "idle",
+            {
+              "look_at_target": "q.variant == 1"
+            }
+          ],
+          "transitions": [
+            {
+              "emerge": "q.mark_variant == 4"
+            },
+            {
+              "vanish": "q.mark_variant == 5"
+            },
+            {
+              "call": "q.mark_variant == 3"
+            },
+            {
+              "lunge": "q.mark_variant == 7"
+            },
+            {
+              "alert": "q.mark_variant == 8"
+            },
+            {
+              "ram": "q.mark_variant == 12"
+            },
+            {
+              "attack": "(v.attack_time > 0 || q.is_delayed_attacking) && q.variant == 1"
+            },
+            {
+              "stare": "q.mark_variant == 1"
+            },
+            {
+              "stalk": "q.mark_variant == 2"
+            },
+            {
+              "crouch": "q.mark_variant == 6"
+            },
+            {
+              "watch": "q.mark_variant == 9"
+            },
+            {
+              "claw_raise": "q.mark_variant == 10"
+            },
+            {
+              "peek": "q.mark_variant == 11"
+            },
+            {
+              "gnaw": "q.mark_variant == 13"
+            },
+            {
+              "run": "q.is_moving && q.variant == 1"
+            },
+            {
+              "gallop": "q.is_moving && q.variant == 2"
+            },
+            {
+              "walk": "q.is_moving"
+            }
+          ],
+          "blend_transition": 0.2
+        },
+        "walk": {
+          "animations": [
+            "walk",
+            {
+              "look_at_target": "q.variant == 1"
+            }
+          ],
+          "transitions": [
+            {
+              "emerge": "q.mark_variant == 4"
+            },
+            {
+              "vanish": "q.mark_variant == 5"
+            },
+            {
+              "call": "q.mark_variant == 3"
+            },
+            {
+              "lunge": "q.mark_variant == 7"
+            },
+            {
+              "alert": "q.mark_variant == 8"
+            },
+            {
+              "ram": "q.mark_variant == 12"
+            },
+            {
+              "attack": "(v.attack_time > 0 || q.is_delayed_attacking) && q.variant == 1"
+            },
+            {
+              "stare": "q.mark_variant == 1"
+            },
+            {
+              "stalk": "q.mark_variant == 2"
+            },
+            {
+              "crouch": "q.mark_variant == 6"
+            },
+            {
+              "watch": "q.mark_variant == 9"
+            },
+            {
+              "claw_raise": "q.mark_variant == 10"
+            },
+            {
+              "peek": "q.mark_variant == 11"
+            },
+            {
+              "gnaw": "q.mark_variant == 13"
+            },
+            {
+              "run": "q.variant == 1"
+            },
+            {
+              "gallop": "q.variant == 2"
+            },
+            {
+              "default": "!q.is_moving"
+            }
+          ],
+          "blend_transition": 0.2
+        },
+        "run": {
+          "animations": [
+            "run"
+          ],
+          "transitions": [
+            {
+              "emerge": "q.mark_variant == 4"
+            },
+            {
+              "vanish": "q.mark_variant == 5"
+            },
+            {
+              "call": "q.mark_variant == 3"
+            },
+            {
+              "lunge": "q.mark_variant == 7"
+            },
+            {
+              "alert": "q.mark_variant == 8"
+            },
+            {
+              "ram": "q.mark_variant == 12"
+            },
+            {
+              "attack": "(v.attack_time > 0 || q.is_delayed_attacking) && q.variant == 1"
+            },
+            {
+              "stare": "q.mark_variant == 1"
+            },
+            {
+              "stalk": "q.mark_variant == 2"
+            },
+            {
+              "crouch": "q.mark_variant == 6"
+            },
+            {
+              "watch": "q.mark_variant == 9"
+            },
+            {
+              "claw_raise": "q.mark_variant == 10"
+            },
+            {
+              "peek": "q.mark_variant == 11"
+            },
+            {
+              "gnaw": "q.mark_variant == 13"
+            },
+            {
+              "gallop": "q.variant == 2"
+            },
+            {
+              "walk": "q.variant == 0 && q.is_moving"
+            },
+            {
+              "default": "!q.is_moving"
+            }
+          ],
+          "blend_transition": 0.15
+        },
+        "gallop": {
+          "animations": [
+            "gallop"
+          ],
+          "transitions": [
+            {
+              "emerge": "q.mark_variant == 4"
+            },
+            {
+              "vanish": "q.mark_variant == 5"
+            },
+            {
+              "call": "q.mark_variant == 3"
+            },
+            {
+              "lunge": "q.mark_variant == 7"
+            },
+            {
+              "alert": "q.mark_variant == 8"
+            },
+            {
+              "ram": "q.mark_variant == 12"
+            },
+            {
+              "attack": "(v.attack_time > 0 || q.is_delayed_attacking) && q.variant == 1"
+            },
+            {
+              "stare": "q.mark_variant == 1"
+            },
+            {
+              "stalk": "q.mark_variant == 2"
+            },
+            {
+              "crouch": "q.mark_variant == 6"
+            },
+            {
+              "watch": "q.mark_variant == 9"
+            },
+            {
+              "claw_raise": "q.mark_variant == 10"
+            },
+            {
+              "peek": "q.mark_variant == 11"
+            },
+            {
+              "gnaw": "q.mark_variant == 13"
+            },
+            {
+              "run": "q.variant == 1"
+            },
+            {
+              "walk": "q.variant == 0 && q.is_moving"
+            },
+            {
+              "default": "!q.is_moving"
+            }
+          ],
+          "blend_transition": 0.15
+        },
+        "stare": {
+          "animations": [
+            "stare"
+          ],
+          "transitions": [
+            {
+              "attack": "(v.attack_time > 0 || q.is_delayed_attacking) && q.variant == 1"
+            },
+            {
+              "default": "q.mark_variant != 1"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "stalk": {
+          "animations": [
+            {
+              "stalk": "q.is_moving"
+            },
+            {
+              "stare": "!q.is_moving"
+            }
+          ],
+          "transitions": [
+            {
+              "attack": "(v.attack_time > 0 || q.is_delayed_attacking) && q.variant == 1"
+            },
+            {
+              "default": "q.mark_variant != 2"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "crouch": {
+          "animations": [
+            {
+              "crouch": "q.is_moving"
+            },
+            {
+              "crouch_idle": "!q.is_moving"
+            }
+          ],
+          "transitions": [
+            {
+              "attack": "(v.attack_time > 0 || q.is_delayed_attacking) && q.variant == 1"
+            },
+            {
+              "default": "q.mark_variant != 6"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "watch": {
+          "animations": [
+            "watch"
+          ],
+          "transitions": [
+            {
+              "attack": "(v.attack_time > 0 || q.is_delayed_attacking) && q.variant == 1"
+            },
+            {
+              "default": "q.mark_variant != 9"
+            }
+          ],
+          "blend_transition": 0.4
+        },
+        "claw_raise": {
+          "animations": [
+            "claw_raise"
+          ],
+          "transitions": [
+            {
+              "attack": "(v.attack_time > 0 || q.is_delayed_attacking) && q.variant == 1"
+            },
+            {
+              "default": "q.mark_variant != 10"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "peek": {
+          "animations": [
+            "peek"
+          ],
+          "transitions": [
+            {
+              "attack": "(v.attack_time > 0 || q.is_delayed_attacking) && q.variant == 1"
+            },
+            {
+              "default": "q.mark_variant != 11"
+            }
+          ],
+          "blend_transition": 0.4
+        },
+        "gnaw": {
+          "animations": [
+            "gnaw"
+          ],
+          "transitions": [
+            {
+              "attack": "(v.attack_time > 0 || q.is_delayed_attacking) && q.variant == 1"
+            },
+            {
+              "default": "q.mark_variant != 13"
+            }
+          ],
+          "blend_transition": 0.4
+        },
+        "ram": {
+          "animations": [
+            "ram"
+          ],
+          "transitions": [
+            {
+              "default": "q.mark_variant != 12"
+            }
+          ],
+          "blend_transition": 0.1
+        },
+        "attack": {
+          "animations": [
+            "attack"
+          ],
+          "transitions": [
+            {
+              "default": "q.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.1
+        },
+        "lunge": {
+          "animations": [
+            "lunge"
+          ],
+          "transitions": [
+            {
+              "default": "q.all_animations_finished || q.mark_variant != 7"
+            }
+          ],
+          "blend_transition": 0.1
+        },
+        "alert": {
+          "animations": [
+            "alert"
+          ],
+          "transitions": [
+            {
+              "default": "q.all_animations_finished || q.mark_variant != 8"
+            }
+          ],
+          "blend_transition": 0.1
+        },
+        "call": {
+          "animations": [
+            "call"
+          ],
+          "transitions": [
+            {
+              "default": "q.all_animations_finished || q.mark_variant != 3"
+            }
+          ],
+          "blend_transition": 0.2
+        },
+        "emerge": {
+          "animations": [
+            "emerge"
+          ],
+          "transitions": [
+            {
+              "default": "q.all_animations_finished || q.mark_variant != 4"
+            }
+          ],
+          "blend_transition": 0.0
+        },
+        "vanish": {
+          "animations": [
+            "vanish"
+          ],
+          "transitions": [
+            {
+              "default": "q.mark_variant != 5"
+            }
+          ],
+          "blend_transition": 0.1
+        }
+      }
+    },
+    "controller.animation.goatwalker.aura": {
+      "initial_state": "off",
+      "states": {
+        "off": {
+          "transitions": [
+            {
+              "on": "q.mark_variant != 5"
+            }
+          ]
+        },
+        "on": {
+          "particle_effects": [
+            {
+              "effect": "aura_ash"
+            },
+            {
+              "effect": "aura_drip"
+            }
+          ],
+          "transitions": [
+            {
+              "off": "q.mark_variant == 5"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

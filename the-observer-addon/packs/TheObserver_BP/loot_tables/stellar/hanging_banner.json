@@ -1,0 +1,14 @@
+{
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "item",
+          "name": "goatwalker:hanging_banner_item",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}

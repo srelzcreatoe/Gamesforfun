@@ -1,0 +1,59 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:block": {
+    "description": {
+      "identifier": "goatwalker:void_leaves",
+      "menu_category": {
+        "category": "nature",
+        "group": "minecraft:itemGroup.name.leaves"
+      },
+      "states": {
+        "goatwalker:persistent": [
+          false,
+          true
+        ]
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.goatwalker.void_leaves.name",
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "st_void_leaves",
+          "render_method": "alpha_test_to_opaque",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        },
+        "up": {
+          "texture": "st_void_leaves",
+          "render_method": "alpha_test_to_opaque",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true,
+          "isotropic": true
+        },
+        "down": {
+          "texture": "st_void_leaves",
+          "render_method": "alpha_test_to_opaque",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true,
+          "isotropic": true
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.2
+      },
+      "minecraft:light_dampening": 1,
+      "minecraft:flammable": {
+        "catch_chance_modifier": 30,
+        "destroy_chance_modifier": 60
+      },
+      "minecraft:tags": [
+        "minecraft:is_hoe_item_destructible",
+        "minecraft:is_shears_item_destructible",
+        "leaves"
+      ],
+      "minecraft:loot": "loot_tables/stellar/void_leaves.json",
+      "minecraft:map_color": "#2d4a46"
+    }
+  }
+}

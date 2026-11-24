@@ -1,0 +1,14 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_furnace": {
+    "description": {
+      "identifier": "goatwalker:rotten_meat_cook"
+    },
+    "tags": [
+      "furnace",
+      "blast_furnace"
+    ],
+    "input": "goatwalker:rotten_meat",
+    "output": "minecraft:cooked_mutton"
+  }
+}

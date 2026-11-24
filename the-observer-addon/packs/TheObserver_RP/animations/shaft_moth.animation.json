@@ -1,0 +1,59 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.shaft_moth.fly": {
+      "loop": true,
+      "bones": {
+        "wing_fl": {
+          "rotation": [
+            0,
+            0,
+            "-10.0 - math.sin(q.life_time * 1500.0 + v.phase) * 48.0"
+          ]
+        },
+        "wing_fr": {
+          "rotation": [
+            0,
+            0,
+            "10.0 + math.sin(q.life_time * 1500.0 + v.phase) * 48.0"
+          ]
+        },
+        "wing_bl": {
+          "rotation": [
+            0,
+            0,
+            "-6.0 - math.sin(q.life_time * 1500.0 + v.phase) * 48.0 * 0.8"
+          ]
+        },
+        "wing_br": {
+          "rotation": [
+            0,
+            0,
+            "6.0 + math.sin(q.life_time * 1500.0 + v.phase) * 48.0 * 0.8"
+          ]
+        },
+        "body": {
+          "position": [
+            0,
+            "math.sin(q.life_time * 300.0 + v.phase) * 0.6",
+            0
+          ],
+          "rotation": [
+            "math.sin(q.life_time * 140.0) * 8.0",
+            0,
+            "math.sin(q.life_time * 90.0 + v.phase) * 12.0"
+          ]
+        }
+      }
+    },
+    "animation.shaft_moth.dust": {
+      "loop": true,
+      "animation_length": 1.4,
+      "particle_effects": {
+        "0.0": {
+          "effect": "dust"
+        }
+      }
+    }
+  }
+}

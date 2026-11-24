@@ -1,0 +1,208 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:single_block_feature": {
+    "description": {
+      "identifier": "goatwalker:st_remains_block"
+    },
+    "places_block": [
+      {
+        "block": {
+          "name": "goatwalker:remains",
+          "states": {
+            "goatwalker:kind": 0,
+            "goatwalker:rot": 0
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:remains",
+          "states": {
+            "goatwalker:kind": 0,
+            "goatwalker:rot": 1
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:remains",
+          "states": {
+            "goatwalker:kind": 0,
+            "goatwalker:rot": 2
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:remains",
+          "states": {
+            "goatwalker:kind": 0,
+            "goatwalker:rot": 3
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:remains",
+          "states": {
+            "goatwalker:kind": 1,
+            "goatwalker:rot": 0
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:remains",
+          "states": {
+            "goatwalker:kind": 1,
+            "goatwalker:rot": 1
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:remains",
+          "states": {
+            "goatwalker:kind": 1,
+            "goatwalker:rot": 2
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:remains",
+          "states": {
+            "goatwalker:kind": 1,
+            "goatwalker:rot": 3
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:remains",
+          "states": {
+            "goatwalker:kind": 2,
+            "goatwalker:rot": 0
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:remains",
+          "states": {
+            "goatwalker:kind": 2,
+            "goatwalker:rot": 1
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:remains",
+          "states": {
+            "goatwalker:kind": 2,
+            "goatwalker:rot": 2
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:remains",
+          "states": {
+            "goatwalker:kind": 2,
+            "goatwalker:rot": 3
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:blood_ash",
+          "states": {
+            "goatwalker:fade": 0
+          }
+        },
+        "weight": 3
+      },
+      {
+        "block": {
+          "name": "goatwalker:blood_ash",
+          "states": {
+            "goatwalker:fade": 1
+          }
+        },
+        "weight": 3
+      },
+      {
+        "block": {
+          "name": "goatwalker:blood_ash",
+          "states": {
+            "goatwalker:fade": 2
+          }
+        },
+        "weight": 3
+      },
+      {
+        "block": {
+          "name": "goatwalker:ash_pile",
+          "states": {
+            "goatwalker:stage": 0
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:ash_pile",
+          "states": {
+            "goatwalker:stage": 1
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:ash_pile",
+          "states": {
+            "goatwalker:stage": 2
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:ash_pile",
+          "states": {
+            "goatwalker:stage": 3
+          }
+        },
+        "weight": 2
+      }
+    ],
+    "enforce_placement_rules": false,
+    "enforce_survivability_rules": false,
+    "may_attach_to": {
+      "bottom": [
+        "goatwalker:stellar_soil",
+        "goatwalker:ashen_podzol",
+        "goatwalker:stellar_dirt",
+        "minecraft:grass_block",
+        "minecraft:dirt",
+        "minecraft:podzol"
+      ]
+    },
+    "may_replace": [
+      "minecraft:air"
+    ]
+  }
+}

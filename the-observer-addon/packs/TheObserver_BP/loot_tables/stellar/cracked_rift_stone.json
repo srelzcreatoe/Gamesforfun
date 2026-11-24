@@ -1,0 +1,22 @@
+{
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "item",
+          "name": "goatwalker:cracked_rift_stone",
+          "weight": 1
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "match_tool",
+          "minecraft:match_tool_filter_any": [
+            "minecraft:is_pickaxe"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:block": {
+    "description": {
+      "identifier": "goatwalker:ashen_podzol",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.goatwalker.ashen_podzol.name",
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "st_ashen_podzol_side",
+          "render_method": "opaque",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        },
+        "up": {
+          "texture": "st_ashen_podzol_top",
+          "render_method": "opaque",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        },
+        "down": {
+          "texture": "st_stellar_dirt",
+          "render_method": "opaque",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.5
+      },
+      "minecraft:tags": [
+        "minecraft:is_shovel_item_destructible",
+        "dirt"
+      ],
+      "minecraft:loot": "loot_tables/stellar/ashen_podzol.json",
+      "minecraft:map_color": "#40393c"
+    }
+  }
+}

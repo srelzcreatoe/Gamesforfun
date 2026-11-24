@@ -1,0 +1,18 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:item": {
+    "description": {
+      "identifier": "goatwalker:goat_horn_shard",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "st_goat_horn_shard",
+      "minecraft:display_name": {
+        "value": "item.goatwalker.goat_horn_shard.name"
+      },
+      "minecraft:max_stack_size": 64
+    }
+  }
+}

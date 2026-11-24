@@ -1,0 +1,10 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:surface_relative_threshold_feature": {
+    "description": {
+      "identifier": "brine:pale_stalactite_deep"
+    },
+    "feature_to_place": "brine:pale_stalactite_on_ceiling",
+    "minimum_distance_below_surface": 10
+  }
+}

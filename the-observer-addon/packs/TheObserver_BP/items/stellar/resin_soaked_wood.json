@@ -1,0 +1,30 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:item": {
+    "description": {
+      "identifier": "goatwalker:resin_soaked_wood",
+      "menu_category": {
+        "category": "construction",
+        "group": "minecraft:itemGroup.name.planks"
+      }
+    },
+    "components": {
+      "minecraft:block_placer": {
+        "block": "goatwalker:resin_soaked_wood",
+        "replace_block_item": true
+      },
+      "minecraft:display_name": {
+        "value": "tile.goatwalker.resin_soaked_wood.name"
+      },
+      "minecraft:max_stack_size": 64,
+      "minecraft:tags": {
+        "tags": [
+          "minecraft:planks"
+        ]
+      },
+      "minecraft:fuel": {
+        "duration": 40
+      }
+    }
+  }
+}

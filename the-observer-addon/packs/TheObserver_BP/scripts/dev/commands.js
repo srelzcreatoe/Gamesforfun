@@ -28,6 +28,9 @@ import { S, updateSettings, PRESETS } from "../core/settings.js";
 import { DEBUG, safe, V, dimIndex, allPlayers, emit } from "../core/util.js";
 import { ITEMS } from "../core/constants.js";
 import * as soundTest from "../ui/sounds.js";
+import * as riftDim from "../rift/dimension.js";
+import * as dwellerLink from "../link/dwellers.js";
+import * as channel from "../link/shared.js";
 import { DISCOVERIES } from "../progression/discoveries.js";
 import * as director from "../director/director.js";
 import * as talk from "../observer/talk.js";
@@ -404,6 +407,41 @@ export function run(name, args, caller) {
       // ahead auto|never: cutting ahead of someone running, and glitching along its route when stuck (tests)
       DEBUG.ahead = args[0] === "never" ? "never" : "auto";
       return `ahead ${DEBUG.ahead}`;
+    case "dwellers": {
+      // dwellers on|off [name|all] | status | send <name> [player] (1.6.0)
+      const sub = args[0] ?? "status";
+      if (sub === "on" || sub === "off") {
+        const names = !args[1] || args[1] === "all" ? dwellerLink.DWELLERS.map((d) => d.name) : [args[1]];
+        for (const n of names) dwellerLink.setOn(n, sub === "on");
+        return `dwellers ${sub}: ${names.join(",")}`;
+      }
+      if (sub === "seen") {
+        const seen = dwellerLink.seen(args[1]);
+        emit("dweller", { what: "seen", name: args[1], players: seen });
+        return `seen ${args[1]}: ${seen.join(",") || "nobody"}`;
+      }
+      if (sub === "send") {
+        const p = pick(2);
+        if (!p) return "no player";
+        return `send ${args[1]}: ${String(dwellerLink.sendNow(args[1], p))}`;
+      }
+      return dwellerLink.DWELLERS.map((d) => `${d.name}=${dwellerLink.isOn(d) ? "on" : "off"} often=${d.getOften()} danger=${d.getDanger()}`).join(" ");
+    }
+    case "channel": {
+      // channel play <src> <track> | stop <src> | take | release [player] — the shared music channel (1.6.0, tests)
+      const p = pick(args[0] === "play" ? 3 : args[0] === "stop" ? 2 : 1);
+      if (!p) return "no player";
+      if (args[0] === "play") channel.musicPlay(args[1], p, args[2], { loop: true, fade: 0.5 });
+      else if (args[0] === "stop") channel.musicStop(args[1], p);
+      else if (args[0] === "take") channel.observerTake(p);
+      else if (args[0] === "release") channel.observerRelease(p);
+      return `channel ${args.join(" ")}`;
+    }
+    case "riftprobe": {
+      // riftprobe: is the rift dimension there? (1.6.0)
+      const d = riftDim.rift();
+      return d ? `rift ok ${d.id}` : `rift missing ${riftDim.riftFailure()}`;
+    }
     case "eyes":
       // eyes always|never|auto: the Mire's eyeblooms watching players anywhere / not at all / in the Mire (1.5.1)
       DEBUG.eyes = args[0] === "always" ? "always" : args[0] === "never" ? "never" : "auto";

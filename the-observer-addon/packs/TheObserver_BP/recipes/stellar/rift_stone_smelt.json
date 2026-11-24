@@ -1,0 +1,14 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_furnace": {
+    "description": {
+      "identifier": "goatwalker:rift_stone_smelt"
+    },
+    "tags": [
+      "furnace",
+      "blast_furnace"
+    ],
+    "input": "goatwalker:rift_stone",
+    "output": "goatwalker:cracked_rift_stone"
+  }
+}

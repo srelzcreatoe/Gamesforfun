@@ -1,0 +1,22 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:ore_feature": {
+    "description": {
+      "identifier": "goatwalker:st_rift_stone_blob"
+    },
+    "count": 32,
+    "replace_rules": [
+      {
+        "places_block": "goatwalker:rift_stone",
+        "may_replace": [
+          "minecraft:stone",
+          "minecraft:deepslate",
+          "minecraft:tuff",
+          "minecraft:andesite",
+          "minecraft:diorite",
+          "minecraft:granite"
+        ]
+      }
+    ]
+  }
+}

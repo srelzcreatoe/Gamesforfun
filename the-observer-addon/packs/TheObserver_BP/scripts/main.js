@@ -72,6 +72,8 @@ import "./encounters/among_them.js";
 import "./encounters/mirrored.js";
 import "./encounters/guide.js";
 import "./encounters/tests.js";
+import * as riftDim from "./rift/dimension.js";
+import * as dwellers from "./link/dwellers.js";
 
 let ready = false;
 
@@ -451,6 +453,8 @@ system.runInterval(() => {
   timed("illusions.tick", () => illusions.tick());
   // it talks, and asks (1.5.0); and from the fourth stage the world around you sometimes breaks up for a moment
   timed("talk.tick", () => talk.tick());
+  // its dwellers near it answer to it (1.6.0)
+  timed("dwellers.tick", () => dwellers.tick());
   // the Mire's eyeblooms watch you (1.5.1)
   timed("eyebloom.tick", () => eyebloom.tick((p) => inMireBefore.get(p.id) === true));
   for (const p of allPlayers()) {

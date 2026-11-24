@@ -1,0 +1,70 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:block": {
+    "description": {
+      "identifier": "goatwalker:stellar_grass",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.goatwalker.stellar_grass.name",
+      "minecraft:geometry": "geometry.st_cross",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "st_stellar_grass",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 1.0,
+          "face_dimming": false
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -6,
+          0,
+          -6
+        ],
+        "size": [
+          12,
+          13,
+          12
+        ]
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0
+      },
+      "minecraft:flammable": {
+        "catch_chance_modifier": 60,
+        "destroy_chance_modifier": 100
+      },
+      "minecraft:placement_filter": {
+        "conditions": [
+          {
+            "allowed_faces": [
+              "up"
+            ],
+            "block_filter": [
+              "goatwalker:stellar_soil",
+              "goatwalker:ashen_podzol",
+              "goatwalker:stellar_dirt",
+              "minecraft:grass_block",
+              "minecraft:dirt",
+              "minecraft:podzol",
+              "minecraft:moss_block",
+              "goatwalker:rift_stone"
+            ]
+          }
+        ]
+      },
+      "minecraft:loot": "loot_tables/stellar/stellar_grass.json",
+      "minecraft:map_color": "#5c5047",
+      "minecraft:tags": [
+        "minecraft:is_hoe_item_destructible",
+        "plant"
+      ],
+      "minecraft:replaceable": {}
+    }
+  }
+}

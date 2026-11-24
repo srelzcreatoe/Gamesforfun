@@ -1,0 +1,10 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:surface_relative_threshold_feature": {
+    "description": {
+      "identifier": "brine:hall_cluster_deep"
+    },
+    "feature_to_place": "brine:hall_cluster",
+    "minimum_distance_below_surface": 30
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:block": {
+    "description": {
+      "identifier": "goatwalker:starlit_ore",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.goatwalker.starlit_ore.name",
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "st_starlit_ore",
+          "render_method": "opaque",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 3.0
+      },
+      "minecraft:tags": [
+        "minecraft:is_pickaxe_item_destructible",
+        "stone",
+        "minecraft:stone_tier_destructible"
+      ],
+      "minecraft:light_emission": 4,
+      "minecraft:loot": "loot_tables/stellar/starlit_ore.json",
+      "minecraft:map_color": "#6d55b8"
+    }
+  }
+}

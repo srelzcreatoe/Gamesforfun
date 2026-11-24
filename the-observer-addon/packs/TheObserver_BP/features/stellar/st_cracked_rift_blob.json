@@ -1,0 +1,21 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:ore_feature": {
+    "description": {
+      "identifier": "goatwalker:st_cracked_rift_blob"
+    },
+    "count": 24,
+    "replace_rules": [
+      {
+        "places_block": "goatwalker:cracked_rift_stone",
+        "may_replace": [
+          "minecraft:stone",
+          "minecraft:deepslate",
+          "minecraft:tuff",
+          "minecraft:andesite",
+          "goatwalker:rift_stone"
+        ]
+      }
+    ]
+  }
+}

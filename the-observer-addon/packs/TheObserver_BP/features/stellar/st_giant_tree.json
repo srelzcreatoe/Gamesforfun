@@ -1,0 +1,34 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:weighted_random_feature": {
+    "description": {
+      "identifier": "goatwalker:st_giant_tree"
+    },
+    "features": [
+      [
+        "goatwalker:st_stellar_tree_1",
+        5
+      ],
+      [
+        "goatwalker:st_stellar_tree_2",
+        5
+      ],
+      [
+        "goatwalker:st_stellar_tree_3",
+        4
+      ],
+      [
+        "goatwalker:st_stellar_tree_4",
+        2
+      ],
+      [
+        "goatwalker:st_stellar_tree_5",
+        6
+      ],
+      [
+        "goatwalker:st_stellar_tree_6",
+        2
+      ]
+    ]
+  }
+}

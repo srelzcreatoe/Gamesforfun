@@ -1,0 +1,697 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:block": {
+    "description": {
+      "identifier": "goatwalker:void_door_block",
+      "menu_category": {
+        "category": "none"
+      },
+      "states": {
+        "goatwalker:facing": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "goatwalker:open": [
+          false,
+          true
+        ],
+        "goatwalker:hinge": [
+          false,
+          true
+        ],
+        "goatwalker:upper": [
+          false,
+          true
+        ]
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.goatwalker.void_door_block.name",
+      "minecraft:geometry": "geometry.st_door_closed",
+      "goatwalker:door": {},
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "st_void_door_lower",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 3.0
+      },
+      "minecraft:flammable": {
+        "catch_chance_modifier": 5,
+        "destroy_chance_modifier": 20
+      },
+      "minecraft:tags": [
+        "minecraft:is_axe_item_destructible",
+        "wood"
+      ],
+      "minecraft:light_dampening": 0,
+      "minecraft:loot": "loot_tables/stellar/void_door_block.json",
+      "minecraft:map_color": "#3d181a"
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('goatwalker:facing') == 0 && !q.block_state('goatwalker:open') && !q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_closed",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                16,
+                16,
+                3
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              -8,
+              0,
+              -8
+            ],
+            "size": [
+              16,
+              16,
+              3
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 0 && !q.block_state('goatwalker:open') && q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_closed",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                16,
+                16,
+                3
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              -8,
+              0,
+              -8
+            ],
+            "size": [
+              16,
+              16,
+              3
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 0 && q.block_state('goatwalker:open') && !q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_open_b",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                3,
+                16,
+                16
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              -8,
+              0,
+              -8
+            ],
+            "size": [
+              3,
+              16,
+              16
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 0 && q.block_state('goatwalker:open') && q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_open_a",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                5,
+                0,
+                -8
+              ],
+              "size": [
+                3,
+                16,
+                16
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              5,
+              0,
+              -8
+            ],
+            "size": [
+              3,
+              16,
+              16
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 1 && !q.block_state('goatwalker:open') && !q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_closed",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                16,
+                16,
+                3
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              -8,
+              0,
+              -8
+            ],
+            "size": [
+              16,
+              16,
+              3
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 1 && !q.block_state('goatwalker:open') && q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_closed",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                16,
+                16,
+                3
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              -8,
+              0,
+              -8
+            ],
+            "size": [
+              16,
+              16,
+              3
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 1 && q.block_state('goatwalker:open') && !q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_open_b",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                3,
+                16,
+                16
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              -8,
+              0,
+              -8
+            ],
+            "size": [
+              3,
+              16,
+              16
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 1 && q.block_state('goatwalker:open') && q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_open_a",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                5,
+                0,
+                -8
+              ],
+              "size": [
+                3,
+                16,
+                16
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              5,
+              0,
+              -8
+            ],
+            "size": [
+              3,
+              16,
+              16
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 2 && !q.block_state('goatwalker:open') && !q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_closed",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                16,
+                16,
+                3
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              -8,
+              0,
+              -8
+            ],
+            "size": [
+              16,
+              16,
+              3
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 2 && !q.block_state('goatwalker:open') && q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_closed",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                16,
+                16,
+                3
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              -8,
+              0,
+              -8
+            ],
+            "size": [
+              16,
+              16,
+              3
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 2 && q.block_state('goatwalker:open') && !q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_open_b",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                3,
+                16,
+                16
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              -8,
+              0,
+              -8
+            ],
+            "size": [
+              3,
+              16,
+              16
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 2 && q.block_state('goatwalker:open') && q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_open_a",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                5,
+                0,
+                -8
+              ],
+              "size": [
+                3,
+                16,
+                16
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              5,
+              0,
+              -8
+            ],
+            "size": [
+              3,
+              16,
+              16
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 3 && !q.block_state('goatwalker:open') && !q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_closed",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              270,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                16,
+                16,
+                3
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              -8,
+              0,
+              -8
+            ],
+            "size": [
+              16,
+              16,
+              3
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 3 && !q.block_state('goatwalker:open') && q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_closed",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              270,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                16,
+                16,
+                3
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              -8,
+              0,
+              -8
+            ],
+            "size": [
+              16,
+              16,
+              3
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 3 && q.block_state('goatwalker:open') && !q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_open_b",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              270,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                3,
+                16,
+                16
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              -8,
+              0,
+              -8
+            ],
+            "size": [
+              3,
+              16,
+              16
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 3 && q.block_state('goatwalker:open') && q.block_state('goatwalker:hinge')",
+        "components": {
+          "minecraft:geometry": "geometry.st_door_open_a",
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              270,
+              0
+            ]
+          },
+          "minecraft:collision_box": [
+            {
+              "origin": [
+                5,
+                0,
+                -8
+              ],
+              "size": [
+                3,
+                16,
+                16
+              ]
+            }
+          ],
+          "minecraft:selection_box": {
+            "origin": [
+              5,
+              0,
+              -8
+            ],
+            "size": [
+              3,
+              16,
+              16
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:upper')",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "st_void_door_upper",
+              "render_method": "alpha_test",
+              "ambient_occlusion": 1.0,
+              "face_dimming": true
+            }
+          }
+        }
+      }
+    ]
+  }
+}

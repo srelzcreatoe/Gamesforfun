@@ -1,0 +1,21 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:item": {
+    "description": {
+      "identifier": "goatwalker:stellar_resin",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "st_stellar_resin",
+      "minecraft:display_name": {
+        "value": "item.goatwalker.stellar_resin.name"
+      },
+      "minecraft:max_stack_size": 64,
+      "minecraft:fuel": {
+        "duration": 80
+      }
+    }
+  }
+}

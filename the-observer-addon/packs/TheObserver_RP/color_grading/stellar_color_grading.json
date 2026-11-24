@@ -1,0 +1,42 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:color_grading_settings": {
+    "description": {
+      "identifier": "goatwalker:stellar_color_grading"
+    },
+    "color_grading": {
+      "midtones": {
+        "contrast": [
+          1.22,
+          1.22,
+          1.22
+        ],
+        "gain": [
+          0.96,
+          0.94,
+          0.95
+        ],
+        "gamma": [
+          2.2,
+          2.2,
+          2.2
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "saturation": [
+          0.62,
+          0.62,
+          0.62
+        ]
+      },
+      "temperature": {
+        "enabled": true,
+        "temperature": 8200,
+        "type": "color_temperature"
+      }
+    }
+  }
+}

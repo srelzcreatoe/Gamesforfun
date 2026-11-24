@@ -72,6 +72,348 @@
     },
     "wmire_eyebloom_shut": {
       "textures": "textures/blocks/wmire/eyebloom_shut"
+    },
+    "gw_snuffed_torch": {
+      "textures": "textures/blocks/gw_snuffed_torch"
+    },
+    "gw_gouge_fresh": {
+      "textures": "textures/blocks/gw_gouge_fresh"
+    },
+    "gw_gouge_old": {
+      "textures": "textures/blocks/gw_gouge_old"
+    },
+    "gw_gnaw": {
+      "textures": "textures/blocks/gw_gnaw"
+    },
+    "gw_log_spruce_side": {
+      "textures": "textures/blocks/log_spruce"
+    },
+    "gw_log_spruce_top": {
+      "textures": "textures/blocks/log_spruce_top"
+    },
+    "gw_ash_print_0": {
+      "textures": "textures/blocks/gw_ash_print_0"
+    },
+    "gw_ash_print_1": {
+      "textures": "textures/blocks/gw_ash_print_1"
+    },
+    "gw_ash_print_2": {
+      "textures": "textures/blocks/gw_ash_print_2"
+    },
+    "gw_ash_pile": {
+      "textures": "textures/blocks/gw_ash_pile"
+    },
+    "gw_blood_ash_0": {
+      "textures": "textures/blocks/gw_blood_ash_0"
+    },
+    "gw_blood_ash_1": {
+      "textures": "textures/blocks/gw_blood_ash_1"
+    },
+    "gw_ichor_0": {
+      "textures": "textures/blocks/gw_ichor_0"
+    },
+    "gw_ichor_1": {
+      "textures": "textures/blocks/gw_ichor_1"
+    },
+    "gw_remains": {
+      "textures": "textures/blocks/gw_remains"
+    },
+    "gw_offering": {
+      "textures": "textures/blocks/gw_offering"
+    },
+    "gw_offering_rotten": {
+      "textures": "textures/blocks/gw_offering_rotten"
+    },
+    "gw_planks_oak": {
+      "textures": "textures/blocks/planks_oak"
+    },
+    "gw_planks_spruce": {
+      "textures": "textures/blocks/planks_spruce"
+    },
+    "gw_planks_birch": {
+      "textures": "textures/blocks/planks_birch"
+    },
+    "gw_planks_jungle": {
+      "textures": "textures/blocks/planks_jungle"
+    },
+    "gw_planks_acacia": {
+      "textures": "textures/blocks/planks_acacia"
+    },
+    "gw_planks_dark_oak": {
+      "textures": "textures/blocks/planks_big_oak"
+    },
+    "st_stellar_soil_top": {
+      "textures": "textures/blocks/st_stellar_soil_top"
+    },
+    "st_stellar_soil_side": {
+      "textures": "textures/blocks/st_stellar_soil_side"
+    },
+    "st_stellar_dirt": {
+      "textures": "textures/blocks/st_stellar_dirt"
+    },
+    "st_ashen_podzol_top": {
+      "textures": "textures/blocks/st_ashen_podzol_top"
+    },
+    "st_ashen_podzol_side": {
+      "textures": "textures/blocks/st_ashen_podzol_side"
+    },
+    "st_rift_stone": {
+      "textures": "textures/blocks/st_rift_stone"
+    },
+    "st_rift_stone_top": {
+      "textures": "textures/blocks/st_rift_stone_top"
+    },
+    "st_cracked_rift_stone": {
+      "textures": "textures/blocks/st_cracked_rift_stone"
+    },
+    "st_starlit_ore": {
+      "textures": "textures/blocks/st_starlit_ore"
+    },
+    "st_bleeding_stone": {
+      "textures": "textures/blocks/st_bleeding_stone"
+    },
+    "st_void_crystal_block": {
+      "textures": "textures/blocks/st_void_crystal_block"
+    },
+    "st_void_crystal": {
+      "textures": "textures/blocks/st_void_crystal"
+    },
+    "st_void_crystal_bud": {
+      "textures": "textures/blocks/st_void_crystal_bud"
+    },
+    "st_stellar_grass": {
+      "textures": "textures/blocks/st_stellar_grass"
+    },
+    "st_rift_fern": {
+      "textures": "textures/blocks/st_rift_fern"
+    },
+    "st_bleeding_shrub": {
+      "textures": "textures/blocks/st_bleeding_shrub"
+    },
+    "st_mooncap": {
+      "textures": "textures/blocks/st_mooncap"
+    },
+    "st_hanging_moss": {
+      "textures": "textures/blocks/st_hanging_moss"
+    },
+    "st_hanging_moss_tip": {
+      "textures": "textures/blocks/st_hanging_moss_tip"
+    },
+    "st_void_log": {
+      "textures": "textures/blocks/st_void_log"
+    },
+    "st_void_log_top": {
+      "textures": "textures/blocks/st_void_log_top"
+    },
+    "st_stripped_void_log": {
+      "textures": "textures/blocks/st_stripped_void_log"
+    },
+    "st_stripped_void_log_top": {
+      "textures": "textures/blocks/st_stripped_void_log_top"
+    },
+    "st_void_planks": {
+      "textures": "textures/blocks/st_void_planks"
+    },
+    "st_charred_log": {
+      "textures": "textures/blocks/st_charred_log"
+    },
+    "st_charred_log_top": {
+      "textures": "textures/blocks/st_charred_log_top"
+    },
+    "st_carved_void_log": {
+      "textures": "textures/blocks/st_carved_void_log"
+    },
+    "st_aged_planks": {
+      "textures": "textures/blocks/st_aged_planks"
+    },
+    "st_resin_soaked_wood": {
+      "textures": "textures/blocks/st_resin_soaked_wood"
+    },
+    "st_ritual_wood": {
+      "textures": "textures/blocks/st_ritual_wood"
+    },
+    "st_void_leaves": {
+      "textures": "textures/blocks/st_void_leaves"
+    },
+    "st_void_trapdoor": {
+      "textures": "textures/blocks/st_void_trapdoor"
+    },
+    "st_void_door_lower": {
+      "textures": "textures/blocks/st_void_door_lower"
+    },
+    "st_void_door_upper": {
+      "textures": "textures/blocks/st_void_door_upper"
+    },
+    "st_banner_top": {
+      "textures": "textures/blocks/st_banner_top"
+    },
+    "st_banner_bottom": {
+      "textures": "textures/blocks/st_banner_bottom"
+    },
+    "st_trophy": {
+      "textures": "textures/blocks/st_trophy"
+    },
+    "st_ritual_marking": {
+      "textures": "textures/blocks/st_ritual_marking"
+    },
+    "st_tattered_cloth": {
+      "textures": "textures/blocks/st_tattered_cloth"
+    },
+    "brine_bloodstained_deepslate": {
+      "textures": "textures/blocks/brine/bloodstained_deepslate"
+    },
+    "brine_bloodstained_deepslate_top": {
+      "textures": "textures/blocks/brine/bloodstained_deepslate_top"
+    },
+    "brine_bloodstained_deepslate_bottom": {
+      "textures": "textures/blocks/brine/bloodstained_deepslate_bottom"
+    },
+    "brine_clawed_deepslate": {
+      "textures": "textures/blocks/brine/clawed_deepslate"
+    },
+    "brine_deepslate_top_plain": {
+      "textures": "textures/blocks/brine/deepslate_top_plain"
+    },
+    "brine_veined_deepslate": {
+      "textures": "textures/blocks/brine/veined_deepslate"
+    },
+    "brine_veined_deepslate_top": {
+      "textures": "textures/blocks/brine/veined_deepslate_top"
+    },
+    "brine_mud_plain": {
+      "textures": "textures/blocks/brine/mud_plain"
+    },
+    "brine_tracked_mud_top": {
+      "textures": "textures/blocks/brine/tracked_mud_top"
+    },
+    "brine_bone_coral": {
+      "textures": "textures/blocks/brine/bone_coral"
+    },
+    "brine_bloodroot": {
+      "textures": "textures/blocks/brine/bloodroot"
+    },
+    "brine_pallid_cap": {
+      "textures": "textures/blocks/brine/pallid_cap"
+    },
+    "brine_pale_dripstone_base": {
+      "textures": "textures/blocks/brine/pale_dripstone_base"
+    },
+    "brine_pale_dripstone_middle": {
+      "textures": "textures/blocks/brine/pale_dripstone_middle"
+    },
+    "brine_pale_dripstone_frustum": {
+      "textures": "textures/blocks/brine/pale_dripstone_frustum"
+    },
+    "brine_pale_dripstone_tip": {
+      "textures": "textures/blocks/brine/pale_dripstone_tip"
+    },
+    "sb_den_heart": {
+      "textures": "textures/blocks/sb_den_heart"
+    },
+    "sb_den_crack": {
+      "textures": "textures/blocks/sb_den_crack"
+    },
+    "sb_den_dust": {
+      "textures": "textures/blocks/sb_den_dust"
+    },
+    "sb_den_spine": {
+      "textures": "textures/blocks/sb_den_spine"
+    },
+    "sb_cairn": {
+      "textures": "textures/blocks/sb_cairn"
+    },
+    "sb_cairn_top": {
+      "textures": "textures/blocks/sb_cairn_top"
+    },
+    "sb_hollow_dust": {
+      "textures": "textures/blocks/sb_hollow_dust"
+    },
+    "sb_hollow_soil": {
+      "textures": "textures/blocks/sb_hollow_soil"
+    },
+    "sb_clawed_stone": {
+      "textures": "textures/blocks/sb_clawed_stone"
+    },
+    "sb_inf_bloodmoss": {
+      "textures": "textures/blocks/infected/bloodmoss"
+    },
+    "sb_inf_bloodmoss_side": {
+      "textures": "textures/blocks/infected/bloodmoss_side"
+    },
+    "sb_inf_bloodroot_vines": {
+      "textures": "textures/blocks/infected/bloodroot_vines"
+    },
+    "sb_inf_bloodroot_vines_tip": {
+      "textures": "textures/blocks/infected/bloodroot_vines_tip"
+    },
+    "sb_inf_cracked_organ_core": {
+      "textures": "textures/blocks/infected/cracked_organ_core"
+    },
+    "sb_inf_cracked_veinstone": {
+      "textures": "textures/blocks/infected/cracked_veinstone"
+    },
+    "sb_inf_crimson_thorns": {
+      "textures": "textures/blocks/infected/crimson_thorns"
+    },
+    "sb_inf_crimson_thorns_crystal": {
+      "textures": "textures/blocks/infected/crimson_thorns_crystal"
+    },
+    "sb_inf_dripfang": {
+      "textures": "textures/blocks/infected/dripfang"
+    },
+    "sb_inf_dripfang_drop": {
+      "textures": "textures/blocks/infected/dripfang_drop"
+    },
+    "sb_inf_dripfang_wet": {
+      "textures": "textures/blocks/infected/dripfang_wet"
+    },
+    "sb_inf_fleshstone": {
+      "textures": "textures/blocks/infected/fleshstone"
+    },
+    "sb_inf_glowspore_cluster": {
+      "textures": "textures/blocks/infected/glowspore_cluster"
+    },
+    "sb_inf_glowspore_cluster_cap": {
+      "textures": "textures/blocks/infected/glowspore_cluster_cap"
+    },
+    "sb_inf_glowspore_cluster_stem": {
+      "textures": "textures/blocks/infected/glowspore_cluster_stem"
+    },
+    "sb_inf_organ_core": {
+      "textures": "textures/blocks/infected/organ_core"
+    },
+    "sb_inf_organ_core_glow": {
+      "textures": "textures/blocks/infected/organ_core_glow"
+    },
+    "sb_inf_organ_core_root": {
+      "textures": "textures/blocks/infected/organ_core_root"
+    },
+    "sb_inf_pulsing_flesh": {
+      "textures": "textures/blocks/infected/pulsing_flesh"
+    },
+    "sb_inf_ribstone": {
+      "textures": "textures/blocks/infected/ribstone"
+    },
+    "sb_inf_ribstone_top": {
+      "textures": "textures/blocks/infected/ribstone_top"
+    },
+    "sb_inf_veinstone": {
+      "textures": "textures/blocks/infected/veinstone"
+    },
+    "sb_inf_watcher_pod": {
+      "textures": "textures/blocks/infected/watcher_pod"
+    },
+    "sb_inf_watcher_pod_eye": {
+      "textures": "textures/blocks/infected/watcher_pod_eye"
+    },
+    "sb_inf_watcher_pod_inner": {
+      "textures": "textures/blocks/infected/watcher_pod_inner"
+    },
+    "sb_inf_watcher_pod_open": {
+      "textures": "textures/blocks/infected/watcher_pod_open"
+    },
+    "sb_inf_watcher_pod_root": {
+      "textures": "textures/blocks/infected/watcher_pod_root"
     }
   }
 }

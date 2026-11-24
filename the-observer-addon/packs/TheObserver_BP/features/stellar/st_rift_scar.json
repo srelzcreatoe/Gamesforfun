@@ -1,0 +1,19 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:ore_feature": {
+    "description": {
+      "identifier": "goatwalker:st_rift_scar"
+    },
+    "count": 20,
+    "replace_rules": [
+      {
+        "places_block": "goatwalker:cracked_rift_stone",
+        "may_replace": [
+          "goatwalker:stellar_soil",
+          "goatwalker:ashen_podzol",
+          "goatwalker:stellar_dirt"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:ore_feature": {
+    "description": {
+      "identifier": "goatwalker:st_bleeding_vein"
+    },
+    "count": 10,
+    "replace_rules": [
+      {
+        "places_block": "goatwalker:bleeding_stone",
+        "may_replace": [
+          "minecraft:stone",
+          "minecraft:deepslate",
+          "goatwalker:rift_stone"
+        ]
+      }
+    ]
+  }
+}

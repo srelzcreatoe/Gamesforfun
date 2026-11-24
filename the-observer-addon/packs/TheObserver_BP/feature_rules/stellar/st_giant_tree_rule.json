@@ -1,0 +1,41 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:feature_rules": {
+    "description": {
+      "identifier": "goatwalker:st_giant_tree_rule",
+      "places_feature": "goatwalker:st_giant_tree"
+    },
+    "conditions": {
+      "placement_pass": "first_pass",
+      "minecraft:biome_filter": [
+        {
+          "test": "has_biome_tag",
+          "operator": "==",
+          "value": "goatwalker_stellar"
+        }
+      ]
+    },
+    "distribution": {
+      "iterations": 2,
+      "x": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          2
+        ]
+      },
+      "y": "query.above_top_solid(variable.worldx, variable.worldz)",
+      "z": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          2
+        ]
+      },
+      "scatter_chance": {
+        "numerator": 7,
+        "denominator": 10
+      }
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "format_version": "1.21.80",
+  "minecraft:block": {
+    "description": {
+      "identifier": "goatwalker:offering",
+      "menu_category": {
+        "category": "nature"
+      },
+      "states": {
+        "goatwalker:rotten": [
+          false,
+          true
+        ]
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.goatwalker.offering.name",
+      "minecraft:geometry": "geometry.gw_offering",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "gw_offering",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -4,
+          0,
+          -5
+        ],
+        "size": [
+          8,
+          4,
+          11
+        ]
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.2
+      },
+      "minecraft:loot": "loot_tables/blocks/empty.json",
+      "minecraft:map_color": "#96211b"
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('goatwalker:rotten') == true",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "gw_offering_rotten",
+              "render_method": "alpha_test",
+              "ambient_occlusion": 1.0,
+              "face_dimming": true
+            }
+          }
+        }
+      }
+    ]
+  }
+}

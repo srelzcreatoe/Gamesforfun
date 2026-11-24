@@ -1,0 +1,69 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:block": {
+    "description": {
+      "identifier": "goatwalker:hanging_moss_tip",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.goatwalker.hanging_moss_tip.name",
+      "minecraft:geometry": "geometry.st_cross",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "st_hanging_moss_tip",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 1.0,
+          "face_dimming": false
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -6,
+          0,
+          -6
+        ],
+        "size": [
+          12,
+          16,
+          12
+        ]
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0
+      },
+      "minecraft:replaceable": {},
+      "minecraft:placement_filter": {
+        "conditions": [
+          {
+            "allowed_faces": [
+              "down"
+            ],
+            "block_filter": [
+              "goatwalker:void_leaves",
+              "goatwalker:void_log",
+              "goatwalker:hanging_moss",
+              "minecraft:spruce_leaves",
+              "minecraft:spruce_log",
+              "goatwalker:aged_planks"
+            ]
+          }
+        ]
+      },
+      "minecraft:flammable": {
+        "catch_chance_modifier": 30,
+        "destroy_chance_modifier": 60
+      },
+      "minecraft:loot": "loot_tables/stellar/hanging_moss_tip.json",
+      "minecraft:tags": [
+        "minecraft:is_hoe_item_destructible",
+        "minecraft:is_shears_item_destructible",
+        "plant"
+      ],
+      "minecraft:map_color": "#1e2723"
+    }
+  }
+}

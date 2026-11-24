@@ -1,0 +1,18 @@
+{
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "item",
+          "name": "goatwalker:bloodied_fur",
+          "weight": 1
+        },
+        {
+          "type": "empty",
+          "weight": 5
+        }
+      ]
+    }
+  ]
+}

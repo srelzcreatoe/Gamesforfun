@@ -1,0 +1,1088 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.shaftbreaker.phase": {
+      "initial_state": "dormant",
+      "states": {
+        "dormant": {
+          "animations": [
+            {
+              "dormant": "v.base_weight * (1.0 - v.move_blend)"
+            },
+            {
+              "stalk_walk": "v.base_weight * v.move_blend"
+            }
+          ],
+          "transitions": [
+            {
+              "stalking": "q.property('shaftbreaker:phase') == 'stalking'"
+            },
+            {
+              "watching": "q.property('shaftbreaker:phase') == 'watching'"
+            },
+            {
+              "breaker": "q.property('shaftbreaker:phase') == 'breaker'"
+            },
+            {
+              "frenzy": "q.property('shaftbreaker:phase') == 'frenzy'"
+            }
+          ],
+          "blend_transition": 0.6
+        },
+        "stalking": {
+          "animations": [
+            {
+              "stalk_idle": "v.base_weight * (1.0 - v.move_blend)"
+            },
+            {
+              "stalk_walk": "v.base_weight * v.move_blend"
+            }
+          ],
+          "transitions": [
+            {
+              "dormant": "q.property('shaftbreaker:phase') == 'dormant'"
+            },
+            {
+              "watching": "q.property('shaftbreaker:phase') == 'watching'"
+            },
+            {
+              "breaker": "q.property('shaftbreaker:phase') == 'breaker'"
+            },
+            {
+              "frenzy": "q.property('shaftbreaker:phase') == 'frenzy'"
+            }
+          ],
+          "blend_transition": 0.4
+        },
+        "watching": {
+          "animations": [
+            {
+              "watch": "v.base_weight * (1.0 - v.move_blend)"
+            },
+            {
+              "stalk_walk": "v.base_weight * v.move_blend"
+            }
+          ],
+          "transitions": [
+            {
+              "dormant": "q.property('shaftbreaker:phase') == 'dormant'"
+            },
+            {
+              "stalking": "q.property('shaftbreaker:phase') == 'stalking'"
+            },
+            {
+              "breaker": "q.property('shaftbreaker:phase') == 'breaker'"
+            },
+            {
+              "frenzy": "q.property('shaftbreaker:phase') == 'frenzy'"
+            }
+          ],
+          "blend_transition": 0.7
+        },
+        "breaker": {
+          "animations": [
+            {
+              "frenzy_idle": "v.base_weight * (1.0 - v.move_blend)"
+            },
+            {
+              "breaker_walk": "v.base_weight * v.move_blend"
+            }
+          ],
+          "transitions": [
+            {
+              "dormant": "q.property('shaftbreaker:phase') == 'dormant'"
+            },
+            {
+              "stalking": "q.property('shaftbreaker:phase') == 'stalking'"
+            },
+            {
+              "watching": "q.property('shaftbreaker:phase') == 'watching'"
+            },
+            {
+              "frenzy": "q.property('shaftbreaker:phase') == 'frenzy'"
+            }
+          ],
+          "blend_transition": 0.35
+        },
+        "frenzy": {
+          "animations": [
+            {
+              "frenzy_idle": "v.base_weight * (1.0 - v.move_blend)"
+            },
+            {
+              "frenzy_run": "v.base_weight * v.move_blend"
+            },
+            {
+              "crooked_gait": "v.base_weight * v.move_blend * (v.gait == 1 ? 1.0 : 0.0)"
+            },
+            {
+              "broken_gait": "v.base_weight * v.move_blend * (v.gait == 2 ? 1.0 : 0.0)"
+            }
+          ],
+          "transitions": [
+            {
+              "dormant": "q.property('shaftbreaker:phase') == 'dormant'"
+            },
+            {
+              "stalking": "q.property('shaftbreaker:phase') == 'stalking'"
+            },
+            {
+              "watching": "q.property('shaftbreaker:phase') == 'watching'"
+            },
+            {
+              "breaker": "q.property('shaftbreaker:phase') == 'breaker'"
+            }
+          ],
+          "blend_transition": 0.4
+        }
+      }
+    },
+    "controller.animation.shaftbreaker.stance": {
+      "initial_state": "stand",
+      "states": {
+        "stand": {
+          "transitions": [
+            {
+              "crouch": "v.stance == 1"
+            },
+            {
+              "crawl": "v.stance == 2"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "crouch": {
+          "animations": [
+            {
+              "crouch_idle": "v.stance_weight * (1.0 - v.move_blend)"
+            },
+            {
+              "crouch_walk": "v.stance_weight * v.move_blend"
+            }
+          ],
+          "transitions": [
+            {
+              "stand": "v.stance == 0"
+            },
+            {
+              "crawl": "v.stance == 2"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "crawl": {
+          "animations": [
+            {
+              "crawl_idle": "v.stance_weight * (1.0 - v.move_blend)"
+            },
+            {
+              "crawl_walk": "v.stance_weight * v.move_blend"
+            }
+          ],
+          "transitions": [
+            {
+              "stand": "v.stance == 0"
+            },
+            {
+              "crouch": "v.stance == 1"
+            }
+          ],
+          "blend_transition": 0.35
+        }
+      }
+    },
+    "controller.animation.shaftbreaker.act": {
+      "initial_state": "none",
+      "states": {
+        "none": {
+          "transitions": [
+            {
+              "a1": "v.act == 1"
+            },
+            {
+              "a2": "v.act == 2"
+            },
+            {
+              "a3": "v.act == 3"
+            },
+            {
+              "a4": "v.act == 4"
+            },
+            {
+              "a5": "v.act == 5"
+            },
+            {
+              "a6": "v.act == 6"
+            },
+            {
+              "a7": "v.act == 7"
+            },
+            {
+              "a8": "v.act == 8"
+            },
+            {
+              "a9": "v.act == 9"
+            },
+            {
+              "a10": "v.act == 10"
+            },
+            {
+              "a11": "v.act == 11"
+            },
+            {
+              "a12": "v.act == 12"
+            },
+            {
+              "a13": "v.act == 13"
+            },
+            {
+              "a14": "v.act == 14"
+            },
+            {
+              "a15": "v.act == 15"
+            },
+            {
+              "a16": "v.act == 16"
+            },
+            {
+              "a17": "v.act == 17"
+            },
+            {
+              "a18": "v.act == 18"
+            },
+            {
+              "a19": "v.act == 19"
+            },
+            {
+              "a20": "v.act == 20"
+            },
+            {
+              "a21": "v.act == 21"
+            },
+            {
+              "a22": "v.act == 22"
+            },
+            {
+              "a23": "v.act == 23"
+            },
+            {
+              "a24": "v.act == 24"
+            },
+            {
+              "a25": "v.act == 25"
+            },
+            {
+              "a26": "v.act == 26"
+            },
+            {
+              "a27": "v.act == 27"
+            },
+            {
+              "a28": "v.act == 28"
+            },
+            {
+              "a29": "v.act == 29"
+            },
+            {
+              "a30": "v.act == 30"
+            },
+            {
+              "a31": "v.act == 31"
+            },
+            {
+              "a32": "v.act == 32"
+            },
+            {
+              "a33": "v.act == 33"
+            },
+            {
+              "a34": "v.act == 34"
+            },
+            {
+              "a35": "v.act == 35"
+            },
+            {
+              "a36": "v.act == 36"
+            },
+            {
+              "a37": "v.act == 37"
+            },
+            {
+              "a38": "v.act == 38"
+            },
+            {
+              "a39": "v.act == 39"
+            },
+            {
+              "a40": "v.act == 40"
+            },
+            {
+              "a41": "v.act == 41"
+            },
+            {
+              "a42": "v.act == 42"
+            },
+            {
+              "a43": "v.act == 43"
+            },
+            {
+              "a44": "v.act == 44"
+            },
+            {
+              "a45": "v.act == 45"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "a1": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 1"
+            }
+          ],
+          "blend_transition": 0.2,
+          "animations": [
+            "twitch"
+          ]
+        },
+        "a2": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 2"
+            }
+          ],
+          "blend_transition": 0.2,
+          "animations": [
+            "head_tilt"
+          ]
+        },
+        "a3": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 3"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "peek_left": "v.actw"
+            }
+          ]
+        },
+        "a4": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 4"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "peek_right": "v.actw"
+            }
+          ]
+        },
+        "a5": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 5"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "peek_below": "v.actw"
+            }
+          ]
+        },
+        "a6": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 6"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "failed_hide": "v.actw"
+            }
+          ]
+        },
+        "a7": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 7"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "listen": "v.actw"
+            }
+          ]
+        },
+        "a8": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 8"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "prone_drop": "v.actw"
+            }
+          ]
+        },
+        "a9": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 9"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "crawl_idle": "v.actw * (1.0 - v.move_blend)"
+            },
+            {
+              "crawl_walk": "v.actw * v.move_blend"
+            }
+          ]
+        },
+        "a10": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 10"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "freeze_step": "v.actw"
+            }
+          ]
+        },
+        "a11": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 11"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "finish_step": "v.actw"
+            }
+          ]
+        },
+        "a12": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 12"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "stalk_idle": "v.actw * (1.0 - v.move_blend)"
+            },
+            {
+              "backward_walk": "v.actw * v.move_blend"
+            }
+          ]
+        },
+        "a13": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 13"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "stalk_idle": "v.actw * (1.0 - v.move_blend)"
+            },
+            {
+              "limp": "v.actw * v.move_blend"
+            }
+          ]
+        },
+        "a14": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 14"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "kneel": "v.actw"
+            }
+          ]
+        },
+        "a15": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 15"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "shove": "v.actw"
+            }
+          ]
+        },
+        "a16": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 16"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "brace": "v.actw"
+            }
+          ]
+        },
+        "a17": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 17"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "frenzy_lunge": "v.actw"
+            }
+          ]
+        },
+        "a18": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 18"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "claw_wide": "v.actw"
+            }
+          ]
+        },
+        "a19": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 19"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "rupture": "v.actw"
+            }
+          ]
+        },
+        "a20": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 20"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "heavy": "v.actw"
+            }
+          ]
+        },
+        "a21": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 21"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "ceiling_hang": "v.actw"
+            }
+          ]
+        },
+        "a22": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 22"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "ceiling_reach": "v.actw"
+            }
+          ]
+        },
+        "a23": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 23"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "ceiling_drop": "v.actw"
+            }
+          ]
+        },
+        "a24": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 24"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "squeeze": "v.actw"
+            }
+          ]
+        },
+        "a25": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 25"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "recover": "v.actw"
+            }
+          ]
+        },
+        "a26": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 26"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "recover_mirror": "v.actw"
+            }
+          ]
+        },
+        "a27": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 27"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "failed_leap": "v.actw"
+            }
+          ]
+        },
+        "a28": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 28"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "crawl_idle": "v.actw * (1.0 - v.move_blend)"
+            },
+            {
+              "scramble": "v.actw * v.move_blend"
+            }
+          ]
+        },
+        "a29": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 29"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "collapse": "v.actw"
+            }
+          ]
+        },
+        "a30": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 30"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "vanish": "v.actw"
+            }
+          ]
+        },
+        "a31": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 31"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "break_strike": "v.actw"
+            }
+          ]
+        },
+        "a32": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 32"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "eat": "v.actw"
+            }
+          ]
+        },
+        "a33": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 33"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "frenzy_halt": "v.actw"
+            }
+          ]
+        },
+        "a34": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 34"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "wall_brace": "v.actw"
+            }
+          ]
+        },
+        "a35": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 35"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "roar": "v.actw"
+            }
+          ]
+        },
+        "a36": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 36"
+            }
+          ],
+          "blend_transition": 0.2,
+          "animations": [
+            "scream_cut"
+          ]
+        },
+        "a37": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 37"
+            }
+          ],
+          "blend_transition": 0.2,
+          "animations": [
+            "breath"
+          ]
+        },
+        "a38": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 38"
+            }
+          ],
+          "blend_transition": 0.2,
+          "animations": [
+            "door_reach"
+          ]
+        },
+        "a39": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 39"
+            }
+          ],
+          "blend_transition": 0.2,
+          "animations": [
+            "last_glance"
+          ]
+        },
+        "a40": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 40"
+            }
+          ],
+          "blend_transition": 0.2,
+          "animations": [
+            "stare"
+          ]
+        },
+        "a41": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 41"
+            }
+          ],
+          "blend_transition": 0.2
+        },
+        "a42": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 42"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "climb": "v.actw"
+            }
+          ]
+        },
+        "a43": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 43"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "claw_right": "v.actw"
+            }
+          ]
+        },
+        "a44": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 44"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "claw_left": "v.actw"
+            }
+          ]
+        },
+        "a45": {
+          "on_entry": [
+            "v.act_t0 = q.life_time;"
+          ],
+          "transitions": [
+            {
+              "none": "v.act != 45"
+            }
+          ],
+          "blend_transition": 0.25,
+          "animations": [
+            {
+              "finish_step": "v.actw"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.shaftbreaker.attack": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "transitions": [
+            {
+              "swing": "q.is_delayed_attacking"
+            }
+          ],
+          "blend_transition": 0.15
+        },
+        "swing": {
+          "on_entry": [
+            "v.swing = math.random_integer(0, 2);"
+          ],
+          "animations": [
+            {
+              "claw_right_add": "(1.0 - v.actw) * (v.swing == 0 ? 1.0 : 0.0)"
+            },
+            {
+              "claw_left_add": "(1.0 - v.actw) * (v.swing == 1 ? 1.0 : 0.0)"
+            },
+            {
+              "claw_wide_add": "(1.0 - v.actw) * (v.swing == 2 ? 1.0 : 0.0)"
+            }
+          ],
+          "transitions": [
+            {
+              "default": "q.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15
+        }
+      }
+    }
+  }
+}

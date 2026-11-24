@@ -51,6 +51,90 @@
       "textures": [
         "textures/items/observer/cold_charm"
       ]
+    },
+    "gw_goatwalker_horn": {
+      "textures": "textures/items/gw_goatwalker_horn"
+    },
+    "gw_bloodied_fur": {
+      "textures": "textures/items/gw_bloodied_fur"
+    },
+    "st_void_door": {
+      "textures": "textures/items/st_void_door"
+    },
+    "st_hanging_banner": {
+      "textures": "textures/blocks/st_banner_top"
+    },
+    "st_config_wheel": {
+      "textures": "textures/items/st_config_wheel"
+    },
+    "st_old_map": {
+      "textures": "textures/items/st_old_map"
+    },
+    "st_ritual_note": {
+      "textures": "textures/items/st_ritual_note"
+    },
+    "st_strange_relic": {
+      "textures": "textures/items/st_strange_relic"
+    },
+    "st_goat_horn_shard": {
+      "textures": "textures/items/st_goat_horn_shard"
+    },
+    "st_rotten_meat": {
+      "textures": "textures/items/st_rotten_meat"
+    },
+    "st_field_kit": {
+      "textures": "textures/items/st_field_kit"
+    },
+    "st_antler_charm": {
+      "textures": "textures/items/st_antler_charm"
+    },
+    "st_stellar_resin": {
+      "textures": "textures/items/st_stellar_resin"
+    },
+    "st_rope": {
+      "textures": "textures/items/st_rope"
+    },
+    "st_rift_shard": {
+      "textures": "textures/items/st_rift_shard"
+    },
+    "st_void_fragment": {
+      "textures": "textures/items/st_void_fragment"
+    },
+    "st_mooncap_spore": {
+      "textures": "textures/items/st_mooncap_spore"
+    },
+    "st_undried_tendon": {
+      "textures": "textures/items/st_undried_tendon"
+    },
+    "st_stellar_dust": {
+      "textures": "textures/items/st_stellar_dust"
+    },
+    "st_core_essence": {
+      "textures": "textures/items/st_core_essence"
+    },
+    "st_flare": {
+      "textures": "textures/items/st_flare"
+    },
+    "st_the_lens": {
+      "textures": "textures/items/st_the_lens"
+    },
+    "brine_config_wheel": {
+      "textures": "textures/items/brine_config_wheel"
+    },
+    "sb_skull": {
+      "textures": "textures/items/sb_skull"
+    },
+    "sb_resonance_dial": {
+      "textures": "textures/items/sb_resonance_dial"
+    },
+    "sb_resonance_shard": {
+      "textures": "textures/items/sb_resonance_shard"
+    },
+    "sb_cairn_marker": {
+      "textures": "textures/items/sb_cairn_marker"
+    },
+    "sb_breakers_wheel": {
+      "textures": "textures/items/sb_breakers_wheel"
     }
   }
 }

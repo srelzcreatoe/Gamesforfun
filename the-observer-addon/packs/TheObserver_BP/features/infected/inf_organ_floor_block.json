@@ -1,0 +1,40 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:single_block_feature": {
+    "description": {
+      "identifier": "shaftbreaker:inf_organ_floor_block"
+    },
+    "places_block": [
+      {
+        "block": "shaftbreaker:organ_core",
+        "weight": 1
+      }
+    ],
+    "enforce_placement_rules": false,
+    "enforce_survivability_rules": false,
+    "may_attach_to": {
+      "bottom": [
+        "minecraft:stone",
+        "minecraft:deepslate",
+        "minecraft:tuff",
+        "minecraft:andesite",
+        "minecraft:diorite",
+        "minecraft:granite",
+        "minecraft:calcite",
+        "minecraft:dripstone_block",
+        "shaftbreaker:veinstone",
+        "shaftbreaker:fleshstone",
+        "shaftbreaker:cracked_veinstone",
+        "shaftbreaker:ribstone",
+        "shaftbreaker:pulsing_flesh",
+        "minecraft:grass_block",
+        "minecraft:dirt",
+        "minecraft:gravel",
+        "shaftbreaker:hollow_dust"
+      ]
+    },
+    "may_replace": [
+      "minecraft:air"
+    ]
+  }
+}

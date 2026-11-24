@@ -1,0 +1,39 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.goatwalker": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        },
+        {
+          "eye_*": "Material.eyes"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ],
+      "part_visibility": [
+        {
+          "*": true
+        },
+        {
+          "charm_1": "q.skin_id >= 1"
+        },
+        {
+          "charm_2": "q.skin_id >= 2"
+        },
+        {
+          "charm_3": "q.skin_id >= 2"
+        },
+        {
+          "charm_4": "q.skin_id >= 3"
+        },
+        {
+          "charm_5": "q.skin_id >= 4"
+        }
+      ]
+    }
+  }
+}

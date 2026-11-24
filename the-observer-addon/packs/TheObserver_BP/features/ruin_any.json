@@ -1,0 +1,22 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:weighted_random_feature": {
+    "description": {
+      "identifier": "brine:ruin_any"
+    },
+    "features": [
+      [
+        "brine:ruin_shrine",
+        2
+      ],
+      [
+        "brine:ruin_arch",
+        2
+      ],
+      [
+        "brine:ruin_wall",
+        3
+      ]
+    ]
+  }
+}

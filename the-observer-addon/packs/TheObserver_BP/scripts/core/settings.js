@@ -35,15 +35,21 @@ import { DEBUG } from "./util.js";
  *                                    then it asks you something and waits for your answer
  * @property {boolean} fourthWall     fourth-wall scares (1.5.0): a line that looks like the game's own ("joined the game"),
  *                                    the screen cutting to static, a chat line in your own name
+ * @property {boolean} dwGoatwalker   its dwellers (1.6.0), each on or off: the Goatwalker (its servant of the woods),
+ * @property {boolean} dwBrinesleeper the Brinesleeper (of the water)
+ * @property {boolean} dwShaftbreaker and the Shaftbreaker (of the caves)
+ * @property {number} rift            how often a Rift opens (1.6.0): 0 never, 1 rarely, 2 sometimes, 3 often, 4 very often,
+ *                                    5 constantly — and the more often, the harder it is inside
  */
 
 /** On/off settings added after 1.0.0, all on by default (older worlds get them switched on). */
-export const FEATURE_TOGGLES = ["illusions", "learning", "quiet", "pages", "returns", "heartbeat", "animals", "creatures", "puppets", "talks", "fourthWall"];
+export const FEATURE_TOGGLES = ["illusions", "learning", "quiet", "pages", "returns", "heartbeat", "animals", "creatures", "puppets", "talks", "fourthWall",
+  "dwGoatwalker", "dwBrinesleeper", "dwShaftbreaker"];
 
 /**
  * 1.5.0: it is overwhelming now — Standard comes sooner and more often than before, and Nightmare is above Relentless.
  * Atmosphere stays the gentle way to play.
- * @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects"|"off"|"illusions"|"learning"|"quiet"|"pages"|"returns"|"heartbeat"|"animals"|"creatures"|"marks"|"puppets"|"talks"|"fourthWall">>}
+ * @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects"|"off"|"illusions"|"learning"|"quiet"|"pages"|"returns"|"heartbeat"|"animals"|"creatures"|"marks"|"puppets"|"talks"|"fourthWall"|"dwGoatwalker"|"dwBrinesleeper"|"dwShaftbreaker"|"rift">>}
  */
 export const PRESETS = {
   atmosphere: { frequency: 0.6, aggression: 0, manipulation: 1, scares: 0, camera: 1, graceMinutes: 15 },
@@ -56,7 +62,7 @@ export const PRESETS = {
 export function defaults() {
   return { enabled: true, preset: "standard", ...PRESETS.standard, captions: false, worldEffects: true, dev: false, off: [],
     illusions: true, learning: true, quiet: true, pages: true, returns: true, heartbeat: true, animals: true, creatures: true, marks: {}, puppets: true,
-    talks: true, fourthWall: true };
+    talks: true, fourthWall: true, dwGoatwalker: true, dwBrinesleeper: true, dwShaftbreaker: true, rift: 2 };
 }
 
 /** @returns {Settings} */
@@ -68,6 +74,7 @@ export function S() {
   if (!Array.isArray(W.settings.off)) W.settings.off = []; // worlds saved before the toggles existed
   if (!W.settings.marks || typeof W.settings.marks !== "object") W.settings.marks = {};
   for (const k of FEATURE_TOGGLES) if (typeof W.settings[k] !== "boolean") W.settings[k] = true;
+  if (typeof W.settings.rift !== "number") W.settings.rift = 2; // worlds from before the Rift (1.6.0)
   return W.settings;
 }
 
@@ -83,6 +90,7 @@ export function updateSettings(patch) {
   for (const k of ["aggression", "manipulation"]) next[k] = Math.min(3, Math.max(0, Math.round(next[k])));
   for (const k of ["scares", "camera"]) next[k] = Math.min(2, Math.max(0, Math.round(next[k])));
   next.graceMinutes = Math.min(60, Math.max(0, Math.round(next.graceMinutes)));
+  next.rift = Math.min(5, Math.max(0, Math.round(Number(next.rift) || 0)));
   next.off = Array.isArray(next.off) ? next.off.filter((x) => typeof x === "string").slice(0, 64) : [];
   W.settings = next;
   DEBUG.on = !!next.dev;

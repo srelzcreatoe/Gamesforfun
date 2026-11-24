@@ -1,2 +1,35 @@
 pack.name=The Observer (Behaviour)
 pack.description=It follows you wherever you go. You rarely see it. You notice that something is wrong.
+
+## ---- merged: shaftbreaker (tools/merge_dwellers.py) ----
+entity.shaftbreaker:shaftbreaker.name=Shaftbreaker
+entity.shaftbreaker:shaft_moth.name=Shaft Moth
+item.spawn_egg.entity.shaftbreaker:shaftbreaker.name=Spawn Shaftbreaker
+item.spawn_egg.entity.shaftbreaker:shaft_moth.name=Spawn Shaft Moth
+item.shaftbreaker:shaftbreaker_skull.name=Shaftbreaker Skull
+item.shaftbreaker:resonance_dial.name=Resonance Dial
+item.shaftbreaker:breakers_wheel.name=The Breaker's Wheel
+item.shaftbreaker:resonance_shard.name=Resonance Shard
+tile.shaftbreaker:den_heart.name=Den Heart
+tile.shaftbreaker:den_crack.name=Fractured Den Wall
+tile.shaftbreaker:den_dust.name=Den Dust
+tile.shaftbreaker:den_spine.name=Den Spine
+tile.shaftbreaker:cairn_marker.name=Cairn Marker
+tile.shaftbreaker:hollow_dust.name=Hollow Dust
+tile.shaftbreaker:hollow_soil.name=Hollow Soil
+tile.shaftbreaker:clawed_stone.name=Clawed Stone
+biome.shaftbreaker:the_hollows=The Hollows
+tile.shaftbreaker:veinstone.name=Veinstone
+tile.shaftbreaker:cracked_veinstone.name=Cracked Veinstone
+tile.shaftbreaker:fleshstone.name=Fleshstone
+tile.shaftbreaker:pulsing_flesh.name=Pulsing Flesh
+tile.shaftbreaker:organ_core.name=Organ Core
+tile.shaftbreaker:cracked_organ_core.name=Cracked Organ Core
+tile.shaftbreaker:bloodroot_vines.name=Bloodroot Vines
+tile.shaftbreaker:crimson_thorns.name=Crimson Cave Thorns
+tile.shaftbreaker:glowspore_cluster.name=Glowspore Cluster
+tile.shaftbreaker:bloodmoss.name=Bloodmoss
+tile.shaftbreaker:ribstone.name=Ribstone
+tile.shaftbreaker:dripfang.name=Dripfang Stalactite
+tile.shaftbreaker:watcher_pod.name=Watcher Pod
+## ---- end merged: shaftbreaker ----

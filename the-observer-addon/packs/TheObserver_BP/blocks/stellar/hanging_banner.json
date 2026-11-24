@@ -1,0 +1,116 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:block": {
+    "description": {
+      "identifier": "goatwalker:hanging_banner",
+      "menu_category": {
+        "category": "none"
+      },
+      "states": {
+        "goatwalker:part": [
+          0,
+          1
+        ],
+        "goatwalker:facing": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.goatwalker.hanging_banner.name",
+      "minecraft:geometry": "geometry.st_banner",
+      "goatwalker:banner": {},
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "st_banner_top",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        },
+        "rod": {
+          "texture": "st_aged_planks",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:light_dampening": 0,
+      "minecraft:selection_box": {
+        "origin": [
+          -8,
+          0,
+          -8
+        ],
+        "size": [
+          16,
+          16,
+          2
+        ]
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.5
+      },
+      "minecraft:loot": "loot_tables/stellar/hanging_banner.json",
+      "minecraft:tags": [
+        "minecraft:is_axe_item_destructible"
+      ],
+      "minecraft:map_color": "#5a0f12"
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('goatwalker:facing') == 1",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 2",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:facing') == 3",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              270,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:part') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.st_wall_plane",
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "st_banner_bottom",
+              "render_method": "alpha_test",
+              "ambient_occlusion": 1.0,
+              "face_dimming": true
+            }
+          }
+        }
+      }
+    ]
+  }
+}

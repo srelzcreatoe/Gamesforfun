@@ -95,6 +95,10 @@ export const SOUNDS = {
   musicEnd: "observer.music.end",
 };
 
+/** Its dwellers' creatures (1.6.0: the Goatwalker, the Brinesleeper, the Shaftbreaker, merged in): its servants, with minds of
+ * their own — its other creatures' rules (sent away, taken as puppets) leave them alone unless a kind is marked by hand. */
+export const DWELLER_TYPES = new Set(["goatwalker:goatwalker", "brine:brinesleeper", "brine:apparition", "shaftbreaker:shaftbreaker", "shaftbreaker:shaft_moth"]);
+
 export const FOGS = { dread: "observer:dread", soft: "observer:dread_soft", vigil: "observer:vigil" };
 
 export const DIMENSIONS = ["minecraft:overworld", "minecraft:nether", "minecraft:the_end"];

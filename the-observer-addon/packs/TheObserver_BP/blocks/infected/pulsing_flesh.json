@@ -1,0 +1,29 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:block": {
+    "description": {
+      "identifier": "shaftbreaker:pulsing_flesh",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.2
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 3
+      },
+      "minecraft:map_color": "#8e1c24",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "sb_inf_pulsing_flesh",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:light_emission": 4,
+      "minecraft:loot": "loot_tables/blocks/infected/empty.json"
+    }
+  }
+}

@@ -25,6 +25,117 @@
             ]
           }
         }
+      },
+      "goatwalker:goatwalker": {
+        "volume": 1.0,
+        "pitch": [
+          0.9,
+          1.05
+        ],
+        "events": {
+          "step": {
+            "sound": "goatwalker.hoof",
+            "volume": 0.5,
+            "pitch": [
+              0.9,
+              1.1
+            ]
+          },
+          "ambient": {
+            "sound": "goatwalker.breath",
+            "volume": 0.7
+          },
+          "hurt": {
+            "sound": "goatwalker.hurt",
+            "volume": 1.0
+          },
+          "death": {
+            "sound": "goatwalker.death",
+            "volume": 1.0
+          }
+        }
+      },
+      "brine:brinesleeper": {
+        "volume": 1.0,
+        "pitch": [
+          0.9,
+          1.05
+        ],
+        "events": {
+          "ambient": {
+            "sound": "mob.brinesleeper.breathe",
+            "volume": 0.6
+          },
+          "hurt": "mob.brinesleeper.hurt",
+          "death": "mob.brinesleeper.death",
+          "step": {
+            "sound": "mob.brinesleeper.step",
+            "volume": 0.35
+          }
+        }
+      },
+      "shaftbreaker:shaftbreaker": {
+        "volume": 1.0,
+        "pitch": [
+          0.9,
+          1.05
+        ],
+        "events": {
+          "hurt": "shaftbreaker.hurt",
+          "death": "shaftbreaker.collapse",
+          "ambient": "shaftbreaker.idle",
+          "step": {
+            "sound": "shaftbreaker.step_soft",
+            "volume": 0.8,
+            "pitch": [
+              0.9,
+              1.05
+            ]
+          }
+        }
+      },
+      "shaftbreaker:shaft_moth": {
+        "volume": 0.6,
+        "pitch": [
+          0.9,
+          1.2
+        ],
+        "events": {
+          "ambient": "shaftbreaker.moth_flutter"
+        }
+      }
+    }
+  },
+  "individual_named_sounds": {
+    "sounds": {
+      "goatwalker.ambient.stellar.loop": {
+        "sound": "goatwalker.ambient.stellar.loop",
+        "volume": 0.9,
+        "pitch": 1.0
+      },
+      "goatwalker.ambient.stellar.additions": {
+        "sound": "goatwalker.ambient.stellar.additions",
+        "volume": 1.0,
+        "pitch": [
+          0.9,
+          1.0
+        ]
+      },
+      "goatwalker.ambient.stellar.mood": {
+        "sound": "goatwalker.ambient.stellar.mood",
+        "volume": 0.8,
+        "pitch": [
+          0.6,
+          1.0
+        ]
+      },
+      "ambient.brine.stillwater.additions": {
+        "sound": "ambient.brine.stillwater.additions",
+        "volume": 0.8,
+        "pitch": [
+          0.85,
+          1.0
+        ]
       }
     }
   }

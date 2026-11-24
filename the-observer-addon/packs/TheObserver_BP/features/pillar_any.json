@@ -1,0 +1,22 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:weighted_random_feature": {
+    "description": {
+      "identifier": "brine:pillar_any"
+    },
+    "features": [
+      [
+        "brine:pillar_0",
+        1
+      ],
+      [
+        "brine:pillar_1",
+        1
+      ],
+      [
+        "brine:pillar_2",
+        1
+      ]
+    ]
+  }
+}

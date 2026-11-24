@@ -1,0 +1,457 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "brine:brinesleeper",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "is_experimental": false,
+      "properties": {
+        "brine:act": {
+          "type": "int",
+          "range": [
+            0,
+            31
+          ],
+          "default": 0,
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "brine:threat_1": {
+        "minecraft:health": {
+          "value": 100,
+          "max": 100
+        },
+        "minecraft:attack": {
+          "damage": 6
+        }
+      },
+      "brine:threat_2": {
+        "minecraft:health": {
+          "value": 150,
+          "max": 150
+        },
+        "minecraft:attack": {
+          "damage": 8
+        }
+      },
+      "brine:threat_3": {
+        "minecraft:health": {
+          "value": 220,
+          "max": 220
+        },
+        "minecraft:attack": {
+          "damage": 11
+        }
+      },
+      "brine:ai_roam_land": {
+        "minecraft:movement": {
+          "value": 0
+        },
+        "minecraft:underwater_movement": {
+          "value": 0
+        },
+        "minecraft:physics": {},
+        "minecraft:behavior.look_at_player": {
+          "priority": 1,
+          "look_distance": 64,
+          "probability": 1.0
+        }
+      },
+      "brine:ai_roam_water": {
+        "minecraft:movement": {
+          "value": 0
+        },
+        "minecraft:underwater_movement": {
+          "value": 0
+        },
+        "minecraft:physics": {},
+        "minecraft:behavior.look_at_player": {
+          "priority": 1,
+          "look_distance": 64,
+          "probability": 1.0
+        }
+      },
+      "brine:ai_stalk": {
+        "minecraft:movement": {
+          "value": 0
+        },
+        "minecraft:underwater_movement": {
+          "value": 0
+        },
+        "minecraft:physics": {},
+        "minecraft:behavior.look_at_player": {
+          "priority": 1,
+          "look_distance": 64,
+          "probability": 1.0
+        }
+      },
+      "brine:ai_hunt": {
+        "minecraft:movement": {
+          "value": 0
+        },
+        "minecraft:underwater_movement": {
+          "value": 0
+        },
+        "minecraft:physics": {},
+        "minecraft:behavior.look_at_player": {
+          "priority": 1,
+          "look_distance": 64,
+          "probability": 1.0
+        }
+      },
+      "brine:ai_withdraw": {
+        "minecraft:movement": {
+          "value": 0
+        },
+        "minecraft:underwater_movement": {
+          "value": 0
+        },
+        "minecraft:physics": {},
+        "minecraft:behavior.look_at_player": {
+          "priority": 1,
+          "look_distance": 64,
+          "probability": 1.0
+        }
+      },
+      "brine:ai_hold": {
+        "minecraft:movement": {
+          "value": 0
+        },
+        "minecraft:underwater_movement": {
+          "value": 0
+        },
+        "minecraft:physics": {
+          "has_gravity": false,
+          "has_collision": true
+        }
+      },
+      "brine:ai_observe": {
+        "minecraft:movement": {
+          "value": 0
+        },
+        "minecraft:underwater_movement": {
+          "value": 0
+        },
+        "minecraft:physics": {},
+        "minecraft:behavior.look_at_player": {
+          "priority": 1,
+          "look_distance": 64,
+          "probability": 1.0
+        }
+      },
+      "brine:vanish": {
+        "minecraft:instant_despawn": {}
+      },
+      "brine:standing": {
+        "minecraft:collision_box": {
+          "width": 1.0,
+          "height": 3.4
+        }
+      },
+      "brine:crawling": {
+        "minecraft:collision_box": {
+          "width": 1.0,
+          "height": 1.4
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "brinesleeper",
+          "monster",
+          "mob"
+        ]
+      },
+      "minecraft:health": {
+        "value": 150,
+        "max": 150
+      },
+      "minecraft:attack": {
+        "damage": 8
+      },
+      "minecraft:scale": {
+        "value": 1.15
+      },
+      "minecraft:collision_box": {
+        "width": 1.0,
+        "height": 3.4
+      },
+      "minecraft:loot": {
+        "table": "loot_tables/entities/brinesleeper.json"
+      },
+      "minecraft:experience_reward": {
+        "on_death": "query.last_hit_by_player ? 80 : 0"
+      },
+      "minecraft:movement": {
+        "value": 0.28
+      },
+      "minecraft:underwater_movement": {
+        "value": 0.27
+      },
+      "minecraft:physics": {},
+      "minecraft:variable_max_auto_step": {
+        "base_value": 1.0625,
+        "controlled_value": 1.0625,
+        "jump_prevented_value": 0.5625
+      },
+      "minecraft:navigation.generic": {
+        "is_amphibious": true,
+        "can_path_over_water": false,
+        "can_swim": true,
+        "can_walk": true,
+        "can_sink": false,
+        "can_breach": true,
+        "avoid_damage_blocks": true
+      },
+      "minecraft:movement.amphibious": {
+        "max_turn": 20
+      },
+      "minecraft:jump.static": {},
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0,
+        "breathes_water": true,
+        "breathes_air": true
+      },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:knockback_resistance": {
+        "value": 1.0
+      },
+      "minecraft:nameable": {},
+      "minecraft:persistent": {},
+      "minecraft:follow_range": {
+        "value": 64,
+        "max": 64
+      },
+      "minecraft:ambient_sound_interval": {
+        "value": 12,
+        "range": 16,
+        "event_name": "ambient"
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "drowning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "suffocation",
+            "deals_damage": "no"
+          }
+        ]
+      }
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": {
+          "component_groups": [
+            "brine:ai_hold",
+            "brine:threat_2",
+            "brine:standing"
+          ]
+        }
+      },
+      "brine:crawl_on": {
+        "remove": {
+          "component_groups": [
+            "brine:standing"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "brine:crawling"
+          ]
+        }
+      },
+      "brine:crawl_off": {
+        "remove": {
+          "component_groups": [
+            "brine:crawling"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "brine:standing"
+          ]
+        }
+      },
+      "brine:staged": {},
+      "brine:vanish": {
+        "add": {
+          "component_groups": [
+            "brine:vanish"
+          ]
+        }
+      },
+      "brine:mode_roam_land": {
+        "remove": {
+          "component_groups": [
+            "brine:ai_roam_water",
+            "brine:ai_hold",
+            "brine:ai_observe",
+            "brine:ai_stalk",
+            "brine:ai_hunt",
+            "brine:ai_withdraw"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "brine:ai_roam_land"
+          ]
+        }
+      },
+      "brine:mode_roam_water": {
+        "remove": {
+          "component_groups": [
+            "brine:ai_roam_land",
+            "brine:ai_hold",
+            "brine:ai_observe",
+            "brine:ai_stalk",
+            "brine:ai_hunt",
+            "brine:ai_withdraw"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "brine:ai_roam_water"
+          ]
+        }
+      },
+      "brine:mode_hold": {
+        "remove": {
+          "component_groups": [
+            "brine:ai_roam_land",
+            "brine:ai_roam_water",
+            "brine:ai_observe",
+            "brine:ai_stalk",
+            "brine:ai_hunt",
+            "brine:ai_withdraw"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "brine:ai_hold"
+          ]
+        }
+      },
+      "brine:mode_observe": {
+        "remove": {
+          "component_groups": [
+            "brine:ai_roam_land",
+            "brine:ai_roam_water",
+            "brine:ai_hold",
+            "brine:ai_stalk",
+            "brine:ai_hunt",
+            "brine:ai_withdraw"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "brine:ai_observe"
+          ]
+        }
+      },
+      "brine:mode_stalk": {
+        "remove": {
+          "component_groups": [
+            "brine:ai_roam_land",
+            "brine:ai_roam_water",
+            "brine:ai_hold",
+            "brine:ai_observe",
+            "brine:ai_hunt",
+            "brine:ai_withdraw"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "brine:ai_stalk"
+          ]
+        }
+      },
+      "brine:mode_hunt": {
+        "remove": {
+          "component_groups": [
+            "brine:ai_roam_land",
+            "brine:ai_roam_water",
+            "brine:ai_hold",
+            "brine:ai_observe",
+            "brine:ai_stalk",
+            "brine:ai_withdraw"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "brine:ai_hunt"
+          ]
+        }
+      },
+      "brine:mode_withdraw": {
+        "remove": {
+          "component_groups": [
+            "brine:ai_roam_land",
+            "brine:ai_roam_water",
+            "brine:ai_hold",
+            "brine:ai_observe",
+            "brine:ai_stalk",
+            "brine:ai_hunt"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "brine:ai_withdraw"
+          ]
+        }
+      },
+      "brine:threat_1": {
+        "remove": {
+          "component_groups": [
+            "brine:threat_2",
+            "brine:threat_3"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "brine:threat_1"
+          ]
+        }
+      },
+      "brine:threat_2": {
+        "remove": {
+          "component_groups": [
+            "brine:threat_1",
+            "brine:threat_3"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "brine:threat_2"
+          ]
+        }
+      },
+      "brine:threat_3": {
+        "remove": {
+          "component_groups": [
+            "brine:threat_1",
+            "brine:threat_2"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "brine:threat_3"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "format_version": "1.13.0",
+  "minecraft:snap_to_surface_feature": {
+    "description": {
+      "identifier": "shaftbreaker:inf_rib_arch_2"
+    },
+    "feature_to_snap": "shaftbreaker:inf_rib_arch_2_tpl",
+    "vertical_search_range": 14,
+    "surface": "floor"
+  }
+}

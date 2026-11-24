@@ -49,12 +49,14 @@ BIOME = "Weeping Mire BP/biomes/weeping_mire.biome.json"
 # garden, cherry groves, savannas and jungles, so wherever a world starts it is not far away; and (1.5.1) the rest of
 # the jungles, the hilly forests, the savanna plateaus and the deserts, so a Mire is not cut short at every border.
 # Not the taigas: they keep their own shadows (observer/illusions.js), and taking them made no difference to the distances
-MORE_TARGETS = ["minecraft:meadow", "minecraft:pale_garden", "minecraft:cherry_grove", "minecraft:savanna",
-                "minecraft:savanna_mutated", "minecraft:jungle_edge", "minecraft:jungle",
+MORE_TARGETS = ["minecraft:pale_garden", "minecraft:cherry_grove", "minecraft:jungle_edge", "minecraft:jungle",
                 "minecraft:jungle_mutated", "minecraft:jungle_edge_mutated", "minecraft:jungle_hills", "minecraft:bamboo_jungle",
-                "minecraft:bamboo_jungle_hills", "minecraft:forest_hills", "minecraft:birch_forest_hills",
-                "minecraft:birch_forest_hills_mutated", "minecraft:savanna_plateau", "minecraft:savanna_plateau_mutated",
-                "minecraft:desert", "minecraft:desert_hills", "minecraft:desert_mutated"]
+                "minecraft:bamboo_jungle_hills", "minecraft:desert", "minecraft:desert_hills", "minecraft:desert_mutated"]
+# (1.6.0) ...and leaves the oak woods to the Goatwalker's Stellar Taiga and the savannas to the Shaftbreaker's Hollows
+# (tools/merge_dwellers.py), so that each of the three keeps land of its own and they do not run into one another
+LEAVE = ["minecraft:forest", "minecraft:flower_forest"]
+# (and it keeps the birch and dark forests: the Stellar Taiga leaves those to it)
+MORE_TARGETS += ["minecraft:birch_forest_hills", "minecraft:birch_forest_hills_mutated"]
 
 
 def tune_biome(data):
@@ -66,7 +68,7 @@ def tune_biome(data):
     rule = data["minecraft:biome"]["components"]["minecraft:replace_biomes"]["replacements"][0]
     rule["amount"] = 0.55
     rule["noise_frequency_scale"] = 0.5
-    rule["targets"] = rule["targets"] + [t for t in MORE_TARGETS if t not in rule["targets"]]
+    rule["targets"] = [t for t in rule["targets"] if t not in LEAVE] + [t for t in MORE_TARGETS if t not in rule["targets"]]
     return data
 
 

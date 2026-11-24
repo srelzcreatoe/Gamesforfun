@@ -1,0 +1,19 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:ore_feature": {
+    "description": {
+      "identifier": "goatwalker:st_starlit_ore"
+    },
+    "count": 6,
+    "replace_rules": [
+      {
+        "places_block": "goatwalker:starlit_ore",
+        "may_replace": [
+          "minecraft:stone",
+          "minecraft:deepslate",
+          "goatwalker:rift_stone"
+        ]
+      }
+    ]
+  }
+}

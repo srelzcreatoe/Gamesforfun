@@ -1,0 +1,41 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:feature_rules": {
+    "description": {
+      "identifier": "goatwalker:st_tree_base_single_rule",
+      "places_feature": "goatwalker:st_tree_base_single"
+    },
+    "conditions": {
+      "placement_pass": "first_pass",
+      "minecraft:biome_filter": [
+        {
+          "test": "has_biome_tag",
+          "operator": "==",
+          "value": "goatwalker_stellar"
+        }
+      ]
+    },
+    "distribution": {
+      "iterations": 1,
+      "x": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          6
+        ]
+      },
+      "y": "query.above_top_solid(variable.worldx, variable.worldz)",
+      "z": {
+        "distribution": "uniform",
+        "extent": [
+          0,
+          6
+        ]
+      },
+      "scatter_chance": {
+        "numerator": 1,
+        "denominator": 55
+      }
+    }
+  }
+}

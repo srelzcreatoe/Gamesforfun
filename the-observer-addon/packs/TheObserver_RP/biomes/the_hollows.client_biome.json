@@ -1,0 +1,49 @@
+{
+  "format_version": "1.21.120",
+  "minecraft:client_biome": {
+    "description": {
+      "identifier": "shaftbreaker:the_hollows"
+    },
+    "components": {
+      "minecraft:fog_appearance": {
+        "fog_identifier": "shaftbreaker:fog_hollows"
+      },
+      "minecraft:water_appearance": {
+        "surface_color": "#4a0707",
+        "surface_opacity": 0.97
+      },
+      "minecraft:water_identifier": {
+        "water_identifier": "minecraft:default_water"
+      },
+      "minecraft:ambient_sounds": {
+        "loop": "shaftbreaker.ambient.hollows.loop",
+        "mood": "shaftbreaker.ambient.hollows.mood",
+        "addition": {
+          "asset": "shaftbreaker.ambient.hollows.additions",
+          "chance": 0.006
+        },
+        "underwater_loop": "ambient.underwater.loop",
+        "underwater_addition": {
+          "asset": "ambient.underwater.additions",
+          "chance": 0.01
+        }
+      },
+      "minecraft:biome_music": {
+        "music_definition": "shaftbreaker_hollows",
+        "volume_multiplier": 1.0
+      },
+      "minecraft:sky_color": {
+        "sky_color": "#2a1a1a"
+      },
+      "minecraft:grass_appearance": {
+        "color": "#4a3530"
+      },
+      "minecraft:foliage_appearance": {
+        "color": "#2e2020"
+      },
+      "minecraft:precipitation": {
+        "ash": 0.05
+      }
+    }
+  }
+}

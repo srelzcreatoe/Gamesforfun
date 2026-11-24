@@ -1,0 +1,10 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:surface_relative_threshold_feature": {
+    "description": {
+      "identifier": "brine:bloodstained_ceiling_deep"
+    },
+    "feature_to_place": "brine:bloodstained_ceiling_patch",
+    "minimum_distance_below_surface": 10
+  }
+}

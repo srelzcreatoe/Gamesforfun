@@ -1,0 +1,10 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:surface_relative_threshold_feature": {
+    "description": {
+      "identifier": "brine:plant_deep"
+    },
+    "feature_to_place": "brine:plant_on_floor",
+    "minimum_distance_below_surface": 10
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:fog_settings": {
+    "description": {
+      "identifier": "goatwalker:fog_eclipse"
+    },
+    "distance": {
+      "air": {
+        "fog_start": 2,
+        "fog_end": 46,
+        "fog_color": "#3a0d18",
+        "render_distance_type": "fixed"
+      },
+      "weather": {
+        "fog_start": 0,
+        "fog_end": 30,
+        "fog_color": "#3a0d18",
+        "render_distance_type": "fixed"
+      },
+      "water": {
+        "fog_start": 0.0,
+        "fog_end": 50.0,
+        "fog_color": "#1a0508",
+        "render_distance_type": "fixed",
+        "transition_fog": {
+          "init_fog": {
+            "fog_start": 0.0,
+            "fog_end": 0.01,
+            "fog_color": "#1a0508",
+            "render_distance_type": "fixed"
+          },
+          "min_percent": 0.25,
+          "mid_seconds": 5,
+          "mid_percent": 0.6,
+          "max_seconds": 30
+        }
+      }
+    },
+    "volumetric": {
+      "density": {
+        "air": {
+          "max_density": 0.081,
+          "zero_density_height": 320.0,
+          "max_density_height": 320.0
+        }
+      },
+      "media_coefficients": {
+        "air": {
+          "scattering": [
+            0.6,
+            0.29,
+            0.366
+          ],
+          "absorption": [
+            0.2,
+            0.433,
+            0.376
+          ]
+        }
+      },
+      "henyey_greenstein_g": {
+        "air": {
+          "henyey_greenstein_g": 0.3
+        }
+      }
+    }
+  }
+}

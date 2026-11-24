@@ -214,6 +214,8 @@ TESTS.setup = async () => {
   obs("glitch", "never");
   obs("ahead", "never");
   obs("ambient", "never");
+  // 1.6.0: its dwellers off for the older groups (the dwellers group switches them on)
+  obs("dwellers", "off", "all");
   obs("preset", "standard");
   await wait(20);
   const p = spawn("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
@@ -4901,6 +4903,82 @@ TESTS.eyebloom = async () => {
     if (ow().getBlock({ x: l.x, y: l.y - 1, z: l.z })?.typeId === "wmire:eyebloom_stalk" && ow().getBlock({ x: l.x, y: l.y - 2, z: l.z })?.typeId === "wmire:eyebloom_stalk") whole++;
   }
   check("eyebloom_grows_in_the_mire", heads >= 1 && whole === heads, `${heads} eyes within 48 blocks of ${ms.x},${ms.z}, ${whole} whole`);
+};
+
+TESTS.dwellers = async () => {
+  // 1.6.0: its dwellers, merged in. None hands you its own wheel unasked; switched off, one sees nobody and its creatures
+  // do not stay; nobody in the Rift is seen by any of them; the music is one channel (the Observer's first, a dweller's
+  // again after); near the Observer they are its — strengthened, and sent after the one it came for
+  const p = await freshTarget("Tester", AT_FIELD, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
+  isolate(p);
+  const inv = p.getComponent("minecraft:inventory").container;
+  const wheels = [];
+  for (let i = 0; i < inv.size; i++) {
+    const it = inv.getItem(i);
+    if (it && /^(goatwalker:config_wheel|brine:config_wheel|shaftbreaker:breakers_wheel)$/.test(it.typeId)) wheels.push(it.typeId);
+  }
+  check("dwellers_no_wheels_unasked", wheels.length === 0, wheels.join(",") || "none");
+  // off: it sees nobody, and a creature of its does not stay
+  let m = mark();
+  obs("dwellers", "seen", "goatwalker");
+  let ev = await waitEvent("dweller", (d) => d.what === "seen" && d.name === "goatwalker", 20, m);
+  check("dwellers_off_sees_nobody", !!ev && ev.players.length === 0, JSON.stringify(ev ?? {}));
+  const g0 = ow().spawnEntity("goatwalker:goatwalker", { x: FIELD.x + 4.5, y: Y, z: FIELD.z - 6.5 });
+  await wait(6);
+  check("dwellers_off_creature_gone", !g0.isValid);
+  // on: it sees you — but not in the Rift
+  obs("dwellers", "on", "goatwalker");
+  await wait(4);
+  m = mark();
+  obs("dwellers", "seen", "goatwalker");
+  ev = await waitEvent("dweller", (d) => d.what === "seen" && d.name === "goatwalker", 20, m);
+  check("dwellers_on_sees_you", !!ev && ev.players.includes("Tester"), JSON.stringify(ev ?? {}));
+  const back = { ...p.location };
+  p.teleport({ x: 0.5, y: 80, z: 0.5 }, { dimension: world.getDimension("observer:rift") });
+  await wait(10);
+  m = mark();
+  obs("dwellers", "seen", "goatwalker");
+  ev = await waitEvent("dweller", (d) => d.what === "seen" && d.name === "goatwalker", 20, m);
+  check("dwellers_not_in_the_rift", !!ev && !ev.players.includes("Tester"), JSON.stringify(ev ?? {}));
+  p.teleport(back, { dimension: ow() });
+  obs("dwellers", "off", "goatwalker");
+  await wait(10);
+  // one music channel (two test sources; every dweller off, so only these calls use it): a dweller plays; the Observer takes it (the next track waits); let go, the newest plays again;
+  // that stops, the older one plays again; that stops, silence
+  m = mark();
+  obs("channel", "play", "test_a", "music.shaftbreaker.presence", "Tester");
+  await wait(2);
+  obs("channel", "take", "Tester");
+  await wait(2);
+  obs("channel", "play", "test_b", "music.brine.chase", "Tester");
+  await wait(2);
+  obs("channel", "release", "Tester");
+  await wait(2);
+  obs("channel", "stop", "test_b", "Tester");
+  await wait(2);
+  obs("channel", "stop", "test_a", "Tester");
+  await wait(4);
+  const seq = since(m, "channel").map((d) => `${d.what}:${d.src ?? ""}`);
+  check("dwellers_one_music_channel", seq.join(" ") === "play:test_a observer: waits:test_b resume:test_b resume:test_a", seq.join(" "));
+  // near the Observer it is its: strengthened, and sent after the one it came for
+  obs("dwellers", "on", "goatwalker");
+  await wait(4);
+  m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  const e = await waitObserver(60);
+  if (!check("dwellers_observer_there", !!e)) return obs("dwellers", "off", "all");
+  const g = ow().spawnEntity("goatwalker:goatwalker", { x: e.location.x + 4, y: e.location.y, z: e.location.z });
+  const buff = await waitEvent("dweller", (d) => d.what === "buff" && d.id === g.id, 60, m);
+  const fx = ["strength", "speed", "resistance"].filter((k) => !!g.getEffect(k));
+  check("dwellers_strengthened_near_it", !!buff && fx.length === 3, `${fx.join(",")}`);
+  const sent = await waitEvent("dweller", (d) => d.what === "sent" && d.name === "goatwalker" && d.player === "Tester", 60, m);
+  check("dwellers_sent_after_its_target", !!sent, JSON.stringify(sent ?? {}));
+  obs("abort");
+  await observerGone(100);
+  // switched off again: gone
+  obs("dwellers", "off", "all");
+  await wait(6);
+  check("dwellers_off_again_gone", !g.isValid);
 };
 
 TESTS.sound_test = async () => {

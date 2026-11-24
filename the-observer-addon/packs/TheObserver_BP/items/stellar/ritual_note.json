@@ -1,0 +1,22 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:item": {
+    "description": {
+      "identifier": "goatwalker:ritual_note",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "st_ritual_note",
+      "minecraft:display_name": {
+        "value": "item.goatwalker.ritual_note.name"
+      },
+      "minecraft:max_stack_size": 16,
+      "minecraft:use_modifiers": {
+        "use_duration": 0.4,
+        "movement_modifier": 1.0
+      }
+    }
+  }
+}

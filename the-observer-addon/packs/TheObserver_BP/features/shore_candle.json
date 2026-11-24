@@ -1,0 +1,65 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:single_block_feature": {
+    "description": {
+      "identifier": "brine:shore_candle"
+    },
+    "places_block": [
+      {
+        "block": {
+          "name": "minecraft:red_candle",
+          "states": {
+            "candles": 0,
+            "lit": true
+          }
+        },
+        "weight": 3
+      },
+      {
+        "block": {
+          "name": "minecraft:red_candle",
+          "states": {
+            "candles": 1,
+            "lit": true
+          }
+        },
+        "weight": 3
+      },
+      {
+        "block": {
+          "name": "minecraft:candle",
+          "states": {
+            "candles": 2,
+            "lit": true
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "minecraft:red_candle",
+          "states": {
+            "candles": 3,
+            "lit": true
+          }
+        },
+        "weight": 1
+      },
+      {
+        "block": {
+          "name": "minecraft:candle",
+          "states": {
+            "candles": 0,
+            "lit": true
+          }
+        },
+        "weight": 2
+      }
+    ],
+    "enforce_placement_rules": true,
+    "enforce_survivability_rules": true,
+    "may_replace": [
+      "minecraft:air"
+    ]
+  }
+}

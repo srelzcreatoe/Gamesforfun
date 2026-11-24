@@ -1,0 +1,19 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:ore_feature": {
+    "description": {
+      "identifier": "goatwalker:st_rift_crack"
+    },
+    "count": 14,
+    "replace_rules": [
+      {
+        "places_block": "goatwalker:bleeding_stone",
+        "may_replace": [
+          "goatwalker:stellar_soil",
+          "goatwalker:ashen_podzol",
+          "goatwalker:stellar_dirt"
+        ]
+      }
+    ]
+  }
+}

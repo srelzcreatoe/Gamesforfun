@@ -24,7 +24,7 @@ import { clearAhead } from "../world/walk.js";
 import { S, aggression } from "../core/settings.js";
 import { ps } from "../core/state.js";
 import { V, safe, emit, allPlayers } from "../core/util.js";
-import { PARTICLES, SOUNDS } from "../core/constants.js";
+import { PARTICLES, SOUNDS, DWELLER_TYPES } from "../core/constants.js";
 import { seenByAny, visibility } from "../world/sight.js";
 import { standNear } from "../world/space.js";
 
@@ -80,6 +80,8 @@ export function standing(e) {
   const mark = S().marks?.[id];
   // left alone — or kept for its puppets (observer/possession.js), which it does not send away
   if (mark === "ignore" || mark === "puppet") return undefined;
+  // its dwellers are its servants with minds of their own (link/dwellers.js), unless marked by hand (1.6.0)
+  if (!mark && DWELLER_TYPES.has(id)) return undefined;
   // someone named it, or it is someone's: not its to take
   if (safe(() => e.nameTag, "")) return undefined;
   if (safe(() => e.hasComponent("minecraft:is_tamed"), false)) return undefined;

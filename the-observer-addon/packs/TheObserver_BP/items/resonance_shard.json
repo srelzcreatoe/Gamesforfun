@@ -1,0 +1,18 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:item": {
+    "description": {
+      "identifier": "shaftbreaker:resonance_shard",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "sb_resonance_shard",
+      "minecraft:display_name": {
+        "value": "item.shaftbreaker:resonance_shard.name"
+      },
+      "minecraft:max_stack_size": 64
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "format_version": "1.21.80",
+  "minecraft:item": {
+    "description": {
+      "identifier": "goatwalker:goatwalker_horn",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "gw_goatwalker_horn",
+      "minecraft:display_name": {
+        "value": "item.goatwalker.goatwalker_horn.name"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:rarity": "rare",
+      "minecraft:use_animation": "spyglass",
+      "minecraft:use_modifiers": {
+        "use_duration": 1.6,
+        "movement_modifier": 0.5
+      },
+      "minecraft:cooldown": {
+        "category": "goatwalker_horn",
+        "duration": 20
+      }
+    }
+  }
+}

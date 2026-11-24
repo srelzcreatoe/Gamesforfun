@@ -1,0 +1,11 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:snap_to_surface_feature": {
+    "description": {
+      "identifier": "brine:ruin_on_shore"
+    },
+    "feature_to_snap": "brine:ruin_any",
+    "vertical_search_range": 6,
+    "surface": "floor"
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "format_version": "1.21.80",
+  "minecraft:block": {
+    "description": {
+      "identifier": "goatwalker:snuffed_torch",
+      "menu_category": {
+        "category": "items"
+      },
+      "states": {
+        "goatwalker:dir": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.goatwalker.snuffed_torch.name",
+      "minecraft:geometry": "geometry.gw_snuffed_torch_floor",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "gw_snuffed_torch",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -2,
+          0,
+          -2
+        ],
+        "size": [
+          4,
+          10,
+          4
+        ]
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0
+      },
+      "minecraft:loot": "loot_tables/blocks/gw_snuffed_torch.json",
+      "minecraft:map_color": "#3b2e1b"
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('goatwalker:dir') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.gw_snuffed_torch_wall",
+          "minecraft:selection_box": {
+            "origin": [
+              -2,
+              3,
+              2
+            ],
+            "size": [
+              4,
+              10,
+              6
+            ]
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:dir') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.gw_snuffed_torch_wall",
+          "minecraft:selection_box": {
+            "origin": [
+              -2,
+              3,
+              2
+            ],
+            "size": [
+              4,
+              10,
+              6
+            ]
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:dir') == 3",
+        "components": {
+          "minecraft:geometry": "geometry.gw_snuffed_torch_wall",
+          "minecraft:selection_box": {
+            "origin": [
+              -2,
+              3,
+              2
+            ],
+            "size": [
+              4,
+              10,
+              6
+            ]
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:dir') == 4",
+        "components": {
+          "minecraft:geometry": "geometry.gw_snuffed_torch_wall",
+          "minecraft:selection_box": {
+            "origin": [
+              -2,
+              3,
+              2
+            ],
+            "size": [
+              4,
+              10,
+              6
+            ]
+          },
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              270,
+              0
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

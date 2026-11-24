@@ -1,0 +1,37 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:single_block_feature": {
+    "description": {
+      "identifier": "shaftbreaker:hl_cave_bones_block"
+    },
+    "places_block": [
+      {
+        "block": {
+          "name": "minecraft:bone_block",
+          "states": {
+            "deprecated": 0,
+            "pillar_axis": "x"
+          }
+        },
+        "weight": 1
+      }
+    ],
+    "enforce_placement_rules": false,
+    "enforce_survivability_rules": false,
+    "may_attach_to": {
+      "bottom": [
+        "minecraft:stone",
+        "minecraft:deepslate",
+        "minecraft:tuff",
+        "minecraft:andesite",
+        "minecraft:diorite",
+        "minecraft:granite",
+        "minecraft:calcite",
+        "shaftbreaker:clawed_stone"
+      ]
+    },
+    "may_replace": [
+      "minecraft:air"
+    ]
+  }
+}

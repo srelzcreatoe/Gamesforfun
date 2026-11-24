@@ -1,0 +1,41 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.brinesleeper": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ]
+    },
+    "controller.render.brinesleeper_apparition": {
+      "arrays": {
+        "geometries": {
+          "Array.geos": [
+            "Geometry.default",
+            "Geometry.hand"
+          ]
+        },
+        "textures": {
+          "Array.skins": [
+            "Texture.shade",
+            "Texture.default"
+          ]
+        }
+      },
+      "geometry": "Array.geos[query.property('brine:form') == 2]",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.skins[query.property('brine:form') == 2]"
+      ]
+    }
+  }
+}

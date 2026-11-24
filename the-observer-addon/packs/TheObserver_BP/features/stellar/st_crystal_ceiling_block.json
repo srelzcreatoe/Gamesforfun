@@ -1,0 +1,46 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:single_block_feature": {
+    "description": {
+      "identifier": "goatwalker:st_crystal_ceiling_block"
+    },
+    "places_block": [
+      {
+        "block": {
+          "name": "goatwalker:void_crystal",
+          "states": {
+            "minecraft:block_face": "down"
+          }
+        },
+        "weight": 2
+      },
+      {
+        "block": {
+          "name": "goatwalker:void_crystal_bud",
+          "states": {
+            "minecraft:block_face": "down"
+          }
+        },
+        "weight": 3
+      }
+    ],
+    "enforce_placement_rules": false,
+    "enforce_survivability_rules": false,
+    "may_attach_to": {
+      "top": [
+        "minecraft:stone",
+        "minecraft:deepslate",
+        "minecraft:tuff",
+        "minecraft:andesite",
+        "minecraft:diorite",
+        "minecraft:granite",
+        "goatwalker:rift_stone",
+        "goatwalker:void_crystal_block",
+        "goatwalker:bleeding_stone"
+      ]
+    },
+    "may_replace": [
+      "minecraft:air"
+    ]
+  }
+}

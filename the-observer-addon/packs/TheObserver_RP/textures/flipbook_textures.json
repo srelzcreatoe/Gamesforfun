@@ -45,5 +45,29 @@
       0,
       0
     ]
+  },
+  {
+    "flipbook_texture": "textures/blocks/infected/pulsing_flesh",
+    "atlas_tile": "sb_inf_pulsing_flesh",
+    "ticks_per_frame": 3,
+    "frames": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      5,
+      3,
+      2,
+      4,
+      3,
+      2,
+      1,
+      1,
+      0
+    ],
+    "blend_frames": true
   }
 ]

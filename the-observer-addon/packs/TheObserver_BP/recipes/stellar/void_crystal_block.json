@@ -1,0 +1,32 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "goatwalker:void_crystal_block"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "ingredients": [
+      {
+        "item": "goatwalker:void_fragment"
+      },
+      {
+        "item": "goatwalker:void_fragment"
+      },
+      {
+        "item": "goatwalker:void_fragment"
+      },
+      {
+        "item": "goatwalker:void_fragment"
+      }
+    ],
+    "unlock": {
+      "context": "AlwaysUnlocked"
+    },
+    "result": {
+      "item": "goatwalker:void_crystal_block",
+      "count": 1
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "goatwalker:antler_charm"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "ingredients": [
+      {
+        "item": "goatwalker:rope"
+      },
+      {
+        "item": "minecraft:bone"
+      },
+      {
+        "item": "goatwalker:strange_relic"
+      }
+    ],
+    "unlock": {
+      "context": "AlwaysUnlocked"
+    },
+    "result": {
+      "item": "goatwalker:antler_charm",
+      "count": 1
+    }
+  }
+}

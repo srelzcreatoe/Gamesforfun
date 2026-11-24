@@ -73,8 +73,6 @@
             "targets": [
               "minecraft:plains",
               "minecraft:sunflower_plains",
-              "minecraft:forest",
-              "minecraft:flower_forest",
               "minecraft:birch_forest",
               "minecraft:birch_forest_mutated",
               "minecraft:roofed_forest",
@@ -84,11 +82,8 @@
               "minecraft:swampland_mutated",
               "minecraft:mangrove_swamp",
               "minecraft:river",
-              "minecraft:meadow",
               "minecraft:pale_garden",
               "minecraft:cherry_grove",
-              "minecraft:savanna",
-              "minecraft:savanna_mutated",
               "minecraft:jungle_edge",
               "minecraft:jungle",
               "minecraft:jungle_mutated",
@@ -96,14 +91,11 @@
               "minecraft:jungle_hills",
               "minecraft:bamboo_jungle",
               "minecraft:bamboo_jungle_hills",
-              "minecraft:forest_hills",
-              "minecraft:birch_forest_hills",
-              "minecraft:birch_forest_hills_mutated",
-              "minecraft:savanna_plateau",
-              "minecraft:savanna_plateau_mutated",
               "minecraft:desert",
               "minecraft:desert_hills",
-              "minecraft:desert_mutated"
+              "minecraft:desert_mutated",
+              "minecraft:birch_forest_hills",
+              "minecraft:birch_forest_hills_mutated"
             ],
             "amount": 0.55,
             "noise_frequency_scale": 0.5

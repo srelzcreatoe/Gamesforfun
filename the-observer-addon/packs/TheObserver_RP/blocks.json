@@ -50,5 +50,254 @@
   },
   "wmire:eyebloom": {
     "sound": "grass"
+  },
+  "goatwalker:snuffed_torch": {
+    "sound": "wood"
+  },
+  "goatwalker:gouged_spruce_log": {
+    "sound": "wood"
+  },
+  "goatwalker:ash_print": {
+    "sound": "sand"
+  },
+  "goatwalker:ash_pile": {
+    "sound": "sand"
+  },
+  "goatwalker:blood_ash": {
+    "sound": "sand"
+  },
+  "goatwalker:splintered_wood": {
+    "sound": "wood"
+  },
+  "goatwalker:remains": {
+    "sound": "bone_block"
+  },
+  "goatwalker:offering": {
+    "sound": "slime"
+  },
+  "goatwalker:stellar_dirt": {
+    "sound": "gravel"
+  },
+  "goatwalker:stellar_soil": {
+    "sound": "grass"
+  },
+  "goatwalker:ashen_podzol": {
+    "sound": "gravel"
+  },
+  "goatwalker:rift_stone": {
+    "sound": "deepslate"
+  },
+  "goatwalker:cracked_rift_stone": {
+    "sound": "deepslate_bricks"
+  },
+  "goatwalker:starlit_ore": {
+    "sound": "deepslate"
+  },
+  "goatwalker:bleeding_stone": {
+    "sound": "stone"
+  },
+  "goatwalker:void_crystal_block": {
+    "sound": "amethyst_block"
+  },
+  "goatwalker:void_crystal": {
+    "sound": "amethyst_cluster"
+  },
+  "goatwalker:void_crystal_bud": {
+    "sound": "amethyst_cluster"
+  },
+  "goatwalker:stellar_grass": {
+    "sound": "grass"
+  },
+  "goatwalker:rift_fern": {
+    "sound": "grass"
+  },
+  "goatwalker:bleeding_shrub": {
+    "sound": "grass"
+  },
+  "goatwalker:mooncap": {
+    "sound": "grass"
+  },
+  "goatwalker:hanging_moss": {
+    "sound": "pale_hanging_moss"
+  },
+  "goatwalker:hanging_moss_tip": {
+    "sound": "pale_hanging_moss"
+  },
+  "goatwalker:void_log": {
+    "sound": "wood"
+  },
+  "goatwalker:stripped_void_log": {
+    "sound": "wood"
+  },
+  "goatwalker:charred_log": {
+    "sound": "wood"
+  },
+  "goatwalker:carved_void_log": {
+    "sound": "wood"
+  },
+  "goatwalker:void_planks": {
+    "sound": "wood"
+  },
+  "goatwalker:aged_planks": {
+    "sound": "wood"
+  },
+  "goatwalker:resin_soaked_wood": {
+    "sound": "wood"
+  },
+  "goatwalker:ritual_wood": {
+    "sound": "wood"
+  },
+  "goatwalker:void_leaves": {
+    "sound": "grass"
+  },
+  "goatwalker:void_slab": {
+    "sound": "wood"
+  },
+  "goatwalker:void_double_slab": {
+    "sound": "wood"
+  },
+  "goatwalker:void_stairs": {
+    "sound": "wood"
+  },
+  "goatwalker:void_fence": {
+    "sound": "wood"
+  },
+  "goatwalker:void_trapdoor": {
+    "sound": "wood"
+  },
+  "goatwalker:void_door_block": {
+    "sound": "wood"
+  },
+  "goatwalker:hanging_banner": {
+    "sound": "cloth"
+  },
+  "goatwalker:trophy_head": {
+    "sound": "bone_block"
+  },
+  "goatwalker:ritual_marking": {
+    "sound": "stone"
+  },
+  "goatwalker:ritual_marking_floor": {
+    "sound": "stone"
+  },
+  "goatwalker:tattered_cloth": {
+    "sound": "cloth"
+  },
+  "brine:bloodstained_deepslate": {
+    "sound": "deepslate"
+  },
+  "brine:clawed_deepslate": {
+    "sound": "deepslate"
+  },
+  "brine:veined_deepslate": {
+    "sound": "deepslate"
+  },
+  "brine:tracked_mud": {
+    "sound": "mud"
+  },
+  "brine:bone_coral": {
+    "sound": "coral"
+  },
+  "brine:bloodroot": {
+    "sound": "roots"
+  },
+  "brine:pallid_cap": {
+    "sound": "fungus"
+  },
+  "brine:pale_dripstone_base": {
+    "sound": "pointed_dripstone"
+  },
+  "brine:pale_dripstone_middle": {
+    "sound": "pointed_dripstone"
+  },
+  "brine:pale_dripstone_frustum": {
+    "sound": "pointed_dripstone"
+  },
+  "brine:pale_dripstone_tip": {
+    "sound": "pointed_dripstone"
+  },
+  "shaftbreaker:den_heart": {
+    "sound": "deepslate",
+    "textures": "sb_den_heart"
+  },
+  "shaftbreaker:den_crack": {
+    "sound": "stone",
+    "textures": "sb_den_crack"
+  },
+  "shaftbreaker:den_dust": {
+    "sound": "gravel",
+    "textures": "sb_den_dust"
+  },
+  "shaftbreaker:den_spine": {
+    "sound": "bone_block",
+    "textures": "sb_den_spine"
+  },
+  "shaftbreaker:cairn_marker": {
+    "sound": "stone",
+    "textures": "sb_cairn"
+  },
+  "shaftbreaker:hollow_dust": {
+    "sound": "gravel",
+    "textures": "sb_hollow_dust"
+  },
+  "shaftbreaker:hollow_soil": {
+    "sound": "gravel",
+    "textures": "sb_hollow_soil"
+  },
+  "shaftbreaker:clawed_stone": {
+    "sound": "stone",
+    "textures": "sb_clawed_stone"
+  },
+  "shaftbreaker:veinstone": {
+    "sound": "deepslate",
+    "textures": "sb_inf_veinstone"
+  },
+  "shaftbreaker:cracked_veinstone": {
+    "sound": "deepslate",
+    "textures": "sb_inf_cracked_veinstone"
+  },
+  "shaftbreaker:fleshstone": {
+    "sound": "mud",
+    "textures": "sb_inf_fleshstone"
+  },
+  "shaftbreaker:pulsing_flesh": {
+    "sound": "sculk",
+    "textures": "sb_inf_pulsing_flesh"
+  },
+  "shaftbreaker:organ_core": {
+    "sound": "sculk_catalyst",
+    "textures": "sb_inf_organ_core"
+  },
+  "shaftbreaker:cracked_organ_core": {
+    "sound": "sculk_catalyst",
+    "textures": "sb_inf_cracked_organ_core"
+  },
+  "shaftbreaker:bloodroot_vines": {
+    "sound": "weeping_vines",
+    "textures": "sb_inf_bloodroot_vines"
+  },
+  "shaftbreaker:crimson_thorns": {
+    "sound": "amethyst_cluster",
+    "textures": "sb_inf_crimson_thorns"
+  },
+  "shaftbreaker:glowspore_cluster": {
+    "sound": "fungus",
+    "textures": "sb_inf_glowspore_cluster"
+  },
+  "shaftbreaker:bloodmoss": {
+    "sound": "moss_carpet",
+    "textures": "sb_inf_bloodmoss"
+  },
+  "shaftbreaker:ribstone": {
+    "sound": "bone_block",
+    "textures": "sb_inf_ribstone"
+  },
+  "shaftbreaker:dripfang": {
+    "sound": "pointed_dripstone",
+    "textures": "sb_inf_dripfang"
+  },
+  "shaftbreaker:watcher_pod": {
+    "sound": "nether_wart",
+    "textures": "sb_inf_watcher_pod"
   }
 }

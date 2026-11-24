@@ -1,0 +1,79 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "goatwalker:goatwalker",
+      "materials": {
+        "default": "entity_alphatest",
+        "eyes": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/goatwalker/goatwalker"
+      },
+      "geometry": {
+        "default": "geometry.goatwalker"
+      },
+      "animations": {
+        "idle": "animation.goatwalker.idle",
+        "alert": "animation.goatwalker.alert",
+        "stare": "animation.goatwalker.stare",
+        "walk": "animation.goatwalker.walk",
+        "stalk": "animation.goatwalker.stalk",
+        "run": "animation.goatwalker.run",
+        "gallop": "animation.goatwalker.gallop",
+        "crouch": "animation.goatwalker.crouch",
+        "crouch_idle": "animation.goatwalker.crouch_idle",
+        "lunge": "animation.goatwalker.lunge",
+        "attack": "animation.goatwalker.attack",
+        "emerge": "animation.goatwalker.emerge",
+        "call": "animation.goatwalker.call",
+        "vanish": "animation.goatwalker.vanish",
+        "look_at_target": "animation.goatwalker.look_at_target",
+        "spasm": "animation.goatwalker.spasm",
+        "watch": "animation.goatwalker.watch",
+        "claw_raise": "animation.goatwalker.claw_raise",
+        "peek": "animation.goatwalker.peek",
+        "ram": "animation.goatwalker.ram",
+        "gnaw": "animation.goatwalker.gnaw",
+        "bell_swing": "animation.goatwalker.bell_swing",
+        "gaze": "animation.goatwalker.gaze",
+        "main": "controller.animation.goatwalker.main",
+        "aura": "controller.animation.goatwalker.aura"
+      },
+      "particle_effects": {
+        "aura_ash": "goatwalker:aura_ash",
+        "aura_drip": "goatwalker:aura_drip"
+      },
+      "scripts": {
+        "pre_animation": [
+          "v.gz_t = math.mod(math.mod(q.rotation_to_camera(1) - q.body_y_rotation, 360) + 540, 360) - 180;",
+          "v.gz_t = (math.abs(v.gz_t) > 120 || q.distance_from_camera > 64) ? 0 : math.clamp(v.gz_t, -75, 75);",
+          "v.gz_y = math.lerp(v.gz_y ?? 0, v.gz_t, 0.12);",
+          "v.gz_q = -math.atan2(-q.distance_from_camera * math.sin(q.rotation_to_camera(0)) - 2.75, q.distance_from_camera * math.cos(q.rotation_to_camera(0)));",
+          "v.gz_q = q.distance_from_camera > 64 ? 0 : math.clamp(v.gz_q, -35, 40);",
+          "v.gz_p = math.lerp(v.gz_p ?? 0, v.gz_q, 0.12);"
+        ],
+        "animate": [
+          "main",
+          "aura",
+          {
+            "spasm": "q.variant == 1"
+          },
+          {
+            "gaze": "q.variant == 0 && q.mark_variant != 4 && q.mark_variant != 5 && q.mark_variant != 12 && q.mark_variant != 13"
+          },
+          {
+            "bell_swing": "q.variant == 0"
+          }
+        ]
+      },
+      "render_controllers": [
+        "controller.render.goatwalker"
+      ],
+      "spawn_egg": {
+        "base_color": "#141213",
+        "overlay_color": "#6b1d17"
+      }
+    }
+  }
+}

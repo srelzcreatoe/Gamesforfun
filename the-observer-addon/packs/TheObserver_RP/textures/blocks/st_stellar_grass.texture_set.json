@@ -1,0 +1,7 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "st_stellar_grass",
+    "metalness_emissive_roughness_subsurface": "st_stellar_grass_mers"
+  }
+}

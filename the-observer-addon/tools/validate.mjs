@@ -54,10 +54,15 @@ const SCHEMA_QUIRKS = [
   [/features\/.*single_block_feature\/places_block/, "places_block may be a single block name (documented: a block or a weighted list of blocks)"],
   [/features\/.*weighted_random_feature\/features must be object/, "weighted_random_feature lists its features as [feature, weight] pairs (documented form)"],
   [/blocks\/.*placement_filter\/conditions\/\d+\/(block_filter|allowed_faces)/, "placement_filter takes lists of block names and faces (documented form)"],
-  [/terrain_texture\.json: schema \/texture_data\/.*\/textures must be array/, "a single terrain texture is a plain string in vanilla terrain_texture.json"],
+  [/(terrain|item)_texture\.json: schema \/texture_data\/.*\/textures must be array/, "a single texture is a plain string in vanilla terrain_texture.json and item_texture.json"],
+  [/music_definitions\.json: schema \/ must have required property/, "music_definitions.json is a plain map of biome music in vanilla packs (the catalog points it at the sound-definitions schema)"],
   [/biomes\/.*surface_material_adjustments\/adjustments\/\d+\/height_range/, "height_range is a pair of Molang expressions (documented form)"],
 ];
 const quirkHits = [];
+// (1.6.0) the dwellers' own files, copied as they are (tools/merge_dwellers.py writes the list)
+const dwellerFiles = new Set(fs.existsSync(path.join(ROOT, "tools", "merged_dweller_files.txt"))
+  ? fs.readFileSync(path.join(ROOT, "tools", "merged_dweller_files.txt"), "utf8").split("\n").filter(Boolean) : []);
+const dwellerSchema = new Set();
 const catalog = JSON.parse(fs.readFileSync(path.join(SCHEMAS, "catalog.json"), "utf8"));
 const globToRx = (g) => new RegExp("^" + g.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*\*\//g, "(?:.*/)?").replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*") + "$");
 // match on the file's top-level folder ("**/<dir>/**") or exact file name ("**/<name>.json"), per pack side
@@ -98,12 +103,14 @@ for (const pack of [BP, RP]) {
         const msg = `${rel(f)}${items.length > 1 || item !== data ? `[${i}]` : ""}: schema ${err.instancePath || "/"} ${err.message} ${err.params ? JSON.stringify(err.params) : ""}`;
         const q = SCHEMA_QUIRKS.find(([rx]) => rx.test(msg));
         if (q) quirkHits.push(`${rel(f)} (${q[1]})`);
+        else if (dwellerFiles.has(rel(f))) dwellerSchema.add(rel(f));
         else fail(msg);
       }
     }
   }
 }
 notes.push(`schema-validated files: ${schemaChecked}`);
+if (dwellerSchema.size) notes.push(`schema findings in ${dwellerSchema.size} of the dwellers' own files (verbatim from their packs; the server's content log checks them)`);
 for (const q of new Set(quirkHits)) notes.push(`schema-package quirk (not a pack error): ${q}`);
 
 // ---------------------------------------------------------------- 2. cross references
@@ -132,7 +139,7 @@ for (const f of walk(path.join(RP, "render_controllers"))) for (const k of Objec
 
 // Vanilla resources a client entity may use without defining them: exactly the set the vanilla
 // snowball uses (bedrock-samples resource_pack/entity/snowball.entity.json), for the thrown flare.
-const VANILLA_CLIENT = new Set(["geometry.item_sprite", "controller.render.item_sprite", "animation.actor.billboard"]);
+const VANILLA_CLIENT = new Set(["geometry.item_sprite", "controller.render.item_sprite", "animation.actor.billboard", "controller.render.default"]);
 for (const g of VANILLA_CLIENT) {
   if (g.startsWith("geometry.")) geos.set(g, new Set());
   else if (g.startsWith("controller.render.")) renderControllers.add(g);
@@ -142,18 +149,18 @@ for (const g of VANILLA_CLIENT) {
 for (const f of walk(path.join(RP, "entity"))) {
   const d = readJSON(f)?.["minecraft:client_entity"]?.description;
   if (!d) continue;
-  for (const [k, g] of Object.entries(d.geometry)) if (!geos.has(g)) fail(`${rel(f)}: geometry ${k} -> ${g} not found`);
-  for (const [k, t] of Object.entries(d.textures)) if (!exists(RP, t + ".png")) fail(`${rel(f)}: texture ${k} -> ${t}.png missing`);
-  for (const rc of d.render_controllers) if (!renderControllers.has(typeof rc === "string" ? rc : Object.keys(rc)[0])) fail(`${rel(f)}: render controller ${rc} missing`);
-  const bones = geos.get(d.geometry.default) ?? new Set();
-  for (const [short, id] of Object.entries(d.animations)) {
+  for (const [k, g] of Object.entries(d.geometry ?? {})) if (!geos.has(g)) fail(`${rel(f)}: geometry ${k} -> ${g} not found`);
+  for (const [k, t] of Object.entries(d.textures ?? {})) if (!exists(RP, t + ".png")) fail(`${rel(f)}: texture ${k} -> ${t}.png missing`);
+  for (const rc of d.render_controllers ?? []) if (!renderControllers.has(typeof rc === "string" ? rc : Object.keys(rc)[0])) fail(`${rel(f)}: render controller ${rc} missing`);
+  const bones = geos.get(d.geometry?.default) ?? new Set();
+  for (const [short, id] of Object.entries(d.animations ?? {})) {
     if (id.startsWith("controller.")) {
       const c = controllers.get(id);
       if (!c) fail(`${rel(f)}: controller ${id} missing`);
       for (const [sn, st] of Object.entries(c?.states ?? {})) {
         for (const a of st.animations ?? []) {
           const name = typeof a === "string" ? a : Object.keys(a)[0];
-          if (!d.animations[name]) fail(`${id}.${sn}: animation short name '${name}' not declared on the entity`);
+          if (!d.animations?.[name]) fail(`${id}.${sn}: animation short name '${name}' not declared on the entity`);
         }
         for (const t of st.transitions ?? []) for (const target of Object.keys(t)) if (!c.states[target]) fail(`${id}.${sn}: transition to missing state ${target}`);
         for (const se of st.sound_effects ?? []) if (!d.sound_effects?.[se.effect]) fail(`${id}.${sn}: sound effect ${se.effect} not declared`);
@@ -169,15 +176,24 @@ for (const f of walk(path.join(RP, "entity"))) {
   }
   for (const scr of d.scripts?.animate ?? []) {
     const n = typeof scr === "string" ? scr : Object.keys(scr)[0];
-    if (!d.animations[n]) fail(`${rel(f)}: scripts.animate uses undeclared ${n}`);
+    if (!d.animations?.[n]) fail(`${rel(f)}: scripts.animate uses undeclared ${n}`);
   }
 }
 
 // sounds
+/** The game's own resources, used by path (the vanilla resource pack has them): sounds and textures. */
+const VANILLA_SOUND = /^sounds\/(mob|ambient|block|item|random|dig|step|music\/game|fire|liquid|note|damage)\//;
+const VANILLA_TEXTURE = /^textures\/(blocks|items)\/[a-z0-9_]+$/;
+const vanillaRefs = new Set();
 const soundDefs = readJSON(path.join(RP, "sounds", "sound_definitions.json")).sound_definitions;
 for (const [k, v] of Object.entries(soundDefs)) for (const s of v.sounds) {
   const n = typeof s === "string" ? s : s.name;
-  if (!exists(RP, n + ".ogg")) fail(`sound ${k}: ${n}.ogg missing`);
+  // (1.6.0: the merged Goatwalker also plays the game's own sounds by path — a goat's scream, the soul sand valley —
+  // which live in the vanilla resource pack, not this one)
+  if (!exists(RP, n + ".ogg")) {
+    if (VANILLA_SOUND.test(n)) vanillaRefs.add(n);
+    else fail(`sound ${k}: ${n}.ogg missing`);
+  }
 }
 const clientEntity = readJSON(path.join(RP, "entity", "the_observer.entity.json"))["minecraft:client_entity"].description;
 // the game client accepts only "short name": "sound event" strings here (objects are rejected at load)
@@ -209,7 +225,11 @@ const fogIds = new Set(walk(path.join(RP, "fogs")).map((f) => readJSON(f)?.["min
 // textures & blocks & items
 const terrain = readJSON(path.join(RP, "textures", "terrain_texture.json")).texture_data;
 const itemTex = readJSON(path.join(RP, "textures", "item_texture.json")).texture_data;
-for (const [k, v] of Object.entries({ ...terrain, ...itemTex })) for (const t of [].concat(v.textures)) if (!exists(RP, t + ".png")) fail(`texture key ${k} -> ${t}.png missing`);
+for (const [k, v] of Object.entries({ ...terrain, ...itemTex })) for (const t of [].concat(v.textures)) {
+  if (exists(RP, t + ".png") || exists(RP, t + ".tga")) continue;
+  if (VANILLA_TEXTURE.test(t)) vanillaRefs.add(t);
+  else fail(`texture key ${k} -> ${t}.png missing`);
+}
 const lang = fs.readFileSync(path.join(RP, "texts", "en_US.lang"), "utf8");
 const langKeys = new Set([...lang.matchAll(/^([^#=\s][^=]*)=/gm)].map((m) => m[1]));
 const blockIds = new Set();
@@ -236,13 +256,18 @@ for (const f of walk(path.join(BP, "items"))) {
     if (it.components["minecraft:block_placer"].replace_block_item && it.components["minecraft:block_placer"].block !== it.description.identifier) fail(`${rel(f)}: replace_block_item needs the block's own identifier`);
   } else if (!itemTex[key]) fail(`${rel(f)}: icon ${key} not in item_texture.json`);
   const dn = it.components["minecraft:display_name"]?.value;
-  if (dn && !langKeys.has(dn)) fail(`${rel(f)}: display name ${dn} missing from lang`);
+  // a display name is a lang key — or (as one of the Brinesleeper's items has) plain text
+  if (dn && /^[a-z0-9_.:]+$/.test(dn) && !langKeys.has(dn)) fail(`${rel(f)}: display name ${dn} missing from lang`);
 }
 for (const id of blockIds) itemIds.add(id);
 for (const f of walk(path.join(BP, "recipes"))) {
   const r = Object.values(readJSON(f)).find((v) => typeof v === "object" && v.description);
-  for (const ing of r.ingredients ?? []) if (ing.item.startsWith("observer:") && !itemIds.has(ing.item)) fail(`${rel(f)}: unknown ingredient ${ing.item}`);
-  if (!itemIds.has(r.result.item) && r.result.item.startsWith("observer:")) fail(`${rel(f)}: unknown result ${r.result.item}`);
+  for (const ing of r.ingredients ?? []) if (ing.item?.startsWith("observer:") && !itemIds.has(ing.item)) fail(`${rel(f)}: unknown ingredient ${ing.item}`);
+  // (a result is an item object, a list of them, or an id: the dwellers' recipes use all three)
+  for (const res of [r.result].flat()) {
+    const item = typeof res === "string" ? res : res?.item;
+    if (item && !itemIds.has(item) && item.startsWith("observer:")) fail(`${rel(f)}: unknown result ${item}`);
+  }
 }
 for (const k of ["entity.observer:the_observer.name", "item.spawn_egg.entity.observer:the_observer.name", "pack.name", "pack.description"]) if (!langKeys.has(k)) fail(`lang key ${k} missing`);
 // texts the scripts build from ids: its pages (two variants each), what it learned, sign messages,
@@ -270,7 +295,8 @@ const entityIds = new Set(walk(path.join(BP, "entities")).map((f) => readJSON(f)
 const clientIds = new Set(walk(path.join(RP, "entity")).map((f) => readJSON(f)["minecraft:client_entity"].description.identifier));
 for (const id of entityIds) if (!clientIds.has(id)) fail(`entity ${id} has no client entity in the resource pack`);
 for (const id of entityIds) if (!langKeys.has(`entity.${id}.name`)) fail(`lang key entity.${id}.name missing`);
-const src = walk(path.join(BP, "scripts")).filter((f) => f.endsWith(".js")).map((f) => fs.readFileSync(f, "utf8")).join("\n");
+// the Observer's own scripts (the merged dwellers, 1.6.0, keep their own ids and states)
+const src = walk(path.join(BP, "scripts")).filter((f) => f.endsWith(".js") && !f.split(path.sep).includes("dwellers")).map((f) => fs.readFileSync(f, "utf8")).join("\n");
 const constants = fs.readFileSync(path.join(BP, "scripts", "core", "constants.js"), "utf8");
 const block = (name) => constants.split(`export const ${name} = {`)[1].split("};")[0];
 for (const m of block("SOUNDS").matchAll(/:\s*"([^"]+)"/g)) if (!soundDefs[m[1]]) fail(`script sound ${m[1]} not defined in sound_definitions.json`);
@@ -282,7 +308,7 @@ const entityEvents = new Set(walk(path.join(BP, "entities")).flatMap((f) => Obje
 for (const m of src.matchAll(/"(observer:[a-z_]+)"/g)) {
   const id = m[1];
   if (entityEvents.has(id)) continue; // events defined on our entities (e.g. observer:steps_off)
-  if (/^observer:(the_observer|encounter|preset|state|stoop|side|afloat|paralysis|puppet|enc|world|player|clock|dark|ledger|probe|dread|dread_soft|vigil)$/.test(id)) continue;
+  if (/^observer:(the_observer|encounter|preset|state|stoop|side|afloat|paralysis|puppet|enc|world|player|clock|dark|ledger|probe|dread|dread_soft|vigil|rift)$/.test(id)) continue;
   if (!itemIds.has(id) && !blockIds.has(id) && !particleIds.has(id) && !fogIds.has(id) && !entityIds.has(id)) fail(`script references unknown id ${id}`);
 }
 // entity properties and events used by scripts

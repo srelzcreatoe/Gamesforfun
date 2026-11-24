@@ -1,0 +1,14 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_furnace": {
+    "description": {
+      "identifier": "goatwalker:charcoal_void_log"
+    },
+    "tags": [
+      "furnace",
+      "blast_furnace"
+    ],
+    "input": "goatwalker:void_log",
+    "output": "minecraft:charcoal"
+  }
+}

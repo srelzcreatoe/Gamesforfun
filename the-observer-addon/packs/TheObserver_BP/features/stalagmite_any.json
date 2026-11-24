@@ -1,0 +1,26 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:weighted_random_feature": {
+    "description": {
+      "identifier": "brine:stalagmite_any"
+    },
+    "features": [
+      [
+        "brine:stalagmite_1",
+        3
+      ],
+      [
+        "brine:stalagmite_2",
+        4
+      ],
+      [
+        "brine:stalagmite_3",
+        2
+      ],
+      [
+        "brine:stalagmite_4",
+        1
+      ]
+    ]
+  }
+}

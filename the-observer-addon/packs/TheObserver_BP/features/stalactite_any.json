@@ -1,0 +1,30 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:weighted_random_feature": {
+    "description": {
+      "identifier": "brine:stalactite_any"
+    },
+    "features": [
+      [
+        "brine:stalactite_2_hang",
+        3
+      ],
+      [
+        "brine:stalactite_3_hang",
+        4
+      ],
+      [
+        "brine:stalactite_4_hang",
+        3
+      ],
+      [
+        "brine:stalactite_5_hang",
+        2
+      ],
+      [
+        "brine:stalactite_6_hang",
+        1
+      ]
+    ]
+  }
+}

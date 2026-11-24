@@ -1,0 +1,105 @@
+{
+  "format_version": "1.21.80",
+  "minecraft:block": {
+    "description": {
+      "identifier": "goatwalker:remains",
+      "menu_category": {
+        "category": "nature"
+      },
+      "states": {
+        "goatwalker:kind": [
+          0,
+          1,
+          2
+        ],
+        "goatwalker:rot": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.goatwalker.remains.name",
+      "minecraft:geometry": "geometry.gw_remains_sheep",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "gw_remains",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -7,
+          0,
+          -7
+        ],
+        "size": [
+          14,
+          6,
+          14
+        ]
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.3
+      },
+      "minecraft:loot": "loot_tables/blocks/gw_remains.json",
+      "minecraft:map_color": "#ddd7bf"
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('goatwalker:kind') == 1",
+        "components": {
+          "minecraft:geometry": "geometry.gw_remains_goat"
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:kind') == 2",
+        "components": {
+          "minecraft:geometry": "geometry.gw_remains_bones"
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:rot') == 1",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:rot') == 2",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:rot') == 3",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              270,
+              0
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

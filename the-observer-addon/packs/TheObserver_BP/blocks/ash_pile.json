@@ -1,0 +1,108 @@
+{
+  "format_version": "1.21.80",
+  "minecraft:block": {
+    "description": {
+      "identifier": "goatwalker:ash_pile",
+      "menu_category": {
+        "category": "nature"
+      },
+      "states": {
+        "goatwalker:stage": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    "components": {
+      "minecraft:display_name": "tile.goatwalker.ash_pile.name",
+      "minecraft:geometry": {
+        "identifier": "geometry.gw_ash_pile",
+        "bone_visibility": {
+          "base": "1.0",
+          "mid": "1.0",
+          "top": "1.0",
+          "tufts": "1.0",
+          "smear": "0.0"
+        }
+      },
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "gw_ash_pile",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 1.0,
+          "face_dimming": true
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -6,
+          0,
+          -6
+        ],
+        "size": [
+          12,
+          3,
+          12
+        ]
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:replaceable": {},
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.2
+      },
+      "tag:minecraft:is_shovel_item_destructible": {},
+      "minecraft:loot": "loot_tables/blocks/gw_ash_pile.json",
+      "minecraft:map_color": "#575453"
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('goatwalker:stage') == 1",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.gw_ash_pile",
+            "bone_visibility": {
+              "base": "1.0",
+              "mid": "1.0",
+              "top": "0.0",
+              "tufts": "1.0",
+              "smear": "0.0"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:stage') == 2",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.gw_ash_pile",
+            "bone_visibility": {
+              "base": "1.0",
+              "mid": "0.0",
+              "top": "0.0",
+              "tufts": "1.0",
+              "smear": "0.0"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('goatwalker:stage') == 3",
+        "components": {
+          "minecraft:geometry": {
+            "identifier": "geometry.gw_ash_pile",
+            "bone_visibility": {
+              "base": "0.0",
+              "mid": "0.0",
+              "top": "0.0",
+              "tufts": "0.0",
+              "smear": "1.0"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

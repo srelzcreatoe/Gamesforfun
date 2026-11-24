@@ -23,6 +23,81 @@ system.afterEvents.scriptEventReceive.subscribe((ev) => {
     }
   }
 });
+// dev (1.6.0): the rift dimension — can a player go there, can blocks and structures be placed, what biome, what spawns
+system.afterEvents.scriptEventReceive.subscribe((ev) => {
+  if (ev.id !== "otest:riftprobe") return;
+  riftProbe().catch(fail("riftprobe"));
+});
+async function riftProbe() {
+  const say = (m) => console.warn(`[OTEST] rift ${m}`);
+  let d;
+  try {
+    d = world.getDimension("observer:rift");
+    say(`PASS dimension ${d.id}`);
+  } catch (e) {
+    return say(`FAIL dimension ${e}`);
+  }
+  const ow = world.getDimension("overworld");
+  // a simulated player, sent there
+  const gt = await import("@minecraft/server-gametest");
+  let p = world.getAllPlayers().find((x) => x.name === "Prober");
+  if (!p) {
+    try {
+      p = gt.spawnSimulatedPlayer({ dimension: ow, x: 0, y: 120, z: 0 }, "Prober");
+    } catch (e) {
+      say(`FAIL simulated player ${e}`);
+    }
+  }
+  try {
+    d.runCommand("tickingarea add circle 0 0 0 2 riftprobe true");
+    say("PASS tickingarea");
+  } catch (e) {
+    say(`FAIL tickingarea ${e}`);
+  }
+  for (let i = 0; i < 100 && !d.isChunkLoaded({ x: 0, y: 64, z: 0 }); i++) await new Promise((r) => system.runTimeout(r, 5));
+  say(`chunk loaded ${d.isChunkLoaded({ x: 0, y: 64, z: 0 })}; height ${JSON.stringify(d.heightRange)}`);
+  try {
+    d.runCommand("fill -3 63 -3 3 63 3 minecraft:stone");
+    say(`PASS fill -> ${d.getBlock({ x: 0, y: 63, z: 0 })?.typeId}`);
+  } catch (e) {
+    say(`FAIL fill ${e}`);
+  }
+  try {
+    world.structureManager.place("wmire:eyebloom", d, { x: 1, y: 64, z: 1 });
+    // (on stone the plant may pop: just check it was placed for a tick)
+    say(`PASS structure -> ${d.getBlock({ x: 1, y: 66, z: 1 })?.typeId}`);
+  } catch (e) {
+    say(`FAIL structure ${e}`);
+  }
+  try {
+    say(`biome ${d.getBiome({ x: 0, y: 64, z: 0 })?.id}`);
+  } catch (e) {
+    say(`FAIL biome ${e}`);
+  }
+  if (p) {
+    try {
+      p.teleport({ x: 0.5, y: 64, z: 0.5 }, { dimension: d });
+      await new Promise((r) => system.runTimeout(r, 20));
+      say(`PASS teleport -> ${p.dimension.id} ${JSON.stringify(p.location)}`);
+      p.runCommand("fog @s push minecraft:fog_hell probe");
+      say("PASS fog");
+    } catch (e) {
+      say(`FAIL teleport ${e}`);
+    }
+  }
+  // what spawns there in a minute, in the dark, on a stone floor
+  d.runCommand("fill -24 63 -24 24 63 24 minecraft:stone");
+  await new Promise((r) => system.runTimeout(r, 20 * 60));
+  const ents = d.getEntities().map((e) => e.typeId);
+  say(`entities after a minute: ${JSON.stringify(ents)}`);
+  if (p) {
+    p.teleport({ x: 0.5, y: 120, z: 0.5 }, { dimension: ow });
+    await new Promise((r) => system.runTimeout(r, 10));
+    say(`back -> ${p.dimension.id}`);
+  }
+  say("DONE");
+}
+
 // dev: how big the Weeping Mire is round spawn, and in how many pieces (1.5.1). otest:miremap [half] [step]
 //   loads the square ±half round 0,0 with ticking areas, samples the biome every step blocks, and logs the Mire's share,
 //   its pieces (4-connected), the biggest, and a small map
@@ -74,7 +149,8 @@ async function mireMap(half, step) {
       if (id === "wmire:weeping_mire") {
         grid[i][j] = 1;
         mire++;
-      }
+      } else if (id === "goatwalker:stellar_taiga") grid[i][j] = 2;
+      else if (id === "shaftbreaker:the_hollows") grid[i][j] = 3;
     }
     areas.forEach((_, i) => {
       try {
@@ -83,10 +159,49 @@ async function mireMap(half, step) {
     });
     await new Promise((r) => system.runTimeout(r, 40));
   }
+  // (1.6.0) the other two surface biomes too, and where they meet the Mire
+  const stats = (code) => {
+    const seen2 = grid.map((r) => r.map(() => false));
+    const out = [];
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+      if (grid[i][j] !== code || seen2[i][j]) continue;
+      let size = 0;
+      const st = [[i, j]];
+      seen2[i][j] = true;
+      while (st.length) {
+        const [a, b] = st.pop();
+        size++;
+        for (const [da, db] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const c = a + da, d = b + db;
+          if (c >= 0 && d >= 0 && c < n && d < n && grid[c][d] === code && !seen2[c][d]) {
+            seen2[c][d] = true;
+            st.push([c, d]);
+          }
+        }
+      }
+      out.push(size);
+    }
+    out.sort((x, y) => y - x);
+    return out;
+  };
+  let touchMT = 0, touchMH = 0, touchTH = 0;
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) for (const [c, d] of [[i + 1, j], [i, j + 1]]) {
+    if (c >= n || d >= n) continue;
+    const pair = [grid[i][j], grid[c][d]].sort().join("");
+    if (pair === "12") touchMT++;
+    else if (pair === "13") touchMH++;
+    else if (pair === "23") touchTH++;
+  }
+  for (const [code, label] of [[2, "stellar_taiga"], [3, "hollows"]]) {
+    const z = stats(code);
+    const cnt = z.reduce((a, b) => a + b, 0);
+    console.warn(`[OTEST] biomemap ${label} share=${(cnt / (n * n)).toFixed(3)} pieces=${z.length} biggest=${(z[0] ?? 0) * step * step}`);
+  }
+  console.warn(`[OTEST] biomemap borders mire-taiga=${touchMT} mire-hollows=${touchMH} taiga-hollows=${touchTH} (sample edges)`);
   const seen = grid.map((r) => r.map(() => false));
   const sizes = [];
   for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
-    if (!grid[i][j] || seen[i][j]) continue;
+    if (grid[i][j] !== 1 || seen[i][j]) continue;
     let size = 0;
     const stack = [[i, j]];
     seen[i][j] = true;
@@ -95,7 +210,7 @@ async function mireMap(half, step) {
       size++;
       for (const [da, db] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
         const c = a + da, d = b + db;
-        if (c >= 0 && d >= 0 && c < n && d < n && grid[c][d] && !seen[c][d]) {
+        if (c >= 0 && d >= 0 && c < n && d < n && grid[c][d] === 1 && !seen[c][d]) {
           seen[c][d] = true;
           stack.push([c, d]);
         }
@@ -107,7 +222,7 @@ async function mireMap(half, step) {
   const cell = step * step;
   console.warn(`[OTEST] miremap half=${half} step=${step} samples=${n * n} unknown=${unknown} mire=${mire} share=${(mire / (n * n)).toFixed(3)} pieces=${sizes.length} biggest=${(sizes[0] ?? 0) * cell} small(<1024)=${sizes.filter((s) => s * cell < 1024).length} sizes=${sizes.slice(0, 12).map((s) => s * cell).join(",")}`);
   const every = Math.max(1, Math.round(n / 60));
-  for (let i = 0; i < n; i += every) console.warn(`[OTEST] map ${grid[i].filter((_, j) => j % every === 0).map((v) => (v ? "#" : ".")).join("")}`);
+  for (let i = 0; i < n; i += every) console.warn(`[OTEST] map ${grid[i].filter((_, j) => j % every === 0).map((v) => ".MTH"[v] ?? "?").join("")}`);
   console.warn("[OTEST] MIREMAP DONE");
 }
 

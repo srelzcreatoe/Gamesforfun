@@ -1,0 +1,1735 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "goatwalker:goatwalker",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "is_experimental": false
+    },
+    "component_groups": {
+      "gw:mode_wander": {
+        "minecraft:movement": {
+          "value": 0.17
+        },
+        "minecraft:behavior.random_stroll": {
+          "priority": 6,
+          "speed_multiplier": 0.8,
+          "interval": 160
+        },
+        "minecraft:behavior.random_look_around": {
+          "priority": 8
+        },
+        "minecraft:navigation.walk": {
+          "can_path_over_water": true,
+          "avoid_water": true,
+          "avoid_damage_blocks": true,
+          "can_open_doors": true,
+          "can_pass_doors": true,
+          "can_break_doors": false,
+          "can_jump": true,
+          "can_walk": true,
+          "can_float": true,
+          "avoid_portals": true
+        },
+        "minecraft:behavior.look_at_player": {
+          "priority": 5,
+          "look_distance": 32,
+          "probability": 0.9,
+          "look_time": {
+            "min": 40,
+            "max": 80
+          },
+          "angle_of_view_horizontal": 360,
+          "angle_of_view_vertical": 180
+        }
+      },
+      "gw:mode_still": {
+        "minecraft:movement": {
+          "value": 0.0
+        },
+        "minecraft:navigation.walk": {
+          "can_path_over_water": true,
+          "avoid_water": true,
+          "avoid_damage_blocks": true,
+          "can_open_doors": true,
+          "can_pass_doors": true,
+          "can_break_doors": false,
+          "can_jump": true,
+          "can_walk": true,
+          "can_float": true,
+          "avoid_portals": true
+        },
+        "minecraft:behavior.look_at_player": {
+          "priority": 1,
+          "look_distance": 96,
+          "probability": 1.0,
+          "look_time": {
+            "min": 40,
+            "max": 80
+          },
+          "angle_of_view_horizontal": 360,
+          "angle_of_view_vertical": 180
+        }
+      },
+      "gw:mode_walk": {
+        "minecraft:movement": {
+          "value": 0.272
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 96,
+          "scan_interval": 10,
+          "persist_time": 0,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "goatwalker_waypoint"
+              },
+              "max_dist": 96,
+              "must_see": false
+            }
+          ]
+        },
+        "minecraft:behavior.melee_box_attack": {
+          "priority": 2,
+          "speed_multiplier": 1.0,
+          "track_target": true,
+          "require_complete_path": false,
+          "horizontal_reach": 0.0,
+          "cooldown_time": 60,
+          "max_path_time": 60
+        },
+        "minecraft:navigation.walk": {
+          "can_path_over_water": true,
+          "avoid_water": true,
+          "avoid_damage_blocks": true,
+          "can_open_doors": true,
+          "can_pass_doors": true,
+          "can_break_doors": false,
+          "can_jump": true,
+          "can_walk": true,
+          "can_float": true,
+          "avoid_portals": true
+        }
+      },
+      "gw:mode_stalk": {
+        "minecraft:movement": {
+          "value": 0.16
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 96,
+          "scan_interval": 10,
+          "persist_time": 0,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "goatwalker_waypoint"
+              },
+              "max_dist": 96,
+              "must_see": false
+            }
+          ]
+        },
+        "minecraft:behavior.melee_box_attack": {
+          "priority": 2,
+          "speed_multiplier": 1.0,
+          "track_target": true,
+          "require_complete_path": false,
+          "horizontal_reach": 0.0,
+          "cooldown_time": 60,
+          "max_path_time": 60
+        },
+        "minecraft:navigation.walk": {
+          "can_path_over_water": true,
+          "avoid_water": true,
+          "avoid_damage_blocks": true,
+          "can_open_doors": true,
+          "can_pass_doors": true,
+          "can_break_doors": false,
+          "can_jump": true,
+          "can_walk": true,
+          "can_float": true,
+          "avoid_portals": true
+        }
+      },
+      "gw:mode_crawl": {
+        "minecraft:movement": {
+          "value": 0.152
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 96,
+          "scan_interval": 10,
+          "persist_time": 0,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "goatwalker_waypoint"
+              },
+              "max_dist": 96,
+              "must_see": false
+            }
+          ]
+        },
+        "minecraft:behavior.melee_box_attack": {
+          "priority": 2,
+          "speed_multiplier": 1.0,
+          "track_target": true,
+          "require_complete_path": false,
+          "horizontal_reach": 0.0,
+          "cooldown_time": 60,
+          "max_path_time": 60
+        },
+        "minecraft:navigation.walk": {
+          "can_path_over_water": true,
+          "avoid_water": true,
+          "avoid_damage_blocks": true,
+          "can_open_doors": true,
+          "can_pass_doors": true,
+          "can_break_doors": false,
+          "can_jump": true,
+          "can_walk": true,
+          "can_float": true,
+          "avoid_portals": true
+        },
+        "minecraft:collision_box": {
+          "width": 1.0,
+          "height": 1.4
+        }
+      },
+      "gw:mode_hold_low": {
+        "minecraft:movement": {
+          "value": 0.0
+        },
+        "minecraft:collision_box": {
+          "width": 1.0,
+          "height": 1.4
+        },
+        "minecraft:navigation.walk": {
+          "can_path_over_water": true,
+          "avoid_water": true,
+          "avoid_damage_blocks": true,
+          "can_open_doors": true,
+          "can_pass_doors": true,
+          "can_break_doors": false,
+          "can_jump": true,
+          "can_walk": true,
+          "can_float": true,
+          "avoid_portals": true
+        },
+        "minecraft:behavior.look_at_player": {
+          "priority": 1,
+          "look_distance": 64,
+          "probability": 1.0,
+          "look_time": {
+            "min": 40,
+            "max": 80
+          },
+          "angle_of_view_horizontal": 360,
+          "angle_of_view_vertical": 180
+        }
+      },
+      "gw:mode_rush": {
+        "minecraft:movement": {
+          "value": 0.417
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 96,
+          "scan_interval": 10,
+          "persist_time": 0,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "goatwalker_waypoint"
+              },
+              "max_dist": 96,
+              "must_see": false
+            }
+          ]
+        },
+        "minecraft:behavior.melee_box_attack": {
+          "priority": 2,
+          "speed_multiplier": 1.0,
+          "track_target": true,
+          "require_complete_path": false,
+          "horizontal_reach": 0.0,
+          "cooldown_time": 60,
+          "max_path_time": 60
+        },
+        "minecraft:navigation.walk": {
+          "can_path_over_water": true,
+          "avoid_water": true,
+          "avoid_damage_blocks": true,
+          "can_open_doors": true,
+          "can_pass_doors": true,
+          "can_break_doors": false,
+          "can_jump": true,
+          "can_walk": true,
+          "can_float": true,
+          "avoid_portals": true
+        },
+        "minecraft:variant": {
+          "value": 1
+        }
+      },
+      "gw:mode_dash": {
+        "minecraft:movement": {
+          "value": 0.481
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 96,
+          "scan_interval": 10,
+          "persist_time": 0,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "goatwalker_waypoint"
+              },
+              "max_dist": 96,
+              "must_see": false
+            }
+          ]
+        },
+        "minecraft:behavior.melee_box_attack": {
+          "priority": 2,
+          "speed_multiplier": 1.0,
+          "track_target": true,
+          "require_complete_path": false,
+          "horizontal_reach": 0.0,
+          "cooldown_time": 60,
+          "max_path_time": 60
+        },
+        "minecraft:navigation.walk": {
+          "can_path_over_water": true,
+          "avoid_water": true,
+          "avoid_damage_blocks": true,
+          "can_open_doors": true,
+          "can_pass_doors": true,
+          "can_break_doors": false,
+          "can_jump": true,
+          "can_walk": true,
+          "can_float": true,
+          "avoid_portals": true
+        },
+        "minecraft:variant": {
+          "value": 2
+        }
+      },
+      "gw:mode_hunt": {
+        "minecraft:movement": {
+          "value": 0.391
+        },
+        "minecraft:variant": {
+          "value": 1
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 96,
+          "scan_interval": 10,
+          "persist_time": 0,
+          "entity_types": [
+            {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "player"
+                  },
+                  {
+                    "test": "has_tag",
+                    "subject": "other",
+                    "value": "gw_prey"
+                  }
+                ]
+              },
+              "max_dist": 96,
+              "must_see": false
+            }
+          ]
+        },
+        "minecraft:behavior.leap_at_target": {
+          "priority": 2,
+          "yd": 0.42,
+          "must_be_on_ground": true
+        },
+        "minecraft:behavior.melee_box_attack": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "track_target": true,
+          "require_complete_path": false,
+          "cooldown_time": 1.1,
+          "horizontal_reach": 0.9
+        },
+        "minecraft:annotation.break_door": {
+          "break_time": 0.6,
+          "min_difficulty": "easy"
+        },
+        "minecraft:behavior.break_door": {
+          "priority": 1,
+          "speed_multiplier": 1.0
+        },
+        "minecraft:navigation.walk": {
+          "can_path_over_water": true,
+          "avoid_water": true,
+          "avoid_damage_blocks": true,
+          "can_open_doors": true,
+          "can_pass_doors": true,
+          "can_break_doors": true,
+          "can_jump": true,
+          "can_walk": true,
+          "can_float": true,
+          "avoid_portals": true
+        }
+      },
+      "gw:mode_hunt_wet": {
+        "minecraft:movement": {
+          "value": 0.373
+        },
+        "minecraft:variant": {
+          "value": 1
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 96,
+          "scan_interval": 10,
+          "persist_time": 0,
+          "entity_types": [
+            {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "player"
+                  },
+                  {
+                    "test": "has_tag",
+                    "subject": "other",
+                    "value": "gw_prey"
+                  }
+                ]
+              },
+              "max_dist": 96,
+              "must_see": false
+            }
+          ]
+        },
+        "minecraft:behavior.leap_at_target": {
+          "priority": 2,
+          "yd": 0.42,
+          "must_be_on_ground": true
+        },
+        "minecraft:behavior.melee_box_attack": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "track_target": true,
+          "require_complete_path": false,
+          "cooldown_time": 1.1,
+          "horizontal_reach": 0.9
+        },
+        "minecraft:annotation.break_door": {
+          "break_time": 0.6,
+          "min_difficulty": "easy"
+        },
+        "minecraft:behavior.break_door": {
+          "priority": 1,
+          "speed_multiplier": 1.0
+        },
+        "minecraft:navigation.walk": {
+          "can_path_over_water": true,
+          "avoid_water": false,
+          "avoid_damage_blocks": true,
+          "can_open_doors": true,
+          "can_pass_doors": true,
+          "can_break_doors": true,
+          "can_jump": true,
+          "can_walk": true,
+          "can_float": true,
+          "avoid_portals": true,
+          "can_swim": true
+        },
+        "minecraft:underwater_movement": {
+          "value": 0.15
+        }
+      },
+      "gw:mode_hunt_low": {
+        "minecraft:movement": {
+          "value": 0.297
+        },
+        "minecraft:variant": {
+          "value": 1
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 96,
+          "scan_interval": 10,
+          "persist_time": 0,
+          "entity_types": [
+            {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "player"
+                  },
+                  {
+                    "test": "has_tag",
+                    "subject": "other",
+                    "value": "gw_prey"
+                  }
+                ]
+              },
+              "max_dist": 96,
+              "must_see": false
+            }
+          ]
+        },
+        "minecraft:behavior.leap_at_target": {
+          "priority": 2,
+          "yd": 0.42,
+          "must_be_on_ground": true
+        },
+        "minecraft:behavior.melee_box_attack": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "track_target": true,
+          "require_complete_path": false,
+          "cooldown_time": 1.1,
+          "horizontal_reach": 0.9
+        },
+        "minecraft:annotation.break_door": {
+          "break_time": 0.6,
+          "min_difficulty": "easy"
+        },
+        "minecraft:behavior.break_door": {
+          "priority": 1,
+          "speed_multiplier": 1.0
+        },
+        "minecraft:navigation.walk": {
+          "can_path_over_water": true,
+          "avoid_water": true,
+          "avoid_damage_blocks": true,
+          "can_open_doors": true,
+          "can_pass_doors": true,
+          "can_break_doors": true,
+          "can_jump": true,
+          "can_walk": true,
+          "can_float": true,
+          "avoid_portals": true
+        },
+        "minecraft:collision_box": {
+          "width": 1.0,
+          "height": 1.4
+        }
+      },
+      "gw:mode_charge": {
+        "minecraft:movement": {
+          "value": 0.481
+        },
+        "minecraft:variant": {
+          "value": 2
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 96,
+          "scan_interval": 10,
+          "persist_time": 0,
+          "entity_types": [
+            {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "player"
+                  },
+                  {
+                    "test": "has_tag",
+                    "subject": "other",
+                    "value": "gw_prey"
+                  }
+                ]
+              },
+              "max_dist": 96,
+              "must_see": false
+            }
+          ]
+        },
+        "minecraft:behavior.leap_at_target": {
+          "priority": 2,
+          "yd": 0.42,
+          "must_be_on_ground": true
+        },
+        "minecraft:behavior.melee_box_attack": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "track_target": true,
+          "require_complete_path": false,
+          "cooldown_time": 1.1,
+          "horizontal_reach": 0.9
+        },
+        "minecraft:annotation.break_door": {
+          "break_time": 0.6,
+          "min_difficulty": "easy"
+        },
+        "minecraft:behavior.break_door": {
+          "priority": 1,
+          "speed_multiplier": 1.0
+        },
+        "minecraft:navigation.walk": {
+          "can_path_over_water": true,
+          "avoid_water": true,
+          "avoid_damage_blocks": true,
+          "can_open_doors": true,
+          "can_pass_doors": true,
+          "can_break_doors": true,
+          "can_jump": true,
+          "can_walk": true,
+          "can_float": true,
+          "avoid_portals": true
+        }
+      },
+      "gw:pose_0": {
+        "minecraft:mark_variant": {
+          "value": 0
+        }
+      },
+      "gw:pose_1": {
+        "minecraft:mark_variant": {
+          "value": 1
+        }
+      },
+      "gw:pose_2": {
+        "minecraft:mark_variant": {
+          "value": 2
+        }
+      },
+      "gw:pose_3": {
+        "minecraft:mark_variant": {
+          "value": 3
+        }
+      },
+      "gw:pose_4": {
+        "minecraft:mark_variant": {
+          "value": 4
+        }
+      },
+      "gw:pose_5": {
+        "minecraft:mark_variant": {
+          "value": 5
+        }
+      },
+      "gw:pose_6": {
+        "minecraft:mark_variant": {
+          "value": 6
+        }
+      },
+      "gw:pose_7": {
+        "minecraft:mark_variant": {
+          "value": 7
+        }
+      },
+      "gw:pose_8": {
+        "minecraft:mark_variant": {
+          "value": 8
+        }
+      },
+      "gw:pose_9": {
+        "minecraft:mark_variant": {
+          "value": 9
+        }
+      },
+      "gw:pose_10": {
+        "minecraft:mark_variant": {
+          "value": 10
+        }
+      },
+      "gw:pose_11": {
+        "minecraft:mark_variant": {
+          "value": 11
+        }
+      },
+      "gw:pose_12": {
+        "minecraft:mark_variant": {
+          "value": 12
+        }
+      },
+      "gw:pose_13": {
+        "minecraft:mark_variant": {
+          "value": 13
+        }
+      },
+      "gw:sins_0": {
+        "minecraft:skin_id": {
+          "value": 0
+        }
+      },
+      "gw:sins_1": {
+        "minecraft:skin_id": {
+          "value": 1
+        }
+      },
+      "gw:sins_2": {
+        "minecraft:skin_id": {
+          "value": 2
+        }
+      },
+      "gw:sins_3": {
+        "minecraft:skin_id": {
+          "value": 3
+        }
+      },
+      "gw:sins_4": {
+        "minecraft:skin_id": {
+          "value": 4
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "goatwalker",
+          "dweller",
+          "mob"
+        ]
+      },
+      "minecraft:health": {
+        "value": 80,
+        "max": 80
+      },
+      "minecraft:collision_box": {
+        "width": 0.8,
+        "height": 2.9
+      },
+      "minecraft:physics": {},
+      "minecraft:knockback_resistance": {
+        "value": 0.85
+      },
+      "minecraft:movement": {
+        "value": 0.2
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:jump.static": {},
+      "minecraft:variable_max_auto_step": {
+        "base_value": 1.0625,
+        "jump_prevented_value": 0.5625
+      },
+      "minecraft:can_climb": {},
+      "minecraft:annotation.open_door": {},
+      "minecraft:behavior.open_door": {
+        "priority": 4,
+        "close_door_after": false
+      },
+      "minecraft:behavior.float": {
+        "priority": 0
+      },
+      "minecraft:navigation.walk": {
+        "can_path_over_water": true,
+        "avoid_water": true,
+        "avoid_damage_blocks": true,
+        "can_open_doors": true,
+        "can_pass_doors": true,
+        "can_break_doors": false,
+        "can_jump": true,
+        "can_walk": true,
+        "can_float": true,
+        "avoid_portals": true
+      },
+      "minecraft:follow_range": {
+        "value": 96,
+        "max": 96
+      },
+      "minecraft:attack": {
+        "damage": {
+          "min": 7,
+          "max": 9
+        }
+      },
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0,
+        "breathes_air": true,
+        "breathes_water": true
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "suffocation",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "drowning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire_tick",
+            "deals_damage": "yes",
+            "damage_multiplier": 0.5
+          }
+        ]
+      },
+      "minecraft:loot": {
+        "table": "loot_tables/entities/goatwalker.json"
+      },
+      "minecraft:experience_reward": {
+        "on_death": "q.last_hit_by_player ? 20 : 0"
+      },
+      "minecraft:ambient_sound_interval": {
+        "value": 9,
+        "range": 8,
+        "event_name": "ambient"
+      },
+      "minecraft:mark_variant": {
+        "value": 0
+      },
+      "minecraft:variant": {
+        "value": 0
+      },
+      "minecraft:skin_id": {
+        "value": 0
+      },
+      "minecraft:conditional_bandwidth_optimization": {}
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": {
+          "component_groups": [
+            "gw:mode_wander",
+            "gw:pose_0",
+            "gw:sins_0"
+          ]
+        }
+      },
+      "goatwalker:mode_wander": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:mode_wander",
+                "gw:mode_still",
+                "gw:mode_walk",
+                "gw:mode_stalk",
+                "gw:mode_crawl",
+                "gw:mode_hold_low",
+                "gw:mode_rush",
+                "gw:mode_dash",
+                "gw:mode_hunt",
+                "gw:mode_hunt_wet",
+                "gw:mode_hunt_low",
+                "gw:mode_charge"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:mode_wander"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:mode_still": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:mode_wander",
+                "gw:mode_still",
+                "gw:mode_walk",
+                "gw:mode_stalk",
+                "gw:mode_crawl",
+                "gw:mode_hold_low",
+                "gw:mode_rush",
+                "gw:mode_dash",
+                "gw:mode_hunt",
+                "gw:mode_hunt_wet",
+                "gw:mode_hunt_low",
+                "gw:mode_charge"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:mode_still"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:mode_walk": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:mode_wander",
+                "gw:mode_still",
+                "gw:mode_walk",
+                "gw:mode_stalk",
+                "gw:mode_crawl",
+                "gw:mode_hold_low",
+                "gw:mode_rush",
+                "gw:mode_dash",
+                "gw:mode_hunt",
+                "gw:mode_hunt_wet",
+                "gw:mode_hunt_low",
+                "gw:mode_charge"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:mode_walk"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:mode_stalk": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:mode_wander",
+                "gw:mode_still",
+                "gw:mode_walk",
+                "gw:mode_stalk",
+                "gw:mode_crawl",
+                "gw:mode_hold_low",
+                "gw:mode_rush",
+                "gw:mode_dash",
+                "gw:mode_hunt",
+                "gw:mode_hunt_wet",
+                "gw:mode_hunt_low",
+                "gw:mode_charge"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:mode_stalk"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:mode_crawl": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:mode_wander",
+                "gw:mode_still",
+                "gw:mode_walk",
+                "gw:mode_stalk",
+                "gw:mode_crawl",
+                "gw:mode_hold_low",
+                "gw:mode_rush",
+                "gw:mode_dash",
+                "gw:mode_hunt",
+                "gw:mode_hunt_wet",
+                "gw:mode_hunt_low",
+                "gw:mode_charge"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:mode_crawl"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:mode_hold_low": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:mode_wander",
+                "gw:mode_still",
+                "gw:mode_walk",
+                "gw:mode_stalk",
+                "gw:mode_crawl",
+                "gw:mode_hold_low",
+                "gw:mode_rush",
+                "gw:mode_dash",
+                "gw:mode_hunt",
+                "gw:mode_hunt_wet",
+                "gw:mode_hunt_low",
+                "gw:mode_charge"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:mode_hold_low"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:mode_rush": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:mode_wander",
+                "gw:mode_still",
+                "gw:mode_walk",
+                "gw:mode_stalk",
+                "gw:mode_crawl",
+                "gw:mode_hold_low",
+                "gw:mode_rush",
+                "gw:mode_dash",
+                "gw:mode_hunt",
+                "gw:mode_hunt_wet",
+                "gw:mode_hunt_low",
+                "gw:mode_charge"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:mode_rush"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:mode_dash": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:mode_wander",
+                "gw:mode_still",
+                "gw:mode_walk",
+                "gw:mode_stalk",
+                "gw:mode_crawl",
+                "gw:mode_hold_low",
+                "gw:mode_rush",
+                "gw:mode_dash",
+                "gw:mode_hunt",
+                "gw:mode_hunt_wet",
+                "gw:mode_hunt_low",
+                "gw:mode_charge"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:mode_dash"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:mode_hunt": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:mode_wander",
+                "gw:mode_still",
+                "gw:mode_walk",
+                "gw:mode_stalk",
+                "gw:mode_crawl",
+                "gw:mode_hold_low",
+                "gw:mode_rush",
+                "gw:mode_dash",
+                "gw:mode_hunt",
+                "gw:mode_hunt_wet",
+                "gw:mode_hunt_low",
+                "gw:mode_charge"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:mode_hunt"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:mode_hunt_wet": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:mode_wander",
+                "gw:mode_still",
+                "gw:mode_walk",
+                "gw:mode_stalk",
+                "gw:mode_crawl",
+                "gw:mode_hold_low",
+                "gw:mode_rush",
+                "gw:mode_dash",
+                "gw:mode_hunt",
+                "gw:mode_hunt_wet",
+                "gw:mode_hunt_low",
+                "gw:mode_charge"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:mode_hunt_wet"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:mode_hunt_low": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:mode_wander",
+                "gw:mode_still",
+                "gw:mode_walk",
+                "gw:mode_stalk",
+                "gw:mode_crawl",
+                "gw:mode_hold_low",
+                "gw:mode_rush",
+                "gw:mode_dash",
+                "gw:mode_hunt",
+                "gw:mode_hunt_wet",
+                "gw:mode_hunt_low",
+                "gw:mode_charge"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:mode_hunt_low"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:mode_charge": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:mode_wander",
+                "gw:mode_still",
+                "gw:mode_walk",
+                "gw:mode_stalk",
+                "gw:mode_crawl",
+                "gw:mode_hold_low",
+                "gw:mode_rush",
+                "gw:mode_dash",
+                "gw:mode_hunt",
+                "gw:mode_hunt_wet",
+                "gw:mode_hunt_low",
+                "gw:mode_charge"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:mode_charge"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:pose_0": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:pose_0",
+                "gw:pose_1",
+                "gw:pose_2",
+                "gw:pose_3",
+                "gw:pose_4",
+                "gw:pose_5",
+                "gw:pose_6",
+                "gw:pose_7",
+                "gw:pose_8",
+                "gw:pose_9",
+                "gw:pose_10",
+                "gw:pose_11",
+                "gw:pose_12",
+                "gw:pose_13"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:pose_0"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:pose_1": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:pose_0",
+                "gw:pose_1",
+                "gw:pose_2",
+                "gw:pose_3",
+                "gw:pose_4",
+                "gw:pose_5",
+                "gw:pose_6",
+                "gw:pose_7",
+                "gw:pose_8",
+                "gw:pose_9",
+                "gw:pose_10",
+                "gw:pose_11",
+                "gw:pose_12",
+                "gw:pose_13"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:pose_1"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:pose_2": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:pose_0",
+                "gw:pose_1",
+                "gw:pose_2",
+                "gw:pose_3",
+                "gw:pose_4",
+                "gw:pose_5",
+                "gw:pose_6",
+                "gw:pose_7",
+                "gw:pose_8",
+                "gw:pose_9",
+                "gw:pose_10",
+                "gw:pose_11",
+                "gw:pose_12",
+                "gw:pose_13"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:pose_2"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:pose_3": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:pose_0",
+                "gw:pose_1",
+                "gw:pose_2",
+                "gw:pose_3",
+                "gw:pose_4",
+                "gw:pose_5",
+                "gw:pose_6",
+                "gw:pose_7",
+                "gw:pose_8",
+                "gw:pose_9",
+                "gw:pose_10",
+                "gw:pose_11",
+                "gw:pose_12",
+                "gw:pose_13"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:pose_3"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:pose_4": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:pose_0",
+                "gw:pose_1",
+                "gw:pose_2",
+                "gw:pose_3",
+                "gw:pose_4",
+                "gw:pose_5",
+                "gw:pose_6",
+                "gw:pose_7",
+                "gw:pose_8",
+                "gw:pose_9",
+                "gw:pose_10",
+                "gw:pose_11",
+                "gw:pose_12",
+                "gw:pose_13"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:pose_4"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:pose_5": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:pose_0",
+                "gw:pose_1",
+                "gw:pose_2",
+                "gw:pose_3",
+                "gw:pose_4",
+                "gw:pose_5",
+                "gw:pose_6",
+                "gw:pose_7",
+                "gw:pose_8",
+                "gw:pose_9",
+                "gw:pose_10",
+                "gw:pose_11",
+                "gw:pose_12",
+                "gw:pose_13"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:pose_5"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:pose_6": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:pose_0",
+                "gw:pose_1",
+                "gw:pose_2",
+                "gw:pose_3",
+                "gw:pose_4",
+                "gw:pose_5",
+                "gw:pose_6",
+                "gw:pose_7",
+                "gw:pose_8",
+                "gw:pose_9",
+                "gw:pose_10",
+                "gw:pose_11",
+                "gw:pose_12",
+                "gw:pose_13"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:pose_6"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:pose_7": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:pose_0",
+                "gw:pose_1",
+                "gw:pose_2",
+                "gw:pose_3",
+                "gw:pose_4",
+                "gw:pose_5",
+                "gw:pose_6",
+                "gw:pose_7",
+                "gw:pose_8",
+                "gw:pose_9",
+                "gw:pose_10",
+                "gw:pose_11",
+                "gw:pose_12",
+                "gw:pose_13"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:pose_7"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:pose_8": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:pose_0",
+                "gw:pose_1",
+                "gw:pose_2",
+                "gw:pose_3",
+                "gw:pose_4",
+                "gw:pose_5",
+                "gw:pose_6",
+                "gw:pose_7",
+                "gw:pose_8",
+                "gw:pose_9",
+                "gw:pose_10",
+                "gw:pose_11",
+                "gw:pose_12",
+                "gw:pose_13"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:pose_8"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:pose_9": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:pose_0",
+                "gw:pose_1",
+                "gw:pose_2",
+                "gw:pose_3",
+                "gw:pose_4",
+                "gw:pose_5",
+                "gw:pose_6",
+                "gw:pose_7",
+                "gw:pose_8",
+                "gw:pose_9",
+                "gw:pose_10",
+                "gw:pose_11",
+                "gw:pose_12",
+                "gw:pose_13"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:pose_9"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:pose_10": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:pose_0",
+                "gw:pose_1",
+                "gw:pose_2",
+                "gw:pose_3",
+                "gw:pose_4",
+                "gw:pose_5",
+                "gw:pose_6",
+                "gw:pose_7",
+                "gw:pose_8",
+                "gw:pose_9",
+                "gw:pose_10",
+                "gw:pose_11",
+                "gw:pose_12",
+                "gw:pose_13"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:pose_10"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:pose_11": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:pose_0",
+                "gw:pose_1",
+                "gw:pose_2",
+                "gw:pose_3",
+                "gw:pose_4",
+                "gw:pose_5",
+                "gw:pose_6",
+                "gw:pose_7",
+                "gw:pose_8",
+                "gw:pose_9",
+                "gw:pose_10",
+                "gw:pose_11",
+                "gw:pose_12",
+                "gw:pose_13"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:pose_11"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:pose_12": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:pose_0",
+                "gw:pose_1",
+                "gw:pose_2",
+                "gw:pose_3",
+                "gw:pose_4",
+                "gw:pose_5",
+                "gw:pose_6",
+                "gw:pose_7",
+                "gw:pose_8",
+                "gw:pose_9",
+                "gw:pose_10",
+                "gw:pose_11",
+                "gw:pose_12",
+                "gw:pose_13"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:pose_12"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:pose_13": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:pose_0",
+                "gw:pose_1",
+                "gw:pose_2",
+                "gw:pose_3",
+                "gw:pose_4",
+                "gw:pose_5",
+                "gw:pose_6",
+                "gw:pose_7",
+                "gw:pose_8",
+                "gw:pose_9",
+                "gw:pose_10",
+                "gw:pose_11",
+                "gw:pose_12",
+                "gw:pose_13"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:pose_13"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:sins_0": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:sins_0",
+                "gw:sins_1",
+                "gw:sins_2",
+                "gw:sins_3",
+                "gw:sins_4"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:sins_0"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:sins_1": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:sins_0",
+                "gw:sins_1",
+                "gw:sins_2",
+                "gw:sins_3",
+                "gw:sins_4"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:sins_1"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:sins_2": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:sins_0",
+                "gw:sins_1",
+                "gw:sins_2",
+                "gw:sins_3",
+                "gw:sins_4"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:sins_2"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:sins_3": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:sins_0",
+                "gw:sins_1",
+                "gw:sins_2",
+                "gw:sins_3",
+                "gw:sins_4"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:sins_3"
+              ]
+            }
+          }
+        ]
+      },
+      "goatwalker:sins_4": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": [
+                "gw:sins_0",
+                "gw:sins_1",
+                "gw:sins_2",
+                "gw:sins_3",
+                "gw:sins_4"
+              ]
+            }
+          },
+          {
+            "add": {
+              "component_groups": [
+                "gw:sins_4"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

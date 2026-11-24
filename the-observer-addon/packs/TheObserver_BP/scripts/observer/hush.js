@@ -10,6 +10,7 @@
 // 1.5.0: from the fourth stage its music is no longer the user's two themes but its own broken ones (original, made for
 // it: detuned, slowed, reversed, bit-crushed): "stalk" everywhere, "mire" in its home, "end" at the fifth stage — and
 // "chase" whenever it, or its pack, is coming for you, at any stage.
+import * as channel from "../link/shared.js";
 import { ps } from "../core/state.js";
 import { S } from "../core/settings.js";
 import { safe, rand, emit, trace, DEBUG, allPlayers } from "../core/util.js";
@@ -53,6 +54,7 @@ export const isSilenced = (pid) => silenced.has(pid);
 function silence(p) {
   if (silenced.has(p.id)) return true;
   silenced.add(p.id);
+  channel.observerTake(p);
   return !!safe(() => {
     p.playMusic(SOUNDS.silence, { loop: true, volume: 1, fade: 2 });
     return true;
@@ -62,6 +64,7 @@ function silence(p) {
 /** Its theme in place of their music, looping (switching themes crossfades). @param {Player} p @param {string} track */
 function theme(p, track) {
   silenced.add(p.id);
+  channel.observerTake(p);
   themed.set(p.id, track);
   return !!safe(() => {
     p.playMusic(track, { loop: true, volume: 1, fade: 2.5 });
@@ -100,6 +103,8 @@ export function end(p, pid, why) {
   if (!silenced.has(pid)) return;
   silenced.delete(pid);
   const music = p && p.isValid ? !!safe(() => {
+    // (1.6.0) a dweller's music that was waiting plays again; else the game's own
+    if (channel.observerRelease(p)) return true;
     const track = MUSIC[p.dimension.id];
     if (track) p.playMusic(track, { fade: 4, loop: false, volume: 1 });
     else p.stopMusic();

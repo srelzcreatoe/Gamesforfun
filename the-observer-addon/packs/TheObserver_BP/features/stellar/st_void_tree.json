@@ -1,0 +1,62 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:tree_feature": {
+    "description": {
+      "identifier": "goatwalker:st_void_tree"
+    },
+    "base_block": "goatwalker:stellar_dirt",
+    "may_grow_on": [
+      "goatwalker:stellar_soil",
+      "goatwalker:ashen_podzol",
+      "goatwalker:stellar_dirt",
+      "minecraft:dirt",
+      "minecraft:grass_block",
+      "minecraft:podzol"
+    ],
+    "may_replace": [
+      "minecraft:air",
+      "goatwalker:stellar_grass",
+      "goatwalker:rift_fern",
+      "goatwalker:bleeding_shrub",
+      "goatwalker:mooncap",
+      "goatwalker:hanging_moss",
+      "goatwalker:hanging_moss_tip",
+      "minecraft:short_grass",
+      "minecraft:tall_grass",
+      "minecraft:fern",
+      "minecraft:large_fern",
+      "minecraft:snow_layer"
+    ],
+    "may_grow_through": [
+      "goatwalker:stellar_soil",
+      "goatwalker:ashen_podzol",
+      "goatwalker:stellar_dirt"
+    ],
+    "mega_trunk": {
+      "trunk_width": 2,
+      "trunk_height": {
+        "base": 16,
+        "intervals": [
+          6,
+          8
+        ]
+      },
+      "trunk_block": {
+        "name": "goatwalker:void_log",
+        "states": {
+          "minecraft:block_face": "up"
+        }
+      }
+    },
+    "mega_pine_canopy": {
+      "canopy_height": [
+        12,
+        16
+      ],
+      "base_radius": 3,
+      "radius_step_modifier": 0.6,
+      "core_width": 2,
+      "leaf_block": "goatwalker:void_leaves"
+    }
+  }
+}
