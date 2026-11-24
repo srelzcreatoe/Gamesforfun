@@ -42,6 +42,13 @@ model first, then stop for approval**; then everything else.
   custom npc civilians ... scared at the sight of the monster"*, *"don't make it lag when the city gets generated"*. All
   done; see the 1.7 section of `docs/DESIGN.md`. The breath, the hands, the gun and the people have been rendered
   offline (`previews/`); none of it has been seen in the game.
+* **1.8.0**: the owner, with two clips (a Minecraft Shin Godzilla add-on's breath, and the 2016 film's): *"when it goes to
+  its second form, it starts walking towards land avoiding water"*, *"make it much more cinematic please for every
+  transformation"*, *"for the 4th form the wings sometimes goes through its body"*, *"claw swipes and it shows big scratch
+  marks effects ... both the titan and regular one"*, *"2nd form basiliskra leaves the water immediately, he swims out of
+  there onto land"*, *"for the charge up for the atomic breath, have basiliskra look down to the floor and do the same
+  thing shin godzilla does but in his own style"*.  All done (see the 1.8 section of `docs/DESIGN.md`).  The breath is
+  his own: red, his plates and knocks; no split jaw, no violet, nothing from his back.
 * None of it has been seen in game: see `docs/TEST_REPORT.md`.
 
 At model scale he is 27.5 blocks to the top of the skull (33.8 to the wing claws), 54.5 across the wings and 44.5

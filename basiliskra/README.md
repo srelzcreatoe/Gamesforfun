@@ -7,6 +7,8 @@ An original survival-horror add-on for Minecraft Bedrock. One creature per save.
 * **Experiments:** none. **Cheats:** none. **Commands:** none needed.
 * **Graphics:** standard Bedrock rendering; Vibrant Visuals supported (PBR texture sets with emissive glow).
 
+> **1.8**: Basiliskra II **swims straight out of the sea** onto land. **The breath is poured**, in his own way: his head goes down to the ground while it charges, the shot floods that ground with fire, then narrows into the beam and lifts to its mark (III, IV and the Titan). **Form IV's wings fold over his back** and no longer pass through his shoulders. Form IV and the Titan **swipe with their claws**, leaving three great glowing claw marks in the air and gouges in the ground. The changes open on **chapter headings**, every shot moves, and the camera goes round the new animal while he roars.
+>
 > **1.7.2**: **the Titan is as strong as the strongest Godzilla add-ons**: 100,000 health, and every blow it lands on a player or a creature does 100,000.
 >
 > **1.7.1** fixes what the content log showed on importing 1.7.0: the pack's blocks (and the recipes that use them) and the townspeople now load, and **a city now rises to the end** (1.7.0 asked the game to keep more ground loaded at once than it allows, and waited for ever). See [docs/TEST_REPORT.md](docs/TEST_REPORT.md).
@@ -31,7 +33,7 @@ In game: a **journal** (how angry he is, as a percentage, when he will come, and
 
 | File | What it is |
 |---|---|
-| `dist/Basiliskra-1.7.2.mcaddon` | behaviour pack + resource pack, ready to import |
+| `dist/Basiliskra-1.8.0.mcaddon` | behaviour pack + resource pack, ready to import |
 | `models/basiliskra_i.bbmodel`, `_ii`, `_iii`, `_iv` | the four editable Blockbench models, textures and animations embedded |
 | `docs/SURVIVAL_GUIDE.md` | install, what calls him, the four stages, cities, the Seam Lance, the Titan, the ending, settings |
 | `previews/*.mp4` | reference videos (see below) |
@@ -43,6 +45,8 @@ In game: a **journal** (how angry he is, as a percentage, when he will come, and
 **`previews/titan_moves.mp4`** (40 s, with sound) plays the Titan through what only it does, driven by its own client entity: at rest with its seams lit, walking, the lunge from two sides, the tail to each side, a shortened charge and the breath, the stagger, and going down as its fire fails (`node tools/preview/anim.cjs --forms titan`). Like the reel above it is an offline render, not in-game capture.
 
 **`previews/transformations.mp4`** (about a minute, with sound) plays him through the three changes as the script poses him, with the pack's sounds where the script plays them (`node tools/preview/anim.cjs --forms c1a,c1b,c2a,c2b,c3a,c3b`). What the script adds in the world (the boiling sea, the bolts, the smoke, the glass in the ground) and the game's own thunder are not in it, and the camera is the preview tool's, not the cutscene's.
+
+New for 1.8 (offline renders, not the game): **`previews/breath.mp4`** is cut again for the poured breath (head down, the flood of fire, the beam lifting out of it); **`previews/form_iv_wings.png`** (his wings folded over his back, from four sides) and **`previews/form_iv_swipe.png`** (the claw swipe, five moments; the claw marks are particles, not in this still).
 
 New for 1.7 (offline renders from the shipped files, not the game): **`previews/breath.mp4`** (10 s, with sound: Basiliskra III's breath cut close, from the recording of the real script, with the new particles: it leaves his open jaw), **`previews/seam_lance_held.png`** (the gun in a player's hand in first and third person, with the hold the pack ships), **`previews/civilians.png`** (the twelve townspeople, calm and frightened), **`previews/form_iv_hands.png`** (Basiliskra IV's hands, palms in) and **`previews/city_plan.png`** (drawn again for the bigger city). How the game binds a held item is worked out from the vanilla trident's files, not seen: the hold in the game may differ from the picture.
 

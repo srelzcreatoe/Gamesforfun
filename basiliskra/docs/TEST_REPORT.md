@@ -66,7 +66,7 @@ All of it is reproducible with `python3 tools/build.py` (which runs the first fo
 | Type-check of the script against the 2.11.0 typings (strict) | `npx tsc --noEmit -p .` | clean |
 | Bundle | `node tools/bundle.mjs` | 442 KiB, two imports: `@minecraft/server`, `@minecraft/server-ui` |
 | Pack validation | `python3 tools/validate/validate.py` | no problems |
-| Scenario suite in a simulated world | `node test/run.mjs` | **385 of 385 checks pass** (25 groups, 1.7.2) |
+| Scenario suite in a simulated world | `node test/run.mjs` | **402 of 402 checks pass** (26 groups, 1.8.0) |
 | Engine calls per tick | `node test/perf.mjs` | see DESIGN.md, "Bounded work" |
 | Foot and claw contact on the shipped animation | `node tools/preview/contact.cjs` | below |
 | Independent code review (a second reviewer with no access to my reasoning) | | Done once, on an early version: 20 findings, all acted on, the reviewer's four probe scripts kept as regression scenarios. **Not repeated for 1.4 to 1.6.** |
@@ -108,6 +108,7 @@ The script bundle that ships is run unmodified against `test/mock.mjs`: persiste
 | Three changes, three scenes (1.6.1) | 23 | each change is played from "Make him change now" to its end with a Creative watcher and an Adventure bystander 24 blocks off. I to II: the phases run knock, spasm, rise, evolve, then beach, arc; three gill knocks before and three horn arcs after; splash, bubbles, steam, the fin breaking and the fountain are sent; no thunder and no bolt. II to III: arc with three flinches, three thunders at shortening intervals and a fourth on the instant of the change; then grounded, at least eight plates heard lighting, scatter; glass in the ground under him. III to IV: charge, vent, scatter with the charge sound once, three vent knocks and no beam; then swallow, recoil, rise, two wing beats, smoke; his name shown 110 ticks after the change; no roar and his entrance not yet played. All three: different phase sequences, different lengths (312, 352, 448 ticks), cut into shots with the camera never more than 26, 37 and 47 blocks from what it looks at; HUD hidden and given back with the player's own view; the bystander never hurt; all of him lit at its height; II and III roar afterwards |
 | A full city built to the end (1.7.1) | 21b | the wheel raises a full city (259 by 175) with the operator on its promenade; its ground is held in six areas of at most 100 chunks each, all at once; it finishes in 2,450 ticks (123 s), telling the operator at 25, 50 and 75% and when it stands; its areas are let go; sixty townspeople; the far corner of the streets and the far end of the sea are built. With eight of the world's ten areas already taken, the two left are moved along the work and it finishes in 4,055 ticks (203 s), leaving the world's own areas alone |
 | The breath from the mouth, the gun, the walk, the aim, the people, the rift (1.7) | 24 | firing, his jaw is dropped as the client draws it and the breath leaves by the middle of the gap (mouth 3.7 blocks open as III, 5.0 as IV; the beam starts 0.00 from that point, 4.0 wide as IV; before 1.7 it started 3 to 4.6 blocks from the open mouth); the new layers are all sent; the Seam Lance's laser stands 4 or more ticks, 0.9 wide, and still deals 34; its shooter is sent it from their own muzzle (3.02 from the eye), everyone else from the gun in the hand (1.54 out at hip height), neither sees the other's; a footfall's shock removes a wall while his middle is still 40 blocks off; against a Wither circling over him he lifts his head 63 degrees, follows it and hits it 8 times; two giants put down on each other are eased 13.1 blocks apart; a townsperson is calm with nothing near, takes fright when Basiliskra III is in sight (arms up, running) and calms down after; called back as III by the sea the rift opens 66 blocks out in the water with no solid block in it, and he wades ashore. Group 21 now also checks that no tick of a city's build changes more than 6,000 blocks (5,984 at worst) and that it is lived in by townspeople |
+| Out of the water, the breath poured, the wings, the claws (1.8) | 25 | Basiliskra II put down 50 blocks out in a bay swims (phase `swim`) straight to the beach in 18 s, no more than 9 blocks off his line, and stays ashore; Form III's head goes 30 degrees down while he charges; the shot runs charge, pour, fire, vent; flood fire, smoke and embers are sent and 20 fires catch in front of him; the beam is drawn more than 1.6 times wider while it narrows; Form IV's head goes 51 degrees down and he pours too, and so does the Titan; folded, both wing claws are 11 blocks behind his chest (1.7: in front of it); something within reach in front of Form IV is swiped at: three claw marks 9.6 blocks across, the player struck (26), 39 blocks gouged; two Titans at arm's length land 15 claw blows of 2,500. Elsewhere for 1.8: the sidestep (group 7) and a wall (group 10) still work against the pour; the breath still lasts as long as its recording; a Titan fight still closes to 13 blocks with jaws, claws, tail, charge and circling; each change opens on its chapter heading |
 
 Counting him: the suite counts loaded and saved entities of his type after every scenario above. It is 0 before arrival and after departure and 1 otherwise, in every case. (Titans are another type and are counted separately: never more than three.)
 
@@ -141,6 +142,15 @@ Measured again for 1.3 with the server rig (scenario 15): at the window, with th
 `previews/*.mp4` were rendered offline from replays of the real script. They are evidence of what the script decides and of how the shipped assets look and move in *my* viewer, which implements Bedrock's geometry format, Molang (the subset used), animation controllers, render controllers and particle components from their documentation. They are not evidence of how the game renders them.
 
 ## Not verified, in order of risk
+
+**New in 1.8** (exercised in the simulated world and rendered offline; **not seen in game**):
+
+1. **The pour's fire.** It sets real fire blocks where it floods (`minecraft:fire` on top of what burns). In the game fire spreads through grass, wood and leaves by its own rules, so a pour over a forest may burn much more than the flood itself; the simulated world does not spread fire.
+2. **The head down.** The look pitch is driven down to the ground in front of him while he charges; on a slope, or with something close below his mouth, the head may go further down than looks right.
+3. **The swimming pose** (Form II) is an addition to his drag animation, judged from its numbers, not watched.
+4. **The claw swipe** was looked at in the offline viewer (`previews/form_iv_swipe.png`); the server does not move his arm's hit volumes with it.
+5. **The wing fold** was measured against his body in my viewer; whether the game draws the same (rotation order, pivots) is what the 1.7 report showed it does for the rest of him.
+6. **The camera drift and colour dips** use the same camera and fade calls as before; the chapter headings are ordinary titles.
 
 **New in 1.7** (exercised in the simulated world and, where marked, rendered offline; **not seen in game**):
 
@@ -214,6 +224,10 @@ Measured again for 1.3 with the server rig (scenario 15): at the window, with th
 11. **The two blocks** (irradiated soil, scarlet trinitite): schema-valid; not yet confirmed placed in game.
 12. **Sounds.** 67 files are synthesised; 18 are cuts of the three recordings supplied by the project owner (roar, atomic breath, voice). I have not heard any of them: the breath was cut where it changes from charging to firing (6.86 s: a 14 dB dip, then the low band doubles), and the voice at the breaths between grunts, both from measurements. Their in-game range follows the `max_distance` values; not heard.
 13. **Vibrant Visuals**, **Realms, consoles, split-screen, low simulation distance**, and multiplayer beyond what the simulation models.
+
+## First session checklist (1.8)
+
+Import 1.8.0. `/basiliskra:spawn ii` while standing in deep water near a beach: does he swim straight for the shore and climb out? `/basiliskra:spawn iii` and let him fire at you from 50 blocks: does his head go down while he charges, does the fire flood the ground in front of him, does it narrow into the beam and lift? Step sideways during the red line: are you missed? `/basiliskra:spawn iv`: look at his wings from the side (no bar across his shoulder), stand within thirty blocks in front of him (the claw marks, the gouges), and let him breathe (the pour, bigger). Put two Titans down close together and watch for claw swipes. Make him change (Settings: one minute): the chapter heading, the moving camera, the orbit at the end.
 
 ## First session checklist (1.7.1)
 
