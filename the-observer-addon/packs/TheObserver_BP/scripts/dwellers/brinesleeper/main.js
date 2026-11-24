@@ -321,7 +321,8 @@ function* slipAway(c, player) {
   setMode(c, 'hold');
   if (c.isInWater) { yield* sinkAway(c, c.location); return; }
   setAct(c, 'retreat');
-  yield* waitUntil(() => !c.isValid || (player.isValid && !inSight(player, c.getHeadLocation())), 12 * TPS, 4);
+  // (1.7.1) never just standing there while you walk up to it: gone the moment you look away, or come close
+  yield* waitUntil(() => !c.isValid || (player.isValid && (!inSight(player, c.getHeadLocation()) || flat(player.location, c.location) < 8)), 4 * TPS, 2);
   if (!c.isValid) return;
   particle(c.dimension, 'brine:smoke', add(c.location, { x: 0, y: 1.5, z: 0 }));
   particle(c.dimension, 'brine:smoke', add(c.location, { x: 0, y: 3, z: 0 }));
@@ -852,6 +853,7 @@ function stepGenerators() {
   if (scene) {
     const pl = playerById(scene.playerId);
     if (!pl) endScene('player left');
+    else if (__sceneClose()) { /* (1.7.1) walked right up to it: it reacted */ }
     else if (now() >= scene.wake) {
       let r;
       try { r = scene.gen.next(); } catch (e) { console.warn(`[brine] scene ${scene.name}: ${e}`); r = { done: true }; }
@@ -879,8 +881,10 @@ function tickDirector() {
   for (const c of creatures()) {
     if (!pendingWithdraw.has(c.id)) continue;
     const seen = __dw.players("brinesleeper").some((p) => inSight(p, c.getHeadLocation(), 64));
-    const long = now() - (pendingWithdraw.get(c.id) ?? now()) > 15 * TPS;          // stared at for too long: smoke
-    if (!seen || c.isInWater || long) {
+    const long = now() - (pendingWithdraw.get(c.id) ?? now()) > 4 * TPS;           // stared at for too long: smoke
+    const close = __dw.players("brinesleeper").some((p) => p.dimension.id === c.dimension.id && flat(p.location, c.location) < 8);   // (1.7.1)
+    if (!seen || c.isInWater || long || close) {
+      if (close) { particle(c.dimension, c.isInWater ? 'brine:splash' : 'brine:smoke', add(c.location, { x: 0, y: 1.5, z: 0 })); sound(c.dimension, c.isInWater ? 'mob.brinesleeper.submerge' : 'mob.brinesleeper.hiss', c.location, 0.8, rand(0.8, 0.9)); }
       if (long && seen) particle(c.dimension, 'brine:smoke', add(c.location, { x: 0, y: 2, z: 0 }));
       pendingWithdraw.delete(c.id);
       removeQuietly(c);
@@ -1013,6 +1017,53 @@ export {
   waterSurface, floorAt, nearWater, findSpot, creatures, setMode, setAct, removeQuietly, spawnShade, overworld,
   watchOf, huntable, health, sting, forceEvent, statusText, wetTrail,
 };
+
+// ---------------------------------------------------------------- merged into The Observer (1.7.1)
+/** Walked right up to it in one of its scenes (any player, half a second within six blocks): it comes for you, or it is gone. */
+function __sceneClose() {
+  const c = scene && scene.creature;
+  if (!c || !c.isValid) return false;
+  let near;
+  for (const p of __dw.players("brinesleeper")) {
+    let gm;
+    try { gm = p.getGameMode(); } catch (e) { continue; }
+    if (gm === GameMode.Spectator || p.dimension.id !== c.dimension.id) continue;
+    if (flat(p.location, c.location) < 6 && Math.abs(p.location.y - c.location.y) < 4) { near = p; break; }
+  }
+  if (!near) { scene.closeSince = undefined; return false; }
+  if (scene.closeSince === undefined) scene.closeSince = now();
+  if (now() - scene.closeSince < 10) return false;
+  const s = c.location;
+  const attack = huntable(near) && config.enabled && preset().chase > 0 && Math.random() < 0.7;
+  __dw.note('brinesleeper', { what: 'close', how: attack ? 'attack' : 'vanish', staged: scene.name, d: Math.round(flat(near.location, s) * 10) / 10 });
+  if (attack) {
+    sound(c.dimension, 'mob.brinesleeper.roar', s, 1.3, 0.9);
+    sting(near, 0.9);
+    press(near.id, 'chase', now() + 60);
+    try { near.playSound('brine.spotted', { volume: 1 }); } catch (e) { /* ok */ }
+    handoff.set(c.id, { state: 'chase', target: near.id });
+    c.removeTag(STAGED);
+  } else {
+    particle(c.dimension, c.isInWater ? 'brine:splash' : 'brine:smoke', add(s, { x: 0, y: 1.5, z: 0 }));
+    particle(c.dimension, c.isInWater ? 'brine:ripple' : 'brine:smoke', add(s, { x: 0, y: 3, z: 0 }));
+    sound(c.dimension, c.isInWater ? 'mob.brinesleeper.submerge' : 'mob.brinesleeper.hiss', s, 0.9, rand(0.8, 0.9));
+    removeQuietly(c);
+  }
+  scene.creature = undefined;
+  scene = null;
+  return true;
+}
+/** (tests) A scene in which it does nothing but stand still at a place, watching, for a minute — the case it must never be left in. */
+export function __testScene(player, pos) {
+  if (scene) endScene('replaced');
+  startScene('test_hold', player, (function* () {
+    const c = stageCreature(pos, 'watch', player.getHeadLocation());
+    if (!c) return;
+    scene.creature = c;
+    for (let i = 0; i < 150; i++) { hold(c, pos, player.getHeadLocation()); yield 8; }
+  })());
+  return true;
+}
 
 // ---------------------------------------------------------------- merged into The Observer (1.7.0)
 /** Walked right up to in one of its scenes: does it turn on them? (more often than not, if they can be hunted) */

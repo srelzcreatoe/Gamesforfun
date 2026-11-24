@@ -144,6 +144,8 @@ python3 tools/synth_dark.py [observer|brine|voice|shaft]
                                               # Brinesleeper's soundtrack and voice, the Shaftbreaker's music); then
                                               # python3 tools/merge_dwellers.py to point the dwellers' sound ids at them
 python3 tools/synth_music.py [--old-tracks]   # its glitch and static (the old chiptune tracks only with --old-tracks)
+python3 tools/deepen_shaftbreaker.py          # the Shaftbreaker's roar, screech, jumpscare, growl and distant scream,
+                                              # pitched down from its own recordings (1.7.1); then merge_dwellers.py
 python3 tools/preview_structure.py FILE.mcstructure OUT.png [--cut-y N] [--rot 0-3]
                                               # a quick isometric picture of a piece (cut away to see inside)
 python3 tools/render_model.py GEO TEX out.png --anim FILE NAME TIME --view side --debug-colors
@@ -187,6 +189,9 @@ creature's page), grows `rift` to the 49-piece realm (`rift_realm_every_place`),
 realm a column at a time (and count eyeblooms), and adds three probes for the cave biomes: `otest:cavemap [half step
 ys]` (the cave biomes' shares round 0,0), `otest:cavewide [half step]` (sparse, over kilometres) and `otest:hollows
 [n]` (finds n Hollows, loads ±56 blocks round each, counts its walls, its organic features and its chambers' blocks).
+1.7.1 adds `brine_close` (the Brinesleeper up close on land, in the water and in a test scene that only holds it still —
+dev command `dwellers brine_scene test_hold|<scene>`) and `brine_entrance` (finds the Stillwater Caves under open land
+within 1.5 km and asks for a way down: `dwellers brine_entrance`), and the sky checks in `rift`.
 Results and the manual client procedure are in [TEST_REPORT.md](TEST_REPORT.md).
 
 The harness patches the **installed test copy** of the BP to import

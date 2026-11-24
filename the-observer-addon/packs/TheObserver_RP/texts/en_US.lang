@@ -782,6 +782,7 @@ tile.observer:corpse.name=Corpse
 tile.observer:hanged.name=Hanged Body
 tile.observer:skeleton.name=Skeleton
 tile.observer:gravestone.name=Gravestone
+tile.observer:rift_sky.name=Rift Sky
 
 ## ---- merged: goatwalker (tools/merge_dwellers.py) ----
 entity.goatwalker:goatwalker.name=The Goatwalker

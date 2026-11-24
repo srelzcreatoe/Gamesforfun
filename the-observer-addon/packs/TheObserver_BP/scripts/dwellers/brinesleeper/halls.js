@@ -18,13 +18,13 @@ import { HALL, halls, loadHalls, saveHalls, hallAt, biomeAt, BIOME } from './are
 
 const IDS = ['brine:great_hall_0', 'brine:great_hall_1', 'brine:great_hall_2'];
 const { W, H, D } = HALL;
-const SPACING = 90;
+const SPACING = 300;
 const NATURAL = ['minecraft:stone', 'minecraft:deepslate', 'minecraft:tuff', 'minecraft:andesite', 'minecraft:diorite', 'minecraft:granite',
   'minecraft:calcite', 'minecraft:dripstone_block', 'minecraft:smooth_basalt', 'minecraft:cobbled_deepslate', 'minecraft:dirt',
   'minecraft:grass_block', 'minecraft:coarse_dirt', 'minecraft:podzol', 'minecraft:sand', 'minecraft:red_sand', 'minecraft:sandstone',
   'minecraft:gravel', 'minecraft:clay', 'minecraft:mud', 'minecraft:snow', 'minecraft:snow_layer', 'minecraft:pointed_dripstone',
   'minecraft:coal_ore', 'minecraft:iron_ore', 'minecraft:copper_ore', 'minecraft:deepslate_coal_ore', 'minecraft:deepslate_iron_ore',
-  'minecraft:deepslate_copper_ore', 'minecraft:glow_lichen', 'minecraft:moss_block', 'minecraft:rooted_dirt', 'minecraft:terracotta',
+  'minecraft:deepslate_copper_ore', 'minecraft:glow_lichen', 'minecraft:moss_block', 'minecraft:dirt_with_roots', 'minecraft:terracotta',
   'brine:bloodstained_deepslate', 'brine:clawed_deepslate', 'brine:veined_deepslate', 'minecraft:weeping_vines',
   'brine:pale_dripstone_tip', 'brine:pale_dripstone_frustum', 'brine:pale_dripstone_middle', 'brine:pale_dripstone_base'];
 /** @type {[string, number, number, number][]} [item, min, max, weight] */
@@ -41,6 +41,7 @@ const BOOKS = [['mending', 1], ['depth_strider', 3], ['respiration', 3], ['aqua_
   ['feather_falling', 4], ['looting', 3], ['fortune', 3], ['efficiency', 5], ['sharpness', 5], ['riptide', 3], ['loyalty', 3], ['impaling', 5]];
 
 function lootStack() {
+  if (Math.random() < 0.85) return __goodLoot();                     // (1.7.1)
   const total = LOOT.reduce((a, l) => a + l[3], 0);
   let r = Math.random() * total;
   let row = LOOT[0];
@@ -62,7 +63,7 @@ function fillChests(dim, h) {
   for (const loc of list.getBlockLocationIterator()) {
     const inv = dim.getBlock(loc)?.getComponent('minecraft:inventory')?.container;
     if (!inv || inv.emptySlotsCount < inv.size) continue;
-    for (let i = randInt(6, 10); i > 0; i--) {
+    for (let i = randInt(9, 14); i > 0; i--) {
       try { inv.setItem(randInt(0, inv.size - 1), lootStack()); } catch (e) { /* an item this version lacks */ }
     }
   }
@@ -102,7 +103,7 @@ function site(player, force = false) {
     const dist = W / 2 + randInt(5, 8);
     const x = Math.floor(p.x) + dx * dist, z = Math.floor(p.z) + dz * dist;
     const b1 = biomeAt(dim, { x, y: y + 2, z }), b2 = biomeAt(dim, { x, y: y - 6, z });
-    const caves = (b) => b === BIOME || b === 'minecraft:dripstone_caves';
+    const caves = (b) => b === BIOME;
     if (!force && !caves(b1) && !caves(b2)) continue;
     let top;
     try { top = dim.getTopmostBlock({ x, z }); } catch (e) { top = undefined; }
@@ -127,7 +128,7 @@ export function buildHall(player, force = false) {
     saveHalls();
     sound(player.dimension, 'brine.fx.splash_far', { x: player.location.x + s.dx * 10, y: player.location.y, z: player.location.z + s.dz * 10 }, 1.2, 0.8);
   }, 10);
-  grow(player.dimension, h, 2);
+  grow(player.dimension, h, 1);
   return true;
 }
 /** join more halls onto a hall, one hall's width further along (their tunnels meet), one every ten seconds */
@@ -259,8 +260,10 @@ function tick() {
       if (!h.filled && flat(h, p.location) < 70) { h.filled = fillChests(p.dimension, h); if (h.filled) saveHalls(); }
       if (!h.well && h.of === undefined && flat(h, p.location) < 72) digShaft(p.dimension, h);
     }
+    try { if (p.getGameMode() === 'Spectator' || String(p.getGameMode()).toLowerCase() === 'spectator') continue; } catch (e) { continue; }
+    __entrances(p);                                               // (1.7.1) a way down from the surface
     const b = biomeAt(p.dimension, p.location);
-    if (b !== BIOME && b !== 'minecraft:dripstone_caves') continue;
+    if (b !== BIOME) continue;
     if (halls.some((h) => flat(h, p.location) < SPACING)) continue;
     buildHall(p);
   }
@@ -271,3 +274,168 @@ world.afterEvents.worldLoad.subscribe(() => {
   system.runTimeout(placeStarter, 60);
   system.runInterval(tick, 40);
 });
+
+// ---------------------------------------------------------------- merged into The Observer (1.7.1)
+/** What its halls' chests hold now: the best of the deep — maxed gear, books at their highest, riches. */
+const __GEAR = [
+  ['minecraft:diamond_sword', [['sharpness', 5], ['looting', 3], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:netherite_sword', [['sharpness', 5], ['looting', 3], ['fire_aspect', 2], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:diamond_pickaxe', [['efficiency', 5], ['fortune', 3], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:netherite_pickaxe', [['efficiency', 5], ['fortune', 3], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:diamond_helmet', [['protection', 4], ['respiration', 3], ['aqua_affinity', 1], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:diamond_chestplate', [['protection', 4], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:diamond_leggings', [['protection', 4], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:diamond_boots', [['protection', 4], ['depth_strider', 3], ['feather_falling', 4], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:netherite_chestplate', [['protection', 4], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:trident', [['loyalty', 3], ['impaling', 5], ['channeling', 1], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:trident', [['riptide', 3], ['impaling', 5], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:bow', [['power', 5], ['punch', 2], ['flame', 1], ['infinity', 1], ['unbreaking', 3]]],
+  ['minecraft:fishing_rod', [['luck_of_the_sea', 3], ['lure', 3], ['unbreaking', 3], ['mending', 1]]],
+];
+const __RICH = [
+  ['minecraft:diamond', 3, 8, 12], ['minecraft:emerald', 4, 12, 8], ['minecraft:gold_block', 1, 3, 6], ['minecraft:diamond_block', 1, 2, 3],
+  ['minecraft:netherite_ingot', 1, 2, 4], ['minecraft:netherite_scrap', 2, 4, 5], ['minecraft:enchanted_golden_apple', 1, 2, 5],
+  ['minecraft:golden_apple', 2, 5, 8], ['minecraft:totem_of_undying', 1, 1, 5], ['minecraft:heart_of_the_sea', 1, 1, 4],
+  ['minecraft:nautilus_shell', 2, 5, 5], ['minecraft:experience_bottle', 12, 32, 10], ['minecraft:ender_pearl', 4, 12, 6],
+  ['minecraft:golden_carrot', 8, 24, 6], ['minecraft:conduit', 1, 1, 2], ['minecraft:echo_shard', 2, 4, 3],
+  ['minecraft:netherite_upgrade_smithing_template', 1, 1, 3], ['minecraft:music_disc_13', 1, 1, 1],
+];
+const __BOOKS = [['mending', 1], ['depth_strider', 3], ['respiration', 3], ['aqua_affinity', 1], ['unbreaking', 3], ['protection', 4],
+  ['feather_falling', 4], ['looting', 3], ['fortune', 3], ['efficiency', 5], ['sharpness', 5], ['riptide', 3], ['loyalty', 3],
+  ['impaling', 5], ['channeling', 1], ['power', 5], ['infinity', 1], ['silk_touch', 1], ['frost_walker', 2], ['swift_sneak', 3]];
+function __enchanted(id, list) {
+  const stack = new ItemStack(id, 1);
+  const ench = stack.getComponent('minecraft:enchantable');
+  for (const [e, lv] of list) {
+    const type = EnchantmentTypes.get(e);
+    try { if (type && ench) ench.addEnchantment({ type, level: lv }); } catch (x) { /* not on this item */ }
+  }
+  return stack;
+}
+function __goodLoot() {
+  const r = Math.random();
+  if (r < 0.22) { const [id, list] = pick(__GEAR); return __enchanted(id, list); }
+  if (r < 0.40) { const [e, lv] = pick(__BOOKS); return __enchanted('minecraft:enchanted_book', [[e, lv]]); }
+  const total = __RICH.reduce((a, l) => a + l[3], 0);
+  let w = Math.random() * total;
+  for (const l of __RICH) { w -= l[3]; if (w <= 0) return new ItemStack(l[0], randInt(l[1], l[2])); }
+  return new ItemStack('minecraft:diamond', randInt(3, 8));
+}
+
+/**
+ * Ways down from the surface into the Stillwater Caves themselves (1.7.1). Walk over ground with its caves under it
+ * and, out of your way, a sinkhole opens: a stone-lined shaft with a ladder all the way down into the still water's
+ * caves, a rim of mossy stone, two red candles and a sign at the top. One in about every 160 blocks; never in or by
+ * anything built (only where the ground and all round it is the land's own).
+ */
+const __ENTRY_KEY = 'observer:brine_entrances';
+const __ENTRY_SPACING = 160;
+let __entries;
+function __entryList() {
+  if (!__entries) { try { __entries = JSON.parse(String(world.getDynamicProperty(__ENTRY_KEY) ?? '[]')); } catch (e) { __entries = []; } }
+  return __entries;
+}
+const __entryNext = new Map();
+/** Anything that says someone built here (or another add-on's own blocks): an entrance never opens by it. */
+const __BUILT = /planks|brick|glass|wool|concrete|glazed|_slab|stairs|door|fence|_wall|torch|chest|_bed$|crafting|furnace|smoker|rail|lantern|carpet|sign|banner|barrel|bookshelf|ladder|button|lever|pressure|anvil|smithing|loom|bell|campfire|polished|smooth_stone|chiseled|cut_|quartz|lamp|hopper|dispenser|dropper|piston|observer$|target|composter|cauldron|lectern|beacon|shulker|path|farmland|hay|^observer:|^wmire:|^goatwalker:|^shaftbreaker:|^brine:/;
+function __natural(id) { return !__BUILT.test(id); }
+function __entrances(p) {
+  if (!config.halls) return;
+  const t = system.currentTick;
+  if (t < (__entryNext.get(p.id) ?? 0)) return;
+  __entryNext.set(p.id, t + 100);
+  const dim = p.dimension;
+  const l = p.location;
+  let top;
+  try { top = dim.getTopmostBlock({ x: l.x, z: l.z }); } catch (e) { return; }
+  if (!top || l.y < top.location.y - 4 || l.y < 50) return;                    // only for someone up on the land
+  const list = __entryList();
+  if (list.some((e) => Math.hypot(e.x - l.x, e.z - l.z) < __ENTRY_SPACING)) return;
+  if (halls.some((h) => h.wellAt && Math.hypot(h.wellAt.x - l.x, h.wellAt.z - l.z) < __ENTRY_SPACING)) return;
+  for (const r of [20, 30, 42, 54]) {
+    for (let a = 0; a < 12; a++) {
+      const x = Math.floor(l.x + Math.cos((a / 12) * Math.PI * 2) * r), z = Math.floor(l.z + Math.sin((a / 12) * Math.PI * 2) * r);
+      let gy, cy;
+      try {                                                                 // (a column out in unloaded land is passed over)
+        if (!dim.isChunkLoaded({ x, y: 64, z })) continue;
+        const col = dim.getTopmostBlock({ x, z });
+        if (!col || col.isLiquid) continue;
+        gy = col.location.y;
+        while (gy > 40 && SOFT.includes(dim.getBlock({ x, y: gy, z })?.typeId ?? 'minecraft:air')) gy--;
+        if (gy < 50) continue;
+        // (a quick look at a few depths first: most land has none of its caves under it)
+        if (![40, 30, 20, 10, 0, -10, -20, -30].some((yy) => yy < gy - 10 && biomeAt(dim, { x, y: yy, z }) === BIOME)) continue;
+        // the cave below: the first open space that is the Stillwater Caves, at least ten blocks down
+        for (let y = gy - 10; y > -50; y -= 2) {
+          if (biomeAt(dim, { x, y, z }) !== BIOME) continue;
+          const b = dim.getBlock({ x, y, z });
+          if (b && (b.isAir || b.typeId === 'minecraft:water')) { cy = y; break; }
+        }
+        if (cy === undefined) continue;
+        // the land's own all round (nobody's build)
+        let ok = true;
+        for (let dx = -3; dx <= 3 && ok; dx++) for (let dz = -3; dz <= 3 && ok; dz++) for (let dy = 0; dy <= 3 && ok; dy++) {
+          const id = dim.getBlock({ x: x + dx, y: gy + dy, z: z + dz })?.typeId ?? 'minecraft:air';
+          if (!__natural(id)) ok = false;
+        }
+        if (!ok) continue;
+      } catch (e) { continue; }
+      if (__digEntrance(dim, x, z, gy, cy)) {
+        list.push({ x, z, y: gy + 1, cy });
+        if (list.length > 400) list.shift();
+        try { world.setDynamicProperty(__ENTRY_KEY, JSON.stringify(list)); } catch (e) { /* ok */ }
+        __dw.note('brinesleeper', { what: 'entrance', x, z, y: gy + 1, cave: cy, player: p.name });
+        return;
+      }
+    }
+  }
+}
+function __digEntrance(dim, sx, sz, gy, cy) {
+  const vol = (x0, y0, z0, x1, y1, z1) => new BlockVolume({ x: x0, y: y0, z: z0 }, { x: x1, y: y1, z: z1 });
+  const fill = (v, blk) => { try { dim.fillBlocks(v, blk, { ignoreChunkBoundErrors: true }); } catch (e) { /* ok */ } };
+  try {
+    // the lining (it seals off the caves and water it passes), stone bricks above, deepslate below the zero line
+    const yb = cy + 2;
+    for (const [y0, y1, blk] of [[yb, Math.min(gy, -1), 'minecraft:cobbled_deepslate'], [Math.max(yb, 0), gy, 'minecraft:stone_bricks']]) {
+      if (y1 < y0) continue;
+      fill(vol(sx - 2, y0, sz - 2, sx + 2, y1, sz - 2), blk);
+      fill(vol(sx - 2, y0, sz + 2, sx + 2, y1, sz + 2), blk);
+      fill(vol(sx - 2, y0, sz - 1, sx - 2, y1, sz + 1), blk);
+      fill(vol(sx + 2, y0, sz - 1, sx + 2, y1, sz + 1), blk);
+    }
+    fill(vol(sx - 1, cy, sz - 1, sx + 1, gy + 3, sz + 1), 'minecraft:air');                 // the shaft, open into the cave
+    const ladder = BlockPermutation.resolve('minecraft:ladder', { facing_direction: 3 });
+    for (let y = cy; y <= gy + 1; y++) dim.getBlock({ x: sx, y, z: sz - 1 })?.setPermutation(ladder);
+    for (let y = cy; y <= gy + 1; y++) {                                            // (the ladder needs its wall)
+      const w = dim.getBlock({ x: sx, y, z: sz - 2 });
+      if (w && (w.isAir || w.isLiquid)) w.setType(y < 0 ? 'minecraft:cobbled_deepslate' : 'minecraft:stone_bricks');
+    }
+    for (let i = 0; i < 10; i++) {                                                  // claw marks and old blood
+      const y = cy + 3 + Math.floor(Math.random() * Math.max(1, gy - cy - 6));
+      const [x, z] = pick([[sx - 2, sz], [sx + 2, sz], [sx - 1, sz + 2], [sx + 1, sz + 2]]);
+      dim.getBlock({ x, y, z })?.setType(y < 0 ? pick(['brine:clawed_deepslate', 'brine:bloodstained_deepslate']) : 'minecraft:mossy_stone_bricks');
+    }
+    // the sinkhole at the top: the ground cleared round it, a rim of mossy stone, two candles, a sign
+    try { dim.fillBlocks(vol(sx - 3, gy + 1, sz - 3, sx + 3, gy + 4, sz + 3), 'minecraft:air', { blockFilter: { includeTypes: SOFT.filter((b) => b !== 'minecraft:air') } }); } catch (e) { /* ok */ }
+    for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) {
+      if (Math.max(Math.abs(dx), Math.abs(dz)) !== 3) continue;
+      dim.getBlock({ x: sx + dx, y: gy + 1, z: sz + dz })?.setType(Math.random() < 0.5 ? 'minecraft:mossy_cobblestone' : 'minecraft:cobblestone');
+    }
+    for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {
+      if (Math.max(Math.abs(dx), Math.abs(dz)) !== 2) continue;
+      const b = dim.getBlock({ x: sx + dx, y: gy, z: sz + dz });
+      if (b && (b.isAir || SOFT.includes(b.typeId))) b.setType('minecraft:mossy_cobblestone');
+    }
+    const candle = BlockPermutation.resolve('minecraft:red_candle', { lit: true, candles: 2 });
+    for (const [dx, dz] of [[3, 3], [-3, -3]]) dim.getBlock({ x: sx + dx, y: gy + 2, z: sz + dz })?.setPermutation(candle);
+    const sign = dim.getBlock({ x: sx, y: gy + 2, z: sz + 3 });
+    if (sign) {
+      sign.setPermutation(BlockPermutation.resolve('minecraft:standing_sign', { ground_sign_direction: 0 }));
+      sign.getComponent('minecraft:sign')?.setText('§0The water down\n§0there is still.\n§0Too still.\n§4Do not go down.');
+    }
+  } catch (e) { debug(`entrance: ${e}`); return false; }
+  debug(`a way down at ${sx} ${gy + 1} ${sz} to the caves at ${cy}`);
+  return true;
+}
+/** (tests) look for a way down from where this player stands now */
+export function __entranceNow(p) { __entryNext.delete(p.id); __entrances(p); }

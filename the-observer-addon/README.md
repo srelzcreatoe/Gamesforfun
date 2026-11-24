@@ -155,6 +155,12 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   blow on *rarely* to 8+ blocks a second and 6½ hearts on *constantly*, cutting you off, guarding the way out, waiting
   at the chests). The stones where you land are the way back. The realm is laid out afresh, shuffled and restocked,
   each time a rift opens. Previews (drawn offline from the pack's own files): [docs/media/1.6.0/](docs/media/1.6.0/).
+* **1.7.1 — fixes**: **the Rift's sky is dark grey for real** (it is shut in by a dark grey sky beyond its mist; the
+  light still comes through); **the Brinesleeper never just stays there when you walk up to it** — it comes for you
+  (out of the water onto the bank in one bound) or it is gone — and it leaps out of the water in a chase instead of
+  getting stuck in it; **its caves and its great halls are much rarer** (no more halls forming in front of you as you
+  fly through in spectator mode), **a way down from the surface** opens near its caves, and **its halls' chests hold
+  real loot**; **the Hollows are a little more common**; **the Shaftbreaker's roar and screams are far deeper**.
 * **1.7.0 — deeper and darker**: **the Hollows are a cave biome** now — in place of the dripstone caves, walls of
   veinstone, flesh and bone hung with vines, fangs and pods, and great chambers hollowed out of the rock (caverns of
   flesh under arching ribs, rib halls, a heart chamber, a collapsed mine); the Stillwater Caves are a little rarer. **The

@@ -5116,6 +5116,181 @@ TESTS.dweller_wits = async () => {
   await wait(80); // (its hold on the music let go)
 };
 
+TESTS.brine_close = async () => {
+  // 1.7.1: the Brinesleeper never just stays there when you walk right up to it — not on land, not lying in the water
+  // while you stand on the bank (it comes out at you in one bound, or it is gone), not in one of its staged scenes
+  const p = await freshTarget("Tester", AT_FIELD, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
+  isolate(p);
+  obs("dwellers", "on", "brinesleeper");
+  await wait(6);
+  const clear = async () => {
+    for (const e of ow().getEntities({ type: "brine:brinesleeper" })) e.remove();
+    await wait(10);
+  };
+  await clear();
+  // on land: it is right in front of you, looking at you
+  const land = [];
+  for (let k = 0; k < 3; k++) {
+    heal(p);
+    p.teleport(AT_FIELD, { facingLocation: { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 3.5 } });
+    const m = mark();
+    ow().spawnEntity("brine:brinesleeper", { x: FIELD.x + 0.5, y: Y, z: FIELD.z - 3.5 });
+    const r = await waitEvent("dweller", (d) => d.name === "brinesleeper" && d.what === "close", 60, m);
+    land.push(r ? `${r.how}<${r.from}@${r.d}` : "nothing");
+    await wait(10);
+    await clear();
+  }
+  check("brine_close_on_land_reacts", land.every((x) => /^(attack|vanish)</.test(x)), land.join(" "));
+  // in the water, you on the bank: it comes out at you (onto the bank beside you) or it is gone
+  const bank = { x: POOL.x0 - 1.5, y: Y, z: POOL.center.z };
+  const water = [];
+  let leapt = false, leapNear = "";
+  for (let k = 0; k < 4 && !(water.length >= 2 && leapt); k++) {
+    heal(p);
+    p.teleport(bank, { facingLocation: { x: POOL.x0 + 4, y: Y - 1, z: POOL.center.z } });
+    const m = mark();
+    const c = ow().spawnEntity("brine:brinesleeper", { x: POOL.x0 + 3.5, y: Y - 2, z: POOL.center.z });
+    const r = await waitEvent("dweller", (d) => d.name === "brinesleeper" && d.what === "close", 60, m);
+    water.push(r ? `${r.how}<${r.from}${r.water ? "~" : ""}` : "nothing");
+    if (r && r.how === "attack") {
+      const leap = await waitEvent("dweller", (d) => d.name === "brinesleeper" && d.what === "leap", 20, m);
+      await wait(4);
+      if (leap && c.isValid) {
+        leapt = true;
+        leapNear = `${hdist(c.location, p.location).toFixed(1)} in water ${c.isInWater}`;
+      }
+    }
+    await wait(10);
+    await clear();
+  }
+  check("brine_close_in_the_water_reacts", water.every((x) => /^(attack|vanish)</.test(x)), water.join(" "));
+  check("brine_close_leaps_out_at_you", leapt && /^[0-3]\./.test(leapNear) && /false$/.test(leapNear), `${leapNear || "no leap"}; ${water.join(" ")}`);
+  // a staged scene: walk right up to it and it does not stay
+  const staged = [];
+  // (its real scenes stage only in its own caves: a test scene in which it simply stands there, watching, three times)
+  for (const name of ["test_hold", "test_hold", "test_hold"]) {
+    heal(p);
+    p.teleport(AT_FIELD, { facingLocation: { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 } });
+    await clear();
+    obs("dwellers", "brine_scene", name, "Tester");
+    let c;
+    for (let t = 0; t < 60 && !c; t += 4) {
+      c = ow().getEntities({ type: "brine:brinesleeper", tags: ["brine_staged"] })[0];
+      await wait(4);
+    }
+    if (!c) {
+      staged.push(`${name}:not staged`);
+      continue;
+    }
+    const m = mark();
+    const at = c.location;
+    p.teleport({ x: at.x + 2.5, y: at.y, z: at.z + 0.5 }, { facingLocation: { x: at.x, y: at.y + 1.6, z: at.z } });
+    let how = "";
+    for (let t = 0; t < 40 && !how; t += 2) {
+      await wait(2);
+      if (!c.isValid) how = "gone";
+      else if (!c.hasTag("brine_staged")) how = "came";
+    }
+    const note = since(m, "dweller").find((d) => d.name === "brinesleeper" && d.what === "close");
+    staged.push(`${name}:${how || "stayed"}${note ? `(${note.how})` : ""}`);
+    await clear();
+  }
+  const tried = staged.filter((x) => !/not staged/.test(x));
+  check("brine_close_in_a_scene_reacts", tried.length === 3 && tried.every((x) => /:(gone|came)/.test(x)), staged.join(" "));
+  obs("dwellers", "off", "all");
+  await clear();
+};
+
+/** A Stillwater cave under open land (1.7.1): searched outward from 0,0 a column at a time. */
+async function findStillwater() {
+  const dim = ow();
+  const cols = [];
+  for (let r = 96; r <= 1536; r += 96) for (let a = 0; a < 360; a += Math.max(6, 6000 / r)) cols.push({ x: Math.round(r * Math.cos((a * Math.PI) / 180)), z: Math.round(r * Math.sin((a * Math.PI) / 180)) });
+  for (let i = 0; i < cols.length; i += 10) {
+    const batch = cols.slice(i, i + 10);
+    batch.forEach((c, k) => {
+      try {
+        dim.runCommand(`tickingarea add circle ${c.x} 0 ${c.z} 0 sw${k} true`);
+      } catch {}
+    });
+    for (let t = 0; t < 200 && !batch.every((c) => dim.isChunkLoaded({ x: c.x, y: 0, z: c.z })); t++) await wait(2);
+    let found;
+    for (const c of batch) {
+      if (found) break;
+      try {
+        const top = dim.getTopmostBlock({ x: c.x, z: c.z });
+        if (!top || top.isLiquid || top.location.y < 60) continue;
+        const ty = top.location.y;
+        for (let y = ty - 12; y > -40 && !found; y -= 3) {
+          if (dim.getBiome({ x: c.x, y, z: c.z })?.id !== "brine:stillwater_caves") continue;
+          const b = dim.getBlock({ x: c.x, y, z: c.z });
+          if (b && (b.isAir || b.typeId === "minecraft:water")) found = { x: c.x, z: c.z, top: ty, cave: y };
+        }
+      } catch {
+        // (a column whose chunk went before it was read)
+      }
+    }
+    batch.forEach((_, k) => {
+      try {
+        dim.runCommand(`tickingarea remove sw${k}`);
+      } catch {}
+    });
+    if (found) return found;
+  }
+  return undefined;
+}
+async function findStillwaterSafe() {
+  try {
+    return await findStillwater();
+  } finally {
+    for (let k = 0; k < 10; k++) {
+      try {
+        ow().runCommand(`tickingarea remove sw${k}`);
+      } catch {}
+    }
+  }
+}
+
+TESTS.brine_entrance = async () => {
+  // 1.7.1: walk over land with the Stillwater Caves under it and a way down opens nearby — a stone-lined shaft with a
+  // ladder all the way into the caves, a rim of mossy stone, candles and a sign at the top
+  const spot = await findStillwaterSafe();
+  if (!check("brine_entrance_its_caves_found", !!spot, spot ? JSON.stringify(spot) : "none within 1.5 km")) return;
+  const dim = ow();
+  dim.runCommand(`tickingarea add circle ${spot.x} 0 ${spot.z} 4 swx true`);
+  for (let t = 0; t < 200 && !dim.isChunkLoaded({ x: spot.x + 40, y: 0, z: spot.z }); t++) await wait(2);
+  await wait(10);
+  const at = { x: spot.x + 26.5, z: spot.z + 0.5 };
+  const top = dim.getTopmostBlock({ x: at.x, z: at.z });
+  const p = await freshTarget("Tester", { x: at.x, y: (top?.location.y ?? spot.top) + 1, z: at.z }, { x: spot.x, y: spot.top, z: spot.z }, 2);
+  isolate(p);
+  obs("dwellers", "on", "brinesleeper");
+  await wait(6);
+  const m = mark();
+  obs("dwellers", "brine_entrance", "Tester");
+  const e = await waitEvent("dweller", (d) => d.name === "brinesleeper" && d.what === "entrance", 40, m);
+  if (check("brine_entrance_opens", !!e, JSON.stringify(spot))) {
+    let open = 0, ladder = 0, n = 0;
+    for (let y = e.y - 1; y > e.cave; y--) {
+      n++;
+      const b = dim.getBlock({ x: e.x, y, z: e.z });
+      if (b && (b.isAir || b.isLiquid || b.typeId === "minecraft:ladder")) open++;
+      if (dim.getBlock({ x: e.x, y, z: e.z - 1 })?.typeId === "minecraft:ladder") ladder++;
+    }
+    const rim = dim.getBlock({ x: e.x + 3, y: e.y, z: e.z + 3 })?.typeId ?? "?";
+    const sign = dim.getBlock({ x: e.x, y: e.y + 1, z: e.z + 3 })?.typeId ?? "?";
+    check("brine_entrance_shaft_down_to_the_caves", n >= 10 && open === n && ladder >= n - 1, `${open}/${n} open, ladder ${ladder}, from ${e.y} to ${e.cave}`);
+    check("brine_entrance_its_rim_and_sign", /cobblestone/.test(rim) && /sign/.test(sign), `${rim} ${sign}`);
+    // one is enough round here
+    const m2 = mark();
+    obs("dwellers", "brine_entrance", "Tester");
+    await wait(20);
+    check("brine_entrance_not_another_close_by", !since(m2, "dweller").some((d) => d.what === "entrance"));
+  }
+  obs("dwellers", "off", "all");
+  dim.runCommand("tickingarea remove swx");
+};
+
 TESTS.rift = async () => {
   // 1.6.0: the Rift. A rift opens near you (room for it, light round it, facing you); the realm on the other side is laid
   // out (49 pieces since 1.7.0, every place in it once, somewhere new each time); walk in and you are at the stones, the way out beside you; nothing lives there; the void puts you
@@ -5166,8 +5341,25 @@ TESTS.rift = async () => {
   check("rift_walk_in", !!ent && p.dimension.id === "observer:rift", p.dimension.id);
   const ARRIVE = { x: -8 + 0.5, y: 65, z: -8 + 6.5 };
   check("rift_land_at_the_stones", hdist(p.location, ARRIVE) < 3 && Math.abs(p.location.y - 65) < 2, JSON.stringify(p.location));
-  const ground = RIFT.getBlock({ x: Math.floor(p.location.x), y: Math.floor(p.location.y) - 1, z: Math.floor(p.location.z) });
+  let ground;
+  for (let t = 0; t < 60 && !ground; t += 2) {
+    ground = RIFT.getBlock({ x: Math.floor(p.location.x), y: Math.floor(p.location.y) - 1, z: Math.floor(p.location.z) });
+    if (!ground) await wait(2);
+  }
   check("rift_ground_under_you", !!ground && !ground.isAir, ground?.typeId);
+  // (1.7.1) its sky: shut in by a dark grey ceiling, floor and walls beyond the mist, built once — and the light still
+  // comes through it
+  const sky = since(0, "rift").find((d) => d.what === "sky");
+  check("rift_sky_built", !!sky && sky.failed === 0 && sky.fills === 52, JSON.stringify(sky ?? {}));
+  const above = RIFT.getBlock({ x: Math.floor(p.location.x), y: 150, z: Math.floor(p.location.z) });
+  let light = -1;
+  try {
+    light = RIFT.getSkyLightLevel({ x: p.location.x, y: p.location.y + 1, z: p.location.z });
+  } catch (e) {
+    light = -2;
+  }
+  check("rift_sky_overhead", above?.typeId === "observer:rift_sky", above?.typeId ?? "?");
+  check("rift_sky_lets_the_light_through", light >= 14, String(light));
   let exit;
   for (let t = 0; t < 100 && !exit; t += 5) {
     exit = RIFT.getEntities({ type: "observer:rift_portal", tags: ["observer_rift_exit"] })[0];

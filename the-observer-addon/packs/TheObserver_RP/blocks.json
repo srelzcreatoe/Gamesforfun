@@ -335,5 +335,8 @@
   },
   "observer:hanged": {
     "sound": "cloth"
+  },
+  "observer:rift_sky": {
+    "sound": "stone"
   }
 }

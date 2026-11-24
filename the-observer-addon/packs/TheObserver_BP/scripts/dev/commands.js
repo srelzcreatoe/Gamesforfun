@@ -436,6 +436,18 @@ export function run(name, args, caller) {
         if (!p) return "no player";
         return `send ${args[1]}: ${String(dwellerLink.sendNow(args[1], p))}`;
       }
+      if (sub === "brine_entrance") {
+        // dwellers brine_entrance [player] (1.7.1, tests): a way down into the Stillwater Caves near them, now
+        const p = pick(1);
+        if (!p) return "no player";
+        return `brinesleeper entrance: ${String(dwellerLink.brEntrance(p))}`;
+      }
+      if (sub === "brine_scene") {
+        // dwellers brine_scene <name> [player] (1.7.1, tests): one of the Brinesleeper's scenes, staged now
+        const p = pick(2);
+        if (!p) return "no player";
+        return `brinesleeper scene ${args[1]}: ${String(dwellerLink.brScene(p, args[1]))}`;
+      }
       if (sub === "sb_stop") {
         // dwellers sb_stop (1.7.0, tests): whatever the Shaftbreaker is doing ends, and it is gone
         dwellerLink.sbStop();

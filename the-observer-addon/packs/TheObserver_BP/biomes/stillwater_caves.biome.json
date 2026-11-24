@@ -80,7 +80,7 @@
             "targets": [
               "minecraft:lush_caves"
             ],
-            "amount": 0.75,
+            "amount": 0.45,
             "noise_frequency_scale": 0.1
           }
         ]

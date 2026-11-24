@@ -471,6 +471,9 @@
     },
     "observer_gravestone": {
       "textures": "textures/blocks/rift/gravestone"
+    },
+    "observer_rift_sky": {
+      "textures": "textures/blocks/rift/rift_sky"
     }
   }
 }

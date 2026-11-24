@@ -112,7 +112,7 @@ export function isUnderground(player) {
 export const HOLLOWS = 'shaftbreaker:the_hollows';
 /** is this position inside the Hollows (its own biome)? */
 export function inHollows(dim, pos) {
-  try { return dim.getBiome(floor3(pos)).id === HOLLOWS; } catch { return false; }
+  try { const id = dim.getBiome(floor3(pos)).id; return id === HOLLOWS || id === 'shaftbreaker:the_hollows_deep'; } catch { return false; }   // (1.7.1) and its twin
 }
 
 export function isChunkLoaded(dim, pos) {

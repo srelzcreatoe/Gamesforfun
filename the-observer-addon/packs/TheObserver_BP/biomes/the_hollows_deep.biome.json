@@ -1,0 +1,169 @@
+{
+  "format_version": "1.26.30",
+  "minecraft:biome": {
+    "description": {
+      "identifier": "shaftbreaker:the_hollows_deep"
+    },
+    "components": {
+      "minecraft:climate": {
+        "downfall": 0.0,
+        "snow_accumulation": [
+          0.0,
+          0.0
+        ],
+        "temperature": 0.7
+      },
+      "minecraft:replace_biomes": {
+        "replacements": [
+          {
+            "dimension": "minecraft:overworld",
+            "targets": [
+              "minecraft:deep_dark"
+            ],
+            "amount": 0.6,
+            "noise_frequency_scale": 0.1
+          }
+        ]
+      },
+      "minecraft:surface_builder": {
+        "builder": {
+          "type": "minecraft:overworld",
+          "sea_floor_depth": 5,
+          "sea_floor_material": "minecraft:gravel",
+          "foundation_material": "shaftbreaker:veinstone",
+          "mid_material": "shaftbreaker:hollow_soil",
+          "top_material": "shaftbreaker:hollow_dust",
+          "sea_material": "minecraft:water"
+        }
+      },
+      "minecraft:surface_material_adjustments": {
+        "adjustments": [
+          {
+            "materials": {
+              "top_material": "minecraft:gravel"
+            },
+            "noise_frequency_scale": 0.08,
+            "noise_range": [
+              -0.1,
+              0.12
+            ]
+          },
+          {
+            "materials": {
+              "top_material": "shaftbreaker:clawed_stone",
+              "mid_material": "minecraft:stone"
+            },
+            "noise_frequency_scale": 0.13,
+            "noise_range": [
+              0.6,
+              1.0
+            ]
+          },
+          {
+            "materials": {
+              "top_material": "minecraft:coarse_dirt"
+            },
+            "noise_frequency_scale": 0.05,
+            "noise_range": [
+              -0.6,
+              -0.42
+            ]
+          }
+        ]
+      },
+      "minecraft:tags": {
+        "tags": [
+          "caves",
+          "overworld",
+          "monster",
+          "shaftbreaker_hollows"
+        ]
+      },
+      "minecraft:subsurface_builder": {
+        "builder": {
+          "type": "minecraft:noise_gradient",
+          "noise_descriptor": {
+            "name": "shaftbreaker:hollow_walls",
+            "first_octave": -5,
+            "amplitudes": [
+              1.0,
+              0.6,
+              0.3
+            ]
+          },
+          "non_replaceable_blocks": [
+            "minecraft:bedrock"
+          ],
+          "noise_block_specifiers": [
+            {
+              "range": {
+                "min": -1.0,
+                "max": -0.45
+              },
+              "block": "minecraft:deepslate"
+            },
+            {
+              "range": {
+                "min": -0.45,
+                "max": -0.1
+              },
+              "block": "shaftbreaker:veinstone"
+            },
+            {
+              "range": {
+                "min": -0.1,
+                "max": 0.02
+              },
+              "block": "shaftbreaker:fleshstone"
+            },
+            {
+              "range": {
+                "min": 0.02,
+                "max": 0.3
+              },
+              "block": "shaftbreaker:veinstone"
+            },
+            {
+              "range": {
+                "min": 0.3,
+                "max": 0.36
+              },
+              "block": "shaftbreaker:cracked_veinstone"
+            },
+            {
+              "range": {
+                "min": 0.36,
+                "max": 0.52
+              },
+              "block": "shaftbreaker:veinstone"
+            },
+            {
+              "range": {
+                "min": 0.52,
+                "max": 0.6
+              },
+              "block": "shaftbreaker:ribstone"
+            },
+            {
+              "range": {
+                "min": 0.6,
+                "max": 0.72
+              },
+              "block": "shaftbreaker:fleshstone"
+            },
+            {
+              "range": {
+                "min": 0.72,
+                "max": 1.0
+              },
+              "block": "shaftbreaker:veinstone"
+            }
+          ]
+        }
+      },
+      "minecraft:overworld_height": {
+        "noise_type": "default"
+      }
+    }
+  }
+}

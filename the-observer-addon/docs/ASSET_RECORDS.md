@@ -293,6 +293,32 @@ Mire grows no new eyeblooms).
 | `TheObserver_RP/sounds/mob/brinesleeper_dark/step2.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `8d78b2a7b47a2762` |
 | `TheObserver_RP/sounds/mob/brinesleeper_dark/submerge.ogg` | original — synthesized by tools/synth_dark.py (1.7.0; replaces the Brinesleeper's own sound) | `1369477d92f1e70a` |
 
+## 1.7.1
+
+The Rift's sky block and its texture are original (`tools/rift_assets.py`). The Shaftbreaker's deeper roar and yells
+are the user's own recordings from the Shaftbreaker archive, pitched down and filtered by `tools/deepen_shaftbreaker.py`
+(nothing else added); the originals they replace are no longer shipped.
+
+| File | Provenance | SHA-256 (16) |
+|---|---|---|
+| `TheObserver_RP/textures/blocks/rift/rift_sky.png` | original — drawn by tools/rift_assets.py (1.7.1): the Rift's sky, the mist's own dark grey with a breath of grain | `81f6cae86fa9dfd9` |
+| `TheObserver_BP/blocks/rift/rift_sky.json` | original — tools/rift_assets.py (1.7.1): the Rift's sky block (lets light through, cannot be broken) | `3b54ba5b7b3c0e03` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/roar_1.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `roar_1.ogg` pitched down, with more low end (replaces it) | `e8392b50b869d90e` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/roar_2.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `roar_2.ogg` pitched down, with more low end (replaces it) | `3a34090dfadb355d` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/roar_3.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `roar_3.ogg` pitched down, with more low end (replaces it) | `11f0cefc5a22043a` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/roar_cut_1.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `roar_cut_1.ogg` pitched down, with more low end (replaces it) | `9d69682a31888f20` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/roar_cut_2.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `roar_cut_2.ogg` pitched down, with more low end (replaces it) | `67cf3e2f0bab235b` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/screech_1.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `screech_1.ogg` pitched down, with more low end (replaces it) | `bbd703685332b59f` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/screech_2.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `screech_2.ogg` pitched down, with more low end (replaces it) | `c348d9509eac4915` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/screech_3.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `screech_3.ogg` pitched down, with more low end (replaces it) | `01f3a16b3d1e9252` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/jumpscare_1.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `jumpscare_1.ogg` pitched down, with more low end (replaces it) | `662b14aab523cd04` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/jumpscare_2.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `jumpscare_2.ogg` pitched down, with more low end (replaces it) | `df5312588125d5df` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/growl_1.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `growl_1.ogg` pitched down, with more low end (replaces it) | `a1536b2716fe3942` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/growl_2.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `growl_2.ogg` pitched down, with more low end (replaces it) | `a7b916631de85692` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/growl_3.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `growl_3.ogg` pitched down, with more low end (replaces it) | `449bae47995ee8e5` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/distant_scream_1.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `distant_scream_1.ogg` pitched down, with more low end (replaces it) | `74665909812f14e3` |
+| `TheObserver_RP/sounds/shaftbreaker_deep/distant_scream_2.ogg` | derived — tools/deepen_shaftbreaker.py (1.7.1): the user's own Shaftbreaker recording `distant_scream_2.ogg` pitched down, with more low end (replaces it) | `f2a6649d10552003` |
+
 ## Shipped resource files
 
 | File | Provenance | SHA-256 (first 16) |

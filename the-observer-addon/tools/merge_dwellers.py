@@ -57,13 +57,19 @@ SOUND_OVERRIDES = {"brinesleeper": {
     "mob.brinesleeper.click": [_BV + "click1", _BV + "click2"], "mob.brinesleeper.step": [_BV + "step1", _BV + "step2"],
 }, "shaftbreaker": {
     # (1.7.0) its music made over darker (tools/synth_dark.py)
-    f"music.shaftbreaker.{k}": [f"sounds/music/shaft_dark/{k}"] for k in ("presence", "hollows", "close", "standoff", "chase")
+    **{f"music.shaftbreaker.{k}": [f"sounds/music/shaft_dark/{k}"] for k in ("presence", "hollows", "close", "standoff", "chase")},
+    # (1.7.1) its roar and its yells deeper (tools/deepen_shaftbreaker.py: its own recordings pitched down)
+    **{f"shaftbreaker.{k}": [f"sounds/shaftbreaker_deep/{k}_{i}" for i in range(1, n + 1)]
+       for k, n in (("roar", 3), ("roar_cut", 2), ("screech", 3), ("jumpscare", 2), ("growl", 3), ("distant_scream", 2))},
+    "shaftbreaker.idle": ["sounds/shaftbreaker_deep/growl_1", "sounds/shaftbreaker_deep/growl_3"],   # (its idle is two of its growls)
 }}
 SKIP_FILES = {("brinesleeper", "RP", r) for r in (
     [f"sounds/music/brine/{n}.ogg" for n in ("stillwater_1", "stillwater_2", "stillwater_3", "stillwater_4", "stillwater_5", "near_1", "near_2", "chase", "sting_1", "sting_2", "sting_3")]
     + [f"sounds/mob/brinesleeper/{n}.ogg" for n in ("breathe", "call", "death", "emerge", "grasp", "hiss", "hurt", "lunge", "moan", "roar", "submerge", "click1", "click2", "step1", "step2")]
     + ["sounds/brine_fx/spotted.ogg", "sounds/brine_fx/jumpscare.ogg"])} | {
-    ("shaftbreaker", "RP", f"sounds/shaftbreaker/music_{k}.ogg") for k in ("presence", "hollows", "close", "standoff", "chase")}
+    ("shaftbreaker", "RP", f"sounds/shaftbreaker/music_{k}.ogg") for k in ("presence", "hollows", "close", "standoff", "chase")} | {
+    ("shaftbreaker", "RP", f"sounds/shaftbreaker/{k}_{i}.ogg")
+    for k, n in (("roar", 3), ("roar_cut", 2), ("screech", 3), ("jumpscare", 2), ("growl", 3), ("distant_scream", 2)) for i in range(1, n + 1)}
 RENAME = {
     ("goatwalker", "BP", "entities/flare.json"): "entities/gw_flare.json",
     ("goatwalker", "RP", "entity/flare.entity.json"): "entity/gw_flare.entity.json",
@@ -91,7 +97,13 @@ def _drop_targets(drop):
 
 
 HOLLOWS_TARGETS = [{"dimension": "minecraft:overworld", "targets": ["minecraft:dripstone_caves"], "amount": 1.0, "noise_frequency_scale": 0.15}]
-STILLWATER_TARGETS = [{"dimension": "minecraft:overworld", "targets": ["minecraft:lush_caves"], "amount": 0.75, "noise_frequency_scale": 0.1}]
+# (1.7.1) a little more of the Hollows: its twin, shaftbreaker:the_hollows_deep, the same in every way (its tag brings
+# all its features, its look and music come with it), takes part of the deep dark. A biome uses one replacement entry
+# only (measured: a second entry on the Hollows changed nothing), hence a twin. And the amount is no share: it is a cut
+# on a noise — on the lush caves 0.3 took about 2 % of them, 0.45 about a quarter, 0.55 about half; on the deep dark the
+# same cut takes less (0.45 nothing, 0.5 about a twelfth, 1.0 all of it): measured with otest:cavewide, seed 424242.
+HOLLOWS_DEEP_TARGETS = [{"dimension": "minecraft:overworld", "targets": ["minecraft:deep_dark"], "amount": 0.6, "noise_frequency_scale": 0.1}]
+STILLWATER_TARGETS = [{"dimension": "minecraft:overworld", "targets": ["minecraft:lush_caves"], "amount": 0.45, "noise_frequency_scale": 0.1}]
 
 
 def _hollows(d):
@@ -242,6 +254,30 @@ PATCHES = [
     ("brinesleeper", "brain.js",
      "const PROFILE = { bold: 0.1, looks: 0,",
      "const PROFILE = { bold: 0.45, looks: 0,"),
+    # (1.7.1) right up against it, whatever it is doing: within half a second it comes for you or it is gone
+    # (__brineClose, appended); out of the water at you in one bound instead of floundering in it (__leapTo)
+    ("brinesleeper", "brain.js",
+     "  watchHabits(target, c);\n\n  switch (m.state) {",
+     "  watchHabits(target, c);\n  if (__brineClose(c, m, target, d)) return;\n\n  switch (m.state) {"),
+    ("brinesleeper", "brain.js",
+     "      if (inWater(c) && !target.isInWater) {\n        const b = bankNear(c, target);",
+     "      if (inWater(c) && !target.isInWater) {\n"
+     "        if (d < 9 && now() >= (m.nextLeap ?? 0)) { m.nextLeap = now() + 5 * TPS; if (__leapTo(c, m, target)) break; }   // (1.7.1) out at you in one bound\n"
+     "        const b = bankNear(c, target);"),
+    ("brinesleeper", "main.js",
+     "    if (!pl) endScene('player left');\n    else if (now() >= scene.wake) {",
+     "    if (!pl) endScene('player left');\n    else if (__sceneClose()) { /* (1.7.1) walked right up to it: it reacted */ }\n    else if (now() >= scene.wake) {"),
+    ("brinesleeper", "main.js",
+     "  yield* waitUntil(() => !c.isValid || (player.isValid && !inSight(player, c.getHeadLocation())), 12 * TPS, 4);",
+     "  // (1.7.1) never just standing there while you walk up to it: gone the moment you look away, or come close\n"
+     "  yield* waitUntil(() => !c.isValid || (player.isValid && (!inSight(player, c.getHeadLocation()) || flat(player.location, c.location) < 8)), 4 * TPS, 2);"),
+    ("brinesleeper", "main.js",
+     "    const long = now() - (pendingWithdraw.get(c.id) ?? now()) > 15 * TPS;          // stared at for too long: smoke\n"
+     "    if (!seen || c.isInWater || long) {",
+     "    const long = now() - (pendingWithdraw.get(c.id) ?? now()) > 4 * TPS;           // stared at for too long: smoke\n"
+     "    const close = __dw.players(\"brinesleeper\").some((p) => p.dimension.id === c.dimension.id && flat(p.location, c.location) < 8);   // (1.7.1)\n"
+     "    if (!seen || c.isInWater || long || close) {\n"
+     "      if (close) { particle(c.dimension, c.isInWater ? 'brine:splash' : 'brine:smoke', add(c.location, { x: 0, y: 1.5, z: 0 })); sound(c.dimension, c.isInWater ? 'mob.brinesleeper.submerge' : 'mob.brinesleeper.hiss', c.location, 0.8, rand(0.8, 0.9)); }"),
     ("brinesleeper", "brain.js",
      "  m.seenFor = 0;\n  debug(`brinesleeper: ${state}`);",
      "  m.seenFor = 0;\n  debug(`brinesleeper: ${state}`);\n  __dw.note('brinesleeper', { what: 'state', state });"),
@@ -285,8 +321,36 @@ PATCHES = [
     ("brinesleeper", "menu.js",
      "  if (!initialSpawn || !isOp(player) || player.getDynamicProperty('brine:wheel')) return;",
      "  if (!initialSpawn || !isOp(player) || player.getDynamicProperty('brine:wheel') || !__dw.GIVE_OWN_WHEELS) return;"),
+    # (1.7.1) its great halls: far fewer (one in 300 blocks, not 90; at most one more joined on), only in its own caves (the
+    # dripstone caves are the Hollows now), never raised by a spectator flying through; and their chests hold real loot
+    ("brinesleeper", "halls.js",
+     "'minecraft:deepslate_copper_ore', 'minecraft:glow_lichen', 'minecraft:moss_block', 'minecraft:rooted_dirt', 'minecraft:terracotta',",
+     "'minecraft:deepslate_copper_ore', 'minecraft:glow_lichen', 'minecraft:moss_block', 'minecraft:dirt_with_roots', 'minecraft:terracotta',"),
+    ("brinesleeper", "halls.js",
+     "const SPACING = 90;",
+     "const SPACING = 300;"),
+    ("brinesleeper", "halls.js",
+     "    const caves = (b) => b === BIOME || b === 'minecraft:dripstone_caves';",
+     "    const caves = (b) => b === BIOME;"),
+    ("brinesleeper", "halls.js",
+     "  grow(player.dimension, h, 2);\n  return true;",
+     "  grow(player.dimension, h, 1);\n  return true;"),
+    ("brinesleeper", "halls.js",
+     "    const b = biomeAt(p.dimension, p.location);\n    if (b !== BIOME && b !== 'minecraft:dripstone_caves') continue;",
+     "    try { if (p.getGameMode() === 'Spectator' || String(p.getGameMode()).toLowerCase() === 'spectator') continue; } catch (e) { continue; }\n"
+     "    __entrances(p);                                               // (1.7.1) a way down from the surface\n"
+     "    const b = biomeAt(p.dimension, p.location);\n    if (b !== BIOME) continue;"),
+    ("brinesleeper", "halls.js",
+     "function lootStack() {\n  const total = LOOT.reduce((a, l) => a + l[3], 0);",
+     "function lootStack() {\n  if (Math.random() < 0.85) return __goodLoot();                     // (1.7.1)\n  const total = LOOT.reduce((a, l) => a + l[3], 0);"),
+    ("brinesleeper", "halls.js",
+     "    for (let i = randInt(6, 10); i > 0; i--) {",
+     "    for (let i = randInt(9, 14); i > 0; i--) {"),
     # --- The Shaftbreaker
     # (1.7.0: 500 health — its home heals it, and a broken organ wounds it, in the same proportion as before)
+    ("shaftbreaker", "world/space.js",
+     "  try { return dim.getBiome(floor3(pos)).id === HOLLOWS; } catch { return false; }",
+     "  try { const id = dim.getBiome(floor3(pos)).id; return id === HOLLOWS || id === 'shaftbreaker:the_hollows_deep'; } catch { return false; }   // (1.7.1) and its twin"),
     ("shaftbreaker", "ai/brain.js",
      "h.setCurrentValue(Math.min(h.effectiveMax, h.currentValue + 2)); });",
      "h.setCurrentValue(Math.min(h.effectiveMax, h.currentValue + 9)); });"),
@@ -375,7 +439,277 @@ REGEX_PATCHES = [
 
 # appended to a dweller's script: what the Observer calls (switching it off, opening its own settings, sending it)
 APPEND = {
+    ("brinesleeper", "halls.js"): '''
+// ---------------------------------------------------------------- merged into The Observer (1.7.1)
+/** What its halls' chests hold now: the best of the deep — maxed gear, books at their highest, riches. */
+const __GEAR = [
+  ['minecraft:diamond_sword', [['sharpness', 5], ['looting', 3], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:netherite_sword', [['sharpness', 5], ['looting', 3], ['fire_aspect', 2], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:diamond_pickaxe', [['efficiency', 5], ['fortune', 3], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:netherite_pickaxe', [['efficiency', 5], ['fortune', 3], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:diamond_helmet', [['protection', 4], ['respiration', 3], ['aqua_affinity', 1], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:diamond_chestplate', [['protection', 4], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:diamond_leggings', [['protection', 4], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:diamond_boots', [['protection', 4], ['depth_strider', 3], ['feather_falling', 4], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:netherite_chestplate', [['protection', 4], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:trident', [['loyalty', 3], ['impaling', 5], ['channeling', 1], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:trident', [['riptide', 3], ['impaling', 5], ['unbreaking', 3], ['mending', 1]]],
+  ['minecraft:bow', [['power', 5], ['punch', 2], ['flame', 1], ['infinity', 1], ['unbreaking', 3]]],
+  ['minecraft:fishing_rod', [['luck_of_the_sea', 3], ['lure', 3], ['unbreaking', 3], ['mending', 1]]],
+];
+const __RICH = [
+  ['minecraft:diamond', 3, 8, 12], ['minecraft:emerald', 4, 12, 8], ['minecraft:gold_block', 1, 3, 6], ['minecraft:diamond_block', 1, 2, 3],
+  ['minecraft:netherite_ingot', 1, 2, 4], ['minecraft:netherite_scrap', 2, 4, 5], ['minecraft:enchanted_golden_apple', 1, 2, 5],
+  ['minecraft:golden_apple', 2, 5, 8], ['minecraft:totem_of_undying', 1, 1, 5], ['minecraft:heart_of_the_sea', 1, 1, 4],
+  ['minecraft:nautilus_shell', 2, 5, 5], ['minecraft:experience_bottle', 12, 32, 10], ['minecraft:ender_pearl', 4, 12, 6],
+  ['minecraft:golden_carrot', 8, 24, 6], ['minecraft:conduit', 1, 1, 2], ['minecraft:echo_shard', 2, 4, 3],
+  ['minecraft:netherite_upgrade_smithing_template', 1, 1, 3], ['minecraft:music_disc_13', 1, 1, 1],
+];
+const __BOOKS = [['mending', 1], ['depth_strider', 3], ['respiration', 3], ['aqua_affinity', 1], ['unbreaking', 3], ['protection', 4],
+  ['feather_falling', 4], ['looting', 3], ['fortune', 3], ['efficiency', 5], ['sharpness', 5], ['riptide', 3], ['loyalty', 3],
+  ['impaling', 5], ['channeling', 1], ['power', 5], ['infinity', 1], ['silk_touch', 1], ['frost_walker', 2], ['swift_sneak', 3]];
+function __enchanted(id, list) {
+  const stack = new ItemStack(id, 1);
+  const ench = stack.getComponent('minecraft:enchantable');
+  for (const [e, lv] of list) {
+    const type = EnchantmentTypes.get(e);
+    try { if (type && ench) ench.addEnchantment({ type, level: lv }); } catch (x) { /* not on this item */ }
+  }
+  return stack;
+}
+function __goodLoot() {
+  const r = Math.random();
+  if (r < 0.22) { const [id, list] = pick(__GEAR); return __enchanted(id, list); }
+  if (r < 0.40) { const [e, lv] = pick(__BOOKS); return __enchanted('minecraft:enchanted_book', [[e, lv]]); }
+  const total = __RICH.reduce((a, l) => a + l[3], 0);
+  let w = Math.random() * total;
+  for (const l of __RICH) { w -= l[3]; if (w <= 0) return new ItemStack(l[0], randInt(l[1], l[2])); }
+  return new ItemStack('minecraft:diamond', randInt(3, 8));
+}
+
+/**
+ * Ways down from the surface into the Stillwater Caves themselves (1.7.1). Walk over ground with its caves under it
+ * and, out of your way, a sinkhole opens: a stone-lined shaft with a ladder all the way down into the still water's
+ * caves, a rim of mossy stone, two red candles and a sign at the top. One in about every 160 blocks; never in or by
+ * anything built (only where the ground and all round it is the land's own).
+ */
+const __ENTRY_KEY = 'observer:brine_entrances';
+const __ENTRY_SPACING = 160;
+let __entries;
+function __entryList() {
+  if (!__entries) { try { __entries = JSON.parse(String(world.getDynamicProperty(__ENTRY_KEY) ?? '[]')); } catch (e) { __entries = []; } }
+  return __entries;
+}
+const __entryNext = new Map();
+/** Anything that says someone built here (or another add-on's own blocks): an entrance never opens by it. */
+const __BUILT = /planks|brick|glass|wool|concrete|glazed|_slab|stairs|door|fence|_wall|torch|chest|_bed$|crafting|furnace|smoker|rail|lantern|carpet|sign|banner|barrel|bookshelf|ladder|button|lever|pressure|anvil|smithing|loom|bell|campfire|polished|smooth_stone|chiseled|cut_|quartz|lamp|hopper|dispenser|dropper|piston|observer$|target|composter|cauldron|lectern|beacon|shulker|path|farmland|hay|^observer:|^wmire:|^goatwalker:|^shaftbreaker:|^brine:/;
+function __natural(id) { return !__BUILT.test(id); }
+function __entrances(p) {
+  if (!config.halls) return;
+  const t = system.currentTick;
+  if (t < (__entryNext.get(p.id) ?? 0)) return;
+  __entryNext.set(p.id, t + 100);
+  const dim = p.dimension;
+  const l = p.location;
+  let top;
+  try { top = dim.getTopmostBlock({ x: l.x, z: l.z }); } catch (e) { return; }
+  if (!top || l.y < top.location.y - 4 || l.y < 50) return;                    // only for someone up on the land
+  const list = __entryList();
+  if (list.some((e) => Math.hypot(e.x - l.x, e.z - l.z) < __ENTRY_SPACING)) return;
+  if (halls.some((h) => h.wellAt && Math.hypot(h.wellAt.x - l.x, h.wellAt.z - l.z) < __ENTRY_SPACING)) return;
+  for (const r of [20, 30, 42, 54]) {
+    for (let a = 0; a < 12; a++) {
+      const x = Math.floor(l.x + Math.cos((a / 12) * Math.PI * 2) * r), z = Math.floor(l.z + Math.sin((a / 12) * Math.PI * 2) * r);
+      let gy, cy;
+      try {                                                                 // (a column out in unloaded land is passed over)
+        if (!dim.isChunkLoaded({ x, y: 64, z })) continue;
+        const col = dim.getTopmostBlock({ x, z });
+        if (!col || col.isLiquid) continue;
+        gy = col.location.y;
+        while (gy > 40 && SOFT.includes(dim.getBlock({ x, y: gy, z })?.typeId ?? 'minecraft:air')) gy--;
+        if (gy < 50) continue;
+        // (a quick look at a few depths first: most land has none of its caves under it)
+        if (![40, 30, 20, 10, 0, -10, -20, -30].some((yy) => yy < gy - 10 && biomeAt(dim, { x, y: yy, z }) === BIOME)) continue;
+        // the cave below: the first open space that is the Stillwater Caves, at least ten blocks down
+        for (let y = gy - 10; y > -50; y -= 2) {
+          if (biomeAt(dim, { x, y, z }) !== BIOME) continue;
+          const b = dim.getBlock({ x, y, z });
+          if (b && (b.isAir || b.typeId === 'minecraft:water')) { cy = y; break; }
+        }
+        if (cy === undefined) continue;
+        // the land's own all round (nobody's build)
+        let ok = true;
+        for (let dx = -3; dx <= 3 && ok; dx++) for (let dz = -3; dz <= 3 && ok; dz++) for (let dy = 0; dy <= 3 && ok; dy++) {
+          const id = dim.getBlock({ x: x + dx, y: gy + dy, z: z + dz })?.typeId ?? 'minecraft:air';
+          if (!__natural(id)) ok = false;
+        }
+        if (!ok) continue;
+      } catch (e) { continue; }
+      if (__digEntrance(dim, x, z, gy, cy)) {
+        list.push({ x, z, y: gy + 1, cy });
+        if (list.length > 400) list.shift();
+        try { world.setDynamicProperty(__ENTRY_KEY, JSON.stringify(list)); } catch (e) { /* ok */ }
+        __dw.note('brinesleeper', { what: 'entrance', x, z, y: gy + 1, cave: cy, player: p.name });
+        return;
+      }
+    }
+  }
+}
+function __digEntrance(dim, sx, sz, gy, cy) {
+  const vol = (x0, y0, z0, x1, y1, z1) => new BlockVolume({ x: x0, y: y0, z: z0 }, { x: x1, y: y1, z: z1 });
+  const fill = (v, blk) => { try { dim.fillBlocks(v, blk, { ignoreChunkBoundErrors: true }); } catch (e) { /* ok */ } };
+  try {
+    // the lining (it seals off the caves and water it passes), stone bricks above, deepslate below the zero line
+    const yb = cy + 2;
+    for (const [y0, y1, blk] of [[yb, Math.min(gy, -1), 'minecraft:cobbled_deepslate'], [Math.max(yb, 0), gy, 'minecraft:stone_bricks']]) {
+      if (y1 < y0) continue;
+      fill(vol(sx - 2, y0, sz - 2, sx + 2, y1, sz - 2), blk);
+      fill(vol(sx - 2, y0, sz + 2, sx + 2, y1, sz + 2), blk);
+      fill(vol(sx - 2, y0, sz - 1, sx - 2, y1, sz + 1), blk);
+      fill(vol(sx + 2, y0, sz - 1, sx + 2, y1, sz + 1), blk);
+    }
+    fill(vol(sx - 1, cy, sz - 1, sx + 1, gy + 3, sz + 1), 'minecraft:air');                 // the shaft, open into the cave
+    const ladder = BlockPermutation.resolve('minecraft:ladder', { facing_direction: 3 });
+    for (let y = cy; y <= gy + 1; y++) dim.getBlock({ x: sx, y, z: sz - 1 })?.setPermutation(ladder);
+    for (let y = cy; y <= gy + 1; y++) {                                            // (the ladder needs its wall)
+      const w = dim.getBlock({ x: sx, y, z: sz - 2 });
+      if (w && (w.isAir || w.isLiquid)) w.setType(y < 0 ? 'minecraft:cobbled_deepslate' : 'minecraft:stone_bricks');
+    }
+    for (let i = 0; i < 10; i++) {                                                  // claw marks and old blood
+      const y = cy + 3 + Math.floor(Math.random() * Math.max(1, gy - cy - 6));
+      const [x, z] = pick([[sx - 2, sz], [sx + 2, sz], [sx - 1, sz + 2], [sx + 1, sz + 2]]);
+      dim.getBlock({ x, y, z })?.setType(y < 0 ? pick(['brine:clawed_deepslate', 'brine:bloodstained_deepslate']) : 'minecraft:mossy_stone_bricks');
+    }
+    // the sinkhole at the top: the ground cleared round it, a rim of mossy stone, two candles, a sign
+    try { dim.fillBlocks(vol(sx - 3, gy + 1, sz - 3, sx + 3, gy + 4, sz + 3), 'minecraft:air', { blockFilter: { includeTypes: SOFT.filter((b) => b !== 'minecraft:air') } }); } catch (e) { /* ok */ }
+    for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) {
+      if (Math.max(Math.abs(dx), Math.abs(dz)) !== 3) continue;
+      dim.getBlock({ x: sx + dx, y: gy + 1, z: sz + dz })?.setType(Math.random() < 0.5 ? 'minecraft:mossy_cobblestone' : 'minecraft:cobblestone');
+    }
+    for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {
+      if (Math.max(Math.abs(dx), Math.abs(dz)) !== 2) continue;
+      const b = dim.getBlock({ x: sx + dx, y: gy, z: sz + dz });
+      if (b && (b.isAir || SOFT.includes(b.typeId))) b.setType('minecraft:mossy_cobblestone');
+    }
+    const candle = BlockPermutation.resolve('minecraft:red_candle', { lit: true, candles: 2 });
+    for (const [dx, dz] of [[3, 3], [-3, -3]]) dim.getBlock({ x: sx + dx, y: gy + 2, z: sz + dz })?.setPermutation(candle);
+    const sign = dim.getBlock({ x: sx, y: gy + 2, z: sz + 3 });
+    if (sign) {
+      sign.setPermutation(BlockPermutation.resolve('minecraft:standing_sign', { ground_sign_direction: 0 }));
+      sign.getComponent('minecraft:sign')?.setText('§0The water down\\n§0there is still.\\n§0Too still.\\n§4Do not go down.');
+    }
+  } catch (e) { debug(`entrance: ${e}`); return false; }
+  debug(`a way down at ${sx} ${gy + 1} ${sz} to the caves at ${cy}`);
+  return true;
+}
+/** (tests) look for a way down from where this player stands now */
+export function __entranceNow(p) { __entryNext.delete(p.id); __entrances(p); }
+''',
+    ("brinesleeper", "brain.js"): '''
+// ---------------------------------------------------------------- merged into The Observer (1.7.1)
+/**
+ * Right up against it, whatever it was doing (watching, lurking in the water, frozen mid-stalk): within half a second
+ * it comes for you — out of the water onto the bank beside you in one bound, or a lunge on land — or it is gone (the
+ * dive or the smoke, and it is somewhere else). Seven times in ten it comes, if it may hurt you at all.
+ */
+function __brineClose(c, m, target, d) {
+  const t = now();
+  const dy = Math.abs(target.location.y - c.location.y);
+  const busy = m.state === 'chase' || m.state === 'deep' || m.state === 'burst' || m.state === 'scare' || m.state === 'vanishing' ||
+    m.state === 'ambush' || (m.state === 'rush' && m.rushing) || !!m.climb || graspers.get(target.id) === m;
+  if (!watcher(target) || busy || d > 6 || dy > 4) { m.closeFor = 0; return false; }
+  m.closeFor = (m.closeFor ?? 0) + 5;
+  if (m.closeFor < 10 || t < (m.closeReactAt ?? 0)) return false;
+  m.closeFor = 0;
+  m.closeReactAt = t + 8 * TPS;
+  const attack = hunter(target) && config.enabled && preset().damage > 0 && chance(0.7);
+  __dw.note('brinesleeper', { what: 'close', how: attack ? 'attack' : 'vanish', d: Math.round(d * 10) / 10, from: m.state, water: inWater(c) });
+  if (!attack) { vanish(c, m, target); return true; }
+  if (target.isInWater && inWater(c)) { deep(c, m, target); return true; }
+  if (inWater(c) && !target.isInWater && __leapTo(c, m, target)) return true;
+  chase(c, m, target);
+  m.nextLunge = now();                                                // it lunges at once
+  return true;
+}
+/** Out of the water and onto the ground beside you in one bound, with a burst of spray; then it is after you. */
+function __leapTo(c, m, target) {
+  const dim = c.dimension;
+  const from = c.location;
+  const fy = Math.floor(target.location.y + 0.5);
+  let at, best = 1e9;
+  for (let a = 0; a < 16; a++) {
+    for (const r of [1.6, 2.2, 2.8]) {
+      const px = target.location.x + Math.cos((a / 16) * Math.PI * 2) * r, pz = target.location.z + Math.sin((a / 16) * Math.PI * 2) * r;
+      for (const ddy of [0, -1, 1]) {
+        if (!standable(dim, Math.floor(px), fy + ddy, Math.floor(pz))) continue;
+        const dd = (px - from.x) ** 2 + (pz - from.z) ** 2;
+        if (dd < best) { best = dd; at = { x: px, y: fy + ddy, z: pz }; }
+        break;
+      }
+    }
+  }
+  if (!at) return false;
+  stop(c, m);
+  particle(dim, 'brine:splash', from);
+  particle(dim, 'brine:splash', add(from, { x: 0.4, y: 0.3, z: -0.3 }));
+  sound(dim, 'brine.fx.burst', from, 1.3, 0.9);
+  if (!place(c, m, at, target.getHeadLocation())) return false;
+  chase(c, m, target);
+  m.nextLunge = now();
+  m.nextStrike = now() + 4;
+  shake(target, 0.35, 0.5);
+  __dw.note('brinesleeper', { what: 'leap', d: Math.round(Math.sqrt(best) * 10) / 10 });
+  return true;
+}
+''',
     ("brinesleeper", "main.js"): '''
+// ---------------------------------------------------------------- merged into The Observer (1.7.1)
+/** Walked right up to it in one of its scenes (any player, half a second within six blocks): it comes for you, or it is gone. */
+function __sceneClose() {
+  const c = scene && scene.creature;
+  if (!c || !c.isValid) return false;
+  let near;
+  for (const p of __dw.players("brinesleeper")) {
+    let gm;
+    try { gm = p.getGameMode(); } catch (e) { continue; }
+    if (gm === GameMode.Spectator || p.dimension.id !== c.dimension.id) continue;
+    if (flat(p.location, c.location) < 6 && Math.abs(p.location.y - c.location.y) < 4) { near = p; break; }
+  }
+  if (!near) { scene.closeSince = undefined; return false; }
+  if (scene.closeSince === undefined) scene.closeSince = now();
+  if (now() - scene.closeSince < 10) return false;
+  const s = c.location;
+  const attack = huntable(near) && config.enabled && preset().chase > 0 && Math.random() < 0.7;
+  __dw.note('brinesleeper', { what: 'close', how: attack ? 'attack' : 'vanish', staged: scene.name, d: Math.round(flat(near.location, s) * 10) / 10 });
+  if (attack) {
+    sound(c.dimension, 'mob.brinesleeper.roar', s, 1.3, 0.9);
+    sting(near, 0.9);
+    press(near.id, 'chase', now() + 60);
+    try { near.playSound('brine.spotted', { volume: 1 }); } catch (e) { /* ok */ }
+    handoff.set(c.id, { state: 'chase', target: near.id });
+    c.removeTag(STAGED);
+  } else {
+    particle(c.dimension, c.isInWater ? 'brine:splash' : 'brine:smoke', add(s, { x: 0, y: 1.5, z: 0 }));
+    particle(c.dimension, c.isInWater ? 'brine:ripple' : 'brine:smoke', add(s, { x: 0, y: 3, z: 0 }));
+    sound(c.dimension, c.isInWater ? 'mob.brinesleeper.submerge' : 'mob.brinesleeper.hiss', s, 0.9, rand(0.8, 0.9));
+    removeQuietly(c);
+  }
+  scene.creature = undefined;
+  scene = null;
+  return true;
+}
+/** (tests) A scene in which it does nothing but stand still at a place, watching, for a minute — the case it must never be left in. */
+export function __testScene(player, pos) {
+  if (scene) endScene('replaced');
+  startScene('test_hold', player, (function* () {
+    const c = stageCreature(pos, 'watch', player.getHeadLocation());
+    if (!c) return;
+    scene.creature = c;
+    for (let i = 0; i < 150; i++) { hold(c, pos, player.getHeadLocation()); yield 8; }
+  })());
+  return true;
+}
+
 // ---------------------------------------------------------------- merged into The Observer (1.7.0)
 /** Walked right up to in one of its scenes: does it turn on them? (more often than not, if they can be hunted) */
 function __brineTurns(player) {
@@ -597,6 +931,15 @@ def plan():
         dest = os.path.join(root, rel)
         ours = open(dest, "rb").read() if os.path.exists(dest) else None
         out[dest] = merged_text(side, rel, ours, parts)
+    # (1.7.1) the Hollows' twin in the deep dark (see HOLLOWS_DEEP_TARGETS)
+    for src_rel, side, key in (("biomes/the_hollows.biome.json", "BP", "minecraft:biome"),
+                               ("biomes/the_hollows.client_biome.json", "RP", "minecraft:client_biome")):
+        root = BP if side == "BP" else RP
+        d = json.loads(out[os.path.join(root, src_rel)])
+        d[key]["description"]["identifier"] = "shaftbreaker:the_hollows_deep"
+        if side == "BP":
+            d[key]["components"]["minecraft:replace_biomes"]["replacements"] = HOLLOWS_DEEP_TARGETS
+        out[os.path.join(root, src_rel.replace("the_hollows", "the_hollows_deep"))] = (json.dumps(d, indent=2) + "\n").encode("utf-8")
     # nothing of ours may be overwritten by something different (apart from the merged files)
     merged_dests = {os.path.join(BP if s == "BP" else RP, r) for (s, r) in merged_parts}
     # the list of the dwellers' own files (copied as they are): tools/validate.mjs takes their schema findings as notes,

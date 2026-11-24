@@ -1238,6 +1238,7 @@ function think(c) {
   else if (d < 32 && m.state !== 'idle' && m.state !== 'lurk') press(target.id, 'near', t + 80);
   else if (d < 20) press(target.id, 'near', t + 80);
   watchHabits(target, c);
+  if (__brineClose(c, m, target, d)) return;
 
   switch (m.state) {
     case 'idle': {
@@ -1380,6 +1381,7 @@ function think(c) {
       if (!hunter(target) || d > 48 || t >= m.chaseEnd) { retreat(c, m, target); break; }
       if (target.isSprinting && d > m.runStart + 3) { learn(target, 'runs', 0.2, 3); m.runStart = d; }
       if (inWater(c) && !target.isInWater) {
+        if (d < 9 && now() >= (m.nextLeap ?? 0)) { m.nextLeap = now() + 5 * TPS; if (__leapTo(c, m, target)) break; }   // (1.7.1) out at you in one bound
         const b = bankNear(c, target);
         const back = () => { m.replan = 0; };
         if (b && flat(b.water, c.location) < 7) climbOut(c, m, b.bank, target.getHeadLocation(), back);
@@ -1794,3 +1796,59 @@ world.afterEvents.worldLoad.subscribe(() => {
     saveProfiles();
   }, 600);
 });
+
+// ---------------------------------------------------------------- merged into The Observer (1.7.1)
+/**
+ * Right up against it, whatever it was doing (watching, lurking in the water, frozen mid-stalk): within half a second
+ * it comes for you — out of the water onto the bank beside you in one bound, or a lunge on land — or it is gone (the
+ * dive or the smoke, and it is somewhere else). Seven times in ten it comes, if it may hurt you at all.
+ */
+function __brineClose(c, m, target, d) {
+  const t = now();
+  const dy = Math.abs(target.location.y - c.location.y);
+  const busy = m.state === 'chase' || m.state === 'deep' || m.state === 'burst' || m.state === 'scare' || m.state === 'vanishing' ||
+    m.state === 'ambush' || (m.state === 'rush' && m.rushing) || !!m.climb || graspers.get(target.id) === m;
+  if (!watcher(target) || busy || d > 6 || dy > 4) { m.closeFor = 0; return false; }
+  m.closeFor = (m.closeFor ?? 0) + 5;
+  if (m.closeFor < 10 || t < (m.closeReactAt ?? 0)) return false;
+  m.closeFor = 0;
+  m.closeReactAt = t + 8 * TPS;
+  const attack = hunter(target) && config.enabled && preset().damage > 0 && chance(0.7);
+  __dw.note('brinesleeper', { what: 'close', how: attack ? 'attack' : 'vanish', d: Math.round(d * 10) / 10, from: m.state, water: inWater(c) });
+  if (!attack) { vanish(c, m, target); return true; }
+  if (target.isInWater && inWater(c)) { deep(c, m, target); return true; }
+  if (inWater(c) && !target.isInWater && __leapTo(c, m, target)) return true;
+  chase(c, m, target);
+  m.nextLunge = now();                                                // it lunges at once
+  return true;
+}
+/** Out of the water and onto the ground beside you in one bound, with a burst of spray; then it is after you. */
+function __leapTo(c, m, target) {
+  const dim = c.dimension;
+  const from = c.location;
+  const fy = Math.floor(target.location.y + 0.5);
+  let at, best = 1e9;
+  for (let a = 0; a < 16; a++) {
+    for (const r of [1.6, 2.2, 2.8]) {
+      const px = target.location.x + Math.cos((a / 16) * Math.PI * 2) * r, pz = target.location.z + Math.sin((a / 16) * Math.PI * 2) * r;
+      for (const ddy of [0, -1, 1]) {
+        if (!standable(dim, Math.floor(px), fy + ddy, Math.floor(pz))) continue;
+        const dd = (px - from.x) ** 2 + (pz - from.z) ** 2;
+        if (dd < best) { best = dd; at = { x: px, y: fy + ddy, z: pz }; }
+        break;
+      }
+    }
+  }
+  if (!at) return false;
+  stop(c, m);
+  particle(dim, 'brine:splash', from);
+  particle(dim, 'brine:splash', add(from, { x: 0.4, y: 0.3, z: -0.3 }));
+  sound(dim, 'brine.fx.burst', from, 1.3, 0.9);
+  if (!place(c, m, at, target.getHeadLocation())) return false;
+  chase(c, m, target);
+  m.nextLunge = now();
+  m.nextStrike = now() + 4;
+  shake(target, 0.35, 0.5);
+  __dw.note('brinesleeper', { what: 'leap', d: Math.round(Math.sqrt(best) * 10) / 10 });
+  return true;
+}

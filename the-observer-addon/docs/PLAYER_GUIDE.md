@@ -320,12 +320,20 @@ haunts, its own music, its own settings:
   you on the surface of its own accord — but **get away from it three times and it follows you up**, and for twelve
   minutes it may come for you up there too. **Up close it never just stands there**: walk right up to it and it tears
   into you, or with a shriek in your face it is gone; hold it in a stare and it snaps. In its scenes, come too close
-  and it comes for you more often than not. Its music is new and darker.
-* **The Brinesleeper** — its servant of the water, from **the Stillwater Caves** (since 1.7.0 a little rarer: three
-  quarters of the lush caves). Since 1.7.0 it is **on high alert**: come close and it no longer simply sinks away — it
-  stands and stares you down, rises out of the water at you, or comes for you; it stalks you, stands off with you,
-  chases you and attacks, in its own drowned way. Its music and its voice are new: deep, slow and wrong in the still
-  water, brutal in the chase.
+  and it comes for you more often than not. Its music is new and darker, and since 1.7.1 its roar and its screams are
+  far deeper. Since 1.7.1 the Hollows also take part of the deep dark (a little more of them; where they do, there is
+  no sculk and no ancient city).
+* **The Brinesleeper** — its servant of the water, from **the Stillwater Caves**. It is **on high alert**: it stalks
+  you, stands off with you, chases you and attacks, in its own drowned way. **Since 1.7.1 it never just stays there
+  when you walk up to it** — whatever it was doing, half a second within six blocks of it and it comes for you (lying in
+  the water while you stand on the bank, it comes out at you in one bound and lunges) or it is gone, in a dive or a
+  burst of smoke; and in a chase it leaps out of the water at you instead of floundering in it. Its music and its voice
+  are new: deep, slow and wrong in the still water, brutal in the chase. Since 1.7.1 its caves are much rarer (about a
+  quarter of the lush caves, where they had most of them), its flooded great halls far fewer (one in 300 blocks, and never raised as you fly through in
+  spectator mode), **their chests hold real loot** (maxed diamond and netherite gear, tridents, books at their highest
+  level, diamonds, netherite, totems, enchanted golden apples, hearts of the sea), and **walk over land with its caves
+  under it and a way down opens nearby**: a sinkhole with a mossy rim, two red candles and a sign, a stone-lined shaft
+  and a ladder all the way down into the still water's caves.
 
 **Since 1.7.0 each of them has 500 health, and the Observer 600** — and the Observer can be hurt now, by your blows and
 your shots only (nothing else harms it). Wear it down to its last tenth and it is torn apart where it stands, and
@@ -366,6 +374,10 @@ as it goes, elytra, maces, tridents, crossbows, totems, enchanted golden apples,
 netherite blocks, and books of Mending, Sharpness V, Protection IV and more — and flares and Witness Lenses, which you
 will need. The crimson lamps on the spire and the tower can be seen through the mist. The woods end at a crumbling
 edge over the void; fall off and the Rift puts you back where you came in.
+
+**Since 1.7.1 its sky is dark grey**, all of it — the Rift is shut in by a dark grey sky far out beyond the mist (a
+ceiling high overhead, walls far out past the edge of the woods, a floor deep in the void), and the light still comes
+through it. (In 1.7.0 only the mist was grey, and the sky stayed blue.)
 
 **Since 1.7.0 the Rift is twice the size** (336 blocks across) and there is far more in it: an **observatory** with a
 broken glass dome and a telescope aimed at a sky that is not there, the **Garden of Eyes** (a sunken garden of

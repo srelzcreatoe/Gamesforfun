@@ -1067,3 +1067,63 @@ from the ground.
 **The Sound Test, by creature** (`ui/sounds.js`): pick the Observer, the Goatwalker, the Shaftbreaker or the
 Brinesleeper, then any track of its music (looping), its whole **playlist** (every track once, one after the other:
 `playMusic` then `queueMusic`), or any of its sounds (16 each). 35 tracks and 64 sounds in all.
+
+## 29. The Rift's sky, the Brinesleeper up close, fewer of its halls, a way down to its caves (1.7.1)
+
+**The Rift's sky, shut in** (`rift/realm.js` `buildSky`, block `observer:rift_sky` from `tools/rift_assets.py`). In 1.7.0
+the mist was made a fixed distance in the hope that the sky would take its colour; it does not — the dimension reads as
+`minecraft:ocean`, and the game draws its sky blue whatever the fog. So the realm is shut in: a ceiling at y 150 (86
+blocks over the ground), a floor at y −63 and walls 96 blocks out from the realm's edge, a box 528 blocks across. Every
+face of it is beyond the mist's 80 blocks from anywhere a player can stand, so it is drawn in the mist's own colour —
+and its block is that dark grey (`#3a3d44`) too, flat, so even from the top of the watchtower the sky is the same grey.
+The block lets light straight through (`light_dampening` 0), so the woods are lit as under an open sky (sky light 15
+under it, measured), cannot be broken, and is not in the creative menu. It is put up once in a world (a world property
+remembers it; laying the realm out again never touches it): half a minute after the world loads if nobody is in the
+Rift, or else before the first realm is laid out — eleven strips of 48 × 528 (99 chunks each) held by ticking areas in
+waves, 52 fills, about 2 s on a dedicated server. (Put up just as someone walked in, it left a thousand changed chunks
+saving while their landing was loading.) The wave loader (`inWaves`) is shared with the realm's pieces now, and keeps
+asking for a few seconds when the game will not take a new ticking area at once — areas just let go are not free
+again for a moment, and the next wave used to get none and wait out its 40 s.
+
+**The Brinesleeper never just stays there** (`tools/merge_dwellers.py`: `__brineClose`, `__leapTo`, `__sceneClose`). Its
+mind only reacted to closeness in some of its states — lurking in the water, frozen mid-stalk or watching from a
+ledge it could simply go on standing there — and its staged scenes are run apart from its mind. Now, whatever it is
+doing, a player within 6 blocks (and 4 up or down) for half a second makes it decide: seven times in ten (if it may
+hurt you at all) it comes for you — lying in the water while you stand on the bank, it comes out at you in one bound,
+onto the ground beside you, roaring, and lunges at once; in the water with you, it takes you under; on land, it
+lunges — and otherwise it is gone (the dive, or the smoke) and somewhere else. It decides again eight seconds later if
+you are still there. In a chase it no longer flounders in the water trying to reach you on the bank: within 9 blocks
+it leaps out at you (every 5 s at most). In its staged scenes the same holds for any player within 6 blocks; its
+scenes' own *slip away* goes the moment you come within 8 blocks or look away (it used to wait up to 12 s for you to
+look away), and a creature left standing when a scene ended goes when anyone comes within 8 blocks (or after 4 s, was
+15).
+
+**Fewer of its halls; a way down to its caves** (`halls.js` patches and `__entrances`). Its great halls were raised
+wherever a player went in its caves *or the dripstone caves* (the Hollows now) whenever none stood within 90 blocks —
+45 blocks ahead of you, so flying through the caves (in spectator mode most of all) they kept forming in front of you.
+Now: only in its own caves, one in 300 blocks, at most one more joined on, and never for a spectator. And the
+Stillwater Caves themselves take less ground: `amount` 0.45 of the lush caves (was 0.75). The amount is no share — it
+is a cut on a noise (measured on seed 424242 over a 3 km square: 0.3 took about 2 % of the lush caves, 0.45 about a
+quarter, 0.55 about half; 0.75 most of them). Walk over land with its caves under
+it and a way down opens nearby, out of your way: a 3 × 3 shaft lined with stone bricks (cobbled deepslate below the
+zero line, sealing off whatever it passes), a ladder all the way down into the caves, a rim of mossy cobblestone, two
+red candles and a sign (*The water down there is still. Too still. Do not go down.*). Only where the ground and all
+round it is the land's own (nothing built), at most one in 160 blocks (and none within 160 of a hall's own shaft),
+looked for every 5 s while you are up on the land. **Real loot** in its halls' chests: 9-14 stacks (was 6-10), most of
+them now from a table of the deep's best — maxed diamond and netherite swords, pickaxes and armour (Respiration,
+Aqua Affinity and Depth Strider on the helmet and boots), tridents with Loyalty, Channeling or Riptide and Impaling
+V, a maxed bow and fishing rod, books at their highest level (Mending, Frost Walker, Swift Sneak, Silk Touch …),
+diamonds, diamond and gold blocks, netherite, enchanted golden apples, totems, hearts of the sea, a conduit, ender
+pearls, bottles of experience.
+
+**The Hollows, a little more** (`HOLLOWS_TARGETS`, `HOLLOWS_DEEP_TARGETS`): all of the dripstone caves, as before, and
+now part of the deep dark as well, through a twin, `shaftbreaker:the_hollows_deep` — the same biome in every way (its
+tag brings all of the Hollows' features, its look, fog and music come with it, and the Shaftbreaker counts it as its
+home: `inHollows` patched). A biome uses only its first replacement entry (measured: a second entry on the Hollows,
+on the lush caves or on the deep dark, changed nothing), hence the twin. Where a patch of deep dark is the Hollows,
+there is no sculk, and an ancient city whose start falls in it does not generate.
+
+**The Shaftbreaker's roar and yells, deeper** (`tools/deepen_shaftbreaker.py`): its own recordings, pitched down — the
+roar to 55 % (its spectral centroid from about 3,100 Hz to 1,040), the screech to 60 % (4,400 to 1,930), the jumpscare
+to 62 % (3,800 to 1,560), the growl and the distant scream to 75 % — played a little faster again so they do not drag,
+with more weight in the low end and the hiss above taken off.

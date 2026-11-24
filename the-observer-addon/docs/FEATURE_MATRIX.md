@@ -347,10 +347,24 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | 500 and 600 health; it can be hurt | `JSON_TUNING` `_health`, `the_observer.json` `damage_sensor`, `main.js` `entityHurt` | blows | dwellers 500; the Observer 600, hurt by players only, torn apart at 60 | `dwellers_500_health`, `observer_600_health`, `observer_hurt_only_by_players`, `observer_torn_down_at_its_last_tenth` | ✅ Runtime |
 | A Rift twice the size, with more in it | `rift/realm.js` (7 × 7, `PLACES`), `tools/rift_world.py` | each rift with nobody inside | 49 pieces; church, castle, observatory, Garden of Eyes, barrow field, two hamlets, watchtower, camp, once each, somewhere new each time | `rift_realm_laid_out`, `rift_realm_every_place`, `otest:riftcheck` | ✅ Runtime (the look ❔) |
 | Laid out within the ticking-area limit | `realm.column`, waves | building | a player's own ticking areas untouched; all 49 placed | `build17b` (six areas of a player's own: 2 waves); `rift` (2 waves beside the test kit's, 8.9-10.2 s, ≥ 16.5 TPS); `noexp.txt` (1 wave, 8.9 s) | ✅ Runtime |
-| Spacier, and a grey sky | `isle()`, stellar soil in `ground_kind`, `fogs/rift.json` (fixed 5-80, `#3a3d44`) | in the Rift | rocks in the air with crystals; the sky the mist's grey | — | ❔ in a client |
+| Spacier | `isle()`, stellar soil in `ground_kind`, stardust (`rift/atmosphere.js`) | in the Rift | rocks in the air with crystals, stardust drifting | — | ❔ in a client |
 | The eyeblooms are the Rift's, and follow you | `mire/eyebloom.js` `tick`/`track`, `tools/eyebloom_aim.py` (48 geometries) | a player near | 16 headings, 3 tilts, watched or not; shuts when stared at; none new in the Mire | `eyebloom_follows_you_*`, `eyebloom_looks_up_at_you`, `eyebloom_shuts_when_stared_at`, `eyebloom_opens_when_you_look_away`, `eyebloom_not_in_the_mire` | ✅ Runtime (the turning ❔ in a client) |
 | The Rift's textures redrawn | `tools/rift_assets.py` | — | vanilla-like palettes and clusters, tiling | previews | ❔ in a client |
 | Sound Test by creature | `ui/sounds.js` `CREATURES`, `playAll` | the Config Wheel | a page each, a playlist each, 35 tracks and 64 sounds | `sound_test_observer_*`, `sound_test_goatwalker_*`, `sound_test_shaftbreaker_*`, `sound_test_brinesleeper_*` | ✅ Runtime (the forms ❔) |
+
+## 1.7.1: the Rift's sky; the Brinesleeper up close; fewer halls, a way down, real loot; the Hollows a little more; a deeper Shaftbreaker
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| The Rift's sky dark grey | `realm.buildSky`, block `observer:rift_sky` (light passes) | once a world, before the first realm | a ceiling, floor and walls beyond the mist, all the mist's grey; full sky light under it | `rift_sky_built`, `rift_sky_overhead`, `rift_sky_lets_the_light_through` | ✅ Runtime (the look ❔) |
+| Laid out even when ticking areas are scarce | `inWaves` (asks again for 5 s; stops if none) | building | no 40 s waits; a half-built realm keeps the old record | `rift` (sky 2-4 s, realm 12-16 s) | ✅ Runtime |
+| The Brinesleeper never just stays there | `__brineClose` (its mind), `__sceneClose` (its scenes), faster slip-away and withdrawal | half a second within 6 blocks | it comes for you (out of the water onto the bank in one bound) or it is gone | `brine_close_on_land_reacts`, `brine_close_in_the_water_reacts`, `brine_close_leaps_out_at_you`, `brine_close_in_a_scene_reacts` | ✅ Runtime |
+| Not stuck in the water in a chase | `__leapTo` in its chase | you on the bank within 9 | it leaps out at you | `brine_close_leaps_out_at_you` | ✅ Runtime |
+| Fewer halls, never for spectators | `halls.js` patches (`SPACING` 300, its caves only, one more joined on) | moving through its caves | no hall raised in front of a spectator; one in 300 blocks | — | ✅ Static |
+| Its caves rarer | `STILLWATER_TARGETS` (0.45 of the lush caves) | world generation | see TEST_REPORT | `otest:cavewide` | ✅ Runtime |
+| A way down from the surface | `__entrances`, `__digEntrance` | walking over land with its caves under it | a lined shaft with a ladder into the caves, a rim, candles, a sign; one in 160 blocks; never on anything built | `brine_entrance_*` | ✅ Runtime |
+| Real loot in its halls | `__goodLoot` (85 % of stacks), 9-14 stacks | a hall's chests | maxed gear, max-level books, riches | — | ✅ Static |
+| The Hollows a little more | the twin `shaftbreaker:the_hollows_deep` (0.45 of the deep dark), `inHollows` patched | world generation | see TEST_REPORT | `otest:cavewide` | ✅ Runtime |
+| A deeper Shaftbreaker | `tools/deepen_shaftbreaker.py`, `SOUND_OVERRIDES` | its roar, screech, jumpscare, growl, scream | its own recordings pitched down | `sound_test_shaftbreaker_sounds` | ✅ Runtime (the sound ❔) |
 
 ## Performance
 | Measure | Result | Test |

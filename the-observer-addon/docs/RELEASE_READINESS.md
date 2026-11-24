@@ -102,8 +102,8 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 * 1.7.0: **the eyeblooms' turning heads** — their 48 geometries and the states that pick them are tested on the server
   (16 headings and 3 tilts follow a test player round and up), but which way a turn in a geometry file goes on screen
   follows Blockbench's convention and must be seen once in a client (if the eyes look the mirror way round, the fix is
-  one sign in `tools/eyebloom_aim.py`); **the Rift's grey sky** (its mist is a fixed distance well short of the sky;
-  whether every device draws the whole sky in its colour); the Rift's seven new places, its floating rocks and its
+  one sign in `tools/eyebloom_aim.py`); **the Rift's grey sky** (1.7.1: shut in by a dark grey box beyond the mist —
+  1.7.0's mist alone left the sky blue in the user's game); the Rift's seven new places, its floating rocks and its
   redrawn textures in a client; the Hollows' walls, organic features and great chambers as they look underground; the
   new Shaftbreaker and Brinesleeper music and the Brinesleeper's voice at the player's volume; the Sound Test's pages
   as forms.

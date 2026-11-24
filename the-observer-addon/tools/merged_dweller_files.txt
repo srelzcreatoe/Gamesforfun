@@ -1,6 +1,7 @@
 packs/TheObserver_BP/biomes/stellar_taiga.biome.json
 packs/TheObserver_BP/biomes/stillwater_caves.biome.json
 packs/TheObserver_BP/biomes/the_hollows.biome.json
+packs/TheObserver_BP/biomes/the_hollows_deep.biome.json
 packs/TheObserver_BP/blocks/ash_pile.json
 packs/TheObserver_BP/blocks/ash_print.json
 packs/TheObserver_BP/blocks/blood_ash.json
@@ -699,6 +700,7 @@ packs/TheObserver_RP/attachables/shaftbreaker_skull.json
 packs/TheObserver_RP/biomes/stellar_taiga.client_biome.json
 packs/TheObserver_RP/biomes/stillwater_caves.client_biome.json
 packs/TheObserver_RP/biomes/the_hollows.client_biome.json
+packs/TheObserver_RP/biomes/the_hollows_deep.client_biome.json
 packs/TheObserver_RP/color_grading/stellar_color_grading.json
 packs/TheObserver_RP/entity/apparition.entity.json
 packs/TheObserver_RP/entity/brinesleeper.entity.json
@@ -964,8 +966,6 @@ packs/TheObserver_RP/sounds/shaftbreaker/debris_fall_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/dial.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/distant_impact_1.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/distant_impact_2.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/distant_scream_1.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/distant_scream_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/drip_1.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/drip_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/drip_3.ogg
@@ -973,15 +973,10 @@ packs/TheObserver_RP/sounds/shaftbreaker/drone.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/flesh_pulse_1.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/flesh_pulse_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/flesh_pulse_3.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/growl_1.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/growl_2.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/growl_3.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/heartbeat.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/hurt_1.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/hurt_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/hurt_3.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/jumpscare_1.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/jumpscare_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/knock_1.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/knock_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/moth_flutter_1.ogg
@@ -998,11 +993,6 @@ packs/TheObserver_RP/sounds/shaftbreaker/pod_open_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/pstep_1.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/pstep_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/pstep_3.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/roar_1.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/roar_2.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/roar_3.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/roar_cut_1.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/roar_cut_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/room_tone_1.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/room_tone_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/rush_1.ogg
@@ -1010,9 +1000,6 @@ packs/TheObserver_RP/sounds/shaftbreaker/rush_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/scrape_1.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/scrape_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/scrape_3.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/screech_1.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/screech_2.ogg
-packs/TheObserver_RP/sounds/shaftbreaker/screech_3.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/smash_1.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/smash_2.ogg
 packs/TheObserver_RP/sounds/shaftbreaker/smash_3.ogg

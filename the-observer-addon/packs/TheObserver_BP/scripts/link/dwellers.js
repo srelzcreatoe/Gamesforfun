@@ -21,6 +21,7 @@ import * as brCfg from "../dwellers/brinesleeper/config.js";
 import * as brMain from "../dwellers/brinesleeper/main.js";
 import * as brBrain from "../dwellers/brinesleeper/brain.js";
 import * as brMenu from "../dwellers/brinesleeper/menu.js";
+import * as brHalls from "../dwellers/brinesleeper/halls.js";
 import "../dwellers/shaftbreaker/main.js";
 import * as sbCfg from "../dwellers/shaftbreaker/core/config.js";
 import * as sbCreature from "../dwellers/shaftbreaker/ai/creature.js";
@@ -243,4 +244,21 @@ export function sbEscaped(p, n) {
 /** Whatever the Shaftbreaker is doing ends, and it is gone (tests). */
 export function sbStop() {
   safe(() => sbDirector.stopEncounter());
+}
+
+/** Stage one of the Brinesleeper's scenes for this player now (tests; 1.7.1). @param {Player} p @param {string} name */
+export function brScene(p, name) {
+  if (name === "test_hold") {
+    // (a creature staged standing six blocks in front of them, doing nothing)
+    const v = p.getViewDirection();
+    const f = Math.hypot(v.x, v.z) || 1;
+    const at = { x: p.location.x + (v.x / f) * 6, y: p.location.y, z: p.location.z + (v.z / f) * 6 };
+    return safe(() => brMain.__testScene(p, at)) ?? false;
+  }
+  return safe(() => brMain.forceEvent(p, name)) ?? false;
+}
+
+/** Look for a way down into the Stillwater Caves from where this player stands, now (tests; 1.7.1). @param {Player} p */
+export function brEntrance(p) {
+  return safe(() => (brHalls.__entranceNow(p), true)) ?? false;
 }

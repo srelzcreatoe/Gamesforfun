@@ -371,6 +371,18 @@ def bone():
 STONE = [(80, 80, 85), (92, 92, 97), (105, 105, 110), (119, 119, 124)]
 
 
+def sky():
+    """The Rift's sky (1.7.1): the mist's own dark grey, all but flat (a breath of grain so it is not dead flat up close)."""
+    img = Image.new("RGBA", (16, 16))
+    px = img.load()
+    f = field(118, octaves=((4, 1.0),), jitter=0.05)
+    for y in range(16):
+        for x in range(16):
+            k = int(round((f[y][x] - 0.5) * 3))
+            px[x, y] = (0x3a + k, 0x3d + k, 0x44 + k, 255)
+    save(img, "rift_sky")
+
+
 def gravestone():
     # a headstone like the game's stone: grey in clusters, a cross cut into it, lichen climbing from the ground
     img, px = paint(STONE, field(116, octaves=((8, 0.6), (4, 0.4)), jitter=0.12))
@@ -562,6 +574,14 @@ def blocks():
     gs["minecraft:collision_box"] = {"origin": [-5, 0, -1.5], "size": [10, 14, 3]}
     gs["minecraft:loot"] = "loot_tables/rift/nothing.json"
     defs["gravestone"] = block("observer:gravestone", gs, extra=CARDINAL)
+    # (1.7.1) the Rift's sky: a ceiling and walls far out round the realm, beyond the mist, all of it the mist's dark grey.
+    # It lets the light through (so the woods are lit as under an open sky) and cannot be broken.
+    defs["rift_sky"] = block("observer:rift_sky", {
+        "minecraft:geometry": "minecraft:geometry.full_block",
+        "minecraft:material_instances": {"*": {"texture": "observer_rift_sky", "render_method": "opaque"}},
+        "minecraft:light_dampening": 0, "minecraft:destructible_by_mining": False,
+        "minecraft:destructible_by_explosion": False, "minecraft:map_color": "#3a3d44",
+        "minecraft:loot": "loot_tables/rift/nothing.json"}, category="none")
     for k, v in defs.items():
         p = os.path.join(BP, "blocks", "rift", f"{k}.json")
         os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -580,12 +600,14 @@ def blocks():
 
 
 TEX = ["rift_bark", "rift_bark_top", "rift_needles", "rift_moss_top", "rift_moss_side", "rift_soil", "rift_bricks", "rift_bricks_cracked",
-       "rift_glass", "rift_lamp", "blood_0", "blood_1", "blood_2", "blood_3", "corpse_cloth", "corpse_skin", "skeleton_bone", "skull_face", "gravestone"]
+       "rift_glass", "rift_lamp", "blood_0", "blood_1", "blood_2", "blood_3", "corpse_cloth", "corpse_skin", "skeleton_bone", "skull_face", "gravestone",
+       "rift_sky"]
 SOUNDS = {"rift_bark": "wood", "rift_needles": "grass", "rift_moss": "grass", "rift_bricks": "stone", "rift_bricks_cracked": "stone",
-          "rift_glass": "glass", "rift_lamp": "glass", "blood": "slime", "corpse": "cloth", "hanged": "cloth", "skeleton": "bone_block", "gravestone": "stone"}
+          "rift_glass": "glass", "rift_lamp": "glass", "blood": "slime", "corpse": "cloth", "hanged": "cloth", "skeleton": "bone_block", "gravestone": "stone",
+          "rift_sky": "stone"}
 NAMES = {"rift_bark": "Rift Bark", "rift_needles": "Dead Needles", "rift_moss": "Rift Moss", "rift_bricks": "Rift Bricks",
          "rift_bricks_cracked": "Cracked Rift Bricks", "rift_glass": "Crimson Glass", "rift_lamp": "Crimson Lamp", "blood": "Blood",
-         "corpse": "Corpse", "hanged": "Hanged Body", "skeleton": "Skeleton", "gravestone": "Gravestone"}
+         "corpse": "Corpse", "hanged": "Hanged Body", "skeleton": "Skeleton", "gravestone": "Gravestone", "rift_sky": "Rift Sky"}
 
 
 def register():
@@ -627,6 +649,7 @@ def main():
     skin()
     bone()
     gravestone()
+    sky()
     models()
     blocks()
     register()
