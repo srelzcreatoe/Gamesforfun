@@ -363,7 +363,7 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Its caves rarer | `STILLWATER_TARGETS` (0.45 of the lush caves) | world generation | see TEST_REPORT | `otest:cavewide` | ✅ Runtime |
 | A way down from the surface | `__entrances`, `__digEntrance` | walking over land with its caves under it | a lined shaft with a ladder into the caves, a rim, candles, a sign; one in 160 blocks; never on anything built | `brine_entrance_*` | ✅ Runtime |
 | Real loot in its halls | `__goodLoot` (85 % of stacks), 9-14 stacks | a hall's chests | maxed gear, max-level books, riches | — | ✅ Static |
-| The Hollows a little more | the twin `shaftbreaker:the_hollows_deep` (0.45 of the deep dark), `inHollows` patched | world generation | see TEST_REPORT | `otest:cavewide` | ✅ Runtime |
+| The Hollows a little more | the twin `shaftbreaker:the_hollows_deep` (0.6 of the deep dark: about half of it), `inHollows` patched | world generation | see TEST_REPORT | `otest:cavewide` | ✅ Runtime |
 | A deeper Shaftbreaker | `tools/deepen_shaftbreaker.py`, `SOUND_OVERRIDES` | its roar, screech, jumpscare, growl, scream | its own recordings pitched down | `sound_test_shaftbreaker_sounds` | ✅ Runtime (the sound ❔) |
 
 ## Performance

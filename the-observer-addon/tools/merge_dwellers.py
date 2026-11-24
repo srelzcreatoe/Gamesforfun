@@ -101,7 +101,8 @@ HOLLOWS_TARGETS = [{"dimension": "minecraft:overworld", "targets": ["minecraft:d
 # all its features, its look and music come with it), takes part of the deep dark. A biome uses one replacement entry
 # only (measured: a second entry on the Hollows changed nothing), hence a twin. And the amount is no share: it is a cut
 # on a noise — on the lush caves 0.3 took about 2 % of them, 0.45 about a quarter, 0.55 about half; on the deep dark the
-# same cut takes less (0.45 nothing, 0.5 about a twelfth, 1.0 all of it): measured with otest:cavewide, seed 424242.
+# same cut takes less (0.45 nothing, 0.5 about a twelfth, 0.6 about half, 1.0 all of it): measured with otest:cavewide,
+# seed 424242 — at 0.6 the Hollows go from 2.4 % of the cave samples to 3.1 % (about 30 % more).
 HOLLOWS_DEEP_TARGETS = [{"dimension": "minecraft:overworld", "targets": ["minecraft:deep_dark"], "amount": 0.6, "noise_frequency_scale": 0.1}]
 STILLWATER_TARGETS = [{"dimension": "minecraft:overworld", "targets": ["minecraft:lush_caves"], "amount": 0.45, "noise_frequency_scale": 0.1}]
 

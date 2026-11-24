@@ -22,9 +22,9 @@ far more in it).
 4. Play. Nothing happens for the first 12 minutes on the Standard preset. Details: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md).
 
 ## Status
-Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.7.0 integration run passed 683 of
-684 checks (126 test groups; the one, a test checking the music channel while an earlier test still held it, was fixed
-and the seven groups concerned then passed 81 of 81) with no content-log or script errors; the Hollows' walls, organic
+Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.7.1 integration run passed 695 of
+696 checks (128 test groups; the one, a pace reading that came up short, then passed twice) with no content-log or
+script errors, and the no-experiments run loaded everything with none; the 1.7.0 run passed 683 of 684; the Hollows' walls, organic
 growth and great chambers were found in all six Hollows sampled on a test seed; the 1.6.0 run passed 657 of 659, restart recovery passed (1.5.1), and the server held 20 TPS
 with and without the add-on (it dips to ~18 for the few seconds a rift's realm is being laid out). A separate run on a fresh world with every experiment switched off (and no test kit)
 loaded everything with zero errors — no experiments are needed; the same holds for the merged Weeping Mire, which

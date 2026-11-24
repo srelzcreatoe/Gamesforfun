@@ -1119,8 +1119,9 @@ pearls, bottles of experience.
 **The Hollows, a little more** (`HOLLOWS_TARGETS`, `HOLLOWS_DEEP_TARGETS`): all of the dripstone caves, as before, and
 now part of the deep dark as well, through a twin, `shaftbreaker:the_hollows_deep` — the same biome in every way (its
 tag brings all of the Hollows' features, its look, fog and music come with it, and the Shaftbreaker counts it as its
-home: `inHollows` patched). A biome uses only its first replacement entry (measured: a second entry on the Hollows,
-on the lush caves or on the deep dark, changed nothing), hence the twin. Where a patch of deep dark is the Hollows,
+home: `inHollows` patched), at `amount` 0.6 of the deep dark: about half of it, so the Hollows go from 2.4 % of the
+cave samples to 3.1 % (about 30 % more; seed 424242, a 3 km square). A biome uses only its first replacement entry
+(measured: a second entry on the Hollows, on the lush caves or on the deep dark, changed nothing), hence the twin. Where a patch of deep dark is the Hollows,
 there is no sculk, and an ancient city whose start falls in it does not generate.
 
 **The Shaftbreaker's roar and yells, deeper** (`tools/deepen_shaftbreaker.py`): its own recordings, pitched down — the

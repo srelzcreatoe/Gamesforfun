@@ -321,8 +321,8 @@ haunts, its own music, its own settings:
   minutes it may come for you up there too. **Up close it never just stands there**: walk right up to it and it tears
   into you, or with a shriek in your face it is gone; hold it in a stare and it snaps. In its scenes, come too close
   and it comes for you more often than not. Its music is new and darker, and since 1.7.1 its roar and its screams are
-  far deeper. Since 1.7.1 the Hollows also take part of the deep dark (a little more of them; where they do, there is
-  no sculk and no ancient city).
+  far deeper. Since 1.7.1 the Hollows also take about half of the deep dark (about a third more Hollows; where they do,
+  there is no sculk and no ancient city).
 * **The Brinesleeper** — its servant of the water, from **the Stillwater Caves**. It is **on high alert**: it stalks
   you, stands off with you, chases you and attacks, in its own drowned way. **Since 1.7.1 it never just stays there
   when you walk up to it** — whatever it was doing, half a second within six blocks of it and it comes for you (lying in
