@@ -52,8 +52,6 @@ PLAN = {
     # the lighter pass (dark bodies, all three: steel joints, a little lift and lit edges so the new shapes show)
     'purple_rat': dict(LIGHT, seed=404, joint='steel', lift=0.10, edge=9),
     'cat': dict(LIGHT, seed=505, joint='steel', lift=0.10, edge=9),
-}
-PENDING = {
     'top_hat_rat': dict(LIGHT, seed=606, joint='steel', lift=0.10, edge=9),
 }
 
