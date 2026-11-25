@@ -256,14 +256,11 @@ function exterior(p) {
   p.picture('sign_revue', LOTX.walk1 + 2, 12, 25, 'e', 6, 2);
   p.picture('sign_revue', LOTX.walk1, 12, 20, 'w', 6, 2);
   facade(p);
-  // roof clutter: AC units and vents (never over the dining hall's sign side)
+  p.batch(streetFront);
+  // roof clutter: condensers (never over the dining hall's sign side)
   for (const [x, z] of [[8, 20], [52, 50], [72, 34], [30, 62], [62, 66], [88, 10], [90, 58]]) {
-    p.fill(x, B.roofY + 1, z, x + 1, B.roofY + 1, z + 1, 'iron_block');
-    p.set(x, B.roofY + 2, z, 'iron_trapdoor_floor');
+    for (const [dx, dz] of [[0, 0], [1, 0], [0, 1], [1, 1]]) p.set(x + dx, B.roofY + 1, z + dz, 'ac_unit');
   }
-  // dumpster behind the kitchen
-  p.fill(70, 0, -4, 73, 1, -3, 'gray_c');
-  p.fill(70, 2, -4, 73, 2, -3, 'iron_trapdoor_floor');
   // lot edge: fence on the three land sides, weeds
   p.fill(LOT.x1, 0, LOT.z1, LOT.x1, 0, LOT.z2, 'fence_dark');
   p.fill(LOT.x1, 0, LOT.z1, LOTX.curbW - 1, 0, LOT.z1, 'fence_dark');
@@ -401,10 +398,136 @@ function lastWeekOutside(p) {
   for (const [x, z, d] of [[116, 26, 'n'], [121, 41, 'e'], [112, 55, 's'], [125, 18, 'w'], [104, 38, 'n'], [127, 63, 'e']]) p.set(x, 0, z, `decal_puddle_${d}`);
   p.set(BUILDING.x1 - 2, 3, 60, 'emerg_true_w');
   p.meta.fixtures.push({ x: BUILDING.x1 - 2, y: 3, z: 60, key: 'emerg_true_w', room: 'OUTSIDE' });
-  p.set(74, 0, -4, 'pizza_3_e');
-  p.set(75, 0, -3, 'pizza_1_n');
-  p.set(68, 0, -4, 'trash_s');
+  p.batch(yards);
 }
+
+// @once streetwork
+/**
+ * The street front's depth: a stone cornice, a stepped pediment behind the sign and the mascot outlined in
+ * neon, a neon line along the red trim of both wings, a striped awning over the doors, concrete planters with
+ * dead shrubs under the windows, a bench and a bin, bollards along the curb, wheel stops in the bays, a faded
+ * blue bay by the entrance.
+ */
+function streetFront(p) {
+  const X = FRONT;
+  const top = BUILDING.roofY + 1; // 13
+  for (let z = -1; z <= 72; z++) if (!FACADE.pillars.includes(z) && (z < 30 || z > 41)) p.set(X + 1, top, z, 'sandstone_slab_top');
+  // the pediment: two steps of dark brick behind the sign, coped, its edges in teal and pink neon
+  p.fill(X - 1, top + 1, 30, X, top + 2, 41, 'blackstone_bricks');
+  p.fill(X - 1, top + 3, 32, X, top + 4, 39, 'blackstone_bricks');
+  for (const z of [30, 31, 40, 41]) {
+    p.fill(X - 1, top + 3, z, X, top + 3, z, 'roof_edge');
+    p.set(X + 1, top + 2, z, 'glow_pink_bar_e');
+  }
+  p.fill(X - 1, top + 5, 32, X, top + 5, 39, 'roof_edge');
+  for (let z = 32; z <= 39; z++) p.set(X + 1, top + 4, z, 'glow_teal_top_e');
+  for (const z of [32, 39]) p.set(X + 1, top + 3, z, 'glow_teal_post_e');
+  // a pink neon line along the red trim of both wings
+  for (const [a, b] of FACADE.bays) for (let z = a; z <= b; z++) p.set(X + 1, 6, z, 'glow_pink_bar_e');
+  // the doors: a striped awning, a bench and a bin beside them
+  for (let z = 33; z <= 38; z++) p.set(X + 1, 4, z, 'awning_e');
+  p.set(X + 1, 0, 41, 'dark_oak_stairs_w');
+  p.set(X + 1, 0, 40, 'dark_oak_stairs_w');
+  p.set(X + 1, 0, 30, 'trash_e');
+  // planters under the windows
+  for (const [a, b] of FACADE.bays) for (let z = a + 2; z <= b - 2; z += 2) if (z !== ((a + b) >> 1)) p.set(X + 1, 0, z, 'planter');
+  // bollards along the curb (not across the way in from the lot), wheel stops in the bays, the blue bay
+  for (let z = -6; z <= 78; z += 6) if (z < 28 || z > 42) p.set(LOTX.curbW, 0, z, 'bollard');
+  for (let z = -5; z <= 77; z += 4) {
+    if (z >= 26 && z <= 42) continue;
+    if (z !== 43) p.set(LOTX.x1 + 1, 0, z, 'wheelstop_e');
+    p.set(LOTX.x2 - 1, 0, z, 'wheelstop_w');
+  }
+  p.fill(LOTX.x1 + 1, -1, 26, LOTX.x1 + 6, -1, 27, 'blue_c');
+  for (const [x, z] of [[LOTX.x1 + 3, 26], [LOTX.x1 + 3, 27], [LOTX.x1 + 4, 26]]) p.set(x, -1, z, 'paint_line');
+}
+
+/**
+ * The three brick sides: a dark stone base course, brick buttresses with stone caps every twelve blocks,
+ * downpipes between them, a band of dark high windows; the kitchen's yard behind a chain-link fence (the back
+ * door boarded up, dumpsters, pallets, drums, condensers); the loading dock's shutter by the stage door; the
+ * staff exit's stoop.
+ */
+function yards(p) {
+  const B = BUILDING;
+  const top = B.roofY; // 12
+  // ---- base course
+  p.fill(B.x1 - 1, 0, B.z1 - 1, B.x2, 0, B.z1 - 1, 'ext_base');
+  p.fill(B.x1 - 1, 0, B.z2 + 1, B.x2, 0, B.z2 + 1, 'ext_base');
+  p.fill(B.x1 - 1, 0, B.z1 - 1, B.x1 - 1, 0, 59, 'ext_base');
+  p.fill(B.x1 - 1, 0, 62, B.x1 - 1, 0, B.z2 + 1, 'ext_base');
+  // ---- buttresses, downpipes and high windows: north and south sides
+  for (const [z, d] of /** @type {[number, string][]} */ ([[B.z1 - 2, 'n'], [B.z2 + 2, 's']])) {
+    const wall = d === 'n' ? B.z1 - 1 : B.z2 + 1;
+    for (let x = 5; x <= 95; x += 12) {
+      p.set(x, 0, z, 'ext_base');
+      column(p, x, z, 1, top - 1, 'ext_wall');
+      p.set(x, top, z, 'sandstone_slab');
+      if (x + 6 <= 95) {
+        p.set(x + 6, 0, z, `drain_foot_${d}`);
+        column(p, x + 6, z, 1, top, `drain_pipe_${d}`);
+        for (const wx of [x + 2, x + 3, x + 4, x + 8, x + 9, x + 10]) p.fill(wx, 9, wall, wx, 10, wall, 'window_tint');
+      }
+    }
+  }
+  // the west side
+  for (const z of [10, 22, 34, 46, 58, 70]) {
+    p.set(B.x1 - 2, 0, z, 'ext_base');
+    column(p, B.x1 - 2, z, 1, top - 1, 'ext_wall');
+    p.set(B.x1 - 2, top, z, 'sandstone_slab');
+  }
+  for (const z of [16, 28, 40, 52, 66]) {
+    p.set(B.x1 - 2, 0, z, 'drain_foot_w');
+    column(p, B.x1 - 2, z, 1, top, 'drain_pipe_w');
+  }
+  for (const z of [13, 14, 18, 19, 25, 26, 30, 31, 37, 38, 42, 43, 49, 50, 54, 55]) p.fill(B.x1 - 1, 9, z, B.x1 - 1, 10, z, 'window_tint');
+  // ---- the loading dock at the stage door (west side, z 3-7): a steel shutter, a concrete dock, bumpers, bollards
+  p.fill(B.x1 - 1, 1, 3, B.x1 - 1, 3, 7, 'shutter');
+  p.fill(B.x1 - 1, 0, 3, B.x1 - 1, 0, 7, 'shutter_bottom');
+  p.fill(B.x1 - 1, 4, 2, B.x1 - 1, 4, 8, 'blackstone_bricks');
+  p.fill(B.x1 - 3, 0, 2, B.x1 - 2, 0, 8, 'smooth_stone');
+  for (const z of [2, 8]) p.set(B.x1 - 4, 0, z, 'bollard');
+  for (const z of [3, 7]) p.set(B.x1 - 4, 0, z, 'black_wool');
+  p.set(B.x1 - 2, 1, 8, 'pallets_2');
+  p.set(B.x1 - 3, 1, 2, 'road_case');
+  p.sign(B.x1 - 2, 5, 5, 'w', ['', 'DELIVERIES', 'STAGE DOOR']);
+  fixture(p, B.x1 - 2, 4, 5, 'sconce_true_w', 'OUTSIDE');
+  // ---- the staff exit: a stoop, a bin, a condenser
+  p.set(B.x1 - 2, 0, 63, 'trash_w');
+  p.set(B.x1 - 2, 0, 56, 'ac_unit');
+  // ---- the kitchen's yard (north side, x 63-83): gravel behind a chain-link fence with its gate left open
+  p.fill(63, 0, -8, 83, 2, -4, 'air');
+  p.fill(63, -1, -7, 83, -1, -4, 'gravel');
+  for (let x = 63; x <= 83; x++) if (x < 71 || x > 74) p.fill(x, 0, -8, x, 1, -8, 'iron_bars_x');
+  for (const x of [63, 83]) p.fill(x, 0, -7, x, 1, -4, 'iron_bars_z');
+  for (const x of [63, 70, 75, 83]) column(p, x, -8, 0, 2, 'lamp_post');
+  // the back door, boarded up; a lamp over it that still burns
+  p.set(72, 0, B.z1 - 1, 'iron_door_n');
+  p.set(72, 1, B.z1 - 1, 'iron_door_n_top');
+  p.set(72, 1, -2, 'boards_x_n');
+  p.set(72, 0, -2, 'boards_across_n');
+  fixture(p, 72, 3, -2, 'sconce_true_n', 'OUTSIDE');
+  p.picture('sign_staff', 71, 2, -2, 'n', 1, 1, 3);
+  // dumpsters, pallets, drums, condensers on the wall, what did not fit in the bins
+  for (const x of [65, 68]) {
+    p.set(x, 0, -6, 'dumpster_n');
+    p.set(x + 1, 0, -6, 'dumpster_s');
+  }
+  p.set(80, 0, -5, 'pallets_3');
+  p.set(81, 0, -5, 'pallets_1');
+  p.set(81, 0, -6, 'pallets_2');
+  for (const [x, y, z] of [[78, 0, -4], [78, 1, -4], [77, 0, -4]]) p.set(x, y, z, 'barrel_n');
+  for (const x of [74, 79]) p.set(x, 0, -2, 'ac_unit');
+  p.set(70, 0, -5, 'pizza_3_e');
+  p.set(71, 0, -6, 'pizza_1_n');
+  p.set(64, 0, -5, 'trash_s');
+  p.set(73, 0, -5, 'decal_puddle_n');
+  p.set(67, 0, -4, 'decal_puddle_e');
+  // ---- the south side: condensers, pallets
+  for (const x of [20, 22, 60]) p.set(x, 0, B.z2 + 2, 'ac_unit');
+  p.set(40, 0, B.z2 + 2, 'pallets_2');
+}
+// @end streetwork
 
 // ---------------------------------------------------------------- decor kits
 
