@@ -254,18 +254,9 @@ export const PALETTE = Object.freeze({
   ...Object.fromEntries([1, 2, 3].map((n) => [`pallets_${n}`, F('pallets', { 'fnar:count': n })])),
   // vanilla blocks the rework adds
   sandstone_slab: M('cut_sandstone_slab', { 'minecraft:vertical_half': 'bottom' }), sandstone_slab_top: M('cut_sandstone_slab', { 'minecraft:vertical_half': 'top' }),
-  smooth_sandstone: M('smooth_sandstone'), chiseled_sandstone: M('chiseled_sandstone'), stone_brick_wall: M('stone_brick_wall'), andesite_wall: M('andesite_wall'),
-  spruce_trapdoor_top: M('spruce_trapdoor', { direction: 0, open_bit: false, upside_down_bit: true }),
+  // a chain-link fence along x / along z (the connections are set, like the cellar's railings)
   iron_bars_x: M('iron_bars', { 'minecraft:connection_east': true, 'minecraft:connection_west': true, 'minecraft:connection_north': false, 'minecraft:connection_south': false }),
   iron_bars_z: M('iron_bars', { 'minecraft:connection_east': false, 'minecraft:connection_west': false, 'minecraft:connection_north': true, 'minecraft:connection_south': true }),
-  glass_block_white: M('white_stained_glass'), light_gray_wool: M('light_gray_wool'), brown_wool: M('brown_wool'), cyan_wool: M('cyan_wool'),
-  red_nether: M('red_nether_brick'), nether_bricks: M('nether_brick'), calcite: M('calcite'), gray_glazed: M('gray_glazed_terracotta', { facing_direction: 2 }),
-  ...stairs('sandstone', 'smooth_sandstone'), ...stairs('brick', 'brick'), ...slabs('brick', 'brick'), ...stairs('andesite', 'polished_andesite'),
-  ...stairs('smooth_quartz', 'smooth_quartz'), ...slabs('smooth_quartz', 'smooth_quartz'), ...slabs('cobble', 'cobblestone'),
-  dark_oak_fence: M('dark_oak_fence'), spruce_fence: M('spruce_fence'), oak_leaves: M('oak_leaves', { persistent_bit: true, update_bit: false }),
-  hay: M('hay_block', { deprecated: 0, pillar_axis: 'y' }), end_rod_up: M('end_rod', { facing_direction: 1 }), end_rod_x: M('end_rod', { facing_direction: 5 }),
-  red_glass: M('red_stained_glass'), yellow_glass: M('yellow_stained_glass'), blue_glass: M('blue_stained_glass'), black_glass_pane: M('black_stained_glass_pane'),
-  white_concrete_powder: M('white_concrete_powder'), light_blue_c: M('light_blue_concrete'), lgray_wool: M('light_gray_wool'),
 });
 
 /** Picture panels (docs/BLOCKS.md A): name -> [tiles wide, tiles high]. Keys are generated as `${name}_${tile}_${dir}`. */
