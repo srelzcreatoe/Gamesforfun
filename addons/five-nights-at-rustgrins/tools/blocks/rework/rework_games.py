@@ -156,8 +156,9 @@ def pinball_table(out):
         r.fill(PURP_P, 1, amp=0.5)
         r.frame_rect(0, 0, r.w, r.h, CHROME, 3)
         r.text('RAT', 2, 1, N_YEL, 3, font=F4); r.text('PACK', 0, 6, N_PINK, 3, font=F4, spacing=0) if r.h >= 10 else None
-        for x in range(2, r.w - 2, 3):
-            r.px(x, r.h - 2, N_RED, 2)
+        if r.h >= 12:  # the row of red lamps only where there is a free row under the name
+            for x in range(2, r.w - 2, 3):
+                r.px(x, r.h - 2, N_RED, 2)
 
     cab = lambda b=3: Face(flat(BLUE_P, b, 0.3), f'cab{b}')
     leg = Face(chrome(3), 'leg')
@@ -169,7 +170,8 @@ def pinball_table(out):
     g.box('back', (-6, 12, -8), (6, 12.5, 4), {'up': field})
     for x in (-6.5, 5.5):
         g.box('back', (x, 0, 6.5), (x + 1, 8, 7.5), {'sides': leg})
-    g.box('back', (-7, 12, 4), (7, 24, 8), {'north': Face(backglass, mi='lit'), 'south': Face(flat(BLUE_P, 2, 0.4), 'bb'), 'east': Face(flat(BLUE_P, 3, 0.3), 'bs'), 'west': Face(flat(BLUE_P, 3, 0.3), 'bs'),
+    # the backbox stops at y 23: the game refuses a block model that reaches more than 7 px out of its cell
+    g.box('back', (-7, 12, 4), (7, 23, 8), {'north': Face(backglass, mi='lit'), 'south': Face(flat(BLUE_P, 2, 0.4), 'bb'), 'east': Face(flat(BLUE_P, 3, 0.3), 'bs'), 'west': Face(flat(BLUE_P, 3, 0.3), 'bs'),
                                             'up': Face(flat(BLUE_P, 2, 0.5), 'bu')})
     out.geo(g, {'geometry.fnar.pinball_table': (['front'], (0, 0, 0)), 'geometry.fnar.pinball_table_back': (['back'], (0, 0, 0))})
     out.tex('pinball_table', g.paint())

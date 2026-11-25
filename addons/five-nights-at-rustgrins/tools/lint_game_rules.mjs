@@ -16,6 +16,9 @@
 //      or component field whose schema description says it needs an experiment
 //   6. blocks: a state listed as values holds at most 16 of them (2 for booleans): "too many input
 //      elements, expected no more than 16" drops the whole block (1.0.9's big signs)
+//   7. block models: every cube (turned by its own and its bones' rotations) stays within 7 px of the
+//      block's cell, x and z -15..15 and y -7..23: the game refuses a model that reaches further
+//      (1.3.0's pinball backbox stood 24 px tall)
 //
 // Usage: node tools/lint_game_rules.mjs   (exit 1 on problems)
 import fs from 'node:fs';
@@ -191,6 +194,47 @@ for (const f of list(path.join(PACKS, 'RP', 'ui'))) {
   };
   // definitions reached only through a collection container count as inside it
   for (const [k, v] of Object.entries(d)) if (v && typeof v === 'object') walk(k, v, false, k.split('@')[0]);
+}
+
+// ------------------------------------------------------------ resource pack: block models
+{
+  const RAD = Math.PI / 180;
+  // Bedrock rotation [rx, ry, rz] about a pivot, in a frame with x mirrored (the bounds are symmetric in x)
+  const turn = (p, r, pv) => {
+    const ax = -r[0] * RAD, ay = -r[1] * RAD, az = r[2] * RAD;
+    let x = p[0] - pv[0], y = p[1] - pv[1], z = p[2] - pv[2];
+    [y, z] = [y * Math.cos(ax) - z * Math.sin(ax), y * Math.sin(ax) + z * Math.cos(ax)];
+    [x, z] = [x * Math.cos(ay) + z * Math.sin(ay), -x * Math.sin(ay) + z * Math.cos(ay)];
+    [x, y] = [x * Math.cos(az) - y * Math.sin(az), x * Math.sin(az) + y * Math.cos(az)];
+    return [x + pv[0], y + pv[1], z + pv[2]];
+  };
+  const mirror = (p) => [-p[0], p[1], p[2]];
+  const LO = [-15, -7, -15], HI = [15, 23, 15], EPS = 1e-3;
+  let models = 0;
+  for (const f of list(path.join(PACKS, 'RP/models/blocks'))) {
+    for (const geo of read(f)['minecraft:geometry'] ?? []) {
+      models++;
+      const bones = new Map((geo.bones ?? []).map((b) => [b.name, b]));
+      const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+      for (const bone of geo.bones ?? []) {
+        for (const c of bone.cubes ?? []) {
+          const g = c.inflate ?? 0, o = c.origin, s = c.size;
+          for (let k = 0; k < 8; k++) {
+            let p = mirror([o[0] - g + (k & 1 ? s[0] + 2 * g : 0), o[1] - g + (k & 2 ? s[1] + 2 * g : 0), o[2] - g + (k & 4 ? s[2] + 2 * g : 0)]);
+            if (c.rotation) p = turn(p, c.rotation, mirror(c.pivot ?? [0, 0, 0]));
+            for (let b = bone; b; b = b.parent ? bones.get(b.parent) : null) if (b.rotation) p = turn(p, b.rotation, mirror(b.pivot ?? [0, 0, 0]));
+            for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], p[i]); hi[i] = Math.max(hi[i], p[i]); }
+          }
+        }
+      }
+      if (lo[0] === Infinity) continue;
+      if (lo.some((v, i) => v < LO[i] - EPS) || hi.some((v, i) => v > HI[i] + EPS)) {
+        const span = (i) => `${+lo[i].toFixed(2)}..${+hi[i].toFixed(2)}`;
+        report(f, `${geo.description?.identifier}: reaches x ${span(0)}, y ${span(1)}, z ${span(2)}; the game allows x and z -15..15, y -7..23`);
+      }
+    }
+  }
+  if (!models) report(path.join(PACKS, 'RP/models/blocks'), 'no block models found');
 }
 
 for (const p of problems) console.log('  ' + p);
