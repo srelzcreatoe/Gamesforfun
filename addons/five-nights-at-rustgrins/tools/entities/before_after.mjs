@@ -47,10 +47,10 @@ for (const [id, name, pack] of CAST) {
 if (!only) {
   // the Golden Dog at his true size beside the reworked Rustgrin (and the supplied Rustgrin on the far side)
   for (const view of ['front', 'q3']) {
-    const pair = [after('rustgrin', { pos: [-1.25, 0, 0] }), after('golden_dog', { pos: [1.15, 0, 0] })];
-    cells.push({ label: `Rustgrin (after) and the Golden Dog, at their sizes in the game${view === 'q3' ? ' (three-quarter)' : ''}`, scene: scene(pair, view, 2.1, 1.85) });
-    const trio = [before('rustgrin', 'FNAF_Animatronics_RP', { pos: [-1.25, 0, 0] }), after('golden_dog', { pos: [1.15, 0, 0] })];
-    cells.push({ label: `Rustgrin as supplied and the Golden Dog${view === 'q3' ? ' (three-quarter)' : ''}`, scene: scene(trio, view, 2.1, 1.85) });
+    const pair = [after('rustgrin', { pos: [-1.05, 0, 0] }), after('golden_dog', { pos: [0.95, 0, 0] })];
+    cells.push({ label: `Rustgrin (after) and the Golden Dog, at their sizes in the game${view === 'q3' ? ' (three-quarter)' : ''}`, scene: scene(pair, view, 2.7, 2.15) });
+    const trio = [before('rustgrin', 'FNAF_Animatronics_RP', { pos: [-1.05, 0, 0] }), after('golden_dog', { pos: [0.95, 0, 0] })];
+    cells.push({ label: `Rustgrin as supplied and the Golden Dog${view === 'q3' ? ' (three-quarter)' : ''}`, scene: scene(trio, view, 2.7, 2.15) });
   }
 }
 await withRenderer(async (render) => {
