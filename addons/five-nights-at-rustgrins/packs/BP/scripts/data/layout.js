@@ -38,23 +38,25 @@ const R = (id, name, box, h, style) => Object.freeze({ id, name, box: Object.fre
 
 // style: floor / wall bands / ceiling, resolved in build_plan.js.
 export const ROOMS = Object.freeze([
-  R('BACKSTAGE', 'Backstage', [1, 1, 13, 13], 6, 'backstage'),
-  R('MIDWAY', 'Midnight Midway', [1, 15, 13, 27], 7, 'midway'),
+  R('BACKSTAGE', 'Backstage', [1, 1, 12, 12], 6, 'backstage'),
+  R('MIDWAY', 'Midnight Midway', [1, 15, 13, 26], 7, 'midway'),
   R('CABARET', 'The Grand Marquee', [4, 29, 13, 37], 7, 'cabaret'), // the Ringmaster's curtained side stage (once Kitty's Cabaret)
   R('DINING', 'Dining Hall', [15, 1, 62, 37], 9, 'dining'), // the showroom: the band's curved stage under a starry soffit
-  // the kitchen, the restrooms and the entrance hall keep their own wall layer (x 64): the hall's east wall stays its own
-  R('KITCHEN', 'Kitchen', [65, 1, 80, 13], 6, 'kitchen'),
+  // Every room keeps a wall layer of its own wherever its neighbour is finished differently (the kitchen, the
+  // restrooms and the entrance hall at x 64, the Party Room, the Gallery, the closet...): no room shows the
+  // back of another room's wallpaper.
+  R('KITCHEN', 'Kitchen', [65, 1, 79, 12], 6, 'kitchen'),
   R('RESTROOMS', 'Restrooms', [65, 15, 68, 25], 6, 'restroom'),
-  R('MENS', "Men's Room", [70, 15, 80, 19], 6, 'restroom'),
-  R('WOMENS', "Women's Room", [70, 21, 80, 25], 6, 'restroom'),
+  R('MENS', "Men's Room", [70, 15, 79, 19], 6, 'restroom'),
+  R('WOMENS', "Women's Room", [70, 21, 79, 25], 6, 'restroom'),
   R('PRIZE', 'Prize Corner', [82, 1, 98, 25], 6, 'prize'), // the ticket counter, the plush wall, claw machines
-  R('FOYER', 'Entrance Hall', [65, 27, 98, 41], 7, 'foyer'), // the front doors, the ticket booth
-  R('GALLERY', 'Gallery', [1, 39, 16, 50], 7, 'gallery'), // the cast stands on 1-high pedestals here
+  R('FOYER', 'Entrance Hall', [65, 28, 98, 40], 7, 'foyer'), // the front doors, the ticket booth
+  R('GALLERY', 'Gallery', [1, 40, 16, 49], 7, 'gallery'), // the cast stands on 1-high pedestals here
   R('STAFF', 'Staff Room', [1, 52, 16, 70], 5, 'staff'),
-  R('SUPPLY', 'Supply Closet', [19, 41, 24, 50], 6, 'supply'),
+  R('SUPPLY', 'Supply Closet', [19, 41, 23, 50], 6, 'supply'),
   R('WEST_HALL', 'West Hall', [26, 39, 28, 57], 6, 'hall'),
   R('W_CORNER', 'W. Hall Corner', [26, 58, 30, 70], 6, 'hall'),
-  R('PARTY', 'Party Room', [31, 39, 41, 56], 5, 'party'), // its own wall layer: the halls keep their walls
+  R('PARTY', 'Party Room', [31, 40, 41, 56], 5, 'party'), // its own wall layer: the halls and the showroom keep their walls
   R('OFFICE', 'Office', [32, 60, 40, 70], 5, 'office'),
   R('EAST_HALL', 'East Hall', [44, 39, 46, 57], 6, 'hall'),
   R('E_CORNER', 'E. Hall Corner', [42, 58, 46, 70], 6, 'hall'),
@@ -69,11 +71,11 @@ const O = (id, a, b, box, kind = 'arch') => Object.freeze({ id, a, b, box: Objec
 // Doorways are 3 blocks tall, a block shorter than they look like they should be: the 4-block cast stoops
 // through them (walks under 2.85 tall within 0.8 blocks of an opening; tools/map/validate_map.mjs checks it).
 export const OPENINGS = Object.freeze([
-  O('backstage_door', 'DINING', 'BACKSTAGE', [14, 0, 10, 14, 2, 12], 'door'),
+  O('backstage_door', 'DINING', 'BACKSTAGE', [13, 0, 10, 14, 2, 12], 'door'),
   O('midway_arch', 'DINING', 'MIDWAY', [14, 0, 17, 14, 4, 25]),
   O('cabaret_mouth', 'DINING', 'CABARET', [14, 0, 30, 14, 4, 36], 'curtain'),
   O('west_hall', 'DINING', 'WEST_HALL', [26, 0, 38, 28, 2, 38]),
-  O('party_door', 'DINING', 'PARTY', [35, 0, 38, 37, 2, 38]),
+  O('party_door', 'DINING', 'PARTY', [35, 0, 38, 37, 2, 39]),
   O('east_hall', 'DINING', 'EAST_HALL', [44, 0, 38, 46, 2, 38]),
   O('kitchen_door', 'DINING', 'KITCHEN', [63, 0, 9, 64, 2, 11], 'door'),
   O('restroom_door', 'DINING', 'RESTROOMS', [63, 0, 19, 64, 2, 21], 'door'),
@@ -82,15 +84,15 @@ export const OPENINGS = Object.freeze([
   O('foyer_arch', 'DINING', 'FOYER', [63, 0, 31, 64, 2, 35], 'welcome'), // the WELCOME arch (its rounded top is cut by the build plan)
   O('front_doors', 'FOYER', 'OUTSIDE', [99, 0, 34, 99, 2, 37], 'glass_door'),
   O('arcade_arch', 'DINING', 'GAMEROOM', [55, 0, 38, 58, 2, 42]), // under the red ARCADE neon
-  O('prize_door', 'FOYER', 'PRIZE', [87, 0, 26, 93, 2, 26]),
-  O('gameroom_arch', 'FOYER', 'GAMEROOM', [67, 0, 42, 76, 3, 42]),
-  O('funzone_arch', 'FOYER', 'FUNZONE', [86, 0, 42, 92, 3, 42]),
+  O('prize_door', 'FOYER', 'PRIZE', [87, 0, 26, 93, 2, 27]),
+  O('gameroom_arch', 'FOYER', 'GAMEROOM', [67, 0, 41, 76, 3, 42]),
+  O('funzone_arch', 'FOYER', 'FUNZONE', [86, 0, 41, 92, 3, 42]),
   O('play_arch', 'GAMEROOM', 'FUNZONE', [80, 0, 47, 80, 3, 52]),
-  O('supply_door', 'WEST_HALL', 'SUPPLY', [25, 0, 45, 25, 2, 46], 'door'),
+  O('supply_door', 'WEST_HALL', 'SUPPLY', [24, 0, 45, 25, 2, 46], 'door'),
   O('w_corner_link', 'WEST_HALL', 'W_CORNER', [26, 0, 57, 28, 3, 58]),
   O('e_corner_link', 'EAST_HALL', 'E_CORNER', [44, 0, 57, 46, 3, 58]),
   O('parts_door', 'GAMEROOM', 'PARTS', [60, 0, 62, 61, 2, 63], 'door'), // STAFF ONLY (through a double wall)
-  O('gallery_door', 'STAFF', 'GALLERY', [14, 0, 51, 15, 2, 51], 'door'),
+  O('gallery_door', 'STAFF', 'GALLERY', [14, 0, 50, 15, 2, 51], 'door'),
   O('staff_exit', 'STAFF', 'OUTSIDE', [0, 0, 60, 0, 1, 61], 'iron_door'),
 ]);
 
