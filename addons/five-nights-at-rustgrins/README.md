@@ -17,12 +17,15 @@ original to this project.
 ![Preview renders](previews/contact_sheet.jpg)
 
 More in [`previews/`](previews/): renders of the map the add-on builds, made
-offline with the project's own renderer (see *Building from source*).
+offline with the project's own renderer (see *Building from source*). Version
+1.3.0 reworked every room above ground; [`previews/pizzeria_before_after.jpg`](previews/pizzeria_before_after.jpg)
+shows each one before and after, and [`previews/videos/`](previews/videos/) has
+short clips (a walk through the pizzeria, the cellar, the Golden Dog).
 
 ## Install
 
 1. Open the `.mcaddon` file in `dist/` (its name carries the version, for
-   example `FiveNightsAtRustgrins_1.2.1.mcaddon`; double-click on Windows / open
+   example `FiveNightsAtRustgrins_1.3.0.mcaddon`; double-click on Windows / open
    with Minecraft on mobile and console-capable platforms). It imports a
    behavior pack and a resource pack. The packs' titles carry the version
    number too, so the game's pack list shows which version is installed.
@@ -198,5 +201,6 @@ See `docs/` for the design, block, sound and renderer specs.
 
 `node tools/previews/make_previews.mjs` re-renders `previews/` from the build
 plan (headless Chromium + three.js; camera shots get the in-game camera HUD
-composited on top). `node tools/render/guest_sheet.mjs skins` draws the sheet of
+composited on top). `node tools/previews/make_videos.mjs` renders the clips in
+`previews/videos/` the same way (needs ffmpeg). `node tools/render/guest_sheet.mjs skins` draws the sheet of
 all the daytime guests (`previews/guest_skins.png`).

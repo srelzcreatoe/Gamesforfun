@@ -31,7 +31,7 @@ const FPS = Number(arg('fps', '15'));
 const ONLY = arg('only', '') ? arg('only', '').split(',') : null;
 const TEST = process.argv.includes('--test');
 
-const VARIANTS = { night: { mode: 'night' }, day: { mode: 'day' } };
+const VARIANTS = { night: { mode: 'night' }, day: { mode: 'day' }, day_open: { mode: 'day', cleanWalls: true, dayDoors: true } };
 const point = (pos, color, intensity, distance) => ({ type: 'point', pos, color, intensity, distance, decay: 1.6 });
 const ambient = (color, intensity) => ({ type: 'ambient', color, intensity });
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -42,6 +42,9 @@ const JUMPSCARE = 1.6; // seconds; it holds its last frame
 /** The Golden Dog standing at a point (feet), facing `yaw` (0 = south, 180 = north). */
 const dogAt = (pos, yaw, anim, t, extra = {}) => ({ id: DOG, pos, yaw, anim, t, eyes: true, eyeIntensity: 12, ...extra });
 const node = (id) => [NODES[id].x, NODES[id].y, NODES[id].z];
+const spot = (pos, target, color, intensity) => ({ type: 'spot', pos, target, color, intensity, distance: 26, angle: 24, penumbra: 0.55, shadow: true });
+/** One of the cast standing on a route node, facing the way the node faces. */
+const castAt = (id, n, anim, t) => ({ id: `fnar:${id}`, pos: node(n), yaw: NODES[n].yaw, anim, t, eyes: false });
 /**
  * A jumpscare framed the way the game frames it (mc/game.js jumpscareShot with mc/golden.js GOLDEN_BODY): the
  * lens half a block in front of the eyes, him 2.13 blocks beyond it, set so that his eyes on the held frame
@@ -57,14 +60,75 @@ const GHOST = [34.5, STAGE[1] + 1.5, 19.0]; // the ghost light on his stage (dat
 // ---------------------------------------------------------------- a walked path through the built map
 /** Cells a body passes through (thin things and light). Everything else is solid. */
 const PASS = /^(minecraft:(air|light_block_\d+|short_grass|.*_carpet|.*wall_sign|.*_button|cobweb|web)|fnar:(floor_decal|poster_.*|drawing.*|sign_.*|wall_writing.*|lot_tag|neon_sign.*|bunting|light_button|door_button|dead_button|paws_.*|gild_.*|puddle.*|wall_sconce.*|hanging_.*|pipe.*))$/;
-function walkPath(grid, from, to) {
+/** The pack's own blocks that have no collision box (wall decor, lamps, flat things): a body walks through them. */
+const NO_COLLISION = new Set(fs.readdirSync(path.join(ROOT, 'packs/BP/blocks')).filter((f) => f.endsWith('.json')).map((f) => JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/blocks', f), 'utf8'))['minecraft:block'])
+  .filter((b) => b.components?.['minecraft:collision_box'] === false).map((b) => b.description.identifier));
+function gridFns(grid) {
   const name = (x, y, z) => {
     const ix = x - grid.x0, iy = y - grid.y0, iz = z - grid.z0;
     if (ix < 0 || iy < 0 || iz < 0 || ix >= grid.sx || iy >= grid.sy || iz >= grid.sz) return 'minecraft:bedrock';
     return grid.palette[grid.data[ix + grid.sx * (iz + grid.sz * iy)]].name;
   };
-  const open = (x, y, z) => PASS.test(name(x, y, z));
+  const open = (x, y, z) => { const n = name(x, y, z); return PASS.test(n) || NO_COLLISION.has(n); };
   const stand = (x, y, z) => open(x, y, z) && open(x, y + 1, z) && !open(x, y - 1, z);
+  return { name, open, stand };
+}
+/** A walk through several points in turn (each must be a cell a body can stand in). */
+function tourPath(grid, points) {
+  const { stand } = gridFns(grid);
+  for (const q of points) if (!stand(...q)) throw new Error(`the tour's point ${q} is not a cell to stand in`);
+  const out = [];
+  for (let i = 1; i < points.length; i++) out.push(...roomyPath(grid, points[i - 1], points[i]).slice(i === 1 ? 0 : 1));
+  return out;
+}
+/**
+ * Like walkPath, but the way a person walks a room: down the middle of the aisles. Each cell costs more the
+ * more of its eight neighbours are furniture or wall, so the walk only squeezes past things where it must
+ * (a doorway), and the smoothed line does not cut through a table's corner.
+ */
+function roomyPath(grid, from, to) {
+  const { open, stand } = gridFns(grid);
+  const key = (p) => p.join(',');
+  const cost = (x, y, z) => {
+    let c = 1;
+    for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) if ((dx || dz) && !(open(x + dx, y, z + dz) && open(x + dx, y + 1, z + dz))) c += 2.5;
+    return c;
+  };
+  const best = new Map([[key(from), 0]]);
+  const prev = new Map([[key(from), null]]);
+  const heap = [[0, from]]; // a small binary heap on the cost so far
+  const push = (e) => { heap.push(e); for (let i = heap.length - 1; i > 0;) { const j = (i - 1) >> 1; if (heap[j][0] <= heap[i][0]) break; [heap[i], heap[j]] = [heap[j], heap[i]]; i = j; } };
+  const pop = () => {
+    const top = heap[0], last = heap.pop();
+    if (heap.length) {
+      heap[0] = last;
+      for (let i = 0; ;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; [heap[i], heap[m]] = [heap[m], heap[i]]; i = m; }
+    }
+    return top;
+  };
+  while (heap.length) {
+    const [d, [x, y, z]] = pop();
+    if (d > best.get(key([x, y, z]))) continue;
+    if (x === to[0] && y === to[1] && z === to[2]) break;
+    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      for (const dy of [0, -1, 1]) {
+        const q = [x + dx, y + dy, z + dz];
+        if (!stand(...q)) continue;
+        if (dy === 1 && !open(x, y + 2, z)) continue;
+        if (dy === -1 && !open(q[0], y + 1, q[2])) continue;
+        const nd = d + cost(...q);
+        if (nd < (best.get(key(q)) ?? Infinity)) { best.set(key(q), nd); prev.set(key(q), [x, y, z]); push([nd, q]); }
+        break;
+      }
+    }
+  }
+  if (!prev.has(key(to))) throw new Error(`no walkable path from ${from} to ${to}`);
+  const cells = [];
+  for (let p = to; p; p = prev.get(key(p))) cells.push(p);
+  return cells.reverse().map(([x, y, z]) => [x + 0.5, y, z + 0.5]);
+}
+function walkPath(grid, from, to) {
+  const { open, stand } = gridFns(grid);
   const key = (p) => p.join(',');
   const prev = new Map([[key(from), null]]);
   const queue = [from];
@@ -117,7 +181,35 @@ function clips(grids) {
   const walk = smoothPath(walkPath(grids.day, [60, 0, 64], [36, STAGE[1], 26]));
   const WALK_SPEED = 3.4; // blocks a second
   const walkTime = walk.length / WALK_SPEED;
+  // the walk through the reworked pizzeria: in at the front doors, the lobby, a turn through the Game Room, the
+  // showroom, up to the stage
+  const tour = smoothPath(tourPath(grids.day_open, [[107, 0, 36], [96, 0, 35], [80, 0, 34], [72, 0, 46], [63, 0, 51], [57, 0, 40], [53, 0, 33], [47, 0, 24], [39, 0, 17]]), 10);
+  const TOUR_SPEED = 3.6;
+  const tourTime = tour.length / TOUR_SPEED;
+  const BAND = [38.5, 3.1, 7.0]; // the middle of the band, at chest height
   return [
+    {
+      name: 'pizzeria_walkthrough', voxels: 'day_open', seconds: tourTime + 4.5,
+      caption: 'Free Roam: in at the front doors, through the Entrance Hall and the Game Room, into the showroom and up to the stage',
+      frame(t) {
+        const d = Math.min(tour.length, t * TOUR_SPEED);
+        const p = tour.at(d);
+        const ahead = tour.at(d + 5.0);
+        const eye = [p[0], p[1] + 1.62, p[2]];
+        // at the end of the walk the eyes come up to the band
+        const arrive = ease((t - tourTime + 2.0) / 3.0);
+        const target = [0, 1, 2].map((a) => lerp([ahead[0], ahead[1] + 1.5, ahead[2]][a], BAND[a], arrive));
+        const outside = p[0] > 99.5;
+        return {
+          time: 'day', camera: { pos: eye, target, fov: 74 }, exposure: outside ? 1.0 : 1.25,
+          entities: [castAt('rustgrin', 'ST_R', 'perform_1', t + 0.8), castAt('mirehop', 'ST_M', 'perform_1', t + 0.4), castAt('noxbriar', 'ST_N', 'perform_2', t + 1.1)],
+          extra_lights: [
+            ambient('#fff4e0', outside ? 0.5 : 0.9), point([eye[0], eye[1] + 1.2, eye[2]], '#ffe7c0', outside ? 0 : 6, 12),
+            spot([38.5, 6.4, 13.5], [38.5, 1.6, 6.0], '#ffdcae', 240), spot([32.5, 6.4, 13.5], [32.5, 1.6, 7.0], '#ffc2d6', 180), spot([44.5, 6.4, 13.5], [44.5, 1.6, 7.0], '#c6d6ff', 180),
+          ],
+        };
+      },
+    },
     {
       name: 'golden_dog_turntable', voxels: 'night', seconds: 8,
       caption: 'The Golden Dog on his stage in the cellar, under the ghost light',
