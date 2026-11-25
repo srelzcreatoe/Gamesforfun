@@ -45,9 +45,9 @@ FULL = {'limb_r': 0.875, 'limb_level': 2, 'slab_r': 1.0, 'head_r': 1.25, 'frame'
 LIGHT = {'limb_r': 0.625, 'limb_level': 1, 'slab_r': 0.75, 'head_r': 0.875, 'frame': 0.375, 'grain': 0.75, 'ball': 0.9, 'teeth': True, 'tips': True, 'grow': 0.125}
 PLAN = {
     'rustgrin': dict(FULL, seed=101),
+    'mirehop': dict(FULL, seed=202),
 }
 PENDING = {
-    'mirehop': dict(FULL, seed=202),
     'noxbriar': dict(FULL, seed=303),
     'purple_rat': dict(LIGHT, seed=404),
     'cat': dict(LIGHT, seed=505),
