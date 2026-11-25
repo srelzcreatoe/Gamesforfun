@@ -48,7 +48,7 @@ const STYLES = {
 /** Lamp groups the game switches by name (the others: the room's id in lower case). */
 const LAMP_GROUP = { DINING: 'dining', WEST_HALL: 'hall_w', W_CORNER: 'hall_w', EAST_HALL: 'hall_e', E_CORNER: 'hall_e', OFFICE: 'office' };
 /** Rooms that hang their own lamps in their decor (the others get a grid of ceiling troffers in lights()). */
-const OWN_LAMPS = ['MIDWAY', 'CABARET', 'BACKSTAGE', 'GALLERY', 'PARTS', 'OFFICE', 'W_CORNER', 'E_CORNER', 'DINING', 'FOYER'];
+const OWN_LAMPS = ['MIDWAY', 'CABARET', 'BACKSTAGE', 'GALLERY', 'PARTS', 'OFFICE', 'W_CORNER', 'E_CORNER', 'DINING', 'FOYER', 'GAMEROOM'];
 
 const inBox = (b, x, z) => x >= b[0] && x <= b[2] && z >= b[1] && z <= b[3];
 const interiorOf = (x, z) => ROOMS.find((r) => inBox(r.box, x, z));
@@ -1101,10 +1101,36 @@ function neon(p, which, x, y, z, dir) {
 }
 
 function gameroom(p, rng) {
-  // The Game Room (x 49-79, z 43-61, 7 tall): skee-ball along the north wall, two back-to-back rows of arcade
-  // cabinets, more along the walls, token machines, kiddie rides by the arch, and the overhead crawl tube from
-  // the Fun Zone. Bright and loud by day; at night only the screens, the neon and the coin slots still glow.
-  // skee-ball along the north wall, west of the passage in from the showroom (x 55-58)
+  // The Game Room (x 49-79, z 43-61, 7 tall, black ceiling): banks of five different arcade games back to back,
+  // a row of pinball tables down the west wall, skee-ball along the north wall, air hockey, change machines, claw
+  // machines by the arch, the ticket counter in the south-east corner, the crawl tube from the Fun Zone overhead.
+  // A line of pink and teal neon runs round the walls: at night it, the screens and the coin slots are all
+  // that is still lit.
+  /** An arcade machine (both halves): game 0 is RAT RACE, 1-4 the others. */
+  const cab = (x, z, dir, game) => {
+    const k = game ? `arcade${game}` : 'arcade';
+    p.set(x, 0, z, `${k}_0_${dir}`);
+    p.set(x, 1, z, `${k}_1_${dir}`);
+  };
+  /** A two-block machine of another kind (change, claw). */
+  const tall = (key, x, z, dir) => {
+    p.set(x, 0, z, `${key}_0_${dir}`);
+    p.set(x, 1, z, `${key}_1_${dir}`);
+  };
+  // ---- the floor: a checker walk in from the arch and along the counter
+  p.fill(68, -1, 43, 76, -1, 46, 'tile');
+  p.fill(70, -1, 57, 79, -1, 58, 'tile');
+  // ---- the neon line round the walls (four blocks pink, four teal), under the ceiling
+  const tube = (x, z, d, i) => p.set(x, 5, z, `glow_${Math.floor(i / 4) % 2 ? 'teal' : 'pink'}_bar_${d}`);
+  for (let x = 49; x <= 79; x++) {
+    if (x < 59 || x > 61) tube(x, 43, 's', x - 49);
+    tube(x, 61, 'n', x - 49 + 2);
+  }
+  for (let z = 44; z <= 60; z++) {
+    tube(49, z, 'e', z - 44 + 2);
+    if (z !== 50) tube(79, z, 'w', z - 44);
+  }
+  // ---- skee-ball along the north wall, west of the passage in from the showroom (x 55-58)
   for (let x = 49; x <= 54; x++) {
     p.set(x, 0, 43, 'skee_back_s');
     p.set(x, 0, 44, 'skee_front_s');
@@ -1112,65 +1138,63 @@ function gameroom(p, rng) {
   neon(p, 'skeeball', 50, 4, 43, 's');
   neon(p, 'star', 54, 4, 43, 's');
   neon(p, 'arcade', 56, 4, 43, 's'); // the inside face of the passage
-  // arcade rows (back to back), alternating cabinet facings so both sides have a screen
-  for (const [zA, zB] of [[49, 50], [55, 56]]) {
+  // ---- two pairs of arcade banks back to back (their games change every three machines), a third pair beyond
+  for (const [zA, zB, g0] of [[49, 50, 0], [55, 56, 2]]) {
     for (let x = 53; x <= 65; x++) {
       if (x === 59) continue; // a gap to walk through
-      p.set(x, 0, zA, 'arcade_0_n');
-      p.set(x, 1, zA, 'arcade_1_n');
-      p.set(x, 0, zB, 'arcade_0_s');
-      p.set(x, 1, zB, 'arcade_1_s');
+      const g = (g0 + Math.floor((x - 53) / 3)) % 5;
+      cab(x, zA, 'n', g);
+      cab(x, zB, 's', (g + 2) % 5);
     }
   }
-  for (let z = 47; z <= 59; z += 2) {
-    p.set(49, 0, z, 'arcade_0_e');
-    p.set(49, 1, z, 'arcade_1_e');
+  for (let x = 69; x <= 75; x++) cab(x, 55, 'n', (1 + Math.floor((x - 69) / 3)) % 5);
+  for (let x = 69; x <= 72; x++) cab(x, 56, 's', 4);
+  for (const z of [55, 57]) cab(79, z, 'w', z === 55 ? 3 : 0);
+  for (const [x, z] of [[54, 48], [57, 48], [63, 48], [61, 51], [56, 57], [70, 54]]) p.set(x, 0, z, 'stool');
+  // ---- pinball down the west wall: the backboxes against the wall, the players in the aisle
+  for (const z of [47, 49, 51, 55, 57, 59]) {
+    p.set(49, 0, z, 'pinball_back_e');
+    p.set(50, 0, z, 'pinball_front_e');
   }
-  for (const z of [54, 56]) {
-    p.set(79, 0, z, 'arcade_0_w');
-    p.set(79, 1, z, 'arcade_1_w');
+  // ---- two air hockey tables
+  for (const x of [69, 73]) {
+    p.set(x, 0, 50, 'airhockey_w');
+    p.set(x + 1, 0, 50, 'airhockey_e');
   }
-  // token machines on the south wall, either side of the STAFF ONLY door
-  for (const x of [55, 57, 66, 68]) tokenMachine(p, x, 61, 'n');
+  // ---- change machines under the tube's junction box and on the south wall, either side of the STAFF ONLY door
+  for (const x of [59, 61]) tall('change', x, 43, 's');
+  for (const x of [55, 57, 66, 68]) tall('change', x, 61, 'n');
   neon(p, 'tokens', 68, 4, 61, 'n');
   neon(p, 'games', 64, 4, 61, 'n');
   for (const x of [52, 70]) neon(p, 'star', x, 4, 61, 'n');
-  // kiddie rides and a claw machine by the arch, tables for the parents
+  // ---- by the arch from the Entrance Hall: claw machines, a kiddie ride, tables for the parents
+  for (const x of [77, 78]) tall('claw', x, 43, 's');
+  tall('claw', 79, 45, 'w');
   p.set(66, 0, 44, 'kiddie_s');
-  p.set(78, 0, 44, 'kiddie_s');
-  clawMachine(p, 79, 45, 'w', 'red_c');
-  // two air hockey tables: blue rails, a white playfield, red goals
-  for (const x1 of [68, 73]) {
-    p.fill(x1, 0, 48, x1 + 2, 0, 51, 'blue_c');
-    p.fill(x1, 1, 48, x1 + 2, 1, 51, 'white_carpet');
-    p.set(x1 + 1, 1, 48, 'red_carpet');
-    p.set(x1 + 1, 1, 51, 'red_carpet');
-  }
-  // a third row of cabinets and the ticket counter in the south-east corner
-  for (let x = 68; x <= 76; x++) {
-    p.set(x, 0, 55, 'arcade_0_s');
-    p.set(x, 1, 55, 'arcade_1_s');
-  }
-  for (let x = 71; x <= 77; x++) p.set(x, 0, 59, 'prizecase_n');
-  p.set(78, 0, 59, 'dark_oak');
-  for (const x of [72, 75]) p.set(x, 1, 59, 'plush_s');
-  for (let x = 71; x <= 78; x++) for (const y of [1, 2]) p.set(x, y, 61, 'plushwall_n');
-  neon(p, 'tickets', 76, 4, 61, 'n');
-  // tables for the parents by the arch
   for (const [x, z] of [[64, 45], [70, 45]]) {
     p.set(x, 0, z, 'table_0_n');
     p.set(x - 1, 0, z, 'chair_e');
     p.set(x + 1, 0, z, 'chair_w');
     p.set(x, 1, z, (x + z) % 2 ? 'plates' : 'pizza_1_n');
   }
-  // the overhead crawl tube: out of the Fun Zone wall, west along z 50, a bubble window, into a junction box
+  // ---- the ticket counter in the south-east corner: glass cases, the plush wall, stools
+  for (let x = 71; x <= 77; x++) p.set(x, 0, 59, 'prizecase_n');
+  p.set(78, 0, 59, 'wainscot');
+  for (const x of [72, 75]) p.set(x, 1, 59, 'plush_s');
+  p.set(78, 1, 59, 'till_n');
+  for (let x = 71; x <= 78; x++) for (const y of [1, 2]) p.set(x, y, 61, 'plushwall_n');
+  neon(p, 'tickets', 76, 4, 61, 'n');
+  p.set(74, 0, 60, 'stool');
+  // ---- pendant lamps (the room's lamps by day)
+  for (const [x, z] of [[54, 46], [63, 46], [72, 47], [77, 53], [53, 53], [61, 58], [67, 53], [74, 53]]) houseLamp(p, x, 6, z, 'hanging_off', 'GAMEROOM');
+  // ---- the overhead crawl tube: out of the Fun Zone wall, west along z 50, a bubble window, into a junction box
   for (let x = 62; x <= 79; x++) {
     const c = ['red', 'yellow', 'blue', 'green'][Math.floor((x - 62) / 3) % 4];
     p.set(x, 5, 50, x % 6 === 1 ? `tube_win_${c}_e` : `tube_${c}_e`);
     if (x % 4 === 0) p.set(x, 6, 50, 'chain_y');
   }
   p.fill(59, 4, 49, 61, 5, 51, 'vinyl_yellow');
-  p.fill(60, 6, 50, 60, 6, 50, 'chain_y');
+  p.set(60, 6, 50, 'chain_y');
   p.set(60, 4, 50, 'vinyl_red');
   for (let z = 44; z <= 48; z++) p.set(60, 5, z, z === 46 ? 'tube_win_red_n' : `tube_${z % 2 ? 'green' : 'blue'}_n`);
   p.fill(59, 4, 43, 61, 5, 43, 'vinyl_green');
@@ -1181,6 +1205,7 @@ function gameroom(p, rng) {
   for (const [x, z, k] of strips) {
     p.set(x, 0, z, `decal_${k}_${['n', 'e', 's', 'w'][(x + z) % 4]}`);
   }
+  if (rng.chance(0)) p.set(50, 0, 53, 'trash_e');
 }
 
 function funzone(p) {

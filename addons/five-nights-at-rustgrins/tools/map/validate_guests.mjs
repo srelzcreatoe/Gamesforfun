@@ -145,7 +145,7 @@ for (const s of seats) {
 console.log(`cabinets (${cabinets.length} found in the build plan) and ${G.STANDS.length} places to stand:`);
 for (const c of cabinets) {
   const e = entryAt(c.bx, 0, c.bz);
-  if (e.name !== 'fnar:arcade_cabinet' || e.states?.['minecraft:cardinal_direction'] !== CARD[c.dir]) { report(`${c.id}: the built block is ${e.name} facing ${e.states?.['minecraft:cardinal_direction']}`); continue; }
+  if (!['fnar:arcade_cabinet', 'fnar:arcade_machine', 'fnar:pinball_table'].includes(e.name) || e.states?.['minecraft:cardinal_direction'] !== CARD[c.dir]) { report(`${c.id}: the built block is ${e.name} facing ${e.states?.['minecraft:cardinal_direction']}`); continue; }
   let hit = discBlocked(c.x, c.z, R);
   if (hit) { report(`${c.id}: the player's spot ${c.x.toFixed(2)},${c.z.toFixed(2)} is blocked: ${hit}`); continue; }
   const an = G.anchor(g, c.x, c.z);
@@ -204,7 +204,7 @@ if (plotArg >= 0) {
   for (let z = Z1; z < Z2; z++) for (let x = X1; x < X2; x++) {
     const b = blockedAt(x + 0.5, z + 0.5);
     const n = entryAt(x, 0, z).name;
-    const c = !b ? [232, 232, 226] : /no floor/.test(b) ? [40, 40, 60] : /chair|booth/.test(n) ? [200, 80, 80] : /table/.test(n) ? [150, 110, 70] : /arcade|skee|prize_case/.test(n) ? [90, 110, 190] : passable(x, 0, z) ? [120, 120, 120] : [70, 70, 74];
+    const c = !b ? [232, 232, 226] : /no floor/.test(b) ? [40, 40, 60] : /chair|booth/.test(n) ? [200, 80, 80] : /table/.test(n) ? [150, 110, 70] : /arcade|skee|prize_case|pinball|air_hockey|claw|change_machine/.test(n) ? [90, 110, 190] : passable(x, 0, z) ? [120, 120, 120] : [70, 70, 74];
     const edge = (v) => (v % 10 === 0 ? 0.45 : v % 5 === 0 ? 0.7 : 0.9);
     for (let py = 0; py < S; py++) for (let px = 0; px < S; px++) set((x - X1) * S + px, (z - Z1) * S + py, c.map((v) => v * Math.min(px === 0 ? edge(x) : 1, py === 0 ? edge(z) : 1)));
   }
