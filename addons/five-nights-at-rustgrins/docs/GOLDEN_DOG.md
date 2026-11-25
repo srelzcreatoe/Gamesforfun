@@ -143,6 +143,11 @@ Like every trick in this game, **each shift gives itself away before it can hurt
   with a caption. Nothing else in the building ticks.
 - **While he is at work the rest of the cast holds still.** They are afraid of him too. (This is what makes
   looking at the floor fair: nothing else moves on you while you do.) The halls go silent; only the watch.
+  As built: they are held during every tell and during gilding, the false dawn, the visit and the Other
+  Office; during the mirror and the wrong feed they move again once the watch stops (otherwise "use the other
+  hand" and "lower the monitor" would have nothing to answer). One flag per shift: `CONFIG.golden.hold`.
+  While they are held, doors, lights, vents and the monitor draw no power; a hold costs the clock's base
+  drain, plus a little for a visit (about 1 %) and for the Other Office (about 1.5 %).
 - CAM 11 shows him on his stage. Through the week he changes: slumped on night 1, head up on night 2,
   standing from night 3. **Watching CAM 11 is looking at him**: a few seconds at a time is safe, but stare
   and he turns to the lens, and his next shift comes sooner. An empty stage on CAM 11 means he is at work.

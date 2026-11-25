@@ -129,8 +129,44 @@ next night starts from that. Whoever caught you comes back the same way, and you
 hear it coming. Night 1 and every New Game start blank; the Shift Guide has a
 page on it (*They Remember*).
 
+## The Golden Dog and the cellar
+
+Before the Revue opened in 1984 there was another house on this lot: the Golden
+Dog Supper Club, 1958 to 1971. The Revue was built on top of it, and its
+showroom is still down there under the Dining Hall, with its little stage, and
+**the Golden Dog** is still standing on it. He is the oldest thing in the
+building and the biggest (three and a half blocks tall). The others are afraid
+of him. The Ringmaster will not talk about the cellar until he has to.
+
+**By day (Free Roam)** a narrow flight of stairs in Parts & Service goes down.
+You can walk the whole cellar: the Gold Room with its stage, dance floor and
+bar, the Long Hall, a boiler room, a store of the club's old signs, and the
+Other Office: the security office again, cell for cell, seven blocks under the
+real one and fifty years older. He does not talk. His head follows you, and
+when you look away and back he is not quite as he was.
+
+**At night** he never comes up the stairs. He bends the place instead, and one
+rule answers all of it: **never look at the Golden Dog.**
+
+His tell is a pocket watch: two and a half seconds of ticking, faster and
+faster, before everything he does. Nothing else in the building ticks. While
+it ticks the others hold still, and your doors and lights draw no power.
+
+| | From | What happens | Do |
+|---|---|---|---|
+| **Gilding** | night 2 | for a few seconds a poster, a drawing or a hall floor is his | nothing |
+| **False dawn** | night 3 | the clock says 6 AM, the chime is off-key, and it tears away | nothing: the real 6 AM never ticks |
+| **Wrong feed** | night 3 | every camera you pick shows the cellar's empty stage | lower the monitor. Three cameras in a row brings him up |
+| **Mirror** | night 4 | for ten seconds left is right: the left buttons work the right side | use the other hand, or wait |
+| **The visit** | night 4 | he is standing behind your seat, breathing, for seven seconds | do not turn around, do not raise the monitor |
+| **The Other Office** | night 5, once | the lamp stutters and you are sitting in the Other Office. He is on his stage at the far end of the hall, and he walks while you watch him | look down at the desk. When the phone rings, pick it up |
+
+**CAM 11** shows him on his stage. A few seconds at a time are safe; stare, and
+he turns to the lens and comes sooner. An empty stage means he is at work.
+Custom Night has a seventh slider for him. The Shift Guide has his page.
+
 Stars: reach the end of night 5, survive the Final Act, and beat the Custom
-Night at 20/20/20/20/20/20.
+Night at 20/20/20/20/20/20 (the Golden Dog does not count for the star).
 
 ## If something does not work
 
