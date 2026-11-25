@@ -1,0 +1,105 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#8fa3b8;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"./three/build/three.module.js"}}</script>
+</head><body>
+<script type="module">
+import * as THREE from 'three';
+const D2R = Math.PI / 180;
+
+window.renderModel = async function (opts) {
+  const { geo, tex, pose = {}, posePos = {}, views, size = [900, 900], bg = '#8fa3b8', ground = true, dark = false, transparent = false } = opts;
+  const g = geo['minecraft:geometry'][0];
+  const TW = g.description.texture_width, TH = g.description.texture_height;
+  const img = await new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = tex; });
+  const cw = img.width, ch = img.height;
+  const c1 = document.createElement('canvas'); c1.width = cw; c1.height = ch;
+  const x1 = c1.getContext('2d'); x1.drawImage(img, 0, 0);
+  const d = x1.getImageData(0, 0, cw, ch);
+  const rgb = new ImageData(cw, ch), emi = new ImageData(cw, ch);
+  for (let i = 0; i < d.data.length; i += 4) {
+    const a = d.data[i + 3] / 255;
+    rgb.data[i] = d.data[i]; rgb.data[i + 1] = d.data[i + 1]; rgb.data[i + 2] = d.data[i + 2]; rgb.data[i + 3] = 255;
+    const e = (1 - a);
+    emi.data[i] = d.data[i] * e; emi.data[i + 1] = d.data[i + 1] * e; emi.data[i + 2] = d.data[i + 2] * e; emi.data[i + 3] = 255;
+  }
+  const mk = (id) => { const c = document.createElement('canvas'); c.width = cw; c.height = ch; c.getContext('2d').putImageData(id, 0, 0);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; return t; };
+  const mat = new THREE.MeshLambertMaterial({ map: mk(rgb), emissive: 0xffffff, emissiveMap: mk(emi), side: THREE.DoubleSide });
+
+  const scene = new THREE.Scene();
+  scene.background = transparent ? null : new THREE.Color(bg);
+  scene.add(new THREE.AmbientLight(0xffffff, dark ? 0.25 : 1.1));
+  const sun = new THREE.DirectionalLight(0xffffff, dark ? 0.35 : 2.0); sun.position.set(-300, 800, -500); scene.add(sun);
+  const fill = new THREE.DirectionalLight(0xaabbff, dark ? 0.1 : 0.6); fill.position.set(400, 200, 600); scene.add(fill);
+  if (ground) {
+    const gm = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), new THREE.MeshLambertMaterial({ color: 0x5d7a3a }));
+    gm.rotation.x = -Math.PI / 2; gm.position.y = -0.5; scene.add(gm);
+    const grid = new THREE.GridHelper(4000, 250, 0x333333, 0x4a6030); grid.position.y = 0; scene.add(grid);
+  }
+  const groups = {};
+  const root = new THREE.Group(); scene.add(root);
+  const piv = b => [-(b.pivot?.[0] || 0), b.pivot?.[1] || 0, b.pivot?.[2] || 0];
+  const faceOrder = ['east', 'west', 'up', 'down', 'south', 'north'];
+  let ncubes = 0;
+  for (const b of g.bones) {
+    const grp = new THREE.Group(); grp.name = b.name;
+    const p = piv(b);
+    const parent = b.parent ? groups[b.parent] : null;
+    const pp = parent ? parent.userData.pivot : [0, 0, 0];
+    grp.position.set(p[0] - pp[0], p[1] - pp[1], p[2] - pp[2]);
+    const r = (b.rotation || [0, 0, 0]).slice();
+    const ar = pose[b.name] || [0, 0, 0];
+    const ap = posePos[b.name] || [0, 0, 0];
+    grp.position.x += -ap[0]; grp.position.y += ap[1]; grp.position.z += ap[2];
+    grp.rotation.set(-(r[0] + ar[0]) * D2R, -(r[1] + ar[1]) * D2R, (r[2] + ar[2]) * D2R, 'ZYX');
+    grp.userData.pivot = p;
+    (parent || root).add(grp);
+    groups[b.name] = grp;
+    for (const c of (b.cubes || [])) {
+      ncubes++;
+      const [ox, oy, oz] = c.origin, [sx, sy, sz] = c.size;
+      const inf = c.inflate || 0;
+      const geom = new THREE.BoxGeometry(sx + 2 * inf, sy + 2 * inf, sz + 2 * inf);
+      const uv = geom.attributes.uv;
+      faceOrder.forEach((f, fi) => {
+        const fu = c.uv[f];
+        for (let k = 0; k < 4; k++) {
+          const idx = fi * 4 + k;
+          if (!fu) { uv.setXY(idx, 0, 0); continue; }
+          const ux = uv.getX(idx), uy = uv.getY(idx);
+          const u = (fu.uv[0] + ux * fu.uv_size[0]) / TW;
+          const v = (fu.uv[1] + (1 - uy) * fu.uv_size[1]) / TH;
+          uv.setXY(idx, u, 1 - v);
+        }
+      });
+      const mesh = new THREE.Mesh(geom, mat);
+      const cx = -(ox + sx) + sx / 2, cy = oy + sy / 2, cz = oz + sz / 2;
+      if (c.rotation) {
+        const cp = [-c.pivot[0], c.pivot[1], c.pivot[2]];
+        const rg = new THREE.Group();
+        rg.position.set(cp[0] - p[0], cp[1] - p[1], cp[2] - p[2]);
+        rg.rotation.set(-c.rotation[0] * D2R, -c.rotation[1] * D2R, c.rotation[2] * D2R, 'ZYX');
+        mesh.position.set(cx - cp[0], cy - cp[1], cz - cp[2]);
+        rg.add(mesh); grp.add(rg);
+      } else {
+        mesh.position.set(cx - p[0], cy - p[1], cz - p[2]);
+        grp.add(mesh);
+      }
+    }
+  }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: transparent });
+  renderer.setSize(size[0], size[1]);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  document.body.innerHTML = ''; document.body.appendChild(renderer.domElement);
+  const out = [];
+  for (const v of views) {
+    const cam = new THREE.PerspectiveCamera(v.fov || 35, size[0] / size[1], 1, 20000);
+    cam.position.set(...v.pos); cam.lookAt(new THREE.Vector3(...v.look));
+    renderer.render(scene, cam);
+    out.push(renderer.domElement.toDataURL('image/png'));
+  }
+  return { images: out, ncubes };
+};
+window.ready = true;
+</script></body></html>

@@ -1,0 +1,39 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "sg:shin_godzilla_2",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/shin_godzilla/form2"
+      },
+      "geometry": {
+        "default": "geometry.sg.shin_godzilla_2"
+      },
+      "render_controllers": [
+        "controller.render.sg.shin_godzilla_simple"
+      ],
+      "animations": {
+        "idle": "animation.sg.f2.idle",
+        "walk": "animation.sg.f2.walk",
+        "look": "animation.sg.f2.look",
+        "roar": "animation.sg.f2.roar",
+        "evolving": "animation.sg.f2.evolving",
+        "dying": "animation.sg.f2.dying",
+        "ctrl": "controller.animation.sg.f2"
+      },
+      "scripts": {
+        "animate": [
+          "ctrl"
+        ]
+      },
+      "spawn_egg": {
+        "texture": "sg_egg_2",
+        "texture_index": 0
+      },
+      "enable_attachables": false
+    }
+  }
+}

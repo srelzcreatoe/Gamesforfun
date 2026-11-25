@@ -1,0 +1,59 @@
+{
+  "entity_sounds": {
+    "entities": {
+      "sg:shin_godzilla": {
+        "volume": 1.0,
+        "pitch": [
+          0.9,
+          1.05
+        ],
+        "events": {
+          "hurt": {
+            "sound": "sg.hurt",
+            "volume": 2.0
+          },
+          "death": {
+            "sound": "sg.roar4",
+            "volume": 4.0
+          }
+        }
+      },
+      "sg:shin_godzilla_3": {
+        "volume": 1.0,
+        "pitch": [
+          1.0,
+          1.15
+        ],
+        "events": {
+          "hurt": {
+            "sound": "sg.hurt",
+            "volume": 1.5,
+            "pitch": 1.2
+          },
+          "death": {
+            "sound": "sg.roar3",
+            "volume": 3.0
+          }
+        }
+      },
+      "sg:shin_godzilla_2": {
+        "volume": 1.0,
+        "pitch": [
+          1.05,
+          1.2
+        ],
+        "events": {
+          "hurt": {
+            "sound": "sg.hurt",
+            "volume": 1.2,
+            "pitch": 1.35
+          },
+          "death": {
+            "sound": "sg.roar2",
+            "volume": 2.0
+          }
+        }
+      }
+    }
+  }
+}

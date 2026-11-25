@@ -1,0 +1,197 @@
+{
+  "format_version": "1.20.20",
+  "sound_definitions": {
+    "sg.roar4": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 256.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/roar4",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.roar3": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 160.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/roar3",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.roar2": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 128.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/roar2",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.hurt": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 64.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/hurt",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.step": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 128.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/step",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.crash": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 96.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/crash",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.charge": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 128.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/charge",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.smoke": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 96.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/smoke",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.fire": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 128.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/fire",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.beam_start": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 256.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/beam_start",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.beam": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 200.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/beam",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.dorsal": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 200.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/dorsal",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.dormant": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 64.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/dormant",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.freeze": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 128.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/freeze",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.evolve": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 128.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/evolve",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.coagulant": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 32.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/coagulant",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    }
+  }
+}

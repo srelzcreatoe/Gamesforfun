@@ -1,0 +1,9 @@
+entity.sg:shin_godzilla.name=Shin Godzilla
+entity.sg:shin_godzilla_3.name=Shin Godzilla (3rd Form)
+entity.sg:shin_godzilla_2.name=Shin Godzilla (2nd Form)
+item.spawn_egg.entity.sg:shin_godzilla.name=Spawn Shin Godzilla (4th Form)
+item.spawn_egg.entity.sg:shin_godzilla_3.name=Spawn Shin Godzilla (3rd Form)
+item.spawn_egg.entity.sg:shin_godzilla_2.name=Spawn Shin Godzilla (2nd Form)
+action.interact.sg.inject=Inject Coagulant
+pack.name=Shin Godzilla
+pack.description=Shin Godzilla in all its forms

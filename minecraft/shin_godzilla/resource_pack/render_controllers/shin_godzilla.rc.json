@@ -1,0 +1,36 @@
+{
+  "format_version": "1.10.0",
+  "render_controllers": {
+    "controller.render.sg.shin_godzilla": {
+      "arrays": {
+        "textures": {
+          "Array.skins": [
+            "Texture.normal",
+            "Texture.charged",
+            "Texture.frozen"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.skins[q.property('sg:glow')]"
+      ]
+    },
+    "controller.render.sg.shin_godzilla_simple": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ]
+    }
+  }
+}

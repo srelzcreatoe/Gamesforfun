@@ -1,0 +1,835 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.sg.f2.idle": {
+      "loop": true,
+      "bones": {
+        "body": {
+          "rotation": [
+            "math.sin(q.life_time*60)*0.6",
+            0,
+            0
+          ]
+        },
+        "neck1": {
+          "rotation": [
+            "math.sin(q.life_time*40)*1.5",
+            "math.sin(q.life_time*25)*4",
+            0
+          ]
+        },
+        "neck2": {
+          "rotation": [
+            "math.sin(q.life_time*40-40)*1.5",
+            "math.sin(q.life_time*25-40)*5",
+            0
+          ]
+        },
+        "head": {
+          "rotation": [
+            "math.sin(q.life_time*40-80)*3",
+            "math.sin(q.life_time*25-80)*6",
+            "math.sin(q.life_time*18)*4"
+          ]
+        },
+        "jaw": {
+          "rotation": [
+            "4+math.sin(q.life_time*55)*7",
+            0,
+            0
+          ]
+        },
+        "gills_L": {
+          "rotation": [
+            0,
+            0,
+            "6+math.sin(q.life_time*260)*7"
+          ]
+        },
+        "gills_R": {
+          "rotation": [
+            0,
+            0,
+            "-(6+math.sin(q.life_time*260)*7)"
+          ]
+        },
+        "tail0": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time*30)*1",
+            0
+          ]
+        },
+        "tail1": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time*30-26)*1.5",
+            0
+          ]
+        },
+        "tail2": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time*30-52)*2",
+            0
+          ]
+        },
+        "tail3": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time*30-78)*2.5",
+            0
+          ]
+        },
+        "tail4": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time*30-104)*3",
+            0
+          ]
+        },
+        "tail5": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time*30-130)*3.5",
+            0
+          ]
+        },
+        "tail6": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time*30-156)*4",
+            0
+          ]
+        },
+        "tail7": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time*30-182)*4.5",
+            0
+          ]
+        },
+        "tail8": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time*30-208)*5",
+            0
+          ]
+        },
+        "tail9": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time*30-234)*5.5",
+            0
+          ]
+        },
+        "tail10": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time*30-260)*6",
+            0
+          ]
+        }
+      }
+    },
+    "animation.sg.f2.walk": {
+      "loop": true,
+      "bones": {
+        "body": {
+          "rotation": [
+            "math.cos((q.modified_distance_moved*30)*2)*1.5",
+            "math.sin((q.modified_distance_moved*30))*8",
+            "math.sin((q.modified_distance_moved*30))*3.5"
+          ],
+          "position": [
+            0,
+            "(1-math.cos((q.modified_distance_moved*30)*2))*2.5",
+            0
+          ]
+        },
+        "thigh_L": {
+          "rotation": [
+            "math.sin((q.modified_distance_moved*30))*30",
+            0,
+            "-math.max(0,-math.cos((q.modified_distance_moved*30)))*12"
+          ]
+        },
+        "thigh_R": {
+          "rotation": [
+            "-math.sin((q.modified_distance_moved*30))*30",
+            0,
+            "math.max(0,math.cos((q.modified_distance_moved*30)))*12"
+          ]
+        },
+        "shin_L": {
+          "rotation": [
+            "math.max(0,-math.cos((q.modified_distance_moved*30)))*24",
+            0,
+            0
+          ]
+        },
+        "shin_R": {
+          "rotation": [
+            "math.max(0,math.cos((q.modified_distance_moved*30)))*24",
+            0,
+            0
+          ]
+        },
+        "foot_L": {
+          "rotation": [
+            "-math.sin((q.modified_distance_moved*30))*24-math.max(0,-math.cos((q.modified_distance_moved*30)))*14",
+            0,
+            0
+          ]
+        },
+        "foot_R": {
+          "rotation": [
+            "math.sin((q.modified_distance_moved*30))*24-math.max(0,math.cos((q.modified_distance_moved*30)))*14",
+            0,
+            0
+          ]
+        },
+        "neck1": {
+          "rotation": [
+            "math.cos((q.modified_distance_moved*30)*2)*3",
+            "-math.sin((q.modified_distance_moved*30)-20)*9",
+            0
+          ]
+        },
+        "neck2": {
+          "rotation": [
+            0,
+            "-math.sin((q.modified_distance_moved*30)-50)*8",
+            0
+          ]
+        },
+        "head": {
+          "rotation": [
+            "-math.cos((q.modified_distance_moved*30)*2)*4",
+            "-math.sin((q.modified_distance_moved*30)-80)*7",
+            "math.sin((q.modified_distance_moved*30)-60)*6"
+          ]
+        },
+        "jaw": {
+          "rotation": [
+            "(1-math.cos((q.modified_distance_moved*30)*2))*4",
+            0,
+            0
+          ]
+        },
+        "gills_L": {
+          "rotation": [
+            0,
+            0,
+            "(1-math.cos((q.modified_distance_moved*30)*2))*8"
+          ]
+        },
+        "gills_R": {
+          "rotation": [
+            0,
+            0,
+            "-(1-math.cos((q.modified_distance_moved*30)*2))*8"
+          ]
+        },
+        "tail0": {
+          "rotation": [
+            0,
+            "math.sin((q.modified_distance_moved*30)-40)*4.00",
+            0
+          ]
+        },
+        "tail1": {
+          "rotation": [
+            0,
+            "math.sin((q.modified_distance_moved*30)-66)*5.50",
+            0
+          ]
+        },
+        "tail2": {
+          "rotation": [
+            0,
+            "math.sin((q.modified_distance_moved*30)-92)*7.00",
+            0
+          ]
+        },
+        "tail3": {
+          "rotation": [
+            0,
+            "math.sin((q.modified_distance_moved*30)-118)*8.50",
+            0
+          ]
+        },
+        "tail4": {
+          "rotation": [
+            0,
+            "math.sin((q.modified_distance_moved*30)-144)*10.00",
+            0
+          ]
+        },
+        "tail5": {
+          "rotation": [
+            0,
+            "math.sin((q.modified_distance_moved*30)-170)*11.50",
+            0
+          ]
+        },
+        "tail6": {
+          "rotation": [
+            0,
+            "math.sin((q.modified_distance_moved*30)-196)*13.00",
+            0
+          ]
+        },
+        "tail7": {
+          "rotation": [
+            0,
+            "math.sin((q.modified_distance_moved*30)-222)*14.50",
+            0
+          ]
+        },
+        "tail8": {
+          "rotation": [
+            0,
+            "math.sin((q.modified_distance_moved*30)-248)*16.00",
+            0
+          ]
+        },
+        "tail9": {
+          "rotation": [
+            0,
+            "math.sin((q.modified_distance_moved*30)-274)*17.50",
+            0
+          ]
+        },
+        "tail10": {
+          "rotation": [
+            0,
+            "math.sin((q.modified_distance_moved*30)-300)*19.00",
+            0
+          ]
+        }
+      }
+    },
+    "animation.sg.f2.look": {
+      "loop": true,
+      "bones": {
+        "head": {
+          "rotation": [
+            "math.clamp(q.target_x_rotation,-25,25)*0.4",
+            "math.clamp(q.target_y_rotation,-40,40)*0.5",
+            0
+          ]
+        },
+        "neck2": {
+          "rotation": [
+            0,
+            "math.clamp(q.target_y_rotation,-40,40)*0.3",
+            0
+          ]
+        }
+      }
+    },
+    "animation.sg.f2.roar": {
+      "loop": false,
+      "animation_length": 3.2,
+      "bones": {
+        "neck1": {
+          "rotation": {
+            "0": [
+              0,
+              0,
+              0
+            ],
+            "0.6": [
+              -10,
+              0,
+              0
+            ],
+            "2.6": [
+              -10,
+              0,
+              0
+            ],
+            "3.2": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "neck2": {
+          "rotation": {
+            "0": [
+              0,
+              0,
+              0
+            ],
+            "0.6": [
+              -8,
+              0,
+              0
+            ],
+            "2.6": [
+              -8,
+              0,
+              0
+            ],
+            "3.2": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "head": {
+          "rotation": {
+            "0": [
+              0,
+              0,
+              0
+            ],
+            "0.6": [
+              -18,
+              0,
+              0
+            ],
+            "2.6": [
+              -22,
+              0,
+              0
+            ],
+            "3.2": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "jaw": {
+          "rotation": {
+            "0": [
+              0,
+              0,
+              0
+            ],
+            "0.5": [
+              26,
+              0,
+              0
+            ],
+            "2.7": [
+              26,
+              0,
+              0
+            ],
+            "3.2": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "gills_L": {
+          "rotation": [
+            0,
+            0,
+            "22+math.sin(q.life_time*900)*6"
+          ]
+        },
+        "gills_R": {
+          "rotation": [
+            0,
+            0,
+            "-(22+math.sin(q.life_time*900)*6)"
+          ]
+        }
+      }
+    },
+    "animation.sg.f2.evolving": {
+      "loop": "hold_on_last_frame",
+      "animation_length": 6.0,
+      "bones": {
+        "root": {
+          "scale": {
+            "0": [
+              1,
+              1,
+              1
+            ],
+            "6": [
+              1.22,
+              1.22,
+              1.22
+            ]
+          }
+        },
+        "body": {
+          "rotation": {
+            "0": [
+              "math.sin(q.life_time*1500)*2",
+              0,
+              "math.sin(q.life_time*1200)*3"
+            ],
+            "6": [
+              "-30+math.sin(q.life_time*1500)*2",
+              0,
+              "math.sin(q.life_time*1200)*3"
+            ]
+          },
+          "position": {
+            "0": [
+              0,
+              0,
+              0
+            ],
+            "6": [
+              0,
+              26,
+              0
+            ]
+          }
+        },
+        "thigh_L": {
+          "rotation": {
+            "0": [
+              0,
+              0,
+              0
+            ],
+            "6": [
+              34,
+              0,
+              0
+            ]
+          }
+        },
+        "thigh_R": {
+          "rotation": {
+            "0": [
+              0,
+              0,
+              0
+            ],
+            "6": [
+              34,
+              0,
+              0
+            ]
+          }
+        },
+        "neck1": {
+          "rotation": {
+            "0": [
+              0,
+              0,
+              0
+            ],
+            "6": [
+              14,
+              0,
+              0
+            ]
+          }
+        },
+        "neck2": {
+          "rotation": [
+            "6+math.sin(q.life_time*700)*5",
+            0,
+            0
+          ]
+        },
+        "head": {
+          "rotation": [
+            "4+math.sin(q.life_time*600)*8",
+            "math.sin(q.life_time*300)*10",
+            0
+          ]
+        },
+        "jaw": {
+          "rotation": [
+            "20+math.sin(q.life_time*1600)*6",
+            0,
+            0
+          ]
+        },
+        "gills_L": {
+          "rotation": [
+            0,
+            0,
+            "26+math.sin(q.life_time*1400)*8"
+          ]
+        },
+        "gills_R": {
+          "rotation": [
+            0,
+            0,
+            "-(26+math.sin(q.life_time*1400)*8)"
+          ]
+        },
+        "tail0": {
+          "rotation": {
+            "0": [
+              0,
+              "math.sin(q.life_time*250)*3",
+              0
+            ],
+            "6": [
+              3.2,
+              "math.sin(q.life_time*250)*3",
+              0
+            ]
+          }
+        },
+        "tail1": {
+          "rotation": {
+            "0": [
+              0,
+              "math.sin(q.life_time*250-30)*3.8",
+              0
+            ],
+            "6": [
+              3.2,
+              "math.sin(q.life_time*250-30)*3.8",
+              0
+            ]
+          }
+        },
+        "tail2": {
+          "rotation": {
+            "0": [
+              0,
+              "math.sin(q.life_time*250-60)*4.6",
+              0
+            ],
+            "6": [
+              3.2,
+              "math.sin(q.life_time*250-60)*4.6",
+              0
+            ]
+          }
+        },
+        "tail3": {
+          "rotation": {
+            "0": [
+              0,
+              "math.sin(q.life_time*250-90)*5.4",
+              0
+            ],
+            "6": [
+              3.2,
+              "math.sin(q.life_time*250-90)*5.4",
+              0
+            ]
+          }
+        },
+        "tail4": {
+          "rotation": {
+            "0": [
+              0,
+              "math.sin(q.life_time*250-120)*6.2",
+              0
+            ],
+            "6": [
+              3.2,
+              "math.sin(q.life_time*250-120)*6.2",
+              0
+            ]
+          }
+        },
+        "tail5": {
+          "rotation": {
+            "0": [
+              0,
+              "math.sin(q.life_time*250-150)*7",
+              0
+            ],
+            "6": [
+              3.2,
+              "math.sin(q.life_time*250-150)*7",
+              0
+            ]
+          }
+        },
+        "tail6": {
+          "rotation": {
+            "0": [
+              0,
+              "math.sin(q.life_time*250-180)*7.8",
+              0
+            ],
+            "6": [
+              0,
+              "math.sin(q.life_time*250-180)*7.8",
+              0
+            ]
+          }
+        },
+        "tail7": {
+          "rotation": {
+            "0": [
+              0,
+              "math.sin(q.life_time*250-210)*8.6",
+              0
+            ],
+            "6": [
+              0,
+              "math.sin(q.life_time*250-210)*8.6",
+              0
+            ]
+          }
+        },
+        "tail8": {
+          "rotation": {
+            "0": [
+              0,
+              "math.sin(q.life_time*250-240)*9.4",
+              0
+            ],
+            "6": [
+              0,
+              "math.sin(q.life_time*250-240)*9.4",
+              0
+            ]
+          }
+        },
+        "tail9": {
+          "rotation": {
+            "0": [
+              0,
+              "math.sin(q.life_time*250-270)*10.2",
+              0
+            ],
+            "6": [
+              0,
+              "math.sin(q.life_time*250-270)*10.2",
+              0
+            ]
+          }
+        },
+        "tail10": {
+          "rotation": {
+            "0": [
+              0,
+              "math.sin(q.life_time*250-300)*11",
+              0
+            ],
+            "6": [
+              0,
+              "math.sin(q.life_time*250-300)*11",
+              0
+            ]
+          }
+        }
+      }
+    },
+    "animation.sg.f2.dying": {
+      "loop": "hold_on_last_frame",
+      "animation_length": 3.2,
+      "bones": {
+        "root": {
+          "rotation": {
+            "0": [
+              0,
+              0,
+              0
+            ],
+            "1": [
+              0,
+              0,
+              0
+            ],
+            "2.5": [
+              0,
+              0,
+              72
+            ],
+            "2.8": [
+              0,
+              0,
+              66
+            ],
+            "3": [
+              0,
+              0,
+              70
+            ]
+          },
+          "position": {
+            "0": [
+              0,
+              0,
+              0
+            ],
+            "1": [
+              0,
+              0,
+              0
+            ],
+            "2.5": [
+              0,
+              56,
+              0
+            ]
+          }
+        },
+        "neck1": {
+          "rotation": {
+            "0": [
+              0,
+              0,
+              0
+            ],
+            "0.6": [
+              -16,
+              0,
+              0
+            ],
+            "2.5": [
+              12,
+              0,
+              0
+            ]
+          }
+        },
+        "head": {
+          "rotation": {
+            "0": [
+              0,
+              0,
+              0
+            ],
+            "0.6": [
+              -14,
+              0,
+              0
+            ],
+            "2.5": [
+              10,
+              0,
+              14
+            ]
+          }
+        },
+        "jaw": {
+          "rotation": {
+            "0": [
+              0,
+              0,
+              0
+            ],
+            "0.5": [
+              26,
+              0,
+              0
+            ],
+            "2.6": [
+              18,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -9,3 +9,7 @@ captures/
 out/
 assets/worlds/
 CubicWorld_Source.zip
+
+# Shin Godzilla add-on build caches
+minecraft/shin_godzilla/.keep_*
+__pycache__/

@@ -1,0 +1,22 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:item": {
+    "description": {
+      "identifier": "sg:g_cell",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "textures": {
+          "default": "sg_g_cell"
+        }
+      },
+      "minecraft:display_name": {
+        "value": "G-Cell Sample"
+      },
+      "minecraft:max_stack_size": 64
+    }
+  }
+}
