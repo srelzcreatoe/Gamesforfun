@@ -88,7 +88,8 @@ Fixed by `data/cellar.js` (the game reads these by name, so the numbers there ar
 - **The aisle** x 35..37 from the stage (z 19) to the desk (z 59) stays clear of everything, floor to
   ceiling: it is the line he walks (`CELLAR.walk`) and the line the guard sees him on.
 - **CAM 11 · THE CELLAR** (`data/cameras.js`) looks at the stage from the Gold Room's south-east. It gets a
-  camera prop like the others. It must see `CEL_STAGE` and `CEL_PIT`.
+  camera prop like the others. It must see `CEL_STAGE` (as built: it hangs from the ceiling eleven blocks from the
+  stage, close enough to read how he stands).
 - **Stairs** from Parts & Service (the west half of its middle aisle, x 49..56, z 65..67, is reserved for
   the stairwell) down to a landing, with a way from the landing to the Gold Room and to the Other
   Office's right door. The rest of the cellar (a boiler room, old props and signs of the supper theatre,
