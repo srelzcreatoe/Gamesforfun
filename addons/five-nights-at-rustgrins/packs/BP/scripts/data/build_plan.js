@@ -990,24 +990,66 @@ function prize(p, rng) {
 }
 
 function halls(p, rng) {
-  // West hall: posters and kids' drawings, a trash can, the wet floor sign
-  p.picture('poster_rules', 26, 4, 42, 'e', 2, 2);
+  // The two halls to the office (3 wide, 6 tall): checker wainscot under a charcoal rail, stained plaster, a dark
+  // crown under the ceiling. Charcoal piers every six blocks give them a rhythm, dead brass sconces between
+  // (lit by day), posters and kids' drawings, a fire extinguisher, a drinking fountain, the staff notice board.
+  // Nothing here is lit at night: the halls stay black until a hall light is switched on.
+  /** A wall pier from the floor to the crown: side 'e' = on the west wall (facing east), 'w' = on the east wall. */
+  const pier = (x, z, d) => {
+    p.set(x, 0, z, `pier_foot_${d}`);
+    for (let y = 1; y <= 4; y++) p.set(x, y, z, `pier_shaft_${d}`);
+    p.set(x, 5, z, `pier_head_${d}`);
+  };
+  for (const z of [41, 47, 53]) {
+    pier(26, z, 'e');
+    pier(28, z, 'w');
+    pier(44, z, 'e');
+    pier(46, z, 'w');
+  }
+  // ---- West Hall (CAM 2A): the rules poster, drawings down the east wall, a paper garland left up at the far end
+  p.picture('poster_rules', 26, 4, 43, 'e', 2, 2);
   for (let z = 44; z <= 54; z += 2) p.picture('drawing', 28, 3, z, 'w', 1, 1, rng.int(0, 5));
-  p.picture('poster_missing', 26, 3, 69, 'e', 1, 2);
+  p.picture('poster_party', 26, 4, 56, 'e', 2, 2);
+  for (const z of [44, 54]) dayLamp(p, 26, 3, z, 'sconce_false_e', 'hall_w');
+  for (const z of [43, 49, 55]) dayLamp(p, 28, 4, z, 'sconce_false_w', 'hall_w');
+  p.set(28, 1, 46, 'extinguisher_w');
   p.set(26, 0, 52, 'trash_e');
   p.set(28, 0, 40, 'wetsign_w');
-  // East hall
-  for (let z = 44; z <= 54; z += 2) p.picture('drawing', 44, 3, z, 'e', 1, 1, rng.int(0, 5));
-  p.picture('poster_party', 46, 4, 60, 'w', 2, 2); // the corner poster
-  p.picture('poster_revue', 46, 4, 42, 'w', 2, 3);
-  p.set(46, 0, 53, 'trash_w');
-  // more LET'S PARTY! posters and a paper garland down each hall, left up after the last birthday
-  p.picture('poster_party', 26, 4, 56, 'e', 2, 2);
-  p.picture('poster_party', 46, 4, 47, 'w', 2, 2);
-  for (let z = 40; z <= 55; z++) {
+  for (let z = 39; z <= 40; z++) {
     p.set(28, 5, z, 'bunting_w');
-    p.set(44, 5, z, 'bunting_e');
+    p.set(26, 5, z, 'bunting_e');
   }
+  doorFrame(p, 'supply_door', 'z', 'dark_oak');
+  // ---- W. Hall Corner (CAM 2B, and through the left door when its light is on): piers either side of the door,
+  // a dead beacon over it, a dead plant and a bin at the blind end
+  pier(30, 64, 'w');
+  pier(30, 68, 'w');
+  pier(26, 59, 'e');
+  pier(26, 68, 'e');
+  p.set(30, 4, 66, 'emerg_false_w');
+  p.picture('poster_missing', 26, 3, 69, 'e', 1, 2);
+  p.set(26, 0, 70, 'planter');
+  p.set(30, 0, 70, 'trash_w');
+  p.set(27, 0, 60, 'decal_drag_s');
+  // ---- East Hall (CAM 4A): drawings down the west wall, posters and the notice board on the east wall
+  for (let z = 44; z <= 54; z += 2) p.picture('drawing', 44, 3, z, 'e', 1, 1, rng.int(0, 5));
+  p.picture('poster_revue', 46, 4, 42, 'w', 2, 3);
+  p.picture('poster_party', 46, 4, 48, 'w', 2, 2);
+  p.picture('notice_board', 46, 3, 55, 'w', 2, 1);
+  for (const z of [43, 49, 55]) dayLamp(p, 44, 4, z, 'sconce_false_e', 'hall_e');
+  for (const z of [46, 52]) dayLamp(p, 46, 3, z, 'sconce_false_w', 'hall_e');
+  p.set(46, 0, 40, 'fountain_w');
+  p.set(44, 1, 45, 'extinguisher_e');
+  p.set(46, 0, 54, 'trash_w');
+  for (let z = 39; z <= 40; z++) p.set(44, 5, z, 'bunting_e');
+  // ---- E. Hall Corner (CAM 4B): piers either side of the right door, the corner poster
+  pier(42, 64, 'e');
+  pier(42, 68, 'e');
+  pier(46, 59, 'w');
+  p.set(42, 4, 66, 'emerg_false_e');
+  p.picture('poster_party', 46, 4, 60, 'w', 2, 2);
+  p.set(46, 1, 63, 'extinguisher_w');
+  p.set(46, 0, 66, 'decal_drag_n');
   // office windows (glass + bars) on both sides
   for (const side of ['L', 'R']) {
     const w = OFFICE.windows[side];
@@ -1016,13 +1058,25 @@ function halls(p, rng) {
 }
 
 function supply(p, _rng) {
-  for (const z of [41, 43]) p.set(19, 0, z, 'shelf_e');
-  p.set(23, 0, 41, 'shelf_w');
-  p.set(19, 0, 50, 'mop_e');
+  // The Supply Closet (x 19-23, z 41-50; CAM 3): wire shelving down the west wall, parts shelves at the end, the
+  // janitor's sink, pallets and drums; the middle of the floor stays clear.
+  for (let z = 43; z <= 47; z++) {
+    p.set(19, 0, z, 'wshelf_0_e');
+    p.set(19, 1, z, 'wshelf_1_e');
+  }
+  for (const x of [20, 22]) p.set(x, 0, 41, 'shelf_s');
+  p.set(21, 0, 41, 'road_case');
+  p.set(23, 0, 41, 'prep_sink_w');
+  p.set(23, 0, 43, 'mop_w');
+  p.set(23, 1, 49, 'extinguisher_w');
+  p.set(19, 0, 49, 'pallets_2');
+  p.set(19, 0, 50, 'barrel_n');
   p.set(20, 0, 50, 'barrel_n');
   p.set(20, 1, 50, 'barrel_n');
   p.set(23, 0, 50, 'wetsign_n');
-  p.set(22, 0, 44, 'trash_w');
+  p.set(22, 0, 42, 'trash_w');
+  p.picture('sign_small', 23, 3, 44, 'w', 1, 1, 5);
+  for (const z of [44, 49]) p.set(20, 5, z, 'wires_bundle_n');
 }
 
 function party(p, rng) {
@@ -1481,10 +1535,10 @@ function decayHalls(p) {
   p.set(27, 0, 41, 'decal_puddle_n');
   for (const [z, k] of [[43, 'prints'], [46, 'prints'], [49, 'prints_faint'], [52, 'prints_faint'], [55, 'prints_faint']]) p.set(27, 0, z, `decal_${k}_s`);
   writing(p, 'show', 26, 4, 52, 'e');
-  p.picture('poster_torn', 26, 4, 42, 'e', 2, 2); // over the old rules poster, right in CAM 2A's face
-  p.set(26, 6, 47, 'ceiling_missing');
-  p.set(26, 5, 47, 'wires_bundle_e');
-  p.set(26, 0, 47, 'decal_debris_n');
+  p.picture('poster_torn', 26, 4, 43, 'e', 2, 2); // over the old rules poster, right in CAM 2A's face
+  p.set(26, 6, 50, 'ceiling_missing');
+  p.set(26, 5, 50, 'wires_bundle_e');
+  p.set(26, 0, 50, 'decal_debris_n');
   p.set(28, 5, 56, 'cobweb');
   // W. Hall Corner (CAM 2B, and through the left door when its light is on)
   writing(p, 'name', 26, 4, 67, 'e');
@@ -1605,7 +1659,7 @@ function signs(p) {
   p.setPhase('signs');
   p.sign(27, 3, 39, 's', ['WEST HALL', '', 'OFFICE', 'v']);
   p.sign(45, 3, 39, 's', ['EAST HALL', '', 'OFFICE', 'v']);
-  p.sign(26, 2, 47, 'e', ['SUPPLY', 'CLOSET']);
+  p.sign(26, 2, 44, 'e', ['SUPPLY', 'CLOSET']);
   p.sign(65, 3, 12, 'e', ['KITCHEN', 'Staff only']);
   p.sign(32, 2, 69, 'e', ['NIGHT GUARD', 'Doors: red', 'Lights: white', 'Power is finite']);
   p.sign(15, 4, 37, 'e', ['THE GRAND', 'MARQUEE', 'private stage', 'do not disturb']);
