@@ -48,7 +48,7 @@ const STYLES = {
 /** Lamp groups the game switches by name (the others: the room's id in lower case). */
 const LAMP_GROUP = { DINING: 'dining', WEST_HALL: 'hall_w', W_CORNER: 'hall_w', EAST_HALL: 'hall_e', E_CORNER: 'hall_e', OFFICE: 'office' };
 /** Rooms that hang their own lamps in their decor (the others get a grid of ceiling troffers in lights()). */
-const OWN_LAMPS = ['MIDWAY', 'CABARET', 'BACKSTAGE', 'GALLERY', 'PARTS', 'OFFICE', 'W_CORNER', 'E_CORNER', 'DINING'];
+const OWN_LAMPS = ['MIDWAY', 'CABARET', 'BACKSTAGE', 'GALLERY', 'PARTS', 'OFFICE', 'W_CORNER', 'E_CORNER', 'DINING', 'FOYER'];
 
 const inBox = (b, x, z) => x >= b[0] && x <= b[2] && z >= b[1] && z <= b[3];
 const interiorOf = (x, z) => ROOMS.find((r) => inBox(r.box, x, z));
@@ -464,23 +464,10 @@ function doorFrame(p, id, axis, key, head = key) {
 function decor(p) {
   p.setPhase('decor');
   const rng = p.rng.fork(37);
-  dining(p, rng);
-  midway(p, rng);
-  cabaret(p, rng);
-  backstage(p, rng);
-  kitchen(p, rng);
-  restrooms(p, rng);
-  foyer(p, rng);
-  prize(p, rng);
-  halls(p, rng);
-  supply(p, rng);
-  party(p, rng);
-  office(p, rng);
-  staff(p, rng);
-  gallery(p, rng);
-  gameroom(p, rng);
-  funzone(p);
-  parts(p, rng);
+  // (each room is written as a batch: its large fills, then every other cell once: see PlanBuilder.batch)
+  for (const room of [dining, midway, cabaret, backstage, kitchen, restrooms, foyer, prize, halls, supply, party, office, staff, gallery, gameroom, funzone, parts]) {
+    p.batch((q) => room(q, rng));
+  }
   lastWeek(p);
   for (const c of CAMERAS) {
     if (!c.mount) continue;
@@ -858,6 +845,14 @@ function clawMachine(p, x, z, dir, colour = 'blue_c') {
 }
 
 function foyer(p, rng) {
+  // The Entrance Hall (x 65-98, z 28-40, 7 tall): the lobby people queue in. Oak wainscot and a racing stripe under
+  // warm yellow walls, cream pilasters, a dropped soffit along both long walls edged with marquee bulbs, pendant
+  // lamps over the checker path from the glass doors to the WELCOME arch. Inside the doors the host stand and the
+  // coat rack on one side, the ticket booth under its awning on the other; the mural of the whole cast over a
+  // bench, the token counter under its starry bulkhead, prize cabinets either side of the Prize Corner's doorway,
+  // rides, a claw machine and a photo booth between the arches to the games.
+  const R = ROOM_BY_ID.FOYER;
+  const top = R.h - 1; // 6
   // ---- the checker path from the doors to the arch
   p.fill(65, -1, 31, 98, -1, 37, 'tile');
   // ---- the WELCOME arch (the foyer side of the wall at x 64): a frame of marquee bulbs round the doorway
@@ -866,7 +861,97 @@ function foyer(p, rng) {
     p.meta.hanging.push({ x: 64, y, z, group: 'foyer' });
   }
   p.picture('sign_welcome', 65, 6, 37, 'e', 9, 2);
-  if (rng.chance(0)) p.set(65, 0, 28, 'trash_e');
+  p.picture('height_chart', 65, 3, 39, 'e', 1, 3);
+  for (const z of [30, 36]) p.set(65, 0, z, 'planter');
+  // ---- pilasters, the soffits along the north and south walls and their bulbs (the house lights), pendants
+  for (const x of [73, 86, 94]) pilaster(p, x, 28, top - 1);
+  for (const x of [66, 77, 85, 93]) pilaster(p, x, 40, top - 1);
+  p.fill(65, top, 28, 98, top, 29, 'soffit_cream');
+  p.fill(65, top, 39, 98, top, 40, 'soffit_cream');
+  for (let x = 73; x <= 98; x++) houseLamp(p, x, top, 30, 'bulb_off', 'FOYER');
+  for (let x = 65; x <= 98; x++) houseLamp(p, x, top, 38, 'bulb_off', 'FOYER');
+  for (const x of [70, 77, 84, 91, 97]) {
+    p.set(x, top, 34, 'chain_y');
+    dayLamp(p, x, top - 1, 34, 'hanging_off', 'foyer');
+  }
+  // ---- the token counter in the north-west corner: an oak counter with a glass case in it, the plush slatwall
+  // behind, a cream bulkhead with red stars over it, the price board beside it
+  p.fill(67, 0, 30, 69, 0, 30, 'wainscot');
+  for (const x of [70, 71]) p.set(x, 0, 30, 'prizecase_s');
+  p.fill(72, 0, 28, 72, 0, 30, 'wainscot');
+  p.set(67, 1, 30, 'popcorn_s');
+  p.set(68, 1, 30, 'till_s');
+  p.set(69, 1, 30, 'plush_s');
+  p.set(72, 1, 30, 'clutter_s');
+  p.set(72, 1, 28, 'pizza_2_e');
+  for (let x = 67; x <= 71; x++) for (const y of [1, 2, 3]) p.set(x, y, 28, 'plushwall_s');
+  p.set(66, 0, 28, 'stool');
+  p.fill(66, top - 1, 28, 72, top - 1, 29, 'soffit_cream');
+  p.fill(66, top - 1, 30, 72, top, 30, 'soffit_cream');
+  for (let x = 66; x <= 72; x += 2) p.set(x, top - 1, 30, 'soffit_star');
+  neon(p, 'tokens', 68, top, 31, 's');
+  p.picture('token_prices', 74, 4, 28, 's', 2, 2);
+  for (const x of [74, 75]) p.set(x, 0, 28, 'gumball');
+  // ---- the mural on the north wall, a bench under it behind a velvet rope
+  p.picture('mural_revue', 76, 4, 28, 's', 8, 2);
+  p.fill(77, 0, 28, 82, 0, 28, 'dark_oak_stairs_n');
+  for (let x = 76; x <= 84; x++) p.set(x, 0, 30, (x - 76) % 2 ? 'rope_n' : 'stanchion');
+  p.picture('poster_revue', 84, 5, 28, 's', 2, 3);
+  // ---- the Prize Corner's doorway: a tall prize cabinet either side, PRIZES in neon over it
+  doorFrame(p, 'prize_door', 'x', 'dark_oak');
+  for (const x of [85, 95]) {
+    p.set(x, 0, 28, 'case_0_s');
+    p.set(x, 1, 28, 'case_1_s');
+  }
+  neon(p, 'prizes', 89, 4, 28, 's');
+  // ---- inside the doors, north: the host stand, the coat rack over a bench, the auction notice
+  p.set(96, 0, 31, 'host_s');
+  for (const [z, k] of [[29, 'full'], [30, 'empty'], [31, 'full']]) p.set(98, 1, z, `coats_${k}_w`);
+  p.picture('sign_small', 98, 3, 30, 'w', 1, 1, 6);
+  p.fill(98, 0, 29, 98, 0, 30, 'dark_oak_stairs_e');
+  p.picture('poster_auction', 96, 5, 28, 's', 2, 3);
+  p.set(97, 0, 28, `balloons_${rng.int(0, 2)}`);
+  // the doors' inner frame, the EXIT sign over them
+  for (const z of [33, 38]) p.fill(99, 0, z, 99, 3, z, 'dark_oak');
+  p.fill(99, 3, 34, 99, 3, 37, 'dark_oak');
+  p.set(98, 4, 35, 'exit_true_w');
+  p.meta.exits.push({ x: 98, y: 4, z: 35, dir: 'w' });
+  // ---- inside the doors, south: the ticket booth (an oak counter, glass, a cream fascia, a striped awning)
+  p.fill(94, 0, 38, 98, 0, 38, 'wainscot');
+  p.fill(94, 0, 39, 94, 2, 40, 'wainscot');
+  for (const x of [94, 98]) column(p, x, 38, 1, 2, 'column');
+  for (const x of [95, 97]) p.fill(x, 1, 38, x, 2, 38, 'window');
+  p.set(96, 2, 38, 'window');
+  p.set(96, 1, 38, 'clutter_n');
+  p.fill(94, 3, 38, 98, 4, 38, 'soffit_cream');
+  p.fill(94, 3, 39, 94, 4, 40, 'soffit_cream');
+  p.fill(95, 4, 39, 98, 4, 40, 'soffit_cream');
+  for (const x of [94, 96, 98]) p.set(x, 4, 38, 'soffit_star');
+  for (let x = 95; x <= 97; x++) p.set(x, 3, 37, 'awning_n');
+  neon(p, 'tickets', 97, 5, 37, 'n');
+  p.fill(95, 5, 38, 97, 5, 38, 'blackstone_slab');
+  p.set(96, 0, 39, 'stool');
+  dayLamp(p, 96, 3, 39, 'hanging_off', 'foyer');
+  // ---- between the arches to the games: a photo booth, kiddie rides, the claw machine, kids' drawings
+  doorFrame(p, 'gameroom_arch', 'x', 'dark_oak');
+  doorFrame(p, 'funzone_arch', 'x', 'dark_oak');
+  p.fill(78, 0, 39, 79, 2, 40, 'red_c');
+  p.fill(78, 0, 39, 78, 1, 39, 'curtain_red');
+  p.set(79, 1, 39, 'window');
+  p.fill(78, 3, 39, 79, 3, 40, 'yellow_c');
+  p.sign(79, 2, 38, 'n', ['PHOTOS', '', '4 for $1']);
+  p.set(81, 0, 40, 'kiddie_n');
+  p.set(82, 0, 40, 'claw_0_n');
+  p.set(82, 1, 40, 'claw_1_n');
+  p.set(84, 0, 40, 'kiddie_n');
+  for (let x = 78; x <= 84; x++) p.set(x, 0, 37, (x - 78) % 2 ? 'rope_n' : 'stanchion');
+  for (let i = 0; i < 3; i++) p.picture('drawing', 82 + i, 4, 40, 'n', 1, 1, rng.int(0, 5));
+  p.picture('poster_cabaret', 81, 5, 40, 'n', 2, 3);
+  neon(p, 'arcade', 73, 5, 40, 'n');
+  neon(p, 'funzone', 90, 5, 40, 'n');
+  p.set(65, 0, 40, 'trash_e');
+  p.set(65, 0, 28, 'trash_e');
+  p.set(93, 0, 38, `balloons_${rng.int(0, 2)}`);
 }
 
 function prize(p, rng) {
@@ -1262,20 +1347,10 @@ function writing(p, which, x, y, z, dir) {
 
 function lastWeek(p) {
   p.flush();
-  decayDining(p);
-  decayMarquee(p);
-  decayMidway(p);
-  decayBackstage(p);
-  decayKitchen(p);
-  decayRestrooms(p);
-  decayFoyer(p);
-  decayHalls(p);
-  decaySupply(p);
-  decayPrize(p);
-  decayParty(p);
-  decayGameRoom(p);
-  decayOffice(p);
-  decayStaff(p);
+  p.batch((q) => {
+    for (const decay of [decayDining, decayMarquee, decayMidway, decayBackstage, decayKitchen, decayRestrooms, decayFoyer, decayHalls, decaySupply, decayPrize,
+      decayParty, decayGameRoom, decayOffice, decayStaff]) decay(q);
+  });
 }
 
 function decayDining(p) {
@@ -1395,7 +1470,7 @@ function decayFoyer(p) {
   for (const [x, z] of [[94, 33], [88, 35], [82, 34], [76, 33], [70, 34]]) p.set(x, 0, z, 'decal_prints_faint_e');
   p.set(85, 0, 35, 'decal_tickets_n');
   p.set(73, 0, 38, 'decal_confetti_e');
-  for (const [x, z] of [[65, 40], [98, 28], [65, 28], [98, 40]]) p.set(x, 6, z, 'cobweb');
+  for (const [x, z] of [[65, 39], [98, 29], [65, 29], [98, 39]]) p.set(x, 5, z, 'cobweb');
   p.set(81, 7, 33, 'ceiling_missing');
   p.set(81, 6, 33, 'wires_bundle_e');
   p.set(81, 0, 33, 'decal_debris_n');
@@ -1536,7 +1611,7 @@ function signs(p) {
   p.sign(15, 4, 37, 'e', ['THE GRAND', 'MARQUEE', 'private stage', 'do not disturb']);
   p.sign(33, 1, 60, 's', ['', 'LEFT VENT', '^']);
   p.sign(39, 1, 60, 's', ['', 'RIGHT VENT', '^']);
-  p.sign(93, 2, 28, 'w', ['TICKETS', '', 'Hand stamps', 'at the podium']);
+  p.sign(93, 2, 39, 'w', ['TICKETS', '', 'Hand stamps', 'at the podium']);
   p.sign(FRONT + 1, 2, 39, 'e', ['FINAL WEEKEND', 'Everything', 'must go!', 'Auction Sat.']);
   p.sign(FRONT + 1, 2, 31, 'e', ['RUSTGRIN\'S', 'Pizza Revue', 'OPEN 11 - 9', 'Shows hourly!']);
 }

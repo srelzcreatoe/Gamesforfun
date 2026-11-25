@@ -71,6 +71,61 @@ export class PlanBuilder {
     }
   }
 
+  /**
+   * Run `fn(q)` against a recorder with this builder's interface (fill, set, picture, sign, rng, meta) and write
+   * what it built in as few ops as it takes: the large fills in their order, then every other cell exactly once,
+   * grouped by block, then the signs. The result is the same as running `fn` on the builder itself (later writes
+   * still win, cell by cell), but a room that mixes fills and single blocks costs a fill per large box and a list
+   * per kind of block instead of a list for every change of hands. Fills of up to `small` cells become cells.
+   */
+  batch(fn, small = 48) {
+    const fills = [];
+    /** @type {Map<string, string>} cell "x,y,z" -> the key last written there */
+    const cells = new Map();
+    const signs = [];
+    const q = {
+      rng: this.rng, meta: this.meta,
+      set(x, y, z, key) {
+        cells.set(`${x},${y},${z}`, key);
+      },
+      fill(xa, ya, za, xb, yb, zb, key) {
+        const x1 = Math.min(xa, xb), y1 = Math.min(ya, yb), z1 = Math.min(za, zb);
+        const x2 = Math.max(xa, xb), y2 = Math.max(ya, yb), z2 = Math.max(za, zb);
+        const vol = (x2 - x1 + 1) * (y2 - y1 + 1) * (z2 - z1 + 1);
+        if (vol <= small) {
+          for (let x = x1; x <= x2; x++) for (let y = y1; y <= y2; y++) for (let z = z1; z <= z2; z++) cells.set(`${x},${y},${z}`, key);
+          return;
+        }
+        fills.push([x1, y1, z1, x2, y2, z2, key]);
+        // what was set inside this box before is under it now
+        if (vol < cells.size) {
+          for (let x = x1; x <= x2; x++) for (let y = y1; y <= y2; y++) for (let z = z1; z <= z2; z++) cells.delete(`${x},${y},${z}`);
+        } else {
+          for (const k of [...cells.keys()]) {
+            const [x, y, z] = k.split(',').map(Number);
+            if (x >= x1 && x <= x2 && y >= y1 && y <= y2 && z >= z1 && z <= z2) cells.delete(k);
+          }
+        }
+      },
+      sign(x, y, z, dir, lines) {
+        signs.push([x, y, z, dir, lines]);
+      },
+      picture: PlanBuilder.prototype.picture,
+      flush() {},
+      batch(g) {
+        g(q);
+      },
+    };
+    fn(q);
+    for (const f of fills) this.fill(f[0], f[1], f[2], f[3], f[4], f[5], f[6]);
+    for (const [k, key] of cells) {
+      const [x, y, z] = k.split(',').map(Number);
+      this.set(x, y, z, key);
+    }
+    for (const s of signs) this.sign(s[0], s[1], s[2], s[3], s[4]);
+    this.flush();
+  }
+
   flushKey(key) {
     const list = this.pending.get(key);
     if (list && list.length) this.push(['L', key, list]);
