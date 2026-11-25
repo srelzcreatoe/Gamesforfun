@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "kitchenette",
+    "metalness_emissive_roughness": "kitchenette_mer",
+    "heightmap": "kitchenette_height"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "soda_fountain",
+    "metalness_emissive_roughness": "soda_fountain_mer",
+    "heightmap": "soda_fountain_height"
+  }
+}

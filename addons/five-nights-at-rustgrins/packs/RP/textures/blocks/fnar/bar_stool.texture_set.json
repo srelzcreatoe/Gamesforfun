@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "bar_stool",
+    "metalness_emissive_roughness": "bar_stool_mer",
+    "heightmap": "bar_stool_height"
+  }
+}

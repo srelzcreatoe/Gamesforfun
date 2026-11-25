@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Five Nights at Rustgrin's 1.2.1 (Behavior)",
+    "name": "Five Nights at Rustgrin's 1.3.0 (Behavior)",
     "description": "Five nights, six animatronics, one Ringmaster who knows your name, and the Golden Dog in the cellar. An original FNAF-style night-guard horror game: security cameras, doors, vents, a show tape that must keep playing, and a Final Act. No experiments needed. Requires the matching resource pack.",
     "uuid": "02b67251-1ef0-43ba-8b73-411d54a1b730",
     "version": [
       1,
-      2,
-      1
+      3,
+      0
     ],
     "min_engine_version": [
       1,
@@ -22,8 +22,8 @@
       "uuid": "205a6fbd-72d6-4382-9bb9-abc2ec4f9948",
       "version": [
         1,
-        2,
-        1
+        3,
+        0
       ]
     },
     {
@@ -34,8 +34,8 @@
       "uuid": "41b33f8b-b5be-40fb-b9f9-e0e81275309b",
       "version": [
         1,
-        2,
-        1
+        3,
+        0
       ]
     }
   ],
@@ -44,8 +44,8 @@
       "uuid": "f29ca45a-51c9-4089-a965-2e8edb89568f",
       "version": [
         1,
-        2,
-        1
+        3,
+        0
       ]
     },
     {

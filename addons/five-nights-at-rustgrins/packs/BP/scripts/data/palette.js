@@ -222,6 +222,41 @@ export const PALETTE = Object.freeze({
   ...Object.fromEntries([0, 1, 2, 3, 4, 5].map((t) => [`gild_poster_${t}`, F('poster_golden_dog', { 'minecraft:cardinal_direction': 'north', 'fnar:tile': t })])),
   gild_drawing_w: F('drawing_golden_dog', { 'minecraft:cardinal_direction': 'west', 'fnar:tile': 1 }),
   gild_drawing_e: F('drawing_golden_dog', { 'minecraft:cardinal_direction': 'east', 'fnar:tile': 0 }),
+  // ---- rework (the pizzeria above ground, reworked: docs/BLOCKS.md H; tools/blocks/rework)
+  wainscot: F('wainscot_oak'), tile_white: F('wall_tile_white'), tile_mint: F('wall_tile_mint'), steel: F('steel_panel'), road_case: F('road_case'),
+  column: F('column_cream'), column_cap: F('column_cap'),
+  // the kitchen, the pizza counter, the restrooms
+  ...cardStates('oven', 'pizza_oven', 'fnar:half', [0, 1]), ...named('prep', 'prep_table', 'fnar:kind', ['board', 'dough', 'rail', 'sink']),
+  ...cardStates('wshelf', 'wire_shelf', 'fnar:half', [0, 1]), ...cardStates('freezer', 'freezer_door', 'fnar:half', [0, 1]),
+  ...cardStates('cooler', 'drinks_cooler', 'fnar:half', [0, 1]), ...card('potrack', 'pot_rack'), ...card('soda', 'soda_fountain'), ...card('till', 'cash_register'),
+  ...named('salad', 'salad_bar', 'fnar:kind', ['greens', 'cheese', 'empty']),
+  ...Object.fromEntries(['wall', 'door', 'ajar'].flatMap((k, i) => [0, 1].flatMap((h) => Object.entries(CARD).map(([d, v]) =>
+    [`stall_${k}_${h}_${d}`, F('stall_panel', { 'minecraft:cardinal_direction': v, 'fnar:kind': i, 'fnar:half': h })])))),
+  ...named('mirror', 'restroom_mirror', 'fnar:kind', ['whole', 'cracked']), ...card('urinal', 'urinal'), ...card('dryer', 'hand_dryer'),
+  // the lobby, the showroom, the halls
+  ...card('host', 'host_stand'), ...named('coats', 'coat_hooks', 'fnar:kind', ['full', 'empty']), ...cardStates('case', 'display_case', 'fnar:half', [0, 1]),
+  ...cardStates('juke', 'jukebox_revue', 'fnar:half', [0, 1]), ...card('mixer', 'mixing_desk'), ...named('pier', 'wall_pier', 'fnar:kind', ['shaft', 'foot', 'head']),
+  ...card('extinguisher', 'fire_extinguisher'), ...card('fountain', 'water_fountain'), stool: F('bar_stool'), ...card('cubby', 'shoe_cubby'),
+  // the Game Room: arcade1..4 are the four other games (the same keys as arcade_<half>_<dir>, so the guests find them too)
+  ...Object.fromEntries([0, 1, 2, 3].flatMap((g) => [0, 1].flatMap((h) => Object.entries(CARD).map(([d, v]) =>
+    [`arcade${g + 1}_${h}_${d}`, F('arcade_machine', { 'minecraft:cardinal_direction': v, 'fnar:game': g, 'fnar:half': h })])))),
+  ...named('pinball', 'pinball_table', 'fnar:part', ['front', 'back']), ...card('airhockey', 'air_hockey'),
+  ...cardStates('change', 'change_machine', 'fnar:half', [0, 1]), ...cardStates('claw', 'claw_machine', 'fnar:half', [0, 1]),
+  ...Object.fromEntries(['pink', 'teal', 'yellow'].flatMap((c) => ['bar', 'post', 'zig', 'top'].flatMap((k, i) => Object.entries(CARD).map(([d, v]) =>
+    [`glow_${c}_${k}_${d}`, F(`neon_${c}`, { 'minecraft:cardinal_direction': v, 'fnar:kind': i })])))),
+  // backstage and the Staff Room
+  ...named('rack', 'costume_rack', 'fnar:kind', ['band', 'midway', 'bare']), ...cardStates('vanity', 'vanity_mirror', 'fnar:lit', [true, false]),
+  ...cardStates('vending', 'vending_machine', 'fnar:half', [0, 1]), ...card('breaktable', 'break_table'),
+  ...named('sofa', 'sofa', 'fnar:kind', ['left', 'mid', 'right']), ...named('kitchenette', 'kitchenette', 'fnar:kind', ['coffee', 'microwave']),
+  // the street
+  ...card('awning', 'awning'), ...card('dumpster', 'dumpster'), planter: F('planter'), ...named('drain', 'drainpipe', 'fnar:kind', ['pipe', 'foot']),
+  bollard: F('bollard'), ...card('wheelstop', 'parking_block'), ac_unit: F('ac_unit'),
+  ...Object.fromEntries([1, 2, 3].map((n) => [`pallets_${n}`, F('pallets', { 'fnar:count': n })])),
+  // vanilla blocks the rework adds
+  sandstone_slab: M('cut_sandstone_slab', { 'minecraft:vertical_half': 'bottom' }), sandstone_slab_top: M('cut_sandstone_slab', { 'minecraft:vertical_half': 'top' }),
+  // a chain-link fence along x / along z (the connections are set, like the cellar's railings)
+  iron_bars_x: M('iron_bars', { 'minecraft:connection_east': true, 'minecraft:connection_west': true, 'minecraft:connection_north': false, 'minecraft:connection_south': false }),
+  iron_bars_z: M('iron_bars', { 'minecraft:connection_east': false, 'minecraft:connection_west': false, 'minecraft:connection_north': true, 'minecraft:connection_south': true }),
 });
 
 /** Picture panels (docs/BLOCKS.md A): name -> [tiles wide, tiles high]. Keys are generated as `${name}_${tile}_${dir}`. */
@@ -234,9 +269,10 @@ export const PICTURES = Object.freeze({
   sign_stage: [10, 3], sign_facade: [12, 4], menu_board: [4, 2],
   sign_welcome: [9, 2], sign_mascot: [6, 6], height_chart: [1, 3], token_prices: [2, 2],
   sign_golden_dog: [7, 2], poster_golden_dog: [2, 3], drawing_golden_dog: [1, 1], // cellar (tools/blocks/cellar)
+  mural_revue: [8, 2], notice_board: [2, 1], banner_birthday: [6, 1], sign_small: [1, 1], // rework (tools/blocks/rework)
 });
 /** Variant counts for 1x1 pictures that use fnar:tile as a variant index (wall_writing: several pictures in one block). */
-export const PICTURE_VARIANTS = Object.freeze({ drawing: 8, sign_staff: 4, lot_tag: 6, wall_writing: 16, neon_sign: 35, play_net: 2, drawing_golden_dog: 2 });
+export const PICTURE_VARIANTS = Object.freeze({ drawing: 8, sign_staff: 4, lot_tag: 6, wall_writing: 16, neon_sign: 35, play_net: 2, drawing_golden_dog: 2, sign_small: 8 });
 /** neon_sign tiles: the first tile of each sign and its size. */
 export const NEON = Object.freeze({
   funzone: [0, 3, 1], prizes: [3, 3, 1], party: [6, 2, 1], pizza: [8, 2, 1], games: [10, 2, 1], star: [12, 1, 1], slice: [13, 1, 1],

@@ -42,7 +42,7 @@ for (const [x, y, z] of G.DAY_OPEN) {
 // What a body passes through: air, invisible light, carpet, flat things on the floor and on walls.
 // Stricter than validate_map.mjs's list for the 3-block cast: panes, bars, ropes, hats and balloons on the
 // floor all stop a guest.
-const PASS = /^(minecraft:(air|light_block_\d+|short_grass|.*_carpet|.*wall_sign|.*_button)|fnar:(floor_decal|poster_.*|drawing|sign_.*|wall_writing|lot_tag|neon_sign.*|menu_board|height_chart|token_prices|bunting|light_button|door_button))$/;
+const PASS = /^(minecraft:(air|light_block_\d+|short_grass|.*_carpet|.*wall_sign|.*_button)|fnar:(floor_decal|poster_.*|drawing|sign_.*|wall_writing|lot_tag|neon_sign.*|menu_board|height_chart|token_prices|bunting|light_button|door_button|mural_revue|notice_board|banner_birthday|neon_(pink|teal|yellow)|restroom_mirror|vanity_mirror))$/;
 const passable = (x, y, z) => PASS.test(entryAt(x, y, z).name);
 const HEADS = [];
 for (let y = 0; y < G.GUEST_BODY.height; y++) HEADS.push(y);
@@ -145,7 +145,7 @@ for (const s of seats) {
 console.log(`cabinets (${cabinets.length} found in the build plan) and ${G.STANDS.length} places to stand:`);
 for (const c of cabinets) {
   const e = entryAt(c.bx, 0, c.bz);
-  if (e.name !== 'fnar:arcade_cabinet' || e.states?.['minecraft:cardinal_direction'] !== CARD[c.dir]) { report(`${c.id}: the built block is ${e.name} facing ${e.states?.['minecraft:cardinal_direction']}`); continue; }
+  if (!['fnar:arcade_cabinet', 'fnar:arcade_machine', 'fnar:pinball_table'].includes(e.name) || e.states?.['minecraft:cardinal_direction'] !== CARD[c.dir]) { report(`${c.id}: the built block is ${e.name} facing ${e.states?.['minecraft:cardinal_direction']}`); continue; }
   let hit = discBlocked(c.x, c.z, R);
   if (hit) { report(`${c.id}: the player's spot ${c.x.toFixed(2)},${c.z.toFixed(2)} is blocked: ${hit}`); continue; }
   const an = G.anchor(g, c.x, c.z);
@@ -204,7 +204,7 @@ if (plotArg >= 0) {
   for (let z = Z1; z < Z2; z++) for (let x = X1; x < X2; x++) {
     const b = blockedAt(x + 0.5, z + 0.5);
     const n = entryAt(x, 0, z).name;
-    const c = !b ? [232, 232, 226] : /no floor/.test(b) ? [40, 40, 60] : /chair|booth/.test(n) ? [200, 80, 80] : /table/.test(n) ? [150, 110, 70] : /arcade|skee|prize_case/.test(n) ? [90, 110, 190] : passable(x, 0, z) ? [120, 120, 120] : [70, 70, 74];
+    const c = !b ? [232, 232, 226] : /no floor/.test(b) ? [40, 40, 60] : /chair|booth/.test(n) ? [200, 80, 80] : /table/.test(n) ? [150, 110, 70] : /arcade|skee|prize_case|pinball|air_hockey|claw|change_machine/.test(n) ? [90, 110, 190] : passable(x, 0, z) ? [120, 120, 120] : [70, 70, 74];
     const edge = (v) => (v % 10 === 0 ? 0.45 : v % 5 === 0 ? 0.7 : 0.9);
     for (let py = 0; py < S; py++) for (let px = 0; px < S; px++) set((x - X1) * S + px, (z - Z1) * S + py, c.map((v) => v * Math.min(px === 0 ? edge(x) : 1, py === 0 ? edge(z) : 1)));
   }

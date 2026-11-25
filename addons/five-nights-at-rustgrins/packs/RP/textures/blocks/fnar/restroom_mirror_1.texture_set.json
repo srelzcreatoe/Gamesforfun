@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "restroom_mirror_1",
+    "metalness_emissive_roughness": "restroom_mirror_1_mer",
+    "heightmap": "restroom_mirror_1_height"
+  }
+}

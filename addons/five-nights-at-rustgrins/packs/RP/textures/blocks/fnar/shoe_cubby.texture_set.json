@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "shoe_cubby",
+    "metalness_emissive_roughness": "shoe_cubby_mer",
+    "heightmap": "shoe_cubby_height"
+  }
+}

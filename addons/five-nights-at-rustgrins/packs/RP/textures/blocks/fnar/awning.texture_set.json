@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "awning",
+    "metalness_emissive_roughness": "awning_mer",
+    "heightmap": "awning_height"
+  }
+}

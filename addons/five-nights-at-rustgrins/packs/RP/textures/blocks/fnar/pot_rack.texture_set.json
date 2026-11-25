@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "pot_rack",
+    "metalness_emissive_roughness": "pot_rack_mer",
+    "heightmap": "pot_rack_height"
+  }
+}

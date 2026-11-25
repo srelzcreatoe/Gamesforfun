@@ -12,7 +12,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 BP = os.path.join(ROOT, 'packs', 'BP')
 RP = os.path.join(ROOT, 'packs', 'RP')
-VERSION = [1, 2, 1]
+VERSION = [1, 3, 0]
 ENGINE = [1, 26, 50]
 UUID = {
     'bp_header': '02b67251-1ef0-43ba-8b73-411d54a1b730',
@@ -173,6 +173,12 @@ BLOCK_NAMES = {
     'tile_office': 'Office Floor Tile', 'wall_checker': 'Checkered Wainscot', 'wall_plaster': 'Plaster Wall',
     'wall_plaster_stained': 'Stained Plaster Wall', 'wall_trim': 'Wall Trim', 'wallpaper_maroon': 'Maroon Wallpaper',
     'wet_floor_sign': 'Wet Floor Sign',
+    # the rework's blocks (tools/blocks/rework)
+    'wainscot_oak': 'Oak Wainscot', 'column_cream': 'Cream Column', 'column_cap': 'Cream Column Cap', 'wall_tile_white': 'White Wall Tile',
+    'wall_tile_mint': 'Mint Wall Tile', 'steel_panel': 'Stainless Steel Panel', 'jukebox_revue': 'Jukebox', 'neon_pink': 'Pink Neon Tube',
+    'neon_teal': 'Teal Neon Tube', 'neon_yellow': 'Yellow Neon Tube', 'mural_revue': 'Rusty Revue Mural', 'banner_birthday': 'Birthday Banner',
+    'sign_small': 'Small Sign', 'ac_unit': 'Air Conditioning Unit', 'parking_block': 'Wheel Stop', 'restroom_mirror': 'Restroom Mirror',
+    'stall_panel': 'Toilet Stall Panel', 'arcade_machine': 'Arcade Machine', 'drainpipe': 'Downpipe',
     # the last week (docs/BLOCKS.md C)
     'spare_head': 'Spare Animatronic Head', 'endo_parts': 'Endoskeleton Parts', 'slumped_suit': 'Empty Costume',
     'birthday_cake': 'Birthday Cake', 'fallen_chair': 'Knocked-Over Party Chair', 'floor_decal': 'Floor Clutter',

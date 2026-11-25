@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "break_table",
+    "metalness_emissive_roughness": "break_table_mer",
+    "heightmap": "break_table_height"
+  }
+}

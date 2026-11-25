@@ -448,6 +448,288 @@
     "fnar_wet_floor_sign": {
       "textures": "textures/blocks/fnar/wet_floor_sign"
     },
+    "fnar_ac_unit": {
+      "textures": "textures/blocks/fnar/ac_unit"
+    },
+    "fnar_air_hockey": {
+      "textures": "textures/blocks/fnar/air_hockey"
+    },
+    "fnar_arcade_machine_0": {
+      "textures": "textures/blocks/fnar/arcade_machine_0"
+    },
+    "fnar_arcade_machine_1": {
+      "textures": "textures/blocks/fnar/arcade_machine_1"
+    },
+    "fnar_arcade_machine_2": {
+      "textures": "textures/blocks/fnar/arcade_machine_2"
+    },
+    "fnar_arcade_machine_3": {
+      "textures": "textures/blocks/fnar/arcade_machine_3"
+    },
+    "fnar_awning": {
+      "textures": "textures/blocks/fnar/awning"
+    },
+    "fnar_banner_birthday_0": {
+      "textures": "textures/blocks/fnar/banner_birthday_0"
+    },
+    "fnar_banner_birthday_1": {
+      "textures": "textures/blocks/fnar/banner_birthday_1"
+    },
+    "fnar_banner_birthday_2": {
+      "textures": "textures/blocks/fnar/banner_birthday_2"
+    },
+    "fnar_banner_birthday_3": {
+      "textures": "textures/blocks/fnar/banner_birthday_3"
+    },
+    "fnar_banner_birthday_4": {
+      "textures": "textures/blocks/fnar/banner_birthday_4"
+    },
+    "fnar_banner_birthday_5": {
+      "textures": "textures/blocks/fnar/banner_birthday_5"
+    },
+    "fnar_bar_stool": {
+      "textures": "textures/blocks/fnar/bar_stool"
+    },
+    "fnar_bollard": {
+      "textures": "textures/blocks/fnar/bollard"
+    },
+    "fnar_break_table": {
+      "textures": "textures/blocks/fnar/break_table"
+    },
+    "fnar_cash_register": {
+      "textures": "textures/blocks/fnar/cash_register"
+    },
+    "fnar_change_machine": {
+      "textures": "textures/blocks/fnar/change_machine"
+    },
+    "fnar_claw_machine": {
+      "textures": "textures/blocks/fnar/claw_machine"
+    },
+    "fnar_coat_hooks": {
+      "textures": "textures/blocks/fnar/coat_hooks"
+    },
+    "fnar_column_cap": {
+      "textures": "textures/blocks/fnar/column_cap"
+    },
+    "fnar_column_cream": {
+      "textures": "textures/blocks/fnar/column_cream"
+    },
+    "fnar_costume_rack": {
+      "textures": "textures/blocks/fnar/costume_rack"
+    },
+    "fnar_display_case": {
+      "textures": "textures/blocks/fnar/display_case"
+    },
+    "fnar_drainpipe": {
+      "textures": "textures/blocks/fnar/drainpipe"
+    },
+    "fnar_drinks_cooler": {
+      "textures": "textures/blocks/fnar/drinks_cooler"
+    },
+    "fnar_dumpster": {
+      "textures": "textures/blocks/fnar/dumpster"
+    },
+    "fnar_fire_extinguisher": {
+      "textures": "textures/blocks/fnar/fire_extinguisher"
+    },
+    "fnar_freezer_door": {
+      "textures": "textures/blocks/fnar/freezer_door"
+    },
+    "fnar_hand_dryer": {
+      "textures": "textures/blocks/fnar/hand_dryer"
+    },
+    "fnar_host_stand": {
+      "textures": "textures/blocks/fnar/host_stand"
+    },
+    "fnar_jukebox_revue": {
+      "textures": "textures/blocks/fnar/jukebox_revue"
+    },
+    "fnar_kitchenette": {
+      "textures": "textures/blocks/fnar/kitchenette"
+    },
+    "fnar_mixing_desk": {
+      "textures": "textures/blocks/fnar/mixing_desk"
+    },
+    "fnar_mural_revue_0": {
+      "textures": "textures/blocks/fnar/mural_revue_0"
+    },
+    "fnar_mural_revue_1": {
+      "textures": "textures/blocks/fnar/mural_revue_1"
+    },
+    "fnar_mural_revue_10": {
+      "textures": "textures/blocks/fnar/mural_revue_10"
+    },
+    "fnar_mural_revue_11": {
+      "textures": "textures/blocks/fnar/mural_revue_11"
+    },
+    "fnar_mural_revue_12": {
+      "textures": "textures/blocks/fnar/mural_revue_12"
+    },
+    "fnar_mural_revue_13": {
+      "textures": "textures/blocks/fnar/mural_revue_13"
+    },
+    "fnar_mural_revue_14": {
+      "textures": "textures/blocks/fnar/mural_revue_14"
+    },
+    "fnar_mural_revue_15": {
+      "textures": "textures/blocks/fnar/mural_revue_15"
+    },
+    "fnar_mural_revue_2": {
+      "textures": "textures/blocks/fnar/mural_revue_2"
+    },
+    "fnar_mural_revue_3": {
+      "textures": "textures/blocks/fnar/mural_revue_3"
+    },
+    "fnar_mural_revue_4": {
+      "textures": "textures/blocks/fnar/mural_revue_4"
+    },
+    "fnar_mural_revue_5": {
+      "textures": "textures/blocks/fnar/mural_revue_5"
+    },
+    "fnar_mural_revue_6": {
+      "textures": "textures/blocks/fnar/mural_revue_6"
+    },
+    "fnar_mural_revue_7": {
+      "textures": "textures/blocks/fnar/mural_revue_7"
+    },
+    "fnar_mural_revue_8": {
+      "textures": "textures/blocks/fnar/mural_revue_8"
+    },
+    "fnar_mural_revue_9": {
+      "textures": "textures/blocks/fnar/mural_revue_9"
+    },
+    "fnar_neon_pink": {
+      "textures": "textures/blocks/fnar/neon_pink"
+    },
+    "fnar_neon_teal": {
+      "textures": "textures/blocks/fnar/neon_teal"
+    },
+    "fnar_neon_yellow": {
+      "textures": "textures/blocks/fnar/neon_yellow"
+    },
+    "fnar_notice_board_0": {
+      "textures": "textures/blocks/fnar/notice_board_0"
+    },
+    "fnar_notice_board_1": {
+      "textures": "textures/blocks/fnar/notice_board_1"
+    },
+    "fnar_pallets": {
+      "textures": "textures/blocks/fnar/pallets"
+    },
+    "fnar_parking_block": {
+      "textures": "textures/blocks/fnar/parking_block"
+    },
+    "fnar_pinball_table": {
+      "textures": "textures/blocks/fnar/pinball_table"
+    },
+    "fnar_pizza_oven": {
+      "textures": "textures/blocks/fnar/pizza_oven"
+    },
+    "fnar_planter": {
+      "textures": "textures/blocks/fnar/planter"
+    },
+    "fnar_pot_rack": {
+      "textures": "textures/blocks/fnar/pot_rack"
+    },
+    "fnar_prep_table_0": {
+      "textures": "textures/blocks/fnar/prep_table_0"
+    },
+    "fnar_prep_table_1": {
+      "textures": "textures/blocks/fnar/prep_table_1"
+    },
+    "fnar_prep_table_2": {
+      "textures": "textures/blocks/fnar/prep_table_2"
+    },
+    "fnar_prep_table_3": {
+      "textures": "textures/blocks/fnar/prep_table_3"
+    },
+    "fnar_restroom_mirror_0": {
+      "textures": "textures/blocks/fnar/restroom_mirror_0"
+    },
+    "fnar_restroom_mirror_1": {
+      "textures": "textures/blocks/fnar/restroom_mirror_1"
+    },
+    "fnar_road_case": {
+      "textures": "textures/blocks/fnar/road_case"
+    },
+    "fnar_salad_bar_0": {
+      "textures": "textures/blocks/fnar/salad_bar_0"
+    },
+    "fnar_salad_bar_1": {
+      "textures": "textures/blocks/fnar/salad_bar_1"
+    },
+    "fnar_salad_bar_2": {
+      "textures": "textures/blocks/fnar/salad_bar_2"
+    },
+    "fnar_shoe_cubby": {
+      "textures": "textures/blocks/fnar/shoe_cubby"
+    },
+    "fnar_sign_small_0": {
+      "textures": "textures/blocks/fnar/sign_small_0"
+    },
+    "fnar_sign_small_1": {
+      "textures": "textures/blocks/fnar/sign_small_1"
+    },
+    "fnar_sign_small_2": {
+      "textures": "textures/blocks/fnar/sign_small_2"
+    },
+    "fnar_sign_small_3": {
+      "textures": "textures/blocks/fnar/sign_small_3"
+    },
+    "fnar_sign_small_4": {
+      "textures": "textures/blocks/fnar/sign_small_4"
+    },
+    "fnar_sign_small_5": {
+      "textures": "textures/blocks/fnar/sign_small_5"
+    },
+    "fnar_sign_small_6": {
+      "textures": "textures/blocks/fnar/sign_small_6"
+    },
+    "fnar_sign_small_7": {
+      "textures": "textures/blocks/fnar/sign_small_7"
+    },
+    "fnar_soda_fountain": {
+      "textures": "textures/blocks/fnar/soda_fountain"
+    },
+    "fnar_sofa": {
+      "textures": "textures/blocks/fnar/sofa"
+    },
+    "fnar_stall_panel": {
+      "textures": "textures/blocks/fnar/stall_panel"
+    },
+    "fnar_steel_panel": {
+      "textures": "textures/blocks/fnar/steel_panel"
+    },
+    "fnar_urinal": {
+      "textures": "textures/blocks/fnar/urinal"
+    },
+    "fnar_vanity_mirror": {
+      "textures": "textures/blocks/fnar/vanity_mirror"
+    },
+    "fnar_vanity_mirror_on": {
+      "textures": "textures/blocks/fnar/vanity_mirror_on"
+    },
+    "fnar_vending_machine": {
+      "textures": "textures/blocks/fnar/vending_machine"
+    },
+    "fnar_wainscot_oak": {
+      "textures": "textures/blocks/fnar/wainscot_oak"
+    },
+    "fnar_wall_pier": {
+      "textures": "textures/blocks/fnar/wall_pier"
+    },
+    "fnar_wall_tile_mint": {
+      "textures": "textures/blocks/fnar/wall_tile_mint"
+    },
+    "fnar_wall_tile_white": {
+      "textures": "textures/blocks/fnar/wall_tile_white"
+    },
+    "fnar_water_fountain": {
+      "textures": "textures/blocks/fnar/water_fountain"
+    },
+    "fnar_wire_shelf": {
+      "textures": "textures/blocks/fnar/wire_shelf"
+    },
     "fnar_tile_checker": {
       "textures": "textures/blocks/fnar/tile_checker"
     },

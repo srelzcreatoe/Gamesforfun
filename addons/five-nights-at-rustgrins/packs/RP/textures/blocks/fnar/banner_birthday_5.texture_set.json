@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "banner_birthday_5",
+    "metalness_emissive_roughness": "banner_birthday_5_mer",
+    "heightmap": "banner_birthday_5_height"
+  }
+}

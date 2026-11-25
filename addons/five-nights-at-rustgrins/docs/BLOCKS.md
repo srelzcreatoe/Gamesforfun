@@ -286,3 +286,37 @@ What lies under the pizzeria (`docs/GOLDEN_DOG.md`, `packs/BP/scripts/data/cella
 | `sign_golden_dog` | 7 x 2 picture | THE GOLDEN DOG / SUPPER CLUB in gold leaf on a black board in a frame of dead bulbs, over the stage |
 | `poster_golden_dog` | 2 x 3 picture | his show poster: THE GOLDEN DOG over his head in its top hat. The gilding hangs it where the office's Revue poster hangs |
 | `drawing_golden_dog` | 1 x 1 x 2 variants | a child's crayon drawing of a big yellow dog (holding a small child's hand; only his face, the eyes scribbled black) |
+
+## H — the rework (the pizzeria above ground)
+
+Built by `tools/blocks/rework/build_rework.py` with the props' toolkit (`propkit.py`) into its own fragment
+files (`tools/fragments/*_rework.json`); palette keys under `// ---- rework` in `data/palette.js`. Two-block
+machines use `fnar:half` 0 / 1 like the arcade cabinet.
+
+| name | states | look |
+|---|---|---|
+| `wainscot_oak`, `column_cream`, `column_cap` | full cubes | dark oak wainscot (a raised panel per block); cream column panelling between gold lines, and its cap with a red star |
+| `wall_tile_white`, `wall_tile_mint` | full cubes | glazed 4 px wall tile for the kitchen and the restrooms, one tile cracked, grime in the grout |
+| `steel_panel`, `road_case` | full cubes | brushed stainless sheet with rivets; a black touring case in an aluminium frame |
+| `pizza_oven` | `fnar:half`; facing | a two-deck oven: black glass doors, long handles, a pilot light, the flue box |
+| `prep_table` | `fnar:kind` 0 board, 1 dough, 2 cold rail, 3 sink; facing | a stainless work table with an undershelf |
+| `wire_shelf`, `freezer_door`, `drinks_cooler` | `fnar:half`; facing | chrome wire shelving with sacks, tins and pizza boxes; the walk-in freezer's door; a glass-door cooler (light 7, still running) |
+| `pot_rack`, `soda_fountain`, `cash_register`, `salad_bar` | facing (`salad_bar`: `fnar:kind` 0-2) | a hanging rail of pots; a lit soda fountain (light 4); an 80s till; one cell of the salad bar under its sneeze guard |
+| `stall_panel` | `fnar:kind` 0 partition, 1 door, 2 door ajar; `fnar:half`; facing | a laminate toilet-stall panel on the edge of its cell |
+| `restroom_mirror`, `urinal`, `hand_dryer` | facing (`restroom_mirror`: `fnar:kind` 0 whole, 1 cracked) | wall fixtures |
+| `host_stand`, `coat_hooks`, `display_case` | facing (`coat_hooks`: `fnar:kind` 0-1; `display_case`: `fnar:half`, light 5) | the lobby's podium, coat rail and tall glass prize cabinet |
+| `jukebox_revue` | `fnar:half`; facing; light 9 on the upper half | the showroom's jukebox, still lit |
+| `mixing_desk`, `bar_stool`, `shoe_cubby` | facing (stool: none) | the sound booth's console, a chrome stool, the play area's cubby |
+| `wall_pier` | `fnar:kind` 0 shaft, 1 foot, 2 head; facing | a shallow charcoal pier for the halls (3 px proud) |
+| `fire_extinguisher`, `water_fountain` | facing | wall fixtures |
+| `arcade_machine` | `fnar:game` 0 STAR DUEL, 1 PIE TOSS, 2 DINO RUN, 3 MOON MICE; `fnar:half`; facing; light 6 | four more games in the arcade cabinet's shape |
+| `pinball_table` | `fnar:part` 0 player's end, 1 far end with the lit backbox (light 5); facing = where the player stands | a pinball table, two cells long |
+| `air_hockey` | facing = the goal end | one end of an air hockey table (two back to back make it) |
+| `change_machine`, `claw_machine` | `fnar:half`; facing; light 4 / 5 | CHANGE lit across the top; a glass box of plush under a lit CLAW header |
+| `neon_pink`, `neon_teal`, `neon_yellow` | `fnar:kind` 0 bar, 1 post, 2 zigzag, 3 top bar; facing; light 4 | neon tubes for walls (one block per colour so each has its own light colour) |
+| `costume_rack`, `vanity_mirror`, `vending_machine`, `break_table`, `sofa`, `kitchenette` | `costume_rack` `fnar:kind` 0-2; `vanity_mirror` `fnar:lit` (light 9); `vending_machine` `fnar:half` (light 6); `sofa` `fnar:kind` left / middle / right; `kitchenette` `fnar:kind` coffee / microwave | backstage and the Staff Room |
+| `awning`, `dumpster`, `planter`, `drainpipe`, `bollard`, `parking_block`, `ac_unit`, `pallets` | `drainpipe` `fnar:kind` pipe / foot; `pallets` `fnar:count` 1-3 | the street: a striped canvas awning, half a dumpster (the other half is the same block turned round), a planter with a dead shrub, a downpipe, a bollard, a wheel stop, a condenser, pallets |
+| `mural_revue` | 8 x 2 picture | the lobby's mural: the whole cast under a sunburst, WELCOME TO THE SHOW |
+| `notice_board`, `banner_birthday` | 2 x 1, 6 x 1 pictures | the staff notice board; HAPPY BIRTHDAY on paper pennants |
+| `sign_small` | 1 x 1 x 8 variants | WAIT HERE, COLD ROOM, PICK UP, CASH ONLY, SOCKS ONLY, WASH HANDS, COAT RACK, NO EXIT |
+

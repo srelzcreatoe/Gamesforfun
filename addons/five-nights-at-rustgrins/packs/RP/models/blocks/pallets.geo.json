@@ -1,0 +1,557 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.fnar.pallets",
+        "texture_width": 32,
+        "texture_height": 32,
+        "visible_bounds_width": 3,
+        "visible_bounds_height": 3,
+        "visible_bounds_offset": [
+          0,
+          0.75,
+          0
+        ]
+      },
+      "bones": [
+        {
+          "name": "p0",
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                16,
+                4,
+                16
+              ],
+              "uv": {
+                "north": {
+                  "uv": [
+                    0,
+                    16
+                  ],
+                  "uv_size": [
+                    16,
+                    4
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    16
+                  ],
+                  "uv_size": [
+                    16,
+                    4
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    0,
+                    16
+                  ],
+                  "uv_size": [
+                    16,
+                    4
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    0,
+                    16
+                  ],
+                  "uv_size": [
+                    16,
+                    4
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    16,
+                    16
+                  ],
+                  "uv_size": [
+                    -16,
+                    -16
+                  ]
+                },
+                "down": {
+                  "uv": [
+                    16,
+                    16
+                  ],
+                  "uv_size": [
+                    -16,
+                    -16
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": {
+        "identifier": "geometry.fnar.pallets_2",
+        "texture_width": 32,
+        "texture_height": 32,
+        "visible_bounds_width": 3,
+        "visible_bounds_height": 3,
+        "visible_bounds_offset": [
+          0,
+          0.75,
+          0
+        ]
+      },
+      "bones": [
+        {
+          "name": "p0",
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                16,
+                4,
+                16
+              ],
+              "uv": {
+                "north": {
+                  "uv": [
+                    0,
+                    16
+                  ],
+                  "uv_size": [
+                    16,
+                    4
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    16
+                  ],
+                  "uv_size": [
+                    16,
+                    4
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    0,
+                    16
+                  ],
+                  "uv_size": [
+                    16,
+                    4
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    0,
+                    16
+                  ],
+                  "uv_size": [
+                    16,
+                    4
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    16,
+                    16
+                  ],
+                  "uv_size": [
+                    -16,
+                    -16
+                  ]
+                },
+                "down": {
+                  "uv": [
+                    16,
+                    16
+                  ],
+                  "uv_size": [
+                    -16,
+                    -16
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "p1",
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -8,
+                4.5,
+                -7
+              ],
+              "size": [
+                14,
+                4,
+                14
+              ],
+              "uv": {
+                "north": {
+                  "uv": [
+                    0,
+                    24
+                  ],
+                  "uv_size": [
+                    14,
+                    4
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    24
+                  ],
+                  "uv_size": [
+                    14,
+                    4
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    0,
+                    24
+                  ],
+                  "uv_size": [
+                    14,
+                    4
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    0,
+                    24
+                  ],
+                  "uv_size": [
+                    14,
+                    4
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    30,
+                    29
+                  ],
+                  "uv_size": [
+                    -14,
+                    -14
+                  ]
+                },
+                "down": {
+                  "uv": [
+                    30,
+                    29
+                  ],
+                  "uv_size": [
+                    -14,
+                    -14
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": {
+        "identifier": "geometry.fnar.pallets_3",
+        "texture_width": 32,
+        "texture_height": 32,
+        "visible_bounds_width": 3,
+        "visible_bounds_height": 3,
+        "visible_bounds_offset": [
+          0,
+          0.75,
+          0
+        ]
+      },
+      "bones": [
+        {
+          "name": "p0",
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -8,
+                0,
+                -8
+              ],
+              "size": [
+                16,
+                4,
+                16
+              ],
+              "uv": {
+                "north": {
+                  "uv": [
+                    0,
+                    16
+                  ],
+                  "uv_size": [
+                    16,
+                    4
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    16
+                  ],
+                  "uv_size": [
+                    16,
+                    4
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    0,
+                    16
+                  ],
+                  "uv_size": [
+                    16,
+                    4
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    0,
+                    16
+                  ],
+                  "uv_size": [
+                    16,
+                    4
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    16,
+                    16
+                  ],
+                  "uv_size": [
+                    -16,
+                    -16
+                  ]
+                },
+                "down": {
+                  "uv": [
+                    16,
+                    16
+                  ],
+                  "uv_size": [
+                    -16,
+                    -16
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "p1",
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -8,
+                4.5,
+                -7
+              ],
+              "size": [
+                14,
+                4,
+                14
+              ],
+              "uv": {
+                "north": {
+                  "uv": [
+                    0,
+                    24
+                  ],
+                  "uv_size": [
+                    14,
+                    4
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    24
+                  ],
+                  "uv_size": [
+                    14,
+                    4
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    0,
+                    24
+                  ],
+                  "uv_size": [
+                    14,
+                    4
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    0,
+                    24
+                  ],
+                  "uv_size": [
+                    14,
+                    4
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    30,
+                    29
+                  ],
+                  "uv_size": [
+                    -14,
+                    -14
+                  ]
+                },
+                "down": {
+                  "uv": [
+                    30,
+                    29
+                  ],
+                  "uv_size": [
+                    -14,
+                    -14
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "p2",
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -7,
+                9,
+                -7.5
+              ],
+              "size": [
+                15,
+                4,
+                15
+              ],
+              "uv": {
+                "north": {
+                  "uv": [
+                    0,
+                    20
+                  ],
+                  "uv_size": [
+                    15,
+                    4
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    20
+                  ],
+                  "uv_size": [
+                    15,
+                    4
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    0,
+                    20
+                  ],
+                  "uv_size": [
+                    15,
+                    4
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    0,
+                    20
+                  ],
+                  "uv_size": [
+                    15,
+                    4
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    31,
+                    15
+                  ],
+                  "uv_size": [
+                    -15,
+                    -15
+                  ]
+                },
+                "down": {
+                  "uv": [
+                    31,
+                    15
+                  ],
+                  "uv_size": [
+                    -15,
+                    -15
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -238,35 +238,52 @@ The look is a big, abandoned 80s family pizzeria (a big-screen haunted pizzeria
 crossed with a classic family fun centre, all original): dusty, faded, warm pools
 of light by day and near darkness at night.
 
+Every room keeps a wall layer of its own wherever its neighbour is finished differently (room boxes in
+`data/layout.js`), so no room shows the back of another room's wallpaper; doorways go through both layers and
+are framed in dark oak. The shared language of the customer rooms: oak wainscot, cream pilasters with a red
+star on the cap, dropped cream soffits edged with marquee bulbs (the house lights), warm pendants and brass
+sconces instead of ceiling troffers; the back-of-house rooms keep cold fluorescent light.
+
 Rooms:
-* **Dining Hall** (the showroom; north/center, 48 × 37, 9 tall under a dark
-  ceiling): confetti carpet, a checker dance floor in front of the stage and a
-  checker aisle, long party tables (red-and-white hats, balloons), cafe tables
-  with star-back chairs, diner booths along the east and south walls, pendant
-  lamps, a truss of PAR cans, the round drum in the ceiling with the mirror
-  ball, framed posters over a checker band, SHOWTIME! and RESTROOMS neon, the
-  red ARCADE neon over the passage to the Game Room, the order counter with the
-  kitchen's window and the menu board, a salad bar; the **Show Stage**: a curved
-  front lip with round footlights, a cream soffit with red stars following it,
-  coloured PAR cans, red side drapes, a starry midnight backdrop and the big
-  marquee sign RUSTGRIN'S PIZZA REVUE.
-* West side: Backstage (spare heads), the Midnight Midway showroom (the Cat +
-  Purple Rat on the ring), the **Grand Marquee** (the Ringmaster's curtained side
-  stage, SORRY! OUT OF ORDER on the closed half of the curtain), the Gallery,
-  the Staff Room (time-clock lobby).
-* East side: Kitchen, Restrooms, the **Prize Corner** (prize cases, the plush
-  wall, token and claw machines), the long **Entrance Hall** (yellow walls, plum
-  carpet and a checker path from the glass doors to the WELCOME arch framed in
-  marquee bulbs; the curved token counter under a starry soffit with the plush
-  slatwall, a popcorn machine and the price board; brass stanchions with velvet
-  ropes, the height chart, the ticket booth, a photo booth).
-* South-east: the **Game Room** (skee-ball, rows of arcade cabinets, air hockey,
-  token machines, a ticket counter, a crawl tube overhead), the **Fun Zone**
-  (two padded play towers, crawl tubes overhead, a slide into the ball pit,
-  kiddie rides), Parts & Service behind them (the auction crates).
-* South: Supply Closet, West Hall + W. Hall Corner, the **Party Room** between
-  the halls, the Office (south center; a bank of dead CRT monitors over the
-  desk), East Hall + E. Hall Corner.
+* **Dining Hall** (the showroom; north/center, 48 × 37, 9 tall under a dark ceiling): a real proscenium at
+  its north end (cream piers, a wing wall with the SHOWTIME! neon and the jukebox, the curved **Show Stage**
+  with footlights in its lip, a row of marquee bulbs under the cream soffit, coloured PAR cans, a band riser,
+  a tinsel panel and a starry backdrop behind the band, the marquee sign RUSTGRIN'S PIZZA REVUE); cream
+  pilasters with brass sconces round the walls, a red-star frieze, a dropped soffit all round edged with
+  bulbs, the round drum with the mirror ball; confetti carpet, a checker dance floor and aisle, long party
+  tables, cafe tables with star-back chairs, diner booths, the pizza counter under a striped awning at the
+  kitchen's window, the salad bar, the sound and light booth at the back. In its west wall the Midway's
+  striped tent front and the Grand Marquee's purple velvet surround their openings like two shop fronts.
+* West side: Backstage (the spare heads on their shelves, and round them the band's dressing room: make-up
+  mirrors ringed with bulbs, costume rails, road cases), the Midnight Midway (the ring under a truss of
+  coloured cans, garlands under the tent top, a frame of bulbs round the arch), the **Grand Marquee** (the
+  Ringmaster's side stage inside a proscenium of marquee bulbs, SORRY! OUT OF ORDER on the closed half of the
+  curtain), the Gallery (pedestals behind velvet ropes, a red carpet), the Staff Room (the time-clock lobby,
+  and behind a low wall a break room: lockers, a table on a rug, a sofa, vending machines, a kitchenette).
+* East side: the Kitchen (white tile, four deck ovens under a stainless hood, prep lines under a pot rack,
+  the walk-in freezer, wire shelving, sinks, a lit drinks cooler), the Restrooms (mint tile; low rooms with
+  laminate stalls, sinks under mirrors, urinals), the **Prize Corner** (the glass counter under a bulkhead
+  of bulbs, lit prize cabinets and the plush wall behind it, change and claw machines), the long **Entrance
+  Hall** (soffits edged with bulbs along both walls, pendants over the checker path from the glass doors to
+  the WELCOME arch; the host stand and the coat rack inside the doors, the ticket booth under an awning, the
+  mural of the whole cast over a bench, the token counter under a starry bulkhead, prize cabinets either
+  side of the Prize Corner's doorway, a photo booth, rides and a claw machine between the arches).
+* South-east: the **Game Room** (banks of five different arcade games back to back, a row of pinball tables,
+  skee-ball, air hockey, change and claw machines, the ticket counter, a line of pink and teal neon round
+  the walls, a crawl tube overhead), the **Fun Zone** (two two-storey play towers, crawl tubes overhead, a
+  slide into the ball pit, and over its far end a castle on four posts with a three-lane slide; padded
+  mats, shoe cubbies), Parts & Service behind them (the auction crates).
+* South: Supply Closet, West Hall + W. Hall Corner, the **Party Room** between the halls (a dais under a
+  starry backdrop, HAPPY BIRTHDAY over the birthday chair), the Office (south center; a bank of dead CRT
+  monitors over the desk), East Hall + E. Hall Corner. The halls: checker wainscot, charcoal piers every
+  six blocks, a dark crown, brass sconces that are dead at night.
+* Outside: the street front (pale stone pillars, teal cladding, a stepped pediment behind the neon sign
+  and the waving mascot, a pink neon line along both wings, a striped awning over the doors, planters,
+  bollards, wheel stops), three brick sides with a stone base course, buttresses, downpipes and dark high
+  windows, the kitchen's fenced yard with the dumpsters, the loading dock by the stage door.
+* At night: the halls and the hall corners are black. Elsewhere a few things are still on: four sconces
+  in the showroom, the jukebox, the neon, the arcade screens, the vending machines and coolers, the prize
+  cabinets, the EXIT signs, a lamp over the back door.
 * Crawl ducts West/East (y 9–10, never over the Dining Hall or the Fun Zone)
   ending in two ceiling vents in the office.
 

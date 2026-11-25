@@ -19,8 +19,8 @@ const C = (id, label, room, loc, look, sees, extra = {}) => Object.freeze({
 export const CAMERAS = Object.freeze([
   // under the hall's ceiling, straight down the carpet aisle at the band under the proscenium
   C('1A', 'CAM 1A · SHOW STAGE', 'DINING', [38.5, 8.4, 19.6], [38.5, 2.2, 6.5], ['ST_R', 'ST_M', 'ST_N', 'DIN_FRONT'], { mount: [38, 8, 20, 'n', 'ceiling'] }),
-  // high in the hall's south-east corner, over the whole room
-  C('1B', 'CAM 1B · DINING AREA', 'DINING', [61.5, 8.35, 37.0], [42.7, 1.0, 20.5], ['DIN_NW', 'DIN_W', 'DIN_C', 'DIN_E', 'DIN_SW', 'DIN_SE', 'DIN_FRONT'], { mount: [61, 8, 37, 'n'] }),
+  // in the hall's south-east corner, under the soffit, over the whole room
+  C('1B', 'CAM 1B · DINING AREA', 'DINING', [61.5, 7.35, 37.0], [42.7, 1.0, 20.5], ['DIN_NW', 'DIN_W', 'DIN_C', 'DIN_E', 'DIN_SW', 'DIN_SE', 'DIN_FRONT'], { mount: [61, 7, 37, 'n'] }),
   // inside the Grand Marquee, high in the corner by the curtains, looking down on his spot and the gap he peeks through
   C('1C', 'CAM 1C · GRAND MARQUEE', 'CABARET', [13.5, 6.35, 30.0], [11.2, 3.05, 34.1], ['CAB', 'CAB_PEEK'], { mount: [13, 6, 29, 's'] }),
   C('2A', 'CAM 2A · WEST HALL', 'WEST_HALL', [27.5, 5.35, 40.0], [27.5, 0.0, 52.0], ['WH_N', 'WH_M', 'WH_S'], { mount: [27, 5, 39, 's'] }),
@@ -28,8 +28,8 @@ export const CAMERAS = Object.freeze([
   C('3', 'CAM 3 · SUPPLY CLOSET', 'SUPPLY', [19.5, 5.35, 42.0], [23.5, 0.4, 49.0], ['SUP'], { mount: [19, 5, 41, 's'] }),
   C('4A', 'CAM 4A · EAST HALL', 'EAST_HALL', [45.5, 5.35, 40.0], [45.5, 0.0, 52.0], ['EH_N', 'EH_M', 'EH_S'], { mount: [45, 5, 39, 's'] }),
   C('4B', 'CAM 4B · E. HALL CORNER', 'E_CORNER', [42.5, 5.35, 59.0], [44.8, 0.0, 67.0], ['EC', 'NOOK', 'WIN_R', 'DOOR_R'], { mount: [42, 5, 58, 's'] }),
-  C('5', 'CAM 5 · BACKSTAGE', 'BACKSTAGE', [12.5, 5.35, 13.0], [3.0, 0.8, 3.0], ['BACK'], { mount: [12, 5, 13, 'n'] }),
-  C('6', 'CAM 6 · KITCHEN', 'KITCHEN', [79.5, 5.35, 13.0], [67.0, 0.5, 3.0], ['KIT'], { audioOnly: true, mount: [79, 5, 13, 'n'] }),
+  C('5', 'CAM 5 · BACKSTAGE', 'BACKSTAGE', [12.5, 5.35, 12.0], [3.0, 0.8, 3.0], ['BACK'], { mount: [12, 5, 12, 'n'] }),
+  C('6', 'CAM 6 · KITCHEN', 'KITCHEN', [79.5, 5.35, 12.0], [67.0, 0.5, 3.0], ['KIT'], { audioOnly: true, mount: [79, 5, 12, 'n'] }),
   C('7', 'CAM 7 · RESTROOMS', 'RESTROOMS', [65.5, 5.35, 16.0], [67.0, 0.5, 25.0], ['REST'], { mount: [65, 5, 15, 's'] }),
   C('8', 'CAM 8 · MIDNIGHT MIDWAY', 'MIDWAY', [13.5, 6.35, 16.0], [6.0, 0.8, 22.0], ['MW_T', 'MW_P', 'MW_GRATE', 'MW_EDGE'], { mount: [13, 6, 15, 's'] }),
   C('9', 'CAM 9 · WEST DUCT', 'DUCT_W', [33.95, 10.45, 49.4], [33.95, 9.3, 62.0], ['WD_4', 'WD_5', 'WD_END']),

@@ -72,9 +72,9 @@ export const WAYPOINTS = Object.freeze(Object.fromEntries([
   // ---- the Game Room: from the Entrance Hall's arch and from the Dining Hall's ARCADE passage
   WP('F_GR', 72.0, 39.6, 1.6), WP('GR_ARCH', 72.0, 42.3, 2.0), WP('GR_T0', 68.3, 43.4, 0.5), WP('GR_T1', 68.0, 44.9, 0.4), WP('GR_T2', 75.0, 44.8, 1.6),
   WP('D_ARC', 57.0, 35.0, 1.2), WP('ARC', 57.0, 40.5, 1.4),
-  WP('GR_N0', 51.5, 47.0, 0.6), WP('GR_N1', 57.0, 47.0, 0.6), WP('GR_N3', 67.0, 47.0, 0.6), WP('GR_N4', 75.0, 47.0, 0.6), WP('GR_NE', 77.3, 47.2, 0.6),
-  WP('GR_M0', 51.5, 53.0, 0.6), WP('GR_M1', 59.0, 53.0, 0.6), WP('GR_M2', 67.0, 53.0, 0.6), WP('GR_ME', 77.3, 53.0, 0.6),
-  WP('GR_S0', 51.5, 58.8, 0.5), WP('GR_S1', 59.0, 58.8, 0.5), WP('GR_S2', 67.0, 58.0, 0.5), WP('GR_S3', 77.0, 57.5, 0.4),
+  WP('GR_N0', 52.0, 47.0, 0.6), WP('GR_N1', 57.0, 47.0, 0.6), WP('GR_N3', 67.0, 47.0, 0.6), WP('GR_N4', 75.0, 47.0, 0.6), WP('GR_NE', 77.3, 47.2, 0.6),
+  WP('GR_M0', 52.0, 53.0, 0.6), WP('GR_M1', 59.0, 53.0, 0.6), WP('GR_M2', 67.0, 53.0, 0.6), WP('GR_ME', 77.3, 53.0, 0.6),
+  WP('GR_S0', 52.0, 58.8, 0.5), WP('GR_S1', 59.0, 58.8, 0.5), WP('GR_S2', 67.0, 58.0, 0.5), WP('GR_S3', 77.0, 58.0, 0.4),
   WP('GR_E', 77.6, 50.0, 1.0),
   // ---- the Fun Zone: through the play arch from the games, or its own arch from the Entrance Hall
   WP('PLAY', 80.5, 50.2, 1.0), WP('FZ_W', 82.3, 51.0, 0.6), WP('FZ_C', 88.8, 51.3, 0.35), WP('FZ_E', 95.6, 52.2, 0.4),
@@ -149,7 +149,7 @@ export const STANDS = Object.freeze([
 /** Seat height (blocks above the floor) of the blocks people sit on. */
 const SEAT_TOP = Object.freeze({ chair: 8 / 16, starchair: 9 / 16, booth: 8.5 / 16 });
 const SEAT_KEY = /^(chair|starchair|booth)_([nsew])$/;
-const CABINET_KEY = /^arcade_0_([nsew])$/;
+const CABINET_KEY = /^(?:arcade\d?_0|pinball_front)_([nsew])$/; // RAT RACE, the four other games, the pinball tables
 const inBox = (box, x, z) => x >= box[0] && x <= box[2] && z >= box[1] && z <= box[3];
 
 /**

@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "column_cream",
+    "metalness_emissive_roughness": "column_cream_mer",
+    "heightmap": "column_cream_height"
+  }
+}
