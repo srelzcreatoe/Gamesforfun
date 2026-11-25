@@ -12,7 +12,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 BP = os.path.join(ROOT, 'packs', 'BP')
 RP = os.path.join(ROOT, 'packs', 'RP')
-VERSION = [1, 2, 0]
+VERSION = [1, 2, 1]
 ENGINE = [1, 26, 50]
 UUID = {
     'bp_header': '02b67251-1ef0-43ba-8b73-411d54a1b730',
@@ -22,6 +22,9 @@ UUID = {
     'rp_res': '20e930e1-ff15-423d-914e-b5f4f22013fe',
 }
 TITLE = "Five Nights at Rustgrin's"
+# The title with the version number: the game's pack list, the world's pack screen and the import message all show
+# it, so which version is installed can be read at a glance.
+VTITLE = f"{TITLE} {'.'.join(map(str, VERSION))}"
 META = {'authors': ["Five Nights at Rustgrin's project"], 'license': 'Original work; animatronic models supplied by the map owner. Not affiliated with Scott Cawthon or Mojang.'}
 
 
@@ -35,7 +38,7 @@ def write_json(path, obj):
 def manifests():
     write_json(os.path.join(BP, 'manifest.json'), {
         'format_version': 2,
-        'header': {'name': f'{TITLE} (Behavior)', 'description': 'Five nights, six animatronics and one Ringmaster who knows your name. An original FNAF-style night-guard horror game: security cameras, doors, vents, a show tape that must keep playing, and a Final Act. No experiments needed. Requires the matching resource pack.', 'uuid': UUID['bp_header'], 'version': VERSION, 'min_engine_version': ENGINE},
+        'header': {'name': f'{VTITLE} (Behavior)', 'description': 'Five nights, six animatronics, one Ringmaster who knows your name, and the Golden Dog in the cellar. An original FNAF-style night-guard horror game: security cameras, doors, vents, a show tape that must keep playing, and a Final Act. No experiments needed. Requires the matching resource pack.', 'uuid': UUID['bp_header'], 'version': VERSION, 'min_engine_version': ENGINE},
         'modules': [
             {'description': 'Entities, blocks, items', 'type': 'data', 'uuid': UUID['bp_data'], 'version': VERSION},
             {'description': 'Night simulation, cameras, map builder, UI', 'type': 'script', 'language': 'javascript', 'entry': 'scripts/main.js', 'uuid': UUID['bp_script'], 'version': VERSION},
@@ -49,7 +52,7 @@ def manifests():
     })
     write_json(os.path.join(RP, 'manifest.json'), {
         'format_version': 2,
-        'header': {'name': f'{TITLE} (Resources)', 'description': 'The animatronics, a vanilla-style pizzeria with Vibrant Visuals support, original sounds and music, and the security-camera interface.', 'uuid': UUID['rp_header'], 'version': VERSION, 'min_engine_version': ENGINE},
+        'header': {'name': f'{VTITLE} (Resources)', 'description': 'The animatronics, a vanilla-style pizzeria with Vibrant Visuals support, original sounds and music, and the security-camera interface.', 'uuid': UUID['rp_header'], 'version': VERSION, 'min_engine_version': ENGINE},
         'modules': [{'description': 'Resources', 'type': 'resources', 'uuid': UUID['rp_res'], 'version': VERSION}],
         'capabilities': ['pbr'],
         'metadata': META,
@@ -214,7 +217,7 @@ def lang():
         except Exception:
             continue
         lines.append(f'tile.{ident}.name={title(ident.split(":")[1])}')
-    lines.append(f'pack.name={TITLE}')
+    lines.append(f'pack.name={VTITLE}')
     # read back by the scripts' welcome message: shows which resource pack version a world really loads
     lines.append(f'fnar.version.rp={".".join(map(str, VERSION))}')
     os.makedirs(os.path.join(RP, 'texts'), exist_ok=True)

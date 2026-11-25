@@ -34,9 +34,12 @@ def run(label, cmd, cwd=ROOT):
 
 def zip_packs():
     os.makedirs(DIST, exist_ok=True)
-    out = os.path.join(DIST, f'{NAME}.mcaddon')
-    if os.path.exists(out):
-        os.remove(out)
+    # the file carries the version number too (and there is only ever one package in dist/)
+    version = '.'.join(str(v) for v in json.load(open(os.path.join(ROOT, 'packs', 'BP', 'manifest.json')))['header']['version'])
+    out = os.path.join(DIST, f'{NAME}_{version}.mcaddon')
+    for old in os.listdir(DIST):
+        if old.startswith(NAME) and old.endswith('.mcaddon'):
+            os.remove(os.path.join(DIST, old))
     with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for pack, folder in (('BP', f'{NAME}_BP'), ('RP', f'{NAME}_RP')):
             base = os.path.join(ROOT, 'packs', pack)

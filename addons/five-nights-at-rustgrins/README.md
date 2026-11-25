@@ -21,9 +21,11 @@ offline with the project's own renderer (see *Building from source*).
 
 ## Install
 
-1. Open `dist/FiveNightsAtRustgrins.mcaddon` (double-click on Windows / open
+1. Open the `.mcaddon` file in `dist/` (its name carries the version, for
+   example `FiveNightsAtRustgrins_1.2.1.mcaddon`; double-click on Windows / open
    with Minecraft on mobile and console-capable platforms). It imports a
-   behavior pack and a resource pack.
+   behavior pack and a resource pack. The packs' titles carry the version
+   number too, so the game's pack list shows which version is installed.
 2. Create a world: **Flat** world type recommended, cheats **on**, and
    activate both packs.
 3. Join the world. A prompt asks to build the pizzeria where you stand — or
