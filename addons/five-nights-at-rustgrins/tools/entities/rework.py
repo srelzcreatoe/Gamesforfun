@@ -1,27 +1,36 @@
 """The rework of the six supplied models (Rustgrin, Mirehop, Noxbriar thoroughly; the Purple Rat, the Cat and
 the Ringmaster more lightly), so they stand beside the Golden Dog: stepped, rounded shapes instead of plain
-boxes, a dark endoskeleton showing at every joint, deeper eye sockets, teeth that are teeth, dark fingertips,
+boxes, an endoskeleton showing at every joint, eyes that lie in hollows, teeth that are teeth, dark fingertips,
 and a richer, chequered, worn paint in each character's own colours.
 
 The supplied files (assets/source_models/FNAF_Animatronics*_RP) are never written. tools/entities/
 build_entities.py loads a model's geometry and texture from them and hands both to apply(), which returns the
-reworked geometry, texture, its MER and what the build needs to find the eyes again.
+reworked geometry, texture, its MER and what the build needs to find the eyes again (the pupil texels, and how
+the faces that carry the eyes lie on the head's front). The result is kept in tools/entities/rework_cache and
+reused while the supplied files and this code are unchanged.
 
-What stays exactly as supplied: every bone's name, parent, pivot and rest rotation; the props; the fingers'
-boxes (so every solved grip still holds); the paint of the eyes, texel for texel.
+What stays as supplied: every bone's name, parent, pivot and rest rotation; the shapes of the props and of the
+fingers (so every solved grip still holds); the paint of the eyes, texel for texel (the build finds the pupils
+and the sockets on it exactly as before).
 
 How it works
   * Every bone's big boxes are replaced by rounded sets of boxes (tools/entities/modelkit.py) that fill the
-    same bounds. Their paint is the bone's own old look, cast back onto the new shape from the six sides
-    (Skin): a vest, a button, a worn patch stays where it was.
+    same bounds; limb blocks are a touch fuller first, so cutting their edges does not make them thin. Their
+    paint is the bone's own old look, cast back onto the new shape from the six sides (Skin): a vest, a button,
+    a worn patch stays where it was.
   * Small parts (bow ties, buttons, whiskers, props) keep their boxes and their own paint.
-  * New parts are painted from code: black ball joints at shoulders, elbows, wrists, knees and ankles, dark
-    joint beads and fingertips, single teeth.
-  * The frames around the eyes are thickened, so the eyes sit in real hollows.
+  * New parts are painted from code: ball joints at shoulders, elbows, wrists, knees and ankles, joint beads on
+    the fingers, dark fingertips with a small cap, single teeth where there was a painted strip; on the thorough
+    three also a band of metal round each wrist and ankle. The joints are black, or steel-grey on the dark
+    bodies where black would not show.
+  * The eyes sink. Where they are painted on the head itself (Rustgrin, Mirehop, Noxbriar) the thin plates
+    around them, their frames, are thickened. Where they are painted on a plate of their own in front of the
+    head (the two rats, the Cat) that plate stays and everything on it that is not socket is built up in front
+    of it, in the outline of the painted eyes.
   * All of it gets the dog's grain: half-pixel "voxels" a shade lighter or darker, worn patches, shaded
-    creases (modelkit bakes those), so no face is flat any more.
+    creases (modelkit bakes those); the dark bodies also get a grain that lifts and lit, worn edges.
 
-Nothing here is random: the grain is a hash of the position in the model.
+PLAN holds what each model gets. Nothing here is random: the grain is a hash of the position in the model.
 """
 import copy
 import hashlib
