@@ -41,7 +41,7 @@ DENS = 8
 PROPS = ('right_maraca', 'left_maraca', 'right_cane', 'microphone', 'guitar')
 
 # ------------------------------------------------------------------ what each model gets
-FULL = {'limb_r': 0.875, 'limb_level': 2, 'slab_r': 1.0, 'head_r': 1.25, 'frame': 0.5, 'grain': 1.0, 'ball': 1.0, 'teeth': True, 'tips': True, 'grow': 0.25}
+FULL = {'limb_r': 0.875, 'limb_level': 2, 'slab_r': 1.0, 'head_r': 1.25, 'frame': 0.5, 'grain': 1.0, 'ball': 1.0, 'teeth': True, 'tips': True, 'grow': 0.25, 'cuffs': True}
 LIGHT = {'limb_r': 0.625, 'limb_level': 1, 'slab_r': 0.75, 'head_r': 0.875, 'frame': 0.375, 'grain': 0.75, 'ball': 0.9, 'teeth': True, 'tips': True, 'grow': 0.125}
 PLAN = {
     'rustgrin': dict(FULL, seed=101),
@@ -315,6 +315,14 @@ class Rework:
         g = self.P['grow']
         return [lo[0] - g, lo[1], lo[2] - g], [hi[0] + g, hi[1], hi[2] + g]
 
+    def cuff(self, b, lo, hi):
+        """A band of the endoskeleton's metal round the foot of a forearm or a shin (the thorough rework only)."""
+        if not self.P.get('cuffs'):
+            return
+        y0 = lo[1] + self.radii(lo, hi, self.P['limb_r'])[1] + 0.1
+        m = glossy(self.joint, seed=29, rough=85, metal=110)
+        rounded(b, [lo[0] - 0.2, y0, lo[2] - 0.2], [hi[0] + 0.2, y0 + 0.6, hi[2] + 0.2], m, (0.45, 0.0, 0.45), level=1)
+
     def radii(self, lo, hi, r, frac=0.26, grid=None):
         out = []
         for i in range(3):
@@ -343,6 +351,8 @@ class Rework:
             sk = Skin(self.arr, bulk)
             lo, hi = self.fuller(lo, hi)
             rounded(b, lo, hi, self.skin(sk), self.radii(lo, hi, P['limb_r']), level=P['limb_level'])
+            if role(b.name) == 'forearm':
+                self.cuff(b, lo, hi)
         rad = self.limb_ball(b, bulk) if joint else 0.0
         for c in src.get('cubes', []):
             if c in bulk:
@@ -405,6 +415,7 @@ class Rework:
             if c in big:
                 lo, hi = self.fuller(lo, hi)
                 rounded(b, lo, hi, self.skin(sk), self.radii(lo, hi, P['limb_r']), level=P['limb_level'])
+                self.cuff(b, lo, hi)
             elif c in cs:
                 rx, _, rz = self.radii(lo, hi, 0.6)
                 rounded(b, lo, hi, self.skin(sk), (rx, 0.0, rz), level=1)
