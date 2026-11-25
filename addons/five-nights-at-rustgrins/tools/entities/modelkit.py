@@ -496,7 +496,8 @@ def pack(model, width=512, swatch=(34, 30, 30)):
 def paint(model, width, height, ao=True):
     """Paints the atlas. A material is a callable(Face) returning an (h, w, 3) colour array (0..255), or a
     dict with 'rgb' and optional 'metal', 'rough' (0..255, scalars or arrays), 'glow' (bool array: glowing
-    pupil texels), 'ao' (False: no crease shading on this face, or a 0..1 strength, or one per texel).
+    pupil texels), 'ao' (False: no crease shading on this face, or a 0..1 strength, or one per texel), 'edge'
+    (0..255 added to the face's outermost texels where they are not in a crease: worn, lit edges).
     Returns {'color': RGBA image, 'mer': RGB image, 'glow': bool array}."""
     col = np.zeros((height, width, 4), np.uint8)
     mer = np.zeros((height, width, 3), np.uint8)
@@ -540,6 +541,12 @@ def paint(model, width, height, ao=True):
                 keep[hy:hy + hh, hx:hx + hw] = False
             a = np.full((h, w), 255.0) if alpha is None else alpha
             full = lambda v: np.broadcast_to(np.asarray(v, float), (h, w))
+            e = res.get('edge', 0)
+            if e:
+                # worn edges: the outermost texels of a face that are not in a crease catch a little light
+                ring = np.zeros((h, w), bool)
+                ring[0, :] = ring[-1, :] = ring[:, 0] = ring[:, -1] = True
+                rgb = rgb + (ring & (c.ao[f] > 0.985))[..., None] * float(e)
             col[y:y + h, x:x + w, :3][keep] = np.clip(np.round(rgb), 0, 255).astype(np.uint8)[keep]
             col[y:y + h, x:x + w, 3][keep] = np.clip(a, 0, 255).astype(np.uint8)[keep]
             mer[y:y + h, x:x + w, 0][keep] = np.clip(full(res.get('metal', 0)), 0, 255).astype(np.uint8)[keep]

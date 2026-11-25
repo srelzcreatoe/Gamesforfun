@@ -46,15 +46,19 @@ LIGHT = {'limb_r': 0.625, 'limb_level': 1, 'slab_r': 0.75, 'head_r': 0.875, 'fra
 PLAN = {
     'rustgrin': dict(FULL, seed=101),
     'mirehop': dict(FULL, seed=202),
+    # (a black bear: steel joints instead of black ones, a grain that lifts as well as darkens, lit edges, or
+    #  none of the new shape would show on her)
+    'noxbriar': dict(FULL, seed=303, joint='steel', lift=0.16, edge=13),
 }
 PENDING = {
-    'noxbriar': dict(FULL, seed=303),
     'purple_rat': dict(LIGHT, seed=404),
     'cat': dict(LIGHT, seed=505),
     'top_hat_rat': dict(LIGHT, seed=606),
 }
 
 BLACK = [(16, 15, 17), (24, 22, 25), (34, 31, 35)]
+STEEL = [(50, 52, 58), (64, 66, 74), (80, 82, 92)]
+JOINTS = {'black': BLACK, 'steel': STEEL}
 TIP = [(26, 22, 22), (36, 31, 30), (48, 41, 38)]
 
 
@@ -161,9 +165,10 @@ def _bevel(F, rgbv, amount, grain=0.5):
     return rgbv * k[..., None]
 
 
-def grain(F, rgbv, k, seed):
+def grain(F, rgbv, k, seed, lift=0.0):
     """The dog's grain over a supplied paint: half-pixel voxels a shade lighter or darker, slow patches,
-    darker worn islands, a hint of an edge on every voxel, a few pits. k: how strongly (0 = none)."""
+    darker worn islands, a hint of an edge on every voxel, a few pits. k: how strongly (0 = none).
+    lift: how much of the grain is added instead of multiplied (so it shows on near-black paint too)."""
     if k <= 0:
         return rgbv
     ix, iy, iz = F.cells(0.5)
@@ -171,7 +176,7 @@ def grain(F, rgbv, k, seed):
     t = 1.0 + k * (0.10 + 0.20 * (ihash(ix, iy, iz, seed) - 0.5) + 0.28 * (fbm(cx, cy, cz, 3.2, seed + 3) - 0.5))
     w = fbm(cx, cy, cz, 5.5, seed + 40) + (ihash(ix, iy, iz, seed + 41) - 0.5) * 0.16
     t = np.where(w > 0.64, t * (1.0 - 0.18 * k), t)
-    out = _bevel(F, rgbv * t[..., None], 0.028 * k)
+    out = _bevel(F, rgbv * t[..., None] + 255.0 * lift * (t[..., None] - 1.0), 0.028 * k)
     q = np.floor(F.inner() * F.dens + 1e-6).astype(np.int64)
     pit = ihash(q[..., 0], q[..., 1], q[..., 2], seed + 91) < 0.011 * k
     return np.where(pit[..., None], out * 0.62, out)
@@ -231,8 +236,8 @@ def rounded(bone, lo, hi, mat, r, level=1, flat=(), grid=None, **kw):
     return [bone.box(a[0], a[1], a[2], b[0], b[1], b[2], mat, **kw) for a, b in keep]
 
 
-def ball(bone, c, r, seed=3):
-    m = glossy(centre=c, seed=seed)
+def ball(bone, c, r, seed=3, tones=BLACK):
+    m = glossy(tones, centre=c, seed=seed)
     return rounded(bone, [c[0] - r, c[1] - r, c[2] - r], [c[0] + r, c[1] + r, c[2] + r], m, r * 0.58, level=2 if r >= 0.85 else 1)
 
 
@@ -266,6 +271,8 @@ class Rework:
         self.find_sockets = find_sockets
         self.m = mk.Model()
         self.seed = self.P['seed']
+        self.lift, self.edge = self.P.get('lift', 0.0), self.P.get('edge', 0)
+        self.joint = JOINTS[self.P.get('joint', 'black')]
         self.window = None            # the eyes' rectangle on the head's front: (x0, y0, x1, y1) in model pixels
         self.eye_cubes = []
 
@@ -276,7 +283,7 @@ class Rework:
 
         def mat(F):
             px = sample_src(self.arr, c, F.name, F.L).astype(float)
-            return {'rgb': np.concatenate([grain(F, px[..., :3], k, self.seed), px[..., 3:]], -1)}
+            return {'rgb': np.concatenate([grain(F, px[..., :3], k, self.seed, self.lift * (k > 0)), px[..., 3:]], -1), 'edge': self.edge * (k > 0)}
         return mat
 
     def skin(self, sk, k=None, eyes=False):
@@ -286,8 +293,8 @@ class Rework:
 
         def mat(F):
             px = sk.sample(F.name, F.P).astype(float)
-            out = grain(F, px[..., :3], k, self.seed)
-            res = {'rgb': out}
+            out = grain(F, px[..., :3], k, self.seed, self.lift)
+            res = {'rgb': out, 'edge': self.edge}
             if eyes and self.window and F.name == 'north':
                 x0, y0, x1, y1 = self.window
                 keep = (F.x > x0) & (F.x < x1) & (F.y > y0) & (F.y < y1)
@@ -314,7 +321,7 @@ class Rework:
         big = max(cs, key=lambda c: c['size'][0] * c['size'][2]) if cs else None
         w = (big['size'][0] + big['size'][2]) / 2 if big else 3.0
         r = float(np.clip(scale * w * self.P['ball'], lo, hi))
-        ball(bone, bone.pivot, r, seed=len(self.m.bones))
+        ball(bone, bone.pivot, r, seed=len(self.m.bones), tones=self.joint)
         return r
 
     # ---- bones
@@ -338,7 +345,7 @@ class Rework:
             centre = (np.array(lo) + np.array(hi)) / 2
             if joint and np.linalg.norm(centre - piv) < rad + 0.2 and max(c['size']) <= 2 * rad + 0.3:
                 continue                                         # (inside the new ball)
-            self.keep(b, c, mat=glossy(seed=7))
+            self.keep(b, c, mat=glossy(self.joint, seed=7))
 
     def keep(self, b, c, mat=None, **kw):
         lo, hi = lo_hi(c)
@@ -349,7 +356,7 @@ class Rework:
         palm = max(cs, key=lambda c: np.prod(c['size']))
         piv = np.array(b.pivot)
         r = float(np.clip(0.27 * (palm['size'][0] + palm['size'][2]) / 2 * self.P['ball'], 0.65, 0.9))
-        ball(b, b.pivot, r, seed=11)
+        ball(b, b.pivot, r, seed=11, tones=self.joint)
         for c in src.get('cubes', []):
             lo, hi = lo_hi(c)
             if c is palm:
@@ -377,7 +384,7 @@ class Rework:
                 else:
                     self.keep(b, c)
             else:
-                self.keep(b, c, mat=glossy(seed=13))
+                self.keep(b, c, mat=glossy(self.joint, seed=13))
 
     def shin(self, b, src):
         P = self.P
@@ -398,13 +405,13 @@ class Rework:
             elif np.linalg.norm((np.array(lo) + np.array(hi)) / 2 - piv) < rad + 0.2 and max(c['size']) <= 2 * rad + 0.3:
                 continue
             else:
-                self.keep(b, c, mat=glossy(seed=17))
+                self.keep(b, c, mat=glossy(self.joint, seed=17))
 
     def foot(self, b, src):
         cs = [c for c in src.get('cubes', []) if not c.get('rotation')]
         sk = Skin(self.arr, cs) if cs else None
         main = [c for c in cs if c['size'][0] >= 4 and c['size'][1] >= 2]
-        ball(b, b.pivot, float(np.clip(0.9 * self.P['ball'], 0.7, 1.0)), seed=19)
+        ball(b, b.pivot, float(np.clip(0.9 * self.P['ball'], 0.7, 1.0)), seed=19, tones=self.joint)
         for c in src.get('cubes', []):
             lo, hi = lo_hi(c)
             s = c['size']
@@ -435,7 +442,7 @@ class Rework:
                 rx, _, rz = self.radii(lo, hi, P['slab_r'])
                 rounded(b, lo, hi, self.skin(sk), (rx, 0.0, rz), level=P['limb_level'])
             elif not c.get('rotation') and abs(lo[0] + hi[0]) < 0.1 and abs(lo[2] + hi[2]) < 0.6 and 2.0 <= s[0] <= 4.0 and hi[1] >= top:
-                self.keep(b, c, mat=glossy(seed=23))             # the neck
+                self.keep(b, c, mat=glossy(self.joint, seed=23))             # the neck
             else:
                 self.keep(b, c)
 
