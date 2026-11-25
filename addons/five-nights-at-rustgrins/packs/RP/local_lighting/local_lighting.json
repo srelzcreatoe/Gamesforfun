@@ -61,6 +61,58 @@
       "light_color": "#ffe9c0",
       "light_type": "point_light"
     },
+    "fnar:arcade_machine": {
+      "light_color": "#8ad8ff",
+      "light_type": "point_light"
+    },
+    "fnar:change_machine": {
+      "light_color": "#ffd84a",
+      "light_type": "static_light"
+    },
+    "fnar:claw_machine": {
+      "light_color": "#ffe2a0",
+      "light_type": "static_light"
+    },
+    "fnar:display_case": {
+      "light_color": "#ffd9a0",
+      "light_type": "static_light"
+    },
+    "fnar:drinks_cooler": {
+      "light_color": "#cfe6ff",
+      "light_type": "point_light"
+    },
+    "fnar:jukebox_revue": {
+      "light_color": "#ffb070",
+      "light_type": "point_light"
+    },
+    "fnar:neon_pink": {
+      "light_color": "#ff5fb0",
+      "light_type": "static_light"
+    },
+    "fnar:neon_teal": {
+      "light_color": "#4ff0e0",
+      "light_type": "static_light"
+    },
+    "fnar:neon_yellow": {
+      "light_color": "#ffd84a",
+      "light_type": "static_light"
+    },
+    "fnar:pinball_table": {
+      "light_color": "#ff8ad0",
+      "light_type": "static_light"
+    },
+    "fnar:soda_fountain": {
+      "light_color": "#ff9a86",
+      "light_type": "static_light"
+    },
+    "fnar:vanity_mirror": {
+      "light_color": "#ffd08a",
+      "light_type": "point_light"
+    },
+    "fnar:vending_machine": {
+      "light_color": "#ff8a7a",
+      "light_type": "point_light"
+    },
     "fnar:ceiling_lamp": {
       "light_color": "#dfe8ff",
       "light_type": "static_light"

@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "mixing_desk",
+    "metalness_emissive_roughness": "mixing_desk_mer",
+    "heightmap": "mixing_desk_height"
+  }
+}

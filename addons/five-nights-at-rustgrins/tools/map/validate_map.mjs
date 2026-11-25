@@ -69,7 +69,7 @@ if (fs.existsSync(BDIR)) {
 const SEE_THROUGH = /^minecraft:(air|light_block_\d+|glass_pane|iron_bars|chain|iron_chain|short_grass|.*_carpet|.*_button|.*wall_sign|lantern)$/;
 // Custom props that do not block a camera's view or a walk (wall decor, small table-top things, lamps,
 // and flat floor decals: ticket stubs, puddles, footprints, 0.1 px thick, no collision).
-const THIN_CUSTOM = /^fnar:(poster_|drawing|sign_|bunting|exit_sign|wall_sconce|stage_spotlight|hanging_lamp|security_camera|pa_speaker|door_button|light_button|stage_star|party_hat|plate_set|pizza_box|desk_clutter|plush_rat|time_clock|balloons|floor_decal|wall_writing|lot_tag|neon_sign|menu_board|height_chart|token_prices|par_can)/;
+const THIN_CUSTOM = /^fnar:(poster_|drawing|sign_|bunting|exit_sign|wall_sconce|stage_spotlight|hanging_lamp|security_camera|pa_speaker|door_button|light_button|stage_star|party_hat|plate_set|pizza_box|desk_clutter|plush_rat|time_clock|balloons|floor_decal|wall_writing|lot_tag|neon_sign|menu_board|height_chart|token_prices|par_can|mural_revue|notice_board|banner_birthday|neon_(pink|teal|yellow)|coat_hooks|restroom_mirror|vanity_mirror|fire_extinguisher|hand_dryer|pot_rack|awning|drainpipe|wall_pier)/;
 
 function nameAt(x, y, z) {
   const ix = Math.floor(x) - x0, iy = Math.floor(y) - y0, iz = Math.floor(z) - z0;

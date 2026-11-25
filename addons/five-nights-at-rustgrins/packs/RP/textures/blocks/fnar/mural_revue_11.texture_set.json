@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "mural_revue_11",
+    "metalness_emissive_roughness": "mural_revue_11_mer",
+    "heightmap": "mural_revue_11_height"
+  }
+}

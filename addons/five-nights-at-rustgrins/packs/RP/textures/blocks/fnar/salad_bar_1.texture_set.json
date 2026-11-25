@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "salad_bar_1",
+    "metalness_emissive_roughness": "salad_bar_1_mer",
+    "heightmap": "salad_bar_1_height"
+  }
+}

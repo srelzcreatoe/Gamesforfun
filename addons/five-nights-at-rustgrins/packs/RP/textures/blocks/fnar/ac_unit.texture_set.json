@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "ac_unit",
+    "metalness_emissive_roughness": "ac_unit_mer",
+    "heightmap": "ac_unit_height"
+  }
+}

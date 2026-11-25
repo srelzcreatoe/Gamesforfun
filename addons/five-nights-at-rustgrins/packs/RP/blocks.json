@@ -4,8 +4,20 @@
     1,
     0
   ],
+  "fnar:ac_unit": {
+    "sound": "stone"
+  },
+  "fnar:air_hockey": {
+    "sound": "stone"
+  },
   "fnar:arcade_cabinet": {
     "sound": "metal"
+  },
+  "fnar:arcade_machine": {
+    "sound": "stone"
+  },
+  "fnar:awning": {
+    "sound": "stone"
   },
   "fnar:ball_pit": {
     "sound": "cloth"
@@ -13,7 +25,13 @@
   "fnar:balloons": {
     "sound": "cloth"
   },
+  "fnar:banner_birthday": {
+    "sound": "stone"
+  },
   "fnar:bar_bottles": {
+    "sound": "stone"
+  },
+  "fnar:bar_stool": {
     "sound": "stone"
   },
   "fnar:bare_bulb": {
@@ -25,8 +43,14 @@
   "fnar:boarded_planks": {
     "sound": "wood"
   },
+  "fnar:bollard": {
+    "sound": "stone"
+  },
   "fnar:booth_seat": {
     "sound": "cloth"
+  },
+  "fnar:break_table": {
+    "sound": "stone"
   },
   "fnar:bulb_frame": {
     "sound": "metal"
@@ -45,6 +69,9 @@
   },
   "fnar:carpet_purple": {
     "sound": "cloth"
+  },
+  "fnar:cash_register": {
+    "sound": "stone"
   },
   "fnar:ceiling_dark": {
     "sound": "stone"
@@ -73,16 +100,34 @@
   "fnar:cellar_puddle": {
     "sound": "stone"
   },
+  "fnar:change_machine": {
+    "sound": "stone"
+  },
   "fnar:cinderblock_painted": {
     "sound": "stone"
   },
   "fnar:cladding_teal": {
     "sound": "metal"
   },
+  "fnar:claw_machine": {
+    "sound": "stone"
+  },
   "fnar:club_chair": {
     "sound": "stone"
   },
   "fnar:club_table": {
+    "sound": "stone"
+  },
+  "fnar:coat_hooks": {
+    "sound": "stone"
+  },
+  "fnar:column_cap": {
+    "sound": "stone"
+  },
+  "fnar:column_cream": {
+    "sound": "stone"
+  },
+  "fnar:costume_rack": {
     "sound": "stone"
   },
   "fnar:crt_monitor": {
@@ -115,11 +160,17 @@
   "fnar:disco_ball": {
     "sound": "metal"
   },
+  "fnar:display_case": {
+    "sound": "stone"
+  },
   "fnar:door_button": {
     "sound": "metal"
   },
   "fnar:door_shutter": {
     "sound": "metal"
+  },
+  "fnar:drainpipe": {
+    "sound": "stone"
   },
   "fnar:drawing": {
     "sound": "cloth"
@@ -127,8 +178,14 @@
   "fnar:drawing_golden_dog": {
     "sound": "cloth"
   },
+  "fnar:drinks_cooler": {
+    "sound": "stone"
+  },
   "fnar:duct_metal": {
     "sound": "metal"
+  },
+  "fnar:dumpster": {
+    "sound": "stone"
   },
   "fnar:emergency_light": {
     "sound": "metal"
@@ -145,6 +202,9 @@
   "fnar:fallen_chandelier": {
     "sound": "stone"
   },
+  "fnar:fire_extinguisher": {
+    "sound": "stone"
+  },
   "fnar:flood_water": {
     "sound": "stone"
   },
@@ -156,6 +216,9 @@
   },
   "fnar:footlight": {
     "sound": "metal"
+  },
+  "fnar:freezer_door": {
+    "sound": "stone"
   },
   "fnar:ghost_light": {
     "sound": "stone"
@@ -175,6 +238,9 @@
   "fnar:gumball_machine": {
     "sound": "metal"
   },
+  "fnar:hand_dryer": {
+    "sound": "stone"
+  },
   "fnar:hanging_lamp": {
     "sound": "metal"
   },
@@ -184,8 +250,17 @@
   "fnar:height_chart": {
     "sound": "cloth"
   },
+  "fnar:host_stand": {
+    "sound": "stone"
+  },
+  "fnar:jukebox_revue": {
+    "sound": "stone"
+  },
   "fnar:kiddie_ride": {
     "sound": "metal"
+  },
+  "fnar:kitchenette": {
+    "sound": "stone"
   },
   "fnar:light_button": {
     "sound": "metal"
@@ -199,8 +274,17 @@
   "fnar:menu_board": {
     "sound": "cloth"
   },
+  "fnar:mixing_desk": {
+    "sound": "stone"
+  },
   "fnar:mop_bucket": {
     "sound": "metal"
+  },
+  "fnar:mural_revue": {
+    "sound": "stone"
+  },
+  "fnar:neon_pink": {
+    "sound": "stone"
   },
   "fnar:neon_sign": {
     "sound": "metal"
@@ -211,6 +295,15 @@
   "fnar:neon_sign_p2": {
     "sound": "metal"
   },
+  "fnar:neon_teal": {
+    "sound": "stone"
+  },
+  "fnar:neon_yellow": {
+    "sound": "stone"
+  },
+  "fnar:notice_board": {
+    "sound": "stone"
+  },
   "fnar:old_office_tile": {
     "sound": "stone"
   },
@@ -220,8 +313,14 @@
   "fnar:pa_speaker": {
     "sound": "metal"
   },
+  "fnar:pallets": {
+    "sound": "stone"
+  },
   "fnar:par_can": {
     "sound": "metal"
+  },
+  "fnar:parking_block": {
+    "sound": "stone"
   },
   "fnar:parts_shelf": {
     "sound": "metal"
@@ -235,8 +334,17 @@
   "fnar:party_table": {
     "sound": "wood"
   },
+  "fnar:pinball_table": {
+    "sound": "stone"
+  },
   "fnar:pizza_box": {
     "sound": "wood"
+  },
+  "fnar:pizza_oven": {
+    "sound": "stone"
+  },
+  "fnar:planter": {
+    "sound": "stone"
   },
   "fnar:plate_set": {
     "sound": "cloth"
@@ -286,14 +394,32 @@
   "fnar:poster_torn": {
     "sound": "cloth"
   },
+  "fnar:pot_rack": {
+    "sound": "stone"
+  },
+  "fnar:prep_table": {
+    "sound": "stone"
+  },
   "fnar:prize_case": {
     "sound": "metal"
+  },
+  "fnar:restroom_mirror": {
+    "sound": "stone"
+  },
+  "fnar:road_case": {
+    "sound": "stone"
   },
   "fnar:rotten_panelling": {
     "sound": "stone"
   },
+  "fnar:salad_bar": {
+    "sound": "stone"
+  },
   "fnar:security_camera": {
     "sound": "metal"
+  },
+  "fnar:shoe_cubby": {
+    "sound": "stone"
   },
   "fnar:show_tape": {
     "sound": "metal"
@@ -331,6 +457,9 @@
   "fnar:sign_revue": {
     "sound": "metal"
   },
+  "fnar:sign_small": {
+    "sound": "stone"
+  },
   "fnar:sign_staff": {
     "sound": "wood"
   },
@@ -354,6 +483,12 @@
   },
   "fnar:slumped_suit": {
     "sound": "cloth"
+  },
+  "fnar:soda_fountain": {
+    "sound": "stone"
+  },
+  "fnar:sofa": {
+    "sound": "stone"
   },
   "fnar:soffit_cream": {
     "sound": "stone"
@@ -385,11 +520,17 @@
   "fnar:stained_plaster_ceiling": {
     "sound": "stone"
   },
+  "fnar:stall_panel": {
+    "sound": "stone"
+  },
   "fnar:stanchion": {
     "sound": "metal"
   },
   "fnar:star_chair": {
     "sound": "cloth"
+  },
+  "fnar:steel_panel": {
+    "sound": "stone"
   },
   "fnar:tent_stripe": {
     "sound": "cloth"
@@ -424,8 +565,17 @@
   "fnar:trash_can": {
     "sound": "metal"
   },
+  "fnar:urinal": {
+    "sound": "stone"
+  },
+  "fnar:vanity_mirror": {
+    "sound": "stone"
+  },
   "fnar:velvet_rope": {
     "sound": "cloth"
+  },
+  "fnar:vending_machine": {
+    "sound": "stone"
   },
   "fnar:vent_cover": {
     "sound": "metal"
@@ -433,7 +583,13 @@
   "fnar:vinyl_pad": {
     "sound": "cloth"
   },
+  "fnar:wainscot_oak": {
+    "sound": "stone"
+  },
   "fnar:wall_checker": {
+    "sound": "stone"
+  },
+  "fnar:wall_pier": {
     "sound": "stone"
   },
   "fnar:wall_plaster": {
@@ -446,6 +602,12 @@
     "sound": "metal"
   },
   "fnar:wall_stripe": {
+    "sound": "stone"
+  },
+  "fnar:wall_tile_mint": {
+    "sound": "stone"
+  },
+  "fnar:wall_tile_white": {
     "sound": "stone"
   },
   "fnar:wall_trim": {
@@ -466,7 +628,13 @@
   "fnar:walter_things": {
     "sound": "metal"
   },
+  "fnar:water_fountain": {
+    "sound": "stone"
+  },
   "fnar:wet_floor_sign": {
     "sound": "metal"
+  },
+  "fnar:wire_shelf": {
+    "sound": "stone"
   }
 }

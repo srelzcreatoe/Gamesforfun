@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "hand_dryer",
+    "metalness_emissive_roughness": "hand_dryer_mer",
+    "heightmap": "hand_dryer_height"
+  }
+}

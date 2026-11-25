@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "road_case",
+    "metalness_emissive_roughness": "road_case_mer",
+    "heightmap": "road_case_height"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "stall_panel",
+    "metalness_emissive_roughness": "stall_panel_mer",
+    "heightmap": "stall_panel_height"
+  }
+}

@@ -42,7 +42,7 @@ for (const [x, y, z] of G.DAY_OPEN) {
 // What a body passes through: air, invisible light, carpet, flat things on the floor and on walls.
 // Stricter than validate_map.mjs's list for the 3-block cast: panes, bars, ropes, hats and balloons on the
 // floor all stop a guest.
-const PASS = /^(minecraft:(air|light_block_\d+|short_grass|.*_carpet|.*wall_sign|.*_button)|fnar:(floor_decal|poster_.*|drawing|sign_.*|wall_writing|lot_tag|neon_sign.*|menu_board|height_chart|token_prices|bunting|light_button|door_button))$/;
+const PASS = /^(minecraft:(air|light_block_\d+|short_grass|.*_carpet|.*wall_sign|.*_button)|fnar:(floor_decal|poster_.*|drawing|sign_.*|wall_writing|lot_tag|neon_sign.*|menu_board|height_chart|token_prices|bunting|light_button|door_button|mural_revue|notice_board|banner_birthday|neon_(pink|teal|yellow)|restroom_mirror|vanity_mirror))$/;
 const passable = (x, y, z) => PASS.test(entryAt(x, y, z).name);
 const HEADS = [];
 for (let y = 0; y < G.GUEST_BODY.height; y++) HEADS.push(y);
