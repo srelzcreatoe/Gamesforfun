@@ -8,14 +8,14 @@ import numpy as np
 
 
 def rot(r):
+    """Rz(-z) . Ry(y) . Rx(-x), multiplied out."""
     x, y, z = (math.radians(v) for v in r)
     cx, sx = math.cos(-x), math.sin(-x)
     cy, sy = math.cos(y), math.sin(y)
     cz, sz = math.cos(-z), math.sin(-z)
-    Rx = np.array([[1, 0, 0], [0, cx, -sx], [0, sx, cx]])
-    Ry = np.array([[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]])
-    Rz = np.array([[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]])
-    return Rz @ Ry @ Rx
+    return np.array([[cz * cy, cz * sy * sx - sz * cx, cz * sy * cx + sz * sx],
+                     [sz * cy, sz * sy * sx + cz * cx, sz * sy * cx - cz * sx],
+                     [-sy, cy * sx, cy * cx]])
 
 
 class Skeleton:
@@ -23,31 +23,43 @@ class Skeleton:
         g = geo['minecraft:geometry'][0] if 'minecraft:geometry' in geo else geo
         self.bones = {b['name']: b for b in g['bones']}
 
+    def _chain(self):
+        """Per bone, parents first (cached): name, parent, pivot, offset from the parent's pivot, rest rotation
+        and its matrix."""
+        if '_chain_' not in self.__dict__:
+            order, seen = [], set()
+
+            def visit(name):
+                if name in seen:
+                    return
+                b = self.bones[name]
+                if b.get('parent'):
+                    visit(b['parent'])
+                seen.add(name)
+                piv = np.array(b.get('pivot', [0, 0, 0]), float)
+                ppiv = np.array(self.bones[b['parent']].get('pivot', [0, 0, 0]), float) if b.get('parent') else np.zeros(3)
+                rest = [float(v) for v in b.get('rotation', [0, 0, 0])]
+                order.append((name, b.get('parent'), piv, piv - ppiv, rest, rot(rest)))
+            for n in self.bones:
+                visit(n)
+            self.__dict__['_chain_'] = order
+        return self.__dict__['_chain_']
+
     def world(self, pose):
         """pose: {bone: {'rotation': [x,y,z], 'position': [x,y,z]}} -> {bone: (R, origin)} (origin = pivot)."""
         out = {}
-
-        def get(name):
-            if name in out:
-                return out[name]
-            b = self.bones[name]
-            piv = np.array(b.get('pivot', [0, 0, 0]), float)
-            p = pose.get(name, {})
-            r = np.add(b.get('rotation', [0, 0, 0]), p.get('rotation', [0, 0, 0]))
-            off = np.array(p.get('position', [0, 0, 0]), float)
-            if b.get('parent'):
-                PR, PO = get(b['parent'])
-                ppiv = np.array(self.bones[b['parent']].get('pivot', [0, 0, 0]), float)
-                origin = PO + PR @ (piv - ppiv + off)
-                R = PR @ rot(r)
+        for name, parent, piv, d, rest, Rrest in self._chain():
+            p = pose.get(name)
+            r = p.get('rotation') if p else None
+            off = p.get('position') if p else None
+            Rl = Rrest if r is None else rot((rest[0] + r[0], rest[1] + r[1], rest[2] + r[2]))
+            if off is not None:
+                d = d + np.asarray(off, float)
+            if parent:
+                PR, PO = out[parent]
+                out[name] = (PR @ Rl, PO + PR @ d)
             else:
-                origin = piv + off
-                R = rot(r)
-            out[name] = (R, origin)
-            return out[name]
-
-        for n in self.bones:
-            get(n)
+                out[name] = (Rl, piv + (np.asarray(off, float) if off is not None else 0.0))
         return out
 
     def point(self, W, bone, p):

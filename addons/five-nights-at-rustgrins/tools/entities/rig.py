@@ -100,13 +100,16 @@ class Rig:
 
 
 # ------------------------------------------------------------------ boxes
-_LOCAL = {}
+def _cache(sk, name):
+    """A cache that lives on the skeleton itself. (Never key one by id(skeleton): once a skeleton is freed the
+    next one can be given the same address, and would be handed the boxes of another model.)"""
+    return sk.__dict__.setdefault(name, {})
 
 
 def _local_boxes(sk, bone):
     """Per cube of a bone (cached): centre relative to the bone pivot, rotation, half size."""
-    key = (id(sk), bone)
-    if key not in _LOCAL:
+    cache = _cache(sk, '_rig_boxes')
+    if bone not in cache:
         b = sk.bones[bone]
         piv = np.array(b.get('pivot', [0, 0, 0]), float)
         out = []
@@ -123,8 +126,8 @@ def _local_boxes(sk, bone):
                 Rc = rot(c['rotation'])
                 centre = cp + Rc @ (centre - cp)
             out.append((centre - piv, Rc, half))
-        _LOCAL[key] = out
-    return _LOCAL[key]
+        cache[bone] = out
+    return cache[bone]
 
 
 def obbs(sk, W, bones):
@@ -138,48 +141,78 @@ def obbs(sk, W, bones):
 
 
 def _depth(A, B):
+    """Separating-axis depth of two oriented boxes (0 = apart)."""
     ca, Aa, ha = A
     cb, Bb, hb = B
-    d = cb - ca
-    cr = np.cross(Aa[:, None, :], Bb[None, :, :]).reshape(9, 3)
-    axes = np.vstack([Aa, Bb, cr])
-    n = np.linalg.norm(axes, axis=1)
+    return float(_depths(Aa[None], ha[None], Bb[None], hb[None], (cb - ca)[None])[0])
+
+
+def _group(sk, bones):
+    """The cubes of a list of bones as arrays (cached): which bone of the list each cube hangs on, its centre
+    relative to that bone's pivot, its own rotation, its half size and the radius of its bounding sphere."""
+    key = tuple(bones)
+    cache = _cache(sk, '_rig_groups')
+    if key not in cache:
+        idx, C, Rc, H = [], [], [], []
+        for k, bn in enumerate(key):
+            for cen, rc, half in _local_boxes(sk, bn):
+                idx.append(k)
+                C.append(cen)
+                Rc.append(rc)
+                H.append(half)
+        n = len(idx)
+        H = np.array(H, float).reshape(n, 3)
+        cache[key] = (np.array(idx, int), np.array(C, float).reshape(n, 3), np.array(Rc, float).reshape(n, 3, 3), H,
+                      np.linalg.norm(H, axis=1))
+    return cache[key]
+
+
+def _world_boxes(sk, W, bones):
+    """(centres n x 3, axes n x 3 x 3 as rows, half sizes n x 3, bounding radii n) of the bones' cubes."""
+    idx, C, Rc, H, rad = _group(sk, bones)
+    if not len(idx):
+        return None
+    Rb = np.array([W[b][0] for b in bones])[idx]
+    cen = np.array([W[b][1] for b in bones])[idx] + np.einsum('nij,nj->ni', Rb, C)
+    return cen, np.einsum('nij,njk->nki', Rb, Rc), H, rad
+
+
+def _depths(Aa, ha, Bb, hb, d):
+    """Separating-axis depth of P pairs of oriented boxes at once (axes as rows, P x 3 x 3; d = centre b - centre a)."""
+    cr = np.cross(Aa[:, :, None, :], Bb[:, None, :, :]).reshape(-1, 9, 3)
+    L = np.concatenate([Aa, Bb, cr], axis=1)                    # the 15 candidate axes of each pair
+    n = np.linalg.norm(L, axis=2)
     ok = n > 1e-6
-    axes = axes[ok] / n[ok][:, None]
-    ra = np.abs(axes @ Aa.T) @ ha
-    rb = np.abs(axes @ Bb.T) @ hb
-    ov = ra + rb - np.abs(axes @ d)
-    m = float(ov.min())
-    return m if m > 0 else 0.0
+    L = L / np.where(ok, n, 1.0)[..., None]
+    ra = np.einsum('pak,pk->pa', np.abs(np.einsum('pai,pki->pak', L, Aa)), ha)
+    rb = np.einsum('pak,pk->pa', np.abs(np.einsum('pai,pki->pak', L, Bb)), hb)
+    ov = np.where(ok, ra + rb - np.abs(np.einsum('pai,pi->pa', L, d)), np.inf)
+    m = ov.min(axis=1)
+    return np.where(m > 0, m, 0.0)
 
 
 def penetration(sk, W, bones_a, bones_b):
     """Deepest overlap (model px) between any cube of bones_a and any cube of bones_b."""
-    A = obbs(sk, W, bones_a)
-    B = obbs(sk, W, bones_b)
-    if not A or not B:
+    A = _world_boxes(sk, W, bones_a)
+    B = _world_boxes(sk, W, bones_b)
+    if A is None or B is None:
         return 0.0
-    ca = np.array([a[0] for a in A])
-    cb = np.array([b[0] for b in B])
-    ra = np.array([np.linalg.norm(a[2]) for a in A])
-    rb = np.array([np.linalg.norm(b[2]) for b in B])
-    dist = np.linalg.norm(ca[:, None, :] - cb[None, :, :], axis=2)
-    cand = np.argwhere(dist < ra[:, None] + rb[None, :])
-    m = 0.0
-    for i, j in cand:
-        m = max(m, _depth(A[i], B[j]))
-    return m
-
-
-_REST = {}
+    ca, Aa, ha, ra = A
+    cb, Bb, hb, rb = B
+    d = cb[None, :, :] - ca[:, None, :]
+    ii, jj = np.nonzero(np.linalg.norm(d, axis=2) < ra[:, None] + rb[None, :])
+    if not len(ii):
+        return 0.0
+    return float(_depths(Aa[ii], ha[ii], Bb[jj], hb[jj], d[ii, jj]).max())
 
 
 def excess(sk, W, bones_a, bones_b):
     """penetration() minus the overlap the two groups already have in the rest pose (shoulder joints...)."""
-    key = (id(sk), tuple(bones_a), tuple(bones_b))
-    if key not in _REST:
-        _REST[key] = penetration(sk, sk.world({}), bones_a, bones_b)
-    return max(0.0, penetration(sk, W, bones_a, bones_b) - _REST[key])
+    key = (tuple(bones_a), tuple(bones_b))
+    cache = _cache(sk, '_rig_rest')
+    if key not in cache:
+        cache[key] = penetration(sk, sk.world({}), bones_a, bones_b)
+    return max(0.0, penetration(sk, W, bones_a, bones_b) - cache[key])
 
 
 def extent(sk, W, bones, axis):

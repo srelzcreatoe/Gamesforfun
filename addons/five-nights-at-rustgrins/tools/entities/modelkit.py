@@ -68,7 +68,7 @@ def fbm(x, y, z, scale, seed=0, octaves=3):
 
 # ------------------------------------------------------------------ model
 class Cube:
-    def __init__(self, origin, size, mat=None, rotation=None, pivot=None, inflate=0.0, dens=None, src=None, tag=None, share=None, nest=True):
+    def __init__(self, origin, size, mat=None, rotation=None, pivot=None, inflate=0.0, dens=None, src=None, tag=None, share=None, nest=True, full=False):
         self.origin = [float(v) for v in origin]
         self.size = [float(v) for v in size]
         self.mat = mat                # callable(Face) -> rgb array, or dict (see paint)
@@ -80,6 +80,7 @@ class Cube:
         self.tag = tag
         self.share = share            # faces of cubes with the same share key and size share their texels
         self.nest = nest              # False: no other face is packed into the buried parts of this cube's faces
+        self.full = full              # True: every face that shows at all keeps the full texel density
         self.bone = None
         self.uv = {}
 
@@ -235,7 +236,7 @@ class Model:
         for c in s.cubes:
             o = [-(c.origin[0] + c.size[0]), c.origin[1], c.origin[2]]
             m = Cube(o, c.size, c.mat, [c.rotation[0], -c.rotation[1], -c.rotation[2]] if c.rotation else None,
-                     [-c.pivot[0], c.pivot[1], c.pivot[2]] if c.pivot else None, c.inflate, c.dens, None, c.tag, c.share, c.nest)
+                     [-c.pivot[0], c.pivot[1], c.pivot[2]] if c.pivot else None, c.inflate, c.dens, None, c.tag, c.share, c.nest, c.full)
             if c.src:
                 # a mirrored copy of copied faces: east and west swap, every face flips left to right
                 swap = {'east': 'west', 'west': 'east'}
@@ -345,7 +346,7 @@ def analyse(model, crease=0.55, crease_dark=0.34):
                 elif vis <= 0.0:
                     w, h, d = 2, 2, 0
                 else:
-                    d = base if vis >= 0.34 else (base / 2 if vis >= 0.12 else base / 4)
+                    d = base if (vis >= 0.34 or c.full) else (base / 2 if vis >= 0.12 else base / 4)
                     w, h = max(1, int(math.ceil(fw * d - 1e-6))), max(1, int(math.ceil(fh * d - 1e-6)))
                 c.grid[f] = (w, h, d)
                 c.holes[f] = []
@@ -495,7 +496,8 @@ def pack(model, width=512, swatch=(34, 30, 30)):
 def paint(model, width, height, ao=True):
     """Paints the atlas. A material is a callable(Face) returning an (h, w, 3) colour array (0..255), or a
     dict with 'rgb' and optional 'metal', 'rough' (0..255, scalars or arrays), 'glow' (bool array: glowing
-    pupil texels), 'ao' (False: no crease shading on this face, or a 0..1 strength).
+    pupil texels), 'ao' (False: no crease shading on this face, or a 0..1 strength, or one per texel), 'edge'
+    (0..255 added to the face's outermost texels where they are not in a crease: worn, lit edges).
     Returns {'color': RGBA image, 'mer': RGB image, 'glow': bool array}."""
     col = np.zeros((height, width, 4), np.uint8)
     mer = np.zeros((height, width, 3), np.uint8)
@@ -532,13 +534,19 @@ def paint(model, width, height, ao=True):
                 rgb = rgb[..., :3]
             k = res.get('ao', True)
             if ao and k is not False:
-                s = 1.0 if k is True else float(k)
+                s = 1.0 if k is True else np.asarray(k, float)       # a strength, or one per texel
                 rgb = rgb * (1.0 - s * (1.0 - c.ao[f]))[..., None]
             keep = np.ones((h, w), bool)         # (the buried rectangles of this face hold other faces)
             for hx, hy, hw, hh in c.holes.get(f, []):
                 keep[hy:hy + hh, hx:hx + hw] = False
             a = np.full((h, w), 255.0) if alpha is None else alpha
             full = lambda v: np.broadcast_to(np.asarray(v, float), (h, w))
+            e = res.get('edge', 0)
+            if e:
+                # worn edges: the outermost texels of a face that are not in a crease catch a little light
+                ring = np.zeros((h, w), bool)
+                ring[0, :] = ring[-1, :] = ring[:, 0] = ring[:, -1] = True
+                rgb = rgb + (ring & (c.ao[f] > 0.985))[..., None] * float(e)
             col[y:y + h, x:x + w, :3][keep] = np.clip(np.round(rgb), 0, 255).astype(np.uint8)[keep]
             col[y:y + h, x:x + w, 3][keep] = np.clip(a, 0, 255).astype(np.uint8)[keep]
             mer[y:y + h, x:x + w, 0][keep] = np.clip(full(res.get('metal', 0)), 0, 255).astype(np.uint8)[keep]
