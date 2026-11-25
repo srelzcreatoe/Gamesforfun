@@ -1848,7 +1848,7 @@ function decayDining(p) {
   p.picture('lot_tag', 32, 2, 2, 's', 1, 1, 1); // Mirehop
   p.picture('lot_tag', 44, 2, 2, 's', 1, 1, 2); // Noxbriar
   p.picture('poster_torn', 62, 5, 27, 'w', 2, 2);
-  for (const [x, z] of [[18, 7, 11], [59, 7, 34], [18, 7, 34]].map(([x, , z]) => [x, z])) p.set(x, 7, z, 'cobweb');
+  for (const [x, z] of [[18, 11], [59, 10], [18, 34]]) p.set(x, 7, z, 'cobweb');
   for (const [x, z] of [[23, 10], [54, 10]]) p.set(x, 6, z, 'cobweb');
 }
 

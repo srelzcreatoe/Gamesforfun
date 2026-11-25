@@ -294,7 +294,7 @@ export const SCENES = [
     },
   },
   {
-    name: '15_free_roam_day', voxels: 'day', caption: 'Free Roam: the showroom by day - star-back chairs, the starry soffit, the band on the curved stage',
+    name: '15_free_roam_day', voxels: 'day', caption: 'Free Roam: the showroom by day - cream pilasters, a soffit edged with marquee bulbs, the band on the curved stage',
     scene: {
       camera: { pos: [58.5, 2.1, 31.5], target: [37.0, 3.0, 9.0], fov: 74 }, exposure: 1.0,
       entities: [
@@ -357,25 +357,25 @@ export const SCENES = [
     },
   },
   {
-    name: '23_fun_zone', voxels: 'day', caption: 'Free Roam: the Fun Zone - two play towers, crawl tubes and a slide into the ball pit',
-    scene: { camera: { pos: [96.5, 6.6, 69.5], target: [87, 1.8, 47], fov: 76 }, exposure: 1.0 },
+    name: '23_fun_zone', voxels: 'day', caption: 'Free Roam: the Fun Zone - two-storey towers, crawl tubes, and a castle with a three-lane slide over the ball pit',
+    scene: { camera: { pos: [83.0, 5.2, 52.5], target: [91.5, 2.2, 64.0], fov: 78 }, exposure: 1.0 },
   },
   {
     name: '24_game_room_night', voxels: 'night', caption: 'The Game Room at night: only the screens, the neon and the coin slots are still on',
     scene: { camera: { pos: [77.5, 2.2, 59.5], target: [55, 1.8, 46], fov: 72 }, exposure: 1.6 },
   },
   {
-    name: '25_prize_corner', voxels: 'day', caption: 'The Prize Corner: a wall of plush prizes behind the glass counter',
+    name: '25_prize_corner', voxels: 'day', caption: 'The Prize Corner: the glass counter under a bulkhead of bulbs, lit prize cabinets and the plush wall behind it',
     scene: { camera: { pos: [90.5, 2.4, 24.5], target: [90.5, 1.6, 3], fov: 72 }, exposure: 1.0 },
   },
   // ---- the remake: the rooms of a big 80s family pizzeria
   {
-    name: '26_game_room', voxels: 'day', caption: 'The Game Room: skee-ball, rows of arcade cabinets, token machines and a crawl tube overhead',
+    name: '26_game_room', voxels: 'day', caption: 'The Game Room: five different games, pinball, air hockey, a line of neon round the walls, a crawl tube overhead',
     scene: { camera: { pos: [76.5, 4.4, 59.5], target: [57, 1.2, 46], fov: 74 }, exposure: 1.0 },
   },
   {
-    name: '27_entrance_hall', voxels: 'day', caption: 'The Entrance Hall: the ticket booth, the hand-stamp podium, the arches to the games',
-    scene: { camera: { pos: [97.5, 2.6, 39.5], target: [70, 1.8, 31], fov: 72 }, exposure: 1.0 },
+    name: '27_entrance_hall', voxels: 'day', caption: 'The Entrance Hall: soffits edged with bulbs, the mural of the cast, the host stand, the arches to the games',
+    scene: { camera: { pos: [97.0, 1.9, 35.0], target: [68, 2.4, 32.5], fov: 74 }, exposure: 1.0 },
   },
   {
     name: '28_dining_hall_night', voxels: 'night', caption: 'The Dining Hall at night: the band waits in the dark, one candle burns',
@@ -475,12 +475,12 @@ export const SCENES = [
   {
     name: '39_cam5_midnight', voxels: 'ns_midnight', style: 'camera_feed', caption: 'CAM 5 at midnight: the heads on the shelves face the wall',
     hud: { cam: '5', lines: ['§fCAM 5 · BACKSTAGE', '§7Night 4 §8| §f12 AM §8| §fPOWER 99% §8| §7USAGE §a▮§8▯▯▯▯▯▯'] },
-    scene: { camera: { pos: [12.5, 5.35, 13.0], target: [6.5, 1.3, 1.5], fov: 26 }, exposure: 1.7, extra_lights: [irLight('5', 9), point([6.5, 3.4, 4.5], '#e8ffe8', 8, 9)] },
+    scene: { camera: { pos: [12.5, 5.35, 12.0], target: [6.5, 1.3, 1.5], fov: 26 }, exposure: 1.7, extra_lights: [irLight('5', 9), point([6.5, 3.4, 4.5], '#e8ffe8', 8, 9)] },
   },
   {
     name: '40_cam5_4am', voxels: 'ns_late', style: 'camera_feed', caption: 'CAM 5 at 4 AM: while you were not watching, every face turned to the lens',
     hud: { cam: '5', lines: ['§fCAM 5 · BACKSTAGE', '§7Night 4 §8| §44 AM §8| §ePOWER 27% §8| §7USAGE §e▮▮▮§8▯▯▯▯'] },
-    scene: { camera: { pos: [12.5, 5.35, 13.0], target: [6.5, 1.3, 1.5], fov: 26 }, exposure: 1.7, fog: { density: 0.045 }, extra_lights: [irLight('5', 9), point([6.5, 3.4, 4.5], '#e8ffe8', 8, 9)] },
+    scene: { camera: { pos: [12.5, 5.35, 12.0], target: [6.5, 1.3, 1.5], fov: 26 }, exposure: 1.7, fog: { density: 0.045 }, extra_lights: [irLight('5', 9), point([6.5, 3.4, 4.5], '#e8ffe8', 8, 9)] },
   },
   {
     name: '41_office_drawing_west', voxels: 'ns_late', caption: 'Night 4: the drawing pinned up by the desk has changed - faces at both doors',
@@ -611,6 +611,47 @@ export const SCENES = [
     scene: { camera: { pos: [36.5, 2.4, 39.6], target: [36.5, 0.8, 54], fov: 70 }, exposure: 1.0 },
   },
   // ---- the cellar (data/cellar_plan.js): the Golden Dog Supper Club under the pizzeria, and the Golden Dog on its stage
+  // ---- the rework: rooms that had no picture of their own
+  {
+    name: '70_kitchen', voxels: 'day', caption: 'The kitchen: deck ovens under a stainless hood, prep lines under a pot rack, the walk-in freezer',
+    scene: { camera: { pos: [70.5, 1.8, 10.5], target: [72.5, 1.6, 1.0], fov: 80 }, exposure: 1.0 },
+  },
+  {
+    name: '71_restroom', voxels: 'day', caption: "The men's room: two stalls, sinks under mirrors (one cracked), a hand dryer",
+    scene: { camera: { pos: [73.5, 1.6, 17.6], target: [79.0, 1.0, 16.8], fov: 74 }, exposure: 1.3 },
+  },
+  {
+    name: '72_backstage_day', voxels: 'day', caption: 'Backstage by day: make-up mirrors ringed with bulbs, costume rails, and the spare heads on their shelves',
+    scene: { camera: { pos: [5.6, 1.7, 10.8], target: [12.0, 1.4, 4.5], fov: 80 }, exposure: 1.2 },
+  },
+  {
+    name: '73_grand_marquee_day', voxels: 'day', caption: "The Grand Marquee by day: a proscenium of marquee bulbs round the Ringmaster's stage",
+    scene: { camera: { pos: [21.0, 1.7, 33.5], target: [9.0, 2.6, 33.5], fov: 70 }, exposure: 1.0, entities: [at('top_hat_rat', 'CAB', 'pose_1', { t: 0 })] },
+  },
+  {
+    name: '74_lobby_mural', voxels: 'day', caption: "The Entrance Hall's mural, painted in 1984: the whole cast, WELCOME TO THE SHOW",
+    scene: { camera: { pos: [80.0, 1.7, 35.5], target: [80.0, 3.0, 28.0], fov: 74 }, exposure: 1.0 },
+  },
+  {
+    name: '75_pizza_counter', voxels: 'day', caption: "The pizza counter by the kitchen's window: a striped awning, the menu board, the till, stools",
+    scene: { camera: { pos: [57.0, 1.7, 13.0], target: [60.8, 2.2, 7.5], fov: 72 }, exposure: 1.0 },
+  },
+  {
+    name: '76_break_room', voxels: 'lit', caption: 'The Staff Room: behind the time clock, the break room - a table on a worn rug, the sofa, machines still humming',
+    scene: { camera: { pos: [3.0, 1.7, 61.0], target: [13.0, 1.1, 67.0], fov: 78 }, exposure: 1.1 },
+  },
+  {
+    name: '77_kitchen_yard', voxels: 'day', caption: 'Behind the kitchen: a gravel yard, the dumpsters, the back door boarded up',
+    scene: { time: 'day', camera: { pos: [72.5, 2.6, -11.5], target: [70.5, 0.8, -3.0], fov: 78 }, exposure: 1.0 },
+  },
+  {
+    name: '78_street_front_day', voxels: 'day', caption: 'The street front by day: the pediment behind the sign, the awning over the doors, planters and bollards',
+    scene: { time: 'day', camera: { pos: [124.0, 1.8, 52.0], target: [100.0, 8.0, 32.0], fov: 70 }, exposure: 1.0 },
+  },
+  {
+    name: '79_west_hall_day', voxels: 'day_clean', caption: 'The West Hall by day: charcoal piers, brass sconces, a dark crown under the stained ceiling',
+    scene: { camera: { pos: [27.5, 1.7, 39.6], target: [27.5, 1.6, 57.0], fov: 70 }, exposure: 1.0 },
+  },
   {
     name: '60_gold_room', voxels: 'day', caption: 'Under the Dining Hall: the Gold Room of the Golden Dog Supper Club (1958 to 1971), and he is still on its stage',
     scene: {
