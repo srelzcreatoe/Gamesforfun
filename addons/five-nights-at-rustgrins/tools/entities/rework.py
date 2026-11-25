@@ -49,11 +49,12 @@ PLAN = {
     # (a black bear: steel joints instead of black ones, a grain that lifts as well as darkens, lit edges, or
     #  none of the new shape would show on her)
     'noxbriar': dict(FULL, seed=303, joint='steel', lift=0.16, edge=13),
+    # the lighter pass (dark bodies, all three: steel joints, a little lift and lit edges so the new shapes show)
+    'purple_rat': dict(LIGHT, seed=404, joint='steel', lift=0.10, edge=9),
 }
 PENDING = {
-    'purple_rat': dict(LIGHT, seed=404),
-    'cat': dict(LIGHT, seed=505),
-    'top_hat_rat': dict(LIGHT, seed=606),
+    'cat': dict(LIGHT, seed=505, joint='steel', lift=0.10, edge=9),
+    'top_hat_rat': dict(LIGHT, seed=606, joint='steel', lift=0.10, edge=9),
 }
 
 BLACK = [(16, 15, 17), (24, 22, 25), (34, 31, 35)]
@@ -277,13 +278,20 @@ class Rework:
         self.eye_cubes = []
 
     # ---- materials
-    def own(self, c, k=None):
-        """A kept cube: its own supplied paint (stretched if the box has grown), with the grain."""
+    def own(self, c, k=None, eyes=False):
+        """A kept cube: its own supplied paint (stretched if the box has grown), with the grain. eyes: the texels
+        inside the eyes' rectangle on its front face are the supplied ones untouched."""
         k = self.P['grain'] if k is None else k
 
         def mat(F):
             px = sample_src(self.arr, c, F.name, F.L).astype(float)
-            return {'rgb': np.concatenate([grain(F, px[..., :3], k, self.seed, self.lift * (k > 0)), px[..., 3:]], -1), 'edge': self.edge * (k > 0)}
+            out = grain(F, px[..., :3], k, self.seed, self.lift * (k > 0))
+            res = {'rgb': np.concatenate([out, px[..., 3:]], -1), 'edge': self.edge * (k > 0)}
+            if eyes and self.window and F.name == 'north':
+                x0, y0, x1, y1 = self.window
+                keep = (F.x > x0) & (F.x < x1) & (F.y > y0) & (F.y < y1)
+                res = {'rgb': np.concatenate([np.where(keep[..., None], px[..., :3], out), px[..., 3:]], -1), 'ao': np.where(keep, 0.0, 1.0)}
+            return res
         return mat
 
     def skin(self, sk, k=None, eyes=False):
@@ -446,9 +454,26 @@ class Rework:
             else:
                 self.keep(b, c)
 
+    def eyes_on(self, sk):
+        """The eyes on the front of a set of cubes, found as the build finds them (red pupils on dark eyeballs):
+        (socket-or-pupil texels with rows from the top, the eyes' rectangle in model pixels), or (None, None)."""
+        rgba, _ = sk.proj('north')
+        a = rgba[::-1].astype(int)
+        red = (a[..., 0] > 140) & (a[..., 1] < 90) & (a[..., 2] < 90) & (a[..., 3] > 0)
+        if not red.any():
+            return None, None
+        sock, _ = self.find_sockets(a, red)
+        eye = sock | red
+        ys, xs = np.nonzero(eye)
+        m = 3
+        return eye, (sk.lo[0] + (xs.min() - m) / DENS, sk.hi[1] - (ys.max() + 1 + m) / DENS,
+                     sk.lo[0] + (xs.max() + 1 + m) / DENS, sk.hi[1] - (ys.min() - m) / DENS)
+
     def head(self, b, src):
-        """The head: its big boxes rounded (on the texel grid, so the eyes' paint lands texel for texel), thin
-        plates on its front (the frames of the eyes) thickened so the eyes lie in hollows."""
+        """The head: its big boxes rounded (on the texel grid, so the eyes' paint lands texel for texel), and the
+        eyes sunk into hollows. Where the eyes are painted on the head itself, the thin plates around them (their
+        frames) are thickened; where they are painted on a plate of their own in front of the head, that plate is
+        built up around the sockets."""
         P = self.P
         cubes = src.get('cubes', [])
         un = [c for c in cubes if not c.get('rotation')]
@@ -457,27 +482,45 @@ class Rework:
         body = bulk + slab
         sk = Skin(self.arr, body)
         front = min(c['origin'][2] for c in body)
-        # the eyes: found on the head's front as the build finds them (red pupils on dark eyeballs)
-        rgba, _ = sk.proj('north')
-        a = rgba[::-1].astype(int)                               # rows from the top
-        red = (a[..., 0] > 140) & (a[..., 1] < 90) & (a[..., 2] < 90) & (a[..., 3] > 0)
-        if red.any():
-            sock, _ = self.find_sockets(a, red)
-            ys, xs = np.nonzero(sock | red)
-            m = 3
-            x0, x1 = sk.lo[0] + (xs.min() - m) / DENS, sk.lo[0] + (xs.max() + 1 + m) / DENS
-            y1, y0 = sk.hi[1] - (ys.min() - m) / DENS, sk.hi[1] - (ys.max() + 1 + m) / DENS
-            self.window = (x0, y0, x1, y1)
-        tag = dict(skin={'eyes': True}, cube={'full': True, 'nest': False, 'tag': 'eyes'})
+        # which cube carries the pupils: a part of the head itself, or a plate in front of it
+        reds = []
+        for c in un:
+            px = Skin(self.arr, [c]).proj('north')[0].astype(int)
+            reds.append(int(((px[..., 0] > 140) & (px[..., 1] < 90) & (px[..., 2] < 90) & (px[..., 3] > 0)).sum()))
+        plate = un[int(np.argmax(reds))] if un and max(reds) > 0 else None
+        if plate is not None and plate in body:
+            plate = None
+        if plate is None:
+            _, self.window = self.eyes_on(sk)
+        else:
+            eye, self.window = self.eyes_on(Skin(self.arr, [plate]))
+        on_head = dict(full=True, nest=False, tag='eyes') if plate is None else {}
         for c in cubes:
             lo, hi = lo_hi(c)
             s = c['size']
             if c in bulk:
-                rounded(b, lo, hi, self.skin(sk, eyes=True), self.radii(lo, hi, P['head_r'], frac=0.17, grid=0.125), level=2, grid=0.125,
-                        **tag['cube'])
+                rounded(b, lo, hi, self.skin(sk, eyes=plate is None), self.radii(lo, hi, P['head_r'], frac=0.17, grid=0.125), level=2, grid=0.125,
+                        **on_head)
             elif c in slab:
                 rx, _, rz = self.radii(lo, hi, min(P['head_r'], 0.875), frac=0.14, grid=0.125)
-                rounded(b, lo, hi, self.skin(sk, eyes=True), (rx, 0.0, rz), level=1, grid=0.125, **tag['cube'])
+                rounded(b, lo, hi, self.skin(sk, eyes=plate is None), (rx, 0.0, rz), level=1, grid=0.125, **on_head)
+            elif c is plate:
+                # the plate that carries the eyes stays as it is; what is not socket is built up in front of it
+                b.add(mk.Cube(lo, s, self.own(c, eyes=True), full=True, nest=False, tag='eyes'))
+                if P['frame']:
+                    for cell in (2, 4):
+                        gh, gw = eye.shape[0] // cell, eye.shape[1] // cell
+                        solid = eye[:gh * cell, :gw * cell].reshape(gh, cell, gw, cell).mean((1, 3)) < 0.5
+                        parts = []
+                        while solid.any():
+                            _, x, y, w, h = mk.largest_rect(solid)
+                            parts.append((x, y, w, h))
+                            solid[y:y + h, x:x + w] = False
+                        if len(parts) <= 26:
+                            break
+                    u = cell / DENS
+                    for x, y, w, h in parts:
+                        b.box(lo[0] + x * u, hi[1] - (y + h) * u, lo[2] - P['frame'], lo[0] + (x + w) * u, hi[1] - y * u, lo[2], self.own(c))
             elif not c.get('rotation') and s[2] <= 0.3 and lo[2] <= front + 0.05 and P['frame']:
                 # a frame of the eyes: thicker, so it stands proud and the eye behind it sinks
                 b.add(mk.Cube([lo[0], lo[1], lo[2] - P['frame']], [s[0], s[1], s[2] + P['frame']], self.own(c)))
