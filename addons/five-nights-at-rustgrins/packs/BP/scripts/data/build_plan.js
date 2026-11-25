@@ -736,6 +736,9 @@ function dining(p, rng) {
 }
 
 function midway(p, rng) {
+  // The Midnight Midway (x 1-13, z 15-26, 7 tall): the striped tent with the ring in it. A frame of marquee bulbs
+  // round the arch, a square truss of coloured cans and four pendants over the ring, paper garlands strung under
+  // the tent top, gold stars on the canvas, a popcorn stand; the show tape by the south wall.
   const { cx, cz, r } = MIDWAY_RING;
   for (let x = cx - r - 1; x <= cx + r + 1; x++) {
     for (let z = cz - r - 1; z <= cz + r + 1; z++) {
@@ -743,46 +746,90 @@ function midway(p, rng) {
       if (d <= r + 0.35) p.set(x, 0, z, d > r - 0.75 ? 'red_t' : 'stage_floor');
     }
   }
+  // the arch's frame of bulbs (seen from both sides)
+  for (let y = 0; y <= 5; y++) for (const z of [16, 26]) dayLamp(p, 14, y, z, 'bulb_off', 'midway');
+  for (let z = 17; z <= 25; z++) dayLamp(p, 14, 5, z, 'bulb_off', 'midway');
+  // over the ring: a truss square with coloured cans, pendants at its corners, the old lamp in the middle
+  for (let x = 2; x <= 11; x++) for (const z of [17, 25]) p.set(x, 6, z, 'truss_e');
+  for (let z = 18; z <= 24; z++) for (const x of [2, 11]) p.set(x, 6, z, 'truss_n'); // (east of the ring's edge: they step off it under x 10)
+  /** @type {[number, number, string, number][]} */
+  const cans = [[4, 18, 's', 0], [8, 18, 's', 2], [4, 24, 'n', 1], [8, 24, 'n', 3]];
+  for (const [x, z, d, i] of cans) dayLamp(p, x, 6, z, `par_${PAR[i]}_false_${d}`, 'midway');
+  for (const [x, z] of [[6, 21], [3, 16], [11, 16], [12, 25]]) dayLamp(p, x, 6, z, 'hanging_off', 'midway');
+  // garlands under the tent top, stars on the canvas, the poster
+  for (let x = 1; x <= 12; x++) {
+    if (x < 3 || x > 4) p.set(x, 6, 15, 'bunting_s');
+    p.set(x, 6, 26, 'bunting_n');
+  }
+  for (let z = 19; z <= 23; z++) if (z !== 21) p.set(6, 5, z, 'bunting_e');
+  for (const [y, z] of [[4, 17], [5, 20], [3, 22], [5, 24]]) p.set(1, y, z, 'star_e');
   p.picture('poster_midway', 3, 4, 15, 's', 2, 3);
-  for (let x = 1; x <= 13; x++) if (x < 3 || x > 4) p.set(x, 6, 15, 'bunting_s');
+  p.picture('poster_cabaret', 9, 4, 15, 's', 2, 3);
+  // the floor: the show tape, a popcorn stand, a speaker, balloons
   p.set(SHOW_TAPE.x, SHOW_TAPE.y, SHOW_TAPE.z, `tape_4_${SHOW_TAPE.dir}`);
+  p.set(13, 0, 26, 'barrel_n');
+  p.set(13, 1, 26, 'popcorn_w');
   p.set(12, 0, 16, `balloons_${rng.int(0, 2)}`);
   p.set(1, 0, 26, `balloons_${rng.int(0, 2)}`);
   p.set(2, 0, 16, 'speaker_e');
+  p.set(1, 0, 16, 'road_case');
   p.set(1, 0, 23, 'trash_e');
-  p.set(6, 6, 21, 'hanging_off');
-  p.meta.hanging.push({ x: 6, y: 6, z: 21, group: 'midway' });
 }
 
 function cabaret(p, rng) {
+  // The Grand Marquee, the Ringmaster's own stage: purple velvet all round, a tinsel panel behind him, footlights
+  // at the stage's edge, speaker stacks; towards the showroom a frame of marquee bulbs round the curtains.
   const [x1, z1, x2, z2] = CABARET.stage;
   p.fill(x1, 0, z1, x2, 0, z2, 'stage_floor');
-  for (const z of [30, 33, 36]) p.set(5, 3, z, 'star_e');
+  p.fill(3, 1, 31, 3, 5, 35, 'tinsel');
+  for (const z of [30, 33, 36]) p.set(4, 3, z, 'star_e');
+  for (const z of [31, 35]) {
+    p.set(12, 1, z, 'foot_false_w');
+    p.meta.spots.push({ x: 12, y: 1, z, dir: 'w', group: 'cabaret' });
+    p.set(6, 1, z, 'speaker_e');
+  }
   p.set(5, 0, 29, `balloons_${rng.int(0, 2)}`);
   // his spotlight hangs at the stage's far front corner, out of CAM 1C's view (the camera is high in the other corner)
   p.set(11, 6, 36, 'spot_false_w');
   p.meta.spots.push({ x: 11, y: 6, z: 36, dir: 'w', group: 'cabaret' });
-  // dining side: SORRY! OUT OF ORDER on the closed half of the curtain, a rope across the front, stars on the frame
+  // dining side: the frame of bulbs, SORRY! OUT OF ORDER on the closed half of the curtain, a rope across the front
+  for (let y = 0; y <= 5; y++) {
+    for (const z of [29, 37]) {
+      p.set(14, y, z, 'bulb_off');
+      p.meta.spots.push({ x: 14, y, z, dir: 'e', group: 'cabaret' });
+    }
+  }
+  for (let z = 30; z <= 36; z++) {
+    p.set(14, 5, z, 'bulb_off');
+    p.meta.spots.push({ x: 14, y: 5, z, dir: 'e', group: 'cabaret' });
+  }
   p.picture('sign_out_of_order', 15, 3, 31, 'e', 2, 1);
-  for (const z of [29, 37]) p.set(15, 0, z, 'mic_stand');
-  for (const z of [30, 31, 35, 36]) p.set(15, 0, z, 'chain_z');
+  for (const z of [29, 37]) p.set(15, 0, z, 'stanchion');
+  for (const z of [30, 31, 35, 36]) p.set(15, 0, z, 'rope_e');
 }
 
 function backstage(p, rng) {
+  // Backstage (x 1-12, z 1-12; CAM 5): shelves of spare heads on two walls and the workbench (see decayBackstage),
+  // and the band's dressing room round them: make-up mirrors ringed with bulbs over a counter on the east wall,
+  // costume rails along the south wall, road cases, pendant lamps.
   for (let x = 2; x <= 12; x += 2) p.set(x, 0, 1, 'shelf_s');
   for (let z = 3; z <= 9; z += 2) p.set(1, 0, z, 'shelf_e');
   // workbench with parts
   p.fill(8, 0, 4, 11, 0, 4, 'blackstone_slab_top');
   p.set(9, 1, 4, 'anvil');
   p.set(11, 1, 4, 'pizza_1_n');
-  p.set(4, 0, 12, 'barrel_n');
-  p.set(5, 0, 12, 'barrel_n');
-  p.set(4, 1, 12, 'barrel_n');
-  p.set(12, 0, 12, 'mop_n');
-  p.picture('poster_rules', 12, 3, 4, 'w', 2, 2);
-  p.set(6, 5, 6, 'hanging_off');
-  p.meta.hanging.push({ x: 6, y: 5, z: 6, group: 'backstage' });
-  if (rng.chance(1)) p.set(2, 0, 12, 'trash_e');
+  // the dressing counter: mirrors, stools, somebody's things
+  p.fill(12, 0, 5, 12, 0, 8, 'dark_oak_slab_top');
+  for (const z of [5, 6, 8]) dayLamp(p, 12, 1, z, 'vanity_false_w', 'backstage');
+  p.set(12, 1, 7, 'clutter_w');
+  for (const z of [5, 7]) p.set(11, 0, z, 'stool');
+  // costume rails along the south wall, road cases in the corner
+  for (const [x, k] of [[4, 'band'], [5, 'midway'], [6, 'band'], [8, 'midway'], [9, 'bare']]) p.set(x, 0, 12, `rack_${k}_n`);
+  for (const [x, y, z] of [[3, 0, 10], [3, 1, 10], [4, 0, 10], [2, 0, 9]]) p.set(x, y, z, 'road_case');
+  p.set(12, 0, 2, 'mop_w');
+  p.picture('poster_rules', 12, 4, 3, 'w', 2, 2);
+  for (const [x, z] of [[6, 6], [10, 6], [4, 3], [9, 2], [3, 8], [8, 11]]) dayLamp(p, x, 5, z, 'hanging_off', 'backstage');
+  if (rng.chance(1)) p.set(10, 0, 12, 'trash_n');
 }
 
 function kitchen(p, _rng) {
@@ -1164,17 +1211,42 @@ function supply(p, _rng) {
 }
 
 function party(p, rng) {
-  // The Party Room between the halls (x 31-41, z 39-56): one long birthday table, presents, balloons and garlands.
-  tableRun(p, rng, 'z', 36, 43, 53, { chairs: 1, every: 1 });
-  for (const [z, k] of [[44, 'hat_0'], [46, 'plates'], [48, 'bday_false_n'], [50, 'plates'], [52, 'hat_2']]) p.set(36, 1, z, k);
-  for (const [x, z, k] of [[32, 55, 'gift_red'], [33, 55, 'gift_blue'], [32, 54, 'gift_yellow'], [40, 55, 'gift_lime'], [39, 55, 'gift_purple'], [40, 54, 'gift_pink']]) p.set(x, 0, z, k);
-  for (const [x, z] of [[31, 40], [41, 40], [31, 56], [41, 56], [36, 56]]) p.set(x, 0, z, `balloons_${rng.int(0, 2)}`);
-  for (let x = 31; x <= 41; x++) { p.set(x, 4, 40, 'bunting_s'); p.set(x, 4, 56, 'bunting_n'); }
-  for (let z = 41; z <= 55; z++) { p.set(31, 4, z, 'bunting_e'); p.set(41, 4, z, 'bunting_w'); }
-  neon(p, 'party', 37, 3, 56, 'n');
+  // The Party Room between the halls (x 31-41, z 40-56): one long birthday table, and at the far end a little
+  // dais under a starry backdrop with the birthday chair, HAPPY BIRTHDAY strung over it; a gift table, garlands
+  // across the room, balloons everywhere, two warm pendants over the table.
+  tableRun(p, rng, 'z', 36, 43, 52, { chairs: 1, every: 1 });
+  for (const [z, k] of [[44, 'hat_0'], [46, 'plates'], [48, 'bday_false_n'], [50, 'plates'], [51, 'hat_2']]) p.set(36, 1, z, k);
+  // the dais and its backdrop
+  p.fill(33, 0, 55, 39, 0, 56, 'dark_oak');
+  p.fill(34, 0, 54, 38, 0, 54, 'dark_oak_stairs_s');
+  p.fill(33, 1, 57, 39, 4, 57, 'curtain_star');
+  for (const x of [33, 39]) p.fill(x, 1, 57, x, 4, 57, 'tinsel');
+  p.set(36, 1, 56, 'starchair_n');
+  p.picture('banner_birthday', 39, 4, 56, 'n', 6, 1);
+  for (const [x, k] of [[34, 'gift_red'], [35, 'gift_yellow'], [37, 'gift_blue'], [38, 'gift_purple']]) p.set(x, 1, 56, k);
+  p.set(34, 2, 56, 'gift_pink');
+  for (const x of [33, 39]) p.set(x, 1, 55, `balloons_${x % 3}`);
+  // the gift table on the west wall, a bench on the east
+  for (const [z, k] of [[49, 'table_1_n'], [50, 'table_2_n'], [51, 'table_1_s']]) p.set(31, 0, z, k);
+  for (const [z, k] of [[49, 'gift_lime'], [50, 'pizza_3_e'], [51, 'gift_blue']]) p.set(31, 1, z, k);
+  p.fill(41, 0, 43, 41, 0, 45, 'dark_oak_stairs_e');
+  // garlands round and across the room, the neon over the door, posters, drawings
+  for (let x = 31; x <= 41; x++) {
+    p.set(x, 4, 40, 'bunting_s');
+    for (const z of [45, 50]) p.set(x, 4, z, 'bunting_s');
+  }
+  for (let z = 41; z <= 55; z++) {
+    if (z !== 45 && z !== 50) {
+      p.set(31, 4, z, 'bunting_e');
+      p.set(41, 4, z, 'bunting_w');
+    }
+  }
+  neon(p, 'party', 36, 4, 40, 's');
+  for (const z of [46, 51]) dayLamp(p, 36, 4, z, 'hanging_off', 'party');
   p.picture('poster_party', 31, 3, 46, 'e', 2, 2);
   p.picture('poster_revue', 41, 3, 48, 'w', 2, 3);
-  for (let i = 0; i < 3; i++) p.picture('drawing', 31, 2, 50 + i, 'e', 1, 1, rng.int(0, 5));
+  for (let i = 0; i < 3; i++) p.picture('drawing', 31, 2, 53 + i, 'e', 1, 1, rng.int(0, 5));
+  for (const [x, z] of [[31, 41], [41, 41], [32, 53], [40, 53], [41, 47]]) p.set(x, 0, z, `balloons_${rng.int(0, 2)}`);
   p.set(41, 0, 40, 'trash_w');
 }
 
@@ -1458,33 +1530,79 @@ function office(p, rng) {
 }
 
 function staff(p, _rng) {
-  // time-clock terminal wall (north): buttons with labels; stars above
+  // The Staff Room (x 1-16, z 52-70): the time-clock lobby along its north wall (every menu is a button there),
+  // and behind it a real break room: lockers either side of the back door, the break table and chairs, a sofa,
+  // two vending machines (still lit), a kitchenette counter, the notice board.
   for (const b of LOBBY_BUTTONS) {
     p.set(b.x, 1, b.z, 'button_s');
     p.sign(b.x, 2, b.z, 's', b.lines);
   }
   p.set(8, 3, 52, 'timeclock_s');
-  // lockers on the west wall, a couch, a table
-  for (const z of [55, 57, 59]) {
+  // lockers on the west wall either side of the staff exit, the EXIT sign over it
+  for (const z of [54, 55, 56, 57, 63, 64, 65, 66]) {
     p.set(1, 0, z, 'locker_0_e');
     p.set(1, 1, z, 'locker_1_e');
   }
-  p.fill(14, 0, 64, 14, 0, 68, 'dark_oak_stairs_w');
-  p.fill(15, 0, 64, 16, 0, 68, 'red_wool');
-  p.fill(8, 0, 66, 10, 0, 67, 'dark_oak_slab_top');
-  p.set(9, 1, 66, 'pizza_1_n');
-  p.picture('poster_missing', 16, 3, 55, 'w', 1, 2);
+  p.set(1, 3, 60, 'exit_true_e');
+  p.meta.exits.push({ x: 1, y: 3, z: 60, dir: 'e' });
+  p.fill(3, 0, 64, 3, 0, 65, 'dark_oak_slab');
+  // a low wall with a counter top between the lobby and the break room, dead plants at its ends; a worn rug
+  p.fill(5, 0, 59, 12, 0, 59, 'cinder');
+  p.fill(5, 1, 59, 12, 1, 59, 'dark_oak_slab');
+  for (const x of [4, 13]) p.set(x, 0, 59, 'planter');
+  p.set(7, 1, 59, 'clutter_n');
+  for (let x = 5; x <= 11; x++) for (let z = 62; z <= 68; z++) p.set(x, 0, z, (x + z) % 7 === 0 ? 'brown_carpet' : 'red_carpet');
+  // the break table and four chairs
+  p.set(8, 0, 64, 'breaktable_n');
+  p.set(7, 0, 64, 'chair_e');
+  p.set(9, 0, 64, 'chair_w');
+  p.set(8, 0, 63, 'chair_s');
+  p.set(8, 0, 65, 'chair_n');
+  // the sofa against the south wall, a dead set on a road case in front of it
+  for (const [x, k] of [[6, 'left'], [7, 'mid'], [8, 'mid'], [9, 'right']]) p.set(x, 0, 70, `sofa_${k}_n`);
+  p.set(8, 0, 67, 'road_case');
+  p.set(8, 1, 67, 'crt_false_s');
+  // the east wall: vending machines, the kitchenette
+  for (const z of [57, 58]) {
+    p.set(16, 0, z, 'vending_0_w');
+    p.set(16, 1, z, 'vending_1_w');
+  }
+  p.fill(16, 0, 64, 16, 0, 68, 'wainscot');
+  p.set(16, 0, 66, 'prep_sink_w');
+  p.set(16, 1, 64, 'kitchenette_coffee_w');
+  p.set(16, 1, 65, 'plates');
+  p.set(16, 1, 67, 'kitchenette_microwave_w');
+  p.set(16, 1, 68, 'pizza_2_e');
+  p.set(15, 0, 70, 'trash_n');
+  p.set(16, 0, 70, 'cooler_0_n');
+  p.set(16, 1, 70, 'cooler_1_n');
+  // the walls: the notice board, the rules, a missing poster
+  p.picture('notice_board', 13, 3, 70, 'n', 2, 1);
   p.picture('poster_rules', 3, 4, 70, 'n', 2, 2);
-  p.set(16, 0, 70, 'trash_w');
+  p.picture('poster_missing', 16, 3, 55, 'w', 1, 2);
+  p.set(1, 0, 70, 'mop_e');
+  p.set(2, 0, 70, 'wetsign_n');
+  doorFrame(p, 'gallery_door', 'x', 'dark_oak');
 }
 
 function gallery(p, _rng) {
-  // six pedestals with a spotlight each (the extras gallery)
+  // The Gallery (the extras' exhibition): a black room over oak wainscot, six pedestals each under its own
+  // spotlight behind a velvet rope, a red carpet down the middle, the show's posters framed on the walls.
   for (const [i, [x, z]] of [[3, 42], [8, 42], [13, 42], [3, 48], [8, 48], [13, 48]].entries()) {
     p.set(x, 0, z, 'quartz_pillar');
     p.set(x, 6, z + (z < 45 ? 1 : -1), z < 45 ? 'spot_true_n' : 'spot_true_s');
     p.meta.spots.push({ x, y: 6, z: z + (z < 45 ? 1 : -1), dir: z < 45 ? 'n' : 's', group: 'gallery', slot: i });
+    p.picture('lot_tag', x, 0, z + (z < 45 ? 1 : -1), z < 45 ? 's' : 'n', 1, 1, [0, 1, 2, 4, 3, 5][i]);
   }
+  for (let x = 1; x <= 15; x++) {
+    for (const z of [44, 46]) if (x >= 2 && x <= 14) p.set(x, 0, z, x % 2 ? 'rope_n' : 'stanchion');
+    p.set(x, 0, 45, 'red_carpet');
+  }
+  p.picture('poster_revue', 5, 5, 40, 's', 2, 3);
+  p.picture('poster_midway', 10, 5, 40, 's', 2, 3);
+  p.picture('poster_cabaret', 6, 5, 49, 'n', 2, 3);
+  p.picture('poster_party', 11, 4, 49, 'n', 2, 2);
+  p.picture('poster_auction', 16, 4, 44, 'w', 2, 3);
 }
 
 function parts(p, _rng) {
