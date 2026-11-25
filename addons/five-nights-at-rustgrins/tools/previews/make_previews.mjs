@@ -621,7 +621,7 @@ export const SCENES = [
     scene: { camera: { pos: [73.5, 1.6, 17.6], target: [79.0, 1.0, 16.8], fov: 74 }, exposure: 1.3 },
   },
   {
-    name: '72_backstage_day', voxels: 'day', caption: 'Backstage by day: make-up mirrors ringed with bulbs, costume rails, and the spare heads on their shelves',
+    name: '72_backstage_day', voxels: 'day_clean', caption: 'Backstage by day: make-up mirrors ringed with bulbs, costume rails, and the spare heads on their shelves',
     scene: { camera: { pos: [5.6, 1.7, 10.8], target: [12.0, 1.4, 4.5], fov: 80 }, exposure: 1.2 },
   },
   {
@@ -634,7 +634,7 @@ export const SCENES = [
   },
   {
     name: '75_pizza_counter', voxels: 'day', caption: "The pizza counter by the kitchen's window: a striped awning, the menu board, the till, stools",
-    scene: { camera: { pos: [57.0, 1.7, 13.0], target: [60.8, 2.2, 7.5], fov: 72 }, exposure: 1.0 },
+    scene: { camera: { pos: [58.6, 1.7, 13.6], target: [60.6, 2.3, 7.5], fov: 74 }, exposure: 1.0 },
   },
   {
     name: '76_break_room', voxels: 'lit', caption: 'The Staff Room: behind the time clock, the break room - a table on a worn rug, the sofa, machines still humming',
@@ -642,7 +642,7 @@ export const SCENES = [
   },
   {
     name: '77_kitchen_yard', voxels: 'day', caption: 'Behind the kitchen: a gravel yard, the dumpsters, the back door boarded up',
-    scene: { time: 'day', camera: { pos: [72.5, 2.6, -11.5], target: [70.5, 0.8, -3.0], fov: 78 }, exposure: 1.0 },
+    scene: { time: 'day', camera: { pos: [82.2, 2.3, -6.6], target: [66.0, 0.7, -4.2], fov: 80 }, exposure: 1.0 },
   },
   {
     name: '78_street_front_day', voxels: 'day', caption: 'The street front by day: the pediment behind the sign, the awning over the doors, planters and bollards',

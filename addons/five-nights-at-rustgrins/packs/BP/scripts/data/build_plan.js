@@ -422,6 +422,8 @@ function streetFront(p) {
   p.fill(X - 1, top + 5, 32, X, top + 5, 39, 'roof_edge');
   for (let z = 32; z <= 39; z++) p.set(X + 1, top + 4, z, 'glow_teal_top_e');
   for (const z of [32, 39]) p.set(X + 1, top + 3, z, 'glow_teal_post_e');
+  // striped awnings over the window bays
+  for (const [a, b] of FACADE.bays) for (let z = a + 1; z <= b - 1; z++) p.set(X + 1, 5, z, 'awning_e');
   // a pink neon line along the red trim of both wings
   for (const [a, b] of FACADE.bays) for (let z = a; z <= b; z++) p.set(X + 1, 6, z, 'glow_pink_bar_e');
   // the doors: a striped awning, a bench and a bin beside them
@@ -812,6 +814,9 @@ function dining(p, rng) {
     p.meta.exits.push({ x, y, z, dir });
   }
   p.set(61, 0, 21, 'wetsign_w');
+  fixture(p, 61, 5, 12, 'emerg_true_w', 'DINING'); // by the kitchen door: it still turns at night
+  p.set(15, 4, 11, 'exit_true_e');
+  p.meta.exits.push({ x: 15, y: 4, z: 11, dir: 'e' });
   // the doors: dark oak frames
   doorFrame(p, 'backstage_door', 'z', 'dark_oak');
   doorFrame(p, 'kitchen_door', 'z', 'dark_oak');
@@ -1281,6 +1286,8 @@ function halls(p, rng) {
   pier(26, 59, 'e');
   pier(26, 68, 'e');
   p.set(30, 4, 66, 'emerg_false_w');
+  for (let z = 59; z <= 70; z++) p.set(26, 5, z, 'pipes_run_n'); // old heating pipes under the ceiling
+  for (let z = 64; z <= 68; z++) p.set(30, -1, z, z % 2 ? 'black_c' : 'yellow_c'); // a hazard strip across the threshold
   p.picture('poster_missing', 26, 3, 69, 'e', 1, 2);
   p.set(26, 0, 70, 'planter');
   p.set(30, 0, 70, 'trash_w');
@@ -1301,6 +1308,8 @@ function halls(p, rng) {
   pier(42, 68, 'e');
   pier(46, 59, 'w');
   p.set(42, 4, 66, 'emerg_false_e');
+  for (let z = 59; z <= 69; z++) p.set(46, 5, z, 'pipes_run_n');
+  for (let z = 64; z <= 68; z++) p.set(42, -1, z, z % 2 ? 'black_c' : 'yellow_c');
   p.picture('poster_party', 46, 4, 60, 'w', 2, 2);
   p.set(46, 1, 63, 'extinguisher_w');
   p.set(46, 0, 66, 'decal_drag_n');
@@ -1339,6 +1348,9 @@ function party(p, rng) {
   // across the room, balloons everywhere, two warm pendants over the table.
   tableRun(p, rng, 'z', 36, 43, 52, { chairs: 1, every: 1 });
   for (const [z, k] of [[44, 'hat_0'], [46, 'plates'], [48, 'bday_false_n'], [50, 'plates'], [51, 'hat_2']]) p.set(36, 1, z, k);
+  p.fill(34, -1, 41, 38, -1, 53, 'tile');
+  for (const z of [42, 47, 52]) for (const x of [31, 41]) if (!(x === 31 && z === 47) && !(x === 41 && z === 47)) pilaster(p, x, z, 4);
+  for (const x of [33, 39]) p.set(x, 0, 41, `balloons_${x % 3}`);
   // the dais and its backdrop
   p.fill(33, 0, 55, 39, 0, 56, 'dark_oak');
   p.fill(34, 0, 54, 38, 0, 54, 'dark_oak_stairs_s');
@@ -1494,7 +1506,7 @@ function funzone(p) {
   // crawl tubes overhead from the towers round to the castle and out through the wall into the Game Room.
   // Padded mats on the floor, shoe cubbies by the door, neon along the side walls.
   // ---- padded floor mats (two by two, blue and red) round the pit
-  for (let x = 81; x <= 98; x++) for (let z = 53; z <= 70; z++) p.set(x, -1, z, (x % 4 < 2) === (z % 4 < 2) ? 'vinyl_blue' : 'vinyl_red');
+  for (let x = 81; x <= 98; x++) for (let z = 43; z <= 70; z++) p.set(x, -1, z, (x % 4 < 2) === (z % 4 < 2) ? 'vinyl_blue' : z < 53 ? 'vinyl_yellow' : 'vinyl_red');
   // ---- the ball pit (x 85-95, z 54-69): padded walls two high (blue, a yellow top rail), balls a block and a half deep
   for (let x = 85; x <= 95; x++) {
     for (let z = 54; z <= 69; z++) {
@@ -1526,6 +1538,8 @@ function funzone(p) {
   };
   tower(81, 85, 'vinyl_red', 83);
   tower(93, 97, 'vinyl_green', 96);
+  for (const x of [83, 95]) dayLamp(p, x, 2, 46, 'hanging_off', 'funzone'); // a lamp under each deck
+  for (let x = 86; x <= 92; x++) p.set(x, 6, 43, `glow_${x % 2 ? 'pink' : 'yellow'}_bar_s`); // neon over the way in
   for (const y of [4, 7]) {
     for (const z of [45, 47]) p.picture('play_net', 85, y, z, 'w', 1, 1, 0);
     for (const z of [45, 47]) p.picture('play_net', 93, y, z, 'e', 1, 1, 1);

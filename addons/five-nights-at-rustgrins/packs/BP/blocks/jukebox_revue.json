@@ -76,7 +76,7 @@
         "condition": "q.block_state('fnar:half') == 1",
         "components": {
           "minecraft:geometry": "geometry.fnar.jukebox_revue_upper",
-          "minecraft:light_emission": 7
+          "minecraft:light_emission": 9
         }
       },
       {

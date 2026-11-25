@@ -305,7 +305,7 @@ machines use `fnar:half` 0 / 1 like the arcade cabinet.
 | `stall_panel` | `fnar:kind` 0 partition, 1 door, 2 door ajar; `fnar:half`; facing | a laminate toilet-stall panel on the edge of its cell |
 | `restroom_mirror`, `urinal`, `hand_dryer` | facing (`restroom_mirror`: `fnar:kind` 0 whole, 1 cracked) | wall fixtures |
 | `host_stand`, `coat_hooks`, `display_case` | facing (`coat_hooks`: `fnar:kind` 0-1; `display_case`: `fnar:half`, light 5) | the lobby's podium, coat rail and tall glass prize cabinet |
-| `jukebox_revue` | `fnar:half`; facing; light 7 on the upper half | the showroom's jukebox, still lit |
+| `jukebox_revue` | `fnar:half`; facing; light 9 on the upper half | the showroom's jukebox, still lit |
 | `mixing_desk`, `bar_stool`, `shoe_cubby` | facing (stool: none) | the sound booth's console, a chrome stool, the play area's cubby |
 | `wall_pier` | `fnar:kind` 0 shaft, 1 foot, 2 head; facing | a shallow charcoal pier for the halls (3 px proud) |
 | `fire_extinguisher`, `water_fountain` | facing | wall fixtures |

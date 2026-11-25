@@ -122,7 +122,7 @@ def display_case(out):
 @prop
 def jukebox_revue(out):
     """The showroom's jukebox, two blocks tall (fnar:half): a walnut cabinet with a gold grille, an arched top with
-    bubble tubes down each side and the title cards lit behind glass. It still glows at night (light 7, upper)."""
+    bubble tubes down each side and the title cards lit behind glass. It still glows at night (light 9, upper)."""
     g = Geo('jukebox_revue', 64, 64)
 
     def lower(r):
@@ -157,7 +157,7 @@ def jukebox_revue(out):
     out.tex('jukebox_revue', g.paint())
     out.block('jukebox_revue', block_json('jukebox_revue', geometry='geometry.fnar.jukebox_revue', materials=mi_set('jukebox_revue', {'lit': glow('jukebox_revue')}),
                                           states=HALF, collision=box(-7, 0, -5, 7, 16, 8), selection=box(-7, 0, -5, 7, 16, 8), map_color='#4b301d', destroy=2.0, light=3,
-                                          perms=[_upper('jukebox_revue', 7)]))
+                                          perms=[_upper('jukebox_revue', 9)]))
     out.light('jukebox_revue', '#ffb070', 'point_light')
 
 
