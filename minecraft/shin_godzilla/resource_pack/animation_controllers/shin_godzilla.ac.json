@@ -20,7 +20,7 @@
               "charge": "q.property('sg:state') == 'charge'"
             },
             {
-              "spew": "q.property('sg:state') == 'smoke' || q.property('sg:state') == 'fire'"
+              "spew": "q.property('sg:state') == 'smoke'"
             },
             {
               "focus": "q.property('sg:state') == 'focus'"
@@ -33,6 +33,18 @@
             },
             {
               "tail": "q.property('sg:state') == 'tail'"
+            },
+            {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
             },
             {
               "dormant": "q.property('sg:state') == 'dormant'"
@@ -62,7 +74,7 @@
               "charge": "q.property('sg:state') == 'charge'"
             },
             {
-              "spew": "q.property('sg:state') == 'smoke' || q.property('sg:state') == 'fire'"
+              "spew": "q.property('sg:state') == 'smoke'"
             },
             {
               "focus": "q.property('sg:state') == 'focus'"
@@ -75,6 +87,18 @@
             },
             {
               "tail": "q.property('sg:state') == 'tail'"
+            },
+            {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
             },
             {
               "dormant": "q.property('sg:state') == 'dormant'"
@@ -103,7 +127,7 @@
               "roar": "q.property('sg:state') == 'roar'"
             },
             {
-              "spew": "q.property('sg:state') == 'smoke' || q.property('sg:state') == 'fire'"
+              "spew": "q.property('sg:state') == 'smoke'"
             },
             {
               "focus": "q.property('sg:state') == 'focus'"
@@ -116,6 +140,18 @@
             },
             {
               "tail": "q.property('sg:state') == 'tail'"
+            },
+            {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
             },
             {
               "dormant": "q.property('sg:state') == 'dormant'"
@@ -159,6 +195,18 @@
               "tail": "q.property('sg:state') == 'tail'"
             },
             {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
+            },
+            {
               "dormant": "q.property('sg:state') == 'dormant'"
             },
             {
@@ -188,7 +236,7 @@
               "charge": "q.property('sg:state') == 'charge'"
             },
             {
-              "spew": "q.property('sg:state') == 'smoke' || q.property('sg:state') == 'fire'"
+              "spew": "q.property('sg:state') == 'smoke'"
             },
             {
               "breath": "q.property('sg:state') == 'beam'"
@@ -198,6 +246,18 @@
             },
             {
               "tail": "q.property('sg:state') == 'tail'"
+            },
+            {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
             },
             {
               "dormant": "q.property('sg:state') == 'dormant'"
@@ -229,7 +289,7 @@
               "charge": "q.property('sg:state') == 'charge'"
             },
             {
-              "spew": "q.property('sg:state') == 'smoke' || q.property('sg:state') == 'fire'"
+              "spew": "q.property('sg:state') == 'smoke'"
             },
             {
               "focus": "q.property('sg:state') == 'focus'"
@@ -239,6 +299,18 @@
             },
             {
               "tail": "q.property('sg:state') == 'tail'"
+            },
+            {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
             },
             {
               "dormant": "q.property('sg:state') == 'dormant'"
@@ -270,7 +342,7 @@
               "charge": "q.property('sg:state') == 'charge'"
             },
             {
-              "spew": "q.property('sg:state') == 'smoke' || q.property('sg:state') == 'fire'"
+              "spew": "q.property('sg:state') == 'smoke'"
             },
             {
               "focus": "q.property('sg:state') == 'focus'"
@@ -280,6 +352,18 @@
             },
             {
               "tail": "q.property('sg:state') == 'tail'"
+            },
+            {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
             },
             {
               "dormant": "q.property('sg:state') == 'dormant'"
@@ -311,7 +395,7 @@
               "charge": "q.property('sg:state') == 'charge'"
             },
             {
-              "spew": "q.property('sg:state') == 'smoke' || q.property('sg:state') == 'fire'"
+              "spew": "q.property('sg:state') == 'smoke'"
             },
             {
               "focus": "q.property('sg:state') == 'focus'"
@@ -321,6 +405,18 @@
             },
             {
               "dorsal": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
             },
             {
               "dormant": "q.property('sg:state') == 'dormant'"
@@ -337,6 +433,218 @@
           ],
           "blend_transition": 0.45
         },
+        "leap": {
+          "animations": [
+            "leap"
+          ],
+          "transitions": [
+            {
+              "default": "q.property('sg:state') == 'walk'"
+            },
+            {
+              "roar": "q.property('sg:state') == 'roar'"
+            },
+            {
+              "charge": "q.property('sg:state') == 'charge'"
+            },
+            {
+              "spew": "q.property('sg:state') == 'smoke'"
+            },
+            {
+              "focus": "q.property('sg:state') == 'focus'"
+            },
+            {
+              "breath": "q.property('sg:state') == 'beam'"
+            },
+            {
+              "dorsal": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "tail": "q.property('sg:state') == 'tail'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
+            },
+            {
+              "dormant": "q.property('sg:state') == 'dormant'"
+            },
+            {
+              "frozen": "q.property('sg:state') == 'frozen'"
+            },
+            {
+              "waking": "q.property('sg:state') == 'waking'"
+            },
+            {
+              "dying": "q.property('sg:state') == 'dying'"
+            }
+          ],
+          "blend_transition": 0.12
+        },
+        "land": {
+          "animations": [
+            "land"
+          ],
+          "transitions": [
+            {
+              "default": "q.property('sg:state') == 'walk'"
+            },
+            {
+              "roar": "q.property('sg:state') == 'roar'"
+            },
+            {
+              "charge": "q.property('sg:state') == 'charge'"
+            },
+            {
+              "spew": "q.property('sg:state') == 'smoke'"
+            },
+            {
+              "focus": "q.property('sg:state') == 'focus'"
+            },
+            {
+              "breath": "q.property('sg:state') == 'beam'"
+            },
+            {
+              "dorsal": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "tail": "q.property('sg:state') == 'tail'"
+            },
+            {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
+            },
+            {
+              "dormant": "q.property('sg:state') == 'dormant'"
+            },
+            {
+              "frozen": "q.property('sg:state') == 'frozen'"
+            },
+            {
+              "waking": "q.property('sg:state') == 'waking'"
+            },
+            {
+              "dying": "q.property('sg:state') == 'dying'"
+            }
+          ],
+          "blend_transition": 0.25
+        },
+        "bite": {
+          "animations": [
+            "bite"
+          ],
+          "transitions": [
+            {
+              "default": "q.property('sg:state') == 'walk'"
+            },
+            {
+              "roar": "q.property('sg:state') == 'roar'"
+            },
+            {
+              "charge": "q.property('sg:state') == 'charge'"
+            },
+            {
+              "spew": "q.property('sg:state') == 'smoke'"
+            },
+            {
+              "focus": "q.property('sg:state') == 'focus'"
+            },
+            {
+              "breath": "q.property('sg:state') == 'beam'"
+            },
+            {
+              "dorsal": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "tail": "q.property('sg:state') == 'tail'"
+            },
+            {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
+            },
+            {
+              "dormant": "q.property('sg:state') == 'dormant'"
+            },
+            {
+              "frozen": "q.property('sg:state') == 'frozen'"
+            },
+            {
+              "waking": "q.property('sg:state') == 'waking'"
+            },
+            {
+              "dying": "q.property('sg:state') == 'dying'"
+            }
+          ],
+          "blend_transition": 0.2
+        },
+        "sweep": {
+          "animations": [
+            "sweep"
+          ],
+          "transitions": [
+            {
+              "default": "q.property('sg:state') == 'walk'"
+            },
+            {
+              "roar": "q.property('sg:state') == 'roar'"
+            },
+            {
+              "charge": "q.property('sg:state') == 'charge'"
+            },
+            {
+              "spew": "q.property('sg:state') == 'smoke'"
+            },
+            {
+              "focus": "q.property('sg:state') == 'focus'"
+            },
+            {
+              "breath": "q.property('sg:state') == 'beam'"
+            },
+            {
+              "dorsal": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "tail": "q.property('sg:state') == 'tail'"
+            },
+            {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "dormant": "q.property('sg:state') == 'dormant'"
+            },
+            {
+              "frozen": "q.property('sg:state') == 'frozen'"
+            },
+            {
+              "waking": "q.property('sg:state') == 'waking'"
+            },
+            {
+              "dying": "q.property('sg:state') == 'dying'"
+            }
+          ],
+          "blend_transition": 0.3
+        },
         "dormant": {
           "animations": [
             "dormant"
@@ -352,7 +660,7 @@
               "charge": "q.property('sg:state') == 'charge'"
             },
             {
-              "spew": "q.property('sg:state') == 'smoke' || q.property('sg:state') == 'fire'"
+              "spew": "q.property('sg:state') == 'smoke'"
             },
             {
               "focus": "q.property('sg:state') == 'focus'"
@@ -365,6 +673,18 @@
             },
             {
               "tail": "q.property('sg:state') == 'tail'"
+            },
+            {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
             },
             {
               "frozen": "q.property('sg:state') == 'frozen'"
@@ -393,7 +713,7 @@
               "charge": "q.property('sg:state') == 'charge'"
             },
             {
-              "spew": "q.property('sg:state') == 'smoke' || q.property('sg:state') == 'fire'"
+              "spew": "q.property('sg:state') == 'smoke'"
             },
             {
               "focus": "q.property('sg:state') == 'focus'"
@@ -406,6 +726,18 @@
             },
             {
               "tail": "q.property('sg:state') == 'tail'"
+            },
+            {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
             },
             {
               "dormant": "q.property('sg:state') == 'dormant'"
@@ -434,7 +766,7 @@
               "charge": "q.property('sg:state') == 'charge'"
             },
             {
-              "spew": "q.property('sg:state') == 'smoke' || q.property('sg:state') == 'fire'"
+              "spew": "q.property('sg:state') == 'smoke'"
             },
             {
               "focus": "q.property('sg:state') == 'focus'"
@@ -447,6 +779,18 @@
             },
             {
               "tail": "q.property('sg:state') == 'tail'"
+            },
+            {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
             },
             {
               "dormant": "q.property('sg:state') == 'dormant'"
@@ -475,7 +819,7 @@
               "charge": "q.property('sg:state') == 'charge'"
             },
             {
-              "spew": "q.property('sg:state') == 'smoke' || q.property('sg:state') == 'fire'"
+              "spew": "q.property('sg:state') == 'smoke'"
             },
             {
               "focus": "q.property('sg:state') == 'focus'"
@@ -488,6 +832,18 @@
             },
             {
               "tail": "q.property('sg:state') == 'tail'"
+            },
+            {
+              "leap": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "bite": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "sweep": "q.property('sg:state') == 'sweep'"
             },
             {
               "dormant": "q.property('sg:state') == 'dormant'"

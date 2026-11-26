@@ -2,11 +2,11 @@
   "format_version": 2,
   "header": {
     "name": "Shin Godzilla (Behavior)",
-    "description": "Shin Godzilla (2016) as a Bedrock add-on: 2nd, 3rd and 4th forms, atomic breath, dorsal rays, tail beam, evolution and the Yashiori Strategy.",
+    "description": "Shin Godzilla (2016) as a Bedrock add-on: 2nd, 3rd and 4th forms, atomic breath, dorsal rays, tail ray, kaiju duels, evolution and the Yashiori Strategy.",
     "uuid": "ffe5e8fb-06e0-5188-8dff-62a74a5abfcc",
     "version": [
       1,
-      2,
+      3,
       0
     ],
     "min_engine_version": [
@@ -21,7 +21,7 @@
       "uuid": "5d161023-b387-5e66-94d0-fa74b82ac9a5",
       "version": [
         1,
-        2,
+        3,
         0
       ]
     },
@@ -32,7 +32,7 @@
       "entry": "scripts/main.js",
       "version": [
         1,
-        2,
+        3,
         0
       ]
     }
@@ -42,7 +42,7 @@
       "uuid": "96d87e11-ca48-5e25-a9d0-681cf9282250",
       "version": [
         1,
-        2,
+        3,
         0
       ]
     },

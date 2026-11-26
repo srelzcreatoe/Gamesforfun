@@ -31,7 +31,7 @@ BP = os.path.join(ROOT, "behavior_pack")
 RP = os.path.join(ROOT, "resource_pack")
 DIST = os.path.join(ROOT, "dist")
 ASSETS = os.path.join(HERE, "assets")
-VERSION = [1, 2, 0]
+VERSION = [1, 3, 0]
 MIN_ENGINE = [1, 21, 90]
 FAST = "--fast" in sys.argv
 
@@ -129,6 +129,10 @@ def compute_anchors(models):
     for key, phi in (("gill_L", -12), ("gill_R", 192)):
         p, nrm, _ = spine.surface(12.5, phi, out=0.6)
         g3[key] = r3(geo.world_point(m3, "neck1", tuple(float(c) * 0.5 for c in p)))
+    # where the jaws are when a bite lands, and the tail's root (the sweep is measured from it)
+    bite = anim.pose_of(sets4["x.bite"], 0.55)
+    bpos = anim.pose_of(sets4["x.bite"], 0.55, key="position").get("body", (0, 0, 0))
+    bite_mouth = [a + b / 16.0 for a, b in zip(geo.world_point(m4, "head", form4.MOUTH, bite), bpos)]
     T = sounds.BREATH
     order = ("charge", "smoke", "fire", "focus", "beam", "sputter")
     ticks, acc = {}, 0
@@ -137,9 +141,11 @@ def compute_anchors(models):
         acc += int(round(T[k] * 20))
     ticks["end"] = acc
     anchors = {
-        "timing": {"breath": ticks, "roar": int(round((sounds.ROAR_LEN + 0.1) * 20))},
+        "timing": {"breath": ticks, "roar": int(round((sounds.ROAR_LEN + 0.1) * 20)),
+                   "leap": {"crouch": 8, "land": 16}, "bite": {"hit": 11, "end": 24}, "sweep": {"from": 9, "to": 17, "end": 34}},
         "f4": {"mouth_by_aim": mouth_tab, "dorsal": dorsal, "tail_tip": r3(tip), "tail_dir": r3([v / ln for v in tdir]),
-               "surge": surge, "tail_by_swing": tail_tab, "tail_breath_by_swing": tailb_tab},
+               "surge": surge, "tail_by_swing": tail_tab, "tail_breath_by_swing": tailb_tab,
+               "bite_mouth": r3(bite_mouth), "tail_base": r3(form4.TAIL_BASE), "sweep_arc": [-52, 89, 104]},
         "f3": g3,
         "f2": form2.anchors(m2),
     }
@@ -180,11 +186,15 @@ def build_client(models):
         "default": (["walk"], walkset),
         "roar": (["roar"], ["roar", "idle"]),
         "charge": (["charge"], ["charge"]),
-        "spew": (["smoke", "fire"], ["spew"]),
+        "spew": (["smoke"], ["spew"]),
         "focus": (["focus"], ["focus"]),
         "breath": (["beam"], ["breath"]),
         "dorsal": (["dorsal"], ["dorsal"]),
         "tail": (["tail"], ["tail"]),
+        "leap": (["leap"], ["leap"], 0.12),
+        "land": (["land"], ["land"], 0.25),
+        "bite": (["bite"], ["bite"], 0.2),
+        "sweep": (["sweep"], ["sweep"], 0.3),
         "dormant": (["dormant"], ["dormant"]),
         "frozen": (["frozen"], ["frozen"]),
         "waking": (["waking"], ["waking"]),
@@ -207,7 +217,8 @@ def build_client(models):
 
     def amap(prefix, names):
         return {n: "%s.%s" % (prefix, n) for n in names}
-    n4 = ["idle", "walk", "look", "roar", "charge", "spew", "focus", "breath", "dorsal", "tail", "dormant", "frozen", "waking", "dying"]
+    n4 = ["idle", "walk", "look", "roar", "charge", "spew", "focus", "breath", "dorsal", "tail", "leap", "land", "bite", "sweep",
+          "dormant", "frozen", "waking", "dying"]
     n3 = ["idle", "walk", "look", "roar", "evolving", "dying"]
     base = "textures/entity/shin_godzilla/"
     write(os.path.join(RP, "entity/shin_godzilla.entity.json"), client_entity(
@@ -269,7 +280,8 @@ IMMUNE = {"minecraft:damage_sensor": {"triggers": [{"cause": "all", "deals_damag
 
 def ai_group(stroll):
     return {
-        "minecraft:behavior.melee_attack": {"priority": 3, "speed_multiplier": 1.0, "track_target": True, "reach_multiplier": 1.4},
+        # closes on its target; the hits themselves (bite, tail, stomp) are staged by the script
+        "minecraft:behavior.melee_attack": {"priority": 3, "speed_multiplier": 1.0, "track_target": True, "reach_multiplier": 0.02},
         "minecraft:behavior.random_stroll": {"priority": 6, "speed_multiplier": 0.85, "xz_dist": stroll, "y_dist": 7, "interval": 80},
         "minecraft:behavior.look_at_player": {"priority": 7, "look_distance": 40, "probability": 0.03},
         "minecraft:behavior.random_look_around": {"priority": 8},
@@ -298,6 +310,10 @@ def mode_groups():
     }
 
 
+# Health multipliers the config wheel can pick (event sg:hp_<key>).
+HP_TIERS = {"025": 0.25, "05": 0.5, "1": 1, "2": 2, "4": 4, "8": 8}
+
+
 def entity_bp(ident, cfg):
     modes = list(mode_groups().keys())
     groups = {
@@ -312,6 +328,10 @@ def entity_bp(ident, cfg):
         "sg:size_quarter": {"minecraft:scale": {"value": 0.25}},
     }
     groups.update(mode_groups())
+    for key, k in HP_TIERS.items():
+        if k != 1:
+            hp = int(round(cfg["health"] * k))
+            groups["sg:hp_" + key] = {"minecraft:health": {"value": hp, "max": hp}}
     init = ["sg:ai", "sg:move", "sg:sense", "sg:mode_hunt"]
     events = {
         "minecraft:entity_spawned": {"add": {"component_groups": init}},
@@ -324,6 +344,10 @@ def entity_bp(ident, cfg):
     }
     for mname in modes:
         events[mname] = {"remove": {"component_groups": [x for x in modes if x != mname]}, "add": {"component_groups": [mname]}}
+    for key in HP_TIERS:
+        events["sg:hp_" + key] = {"remove": {"component_groups": ["sg:hp_" + k for k, v in HP_TIERS.items() if k != key and v != 1]}}
+        if HP_TIERS[key] != 1:
+            events["sg:hp_" + key]["add"] = {"component_groups": ["sg:hp_" + key]}
     for size in ("full", "half", "quarter"):
         events["sg:size_" + size] = {"remove": {"component_groups": ["sg:size_" + x for x in ("full", "half", "quarter") if x != size]},
                                      "add": {"component_groups": ["sg:size_" + size]}}
@@ -373,7 +397,7 @@ def entity_bp(ident, cfg):
         "minecraft:navigation.walk": {"can_path_over_water": False, "avoid_water": False, "can_sink": True, "can_walk_in_lava": True,
                                       "avoid_damage_blocks": False, "can_break_doors": True, "can_pass_doors": True},
         "minecraft:underwater_movement": {"value": cfg["swim"]},
-        "minecraft:attack": {"damage": cfg["attack"]},
+        "minecraft:attack": {"damage": 2},
         "minecraft:follow_range": {"value": 64, "max": 96},
         "minecraft:persistent": {},
         "minecraft:nameable": {"always_show": False, "allow_name_tag_renaming": False},
@@ -386,22 +410,33 @@ def entity_bp(ident, cfg):
         "component_groups": groups, "components": comps, "events": events}}
 
 
+# Boss bar names: plain text, because the custom bar in ui/hud_screen.json is shown by matching them.
+BOSS = {F4: "Shin Godzilla", F4R: "Shin Godzilla Rampage", F3: "Shin Godzilla 3rd Form", F2: "Shin Godzilla 2nd Form"}
+
+
+# Every state of the upright forms.  An enum property holds at most 16 values, so the smoke and
+# the fire of the breath share one ("smoke": same pose; the script knows which it is).
+BIG_STATES = ["walk", "roar", "charge", "smoke", "focus", "beam", "dorsal", "tail", "leap", "land", "bite", "sweep",
+              "dormant", "frozen", "waking", "dying"]
+assert len(BIG_STATES) <= 16
+
+
 def build_behavior():
     write(os.path.join(BP, "entities/shin_godzilla.json"), entity_bp(F4, dict(
         health=2000, box=(4.0, 12.0), hit=(12, 44), speed=0.2, swim=0.12, attack=30, stroll=32, explosion=1.6,
-        hud=128, boss_name="§5§lSHIN GODZILLA", darken=True, xp=500, dormancy=True,
-        states=["walk", "roar", "charge", "smoke", "fire", "focus", "beam", "dorsal", "tail", "dormant", "frozen", "waking", "dying"])))
+        hud=128, boss_name=BOSS[F4], darken=True, xp=500, dormancy=True,
+        states=BIG_STATES)))
     write(os.path.join(BP, "entities/shin_godzilla_rampage.json"), entity_bp(F4R, dict(
         health=3000, box=(4.0, 12.0), hit=(12, 44), speed=0.24, swim=0.14, attack=40, stroll=40, explosion=1.2,
-        hud=160, boss_name="§4§lSHIN GODZILLA §c§lRAMPAGE", darken=True, xp=800, dormancy=True, extra_family=["rampage"],
-        states=["walk", "roar", "charge", "smoke", "fire", "focus", "beam", "dorsal", "tail", "dormant", "frozen", "waking", "dying"])))
+        hud=160, boss_name=BOSS[F4R], darken=True, xp=800, dormancy=True, extra_family=["rampage"],
+        states=BIG_STATES)))
     write(os.path.join(BP, "entities/shin_godzilla_3.json"), entity_bp(F3, dict(
         health=650, box=(2.6, 8.0), hit=(7, 22), speed=0.18, swim=0.12, attack=18, stroll=24, explosion=1.3,
-        hud=96, boss_name="§c§lSHIN GODZILLA§r §73rd Form", xp=200, evolves_into=F4,
+        hud=96, boss_name=BOSS[F3], xp=200, evolves_into=F4,
         states=["walk", "roar", "evolving", "dying"])))
     write(os.path.join(BP, "entities/shin_godzilla_2.json"), entity_bp(F2, dict(
         health=320, box=(3.2, 4.0), hit=(9, 9), speed=0.13, swim=0.16, attack=10, stroll=20, explosion=1.2,
-        hud=80, boss_name="§6§lSHIN GODZILLA§r §72nd Form", xp=100, evolves_into=F3,
+        hud=80, boss_name=BOSS[F2], xp=100, evolves_into=F3,
         states=["walk", "roar", "evolving", "dying"])))
 
     for name, lo, hi in (("shin_godzilla", 4, 8), ("shin_godzilla_rampage", 8, 12), ("shin_godzilla_3", 2, 4), ("shin_godzilla_2", 1, 2)):
@@ -416,6 +451,7 @@ def build_behavior():
     write(os.path.join(BP, "items/yashiori_coagulant.json"), item("sg:yashiori_coagulant", "Yashiori Coagulant", "sg_coagulant", 16, "items"))
     write(os.path.join(BP, "items/g_cell.json"), item("sg:g_cell", "G-Cell Sample", "sg_g_cell", 64, "items"))
     write(os.path.join(BP, "items/kaiju_tablet.json"), item("sg:kaiju_tablet", "Kaiju Control Tablet", "sg_tablet", 1, "equipment"))
+    write(os.path.join(BP, "items/config_wheel.json"), item("sg:config_wheel", "Shin Godzilla Config Wheel", "sg_wheel", 1, "equipment"))
 
     unlock = {"context": "AlwaysUnlocked"}
     write(os.path.join(BP, "recipes/yashiori_coagulant.json"), {"format_version": "1.20.10", "minecraft:recipe_shapeless": {
@@ -426,6 +462,11 @@ def build_behavior():
         "description": {"identifier": "sg:yashiori_coagulant_alt"}, "tags": ["crafting_table"], "unlock": unlock,
         "ingredients": [{"item": "minecraft:glass_bottle"}, {"item": "minecraft:blue_ice"}, {"item": "minecraft:slime_ball"}, {"item": "minecraft:redstone"}],
         "result": {"item": "sg:yashiori_coagulant", "count": 1}}})
+    write(os.path.join(BP, "recipes/config_wheel.json"), {"format_version": "1.20.10", "minecraft:recipe_shaped": {
+        "description": {"identifier": "sg:config_wheel"}, "tags": ["crafting_table"], "unlock": unlock,
+        "pattern": [" I ", "IAI", " I "],
+        "key": {"I": {"item": "minecraft:iron_ingot"}, "A": {"item": "minecraft:amethyst_shard"}},
+        "result": {"item": "sg:config_wheel", "count": 1}}})
     write(os.path.join(BP, "recipes/kaiju_tablet.json"), {"format_version": "1.20.10", "minecraft:recipe_shaped": {
         "description": {"identifier": "sg:kaiju_tablet"}, "tags": ["crafting_table"], "unlock": unlock,
         "pattern": ["IGI", "IRI", "III"],
@@ -447,22 +488,56 @@ def build_assets(anchors):
         "sg_coagulant": {"textures": "textures/items/sg/yashiori_coagulant"},
         "sg_g_cell": {"textures": "textures/items/sg/g_cell"},
         "sg_tablet": {"textures": "textures/items/sg/kaiju_tablet"},
+        "sg_wheel": {"textures": "textures/items/sg/config_wheel"},
         "sg_egg_2": {"textures": "textures/items/sg/egg_2"},
         "sg_egg_3": {"textures": "textures/items/sg/egg_3"},
         "sg_egg_4": {"textures": "textures/items/sg/egg_4"},
         "sg_egg_4r": {"textures": "textures/items/sg/egg_4r"},
     }})
+    # the boss bar: our own frame and fill drawn over the vanilla one whenever the boss is one of ours.
+    # It is added to the vanilla panel as a modification, so another pack's boss bar can live beside it.
+    fx.make_ui_textures(os.path.join(RP, "textures/ui"))
+
+    def boss_bar(frame, fill, names, colour):
+        collection = {"binding_type": "collection", "binding_collection_name": "boss_bars"}
+        return {
+            "type": "panel", "size": [182, 20], "anchor_from": "top_middle", "anchor_to": "top_middle", "layer": 50,
+            "controls": [
+                {"frame": {"type": "image", "texture": "textures/ui/" + frame, "size": [182, 20], "layer": 1}},
+                {"fill": {"type": "image", "texture": "textures/ui/" + fill, "size": [170, 6], "anchor_from": "top_left", "anchor_to": "top_left",
+                          "offset": [6, 12], "layer": 2, "clip_direction": "left", "clip_pixelperfect": False,
+                          "bindings": [dict(collection, binding_name="#progress_percentage", binding_name_override="#clip_ratio")]}},
+                {"name": {"type": "label", "text": "#bossName", "color": colour, "shadow": True, "anchor_from": "top_middle", "anchor_to": "top_middle",
+                          "offset": [0, 2], "layer": 3, "bindings": [dict(collection, binding_name="#bossName")]}},
+            ],
+            "bindings": [dict(collection, binding_name="#bossName"),
+                         {"binding_type": "view", "source_property_name": "(" + " or ".join("(#bossName = '%s')" % n for n in names) + ")",
+                          "target_property_name": "#visible"}],
+        }
+    write(os.path.join(RP, "ui/hud_screen.json"), {
+        "namespace": "hud",
+        "boss_health_panel": {"modifications": [{"array_name": "controls", "operation": "insert_back", "value": [
+            {"sg_boss_bar@hud.sg_boss_bar": {}}, {"sg_boss_bar_rampage@hud.sg_boss_bar_rampage": {}}]}]},
+        "sg_boss_bar": boss_bar("sg_boss_frame", "sg_boss_fill", [BOSS[F4], BOSS[F3], BOSS[F2]], [0.93, 0.74, 1.0]),
+        "sg_boss_bar_rampage": boss_bar("sg_boss_frame_rampage", "sg_boss_fill_rampage", [BOSS[F4R]], [1.0, 0.62, 0.5]),
+    })
+    # the air itself changes while he fires: ember dusk under the fire, violet night under the beam
+    for name, air in (("fire_fog", "#3a1606"), ("atomic_fog", "#1d0b33")):
+        write(os.path.join(RP, "fogs/sg_%s.json" % name), {"format_version": "1.16.100", "minecraft:fog_settings": {
+            "description": {"identifier": "sg:" + name},
+            "distance": {"air": {"fog_start": 0.12, "fog_end": 0.92, "fog_color": air, "render_distance_type": "render"},
+                         "weather": {"fog_start": 0.1, "fog_end": 0.85, "fog_color": air, "render_distance_type": "render"}}}})
     # sounds
     sdir = os.path.join(RP, "sounds/sg")
     if not (FAST and os.path.isdir(sdir)):
         sounds.build_all(sdir)
-    loud = {"roar4": 256, "roar3": 160, "roar2": 128, "beam": 200, "beam_start": 256, "dorsal": 200, "step": 128,
-            "breath_smoke": 200, "breath_fire": 256, "breath_focus": 256, "breath_beam": 256, "rays": 256,
-            "crash": 96, "charge": 128, "fire": 128, "smoke": 96, "evolve": 128, "freeze": 128, "dormant": 64,
-            "coagulant": 32, "hurt": 64}
+    loud = {"roar4": 320, "roar3": 160, "roar2": 128, "growl": 128, "step": 160, "land": 256, "leap": 128, "bite": 128, "sweep": 160,
+            "breath_smoke": 256, "breath_fire": 288, "breath_focus": 288, "breath_beam": 320, "rays": 288, "tail_ray": 288,
+            "impact": 256, "ignite": 320, "surge": 128, "rumble": 200,
+            "crash": 128, "charge": 256, "evolve": 128, "freeze": 128, "dormant": 64, "coagulant": 32, "hurt": 96}
     defs = {}
     for name in sounds.ALL:
-        defs["sg." + name] = {"category": "hostile", "min_distance": 4.0, "max_distance": float(loud.get(name, 64)),
+        defs["sg." + name] = {"category": "hostile", "min_distance": 12.0 if loud.get(name, 64) >= 128 else 4.0, "max_distance": float(loud.get(name, 64)),
                               "sounds": [{"name": "sounds/sg/" + name, "volume": 1.0, "load_on_low_memory": True}]}
     write(os.path.join(RP, "sounds/sound_definitions.json"), {"format_version": "1.20.20", "sound_definitions": defs})
     write(os.path.join(RP, "sounds.json"), {"entity_sounds": {"entities": {
@@ -474,6 +549,7 @@ def build_assets(anchors):
     # language
     lang = "\n".join([
         "entity.sg:shin_godzilla.name=Shin Godzilla",
+        "item.sg:config_wheel=Shin Godzilla Config Wheel",
         "entity.sg:shin_godzilla_rampage.name=Shin Godzilla (Rampage)",
         "item.spawn_egg.entity.sg:shin_godzilla_rampage.name=Spawn Shin Godzilla - RAMPAGE (never goes dormant)",
         "entity.sg:shin_godzilla_3.name=Shin Godzilla (3rd Form)",
@@ -490,7 +566,9 @@ def build_assets(anchors):
     write(os.path.join(RP, "texts/languages.json"), ["en_US"])
     # script + generated anchors
     os.makedirs(os.path.join(BP, "scripts"), exist_ok=True)
-    shutil.copy(os.path.join(HERE, "scripts/main.js"), os.path.join(BP, "scripts/main.js"))
+    for fn in sorted(os.listdir(os.path.join(HERE, "scripts"))):
+        if fn.endswith(".js"):
+            shutil.copy(os.path.join(HERE, "scripts", fn), os.path.join(BP, "scripts", fn))
     write(os.path.join(BP, "scripts/anchors.js"),
           "// Generated by build.py from the model + animation poses. Do not edit.\nexport const ANCHORS = " +
           json.dumps(anchors, indent=1) + ";\n")
@@ -501,7 +579,7 @@ def build_assets(anchors):
 
 def build_manifests():
     bp_h, rp_h = uid("bp-header"), uid("rp-header")
-    desc = "Shin Godzilla (2016) as a Bedrock add-on: 2nd, 3rd and 4th forms, atomic breath, dorsal rays, tail beam, evolution and the Yashiori Strategy."
+    desc = "Shin Godzilla (2016) as a Bedrock add-on: 2nd, 3rd and 4th forms, atomic breath, dorsal rays, tail ray, kaiju duels, evolution and the Yashiori Strategy."
     write(os.path.join(BP, "manifest.json"), {
         "format_version": 2,
         "header": {"name": "Shin Godzilla (Behavior)", "description": desc, "uuid": bp_h, "version": VERSION, "min_engine_version": MIN_ENGINE},

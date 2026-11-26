@@ -10,7 +10,20 @@ export const ANCHORS = {
    "sputter": 410,
    "end": 460
   },
-  "roar": 100
+  "roar": 100,
+  "leap": {
+   "crouch": 8,
+   "land": 16
+  },
+  "bite": {
+   "hit": 11,
+   "end": 24
+  },
+  "sweep": {
+   "from": 9,
+   "to": 17,
+   "end": 34
+  }
  },
  "f4": {
   "mouth_by_aim": [
@@ -689,6 +702,21 @@ export const ANCHORS = {
     56.552,
     17.253
    ]
+  ],
+  "bite_mouth": [
+   0.0,
+   24.604,
+   -24.725
+  ],
+  "tail_base": [
+   0,
+   16.9,
+   6.0
+  ],
+  "sweep_arc": [
+   -52,
+   89,
+   104
   ]
  },
  "f3": {

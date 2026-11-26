@@ -3,8 +3,8 @@
   "sound_definitions": {
     "sg.breath_smoke": {
       "category": "hostile",
-      "min_distance": 4.0,
-      "max_distance": 200.0,
+      "min_distance": 12.0,
+      "max_distance": 256.0,
       "sounds": [
         {
           "name": "sounds/sg/breath_smoke",
@@ -15,8 +15,8 @@
     },
     "sg.breath_fire": {
       "category": "hostile",
-      "min_distance": 4.0,
-      "max_distance": 256.0,
+      "min_distance": 12.0,
+      "max_distance": 288.0,
       "sounds": [
         {
           "name": "sounds/sg/breath_fire",
@@ -27,8 +27,8 @@
     },
     "sg.breath_focus": {
       "category": "hostile",
-      "min_distance": 4.0,
-      "max_distance": 256.0,
+      "min_distance": 12.0,
+      "max_distance": 288.0,
       "sounds": [
         {
           "name": "sounds/sg/breath_focus",
@@ -39,8 +39,8 @@
     },
     "sg.breath_beam": {
       "category": "hostile",
-      "min_distance": 4.0,
-      "max_distance": 256.0,
+      "min_distance": 12.0,
+      "max_distance": 320.0,
       "sounds": [
         {
           "name": "sounds/sg/breath_beam",
@@ -51,8 +51,8 @@
     },
     "sg.rays": {
       "category": "hostile",
-      "min_distance": 4.0,
-      "max_distance": 256.0,
+      "min_distance": 12.0,
+      "max_distance": 288.0,
       "sounds": [
         {
           "name": "sounds/sg/rays",
@@ -61,10 +61,22 @@
         }
       ]
     },
+    "sg.tail_ray": {
+      "category": "hostile",
+      "min_distance": 12.0,
+      "max_distance": 288.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/tail_ray",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
     "sg.roar4": {
       "category": "hostile",
-      "min_distance": 4.0,
-      "max_distance": 256.0,
+      "min_distance": 12.0,
+      "max_distance": 320.0,
       "sounds": [
         {
           "name": "sounds/sg/roar4",
@@ -75,7 +87,7 @@
     },
     "sg.roar3": {
       "category": "hostile",
-      "min_distance": 4.0,
+      "min_distance": 12.0,
       "max_distance": 160.0,
       "sounds": [
         {
@@ -87,7 +99,7 @@
     },
     "sg.roar2": {
       "category": "hostile",
-      "min_distance": 4.0,
+      "min_distance": 12.0,
       "max_distance": 128.0,
       "sounds": [
         {
@@ -100,7 +112,7 @@
     "sg.hurt": {
       "category": "hostile",
       "min_distance": 4.0,
-      "max_distance": 64.0,
+      "max_distance": 96.0,
       "sounds": [
         {
           "name": "sounds/sg/hurt",
@@ -109,10 +121,22 @@
         }
       ]
     },
+    "sg.growl": {
+      "category": "hostile",
+      "min_distance": 12.0,
+      "max_distance": 128.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/growl",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
     "sg.step": {
       "category": "hostile",
-      "min_distance": 4.0,
-      "max_distance": 128.0,
+      "min_distance": 12.0,
+      "max_distance": 160.0,
       "sounds": [
         {
           "name": "sounds/sg/step",
@@ -121,10 +145,58 @@
         }
       ]
     },
+    "sg.land": {
+      "category": "hostile",
+      "min_distance": 12.0,
+      "max_distance": 256.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/land",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.leap": {
+      "category": "hostile",
+      "min_distance": 12.0,
+      "max_distance": 128.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/leap",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.bite": {
+      "category": "hostile",
+      "min_distance": 12.0,
+      "max_distance": 128.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/bite",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.sweep": {
+      "category": "hostile",
+      "min_distance": 12.0,
+      "max_distance": 160.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/sweep",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
     "sg.crash": {
       "category": "hostile",
-      "min_distance": 4.0,
-      "max_distance": 96.0,
+      "min_distance": 12.0,
+      "max_distance": 128.0,
       "sounds": [
         {
           "name": "sounds/sg/crash",
@@ -133,10 +205,58 @@
         }
       ]
     },
+    "sg.impact": {
+      "category": "hostile",
+      "min_distance": 12.0,
+      "max_distance": 256.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/impact",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.ignite": {
+      "category": "hostile",
+      "min_distance": 12.0,
+      "max_distance": 320.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/ignite",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.surge": {
+      "category": "hostile",
+      "min_distance": 12.0,
+      "max_distance": 128.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/surge",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.rumble": {
+      "category": "hostile",
+      "min_distance": 12.0,
+      "max_distance": 200.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/rumble",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
     "sg.charge": {
       "category": "hostile",
-      "min_distance": 4.0,
-      "max_distance": 128.0,
+      "min_distance": 12.0,
+      "max_distance": 256.0,
       "sounds": [
         {
           "name": "sounds/sg/charge",
@@ -159,7 +279,7 @@
     },
     "sg.freeze": {
       "category": "hostile",
-      "min_distance": 4.0,
+      "min_distance": 12.0,
       "max_distance": 128.0,
       "sounds": [
         {
@@ -171,7 +291,7 @@
     },
     "sg.evolve": {
       "category": "hostile",
-      "min_distance": 4.0,
+      "min_distance": 12.0,
       "max_distance": 128.0,
       "sounds": [
         {

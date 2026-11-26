@@ -11,6 +11,9 @@
     "sg_tablet": {
       "textures": "textures/items/sg/kaiju_tablet"
     },
+    "sg_wheel": {
+      "textures": "textures/items/sg/config_wheel"
+    },
     "sg_egg_2": {
       "textures": "textures/items/sg/egg_2"
     },

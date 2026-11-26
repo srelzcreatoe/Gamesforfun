@@ -9,47 +9,57 @@
       }
     },
     "components": {
-      "minecraft:emitter_rate_instant": {
-        "num_particles": 1
-      },
       "minecraft:emitter_lifetime_once": {
         "active_time": 0.05
       },
+      "minecraft:emitter_rate_instant": {
+        "num_particles": 1
+      },
       "minecraft:emitter_shape_point": {
+        "offset": [
+          "variable.dx*variable.len*0.5",
+          "variable.dy*variable.len*0.5",
+          "variable.dz*variable.len*0.5"
+        ],
         "direction": [
           "variable.dx",
           "variable.dy",
           "variable.dz"
         ]
       },
-      "minecraft:particle_initial_speed": 0.01,
+      "minecraft:particle_initial_speed": 0.05,
+      "minecraft:particle_motion_dynamic": {},
       "minecraft:particle_lifetime_expression": {
-        "max_lifetime": 0.11
+        "max_lifetime": 0.09
       },
       "minecraft:particle_appearance_billboard": {
         "size": [
-          "variable.len",
-          0.55
+          "variable.len*0.5",
+          "variable.width*0.62"
         ],
         "facing_camera_mode": "lookat_direction",
+        "direction": {
+          "mode": "derive_from_velocity",
+          "min_speed_threshold": 0.001
+        },
         "uv": {
-          "texture_width": 64,
-          "texture_height": 16,
+          "texture_width": 512,
+          "texture_height": 256,
           "uv": [
-            0,
-            0
+            256,
+            "math.floor(v.particle_random_1*7.99)*32"
           ],
           "uv_size": [
-            64,
-            16
+            256,
+            32
           ]
         }
       },
       "minecraft:particle_appearance_tinting": {
         "color": [
-          1.0,
-          0.92,
-          1.0,
+          "0.9+0.1*variable.cr",
+          "0.88+0.12*variable.cg",
+          "0.92+0.08*variable.cb",
           1.0
         ]
       }

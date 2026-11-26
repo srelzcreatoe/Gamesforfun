@@ -343,6 +343,100 @@ def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0, rest_tail=N
     for i, t in enumerate(tails):
         b[t] = {"rotation": ch(S(700, i * 30, 1.0), *lat(i, S(300, i * 25, 0.8 + 0.2 * i)))}
     A["evolving"] = {"loop": "hold_on_last_frame", "length": 6.0, "bones": b}
+    # ---- leap: sink onto the haunches, drive off both legs, then hang in the air with the legs
+    #      tucked and the tail streaming (held until the script lands him)
+    def squat(depth, lean=0.0):
+        """Leg and hip pose for a crouch `depth` (0..1) deep; feet stay planted."""
+        # the drop is what the folded leg lifts the sole by (measured on the model), so the feet stay on the ground
+        return {"drop": [0, -122 * pos_k * depth ** 1.25, 0], "thigh": -44 * depth, "shin": 78 * depth, "foot": -33 * depth, "lean": lean}
+
+    def legs(b, frames):
+        """frames: {time: squat(...)} -> keyframes on body, thighs, shins and feet."""
+        b.setdefault("body", {})
+        b["body"]["position"] = kf({t: q["drop"] for t, q in frames.items()})
+        b["body"]["rotation"] = kf({t: [q["lean"], 0, 0] for t, q in frames.items()})
+        for sd in ("L", "R"):
+            b["thigh_" + sd] = {"rotation": kf({t: [q["thigh"], 0, 0] for t, q in frames.items()}),
+                                "position": kf({t: q["drop"] for t, q in frames.items()})}
+            b["shin_" + sd] = {"rotation": kf({t: [q["shin"], 0, 0] for t, q in frames.items()})}
+            b["foot_" + sd] = {"rotation": kf({t: [q["foot"], 0, 0] for t, q in frames.items()})}
+    tuck = {"drop": [0, 0, 0], "thigh": -34, "shin": 60, "foot": 16, "lean": 8}
+    b = {
+        "torso": {"rotation": kf({0: [0, 0, 0], 0.3: [8, 0, 0], 0.45: [-4, 0, 0], 0.8: [4, 0, 0]})},
+        "neck2": {"rotation": kf({0: [0, 0, 0], 0.3: [-8, 0, 0], 0.8: [-4, 0, 0]})},
+        "head": {"rotation": kf({0: [0, 0, 0], 0.3: [-10, 0, 0], 0.8: [-6, 0, 0]})},
+        "jaw_L": {"rotation": kf({0: [0, 0, 0], 0.4: [16, 0, 0], 0.8: [20, 0, 0]})},
+        "jaw_R": {"rotation": kf({0: [0, 0, 0], 0.4: [16, 0, 0], 0.8: [20, 0, 0]})},
+    }
+    legs(b, {0: squat(0), 0.3: squat(0.75, 12), 0.42: squat(0.0, -6), 0.8: tuck})
+    for sd, sg in (("L", 1), ("R", -1)):
+        b["arm_" + sd] = {"rotation": kf({0: [0, 0, 0], 0.3: [18, 0, 0], 0.45: [-30, 0, sg * 16], 0.8: [-22, 0, sg * 22]})}
+        b["hand_" + sd] = {"rotation": kf({0: [0, 0, 0], 0.45: [-24, 0, 0], 0.8: [-18, 0, 0]})}
+    for i, t in enumerate(tails):
+        b[t] = {"rotation": kf({0: [0, 0, 0], 0.3: [0.9, 0, 0], 0.45: [-0.6, 0, 0], 0.8: ["-1.1+" + S(500, i * 30, 0.25), 0, 0]})}
+    A["leap"] = {"loop": "hold_on_last_frame", "length": 0.8, "bones": b}
+
+    # ---- land: both feet drive into the ground, the whole body folds over the impact, then rises
+    b = {
+        "torso": {"rotation": kf({0: [4, 0, 0], 0.12: [14, 0, 0], 0.9: [0, 0, 0]})},
+        "chest": {"rotation": kf({0: [0, 0, 0], 0.12: [8, 0, 0], 0.9: [0, 0, 0]})},
+        "neck2": {"rotation": kf({0: [-4, 0, 0], 0.12: [-12, 0, 0], 0.9: [0, 0, 0]})},
+        "head": {"rotation": kf({0: [-6, 0, 0], 0.12: [-14, 0, 0], 0.9: [0, 0, 0]})},
+        "jaw_L": {"rotation": kf({0: [20, 0, 0], 0.15: [6, 0, 0], 0.9: [0, 0, 0]})},
+        "jaw_R": {"rotation": kf({0: [20, 0, 0], 0.15: [6, 0, 0], 0.9: [0, 0, 0]})},
+    }
+    legs(b, {0: tuck, 0.1: squat(0.95, 16), 0.3: squat(0.8, 12), 0.9: squat(0)})
+    for sd, sg in (("L", 1), ("R", -1)):
+        b["arm_" + sd] = {"rotation": kf({0: [-22, 0, sg * 22], 0.12: [30, 0, sg * 6], 0.9: [0, 0, 0]})}
+        b["hand_" + sd] = {"rotation": kf({0: [-18, 0, 0], 0.12: [24, 0, 0], 0.9: [0, 0, 0]})}
+    for i, t in enumerate(tails):
+        b[t] = {"rotation": kf({0: [-1.1, 0, 0], 0.14: [-2.0, 0, 0], 0.4: [0.8, 0, 0], 0.9: [0, 0, 0]})}
+    A["land"] = {"loop": False, "length": 0.9, "bones": b}
+
+    # ---- bite: the head and chest draw back, then the whole upper body is thrown forward and
+    #      down with the jaws wide, snapping shut as the claws rake through (hit at 0.55 s)
+    hit = 0.55
+
+    def strike(back, fwd, settle=None):
+        settle = [v * 0.7 for v in fwd] if settle is None else settle
+        return kf({0: [0, 0, 0], 0.34: back, hit: fwd, 0.78: settle, 1.2: [0, 0, 0]})
+    b = {
+        "body": {"rotation": strike([-4, 0, 0], [9, 0, 0]), "position": kf({0: [0, 0, 0], 0.34: [0, 0, 14 * pos_k], hit: [0, -10 * pos_k, -46 * pos_k], 1.2: [0, 0, 0]})},
+        "torso": {"rotation": strike([-6, 0, 0], [13, 0, 0])},
+        "chest": {"rotation": strike([-10, 0, 0], [20, 0, 0])},
+        "neck1": {"rotation": strike([-10, 0, 0], [16, 0, 0])},
+        "neck2": {"rotation": strike([-12, 0, 0], [12, 0, 0])},
+        "head": {"rotation": kf({0: [0, 0, 0], 0.34: [-24, 0, 0], 0.48: [2, 0, 0], hit: [8, 0, 0], 0.78: [4, 0, 0], 1.2: [0, 0, 0]})},
+        "jaw_L": {"rotation": kf({0: [0, 0, 0], 0.28: [42, -5, -4], 0.5: [42, -5, -4], hit + 0.02: [-3, 0, 0], 0.8: [8, 0, 0], 1.2: [0, 0, 0]})},
+        "jaw_R": {"rotation": kf({0: [0, 0, 0], 0.28: [42, 5, 4], 0.5: [42, 5, 4], hit + 0.02: [-3, 0, 0], 0.8: [8, 0, 0], 1.2: [0, 0, 0]})},
+    }
+    for sd, sg in (("L", 1), ("R", -1)):
+        b["arm_" + sd] = {"rotation": strike([-34, 0, sg * 14], [40, 0, -sg * 6])}
+        b["forearm_" + sd] = {"rotation": strike([-22, 0, 0], [26, 0, 0])}
+        b["hand_" + sd] = {"rotation": strike([-34, 0, 0], [32, 0, 0])}
+    for i, t in enumerate(tails):
+        b[t] = {"rotation": strike([-0.4, 0, 0], [0.7, 0, 0], [0.3, 0, 0])}
+    A["bite"] = {"loop": False, "length": 1.2, "bones": b}
+
+    # ---- tail sweep: the tail is let down from over the back, drawn out to one side, and the
+    #      hips throw it round through everything behind and beside him (connects 0.6-0.9 s)
+    rt = rest_tail or [0] * tail_n
+    b = {
+        "body": {"rotation": kf({0: [0, 0, 0], 0.5: [3, -28, 0], 0.82: [4, 46, 0], 1.15: [2, 28, 0], 1.7: [0, 0, 0]})},
+        "torso": {"rotation": kf({0: [0, 0, 0], 0.5: [0, 10, 0], 0.82: [0, -16, 0], 1.7: [0, 0, 0]})},
+        "chest": {"rotation": kf({0: [0, 0, 0], 0.5: [0, 8, 0], 0.82: [0, -14, 0], 1.7: [0, 0, 0]})},
+        "head": {"rotation": kf({0: [0, 0, 0], 0.5: [-4, 10, 0], 0.82: [-6, -16, 0], 1.7: [0, 0, 0]})},
+        "jaw_L": {"rotation": kf({0: [0, 0, 0], 0.6: [18, 0, 0], 1.0: [18, 0, 0], 1.7: [0, 0, 0]})},
+        "jaw_R": {"rotation": kf({0: [0, 0, 0], 0.6: [18, 0, 0], 1.0: [18, 0, 0], 1.7: [0, 0, 0]})},
+    }
+    for sd, sg in (("L", 1), ("R", -1)):
+        b["arm_" + sd] = {"rotation": kf({0: [0, 0, 0], 0.5: [-10, 0, sg * 10], 0.82: [-16, 0, sg * 18], 1.7: [0, 0, 0]})}
+    for i, t in enumerate(tails):
+        down = -rt[i] - (9 if i == 0 else 0)                 # uncurl: lay the tail out along the ground behind him
+        w = 3.2 if i < 12 else 1.5
+        a0, a1, a2 = lat(i, -w), lat(i, w * 1.6), lat(i, w * 0.6)
+        b[t] = {"rotation": kf({0: [0, 0, 0], 0.45: [down, a0[0], a0[1]], 0.82: [down, a1[0], a1[1]], 1.15: [down * 0.8, a2[0], a2[1]], 1.7: [0, 0, 0]})}
+    A["sweep"] = {"loop": False, "length": 1.7, "bones": b}
     return {"%s.%s" % (prefix, k): v for k, v in A.items()}
 
 
@@ -448,17 +542,18 @@ def to_bedrock(anims):
 
 
 def controller(name, mapping, blend=0.45):
-    """mapping: {anim_state: (property values..., animations)}."""
+    """mapping: {anim_state: (property values, animations[, blend time into the next state])}."""
     states = {}
     order = list(mapping.keys())
     for st in order:
-        vals, anims = mapping[st]
+        vals, anims = mapping[st][:2]
+        st_blend = mapping[st][2] if len(mapping[st]) > 2 else blend
         trans = []
         for other in order:
             if other == st:
                 continue
             cond = " || ".join("q.property('sg:state') == '%s'" % v for v in mapping[other][0])
             trans.append({other: cond})
-        states[st] = {"animations": anims, "transitions": trans, "blend_transition": blend}
+        states[st] = {"animations": anims, "transitions": trans, "blend_transition": st_blend}
     return {"format_version": "1.10.0", "animation_controllers": {
         name: {"initial_state": order[0], "states": states}}}

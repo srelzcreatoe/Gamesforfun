@@ -13,11 +13,14 @@
             "roar",
             "charge",
             "smoke",
-            "fire",
             "focus",
             "beam",
             "dorsal",
             "tail",
+            "leap",
+            "land",
+            "bite",
+            "sweep",
             "dormant",
             "frozen",
             "waking",
@@ -61,7 +64,7 @@
           "priority": 3,
           "speed_multiplier": 1.0,
           "track_target": true,
-          "reach_multiplier": 1.4
+          "reach_multiplier": 0.02
         },
         "minecraft:behavior.random_stroll": {
           "priority": 6,
@@ -276,6 +279,36 @@
           "priority": 9
         }
       },
+      "sg:hp_025": {
+        "minecraft:health": {
+          "value": 500,
+          "max": 500
+        }
+      },
+      "sg:hp_05": {
+        "minecraft:health": {
+          "value": 1000,
+          "max": 1000
+        }
+      },
+      "sg:hp_2": {
+        "minecraft:health": {
+          "value": 4000,
+          "max": 4000
+        }
+      },
+      "sg:hp_4": {
+        "minecraft:health": {
+          "value": 8000,
+          "max": 8000
+        }
+      },
+      "sg:hp_8": {
+        "minecraft:health": {
+          "value": 16000,
+          "max": 16000
+        }
+      },
       "sg:dormant": {
         "minecraft:interact": {
           "interactions": [
@@ -328,7 +361,7 @@
       },
       "minecraft:boss": {
         "hud_range": 128,
-        "name": "\u00a75\u00a7lSHIN GODZILLA",
+        "name": "Shin Godzilla",
         "should_darken_sky": true
       },
       "minecraft:collision_box": {
@@ -379,7 +412,7 @@
         "value": 0.12
       },
       "minecraft:attack": {
-        "damage": 30
+        "damage": 2
       },
       "minecraft:follow_range": {
         "value": 64,
@@ -510,6 +543,92 @@
         "add": {
           "component_groups": [
             "sg:mode_peaceful"
+          ]
+        }
+      },
+      "sg:hp_025": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_05",
+            "sg:hp_2",
+            "sg:hp_4",
+            "sg:hp_8"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_025"
+          ]
+        }
+      },
+      "sg:hp_05": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_2",
+            "sg:hp_4",
+            "sg:hp_8"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_05"
+          ]
+        }
+      },
+      "sg:hp_1": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_05",
+            "sg:hp_2",
+            "sg:hp_4",
+            "sg:hp_8"
+          ]
+        }
+      },
+      "sg:hp_2": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_05",
+            "sg:hp_4",
+            "sg:hp_8"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_2"
+          ]
+        }
+      },
+      "sg:hp_4": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_05",
+            "sg:hp_2",
+            "sg:hp_8"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_4"
+          ]
+        }
+      },
+      "sg:hp_8": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_05",
+            "sg:hp_2",
+            "sg:hp_4"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_8"
           ]
         }
       },

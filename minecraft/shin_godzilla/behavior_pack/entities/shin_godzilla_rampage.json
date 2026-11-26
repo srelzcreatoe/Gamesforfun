@@ -13,11 +13,14 @@
             "roar",
             "charge",
             "smoke",
-            "fire",
             "focus",
             "beam",
             "dorsal",
             "tail",
+            "leap",
+            "land",
+            "bite",
+            "sweep",
             "dormant",
             "frozen",
             "waking",
@@ -61,7 +64,7 @@
           "priority": 3,
           "speed_multiplier": 1.0,
           "track_target": true,
-          "reach_multiplier": 1.4
+          "reach_multiplier": 0.02
         },
         "minecraft:behavior.random_stroll": {
           "priority": 6,
@@ -276,6 +279,36 @@
           "priority": 9
         }
       },
+      "sg:hp_025": {
+        "minecraft:health": {
+          "value": 750,
+          "max": 750
+        }
+      },
+      "sg:hp_05": {
+        "minecraft:health": {
+          "value": 1500,
+          "max": 1500
+        }
+      },
+      "sg:hp_2": {
+        "minecraft:health": {
+          "value": 6000,
+          "max": 6000
+        }
+      },
+      "sg:hp_4": {
+        "minecraft:health": {
+          "value": 12000,
+          "max": 12000
+        }
+      },
+      "sg:hp_8": {
+        "minecraft:health": {
+          "value": 24000,
+          "max": 24000
+        }
+      },
       "sg:dormant": {
         "minecraft:interact": {
           "interactions": [
@@ -329,7 +362,7 @@
       },
       "minecraft:boss": {
         "hud_range": 160,
-        "name": "\u00a74\u00a7lSHIN GODZILLA \u00a7c\u00a7lRAMPAGE",
+        "name": "Shin Godzilla Rampage",
         "should_darken_sky": true
       },
       "minecraft:collision_box": {
@@ -380,7 +413,7 @@
         "value": 0.14
       },
       "minecraft:attack": {
-        "damage": 40
+        "damage": 2
       },
       "minecraft:follow_range": {
         "value": 64,
@@ -511,6 +544,92 @@
         "add": {
           "component_groups": [
             "sg:mode_peaceful"
+          ]
+        }
+      },
+      "sg:hp_025": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_05",
+            "sg:hp_2",
+            "sg:hp_4",
+            "sg:hp_8"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_025"
+          ]
+        }
+      },
+      "sg:hp_05": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_2",
+            "sg:hp_4",
+            "sg:hp_8"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_05"
+          ]
+        }
+      },
+      "sg:hp_1": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_05",
+            "sg:hp_2",
+            "sg:hp_4",
+            "sg:hp_8"
+          ]
+        }
+      },
+      "sg:hp_2": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_05",
+            "sg:hp_4",
+            "sg:hp_8"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_2"
+          ]
+        }
+      },
+      "sg:hp_4": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_05",
+            "sg:hp_2",
+            "sg:hp_8"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_4"
+          ]
+        }
+      },
+      "sg:hp_8": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_05",
+            "sg:hp_2",
+            "sg:hp_4"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_8"
           ]
         }
       },
