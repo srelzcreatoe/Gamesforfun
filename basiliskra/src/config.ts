@@ -55,6 +55,8 @@ export const CONFIG = {
   cutscenes: true,
   /** His themes play when he is near, fighting, or in his last form. */
   music: true,
+  /** His health bar at the top of the screen, as a boss's (2.1), for everyone within 128 blocks of him.  Off: no bar. */
+  bossBar: true,
   /**
    * Vathrok (2.0), the other kaiju, met in survival: now and then at night it comes up out of the ground near a
    * player, and whenever its lure is used; it can be beaten.  Off: it never comes, and one that is about goes.
@@ -65,7 +67,7 @@ export const CONFIG = {
 };
 
 /** The settings a player may change in game (the config wheel); saved with the world, over the defaults above. */
-export const SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music", "changeMinutes", "cities", "vathrok", "vathrokTitan"] as const;
+export const SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music", "changeMinutes", "cities", "bossBar", "vathrok", "vathrokTitan"] as const;
 export const SETTINGS_KEY = "bk:cfg";
 
 export const NS = "basiliskra";

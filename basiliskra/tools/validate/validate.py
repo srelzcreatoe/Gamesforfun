@@ -629,6 +629,20 @@ else:
         err("the script's figure for the Titan's health is not the entity's")
     ok("the Titan (entity, client entity, names)")
 
+# his health bar (2.1): a boss-bar group per form, titled by it, the events the script switches them with; and no bar
+# on the Titans (their health line is their own)
+groups = bp_ent.get("component_groups", {})
+for n, r in ((1, "I"), (2, "II"), (3, "III"), (4, "IV")):
+    boss = groups.get(f"{NS}:bar_{n}", {}).get("minecraft:boss")
+    if not boss or boss.get("name") != f"Basiliskra {r}" or f"{NS}:bar_{n}" not in bp_ent.get("events", {}):
+        err(f"his health bar for form {n} is missing or misnamed")
+if f"{NS}:bar_off" not in bp_ent.get("events", {}):
+    err("his health bar has no event to turn it off")
+for name, j in (("the Titan", titan_bp), ("the Vathrok Titan", vtitan_bp)):
+    if "minecraft:boss" in j.get("components", {}) or any("minecraft:boss" in g for g in j.get("component_groups", {}).values()):
+        err(f"{name} should have no boss bar")
+ok("his health bar")
+
 # Vathrok: both entities have his synchronised properties (one pose draws them) with form 5, Vathrok's family and not
 # his, the box and the events the script binds and removes them with; the battle one the Titan's health and
 # immunities, the survival one far less and a boss bar; client entities whose every reference exists; eggs and names

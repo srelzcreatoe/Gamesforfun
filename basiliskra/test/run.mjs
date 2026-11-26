@@ -2518,6 +2518,25 @@ console.log('\n== 27. Vathrok, the other kaiju: in survival, and for battles (2.
   w2.bk.CONFIG.vathrok = true;
 }
 
+console.log('\n== 28. His health bar at the top of the screen (2.1)');
+{
+  const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+  const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 0 }); ana.mode = 'Creative';
+  w.bk.ctl.bringHere({ x: 0, y: 64, z: 60 }, 180, 3); w.sim.step(30);
+  const ev = () => w.bk.ctl.creature.entity.rec?.events ?? w.sim.save.entities.get(w.bk.ctl.creature.entity.id).events;
+  const last = () => ev().filter((n) => /bar_/.test(n)).slice(-1)[0];
+  check('Basiliskra III has his health bar, titled by his form', last() === 'basiliskra:bar_3', last());
+  w.bk.CONFIG.bossBar = false; w.sim.step(12);
+  check('turned off in the settings, the bar goes', last() === 'basiliskra:bar_off', last());
+  w.bk.CONFIG.bossBar = true; w.bk.ctl.bringHere({ x: 0, y: 64, z: 70 }, 180, 4); w.sim.step(30);
+  check('and as Basiliskra IV it is his last form\'s bar', last() === 'basiliskra:bar_4', last());
+  const bars = ev().filter((n) => /bar_/.test(n)).length;
+  w.sim.step(200);
+  check('it is set once, not every tick', ev().filter((n) => /bar_/.test(n)).length === bars, `${bars} -> ${ev().filter((n) => /bar_/.test(n)).length}`);
+  const titanJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities/basiliskra_titan.json'), 'utf8'))['minecraft:entity'];
+  check('the Titan has no boss bar (its health line is its own)', !JSON.stringify(titanJson).includes('minecraft:boss'));
+}
+
 console.log(`\n${results.length - failures}/${results.length} checks passed`);
 fs.mkdirSync(path.join(ROOT, 'build'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, 'build/test-results.json'), JSON.stringify({ when: new Date().toISOString(), passed: results.length - failures, total: results.length, results }, null, 1));

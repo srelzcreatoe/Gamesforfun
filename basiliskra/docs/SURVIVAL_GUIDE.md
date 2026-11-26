@@ -293,6 +293,7 @@ In game: the config wheel's **Settings**. The defaults below are in `scripts/mai
 | His music (`music`) | on | His three themes. |
 | Minutes in each form before he changes (`changeMinutes`) | the story's own timing | Or 1, 2, 5, 10, 20, 30 or 60 minutes for every change. |
 | Cities rise on coasts (`cities`) | on | Off: a city is only raised where an operator asks for one. |
+| His health bar at the top of the screen (`bossBar`) | on | A boss bar titled by his form (Basiliskra I to IV), shown to everyone within 128 blocks of him; it empties as he is hurt. Off: no bar, and he gives nothing away. |
 | Vathrok in survival (`vathrok`) | on | Vathrok, the other kaiju, comes up now and then at night and to its lure, and can be beaten. Off: it never comes, and one that is about goes. |
 | The Vathrok Titan for battles (`vathrokTitan`) | on | Its egg, the command and the wheel make one. Off: none can be made, and those there are go. |
 
@@ -305,6 +306,8 @@ In the scorch and break modes nothing built is ever touched: not redstone, glass
 His destruction drops nothing: what his breath or his weight breaks is gone. He uses no real lightning and no real explosions (the blasts are his own, so nothing he does is stopped by blast resistance, and nothing is set off).
 
 ## Good to know
+
+* **His health bar** (from 2.1): within 128 blocks of him a boss bar at the top of the screen shows his health, titled by his form. He is still never killed: when it is nearly empty he is driven off, and when he comes back it is full again. If you would rather he gave nothing away (Basiliskra I under the water, say), turn it off in the Settings.
 
 * **Not yet seen in the game by its author.** Everything in 1.6 (the close cutscenes, the Seam Lance in the hand, the cities and the deep, the Titan) passes the pack's own simulated-world tests and the game's file checks, but none of it has been run in Minecraft itself. See `docs/TEST_REPORT.md` for the list of what to look at first.
 * Two Titans fighting ask about three times as much of the game as Basiliskra IV does alone. If a world struggles, fight two, not three.

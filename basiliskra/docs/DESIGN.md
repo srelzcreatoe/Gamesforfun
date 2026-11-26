@@ -139,6 +139,10 @@ He becomes IV from III's `choose()` when he has been III for his time (three in-
 * **The Titan** (`titan.ts`, `write_titan` in `gen_client.py`).  `TITAN_HEALTH` 1,000,000; blows on anything smaller than a giant `LETHAL` (100,000, as Hakaishin's ray does 98,986); blows between giants scaled by `GIANT` = health / 4,000 (250).  Its damage sensor adds magic, wither and both explosions to what it already ignored.  `foreignGiantsNear` (`havoc.ts`): anything in the `monster` family with 2,000 or more health that is not his, a Titan, a player or a hit volume, looked for every two seconds, is fought as a giant (breath, lunge, claws, tail, ram), before mobs and players.  `mobsNear` also takes in the `monster` family (another add-on's creatures may have no `mob` family).  The beam's hit test reaches up a tall body (from its head height), so a 36-block monster is hit in its middle, not only at its feet.
 * Story Basiliskra (III and IV) is unchanged in strength.
 
+## 2.1: his health bar
+
+* Asked for: *"can you add a hp boss bar ontop of the screen for the regualr non titan basiliskra?"*.  The game's own boss bar (`minecraft:boss`), in four component groups of his entity (`basiliskra:bar_1`..`bar_4`, titled "Basiliskra I".."IV", 128 blocks), switched by the events `bar_N` and `bar_off`.  The controller checks twice a second which one he should have (his form, the `bossBar` setting) and sends the event only when that changes, so a bind, a change, a reload or the setting all come right by themselves.  The Titans' and the Vathrok Titans' entity files are made from his components, not his groups, so they get no bar.
+
 ## 2.0: Vathrok, the other kaiju
 
 * **Asked for**: *"can you also make a mobzilla like kaiju?"*, with a picture of a blocky black four-legged kaiju with red back spikes; then, asked, *both* a survival boss and a battle version *"and they should both have a config to enable one and the other"*, the battle one equal to the Titan, with a breath of its own.  Mobzilla is a boss of the OreSpawn mod for Java; nothing of it or of the picture is copied.  Vathrok is this pack's own design in the same genre: a giant four-legged reptile.

@@ -58,6 +58,8 @@ var CONFIG = {
   cutscenes: true,
   /** His themes play when he is near, fighting, or in his last form. */
   music: true,
+  /** His health bar at the top of the screen, as a boss's (2.1), for everyone within 128 blocks of him.  Off: no bar. */
+  bossBar: true,
   /**
    * Vathrok (2.0), the other kaiju, met in survival: now and then at night it comes up out of the ground near a
    * player, and whenever its lure is used; it can be beaten.  Off: it never comes, and one that is about goes.
@@ -66,7 +68,7 @@ var CONFIG = {
   /** The Vathrok Titan, for battles (its egg, /basiliskra:vathrok titan, the wheel): as strong as the Titan.  Off: none can be made, and those there are go. */
   vathrokTitan: true
 };
-var SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music", "changeMinutes", "cities", "vathrok", "vathrokTitan"];
+var SETTINGS = ["pacing", "terrain", "spareStorage", "marks", "damage", "harmlessOnPeaceful", "allowSummon", "spawnForm", "giveJournal", "giveWheel", "debug", "fallout", "sickness", "huntMobs", "cutscenes", "music", "changeMinutes", "cities", "bossBar", "vathrok", "vathrokTitan"];
 var SETTINGS_KEY = "bk:cfg";
 var NS = "basiliskra";
 var TYPE = `${NS}:basiliskra`;
@@ -8250,11 +8252,11 @@ async function settingsForm(p) {
     "Minutes in each form before he changes (time is all it takes)",
     MINUTES.map((m) => m ? `${m} minutes` : "The story's timing: 40, 40, 60 (at story speed 1)"),
     { defaultValueIndex: Math.max(0, MINUTES.indexOf(CONFIG.changeMinutes)) }
-  ).toggle("Cities rise on coasts as you explore (never over anything built)", { defaultValue: CONFIG.cities }).toggle("Vathrok in survival (comes up at night now and then, and to its lure; can be beaten)", { defaultValue: CONFIG.vathrok }).toggle("The Vathrok Titan for battles (its egg, the command, the wheel)", { defaultValue: CONFIG.vathrokTitan }).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
+  ).toggle("Cities rise on coasts as you explore (never over anything built)", { defaultValue: CONFIG.cities }).toggle("His health bar at the top of the screen (when he is near)", { defaultValue: CONFIG.bossBar }).toggle("Vathrok in survival (comes up at night now and then, and to its lure; can be beaten)", { defaultValue: CONFIG.vathrok }).toggle("The Vathrok Titan for battles (its egg, the command, the wheel)", { defaultValue: CONFIG.vathrokTitan }).toggle("§cRestore every default", { defaultValue: false }).submitButton("Save");
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || !r.formValues) return;
   const v = r.formValues;
-  if (v[22] === true) {
+  if (v[23] === true) {
     resetSettings();
     p.sendMessage("§7[Basiliskra] Settings restored to the defaults.");
     return;
@@ -8281,8 +8283,9 @@ async function settingsForm(p) {
     music: v[17] === true,
     changeMinutes: MINUTES[Number(v[18])] ?? 0,
     cities: v[19] === true,
-    vathrok: v[20] === true,
-    vathrokTitan: v[21] === true
+    bossBar: v[20] === true,
+    vathrok: v[21] === true,
+    vathrokTitan: v[22] === true
   });
   p.sendMessage(`§7[Basiliskra] Settings saved with this world. Story speed §fx${CONFIG.pacing}§7, damage §fx${CONFIG.damage}§7.`);
   if (bad) p.sendMessage("§7[Basiliskra] A number you typed was not in range, so the choice above it was used.");
@@ -10501,6 +10504,12 @@ var Controller = class {
     this.runner = null;
     this.missing = 0;
     this.hurtCryAt = -999;
+    /**
+     * His health bar at the top of the screen (2.1): the entity's boss-bar component group for the form he is in
+     * (titled "Basiliskra I".."IV"), or none when the setting is off.  Checked twice a second, so a bind, a change of
+     * form, a reload or the setting changed all come right on their own.  (The Titans have their health line instead.)
+     */
+    this.barShown = "";
     // ---- pending -> reservation ------------------------------------------------------------------------
     /**
      * Deep water near the site with a clear lane to swim out of the seam and to turn and ram it:
@@ -10974,6 +10983,21 @@ var Controller = class {
     this.runner = null;
     this.ending.reset();
   }
+  bossBar() {
+    const c = this.creature;
+    if (!c || !c.valid) {
+      this.barShown = "";
+      return;
+    }
+    const want = CONFIG.bossBar ? `bar_${c.form}` : "bar_off";
+    const key = `${c.entity.id}:${want}`;
+    if (key === this.barShown) return;
+    try {
+      c.entity.triggerEvent(`basiliskra:${want}`);
+      this.barShown = key;
+    } catch {
+    }
+  }
   /** The stage of his life is his name: Basiliskra I, II, III.  It is what a death message says. */
   nameHim(e) {
     try {
@@ -11170,6 +11194,7 @@ var Controller = class {
       this.runner = null;
     }
     if (now % 20 === 0) this.sweep();
+    if (now % 10 === 5) this.bossBar();
     switch (rec.stage) {
       case "pending":
         this.tryReserve();
