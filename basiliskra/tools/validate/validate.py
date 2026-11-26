@@ -667,27 +667,57 @@ def _jsonc(path):
     return json.loads(re.sub(r",(\s*[}\]])", r"\1", "".join(out)))
 
 
-# his bar's own look (2.2, ui/hud_screen.json): the game's boss bar entry copied unchanged with one control added; that
-# control shown only for the names the script gives him; textures present; and, against the game's own UI files, no
+# his bar's own look (2.2, ui/hud_screen.json), and Vathrok's (2.3): the game's boss bar entry copied unchanged with our
+# two bars added; each bar shown only for a title containing its own names (2.3: containing, not equal to: the exact
+# test of 2.2 never showed), and never both for one title; textures present; and, against the game's own UI files, no
 # property name they never use (a misspelt one would be silently ignored) and no reference to an element that is not there
 ui_path = os.path.join(RP, "ui", "hud_screen.json")
+BAR_KEYS = ("basiliskra", "vathrok")
 if os.path.exists(ui_path):
     ui = json.load(open(ui_path, encoding="utf-8"))
     if ui.get("namespace") != "hud":
         err("ui/hud_screen.json must be in the namespace hud")
     ctl_src = open(os.path.join(ROOT, "src", "controller.ts"), encoding="utf-8").read()
     if "e.nameTag = `Basiliskra ${ROMAN[store.rec.form]}`" not in ctl_src:
-        err("the script no longer names him 'Basiliskra <form>': his bar's look keys on those names")
-    names = ["Basiliskra"] + [f"Basiliskra {r}" for r in ("I", "II", "III", "IV")]
-    test = json.dumps(ui.get("basiliskra_boss_bar", {}).get("bindings", []))
-    for n_ in names:
-        if f"(#bossName = '{n_}')" not in test:
-            err(f"his bar's look is not shown for the name {n_!r}")
-    for tex in ("textures/ui/basiliskra_boss_frame", "textures/ui/basiliskra_boss_fill"):
-        if not tex_exists(tex):
-            err(f"his bar's texture {tex} is missing")
-        if tex not in json.dumps(ui):
-            err(f"his bar does not use {tex}")
+        err("the script no longer names him 'Basiliskra <form>': his bar's look keys on that name")
+    vat_src = open(os.path.join(ROOT, "src", "vathrok.ts"), encoding="utf-8").read()
+    if ': "Vathrok";' not in vat_src:
+        err("the script no longer names the survival Vathrok 'Vathrok': its bar's look keys on that name")
+
+    def shows(expr: str, title: str) -> bool:
+        """The bar's view expression, worked out for one title, as the game would: a - b takes every b out of a."""
+        e = expr
+        for w_ in re.findall(r"\(#bossName - '([^']*)'\) = #bossName", expr):
+            e = e.replace(f"((#bossName - '{w_}') = #bossName)", "True" if w_ not in title else "False")
+        e = e.replace("(", " ( ").replace(")", " ) ")
+        if any(tok not in ("True", "False", "not", "and", "or", "(", ")") for tok in e.split()):
+            raise ValueError(f"cannot work out {expr!r}")
+        return bool(eval(e, {"__builtins__": {}}, {}))
+    titles = {
+        "basiliskra": ["Basiliskra", "Basiliskra I", "Basiliskra II", "Basiliskra III", "Basiliskra IV", "§fBasiliskra III§r",
+                       "entity.basiliskra:basiliskra.name"],
+        "vathrok": ["Vathrok", "§aVathrok", "entity.basiliskra:vathrok.name"],
+        None: ["Wither", "Ender Dragon", "entity.wither.name", "Soul Eater", ""],
+    }
+    for k in BAR_KEYS:
+        b = ui.get(f"{k}_boss_bar", {})
+        view = [x for x in b.get("bindings", []) if x.get("binding_type") == "view" and x.get("target_property_name") == "#visible"]
+        coll = [x for x in b.get("bindings", []) if x.get("binding_name") == "#bossName" and x.get("binding_collection_name") == "boss_bars"]
+        if len(view) != 1 or not coll:
+            err(f"{k}'s bar has no visibility test on the boss bar's title")
+            continue
+        try:
+            for owner, ts in titles.items():
+                for t_ in ts:
+                    if shows(view[0]["source_property_name"], t_) != (owner == k):
+                        err(f"{k}'s bar is {'not ' if owner == k else ''}shown for a boss bar titled {t_!r}")
+        except ValueError as e:
+            err(f"{k}'s bar: {e}")
+        for tex in (f"textures/ui/{k}_boss_frame", f"textures/ui/{k}_boss_fill"):
+            if not tex_exists(tex):
+                err(f"{k}'s bar texture {tex} is missing")
+            if tex not in json.dumps(b):
+                err(f"{k}'s bar does not use {tex}")
     vui = os.path.join(SAMPLES, "resource_pack", "ui") if SAMPLES else ""
     if vui and os.path.isdir(vui):
         vanilla = {}
@@ -704,8 +734,8 @@ if os.path.exists(ui_path):
         elif mine is not None:
             if {k: v for k, v in mine.items() if k != "controls"} != {k: v for k, v in theirs.items() if k != "controls"} \
                     or mine.get("controls", [])[:len(theirs.get("controls", []))] != theirs.get("controls", []) \
-                    or len(mine.get("controls", [])) != len(theirs.get("controls", [])) + 1:
-                err("ui/hud_screen.json's boss_health_panel is not the game's, with exactly one control added")
+                    or mine.get("controls", [])[len(theirs.get("controls", [])):] != [{f"{k}_boss_bar@hud.{k}_boss_bar": {}} for k in BAR_KEYS]:
+                err("ui/hud_screen.json's boss_health_panel is not the game's, with our two bars added")
         keys = set()
 
         def collect(v):
@@ -731,7 +761,7 @@ if os.path.exists(ui_path):
                     collect_mine(x)
         collect_mine(ui, top=True)
         # (the names of controls are ours; what is checked is every property and binding key)
-        ours = {"basiliskra_frame", "basiliskra_fill", "basiliskra_name"}
+        ours = {f"{k}_{part}" for k in BAR_KEYS for part in ("frame", "fill", "name")}
         for k in sorted(mine_keys - keys - ours):
             err(f"ui/hud_screen.json uses a property the game's UI files never use: {k}")
         elements = {(d.get("namespace"), name.split("@")[0]) for d in vanilla.values() if isinstance(d, dict) for name in d}
@@ -752,7 +782,7 @@ if os.path.exists(ui_path):
         refs(ui)
         if '"boss_bars"' not in json.dumps(vhud):
             err("the game's boss bars are no longer the collection boss_bars")
-    ok("his bar's look")
+    ok("his bar's look and Vathrok's")
 
 # the geometries of one client entity: the game makes an armor_offset.default_neck locator of its own for a geometry in
 # format 1.21.0 or later, from that geometry, and reports each one after the first as a clash (2.1, in his forms II, III

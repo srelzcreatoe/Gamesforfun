@@ -20,7 +20,7 @@ import { RoarFx, shake } from "../roar";
 import { store } from "../store";
 import { addFallout, fuse, sear } from "../fallout";
 import { add, clamp, dist, distXZ, dot, hash, leftOf, mul, norm, sub, turnTowards, wrapDeg, yawTo, type V3 } from "../vec";
-import { blockAt, clearLine, idAt, isBreakableNatural, isLoaded, isNaturalGround, isPlantBlock, isSolidBlock, printOf, scorchOf, takesMark } from "../world";
+import { blockAt, clearLine, groundY, idAt, isBreakableNatural, isLoaded, isNaturalGround, isPlantBlock, isSolidBlock, printOf, scorchOf, takesMark } from "../world";
 
 /**
  * The atomic breath is one recording (basiliskra.iii.charge, then basiliskra.iii.beam): 6.86 s of charging, then
@@ -48,6 +48,8 @@ const rodReady = new Map<string, number>();
 
 /** Players and creatures alike: what he may hunt. */
 export type Quarry = Entity;
+/** Another giant he is fighting (2.3): one of ours (with its body of hit volumes), or another add-on's monster. */
+export type Foe = { g: Creature | null; e: Entity };
 export const isPlayer = (e: Entity): e is Player => { try { return e.typeId === "minecraft:player"; } catch { return false; } };
 /** Where to aim at something: its head; at another giant, the middle of its trunk. */
 export function headOf(e: Entity): V3 {
@@ -146,6 +148,9 @@ export class BrainThree extends Brain {
       const g = near.find((p) => p.id === rec.guilty);
       if (g) { this.rest("remember", TICKS.day); return { name: "remember", run: this.remember(g), limit: 100 * TICKS.second }; }
     }
+    // another giant: he fights it, keeping the distance his breath wants and closing for his jaws and his club (2.3)
+    const k = this.kaiju();
+    if (k) { const ch = this.duel(k); if (ch) return ch; }
     // now and then, for nothing anyone can see, he roars
     if (!this.cooldown.has("rroar")) this.rest("rroar", (30 + 60 * hash(now, 91)) * TICKS.second);
     if (this.ready("rroar")) {
@@ -204,6 +209,306 @@ export class BrainThree extends Brain {
   }
 
   /** To a village or a city, and then through it from one side to the other, and again: what he walks through is gone. */
+  // ---- another giant (2.3) ----------------------------------------------------------------------------------------
+  // Asked for: "when Basiliskra is fighting against another kaiju have it build distance to shoot lazerbeams by
+  // jumping back as well but gets closer to attack melee way".  Too close to breathe, with his breath ready: he leaps
+  // back over the ground and breathes as he lands.  His breath not ready: he goes in and uses his body.  Between the
+  // two, with a clear line: he breathes.  Form III fights with his jaws and his club; Form IV and the Titan with their
+  // jaws and hand, their claws and their tail (four.ts).
+
+  /** What his body does to another giant (Form IV and the Titan set their own). */
+  protected blows = { bite: 60, tail: 90, lunge: 85, swipe: 100, ram: 110 };
+  /** While his breath is at another giant (Form IV then keeps his head on it instead of turning on his club). */
+  protected inDuel = false;
+
+  /** The giant he is fighting, if one is near: the nearest of ours, else another add-on's monster. */
+  protected kaiju(): Foe | null {
+    const c = this.c;
+    let best: Creature | null = null, bd = this.giantSight;
+    for (const g of otherGiants(c)) {
+      const d = dist(g.pos, c.pos);
+      if (d < bd) { bd = d; best = g; }
+    }
+    if (best) return { g: best, e: best.entity };
+    if (this.now - this.foreignAt >= 40) { this.foreignAt = this.now; this.foreign = foreignGiantsNear(c.dim, c.pos, this.giantSight); }
+    const f = this.foreign.filter(alive).sort((a, b) => dist(a.location, c.pos) - dist(b.location, c.pos))[0];
+    return f ? { g: null, e: f } : null;
+  }
+  protected foeAt(f: Foe): V3 { try { return f.g && f.g.valid ? f.g.pos : f.e.location; } catch { return this.c.pos; } }
+  protected foeMiddle(f: Foe): V3 { try { return f.g && f.g.valid ? f.g.middle() : headOf(f.e); } catch { return this.c.pos; } }
+  protected foeAlive(f: Foe): boolean {
+    try { return f.g ? f.g.valid && f.g.dim.id === this.c.dim.id : f.e.isValid && f.e.dimension.id === this.c.dim.id; } catch { return false; }
+  }
+  /** How far his breath reaches (Form IV and the Titan reach further). */
+  protected breathRange(): number { return TIERS[this.tier()].range - 2; }
+  /** His breath at another giant (Form IV and the Titan breathe their own). */
+  protected duelBreath(e: Entity): Act { return this.beam(e); }
+  /** How far back he leaps, and how high (blocks). */
+  protected leapReach(): { far: number; high: number } { return { far: 22, high: 6 }; }
+
+  protected duel(f: Foe): Choice | null {
+    const c = this.c, now = this.now;
+    const at = this.foeAt(f);
+    const d = distXZ(at, c.pos), reach = c.girth + (f.g ? f.g.girth : 4);
+    const bearing = wrapDeg(yawTo(c.pos, at) - c.yaw);
+    const breathReady = this.ready("beam") && now >= this.recoverUntil;
+    // a new enemy: he lets it know first
+    if (f.e.id !== this.lastQuarry) {
+      this.lastQuarry = f.e.id;
+      if (this.ready("lockroar")) { this.rest("lockroar", 50 * TICKS.second); return { name: "lock", run: this.duelChallenge(f), limit: 16 * TICKS.second }; }
+    }
+    if (d < reach + 16) {
+      // too close to breathe at it: back, to have room, and breathe as he lands
+      if (breathReady && this.ready("leap")) {
+        this.rest("leap", 14 * TICKS.second);
+        this.rest("beam", 28 * TICKS.second);
+        return { name: "leap", run: this.leapAndBreathe(f), limit: 60 * TICKS.second };
+      }
+      const m = this.duelMelee(f, d, reach, bearing);
+      if (m) return m;
+      return { name: "square", run: this.duelSquare(f), limit: 2 * TICKS.second };
+    }
+    if (breathReady && d < this.breathRange() && clearLine(c.dim, c.anchor("mouth"), this.foeMiddle(f))) {
+      this.rest("beam", 28 * TICKS.second);
+      return { name: "beam", run: this.breatheAt(f), limit: 90 * TICKS.second };
+    }
+    // his breath not ready (or no line for it): in, to fight with his body
+    return { name: "close", run: this.duelClose(f), limit: 20 * TICKS.second };
+  }
+
+  /** Form III, at close quarters: the club for what is beside or behind him, the jaws for what is in front. */
+  protected duelMelee(f: Foe, _d: number, _reach: number, bearing: number): Choice | null {
+    if (Math.abs(bearing) > 60 && this.ready("tail")) { this.rest("tail", 7 * TICKS.second); this.bites = 0; return { name: "tail", run: this.duelClub(bearing >= 0 ? 1 : -1, f), limit: 4 * TICKS.second }; }
+    // after a couple of bites he wheels round, side-on to it, and brings the club across
+    if (this.bites >= 2 && this.ready("tail")) {
+      this.rest("tail", 7 * TICKS.second); this.bites = 0;
+      const side: 1 | -1 = hash(this.now, 71) < 0.5 ? 1 : -1;
+      return { name: "tail", run: this.wheelAndClub(f, side), limit: 7 * TICKS.second };
+    }
+    if (this.ready("bite")) { this.rest("bite", 4 * TICKS.second); this.bites++; return { name: "bite", run: this.duelBite(f), limit: 5 * TICKS.second }; }
+    return null;
+  }
+  private bites = 0;
+
+  /** A quick turn on the spot that brings what he is fighting round to one side of him, then the club. */
+  protected *wheelAndClub(f: Foe, side: 1 | -1): Act {
+    const c = this.c;
+    c.halt();
+    c.setPhase("move");
+    for (let t = 0; t < 40 && this.foeAlive(f); t++) {
+      const want = wrapDeg(yawTo(c.pos, this.foeAt(f)) - 80 * side);
+      if (Math.abs(wrapDeg(want - c.yaw)) < 4) break;
+      c.yaw = turnTowards(c.yaw, want, 3.5);
+      c.lookYaw = clamp(wrapDeg(yawTo(c.pos, this.foeAt(f)) - c.yaw), -70, 70);
+      if (t % 8 === 4) {
+        const feet = this.shuffleFeet();
+        sound(c.dim, "basiliskra.iii.step", c.anchor(feet[(t >> 3) % feet.length]), 96, 0.8, 0.95);
+      }
+      yield;
+    }
+    if (!this.foeAlive(f)) return;
+    yield* this.duelClub(side, f);
+  }
+
+  protected *duelChallenge(f: Foe): Act {
+    const c = this.c;
+    c.halt();
+    yield* this.face(this.foeAt(f), 60);
+    c.lookAt(this.foeMiddle(f), 85, 35);
+    yield* this.roar(false);
+  }
+
+  protected *duelSquare(f: Foe): Act {
+    const c = this.c;
+    c.halt();
+    c.setPhase("idle");
+    for (let t = 0; t < 14 && this.foeAlive(f); t++) {
+      c.yaw = turnTowards(c.yaw, yawTo(c.pos, this.foeAt(f)), 2.5);
+      c.lookAt(this.foeMiddle(f), 70, 40);
+      yield;
+    }
+  }
+
+  /** In to arm's length (his breath is not ready): whatever is underfoot is trodden. */
+  protected *duelClose(f: Foe): Act {
+    const c = this.c;
+    c.smash = true;
+    for (let t = 0; t < 400 && this.foeAlive(f); t++) {
+      const at = this.foeAt(f), reach = c.girth + (f.g ? f.g.girth : 4) + 8;
+      c.setPhase("move");
+      c.goTo(at, 0.2, reach);
+      c.lookAt(this.foeMiddle(f), 60, 30);
+      this.footfalls();
+      if (distXZ(at, c.pos) < reach + 1 || c.blocked > 60) break;
+      yield;
+    }
+    c.halt();
+    c.smash = false;
+    c.setPhase("idle");
+  }
+
+  /** Where a blow lands: the noise of it, the shake, the ground under it. */
+  protected duelImpact(at: V3, big: boolean): void {
+    const c = this.c;
+    sound(c.dim, "random.explode", at, 160, 1.6, big ? 0.5 : 0.62);
+    sound(c.dim, "basiliskra.iii.step", at, 160, 1, 0.5);
+    particle(c.dim, "basiliskra:impact_blast", at, 160);
+    particle(c.dim, "basiliskra:impact_debris", at, 128);
+    particle(c.dim, "basiliskra:impact_ring", { x: at.x, y: c.pos.y + 0.4, z: at.z }, 160);
+    particle(c.dim, "minecraft:huge_explosion_emitter", at, 160);
+    shake(c, 128, big ? 1.2 : 0.8, 0.5);
+  }
+
+  /** Form III's jaws: his head drawn back, then thrown forward with his weight behind it (the client: phase `bite`). */
+  protected *duelBite(f: Foe): Act {
+    const c = this.c;
+    c.halt();
+    yield* this.face(this.foeAt(f), 24);
+    c.lookAhead();
+    c.setPhase("bite");
+    c.say("basiliskra.iii.growl", c.anchor("nose"), 128, 1, 0.85);
+    for (let t = 0; t < 25; t++) {
+      if (t === 9) {
+        const front = add(c.pos, mul(c.forward, c.girth + 8));
+        for (const g of otherGiants(c)) {
+          if (distXZ(g.pos, c.pos) > c.girth + g.girth + 14 || Math.abs(wrapDeg(yawTo(c.pos, g.pos) - c.yaw)) > 60) continue;
+          g.takeBlow(c, this.blows.bite, true);
+          g.shove({ x: g.pos.x - c.pos.x, y: 0, z: g.pos.z - c.pos.z }, 4);
+          this.duelImpact(c.anchor("mouth"), false);
+        }
+        // another add-on's monster has no body of ours: it is bitten where it stands
+        if (!f.g && this.foeAlive(f) && distXZ(f.e.location, front) < c.girth + 12) {
+          try { f.e.applyDamage(c.mobHit(this.blows.bite), { cause: EntityDamageCause.entityAttack, damagingEntity: c.entity }); } catch { /* gone */ }
+        }
+        blast(c.dim, front, 8, 12, c.mobHit(26), 1.3, (p, n) => c.hurt(p, n), c.entity, c.pos);
+      }
+      yield;
+    }
+    c.setPhase("idle");
+  }
+
+  /** Form III's club: his tail winds away, then swings round to the side his head has turned to (phase `sweep`). */
+  protected *duelClub(side: 1 | -1, f?: Foe): Act {
+    const c = this.c;
+    c.halt();
+    c.lookYaw = 70 * side; c.lookPitch = 0;
+    c.setPhase("sweep");
+    c.say("basiliskra.iii.growl", c.anchor("nose"), 128, 1, 0.78);
+    for (let t = 0; t < 36; t++) {
+      c.lookYaw = 70 * side;
+      if (t === 11) sound(c.dim, "basiliskra.iii.club_swing", c.anchor("club_core"), 160, 1, 0.9);
+      if (t === 15) {
+        let struck = false;
+        for (const g of otherGiants(c)) {
+          const b = wrapDeg(yawTo(c.pos, g.pos) - c.yaw) * side;
+          if (b < 35 || distXZ(g.pos, c.pos) > c.girth + g.girth + 24) continue;
+          g.takeBlow(c, this.blows.tail, true);
+          g.shove({ x: g.pos.x - c.pos.x, y: 0, z: g.pos.z - c.pos.z }, 7);
+          this.duelImpact({ x: (g.pos.x + c.pos.x) / 2, y: c.pos.y + 8, z: (g.pos.z + c.pos.z) / 2 }, true);
+          struck = true;
+        }
+        // another add-on's monster has no body of ours: it is struck where it stands, if it is on that side and in reach
+        if (f && !f.g && this.foeAlive(f)) {
+          const at = f.e.location, b = wrapDeg(yawTo(c.pos, at) - c.yaw) * side;
+          if (b >= 35 && distXZ(at, c.pos) <= c.girth + 28) {
+            try { f.e.applyDamage(c.mobHit(this.blows.tail), { cause: EntityDamageCause.entityAttack, damagingEntity: c.entity }); } catch { /* gone */ }
+            this.duelImpact({ x: (at.x + c.pos.x) / 2, y: c.pos.y + 8, z: (at.z + c.pos.z) / 2 }, true);
+            struck = true;
+          }
+        }
+        for (const deg of [65, 105, 145]) {
+          const fw = { x: -Math.sin((c.yaw + deg * side) * Math.PI / 180), y: 0, z: Math.cos((c.yaw + deg * side) * Math.PI / 180) };
+          const at = { x: c.pos.x + fw.x * 20, y: c.pos.y + 1.5, z: c.pos.z + fw.z * 20 };
+          if (!isLoaded(c.dim, at)) continue;
+          blast(c.dim, at, 9, 14, c.mobHit(30), 1.6, (p, n) => c.hurt(p, n), c.entity, c.pos);
+          if (wither()) carve(c.dim, at, 3.6, 120, false);
+          particle(c.dim, "basiliskra:step_dust", at, 128);
+        }
+        sound(c.dim, "basiliskra.iii.club_plant", c.anchor("club_core"), 160, 1, 1.2);
+        if (!struck) shake(c, 96, 0.5, 0.4);
+      }
+      yield;
+    }
+    c.lookAhead();
+    c.setPhase("idle");
+  }
+
+  /**
+   * He leaps back from what he is fighting, to have room to breathe at it: a crouch; off the ground and back over it
+   * (from 0.35 s to 1.15 s, the client draws the same), still facing it; the landing, which the ground feels.  He comes
+   * down on open, loaded ground near his own height, as far back as there is such ground (at least half his leap).
+   * Returns false, having done nothing, if there is none.
+   */
+  protected *leapBack(f: Foe): Generator<void, boolean, void> {
+    const c = this.c;
+    const { far, high } = this.leapReach();
+    const from = this.foeAt(f);
+    const away = norm({ x: c.pos.x - from.x, y: 0, z: c.pos.z - from.z });
+    let land: V3 | null = null;
+    for (let k = far; k >= far * 0.5; k -= 2) {
+      const x = c.pos.x + away.x * k, z = c.pos.z + away.z * k;
+      if (!isLoaded(c.dim, { x, y: c.pos.y, z })) continue;
+      const g = groundY(c.dim, x, z, c.pos.y + 12, 28);
+      if (typeof g !== "number" || Math.abs(g - c.pos.y) > 10) continue;
+      land = { x, y: g, z };
+      break;
+    }
+    if (!land) return false;
+    const start = { ...c.pos };
+    c.halt();
+    c.setPhase("leap");
+    c.say("basiliskra.iii.growl", c.anchor("nose"), 128, 1, 0.8);
+    for (let t = 0; t < 7; t++) { c.lookAt(this.foeMiddle(f), 70, 40); yield; }
+    sound(c.dim, "basiliskra.iii.step", start, 160, 1, 0.6);
+    particle(c.dim, "basiliskra:step_dust", start, 128);
+    shake(c, 128, 0.7, 0.4);
+    c.airborne = true;
+    try {
+      const n = 16;
+      for (let t = 0; t < n; t++) {
+        const u = (t + 1) / n, s = u * u * (3 - 2 * u);
+        c.pos = { x: start.x + (land.x - start.x) * s, y: start.y + (land.y - start.y) * s + high * Math.sin(Math.PI * u), z: start.z + (land.z - start.z) * s };
+        if (this.foeAlive(f)) { c.yaw = turnTowards(c.yaw, yawTo(c.pos, this.foeAt(f)), 2); c.lookAt(this.foeMiddle(f), 70, 40); }
+        yield;
+      }
+    } finally {
+      c.airborne = false;
+    }
+    c.pos = { ...land };
+    // the landing
+    sound(c.dim, "basiliskra.iii.step", land, 192, 1, 0.5);
+    sound(c.dim, "random.explode", land, 160, 1.2, 0.6);
+    particle(c.dim, "basiliskra:impact_ring", { x: land.x, y: land.y + 0.4, z: land.z }, 192);
+    particle(c.dim, "basiliskra:step_dust", land, 160);
+    particle(c.dim, "basiliskra:impact_debris", land, 128);
+    shake(c, 160, 1.1, 0.6);
+    blast(c.dim, land, 4 * c.scale, 10, c.mobHit(20), 1.2, (p, n) => c.hurt(p, n), c.entity, land);
+    if (wither()) c.stompWave(14, 4, 34);
+    for (let t = 0; t < 7; t++) yield;
+    c.setPhase("idle");
+    return true;
+  }
+
+  /** Back, then his breath at it as he lands (if he could not leap, he breathes where he stands). */
+  protected *leapAndBreathe(f: Foe): Act {
+    yield* this.leapBack(f);
+    if (!this.foeAlive(f)) return;
+    yield* this.breatheAt(f);
+  }
+
+  /** How long, from the end of one breath at another giant, until the next: the time he spends fighting it with his body. */
+  protected breathGap(): number { return 22 * TICKS.second; }
+
+  /** His breath at another giant; the wait for the next is counted from the end of this one, so he goes in between. */
+  protected *breatheAt(f: Foe): Act {
+    this.inDuel = true;
+    try { yield* this.duelBreath(f.e); } finally {
+      this.inDuel = false;
+      this.rest("beam", this.breathGap());
+      this.rest("leap", this.breathGap());
+    }
+  }
+
   protected *raze(town: V3): Act {
     const c = this.c;
     for (let leg = 0; leg < 4; leg++) {
@@ -343,6 +648,9 @@ export class BrainThree extends Brain {
   }
 
   /** Turn where he stands: the feet shuffle round, one planted at a time. */
+  /** The feet he shuffles on when he turns on the spot (Form IV and the Titan stand on two). */
+  protected shuffleFeet(): string[] { return FEET; }
+
   protected *face(target: V3, limit = 400): Act {
     const c = this.c;
     c.setPhase("move");
@@ -352,7 +660,8 @@ export class BrainThree extends Brain {
       c.yaw = turnTowards(c.yaw, want, 1.1);
       if (t % 18 === 9) {
         // a shuffle on the spot: heard, but it is not a stride (the walk cycle is left where it stood)
-        const foot = c.anchor(FEET[Math.floor(t / 18) & 3]);
+        const feet = this.shuffleFeet();
+        const foot = c.anchor(feet[Math.floor(t / 18) % feet.length]);
         sound(c.dim, "basiliskra.iii.step", foot, 72, 0.7, 0.98);
       }
       yield;

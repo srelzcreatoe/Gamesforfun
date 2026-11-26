@@ -45,7 +45,9 @@ PHASE = dict(idle=0, move=1, arrive=2, ram=3, knock=4, rise=5, bite=6, sweep=7, 
              # 1.8: Form II swimming for the shore; the claw swipe; the breath poured onto the ground before it narrows
              swim=37, swipe=38, pour=39,
              # 1.9: thrown back, head to the sky, before the breath is let go
-             rear=40)
+             rear=40,
+             # 2.3: fighting another giant, he leaps back to have room to breathe at it
+             leap=41)
 TAGS = ("i", "ii", "iii", "iv")
 KNOCK_GAP = 0.9          # seconds between the three knocks, everywhere they occur
 GAIT_DUR = (0.8, 1.25, 1.5)     # Form II: reach, pull, rest (seconds)
@@ -294,6 +296,8 @@ def pre_animation():
         "shut": ("swallow", "carry"), "fall": ("fall",),
         # 1.8
         "swim": ("swim",), "swipe": ("swipe",), "pour": ("pour",), "rear": ("rear",),
+        # 2.3
+        "leap": ("leap",),
     }
     for name, phases in weights.items():
         rate = "v.k4" if name == "window" else "v.k2"        # the head comes down to the window slowly
@@ -301,6 +305,12 @@ def pre_animation():
     # Basiliskra IV: the flank that glows while he carries a swallowed charge, and the wing veins when the recoil goes through them
     s.append("v.g_ribs = math.clamp(v.g5 + 0.95 * v.w_shut * (0.75 + 0.25 * math.sin(q.life_time * 400)), 0, 1);")
     s.append("v.g_veins = math.clamp(v.g5 * 0.6 + v.w_recoil * (0.7 + 0.3 * math.sin(q.life_time * 2600)), 0, 1);")
+    # the leap back (2.3, phase `leap`): a crouch, the body off the ground from 0.35 s to 1.15 s (the server carries it
+    # back over the ground in that time), the landing
+    s.append(f"v.lp_c = {pl('v.pt', [(0, 0), (0.28, 1), (0.38, 0.2), (0.45, 0)])};")
+    # (the legs reach down again from 0.85 s, so the feet are under him when the server sets him down at 1.15 s)
+    s.append(f"v.lp_a = {pl('v.pt', [(0.3, 0), (0.45, 1), (0.85, 1), (1.12, 0)])};")
+    s.append(f"v.lp_l = {pl('v.pt', [(1.1, 0), (1.25, 1), (1.6, 0)])};")
     return s
 
 
@@ -443,7 +453,8 @@ def pose_iii(rig):
         "v.p_br = math.mod(v.wp + 180, 360) / 360;", "v.p_fr = math.mod(v.wp + 90, 360) / 360;",
         "v.kopen = v.w_vent;",
         # how far the body rides below the bind pose (units): the legs are solved against this every frame
-        f"v.by = -{DROP_III} + 1.4 * v.breath * (1 - v.walk) - 1.3 * v.walk * math.abs(math.sin(v.wp * 2)) - 3 * v.w_chargew - {WINDOW_CROUCH} * v.w_window;",
+        f"v.by = -{DROP_III} + 1.4 * v.breath * (1 - v.walk) - 1.3 * v.walk * math.abs(math.sin(v.wp * 2)) - 3 * v.w_chargew - {WINDOW_CROUCH} * v.w_window"
+        " - 8 * v.w_leap * v.lp_c - 6 * v.w_leap * v.lp_l;",
     ]
     # Planted feet stay where they are planted.  For each leg the ankle's place under the hip follows from the
     # cycle (stance: carried straight back at the speed the body goes forward; swing: lifted and brought forward),
@@ -458,7 +469,7 @@ def pose_iii(rig):
         pre += [
             f"v.su_{tag} = ({P_} > {BETA_III}) ? ({P_} - {BETA_III}) / {1 - BETA_III} : 0;",
             f"v.lx_{tag} = ({P_} < {BETA_III}) ? {xm:.3f} + {stance} * (0.5 - {P_} / {BETA_III}) : {xm - stance / 2:.3f} + {stance} * v.su_{tag} * v.su_{tag} * (3 - 2 * v.su_{tag});",
-            f"v.lh_{tag} = {h0 - 1.2:.3f} + v.by - {LIFT_III} * math.sin(180 * v.su_{tag}) * v.walk;",      # (1.2: the sole clears the ground through the body's small roll)
+            f"v.lh_{tag} = {h0 - 1.2:.3f} + v.by - {LIFT_III} * math.sin(180 * v.su_{tag}) * v.walk - 22 * v.w_leap * v.lp_a;",      # (1.2: the sole clears the ground through the body's small roll; in a leap the feet are drawn up)
             f"v.ld_{tag} = math.min(math.sqrt(v.lx_{tag} * v.lx_{tag} + v.lh_{tag} * v.lh_{tag}), {la + lb - 0.5});",
             f"v.lg_{tag} = math.atan2(v.lx_{tag}, v.lh_{tag});",
             f"v.la_{tag} = math.acos(math.clamp(({la * la - lb * lb} + v.ld_{tag} * v.ld_{tag}) / ({2 * la} * v.ld_{tag}), -1, 1));",
@@ -470,22 +481,25 @@ def pose_iii(rig):
             pre += [f"v.lu_{tag} = v.lg_{tag} + v.la_{tag};", f"v.ll_{tag} = v.lu_{tag} - 180 + v.lk_{tag};"]
     L = LOOK["iii"]
     # weight moves over the legs that stay down just before the opposite foot lifts
-    p.pos("body", x="1.5 * v.walk * math.cos(v.wp - 110)", y="v.by")
-    p.rot("body", z="0.8 * v.walk * math.cos(v.wp - 110)", x=f"v.pitch - 2 * v.w_roar + 1.2 * v.w_ground * {SHUDDER(1400)}")
+    p.pos("body", x="1.5 * v.walk * math.cos(v.wp - 110)", y="v.by", z="-10 * v.w_bite * v.st_hit + 4 * v.w_bite * v.st_wind")
+    p.rot("body", z="0.8 * v.walk * math.cos(v.wp - 110)",
+          x=f"v.pitch - 2 * v.w_roar + 1.2 * v.w_ground * {SHUDDER(1400)} - 6 * v.w_leap * v.lp_a + 3 * v.w_bite * (v.st_hit - v.st_wind)")
     p.rot("chest", y=f"v.ly_chest * {L['yaw']['chest']}", x=f"-1.0 * v.breath - 1.5 * v.w_fire + 3 * v.w_pour - 8 * v.w_rear")
-    p.rot("hips", y="-v.bend * 0.3")
+    p.rot("hips", y="-v.bend * 0.3 - 8 * v.w_sweep * v.sw_side * v.sw_c")
     for i in range(1, 6):
         p.rot(f"neck{i}", y=f"v.ly_neck * {L['yaw'][f'neck{i}']}",
               x=f"v.lp_neck * {L['pitch'][f'neck{i}']} + 0.5 * v.breath - 1.5 * v.w_chargew - 4 * v.w_roar + 3 * v.w_ground"
-                f" + 0.8 * v.walk * math.sin(v.wp * 2 - {i * 30}) + {WINDOW_NECK[i - 1]} * v.w_window")
+                f" + 0.8 * v.walk * math.sin(v.wp * 2 - {i * 30}) + {WINDOW_NECK[i - 1]} * v.w_window + v.w_bite * (5 * v.st_hit - 6 * v.st_wind)")
     # at the window the neck goes down steeply from the shoulders and levels out again, and the skull
     # turns and rolls until one small eye is square to the glass
     p.rot("head", y=f"v.ly_head * {L['yaw']['head']} + {WINDOW_HEAD[1]} * v.w_window",
-          x=f"v.lp_head * {L['pitch']['head']} - 4 * v.w_chargew - 24 * v.w_roar + 1.4 * v.roar_env * {SHUDDER(2100, 2)} - 1.5 * v.voice + 14 * v.w_ground + 1.2 * v.w_fire * {SHUDDER(2400)} + {WINDOW_HEAD[0]} * v.w_window",
+          x=f"v.lp_head * {L['pitch']['head']} - 4 * v.w_chargew - 24 * v.w_roar + 1.4 * v.roar_env * {SHUDDER(2100, 2)} - 1.5 * v.voice + 14 * v.w_ground + 1.2 * v.w_fire * {SHUDDER(2400)} + {WINDOW_HEAD[0]} * v.w_window"
+            " + v.w_bite * (12 * v.st_hit - 20 * v.st_wind)",
           z=f"{WINDOW_HEAD[2]} * v.w_window")
     p.pos("head", z=f"1.6 * v.w_fire * {SHUDDER(2700, 1)}", y="2.2 * v.knock")
     # (the pour, 1.8: the jaw opens wider still while the breath floods the ground)
-    p.rot("jaw", x=f"2.2 * v.breath + v.w_chargew * v.charge * 0.9 + 16 * v.w_fire + 10 * v.w_pour + 22 * v.w_rear + 5 * v.w_roar + v.vjaw + 27 * v.roar_env * (1 + 0.05 * {SHUDDER(2900)}) + 6 * v.w_vent + 8 * v.w_ground")
+    p.rot("jaw", x=f"2.2 * v.breath + v.w_chargew * v.charge * 0.9 + 16 * v.w_fire + 10 * v.w_pour + 22 * v.w_rear + 5 * v.w_roar + v.vjaw + 27 * v.roar_env * (1 + 0.05 * {SHUDDER(2900)}) + 6 * v.w_vent + 8 * v.w_ground"
+                   " + v.w_bite * (38 * v.st_wind + 4 * v.st_hit)")
     for tag in ("fl", "fr", "bl", "br"):
         front = tag[0] == "f"
         rest = leg_iii(rig, tag)[2]
@@ -498,8 +512,9 @@ def pose_iii(rig):
         p.rot(f"foot_{tag}", x=f"v.ll_{tag} - {rest[2]} + 14 * math.sin(180 * v.su_{tag}) * v.walk")
     for i in range(1, 9):
         p.rot(f"tail{i}", y=f"-v.ts * {0.35 + 0.09 * i:.2f} + 2.4 * v.walk * math.sin(v.wp - {i * 50}) + 1.2 * math.sin(q.life_time * 30 - {i * 35})"
-                             f" + {1.5 * i} * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5)",
-              x=f"-1.7 * v.w_chargew + 0.25 * v.breath" + (f" + {TAIL_LIFT_III}" if i == 1 else ""))
+                             f" + {1.5 * i} * v.w_ground * math.sin(v.pt * 900) * math.max(0, 1 - v.pt * 1.5)"
+                             f" - {5 + 2.6 * i:.1f} * v.w_sweep * v.sw_side * v.sw_c",
+              x=f"-1.7 * v.w_chargew + 0.25 * v.breath + 3 * v.w_leap * v.lp_a" + (f" + {TAIL_LIFT_III}" if i == 1 else ""))
     p.rot("club", z="4 * v.w_chargew * math.sin(q.life_time * 2100)")
     for s, sgn in (("l", 1), ("r", -1)):
         for i in (1, 2, 3):
@@ -526,7 +541,7 @@ def pose_iv(rig):
         f"v.wp4 = math.mod(v.wp4 + v.dd * {180 / half:.4f} + math.clamp(v.werr4, -40 * v.dt, 40 * v.dt) * math.clamp(v.dd / (v.dt + 0.0001) / 0.8, 0, 1) + 360, 360);",
         "v.p_l = math.mod(v.wp4, 360) / 360;", "v.p_r = math.mod(v.wp4 + 180, 360) / 360;",
         # the wings slam open and fold slowly
-        "v.wo_t = math.max(v.w_rear, math.max(v.w_recoil, math.max(0.85 * v.w_roar, math.max(v.w_evolve, math.max(0.7 * v.w_rise, math.max(0.3 * v.w_fire, math.max(0.45 * v.w_pivot, math.max(0.5 * v.w_bite, 0.6 * v.w_fall))))))));",
+        "v.wo_t = math.max(0.9 * v.w_leap * v.lp_a, math.max(v.w_rear, math.max(v.w_recoil, math.max(0.85 * v.w_roar, math.max(v.w_evolve, math.max(0.7 * v.w_rise, math.max(0.3 * v.w_fire, math.max(0.45 * v.w_pivot, math.max(0.5 * v.w_bite, 0.6 * v.w_fall)))))))));",
         # the lunge (phase `bite`): he rears back for a third of a second, then throws his jaws and his right hand forward
         f"v.st_wind = {pl('v.pt', [(0, 0), (0.32, 1), (0.46, 0)])};",
         f"v.st_hit = {pl('v.pt', [(0.32, 0), (0.46, 1), (0.72, 1), (1.15, 0)])};",
@@ -547,7 +562,8 @@ def pose_iv(rig):
         "v.dr_reach = math.clamp(v.pt / 2.5, 0, 1) * (1 - math.clamp((v.pt - 4.2) / 0.5, 0, 1));",
         "v.dr_haul = math.clamp((v.pt - 4.2) / 0.5, 0, 1);",
         # how far the body rides below the bind pose (units): the legs are solved against this every frame
-        "v.by4 = -1.5 * v.breath * (1 - v.walk) - 3 * v.walk * math.abs(math.sin(v.wp4)) - 4 * v.w_chargew - 9 * v.w_drag * v.dr_reach - 5 * v.w_skid - 24 * v.fa2;",
+        "v.by4 = -1.5 * v.breath * (1 - v.walk) - 3 * v.walk * math.abs(math.sin(v.wp4)) - 4 * v.w_chargew - 9 * v.w_drag * v.dr_reach - 5 * v.w_skid - 24 * v.fa2"
+        " - 10 * v.w_leap * v.lp_c - 8 * v.w_leap * v.lp_l;",
     ]
     for tag, sgn in (("l", 1), ("r", -1)):
         la, lb, rest = leg_iii(rig, tag)
@@ -559,7 +575,7 @@ def pose_iv(rig):
             f"v.su4_{tag} = ({P_} > {BETA_IV}) ? ({P_} - {BETA_IV}) / {1 - BETA_IV} : 0;",
             f"v.lx4_{tag} = ({P_} < {BETA_IV}) ? {xm:.3f} + {stance} * (0.5 - {P_} / {BETA_IV}) : {xm - stance / 2:.3f} + {stance} * v.su4_{tag} * v.su4_{tag} * (3 - 2 * v.su4_{tag});",
             # (pivoting on the planted club, the foot on the side he will sweep towards comes off the ground)
-            f"v.lh4_{tag} = {h0 - 1.0:.3f} + v.by4 - {LIFT_IV} * math.sin(180 * v.su4_{tag}) * v.walk - 34 * v.w_pivot * math.clamp({sgn} * v.bend * 0.1, 0, 1);",
+            f"v.lh4_{tag} = {h0 - 1.0:.3f} + v.by4 - {LIFT_IV} * math.sin(180 * v.su4_{tag}) * v.walk - 34 * v.w_pivot * math.clamp({sgn} * v.bend * 0.1, 0, 1) - 34 * v.w_leap * v.lp_a;",
             f"v.ld4_{tag} = math.min(math.sqrt(v.lx4_{tag} * v.lx4_{tag} + v.lh4_{tag} * v.lh4_{tag}), {la + lb - 0.5});",
             f"v.lg4_{tag} = math.atan2(v.lx4_{tag}, v.lh4_{tag});",
             f"v.la4_{tag} = math.acos(math.clamp(({la * la - lb * lb} + v.ld4_{tag} * v.ld4_{tag}) / ({2 * la} * v.ld4_{tag}), -1, 1));",
@@ -569,7 +585,7 @@ def pose_iv(rig):
     L = LOOK["iv"]
     # weight goes over the foot that is down
     p.pos("body", x="2 * v.walk * math.cos(v.wp4 - 108)", y="v.by4", z="5 * v.w_skid")
-    p.rot("body", x=f"v.pitch - 3 * v.w_roar - 6 * v.w_skid + 1.2 * v.w_ground * {SHUDDER(1400)}",
+    p.rot("body", x=f"v.pitch - 3 * v.w_roar - 6 * v.w_skid + 1.2 * v.w_ground * {SHUDDER(1400)} - 8 * v.w_leap * v.lp_a",
           z=f"1.4 * v.walk * math.cos(v.wp4 - 108) + 2.5 * v.w_fall * (1 - v.fa) * {SHUDDER(1300)}")
     # he bends at the waist, so his feet stay where they are
     p.rot("chest", y=f"v.ly_chest * {L['yaw']['chest']} + 3 * v.walk * math.sin(v.wp4 - 108) + 14 * v.w_sweep * v.sw_side * math.max(v.sw_c, 0)"

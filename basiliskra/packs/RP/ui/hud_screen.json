@@ -23,6 +23,9 @@
       },
       {
         "basiliskra_boss_bar@hud.basiliskra_boss_bar": {}
+      },
+      {
+        "vathrok_boss_bar@hud.vathrok_boss_bar": {}
       }
     ],
     "bindings": [
@@ -118,7 +121,96 @@
       },
       {
         "binding_type": "view",
-        "source_property_name": "((#bossName = 'Basiliskra') or (#bossName = 'Basiliskra I') or (#bossName = 'Basiliskra II') or (#bossName = 'Basiliskra III') or (#bossName = 'Basiliskra IV'))",
+        "source_property_name": "(((not ((#bossName - 'Basiliskra') = #bossName)) or (not ((#bossName - 'basiliskra:basiliskra') = #bossName))) and ((#bossName - 'athrok') = #bossName))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "vathrok_boss_bar": {
+    "type": "panel",
+    "size": [
+      182,
+      20
+    ],
+    "anchor_from": "top_middle",
+    "anchor_to": "top_middle",
+    "layer": 60,
+    "controls": [
+      {
+        "vathrok_frame": {
+          "type": "image",
+          "texture": "textures/ui/vathrok_boss_frame",
+          "size": [
+            182,
+            20
+          ],
+          "layer": 1
+        }
+      },
+      {
+        "vathrok_fill": {
+          "type": "image",
+          "texture": "textures/ui/vathrok_boss_fill",
+          "size": [
+            170,
+            6
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "offset": [
+            6,
+            12
+          ],
+          "layer": 2,
+          "clip_direction": "left",
+          "clip_pixelperfect": false,
+          "bindings": [
+            {
+              "binding_name": "#progress_percentage",
+              "binding_name_override": "#clip_ratio",
+              "binding_type": "collection",
+              "binding_collection_name": "boss_bars"
+            }
+          ]
+        }
+      },
+      {
+        "vathrok_name": {
+          "type": "label",
+          "text": "#bossName",
+          "color": [
+            0.8,
+            1.0,
+            0.62
+          ],
+          "shadow": true,
+          "enable_profanity_filter": true,
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "offset": [
+            0,
+            2
+          ],
+          "layer": 3,
+          "bindings": [
+            {
+              "binding_name": "#bossName",
+              "binding_type": "collection",
+              "binding_collection_name": "boss_bars"
+            }
+          ]
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "binding_name": "#bossName",
+        "binding_type": "collection",
+        "binding_collection_name": "boss_bars"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((not ((#bossName - 'Vathrok') = #bossName)) or (not ((#bossName - 'vathrok') = #bossName)))",
         "target_property_name": "#visible"
       }
     ]

@@ -161,6 +161,8 @@ export class Creature {
   lethal = 0;
   /** Whose colours its breath is drawn in: "" his red, "v" Vathrok's green (beam.ts tint). */
   hue = "";
+  /** Off the ground (a leap, 2.3): his brain carries him through the air; he neither walks nor settles onto the ground. */
+  airborne = false;
   haste = 1;
 
   constructor(readonly entity: Entity, form: Form = store.rec.form) {
@@ -643,6 +645,7 @@ export class Creature {
 
   /** One tick of locomotion.  Returns the distance covered. */
   private locomote(): number {
+    if (this.airborne) { this.speed = 0; return 0; }
     const m = MOVE[this.form];
     let wantSpeed = 0;
     this.plan();

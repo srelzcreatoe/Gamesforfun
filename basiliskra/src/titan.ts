@@ -62,6 +62,7 @@ export class BrainTitan extends BrainFour {
     this.home = { ...home };
     this.spec = TITAN_SPEC;
     this.giantSight = 240;
+    this.blows = { bite: BLOW.lunge, tail: BLOW.tail, lunge: BLOW.lunge, swipe: BLOW.swipe, ram: BLOW.ram };
     c.set(PROP.gill, false);
   }
 
@@ -86,7 +87,7 @@ export class BrainTitan extends BrainFour {
     if (this.reeling) {
       this.reeling = false;
       // a breath being drawn or let go is not broken off by a blow, nor a roar
-      if (["charge", "fire", "pour", "skid", "pivot", "roar", "vent", "fall", "swipe"].includes(this.c.phase)) return null;
+      if (["charge", "fire", "pour", "skid", "pivot", "roar", "vent", "fall", "swipe", "leap"].includes(this.c.phase)) return null;
       return { name: "reel", run: this.reel(), limit: 3 * TICKS.second };
     }
     // with no giant to fight, small things that come within reach of its claws are swiped at (as he does)
@@ -115,7 +116,7 @@ export class BrainTitan extends BrainFour {
     if (d < reach + 14) {
       // at arm's length: the tail for what is beside or behind it, jaws and claws for what is in front
       if (Math.abs(bearing) > 55 && this.ready("tail")) { this.rest("tail", 6 * TICKS.second); return { name: "tail", run: this.tail(bearing >= 0 ? 1 : -1), limit: 4 * TICKS.second }; }
-      if (this.ready("lunge")) { this.rest("lunge", 3.5 * TICKS.second); return { name: "lunge", run: this.lunge(foe), limit: 5 * TICKS.second }; }
+      if (this.ready("lunge")) { this.rest("lunge", 3.5 * TICKS.second); return { name: "lunge", run: this.lunge({ g: foe, e: foe.entity }), limit: 5 * TICKS.second }; }
       // (1.8) its claws, while its jaws are not ready (now and then: it also walks round between blows)
       if (Math.abs(bearing) <= 60 && this.ready("swipe") && hash(now, 88) < 0.6) {
         this.rest("swipe", 7 * TICKS.second);
@@ -126,10 +127,16 @@ export class BrainTitan extends BrainFour {
     }
     // the breath: from as far as it can see, and in the enemy's face when it comes to that
     if (this.ready("beam") && now >= this.recoverUntil && d < this.spec.range - 10) {
+      if (d < reach + 16 && this.ready("leap")) {
+        // too close to breathe at it: it leaps back to have room, and breathes as it lands (2.3)
+        this.rest("leap", 12 * TICKS.second);
+        this.rest("beam", 16 * TICKS.second);
+        return { name: "leap", run: this.leapAndBreathe({ g: foe, e: foe.entity }), limit: 60 * TICKS.second };
+      }
       if (d < reach + 14 && hash(now, 81) < 0.55) this.rest("beam", 5 * TICKS.second);       // not yet: it keeps to its hands
       else if (clearLine(c.dim, c.anchor("mouth"), foe.middle())) {
         this.rest("beam", 15 * TICKS.second);
-        return { name: "beam", run: this.breath(foe.entity), limit: 60 * TICKS.second };
+        return { name: "beam", run: this.breatheAt({ g: foe, e: foe.entity }), limit: 60 * TICKS.second };
       }
     }
     if (d > reach + 34 && this.ready("ram")) { this.rest("ram", 22 * TICKS.second); return { name: "ram", run: this.ram(foe), limit: 30 * TICKS.second }; }
@@ -137,6 +144,11 @@ export class BrainTitan extends BrainFour {
     // toe to toe with nothing ready: it turns to keep the enemy in front of it
     return { name: "square", run: this.square(foe), limit: 2 * TICKS.second };
   }
+
+  protected leapReach(): { far: number; high: number } { return { far: 32, high: 9 }; }
+  /** Its breath at another giant (when it leaps back first). */
+  protected duelBreath(e: Entity): Act { return this.breath(e); }
+  protected breathGap(): number { return 16 * TICKS.second; }
 
   /** Its breath is whole every time: nothing fails in its mouth, nothing is swallowed, no plate is shed. */
   protected *breath(target: Quarry): Act {
@@ -197,85 +209,6 @@ export class BrainTitan extends BrainFour {
     c.halt();
   }
 
-  /** What a blow does where it lands: the noise of it, the shake, and the ground under it. */
-  private impact(at: V3, big: boolean): void {
-    const c = this.c;
-    sound(c.dim, "random.explode", at, 160, 1.6, big ? 0.5 : 0.62);
-    sound(c.dim, "basiliskra.iii.step", at, 160, 1, 0.5);
-    particle(c.dim, "basiliskra:impact_blast", at, 160);
-    particle(c.dim, "basiliskra:impact_debris", at, 128);
-    particle(c.dim, "basiliskra:impact_ring", { x: at.x, y: c.pos.y + 0.4, z: at.z }, 160);
-    particle(c.dim, "minecraft:huge_explosion_emitter", at, 160);
-    shake(c, 128, big ? 1.2 : 0.8, 0.5);
-  }
-
-  /** Jaws and the right hand, thrown forward: whatever is in front of it and within its reach is struck. */
-  private *lunge(foe: Creature): Act {
-    const c = this.c;
-    c.halt();
-    yield* this.turnTo(foe.pos, 3, 24);
-    c.lookAhead();
-    c.setPhase("bite");
-    c.say("basiliskra.iii.growl", c.anchor("nose"), 128, 1, 0.78);
-    for (let t = 0; t < 25; t++) {
-      if (t === 9) {
-        const f = forwardOf(c.yaw);
-        const front = { x: c.pos.x + f.x * (c.girth + 7), y: c.pos.y + 1, z: c.pos.z + f.z * (c.girth + 7) };
-        for (const g of otherGiants(c)) {
-          if (distXZ(g.pos, c.pos) > c.girth + g.girth + 15 || Math.abs(wrapDeg(yawTo(c.pos, g.pos) - c.yaw)) > 60) continue;
-          g.takeBlow(c, BLOW.lunge, true);
-          g.shove({ x: g.pos.x - c.pos.x, y: 0, z: g.pos.z - c.pos.z }, 5);
-          this.impact(add(c.pos, add(mul(f, c.girth + 5), { x: 0, y: 26, z: 0 })), false);
-        }
-        // and whatever small stands under the blow
-        blast(c.dim, front, 9, 10, c.mobHit(30), 1.4, (p, n) => c.hurt(p, n), c.entity, c.pos);
-      }
-      yield;
-    }
-    c.setPhase("idle");
-  }
-
-  /**
-   * The tail: it winds away, then lashes round to the side its head has turned to (`side`: +1 the side its yaw
-   * grows towards).  Everything on that side of it, from beside its shoulder round to behind it, is struck.
-   */
-  private *tail(side: 1 | -1): Act {
-    const c = this.c;
-    c.halt();
-    c.lookYaw = 70 * side; c.lookPitch = 0;
-    c.setPhase("sweep");
-    c.say("basiliskra.iii.growl", c.anchor("nose"), 128, 1, 0.7);
-    for (let t = 0; t < 36; t++) {
-      c.lookYaw = 70 * side;
-      if (t === 13) sound(c.dim, "basiliskra.iii.club_plant", c.anchor("club_core"), 160, 1, 1.3);
-      if (t === 15) {
-        let struck = false;
-        for (const g of otherGiants(c)) {
-          const b = wrapDeg(yawTo(c.pos, g.pos) - c.yaw) * side;
-          if (b < 35 || distXZ(g.pos, c.pos) > c.girth + g.girth + 28) continue;
-          g.takeBlow(c, BLOW.tail, true);
-          g.shove({ x: g.pos.x - c.pos.x, y: 0, z: g.pos.z - c.pos.z }, 9);
-          const mid = { x: (g.pos.x + c.pos.x) / 2, y: c.pos.y + 14, z: (g.pos.z + c.pos.z) / 2 };
-          this.impact(mid, true);
-          struck = true;
-        }
-        // the club's path over the ground: three places along its arc
-        for (const deg of [65, 105, 145]) {
-          const f = forwardOf(c.yaw + deg * side);
-          const at = { x: c.pos.x + f.x * 24, y: c.pos.y + 1.5, z: c.pos.z + f.z * 24 };
-          if (!isLoaded(c.dim, at)) continue;
-          blast(c.dim, at, 10, 10, c.mobHit(34), 1.8, (p, n) => c.hurt(p, n), c.entity, c.pos);
-          if (wither()) { const got = carve(c.dim, at, 4.2, 140, false); if (got.broken > 10) particle(c.dim, "basiliskra:impact_debris", at, 128); }
-          particle(c.dim, "basiliskra:step_dust", at, 128);
-        }
-        if (!struck) shake(c, 96, 0.5, 0.4);
-      }
-      yield;
-    }
-    c.lookAhead();
-    c.setPhase("idle");
-  }
-
   /** Its whole weight, at a run: it does not stop until it has hit the enemy or lost it. */
   private *ram(foe: Creature): Act {
     const c = this.c;
@@ -294,7 +227,7 @@ export class BrainTitan extends BrainFour {
         // (the faster it is going, the harder it lands)
         foe.takeBlow(c, BLOW.ram * Math.min(1, 0.5 + c.speed / 0.5), true);
         foe.shove(away, 11);
-        this.impact({ x: (foe.pos.x + c.pos.x) / 2, y: c.pos.y + 22, z: (foe.pos.z + c.pos.z) / 2 }, true);
+        this.duelImpact({ x: (foe.pos.x + c.pos.x) / 2, y: c.pos.y + 22, z: (foe.pos.z + c.pos.z) / 2 }, true);
         break;
       }
       if (c.blocked > 60) break;

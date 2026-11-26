@@ -141,6 +141,7 @@ export abstract class Brain {
     this.act = null; this.actName = "none";
     const c = this.c;
     c.halt();
+    c.airborne = false;           // (a leap cut short comes down)
     c.lookAhead();
     c.bendHold = 0;
     c.pitch = 0;

@@ -7,6 +7,8 @@ An original survival-horror add-on for Minecraft Bedrock. One creature per save.
 * **Experiments:** none. **Cheats:** none. **Commands:** none needed.
 * **Graphics:** standard Bedrock rendering; Vibrant Visuals supported (PBR texture sets with emissive glow).
 
+> **2.3**: **fighting another giant, he keeps the distance his breath wants and closes in to fight with his body.** Too close to breathe at a Titan, a Vathrok or another add-on's giant monster, Basiliskra III and IV (and the Titans) **leap back**, a crouch and a jump of 22 to 32 blocks back over the ground, and breathe at it as they land; with the breath spent they walk back in and use **jaws, club, claws and tail** (Form III now wheels round side-on to bring his club across), and when the breath is ready again they leap back again. **Vathrok has its own custom boss bar** (slate frame, green crystal spines, acid-green eyes and fill), and **both custom bars are fixed**: 2.2's look never showed in the game, because it was drawn only for a bar whose title was exactly his name, and the title the game gives the bar is not exactly that. Each bar is now drawn for any title that contains its name, the test other add-ons' custom boss bars use. Also fixed: Form IV and the Titan threw a script error whenever they turned on the spot, and Form IV's breath at another giant no longer swings him 70 blocks away round his club.
+>
 > **2.2**: **his own health bar at the top of the screen**: a boss bar in his colours (a charcoal frame with crimson plates and his pale eyes, his name, a crimson fill with glowing cracks), for everyone within 128 blocks of him. 2.1's bar never appeared (it was added to him by an event while the game was running; the game only shows a boss bar that is part of the entity from the start, as the Wither's is); it now is. Other boss bars keep the game's look; the Titans keep their health line over the hotbar. Also fixed from the content log: the `armor_offset.default_neck` locator clash in his forms II, III and IV, and the `variable.width` errors from two of his effects.
 >
 > **2.1**: a health bar for him (it did not appear in the game; fixed in 2.2).
@@ -41,7 +43,7 @@ In game: a **journal** (how angry he is, as a percentage, when he will come, and
 
 | File | What it is |
 |---|---|
-| `dist/Basiliskra-2.2.0.mcaddon` | behaviour pack + resource pack, ready to import |
+| `dist/Basiliskra-2.3.0.mcaddon` | behaviour pack + resource pack, ready to import |
 | `models/basiliskra_i.bbmodel`, `_ii`, `_iii`, `_iv`, `models/vathrok.bbmodel` | the editable Blockbench models (his four forms, and Vathrok), textures and animations embedded |
 | `docs/SURVIVAL_GUIDE.md` | install, what calls him, the four stages, cities, the Seam Lance, the Titan, the ending, settings |
 | `previews/*.mp4` | reference videos (see below) |

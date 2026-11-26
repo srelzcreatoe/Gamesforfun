@@ -35,7 +35,7 @@ import { RoarFx, shake } from "../roar";
 import { store, type Rec } from "../store";
 import { add, clamp, dist, distXZ, hash, leftOf, mul, norm, sub, turnTowards, wrapDeg, yawTo, type V3 } from "../vec";
 import { NONE, UNLOADED, blockAt, clearLine, groundY, isLoaded, isSolidBlock, isWaterId, idAt } from "../world";
-import { BrainThree, CHARGE_TICKS, LIGHT_END, PLANT_TICKS, Quarry, aimOf, headOf, isFlyer, isPlayer, standOff } from "./three";
+import { BrainThree, CHARGE_TICKS, LIGHT_END, PLANT_TICKS, Quarry, aimOf, headOf, isFlyer, isPlayer, standOff, type Foe } from "./three";
 
 /** His breath: thicker, hotter and three times as long in the reach as it ever was. */
 const SPEC: BeamSpec = { range: 150, radius: 2.4, damage: 11, width: 4.0, carve: 3.8, fallout: 6 };   // (his mouth stands 5 blocks open)
@@ -101,6 +101,9 @@ export class BrainFour extends BrainThree {
     // the ending borrows him for a charge beside the seam, as it did when he was Basiliskra III
     if (this.wantCharge) { this.wantCharge = false; return { name: "charge", run: this.beam(null), limit: 40 * TICKS.second }; }
     if (!F.debut) return { name: "debut", run: this.debut(), limit: 60 * TICKS.second };
+    // another giant: he fights it, keeping the distance his breath wants and closing for his jaws, claws and tail (2.3)
+    const k = this.kaiju();
+    if (k) { const ch = this.duel(k); if (ch) return ch; }
     const near = nearbyPlayers(c, 170);
     const mobs = this.creatures();
     if (!this.cooldown.has("rroar")) this.rest("rroar", (40 + 60 * hash(now, 91)) * TICKS.second);
@@ -149,6 +152,94 @@ export class BrainFour extends BrainThree {
     const town = settlementNear(c, now);
     if (town) return { name: "raze", run: this.raze(town), limit: 150 * TICKS.second };
     return { name: "roam", run: this.roam(), limit: 90 * TICKS.second };
+  }
+
+  // ---- another giant (2.3) ----------------------------------------------------------------------------------------
+  protected breathRange(): number { return this.spec.range - 6; }
+  protected duelBreath(e: Entity): Act { return this.breath(e); }
+  protected breathGap(): number { return 20 * TICKS.second; }
+  protected shuffleFeet(): string[] { return FEET; }
+  protected leapReach(): { far: number; high: number } { return { far: 28, high: 8 }; }
+
+  /** At close quarters: the tail for what is beside or behind him, jaws and hand for what is in front, then the claws. */
+  protected duelMelee(f: Foe, _d: number, _reach: number, bearing: number): Choice | null {
+    if (Math.abs(bearing) > 55 && this.ready("tail")) { this.rest("tail", 6 * TICKS.second); return { name: "tail", run: this.tail(bearing >= 0 ? 1 : -1), limit: 4 * TICKS.second }; }
+    if (this.ready("lunge")) { this.rest("lunge", 3.5 * TICKS.second); return { name: "lunge", run: this.lunge(f), limit: 5 * TICKS.second }; }
+    if (Math.abs(bearing) <= 60 && this.ready("swipe")) {
+      this.rest("swipe", 6 * TICKS.second);
+      return { name: "swipe", run: this.swipe(() => this.foeMiddle(f), f.g, this.blows.swipe), limit: 4 * TICKS.second };
+    }
+    return null;
+  }
+
+  /** Jaws and the right hand, thrown forward: whatever is in front of him and within his reach is struck (phase `bite`). */
+  protected *lunge(f: Foe): Act {
+    const c = this.c;
+    c.halt();
+    yield* this.turnTo(this.foeAt(f), 3, 24);
+    c.lookAhead();
+    c.setPhase("bite");
+    c.say("basiliskra.iii.growl", c.anchor("nose"), 128, 1, 0.78);
+    for (let t = 0; t < 25; t++) {
+      if (t === 9) {
+        const fw = c.forward;
+        const front = { x: c.pos.x + fw.x * (c.girth + 7), y: c.pos.y + 1, z: c.pos.z + fw.z * (c.girth + 7) };
+        for (const g of otherGiants(c)) {
+          if (distXZ(g.pos, c.pos) > c.girth + g.girth + 15 || Math.abs(wrapDeg(yawTo(c.pos, g.pos) - c.yaw)) > 60) continue;
+          g.takeBlow(c, this.blows.lunge, true);
+          g.shove({ x: g.pos.x - c.pos.x, y: 0, z: g.pos.z - c.pos.z }, 5);
+          this.duelImpact(add(c.pos, add(mul(fw, c.girth + 5), { x: 0, y: 26 * c.scale / 2, z: 0 })), false);
+        }
+        // another add-on's monster has no body of ours: it is struck where it stands
+        if (!f.g && this.foeAlive(f) && distXZ(f.e.location, front) < c.girth + 14) {
+          try { f.e.applyDamage(c.mobHit(this.blows.lunge), { cause: EntityDamageCause.entityAttack, damagingEntity: c.entity }); } catch { /* gone */ }
+        }
+        // and whatever small stands under the blow
+        blast(c.dim, front, 9, 10, c.mobHit(30), 1.4, (p, n) => c.hurt(p, n), c.entity, c.pos);
+      }
+      yield;
+    }
+    c.setPhase("idle");
+  }
+
+  /**
+   * The tail: it winds away, then lashes round to the side his head has turned to (`side`: +1 the side his yaw grows
+   * towards).  Everything on that side of him, from beside his shoulder round to behind him, is struck (phase `sweep`).
+   */
+  protected *tail(side: 1 | -1): Act {
+    const c = this.c;
+    c.halt();
+    c.lookYaw = 70 * side; c.lookPitch = 0;
+    c.setPhase("sweep");
+    c.say("basiliskra.iii.growl", c.anchor("nose"), 128, 1, 0.7);
+    for (let t = 0; t < 36; t++) {
+      c.lookYaw = 70 * side;
+      if (t === 13) sound(c.dim, "basiliskra.iii.club_plant", c.anchor("club_core"), 160, 1, 1.3);
+      if (t === 15) {
+        let struck = false;
+        for (const g of otherGiants(c)) {
+          const b = wrapDeg(yawTo(c.pos, g.pos) - c.yaw) * side;
+          if (b < 35 || distXZ(g.pos, c.pos) > c.girth + g.girth + 28) continue;
+          g.takeBlow(c, this.blows.tail, true);
+          g.shove({ x: g.pos.x - c.pos.x, y: 0, z: g.pos.z - c.pos.z }, 9);
+          this.duelImpact({ x: (g.pos.x + c.pos.x) / 2, y: c.pos.y + 14, z: (g.pos.z + c.pos.z) / 2 }, true);
+          struck = true;
+        }
+        // the club's path over the ground: three places along its arc
+        for (const deg of [65, 105, 145]) {
+          const a = (c.yaw + deg * side) * Math.PI / 180;
+          const at = { x: c.pos.x - Math.sin(a) * 24, y: c.pos.y + 1.5, z: c.pos.z + Math.cos(a) * 24 };
+          if (!isLoaded(c.dim, at)) continue;
+          blast(c.dim, at, 10, 10, c.mobHit(34), 1.8, (p, n) => c.hurt(p, n), c.entity, c.pos);
+          if (wither()) { const got = carve(c.dim, at, 4.2, 140, false); if (got.broken > 10) particle(c.dim, "basiliskra:impact_debris", at, 128); }
+          particle(c.dim, "basiliskra:step_dust", at, 128);
+        }
+        if (!struck) shake(c, 96, 0.5, 0.4);
+      }
+      yield;
+    }
+    c.lookAhead();
+    c.setPhase("idle");
   }
 
   // ---- the claws (1.8) ------------------------------------------------------------------------------------------
@@ -465,6 +556,8 @@ export class BrainFour extends BrainThree {
     this.ps = freshPour(); this.markAt = null;
     const ok = () => { try { return !target || (target.isValid && target.dimension.id === c.dim.id); } catch { return false; } };
     const flying = !!target && isFlyer(target);
+    // (2.3) at another giant he does not turn on his club, which would carry him far from it: his head stays on it
+    const duel = !flying && this.inDuel;
     const pitchMax = flying ? 80 : 50;
     // (1.9) his head goes down to the ground in front of him while it gathers; black smoke pours out onto it and
     // catches; he rears back to the sky; then the shot (pour.ts)
@@ -568,6 +661,8 @@ export class BrainFour extends BrainThree {
     let side = 0;                               // which way he will swing: +1 to his left, -1 to his right
     let pivot: V3 | null = null;                // the club, in the ground
     const flying = !!target && isFlyer(target);
+    // (2.3) at another giant he does not turn on his club, which would carry him far from it: his head stays on it
+    const duel = !flying && this.inDuel;
     // the pour: the ground in front of him floods with fire, then the breath narrows and lifts to its mark
     if (!flying && this.ps.origin) {
       // he slams forward: into the burning ground, and the beam sweeps up to the place he meant when his eye stopped
@@ -580,6 +675,10 @@ export class BrainFour extends BrainThree {
       if (flying) {
         // after something that flies he does not skid or turn on his club: he swings his head round with it, ahead of it
         if (live()) c.trackTo(aimOf(target!), 3.5, 80, 80);
+      } else if (duel) {
+        if (live()) c.trackTo(aim ? aim() : aimOf(target!), 1.2, 80, 60);
+        if (t >= SKID_AT && t < LIFT_AT) this.skid(t);
+        else if (t === LIFT_AT) c.setPhase("fire");
       } else if (t < SKID_AT) {
         // his head follows, slowly: stepping out of the line still works
         if (live()) {
@@ -587,12 +686,7 @@ export class BrainFour extends BrainThree {
           c.lookYaw += clamp(want - c.lookYaw, -0.3, 0.3);
         }
       } else if (t < LIFT_AT) {
-        // the breath shoves him backward on his heels
-        if (t === SKID_AT) { c.setPhase("skid"); c.say("basiliskra.iii.grunt", c.anchor("nose"), 96, 1, 0.74); }
-        const back = mul(c.forward, -0.07);
-        const to = { x: c.pos.x + back.x, y: c.pos.y, z: c.pos.z + back.z };
-        if (isLoaded(c.dim, to) && typeof groundY(c.dim, to.x, to.z, c.pos.y + 4, 10) === "number") c.pos = to;
-        if (t % 3 === 0) for (const h of ["heel_l", "heel_r"]) particle(c.dim, "basiliskra:step_dust", { ...c.anchor(h), y: c.pos.y + 0.2 }, 96);
+        this.skid(t);
       } else if (t < SWEEP_AT) {
         // he drives the club in, and the foot on the side he means to go comes off the ground: read it
         if (t === LIFT_AT) {
@@ -628,6 +722,16 @@ export class BrainFour extends BrainThree {
       yield;
     }
     c.bendHold = 0;
+  }
+
+  /** The breath shoves him backward on his heels. */
+  private skid(t: number): void {
+    const c = this.c;
+    if (t === SKID_AT) { c.setPhase("skid"); c.say("basiliskra.iii.grunt", c.anchor("nose"), 96, 1, 0.74); }
+    const back = mul(c.forward, -0.07);
+    const to = { x: c.pos.x + back.x, y: c.pos.y, z: c.pos.z + back.z };
+    if (isLoaded(c.dim, to) && typeof groundY(c.dim, to.x, to.z, c.pos.y + 4, 10) === "number") c.pos = to;
+    if (t % 3 === 0) for (const h of ["heel_l", "heel_r"]) particle(c.dim, "basiliskra:step_dust", { ...c.anchor(h), y: c.pos.y + 0.2 }, 96);
   }
 
   // ---- 3. the misfire: his wings take the recoil -----------------------------------------------------------------

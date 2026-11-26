@@ -1981,14 +1981,16 @@ console.log('\n== 22. The Titan');
     titans.spawn(dim, { x: 0, y: 64, z: 50 }, 180); w.sim.step(2);
     const tid = titans.creatures()[0].entity.id;
     const acts = new Set();
-    let away = -1;
+    let away = -1, fired = false;
     for (let i = 0; i < 6000 && away < 0; i++) {
       w.sim.step(1);
       if (w.bk.ctl.brain) acts.add(w.bk.ctl.brain.actName);
+      if (w.bk.ctl.creature?.phase === 'fire') fired = true;
       if (!w.bk.ctl.creature || w.bk.store.rec.ending?.step || w.bk.store.rec.stage !== 'alive') away = i + 1;
     }
     const onIt = w.sim.log.damage.filter((d) => d.id === tid).length, onHim = w.sim.log.damage.filter((d) => d.id === hid).length;
-    check('Basiliskra III turns on a Titan as well: he roars at it, goes for it, and burns it before it drives him off', (acts.has('lock') || acts.has('pursue')) && acts.has('beam') && onIt > 0 && onHim > 0 && away > 0,
+    // (from 2.3 his breath at a giant often comes at the end of a leap back, inside that act)
+    check('Basiliskra III turns on a Titan as well: he roars at it, goes for it, and burns it before it drives him off', (acts.has('lock') || acts.has('pursue') || acts.has('close')) && fired && onIt > 0 && onHim > 0 && away > 0,
       `${[...acts].join(' ')}; ${onIt} blows on the Titan, ${onHim} on him, gone after ${away} ticks`);
   }
 
@@ -2518,7 +2520,7 @@ console.log('\n== 27. Vathrok, the other kaiju: in survival, and for battles (2.
   w2.bk.CONFIG.vathrok = true;
 }
 
-console.log('\n== 28. His own health bar at the top of the screen (2.2)');
+console.log('\n== 28. His own health bar at the top of the screen (2.2), and Vathrok\'s (2.3)');
 {
   const ent = (n) => JSON.parse(fs.readFileSync(path.join(ROOT, `packs/BP/entities/${n}.json`), 'utf8'))['minecraft:entity'];
   const him = ent('basiliskra');
@@ -2527,7 +2529,14 @@ console.log('\n== 28. His own health bar at the top of the screen (2.2)');
   check('the Titans have none (their health line is their own); the survival Vathrok keeps its own',
     !JSON.stringify(ent('basiliskra_titan')).includes('minecraft:boss') && !JSON.stringify(ent('vathrok_titan')).includes('minecraft:boss') && !!ent('vathrok').components['minecraft:boss']);
   const ui = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/RP/ui/hud_screen.json'), 'utf8'));
-  const shown = JSON.stringify(ui.basiliskra_boss_bar.bindings);
+  // a bar's view expression worked out for one title, as the game would: (a - b) takes every b out of a
+  const shows = (key, title) => {
+    const view = ui[`${key}_boss_bar`].bindings.find((b) => b.binding_type === 'view' && b.target_property_name === '#visible');
+    let e = view.source_property_name.replace(/\(\(#bossName - '([^']*)'\) = #bossName\)/g, (_, w) => (title.includes(w) ? 'false' : 'true'));
+    if (!/^[\s()a-z]*$/.test(e.replace(/\b(true|false|not|and|or)\b/g, ''))) throw new Error(`cannot work out ${view.source_property_name}`);
+    e = e.replace(/\bnot\b/g, '!').replace(/\band\b/g, '&&').replace(/\bor\b/g, '||');
+    return new Function(`return ${e};`)();
+  };
   const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
   const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 0 }); ana.mode = 'Creative';
   const named = [];
@@ -2535,10 +2544,80 @@ console.log('\n== 28. His own health bar at the top of the screen (2.2)');
     w.bk.ctl.bringHere({ x: 0, y: 64, z: 60 }, 180, form); w.sim.step(30);
     named.push(w.bk.ctl.creature?.entity.nameTag);
   }
-  check('the name the script gives him in each form is one his own bar is drawn for', named.length === 3 && named.every((n) => shown.includes(`(#bossName = '${n}')`)), named.join(', '));
-  check('his bar: the game\'s boss bar entry with one control added, his frame and fill drawn over it', ui.namespace === 'hud' && ui.boss_health_panel.controls.length === 3
-    && fs.existsSync(path.join(ROOT, 'packs/RP/textures/ui/basiliskra_boss_frame.png')) && fs.existsSync(path.join(ROOT, 'packs/RP/textures/ui/basiliskra_boss_fill.png')));
+  const V = w.bk.vathrok.vathroks, dim = w.sim.dims.get('minecraft:overworld');
+  const v = V.spawn(dim, { x: 60, y: 64, z: -40 }, 0, false); w.sim.step(2);
+  const vname = [...V.list.values()].find((x) => !x.battle)?.c.entity.nameTag;
+  // the title as the game may give it: the name tag, that with formatting codes round it, the type's name, or its name key
+  const his = [...named, ...named.map((n) => `§f${n}§r`), 'Basiliskra', 'entity.basiliskra:basiliskra.name'];
+  const its = [vname, `§a${vname}`, 'Vathrok', 'entity.basiliskra:vathrok.name'];
+  const others = ['Wither', 'Ender Dragon', 'entity.wither.name', 'entity.ender_dragon.name', ''];
+  check('his own bar is drawn for every title his boss bar may have (his name tag in each form, with or without formatting codes, his type\'s name or its name key), and Vathrok\'s is not',
+    named.length === 3 && named.every((n) => /^Basiliskra (II|III|IV)$/.test(n)) && his.every((t) => shows('basiliskra', t) && !shows('vathrok', t)), his.join(' | '));
+  check('Vathrok\'s own bar is drawn for every title its boss bar may have, and his is not', !!v && vname === 'Vathrok' && its.every((t) => shows('vathrok', t) && !shows('basiliskra', t)), its.join(' | '));
+  check('any other boss bar (the Wither\'s, the Ender Dragon\'s) is left as the game draws it', others.every((t) => !shows('basiliskra', t) && !shows('vathrok', t)));
+  const tex = (n) => fs.existsSync(path.join(ROOT, `packs/RP/textures/ui/${n}.png`));
+  check('the bars: the game\'s boss bar entry with his and Vathrok\'s added, each with its frame and fill drawn over the game\'s', ui.namespace === 'hud'
+    && JSON.stringify(ui.boss_health_panel.controls.slice(2)) === JSON.stringify([{ 'basiliskra_boss_bar@hud.basiliskra_boss_bar': {} }, { 'vathrok_boss_bar@hud.vathrok_boss_bar': {} }])
+    && ['basiliskra', 'vathrok'].every((k) => tex(`${k}_boss_frame`) && tex(`${k}_boss_fill`) && JSON.stringify(ui[`${k}_boss_bar`]).includes(`textures/ui/${k}_boss_fill`))
+    && ui.vathrok_boss_bar.layer > ui.basiliskra_boss_bar.layer);
   check('his forms\' geometries are in a format the game makes no armor locators of its own for (1.16.0)', ['i', 'ii', 'iii', 'iv'].every((t) => JSON.parse(fs.readFileSync(path.join(ROOT, `packs/RP/models/entity/basiliskra_${t}.geo.json`), 'utf8')).format_version === '1.16.0'));
+}
+
+console.log('\n== 29. Against another giant: back to breathe, in to fight (2.3)');
+{
+  const duel = (form, label) => {
+    const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+    const eye = w.sim.addPlayer('Eye', { x: 30, y: 64, z: -30 }); eye.mode = 'Creative';
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 0 }, 0, form);
+    for (let i = 0; i < 200 && !w.bk.ctl.creature; i++) w.sim.step(1);
+    w.sim.step(5);
+    const c = () => w.bk.ctl.creature;
+    // a stand-in for another add-on's giant, just in front of him: a million health, it does not move or fight back
+    const g = w.sim.summon('z:kaiju', 'minecraft:overworld', { x: 0, y: 64, z: c().girth + 14 });
+    Object.assign(g.rec, { family: ['monster'], health: 1e6, maxHealth: 1e6, height: 30 });
+    // (a giant that size is not thrown about by his blows: the simulation would carry it out of the loaded chunks)
+    const pin = { ...g.rec.loc };
+    const acts = [], seen = { leapFrom: null, leapTo: null, top: 0, ground: 64, firedAfterLeap: false, leapEnded: -1 };
+    let prevPhase = '', closeDist = Infinity;
+    for (let i = 0; i < 3200; i++) {
+      g.rec.loc = { ...pin }; g.rec.vel = { x: 0, y: 0, z: 0 };
+      w.sim.step(1);
+      const b = w.bk.ctl.brain, cr = c();
+      if (!cr) break;
+      if (b && acts[acts.length - 1] !== b.actName) acts.push(b.actName);
+      const ph = cr.phase, d = Math.hypot(cr.pos.x - g.rec.loc.x, cr.pos.z - g.rec.loc.z);
+      if (ph === 'leap') {
+        if (prevPhase !== 'leap') seen.leapFrom = d;
+        seen.top = Math.max(seen.top, cr.pos.y - 64);
+      } else if (prevPhase === 'leap') { seen.leapTo = d; seen.leapEnded = i; seen.landY = cr.pos.y; }
+      if (ph === 'fire' && seen.leapEnded >= 0 && i - seen.leapEnded < 260) seen.firedAfterLeap = true;
+      if (seen.firedAfterLeap) closeDist = Math.min(closeDist, d);
+      prevPhase = ph;
+    }
+    const hits = w.sim.log.damage.filter((x) => x.id === g.id);
+    return { acts, seen, hits, closeDist, girth: c()?.girth ?? 0 };
+  };
+  for (const [form, label, melee] of [[3, 'III', ['bite', 'tail']], [4, 'IV', ['lunge', 'swipe', 'tail']]]) {
+    const r = duel(form, label);
+    check(`Basiliskra ${label}, too close to breathe at another giant, leaps back off the ground and comes down further away, on the ground`,
+      r.seen.leapFrom !== null && r.seen.top >= 3 && r.seen.leapTo - r.seen.leapFrom >= 10 && Math.abs(r.seen.landY - 64) < 1.5,
+      `${r.seen.leapFrom?.toFixed(1)} -> ${r.seen.leapTo?.toFixed(1)} blocks, ${r.seen.top.toFixed(1)} high`);
+    check(`and breathes at it as he lands`, r.seen.firedAfterLeap, r.acts.slice(0, 6).join(' '));
+    check(`then, his breath spent, goes back in and fights it with his body (${melee.join(', ')})`,
+      r.acts.includes('close') && melee.some((m) => r.acts.includes(m)) && r.closeDist < r.girth + 30 && r.hits.length > 0,
+      `${r.acts.join(' ')}; nearest ${r.closeDist.toFixed(1)}; ${r.hits.length} blows`);
+    const a = r.acts.filter((x) => x !== 'none'), l1 = a.indexOf('leap'), l2 = a.indexOf('leap', l1 + 1);
+    check('and when his breath is ready again, he leaps back from it again: back to breathe, in to fight, over and over',
+      l1 >= 0 && l2 > l1 && a.slice(l1, l2).some((x) => melee.includes(x)), a.slice(l1).join(' '));
+  }
+  // the Titan: close to another Titan with its breath ready, it leaps back before it breathes
+  const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
+  const eye = w.sim.addPlayer('Eye', { x: 30, y: 64, z: -30 }); eye.mode = 'Creative';
+  const T = w.bk.titan.titans, dim = w.sim.dims.get('minecraft:overworld');
+  T.spawn(dim, { x: 0, y: 64, z: 0 }, 0); T.spawn(dim, { x: 0, y: 64, z: 30 }, 180); w.sim.step(2);
+  const tacts = new Set();
+  for (let i = 0; i < 1600; i++) { w.sim.step(1); for (const x of T.list.values()) tacts.add(x.brain.actName); }
+  check('a Titan does the same with another Titan: it leaps back to breathe, and fights with its body in close', tacts.has('leap') && (tacts.has('lunge') || tacts.has('swipe') || tacts.has('tail')), [...tacts].join(' '));
 }
 
 console.log(`\n${results.length - failures}/${results.length} checks passed`);
