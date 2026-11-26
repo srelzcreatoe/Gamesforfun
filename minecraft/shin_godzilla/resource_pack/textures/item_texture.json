@@ -19,6 +19,9 @@
     },
     "sg_egg_4": {
       "textures": "textures/items/sg/egg_4"
+    },
+    "sg_egg_4r": {
+      "textures": "textures/items/sg/egg_4r"
     }
   }
 }

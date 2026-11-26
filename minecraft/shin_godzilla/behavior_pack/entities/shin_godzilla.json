@@ -43,6 +43,15 @@
           ],
           "default": 0,
           "client_sync": true
+        },
+        "sg:tail": {
+          "type": "int",
+          "range": [
+            -45,
+            45
+          ],
+          "default": 0,
+          "client_sync": true
         }
       }
     },
@@ -187,7 +196,7 @@
               "test": "is_family",
               "subject": "other",
               "operator": "!=",
-              "value": "kaiju"
+              "value": "shin_godzilla"
             }
           }
         },
@@ -216,7 +225,7 @@
               "test": "is_family",
               "subject": "other",
               "operator": "!=",
-              "value": "kaiju"
+              "value": "shin_godzilla"
             }
           }
         },
@@ -224,31 +233,40 @@
           "priority": 2,
           "must_see": false,
           "reselect_targets": true,
-          "within_radius": 64,
+          "within_radius": 72,
+          "scan_interval": 20,
           "entity_types": [
             {
               "filters": {
-                "test": "is_family",
-                "subject": "other",
-                "value": "player"
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "operator": "!=",
+                    "value": "shin_godzilla"
+                  },
+                  {
+                    "any_of": [
+                      {
+                        "test": "is_family",
+                        "subject": "other",
+                        "value": "player"
+                      },
+                      {
+                        "test": "is_family",
+                        "subject": "other",
+                        "value": "mob"
+                      },
+                      {
+                        "test": "is_family",
+                        "subject": "other",
+                        "value": "monster"
+                      }
+                    ]
+                  }
+                ]
               },
-              "max_dist": 64
-            },
-            {
-              "filters": {
-                "test": "is_family",
-                "subject": "other",
-                "value": "irongolem"
-              },
-              "max_dist": 40
-            },
-            {
-              "filters": {
-                "test": "is_family",
-                "subject": "other",
-                "value": "villager"
-              },
-              "max_dist": 40
+              "max_dist": 72
             }
           ]
         }
@@ -308,6 +326,11 @@
         "value": 2000,
         "max": 2000
       },
+      "minecraft:boss": {
+        "hud_range": 128,
+        "name": "\u00a75\u00a7lSHIN GODZILLA",
+        "should_darken_sky": true
+      },
       "minecraft:collision_box": {
         "width": 4.0,
         "height": 12.0
@@ -362,10 +385,6 @@
         "value": 64,
         "max": 96
       },
-      "minecraft:boss": {
-        "hud_range": 96,
-        "should_darken_sky": true
-      },
       "minecraft:persistent": {},
       "minecraft:nameable": {
         "always_show": false,
@@ -386,7 +405,7 @@
             "sg:ai",
             "sg:move",
             "sg:sense",
-            "sg:mode_movie"
+            "sg:mode_hunt"
           ]
         }
       },
@@ -396,7 +415,7 @@
             "sg:ai",
             "sg:move",
             "sg:sense",
-            "sg:mode_movie"
+            "sg:mode_hunt"
           ]
         },
         "set_property": {
@@ -561,7 +580,7 @@
           "component_groups": [
             "sg:ai",
             "sg:move",
-            "sg:mode_movie"
+            "sg:mode_hunt"
           ]
         }
       },
@@ -596,7 +615,7 @@
             "sg:ai",
             "sg:move",
             "sg:sense",
-            "sg:mode_movie"
+            "sg:mode_hunt"
           ]
         }
       },

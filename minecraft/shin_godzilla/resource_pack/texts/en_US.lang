@@ -1,4 +1,6 @@
 entity.sg:shin_godzilla.name=Shin Godzilla
+entity.sg:shin_godzilla_rampage.name=Shin Godzilla (Rampage)
+item.spawn_egg.entity.sg:shin_godzilla_rampage.name=Spawn Shin Godzilla - RAMPAGE (never goes dormant)
 entity.sg:shin_godzilla_3.name=Shin Godzilla (3rd Form)
 entity.sg:shin_godzilla_2.name=Shin Godzilla (2nd Form)
 item.spawn_egg.entity.sg:shin_godzilla.name=Spawn Shin Godzilla (4th Form)

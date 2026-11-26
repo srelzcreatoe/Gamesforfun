@@ -31,11 +31,12 @@ BP = os.path.join(ROOT, "behavior_pack")
 RP = os.path.join(ROOT, "resource_pack")
 DIST = os.path.join(ROOT, "dist")
 ASSETS = os.path.join(HERE, "assets")
-VERSION = [1, 1, 0]
+VERSION = [1, 2, 0]
 MIN_ENGINE = [1, 21, 90]
 FAST = "--fast" in sys.argv
 
 F2, F3, F4 = "sg:shin_godzilla_2", "sg:shin_godzilla_3", "sg:shin_godzilla"
+F4R = "sg:shin_godzilla_rampage"   # same creature, but it never tires and never stops attacking
 
 
 def uid(name):
@@ -111,6 +112,19 @@ def compute_anchors(models):
     tdir = [tip[i] - pre[i] for i in range(3)]
     ln = sum(v * v for v in tdir) ** 0.5
     spine = geo.Path(form4.SPINE, hint=(0, 0, 1))
+    # the path the glow runs along as it charges: tail tip -> down the tail -> up the back -> nape
+    cpose = anim.pose_of(sets4["x.charge"], 0.0, {"AIM": 30})
+    order = ["tail%d" % i for i in range(form4.TAIL_N - 1, -1, -1)] + ["hips", "torso", "chest", "neck1", "neck2"]
+    centre = [(b, p) for (b, p, h) in m4.plate_tips if abs(p[0]) < 0.6]
+    surge = []
+    for bone in order:
+        pts = [p for (b, p) in centre if b == bone]
+        pts.sort(key=lambda p: (-p[2] if bone.startswith("tail") else p[1]))
+        surge += [r3(geo.world_point(m4, bone, p, cpose)) for p in pts]
+    # where the tail's tip is for each sideways swing of the tail (standalone ray / during the breath)
+    SW = (-45, -30, -15, 0, 15, 30, 45)
+    tail_tab = [[sw] + r3(geo.world_point(m4, last, m4.tail_tip, anim.pose_of(sets4["x.tail"], 0.0, {"TAILSW": sw}))) for sw in SW]
+    tailb_tab = [[sw] + r3(geo.world_point(m4, last, m4.tail_tip, anim.pose_of(sets4["x.breath"], 0.0, {"AIM": 20, "TAILSW": sw}))) for sw in SW]
     g3 = {"mouth": form3.anchors(m3)["mouth"]}
     for key, phi in (("gill_L", -12), ("gill_R", 192)):
         p, nrm, _ = spine.surface(12.5, phi, out=0.6)
@@ -124,11 +138,14 @@ def compute_anchors(models):
     ticks["end"] = acc
     anchors = {
         "timing": {"breath": ticks, "roar": int(round((sounds.ROAR_LEN + 0.1) * 20))},
-        "f4": {"mouth_by_aim": mouth_tab, "dorsal": dorsal, "tail_tip": r3(tip), "tail_dir": r3([v / ln for v in tdir])},
+        "f4": {"mouth_by_aim": mouth_tab, "dorsal": dorsal, "tail_tip": r3(tip), "tail_dir": r3([v / ln for v in tdir]),
+               "surge": surge, "tail_by_swing": tail_tab, "tail_breath_by_swing": tailb_tab},
         "f3": g3,
         "f2": form2.anchors(m2),
     }
-    print("anchors: mouth(0)=%s  dorsal pts=%d  tail tip=%s" % (mouth_tab[2], len(dorsal), r3(tip)))
+    print("anchors: mouth(0)=%s  dorsal pts=%d  surge pts=%d  tail tip=%s" % (mouth_tab[2], len(dorsal), len(surge), r3(tip)))
+    print("  tail tip by swing (ray):   ", [t[1:] for t in tail_tab[::3]])
+    print("  tail tip by swing (breath):", [t[1:] for t in tailb_tab[::3]])
     return anchors
 
 
@@ -158,7 +175,7 @@ def build_client(models):
     write(os.path.join(RP, "animations/shin_godzilla_3.animation.json"), anim.to_bedrock(a3))
     write(os.path.join(RP, "animations/shin_godzilla_2.animation.json"), anim.to_bedrock(a2))
 
-    walkset = ["idle", {"walk": "q.modified_move_speed"}, "look"]
+    walkset = ["idle", {"walk": "math.clamp(q.modified_move_speed*8, 0, 1)"}, "look"]
     c4 = anim.controller("controller.animation.sg.f4", {
         "default": (["walk"], walkset),
         "roar": (["roar"], ["roar", "idle"]),
@@ -197,6 +214,10 @@ def build_client(models):
         F4, "geometry.sg.shin_godzilla",
         {"normal": base + "form4", "charged": base + "form4_charged", "frozen": base + "form4_frozen"},
         amap("animation.sg.f4", n4), "controller.animation.sg.f4", "sg_egg_4", "controller.render.sg.shin_godzilla"))
+    write(os.path.join(RP, "entity/shin_godzilla_rampage.entity.json"), client_entity(
+        F4R, "geometry.sg.shin_godzilla",
+        {"normal": base + "form4", "charged": base + "form4_charged", "frozen": base + "form4_frozen"},
+        amap("animation.sg.f4", n4), "controller.animation.sg.f4", "sg_egg_4r", "controller.render.sg.shin_godzilla"))
     write(os.path.join(RP, "entity/shin_godzilla_3.entity.json"), client_entity(
         F3, "geometry.sg.shin_godzilla_3", {"default": base + "form3"},
         amap("animation.sg.f3", n3), "controller.animation.sg.f3", "sg_egg_3", "controller.render.sg.shin_godzilla_simple"))
@@ -256,21 +277,22 @@ def ai_group(stroll):
 
 
 def mode_groups():
-    not_kaiju = {"test": "is_family", "subject": "other", "operator": "!=", "value": "kaiju"}
+    not_kin = {"test": "is_family", "subject": "other", "operator": "!=", "value": "shin_godzilla"}
     golem = {"filters": {"test": "is_family", "subject": "other", "value": "irongolem"}, "max_dist": 40}
+    anything = {"filters": {"all_of": [not_kin, {"any_of": [
+        {"test": "is_family", "subject": "other", "value": "player"},
+        {"test": "is_family", "subject": "other", "value": "mob"},
+        {"test": "is_family", "subject": "other", "value": "monster"}]}]}, "max_dist": 72}
     return {
         "sg:mode_movie": {
-            "minecraft:behavior.hurt_by_target": {"priority": 1, "entity_types": {"filters": not_kaiju}},
+            "minecraft:behavior.hurt_by_target": {"priority": 1, "entity_types": {"filters": not_kin}},
             "minecraft:behavior.nearest_attackable_target": {"priority": 2, "must_see": True, "reselect_targets": True,
                                                               "within_radius": 40, "entity_types": [golem]},
         },
         "sg:mode_hunt": {
-            "minecraft:behavior.hurt_by_target": {"priority": 1, "entity_types": {"filters": not_kaiju}},
+            "minecraft:behavior.hurt_by_target": {"priority": 1, "entity_types": {"filters": not_kin}},
             "minecraft:behavior.nearest_attackable_target": {"priority": 2, "must_see": False, "reselect_targets": True,
-                                                              "within_radius": 64, "entity_types": [
-                                                                  {"filters": {"test": "is_family", "subject": "other", "value": "player"}, "max_dist": 64},
-                                                                  golem,
-                                                                  {"filters": {"test": "is_family", "subject": "other", "value": "villager"}, "max_dist": 40}]},
+                                                              "within_radius": 72, "scan_interval": 20, "entity_types": [anything]},
         },
         "sg:mode_peaceful": {"minecraft:behavior.random_look_around": {"priority": 9}},
     }
@@ -290,7 +312,7 @@ def entity_bp(ident, cfg):
         "sg:size_quarter": {"minecraft:scale": {"value": 0.25}},
     }
     groups.update(mode_groups())
-    init = ["sg:ai", "sg:move", "sg:sense", "sg:mode_movie"]
+    init = ["sg:ai", "sg:move", "sg:sense", "sg:mode_hunt"]
     events = {
         "minecraft:entity_spawned": {"add": {"component_groups": init}},
         "minecraft:entity_transformed": {"add": {"component_groups": init}, "set_property": {"sg:state": "roar"}},
@@ -310,6 +332,7 @@ def entity_bp(ident, cfg):
     if cfg.get("dormancy"):
         props["sg:glow"] = {"type": "int", "range": [0, 2], "default": 0, "client_sync": True}
         props["sg:aim"] = {"type": "int", "range": [-90, 90], "default": 0, "client_sync": True}
+        props["sg:tail"] = {"type": "int", "range": [-45, 45], "default": 0, "client_sync": True}
         groups["sg:dormant"] = {"minecraft:interact": {"interactions": [{
             "on_interact": {"filters": {"all_of": [
                 {"test": "has_equipment", "subject": "other", "domain": "hand", "value": "sg:yashiori_coagulant"}]},
@@ -320,11 +343,11 @@ def entity_bp(ident, cfg):
         events["sg:go_dormant"] = {"remove": {"component_groups": ["sg:ai", "sg:move"] + modes},
                                    "add": {"component_groups": ["sg:locked", "sg:dormant"]}}
         events["sg:wake"] = {"remove": {"component_groups": ["sg:locked", "sg:dormant"]},
-                             "add": {"component_groups": ["sg:ai", "sg:move", "sg:mode_movie"]}}
+                             "add": {"component_groups": ["sg:ai", "sg:move", "sg:mode_hunt"]}}
         events["sg:freeze"] = {"remove": {"component_groups": ["sg:ai", "sg:move", "sg:dormant", "sg:sense"] + modes},
                                "add": {"component_groups": ["sg:locked", "sg:frozen"]}}
         events["sg:thaw"] = {"remove": {"component_groups": ["sg:frozen", "sg:locked"]},
-                             "add": {"component_groups": ["sg:ai", "sg:move", "sg:sense", "sg:mode_movie"]}}
+                             "add": {"component_groups": ["sg:ai", "sg:move", "sg:sense", "sg:mode_hunt"]}}
         events["sg:coagulant_hit"] = {"add": {"component_groups": ["sg:dormant"]}}
     if cfg.get("evolves_into"):
         groups["sg:transform"] = {"minecraft:transformation": {"into": cfg["evolves_into"], "keep_level": True,
@@ -337,6 +360,7 @@ def entity_bp(ident, cfg):
     comps = {
         "minecraft:type_family": {"family": FAMILY + cfg.get("extra_family", [])},
         "minecraft:health": {"value": cfg["health"], "max": cfg["health"]},
+        "minecraft:boss": {"hud_range": cfg["hud"], "name": cfg["boss_name"], "should_darken_sky": cfg.get("darken", False)},
         "minecraft:collision_box": {"width": cfg["box"][0], "height": cfg["box"][1]},
         "minecraft:custom_hit_test": {"hitboxes": [{"pivot": [0, cfg["hit"][1] / 2, 0], "width": cfg["hit"][0], "height": cfg["hit"][1]}]},
         "minecraft:physics": {},
@@ -351,7 +375,6 @@ def entity_bp(ident, cfg):
         "minecraft:underwater_movement": {"value": cfg["swim"]},
         "minecraft:attack": {"damage": cfg["attack"]},
         "minecraft:follow_range": {"value": 64, "max": 96},
-        "minecraft:boss": {"hud_range": cfg["hud"], "should_darken_sky": cfg.get("darken", False)},
         "minecraft:persistent": {},
         "minecraft:nameable": {"always_show": False, "allow_name_tag_renaming": False},
         "minecraft:loot": {"table": "loot_tables/entities/%s.json" % ident.split(":")[1]},
@@ -366,18 +389,22 @@ def entity_bp(ident, cfg):
 def build_behavior():
     write(os.path.join(BP, "entities/shin_godzilla.json"), entity_bp(F4, dict(
         health=2000, box=(4.0, 12.0), hit=(12, 44), speed=0.2, swim=0.12, attack=30, stroll=32, explosion=1.6,
-        hud=96, boss_name="Shin Godzilla", darken=True, xp=500, dormancy=True,
+        hud=128, boss_name="§5§lSHIN GODZILLA", darken=True, xp=500, dormancy=True,
+        states=["walk", "roar", "charge", "smoke", "fire", "focus", "beam", "dorsal", "tail", "dormant", "frozen", "waking", "dying"])))
+    write(os.path.join(BP, "entities/shin_godzilla_rampage.json"), entity_bp(F4R, dict(
+        health=3000, box=(4.0, 12.0), hit=(12, 44), speed=0.24, swim=0.14, attack=40, stroll=40, explosion=1.2,
+        hud=160, boss_name="§4§lSHIN GODZILLA §c§lRAMPAGE", darken=True, xp=800, dormancy=True, extra_family=["rampage"],
         states=["walk", "roar", "charge", "smoke", "fire", "focus", "beam", "dorsal", "tail", "dormant", "frozen", "waking", "dying"])))
     write(os.path.join(BP, "entities/shin_godzilla_3.json"), entity_bp(F3, dict(
         health=650, box=(2.6, 8.0), hit=(7, 22), speed=0.18, swim=0.12, attack=18, stroll=24, explosion=1.3,
-        hud=64, boss_name="Shin Godzilla - 3rd Form", xp=200, evolves_into=F4,
+        hud=96, boss_name="§c§lSHIN GODZILLA§r §73rd Form", xp=200, evolves_into=F4,
         states=["walk", "roar", "evolving", "dying"])))
     write(os.path.join(BP, "entities/shin_godzilla_2.json"), entity_bp(F2, dict(
         health=320, box=(3.2, 4.0), hit=(9, 9), speed=0.13, swim=0.16, attack=10, stroll=20, explosion=1.2,
-        hud=48, boss_name="Shin Godzilla - 2nd Form", xp=100, evolves_into=F3,
+        hud=80, boss_name="§6§lSHIN GODZILLA§r §72nd Form", xp=100, evolves_into=F3,
         states=["walk", "roar", "evolving", "dying"])))
 
-    for name, lo, hi in (("shin_godzilla", 4, 8), ("shin_godzilla_3", 2, 4), ("shin_godzilla_2", 1, 2)):
+    for name, lo, hi in (("shin_godzilla", 4, 8), ("shin_godzilla_rampage", 8, 12), ("shin_godzilla_3", 2, 4), ("shin_godzilla_2", 1, 2)):
         write(os.path.join(BP, "loot_tables/entities/%s.json" % name), {"pools": [{"rolls": 1, "entries": [
             {"type": "item", "name": "sg:g_cell", "weight": 1, "functions": [{"function": "set_count", "count": {"min": lo, "max": hi}}]}]}]})
 
@@ -414,7 +441,7 @@ def build_assets(anchors):
     fx.make_particle_textures(os.path.join(RP, "textures/particle/sg"))
     # items + icons
     fx.make_item_icons(os.path.join(RP, "textures/items/sg"))
-    for f in ("egg_2.png", "egg_3.png", "egg_4.png"):
+    for f in ("egg_2.png", "egg_3.png", "egg_4.png", "egg_4r.png"):
         shutil.copy(os.path.join(ASSETS, f), os.path.join(RP, "textures/items/sg", f))
     write(os.path.join(RP, "textures/item_texture.json"), {"resource_pack_name": "shin_godzilla", "texture_name": "atlas.items", "texture_data": {
         "sg_coagulant": {"textures": "textures/items/sg/yashiori_coagulant"},
@@ -423,6 +450,7 @@ def build_assets(anchors):
         "sg_egg_2": {"textures": "textures/items/sg/egg_2"},
         "sg_egg_3": {"textures": "textures/items/sg/egg_3"},
         "sg_egg_4": {"textures": "textures/items/sg/egg_4"},
+        "sg_egg_4r": {"textures": "textures/items/sg/egg_4r"},
     }})
     # sounds
     sdir = os.path.join(RP, "sounds/sg")
@@ -439,12 +467,15 @@ def build_assets(anchors):
     write(os.path.join(RP, "sounds/sound_definitions.json"), {"format_version": "1.20.20", "sound_definitions": defs})
     write(os.path.join(RP, "sounds.json"), {"entity_sounds": {"entities": {
         F4: {"volume": 1.0, "pitch": [0.9, 1.05], "events": {"hurt": {"sound": "sg.hurt", "volume": 2.0}, "death": {"sound": "sg.roar4", "volume": 4.0}}},
+        F4R: {"volume": 1.0, "pitch": [0.85, 0.98], "events": {"hurt": {"sound": "sg.hurt", "volume": 2.0}, "death": {"sound": "sg.roar4", "volume": 4.0}}},
         F3: {"volume": 1.0, "pitch": [1.0, 1.15], "events": {"hurt": {"sound": "sg.hurt", "volume": 1.5, "pitch": 1.2}, "death": {"sound": "sg.roar3", "volume": 3.0}}},
         F2: {"volume": 1.0, "pitch": [1.05, 1.2], "events": {"hurt": {"sound": "sg.hurt", "volume": 1.2, "pitch": 1.35}, "death": {"sound": "sg.roar2", "volume": 2.0}}},
     }}})
     # language
     lang = "\n".join([
         "entity.sg:shin_godzilla.name=Shin Godzilla",
+        "entity.sg:shin_godzilla_rampage.name=Shin Godzilla (Rampage)",
+        "item.spawn_egg.entity.sg:shin_godzilla_rampage.name=Spawn Shin Godzilla - RAMPAGE (never goes dormant)",
         "entity.sg:shin_godzilla_3.name=Shin Godzilla (3rd Form)",
         "entity.sg:shin_godzilla_2.name=Shin Godzilla (2nd Form)",
         "item.spawn_egg.entity.sg:shin_godzilla.name=Spawn Shin Godzilla (4th Form)",

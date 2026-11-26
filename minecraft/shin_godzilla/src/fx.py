@@ -220,6 +220,35 @@ def particles():
         "minecraft:particle_appearance_billboard": {"size": ["variable.size", "variable.size"], "facing_camera_mode": "lookat_xyz", "uv": uv_full(64, 64)},
         "minecraft:particle_appearance_tinting": {"color": [0.5, 0.2, 1.0, "0.16*math.sin(" + age + "*180)"]},
     })
+    # --- charge-up: the surge of light that runs up the tail and back, rising embers, the flash
+    fx["surge"] = P("sg:surge", "glow", "particles_add", {
+        "minecraft:emitter_rate_instant": {"num_particles": 1},
+        "minecraft:emitter_lifetime_once": {"active_time": 0.05},
+        "minecraft:emitter_shape_point": {},
+        "minecraft:particle_lifetime_expression": {"max_lifetime": 0.45},
+        "minecraft:particle_appearance_billboard": {"size": ["variable.size*(1-" + age + "*0.6)", "variable.size*(1-" + age + "*0.6)"],
+                                                    "facing_camera_mode": "lookat_xyz", "uv": uv_full(64, 64)},
+        "minecraft:particle_appearance_tinting": {"color": [0.9, 0.7, 1.0, "1-" + age]},
+    })
+    fx["embers"] = P("sg:embers", "spark", "particles_add", {
+        "minecraft:emitter_rate_instant": {"num_particles": 18},
+        "minecraft:emitter_lifetime_once": {"active_time": 0.05},
+        "minecraft:emitter_shape_disc": {"radius": "variable.size", "plane_normal": "y", "direction": ["math.random(-0.3,0.3)", 1, "math.random(-0.3,0.3)"]},
+        "minecraft:particle_initial_speed": "math.random(3,9)",
+        "minecraft:particle_motion_dynamic": {"linear_acceleration": [0, 2, 0], "linear_drag_coefficient": 0.4},
+        "minecraft:particle_lifetime_expression": {"max_lifetime": "math.random(1.2,2.4)"},
+        "minecraft:particle_appearance_billboard": {"size": ["0.3*(1-" + age + ")+0.06", "0.3*(1-" + age + ")+0.06"], "facing_camera_mode": "lookat_xyz", "uv": uv_full(16, 16)},
+        "minecraft:particle_appearance_tinting": {"color": {"interpolant": age, "gradient": {"0.0": "#FFFFFFFF", "0.4": "#FFD9A6FF", "1.0": "#008A2BE2"}}},
+    })
+    fx["flash"] = P("sg:flash", "glow", "particles_add", {
+        "minecraft:emitter_rate_instant": {"num_particles": 1},
+        "minecraft:emitter_lifetime_once": {"active_time": 0.05},
+        "minecraft:emitter_shape_point": {},
+        "minecraft:particle_lifetime_expression": {"max_lifetime": 0.5},
+        "minecraft:particle_appearance_billboard": {"size": ["variable.size*(0.4+" + age + ")", "variable.size*(0.4+" + age + ")"],
+                                                    "facing_camera_mode": "lookat_xyz", "uv": uv_full(64, 64)},
+        "minecraft:particle_appearance_tinting": {"color": [0.92, 0.8, 1.0, "(1-" + age + ")*0.9"]},
+    })
     # --- steam, frost, freeze, evolution
     fx["steam"] = P("sg:steam", "smoke", "particles_blend", {
         "minecraft:emitter_rate_instant": {"num_particles": 3},

@@ -40,12 +40,12 @@ SPINE = [
     ((0, 37.7, -3.9), 3.8, 3.95),
     ((0, 39.4, -4.8), 3.45, 3.6),
     ((0, 41.1, -5.7), 3.1, 3.3),   # 14: neck1 | neck2
-    ((0, 42.8, -6.5), 2.85, 3.0),
-    ((0, 44.4, -7.1), 2.65, 2.8),
-    ((0, 45.9, -7.5), 2.5, 2.6),   # 17: skull joint
+    ((0, 42.8, -6.3), 2.85, 2.9),
+    ((0, 44.4, -6.7), 2.6, 2.55),
+    ((0, 45.9, -6.9), 2.45, 2.25),  # 17: skull joint
 ]
 TAIL_BASE = (0, 16.9, 6.0)
-MOUTH = (0, 45.3, -12.9)
+MOUTH = (0, 45.3, -13.6)
 
 
 def tail_joints(rest=None):
@@ -83,65 +83,69 @@ def swept(nrm, d, deg):
 
 
 def build_head(m, f3, rng):
-    """Skull, eyes, lip line and two interlocking rows of fangs."""
+    """Skull, brows, eyes, lips and two clean interlocking rows of fangs.
+
+    Everything sits 0.9 forward of the neck so the jaw hinge is clear of the
+    throat, and the lower jaw is two halves so it can split for the beam.
+    """
     head = "head"
-    skull = Path([((0, 47.05, -6.3), 2.45, 1.55), ((0, 47.25, -8.0), 2.5, 1.6), ((0, 47.2, -9.6), 2.3, 1.5),
-                  ((0, 47.0, -11.0), 1.95, 1.3), ((0, 46.8, -12.2), 1.6, 1.1), ((0, 46.65, -13.1), 1.3, 0.92)], hint=(0, 1, 0))
-    m.loft(head, skull, sleeve="skull", wobble=0.012, overlap=0.1, caps="head")
-    m.section(head, V(0, 46.6, -13.4), 0.6, 1.12, 0.78, (X, Y, Z), "head")                 # blunt nose
-    # crown: two rows of low bony nubs running back over the skull
-    for z0, sc in ((-7.0, 1.0), (-8.3, 0.9), (-9.6, 0.75)):
+    F = -0.9   # whole face pushed forward of the neck
+    skull = Path([((0, 47.05, -6.3), 2.45, 1.55), ((0, 47.3, -7.6 + F), 2.55, 1.65), ((0, 47.25, -9.3 + F), 2.4, 1.6),
+                  ((0, 47.05, -10.9 + F), 2.05, 1.42), ((0, 46.85, -12.2 + F), 1.7, 1.2), ((0, 46.7, -13.1 + F), 1.4, 1.0)], hint=(0, 1, 0))
+    m.loft(head, skull, sleeve="skull", wobble=0.01, overlap=0.1, caps="head")
+    m.section(head, V(0, 46.62, -13.45 + F), 0.7, 1.2, 0.84, (X, Y, Z), "head")                 # blunt nose
+    for z0, sc in ((-7.0, 1.0), (-8.4, 0.9), (-9.8, 0.75)):                                         # crown nubs
         for s in (1, -1):
-            ob(m, head, (s * 0.85, 48.72 - (9.6 + z0) * 0.02, z0), (0.7 * sc, 0.42 * sc, 0.9 * sc), "head", yaw=s * 10, roll=-s * 14)
-    m.obox(head, (0, 45.84, -8.6), (4.2, 0.2, 3.4), (X, Y, Z), "mouth")                    # palate (rear)
-    m.obox(head, (0, 45.82, -11.6), (2.9, 0.2, 2.9), (X, Y, Z), "mouth")                   # palate (front)
-    m.obox(head, (0, 45.2, -7.0), (3.9, 1.9, 0.7), (X, Y, Z), "mouth")                     # back of the throat
-    eye = (0.34, 0.86, 0.92) if f3 else (0.3, 0.5, 0.56)
+            ob(m, head, (s * 0.9, 48.78, z0 + F), (0.8 * sc, 0.4 * sc, 1.0 * sc), "head", yaw=s * 8, roll=-s * 12)
+    m.obox(head, (0, 45.8, -8.9 + F), (4.1, 0.24, 3.6), (X, Y, Z), "mouth")                       # palate (rear)
+    m.obox(head, (0, 45.78, -11.9 + F), (2.9, 0.24, 2.9), (X, Y, Z), "mouth")                     # palate (front)
+    m.obox(head, (0, 45.0, -7.4), (3.6, 1.7, 0.6), (X, Y, Z), "mouth")                             # back of the throat
+    eye = (0.34, 0.9, 0.96) if f3 else (0.32, 0.62, 0.68)
     for s in (1, -1):
-        ob(m, head, (s * 1.86, 48.12, -9.5), (1.05, 0.5, 2.7), "head", yaw=s * 7, pitch=-4, roll=-s * 24)   # brow ridge
-        ob(m, head, (s * 2.22, 46.72, -9.7), (0.5, 0.42, 2.3), "head", yaw=s * 7)                           # cheek ridge
-        ob(m, head, (s * 2.25, 46.3, -7.5), (0.95, 1.7, 2.1), "head", yaw=s * 4)                            # jaw muscle
-        m.obox(head, (s * 2.2, 47.32, -9.9), eye, (X, Y, Z), lambda n, c: "eye" if abs(n[0]) > 0.9 else "skin2")
-        m.obox(head, (s * 0.46, 47.5, -13.3), (0.3, 0.16, 0.36), (X, Y, Z), "mouth")                        # nostril
-        # lip: a clean edge of hide that the upper fangs hang from
-        lb, lf = V(s * 2.2, 45.8, -7.7), V(s * 1.02, 45.76, -13.35)
+        ob(m, head, (s * 1.92, 48.2, -9.4 + F), (1.15, 0.55, 3.0), "head", yaw=s * 7, pitch=-4, roll=-s * 26)     # brow ridge
+        ob(m, head, (s * 2.32, 46.7, -9.6 + F), (0.5, 0.45, 2.6), "head", yaw=s * 7)                             # cheek ridge
+        ob(m, head, (s * 2.3, 46.3, -7.4 + F), (1.0, 1.8, 2.2), "head", yaw=s * 4)                               # jaw muscle
+        m.obox(head, (s * 2.27, 47.35, -9.8 + F), (0.3, eye[1] + 0.3, eye[2] + 0.34), (X, Y, Z), "socket")        # dark socket
+        m.obox(head, (s * 2.34, 47.35, -9.8 + F), eye, (X, Y, Z), lambda n, c: "eye" if abs(n[0]) > 0.9 else "socket")
+        m.obox(head, (s * 0.5, 47.62, -13.3 + F), (0.32, 0.18, 0.4), (X, Y, Z), "socket")                        # nostril
+        # lip, gum line, and one even row of fangs hanging from it
+        lb, lf = V(s * 2.3, 45.82, -7.9 + F), V(s * 1.12, 45.78, -13.5 + F)
         ld = unit(lf - lb)
         ll = float(np.linalg.norm(lf - lb))
         lx = unit(np.cross(Y, ld))
-        m.obox(head, (lb + lf) / 2, (0.34, 0.4, ll), (lx, Y, ld), "head")
-        m.obox(head, (lb + lf) / 2 + V(-s * 0.14, -0.2, 0), (0.24, 0.2, ll * 0.98), (lx, Y, ld), "gum")
-        # Small, crowded, irregular needle teeth: a main row along the lip and a second,
-        # shorter row behind it, every tooth leaning its own way.
-        for row, (n, inset, scale) in enumerate(((20, 0.1, 1.0), (11, 0.34, 0.7))):
-            for i in range(n):
-                f = 0.1 + 0.88 * (i + rng.uniform(0.25, 0.75)) / n
-                p = lb + (lf - lb) * f + V(-s * inset, -0.2, 0)
-                ln = (0.3 + 0.42 * math.sin(math.pi * f ** 0.8)) * rng.uniform(0.65, 1.35) * scale
-                out = math.radians(rng.uniform(-4, 26) - 10 * row)
-                fa = math.radians(rng.uniform(-16, 16))
-                tooth(m, head, p, V(s * math.sin(out), -math.cos(out), math.sin(fa)), ln, 0.16, lateral=ld, segs=2)
-    m.obox(head, (0, 45.76, -13.42), (2.05, 0.4, 0.3), (X, Y, Z), "head")                  # front lip
-    for x in (-0.86, -0.52, -0.18, 0.18, 0.52, 0.86):
-        tooth(m, head, V(x, 45.56, -13.42), V(x * 0.14, -1, rng.uniform(-0.3, -0.05)), rng.uniform(0.3, 0.55), 0.15, lateral=X, segs=2)
+        m.obox(head, (lb + lf) / 2 + V(0, 0.08, 0), (0.4, 0.5, ll), (lx, Y, ld), "head")
+        m.obox(head, (lb + lf) / 2 + V(-s * 0.12, -0.24, 0), (0.3, 0.26, ll * 0.98), (lx, Y, ld), "gum")
+        n = 14
+        for i in range(n):
+            f = 0.07 + 0.9 * (i + 0.5) / n
+            p = lb + (lf - lb) * f + V(-s * 0.1, -0.3, 0)
+            ln = (0.5 + 0.5 * math.sin(math.pi * f ** 0.85)) * (1.18 if i % 3 == 1 else 0.86) * rng.uniform(0.92, 1.08)
+            out = math.radians(9 + 6 * math.sin(i * 2.2))
+            fa = math.radians(6 * math.sin(i * 1.7 + 0.6))
+            tooth(m, head, p, V(s * math.sin(out), -math.cos(out), math.sin(fa)), ln, 0.27, lateral=ld, segs=2)
+    m.obox(head, (0, 45.8, -13.6 + F), (2.3, 0.46, 0.34), (X, Y, Z), "head")                        # front lip
+    for i, x in enumerate((-0.8, -0.4, 0.0, 0.4, 0.8)):
+        tooth(m, head, V(x, 45.52, -13.6 + F), V(x * 0.12, -1, -0.16), 0.5 + 0.16 * (i % 2), 0.24, lateral=X, segs=2)
 
     for side, s in (("L", 1), ("R", -1)):
-        jaw = m.bone("jaw_" + side, head, (s * 1.95, 45.5, -7.2), (9, 0, 0))
-        jp = Path([((s * 1.95, 45.02, -7.2), 0.7, 0.76), ((s * 1.75, 44.88, -9.2), 0.66, 0.66),
-                   ((s * 1.3, 44.8, -11.2), 0.6, 0.58), ((s * 0.62, 44.84, -12.8), 0.56, 0.52)], hint=(0, 1, 0))
-        m.loft(jaw, jp, mat="head", wobble=0.012, overlap=0.16)
-        m.obox(jaw, (s * 0.32, 44.84, -13.0), (0.66, 0.9, 0.7), (X, Y, Z), "head")          # chin
-        m.obox(jaw, (s * 0.9, 44.95, -8.7), (1.8, 0.22, 3.2), (X, Y, Z), "mouth")           # mouth floor (rear)
-        m.obox(jaw, (s * 0.52, 44.93, -11.4), (1.04, 0.22, 2.6), (X, Y, Z), "mouth")        # mouth floor (front)
-        m.obox(jaw, (s * 0.92, 44.42, -8.9), (1.84, 0.34, 3.6), (X, Y, Z), "fissure")       # loose throat skin
-        for i in range(17):
-            u = 0.25 + 2.7 * (i + rng.uniform(0.25, 0.75)) / 17
+        jaw = m.bone("jaw_" + side, head, (s * 1.95, 45.5, -7.5 + F), (8, 0, 0))
+        jp = Path([((s * 1.95, 45.0, -7.6 + F), 0.72, 0.78), ((s * 1.78, 44.86, -9.5 + F), 0.7, 0.7),
+                   ((s * 1.35, 44.8, -11.4 + F), 0.66, 0.62), ((s * 0.66, 44.84, -13.0 + F), 0.6, 0.56)], hint=(0, 1, 0))
+        m.loft(jaw, jp, mat="head", wobble=0.01, overlap=0.16)
+        m.obox(jaw, (s * 0.34, 44.84, -13.2 + F), (0.7, 0.95, 0.72), (X, Y, Z), "head")              # chin
+        m.obox(jaw, (s * 0.92, 44.98, -9.0 + F), (1.84, 0.24, 3.0), (X, Y, Z), "mouth")              # mouth floor (rear)
+        m.obox(jaw, (s * 0.56, 44.96, -11.6 + F), (1.12, 0.24, 2.6), (X, Y, Z), "mouth")             # mouth floor (front)
+        m.obox(jaw, (s * 0.42, 45.16, -10.6 + F), (0.84, 0.3, 3.4), (X, Y, Z), "gum")                # tongue (half)
+        n = 11
+        for i in range(n):
+            u = 0.4 + 2.5 * (i + 0.5) / n
             c, a, b, (l, t, d) = jp.at(u)
-            p = c + V(s * a * rng.uniform(0.1, 0.5), b * 0.8, 0)
-            ln = (0.26 + 0.36 * math.sin(math.pi * (i + 0.5) / 17)) * rng.uniform(0.65, 1.35)
-            out, fa = math.radians(rng.uniform(-6, 24)), math.radians(rng.uniform(-16, 16))
-            tooth(m, jaw, p, V(s * math.sin(out), math.cos(out), math.sin(fa)), ln, 0.15, lateral=d, segs=2)
-        tooth(m, jaw, V(s * 0.22, 45.25, -13.25), V(s * 0.06, 1, -0.14), 0.4, 0.15, lateral=X, segs=2)
-        tooth(m, jaw, V(s * 0.6, 45.25, -13.1), V(s * 0.12, 1, -0.1), 0.48, 0.15, lateral=X, segs=2)
+            p = c + V(s * a * 0.3, b * 0.8, 0)
+            ln = (0.42 + 0.42 * math.sin(math.pi * (i + 0.5) / n)) * (1.16 if i % 3 == 0 else 0.86) * rng.uniform(0.92, 1.08)
+            out = math.radians(7 + 5 * math.sin(i * 2.0))
+            fa = math.radians(6 * math.sin(i * 1.4))
+            tooth(m, jaw, p, V(s * math.sin(out), math.cos(out), math.sin(fa)), ln, 0.25, lateral=d, segs=2)
+        tooth(m, jaw, V(s * 0.3, 45.3, -13.4 + F), V(s * 0.06, 1, -0.12), 0.5, 0.22, lateral=X, segs=2)
     return skull
 
 
@@ -159,7 +163,7 @@ def build(seed=4, form=4):
     m.bone("chest", "torso", (0, 28.6, -0.2))
     m.bone("neck1", "chest", (0, 36.0, -3.0), (-10, 0, 0) if f3 else None)
     m.bone("neck2", "neck1", (0, 41.1, -5.7), (-12, 0, 0) if f3 else None)
-    m.bone("head", "neck2", (0, 45.9, -7.5), (-8, 0, 0) if f3 else None)
+    m.bone("head", "neck2", (0, 45.9, -6.9), (-8, 0, 0) if f3 else None)
 
     # ------------------------------------------------------------- trunk
     spine = Path(SPINE, hint=(0, 0, 1))
@@ -178,8 +182,8 @@ def build(seed=4, form=4):
     # ------------------------------------------------------------- legs
     for side, s in (("L", 1), ("R", -1)):
         thigh = m.bone("thigh_" + side, "root", (s * 5.6, 18.0, 2.0))
-        tp = Path([((s * 5.2, 20.2, 2.4), 3.6, 5.0), ((s * 6.0, 17.2, 1.8), 4.7, 6.5), ((s * 6.5, 14.0, 0.6), 4.8, 6.6),
-                   ((s * 6.4, 11.2, -0.9), 4.1, 5.3), ((s * 6.2, 9.2, -1.9), 3.3, 4.1)], hint=(0, 0, -1))
+        tp = Path([((s * 5.2, 20.6, 2.4), 3.8, 5.2), ((s * 6.2, 17.6, 1.6), 5.1, 7.0), ((s * 6.9, 14.2, 0.4), 5.4, 7.2),
+                   ((s * 6.7, 11.2, -1.0), 4.5, 5.7), ((s * 6.3, 9.2, -1.9), 3.4, 4.2)], hint=(0, 0, -1))
         m.loft(thigh, tp, sleeve="thigh", wobble=0.02, caps="skin2")
         m.section(thigh, V(s * 6.2, 9.7, -3.5), 2.4, 2.2, 1.6, (X, Y, Z), "skin2")  # knee cap
 
@@ -219,23 +223,22 @@ def build(seed=4, form=4):
         m.section(fore, el, 1.6, 1.05, 1.05, (X, Y, Z), "skin2")                              # elbow
         limb(m, fore, el, wr, 0.92, 0.68, "fissure", shape="oct")
         hand = m.bone("hand_" + side, fore, tuple(wr))
-        pn = unit(V(-s * 0.35, 1, 0.15))           # palm faces up and a little inward
-        fw = unit(V(s * 0.15, 0.25, -1))
+        pn = unit(V(-s * 0.3, 1, 0.2))             # palm faces up, a little inward and back
+        fw = unit(V(s * 0.12, 0.2, -1))
         fw = unit(fw - np.dot(fw, pn) * pn)
         lat = np.cross(pn, fw)
-        m.obox(hand, wr + fw * 0.85, (1.9, 0.55, 1.75), (lat, pn, fw), "skin")
-        m.obox(hand, wr + fw * 0.2, (1.3, 0.7, 0.8), (lat, pn, fw), "skin2")                   # wrist
-        for a, ln in ((-52, 0.8), (-22, 1.0), (0, 1.08), (22, 1.0), (46, 0.86)):
+        m.obox(hand, wr + fw * 0.2, (1.5, 0.9, 0.9), (lat, pn, fw), "skin2")                        # wrist
+        m.obox(hand, wr + fw * 1.0, (2.2, 0.7, 1.7), (lat, pn, fw), "skin")                         # palm
+        # (splay angle, length, where it leaves the palm); the first is the thumb
+        for a, ln, off in ((-66, 1.5, -0.95), (-24, 2.1, -0.62), (-4, 2.3, -0.1), (16, 2.2, 0.42), (38, 1.9, 0.9)):
             f1 = rot_about(fw, pn, a)
-            p = wr + fw * 1.6 - lat * (a / 50.0) * 0.72
+            p = wr + fw * (1.25 if a < -50 else 1.8) + lat * off
             ax = unit(np.cross(f1, pn))
-            for j, (curl, r0, r1) in enumerate(((10, 0.27, 0.23), (32, 0.22, 0.18), (58, 0.17, 0.13))):
-                d = rot_about(f1, ax, curl)
-                seg = ln * (0.9, 0.8, 0.62)[j]
-                limb(m, hand, p, p + d * seg, r0, r1, "skin2", shape="box", hint=tuple(pn))
-                p = p + d * seg * 0.95
-            d = rot_about(f1, ax, 70)
-            m.obox(hand, p + d * 0.2, (0.2, 0.2, 0.55), (lat, np.cross(d, lat), d), "claw")
+            d1, d2 = rot_about(f1, ax, 12), rot_about(f1, ax, 40)
+            limb(m, hand, p, p + d1 * ln * 0.55, 0.3, 0.26, "skin2", shape="box", hint=tuple(pn))
+            q = p + d1 * ln * 0.52
+            limb(m, hand, q, q + d2 * ln * 0.45, 0.24, 0.2, "skin2", shape="box", hint=tuple(pn))
+            claw(m, hand, q + d2 * ln * 0.42, d2, -pn, 0.8, 0.26, curve=-16, segs=2)
 
     build_head(m, f3, rng)
 

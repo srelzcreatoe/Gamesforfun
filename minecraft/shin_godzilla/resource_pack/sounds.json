@@ -18,6 +18,23 @@
           }
         }
       },
+      "sg:shin_godzilla_rampage": {
+        "volume": 1.0,
+        "pitch": [
+          0.85,
+          0.98
+        ],
+        "events": {
+          "hurt": {
+            "sound": "sg.hurt",
+            "volume": 2.0
+          },
+          "death": {
+            "sound": "sg.roar4",
+            "volume": 4.0
+          }
+        }
+      },
       "sg:shin_godzilla_3": {
         "volume": 1.0,
         "pitch": [

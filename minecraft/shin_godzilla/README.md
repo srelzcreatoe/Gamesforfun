@@ -1,7 +1,8 @@
 # Shin Godzilla — Minecraft Bedrock add-on
 
 Shin Godzilla (2016) for Minecraft Bedrock, in three of its film forms, with the
-atomic breath, dorsal rays, tail beam, evolution, dormancy and the Yashiori Strategy.
+atomic breath, dorsal rays, tail ray, evolution, dormancy and the Yashiori Strategy, plus a
+rampaging 4th form that never tires.
 
 ![preview](docs/preview.png)
 
@@ -15,39 +16,52 @@ world. No experimental toggles are needed. Requires Minecraft Bedrock **1.21.90 
 |---|---|---|
 | **2nd form — "Kamata-kun"** | ~55 blocks long | Lurches along on its belly, gills spraying red, bulldozes whatever is in front of it. Evolves into the 3rd form. |
 | **3rd form — "Shinagawa-kun"** | ~24 blocks tall | Staggers upright, roars, smashes through buildings. Evolves into the 4th form. |
-| **4th form** | ~48 blocks tall, ~85 block tail | The boss. See below. |
+| **4th form** | ~48 blocks tall, ~100 block tail | The boss. See below. |
+| **4th form: RAMPAGE** | same | A second Shin Godzilla that never runs out of energy and never goes dormant. It attacks everything alive, and when nothing is left it turns its fire on the land. Mouth, tail and dorsal plates all fire at once. It cannot be frozen: kill it (3000 health) or remove it with the tablet. |
 
 ### 4th form abilities
-- **Atomic breath**, staged like the film and cut to one sound timeline (23 s): the plates
-  stutter and catch purple and the eye membranes close (2 s) → the jaw unhinges and black
-  smoke pours down (2.5 s) → it ignites into a flood of orange fire that spreads over the
-  ground (5 s) → the stream burns white, then magenta, and tightens as the lower jaw parts
-  (2 s) → the jaw splits and the thin violet beam sweeps up and across its target, cutting
-  through blocks (9 s) → it sputters out (2.5 s).
+- **Atomic breath**, staged like the film and cut to one sound timeline (23 s):
+  light races from the tip of the tail up the back, the plates stutter and catch purple,
+  lightning crawls between them and the eye membranes close (2 s) → the jaw unhinges and
+  black smoke pours down (2.5 s) → it ignites into a flood of orange fire that spreads over
+  the ground (5 s) → the stream burns white, then magenta, and tightens as the lower jaw
+  parts (2 s) → a flash, the jaw splits, and the thin violet beam sweeps up and across its
+  target, cutting through blocks, **while the tail swings up over the back and fires a ray
+  of its own** (9 s) → it sputters out (2.5 s). The fire and the beams light up the land
+  around them at night.
 - **Dorsal rays**: beams from the back plates that hunt anything airborne.
-- **Tail beam**: fired from the tip of the raised tail at targets behind it.
-- **Footstep quakes**, screen shake, and it walks straight through terrain.
+- **Tail ray**: fired on its own from the tip of the raised tail at targets behind it. The
+  tail visibly leans toward what it is shooting at.
+- **Footstep quakes**, screen shake, trampling, and it walks straight through terrain.
+- **Hostile by default**: it goes after players and every mob near it, rival giants and
+  bosses first (its beams do extra damage in proportion to the victim's health, so fights
+  against other add-ons' kaiju are not one-sided). Small animals just get walked over.
+  The tablet can switch it to "only fights back" or "peaceful".
 - **Energy and dormancy**: after spending its energy it freezes in place to cool down.
 - **Yashiori Strategy**: while it is dormant, use **Yashiori Coagulant** on it 6 times to
   freeze it solid, permanently.
-- **Live boss bar**: the bar's title shows what it is doing and its atomic energy as a row
-  of pips (or evolution progress for the earlier forms, and the dormancy countdown and
-  coagulant count while it sleeps).
-- It only retaliates when attacked by default (as in the film).
+- **Boss bar and HUD**: a named boss bar with its health, and a HUD line above the hotbar
+  with exact health, atomic energy and what it is doing right now (evolution progress for
+  the earlier forms; the dormancy countdown and coagulant count while it sleeps).
 
 ### Items
-- **Spawn eggs** for all three forms (creative inventory).
+- **Spawn eggs** for all three forms and the rampaging 4th form (creative inventory).
 - **Kaiju Control Tablet** — settings menu: block destruction on/off, behaviour
-  (movie-accurate / hunter / peaceful), evolution speed, kaiju size (full / half /
-  quarter), screen shake, summon a kaiju, command the nearest one (roar, atomic breath where
-  you are looking, dorsal rays, tail beam, dormancy, thaw), remove all kaiju.
+  (hostile / only fights back / peaceful), evolution speed, kaiju size (full / half /
+  quarter), screen shake and flashes, the HUD, summon a kaiju (including the rampaging one),
+  command the nearest one (roar, atomic breath where you are looking, dorsal rays, tail ray,
+  dormancy, thaw), remove all kaiju.
   Recipe: iron ingots around a glass pane and redstone.
 - **Yashiori Coagulant** — crafted from a G-Cell Sample + glass bottle + snowball + slime
   ball (or glass bottle + blue ice + slime ball + redstone).
 - **G-Cell Sample** — sometimes drops when you hit a kaiju; always drops when one falls.
 
 **Tip:** block destruction is ON by default. Turn it off in the tablet before spawning one
-near something you care about.
+near something you care about (that also switches off the temporary light the beams cast).
+
+**Updating from an older version:** import the new `.mcaddon`, then in the world's settings
+remove the old Shin Godzilla packs and add the new ones (version 1.2.0) if Minecraft did not
+swap them itself.
 
 ## How it was built
 
@@ -72,8 +86,10 @@ and run `python3 src/build.py`. Besides the normal output it writes
 your files on the same timeline.
 
 Checked with: TypeScript type-check of the script against the official Script API typings,
-Blockception's Bedrock diagnoser, Mojang's `@minecraft/bedrock-schemas`, and offline renders
-of the models and animation poses. It has **not** been run inside Minecraft from this
-workspace, so expect to tune things once you see it in game.
+Blockception's Bedrock diagnoser, Mojang's `@minecraft/bedrock-schemas`, offline renders of
+the models and animation poses, and the gameplay script run through whole fights against a
+stand-in for the Script API (which checks every entity event, property, particle and sound
+it uses against the packs). It has **not** been run inside Minecraft from this workspace, so
+expect to tune things once you see it in game.
 
 This is an unofficial fan project for personal use. Godzilla is a trademark of Toho Co., Ltd.

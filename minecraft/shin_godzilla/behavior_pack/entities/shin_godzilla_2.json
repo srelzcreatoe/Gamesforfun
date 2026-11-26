@@ -160,7 +160,7 @@
               "test": "is_family",
               "subject": "other",
               "operator": "!=",
-              "value": "kaiju"
+              "value": "shin_godzilla"
             }
           }
         },
@@ -189,7 +189,7 @@
               "test": "is_family",
               "subject": "other",
               "operator": "!=",
-              "value": "kaiju"
+              "value": "shin_godzilla"
             }
           }
         },
@@ -197,31 +197,40 @@
           "priority": 2,
           "must_see": false,
           "reselect_targets": true,
-          "within_radius": 64,
+          "within_radius": 72,
+          "scan_interval": 20,
           "entity_types": [
             {
               "filters": {
-                "test": "is_family",
-                "subject": "other",
-                "value": "player"
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "operator": "!=",
+                    "value": "shin_godzilla"
+                  },
+                  {
+                    "any_of": [
+                      {
+                        "test": "is_family",
+                        "subject": "other",
+                        "value": "player"
+                      },
+                      {
+                        "test": "is_family",
+                        "subject": "other",
+                        "value": "mob"
+                      },
+                      {
+                        "test": "is_family",
+                        "subject": "other",
+                        "value": "monster"
+                      }
+                    ]
+                  }
+                ]
               },
-              "max_dist": 64
-            },
-            {
-              "filters": {
-                "test": "is_family",
-                "subject": "other",
-                "value": "irongolem"
-              },
-              "max_dist": 40
-            },
-            {
-              "filters": {
-                "test": "is_family",
-                "subject": "other",
-                "value": "villager"
-              },
-              "max_dist": 40
+              "max_dist": 72
             }
           ]
         }
@@ -254,6 +263,11 @@
       "minecraft:health": {
         "value": 320,
         "max": 320
+      },
+      "minecraft:boss": {
+        "hud_range": 80,
+        "name": "\u00a76\u00a7lSHIN GODZILLA\u00a7r \u00a772nd Form",
+        "should_darken_sky": false
       },
       "minecraft:collision_box": {
         "width": 3.2,
@@ -309,10 +323,6 @@
         "value": 64,
         "max": 96
       },
-      "minecraft:boss": {
-        "hud_range": 48,
-        "should_darken_sky": false
-      },
       "minecraft:persistent": {},
       "minecraft:nameable": {
         "always_show": false,
@@ -333,7 +343,7 @@
             "sg:ai",
             "sg:move",
             "sg:sense",
-            "sg:mode_movie"
+            "sg:mode_hunt"
           ]
         }
       },
@@ -343,7 +353,7 @@
             "sg:ai",
             "sg:move",
             "sg:sense",
-            "sg:mode_movie"
+            "sg:mode_hunt"
           ]
         },
         "set_property": {

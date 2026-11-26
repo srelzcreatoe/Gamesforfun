@@ -12,8 +12,11 @@ import { ANCHORS } from "./anchors.js";
 const F2 = "sg:shin_godzilla_2";
 const F3 = "sg:shin_godzilla_3";
 const F4 = "sg:shin_godzilla";
-const KAIJU = new Set([F2, F3, F4]);
-const NAMES = { [F2]: "2nd Form (Kamata-kun)", [F3]: "3rd Form (Shinagawa-kun)", [F4]: "4th Form" };
+const F4R = "sg:shin_godzilla_rampage";   // never tires, never goes dormant, always attacking
+const KAIJU = new Set([F2, F3, F4, F4R]);
+const NAMES = { [F2]: "2nd Form (Kamata-kun)", [F3]: "3rd Form (Shinagawa-kun)", [F4]: "4th Form", [F4R]: "4th Form - RAMPAGE" };
+const is4 = (e) => e.typeId === F4 || e.typeId === F4R;
+const isRampage = (e) => e.typeId === F4R;
 const DIMS = ["minecraft:overworld", "minecraft:nether", "minecraft:the_end"];
 const ABILITY_STATES = new Set(["charge", "smoke", "fire", "focus", "beam", "dorsal", "tail", "waking", "evolving"]);
 const DOSES_NEEDED = 6;
@@ -32,10 +35,10 @@ const NON_LIVING = new Set(["minecraft:item", "minecraft:xp_orb", "minecraft:arr
   "minecraft:fishing_hook", "minecraft:area_effect_cloud", "minecraft:wind_charge_projectile"]);
 
 // ------------------------------------------------------------------ settings
-const DEFAULTS = { griefing: true, mode: "movie", evo: "normal", size: "full", shake: true };
+const DEFAULTS = { griefing: true, mode: "hunt", evo: "normal", size: "full", shake: true, hud: true };
 const S = { ...DEFAULTS };
 const SIZE_SCALE = { full: 1, half: 0.5, quarter: 0.25 };
-const MODE_LABEL = { movie: "Movie-accurate (retaliates)", hunt: "Hunter (attacks players)", peaceful: "Peaceful" };
+const MODE_LABEL = { hunt: "Hostile (attacks players and every mob)", movie: "Only fights back", peaceful: "Peaceful" };
 const EVO_LABEL = { normal: "Normal (3-4 min)", fast: "Fast (45-60 s)", off: "Off" };
 const SIZE_LABEL = { full: "Movie scale (48 blocks)", half: "Half (24 blocks)", quarter: "Quarter (12 blocks)" };
 
@@ -43,6 +46,13 @@ function loadSettings() {
   for (const k of Object.keys(DEFAULTS)) {
     const v = world.getDynamicProperty("sg:" + k);
     if (v !== undefined) S[k] = v;
+  }
+}
+function migrateSettings() {
+  // 1.2: kaiju are hostile by default; move older worlds over once
+  if (world.getDynamicProperty("sg:cfg") !== 2) {
+    world.setDynamicProperty("sg:cfg", 2);
+    setSetting("mode", "hunt");
   }
 }
 function setSetting(k, v) {
@@ -142,20 +152,26 @@ function hurt(en, amount, src, fire = 0) {
   } catch { /* ignore */ }
 }
 
+/** Rough half-width of a creature, so beams hit big bodies and not just their feet. */
+function bodyRadius(en) {
+  const hp = maxHp(en);
+  return hp >= 400 ? 5 : hp >= 150 ? 3 : hp >= 60 ? 1.5 : 0.4;
+}
 function distPointRay(p, o, d, l) {
   const v = sub(p, o);
   const t = clamp(v.x * d.x + v.y * d.y + v.z * d.z, 0, l);
   return dist(p, add(o, mul(d, t)));
 }
 
-function damageAlongRay(src, o, d, l, radius, amount, fire) {
+/** pct: extra damage as a share of the victim's own health, so rival giants feel it too. */
+function damageAlongRay(src, o, d, l, radius, amount, fire, pct = 0) {
   const dim = src.dimension;
   const mid = add(o, mul(d, l / 2));
   let ents = [];
   try { ents = dim.getEntities({ location: mid, maxDistance: l / 2 + radius + 3 }); } catch { return; }
   for (const en of ents) {
     if (en.id === src.id || KAIJU.has(en.typeId) || !isLiving(en)) continue;
-    if (distPointRay(center(en), o, d, l) <= radius) hurt(en, amount, src, fire);
+    if (distPointRay(center(en), o, d, l) <= radius + bodyRadius(en)) hurt(en, amount + (pct ? maxHp(en) * pct : 0), src, fire);
   }
 }
 
@@ -256,7 +272,7 @@ function firstSight(e, s) {
 function applyMode(e) {
   const state = getProp(e, "sg:state");
   if (state === "dormant" || state === "frozen" || state === "dying") return;
-  trigger(e, "sg:mode_" + S.mode);
+  trigger(e, "sg:mode_" + (isRampage(e) ? "hunt" : S.mode));
 }
 function applySize(e) { trigger(e, "sg:size_" + S.size); }
 
@@ -287,24 +303,45 @@ function validTarget(s) {
   return t;
 }
 
+function hostile(e) { return isRampage(e) || S.mode === "hunt"; }
+
+function maxHp(en) {
+  try { return en.getComponent("minecraft:health").effectiveMax; } catch { return 20; }
+}
+
 function findTarget(e, s, sc) {
   let t = validTarget(s);
-  if (t && dist(t.location, e.location) > 140 * Math.max(sc, 0.5)) t = undefined;
-  if (!t && S.mode === "hunt") {
-    let best, bd = 64 * Math.max(sc, 0.5);
-    for (const p of e.dimension.getPlayers({ location: e.location, maxDistance: bd })) {
-      let gm = "";
-      try { gm = String(p.getGameMode()).toLowerCase(); } catch { /* ignore */ }
-      if (gm === "creative" || gm === "spectator") continue;
-      const d = dist(p.location, e.location);
-      if (d < bd) { bd = d; best = p; }
+  const R = 96 * Math.max(sc, 0.5);
+  if (t && dist(t.location, e.location) > R * 1.5) t = undefined;
+  if (!t && hostile(e)) {
+    let best, score = Infinity;
+    let ents = [];
+    try { ents = e.dimension.getEntities({ location: e.location, maxDistance: R }); } catch { /* ignore */ }
+    for (const en of ents) {
+      if (en.id === e.id || KAIJU.has(en.typeId) || !isLiving(en)) continue;
+      let d = dist(en.location, e.location);
+      if (en.typeId === "minecraft:player") {
+        let gm = "";
+        try { gm = String(en.getGameMode()).toLowerCase(); } catch { /* ignore */ }
+        if (gm === "creative" || gm === "spectator") continue;
+        d -= 40;                                   // players first
+      } else {
+        const hp = maxHp(en);
+        if (hp >= 150) d -= 60;                    // rival kaiju and bosses before anything else
+        else if (hp < 12) d += 30;                 // small animals only if nothing better is around
+      }
+      if (d < score) { score = d; best = en; }
     }
     t = best;
+    if (t) s.targetT = 400;
   }
-  if (S.mode === "peaceful" && !s.forced) t = undefined;
+  if (S.mode === "peaceful" && !isRampage(e) && !s.forced) t = undefined;
   s.target = t;
   return t;
 }
+
+/** Is this target worth the atomic breath, or just something to step on? */
+function worthy(t) { return t.typeId === "minecraft:player" || maxHp(t) >= 20; }
 
 // ------------------------------------------------------------------ abilities (4th form)
 const A4 = ANCHORS.f4;
@@ -326,7 +363,11 @@ function endAbility(e, s) {
   s.aimPoint = undefined;
   setProp(e, "sg:glow", 0);
   setProp(e, "sg:aim", 0);
-  if (s.energy <= 8) {
+  setProp(e, "sg:tail", 0);
+  s.tailSw = 0;
+  for (const key of LIGHTS.keys()) LIGHTS.set(key, 0);
+  if (isRampage(e)) for (const k of ["breath", "dorsal", "tail"]) s.cd[k] = Math.floor(s.cd[k] * 0.45);
+  if (s.energy <= 8 && !isRampage(e)) {
     goDormant(e, s);
   } else {
     trigger(e, "sg:unlock");
@@ -372,15 +413,17 @@ function aim(e, s, sc, origin, sweep, forcePitch) {
 }
 
 function drawBeam(dim, o, d, l, thick) {
-  const v = dirVars(d, { len: 2.4 * thick });
-  const step = 2.0;
+  // the main beam is drawn densely; the many thin rays use longer, sparser streaks to stay light on phones
+  const main = thick > 1.5;
+  const step = main ? 2.0 : 3.2;
+  const v = dirVars(d, { len: main ? 2.4 * thick : 2.2 });
   for (let i = 0; i * step < l; i++) {
-    const p = add(o, mul(d, i * step + 1));
-    particle(dim, thick > 1.5 ? "sg:beam_core" : "sg:ray_core", p, v);
+    particle(dim, main ? "sg:beam_core" : "sg:ray_core", add(o, mul(d, i * step + step / 2)), v);
   }
+  const gs = main ? 3.5 : 5.5;
   const g = dirVars(d, { len: 3.5 * thick });
-  for (let i = 0; i * 3.5 < l; i++) {
-    particle(dim, thick > 1.5 ? "sg:beam_glow" : "sg:ray_glow", add(o, mul(d, i * 3.5 + 1.5)), g);
+  for (let i = 0; i * gs < l; i++) {
+    particle(dim, main ? "sg:beam_glow" : "sg:ray_glow", add(o, mul(d, i * gs + 1.5)), g);
   }
 }
 
@@ -403,13 +446,113 @@ function explodeAt(e, p, r, fire) {
   } catch { /* ignore */ }
 }
 
+// ------------------------------------------------------------------ spectacle
+const SURGE = A4.surge;                       // centre plate tips, tail's end -> nape (charge pose)
+const TAIL_SIDE = Math.sign(A4.tail_by_swing[A4.tail_by_swing.length - 1][1] - A4.tail_by_swing[0][1]) || 1;
+
+function sized(size) {
+  const v = new MolangVariableMap();
+  v.setFloat("variable.size", size);
+  return v;
+}
+
+/** One step of the light that runs from the tip of the tail, up the back, to the nape (k = 0..1). */
+function surgeAt(e, sc, k, size) {
+  const n = SURGE.length;
+  const i = Math.floor(clamp(k, 0, 0.999) * n);
+  const v = sized(size);
+  for (let j = 0; j < 3 && i + j < n; j++) particle(e.dimension, "sg:surge", toWorld(e, SURGE[i + j], sc), v);
+}
+
+/** Lightning crawling between the dorsal plates. */
+function arcs(e, sc, count) {
+  const pts = A4.dorsal, dim = e.dimension;
+  for (let c = 0; c < count; c++) {
+    const i = Math.floor(Math.random() * pts.length);
+    const j = clamp(i + (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 3)), 0, pts.length - 1);
+    if (i === j) continue;
+    const a = toWorld(e, pts[i], sc), b = toWorld(e, pts[j], sc);
+    const mid = add(mul(add(a, b), 0.5), { x: rand(-1.5, 1.5) * sc, y: rand(0.5, 3) * sc, z: rand(-1.5, 1.5) * sc });
+    for (const [p, q] of [[a, mid], [mid, b]]) {
+      const d = sub(q, p), l = len(d);
+      if (l < 0.3) continue;
+      particle(dim, "sg:ray_core", mul(add(p, q), 0.5), dirVars(norm(d), { len: l * 0.5 }));
+    }
+  }
+}
+
+/** A blink of violet-white across the screen of everyone close enough to be dazzled. */
+function flashScreen(dim, c, radius, col, hold, out) {
+  if (!S.shake) return;
+  let players = [];
+  try { players = dim.getPlayers({ location: c, maxDistance: radius }); } catch { return; }
+  for (const p of players) {
+    try {
+      p.camera.fade({ fadeColor: { red: col[0], green: col[1], blue: col[2] }, fadeTime: { fadeInTime: 0.05, holdTime: hold, fadeOutTime: out } });
+    } catch { /* ignore */ }
+  }
+}
+
+/** Lean the raised tail toward what it is firing at (with a slow slashing sway) and return its tip. */
+function tailTip(e, s, sc, table, goal, t) {
+  let want = Math.sin(t * 0.11) * 14;
+  if (goal) {
+    const rel = wrap180(anglesFromDir(norm(sub(goal, e.location))).yaw - s.yaw);
+    want += (clamp(rel, -90, 90) / 90) * 28 * TAIL_SIDE;
+  }
+  const cur = s.tailSw ?? 0;
+  s.tailSw = clamp(cur + clamp(want - cur, -2.5, 2.5), -45, 45);
+  const sw = Math.round(s.tailSw);
+  setProp(e, "sg:tail", sw);
+  return toWorld(e, lerpTable(table, sw), sc, s.yaw);
+}
+
+/** The thin ray from the tip of the tail. a.td is its (smoothed) direction. */
+function tailRay(e, s, sc, tip, goal, t, a) {
+  const dim = e.dimension;
+  let d;
+  if (goal) {
+    // slash back and forth across the target rather than holding dead on it
+    const w = { x: Math.sin(t * 0.07) * 9 * sc, y: Math.sin(t * 0.045) * 3 * sc, z: Math.cos(t * 0.06) * 9 * sc };
+    d = norm(sub(add(goal, w), tip));
+  } else {
+    d = dirFromAngles(s.yaw + Math.sin(t * 0.06) * 55, 16 + Math.sin(t * 0.09) * 12);
+  }
+  a.td = a.td ? norm(add(mul(a.td, 0.82), mul(d, 0.18))) : d;
+  const r = castBeam(e, tip, a.td, 110 * Math.max(sc, 0.4));
+  drawBeam(dim, tip, a.td, r.l, 1.3);
+  particle(dim, "sg:mouth_glow", tip);
+  if (r.hit) {
+    particle(dim, "sg:beam_impact", r.hit);
+    if (t % 4 === 0) explodeAt(e, r.hit, 2.8 * Math.max(sc, 0.5) + 0.4, true);
+    if (t % 3 === 0) light(dim, add(r.hit, mul(a.td, -2)), 10);
+  }
+  if (t % 4 === 0) damageAlongRay(e, tip, a.td, r.l, 1.8, 11, 4, 0.003);
+}
+
+/** A handful of rays from the plates, thrown out with the breath (the rampaging one only). */
+function dorsalFan(e, sc, t, a) {
+  const dim = e.dimension, pts = A4.dorsal;
+  a.seed ??= Math.random() * 360;
+  for (let i = 0; i < 5; i++) {
+    const o = toWorld(e, pts[(i * 11 + Math.floor(t / 3)) % pts.length], sc);
+    const d = dirFromAngles(a.seed + i * 72 + t * 2.2, -(18 + 30 * Math.abs(Math.sin((t + i * 25) * 0.04))) + 30 * Math.max(0, Math.sin((t + i * 40) * 0.03)));
+    const r = castBeam(e, o, d, 80 * Math.max(sc, 0.4));
+    drawBeam(dim, o, d, r.l, 0.9);
+    if (r.hit && t % 5 === i) { particle(dim, "sg:beam_impact", r.hit); explodeAt(e, r.hit, 2.2, true); }
+    if (t % 4 === 0) damageAlongRay(e, o, d, r.l, 1.6, 9, 3, 0.002);
+  }
+}
+
 // Atomic breath, staged like the film and cut to the heat-ray sound's timeline
 // (phase start ticks come from the build, so sound, animation and damage stay in step):
-//   charge   plates stutter and catch purple, the eye membranes close, the head bows
+//   charge   light races up the tail and along the back, the plates stutter and catch purple,
+//            lightning crawls between them, the eye membranes close, the head bows
 //   smoke    the jaw unhinges and thick black smoke pours down over the ground
 //   fire     the smoke ignites into a flood of orange fire that spreads across everything below
 //   focus    the stream burns white, then magenta, and tightens as the lower jaw parts
-//   beam     the jaw is split in two; a thin violet beam, the head rising to sweep it across the target
+//   beam     a flash, and the jaw is split in two: a thin violet beam, the head rising to sweep it
+//            across the target while the tail swings over and fires its own ray
 //   sputter  the beam breaks up and dies
 const BREATH = ANCHORS.timing.breath;
 const lerp3 = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
@@ -422,9 +565,7 @@ function stream(dim, mouth, d, sc, col, spread, speed, size) {
 function haze(e, sc) {
   const pts = A4.dorsal;
   const p = toWorld(e, pts[Math.floor(Math.random() * pts.length)], sc);
-  const v = new MolangVariableMap();
-  v.setFloat("variable.size", 16 * sc + 4);
-  particle(e.dimension, "sg:haze", p, v);
+  particle(e.dimension, "sg:haze", p, sized(16 * sc + 4));
 }
 
 /** Fire reaching the ground: flames, burning blocks, and now and then something going up. */
@@ -437,6 +578,7 @@ function floodFire(e, mouth, d, sc, t) {
     if (!r.hit) continue;
     const g = add(r.hit, { x: 0, y: 1, z: 0 });
     particle(dim, "sg:ground_fire", g);
+    if (i === 0 && t % 6 === 0) light(dim, add(g, { x: 0, y: 1, z: 0 }), 14);
     if (canGrief()) {
       try {
         const above = dim.getBlock({ x: Math.floor(r.hit.x), y: Math.floor(r.hit.y) + 1, z: Math.floor(r.hit.z) });
@@ -446,11 +588,13 @@ function floodFire(e, mouth, d, sc, t) {
     }
   }
   if (t % 5 === 0) {
-    for (const en of dim.getEntities({ location: mouth, maxDistance: range })) {
+    let ents = [];
+    try { ents = dim.getEntities({ location: mouth, maxDistance: range }); } catch { /* ignore */ }
+    for (const en of ents) {
       if (en.id === e.id || KAIJU.has(en.typeId) || !isLiving(en)) continue;
       const v = sub(center(en), mouth);
       const cos = (v.x * d.x + v.y * d.y + v.z * d.z) / (len(v) || 1);
-      if (cos > 0.84) hurt(en, 6, e, 6);
+      if (cos > 0.84) hurt(en, 6 + maxHp(en) * 0.002, e, 6);
     }
   }
 }
@@ -458,26 +602,44 @@ function floodFire(e, mouth, d, sc, t) {
 function tickBreath(e, s, sc) {
   const a = s.act, dim = e.dimension;
   const t = a.t;
+  const L = e.location;
   if (t === 0) {
     setProp(e, "sg:state", "charge");
     s.baseYaw = s.yaw;
     s.pitch = 0;
-    sound(dim, "sg.charge", e.location, 6 * sc + 2);
-    warn(e, "§5☢ §dShin Godzilla's dorsal plates are glowing... §5☢");
+    sound(dim, "sg.charge", L, 6 * sc + 2);
+    warn(e, "§5☢ §dThe dorsal plates are glowing... §5☢");
   }
   const mouth = mouthPos(e, s, sc);
   if (t % 6 === 0) haze(e, sc);
+
+  // ---- charge
   if (t < BREATH.smoke) {
+    const k = t / BREATH.smoke;
     // the glow stutters on, faster and faster, then holds
     const on = t >= BREATH.smoke * 0.7 || Math.sin(t * t * 0.045) > 0;
     setProp(e, "sg:glow", on ? 1 : 0);
-    if (t % 2 === 0) dorsalSparks(e, sc);
+    // light races from the tail's tip to the nape: once slowly, then again in a rush
+    const split = Math.floor(BREATH.smoke * 0.6);
+    surgeAt(e, sc, t < split ? t / split : (t - split) / (BREATH.smoke - split), 7 * sc + 2);
+    if (t % 2 === 0) { dorsalSparks(e, sc); arcs(e, sc, 1 + Math.floor(k * 3)); }
+    if (t % 5 === 0) particle(dim, "sg:embers", L, sized(10 * sc + 2));
     if (t % 4 === 0 && t > 16) particle(dim, "sg:mouth_glow", mouth);
+    if (t % 10 === 0) shake(dim, L, 70 * sc + 16, 0.12 + 0.3 * k, 0.6);
+    if (t === split) { particle(dim, "sg:shockwave", L); particle(dim, "sg:dust", L); }
     aim(e, s, sc, mouth, false, 58);
     return;
   }
   setProp(e, "sg:glow", 1);
   if (t % 3 === 0) dorsalSparks(e, sc);
+  if (t === BREATH.smoke) {
+    // the plates lock on: one hard pulse along the whole back
+    for (let i = 0; i < SURGE.length; i += 2) particle(dim, "sg:surge", toWorld(e, SURGE[i], sc), sized(8 * sc + 2));
+    particle(dim, "sg:flash", toWorld(e, [0, 34, 4], sc), sized(22 * sc + 4));
+    light(dim, toWorld(e, [0, 50, 6], sc), 30);
+  }
+
+  // ---- smoke
   if (t < BREATH.fire) {
     const d = aim(e, s, sc, mouth, false, 58);
     if (t === BREATH.smoke) { setProp(e, "sg:state", "smoke"); sound(dim, "sg.breath_smoke", mouth, 8 * sc + 3); }
@@ -487,25 +649,39 @@ function tickBreath(e, s, sc) {
       const r = castBeam(e, mouth, d, 70 * sc + 10);   // smoke rolls out across the ground
       if (r.hit) particle(dim, "sg:smoke_plume", add(r.hit, { x: 0, y: 1, z: 0 }), dirVars(norm({ x: d.x, y: 0.05, z: d.z }), { spd: 8 * sc + 3 }));
     }
+    const ph = ((t - BREATH.smoke) % 26) / 14;
+    if (ph < 1) surgeAt(e, sc, ph, 6 * sc + 2);
+    if (t % 4 === 0) arcs(e, sc, 1);
+    if (t % 9 === 0) particle(dim, "sg:embers", L, sized(11 * sc + 2));
     return;
   }
+
+  // ---- fire
   if (t < BREATH.focus) {
     // slow side-to-side wash of fire over the ground in front of it
     const d = aim(e, s, sc, mouth, true, 52);
     if (t === BREATH.fire) {
       setProp(e, "sg:state", "fire");
       sound(dim, "sg.breath_fire", mouth, 10 * sc + 3);
-      shake(dim, e.location, 80 * sc + 20, 0.4, 1.0);
+      shake(dim, L, 80 * sc + 20, 0.5, 1.0);
+      particle(dim, "sg:flash", mouth, sized(12 * sc + 3));
+      warn(e, "§6§l☢ FIRE ☢");
     }
     stream(dim, mouth, d, sc, ORANGE, 0.2, 30 * sc + 9, 1.3 * sc + 0.5);
     particle(dim, "sg:fire_spray", mouth, dirVars(d, { spd: 26 * sc + 8 }));
     if (t % 4 === 0) particle(dim, "sg:smoke_plume", mouth, dirVars(d, { spd: 12 * sc + 4 }));
     floodFire(e, mouth, d, sc, t);
-    if (t % 12 === 0) shake(dim, e.location, 60 * sc + 16, 0.2, 0.7);
+    if (t % 12 === 0) shake(dim, L, 60 * sc + 16, 0.25, 0.7);
+    const ph = ((t - BREATH.fire) % 22) / 12;
+    if (ph < 1) surgeAt(e, sc, ph, 6 * sc + 2);
+    if (t % 3 === 0) arcs(e, sc, 1);
+    if (t % 8 === 0) particle(dim, "sg:embers", L, sized(12 * sc + 2));
+    if (t % 6 === 0) light(dim, add(mouth, mul(d, 6)), 12);
     return;
   }
+
+  // ---- focus: orange -> white-hot -> magenta, tightening into a line
   if (t < BREATH.beam) {
-    // orange -> white-hot -> magenta, tightening into a line
     const k = (t - BREATH.focus) / (BREATH.beam - BREATH.focus);
     const d = aim(e, s, sc, mouth, false, 50 - 4 * k);
     if (t === BREATH.focus) { setProp(e, "sg:state", "focus"); sound(dim, "sg.breath_focus", mouth, 10 * sc + 3); }
@@ -518,16 +694,33 @@ function tickBreath(e, s, sc) {
       if (r.hit) particle(dim, "sg:beam_impact", r.hit);
     }
     particle(dim, "sg:mouth_glow", mouth);
+    // everything winds up: the surge loops faster, the arcs thicken, a star grows in the throat
+    const ph = ((t - BREATH.focus) % 12) / 9;
+    if (ph < 1) surgeAt(e, sc, ph, 7 * sc + 2);
+    if (t % 2 === 0) arcs(e, sc, 1 + Math.floor(k * 2));
+    if (t % 3 === 0) particle(dim, "sg:flash", mouth, sized((3 + 7 * k) * sc + 1));
+    if (t % 6 === 0) particle(dim, "sg:embers", L, sized(12 * sc + 2));
+    if (t % 8 === 0) shake(dim, L, 70 * sc + 16, 0.2 + 0.4 * k, 0.6);
+    if (t % 5 === 0) light(dim, add(mouth, mul(d, 5)), 10);
     return;
   }
+
+  // ---- beam
   if (t < BREATH.end) {
     const d = aim(e, s, sc, mouth, true);
     if (t === BREATH.beam) {
       setProp(e, "sg:state", "beam");
       sound(dim, "sg.breath_beam", mouth, 12 * sc + 4);
-      shake(dim, e.location, 90 * sc + 20, 0.6, 1.2);
+      sound(dim, "sg.crash", L, 10 * sc + 4, 0.6);
+      shake(dim, L, 100 * sc + 24, 1.1, 1.6);
+      flashScreen(dim, L, 90 * sc + 24, [0.78, 0.6, 1.0], 0.05, 0.55);
+      particle(dim, "sg:flash", mouth, sized(34 * sc + 6));
+      particle(dim, "sg:shockwave", L);
+      for (let i = 0; i < 3; i++) particle(dim, "sg:embers", L, sized((6 + 6 * i) * sc + 2));
+      for (let i = 0; i < SURGE.length; i += 2) particle(dim, "sg:surge", toWorld(e, SURGE[i], sc), sized(9 * sc + 2));
       warn(e, "§d§l☢ ATOMIC BREATH ☢");
     }
+    const bt = t - BREATH.beam;
     const sputter = t >= BREATH.sputter;
     const live = !sputter || (t % 5 < 3);
     const maxLen = 150 * Math.max(sc, 0.35);
@@ -537,13 +730,29 @@ function tickBreath(e, s, sc) {
       if (r.hit) {
         particle(dim, "sg:beam_impact", r.hit);
         if (t % 3 === 0) explodeAt(e, r.hit, 3.2 * Math.max(sc, 0.5) + 0.8, true);
+        if (t % 2 === 0) light(dim, add(r.hit, mul(d, -2)), 12);
       }
-      if (t % 4 === 0) damageAlongRay(e, mouth, d, r.l, 2.2 * Math.max(sc, 0.5), 14, 5);
+      if (t % 4 === 0) damageAlongRay(e, mouth, d, r.l, 2.2 * Math.max(sc, 0.5), 14, 5, 0.004);
+      if (t % 3 === 0) light(dim, add(mouth, mul(d, Math.min(r.l * 0.5, 10 + (bt % 4) * 14))), 10);
     } else {
       stream(dim, mouth, d, sc, MAGENTA, 0.12, 30 * sc + 9, 0.8 * sc + 0.4);
     }
     if (t % 2 === 0) particle(dim, "sg:mouth_glow", mouth);
-    if (t % 10 === 0) shake(dim, e.location, 70 * sc + 16, 0.25, 0.6);
+    if (t % 10 === 0) shake(dim, L, 70 * sc + 16, 0.3, 0.6);
+    if (t % 4 === 0) arcs(e, sc, 1);
+    if (t % 10 === 0) particle(dim, "sg:embers", L, sized(12 * sc + 2));
+
+    // the tail swings up and over and joins in with a ray of its own
+    const goal = s.aimPoint ?? (validTarget(s) ? center(validTarget(s)) : undefined);
+    const tip = tailTip(e, s, sc, A4.tail_breath_by_swing, goal, t);
+    if (bt === 24) { sound(dim, "sg.rays", tip, 10 * sc + 4, 1.1); particle(dim, "sg:flash", tip, sized(10 * sc + 3)); warn(e, "§d§l☢ ATOMIC BREATH + TAIL RAY ☢"); }
+    if (bt >= 24 && !sputter) tailRay(e, s, sc, tip, goal, t, a);
+    else if (bt >= 8 && bt < 24 && t % 2 === 0) particle(dim, "sg:mouth_glow", tip);
+    // the rampaging one throws rays from its back as well: mouth, tail and plates all at once
+    if (isRampage(e) && bt >= 50 && !sputter) {
+      if (bt === 50) sound(dim, "sg.rays", L, 12 * sc + 4, 0.95);
+      dorsalFan(e, sc, t, a);
+    }
     return;
   }
   s.energy -= 40;
@@ -551,44 +760,130 @@ function tickBreath(e, s, sc) {
   endAbility(e, s);
 }
 
-/** Short action-bar line for everyone near a kaiju. */
+/** Banner line for everyone near a kaiju (shown in the HUD for a moment). */
 function warn(e, text, range = 128) {
+  const s = st(e);
+  s.banner = text;
+  s.bannerT = system.currentTick + 50;
+  if (S.hud) return;   // the HUD will carry it
   try {
     for (const p of e.dimension.getPlayers({ location: e.location, maxDistance: range })) p.onScreenDisplay.setActionBar(text);
   } catch { /* ignore */ }
 }
 
-// ------------------------------------------------------------------ boss bar title
-// The boss bar shows the kaiju's name tag, so the script keeps a live title there:
-// form, what it is doing, and its atomic energy (or evolution progress) as a row of pips.
+// ------------------------------------------------------------------ HUD
+// The boss bar carries the name and health; a HUD line above the hotbar adds exact health,
+// atomic energy and what the kaiju is doing right now.
 const STATE_LABEL = {
-  roar: "§6ROARING", charge: "§dPLATES GLOWING", smoke: "§8SMOKE", fire: "§6FIRE", focus: "§dFOCUSING", beam: "§d§lATOMIC BREATH",
-  dorsal: "§d§lDORSAL RAYS", tail: "§d§lTAIL BEAM", waking: "§cAWAKENING", frozen: "§b§lFROZEN", dying: "§7FALLING", evolving: "§e§lEVOLVING",
+  walk: "§7ON THE MOVE", roar: "§6ROARING", charge: "§dPLATES GLOWING", smoke: "§8SMOKE", fire: "§6FIRE", focus: "§dFOCUSING",
+  beam: "§d§lATOMIC BREATH", dorsal: "§d§lDORSAL RAYS", tail: "§d§lTAIL RAY", waking: "§cAWAKENING", frozen: "§b§lFROZEN",
+  dying: "§7FALLING", evolving: "§e§lEVOLVING", dormant: "§bDORMANT",
 };
-function pips(frac, on, off, n = 10) {
+const HUD_NAME = { [F2]: "§6§lSHIN GODZILLA §r§72nd Form", [F3]: "§c§lSHIN GODZILLA §r§73rd Form", [F4]: "§5§lSHIN GODZILLA", [F4R]: "§4§lSHIN GODZILLA §c§lRAMPAGE" };
+
+function meter(frac, on, off, n) {
   const k = Math.round(clamp(frac, 0, 1) * n);
-  return on + "▮".repeat(k) + off + "▮".repeat(n - k);
+  return on + "|".repeat(k) + off + "|".repeat(n - k);
 }
-function updateTitle(e, s, state) {
-  let title;
-  if (e.typeId === F4) {
-    let st = STATE_LABEL[state] ?? "";
-    if (state === "dormant") {
-      const sec = Math.max(0, Math.ceil(s.dormantT / 20));
-      st = `§bDORMANT §7${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")} §8| §bCoagulant ${s.doses}/${DOSES_NEEDED}`;
-    }
-    title = `§5§lSHIN GODZILLA§r §8| §dENERGY ${pips(s.energy / 100, "§5", "§8")}§r${st ? " §8| " + st : ""}`;
-  } else {
-    const name = e.typeId === F3 ? "3rd Form" : "2nd Form";
+
+function clearOldTag(e, s) {
+  if (s.tagCleared) return;      // 1.1 wrote a title into the name tag, which hid the bar's name
+  s.tagCleared = true;
+  try { if (e.nameTag) e.nameTag = ""; } catch { /* ignore */ }
+}
+
+function hudText(e) {
+  const s = st(e);
+  const state = getProp(e, "sg:state") ?? "walk";
+  let hp = 0, max = 1;
+  try { const h = e.getComponent("minecraft:health"); hp = Math.max(0, Math.ceil(h.currentValue)); max = Math.ceil(h.effectiveMax); } catch { /* ignore */ }
+  let l1 = `${HUD_NAME[e.typeId]} §r§8- ${STATE_LABEL[state] ?? ""}`;
+  if (state === "dormant") {
+    const sec = Math.max(0, Math.ceil(s.dormantT / 20));
+    l1 += ` §7${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")} §8- §bCoagulant ${s.doses}/${DOSES_NEEDED}`;
+  }
+  let l2 = `§cHP §f${hp}§7/${max} ${meter(hp / max, "§4", "§8", 30)}`;
+  if (isRampage(e)) l2 += "  §dENERGY §5UNLIMITED";
+  else if (is4(e)) l2 += `  §dENERGY ${meter(s.energy / 100, "§5", "§8", 16)}`;
+  else {
     const th = evoThreshold(e);
-    const prog = th === Infinity ? "" : ` §8| §eEVOLUTION ${pips(s.age / th, "§6", "§8")}`;
-    const st = STATE_LABEL[state];
-    title = `§c§lSHIN GODZILLA§r §7${name}${prog}§r${st ? " §8| " + st : ""}`;
+    if (th !== Infinity) l2 += `  §eEVOLUTION ${meter(s.age / th, "§6", "§8", 16)}`;
   }
-  if (title !== s.title) {
-    s.title = title;
-    try { e.nameTag = title; } catch { /* ignore */ }
+  const banner = s.banner && system.currentTick < s.bannerT ? "\n" + s.banner : "";
+  return l1 + "§r\n" + l2 + banner;
+}
+
+function tickHud() {
+  if (!S.hud) return;
+  for (const p of world.getAllPlayers()) {
+    let best, bd = 150;
+    for (const e of tracked) {
+      try {
+        if (!e.isValid || e.dimension.id !== p.dimension.id) continue;
+        const d = dist(e.location, p.location);
+        if (getProp(e, "sg:state") === "frozen" && d > 40) continue;   // a statue doesn't need a HUD from afar
+        if (d < bd) { bd = d; best = e; }
+      } catch { /* ignore */ }
+    }
+    if (best) { try { p.onScreenDisplay.setActionBar(hudText(best)); } catch { /* ignore */ } }
   }
+}
+
+// ------------------------------------------------------------------ light
+// Real light for the fire and the beams: invisible light blocks dropped along them for a few
+// ticks, so the breath actually lights up the land at night. Every one is tracked and taken
+// away again, and the list is saved the moment it changes so nothing is left behind if the
+// world closes mid-attack. Counts as a world change, so it follows the block-destruction switch.
+const LIGHTS = new Map();   // "dim|x|y|z" -> tick it expires
+let STRAY = [];             // left over from a session that ended mid-attack; cleared once loaded
+let lightsNew = 0;
+function saveLights() {
+  try { world.setDynamicProperty("sg:lights", JSON.stringify([...LIGHTS.keys(), ...STRAY].slice(0, 200))); } catch { /* ignore */ }
+}
+function light(dim, p, ticks = 6) {
+  if (!canGrief()) return;
+  const x = Math.floor(p.x / 4) * 4, y = Math.floor(p.y), z = Math.floor(p.z / 4) * 4;
+  const key = `${dim.id}|${x}|${y}|${z}`;
+  if (LIGHTS.has(key)) { LIGHTS.set(key, system.currentTick + ticks); return; }
+  if (LIGHTS.size >= 8 || lightsNew >= 1) return;
+  try {
+    const b = dim.getBlock({ x, y, z });
+    if (!b || !b.isAir) return;
+    LIGHTS.set(key, system.currentTick + ticks);
+    saveLights();
+    lightsNew++;
+    try { b.setType("minecraft:light_block_15"); } catch { b.setType("minecraft:light_block"); }
+  } catch { /* ignore */ }
+}
+function clearLight(key) {
+  const [dimId, x, y, z] = key.split("|");
+  try {
+    const b = world.getDimension(dimId).getBlock({ x: Number(x), y: Number(y), z: Number(z) });
+    if (!b) return false;                       // chunk not loaded: try again later
+    if (b.typeId.startsWith("minecraft:light_block")) b.setType("minecraft:air");
+    return true;
+  } catch { return false; }
+}
+function tickLights() {
+  lightsNew = 0;
+  let changed = false;
+  for (const [key, exp] of LIGHTS) {
+    if (system.currentTick < exp) continue;
+    if (clearLight(key)) LIGHTS.delete(key);
+    else { LIGHTS.delete(key); STRAY.push(key); }
+    changed = true;
+  }
+  if (STRAY.length && system.currentTick % 100 === 0) {
+    const left = STRAY.filter((key) => !clearLight(key));
+    if (left.length !== STRAY.length) { STRAY = left; changed = true; }
+  }
+  if (changed) saveLights();
+}
+function cleanStrayLights() {
+  try {
+    const raw = world.getDynamicProperty("sg:lights");
+    if (typeof raw === "string") STRAY = JSON.parse(raw).filter((k) => typeof k === "string");
+  } catch { /* ignore */ }
 }
 
 function dorsalPoints(e, sc) {
@@ -599,6 +894,8 @@ function dorsalSparks(e, sc) {
   for (let i = 0; i < 3; i++) particle(e.dimension, "sg:dorsal_glow", pts[Math.floor(Math.random() * pts.length)]);
 }
 
+const FLYERS = new Set(["minecraft:phantom", "minecraft:ghast", "minecraft:happy_ghast", "minecraft:blaze", "minecraft:vex",
+  "minecraft:breeze", "minecraft:wither", "minecraft:ender_dragon"]);
 function airborneTargets(e, sc) {
   const out = [];
   const R = 96 * Math.max(sc, 0.5);
@@ -607,10 +904,8 @@ function airborneTargets(e, sc) {
   for (const en of ents) {
     if (KAIJU.has(en.typeId) || !isLiving(en)) continue;
     if (en.typeId === "minecraft:player" && isSpectator(en)) continue;
-    const high = en.location.y - e.location.y > 10 * sc;
-    const flyer = ["minecraft:phantom", "minecraft:ghast", "minecraft:blaze", "minecraft:bee", "minecraft:parrot",
-      "minecraft:bat", "minecraft:allay", "minecraft:vex", "minecraft:breeze", "minecraft:wither", "minecraft:ender_dragon"].includes(en.typeId);
-    if (high || flyer) out.push(en);
+    const high = en.location.y - e.location.y > 10 * sc && (isRampage(e) || worthy(en));
+    if (high || FLYERS.has(en.typeId)) out.push(en);
   }
   return out.slice(0, 8);
 }
@@ -630,7 +925,7 @@ function tickDorsal(e, s, sc) {
     const pts = dorsalPoints(e, sc);
     if (t % 15 === 0) a.targets = airborneTargets(e, sc);
     const tg = a.targets.filter((x) => { try { return x.isValid; } catch { return false; } });
-    const n = Math.min(pts.length, 12);
+    const n = Math.min(pts.length, 10);
     for (let i = 0; i < n; i++) {
       const o = pts[(i * 7 + t) % pts.length];
       let d;
@@ -664,26 +959,24 @@ function tickTail(e, s, sc) {
     setProp(e, "sg:state", "tail");
     setProp(e, "sg:glow", 1);
     sound(dim, "sg.charge", e.location, 5 * sc + 2, 1.3);
+    warn(e, "§5☢ §dThe tail is glowing... §5☢");
   }
-  const tip = toWorld(e, A4.tail_tip, sc);
-  if (t < 26) { particle(dim, "sg:mouth_glow", tip); return; }
-  if (t === 26) sound(dim, "sg.rays", tip, 10 * sc + 4, 1.12);
-  if (t < 110) {
-    let d;
-    const tg = validTarget(s);
-    if (s.aimPoint) d = norm(sub(s.aimPoint, tip));
-    else if (tg) d = norm(sub(center(tg), tip));
-    else d = norm(add(toDir(e, A4.tail_dir), { x: 0, y: Math.sin(t * 0.05) * 0.2, z: 0 }));
-    a.d = a.d ? norm(add(mul(a.d, 0.85), mul(d, 0.15))) : d;
-    const r = castBeam(e, tip, a.d, 90 * Math.max(sc, 0.4));
-    drawBeam(dim, tip, a.d, r.l, 1.3);
-    if (r.hit) {
-      particle(dim, "sg:beam_impact", r.hit);
-      if (t % 4 === 0) explodeAt(e, r.hit, 2.8, true);
-    }
-    if (t % 4 === 0) damageAlongRay(e, tip, a.d, r.l, 1.8, 11, 4);
+  const goal = s.aimPoint ?? (validTarget(s) ? center(validTarget(s)) : undefined);
+  const tip = tailTip(e, s, sc, A4.tail_by_swing, goal, t);
+  if (t < 30) {
+    // light runs down the tail to its tip before it fires
+    surgeAt(e, sc, (1 - t / 30) * 0.55, 6 * sc + 2);
+    if (t % 2 === 0) particle(dim, "sg:mouth_glow", tip);
+    if (t % 3 === 0) arcs(e, sc, 1);
     return;
   }
+  if (t === 30) {
+    sound(dim, "sg.rays", tip, 10 * sc + 4, 1.12);
+    particle(dim, "sg:flash", tip, sized(12 * sc + 3));
+    shake(dim, e.location, 70 * sc + 16, 0.5, 0.8);
+    warn(e, "§d§l☢ TAIL RAY ☢");
+  }
+  if (t < 130) { tailRay(e, s, sc, tip, goal, t, a); return; }
   s.energy -= 20;
   s.cd.tail = 500;
   endAbility(e, s);
@@ -697,8 +990,8 @@ function toDir(e, v) {
 function startRoar(e, s, fromTransform) {
   const dim = e.dimension, sc = scaleOf(e);
   setProp(e, "sg:state", "roar");
-  s.roarT = e.typeId === F4 ? ANCHORS.timing.roar : 66;
-  const id = e.typeId === F4 ? "sg.roar4" : e.typeId === F3 ? "sg.roar3" : "sg.roar2";
+  s.roarT = is4(e) ? ANCHORS.timing.roar : 66;
+  const id = is4(e) ? "sg.roar4" : e.typeId === F3 ? "sg.roar3" : "sg.roar2";
   sound(dim, id, e.location, 12 * sc + 3, rand(0.95, 1.03));
   shake(dim, e.location, 80 * sc + 16, 0.35, 2.5);
   s.cd.roar = fromTransform ? 300 : 700;
@@ -770,14 +1063,14 @@ function startDying(e, s) {
   trigger(e, "sg:dying");
   setProp(e, "sg:state", "dying");
   setProp(e, "sg:glow", 0);
-  s.dyingT = e.typeId === F4 ? 96 : 70;
+  s.dyingT = is4(e) ? 96 : 70;
   const sc = scaleOf(e);
-  sound(e.dimension, e.typeId === F4 ? "sg.roar4" : e.typeId === F3 ? "sg.roar3" : "sg.roar2", e.location, 12 * sc + 3, 0.8);
+  sound(e.dimension, is4(e) ? "sg.roar4" : e.typeId === F3 ? "sg.roar3" : "sg.roar2", e.location, 12 * sc + 3, 0.8);
 }
 
 function finishDying(e) {
   const dim = e.dimension, L = e.location;
-  const n = e.typeId === F4 ? 6 : e.typeId === F3 ? 3 : 2;
+  const n = is4(e) ? 6 : e.typeId === F3 ? 3 : 2;
   try { dim.spawnItem(new ItemStack("sg:g_cell", n), add(L, { x: 0, y: 2, z: 0 })); } catch { /* ignore */ }
   sound(dim, "sg.step", L, 10, 0.6);
   shake(dim, L, 80, 1.5, 1.2);
@@ -813,13 +1106,42 @@ function tickEvolve(e, s, sc) {
   }
 }
 
+/** Anything under a foot when it lands is crushed. */
+function trample(e, fp, sc) {
+  const R = (is4(e) ? 4.5 : e.typeId === F3 ? 3 : 2.5) * sc + 1;
+  let ents = [];
+  try { ents = e.dimension.getEntities({ location: fp, maxDistance: R }); } catch { return; }
+  for (const en of ents) {
+    if (en.id === e.id || KAIJU.has(en.typeId) || !isLiving(en)) continue;
+    hurt(en, (is4(e) ? 22 : e.typeId === F3 ? 10 : 6) + maxHp(en) * 0.01, e);
+  }
+}
+
+/** Nothing left alive nearby: the rampaging one turns its fire on the land itself. */
+function rampageIdle(e, s, sc) {
+  const pick = () => {
+    const f = dirFromAngles(e.getRotation().y + rand(-70, 70), 0), r = rand(40, 110) * Math.max(sc, 0.4);
+    let p = { x: e.location.x + f.x * r, y: e.location.y, z: e.location.z + f.z * r };
+    try {
+      const top = e.dimension.getTopmostBlock({ x: p.x, z: p.z });
+      if (top) p = { x: p.x, y: top.location.y + 1, z: p.z };
+    } catch { /* ignore */ }
+    return p;
+  };
+  if (s.cd.roar <= 0) { startRoar(e, s, false); return; }
+  if (s.cd.breath <= 0) { s.aimPoint = pick(); s.forced = true; startAbility(e, s, "breath"); return; }
+  if (s.cd.dorsal <= 0) { s.forced = true; startAbility(e, s, "dorsal"); return; }
+  if (s.cd.tail <= 0) { s.aimPoint = pick(); s.forced = true; startAbility(e, s, "tail"); }
+}
+
 // ------------------------------------------------------------------ per-tick update
 function tickKaiju(e) {
   const s = st(e);
   const sc = scaleOf(e);
   const dim = e.dimension;
   const state = getProp(e, "sg:state");
-  if (system.currentTick % 10 === 0) updateTitle(e, s, state);
+  clearOldTag(e, s);
+  if (isRampage(e)) s.energy = 100;
 
   if (state === "frozen") {
     if (system.currentTick % 40 === 0) particle(dim, "sg:frost", toWorld(e, [rand(-5, 5), rand(2, 40), rand(-4, 8)], sc));
@@ -870,36 +1192,37 @@ function tickKaiju(e) {
 
   // cooldowns and energy
   for (const k of Object.keys(s.cd)) if (s.cd[k] > 0) s.cd[k]--;
-  if (e.typeId === F4) s.energy = Math.min(100, s.energy + 0.04);
+  if (is4(e)) s.energy = Math.min(100, s.energy + 0.04);
   if (s.targetT > 0) s.targetT--; else s.target = undefined;
 
   // footsteps (distance travelled)
   const moved = hdist(e.location, s.last);
   s.last = { ...e.location };
   if (moved < 3) s.walked += moved;
-  const stride = (e.typeId === F4 ? 9 : e.typeId === F3 ? 5 : 4) * sc;
+  const stride = (is4(e) ? 9 : e.typeId === F3 ? 5 : 4) * sc;
   if (s.walked >= stride) {
     s.walked = 0;
     s.foot = 1 - s.foot;
     const side = s.foot ? 1 : -1;
     const fp = toWorld(e, e.typeId === F2 ? [side * 7.5, 0, 5] : [side * 5.9, 0, -1], sc);
-    sound(dim, "sg.step", fp, (e.typeId === F4 ? 7 : e.typeId === F3 ? 4 : 2.5) * sc + 1, rand(0.9, 1.1) / Math.sqrt(Math.max(sc, 0.25)));
+    sound(dim, "sg.step", fp, (is4(e) ? 7 : e.typeId === F3 ? 4 : 2.5) * sc + 1, rand(0.9, 1.1) / Math.sqrt(Math.max(sc, 0.25)));
     particle(dim, "sg:dust", fp);
-    shake(dim, fp, (e.typeId === F4 ? 56 : 30) * sc + 10, (e.typeId === F4 ? 0.35 : 0.15), 0.35);
-    if (e.typeId !== F2) crater(dim, { x: fp.x, y: fp.y - 1, z: fp.z }, Math.max(1, Math.round((e.typeId === F4 ? 3 : 2) * sc)));
+    shake(dim, fp, (is4(e) ? 56 : 30) * sc + 10, (is4(e) ? 0.35 : 0.15), 0.35);
+    if (e.typeId !== F2) crater(dim, { x: fp.x, y: fp.y - 1, z: fp.z }, Math.max(1, Math.round((is4(e) ? 3 : 2) * sc)));
+    if (S.mode !== "peaceful" || isRampage(e)) trample(e, fp, sc);
   }
 
   // bulldoze through anything in the way
   if (s.cd.bull <= 0 && (moved > 0.02 || validTarget(s))) {
     s.cd.bull = 4;
     s.bullStep = ((s.bullStep ?? 0) + 1) % 3;
-    if (e.typeId === F4) bulldoze(e, sc, 6 + s.bullStep, 7, 1, 40);
+    if (is4(e)) bulldoze(e, sc, 6 + s.bullStep, 7, 1, 40);
     else if (e.typeId === F3) bulldoze(e, sc, 4 + s.bullStep, 5, 1, 22);
     else bulldoze(e, sc, 13 + s.bullStep, 5, 0, 9);
   }
 
   // forms 2/3: gills, ageing and evolution
-  if (e.typeId !== F4) {
+  if (!is4(e)) {
     if (system.currentTick % 20 === 0) {
       s.age++;
       if (s.age % 10 === 0) e.setDynamicProperty("sg:age", s.age);
@@ -920,24 +1243,29 @@ function tickKaiju(e) {
     return;
   }
 
-  // 4th form decision making (every 10 ticks)
-  if (system.currentTick % 10 !== 0) return;
+  // 4th form decision making (every 10 ticks; never in the middle of a roar)
+  if (system.currentTick % 10 !== 0 || s.roarT > 0) return;
+  const rage = isRampage(e);
   const t = findTarget(e, s, sc);
   if (s.cd.growl <= 0) {
-    s.cd.growl = 600 + Math.floor(Math.random() * 1200);
-    if (!t && s.cd.roar <= 0) startRoar(e, s, false);
+    s.cd.growl = (rage ? 300 : 600) + Math.floor(Math.random() * (rage ? 500 : 1200));
+    if (!t && s.cd.roar <= 0) { startRoar(e, s, false); return; }
   }
-  if (!t) return;
+  if (!t) { if (rage) rampageIdle(e, s, sc); return; }
   const d = dist(t.location, e.location);
   const hd = hdist(t.location, e.location);
   const toT = anglesFromDir(norm(sub(t.location, e.location)));
   const behind = Math.abs(wrap180(toT.yaw - e.getRotation().y)) > 115;
   const air = airborneTargets(e, sc);
-  if (s.cd.roar <= 0) { startRoar(e, s, false); return; }
+  const big = rage || worthy(t);          // small animals just get walked over
+  if (s.cd.roar <= 0 && big) { startRoar(e, s, false); return; }
   if (hd < 13 * sc + 3 && s.cd.stomp <= 0) { stomp(e, s, sc); return; }
   if (air.length && s.cd.dorsal <= 0 && s.energy >= 25) { startAbility(e, s, "dorsal"); return; }
+  if (!big) return;
   if (behind && d < 90 * sc + 10 && s.cd.tail <= 0 && s.energy >= 15) { startAbility(e, s, "tail"); return; }
   if (d > 10 * sc + 4 && d < 130 * sc + 10 && s.cd.breath <= 0 && s.energy >= 30) { startAbility(e, s, "breath"); return; }
+  // out of breath but something is still standing off to the side: the tail ray will do
+  if (rage && d > 20 * sc && s.cd.tail <= 0) startAbility(e, s, "tail");
 }
 
 // ------------------------------------------------------------------ events
@@ -946,15 +1274,15 @@ world.afterEvents.entityHurt.subscribe((ev) => {
   if (!e || !KAIJU.has(e.typeId)) return;
   const src = ev.damageSource.damagingEntity;
   const s = st(e);
-  if (src && !KAIJU.has(src.typeId) && S.mode !== "peaceful") {
+  if (src && !KAIJU.has(src.typeId) && (S.mode !== "peaceful" || isRampage(e))) {
     s.target = src;
     s.targetT = 1200;
   }
   if (src && src.typeId === "minecraft:player" && Math.random() < 0.07) {
     try { e.dimension.spawnItem(new ItemStack("sg:g_cell", 1), add(src.location, { x: 0, y: 1, z: 0 })); } catch { /* ignore */ }
   }
-  if (ev.damage >= 20 && e.typeId === F4) s.cd.breath = Math.min(s.cd.breath, 40); // bunker busters provoke the breath
-}, { entityTypes: [F2, F3, F4] });
+  if (ev.damage >= 20 && is4(e)) s.cd.breath = Math.min(s.cd.breath, 40); // bunker busters provoke the breath
+}, { entityTypes: [F2, F3, F4, F4R] });
 
 world.afterEvents.entityHealthChanged.subscribe((ev) => {
   const e = ev.entity;
@@ -963,7 +1291,7 @@ world.afterEvents.entityHealthChanged.subscribe((ev) => {
   try { max = e.getComponent("minecraft:health").effectiveMax; } catch { /* ignore */ }
   const state = getProp(e, "sg:state");
   if (ev.newValue > 0 && ev.newValue <= max * 0.04 && state !== "dying" && state !== "frozen") startDying(e, st(e));
-}, { entityTypes: [F2, F3, F4] });
+}, { entityTypes: [F2, F3, F4, F4R] });
 
 world.afterEvents.dataDrivenEntityTrigger.subscribe((ev) => {
   const e = ev.entity;
@@ -974,9 +1302,7 @@ world.afterEvents.dataDrivenEntityTrigger.subscribe((ev) => {
   const sc = scaleOf(e);
   for (let i = 0; i < 3; i++) particle(e.dimension, "sg:coagulant", toWorld(e, [rand(-3, 3), rand(30, 44), rand(-10, -2)], sc));
   sound(e.dimension, "sg.coagulant", e.location, 6);
-  for (const p of e.dimension.getPlayers({ location: e.location, maxDistance: 96 })) {
-    try { p.onScreenDisplay.setActionBar(`§bYashiori Coagulant injected: ${s.doses}/${DOSES_NEEDED}`); } catch { /* ignore */ }
-  }
+  warn(e, `§bYashiori Coagulant injected: ${s.doses}/${DOSES_NEEDED}`, 96);
   if (s.doses >= DOSES_NEEDED) freeze(e, s);
 }, { entityTypes: [F4], eventTypes: ["sg:coagulant_hit"] });
 
@@ -1016,7 +1342,7 @@ async function openTablet(p) {
     const h = k.getComponent("minecraft:health");
     status = `§fNearest: §c${NAMES[k.typeId]}§f, ${Math.round(dist(k.location, p.location))} blocks away\n` +
       `§fState: §e${getProp(k, "sg:state")}§f   Health: §a${h ? Math.ceil(h.currentValue) : "?"}` +
-      (k.typeId === F4 ? `§f   Energy: §d${Math.round(s.energy)}%` : "");
+      (is4(k) ? `§f   Energy: §d${Math.round(s.energy)}%` : "");
   }
   const f = new ActionFormData()
     .title("Kaiju Control Tablet")
@@ -1025,7 +1351,8 @@ async function openTablet(p) {
     .button(`Behavior: §e${MODE_LABEL[S.mode]}`)
     .button(`Evolution: §e${EVO_LABEL[S.evo]}`)
     .button(`Kaiju size: §e${SIZE_LABEL[S.size]}`)
-    .button(`Screen shake: ${S.shake ? "§aON" : "§cOFF"}`)
+    .button(`Screen shake and flashes: ${S.shake ? "§aON" : "§cOFF"}`)
+    .button(`Kaiju HUD (health, energy, state): ${S.hud ? "§aON" : "§cOFF"}`)
     .button("§2Summon a kaiju...")
     .button("§4Command nearest kaiju...")
     .button("§cRemove all kaiju nearby");
@@ -1033,23 +1360,25 @@ async function openTablet(p) {
   if (!r || r.canceled) return;
   switch (r.selection) {
     case 0: setSetting("griefing", !S.griefing); break;
-    case 1: setSetting("mode", cycle(["movie", "hunt", "peaceful"], S.mode)); for (const e of tracked) if (e.isValid) applyMode(e); break;
+    case 1: setSetting("mode", cycle(["hunt", "movie", "peaceful"], S.mode)); for (const e of tracked) if (e.isValid) applyMode(e); break;
     case 2: setSetting("evo", cycle(["normal", "fast", "off"], S.evo)); break;
     case 3: setSetting("size", cycle(["full", "half", "quarter"], S.size)); for (const e of tracked) if (e.isValid) applySize(e); break;
     case 4: setSetting("shake", !S.shake); break;
-    case 5: return summonMenu(p);
-    case 6: return commandMenu(p);
-    case 7: return removeMenu(p);
+    case 5: setSetting("hud", !S.hud); break;
+    case 6: return summonMenu(p);
+    case 7: return commandMenu(p);
+    case 8: return removeMenu(p);
   }
   system.run(() => openTablet(p));
 }
 
 async function summonMenu(p) {
   const f = new ActionFormData().title("Summon a kaiju").body("It will appear about 40 blocks in front of you.")
-    .button("2nd Form - Kamata-kun").button("3rd Form - Shinagawa-kun").button("4th Form - Shin Godzilla");
+    .button("2nd Form - Kamata-kun").button("3rd Form - Shinagawa-kun").button("4th Form - Shin Godzilla")
+    .button("§44th Form - RAMPAGE§r\n§8never tires, never sleeps");
   const r = await show(f, p);
   if (!r || r.canceled) return;
-  const id = [F2, F3, F4][r.selection];
+  const id = [F2, F3, F4, F4R][r.selection ?? 2];
   const v = p.getViewDirection();
   const h = norm({ x: v.x, y: 0, z: v.z });
   const dd = 40 * SIZE_SCALE[S.size] + 8;
@@ -1070,20 +1399,20 @@ async function commandMenu(p) {
   if (!k) { p.sendMessage("§7No kaiju within 200 blocks."); return; }
   const s = st(k);
   const state = getProp(k, "sg:state");
-  const is4 = k.typeId === F4;
+  const big = is4(k);
   /** @type {{label: string, run: () => void}[]} */
   const opts = [];
   const add = (label, run) => opts.push({ label, run });
   add("Roar", () => startRoar(k, s, false));
-  if (is4 && !s.act && state === "walk") {
+  if (big && !s.act && state === "walk") {
     add("Atomic breath where I'm looking", () => { aimAt(p, s); s.forced = true; startAbility(k, s, "breath"); });
     add("Dorsal plate rays", () => { s.forced = true; startAbility(k, s, "dorsal"); });
     add("Tail beam where I'm looking", () => { aimAt(p, s); s.forced = true; startAbility(k, s, "tail"); });
-    add("Force dormancy (cool down)", () => goDormant(k, s));
+    if (!isRampage(k)) add("Force dormancy (cool down)", () => goDormant(k, s));
   }
-  if (is4 && state === "dormant") add("Wake it up", () => { s.dormantT = 1; });
-  if (is4 && state === "frozen") add("Thaw it (undo the Yashiori Strategy)", () => thaw(k, s));
-  if (!is4 && state !== "evolving") add("Force evolution now", () => beginEvolve(k, s));
+  if (big && state === "dormant") add("Wake it up", () => { s.dormantT = 1; });
+  if (big && state === "frozen") add("Thaw it (undo the Yashiori Strategy)", () => thaw(k, s));
+  if (!big && state !== "evolving") add("Force evolution now", () => beginEvolve(k, s));
   const f = new ActionFormData().title("Command " + NAMES[k.typeId]).body(`State: ${state}`);
   for (const o of opts) f.button(o.label);
   const r = await show(f, p);
@@ -1114,10 +1443,14 @@ async function removeMenu(p) {
 // ------------------------------------------------------------------ boot
 world.afterEvents.worldLoad.subscribe(() => {
   loadSettings();
+  migrateSettings();
+  cleanStrayLights();
   refreshTracked();
   system.runInterval(() => {
     blockBudget = 700;
     if (system.currentTick % 20 === 0) refreshTracked();
+    if (system.currentTick % 10 === 0) tickHud();
+    tickLights();
     for (const e of tracked) {
       try {
         if (e.isValid) tickKaiju(e);

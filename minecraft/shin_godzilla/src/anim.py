@@ -19,6 +19,7 @@ import math
 import re
 
 AIM = "q.property('sg:aim')"
+TAILSW = "q.property('sg:tail')"     # sideways swing of the raised tail while it fires (degrees, set by the script)
 LT = "q.life_time"
 
 
@@ -48,7 +49,7 @@ def mol_eval(expr, env):
     if isinstance(expr, (int, float)):
         return float(expr)
     e = expr
-    e = e.replace("q.property('sg:aim')", "AIM")
+    e = e.replace("q.property('sg:aim')", "AIM").replace("q.property('sg:tail')", "TAILSW")
     e = re.sub(r"math\.(sin|cos)\(", lambda m: "D" + m.group(1) + "(", e)
     e = e.replace("math.abs(", "abs(").replace("math.max(", "max(").replace("math.min(", "min(")
     e = e.replace("math.clamp(", "clamp(")
@@ -78,7 +79,7 @@ def _chan(chans, key, t, env):
 
 def pose_of(anim, t=0.0, env=None, key="rotation"):
     """Evaluate an animation (our own dict format) into {bone: (x, y, z)}."""
-    env = dict(dict(AIM=0, LT=t, AT=t, DM=0, MS=0, TX=0, TY=0), **(env or {}))
+    env = dict(dict(AIM=0, TAILSW=0, LT=t, AT=t, DM=0, MS=0, TX=0, TY=0), **(env or {}))
     out = {}
     for bone, chans in anim["bones"].items():
         v = _chan(chans, key, t, env)
@@ -98,14 +99,21 @@ def add_pose(*poses):
 
 # --------------------------------------------------------------- 4th / 3rd form
 def aim_bones(extra_head=0.0, lean=2.0):
-    """Head pitch for the breath, spread down the neck like a real spine."""
+    """Head pitch for the breath.  Nearly all of the bow comes from the chest
+    and the two neck joints, so the neck stretches forward and over like the
+    film's hunched firing pose and the head barely tucks against it; that
+    leaves the lower jaw room to drop without swinging into the throat."""
     return {
-        "torso": {"rotation": ch("%g+%s*0.05" % (lean, AIM))},
-        "chest": {"rotation": ch("%g+%s*0.05" % (lean, AIM))},
-        "neck1": {"rotation": ch("%s*0.22" % AIM)},
-        "neck2": {"rotation": ch("%s*0.26" % AIM)},
-        "head": {"rotation": ch("%g+%s*0.42" % (extra_head, AIM))},
+        "torso": {"rotation": ch("%g+%s*0.10" % (lean, AIM))},
+        "chest": {"rotation": ch("%g+%s*0.15" % (lean, AIM))},
+        "neck1": {"rotation": ch("%s*0.36" % AIM)},
+        "neck2": {"rotation": ch("%s*0.31" % AIM)},
+        "head": {"rotation": ch("%g+%s*0.08" % (extra_head, AIM))},
     }
+
+
+IDLE_SWAY = (0.35, 0.115)     # sideways sway of the tail per segment (deg): base + per-segment growth
+WALK_SWAY = (0.6, 0.13)
 
 
 def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0, rest_tail=None, roar_len=4.9):
@@ -115,51 +123,76 @@ def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0, rest_tail=N
     P = "(q.modified_distance_moved*%g)" % stride_deg
     tails = ["tail%d" % i for i in range(tail_n)]
     trem = "math.sin(%s*2100)*0.5" % LT
+    th, cum = [], 0.0                      # direction of each tail segment in the rest pose (deg above horizontal)
+    for r in (rest_tail or [0] * tail_n):
+        cum += r
+        th.append(cum)
 
-    # ---- idle: eerie stillness; only breath, a slow head drift and the tail
+    def lat(i, expr):
+        """Sideways bend of tail segment i -> (yaw, roll).  The tail is modelled already curled up,
+        so "sideways" is a yaw where it lies flat and a roll where it stands upright; a plain yaw
+        on the raised part would only twist it on the spot."""
+        c, sn = math.cos(math.radians(th[i])), math.sin(math.radians(th[i]))
+        if isinstance(expr, (int, float)):
+            return (expr * c, expr * sn)
+        return tuple(("(%s)*%.3f" % (expr, k)) if abs(k) > 0.03 else 0 for k in (c, sn))
+
+    # ---- idle: slow and heavy but always alive: the chest heaves, the head scans from side to
+    #      side, the jaw works, the fingers flex, and the long tail never stops drifting
     b = {
-        "chest": {"rotation": ch(S(45, 0, 0.5))},
-        "neck2": {"rotation": ch(S(45, 40, 0.5), S(14, 0, 1.0))},
-        "head": {"rotation": ch(S(45, 80, 0.6), S(14, 30, 1.6))},
-        "jaw_L": {"rotation": ch(S(45, 0, 1.0, 1.0))},
-        "jaw_R": {"rotation": ch(S(45, 0, 1.0, 1.0))},
+        "body": {"rotation": ch(0, S(9, 0, 1.2), S(18, 0, 0.7))},
+        "torso": {"rotation": ch(S(40, 20, 0.6))},
+        "chest": {"rotation": ch(S(40, 0, 1.3)), "scale": ["1+math.sin(%s*40)*0.012" % LT, 1, "1+math.sin(%s*40)*0.016" % LT]},
+        "neck1": {"rotation": ch(S(40, 40, 0.9), S(16, 0, 2.2), S(11, 0, 0.8))},
+        "neck2": {"rotation": ch(S(40, 70, 0.9), S(16, 25, 2.8))},
+        "head": {"rotation": ch(S(27, 0, 1.8), S(16, 50, 4.0), S(13, 0, 1.4))},
+        "jaw_L": {"rotation": ch(S(40, 10, 2.2, 2.0))},
+        "jaw_R": {"rotation": ch(S(40, 10, 2.2, 2.0))},
     }
+    for sd, ph in (("L", 0), ("R", 70)):
+        b["arm_" + sd] = {"rotation": ch(S(33, ph, 2.5), 0, S(21, ph, 1.5))}
+        b["forearm_" + sd] = {"rotation": ch(S(41, ph + 40, 3.5))}
+        b["hand_" + sd] = {"rotation": ch(S(58, ph, 6), S(37, ph, 3))}
     for i, t in enumerate(tails):
-        b[t] = {"rotation": ch(S(16, i * 18, 0.15 + 0.04 * i), S(22, i * 20, 0.3 + 0.12 * i))}
+        flick = (", %s" % S(64, i * 30, 1.2)) if False else ""
+        tipk = 1.3 if i >= tail_n - 6 else 0.0
+        b[t] = {"rotation": ch("%s+%s" % (S(13, i * 14, 0.3 + 0.07 * i), S(47, i * 28, tipk)),
+                               *lat(i, "%s+%s" % (S(20, i * 9, IDLE_SWAY[0] + IDLE_SWAY[1] * i), S(53, i * 31, tipk))))}
     if stagger:
-        b["body"] = {"rotation": ch(0, 0, S(50, 0, 1.2 * stagger))}
-        b["arm_L"] = {"rotation": ch(S(60, 0, 4))}
-        b["arm_R"] = {"rotation": ch(S(60, 70, 4))}
-        b["head"] = {"rotation": ch(S(45, 80, 2.0), S(20, 30, 4.0), S(33, 0, 2.0))}
+        b["body"] = {"rotation": ch(0, S(12, 0, 2.0), S(50, 0, 1.2 * stagger))}
+        b["head"] = {"rotation": ch(S(45, 80, 2.5), S(20, 30, 5.0), S(33, 0, 2.5))}
     A["idle"] = {"loop": True, "bones": b}
 
-    # ---- walk: heavy sliding steps under a level, rigid trunk
-    sw, kn = (15, 13) if not stagger else (20, 18)
+    # ---- walk: long, weighty strides; the hips roll, the shoulders counter, the tail swings
+    sw, kn = (19, 20) if not stagger else (22, 22)
     lift_l = "math.max(0,-math.cos(%s))" % P
     lift_r = "math.max(0,math.cos(%s))" % P
     push_l = "math.max(0,math.sin(%s)-0.4)" % P
     push_r = "math.max(0,-math.sin(%s)-0.4)" % P
     b = {
-        "thigh_L": {"rotation": ch("math.sin(%s)*%g" % (P, sw))},
-        "thigh_R": {"rotation": ch("-math.sin(%s)*%g" % (P, sw))},
+        "thigh_L": {"rotation": ch("math.sin(%s)*%g-%s*6" % (P, sw, lift_l))},
+        "thigh_R": {"rotation": ch("-math.sin(%s)*%g-%s*6" % (P, sw, lift_r))},
         "shin_L": {"rotation": ch("%s*%g" % (lift_l, kn))},
         "shin_R": {"rotation": ch("%s*%g" % (lift_r, kn))},
-        "foot_L": {"rotation": ch("-math.sin(%s)*%g-%s*%g+%s*20" % (P, sw, lift_l, kn * 0.9, push_l))},
-        "foot_R": {"rotation": ch("math.sin(%s)*%g-%s*%g+%s*20" % (P, sw, lift_r, kn * 0.9, push_r))},
-        "toes_L": {"rotation": ch("-%s*20" % push_l)},
-        "toes_R": {"rotation": ch("-%s*20" % push_r)},
-        "body": {"rotation": ch(0, "math.sin(%s)*%g" % (P, 1.4 + 4 * stagger), "math.sin(%s)*%g" % (P, 0.9 + 3.2 * stagger)),
-                 "position": [0, "-(1-math.cos(%s*2))*%g" % (P, 2.0 * pos_k * (1 + stagger)), 0]},
-        "chest": {"rotation": ch(0, "-math.sin(%s)*%g" % (P, 1.0 + 2 * stagger))},
-        "neck1": {"rotation": ch(0, 0, "-math.sin(%s)*%g" % (P, 0.5 + 1.6 * stagger))},
-        "neck2": {"rotation": ch(0, 0, "-math.sin(%s)*%g" % (P, 0.4 + 1.6 * stagger))},
+        "foot_L": {"rotation": ch("-math.sin(%s)*%g-%s*%g+%s*22" % (P, sw, lift_l, kn * 0.8, push_l))},
+        "foot_R": {"rotation": ch("math.sin(%s)*%g-%s*%g+%s*22" % (P, sw, lift_r, kn * 0.8, push_r))},
+        "toes_L": {"rotation": ch("-%s*22+%s*10" % (push_l, lift_l))},
+        "toes_R": {"rotation": ch("-%s*22+%s*10" % (push_r, lift_r))},
+        "body": {"rotation": ch("math.cos(%s*2)*%g" % (P, 0.8), "math.sin(%s)*%g" % (P, 3.2 + 4 * stagger), "math.sin(%s)*%g" % (P, 2.2 + 3.2 * stagger)),
+                 "position": [0, "-(1-math.cos(%s*2))*%g" % (P, 3.2 * pos_k * (1 + stagger)), 0]},
+        "torso": {"rotation": ch(0, "-math.sin(%s)*1.2" % P, "-math.sin(%s)*0.8" % P)},
+        "chest": {"rotation": ch("math.cos(%s*2-40)*1.0" % P, "-math.sin(%s)*%g" % (P, 2.4 + 2 * stagger), "-math.sin(%s)*1.0" % P)},
+        "neck1": {"rotation": ch("math.cos(%s*2-70)*1.2" % P, 0, "-math.sin(%s)*%g" % (P, 0.6 + 1.6 * stagger))},
+        "neck2": {"rotation": ch("math.cos(%s*2-100)*1.2" % P, "math.sin(%s)*1.0" % P, 0)},
+        "head": {"rotation": ch("math.cos(%s*2-130)*%g" % (P, 1.6 + 3 * stagger), "math.sin(%s-40)*%g" % (P, 1.4 + 3 * stagger))},
+        "arm_L": {"rotation": ch("math.sin(%s)*%g" % (P, 5 + 6 * stagger))},
+        "arm_R": {"rotation": ch("-math.sin(%s)*%g" % (P, 5 + 6 * stagger))},
+        "forearm_L": {"rotation": ch("math.cos(%s*2)*3" % P)},
+        "forearm_R": {"rotation": ch("math.cos(%s*2-60)*3" % P)},
     }
-    if stagger:
-        b["head"] = {"rotation": ch("math.cos(%s*2)*%g" % (P, 4 * stagger), "-math.sin(%s-40)*%g" % (P, 3 * stagger))}
-        b["arm_L"] = {"rotation": ch("math.sin(%s)*10" % P)}
-        b["arm_R"] = {"rotation": ch("-math.sin(%s)*10" % P)}
     for i, t in enumerate(tails):
-        b[t] = {"rotation": ch(0, "math.sin(%s-%d)*%.2f" % (P, 30 + i * 12, (0.4 + 0.1 * i) * (1 + stagger)))}
+        b[t] = {"rotation": ch("math.cos(%s*2-%d)*%.2f" % (P, i * 16, 0.2 + 0.04 * i),
+                               *lat(i, "math.sin(%s-%d)*%.2f" % (P, 30 + i * 9, (WALK_SWAY[0] + WALK_SWAY[1] * i) * (1 + 0.5 * stagger))))}
     A["walk"] = {"loop": True, "bones": b}
 
     # ---- look at target (slow, mostly with the upper neck)
@@ -170,7 +203,7 @@ def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0, rest_tail=N
 
     def tail_up(k0, k1, wob=0.0):
         return {t: {"rotation": ch("%.2f%s" % (k0 + k1 * i, ("+" + S(800, i * 25, wob)) if wob else ""),
-                                   S(30, i * 16, 0.2 + 0.05 * i))} for i, t in enumerate(tails)}
+                                   *lat(i, S(30, i * 9, 0.15 + 0.04 * i)))} for i, t in enumerate(tails)}
 
     # The atomic breath, pose by pose (the script moves between them on the sound's timeline):
     #   charge  plates light, the head bows, the mouth begins to open
@@ -190,7 +223,15 @@ def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0, rest_tail=N
     A["charge"] = {"loop": True, "bones": breath_pose(16, 0, (0.1, 0.01), 0.5)}
     A["spew"] = {"loop": True, "bones": breath_pose(44, 0, (0.2, 0.02))}
     A["focus"] = {"loop": True, "bones": breath_pose(46, 14, (0.2, 0.03), 1.3)}
-    A["breath"] = {"loop": True, "bones": breath_pose(48, 30, (0.2, 0.03), 1.2)}
+    bb = breath_pose(48, 30, (0.2, 0.03), 1.2)
+    def swing(i):
+        """Sideways lean of the tail while it fires, steered by the script (so its ray leaves the
+        tip exactly): spread over the first two thirds of the tail."""
+        return lat(i, "%s*%.4f" % (TAILSW, 1.8 / 13)) if 1 <= i <= 13 else (0, 0)
+    for i, t in enumerate(tails):   # the tail swings up and over the back to bring its tip to bear
+        v = 0.4 if i < 5 else 2.6
+        bb[t] = {"rotation": ch("%g+%s" % (v, S(700, i * 25, 0.3)), *swing(i))}
+    A["breath"] = {"loop": True, "bones": bb}
 
     # ---- dorsal rays: head bowed while the back fires into the sky
     b = {
@@ -209,8 +250,8 @@ def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0, rest_tail=N
         "jaw_L": {"rotation": ch(14)}, "jaw_R": {"rotation": ch(14)},
     }
     for i, t in enumerate(tails):
-        v = 0 if i < 6 else 1.3     # the raised tail curls further over the back to take aim
-        b[t] = {"rotation": ch("%g+%s" % (v, S(800, i * 30, 0.4)), S(35, i * 14, 0.2 + 0.06 * i))}
+        v = 0 if i < 6 else 2.2     # the raised tail curls further over the back to take aim
+        b[t] = {"rotation": ch("%g+%s" % (v, S(800, i * 30, 0.3)), *swing(i))}
     A["tail"] = {"loop": True, "bones": b}
 
     # ---- roar: head thrown up and back; timed to the roar (screech to ~70%, then the falling tail)
@@ -227,8 +268,14 @@ def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0, rest_tail=N
         "jaw_L": {"rotation": kf({0: [0, 0, 0], t_up * 0.8: [34, 0, 0], t_hold: [32, 0, 0], R * 0.9: [14, 0, 0], t_end: [0, 0, 0]})},
         "jaw_R": {"rotation": kf({0: [0, 0, 0], t_up * 0.8: [34, 0, 0], t_hold: [32, 0, 0], R * 0.9: [14, 0, 0], t_end: [0, 0, 0]})},
     }
+    b["body"] = {"rotation": kf({0: [0, 0, 0], t_up: [-3, 0, 0], t_hold: [-3, 0, 0], t_end: [0, 0, 0]})}
+    b["torso"] = {"rotation": up([-3, 0, 0])}
+    for sd, sg in (("L", 1), ("R", -1)):
+        b["arm_" + sd] = {"rotation": kf({0: [0, 0, 0], t_up: [-14, 0, sg * 8], t_hold: ["-14+" + S(1100, 0, 1.5), 0, sg * 8], t_end: [0, 0, 0]})}
+        b["hand_" + sd] = {"rotation": kf({0: [0, 0, 0], t_up: [-16, 0, 0], t_hold: [-16, 0, 0], t_end: [0, 0, 0]})}
     for i, t in enumerate(tails):
-        b[t] = {"rotation": ch(0, S(60, i * 20, 0.3 + 0.08 * i))}
+        lash = lat(i, S(90, i * 14, 0.3 + 0.12 * i))      # the tail lashes from side to side behind the roar
+        b[t] = {"rotation": kf({0: [0, 0, 0], t_up: [0.8, *lash], t_hold: [0.8, *lash], t_end: [0, 0, 0]})}
     A["roar"] = {"loop": False, "length": round(t_end, 2), "bones": b}
 
     # ---- dormant: frozen where it stood, upright and silent (no motion at all)
@@ -294,7 +341,7 @@ def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0, rest_tail=N
         "arm_R": {"rotation": ch(S(1700, 0, 10, -10))},
     }
     for i, t in enumerate(tails):
-        b[t] = {"rotation": ch(S(700, i * 30, 1.0), S(300, i * 25, 1.2 + 0.35 * i))}
+        b[t] = {"rotation": ch(S(700, i * 30, 1.0), *lat(i, S(300, i * 25, 0.8 + 0.2 * i)))}
     A["evolving"] = {"loop": "hold_on_last_frame", "length": 6.0, "bones": b}
     return {"%s.%s" % (prefix, k): v for k, v in A.items()}
 
