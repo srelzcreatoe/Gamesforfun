@@ -16,14 +16,15 @@ function beamVars(d, length, width, col) {
 /**
  * The atomic beam: long quads laid end to end from `o` along `d` for `l` blocks, in three
  * layers (glow, plasma sheath, white core).  `W` is the half-width of the sheath in blocks.
- * The beam leaves the mouth narrow and opens to full width over the first twenty blocks.
+ * The beam leaves the mouth narrow and opens to full width over the first fourteen blocks.
  */
 export function drawBeam(dim, o, d, l, W, t, col = VIOLET, landed = false) {
   const pulse = 1 + 0.12 * Math.sin(t * 1.25);
   let s = 0;
   while (s < l - 0.01) {
-    const seg = Math.min(l - s, s < 10 ? 10 : s < 34 ? 24 : 44);
-    const w = W * pulse * (0.55 + 0.45 * Math.min(1, (s + seg * 0.5) / 20));
+    // three short steps out of the mouth (hidden in its flare), then long full-width runs
+    const seg = Math.min(l - s, s < 6 ? 6 : s < 14 ? 8 : s < 38 ? 24 : 44);
+    const w = W * pulse * (s < 6 ? 0.62 : s < 14 ? 0.82 : 1);
     const at = add(o, mul(d, s));
     const v = beamVars(d, seg, w, col);
     particle(dim, "sg:beam_glow", at, v);
