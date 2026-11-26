@@ -16,7 +16,7 @@
     "num_particles": 46
    },
    "minecraft:emitter_shape_disc": {
-    "radius": "v.size",
+    "radius": "(v.size ?? 1)",
     "plane_normal": "y",
     "surface_only": true,
     "direction": [

@@ -17,9 +17,9 @@
    },
    "minecraft:emitter_shape_point": {
     "direction": [
-     "v.dir.x",
-     "v.dir.y",
-     "v.dir.z"
+     "(v.dir.x ?? 0)",
+     "(v.dir.y ?? 0)",
+     "(v.dir.z ?? 1)"
     ]
    },
    "minecraft:particle_initial_speed": 0.6,
@@ -29,8 +29,8 @@
    "minecraft:particle_motion_dynamic": {},
    "minecraft:particle_appearance_billboard": {
     "size": [
-     "0.8 + (v.width > 0 ? v.width * 2.6 : 9) * v.particle_age / v.particle_lifetime",
-     "0.8 + (v.width > 0 ? v.width * 2.6 : 9) * v.particle_age / v.particle_lifetime"
+     "0.8 + ((v.width ?? 3) > 0 ? (v.width ?? 3) * 2.6 : 9) * v.particle_age / v.particle_lifetime",
+     "0.8 + ((v.width ?? 3) > 0 ? (v.width ?? 3) * 2.6 : 9) * v.particle_age / v.particle_lifetime"
     ],
     "facing_camera_mode": "direction_z",
     "direction": {

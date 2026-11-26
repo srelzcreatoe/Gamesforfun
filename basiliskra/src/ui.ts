@@ -273,7 +273,6 @@ async function settingsForm(p: Player): Promise<void> {
     .dropdown("Minutes in each form before he changes (time is all it takes)", MINUTES.map((m) => (m ? `${m} minutes` : "The story's timing: 40, 40, 60 (at story speed 1)")),
       { defaultValueIndex: Math.max(0, MINUTES.indexOf(CONFIG.changeMinutes)) })
     .toggle("Cities rise on coasts as you explore (never over anything built)", { defaultValue: CONFIG.cities })
-    .toggle("His health bar at the top of the screen (when he is near)", { defaultValue: CONFIG.bossBar })
     .toggle("Vathrok in survival (comes up at night now and then, and to its lure; can be beaten)", { defaultValue: CONFIG.vathrok })
     .toggle("The Vathrok Titan for battles (its egg, the command, the wheel)", { defaultValue: CONFIG.vathrokTitan })
     .toggle("§cRestore every default", { defaultValue: false })
@@ -281,7 +280,7 @@ async function settingsForm(p: Player): Promise<void> {
   const r = await present(p, () => f.show(p));
   if (!r || r.canceled || !r.formValues) return;
   const v = r.formValues;
-  if (v[23] === true) { resetSettings(); p.sendMessage("§7[Basiliskra] Settings restored to the defaults."); return; }
+  if (v[22] === true) { resetSettings(); p.sendMessage("§7[Basiliskra] Settings restored to the defaults."); return; }
   const pacing = pickNumber(SPEEDS, v[0], v[1], CONFIG.pacing, 0.25, 4);
   const damage = pickNumber(DAMAGES, v[5], v[6], CONFIG.damage, 0, 4);
   const bad = typedBad(v[1], 0.25, 4) || typedBad(v[6], 0, 4);
@@ -290,7 +289,7 @@ async function settingsForm(p: Player): Promise<void> {
     harmlessOnPeaceful: v[7] === true, huntMobs: v[8] === true, allowSummon: v[9] === true, spawnForm: (Number(v[10]) as 0 | 1 | 2 | 3 | 4),
     giveJournal: v[11] === true, giveWheel: v[12] === true, debug: v[13] === true, fallout: FALLOUT[Number(v[14])] ?? "land", sickness: v[15] === true,
     cutscenes: v[16] === true, music: v[17] === true, changeMinutes: MINUTES[Number(v[18])] ?? 0, cities: v[19] === true,
-    bossBar: v[20] === true, vathrok: v[21] === true, vathrokTitan: v[22] === true,
+    vathrok: v[20] === true, vathrokTitan: v[21] === true,
   });
   p.sendMessage(`§7[Basiliskra] Settings saved with this world. Story speed §fx${CONFIG.pacing}§7, damage §fx${CONFIG.damage}§7.`);
   if (bad) p.sendMessage("§7[Basiliskra] A number you typed was not in range, so the choice above it was used.");

@@ -985,6 +985,8 @@ def write_titan(entity, pre, glow_list):
                   "minecraft:type_family": {"family": [f"{NS}_titan", "mob"]},
                   "minecraft:health": {"value": TITAN_HEALTH, "max": TITAN_HEALTH},
                   "minecraft:damage_sensor": {"triggers": e["components"]["minecraft:damage_sensor"]["triggers"] + [{"cause": c, "deals_damage": "no"} for c in TITAN_IMMUNE]}}
+    # (his boss bar is his: the Titans show their health over the hotbar instead)
+    components.pop("minecraft:boss", None)
     kit.write_json(os.path.join(bp_dir, f"{NS}_titan.json"), {"format_version": story["format_version"], "minecraft:entity": {
         "description": {**e["description"], "identifier": f"{NS}:titan", "properties": props},
         # like him, one that no script has claimed within two seconds of appearing is gone (a pack without its script)
@@ -1049,6 +1051,7 @@ def write_vathrok(pre_all, rigs, rc_all):
                  "minecraft:health": {"value": health, "max": health},
                  "minecraft:damage_sensor": {"triggers": e["components"]["minecraft:damage_sensor"]["triggers"] + [{"cause": c, "deals_damage": "no"} for c in immune]}}
         comps.pop("minecraft:nameable", None)
+        comps.pop("minecraft:boss", None)          # (his bar is his; the survival one gets its own below)
         if boss:
             # met in survival: a boss bar for everyone near
             comps["minecraft:boss"] = {"should_darken_sky": False, "hud_range": 96, "name": "Vathrok"}

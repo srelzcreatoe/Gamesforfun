@@ -4,7 +4,7 @@
     "name": "pack.name",
     "description": "pack.description",
     "uuid": "a48b2918-6b23-4caf-a874-740f0b8de0a5",
-    "version": [2, 1, 0],
+    "version": [2, 2, 0],
     "min_engine_version": [
       1,
       26,
@@ -15,13 +15,13 @@
     {
       "type": "resources",
       "uuid": "6d2bf1db-992d-44bc-80ba-bc11f88db2d4",
-      "version": [2, 1, 0]
+      "version": [2, 2, 0]
     }
   ],
   "dependencies": [
     {
       "uuid": "8996835f-edc1-4209-8268-4acf1b73c75d",
-      "version": [2, 1, 0]
+      "version": [2, 2, 0]
     }
   ],
   "capabilities": [

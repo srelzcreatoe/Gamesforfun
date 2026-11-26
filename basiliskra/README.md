@@ -7,7 +7,9 @@ An original survival-horror add-on for Minecraft Bedrock. One creature per save.
 * **Experiments:** none. **Cheats:** none. **Commands:** none needed.
 * **Graphics:** standard Bedrock rendering; Vibrant Visuals supported (PBR texture sets with emissive glow).
 
-> **2.1**: **Basiliskra has a health bar at the top of the screen**, like a boss's, for everyone within 128 blocks of him, titled by his form ("Basiliskra III"). It can be turned off in the Settings ("His health bar at the top of the screen"). The Titans keep their health line over the hotbar.
+> **2.2**: **his own health bar at the top of the screen**: a boss bar in his colours (a charcoal frame with crimson plates and his pale eyes, his name, a crimson fill with glowing cracks), for everyone within 128 blocks of him. 2.1's bar never appeared (it was added to him by an event while the game was running; the game only shows a boss bar that is part of the entity from the start, as the Wither's is); it now is. Other boss bars keep the game's look; the Titans keep their health line over the hotbar. Also fixed from the content log: the `armor_offset.default_neck` locator clash in his forms II, III and IV, and the `variable.width` errors from two of his effects.
+>
+> **2.1**: a health bar for him (it did not appear in the game; fixed in 2.2).
 >
 > **2.0**: **Vathrok, a second kaiju** (asked for as "a mobzilla like kaiju"; an original animal, not Basiliskra and not a copy of anyone's). It walks on four legs on the knuckles of long arms, high-shouldered, with a long low head, four green eyes, tusks and horns, one row of acid-green crystal spines and a bladed tail, and it breathes a **green corroding breath** raked across what it aims at; its voice is its own. It comes in **two versions, each with its own on/off setting**: **Vathrok** in survival (now and then it comes up out of the ground at night near a player, and whenever its **lure** is used; 1,500 health and a boss bar; it can be beaten, and leaves its scales, its heart and a great deal of experience) and the **Vathrok Titan** for battles (the Titan's equal: 1,000,000 health, blows of 100,000, the same immunities; up to three). Both fight Titans, Basiliskra and other add-ons' giant monsters: jaws, claws, tail, a charge, the breath. `/basiliskra:vathrok [boss|titan|clear]`, spawn eggs, and the config wheel.
 >
@@ -39,7 +41,7 @@ In game: a **journal** (how angry he is, as a percentage, when he will come, and
 
 | File | What it is |
 |---|---|
-| `dist/Basiliskra-2.1.0.mcaddon` | behaviour pack + resource pack, ready to import |
+| `dist/Basiliskra-2.2.0.mcaddon` | behaviour pack + resource pack, ready to import |
 | `models/basiliskra_i.bbmodel`, `_ii`, `_iii`, `_iv`, `models/vathrok.bbmodel` | the editable Blockbench models (his four forms, and Vathrok), textures and animations embedded |
 | `docs/SURVIVAL_GUIDE.md` | install, what calls him, the four stages, cities, the Seam Lance, the Titan, the ending, settings |
 | `previews/*.mp4` | reference videos (see below) |

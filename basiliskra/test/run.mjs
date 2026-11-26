@@ -2518,23 +2518,27 @@ console.log('\n== 27. Vathrok, the other kaiju: in survival, and for battles (2.
   w2.bk.CONFIG.vathrok = true;
 }
 
-console.log('\n== 28. His health bar at the top of the screen (2.1)');
+console.log('\n== 28. His own health bar at the top of the screen (2.2)');
 {
+  const ent = (n) => JSON.parse(fs.readFileSync(path.join(ROOT, `packs/BP/entities/${n}.json`), 'utf8'))['minecraft:entity'];
+  const him = ent('basiliskra');
+  const boss = him.components['minecraft:boss'];
+  check('his boss bar is part of his entity from the start, as the Wither\'s is (not added by an event later)', !!boss && boss.hud_range >= 96 && !JSON.stringify(him.component_groups).includes('minecraft:boss'), JSON.stringify(boss));
+  check('the Titans have none (their health line is their own); the survival Vathrok keeps its own',
+    !JSON.stringify(ent('basiliskra_titan')).includes('minecraft:boss') && !JSON.stringify(ent('vathrok_titan')).includes('minecraft:boss') && !!ent('vathrok').components['minecraft:boss']);
+  const ui = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/RP/ui/hud_screen.json'), 'utf8'));
+  const shown = JSON.stringify(ui.basiliskra_boss_bar.bindings);
   const w = start(); w.sim.terrainFn = TERRAINS.flat; open(w);
   const ana = w.sim.addPlayer('Ana', { x: 0, y: 64, z: 0 }); ana.mode = 'Creative';
-  w.bk.ctl.bringHere({ x: 0, y: 64, z: 60 }, 180, 3); w.sim.step(30);
-  const ev = () => w.bk.ctl.creature.entity.rec?.events ?? w.sim.save.entities.get(w.bk.ctl.creature.entity.id).events;
-  const last = () => ev().filter((n) => /bar_/.test(n)).slice(-1)[0];
-  check('Basiliskra III has his health bar, titled by his form', last() === 'basiliskra:bar_3', last());
-  w.bk.CONFIG.bossBar = false; w.sim.step(12);
-  check('turned off in the settings, the bar goes', last() === 'basiliskra:bar_off', last());
-  w.bk.CONFIG.bossBar = true; w.bk.ctl.bringHere({ x: 0, y: 64, z: 70 }, 180, 4); w.sim.step(30);
-  check('and as Basiliskra IV it is his last form\'s bar', last() === 'basiliskra:bar_4', last());
-  const bars = ev().filter((n) => /bar_/.test(n)).length;
-  w.sim.step(200);
-  check('it is set once, not every tick', ev().filter((n) => /bar_/.test(n)).length === bars, `${bars} -> ${ev().filter((n) => /bar_/.test(n)).length}`);
-  const titanJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/entities/basiliskra_titan.json'), 'utf8'))['minecraft:entity'];
-  check('the Titan has no boss bar (its health line is its own)', !JSON.stringify(titanJson).includes('minecraft:boss'));
+  const named = [];
+  for (const form of [3, 4, 2]) {
+    w.bk.ctl.bringHere({ x: 0, y: 64, z: 60 }, 180, form); w.sim.step(30);
+    named.push(w.bk.ctl.creature?.entity.nameTag);
+  }
+  check('the name the script gives him in each form is one his own bar is drawn for', named.length === 3 && named.every((n) => shown.includes(`(#bossName = '${n}')`)), named.join(', '));
+  check('his bar: the game\'s boss bar entry with one control added, his frame and fill drawn over it', ui.namespace === 'hud' && ui.boss_health_panel.controls.length === 3
+    && fs.existsSync(path.join(ROOT, 'packs/RP/textures/ui/basiliskra_boss_frame.png')) && fs.existsSync(path.join(ROOT, 'packs/RP/textures/ui/basiliskra_boss_fill.png')));
+  check('his forms\' geometries are in a format the game makes no armor locators of its own for (1.16.0)', ['i', 'ii', 'iii', 'iv'].every((t) => JSON.parse(fs.readFileSync(path.join(ROOT, `packs/RP/models/entity/basiliskra_${t}.geo.json`), 'utf8')).format_version === '1.16.0'));
 }
 
 console.log(`\n${results.length - failures}/${results.length} checks passed`);

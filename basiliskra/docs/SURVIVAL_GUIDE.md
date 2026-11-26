@@ -293,7 +293,6 @@ In game: the config wheel's **Settings**. The defaults below are in `scripts/mai
 | His music (`music`) | on | His three themes. |
 | Minutes in each form before he changes (`changeMinutes`) | the story's own timing | Or 1, 2, 5, 10, 20, 30 or 60 minutes for every change. |
 | Cities rise on coasts (`cities`) | on | Off: a city is only raised where an operator asks for one. |
-| His health bar at the top of the screen (`bossBar`) | on | A boss bar titled by his form (Basiliskra I to IV), shown to everyone within 128 blocks of him; it empties as he is hurt. Off: no bar, and he gives nothing away. |
 | Vathrok in survival (`vathrok`) | on | Vathrok, the other kaiju, comes up now and then at night and to its lure, and can be beaten. Off: it never comes, and one that is about goes. |
 | The Vathrok Titan for battles (`vathrokTitan`) | on | Its egg, the command and the wheel make one. Off: none can be made, and those there are go. |
 
@@ -307,7 +306,7 @@ His destruction drops nothing: what his breath or his weight breaks is gone. He 
 
 ## Good to know
 
-* **His health bar** (from 2.1): within 128 blocks of him a boss bar at the top of the screen shows his health, titled by his form. He is still never killed: when it is nearly empty he is driven off, and when he comes back it is full again. If you would rather he gave nothing away (Basiliskra I under the water, say), turn it off in the Settings.
+* **His health bar** (from 2.2): within 128 blocks of him a bar at the top of the screen shows his health, in his own colours, titled by his form (Basiliskra I to IV). He is still never killed: when it is nearly empty he is driven off, and when he comes back it is full again. It is always on (the game only shows a boss bar that is part of the creature from the start, so it cannot be switched on and off while you play). Other boss bars, the Wither's or Vathrok's, look as the game draws them; the Titans show their health over the hotbar.
 
 * **Not yet seen in the game by its author.** Everything in 1.6 (the close cutscenes, the Seam Lance in the hand, the cities and the deep, the Titan) passes the pack's own simulated-world tests and the game's file checks, but none of it has been run in Minecraft itself. See `docs/TEST_REPORT.md` for the list of what to look at first.
 * Two Titans fighting ask about three times as much of the game as Basiliskra IV does alone. If a world struggles, fight two, not three.

@@ -372,7 +372,7 @@ class Model:
             if locs:
                 jb["locators"] = locs
             bones.append(jb)
-        return {"format_version": "1.21.0", "minecraft:geometry": [{"description": desc, "bones": bones}]}
+        return {"format_version": self.meta.get("geo_format", "1.21.0"), "minecraft:geometry": [{"description": desc, "bones": bones}]}
 
     def geo_locator(self, name: str) -> str:
         """The name a locator has in the game files.  The game merges the locators of every geometry an entity

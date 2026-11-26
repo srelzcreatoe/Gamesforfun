@@ -629,19 +629,157 @@ else:
         err("the script's figure for the Titan's health is not the entity's")
     ok("the Titan (entity, client entity, names)")
 
-# his health bar (2.1): a boss-bar group per form, titled by it, the events the script switches them with; and no bar
-# on the Titans (their health line is their own)
-groups = bp_ent.get("component_groups", {})
-for n, r in ((1, "I"), (2, "II"), (3, "III"), (4, "IV")):
-    boss = groups.get(f"{NS}:bar_{n}", {}).get("minecraft:boss")
-    if not boss or boss.get("name") != f"Basiliskra {r}" or f"{NS}:bar_{n}" not in bp_ent.get("events", {}):
-        err(f"his health bar for form {n} is missing or misnamed")
-if f"{NS}:bar_off" not in bp_ent.get("events", {}):
-    err("his health bar has no event to turn it off")
+# his health bar (2.2): the game's boss bar, part of his entity from the start as the Wither's and the Ender Dragon's are
+# (2.1 added it with an event at run time, and it never showed); none on the Titans (their health line is their own)
+boss = bp_ent.get("components", {}).get("minecraft:boss")
+if not boss or not isinstance(boss.get("hud_range"), int) or boss["hud_range"] < 64:
+    err("his health bar (minecraft:boss in his components, a hud_range of 64 or more) is missing")
+if any("minecraft:boss" in g for g in bp_ent.get("component_groups", {}).values()):
+    err("his boss bar must not be in a component group (added at run time, the game never showed it)")
 for name, j in (("the Titan", titan_bp), ("the Vathrok Titan", vtitan_bp)):
     if "minecraft:boss" in j.get("components", {}) or any("minecraft:boss" in g for g in j.get("component_groups", {}).values()):
         err(f"{name} should have no boss bar")
 ok("his health bar")
+
+
+def _jsonc(path):
+    """JSON that may hold // and /* */ comments and trailing commas (the game's own UI files do)."""
+    src = open(path, encoding="utf-8-sig").read()
+    out, i, n, ins = [], 0, len(src), False
+    while i < n:
+        c = src[i]
+        if ins:
+            out.append(c)
+            if c == "\\" and i + 1 < n:
+                out.append(src[i + 1]); i += 2; continue
+            if c == '"':
+                ins = False
+            i += 1; continue
+        if c == '"':
+            ins = True; out.append(c); i += 1; continue
+        if src.startswith("//", i):
+            while i < n and src[i] != "\n":
+                i += 1
+            continue
+        if src.startswith("/*", i):
+            k = src.find("*/", i + 2); i = n if k < 0 else k + 2; continue
+        out.append(c); i += 1
+    return json.loads(re.sub(r",(\s*[}\]])", r"\1", "".join(out)))
+
+
+# his bar's own look (2.2, ui/hud_screen.json): the game's boss bar entry copied unchanged with one control added; that
+# control shown only for the names the script gives him; textures present; and, against the game's own UI files, no
+# property name they never use (a misspelt one would be silently ignored) and no reference to an element that is not there
+ui_path = os.path.join(RP, "ui", "hud_screen.json")
+if os.path.exists(ui_path):
+    ui = json.load(open(ui_path, encoding="utf-8"))
+    if ui.get("namespace") != "hud":
+        err("ui/hud_screen.json must be in the namespace hud")
+    ctl_src = open(os.path.join(ROOT, "src", "controller.ts"), encoding="utf-8").read()
+    if "e.nameTag = `Basiliskra ${ROMAN[store.rec.form]}`" not in ctl_src:
+        err("the script no longer names him 'Basiliskra <form>': his bar's look keys on those names")
+    names = ["Basiliskra"] + [f"Basiliskra {r}" for r in ("I", "II", "III", "IV")]
+    test = json.dumps(ui.get("basiliskra_boss_bar", {}).get("bindings", []))
+    for n_ in names:
+        if f"(#bossName = '{n_}')" not in test:
+            err(f"his bar's look is not shown for the name {n_!r}")
+    for tex in ("textures/ui/basiliskra_boss_frame", "textures/ui/basiliskra_boss_fill"):
+        if not tex_exists(tex):
+            err(f"his bar's texture {tex} is missing")
+        if tex not in json.dumps(ui):
+            err(f"his bar does not use {tex}")
+    vui = os.path.join(SAMPLES, "resource_pack", "ui") if SAMPLES else ""
+    if vui and os.path.isdir(vui):
+        vanilla = {}
+        for fn in sorted(os.listdir(vui)):
+            if fn.endswith(".json"):
+                try:
+                    vanilla[fn] = _jsonc(os.path.join(vui, fn))
+                except Exception as e:
+                    notes.append(f"vanilla UI {fn} not read: {e}")
+        vhud = vanilla.get("hud_screen.json", {})
+        theirs, mine = vhud.get("boss_health_panel"), ui.get("boss_health_panel")
+        if theirs is None:
+            err("the game's hud.boss_health_panel is gone: his bar's copy of it must be redone")
+        elif mine is not None:
+            if {k: v for k, v in mine.items() if k != "controls"} != {k: v for k, v in theirs.items() if k != "controls"} \
+                    or mine.get("controls", [])[:len(theirs.get("controls", []))] != theirs.get("controls", []) \
+                    or len(mine.get("controls", [])) != len(theirs.get("controls", [])) + 1:
+                err("ui/hud_screen.json's boss_health_panel is not the game's, with exactly one control added")
+        keys = set()
+
+        def collect(v):
+            if isinstance(v, dict):
+                for k, x in v.items():
+                    keys.add(k.split("@")[0] if "@" in k else k)
+                    collect(x)
+            elif isinstance(v, list):
+                for x in v:
+                    collect(x)
+        for d in vanilla.values():
+            collect(d)
+        mine_keys = set()
+
+        def collect_mine(v, top=False):
+            if isinstance(v, dict):
+                for k, x in v.items():
+                    if not top and "@" not in k:
+                        mine_keys.add(k)
+                    collect_mine(x)
+            elif isinstance(v, list):
+                for x in v:
+                    collect_mine(x)
+        collect_mine(ui, top=True)
+        # (the names of controls are ours; what is checked is every property and binding key)
+        ours = {"basiliskra_frame", "basiliskra_fill", "basiliskra_name"}
+        for k in sorted(mine_keys - keys - ours):
+            err(f"ui/hud_screen.json uses a property the game's UI files never use: {k}")
+        elements = {(d.get("namespace"), name.split("@")[0]) for d in vanilla.values() if isinstance(d, dict) for name in d}
+        elements |= {("hud", k) for k in ui}
+
+        def refs(v, ns="hud"):
+            if isinstance(v, dict):
+                for k, x in v.items():
+                    if "@" in k:
+                        ref = k.split("@", 1)[1]
+                        rns, rname = (ref.split(".", 1) if "." in ref else (ns, ref))
+                        if (rns, rname) not in elements:
+                            err(f"ui/hud_screen.json refers to {ref}, which is not an element")
+                    refs(x, ns)
+            elif isinstance(v, list):
+                for x in v:
+                    refs(x, ns)
+        refs(ui)
+        if '"boss_bars"' not in json.dumps(vhud):
+            err("the game's boss bars are no longer the collection boss_bars")
+    ok("his bar's look")
+
+# the geometries of one client entity: the game makes an armor_offset.default_neck locator of its own for a geometry in
+# format 1.21.0 or later, from that geometry, and reports each one after the first as a clash (2.1, in his forms II, III
+# and IV).  So no client entity may list two such geometries.
+def _ver(v):
+    try:
+        return tuple(int(x) for x in str(v).split("."))
+    except ValueError:
+        return (0,)
+for k, d in docs.items():
+    ce = d.get("minecraft:client_entity") if isinstance(d, dict) else None
+    if not ce:
+        continue
+    gids = sorted(set(ce.get("description", {}).get("geometry", {}).values()))
+    new = [g for g in gids if g in geos and _ver(docs.get(geos[g]["file"], {}).get("format_version")) >= (1, 21, 0)]
+    if len(new) > 1:
+        err(f"{k}: lists {len(new)} geometries in format 1.21.0 or later ({', '.join(new)}): the game's own locators would clash")
+    ok("geometry formats per client entity")
+
+# the variables a script hands its effects: every read guarded with ?? (an effect started without them logs an error)
+for fn in sorted(os.listdir(os.path.join(RP, "particles"))):
+    text = open(os.path.join(RP, "particles", fn), encoding="utf-8").read()
+    for m in re.finditer(r"\b(?:v|variable)\.(width|len|size|spin|reach|dir\.[xyz])\b(?!\.)", text):
+        if text[max(0, m.start() - 1):m.start()] != "(" or not text[m.end():m.end() + 4] == " ?? ":
+            err(f"particles/{fn}: {m.group(0)} is read without a ?? default")
+            break
+    ok("particle variables guarded")
 
 # Vathrok: both entities have his synchronised properties (one pose draws them) with form 5, Vathrok's family and not
 # his, the box and the events the script binds and removes them with; the battle one the Titan's health and

@@ -45,6 +45,7 @@ def main():
         run("python3", "tools/kit/gen_lance.py")
         run("python3", "tools/kit/gen_civilian.py")
         run("python3", "tools/kit/gen_particles.py")
+        run("python3", "tools/kit/gen_ui.py")
         run("python3", "tools/sound/synth.py")
     run("npx", "tsc", "--noEmit", "-p", ".")
     run("node", "tools/bundle.mjs")

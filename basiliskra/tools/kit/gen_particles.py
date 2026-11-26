@@ -667,6 +667,23 @@ def draw_pack_icon(seed=5) -> np.ndarray:
     return big
 
 
+# ---- the variables a script passes (2.2) -----------------------------------------------------
+# What a script hands an effect (beam.ts beamVars: len, width, dir; sizeVars: size; the claws: spin; a roar: reach).
+# An effect started without one used to log "unhandled request for unknown variable" (mouth_star, muzzle_flash): every
+# read of them is now guarded with Molang's `??`, which takes the default when the variable was never set.
+PASSED = {"width": "3", "len": "1", "size": "1", "spin": "0", "reach": "30", "dir.x": "0", "dir.y": "0", "dir.z": "1"}
+
+
+def guarded(text: str) -> str:
+    import re
+
+    def sub(m):
+        name = m.group(2)
+        return f"({m.group(1)}.{name} ?? {PASSED[name]})"
+    text = re.sub(r"\b(v|variable)\.(dir\.[xyz])\b", sub, text)
+    return re.sub(r"\b(v|variable)\.(width|len|size|spin|reach)\b(?!\.)", sub, text)
+
+
 # ---- Vathrok (2.0) ---------------------------------------------------------------------
 # Vathrok's breath and glow are his effects in another colour: every tint is turned round the colour wheel from his
 # red and orange to acid green and yellow-green (white stays nearly white, a little green).  The sprites are grey, so
@@ -739,7 +756,7 @@ def main():
     names = []
     for name, data, _ in EFFECTS:
         with open(os.path.join(RP, "particles", f"{NS}_{name}.particle.json"), "w") as f:
-            json.dump(data, f, indent=1)
+            f.write(guarded(json.dumps(data, indent=1)))
             f.write("\n")
         names.append(name)
     # Vathrok's (2.0): the same shapes in its own acid green
@@ -747,7 +764,7 @@ def main():
     for name in VENOM:
         data = venom(by_name[name], name)
         with open(os.path.join(RP, "particles", f"{NS}_v_{name}.particle.json"), "w") as f:
-            json.dump(data, f, indent=1)
+            f.write(guarded(json.dumps(data, indent=1)))
             f.write("\n")
         names.append(f"v_{name}")
     print(f"{len(names)} particle effects, sprite sheet {SHEET}x{SHEET}, item icon, pack icons")

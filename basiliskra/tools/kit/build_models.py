@@ -25,6 +25,13 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 RP = os.path.join(ROOT, "packs", "RP")
 FORMS = {"i": "form1", "ii": "form2", "iii": "form3", "iv": "form4", "v": "form5"}
 # (Vathrok, 2.0, is another animal: its files carry its own name)
+# His four forms are four geometries of one client entity.  For a geometry in format 1.21.0 or later the game makes an
+# `armor_offset.default_neck` locator of its own, from that geometry; four different bodies make four different ones,
+# and the game reports each after the first as a clash.  The game's own entities never list two such geometries with
+# different skeletons (their babies and variants are 1.12.0 or 1.8.0).  Everything his geometries use is in 1.16.0
+# (per-face UV, cube rotation, locators), so they are written in it.  (Single-geometry bodies stay 1.21.0.)
+STORY = ("i", "ii", "iii", "iv")
+STORY_GEO_FORMAT = "1.16.0"
 NAMES = {"v": "vathrok"}
 
 
@@ -32,6 +39,8 @@ def build(tag: str):
     t0 = time.time()
     mod = importlib.import_module(FORMS[tag])
     m = mod.build()
+    if tag in STORY:
+        m.meta["geo_format"] = STORY_GEO_FORMAT
     m.solve_rest()
     hidden = m.cull_hidden()
     fill = m.pack()

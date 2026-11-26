@@ -177,34 +177,6 @@
           "width": 10.0,
           "height": 13.0
         }
-      },
-      "basiliskra:bar_1": {
-        "minecraft:boss": {
-          "hud_range": 128,
-          "should_darken_sky": false,
-          "name": "Basiliskra I"
-        }
-      },
-      "basiliskra:bar_2": {
-        "minecraft:boss": {
-          "hud_range": 128,
-          "should_darken_sky": false,
-          "name": "Basiliskra II"
-        }
-      },
-      "basiliskra:bar_3": {
-        "minecraft:boss": {
-          "hud_range": 128,
-          "should_darken_sky": false,
-          "name": "Basiliskra III"
-        }
-      },
-      "basiliskra:bar_4": {
-        "minecraft:boss": {
-          "hud_range": 128,
-          "should_darken_sky": false,
-          "name": "Basiliskra IV"
-        }
       }
     },
     "components": {
@@ -221,6 +193,10 @@
       "minecraft:health": {
         "value": 600,
         "max": 600
+      },
+      "minecraft:boss": {
+        "hud_range": 128,
+        "should_darken_sky": false
       },
       "minecraft:physics": {
         "has_gravity": false,
@@ -411,96 +387,6 @@
             }
           }
         ]
-      },
-      "basiliskra:bar_1": {
-        "sequence": [
-          {
-            "remove": {
-              "component_groups": [
-                "basiliskra:bar_2",
-                "basiliskra:bar_3",
-                "basiliskra:bar_4"
-              ]
-            }
-          },
-          {
-            "add": {
-              "component_groups": [
-                "basiliskra:bar_1"
-              ]
-            }
-          }
-        ]
-      },
-      "basiliskra:bar_2": {
-        "sequence": [
-          {
-            "remove": {
-              "component_groups": [
-                "basiliskra:bar_1",
-                "basiliskra:bar_3",
-                "basiliskra:bar_4"
-              ]
-            }
-          },
-          {
-            "add": {
-              "component_groups": [
-                "basiliskra:bar_2"
-              ]
-            }
-          }
-        ]
-      },
-      "basiliskra:bar_3": {
-        "sequence": [
-          {
-            "remove": {
-              "component_groups": [
-                "basiliskra:bar_1",
-                "basiliskra:bar_2",
-                "basiliskra:bar_4"
-              ]
-            }
-          },
-          {
-            "add": {
-              "component_groups": [
-                "basiliskra:bar_3"
-              ]
-            }
-          }
-        ]
-      },
-      "basiliskra:bar_4": {
-        "sequence": [
-          {
-            "remove": {
-              "component_groups": [
-                "basiliskra:bar_1",
-                "basiliskra:bar_2",
-                "basiliskra:bar_3"
-              ]
-            }
-          },
-          {
-            "add": {
-              "component_groups": [
-                "basiliskra:bar_4"
-              ]
-            }
-          }
-        ]
-      },
-      "basiliskra:bar_off": {
-        "remove": {
-          "component_groups": [
-            "basiliskra:bar_1",
-            "basiliskra:bar_2",
-            "basiliskra:bar_3",
-            "basiliskra:bar_4"
-          ]
-        }
       }
     }
   }

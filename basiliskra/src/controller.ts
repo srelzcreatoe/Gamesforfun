@@ -438,21 +438,6 @@ export class Controller {
     this.ending.reset();
   }
 
-  /**
-   * His health bar at the top of the screen (2.1): the entity's boss-bar component group for the form he is in
-   * (titled "Basiliskra I".."IV"), or none when the setting is off.  Checked twice a second, so a bind, a change of
-   * form, a reload or the setting changed all come right on their own.  (The Titans have their health line instead.)
-   */
-  private barShown = "";
-  private bossBar(): void {
-    const c = this.creature;
-    if (!c || !c.valid) { this.barShown = ""; return; }
-    const want = CONFIG.bossBar ? `bar_${c.form}` : "bar_off";
-    const key = `${c.entity.id}:${want}`;
-    if (key === this.barShown) return;
-    try { c.entity.triggerEvent(`basiliskra:${want}`); this.barShown = key; } catch { /* unloading: tried again */ }
-  }
-
   /** The stage of his life is his name: Basiliskra I, II, III.  It is what a death message says. */
   private nameHim(e: Entity): void {
     try { e.nameTag = `Basiliskra ${ROMAN[store.rec.form]}`; } catch { /* unloading */ }
@@ -596,7 +581,6 @@ export class Controller {
     lanceTick();
     if (this.creature && !this.creature.valid) { this.creature.dropParts(); this.creature = null; this.brain = null; this.runner = null; }
     if (now % 20 === 0) this.sweep();
-    if (now % 10 === 5) this.bossBar();
     switch (rec.stage) {
       case "pending": this.tryReserve(); break;
       case "arriving": this.arrive(); break;

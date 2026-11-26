@@ -18,9 +18,9 @@
    "minecraft:emitter_shape_sphere": {
     "radius": 2.2,
     "direction": [
-     "v.dir.x * 0.8 + math.random(-0.4, 0.4)",
+     "(v.dir.x ?? 0) * 0.8 + math.random(-0.4, 0.4)",
      "math.random(0.2, 0.7)",
-     "v.dir.z * 0.8 + math.random(-0.4, 0.4)"
+     "(v.dir.z ?? 1) * 0.8 + math.random(-0.4, 0.4)"
     ]
    },
    "minecraft:particle_initial_speed": "math.random(1.5, 4)",
@@ -37,8 +37,8 @@
    },
    "minecraft:particle_appearance_billboard": {
     "size": [
-     "(0.9 + 1.8 * v.particle_age / v.particle_lifetime) * (v.width > 0 ? v.width : 3) * (0.7 + 0.5 * v.particle_random_1)",
-     "(0.9 + 1.8 * v.particle_age / v.particle_lifetime) * (v.width > 0 ? v.width : 3) * (0.7 + 0.5 * v.particle_random_1)"
+     "(0.9 + 1.8 * v.particle_age / v.particle_lifetime) * ((v.width ?? 3) > 0 ? (v.width ?? 3) : 3) * (0.7 + 0.5 * v.particle_random_1)",
+     "(0.9 + 1.8 * v.particle_age / v.particle_lifetime) * ((v.width ?? 3) > 0 ? (v.width ?? 3) : 3) * (0.7 + 0.5 * v.particle_random_1)"
     ],
     "facing_camera_mode": "lookat_xyz",
     "uv": {

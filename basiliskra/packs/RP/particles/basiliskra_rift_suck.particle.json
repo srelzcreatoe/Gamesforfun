@@ -18,16 +18,16 @@
    "minecraft:emitter_shape_sphere": {
     "offset": [
      0,
-     "v.size * 0.5",
+     "(v.size ?? 1) * 0.5",
      0
     ],
-    "radius": "v.size * 0.9 + 3",
+    "radius": "(v.size ?? 1) * 0.9 + 3",
     "surface_only": true,
     "direction": "inwards"
    },
    "minecraft:particle_initial_speed": "math.random(9, 17)",
    "minecraft:particle_lifetime_expression": {
-    "max_lifetime": "v.size * 0.07 + 0.25"
+    "max_lifetime": "(v.size ?? 1) * 0.07 + 0.25"
    },
    "minecraft:particle_motion_dynamic": {
     "linear_acceleration": [
