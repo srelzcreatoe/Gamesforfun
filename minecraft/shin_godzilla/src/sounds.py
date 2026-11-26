@@ -268,10 +268,66 @@ def coagulant():
     return norm(0.6 * norm(hiss) + norm(pump))
 
 
+# ----------------------------------------------------------------- atomic breath phases
+# Phase lengths (seconds) of the atomic breath.  The gameplay script, the
+# animations and every breath sound are all cut to this one timeline, which
+# was measured from the film's heat-ray sound effect.
+BREATH = dict(charge=2.0, smoke=2.5, fire=5.0, focus=2.0, beam=9.0, sputter=2.5)
+ROAR_LEN = 4.9
+
+
+def breath_smoke():
+    dur = BREATH["smoke"] + 0.5
+    n = int(SR * dur)
+    x = lowpass(noise(n), 700) * (1 + 0.4 * slow_noise(n, 6)) + 0.6 * norm(lowpass(noise(n), 120))
+    return norm(reverb(x * env(n, 0.5, dur - 0.7, 0.7), 1.0, 0.2), 0.8)
+
+
+def breath_fire():
+    dur = BREATH["fire"] + 0.6
+    n = int(SR * dur)
+    x = fft_filter(noise(n), [(500, 500, 1.0), (1800, 900, 0.6), (3500, 1200, 0.25)], 0.04) * (1 + 0.5 * slow_noise(n, 20))
+    x = norm(x) + 0.6 * norm(lowpass(noise(n), 140))
+    return norm(reverb(x * env(n, 0.3, dur - 0.7, 0.7), 1.2, 0.25))
+
+
+def breath_focus():
+    dur = BREATH["focus"] + 0.4
+    n = int(SR * dur)
+    t = t_axis(dur)
+    f = 500 + 2700 * (t / dur) ** 1.6
+    whine = np.sin(2 * np.pi * np.cumsum(f) / SR) + 0.4 * np.sin(4 * np.pi * np.cumsum(f) / SR)
+    roar_n = fft_filter(noise(n), [(800, 600, 1.0)], 0.05) * (1 - 0.5 * t / dur)
+    return norm((0.55 * norm(whine) * (0.2 + 0.8 * t / dur) + 0.7 * norm(roar_n)) * env(n, 0.2, dur - 0.3, 0.3))
+
+
+def breath_beam():
+    dur = BREATH["beam"] + BREATH["sputter"]
+    n = int(SR * dur)
+    t = t_axis(dur)
+    tone = np.sin(2 * np.pi * 3200 * t) * 0.5 + 0.3 * np.sin(2 * np.pi * 6400 * t)
+    fm = np.sin(2 * np.pi * 310 * t + np.sin(2 * np.pi * 1030 * t) * 3)
+    sizzle = highpass(noise(n), 2500) * (0.6 + 0.4 * slow_noise(n, 25))
+    rumble = lowpass(noise(n), 160)
+    x = 0.3 * tone + 0.4 * norm(fm) + 0.35 * norm(sizzle) + 0.6 * norm(rumble)
+    return norm(x * env(n, 0.15, BREATH["beam"], BREATH["sputter"]), 0.9)
+
+
+def rays():
+    dur = 6.5
+    n = int(SR * dur)
+    t = t_axis(dur)
+    tone = np.sin(2 * np.pi * 3300 * t) * 0.5 + 0.3 * np.sin(2 * np.pi * 6600 * t)
+    sizzle = highpass(noise(n), 2000) * (0.6 + 0.4 * slow_noise(n, 30))
+    return norm((0.35 * tone + 0.5 * norm(sizzle) + 0.3 * norm(lowpass(noise(n), 300))) * env(n, 0.1, dur - 0.8, 0.8), 0.85)
+
+
 ALL = {
+    "breath_smoke": breath_smoke, "breath_fire": breath_fire, "breath_focus": breath_focus,
+    "breath_beam": breath_beam, "rays": rays,
+
     "roar4": roar4, "roar3": roar3, "roar2": roar2, "hurt": hurt, "step": step, "crash": crash,
-    "charge": charge, "smoke": smoke, "fire": fire, "beam_start": beam_start, "beam": beam,
-    "dorsal": dorsal, "dormant": dormant, "freeze": freeze, "evolve": evolve, "coagulant": coagulant,
+    "charge": charge, "dormant": dormant, "freeze": freeze, "evolve": evolve, "coagulant": coagulant,
 }
 
 
@@ -288,8 +344,63 @@ def write_ogg(x, path):
     os.unlink(wav)
 
 
-def build_all(out_dir):
+def _decode(path):
+    """Decode any audio file to mono float32 at SR via ffmpeg."""
+    raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", path, "-vn", "-ac", "1", "-ar", str(SR), "-f", "s16le", "-"],
+                         check=True, capture_output=True).stdout
+    return np.frombuffer(raw, np.int16).astype(np.float32) / 32768.0
+
+
+def _cut(x, t0, t1, fade_in=0.2, fade_out=0.4, peak=0.92):
+    y = x[int(t0 * SR):int(t1 * SR)].copy()
+    fi, fo = int(fade_in * SR), int(fade_out * SR)
+    y[:fi] *= np.linspace(0, 1, fi) ** 1.5
+    y[-fo:] *= np.linspace(1, 0, fo) ** 1.5
+    return norm(y, peak)
+
+
+def film_sounds(audio_dir):
+    """Cut the user's own film audio (kept out of the repository) into the
+    same phase-timed clips: {name: samples}.  Returns {} if it is not there.
+
+    heat_ray.mp3 is six takes separated by silence: a dull low roar (smoke),
+    a brighter roar (fire), a mid roar, two beam takes carrying the piercing
+    3.2 kHz tone, and a hiss.  Each breath phase gets the matching take.
+    """
+    out = {}
+    roar_p, ray_p = os.path.join(audio_dir, "roar.mp3"), os.path.join(audio_dir, "heat_ray.mp3")
+    if os.path.exists(roar_p):
+        r = _decode(roar_p)
+        out["roar4"] = _cut(r, 0.45, 0.45 + ROAR_LEN + 0.05, 0.02, 0.15)
+    if os.path.exists(ray_p):
+        h = _decode(ray_p)
+        B = BREATH
+        out["breath_smoke"] = _cut(h, 0.3, 0.3 + B["smoke"] + 0.5, 0.5, 0.7, 0.8)
+        out["breath_fire"] = _cut(h, 14.1, 14.1 + B["fire"] + 0.6, 0.3, 0.7)
+        # focus: the mid roar with a rising whine added that lands on the beam's 3.2 kHz tone
+        f = _cut(h, 31.0, 31.0 + B["focus"] + 0.4, 0.25, 0.3, 1.0)
+        t = np.arange(len(f)) / SR
+        sweep = 500 + 2700 * (t / t[-1]) ** 1.6
+        whine = np.sin(2 * np.pi * np.cumsum(sweep) / SR) * (0.1 + 0.9 * t / t[-1]) ** 2
+        out["breath_focus"] = norm(f * (1 - 0.35 * t / t[-1]) + 0.28 * whine * np.minimum(1, (t[-1] - t) / 0.3))
+        # beam: rumbling beam take + the brighter take on top, with the take's own decay as the sputter
+        total = B["beam"] + B["sputter"]
+        d = h[int(44.0 * SR):int((44.0 + total) * SR)].copy()
+        e = h[int(60.0 * SR):int(66.6 * SR)].copy()
+        e[-int(0.6 * SR):] *= np.linspace(1, 0, int(0.6 * SR))
+        d[int(0.25 * SR):int(0.25 * SR) + len(e)] += 0.7 * e
+        k = int(B["sputter"] * SR)
+        d[-k:] *= np.linspace(1, 0, k) ** 1.3
+        d[:int(0.12 * SR)] *= np.linspace(0, 1, int(0.12 * SR))
+        out["breath_beam"] = norm(d, 0.95)
+        out["rays"] = _cut(h, 60.0, 66.5, 0.08, 0.8, 0.9)
+    return out
+
+
+def build_all(out_dir, film=None):
+    """Write every sound; `film` ({name: samples}) replaces the stand-ins."""
     os.makedirs(out_dir, exist_ok=True)
+    film = film or {}
     for name, fn in ALL.items():
-        write_ogg(fn(), os.path.join(out_dir, name + ".ogg"))
+        write_ogg(film[name] if name in film else fn(), os.path.join(out_dir, name + ".ogg"))
     return list(ALL)

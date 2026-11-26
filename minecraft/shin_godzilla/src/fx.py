@@ -183,6 +183,43 @@ def particles():
         "minecraft:particle_appearance_tinting": {"color": {"interpolant": "v.particle_age/v.particle_lifetime",
                                                             "gradient": {"0.0": "#FFFFF0D0", "0.25": "#FFFF9A30", "0.7": "#C0E03010", "1.0": "#00401008"}}},
     })
+    # --- the breath stream itself: colour, tightness and speed are driven by the script so
+    #     one effect carries orange fire -> white heat -> magenta -> the forming beam
+    age = "v.particle_age/v.particle_lifetime"
+    fx["breath_stream"] = P("sg:breath_stream", "glow", "particles_add", {
+        "minecraft:emitter_rate_instant": {"num_particles": 9},
+        "minecraft:emitter_lifetime_once": {"active_time": 0.05},
+        "minecraft:emitter_shape_sphere": {"radius": 0.5, "direction": [
+            "variable.dx+math.random(-variable.spread,variable.spread)",
+            "variable.dy+math.random(-variable.spread,variable.spread)",
+            "variable.dz+math.random(-variable.spread,variable.spread)"]},
+        "minecraft:particle_initial_speed": "variable.spd*math.random(0.7,1.0)",
+        "minecraft:particle_motion_dynamic": {"linear_drag_coefficient": 0.5},
+        "minecraft:particle_lifetime_expression": {"max_lifetime": "math.random(0.7,1.1)"},
+        "minecraft:particle_appearance_billboard": {"size": ["variable.size*(0.7+v.particle_age*2.4)", "variable.size*(0.7+v.particle_age*2.4)"],
+                                                    "facing_camera_mode": "lookat_xyz", "uv": uv_full(64, 64)},
+        "minecraft:particle_appearance_tinting": {"color": ["variable.cr", "variable.cg", "variable.cb", "1-" + age]},
+    })
+    fx["ground_fire"] = P("sg:ground_fire", "flame", "particles_add", {
+        "minecraft:emitter_rate_instant": {"num_particles": 14},
+        "minecraft:emitter_lifetime_once": {"active_time": 0.05},
+        "minecraft:emitter_shape_disc": {"radius": 3.5, "plane_normal": "y", "direction": ["math.random(-0.4,0.4)", 1, "math.random(-0.4,0.4)"]},
+        "minecraft:particle_initial_speed": "math.random(2,6)",
+        "minecraft:particle_motion_dynamic": {"linear_acceleration": [0, 3, 0], "linear_drag_coefficient": 1.0},
+        "minecraft:particle_lifetime_expression": {"max_lifetime": "math.random(0.8,1.6)"},
+        "minecraft:particle_initial_spin": {"rotation": "math.random(-20,20)"},
+        "minecraft:particle_appearance_billboard": {"size": ["1.2+v.particle_age*2.6", "1.2+v.particle_age*2.6"], "facing_camera_mode": "rotate_xyz",
+                                                    "uv": flip(256, 32, 32, 8, 8, True)},
+        "minecraft:particle_appearance_tinting": {"color": {"interpolant": age, "gradient": {"0.0": "#FFFFF0D0", "0.3": "#FFFF9A30", "0.75": "#C0E03010", "1.0": "#00401008"}}},
+    })
+    fx["haze"] = P("sg:haze", "glow", "particles_add", {
+        "minecraft:emitter_rate_instant": {"num_particles": 1},
+        "minecraft:emitter_lifetime_once": {"active_time": 0.05},
+        "minecraft:emitter_shape_point": {},
+        "minecraft:particle_lifetime_expression": {"max_lifetime": 0.9},
+        "minecraft:particle_appearance_billboard": {"size": ["variable.size", "variable.size"], "facing_camera_mode": "lookat_xyz", "uv": uv_full(64, 64)},
+        "minecraft:particle_appearance_tinting": {"color": [0.5, 0.2, 1.0, "0.16*math.sin(" + age + "*180)"]},
+    })
     # --- steam, frost, freeze, evolution
     fx["steam"] = P("sg:steam", "smoke", "particles_blend", {
         "minecraft:emitter_rate_instant": {"num_particles": 3},

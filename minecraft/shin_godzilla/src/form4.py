@@ -16,18 +16,21 @@ from geo import Model, Path, V, unit, rot_about, world_point
 from atlas import REGIONS, SIZE
 from parts import plate, claw, tooth, limb, dir_yp
 
-TAIL_N = 18
-TAIL_REST = [-5, -4, -3, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8, 11, 13, 14, 14, 13]
+TAIL_N = 20
+# per-joint bend of the tail at rest. 4th form: sweeps down behind the hips, then arcs up
+# and over until the tip stands above the head. 3rd form: trails low with an upturned end.
+TAIL_REST = [-12, -10, -4, 4, 10, 14, 16, 16, 14, 12, 10, 8, 6, 4, 3, 2, 2, 2, 1, 1]
+TAIL_REST3 = [-5, -4, -3, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8, 10, 12, 13, 14, 14, 13, 12]
 X, Y, Z = V(1, 0, 0), V(0, 1, 0), V(0, 0, 1)
 
 # centre line of the trunk, pelvis -> skull joint: (pos, half-width, half-depth)
 SPINE = [
     ((0, 12.6, 3.0), 5.2, 5.0),
-    ((0, 14.6, 2.8), 6.6, 6.2),
-    ((0, 17.0, 2.4), 7.2, 6.8),
-    ((0, 19.6, 1.9), 7.0, 6.7),
-    ((0, 22.0, 1.3), 6.6, 6.3),    # 4: hips | torso
-    ((0, 24.2, 0.8), 6.2, 5.9),
+    ((0, 14.6, 2.6), 6.6, 6.6),
+    ((0, 17.0, 2.1), 7.2, 7.3),
+    ((0, 19.6, 1.6), 7.0, 7.2),
+    ((0, 22.0, 1.0), 6.6, 6.7),    # 4: hips | torso
+    ((0, 24.2, 0.7), 6.2, 6.1),
     ((0, 26.4, 0.3), 5.9, 5.6),
     ((0, 28.6, -0.2), 5.6, 5.3),   # 7: torso | chest
     ((0, 30.6, -0.8), 5.4, 5.1),
@@ -44,16 +47,14 @@ SPINE = [
 TAIL_BASE = (0, 16.9, 6.0)
 MOUTH = (0, 45.3, -12.9)
 
-UPPER_FANGS = [0.55, 0.8, 0.7, 1.05, 0.85, 1.3, 0.9, 1.15, 1.35, 0.95, 1.2, 0.8, 1.05, 0.7, 0.6]
-LOWER_FANGS = [0.45, 0.7, 0.6, 0.95, 0.75, 1.1, 0.8, 1.0, 0.7, 0.95, 0.6, 0.7, 0.5]
 
-
-def tail_joints():
+def tail_joints(rest=None):
+    rest = rest or TAIL_REST
     pts = [V(TAIL_BASE)]
     ang = 0.0
     for i in range(TAIL_N):
-        ang += TAIL_REST[i]
-        L = 6.0 - 0.16 * i
+        ang += rest[i]
+        L = 6.4 - 0.14 * i
         a = math.radians(ang)
         pts.append(pts[-1] + V(0, math.sin(a) * L, math.cos(a) * L))
     return pts
@@ -109,19 +110,22 @@ def build_head(m, f3, rng):
         lx = unit(np.cross(Y, ld))
         m.obox(head, (lb + lf) / 2, (0.34, 0.4, ll), (lx, Y, ld), "head")
         m.obox(head, (lb + lf) / 2 + V(-s * 0.14, -0.2, 0), (0.24, 0.2, ll * 0.98), (lx, Y, ld), "gum")
-        n = len(UPPER_FANGS)
-        for i, base_len in enumerate(UPPER_FANGS):
-            f = 0.13 + 0.85 * (i + 0.5) / n
-            p = lb + (lf - lb) * f + V(-s * 0.1, -0.22, 0)
-            out = math.radians(10 + 7 * math.sin(i * 2.4) + rng.uniform(-4, 6))
-            fa = math.radians(8 * math.sin(i * 1.7 + 1.0) + rng.uniform(-5, 5))
-            tooth(m, head, p, V(s * math.sin(out), -math.cos(out), math.sin(fa)), base_len * rng.uniform(0.9, 1.1), 0.23, lateral=ld)
+        # Small, crowded, irregular needle teeth: a main row along the lip and a second,
+        # shorter row behind it, every tooth leaning its own way.
+        for row, (n, inset, scale) in enumerate(((20, 0.1, 1.0), (11, 0.34, 0.7))):
+            for i in range(n):
+                f = 0.1 + 0.88 * (i + rng.uniform(0.25, 0.75)) / n
+                p = lb + (lf - lb) * f + V(-s * inset, -0.2, 0)
+                ln = (0.3 + 0.42 * math.sin(math.pi * f ** 0.8)) * rng.uniform(0.65, 1.35) * scale
+                out = math.radians(rng.uniform(-4, 26) - 10 * row)
+                fa = math.radians(rng.uniform(-16, 16))
+                tooth(m, head, p, V(s * math.sin(out), -math.cos(out), math.sin(fa)), ln, 0.16, lateral=ld, segs=2)
     m.obox(head, (0, 45.76, -13.42), (2.05, 0.4, 0.3), (X, Y, Z), "head")                  # front lip
-    for i, x in enumerate((-0.84, -0.42, 0.0, 0.42, 0.84)):
-        tooth(m, head, V(x, 45.56, -13.42), V(x * 0.14, -1, -0.18), 0.58 + 0.2 * (i % 2), 0.21, lateral=X)
+    for x in (-0.86, -0.52, -0.18, 0.18, 0.52, 0.86):
+        tooth(m, head, V(x, 45.56, -13.42), V(x * 0.14, -1, rng.uniform(-0.3, -0.05)), rng.uniform(0.3, 0.55), 0.15, lateral=X, segs=2)
 
     for side, s in (("L", 1), ("R", -1)):
-        jaw = m.bone("jaw_" + side, head, (s * 1.95, 45.5, -7.2), (7, 0, 0))
+        jaw = m.bone("jaw_" + side, head, (s * 1.95, 45.5, -7.2), (9, 0, 0))
         jp = Path([((s * 1.95, 45.02, -7.2), 0.7, 0.76), ((s * 1.75, 44.88, -9.2), 0.66, 0.66),
                    ((s * 1.3, 44.8, -11.2), 0.6, 0.58), ((s * 0.62, 44.84, -12.8), 0.56, 0.52)], hint=(0, 1, 0))
         m.loft(jaw, jp, mat="head", wobble=0.012, overlap=0.16)
@@ -129,16 +133,15 @@ def build_head(m, f3, rng):
         m.obox(jaw, (s * 0.9, 44.95, -8.7), (1.8, 0.22, 3.2), (X, Y, Z), "mouth")           # mouth floor (rear)
         m.obox(jaw, (s * 0.52, 44.93, -11.4), (1.04, 0.22, 2.6), (X, Y, Z), "mouth")        # mouth floor (front)
         m.obox(jaw, (s * 0.92, 44.42, -8.9), (1.84, 0.34, 3.6), (X, Y, Z), "fissure")       # loose throat skin
-        n = len(LOWER_FANGS)
-        for i, base_len in enumerate(LOWER_FANGS):
-            u = 0.3 + 2.62 * (i + 0.5) / n
+        for i in range(17):
+            u = 0.25 + 2.7 * (i + rng.uniform(0.25, 0.75)) / 17
             c, a, b, (l, t, d) = jp.at(u)
-            p = c + V(s * a * 0.35, b * 0.8, 0)
-            out = math.radians(8 + 6 * math.sin(i * 2.1) + rng.uniform(-4, 5))
-            fa = math.radians(7 * math.sin(i * 1.3) + rng.uniform(-5, 5))
-            tooth(m, jaw, p, V(s * math.sin(out), math.cos(out), math.sin(fa)), base_len * rng.uniform(0.9, 1.1), 0.22, lateral=d)
-        tooth(m, jaw, V(s * 0.22, 45.25, -13.25), V(s * 0.06, 1, -0.14), 0.6, 0.2, lateral=X)
-        tooth(m, jaw, V(s * 0.66, 45.25, -13.1), V(s * 0.12, 1, -0.1), 0.72, 0.2, lateral=X)
+            p = c + V(s * a * rng.uniform(0.1, 0.5), b * 0.8, 0)
+            ln = (0.26 + 0.36 * math.sin(math.pi * (i + 0.5) / 17)) * rng.uniform(0.65, 1.35)
+            out, fa = math.radians(rng.uniform(-6, 24)), math.radians(rng.uniform(-16, 16))
+            tooth(m, jaw, p, V(s * math.sin(out), math.cos(out), math.sin(fa)), ln, 0.15, lateral=d, segs=2)
+        tooth(m, jaw, V(s * 0.22, 45.25, -13.25), V(s * 0.06, 1, -0.14), 0.4, 0.15, lateral=X, segs=2)
+        tooth(m, jaw, V(s * 0.6, 45.25, -13.1), V(s * 0.12, 1, -0.1), 0.48, 0.15, lateral=X, segs=2)
     return skull
 
 
@@ -165,6 +168,12 @@ def build(seed=4, form=4):
     m.loft("chest", spine, 7, 11, sleeve="trunk", wobble=0.022)
     m.loft("neck1", spine, 11, 14, sleeve="trunk", wobble=0.035, sub=2)
     m.loft("neck2", spine, 14, 17, sleeve="trunk", wobble=0.035, sub=2)
+
+    for s in (1, -1):
+        p, nrm, d = spine.surface(10.2, -90, out=0.1)
+        tip = p + V(s * 3.4, 2.8, 0.9)
+        dv = unit(tip - p)
+        m.obox("chest", (p + tip) / 2, (0.9, float(np.linalg.norm(tip - p)) + 0.6, 0.7), (unit(np.cross(dv, nrm)), dv, nrm), "skin2")
 
     # ------------------------------------------------------------- legs
     for side, s in (("L", 1), ("R", -1)):
@@ -195,48 +204,43 @@ def build(seed=4, form=4):
             m.obox(toes, p0 + f * 1.1 + V(0, 0.55, 0), (1.0, 0.5, 1.0), (unit(np.cross(Y, f)), Y, f), "skin2")
             claw(m, toes, p1 - f * 0.15 + V(0, 0.06, 0), f, V(0, -1, 0), 2.3, 0.84, curve=20)
 
-    # ------------------------------------------------------------- arms (tiny, palm-up)
+    # ------------------------------------------------------------- arms
+    # Small against the body but clearly formed: upper arm angled down and out from the
+    # side of the chest, elbow bent, forearm reaching forward, the open hand held palm-up
+    # with five long clawed fingers splayed and curling upward.
     for side, s in (("L", 1), ("R", -1)):
-        sh = V(s * 3.9, 31.9, -4.5)
-        el = V(s * 4.7, 29.7, -6.4)
-        wr = V(s * 4.6, 29.9, -8.9)
+        sh = V(s * 4.9, 31.7, -3.3)
+        el = V(s * 6.9, 29.5, -5.3)
+        wr = V(s * 7.2, 30.5, -8.6)
         arm = m.bone("arm_" + side, "chest", tuple(sh))
-        m.section(arm, sh + V(s * 0.1, 0.1, 0.4), 2.0, 1.3, 1.3, (X, Y, Z), "skin")
-        limb(m, arm, sh, el, 0.95, 0.72, "fissure", shape="oct")
+        m.section(arm, sh + V(-s * 0.3, 0.1, 0.5), 2.6, 1.7, 1.6, (X, Y, Z), "skin")          # shoulder
+        limb(m, arm, sh, el, 1.2, 0.95, "fissure", shape="oct")
         fore = m.bone("forearm_" + side, arm, tuple(el))
-        limb(m, fore, el, wr, 0.7, 0.5, "fissure", shape="oct")
-        m.section(fore, el, 1.2, 0.8, 0.8, (X, Y, Z), "skin")
+        m.section(fore, el, 1.6, 1.05, 1.05, (X, Y, Z), "skin2")                              # elbow
+        limb(m, fore, el, wr, 0.92, 0.68, "fissure", shape="oct")
         hand = m.bone("hand_" + side, fore, tuple(wr))
-        pn = unit(V(-s * 0.45, 1, 0.1))            # palm faces up and inward
-        fw = unit(V(s * 0.12, 0.12, -1))
+        pn = unit(V(-s * 0.35, 1, 0.15))           # palm faces up and a little inward
+        fw = unit(V(s * 0.15, 0.25, -1))
         fw = unit(fw - np.dot(fw, pn) * pn)
         lat = np.cross(pn, fw)
-        m.obox(hand, wr + fw * 0.6, (1.3, 0.42, 1.15), (lat, pn, fw), "skin")
-        for a in (-52, -26, 0, 26, 52):
+        m.obox(hand, wr + fw * 0.85, (1.9, 0.55, 1.75), (lat, pn, fw), "skin")
+        m.obox(hand, wr + fw * 0.2, (1.3, 0.7, 0.8), (lat, pn, fw), "skin2")                   # wrist
+        for a, ln in ((-52, 0.8), (-22, 1.0), (0, 1.08), (22, 1.0), (46, 0.86)):
             f1 = rot_about(fw, pn, a)
-            base = wr + fw * 1.05 - lat * (a / 52.0) * 0.5
+            p = wr + fw * 1.6 - lat * (a / 50.0) * 0.72
             ax = unit(np.cross(f1, pn))
-            ln = 0.95 if abs(a) < 40 else 0.75
-            d1, d2 = rot_about(f1, ax, 14), rot_about(f1, ax, 46)
-            limb(m, hand, base, base + d1 * ln, 0.17, 0.15, "skin2", shape="box", hint=tuple(pn))
-            mid = base + d1 * ln * 0.94
-            limb(m, hand, mid, mid + d2 * ln * 0.85, 0.14, 0.12, "skin2", shape="box", hint=tuple(pn))
-            tip = mid + d2 * ln * 0.85
-            m.obox(hand, tip + d2 * 0.14, (0.15, 0.15, 0.38), (lat, np.cross(d2, lat), d2), "claw")
+            for j, (curl, r0, r1) in enumerate(((10, 0.27, 0.23), (32, 0.22, 0.18), (58, 0.17, 0.13))):
+                d = rot_about(f1, ax, curl)
+                seg = ln * (0.9, 0.8, 0.62)[j]
+                limb(m, hand, p, p + d * seg, r0, r1, "skin2", shape="box", hint=tuple(pn))
+                p = p + d * seg * 0.95
+            d = rot_about(f1, ax, 70)
+            m.obox(hand, p + d * 0.2, (0.2, 0.2, 0.55), (lat, np.cross(d, lat), d), "claw")
 
     build_head(m, f3, rng)
 
-    if f3:  # the 3rd form still breathes through blood-red gills on the neck
-        for i in range(5):
-            u = 11.3 + i * 0.6
-            for ph in (-12, 192):
-                p, nrm, d = spine.surface(u, ph)
-                around = unit(np.cross(d, nrm))
-                dn = rot_about(nrm, around, 24)
-                m.obox("neck1", p + dn * 0.3, (2.4, 0.3, 1.0), (around, np.cross(dn, around), dn), "gill")
-
     # ------------------------------------------------------------- tail
-    J = tail_joints()
+    J = tail_joints(TAIL_REST3 if f3 else TAIL_REST)
     lens = [float(np.linalg.norm(J[i + 1] - J[i])) for i in range(TAIL_N)]
     total = sum(lens)
     acc = 0.0
@@ -250,22 +254,22 @@ def build(seed=4, form=4):
         m.loft(name, tp, sleeve="tail", frange=(acc / total, (acc + lens[i]) / total), wobble=0.04, overlap=0.2,
                caps="bone" if i == TAIL_N - 1 else None)
         acc += lens[i]
-        # rows of spines continue all the way down the tail
-        ph = (4.8 * (1 - t0) ** 1.2 + 0.6) * pk
-        for u in (0.45, 1.45):
+        # rows of small spines run the whole length of the tail
+        ph = (2.7 * (1 - t0) ** 1.1 + 0.6) * pk
+        for u in (0.5, 1.5):
             p, nrm, d = tp.surface(u, 90, out=-0.25)
-            hh = ph * rng.uniform(0.85, 1.12)
-            plate(m, name, p, swept(nrm, d, 36), d, hh, hh * 0.92)
-        if i < 11:
-            for phi in (58, 122):
+            hh = ph * rng.uniform(0.85, 1.15)
+            plate(m, name, p, swept(nrm, d, 34), d, hh, hh * 0.9)
+        if i < 15:
+            for phi in (60, 120):
                 p, nrm, d = tp.surface(1.0, phi, out=-0.25)
-                hh = ph * 0.66 * rng.uniform(0.85, 1.1)
-                plate(m, name, p, swept(nrm, d, 30), d, hh, hh * 0.75)
-        if i < 5:
-            for phi in (30, 150):
+                hh = ph * 0.7 * rng.uniform(0.85, 1.1)
+                plate(m, name, p, swept(nrm, d, 30), d, hh, hh * 0.8)
+        if i < 9:
+            for phi in (34, 146):
                 p, nrm, d = tp.surface(0.5, phi, out=-0.25)
-                hh = ph * 0.4 * rng.uniform(0.85, 1.1)
-                plate(m, name, p, swept(nrm, d, 28), d, hh, hh * 0.75)
+                hh = ph * 0.48 * rng.uniform(0.85, 1.1)
+                plate(m, name, p, swept(nrm, d, 28), d, hh, hh * 0.8)
         parent = name
 
     # skeletal tail tip: fused bone, ribs and a little gaping jaw
@@ -314,7 +318,7 @@ def build(seed=4, form=4):
     m.tail_pre = tuple(e - d * 2.0)
     if f3:
         for side, s in (("L", 1), ("R", -1)):
-            m.scale_bones(["arm_" + side, "forearm_" + side, "hand_" + side], (s * 3.9, 31.9, -4.5), 0.62)
+            m.scale_bones(["arm_" + side, "forearm_" + side, "hand_" + side], (s * 4.9, 31.7, -3.3), 0.62)
         m.scale_all(0.5)
         m.plate_tips = [(b, tuple(c * 0.5 for c in p), h * 0.5) for (b, p, h) in m.plate_tips]
         m.tail_tip = tuple(c * 0.5 for c in m.tail_tip)

@@ -13,3 +13,5 @@ CubicWorld_Source.zip
 # Shin Godzilla add-on build caches
 minecraft/shin_godzilla/.keep_*
 __pycache__/
+minecraft/shin_godzilla/src/user_audio/
+minecraft/shin_godzilla/local/

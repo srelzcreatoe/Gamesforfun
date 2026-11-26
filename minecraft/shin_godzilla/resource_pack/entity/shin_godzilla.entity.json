@@ -24,6 +24,7 @@
         "roar": "animation.sg.f4.roar",
         "charge": "animation.sg.f4.charge",
         "spew": "animation.sg.f4.spew",
+        "focus": "animation.sg.f4.focus",
         "breath": "animation.sg.f4.breath",
         "dorsal": "animation.sg.f4.dorsal",
         "tail": "animation.sg.f4.tail",

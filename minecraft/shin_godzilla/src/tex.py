@@ -200,16 +200,16 @@ def palettes(form, variant):
             skin2=H((17, 13, 13), (54, 34, 32), (92, 78, 76), (44, 6, 5), (215, 42, 18), 0.88),
             under=H((34, 14, 13), (86, 34, 30), (130, 84, 78), (78, 8, 6), (255, 82, 32), 1.0),     # belly / chest
             ridge=H((22, 16, 16), (70, 42, 38), (112, 94, 90), (56, 7, 6), (240, 58, 26)),
-            head=H((22, 17, 17), (66, 44, 41), (110, 96, 93), (40, 8, 7), (150, 34, 20), 0.8),
+            head=H((30, 28, 28), (82, 76, 74), (132, 126, 122), (26, 12, 11), (150, 34, 20), 0.75),
             fissure=H((28, 15, 14), (78, 34, 30), (120, 78, 72), (74, 8, 6), (250, 76, 30), 1.0),
             belly=H((54, 12, 10), (130, 28, 20), (186, 62, 46), (26, 6, 6), (255, 98, 50)),          # tail underside
             plate_base=H((40, 12, 10), (90, 24, 18), (140, 60, 50), (150, 20, 10), (255, 90, 40), 1.0),
             bone=H((150, 136, 120), (214, 204, 186), (240, 234, 220), (70, 50, 44), (90, 30, 20)),
             glow=dict(skin=0.5, skin2=0.3, under=0.75, ridge=0.5, head=0.1, fissure=0.7, belly=0.5, plate_base=0.9, bone=0.0),
             plate=dict(tip=(104, 94, 96), mid=(42, 35, 37), base=(22, 14, 14), vein=(214, 44, 26), glow=0.55),
-            tooth=((226, 216, 188), (190, 168, 124), (104, 64, 44)),
+            tooth=((214, 200, 160), (176, 150, 100), (96, 58, 40)),
             eye=dict(sclera=(186, 174, 146), rim=(40, 22, 18), iris=(124, 108, 80), pupil=(4, 3, 3), iris_r=0.62, pupil_r=0.34, spec=0.5),
-            gum=((62, 14, 18), (112, 38, 42)), mouth=((14, 4, 6), (56, 12, 16)), claw=((170, 156, 124), (232, 222, 196)),
+            gum=((62, 14, 18), (112, 38, 42)), mouth=((14, 4, 6), (56, 12, 16)), claw=((166, 150, 112), (224, 212, 178)),
             gill=((90, 14, 16), (180, 40, 40)),
         )
         if variant == "charged":
@@ -220,6 +220,8 @@ def palettes(form, variant):
             p["glow"] = dict(skin=0.85, skin2=0.6, under=1.0, ridge=0.85, head=0.35, fissure=1.0, belly=0.9, plate_base=1.0, bone=0.0)
             p["plate"] = dict(tip=(246, 236, 255), mid=(176, 116, 255), base=(104, 40, 214), vein=(255, 244, 255), glow=1.0, lit=0.75)
             p["gum"], p["mouth"] = ((150, 60, 170), (230, 160, 255)), ((120, 60, 200), (240, 210, 255))
+            # the nictitating membrane slides over the eye while it fires
+            p["eye"] = dict(sclera=(150, 160, 190), rim=(40, 30, 60), iris=(176, 186, 214), pupil=(196, 206, 230), iris_r=0.7, pupil_r=0.3, spec=0.95)
         elif variant == "frozen":
             ice = H((92, 94, 100), (176, 178, 184), (226, 228, 234), (60, 62, 70), (110, 112, 120))
             for k in ("skin", "skin2", "under", "ridge", "head", "fissure", "belly", "plate_base", "bone"):
@@ -243,7 +245,7 @@ def palettes(form, variant):
             plate_base=H((90, 30, 24), (150, 70, 56), (200, 130, 110), (160, 30, 16), (255, 90, 40), 1.0),
             bone=H((150, 136, 120), (214, 204, 186), (240, 234, 220), (70, 50, 44), (90, 30, 20)),
             glow=dict(skin=0.3, skin2=0.2, under=0.5, ridge=0.35, head=0.1, fissure=0.55, belly=0.3, plate_base=0.5, bone=0.0),
-            plate=dict(tip=(230, 226, 228), mid=(170, 158, 160), base=(110, 70, 66), vein=(200, 70, 50), glow=0.2),
+            plate=dict(tip=(206, 170, 128), mid=(128, 62, 48), base=(72, 24, 20), vein=(220, 70, 40), glow=0.25),
             tooth=((240, 234, 212), (190, 168, 124), (120, 70, 50)),
             eye=dict(sclera=(214, 206, 186), rim=(80, 30, 24), iris=(160, 140, 116), pupil=(10, 8, 8), iris_r=0.58, pupil_r=0.24, spec=0.7),
             gum=((120, 30, 36), (190, 80, 86)), mouth=((30, 6, 8), (100, 20, 24)), claw=((180, 160, 130), (234, 222, 196)),
@@ -262,7 +264,7 @@ def palettes(form, variant):
         plate_base=H((80, 30, 22), (140, 60, 40), (190, 110, 80), (110, 20, 14), (180, 40, 26)),
         bone=H((150, 136, 120), (214, 204, 186), (240, 234, 220), (70, 50, 44), (90, 30, 20)),
         glow=dict(skin=0.0, skin2=0.0, back=0.0, under=0.0, ridge=0.0, head=0.0, fissure=0.05, belly=0.0, plate_base=0.0, bone=0.0),
-        plate=dict(tip=(170, 84, 60), mid=(104, 40, 30), base=(60, 22, 18), vein=(40, 10, 8), glow=0.0),
+        plate=dict(tip=(222, 200, 160), mid=(184, 140, 98), base=(124, 52, 40), vein=(96, 30, 24), glow=0.0),
         tooth=((246, 242, 226), (206, 190, 150), (140, 96, 70)),
         eye=dict(sclera=(226, 226, 216), rim=(130, 96, 74), iris=(206, 206, 196), pupil=(12, 10, 10), iris_r=0.5, pupil_r=0.17, spec=0.95),
         gum=((150, 40, 48), (220, 100, 108)), mouth=((40, 8, 10), (110, 24, 28)), claw=((170, 150, 120), (228, 214, 186)),
@@ -294,10 +296,21 @@ def bands(F, n, seed, h, w, warp=0.3):
     return s, smooth(-s, 0.7, 0.99)
 
 
+def gill_bands(TH, F, h, w, seed, f0, f1, n):
+    """Gill slits: red bands stacked along the neck, across each flank."""
+    A = np.abs(TH)
+    flank = smooth(A, 42, 60) * (1 - smooth(A, 118, 138))
+    span = smooth(F, f0, f0 + 0.02) * (1 - smooth(F, f1 - 0.02, f1))
+    wob = (fbm(h, w, 2.6, seed, aniso=(3.0, 1.0)) - 0.5) * 0.5
+    s = np.sin(TAU * ((F - f0) / (f1 - f0) * n + wob))
+    return smooth(s, 0.05, 0.7) * flank * span, s
+
+
 def sleeve_maps(kind, h, w, scale, seed, form):
     TH, F = sleeve_grid(h, w)
     A = np.abs(TH)
     cell = lambda uv: max(30, int(h * w / (uv * scale) ** 2))
+    zero = np.zeros_like(F)
     if kind == "trunk":
         base = cracked_hide(h, w, cell(13), seed, 0.075, 30, 3.0)
         vent, dors = smooth(A, 100, 150), 1 - smooth(A, 30, 75)
@@ -309,49 +322,59 @@ def sleeve_maps(kind, h, w, scale, seed, form):
         for th0, f1 in ((0, 0.8), (28, 0.76), (-28, 0.76), (54, 0.62), (-54, 0.62)):
             root = np.maximum(root, gauss_line(TH, th0, 5.0) * smooth(F, 0.02, 0.06) * (1 - smooth(F, f1 - 0.04, f1)))
         root *= smooth(fbm(h, w, 2.0, seed + 41), 0.3, 0.55)
-        height = base["height"] + 0.5 * s * vent * (1 - neck) + 0.55 * s * neck - 0.3 * root
         patchy = smooth(fbm(h, w, 2.4, seed + 48), 0.38, 0.62)
-        crack = np.clip(np.maximum(base["crack"] * (0.4 + 0.6 * heat), np.maximum(groove * (vent * (1 - neck) + 0.6 * neck) * 0.8, root * 0.85)), 0, 1)
-        deep = np.clip(base["deep"] * heat * 1.3 + groove ** 4 * vent * (1 - neck) * patchy * 0.85 + root * 0.95, 0, 1)
-        return dict(height=height, crack=crack, deep=deep, var=base["var"] * (1 - 0.35 * dors), zone=vent * (1 - neck), zone2=neck)
+        # neck: long sinews running from the jaw down to the chest, red showing between them
+        n_s = band(h, w, max(6.0, w / (9.0 * scale)), seed + 49, (0.07, 1.0), 0.6)
+        strand = np.clip(1 - np.abs(n_s) / 0.5, 0, 1)
+        nheat = smooth(A, 36, 70) * (0.5 + 0.5 * patchy)
+        height = base["height"] * (1 - 0.6 * neck) + 0.5 * s * vent * (1 - neck) - 0.9 * strand * neck - 0.3 * root
+        crack = np.clip(np.maximum(base["crack"] * (0.4 + 0.6 * heat) * (1 - 0.7 * neck),
+                                   np.maximum(groove * vent * (1 - neck) * 0.8, np.maximum(strand * neck * 0.85, root * 0.85))), 0, 1)
+        deep = np.clip(base["deep"] * heat * 1.3 + groove ** 4 * vent * (1 - neck) * patchy * 0.85
+                       + strand ** 2 * neck * nheat * 0.9 + root * 0.95, 0, 1)
+        gill = gill_bands(TH, F, h, w, seed + 50, 0.66, 0.86, 7)[0] if form == 3 else zero
+        return dict(height=height, crack=crack, deep=deep, var=base["var"] * (1 - 0.35 * dors), zone=vent * (1 - neck), zone2=neck, gill=gill)
     if kind == "tail":
+        # the glow runs along the spine side of the tail, between the rows of small spines;
+        # flanks and underside are dark, tightly ringed hide
         base = cracked_hide(h, w, cell(11), seed + 1, 0.07, 24, 2.0)
-        vent, dors = smooth(A, 112, 150), 1 - smooth(A, 30, 70)
-        s, groove = bands(F, 54, seed + 42, h, w, 0.2)
-        s2, groove2 = bands(F, 120, seed + 43, h, w, 0.25)
-        side_heat = smooth(A, 60, 115) * 0.8 + 0.12
-        root = np.zeros_like(F)
-        for th0, f1 in ((0, 0.98), (32, 0.6), (-32, 0.6), (60, 0.28), (-60, 0.28)):
-            root = np.maximum(root, gauss_line(TH, th0, 5.5) * (1 - smooth(F, f1 - 0.04, f1)))
-        root *= smooth(fbm(h, w, 2.0, seed + 44), 0.3, 0.55)
-        height = base["height"] * (1 - 0.5 * vent) + 0.4 * s * (1 - vent) + 0.6 * s2 * vent - 0.3 * root
-        crack = np.clip(np.maximum(np.maximum(base["crack"] * (1 - vent) * 0.7, groove * (1 - vent) * 0.6), np.maximum(groove2 * vent, root * 0.85)), 0, 1)
-        deep = np.clip(base["deep"] * (1 - vent) * side_heat + groove2 ** 2 * vent * 0.9 + root * 0.9, 0, 1)
-        return dict(height=height, crack=crack, deep=deep, var=base["var"] * (1 - 0.3 * dors), zone=vent, zone2=smooth(F, 0.962, 0.975))
+        dors = 1 - smooth(A, 36, 72)
+        s, groove = bands(F, 62, seed + 42, h, w, 0.2)
+        s2, groove2 = bands(F, 130, seed + 43, h, w, 0.25)
+        patchy = smooth(fbm(h, w, 2.2, seed + 44), 0.3, 0.6)
+        side_heat = (1 - smooth(A, 60, 125)) * 0.55
+        height = base["height"] * (1 - 0.5 * dors) + 0.5 * s * (1 - dors) + 0.5 * s2 * dors
+        crack = np.clip(np.maximum(np.maximum(base["crack"] * (1 - dors) * 0.6, groove * (1 - dors) * 0.75), groove2 * dors), 0, 1)
+        deep = np.clip(base["deep"] * (1 - dors) * side_heat + groove ** 3 * (1 - dors) * side_heat * patchy
+                       + (groove2 ** 2 * 0.85 + base["deep"] * 0.6) * dors, 0, 1)
+        return dict(height=height, crack=crack, deep=deep, var=base["var"], zone=dors, zone2=smooth(F, 0.962, 0.975), gill=zero)
     if kind in ("thigh", "shin", "foot"):
-        n = {"thigh": 7, "shin": 9, "foot": 6}[kind]
-        base = cracked_hide(h, w, cell(12 if kind == "thigh" else 9), seed + 2 + len(kind), 0.07, 24, 3.2 if kind == "thigh" else 1.5)
-        s, groove = bands(F, n, seed + 45, h, w, 0.35)
-        wr = smooth(F, 0.72, 0.92) if kind == "thigh" else np.ones_like(F)
-        heat = {"thigh": 0.55, "shin": 0.4, "foot": 0.2}[kind]
-        height = base["height"] + 0.4 * s * wr
-        crack = np.clip(np.maximum(base["crack"] * 0.85, groove * wr * 0.6), 0, 1)
-        return dict(height=height, crack=crack, deep=np.clip(base["deep"] * heat * 1.6, 0, 1), var=base["var"], zone=np.zeros_like(F), zone2=np.zeros_like(F))
+        # concentric wrinkle rings round the limb, heat showing in the creases
+        n = {"thigh": 15, "shin": 13, "foot": 8}[kind]
+        base = cracked_hide(h, w, cell(12 if kind == "thigh" else 9), seed + 2 + len(kind), 0.07, 24, 1.4)
+        s, groove = bands(F, n, seed + 45, h, w, 0.4)
+        patchy = smooth(fbm(h, w, 2.3, seed + 46), 0.36, 0.62)
+        heat = {"thigh": 0.6, "shin": 0.45, "foot": 0.2}[kind]
+        height = base["height"] * 0.7 + 0.5 * s
+        crack = np.clip(np.maximum(base["crack"] * 0.7, groove * 0.8), 0, 1)
+        deep = np.clip(base["deep"] * heat * 1.3 + groove ** 3 * patchy * heat * 1.3, 0, 1)
+        return dict(height=height, crack=crack, deep=deep, var=base["var"], zone=zero, zone2=zero, gill=zero)
     if kind == "skull":
         base = cracked_hide(h, w, cell(5), seed + 9, 0.06, 10, 1.2)
         top = 1 - smooth(A, 30, 80)
         return dict(height=base["height"], crack=base["crack"] * 0.7, deep=base["deep"] * 0.5, var=base["var"] * (1 - 0.3 * top),
-                    zone=smooth(A, 120, 160), zone2=np.zeros_like(F))
-    if kind == "body":  # 2nd form trunk + neck: wet, loosely folded skin
+                    zone=smooth(A, 120, 160), zone2=zero, gill=zero)
+    if kind in ("body", "body_tail"):  # 2nd form trunk + neck (and tail): wet, loosely folded skin
         base = cracked_hide(h, w, cell(16), seed + 3, 0.05, 30, 4.0)
         folds = fbm(h, w, 2.0, seed + 46, aniso=(0.22, 3.0))           # long wrinkles along the body
         vent, dors = smooth(A, 118, 155), 1 - smooth(A, 22, 60)
         crease = gauss_line(TH, 96, 4) + gauss_line(TH, -96, 4)         # lateral skin flap
         neck = smooth(F, 0.6, 0.7)
         s, groove = bands(F, 26, seed + 47, h, w, 0.4)
-        height = base["height"] * 0.6 + folds * 0.8 + 0.3 * s * neck - 0.5 * crease
+        gill, gs = gill_bands(TH, F, h, w, seed + 51, 0.6, 0.84, 6) if kind == "body" else (zero, zero)
+        height = base["height"] * 0.6 + folds * 0.8 + 0.3 * s * neck - 0.5 * crease - 0.8 * gill
         crack = np.clip(np.maximum(base["crack"] * 0.5, np.maximum(crease * 0.8, groove * neck * 0.5)), 0, 1)
-        return dict(height=height, crack=crack, deep=np.zeros_like(F), var=np.clip(base["var"] * 0.6 + folds * 0.5, 0, 1), zone=vent, zone2=dors)
+        return dict(height=height, crack=crack, deep=zero, var=np.clip(base["var"] * 0.6 + folds * 0.5, 0, 1), zone=vent, zone2=dors, gill=gill)
     raise KeyError(kind)
 
 
@@ -425,7 +448,7 @@ def build_atlas(form, variant, size_px, cache):
         x0, y0 = int(round(u * scale)), int(round(v * scale))
         w, h = int(round(rw * scale)), int(round(rh * scale))
         if kind == "sleeve":
-            mk = "body" if (form == 2 and name == "tail") else name
+            mk = "body_tail" if (form == 2 and name == "tail") else name
             mp = cache.get((name, h, w), lambda: sleeve_maps(mk, h, w, scale, seed + (5 if name == "tail" else 0), form))
             if name == "trunk":
                 a_pal, b_pal, b_key, c_pal, c_key = "skin", "under", "under", "ridge", "ridge"
@@ -446,6 +469,11 @@ def build_atlas(form, variant, size_px, cache):
             if c_pal != a_pal:
                 cc, ac = colour_hide(mp, pal[c_pal], pal["glow"][c_key], 6.0, frost=frozen, seed=seed)
                 col, a = mix(col, cc, mp["zone2"]), a * (1 - mp["zone2"]) + ac * mp["zone2"]
+            if mp["gill"].any() and not frozen:
+                # wet red gill slits with a darker crease down each one
+                g = mp["gill"]
+                red = mix(pal["gill"][0], pal["gill"][1], np.clip(0.35 + 0.65 * shade(mp["height"], 5.0), 0, 1))
+                col = mix(col, red, g * 0.95)
         elif name in GENERIC:
             gen, cell, cw, warp, an = GENERIC[name]
 

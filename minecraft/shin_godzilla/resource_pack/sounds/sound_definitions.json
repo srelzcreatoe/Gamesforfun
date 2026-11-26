@@ -1,6 +1,66 @@
 {
   "format_version": "1.20.20",
   "sound_definitions": {
+    "sg.breath_smoke": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 200.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/breath_smoke",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.breath_fire": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 256.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/breath_fire",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.breath_focus": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 256.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/breath_focus",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.breath_beam": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 256.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/breath_beam",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "sg.rays": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 256.0,
+      "sounds": [
+        {
+          "name": "sounds/sg/rays",
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
     "sg.roar4": {
       "category": "hostile",
       "min_distance": 4.0,
@@ -80,66 +140,6 @@
       "sounds": [
         {
           "name": "sounds/sg/charge",
-          "volume": 1.0,
-          "load_on_low_memory": true
-        }
-      ]
-    },
-    "sg.smoke": {
-      "category": "hostile",
-      "min_distance": 4.0,
-      "max_distance": 96.0,
-      "sounds": [
-        {
-          "name": "sounds/sg/smoke",
-          "volume": 1.0,
-          "load_on_low_memory": true
-        }
-      ]
-    },
-    "sg.fire": {
-      "category": "hostile",
-      "min_distance": 4.0,
-      "max_distance": 128.0,
-      "sounds": [
-        {
-          "name": "sounds/sg/fire",
-          "volume": 1.0,
-          "load_on_low_memory": true
-        }
-      ]
-    },
-    "sg.beam_start": {
-      "category": "hostile",
-      "min_distance": 4.0,
-      "max_distance": 256.0,
-      "sounds": [
-        {
-          "name": "sounds/sg/beam_start",
-          "volume": 1.0,
-          "load_on_low_memory": true
-        }
-      ]
-    },
-    "sg.beam": {
-      "category": "hostile",
-      "min_distance": 4.0,
-      "max_distance": 200.0,
-      "sounds": [
-        {
-          "name": "sounds/sg/beam",
-          "volume": 1.0,
-          "load_on_low_memory": true
-        }
-      ]
-    },
-    "sg.dorsal": {
-      "category": "hostile",
-      "min_distance": 4.0,
-      "max_distance": 200.0,
-      "sounds": [
-        {
-          "name": "sounds/sg/dorsal",
           "volume": 1.0,
           "load_on_low_memory": true
         }

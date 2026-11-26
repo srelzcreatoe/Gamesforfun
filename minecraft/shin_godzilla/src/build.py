@@ -31,7 +31,7 @@ BP = os.path.join(ROOT, "behavior_pack")
 RP = os.path.join(ROOT, "resource_pack")
 DIST = os.path.join(ROOT, "dist")
 ASSETS = os.path.join(HERE, "assets")
-VERSION = [1, 0, 0]
+VERSION = [1, 1, 0]
 MIN_ENGINE = [1, 21, 90]
 FAST = "--fast" in sys.argv
 
@@ -96,7 +96,7 @@ def build_textures():
 # =============================================================== anchors
 def compute_anchors(models):
     m4, m3, m2 = models[4], models[3], models[2]
-    sets4 = anim.big_set("x", form4.TAIL_N)
+    sets4 = anim.big_set("x", form4.TAIL_N, rest_tail=form4.TAIL_REST)
     mouth_tab = []
     for a in (-35, -15, 0, 15, 30, 45, 60, 75):
         pose = anim.pose_of(sets4["x.breath"], 0.0, {"AIM": a})
@@ -115,7 +115,15 @@ def compute_anchors(models):
     for key, phi in (("gill_L", -12), ("gill_R", 192)):
         p, nrm, _ = spine.surface(12.5, phi, out=0.6)
         g3[key] = r3(geo.world_point(m3, "neck1", tuple(float(c) * 0.5 for c in p)))
+    T = sounds.BREATH
+    order = ("charge", "smoke", "fire", "focus", "beam", "sputter")
+    ticks, acc = {}, 0
+    for k in order:                      # tick at which each breath phase begins
+        ticks[k] = acc
+        acc += int(round(T[k] * 20))
+    ticks["end"] = acc
     anchors = {
+        "timing": {"breath": ticks, "roar": int(round((sounds.ROAR_LEN + 0.1) * 20))},
         "f4": {"mouth_by_aim": mouth_tab, "dorsal": dorsal, "tail_tip": r3(tip), "tail_dir": r3([v / ln for v in tdir])},
         "f3": g3,
         "f2": form2.anchors(m2),
@@ -141,9 +149,10 @@ def client_entity(ident, geo_id, textures, anims, controller, egg, render_ctrl):
 
 def build_client(models):
     # ---- animations
-    a4 = anim.big_set("animation.sg.f4", form4.TAIL_N, 20.0, 1.0)
+    a4 = anim.big_set("animation.sg.f4", form4.TAIL_N, 20.0, 1.0, rest_tail=form4.TAIL_REST, roar_len=sounds.ROAR_LEN)
     keep3 = ("idle", "walk", "look", "roar", "evolving", "dying")
-    a3 = {k: v for k, v in anim.big_set("animation.sg.f3", form4.TAIL_N, 36.0, 0.5, stagger=1.0).items() if k.split(".")[-1] in keep3}
+    a3 = {k: v for k, v in anim.big_set("animation.sg.f3", form4.TAIL_N, 36.0, 0.5, stagger=1.0, rest_tail=form4.TAIL_REST3,
+                                        roar_len=3.2).items() if k.split(".")[-1] in keep3}
     a2 = anim.kamata_set("animation.sg.f2", form2.TAIL_N)
     write(os.path.join(RP, "animations/shin_godzilla.animation.json"), anim.to_bedrock(a4))
     write(os.path.join(RP, "animations/shin_godzilla_3.animation.json"), anim.to_bedrock(a3))
@@ -155,6 +164,7 @@ def build_client(models):
         "roar": (["roar"], ["roar", "idle"]),
         "charge": (["charge"], ["charge"]),
         "spew": (["smoke", "fire"], ["spew"]),
+        "focus": (["focus"], ["focus"]),
         "breath": (["beam"], ["breath"]),
         "dorsal": (["dorsal"], ["dorsal"]),
         "tail": (["tail"], ["tail"]),
@@ -180,7 +190,7 @@ def build_client(models):
 
     def amap(prefix, names):
         return {n: "%s.%s" % (prefix, n) for n in names}
-    n4 = ["idle", "walk", "look", "roar", "charge", "spew", "breath", "dorsal", "tail", "dormant", "frozen", "waking", "dying"]
+    n4 = ["idle", "walk", "look", "roar", "charge", "spew", "focus", "breath", "dorsal", "tail", "dormant", "frozen", "waking", "dying"]
     n3 = ["idle", "walk", "look", "roar", "evolving", "dying"]
     base = "textures/entity/shin_godzilla/"
     write(os.path.join(RP, "entity/shin_godzilla.entity.json"), client_entity(
@@ -341,9 +351,9 @@ def entity_bp(ident, cfg):
         "minecraft:underwater_movement": {"value": cfg["swim"]},
         "minecraft:attack": {"damage": cfg["attack"]},
         "minecraft:follow_range": {"value": 64, "max": 96},
-        "minecraft:boss": {"hud_range": cfg["hud"], "name": cfg["boss_name"], "should_darken_sky": cfg.get("darken", False)},
+        "minecraft:boss": {"hud_range": cfg["hud"], "should_darken_sky": cfg.get("darken", False)},
         "minecraft:persistent": {},
-        "minecraft:nameable": {},
+        "minecraft:nameable": {"always_show": False, "allow_name_tag_renaming": False},
         "minecraft:loot": {"table": "loot_tables/entities/%s.json" % ident.split(":")[1]},
         "minecraft:experience_reward": {"on_death": str(cfg["xp"])},
         "minecraft:conditional_bandwidth_optimization": {},
@@ -357,7 +367,7 @@ def build_behavior():
     write(os.path.join(BP, "entities/shin_godzilla.json"), entity_bp(F4, dict(
         health=2000, box=(4.0, 12.0), hit=(12, 44), speed=0.2, swim=0.12, attack=30, stroll=32, explosion=1.6,
         hud=96, boss_name="Shin Godzilla", darken=True, xp=500, dormancy=True,
-        states=["walk", "roar", "charge", "smoke", "fire", "beam", "dorsal", "tail", "dormant", "frozen", "waking", "dying"])))
+        states=["walk", "roar", "charge", "smoke", "fire", "focus", "beam", "dorsal", "tail", "dormant", "frozen", "waking", "dying"])))
     write(os.path.join(BP, "entities/shin_godzilla_3.json"), entity_bp(F3, dict(
         health=650, box=(2.6, 8.0), hit=(7, 22), speed=0.18, swim=0.12, attack=18, stroll=24, explosion=1.3,
         hud=64, boss_name="Shin Godzilla - 3rd Form", xp=200, evolves_into=F4,
@@ -419,6 +429,7 @@ def build_assets(anchors):
     if not (FAST and os.path.isdir(sdir)):
         sounds.build_all(sdir)
     loud = {"roar4": 256, "roar3": 160, "roar2": 128, "beam": 200, "beam_start": 256, "dorsal": 200, "step": 128,
+            "breath_smoke": 200, "breath_fire": 256, "breath_focus": 256, "breath_beam": 256, "rays": 256,
             "crash": 96, "charge": 128, "fire": 128, "smoke": 96, "evolve": 128, "freeze": 128, "dormant": 64,
             "coagulant": 32, "hurt": 64}
     defs = {}
@@ -477,16 +488,32 @@ def build_manifests():
     })
 
 
-def package():
-    os.makedirs(DIST, exist_ok=True)
-    out = os.path.join(DIST, "ShinGodzilla.mcaddon")
+def _zip(out, bp, rp):
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
-        for src, arc in ((BP, "Shin Godzilla BP"), (RP, "Shin Godzilla RP")):
+        for src, arc in ((bp, "Shin Godzilla BP"), (rp, "Shin Godzilla RP")):
             for dp, _, files in os.walk(src):
                 for fn in sorted(files):
                     full = os.path.join(dp, fn)
                     z.write(full, os.path.join(arc, os.path.relpath(full, src)))
     print("packaged", out, "%.1f MB" % (os.path.getsize(out) / 1e6))
+
+
+def package():
+    os.makedirs(DIST, exist_ok=True)
+    _zip(os.path.join(DIST, "ShinGodzilla.mcaddon"), BP, RP)
+    # If the user's own film audio is present (src/user_audio, never committed), also build a
+    # private copy that uses it. Same packs, same timing; only the sound files differ.
+    film = sounds.film_sounds(os.path.join(HERE, "user_audio"))
+    if film:
+        local = os.path.join(ROOT, "local")
+        rp2 = os.path.join(local, "resource_pack")
+        shutil.rmtree(local, ignore_errors=True)
+        shutil.copytree(RP, rp2)
+        for name, x in film.items():
+            sounds.write_ogg(x, os.path.join(rp2, "sounds/sg", name + ".ogg"))
+        _zip(os.path.join(local, "ShinGodzilla.mcaddon"), BP, rp2)
+        shutil.rmtree(rp2)
+        print("film audio used for:", ", ".join(sorted(film)))
 
 
 def main():

@@ -311,11 +311,13 @@
       },
       "minecraft:boss": {
         "hud_range": 64,
-        "name": "Shin Godzilla - 3rd Form",
         "should_darken_sky": false
       },
       "minecraft:persistent": {},
-      "minecraft:nameable": {},
+      "minecraft:nameable": {
+        "always_show": false,
+        "allow_name_tag_renaming": false
+      },
       "minecraft:loot": {
         "table": "loot_tables/entities/shin_godzilla_3.json"
       },

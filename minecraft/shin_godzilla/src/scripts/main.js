@@ -15,7 +15,7 @@ const F4 = "sg:shin_godzilla";
 const KAIJU = new Set([F2, F3, F4]);
 const NAMES = { [F2]: "2nd Form (Kamata-kun)", [F3]: "3rd Form (Shinagawa-kun)", [F4]: "4th Form" };
 const DIMS = ["minecraft:overworld", "minecraft:nether", "minecraft:the_end"];
-const ABILITY_STATES = new Set(["charge", "smoke", "fire", "beam", "dorsal", "tail", "waking", "evolving"]);
+const ABILITY_STATES = new Set(["charge", "smoke", "fire", "focus", "beam", "dorsal", "tail", "waking", "evolving"]);
 const DOSES_NEEDED = 6;
 const DORMANT_TICKS = 2400;
 const PROTECTED = new Set([
@@ -403,14 +403,57 @@ function explodeAt(e, p, r, fire) {
   } catch { /* ignore */ }
 }
 
-// Atomic breath, staged like the film:
-//   0-40    plates flicker and catch purple, the head bows, the mouth opens
-//   40-80   thick black smoke pours down over the ground
-//   80-130  the smoke ignites into a flood of fire
-//   130-270 the jaw splits and the fire tightens into the purple beam, which
-//           sweeps up and across whatever it is aimed at
-//   270-292 the beam sputters back into flame and dies
-const BREATH = { smoke: 40, fire: 80, beam: 130, sputter: 270, end: 292 };
+// Atomic breath, staged like the film and cut to the heat-ray sound's timeline
+// (phase start ticks come from the build, so sound, animation and damage stay in step):
+//   charge   plates stutter and catch purple, the eye membranes close, the head bows
+//   smoke    the jaw unhinges and thick black smoke pours down over the ground
+//   fire     the smoke ignites into a flood of orange fire that spreads across everything below
+//   focus    the stream burns white, then magenta, and tightens as the lower jaw parts
+//   beam     the jaw is split in two; a thin violet beam, the head rising to sweep it across the target
+//   sputter  the beam breaks up and dies
+const BREATH = ANCHORS.timing.breath;
+const lerp3 = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
+const ORANGE = [1.0, 0.5, 0.12], WHITE = [1.0, 0.95, 0.8], MAGENTA = [1.0, 0.22, 0.72], VIOLET = [0.72, 0.4, 1.0];
+
+function stream(dim, mouth, d, sc, col, spread, speed, size) {
+  particle(dim, "sg:breath_stream", mouth, dirVars(d, { spd: speed, spread, size, cr: col[0], cg: col[1], cb: col[2] }));
+}
+
+function haze(e, sc) {
+  const pts = A4.dorsal;
+  const p = toWorld(e, pts[Math.floor(Math.random() * pts.length)], sc);
+  const v = new MolangVariableMap();
+  v.setFloat("variable.size", 16 * sc + 4);
+  particle(e.dimension, "sg:haze", p, v);
+}
+
+/** Fire reaching the ground: flames, burning blocks, and now and then something going up. */
+function floodFire(e, mouth, d, sc, t) {
+  const dim = e.dimension;
+  const range = 70 * sc + 12;
+  for (let i = 0; i < 2; i++) {
+    const dd = norm(add(d, { x: rand(-0.22, 0.22), y: rand(-0.05, 0.12), z: rand(-0.22, 0.22) }));
+    const r = castBeam(e, mouth, dd, range);
+    if (!r.hit) continue;
+    const g = add(r.hit, { x: 0, y: 1, z: 0 });
+    particle(dim, "sg:ground_fire", g);
+    if (canGrief()) {
+      try {
+        const above = dim.getBlock({ x: Math.floor(r.hit.x), y: Math.floor(r.hit.y) + 1, z: Math.floor(r.hit.z) });
+        if (above && above.isAir) above.setType("minecraft:fire");
+      } catch { /* ignore */ }
+      if (t % 14 === 0 && i === 0) explodeAt(e, r.hit, 2.4 * Math.max(sc, 0.5) + 0.6, true);
+    }
+  }
+  if (t % 5 === 0) {
+    for (const en of dim.getEntities({ location: mouth, maxDistance: range })) {
+      if (en.id === e.id || KAIJU.has(en.typeId) || !isLiving(en)) continue;
+      const v = sub(center(en), mouth);
+      const cos = (v.x * d.x + v.y * d.y + v.z * d.z) / (len(v) || 1);
+      if (cos > 0.84) hurt(en, 6, e, 6);
+    }
+  }
+}
 
 function tickBreath(e, s, sc) {
   const a = s.act, dim = e.dimension;
@@ -420,11 +463,13 @@ function tickBreath(e, s, sc) {
     s.baseYaw = s.yaw;
     s.pitch = 0;
     sound(dim, "sg.charge", e.location, 6 * sc + 2);
+    warn(e, "§5☢ §dShin Godzilla's dorsal plates are glowing... §5☢");
   }
   const mouth = mouthPos(e, s, sc);
+  if (t % 6 === 0) haze(e, sc);
   if (t < BREATH.smoke) {
     // the glow stutters on, faster and faster, then holds
-    const on = t >= 28 || Math.sin(t * t * 0.045) > 0;
+    const on = t >= BREATH.smoke * 0.7 || Math.sin(t * t * 0.045) > 0;
     setProp(e, "sg:glow", on ? 1 : 0);
     if (t % 2 === 0) dorsalSparks(e, sc);
     if (t % 4 === 0 && t > 16) particle(dim, "sg:mouth_glow", mouth);
@@ -432,73 +477,118 @@ function tickBreath(e, s, sc) {
     return;
   }
   setProp(e, "sg:glow", 1);
+  if (t % 3 === 0) dorsalSparks(e, sc);
   if (t < BREATH.fire) {
     const d = aim(e, s, sc, mouth, false, 58);
-    if (t === BREATH.smoke) { setProp(e, "sg:state", "smoke"); sound(dim, "sg.smoke", mouth, 5 * sc + 2); }
+    if (t === BREATH.smoke) { setProp(e, "sg:state", "smoke"); sound(dim, "sg.breath_smoke", mouth, 8 * sc + 3); }
     particle(dim, "sg:smoke_plume", mouth, dirVars(d, { spd: 10 * sc + 4 }));
+    if (t % 3 === 0) particle(dim, "sg:mouth_glow", mouth);
     if (t % 4 === 0) {
       const r = castBeam(e, mouth, d, 70 * sc + 10);   // smoke rolls out across the ground
       if (r.hit) particle(dim, "sg:smoke_plume", add(r.hit, { x: 0, y: 1, z: 0 }), dirVars(norm({ x: d.x, y: 0.05, z: d.z }), { spd: 8 * sc + 3 }));
     }
     return;
   }
-  if (t < BREATH.beam) {
-    const d = aim(e, s, sc, mouth, false, 50);
-    if (t === BREATH.fire) { setProp(e, "sg:state", "fire"); sound(dim, "sg.fire", mouth, 6 * sc + 2); }
-    if ((t - BREATH.fire) === 44) sound(dim, "sg.fire", mouth, 6 * sc + 2);
-    particle(dim, "sg:fire_spray", mouth, dirVars(d, { spd: 26 * sc + 8 }));
-    if (t % 3 === 0) particle(dim, "sg:smoke_plume", mouth, dirVars(d, { spd: 12 * sc + 4 }));
-    if (t % 5 === 0) {
-      const range = 60 * sc + 10;
-      for (const en of dim.getEntities({ location: mouth, maxDistance: range })) {
-        if (en.id === e.id || KAIJU.has(en.typeId) || !isLiving(en)) continue;
-        const v = sub(center(en), mouth);
-        const cos = (v.x * d.x + v.y * d.y + v.z * d.z) / (len(v) || 1);
-        if (cos > 0.86) hurt(en, 6, e, 6);
-      }
-      // the fire floods along the ground and sets it alight
-      const r = castBeam(e, mouth, norm(add(d, { x: rand(-0.14, 0.14), y: rand(-0.06, 0.1), z: rand(-0.14, 0.14) })), range);
-      if (r.hit) {
-        particle(dim, "sg:fire_spray", add(r.hit, { x: 0, y: 1, z: 0 }), dirVars(norm({ x: d.x, y: 0.15, z: d.z }), { spd: 10 * sc + 4 }));
-        if (canGrief()) {
-          try {
-            const above = dim.getBlock({ x: Math.floor(r.hit.x), y: Math.floor(r.hit.y) + 1, z: Math.floor(r.hit.z) });
-            if (above && above.isAir) above.setType("minecraft:fire");
-          } catch { /* ignore */ }
-        }
-      }
+  if (t < BREATH.focus) {
+    // slow side-to-side wash of fire over the ground in front of it
+    const d = aim(e, s, sc, mouth, true, 52);
+    if (t === BREATH.fire) {
+      setProp(e, "sg:state", "fire");
+      sound(dim, "sg.breath_fire", mouth, 10 * sc + 3);
+      shake(dim, e.location, 80 * sc + 20, 0.4, 1.0);
     }
+    stream(dim, mouth, d, sc, ORANGE, 0.2, 30 * sc + 9, 1.3 * sc + 0.5);
+    particle(dim, "sg:fire_spray", mouth, dirVars(d, { spd: 26 * sc + 8 }));
+    if (t % 4 === 0) particle(dim, "sg:smoke_plume", mouth, dirVars(d, { spd: 12 * sc + 4 }));
+    floodFire(e, mouth, d, sc, t);
+    if (t % 12 === 0) shake(dim, e.location, 60 * sc + 16, 0.2, 0.7);
+    return;
+  }
+  if (t < BREATH.beam) {
+    // orange -> white-hot -> magenta, tightening into a line
+    const k = (t - BREATH.focus) / (BREATH.beam - BREATH.focus);
+    const d = aim(e, s, sc, mouth, false, 50 - 4 * k);
+    if (t === BREATH.focus) { setProp(e, "sg:state", "focus"); sound(dim, "sg.breath_focus", mouth, 10 * sc + 3); }
+    const col = k < 0.35 ? lerp3(ORANGE, WHITE, k / 0.35) : k < 0.75 ? lerp3(WHITE, MAGENTA, (k - 0.35) / 0.4) : lerp3(MAGENTA, VIOLET, (k - 0.75) / 0.25);
+    stream(dim, mouth, d, sc, col, 0.2 - 0.17 * k, (30 + 50 * k) * sc + 9, (1.3 - 0.7 * k) * sc + 0.4);
+    if (k < 0.5) floodFire(e, mouth, d, sc, t);
+    if (k > 0.45) {
+      const r = castBeam(e, mouth, d, 90 * Math.max(sc, 0.35));
+      drawBeam(dim, mouth, d, r.l, 0.9 + 0.8 * k);
+      if (r.hit) particle(dim, "sg:beam_impact", r.hit);
+    }
+    particle(dim, "sg:mouth_glow", mouth);
     return;
   }
   if (t < BREATH.end) {
     const d = aim(e, s, sc, mouth, true);
     if (t === BREATH.beam) {
       setProp(e, "sg:state", "beam");
-      sound(dim, "sg.beam_start", mouth, 10 * sc + 3);
+      sound(dim, "sg.breath_beam", mouth, 12 * sc + 4);
       shake(dim, e.location, 90 * sc + 20, 0.6, 1.2);
+      warn(e, "§d§l☢ ATOMIC BREATH ☢");
     }
     const sputter = t >= BREATH.sputter;
-    const live = !sputter || (t % 4 < 2);
-    const maxLen = 110 * Math.max(sc, 0.35);
+    const live = !sputter || (t % 5 < 3);
+    const maxLen = 150 * Math.max(sc, 0.35);
     const r = castBeam(e, mouth, d, maxLen);
     if (live) {
-      drawBeam(dim, mouth, d, r.l, 2.0 * Math.max(sc, 0.4) + 0.4);
+      drawBeam(dim, mouth, d, r.l, (sputter ? 1.4 : 2.0) * Math.max(sc, 0.4) + 0.4);
       if (r.hit) {
         particle(dim, "sg:beam_impact", r.hit);
         if (t % 3 === 0) explodeAt(e, r.hit, 3.2 * Math.max(sc, 0.5) + 0.8, true);
       }
       if (t % 4 === 0) damageAlongRay(e, mouth, d, r.l, 2.2 * Math.max(sc, 0.5), 14, 5);
     } else {
-      particle(dim, "sg:fire_spray", mouth, dirVars(d, { spd: 18 * sc + 6 }));
+      stream(dim, mouth, d, sc, MAGENTA, 0.12, 30 * sc + 9, 0.8 * sc + 0.4);
     }
     if (t % 2 === 0) particle(dim, "sg:mouth_glow", mouth);
-    if ((t - BREATH.beam) % 40 === 0 && !sputter) sound(dim, "sg.beam", mouth, 10 * sc + 3);
     if (t % 10 === 0) shake(dim, e.location, 70 * sc + 16, 0.25, 0.6);
     return;
   }
   s.energy -= 40;
   s.cd.breath = 600;
   endAbility(e, s);
+}
+
+/** Short action-bar line for everyone near a kaiju. */
+function warn(e, text, range = 128) {
+  try {
+    for (const p of e.dimension.getPlayers({ location: e.location, maxDistance: range })) p.onScreenDisplay.setActionBar(text);
+  } catch { /* ignore */ }
+}
+
+// ------------------------------------------------------------------ boss bar title
+// The boss bar shows the kaiju's name tag, so the script keeps a live title there:
+// form, what it is doing, and its atomic energy (or evolution progress) as a row of pips.
+const STATE_LABEL = {
+  roar: "§6ROARING", charge: "§dPLATES GLOWING", smoke: "§8SMOKE", fire: "§6FIRE", focus: "§dFOCUSING", beam: "§d§lATOMIC BREATH",
+  dorsal: "§d§lDORSAL RAYS", tail: "§d§lTAIL BEAM", waking: "§cAWAKENING", frozen: "§b§lFROZEN", dying: "§7FALLING", evolving: "§e§lEVOLVING",
+};
+function pips(frac, on, off, n = 10) {
+  const k = Math.round(clamp(frac, 0, 1) * n);
+  return on + "▮".repeat(k) + off + "▮".repeat(n - k);
+}
+function updateTitle(e, s, state) {
+  let title;
+  if (e.typeId === F4) {
+    let st = STATE_LABEL[state] ?? "";
+    if (state === "dormant") {
+      const sec = Math.max(0, Math.ceil(s.dormantT / 20));
+      st = `§bDORMANT §7${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")} §8| §bCoagulant ${s.doses}/${DOSES_NEEDED}`;
+    }
+    title = `§5§lSHIN GODZILLA§r §8| §dENERGY ${pips(s.energy / 100, "§5", "§8")}§r${st ? " §8| " + st : ""}`;
+  } else {
+    const name = e.typeId === F3 ? "3rd Form" : "2nd Form";
+    const th = evoThreshold(e);
+    const prog = th === Infinity ? "" : ` §8| §eEVOLUTION ${pips(s.age / th, "§6", "§8")}`;
+    const st = STATE_LABEL[state];
+    title = `§c§lSHIN GODZILLA§r §7${name}${prog}§r${st ? " §8| " + st : ""}`;
+  }
+  if (title !== s.title) {
+    s.title = title;
+    try { e.nameTag = title; } catch { /* ignore */ }
+  }
 }
 
 function dorsalPoints(e, sc) {
@@ -535,7 +625,7 @@ function tickDorsal(e, s, sc) {
     a.seed = Math.random() * 360;
   }
   if (t < 30) { dorsalSparks(e, sc); return; }
-  if (t === 30) { sound(dim, "sg.dorsal", e.location, 10 * sc + 3); shake(dim, e.location, 80 * sc + 16, 0.4, 1.0); }
+  if (t === 30) { sound(dim, "sg.rays", e.location, 12 * sc + 4); shake(dim, e.location, 80 * sc + 16, 0.4, 1.0); warn(e, "§d§l☢ DORSAL RAYS ☢"); }
   if (t < 150) {
     const pts = dorsalPoints(e, sc);
     if (t % 15 === 0) a.targets = airborneTargets(e, sc);
@@ -561,7 +651,6 @@ function tickDorsal(e, s, sc) {
       }
       if (t % 4 === 0) damageAlongRay(e, o, d, r.l, 1.6, 9, 3);
     }
-    if ((t - 30) % 40 === 0) sound(dim, "sg.beam", e.location, 8 * sc + 3, 1.25);
     return;
   }
   s.energy -= 30;
@@ -578,7 +667,7 @@ function tickTail(e, s, sc) {
   }
   const tip = toWorld(e, A4.tail_tip, sc);
   if (t < 26) { particle(dim, "sg:mouth_glow", tip); return; }
-  if (t === 26) sound(dim, "sg.beam_start", tip, 8 * sc + 3, 1.2);
+  if (t === 26) sound(dim, "sg.rays", tip, 10 * sc + 4, 1.12);
   if (t < 110) {
     let d;
     const tg = validTarget(s);
@@ -593,7 +682,6 @@ function tickTail(e, s, sc) {
       if (t % 4 === 0) explodeAt(e, r.hit, 2.8, true);
     }
     if (t % 4 === 0) damageAlongRay(e, tip, a.d, r.l, 1.8, 11, 4);
-    if ((t - 26) % 40 === 0) sound(dim, "sg.beam", tip, 8 * sc + 3, 1.15);
     return;
   }
   s.energy -= 20;
@@ -609,7 +697,7 @@ function toDir(e, v) {
 function startRoar(e, s, fromTransform) {
   const dim = e.dimension, sc = scaleOf(e);
   setProp(e, "sg:state", "roar");
-  s.roarT = 70;
+  s.roarT = e.typeId === F4 ? ANCHORS.timing.roar : 66;
   const id = e.typeId === F4 ? "sg.roar4" : e.typeId === F3 ? "sg.roar3" : "sg.roar2";
   sound(dim, id, e.location, 12 * sc + 3, rand(0.95, 1.03));
   shake(dim, e.location, 80 * sc + 16, 0.35, 2.5);
@@ -731,6 +819,7 @@ function tickKaiju(e) {
   const sc = scaleOf(e);
   const dim = e.dimension;
   const state = getProp(e, "sg:state");
+  if (system.currentTick % 10 === 0) updateTitle(e, s, state);
 
   if (state === "frozen") {
     if (system.currentTick % 40 === 0) particle(dim, "sg:frost", toWorld(e, [rand(-5, 5), rand(2, 40), rand(-4, 8)], sc));

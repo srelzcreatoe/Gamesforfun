@@ -14,23 +14,23 @@ from atlas import REGIONS2, SIZE
 from parts import plate, claw, tooth, limb, dir_yp
 
 TAIL_N = 11
-TAIL_REST = [-2, -1, 0, 0, 1, 1, 2, 3, 4, 5, 6]
+TAIL_REST = [-7, -5, -2, 0, 2, 3, 4, 5, 6, 7, 8]
 X, Y, Z = V(1, 0, 0), V(0, 1, 0), V(0, 0, 1)
 
 BODY = [
-    ((0, 3.0, 11.0), 3.4, 2.7),
-    ((0, 3.5, 8.5), 4.5, 3.3),
-    ((0, 3.9, 5.5), 5.2, 3.7),
-    ((0, 4.0, 2.5), 5.3, 3.8),
-    ((0, 4.0, -0.5), 5.0, 3.7),
-    ((0, 4.1, -3.5), 4.5, 3.5),
-    ((0, 4.4, -6.0), 3.9, 3.2),     # 6: body | neck1
+    ((0, 6.3, 11.0), 3.3, 2.8),
+    ((0, 6.5, 8.5), 4.4, 3.5),
+    ((0, 6.1, 5.5), 5.1, 3.9),
+    ((0, 5.3, 2.5), 5.3, 4.0),
+    ((0, 4.6, -0.5), 5.0, 3.9),
+    ((0, 4.2, -3.5), 4.5, 3.6),
+    ((0, 4.4, -6.0), 3.9, 3.3),     # 6: body | neck1
     ((0, 5.6, -8.2), 3.4, 2.9),
     ((0, 7.3, -10.0), 3.0, 2.6),    # 8: neck1 | neck2
     ((0, 9.1, -11.5), 2.7, 2.35),
     ((0, 10.8, -13.0), 2.45, 2.15), # 10: skull joint
 ]
-TAIL_BASE = (0, 3.5, 10.6)
+TAIL_BASE = (0, 6.3, 10.6)
 HEAD_LIFT = (0, 1.5, 1.2)
 MOUTH = (0, 8.0 + 1.5, -19.6 + 1.2)
 
@@ -58,7 +58,7 @@ def build(seed=2):
     m = Model("geometry.sg.shin_godzilla_2", SIZE, REGIONS2, k=0.75, seed=seed)
     rng = m.rng
     m.bone("root", None, (0, 0, 0))
-    m.bone("body", "root", (0, 3.5, 4.0))
+    m.bone("body", "root", (0, 5.6, 5.0))
     m.bone("neck1", "body", (0, 4.4, -6.0))
     m.bone("neck2", "neck1", (0, 7.3, -10.0))
     m.bone("head", "neck2", (0, 9.3, -14.2))   # authored here, lifted onto the raised neck below
@@ -78,30 +78,31 @@ def build(seed=2):
 
     # ---------------------------------------------------------- hind legs
     for side, s in (("L", 1), ("R", -1)):
-        th = m.bone("thigh_" + side, "body", (s * 4.2, 4.4, 7.8))
-        tp = Path([((s * 4.2, 4.7, 8.0), 2.3, 2.7), ((s * 5.6, 4.1, 6.2), 2.2, 2.6), ((s * 6.8, 3.3, 4.4), 1.65, 1.95)], hint=(0, 1, 0))
+        th = m.bone("thigh_" + side, "body", (s * 4.0, 6.6, 8.0))
+        tp = Path([((s * 3.9, 7.4, 8.4), 2.3, 3.0), ((s * 4.9, 5.6, 6.9), 2.4, 3.1), ((s * 5.7, 3.7, 5.3), 1.8, 2.2)], hint=(0, 0, -1))
         m.loft(th, tp, sleeve="thigh", wobble=0.02, caps="skin2")
-        sh = m.bone("shin_" + side, th, (s * 6.8, 3.3, 4.4))
-        limb(m, sh, V(s * 6.8, 3.3, 4.4), V(s * 7.3, 1.3, 6.6), 1.55, 1.2, "skin2", shape="oct", hint=(0, 0, -1))
-        ft = m.bone("foot_" + side, sh, (s * 7.3, 1.2, 6.5))
-        fp = Path([((s * 7.3, 0.95, 6.9), 1.3, 0.9), ((s * 7.45, 0.75, 5.0), 1.6, 0.7), ((s * 7.6, 0.6, 3.3), 1.7, 0.55)], hint=(0, 1, 0))
+        sh = m.bone("shin_" + side, th, (s * 5.7, 3.7, 5.3))
+        limb(m, sh, V(s * 5.7, 3.8, 5.2), V(s * 6.0, 1.5, 7.9), 1.6, 1.25, "skin2", shape="oct", hint=(0, 0, -1))
+        ft = m.bone("foot_" + side, sh, (s * 6.0, 1.4, 7.8))
+        fp = Path([((s * 6.0, 1.15, 8.2), 1.35, 1.0), ((s * 6.15, 0.85, 6.2), 1.7, 0.8), ((s * 6.3, 0.62, 4.4), 1.85, 0.6)], hint=(0, 1, 0))
         m.loft(ft, fp, mat="skin2", wobble=0.02)
-        for off, yaw in ((-1.1, s * 4 - 16), (0.0, s * 4), (1.1, s * 4 + 16)):
+        for off, yaw in ((-1.2, s * 4 - 16), (0.0, s * 4), (1.2, s * 4 + 16)):
             f = dir_yp(yaw, 0)
-            p0 = V(s * 7.6 + off, 0.5, 3.4)
-            limb(m, ft, p0, p0 + f * 1.3, 0.45, 0.38, "skin2", shape="plus", hint=(0, 1, 0))
-            claw(m, ft, p0 + f * 1.2, f, V(0, -1, 0), 1.2, 0.46, curve=18)
+            p0 = V(s * 6.3 + off, 0.52, 4.5)
+            limb(m, ft, p0, p0 + f * 1.5, 0.5, 0.42, "skin2", shape="plus", hint=(0, 1, 0))
+            claw(m, ft, p0 + f * 1.4, f, V(0, -1, 0), 1.4, 0.52, curve=18)
 
-    # ---------------------------------------------------------- gills: red frills along the neck
+    # ---------------------------------------------------------- gills
+    # The slits themselves are painted into the neck skin; these are the ridges of hide
+    # between them, on their own bones so the gills can flare open.
     for side, s in (("L", 1), ("R", -1)):
-        g = m.bone("gills_" + side, "neck1", (s * 3.3, 4.6, -8.2))
+        g = m.bone("gills_" + side, "neck1", (s * 3.3, 5.0, -8.6))
         for i in range(6):
-            u = 5.7 + i * 0.5
-            p, nrm, d = spine.surface(u, -22 if s > 0 else 202)
-            hang = unit(nrm * 0.55 + V(0, -1, 0) * 0.8 + d * 0.15)
-            ln = 2.7 - abs(i - 2.5) * 0.35 + rng.uniform(-0.2, 0.2)
-            x = unit(d - np.dot(d, hang) * hang)
-            m.obox(g, p + hang * (ln * 0.5 - 0.3) + nrm * 0.12 * (i % 2), (1.35, ln, 0.26), (x, hang, np.cross(x, hang)), "gill")
+            u = 6.05 + i * 0.56
+            for phi0 in (0,):
+                p, nrm, d = spine.surface(u, 0 if s > 0 else 180, out=0.0)
+                c, a, b, (l, t, dd) = spine.at(u)
+                m.obox(g, p + nrm * 0.12 - t * 0.4, (0.34, b * 1.7, 0.7), (dd, t, nrm), "skin2")
 
     # ---------------------------------------------------------- head
     head = "head"
@@ -114,8 +115,8 @@ def build(seed=2):
     m.obox(head, (0, 7.4, -14.2), (3.6, 1.8, 0.6), (X, Y, Z), "mouth")             # throat
     for s in (1, -1):
         # huge unblinking eyes bulging from the sides of the skull
-        m.section(head, V(s * 2.25, 10.25, -15.9), 1.3, 1.05, 1.05, (Z, Y, X), "head")
-        m.obox(head, (s * 2.98, 10.25, -15.9), (0.22, 1.62, 1.62), (X, Y, Z),
+        m.section(head, V(s * 2.2, 10.55, -16.3), 1.4, 1.2, 1.2, (Z, Y, X), "head")
+        m.obox(head, (s * 3.0, 10.55, -16.3), (0.22, 1.9, 1.9), (X, Y, Z),
                lambda n, c: "eye_big" if abs(n[0]) > 0.9 else "head")
         m.obox(head, (s * 0.42, 9.95, -20.2), (0.26, 0.16, 0.3), (X, Y, Z), "mouth")
         lb, lf = V(s * 2.15, 8.0, -14.6), V(s * 0.8, 8.3, -20.2)

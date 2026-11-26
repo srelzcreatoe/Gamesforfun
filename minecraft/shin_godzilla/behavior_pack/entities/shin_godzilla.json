@@ -14,6 +14,7 @@
             "charge",
             "smoke",
             "fire",
+            "focus",
             "beam",
             "dorsal",
             "tail",
@@ -363,11 +364,13 @@
       },
       "minecraft:boss": {
         "hud_range": 96,
-        "name": "Shin Godzilla",
         "should_darken_sky": true
       },
       "minecraft:persistent": {},
-      "minecraft:nameable": {},
+      "minecraft:nameable": {
+        "always_show": false,
+        "allow_name_tag_renaming": false
+      },
       "minecraft:loot": {
         "table": "loot_tables/entities/shin_godzilla.json"
       },

@@ -108,7 +108,7 @@ def aim_bones(extra_head=0.0, lean=2.0):
     }
 
 
-def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0):
+def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0, rest_tail=None, roar_len=4.9):
     """Animation set for the upright forms. stagger > 0 adds the unsteady,
     top-heavy lurch of the 3rd form."""
     A = {}
@@ -125,7 +125,7 @@ def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0):
         "jaw_R": {"rotation": ch(S(45, 0, 1.0, 1.0))},
     }
     for i, t in enumerate(tails):
-        b[t] = {"rotation": ch(S(16, i * 18, 0.25 + 0.07 * i), S(22, i * 20, 0.5 + 0.32 * i))}
+        b[t] = {"rotation": ch(S(16, i * 18, 0.15 + 0.04 * i), S(22, i * 20, 0.3 + 0.12 * i))}
     if stagger:
         b["body"] = {"rotation": ch(0, 0, S(50, 0, 1.2 * stagger))}
         b["arm_L"] = {"rotation": ch(S(60, 0, 4))}
@@ -159,7 +159,7 @@ def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0):
         b["arm_L"] = {"rotation": ch("math.sin(%s)*10" % P)}
         b["arm_R"] = {"rotation": ch("-math.sin(%s)*10" % P)}
     for i, t in enumerate(tails):
-        b[t] = {"rotation": ch(0, "math.sin(%s-%d)*%.2f" % (P, 30 + i * 12, (0.6 + 0.22 * i) * (1 + stagger)))}
+        b[t] = {"rotation": ch(0, "math.sin(%s-%d)*%.2f" % (P, 30 + i * 12, (0.4 + 0.1 * i) * (1 + stagger)))}
     A["walk"] = {"loop": True, "bones": b}
 
     # ---- look at target (slow, mostly with the upper neck)
@@ -172,29 +172,25 @@ def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0):
         return {t: {"rotation": ch("%.2f%s" % (k0 + k1 * i, ("+" + S(800, i * 25, wob)) if wob else ""),
                                    S(30, i * 16, 0.2 + 0.05 * i))} for i, t in enumerate(tails)}
 
-    # ---- charge: plates light up, the head begins to bow, the mouth opens
-    b = aim_bones()
-    b["body"] = {"rotation": ch(trem)}
-    b["jaw_L"] = {"rotation": ch(S(600, 0, 1.5, 14))}
-    b["jaw_R"] = {"rotation": ch(S(600, 0, 1.5, 14))}
-    b.update(tail_up(0.5, 0.1))
-    A["charge"] = {"loop": True, "bones": b}
-
-    # ---- spew: mouth gapes and black smoke, then fire, pours downward
-    b = aim_bones(2)
-    b["body"] = {"rotation": ch(trem)}
-    b["jaw_L"] = {"rotation": ch(S(1300, 0, 1.5, 36))}
-    b["jaw_R"] = {"rotation": ch(S(1300, 0, 1.5, 36))}
-    b.update(tail_up(0.9, 0.16, 0.3))
-    A["spew"] = {"loop": True, "bones": b}
-
-    # ---- breath: the lower jaw splits in two and the beam sweeps with the head
-    b = aim_bones(2)
-    b["body"] = {"rotation": ch(trem, 0, "math.sin(%s*1700)*0.3" % LT)}
-    b["jaw_L"] = {"rotation": ch(S(1300, 0, 1.5, 40), -28, -22)}
-    b["jaw_R"] = {"rotation": ch(S(1300, 0, 1.5, 40), 28, 22)}
-    b.update(tail_up(1.2, 0.22, 0.4))
-    A["breath"] = {"loop": True, "bones": b}
+    # The atomic breath, pose by pose (the script moves between them on the sound's timeline):
+    #   charge  plates light, the head bows, the mouth begins to open
+    #   spew    jaw unhinged wide, head pitched steeply down: smoke, then a flood of fire
+    #   focus   the stream tightens and turns magenta as the lower jaw starts to part
+    #   breath  the lower jaw fully split in two, the beam sweeping with the head
+    def breath_pose(jaw, split, tail_k, shake=1.0):
+        b = aim_bones(2)
+        b["body"] = {"rotation": ch("math.sin(%s*2100)*%.2f" % (LT, 0.5 * shake), 0, "math.sin(%s*1700)*%.2f" % (LT, 0.3 * shake))}
+        b["jaw_L"] = {"rotation": ch(S(1300, 0, 1.5, jaw), -split, -split * 0.8)}
+        b["jaw_R"] = {"rotation": ch(S(1300, 0, 1.5, jaw), split, split * 0.8)}
+        for sd in ("L", "R"):  # arms tense, fingers clawing upward
+            b["arm_" + sd] = {"rotation": ch(S(1900, 0, 0.8, -6 * shake))}
+            b["hand_" + sd] = {"rotation": ch(-10 * shake)}
+        b.update(tail_up(tail_k[0], tail_k[1], 0.3 * shake))
+        return b
+    A["charge"] = {"loop": True, "bones": breath_pose(16, 0, (0.1, 0.01), 0.5)}
+    A["spew"] = {"loop": True, "bones": breath_pose(44, 0, (0.2, 0.02))}
+    A["focus"] = {"loop": True, "bones": breath_pose(46, 14, (0.2, 0.03), 1.3)}
+    A["breath"] = {"loop": True, "bones": breath_pose(48, 30, (0.2, 0.03), 1.2)}
 
     # ---- dorsal rays: head bowed while the back fires into the sky
     b = {
@@ -203,7 +199,7 @@ def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0):
         "neck1": {"rotation": ch(14)}, "neck2": {"rotation": ch(18)}, "head": {"rotation": ch(24)},
         "jaw_L": {"rotation": ch(12)}, "jaw_R": {"rotation": ch(12)},
     }
-    b.update(tail_up(2.0, 0.25, 0.5))
+    b.update(tail_up(0.3, 0.04, 0.5))
     A["dorsal"] = {"loop": True, "bones": b}
 
     # ---- tail beam: the tail rears up and over, tip aimed at the sky
@@ -213,24 +209,27 @@ def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0):
         "jaw_L": {"rotation": ch(14)}, "jaw_R": {"rotation": ch(14)},
     }
     for i, t in enumerate(tails):
-        v = 12 if i == 0 else 4 if i < 7 else 1.5 if i < 11 else -4.5
-        b[t] = {"rotation": ch("%g+%s" % (v, S(800, i * 30, 0.4)))}
+        v = 0 if i < 6 else 1.3     # the raised tail curls further over the back to take aim
+        b[t] = {"rotation": ch("%g+%s" % (v, S(800, i * 30, 0.4)), S(35, i * 14, 0.2 + 0.06 * i))}
     A["tail"] = {"loop": True, "bones": b}
 
-    # ---- roar: head thrown up and back
-    def up(v, t1=0.6, t2=2.8, t3=3.5):
-        return kf({0: [0, 0, 0], t1: v, t2: v, t3: [0, 0, 0]})
+    # ---- roar: head thrown up and back; timed to the roar (screech to ~70%, then the falling tail)
+    R = roar_len
+    t_up, t_hold, t_end = 0.45, R * 0.7, R + 0.1
+
+    def up(v):
+        return kf({0: [0, 0, 0], t_up: v, t_hold: v, t_end: [0, 0, 0]})
     b = {
         "chest": {"rotation": up([-4, 0, 0])},
         "neck1": {"rotation": up([-6, 0, 0])},
         "neck2": {"rotation": up([-10, 0, 0])},
-        "head": {"rotation": kf({0: [0, 0, 0], 0.6: [-20, 0, 0], 1.7: ["-24+" + S(900, 0, 1.2), 0, 0], 2.8: [-22, 0, 0], 3.5: [0, 0, 0]})},
-        "jaw_L": {"rotation": up([34, 0, 0], 0.5, 2.9)},
-        "jaw_R": {"rotation": up([34, 0, 0], 0.5, 2.9)},
+        "head": {"rotation": kf({0: [0, 0, 0], t_up: [-20, 0, 0], t_hold * 0.5: ["-24+" + S(900, 0, 1.2), 0, 0], t_hold: [-22, 0, 0], t_end: [0, 0, 0]})},
+        "jaw_L": {"rotation": kf({0: [0, 0, 0], t_up * 0.8: [34, 0, 0], t_hold: [32, 0, 0], R * 0.9: [14, 0, 0], t_end: [0, 0, 0]})},
+        "jaw_R": {"rotation": kf({0: [0, 0, 0], t_up * 0.8: [34, 0, 0], t_hold: [32, 0, 0], R * 0.9: [14, 0, 0], t_end: [0, 0, 0]})},
     }
     for i, t in enumerate(tails):
-        b[t] = {"rotation": ch(0, S(60, i * 20, 0.6 + 0.2 * i))}
-    A["roar"] = {"loop": False, "length": 3.5, "bones": b}
+        b[t] = {"rotation": ch(0, S(60, i * 20, 0.3 + 0.08 * i))}
+    A["roar"] = {"loop": False, "length": round(t_end, 2), "bones": b}
 
     # ---- dormant: frozen where it stood, upright and silent (no motion at all)
     b = {"neck2": {"rotation": ch(6)}, "head": {"rotation": ch(8)}, "jaw_L": {"rotation": ch(-5)}, "jaw_R": {"rotation": ch(-5)}}
@@ -274,8 +273,9 @@ def big_set(prefix, tail_n, stride_deg=20.0, pos_k=1.0, stagger=0.0):
         b["thigh_" + sd] = {"rotation": kf({0: [0, 0, 0], 1.2: [0, 0, 0], 2.6: [-32, 0, 0], 3.3: [-66, 0, 0]}), "position": drop}
         b["shin_" + sd] = {"rotation": kf({0: [0, 0, 0], 1.2: [0, 0, 0], 2.6: [56, 0, 0], 3.3: [112, 0, 0]})}
         b["foot_" + sd] = {"rotation": kf({0: [0, 0, 0], 1.2: [0, 0, 0], 2.6: [-24, 0, 0], 3.3: [-46, 0, 0]})}
+    rt = rest_tail or [0] * tail_n
     for i, t in enumerate(tails):
-        v = -46 if i == 0 else -8 if i == 1 else 1.6 if i < 8 else 0
+        v = -rt[i] - (60 if i == 0 else 0)      # uncurl completely, then drop it to the ground
         b[t] = {"rotation": kf({0: [0, 0, 0], 1.2: [1 if i < 6 else 0, 0, 0], 2.6: [v * 0.4, 0, 0], 3.3: [v, 0, 0]})}
     A["dying"] = {"loop": "hold_on_last_frame", "length": 4.0, "bones": b}
 

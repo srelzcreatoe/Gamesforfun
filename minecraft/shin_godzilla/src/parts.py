@@ -44,9 +44,9 @@ def plate(m, bone, base, up, fwd, h, w, style="shin"):
     elif h < 3.4:
         angs, lens = [-38, 0, 36], [0.7, 1.0, 0.76]
     else:
-        angs, lens = [-54, -27, 0, 25, 50], [0.58, 0.84, 1.0, 0.88, 0.66]
+        angs, lens = [-62, -41, -20, 0, 20, 40, 60], [0.5, 0.74, 0.92, 1.0, 0.94, 0.78, 0.54]
     nb = len(angs)
-    bw = w * (0.46 if nb == 3 else 0.33)
+    bw = w * (0.46 if nb == 3 else 0.25)
     # broad bony web that carries the points (gives the plate its mass)
     m.obox(bone, base + U * 0.27 * h, (th * 1.5, 0.56 * h, w * 0.9), (W, U, F), "plate_web")
     for j, (a0, l0) in enumerate(zip(angs, lens)):
@@ -60,8 +60,8 @@ def plate(m, bone, base, up, fwd, h, w, style="shin"):
             d2 = rot_about(dr, W, kink)
             tl = 0.3 * h * l0
             m.obox(bone, base + dr * ln * 0.94 + d2 * tl * 0.45, (th * 0.72, tl, bw * 0.5), (W, d2, np.cross(W, d2)), "plate_tip")
-        if h >= 5.0 and j in (1, 3):
-            sgn = 1 if j == 3 else -1
+        if h >= 5.0 and j in (1, 5):
+            sgn = 1 if j == 5 else -1
             d3 = rot_about(dr, W, sgn * rng.uniform(40, 58))
             bl = 0.26 * h
             m.obox(bone, base + dr * ln * rng.uniform(0.5, 0.7) + d3 * bl * 0.5, (th * 0.7, bl, bw * 0.42), (W, d3, np.cross(W, d3)), "plate_tip")
@@ -81,15 +81,19 @@ def claw(m, bone, root, fwd, down, length, thick, mat="claw", curve=22.0, segs=3
         p = p + f * seg
 
 
-def tooth(m, bone, root, direction, length, thick, mat="tooth", lateral=None):
-    """A tapered fang: stout base, slimmer middle, fine point."""
+def tooth(m, bone, root, direction, length, thick, mat="tooth", lateral=None, segs=3):
+    """A tapered fang: stout base, slimmer middle, fine point (2 or 3 boxes)."""
     d = unit(direction)
     ref = V(lateral) if lateral is not None else (V(0, 0, 1) if abs(d[2]) < 0.9 else V(1, 0, 0))
     x = unit(np.cross(d, ref))
     z = np.cross(x, d)
     root = V(root)
-    m.obox(bone, root + d * length * 0.30, (thick, length * 0.6, thick * 0.9), (x, d, z), mat)
     tipmat = "claw" if mat == "tooth" else mat
+    if segs == 2:
+        m.obox(bone, root + d * length * 0.36, (thick, length * 0.72, thick), (x, d, z), mat)
+        m.obox(bone, root + d * length * 0.9, (thick * 0.5, length * 0.4, thick * 0.5), (x, d, z), tipmat)
+        return
+    m.obox(bone, root + d * length * 0.30, (thick, length * 0.6, thick * 0.9), (x, d, z), mat)
     m.obox(bone, root + d * length * 0.72, (thick * 0.62, length * 0.42, thick * 0.7), (x, d, z), tipmat)
     m.obox(bone, root + d * length * 0.99, (thick * 0.3, length * 0.22, thick * 0.34), (x, d, z), tipmat)
 
