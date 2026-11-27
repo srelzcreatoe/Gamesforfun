@@ -1,0 +1,58 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Kaijus Srelz Pack (Behavior)",
+    "description": "Kaijus for Minecraft Bedrock: Shin Godzilla in all its forms, Godzilla Minus One and Godzilla Minus Zero, with their beams, duels and cinematics.",
+    "uuid": "46a1dd5e-81ea-5f13-baa5-4de5075a27d4",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      90
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "e14b5edf-22a0-5721-8de1-20a7cddf527e",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "e5625c78-4216-539f-a5f4-b6a0a5192f9c",
+      "entry": "scripts/main.js",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "1bde4d6b-82e4-5620-af92-fe38136652a1",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.0.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "2.0.0"
+    }
+  ]
+}

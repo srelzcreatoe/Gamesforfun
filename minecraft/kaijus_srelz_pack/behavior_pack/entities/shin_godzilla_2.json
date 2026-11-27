@@ -1,0 +1,633 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "sg:shin_godzilla_2",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "properties": {
+        "sg:state": {
+          "type": "enum",
+          "values": [
+            "walk",
+            "roar",
+            "evolving",
+            "dying"
+          ],
+          "default": "walk",
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "sg:ai": {
+        "minecraft:behavior.melee_attack": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "track_target": true,
+          "reach_multiplier": 0.02
+        },
+        "minecraft:behavior.random_stroll": {
+          "priority": 6,
+          "speed_multiplier": 0.85,
+          "xz_dist": 20,
+          "y_dist": 7,
+          "interval": 80
+        },
+        "minecraft:behavior.look_at_player": {
+          "priority": 7,
+          "look_distance": 40,
+          "probability": 0.03
+        },
+        "minecraft:behavior.random_look_around": {
+          "priority": 8
+        }
+      },
+      "sg:move": {
+        "minecraft:movement": {
+          "value": 0.13
+        }
+      },
+      "sg:locked": {
+        "minecraft:movement": {
+          "value": 0.0
+        }
+      },
+      "sg:sense": {
+        "minecraft:damage_sensor": {
+          "triggers": [
+            {
+              "on_damage": {
+                "filters": {
+                  "test": "is_family",
+                  "subject": "other",
+                  "value": "shin_godzilla"
+                }
+              },
+              "deals_damage": "no"
+            },
+            {
+              "cause": "fall",
+              "deals_damage": "no"
+            },
+            {
+              "cause": "suffocation",
+              "deals_damage": "no"
+            },
+            {
+              "cause": "drowning",
+              "deals_damage": "no"
+            },
+            {
+              "cause": "fire",
+              "deals_damage": "no"
+            },
+            {
+              "cause": "fire_tick",
+              "deals_damage": "no"
+            },
+            {
+              "cause": "lava",
+              "deals_damage": "no"
+            },
+            {
+              "cause": "lightning",
+              "deals_damage": "no"
+            },
+            {
+              "cause": "freezing",
+              "deals_damage": "no"
+            },
+            {
+              "cause": "contact",
+              "deals_damage": "no"
+            },
+            {
+              "cause": "fly_into_wall",
+              "deals_damage": "no"
+            },
+            {
+              "cause": "projectile",
+              "deals_damage": "yes",
+              "damage_multiplier": 0.4
+            },
+            {
+              "cause": "entity_explosion",
+              "deals_damage": "yes",
+              "damage_multiplier": 1.2
+            },
+            {
+              "cause": "block_explosion",
+              "deals_damage": "yes",
+              "damage_multiplier": 1.2
+            }
+          ]
+        }
+      },
+      "sg:immune": {
+        "minecraft:damage_sensor": {
+          "triggers": [
+            {
+              "cause": "all",
+              "deals_damage": "no"
+            }
+          ]
+        }
+      },
+      "sg:despawn": {
+        "minecraft:instant_despawn": {}
+      },
+      "sg:size_full": {
+        "minecraft:scale": {
+          "value": 1.0
+        }
+      },
+      "sg:size_half": {
+        "minecraft:scale": {
+          "value": 0.5
+        }
+      },
+      "sg:size_quarter": {
+        "minecraft:scale": {
+          "value": 0.25
+        }
+      },
+      "sg:mode_movie": {
+        "minecraft:behavior.hurt_by_target": {
+          "priority": 1,
+          "entity_types": {
+            "filters": {
+              "test": "is_family",
+              "subject": "other",
+              "operator": "!=",
+              "value": "shin_godzilla"
+            }
+          }
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 2,
+          "must_see": true,
+          "reselect_targets": true,
+          "within_radius": 40,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "irongolem"
+              },
+              "max_dist": 40
+            }
+          ]
+        }
+      },
+      "sg:mode_hunt": {
+        "minecraft:behavior.hurt_by_target": {
+          "priority": 1,
+          "entity_types": {
+            "filters": {
+              "test": "is_family",
+              "subject": "other",
+              "operator": "!=",
+              "value": "shin_godzilla"
+            }
+          }
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 2,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 72,
+          "scan_interval": 20,
+          "entity_types": [
+            {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "operator": "!=",
+                    "value": "shin_godzilla"
+                  },
+                  {
+                    "any_of": [
+                      {
+                        "test": "is_family",
+                        "subject": "other",
+                        "value": "player"
+                      },
+                      {
+                        "test": "is_family",
+                        "subject": "other",
+                        "value": "mob"
+                      },
+                      {
+                        "test": "is_family",
+                        "subject": "other",
+                        "value": "monster"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "max_dist": 72
+            }
+          ]
+        }
+      },
+      "sg:mode_peaceful": {
+        "minecraft:behavior.random_look_around": {
+          "priority": 9
+        }
+      },
+      "sg:hp_025": {
+        "minecraft:health": {
+          "value": 80,
+          "max": 80
+        }
+      },
+      "sg:hp_05": {
+        "minecraft:health": {
+          "value": 160,
+          "max": 160
+        }
+      },
+      "sg:hp_2": {
+        "minecraft:health": {
+          "value": 640,
+          "max": 640
+        }
+      },
+      "sg:hp_4": {
+        "minecraft:health": {
+          "value": 1280,
+          "max": 1280
+        }
+      },
+      "sg:hp_8": {
+        "minecraft:health": {
+          "value": 2560,
+          "max": 2560
+        }
+      },
+      "sg:transform": {
+        "minecraft:transformation": {
+          "into": "sg:shin_godzilla_3",
+          "keep_level": true,
+          "drop_equipment": false,
+          "delay": {
+            "value": 0.0
+          }
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "shin_godzilla",
+          "kaiju",
+          "monster",
+          "mob"
+        ]
+      },
+      "minecraft:health": {
+        "value": 320,
+        "max": 320
+      },
+      "minecraft:boss": {
+        "hud_range": 80,
+        "name": "Shin Godzilla 2nd Form",
+        "should_darken_sky": false
+      },
+      "minecraft:collision_box": {
+        "width": 3.2,
+        "height": 4.0
+      },
+      "minecraft:custom_hit_test": {
+        "hitboxes": [
+          {
+            "pivot": [
+              0,
+              4.5,
+              0
+            ],
+            "width": 9,
+            "height": 9
+          }
+        ]
+      },
+      "minecraft:physics": {},
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": false
+      },
+      "minecraft:knockback_resistance": {
+        "value": 1.0
+      },
+      "minecraft:fire_immune": {},
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0,
+        "breathes_water": true,
+        "breathes_air": true,
+        "generates_bubbles": false
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:jump.static": {},
+      "minecraft:navigation.walk": {
+        "can_path_over_water": false,
+        "avoid_water": false,
+        "can_sink": true,
+        "can_walk_in_lava": true,
+        "avoid_damage_blocks": false,
+        "can_break_doors": true,
+        "can_pass_doors": true
+      },
+      "minecraft:underwater_movement": {
+        "value": 0.16
+      },
+      "minecraft:attack": {
+        "damage": 2
+      },
+      "minecraft:follow_range": {
+        "value": 64,
+        "max": 96
+      },
+      "minecraft:persistent": {},
+      "minecraft:nameable": {
+        "always_show": false,
+        "allow_name_tag_renaming": false
+      },
+      "minecraft:loot": {
+        "table": "loot_tables/entities/shin_godzilla_2.json"
+      },
+      "minecraft:experience_reward": {
+        "on_death": "100"
+      },
+      "minecraft:conditional_bandwidth_optimization": {}
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": {
+          "component_groups": [
+            "sg:ai",
+            "sg:move",
+            "sg:sense",
+            "sg:mode_hunt"
+          ]
+        }
+      },
+      "minecraft:entity_transformed": {
+        "add": {
+          "component_groups": [
+            "sg:ai",
+            "sg:move",
+            "sg:sense",
+            "sg:mode_hunt"
+          ]
+        },
+        "set_property": {
+          "sg:state": "roar"
+        }
+      },
+      "sg:lock": {
+        "remove": {
+          "component_groups": [
+            "sg:ai",
+            "sg:move"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:locked"
+          ]
+        }
+      },
+      "sg:unlock": {
+        "remove": {
+          "component_groups": [
+            "sg:locked"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:ai",
+            "sg:move"
+          ]
+        }
+      },
+      "sg:dying": {
+        "remove": {
+          "component_groups": [
+            "sg:ai",
+            "sg:move",
+            "sg:sense",
+            "sg:mode_movie",
+            "sg:mode_hunt",
+            "sg:mode_peaceful"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:locked",
+            "sg:immune"
+          ]
+        }
+      },
+      "sg:despawn": {
+        "add": {
+          "component_groups": [
+            "sg:despawn"
+          ]
+        }
+      },
+      "sg:mode_movie": {
+        "remove": {
+          "component_groups": [
+            "sg:mode_hunt",
+            "sg:mode_peaceful"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:mode_movie"
+          ]
+        }
+      },
+      "sg:mode_hunt": {
+        "remove": {
+          "component_groups": [
+            "sg:mode_movie",
+            "sg:mode_peaceful"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:mode_hunt"
+          ]
+        }
+      },
+      "sg:mode_peaceful": {
+        "remove": {
+          "component_groups": [
+            "sg:mode_movie",
+            "sg:mode_hunt"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:mode_peaceful"
+          ]
+        }
+      },
+      "sg:hp_025": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_05",
+            "sg:hp_2",
+            "sg:hp_4",
+            "sg:hp_8"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_025"
+          ]
+        }
+      },
+      "sg:hp_05": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_2",
+            "sg:hp_4",
+            "sg:hp_8"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_05"
+          ]
+        }
+      },
+      "sg:hp_1": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_05",
+            "sg:hp_2",
+            "sg:hp_4",
+            "sg:hp_8"
+          ]
+        }
+      },
+      "sg:hp_2": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_05",
+            "sg:hp_4",
+            "sg:hp_8"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_2"
+          ]
+        }
+      },
+      "sg:hp_4": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_05",
+            "sg:hp_2",
+            "sg:hp_8"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_4"
+          ]
+        }
+      },
+      "sg:hp_8": {
+        "remove": {
+          "component_groups": [
+            "sg:hp_025",
+            "sg:hp_05",
+            "sg:hp_2",
+            "sg:hp_4"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:hp_8"
+          ]
+        }
+      },
+      "sg:size_full": {
+        "remove": {
+          "component_groups": [
+            "sg:size_half",
+            "sg:size_quarter"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:size_full"
+          ]
+        }
+      },
+      "sg:size_half": {
+        "remove": {
+          "component_groups": [
+            "sg:size_full",
+            "sg:size_quarter"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:size_half"
+          ]
+        }
+      },
+      "sg:size_quarter": {
+        "remove": {
+          "component_groups": [
+            "sg:size_full",
+            "sg:size_half"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:size_quarter"
+          ]
+        }
+      },
+      "sg:begin_evolve": {
+        "remove": {
+          "component_groups": [
+            "sg:ai",
+            "sg:move"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "sg:locked"
+          ]
+        },
+        "set_property": {
+          "sg:state": "evolving"
+        }
+      },
+      "sg:evolve": {
+        "add": {
+          "component_groups": [
+            "sg:transform"
+          ]
+        }
+      }
+    }
+  }
+}

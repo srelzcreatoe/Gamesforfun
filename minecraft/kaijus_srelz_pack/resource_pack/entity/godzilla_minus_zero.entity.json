@@ -1,0 +1,49 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "sg:godzilla_minus_zero",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "normal": "textures/entity/shin_godzilla/form6",
+        "charged": "textures/entity/shin_godzilla/form6_charged"
+      },
+      "geometry": {
+        "default": "geometry.sg.godzilla_minus_zero"
+      },
+      "render_controllers": [
+        "controller.render.sg.minus"
+      ],
+      "animations": {
+        "idle": "animation.sg.m0.idle",
+        "walk": "animation.sg.m0.walk",
+        "look": "animation.sg.m0.look",
+        "roar": "animation.sg.m0.roar",
+        "charge": "animation.sg.m0.charge",
+        "focus": "animation.sg.m0.focus",
+        "breath": "animation.sg.m0.breath",
+        "rush": "animation.sg.m0.rush",
+        "land": "animation.sg.m0.land",
+        "claw": "animation.sg.m0.claw",
+        "grab": "animation.sg.m0.grab",
+        "whip": "animation.sg.m0.whip",
+        "dying": "animation.sg.m0.dying",
+        "fins": "animation.sg.m0.fins",
+        "ctrl": "controller.animation.sg.minus"
+      },
+      "scripts": {
+        "animate": [
+          "ctrl",
+          "fins"
+        ]
+      },
+      "spawn_egg": {
+        "texture": "sg_egg_m0",
+        "texture_index": 0
+      },
+      "enable_attachables": false
+    }
+  }
+}

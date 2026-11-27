@@ -1,0 +1,36 @@
+{
+  "resource_pack_name": "kaijus_srelz_pack",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "sg_coagulant": {
+      "textures": "textures/items/sg/yashiori_coagulant"
+    },
+    "sg_g_cell": {
+      "textures": "textures/items/sg/g_cell"
+    },
+    "sg_tablet": {
+      "textures": "textures/items/sg/kaiju_tablet"
+    },
+    "sg_wheel": {
+      "textures": "textures/items/sg/config_wheel"
+    },
+    "sg_egg_2": {
+      "textures": "textures/items/sg/egg_2"
+    },
+    "sg_egg_3": {
+      "textures": "textures/items/sg/egg_3"
+    },
+    "sg_egg_4": {
+      "textures": "textures/items/sg/egg_4"
+    },
+    "sg_egg_4r": {
+      "textures": "textures/items/sg/egg_4r"
+    },
+    "sg_egg_m1": {
+      "textures": "textures/items/sg/egg_m1"
+    },
+    "sg_egg_m0": {
+      "textures": "textures/items/sg/egg_m0"
+    }
+  }
+}

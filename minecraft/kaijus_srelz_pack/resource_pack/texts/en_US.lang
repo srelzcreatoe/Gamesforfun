@@ -1,0 +1,16 @@
+entity.sg:shin_godzilla.name=Shin Godzilla
+item.sg:config_wheel=Shin Godzilla Config Wheel
+entity.sg:shin_godzilla_rampage.name=Shin Godzilla (Rampage)
+item.spawn_egg.entity.sg:shin_godzilla_rampage.name=Spawn Shin Godzilla - RAMPAGE (never goes dormant)
+entity.sg:godzilla_minus_one.name=Godzilla Minus One
+entity.sg:godzilla_minus_zero.name=Godzilla Minus Zero
+item.spawn_egg.entity.sg:godzilla_minus_one.name=Spawn Godzilla Minus One
+item.spawn_egg.entity.sg:godzilla_minus_zero.name=Spawn Godzilla Minus Zero
+entity.sg:shin_godzilla_3.name=Shin Godzilla (3rd Form)
+entity.sg:shin_godzilla_2.name=Shin Godzilla (2nd Form)
+item.spawn_egg.entity.sg:shin_godzilla.name=Spawn Shin Godzilla (4th Form)
+item.spawn_egg.entity.sg:shin_godzilla_3.name=Spawn Shin Godzilla (3rd Form)
+item.spawn_egg.entity.sg:shin_godzilla_2.name=Spawn Shin Godzilla (2nd Form)
+action.interact.sg.inject=Inject Coagulant
+pack.name=Kaijus Srelz Pack
+pack.description=Shin Godzilla, Godzilla Minus One and Godzilla Minus Zero

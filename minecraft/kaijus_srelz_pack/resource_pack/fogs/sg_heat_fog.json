@@ -1,0 +1,22 @@
+{
+  "format_version": "1.16.100",
+  "minecraft:fog_settings": {
+    "description": {
+      "identifier": "sg:heat_fog"
+    },
+    "distance": {
+      "air": {
+        "fog_start": 0.12,
+        "fog_end": 0.92,
+        "fog_color": "#0a1c3c",
+        "render_distance_type": "render"
+      },
+      "weather": {
+        "fog_start": 0.1,
+        "fog_end": 0.85,
+        "fog_color": "#0a1c3c",
+        "render_distance_type": "render"
+      }
+    }
+  }
+}

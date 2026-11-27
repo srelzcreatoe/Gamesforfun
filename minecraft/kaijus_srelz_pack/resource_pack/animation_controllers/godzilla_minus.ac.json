@@ -1,0 +1,433 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.sg.minus": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "animations": [
+            "idle",
+            {
+              "walk": "math.clamp(q.modified_move_speed*8, 0, 1)"
+            },
+            "look"
+          ],
+          "transitions": [
+            {
+              "roar": "q.property('sg:state') == 'roar'"
+            },
+            {
+              "charge": "q.property('sg:state') == 'charge'"
+            },
+            {
+              "focus": "q.property('sg:state') == 'focus'"
+            },
+            {
+              "breath": "q.property('sg:state') == 'beam'"
+            },
+            {
+              "rush": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "claw": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "grab": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "whip": "q.property('sg:state') == 'sweep'"
+            },
+            {
+              "dying": "q.property('sg:state') == 'dying'"
+            }
+          ],
+          "blend_transition": 0.45
+        },
+        "roar": {
+          "animations": [
+            "roar",
+            "idle"
+          ],
+          "transitions": [
+            {
+              "default": "q.property('sg:state') == 'walk'"
+            },
+            {
+              "charge": "q.property('sg:state') == 'charge'"
+            },
+            {
+              "focus": "q.property('sg:state') == 'focus'"
+            },
+            {
+              "breath": "q.property('sg:state') == 'beam'"
+            },
+            {
+              "rush": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "claw": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "grab": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "whip": "q.property('sg:state') == 'sweep'"
+            },
+            {
+              "dying": "q.property('sg:state') == 'dying'"
+            }
+          ],
+          "blend_transition": 0.45
+        },
+        "charge": {
+          "animations": [
+            "charge"
+          ],
+          "transitions": [
+            {
+              "default": "q.property('sg:state') == 'walk'"
+            },
+            {
+              "roar": "q.property('sg:state') == 'roar'"
+            },
+            {
+              "focus": "q.property('sg:state') == 'focus'"
+            },
+            {
+              "breath": "q.property('sg:state') == 'beam'"
+            },
+            {
+              "rush": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "claw": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "grab": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "whip": "q.property('sg:state') == 'sweep'"
+            },
+            {
+              "dying": "q.property('sg:state') == 'dying'"
+            }
+          ],
+          "blend_transition": 0.35
+        },
+        "focus": {
+          "animations": [
+            "focus"
+          ],
+          "transitions": [
+            {
+              "default": "q.property('sg:state') == 'walk'"
+            },
+            {
+              "roar": "q.property('sg:state') == 'roar'"
+            },
+            {
+              "charge": "q.property('sg:state') == 'charge'"
+            },
+            {
+              "breath": "q.property('sg:state') == 'beam'"
+            },
+            {
+              "rush": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "claw": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "grab": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "whip": "q.property('sg:state') == 'sweep'"
+            },
+            {
+              "dying": "q.property('sg:state') == 'dying'"
+            }
+          ],
+          "blend_transition": 0.1
+        },
+        "breath": {
+          "animations": [
+            "breath"
+          ],
+          "transitions": [
+            {
+              "default": "q.property('sg:state') == 'walk'"
+            },
+            {
+              "roar": "q.property('sg:state') == 'roar'"
+            },
+            {
+              "charge": "q.property('sg:state') == 'charge'"
+            },
+            {
+              "focus": "q.property('sg:state') == 'focus'"
+            },
+            {
+              "rush": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "claw": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "grab": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "whip": "q.property('sg:state') == 'sweep'"
+            },
+            {
+              "dying": "q.property('sg:state') == 'dying'"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "rush": {
+          "animations": [
+            "rush"
+          ],
+          "transitions": [
+            {
+              "default": "q.property('sg:state') == 'walk'"
+            },
+            {
+              "roar": "q.property('sg:state') == 'roar'"
+            },
+            {
+              "charge": "q.property('sg:state') == 'charge'"
+            },
+            {
+              "focus": "q.property('sg:state') == 'focus'"
+            },
+            {
+              "breath": "q.property('sg:state') == 'beam'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "claw": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "grab": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "whip": "q.property('sg:state') == 'sweep'"
+            },
+            {
+              "dying": "q.property('sg:state') == 'dying'"
+            }
+          ],
+          "blend_transition": 0.2
+        },
+        "land": {
+          "animations": [
+            "land"
+          ],
+          "transitions": [
+            {
+              "default": "q.property('sg:state') == 'walk'"
+            },
+            {
+              "roar": "q.property('sg:state') == 'roar'"
+            },
+            {
+              "charge": "q.property('sg:state') == 'charge'"
+            },
+            {
+              "focus": "q.property('sg:state') == 'focus'"
+            },
+            {
+              "breath": "q.property('sg:state') == 'beam'"
+            },
+            {
+              "rush": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "claw": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "grab": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "whip": "q.property('sg:state') == 'sweep'"
+            },
+            {
+              "dying": "q.property('sg:state') == 'dying'"
+            }
+          ],
+          "blend_transition": 0.25
+        },
+        "claw": {
+          "animations": [
+            "claw"
+          ],
+          "transitions": [
+            {
+              "default": "q.property('sg:state') == 'walk'"
+            },
+            {
+              "roar": "q.property('sg:state') == 'roar'"
+            },
+            {
+              "charge": "q.property('sg:state') == 'charge'"
+            },
+            {
+              "focus": "q.property('sg:state') == 'focus'"
+            },
+            {
+              "breath": "q.property('sg:state') == 'beam'"
+            },
+            {
+              "rush": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "grab": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "whip": "q.property('sg:state') == 'sweep'"
+            },
+            {
+              "dying": "q.property('sg:state') == 'dying'"
+            }
+          ],
+          "blend_transition": 0.2
+        },
+        "grab": {
+          "animations": [
+            "grab"
+          ],
+          "transitions": [
+            {
+              "default": "q.property('sg:state') == 'walk'"
+            },
+            {
+              "roar": "q.property('sg:state') == 'roar'"
+            },
+            {
+              "charge": "q.property('sg:state') == 'charge'"
+            },
+            {
+              "focus": "q.property('sg:state') == 'focus'"
+            },
+            {
+              "breath": "q.property('sg:state') == 'beam'"
+            },
+            {
+              "rush": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "claw": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "whip": "q.property('sg:state') == 'sweep'"
+            },
+            {
+              "dying": "q.property('sg:state') == 'dying'"
+            }
+          ],
+          "blend_transition": 0.25
+        },
+        "whip": {
+          "animations": [
+            "whip"
+          ],
+          "transitions": [
+            {
+              "default": "q.property('sg:state') == 'walk'"
+            },
+            {
+              "roar": "q.property('sg:state') == 'roar'"
+            },
+            {
+              "charge": "q.property('sg:state') == 'charge'"
+            },
+            {
+              "focus": "q.property('sg:state') == 'focus'"
+            },
+            {
+              "breath": "q.property('sg:state') == 'beam'"
+            },
+            {
+              "rush": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "claw": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "grab": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "dying": "q.property('sg:state') == 'dying'"
+            }
+          ],
+          "blend_transition": 0.0
+        },
+        "dying": {
+          "animations": [
+            "dying"
+          ],
+          "transitions": [
+            {
+              "default": "q.property('sg:state') == 'walk'"
+            },
+            {
+              "roar": "q.property('sg:state') == 'roar'"
+            },
+            {
+              "charge": "q.property('sg:state') == 'charge'"
+            },
+            {
+              "focus": "q.property('sg:state') == 'focus'"
+            },
+            {
+              "breath": "q.property('sg:state') == 'beam'"
+            },
+            {
+              "rush": "q.property('sg:state') == 'leap'"
+            },
+            {
+              "land": "q.property('sg:state') == 'land'"
+            },
+            {
+              "claw": "q.property('sg:state') == 'bite'"
+            },
+            {
+              "grab": "q.property('sg:state') == 'dorsal'"
+            },
+            {
+              "whip": "q.property('sg:state') == 'sweep'"
+            }
+          ],
+          "blend_transition": 0.45
+        }
+      }
+    }
+  }
+}
