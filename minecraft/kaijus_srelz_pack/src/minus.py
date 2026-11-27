@@ -168,7 +168,7 @@ def build_head(m, rng):
         ob(m, head, tuple(c0 + V(0, 0.86, 0) + out * 0.32 + f * 0.5), (1.4, 0.9, 2.3), "head", yaw=-s * 52, pitch=-18)
         ob(m, head, (s * 2.95, 38.45, -11.25), (1.0, 0.7, 1.1), "skin2", yaw=-s * 30, pitch=-8)                         # knot of scale at the temple
         ob(m, head, (s * 2.95, 36.6, -11.35), (0.9, 1.0, 0.8), "head", yaw=-s * 30)                                     # the corner of the face below and beside the eye
-        ob(m, head, (s * 1.15, 37.85, -12.7), (1.0, 0.6, 1.5), "head", yaw=-s * 26, pitch=-20)                          # the brow running into the nose
+        ob(m, head, (s * 0.95, 38.02, -12.55), (0.9, 0.55, 1.4), "head", yaw=-s * 24, pitch=-18)                        # the brow running into the nose (kept clear of the eye)
         ob(m, head, tuple(c0 + V(0, -0.78, 0) + out * 0.15 + f * 0.45), (0.9, 0.5, 1.9), "head", yaw=-s * 52)           # cheekbone under the eye
         # plated cheek: scales fanning back from the corner of the mouth
         for (dy, dz, sc) in ((0.3, -7.4, 1.0), (0.45, -8.7, 0.95), (-0.5, -8.0, 0.95), (-0.35, -9.3, 0.85), (-1.1, -8.7, 0.8), (1.2, -8.1, 0.8), (1.25, -9.6, 0.7)):
